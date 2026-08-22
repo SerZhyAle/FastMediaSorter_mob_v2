@@ -9,7 +9,6 @@ import android.service.quicksettings.TileService
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureZone
-import timber.log.Timber
 
 /**
  * S0672: Quick Settings tile fallback that triggers the standard MediaProjection screen capture.

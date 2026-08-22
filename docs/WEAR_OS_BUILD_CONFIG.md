@@ -56,8 +56,15 @@ Added interactive module selection:
 Already available in `scripts/`:
 
 - `build-wear-debug.PS1` - Quick debug build
-- `build-wear-release.PS1` - Release build with version bump
+- `build-wear-release.PS1` - Release build
 - `select-wear-module.ps1` - Interactive module selection
+
+Neither wear builder stamps a version: both carry the constants checked into
+`wear/build.gradle.kts`. A release version is stamped into `app_v2` and `wear` together by
+`scripts/release/build-release-spectrum.ps1`, from one timestamp, so the two modules ship one
+`versionName` and two distinct `versionCode`s - the watch code is the app code without its trailing
+minute digit, because Play refuses a release that repeats a `versionCode` under the shared
+`applicationId`. Gate: `scripts/quality/assert-module-version-parity.ps1`.
 
 ### 6. **Documentation** ✅
 

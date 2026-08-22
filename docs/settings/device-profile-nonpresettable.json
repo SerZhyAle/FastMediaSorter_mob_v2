@@ -17,6 +17,8 @@
     { "field": "videoSnapshotResourceId", "reason": "pointer to a resource row that exists only on this install" },
     { "field": "linkAutoDownloadResourceId", "reason": "pointer to a resource row that exists only on this install" },
     { "field": "launcherWallpaperImagePath", "reason": "pointer to a wallpaper file that exists only on this install" },
+    { "field": "launcherWidgetBackdropAlpha", "reason": "launcher desktop tuning - user setting for widget backdrop opacity" },
+    { "field": "frontFlashlightColor", "reason": "personal taste - the flashlight glow colour is the user's pick, and the default white is already what every device class wants (S1796)" },
 
     { "field": "screenCaptureDisclosureAccepted", "reason": "consent - only the user can give it" },
     { "field": "screenRecordingDisclosureAccepted", "reason": "consent - only the user can give it" },

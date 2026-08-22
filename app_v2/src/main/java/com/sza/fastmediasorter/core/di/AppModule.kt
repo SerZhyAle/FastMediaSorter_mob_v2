@@ -12,13 +12,13 @@ import com.chuckerteam.chucker.api.ChuckerInterceptor
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
-import com.sza.fastmediasorter.data.local.LocalMediaScanner
-import com.sza.fastmediasorter.data.remote.ftp.FtpClient
-import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveCredentialsManager
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveHttpClient
+import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.data.remote.ITunesApiService
+import com.sza.fastmediasorter.data.remote.ftp.FtpClient
+import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.domain.usecase.MediaScanner
 import dagger.Binds
 import dagger.Module
@@ -26,7 +26,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import timber.log.Timber
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,6 +34,7 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import timber.log.Timber
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.inject.Qualifier
@@ -122,6 +122,15 @@ object AppModule {
             scope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
             produceFile = { context.preferencesDataStoreFile("settings") }
         )
+    }
+
+    @Provides
+    @Singleton
+    fun provideSettingsMigrationManager(
+        @ApplicationContext context: Context,
+        dataStore: DataStore<Preferences>
+    ): com.sza.fastmediasorter.data.SettingsMigrationManager {
+        return com.sza.fastmediasorter.data.SettingsMigrationManager(context, dataStore)
     }
     
     // SftpClient and FtpClient are constructor-injected (@Inject + @Singleton on the class).

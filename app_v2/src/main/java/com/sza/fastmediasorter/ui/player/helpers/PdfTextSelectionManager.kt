@@ -44,7 +44,8 @@ import timber.log.Timber
 @OptIn(ExperimentalCoroutinesApi::class)
 class PdfTextSelectionManager(
     // S0380: root + safeViews seam instead of ActivityPlayerUnifiedBinding (works on trimmed layouts).
-    private val root: View,
+    // S1549: var - the overlay container is looked up from this root, so a re-inflate re-points it.
+    private var root: View,
     private val safeViews: PlayerBindingSafeViews,
     private val settingsRepository: SettingsRepository,
     private val coroutineScope: CoroutineScope,
@@ -70,6 +71,11 @@ class PdfTextSelectionManager(
     }
 
     fun isInTextSelectionMode(): Boolean = isInTextSelectionMode
+
+    /** S1549: aim the overlay container lookup at a re-inflated hierarchy. */
+    fun rebindLayoutRoot(newRoot: View) {
+        root = newRoot
+    }
 
     /**
      * Enter text selection mode for the given page.

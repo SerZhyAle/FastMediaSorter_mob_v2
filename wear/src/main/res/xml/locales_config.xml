@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  S1814: the single declaration of the languages the wear interface supports.
+  Kotlin reads it through WearLocaleManager, and per-app language settings in Android 13+
+  read this declaration directly.
+-->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="en"/>
+    <locale android:name="ru"/>
+    <locale android:name="uk"/>
+</locale-config>

@@ -17,6 +17,19 @@
         <item name="colorOnBackground">@color/white</item>
         <item name="colorOnSurface">@color/white</item>
 
+        <!-- S1895: defined by the app rather than inherited from the M3 baseline palette. -->
+        <item name="colorSurfaceVariant">@color/m3_surface_variant</item>
+        <item name="colorTertiary">@color/m3_tertiary</item>
+        <item name="colorError">@color/m3_error</item>
+
+        <!-- S1895: launcher foregrounds. Same order as the day block so the two read side by side. -->
+        <item name="launcherTaskbarStartText">@color/launcher_taskbar_start_text</item>
+        <item name="launcherTaskbarAllAppsText">@color/launcher_taskbar_all_apps_text</item>
+        <item name="launcherStartRowGroup1">@color/launcher_start_row_group1</item>
+        <item name="launcherStartRowGroup2">@color/launcher_start_row_group2</item>
+        <item name="launcherStartRowGroup3">@color/launcher_start_row_group3</item>
+        <item name="launcherStartRowGroup4">@color/launcher_start_row_group4</item>
+
         <!-- Window background - dark for night mode -->
         <item name="android:windowBackground">@color/item_normal</item>
         <!-- Disable preview on app launch - no icon/splash shown until app fully loads -->

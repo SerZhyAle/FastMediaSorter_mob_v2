@@ -35,8 +35,11 @@ class LauncherStarterSetsTest {
     /** The utilities every profile closes with, below the second header. */
     private val commonTail = listOf("fn:favorites", "os:settings", "app:__self__")
 
-    /** S1587: content opens the desktop, so the first item of every set is the everything-else header. */
-    private val contentHeader = listOf("sec:everything_else")
+    /** The launcher actions a profile seeds, in catalogue order. */
+    private fun actionTargets(profile: DeviceProfileType): List<String> =
+        LauncherActionCatalog.all
+            .filter { it.key != LauncherActionCatalog.KEY_BLACK_SCREEN || profile in BLACK_SCREEN_PROFILES }
+            .map { "act:${it.key}" }
 
     private val columnCounts = listOf(3, 4, 6, 12)
 
@@ -82,22 +85,23 @@ class LauncherStarterSetsTest {
         DeviceProfileType.OTHER to ProfileGrid(wifi = true, bluetooth = true),
     )
 
-    // ── itemsFor ────────────────────────────────────────────────────────────
+    // ── itemsFor ────────
 
     @Test
-    fun `every set opens with the content section and closes with the launcher actions`() {
+    fun `every set opens with top unsectioned items and closes with the launcher actions`() {
         val items = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap(), emptySet())
         assertEquals(
-            contentHeader +
-                listOf("clock", "search", "weather", "os:wifi", "os:bluetooth") +
-                sectionTail(DeviceProfileType.OTHER),
+            listOf("clock", "search", "weather", "sec:app_functions") +
+                actionTargets(DeviceProfileType.OTHER) +
+                commonTail +
+                listOf("sec:android_apps", "os:wifi", "os:bluetooth"),
             items.map { it.target },
         )
-        assertEquals(LauncherCellKind.SECTION, items.first().kind)
+        assertEquals(LauncherCellKind.GADGET, items.first().kind)
     }
 
     @Test
-    fun `every launcher action sits under the second header and is seeded once`() {
+    fun `every launcher action sits under the app-functions header and is seeded once`() {
         val targets = LauncherStarterSets
             .itemsFor(
                 DeviceProfileType.PERSONAL_SMARTPHONE,
@@ -106,19 +110,17 @@ class LauncherStarterSetsTest {
                 emptySet(),
             )
             .map { it.target }
-        val contentHeaderIndex = targets.indexOf("sec:everything_else")
+        val widgetsHeaderIndex = targets.indexOf("sec:widgets")
         val actionsHeaderIndex = targets.indexOf("sec:app_functions")
         val actions = targets.filter { it.startsWith("act:") }
-        // Strategic §6.5: they moved out of the tail rather than being duplicated into the section.
         assertEquals(LauncherActionCatalog.all.size - 1, actions.size)
-        assertTrue("content header must come first", contentHeaderIndex < actionsHeaderIndex)
-        assertEquals(actions, targets.subList(actionsHeaderIndex + 1, targets.size - commonTail.size))
+        assertTrue("widgets header must come first", widgetsHeaderIndex < actionsHeaderIndex)
+        val actionsStart = actionsHeaderIndex + allPaddingAvailable.size + 1
+        assertEquals(actions, targets.subList(actionsStart, actionsStart + actions.size))
     }
 
     @Test
     fun `no gadget is seeded inside the app-functions section`() {
-        // Strategic §6.11: a gadget may not cover a header row. S1587 moved that section to the end of
-        // the set, so the constraint now reads: nothing below the second header is a gadget.
         val items = LauncherStarterSets.itemsFor(
             DeviceProfileType.AUDIO_PLAYER,
             StarterResources(allAudioId = 7),
@@ -145,12 +147,20 @@ class LauncherStarterSetsTest {
             emptySet(),
         )
         assertEquals(
-            contentHeader + listOf(
+            listOf(
                 "clock", "search", "weather",
-                "res:1:BROWSE", "res:2:BROWSE", "res:3:BROWSE", "res:4:BROWSE", "res:5:BROWSE", "res:6:BROWSE",
-                "altitude", "satellites",
-                "fn:streams", "fn:quick_camera", "fn:quick_voice", "fn:calculator", "fn:network_monitor", "fn:ocr",
-            ) + sectionTail(DeviceProfileType.PERSONAL_SMARTPHONE),
+                "sec:widgets", "compass",
+                "sec:resources",
+                "res:1:BROWSE", "res:2:BROWSE", "res:3:BROWSE",
+                "res:4:BROWSE", "res:5:BROWSE", "res:6:BROWSE",
+                // S1913: listed rather than folded into sectionTail(), which has no padding cells by
+                // construction. This assertion is named "and padding set" and is called with
+                // allPaddingAvailable, so commonFeatures emits all six - the helper silently dropped
+                // them when the flat tail was refactored away, which is what made this test red.
+                "sec:app_functions",
+                "fn:streams", "fn:quick_camera", "fn:quick_voice",
+                "fn:calculator", "fn:network_monitor", "fn:ocr",
+            ) + actionTargets(DeviceProfileType.PERSONAL_SMARTPHONE) + commonTail,
             items.map { it.target },
         )
     }
@@ -164,9 +174,14 @@ class LauncherStarterSetsTest {
             emptySet(),
         )
         assertEquals(
-            contentHeader +
-                listOf("clock", "search", "weather", "res:1:BROWSE", "altitude", "satellites", "fn:calculator") +
-                sectionTail(DeviceProfileType.PERSONAL_SMARTPHONE),
+            listOf(
+                "clock", "search", "weather",
+                "sec:widgets", "compass",
+                "sec:resources", "res:1:BROWSE",
+                "sec:app_functions", "fn:calculator",
+            ) +
+                actionTargets(DeviceProfileType.PERSONAL_SMARTPHONE) +
+                commonTail,
             items.map { it.target },
         )
     }
@@ -180,9 +195,20 @@ class LauncherStarterSetsTest {
             emptySet(),
         )
         assertEquals(
-            contentHeader +
-                listOf("clock", "search", "weather", "folder_preview:5", "res:5:SLIDESHOW", "os:wifi") +
-                sectionTail(DeviceProfileType.PHOTO_FRAME),
+            listOf(
+                "clock", "search", "weather",
+                // S1913: no sec:resources header here. profileGadgets seeds the PHOTO_FRAME
+                // slideshow shortcut into the widgets bucket beside its folder-preview gadget, the
+                // way EBOOK_READER seeds its PLAY shortcut, while commonResources is scoped to one
+                // BROWSE shortcut per virtual resource and never reads lastResourceId. resItems is
+                // therefore empty, and an empty section must not print a header - a header with
+                // nothing under it swallows the section below it, section membership being positional.
+                "sec:widgets", "folder_preview:5", "res:5:SLIDESHOW", "media_image_window:5",
+                "sec:app_functions",
+            ) +
+                actionTargets(DeviceProfileType.PHOTO_FRAME) +
+                commonTail +
+                listOf("sec:android_apps", "os:wifi"),
             items.map { it.target },
         )
     }
@@ -192,7 +218,13 @@ class LauncherStarterSetsTest {
         val items = LauncherStarterSets
             .itemsFor(DeviceProfileType.PHOTO_FRAME, StarterResources(), emptyMap(), emptySet())
         assertEquals(
-            contentHeader + "clock" + "search" + "weather" + "os:wifi" + sectionTail(DeviceProfileType.PHOTO_FRAME),
+            listOf(
+                "clock", "search", "weather",
+                "sec:app_functions",
+            ) +
+                actionTargets(DeviceProfileType.PHOTO_FRAME) +
+                commonTail +
+                listOf("sec:android_apps", "os:wifi"),
             items.map { it.target },
         )
     }
@@ -206,10 +238,15 @@ class LauncherStarterSetsTest {
             emptySet(),
         )
         assertEquals(
-            contentHeader + listOf(
-                "clock", "search", "res:7:BROWSE", "playlist:7", "streams", "os:wifi", "os:bluetooth",
-                "audio_now_playing", "fn:streams",
-            ) + sectionTail(DeviceProfileType.AUDIO_PLAYER),
+            listOf(
+                "clock", "search",
+                "sec:widgets", "playlist:7", "streams", "audio_now_playing", "media_audio_window:7",
+                "sec:resources", "res:7:BROWSE",
+                "sec:app_functions", "fn:streams",
+            ) +
+                actionTargets(DeviceProfileType.AUDIO_PLAYER) +
+                commonTail +
+                listOf("sec:android_apps", "os:wifi", "os:bluetooth"),
             withStreams.map { it.target },
         )
         val withoutStreams = LauncherStarterSets.itemsFor(
@@ -280,8 +317,11 @@ class LauncherStarterSetsTest {
             assertEquals("$profile Bluetooth", expected.bluetooth, "os:bluetooth" in targets)
             assertEquals("$profile now-playing", expected.nowPlaying, "audio_now_playing" in targets)
             assertEquals("$profile black screen", expected.blackScreen, "act:black_screen" in targets)
-            assertEquals("$profile altitude", expected.locationTiles, "altitude" in targets)
-            assertEquals("$profile satellites", expected.locationTiles, "satellites" in targets)
+            // S1747: the compass is the only location tile a fresh desktop seeds; altitude and
+            // satellites stay addable by hand and must never come back on their own.
+            assertEquals("$profile compass", expected.locationTiles, "compass" in targets)
+            assertFalse("$profile altitude", "altitude" in targets)
+            assertFalse("$profile satellites", "satellites" in targets)
             assertEquals("$profile speed", profile == DeviceProfileType.CAR_HEAD_UNIT, "speed" in targets)
             assertEquals("$profile maps", expected.maps, "app:${LauncherStarterSets.PACKAGE_MAPS}" in targets)
             assertEquals("$profile FM radio", expected.fmRadio, "app:$FM_RADIO_PACKAGE" in targets)
@@ -289,7 +329,29 @@ class LauncherStarterSetsTest {
         }
     }
 
-    // ── place (the overlap invariant) ───────────────────────────────────────
+    @Test
+    fun `every profile opens a widgets section and the tablet and reader fill it differently`() {
+        // S1886: HOME_TABLET and VR_HEADSET seeded no widgets section at all before this ticket, so the
+        // group the device profile is supposed to describe never reached the desktop.
+        assertTrue("tablet widgets", widgetTargets(DeviceProfileType.HOME_TABLET).isNotEmpty())
+        assertTrue("headset widgets", widgetTargets(DeviceProfileType.VR_HEADSET).isNotEmpty())
+        assertNotEquals(
+            widgetTargets(DeviceProfileType.HOME_TABLET),
+            widgetTargets(DeviceProfileType.EBOOK_READER),
+        )
+    }
+
+    /** Targets between the widgets header and the next section header; empty when the group is absent. */
+    private fun widgetTargets(profile: DeviceProfileType): List<String> {
+        val res = StarterResources(allImagesId = 9, allDocsId = 9, lastResourceId = 9)
+        val targets = LauncherStarterSets.itemsFor(profile, res, emptyMap(), emptySet()).map { it.target }
+        val start = targets.indexOf("sec:widgets")
+        if (start < 0) return emptyList()
+        val rest = targets.drop(start + 1)
+        return rest.take(rest.indexOfFirst { it.startsWith("sec:") }.takeIf { it >= 0 } ?: rest.size)
+    }
+
+    // ── place (the overlap invariant) ────────
 
     @Test
     fun `place never overlaps two footprints and keeps every cell inside the grid`() {
@@ -358,12 +420,121 @@ class LauncherStarterSetsTest {
             emptySet(),
             importedShortcuts = imported,
         ).map { it.target }
-        val contentHeaderIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_EVERYTHING_ELSE))
+        val contentHeaderIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_RESOURCES))
         val actionsHeaderIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_APP_FUNCTIONS))
         imported.forEach { item ->
             val index = targets.indexOf(item.target)
             assertTrue("imported target absent: ${item.target}", index > contentHeaderIndex)
             assertTrue("imported target under the app-functions header: ${item.target}", index < actionsHeaderIndex)
+        }
+    }
+
+    // ── S1644: the conditional GOOGLE section ────────
+
+    private fun googleItems(
+        googleServicesAvailable: Boolean,
+        installed: Set<String>,
+    ): List<LauncherStarterSets.StarterItem> = LauncherStarterSets.itemsFor(
+        DeviceProfileType.PERSONAL_SMARTPHONE,
+        StarterResources(recentId = 1),
+        allPaddingAvailable,
+        installed,
+        googleServicesAvailable = googleServicesAvailable,
+    )
+
+    @Test
+    fun `google section holds the installed candidates in catalogue order`() {
+        val installed = setOf(
+            "com.google.android.youtube",
+            "com.android.chrome",
+            "com.android.vending",
+        )
+        val targets = googleItems(googleServicesAvailable = true, installed = installed).map { it.target }
+        val headerIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_GOOGLE))
+        assertTrue("google header absent", headerIndex >= 0)
+        assertEquals(
+            listOf("app:com.android.vending", "app:com.android.chrome", "app:com.google.android.youtube"),
+            targets.subList(headerIndex + 1, targets.size),
+        )
+    }
+
+    @Test
+    fun `google section is absent when no candidate is installed`() {
+        val targets = googleItems(googleServicesAvailable = true, installed = emptySet()).map { it.target }
+        assertFalse(
+            "an empty section would swallow every cell below it",
+            targets.contains(sectionTarget(LauncherCellCommand.SECTION_GOOGLE)),
+        )
+    }
+
+    @Test
+    fun `google section is absent without google services even when the apps are installed`() {
+        val installed = LauncherStarterSets.GOOGLE_APP_PACKAGES.toSet()
+        val targets = googleItems(googleServicesAvailable = false, installed = installed).map { it.target }
+        assertFalse(targets.contains(sectionTarget(LauncherCellCommand.SECTION_GOOGLE)))
+        // S1913: these four reach the desktop through paths the Google gating does not control -
+        // YouTube, YouTube Music and Chrome from commonThirdPartyApps, Maps from the MAPS_PROFILES
+        // rule - so seeing them here says nothing about whether the Google section was suppressed.
+        // Chrome's literal rather than the constant because PACKAGE_CHROME is private, as with
+        // FM_RADIO_PACKAGE elsewhere in this file. Holding a cell in two sections is allowed: S1644
+        // ruled that a repeated target is not what makes a cell a duplicate.
+        val seededOutsideGoogleSection = setOf(
+            LauncherStarterSets.PACKAGE_YOUTUBE,
+            LauncherStarterSets.PACKAGE_YOUTUBE_MUSIC,
+            LauncherStarterSets.PACKAGE_MAPS,
+            "com.android.chrome",
+        )
+        LauncherStarterSets.GOOGLE_APP_PACKAGES
+            .filterNot { it in seededOutsideGoogleSection }
+            .forEach { assertFalse("seeded without services: $it", targets.contains("app:$it")) }
+    }
+
+    @Test
+    fun `google section sits after all content and after the app-functions header`() {
+        val installed = setOf("com.android.vending")
+        val targets = googleItems(googleServicesAvailable = true, installed = installed).map { it.target }
+        val contentHeaderIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_RESOURCES))
+        val googleHeaderIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_GOOGLE))
+        val actionsHeaderIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_APP_FUNCTIONS))
+        assertTrue("google header must follow the content header", contentHeaderIndex < googleHeaderIndex)
+        assertTrue("google header must follow the app-functions header", actionsHeaderIndex < googleHeaderIndex)
+        assertTrue(targets.indexOf("fn:ocr") < googleHeaderIndex)
+        assertTrue(targets.indexOf("res:1:BROWSE") < googleHeaderIndex)
+    }
+
+    // ── S1644: a repeated target is not what makes a cell a duplicate ───────
+
+    @Test
+    fun `an imported shortcut is kept even when the starter set already placed its target`() {
+        val collidingTarget = LauncherCellCommand.App("com.android.vending").encode()
+        val imported = listOf(
+            LauncherStarterSets.StarterItem(LauncherCellKind.SHORTCUT, collidingTarget),
+        )
+        val targets = LauncherStarterSets.itemsFor(
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            StarterResources(recentId = 1),
+            allPaddingAvailable,
+            setOf("com.android.vending"),
+            googleServicesAvailable = true,
+            importedShortcuts = imported,
+        ).map { it.target }
+        // Once from the import, once from the GOOGLE section: the owner allows the same application to
+        // hold as many cells as it has free positions.
+        assertEquals(2, targets.count { it == collidingTarget })
+    }
+
+    @Test
+    fun `two cells with the same target occupy different rectangles`() {
+        val target = LauncherCellCommand.App("com.android.vending").encode()
+        val items = List(2) { LauncherStarterSets.StarterItem(LauncherCellKind.SHORTCUT, target) }
+        columnCounts.forEach { columns ->
+            val placed = LauncherStarterSets.place(items, columns)
+            assertNoOverlap(placed)
+            assertNotEquals(
+                "same target packed onto the same anchor at $columns",
+                placed[0].rowIndex to placed[0].colIndex,
+                placed[1].rowIndex to placed[1].colIndex,
+            )
         }
     }
 
@@ -383,7 +554,7 @@ class LauncherStarterSetsTest {
         // otherwise the two-row gadget packed after the first header runs straight through the row the
         // second header lands on, and that gadget belongs to neither section.
         val items = listOf(
-            header(LauncherCellCommand.SECTION_EVERYTHING_ELSE),
+            header(LauncherCellCommand.SECTION_MAIN),
             LauncherStarterSets.StarterItem(LauncherCellKind.GADGET, "clock", spanW = 4, spanH = 2),
             header(LauncherCellCommand.SECTION_APP_FUNCTIONS),
             LauncherStarterSets.StarterItem(LauncherCellKind.SHORTCUT, "fn:favorites"),

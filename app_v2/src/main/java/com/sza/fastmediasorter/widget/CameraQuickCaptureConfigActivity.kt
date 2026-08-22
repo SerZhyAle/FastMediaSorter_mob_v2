@@ -58,7 +58,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * S0369 - configuration activity for the quick camera-capture widget. The user picks one target:
@@ -166,8 +165,12 @@ class CameraQuickCaptureConfigActivity : BaseActivity<ActivityCameraQuickCapture
         else CameraQuickCaptureWidgetProvider.CAPTURE_MODE_PHOTO
 
     private fun updateWidgetAndFinish() {
-        val appWidgetManager = AppWidgetManager.getInstance(this)
-        CameraQuickCaptureWidgetProvider.updateAppWidget(this, appWidgetManager, appWidgetId)
+        // S1930: the launcher runs this same screen for a desktop cell, which has no widget to push to;
+        // the cam_capture_* keys written above are all it needs, and Phase 03 owns the redraw.
+        if (!LauncherWidgetToken.isLauncherToken(appWidgetId)) {
+            val appWidgetManager = AppWidgetManager.getInstance(this)
+            CameraQuickCaptureWidgetProvider.updateAppWidget(this, appWidgetManager, appWidgetId)
+        }
         setResult(
             RESULT_OK,
             Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)

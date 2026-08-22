@@ -5,9 +5,6 @@
     <string name="ocr_best_model_delete">Löschen</string>
     <string name="ocr_best_model_download">Herunterladen</string>
     <string name="ocr_button_description">Text aus dem Text extrahieren</string>
-    <string name="ocr_engine_type">OCR-Engine</string>
-    <string name="ocr_engine_type_paddleocr">PaddleOCR</string>
-    <string name="ocr_engine_type_tesseract">Tesseract (Standard)</string>
     <string name="ocr_error">Der Text konnte nicht erkannt werden.</string>
     <string name="ocr_extract_image_failed">Dieses Bild konnte nicht für die Texterkennung vorbereitet werden. Bitte versuchen Sie es erneut.</string>
     <string name="ocr_font_family">OCR-Schriftfamilie</string>

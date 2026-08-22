@@ -62,6 +62,32 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/screenshot_accessibility_service_config" />
         </service>
+
+        <!-- S1881: Quick Settings Tile for noLegal -->
+        <service
+            android:name="com.sza.fastmediasorter.screencapture.NoLegalAccessibilityTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_accessibility"
+            android:label="@string/qs_tile_accessibility"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <!-- S1881: Homescreen AppWidget for noLegal -->
+        <receiver
+            android:name="com.sza.fastmediasorter.widget.NoLegalAccessibilityWidgetProvider"
+            android:exported="true"
+            android:label="@string/qs_tile_accessibility">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.sza.fastmediasorter.action.TOGGLE_ACCESSIBILITY" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_accessibility_toggle_info" />
+        </receiver>
     </application>
 
 </manifest>

@@ -3,10 +3,10 @@
      Untranslated keys are absent on purpose - Android falls back to English (S1190, ADR-6). -->
 <resources>
     <string name="settings">ترتیبات</string>
-    <string name="settings_3d_vr_help_message">3D VR موڈ Meta Quest 3 اور Android XR جیسے ہیڈسیٹس پر ویڈیو اور تصاویر کی غرق کن پلے بیک دیتا ہے۔ جن آلات میں XR رن ٹائم نہیں، وہاں مرکزی سوئچ غیر فعال رہتا ہے۔ ایپ ویڈیو کی شکل (SBS، OU، 360°، VR180) خود پہچان لیتی ہے؛ پلیئر کے ڈائیلاگ میں اسے ہاتھ سے بھی چنا جا سکتا ہے۔</string>
+    <string name="settings_3d_vr_help_message">3D VR ہیڈسیٹس جیسے Meta Quest 3 اور Android XR پر عمیق ویڈیو اور فوٹو پلے بیک فراہم کرتا ہے۔ بغیر XR رن ٹائم والے آلات پر، مین ٹوگل غیر فعال رہتا ہے۔ ایپ ویڈیو فارمیٹ (SBS, OU, 360°, VR180) خودکار طور پر شناخت کرتی ہے؛ دستی اوور رائیڈ پلیئر ڈائیلاگ میں دستیاب ہے۔</string>
     <string name="settings_3d_vr_help_title">3D VR موڈ کے بارے میں</string>
     <string name="settings_accept_shared_files">شیئر کی گئی فائلیں قبول کریں</string>
-    <string name="settings_already_default_player">✓ پہلے ہی طے شدہ کے طور پر مقرر ہے</string>
+    <string name="settings_already_default_player">✓ پہلے سے بطور ڈیفالٹ سیٹ ہے</string>
     <string name="settings_application_log_title">ایپلیکیشن لاگ</string>
     <string name="settings_black_screen_button_desc">پلیئر کی پٹی میں ایسا بٹن دکھائیں جو آڈیو یا ویڈیو چلتے رہنے کے دوران اسکرین بجھا دے</string>
     <string name="settings_black_screen_button_title">\"سیاہ اسکرین\" بٹن دکھائیں</string>
@@ -150,7 +150,7 @@
     <string name="setting_enable_pip">تصویر در تصویر فعال کریں</string>
     <string name="setting_enable_pip_desc">پلیئر میں PiP بٹن دکھائیں اور ہوم دبانے پر خودکار طور پر PiP میں جائیں (Android 12+)</string>
     <string name="setting_enable_translation_desc">OCR کے ذریعے متن کا ترجمہ فعال کریں</string>
-    <string name="setting_file_ops_in_overflow_menu_desc">نقل/منتقلی/نام بدلنا/حذف کو ہر سطر کے ⋮ مینو میں سمیٹیں</string>
+    <string name="setting_file_ops_in_overflow_menu_desc">Copy/Move/Rename/Delete کو ہر قطار کے ⋮ مینو میں سمیٹیں</string>
     <string name="setting_follow_system_rotation_summary">فعال ہونے پر پلیئر کے سوا ایپ کی تمام ونڈوز نظام کی خودکار گردش کی ترتیب کی پیروی کرتی ہیں۔ بند ہونے پر وہ نظام کی ترتیب سے قطع نظر آلے کے سینسر کی پیروی کرتی ہیں۔</string>
     <string name="setting_follow_system_rotation_title">نظام کی خودکار گردش کے ساتھ اسکرین گھمائیں (پلیئر کے سوا)</string>
     <string name="setting_follow_system_rotation_player_title">نظام کی خودکار گردش کے ساتھ پلیئر کی اسکرین گھمائیں</string>
@@ -195,12 +195,12 @@
     <string name="pref_crop_images_fullscreen_title">اسکرین بھرنے کے لیے تصاویر کاٹیں</string>
     <string name="pref_dynamic_background_summary">تصویر کے کنارے کے رنگ بڑھا کر \"سیاہ پٹیاں\" بھریں (Ambilight اثر)</string>
     <string name="pref_dynamic_background_title">متحرک پس منظر کی توسیع</string>
-    <string name="pref_file_ops_overflow_menu_desc">نقل، منتقلی، نام بدلنا اور حذف کو ہر فائل سطر کے ⋮ بٹن میں سمیٹتا ہے۔ چلانے کا بٹن ہمیشہ الگ رہتا ہے۔</string>
+    <string name="pref_file_ops_overflow_menu_desc">کاپی، منتقل، نام تبدیل، اور حذف کو ہر فائل قطار پر ⋮ بٹن میں سمیٹ دیتا ہے۔ پلے بٹن ہمیشہ الگ رہتا ہے۔</string>
     <string name="pref_file_ops_overflow_menu_title">اضافی مینو میں فائل کی کارروائیاں</string>
     <string name="pref_panel_stereo_single_eye_summary">فعال ہونے پر ساتھ ساتھ اور اوپر نیچے والی سٹیریو ویڈیوز اور پوری اسکرین تصاویر ایک آنکھ تک کاٹ کر پوری اسکرین پر پھیلا دی جاتی ہیں - 3D عینک کے بغیر دیکھنے میں آرام دہ۔ طے شدہ: فعال۔ غرق کن VR رینڈرنگ اس ترتیب کو نظرانداز کر کے مکمل سٹیریو فریم دکھاتی ہے۔</string>
     <string name="pref_panel_stereo_single_eye_title">3D مواد ایک آنکھ سے دکھائیں</string>
     <string name="pref_prefetch_cache_auto">خودکار</string>
-    <string name="pref_prefetch_cache_help_message">طے کرتا ہے کہ سٹریم ہوتی ویڈیو کا کتنا حصہ چلنے کے مقام سے آگے پہلے سے محفوظ کیا جائے۔\n\n• کم (0.5×) - کم سے کم بفرنگ۔ پیشگی کیشے کا اشاریہ اور \"محفوظ شدہ ویڈیو رکھیں\" کی پیشکش چھپی رہتی ہے۔ جگہ اور ڈیٹا بچاتا ہے؛ سست نیٹ ورک پر چلنا رک سکتا ہے۔\n• خودکار - آلے اور موجودہ نیٹ ورک کے مطابق پلیئر کا چنا ہوا طے شدہ حجم۔\n• زیادہ (2×) - غیر مستحکم نیٹ ورک پر ہموار چلنے کے لیے بڑا بفر۔ زیادہ ڈسک جگہ لیتا ہے۔</string>
+    <string name="pref_prefetch_cache_help_message">یہ کنٹرول کرتا ہے کہ اسٹریم شدہ ویڈیو پلے ہیڈ سے کتنی آگے بفر کی جائے۔\n\n• کم (0.5×) - کم سے کم بفرنگ۔ پری کیش پیش رفت اشارہ اور \"کیشڈ ویڈیو محفوظ کریں\" کی پیشکش چھپی رہتی ہے۔ ڈسک اسپیس اور بینڈوڈتھ بچاتا ہے؛ سست نیٹ ورک پر پلے بیک اٹک سکتا ہے۔\n• خودکار - ڈیوائس اور موجودہ نیٹ ورک کی بنیاد پر پلیئر کی طرف سے چنا گیا ڈیفالٹ سائز۔\n• زیادہ (2×) - غیر مستحکم نیٹ ورکس پر ہموار پلے بیک کے لیے بڑا بفر۔ زیادہ ڈسک اسپیس استعمال کرتا ہے۔</string>
     <string name="pref_prefetch_cache_help_title">ویڈیو پیشگی کیشے کا حجم</string>
     <string name="pref_prefetch_cache_less">کم (0.5×)</string>
     <string name="pref_prefetch_cache_more">زیادہ (2×)</string>
@@ -220,7 +220,7 @@
     <string name="prefetch_a11y_format">پیشگی کیشے: %2$d سیکنڈ میں سے %1$d سیکنڈ، %3$s سے</string>
     <string name="prefetch_margin_hint">رفتار بمشکل کافی - رک سکتا ہے</string>
     <string name="prefetch_overlay_format">%1$d سیکنڈ / %2$d سیکنڈ · %3$s</string>
-    <string name="prefetch_overlay_local_copy_format">مقامی نقل · %1$s</string>
+    <string name="prefetch_overlay_local_copy_format">مقامی کاپی · %1$s</string>
     <string name="settings_category_file_browser">فائل براؤزر کا انٹرفیس</string>
     <string name="setting_mic_recording_destination_title">مائیکروفون ریکارڈنگ کی منزل</string>
     <string name="setting_mic_recording_destination_default_downloads">طے شدہ: ڈاؤن لوڈ فولڈر</string>
@@ -252,4 +252,13 @@
     <string name="settings_open_default_apps_dialog">طے شدہ بنائیں</string>
     <string name="default_apps_dialog_title">طے شدہ ایپ</string>
     <string name="language_download_failed">یہ زبان ڈاؤن لوڈ نہ ہو سکی۔ اپنا انٹرنیٹ کنکشن جانچ کر دوبارہ کوشش کریں - ایپ اسی زبان پر رہے گی جو اب استعمال ہو رہی ہے۔</string>
+    <string name="pref_resource_grid_cell_size_title">وسیلہ گرڈ سیل سائز</string>
+    <string name="pref_resource_grid_cell_size_small">چھوٹا</string>
+    <string name="pref_resource_grid_cell_size_medium">درمیانہ</string>
+    <string name="pref_resource_grid_cell_size_large">بڑا</string>
+    <string name="settings_enable_system_info">سسٹم کی معلومات</string>
+    <string name="settings_enable_system_info_summary">پروگرامز پینل اور مینو میں سسٹم کی معلومات دکھائیں</string>
+    <string name="settings_wear_group_title">Wear OS</string>
+    <string name="settings_wear_group_description">اگر آپ کے پاس Wear OS گھڑی ہے تو یہ آن کریں۔ ساتھی ایپ یہیں سے کھلتی ہے اور طے کرتی ہے کہ یہ فون گھڑی کے ساتھ کیا شیئر کرے گا۔</string>
+    <string name="settings_wear_install_guide_button">گھڑی پر انسٹال کرنے کا طریقہ</string>
 </resources>

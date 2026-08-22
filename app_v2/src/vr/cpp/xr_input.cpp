@@ -35,6 +35,7 @@ XrAction    g_prevAction{XR_NULL_HANDLE};        // Left select (trigger / pinch
 XrAction    g_nextAction{XR_NULL_HANDLE};        // Right select (trigger / pinch strength)
 XrAction    g_gripAction{XR_NULL_HANDLE};        // Drag placement
 XrAction    g_thumbstickAction{XR_NULL_HANDLE};  // Volume & Parallax controls
+XrAction    g_menuAction{XR_NULL_HANDLE};        // S1271: left menu button - settings panel toggle
 XrAction    g_aimPoseAction{XR_NULL_HANDLE};     // Aim ray pose
 XrAction    g_gripPoseAction{XR_NULL_HANDLE};    // Physical grip pose
 XrAction    g_hapticAction{XR_NULL_HANDLE};      // Tactile feedback
@@ -146,6 +147,8 @@ NativeResult xr_input_init(XrInstance instance, XrSession session) {
                      bothHands, 2, &g_gripAction) &&
         createAction(g_actionSet, "thumbstick_input", "Thumbstick input", XR_ACTION_TYPE_VECTOR2F_INPUT,
                      bothHands, 2, &g_thumbstickAction) &&
+        createAction(g_actionSet, "menu_click", "Settings panel toggle", XR_ACTION_TYPE_BOOLEAN_INPUT,
+                     leftHand, 1, &g_menuAction) &&
         createAction(g_actionSet, "aim_pose", "Aim pose", XR_ACTION_TYPE_POSE_INPUT,
                      bothHands, 2, &g_aimPoseAction) &&
         createAction(g_actionSet, "grip_pose", "Grip pose", XR_ACTION_TYPE_POSE_INPUT,
@@ -186,6 +189,8 @@ NativeResult xr_input_init(XrInstance instance, XrSession session) {
         {g_gripAction, "/user/hand/right/input/squeeze/value"},
         {g_thumbstickAction, "/user/hand/left/input/thumbstick"},
         {g_thumbstickAction, "/user/hand/right/input/thumbstick"},
+        // S1271: only the LEFT menu button is application-bindable on Touch controllers.
+        {g_menuAction, "/user/hand/left/input/menu/click"},
         {g_aimPoseAction, "/user/hand/left/input/aim/pose"},
         {g_aimPoseAction, "/user/hand/right/input/aim/pose"},
         {g_gripPoseAction, "/user/hand/left/input/grip/pose"},
@@ -288,6 +293,7 @@ void xr_input_poll(XrSpace baseSpace, XrTime predictedTime) {
         state.gripDown = false;
         state.thumbstickX = 0.0f;
         state.thumbstickY = 0.0f;
+        state.menuClicked = false;
         // S0290 (owner feedback round 2 2026-05-22): explicitly reset poses to identity so
         // a lost-then-restored tracking frame does not leave the previous frame's stale
         // pose around. Stale pointerPose was the root cause of "random ray stripes" the
@@ -400,6 +406,20 @@ void xr_input_poll(XrSpace baseSpace, XrTime predictedTime) {
             }
         }
 
+        // S1271: poll the left menu button. changedSinceLastSync + currentState is the rising
+        // edge - one click per press, never one per frame while held (the exit action above is
+        // the shipped precedent of this shape).
+        if (hand == 0 && g_menuAction != XR_NULL_HANDLE) {
+            XrActionStateGetInfo menuGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+            menuGetInfo.action = g_menuAction;
+            menuGetInfo.subactionPath = subactionPaths[hand];
+            XrActionStateBoolean menuState{XR_TYPE_ACTION_STATE_BOOLEAN};
+            if (xrGetActionStateBoolean(g_session, &menuGetInfo, &menuState) == XR_SUCCESS) {
+                state.menuClicked =
+                    menuState.isActive && menuState.changedSinceLastSync && menuState.currentState;
+            }
+        }
+
         // Poll Thumbstick Action
         XrActionStateGetInfo stickGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};
         stickGetInfo.action = g_thumbstickAction;
@@ -479,6 +499,7 @@ void xr_input_shutdown() {
         g_nextAction = XR_NULL_HANDLE;
         g_gripAction = XR_NULL_HANDLE;
         g_thumbstickAction = XR_NULL_HANDLE;
+        g_menuAction = XR_NULL_HANDLE;
         g_aimPoseAction = XR_NULL_HANDLE;
         g_gripPoseAction = XR_NULL_HANDLE;
         g_hapticAction = XR_NULL_HANDLE;

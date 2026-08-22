@@ -65,6 +65,10 @@ class AddNetworkSourceViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(domain = domain, statusMessage = "", isError = false)
     }
 
+    fun setBasePath(basePath: String) {
+        _uiState.value = _uiState.value.copy(basePath = basePath, statusMessage = "", isError = false)
+    }
+
     fun setUseSshKey(useSshKey: Boolean) {
         _uiState.value = _uiState.value.copy(useSshKey = useSshKey, statusMessage = "", isError = false)
     }
@@ -133,6 +137,7 @@ class AddNetworkSourceViewModel @Inject constructor(
                 val source = buildSource(currentState)
                 networkSourceRepository.addSource(source)
                 Timber.d("Saved network source: ${source.name} (${source.type})")
+                Timber.d("S1833: saved source carries basePath '${source.basePath}'")
                 _uiState.value = currentState.copy(
                     isLoading = false,
                     statusMessage = context.getString(R.string.connection_saved),
@@ -185,7 +190,9 @@ class AddNetworkSourceViewModel @Inject constructor(
             shareName = state.shareName.ifBlank { null },
             domain = state.domain,
             sshPrivateKey = state.sshPrivateKey.ifBlank { null },
-            basePath = "/"
+            // S1833: the form produces this now. It used to be a literal root, which every
+            // server accepts, so the path branch of the connection test was unreachable.
+            basePath = state.basePath.ifBlank { "/" }
         )
     }
 

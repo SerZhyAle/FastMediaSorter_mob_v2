@@ -437,6 +437,9 @@ Useful local commands:
 .\a.ps1 fr
 .\a.ps1 fc
 .\a.ps1 fu
+.\a.ps1 fw                      # wear module - fk/fr/fc/fu never look at it (S1807)
+.\a.ps1 fwr
+.\a.ps1 fwu
 .\a.ps1 mb
 .\a.ps1 gbp
 .\a.ps1 adb launch

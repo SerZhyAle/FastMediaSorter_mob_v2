@@ -53,11 +53,13 @@ param(
     [switch] $Gate,
     [switch] $IncludeExportTest,
     [switch] $RegenerateInventory,
-    [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path,
+    [int] $TimeoutSeconds = 600
 )
 
 $ErrorActionPreference = 'Stop'
 . (Join-Path $RepoRoot "scripts/utils/agent-lock.ps1")
+. (Join-Path $RepoRoot "scripts/utils/process-timeout.ps1")
 
 $invPath = Join-Path $RepoRoot 'docs/icons/icon-inventory.json'
 $svgDir  = Join-Path $RepoRoot 'docs/icons/svg'
@@ -302,6 +304,8 @@ if ($parityReadable) {
 }
 
 # --- Check 6: inventory-vs-source freshness (opt-in, JVM) ----------------------
+$gradleScript = if ($IsWindows -ne $false) { 'gradlew.bat' } else { 'gradlew' }
+$gradlew = Join-Path $RepoRoot $gradleScript
 if ($RegenerateInventory) {
     # S1402: the freshness check names the fix (-Dicon.inventory.generate=true) but nothing here could
     # run it, so the only route was a bare gradlew call - which Rule 23 forbids because it takes no
@@ -309,11 +313,17 @@ if ($RegenerateInventory) {
     Enter-BuildLockOrExit -Reason "assert-icon-inventory-sync.ps1 (IconInventoryExportTest, generate mode)"
     Push-Location $RepoRoot
     try {
-        & '.\gradlew.bat' ':app_v2:testStandardDebugUnitTest' '--tests' '*IconInventoryExportTest' `
-            '-Dicon.inventory.generate=true' | Out-Null
-        $genExit = $LASTEXITCODE
+        $run = Invoke-ProcessWithTimeout -FilePath $gradlew -WorkingDirectory $RepoRoot `
+            -ArgumentList @(':app_v2:testStandardDebugUnitTest', '--tests', '*IconInventoryExportTest', '-Dicon.inventory.generate=true') `
+            -TimeoutSeconds $TimeoutSeconds
+        $genExit = if ($run.TimedOut) { 2 } else { $run.ExitCode }
+        $timedOut = $run.TimedOut
     }
     finally { Pop-Location; Exit-AgentLock -Name Build }
+    if ($timedOut) {
+        Write-Error "assert-icon-inventory-sync: regeneration run timed out after ${TimeoutSeconds}s (exit 2)" -ErrorAction Continue
+        exit 2
+    }
     if ($genExit -ne 0) {
         Write-Error "assert-icon-inventory-sync: regeneration run failed (gradle exit $genExit)" -ErrorAction Continue
         exit 2
@@ -326,11 +336,17 @@ if ($IncludeExportTest) {
     Enter-BuildLockOrExit -Reason "assert-icon-inventory-sync.ps1 (IconInventoryExportTest)"
     Push-Location $RepoRoot
     try {
-        & '.\gradlew.bat' ':app_v2:testStandardDebugUnitTest' '--tests' '*IconInventoryExportTest' | Out-Null
-        $testExit = $LASTEXITCODE
+        $run = Invoke-ProcessWithTimeout -FilePath $gradlew -WorkingDirectory $RepoRoot `
+            -ArgumentList @(':app_v2:testStandardDebugUnitTest', '--tests', '*IconInventoryExportTest') `
+            -TimeoutSeconds $TimeoutSeconds
+        $testExit = if ($run.TimedOut) { 2 } else { $run.ExitCode }
+        $timedOut = $run.TimedOut
     }
     finally { Pop-Location; Exit-AgentLock -Name Build }
-    if ($testExit -ne 0) {
+    if ($timedOut) {
+        Add-Fail 'inventory-fresh' "IconInventoryExportTest timed out after ${TimeoutSeconds}s"
+    }
+    elseif ($testExit -ne 0) {
         Add-Fail 'inventory-fresh' 'committed docs/icons/icon-inventory.json differs from the live app registries - run: pwsh -NoProfile -File scripts/quality/assert-icon-inventory-sync.ps1 -RegenerateInventory'
     }
 }

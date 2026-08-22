@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.data.local.db.FavoritesEntity
+import com.sza.fastmediasorter.data.util.StreamChannelIdentity
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase
@@ -9,6 +10,11 @@ import javax.inject.Inject
 
 /**
  * S0783: maps favorites rows into browse [MediaFile]s. STREAM rows re-resolve their display name from
+ *
+ * S1851: the re-resolution is keyed by channel IDENTITY, not by the stored URL. Keyed by raw URL it
+ * missed whenever the catalog re-published a channel under a cosmetically different address, and the
+ * list then showed the name frozen at the moment the star was tapped - the same defect class S1842
+ * fixed for the star itself, but quieter: a stale name reads as merely old, not as broken.
  * the live streams catalog by URL (falling back to the stored snapshot when the channel is no longer in
  * the catalog), so the favorites list shows the channel's current catalog title instead of a stale value
  * such as the URL tail. FILE rows are unchanged. Shared by both favorites-materialization sites
@@ -22,11 +28,11 @@ class MaterializeFavoritesUseCase @Inject constructor(
     private val observeStreamSources: ObserveStreamSourcesUseCase,
 ) {
     suspend fun toMediaFiles(favorites: List<FavoritesEntity>): List<MediaFile> {
-        // Batch-load the catalog once (url -> title) so N stream favorites are not N point queries.
+        // Batch-load the catalog once (identity -> title) so N stream favorites are not N point queries.
         val streamFavorites = favorites.count { it.kind == FavoritesEntity.KIND_STREAM }
         val catalogTitles: Map<String, String> =
             if (streamFavorites > 0) {
-                observeStreamSources().first().associate { it.url to it.title }
+                observeStreamSources().first().associate { StreamChannelIdentity.ofSource(it) to it.title }
             } else {
                 emptyMap()
             }
@@ -47,5 +53,9 @@ class MaterializeFavoritesUseCase @Inject constructor(
     }
 
     private fun FavoritesEntity.resolveName(catalogTitles: Map<String, String>): String =
-        if (kind == FavoritesEntity.KIND_STREAM) catalogTitles[uri] ?: displayName else displayName
+        if (kind == FavoritesEntity.KIND_STREAM) {
+            catalogTitles[StreamChannelIdentity.of(uri)] ?: displayName
+        } else {
+            displayName
+        }
 }

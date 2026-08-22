@@ -160,6 +160,11 @@ function Find-WindowInsetsLines([string]$Text) {
 # hand during remote-log triage, which is what surfaced the class.
 $script:BroadCatchRx = [regex]'^\s*(?:\}\s*)?catch\s*\(\s*(?:@\w+(?:\([^)]*\))?\s+)?\w+\s*:\s*(?:[\w.]+\.)?(?:Exception|Throwable)\s*\)'
 $script:CancelCatchRx = [regex]'catch\s*\(\s*(?:@\w+(?:\([^)]*\))?\s+)?\w+\s*:\s*(?:[\w.]+\.)?CancellationException\s*\)'
+# S1889: CancellationException is a typealias for java.util.concurrent.CancellationException, which
+# extends IllegalStateException. An arm naming a supertype therefore takes the cancellation without
+# ever naming it and, being earlier in the chain, leaves a cured broad arm below it unreachable. The
+# guard existed and this rule still read the file as clean - which is how CloudMediaScanner shipped.
+$script:CancelSupertypeCatchRx = [regex]'^\s*(?:\}\s*)?catch\s*\(\s*(?:@\w+(?:\([^)]*\))?\s+)?\w+\s*:\s*(?:[\w.]+\.)?(?:IllegalStateException|RuntimeException)\s*\)'
 $script:TryOpenRx = [regex]'(?:^|\W)try\s*\{'
 $script:FunDeclRx = [regex]'\bfun\b'
 $script:SuspendFunRx = [regex]'\bsuspend\s+(?:inline\s+)?fun\b'
@@ -184,7 +189,8 @@ function Find-SwallowedCancellationLines([string]$Text) {
     $lines = $Text -split "`r?`n"
     $hits = @()
     for ($i = 0; $i -lt $lines.Count; $i++) {
-        if (-not $script:BroadCatchRx.IsMatch($lines[$i])) { continue }
+        $isCandidate = $script:BroadCatchRx.IsMatch($lines[$i]) -or $script:CancelSupertypeCatchRx.IsMatch($lines[$i])
+        if (-not $isCandidate) { continue }
         if ($script:CancelCatchRx.IsMatch($lines[$i])) { continue }
         $indent = Get-LineIndent $lines[$i]
 
@@ -471,15 +477,58 @@ function Get-SourceRules {
             }
             FailMessage = 'new trivial comment introduced. Explain WHY, or delete the comment (CLAUDE.md Rule 9).'
         },
+        # S1694: the boundary is app_v2 = View, wear = Compose. Roots deliberately stop at
+        # app_v2/src/main, so the watch module - which is Compose end to end and has no XML layout at
+        # all - is never judged by this dimension.
+        (New-RegexRule -Name 'compose-island' `
+                -Pattern ([regex]'setContent\s*\{') `
+                -FailMessage 'new Compose island in app_v2 (CLAUDE.md Rule 32). app_v2 is View-based: build the screen in XML + ViewBinding. Removing an island lowers this baseline; raising it is a boundary decision, not a build fix.'),
+        # S1693: growth stop for findViewById, not a placement rule. Whether one call is legitimate
+        # (custom View, adapter, runtime-resolved layout, documented host-neutral helper) or legacy
+        # is NOT lexically decidable - both shapes look identical - so this rule counts growth only.
+        # Category-C files (raw-inflate, no binding) convert opportunistically when another ticket
+        # touches them, the Rule 32 model: each conversion lowers the baseline on the next green
+        # full run, and the baseline never rises without a boundary decision.
+        (New-RegexRule -Name 'findviewbyid' `
+                -Pattern ([regex]'\bfindViewById\s*[<(]') `
+                -FailMessage 'new findViewById in app_v2/src/main (S1693). Use the layout''s generated binding field; if this file is genuinely a legitimate shape (custom View, adapter, runtime-resolved layout, documented host-neutral helper), justify the growth in review instead of raising the baseline.'),
         (New-RegexRule -Name 'empty-catch' `
                 -Pattern ([regex]'catch\s*\([^)]*\)\s*\{\s*(?:(?://[^\r\n]*)|(?:/\*[\s\S]*?\*/))?\s*\}') `
                 -FailMessage 'new empty catch block introduced. Recover, use a safe default, or log at the correct level.'),
+        # S1932: all five layout directories, not the two this rule was declared with. A colour
+        # hardcoded in layout-sw480dp, layout-sw720dp or layout-w600dp was forbidden by Rule 19 and
+        # counted by nobody. Widening cannot move the baseline: measured 2026-08-21, those three
+        # directories hold five files between them and zero hardcoded colours, while layout (29) and
+        # layout-land (59) sum to exactly the baseline of 88.
         (New-RegexRule -Name 'layout-hardcoded-colors' `
                 -Pattern ([regex]'="#[0-9a-fA-F]{3,8}"') `
                 -Extensions @('.xml') `
-                -Roots @('app_v2/src/main/res/layout', 'app_v2/src/main/res/layout-land') `
-                -PathFilter 'app_v2/src/main/res/layout(-land)?/' `
+                -Roots @('app_v2/src/main/res/layout', 'app_v2/src/main/res/layout-land',
+                         'app_v2/src/main/res/layout-sw480dp', 'app_v2/src/main/res/layout-sw720dp',
+                         'app_v2/src/main/res/layout-w600dp') `
+                -PathFilter 'app_v2/src/main/res/layout(-land|-sw480dp|-sw720dp|-w600dp)?/' `
                 -FailMessage 'new hardcoded layout color introduced. Reference a theme attr or named color.'),
+        # S1922: growth stop for dimension literals, on the Rule 32 / findviewbyid model above -
+        # literals convert when another ticket reaches the file, each conversion lowers the baseline
+        # on the next green full run, and no campaign over the 331 layout files is scheduled.
+        #
+        # '0dp' is excluded deliberately, and it is not a rounding decision: measured 2026-08-21,
+        # 1561 of the 3454 literals in these directories are "0dp", which is 45% of them. In a
+        # ConstraintLayout '0dp' means "match constraints" - a structural keyword, not a size. It has
+        # no value anyone could want to change in one place, and moving it into @dimen/ destroys the
+        # idiom's readability. Counting it would demand ~1561 conversions that must not happen.
+        #
+        # Five roots, not the two the colour rule above uses: this module has five layout directories
+        # and the ticket's measurement covered all of them. The colour rule's narrower scope is its
+        # own gap and is tracked separately (S1932), not widened here - that would move its baseline.
+        (New-RegexRule -Name 'layout-hardcoded-dimens' `
+                -Pattern ([regex]'="(?!0dp")[0-9]+(\.[0-9]+)?(dp|sp)"') `
+                -Extensions @('.xml') `
+                -Roots @('app_v2/src/main/res/layout', 'app_v2/src/main/res/layout-land',
+                         'app_v2/src/main/res/layout-sw480dp', 'app_v2/src/main/res/layout-sw720dp',
+                         'app_v2/src/main/res/layout-w600dp') `
+                -PathFilter 'app_v2/src/main/res/layout(-land|-sw480dp|-sw720dp|-w600dp)?/' `
+                -FailMessage 'new hardcoded dimension literal in a layout (S1922). Move the value into @dimen/ and reference it, so the size can be changed in one place. Structural "0dp" (ConstraintLayout match-constraints) is NOT counted by this rule - if that is what you added, this is not the finding.'),
         [pscustomobject]@{
             Name        = 'unsafe-collect'
             Extensions  = @('.kt')
@@ -575,7 +624,23 @@ function Get-SourceRules {
             ExcludeNames = @()
             CountInText  = { param($t) Measure-SwallowedCancellationText $t }
             LocateInText = { param($t) Find-SwallowedCancellationLines $t }
-            FailMessage  = 'new broad catch in coroutine code that swallows CancellationException. Add `catch (e: CancellationException) { throw e }` as the first arm of the chain (S1363).'
+            FailMessage  = 'new catch in coroutine code that swallows CancellationException - a broad arm, or an IllegalStateException/RuntimeException arm, both of which are its supertypes. Add `catch (e: CancellationException) { throw e }` as the first arm of the chain (S1363/S1889).'
+        },
+        # S1910: the watch module needs its OWN entry and its OWN baseline, not a wider Roots on the
+        # rule above. One shared integer would let a regression in one module hide behind a cleanup in
+        # the other and still read as at-or-below baseline, which is the one thing a ratchet exists to
+        # prevent. Seeded at the measured 29 after the five reachable sites were fixed (34 before);
+        # like every ratchet here it may fall and never rise.
+        [pscustomobject]@{
+            Name         = 'swallowed-cancellation-wear'
+            Extensions   = @('.kt')
+            Roots        = @('wear/src')
+            PathFilter   = 'wear/src/'
+            Baseline     = 'swallowed-cancellation-wear-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-SwallowedCancellationText $t }
+            LocateInText = { param($t) Find-SwallowedCancellationLines $t }
+            FailMessage  = 'new catch in wear coroutine code that swallows CancellationException - a broad arm, or an IllegalStateException/RuntimeException arm, both of which are its supertypes. Add `catch (e: CancellationException) { throw e }` as the first arm of the chain (S1363/S1889/S1910).'
         },
         [pscustomobject]@{
             Name         = 'activity-logic'
@@ -628,6 +693,49 @@ function Get-SourceRules {
             CountInText  = { param($t) Measure-LoneResourceBackslashes $t }
             LocateInText = { param($t) Find-LoneResourceBackslashLines $t }
             FailMessage  = 'new lone backslash in a string resource. AAPT2 reads it as an escape introducer and drops the character - write \\ instead (S1586).'
+        },
+        # S1786: Rule 6 architectural class suffix naming ratchet
+        [pscustomobject]@{
+            Name         = 'class-architecture-naming'
+            Extensions   = @('.kt')
+            Roots        = @('app_v2/src', 'wear/src')
+            PathFilter   = '[\\/](domain[\\/]usecase|data[\\/]repository)[\\/]'
+            Baseline     = 'class-architecture-naming-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = {
+                param($t)
+                if ([string]::IsNullOrWhiteSpace($t)) { return 0 }
+                $isUseCase = $t -match 'package\s+.*\.domain\.usecase'
+                $isRepo = $t -match 'package\s+.*\.data\.repository'
+                if (-not $isUseCase -and -not $isRepo) { return 0 }
+                
+                $count = 0
+                foreach ($line in ($t -split "`n")) {
+                    $trimmed = $line.Trim()
+                    if ($trimmed.StartsWith('//') -or $trimmed.StartsWith('/*') -or $trimmed.StartsWith('*')) { continue }
+                    if ($trimmed -match '^(?:public\s+|internal\s+|private\s+|open\s+|abstract\s+|sealed\s+|data\s+)*(?:class|interface)\s+([A-Za-z0-9_]+)') {
+                        $name = $Matches[1]
+                        # S1742: a test class is named after the thing it tests, so `FooUseCaseTest` is
+                        # correct naming rather than a violation of it. Without this the rule taxed every
+                        # new test in these two packages - the baseline had silently absorbed ~94 of them,
+                        # so the next test file always failed the delta. A gate that charges for writing a
+                        # test is worse than no gate.
+                        if ($name -match '(Test|Tests)$') { continue }
+                        if ($isUseCase -and $name -notmatch '(UseCase|UseCases|Factory|Contract)$') {
+                            $count++
+                        }
+                        # S1797: `Values` is the read-result holder every `data/repository/settings/*Store`
+                        # nests by contract, so the rule taxed the section-store pattern it should endorse -
+                        # 12 of them sat absorbed in the baseline, which made the next new store fail the
+                        # delta for following the convention. Same shape as the `Test` excuse above.
+                        elseif ($isRepo -and $name -notmatch '(Repository|RepositoryImpl|Module|Factory|Source|Store|Mapper|Parser|Utils|Coordinator|Values)$') {
+                            $count++
+                        }
+                    }
+                }
+                return $count
+            }
+            FailMessage  = 'new class or interface in domain/usecase or data/repository violates Rule 6 naming suffix (expected *UseCase or *Repository / *RepositoryImpl).'
         }
     )
 }

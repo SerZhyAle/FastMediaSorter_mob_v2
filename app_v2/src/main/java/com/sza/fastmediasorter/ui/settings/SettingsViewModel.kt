@@ -34,7 +34,6 @@ import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.LauncherWallpaperImport
 import com.sza.fastmediasorter.domain.usecase.launcher.StoreLauncherWallpaperUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ClearStreamPlayOutcomesUseCase
-import com.sza.fastmediasorter.ui.settings.helpers.SzaResourcesImporter
 import com.sza.fastmediasorter.widget.GameLaunchWidgetProvider
 import com.sza.fastmediasorter.worker.WorkManagerScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -85,7 +84,6 @@ class SettingsViewModel @Inject constructor(
     private val workManagerScheduler: WorkManagerScheduler,
     private val getDeviceStorageUseCase: GetDeviceStorageUseCase,
     private val prewarmTranslationModelUseCase: TranslationModelPrewarmer,
-    private val szaResourcesImporter: SzaResourcesImporter,
     private val setStatisticsCollectionEnabledUseCase: SetStatisticsCollectionEnabledUseCase,
     private val clearStreamPlayOutcomesUseCase: ClearStreamPlayOutcomesUseCase,
     private val remoteSourceGate: RemoteSourceAvailabilityGate,
@@ -863,21 +861,6 @@ class SettingsViewModel @Inject constructor(
             } catch (e: Exception) {
                 e.rethrowIfCancellation()
                 Timber.e(e, "Error adding resource")
-            }
-        }
-    }
-    fun importSzaResources(context: Context) {
-        viewModelScope.launch {
-            when (val result = szaResourcesImporter.import()) {
-                is SzaResourcesImporter.ImportResult.Success -> withContext(Dispatchers.Main) {
-                    android.widget.Toast.makeText(context, R.string.sza_resources_imported, android.widget.Toast.LENGTH_SHORT).show()
-                }
-                is SzaResourcesImporter.ImportResult.Failure -> {
-                    Timber.e(result.error, "Error importing SZA resources")
-                    withContext(Dispatchers.Main) {
-                        android.widget.Toast.makeText(context, R.string.error_importing_resources, android.widget.Toast.LENGTH_SHORT).show()
-                    }
-                }
             }
         }
     }

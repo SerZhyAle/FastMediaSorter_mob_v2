@@ -19,6 +19,7 @@
 
         <TextView
             style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
+            android:drawableStart="@drawable/ic_internet"
             android:text="@string/network_monitor_section_internet" />
 
         <LinearLayout

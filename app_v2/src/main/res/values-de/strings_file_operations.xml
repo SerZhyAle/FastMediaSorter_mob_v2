@@ -121,7 +121,7 @@
     <string name="file_not_found_title">Datei nicht gefunden</string>
     <string name="file_operation_progress_preparing">Vorbereitung läuft..</string>
     <string name="file_ops_in_overflow_menu">Dateivorgänge im Überlaufmenü</string>
-    <string name="file_ops_moved_to_menu_hint">Die Dateiaktionen wurden in das ⋮-Menü jeder Datei verschoben.</string>
+    <string name="file_ops_moved_to_menu_hint">Dateiaktionen wurden in das ⋮-Menü jeder Datei verschoben</string>
     <string name="file_path_label">Pfad: %1$s</string>
     <string name="file_renamed_successfully">Umbenannt.</string>
     <string name="file_restored">Datei wiederhergestellt: %1$s</string>

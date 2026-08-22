@@ -177,8 +177,8 @@
     <string name="kbm_help_player_playpause">Riproduci / Pausa</string>
     <string name="kbm_help_player_prev_next">File precedente/successivo</string>
     <string name="kbm_help_player_save">Salva istantanea / corrente</string>
-    <string name="kbm_help_player_seek_10s">Cerca −10s / +10s</string>
-    <string name="kbm_help_player_seek_60s">Cerca −60 / +60</string>
+    <string name="kbm_help_player_seek_10s">Salta −10s / +10s</string>
+    <string name="kbm_help_player_seek_60s">Salta −60s / +60s</string>
     <string name="kbm_help_player_volume">Aumenta/diminuisci il volume</string>
     <string name="kbm_help_section_dialog">Dialogo</string>
     <string name="kbm_help_section_file_ops">Operazioni sui file</string>

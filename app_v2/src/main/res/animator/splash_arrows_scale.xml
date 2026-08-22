@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    S1706: the arrows settle into place, growing slightly to full size.
+
+    Motion, not a fade. The splash window closes when the app is ready, which on this app is
+    well under the animation's length, so anything that starts from invisible can end up never
+    being seen - measured on the owner's phone, an alpha ramp from 0 left the splash blank.
+    Every element therefore stays fully opaque and only moves.
+-->
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <objectAnimator
+        android:propertyName="scaleX"
+        android:valueFrom="0.82"
+        android:valueTo="1.0"
+        android:valueType="floatType"
+        android:duration="380"
+        android:interpolator="@android:interpolator/decelerate_quint" />
+    <objectAnimator
+        android:propertyName="scaleY"
+        android:valueFrom="0.82"
+        android:valueTo="1.0"
+        android:valueType="floatType"
+        android:duration="380"
+        android:interpolator="@android:interpolator/decelerate_quint" />
+</set>

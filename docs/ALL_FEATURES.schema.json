@@ -9,7 +9,7 @@
   "properties": {
     "id": {
       "type": "string",
-      "$comment": "Stable identifier, kebab '<area>.<feature>'.",
+      "$comment": "Stable identifier, kebab '<area>.<feature>'. It also fixes the record boundary, and S1933 draws that boundary by the gate answer rather than by the screen: a capability whose halves give different answers to 'which BuildConfig flag is this behind' is two records, because 'gate' is single-valued and validate.ps1 equates 'flavors' with that flag's row - one record spanning both answers can only lie in one of two directions. Splitting such a record keeps the old id for neither half: in both known cases the id named the very half being carved off, so a 'surviving' id would put the wrong boundary straight back into the name. The split is done when a record is next touched, not as a sweep - a spanning record only causes harm at the moment someone gives it a gate, and validate.ps1 already refuses that pairing.",
       "pattern": "^[a-z0-9]+(?:[-_][a-z0-9]+)*\\.[a-z0-9]+(?:[-_][a-z0-9]+)*$"
     },
     "area": {
@@ -29,13 +29,18 @@
     },
     "flavors": {
       "type": "array",
-      "$comment": "Build variants where the capability is available.",
+      "$comment": "Build variants where the capability is available. S1934 fixes how the set is derived: from the build system, never from the build the change happened to be tested on - the flag's row in docs/FLAVOR_MATRIX.md when the capability sits behind a gate, and the full six when nothing gates it, because a capability nothing narrows cannot be narrower than the app. A set that is neither the full six nor equal to some flag's row claims a reach the build system does not produce; validate.ps1 counts those against a ratchet baseline rather than refusing each one, since 242 records predate the rule. A capability living entirely in the wear module carries the full six: that module declares no flavors, the watch app is its own installation, and no phone build excludes it - any narrower set asserts an exclusion the build does not have. A watch capability that does need the phone bridge is gated by SUPPORT_WEAR_COMPANION instead.",
       "minItems": 1,
       "uniqueItems": true,
       "items": {
         "type": "string",
         "enum": ["standard", "lite", "photos", "legacy", "vr", "noLegal"]
       }
+    },
+    "gate": {
+      "type": "string",
+      "$comment": "S1929. The BuildConfig flag this capability lives behind, e.g. 'SUPPORT_WEAR_COMPANION'. OPTIONAL, and its absence is an assertion rather than an omission: it means the capability is behind no flag at all, which is why documentation-only and watch-standalone records carry no gate and keep their own flavor sets. When present, scripts/all_features/validate.ps1 requires 'flavors' to equal that flag's row in docs/FLAVOR_MATRIX.md exactly, and a flag the matrix does not list is an error rather than a skip - a typo must not silently switch the check off. One flag, not a list: a capability sitting behind two different answers is two capabilities, or a record boundary drawn in the wrong place.",
+      "pattern": "^[A-Z][A-Z0-9_]*$"
     },
     "spec": {
       "$comment": "Provenance: source spec ticket id, or null when not spec-tracked.",

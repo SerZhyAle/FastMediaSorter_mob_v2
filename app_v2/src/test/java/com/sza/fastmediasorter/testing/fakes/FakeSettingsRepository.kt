@@ -93,4 +93,6 @@ class FakeSettingsRepository(
         resetAllTouchZoneHintsCalled = true
         touchZoneHints.clear()
     }
+
+    override suspend fun isConsolidatedStorageActive(): Boolean = false
 }

@@ -35,6 +35,13 @@ interface OfficeDocumentViewerHost {
     fun release()
 
     /**
+     * S1549: aim the viewer at a re-inflated layout hierarchy, keeping the rendered document.
+     * Declared abstract rather than defaulted so a host with a real surface cannot inherit a
+     * silent no-op and keep drawing into the discarded tree.
+     */
+    fun rebindLayoutRoot(newRoot: android.view.View)
+
+    /**
      * Print the currently rendered Office document via the embedded viewer's own adapter
      * (S0301 Phase 05). Read-only: prints exactly what the in-app viewer shows. Returns true
      * when a print job was dispatched; false signals the caller that no internal print path is
@@ -82,6 +89,10 @@ object NoOpOfficeDocumentViewerHost : OfficeDocumentViewerHost {
     override fun isInFullscreenMode(): Boolean = false
     override fun open(mediaFile: MediaFile, file: File): Boolean = false
     override fun release() {}
+
+    // S1549: market builds link no Office surface at all, so there is nothing to re-point.
+    override fun rebindLayoutRoot(newRoot: android.view.View) {}
+
     override fun print(): Boolean = false
     override fun extractPlainText(): String? = null
     override fun getSelectionActionModeCallback(): DocumentSelectionActionModeCallback? = null

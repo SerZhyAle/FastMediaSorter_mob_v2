@@ -10,8 +10,8 @@
     <string name="image_edit_contrast">کنٹراسٹ</string>
     <string name="image_edit_filters">فلٹرز</string>
     <string name="image_edit_flip">پلٹائیں</string>
-    <string name="image_edit_flip_horizontal">پلٹائیں ↔</string>
-    <string name="image_edit_flip_vertical">پلٹائیں ↕</string>
+    <string name="image_edit_flip_horizontal">پلٹیں ↔</string>
+    <string name="image_edit_flip_vertical">پلٹیں ↕</string>
     <string name="image_edit_grayscale">گرے اسکیل</string>
     <string name="image_edit_negative">منفی</string>
     <string name="image_edit_rotation">گردش</string>
@@ -36,7 +36,7 @@
     <string name="gif_edit_first_frame_help">اینیمیشن کا پہلا فریم نکالیں اور اسے ڈاؤن لوڈز فولڈر میں جامد PNG امیج کے طور پر محفوظ کریں۔ فائل کا نام: [original_name] _first_frame.png</string>
     <string name="gif_edit_save_first_frame">پہلے فریم کو بطور تصویر محفوظ کریں۔</string>
     <string name="gif_edit_speed">حرکت پذیری کی رفتار</string>
-    <string name="gif_edit_speed_help">اینیمیشن کو تیز یا سست کرنے کے لیے فریموں کے درمیان تاخیر کو ایڈجسٹ کریں۔ اصل فائل نئی رفتار کے ساتھ اوور رائٹ ہو جائے گی۔ رینج: 0.25x (4× سست) سے 4x (4× تیز)۔</string>
+    <string name="gif_edit_speed_help">اینیمیشن کو تیز یا سست کرنے کے لیے فریموں کے درمیان تاخیر ایڈجسٹ کریں۔ اصل فائل نئی رفتار سے اوور رائٹ ہو جائے گی۔ رینج: 0.25x (4× سست) سے 4x (4× تیز) تک۔</string>
     <string name="gif_edit_speed_normal">رفتار: نارمل (1.0x)</string>
     <string name="gif_edit_speed_value">رفتار: %1$.1fx</string>
     <string name="gif_edit_title">GIF ایڈیٹر</string>

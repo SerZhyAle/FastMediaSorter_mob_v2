@@ -11,7 +11,7 @@
     <string name="welcome_default_player_title">默认播放器</string>
     <string name="welcome_description_1">一体化的媒体管理工具。\n浏览、整理和管理本地、网络与云端存储中的文件，全部通过直观的触摸手势完成。</string>
     <string name="welcome_description_1_details">FastMediaSorter 把各类媒体汇集到一处。可以打开设备、网络共享或云存储中的照片、视频、GIF 和音乐，用轻点代替长按菜单来整理它们。\n\n这里设置的一切之后都能在“设置”中修改，所以本页面没有错误选项 - 点“下一步”继续即可。</string>
-    <string name="welcome_description_3" formatted="false">播放器使用 9 个触摸区域（3×3 网格）执行快捷操作。点按区域可以翻页、复制、移动、删除文件或打开命令面板。详见上方示意图。</string>
+    <string name="welcome_description_3" formatted="false">播放器使用9个触控区域（3×3网格）进行快速操作。点击区域可导航、复制、移动、删除文件或打开命令面板。详情请参见上方示意图。</string>
     <string name="welcome_language_picker_hint">选择应用语言</string>
     <string name="welcome_profile_audio_player_desc">适合纯音频设备或 MP3 播放器。隐藏照片和视频；优化后台播放与正在播放界面。</string>
     <string name="welcome_profile_audio_player_title">音频播放器</string>
@@ -34,7 +34,7 @@
     <string name="welcome_profile_tv_media_box_title">电视 / 媒体盒子</string>
     <string name="welcome_profile_video_player_desc">适合纯视频设备。隐藏照片、音乐和文档查看器；优先快速播放视频和显示缩略图。</string>
     <string name="welcome_profile_video_player_title">视频播放器</string>
-    <string name="welcome_profile_vr_headset_desc">适合虚拟现实设备。在受支持的硬件版本上预先启用 3D/360° 布局和沉浸式控件。</string>
+    <string name="welcome_profile_vr_headset_desc">最适合虚拟现实设备。在支持的硬件版本上预先启用3D/360°布局和沉浸式控件。</string>
     <string name="welcome_profile_vr_headset_title">VR 头显</string>
     <string name="welcome_recommended_badge">（推荐）</string>
     <string name="welcome_title_1">欢迎使用 FastMediaSorter！</string>

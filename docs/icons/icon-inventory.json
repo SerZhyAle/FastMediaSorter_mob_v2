@@ -649,6 +649,14 @@
   },
   {
     "surface": "program-nav",
+    "key": "front_flashlight",
+    "feature": "front_flashlight_title",
+    "drawable": "ic_front_flashlight",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "game",
     "feature": "app_launch_panel_route_game",
     "drawable": "ic_game_kryvavitsa",
@@ -769,6 +777,14 @@
   },
   {
     "surface": "program-nav",
+    "key": "system_info",
+    "feature": "settings_system_info_title",
+    "drawable": "ic_info",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "take_photo_edit",
     "feature": "screenshot_gesture_action_take_photo_edit",
     "drawable": "ic_edit_20",
@@ -796,6 +812,14 @@
     "key": "vpn",
     "feature": "app_launch_panel_os_vpn",
     "drawable": "ic_lock",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "wear_companion",
+    "feature": "wear_companion",
+    "drawable": "ic_watch",
     "assetFormat": "vector",
     "public": true
   },
@@ -1112,6 +1136,14 @@
     "public": false
   },
   {
+    "surface": "settings-header",
+    "key": "headerWear",
+    "feature": "settings_wear_group_title",
+    "drawable": "ic_watch",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
     "surface": "settings-row",
     "key": "rowAllowDelete",
     "feature": "allow_delete",
@@ -1217,6 +1249,14 @@
   },
   {
     "surface": "settings-row",
+    "key": "rowEnableSystemInfo",
+    "feature": "settings_enable_system_info",
+    "drawable": "ic_info",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
     "key": "rowEnableTranslation",
     "feature": "enable_translation",
     "drawable": "ic_translate",
@@ -1225,9 +1265,41 @@
   },
   {
     "surface": "settings-row",
+    "key": "rowEnableWearCompanion",
+    "feature": "settings_enable_wear_companion",
+    "drawable": "ic_watch",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowFrontFlashlight",
+    "feature": "front_flashlight_settings_toggle_title",
+    "drawable": "ic_front_flashlight",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
     "key": "rowGestureOverlayEnabled",
     "feature": "setting_gesture_overlay_title",
     "drawable": "ic_gesture",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowLauncherModeEnabled",
+    "feature": "launcher_settings_enable_title",
+    "drawable": "ic_launcher_mode",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowLauncherSettings",
+    "feature": "launcher_settings_dialog_title",
+    "drawable": "ic_launcher_mode",
     "assetFormat": "vector",
     "public": true
   },

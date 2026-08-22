@@ -8,6 +8,12 @@ Adding/removing/renaming any setting trips the fail-closed settings-doc-sync gat
 
 **Why:** The manifest (`docs/settings/settings-manifest.json`) is generated from a live layout scan (`SettingsManifestExportTest`), so a new `SettingsToggleRow`/row makes the committed copy stale; annotations + reference then drift too. The gate runs in `post-change.ps1`.
 
+**One-shot chain (prefer it): `scripts/quality/reindex-settings.ps1`** runs the manifest test, re-renders the four reference files and then verifies - so steps 1 and 3 below are its job, and it takes BUILD.LOCK for you. Its exit 3 means "regeneration succeeded, but the verify gate found something regeneration cannot fix" (catalog / annotations / HOW_TO), which is a real finding, not a script failure.
+
+**Budget two rounds, not one (measured 2026-08-21, S1883).** The gate stops at its FIRST failing stage, so a stale manifest hides everything after it. Fixing the manifest is what first reveals the annotation gaps - and they may include keys that are nobody's new work: on S1883 refreshing the manifest surfaced `btnDisableAccessibilityService` and `btnOpenDevSettings`, unannotated for as long as the manifest had been stale. Annotate them; they are old debt your refresh exposed, not a sibling's WIP.
+
+**Order trap: annotations BEFORE the reference render.** The reference is rendered FROM the annotations, so the natural order - regenerate, discover missing annotations, add them - leaves the just-rendered reference stale and the gate fails at `reference-fresh` on the next run. After touching `settings-annotations.json`, always re-run `scripts/docs/render-settings-reference.ps1`.
+
 **How to apply:**
 1. Regenerate manifest:
    `.\gradlew.bat :app_v2:testStandardDebugUnitTest --tests "*SettingsManifestExportTest" "-Dsettings.manifest.generate=true" --rerun-tasks`

@@ -16,6 +16,7 @@ import android.util.TypedValue
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
+import com.sza.fastmediasorter.BuildConfig
 import timber.log.Timber
 import kotlin.math.abs
 
@@ -32,17 +33,16 @@ import kotlin.math.abs
  * 1. Auto-size font so a single line fills ~90% of the original OCR box height
  *    (metric-correct, no fixed sp ceiling) so it matches the source text size
  * 2. Wrap text to multiple lines within bounding box width
- * 3. If multiline still doesn't fit vertically, reduce font size (min 8sp)
- * 4. Background covers at least the original box; expand width/height only when the
- *    translation is larger, capped at 270%
+ * 3. S1713: a translation that does not fit grows the plate DOWNWARD - it is never shrunk to fit and
+ *    never clipped, because a translation smaller than the line it replaces defeats the plate
+ * 4. Background covers at least the original box and grows down as far as the view allows
  * 5. Center text vertically within final box
  * 
  * Features:
  * - Tap on a block to bring it to front (raise z-order)
- * - Adaptive padding based on box size (2-4sp)
+ * - S1713: padding is a share of the type size (see PLATE_PADDING_EM), not of the box height
  * - Slight letter spacing for better readability
- * - Rounded corners with opaque white background
- * - Expansion limits prevent blocks from overlapping excessively
+ * - Rounded corners and an OPAQUE backing (S1713 - at 94 % the source letters read through)
  */
 class TranslationOverlayView @JvmOverloads constructor(
     context: Context,
@@ -58,9 +58,14 @@ class TranslationOverlayView @JvmOverloads constructor(
         val translatedText: String,
         val boundingBox: Rect,
         val confidence: Float,
-        var backgroundColor: Int = Color.parseColor("#F0FFFFFF"), // Adaptive background color
+        // S1713: opaque. The plate exists to cover the source text; at 94 % the original letters read
+        // through it, and if the result looks heavy the cause is the colour (S1704, S1714), not the alpha.
+        var backgroundColor: Int = Color.parseColor("#FFFFFFFF"),
         var textColor: Int = Color.BLACK, // Contrast text color
-        var customFontSize: Float? = null // Per-block font size override (6-72sp)
+        var customFontSize: Float? = null, // Per-block font size override (6-72sp)
+        // S1711: source-line type size in OCR pixels (median of the line's word heights). Null means the
+        // engine reported no words, and the size then comes from the box height as it always did.
+        val typeSizePx: Int? = null
     )
 
     private val translatedBlocks = mutableListOf<TranslatedBlock>()
@@ -89,7 +94,7 @@ class TranslationOverlayView @JvmOverloads constructor(
     
     // Paint for background rectangles
     private val backgroundPaint = Paint().apply {
-        color = Color.parseColor("#F0FFFFFF") // More opaque white for readability
+        color = Color.parseColor("#FFFFFFFF") // S1713: opaque backing, see TranslatedBlock.backgroundColor
         style = Paint.Style.FILL
         isAntiAlias = true
     }
@@ -102,6 +107,14 @@ class TranslationOverlayView @JvmOverloads constructor(
         isFakeBoldText = false
         // Slight letter spacing for better readability of both Cyrillic and Latin
         letterSpacing = 0.02f
+    }
+
+    // S1702: Paint for the debug image-display-rect boundary, hoisted out of onDraw
+    // so it is allocated once instead of per frame.
+    private val debugPaint = Paint().apply {
+        style = Paint.Style.STROKE
+        color = Color.YELLOW
+        strokeWidth = 5f
     }
     
     /**
@@ -218,6 +231,18 @@ class TranslationOverlayView @JvmOverloads constructor(
         return (target * fontSizeMultiplier).coerceIn(spToPx(minTextSizeSp), spToPx(perBlockMaxFontSizeSp))
     }
     
+    /**
+     * S1711: height the automatic type size is derived from, in view pixels.
+     *
+     * A block that carries a [TranslatedBlock.typeSizePx] uses it, so one tall artifact inside the line no
+     * longer sets the size of the translation; a block without one falls back to [scaledBoxHeightPx], which
+     * is the behaviour that shipped before this rule.
+     */
+    internal fun autoTextSizeSourcePx(block: TranslatedBlock, scaledBoxHeightPx: Float): Float {
+        val carried = block.typeSizePx ?: return scaledBoxHeightPx
+        return carried * scaleY
+    }
+
     /**
      * Load font size multiplier from SharedPreferences
      */
@@ -352,26 +377,30 @@ class TranslationOverlayView @JvmOverloads constructor(
     }
     
     /**
-     * Set the source bitmap for color sampling
+     * Set the source bitmap for color sampling.
+     * This is the full-resolution bitmap; bounding boxes are in OCR-bitmap
+     * coordinates (see [setScale]/[setOriginalImageSize]).
      */
     fun setSourceBitmap(bitmap: Bitmap?) {
         sourceBitmap = bitmap
     }
-    
+
     /**
-     * Sample background color from source image at top-left corner of bounding box
+     * Sample background color from source image at top-left corner of bounding box.
+     *
+     * The bounding box is measured on the (possibly down-scaled) OCR bitmap, while
+     * [sourceBitmap] is the full-resolution original. Scale the OCR coordinates into
+     * source-bitmap space before sampling so the plate colour is read from the point
+     * actually under the plate (S1704).
      */
     private fun sampleBackgroundColor(boundingBox: Rect): Int {
-        val bitmap = sourceBitmap ?: return Color.parseColor("#F0FFFFFF")
-        
+        val bitmap = sourceBitmap ?: return Color.parseColor("#FFFFFFFF")
+
         try {
-            // Get coordinates (top-left corner of bounding box)
-            val x = boundingBox.left.coerceIn(0, bitmap.width - 1)
-            val y = boundingBox.top.coerceIn(0, bitmap.height - 1)
-            
-            // Sample pixel color
+            val (x, y) = ocrPointToSource(boundingBox.left, boundingBox.top, bitmap)
+            Timber.d("S1704: ocr(${boundingBox.left},${boundingBox.top}) -> source($x,$y)")
             val pixelColor = bitmap.getPixel(x, y)
-            
+
             // Add slight opacity for better blending
             val alpha = 240 // ~94% opacity
             return Color.argb(
@@ -382,14 +411,31 @@ class TranslationOverlayView @JvmOverloads constructor(
             )
         } catch (e: Exception) {
             Timber.e(e, "Failed to sample background color")
-            return Color.parseColor("#F0FFFFFF")
+            return Color.parseColor("#FFFFFFFF")
         }
     }
-    
+
+    /**
+     * Map a point from OCR-bitmap coordinates to source-bitmap coordinates.
+     *
+     * Returns the input unchanged (clamped) when the two bitmaps are the same size.
+     * Exposed as a pure, testable helper (S1704).
+     */
+    internal fun ocrPointToSource(ocrX: Int, ocrY: Int, source: Bitmap): Pair<Int, Int> {
+        val ocrW = if (originalImageWidth > 0) originalImageWidth else source.width
+        val ocrH = if (originalImageHeight > 0) originalImageHeight else source.height
+        val scaleX = source.width.toFloat() / ocrW.toFloat()
+        val scaleY = source.height.toFloat() / ocrH.toFloat()
+        val x = (ocrX * scaleX).toInt().coerceIn(0, source.width - 1)
+        val y = (ocrY * scaleY).toInt().coerceIn(0, source.height - 1)
+        return x to y
+    }
+
     /**
      * Calculate contrast text color (black or white) based on background brightness
      * Uses luminance formula: 0.299*R + 0.587*G + 0.114*B
      */
+
     private fun getContrastTextColor(backgroundColor: Int): Int {
         val r = Color.red(backgroundColor)
         val g = Color.green(backgroundColor)
@@ -468,8 +514,7 @@ class TranslationOverlayView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         
-        val minTextSizePx = spToPx(minTextSizeSp)
-
+        Timber.d("S1713: drawing translation plates, opaque backing and downward growth")
         // Clear and rebuild scaled rects for hit testing
         scaledRects.clear()
         
@@ -496,8 +541,12 @@ class TranslationOverlayView @JvmOverloads constructor(
                  Timber.d("TRANSLATION_DEBUG: View dimensions: ${width}x${height}")
             }
 
-            // Adaptive padding based on box size (2-4sp range)
-            val padding = spToPx(2f + (scaledHeight / 100f).coerceIn(0f, 2f))
+            // S1713: padding is a share of the type size, not of the box height. The neighbouring
+            // project measured plate padding as load-bearing rather than cosmetic and bracketed it at
+            // 0.05em to 0.28em; PLATE_PADDING_EM sits inside that bracket. The old 2..4sp rule read the
+            // box height, so a tall box padded a small translation as if it were large.
+            val padding = (autoTextSizeSourcePx(block, scaledHeight) * PLATE_PADDING_EM)
+                .coerceAtLeast(spToPx(MIN_PLATE_PADDING_SP))
             val availableWidth = (scaledWidth - padding * 2).toInt().coerceAtLeast(1)
             
             // Use custom font size if set by user gesture, otherwise auto-size to the
@@ -505,7 +554,7 @@ class TranslationOverlayView @JvmOverloads constructor(
             var textSize = if (block.customFontSize != null) {
                 spToPx(block.customFontSize!!)
             } else {
-                autoTextSizePx(scaledHeight - padding * 2)
+                autoTextSizePx(autoTextSizeSourcePx(block, scaledHeight) - padding * 2)
             }
 
             textPaint.textSize = textSize
@@ -513,32 +562,27 @@ class TranslationOverlayView @JvmOverloads constructor(
             // Create StaticLayout for multiline text wrapping within box width
             var staticLayout = createStaticLayout(block.translatedText, textPaint, availableWidth)
             
-            // If text takes more than 1 line and no custom size, try to reduce font size to fit in box height
-            val adjustedMinTextSizePx = minTextSizePx * fontSizeMultiplier
-            if (block.customFontSize == null && staticLayout.height > scaledHeight - padding * 2 && staticLayout.lineCount > 1 && textSize > adjustedMinTextSizePx) {
-                // Scale down to fit within box height with padding
-                val targetHeight = scaledHeight - padding * 2
-                val scaleFactor = (targetHeight / staticLayout.height).coerceIn(0.6f, 1f)
-                val newSize = (textSize * scaleFactor).coerceAtLeast(adjustedMinTextSizePx)
-                textPaint.textSize = newSize
-                staticLayout = createStaticLayout(block.translatedText, textPaint, availableWidth)
-            }
+            // S1713: a translation that does not fit grows the plate downward. The shrink-to-fit pass that
+            // used to sit here made the translation smaller than the source line it replaces, which is the
+            // opposite of what the plate is for; growth is handled below, where the height is computed.
             
             // Calculate final background dimensions
             // Width: use box width, unless single line is wider
             val textActualWidth = (0 until staticLayout.lineCount)
                 .maxOfOrNull { staticLayout.getLineWidth(it) } ?: 0f
             
-            // S0451: cover at least the original box width (never shrink below the source
-            // text); expand right only when the translation is wider, capped at 270%.
-            val maxAllowedWidth = scaledWidth * 2.7f
-            val actualRight = scaledLeft + (textActualWidth + padding * 2).coerceIn(scaledWidth, maxAllowedWidth)
+            // S0451: cover at least the original box width (never shrink below the source text).
+            // S1713: the sideways cap of 270 % is gone with the growth direction it belonged to - a plate
+            // that widens covers the picture beside the line, which the line never occupied.
+            val actualRight = scaledLeft + (textActualWidth + padding * 2).coerceAtLeast(scaledWidth)
 
-            // S0451: cover at least the original box height; expand down only when the
-            // translation is taller (multiline), capped at 270%.
+            // S0451: cover at least the original box height.
+            // S1713: downward is the direction a plate may grow, and it grows as far as the translation
+            // needs - the old 270 % ceiling cut the text off instead. The view's own bottom is the only
+            // limit, because a plate past it is drawn nowhere.
             val textHeightWithPadding = staticLayout.height + padding * 2
-            val maxAllowedHeight = scaledHeight * 2.7f
-            val actualBottom = scaledTop + textHeightWithPadding.coerceIn(scaledHeight, maxAllowedHeight)
+            val availableDownwards = (height - scaledTop).coerceAtLeast(scaledHeight)
+            val actualBottom = scaledTop + textHeightWithPadding.coerceIn(scaledHeight, availableDownwards)
             
             // Calculate actual final box height (for proper vertical centering)
             val finalBoxHeight = actualBottom - scaledTop
@@ -566,19 +610,31 @@ class TranslationOverlayView @JvmOverloads constructor(
         }
 
 
-        // DEBUG: Draw the image display rect boundary to verify alignment with PhotoView
-        // This helps diagnostics if the overlay appears shifted relative to the image
-        imageDisplayRect?.let { rect ->
-            val debugPaint = android.graphics.Paint().apply {
-                style = android.graphics.Paint.Style.STROKE
-                color = android.graphics.Color.YELLOW
-                strokeWidth = 5f
+        // S1702: debug-only overlay-alignment diagnostic - kept behind BuildConfig.DEBUG
+        // so release builds never draw the yellow frame over content.
+        // Draw the image display rect boundary to verify alignment with PhotoView.
+        // This helps diagnostics if the overlay appears shifted relative to the image.
+        if (BuildConfig.DEBUG) {
+            imageDisplayRect?.let { rect ->
+                canvas.drawRect(rect, debugPaint)
+
+                // Draw a crosshair at the top-left of the rect to verify origin
+                canvas.drawLine(rect.left - 20, rect.top, rect.left + 20, rect.top, debugPaint)
+                canvas.drawLine(rect.left, rect.top - 20, rect.left, rect.top + 20, debugPaint)
             }
-            canvas.drawRect(rect, debugPaint)
-            
-            // Draw a crosshair at the top-left of the rect to verify origin
-            canvas.drawLine(rect.left - 20, rect.top, rect.left + 20, rect.top, debugPaint)
-            canvas.drawLine(rect.left, rect.top - 20, rect.left, rect.top + 20, debugPaint)
         }
+    }
+
+    private companion object {
+        /**
+         * S1713: plate padding as a share of the type size. Inherited bracket from the neighbouring
+         * project's measurement (0.05em to 0.28em, where padding alone moved a scene from 0.2841 to
+         * 0.2705 with byte-identical rectangles); this sits mid-bracket. Not derived on our own
+         * material - S1716's harness is what would derive it.
+         */
+        const val PLATE_PADDING_EM = 0.12f
+
+        /** Floor so a plate around very small text still has a visible edge. */
+        const val MIN_PLATE_PADDING_SP = 2f
     }
 }

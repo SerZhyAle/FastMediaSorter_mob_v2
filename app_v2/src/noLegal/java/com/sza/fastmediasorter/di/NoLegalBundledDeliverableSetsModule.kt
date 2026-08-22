@@ -16,7 +16,7 @@ import dagger.multibindings.IntoSet
 object NoLegalBundledDeliverableSetsModule {
 
     // Translation (Set A) stays bundled on sideload/VR (Google `.so` are not re-hosted).
-    // S0971: Set B (OCR: Tesseract + PaddleOCR) and Set D (FFmpeg DTS) are re-bundled - their `.so` ship
+    // S0971: Set B (OCR: Tesseract - S1703 withdrew PaddleOCR) and Set D (FFmpeg DTS) are re-bundled - their `.so` ship
     // in the APK again, so the app no longer depends on the GitHub download for them anywhere. Only
     // Set C (audio-visualizations, `.mp4` data) stays delivered on demand.
     @Provides

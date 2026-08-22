@@ -9,6 +9,11 @@
     <string name="s0183_apk_install_success">APK встановлено</string>
     <string name="s0183_apk_install_cancelled">Встановлення скасовано</string>
     <string name="s0183_apk_install_failed">Помилка встановлення</string>
+    <!-- S1686: the installer's reason, which used to be discarded. -->
+    <string name="s1686_apk_install_failed_downgrade">Встановлення не вдалося: вже встановлено новішу версію</string>
+    <string name="s1686_apk_install_failed_incompatible">Встановлення не вдалося: цей APK підписано іншим ключем</string>
+    <string name="s1686_apk_install_failed_storage">Встановлення не вдалося: бракує вільного місця</string>
+    <string name="s1686_apk_install_failed_corrupt">Встановлення не вдалося: файл APK пошкоджено або завантажено не повністю</string>
     <string name="setting_support_office_documents_desc">Відкриває Word, таблиці та презентації у вбудованому переглядачі, якщо формат підтримується</string>
     <!-- S0336: noLegal extended System info diagnostics (section titles; field labels stay fixed-English technical keys) -->
     <string name="nolegal_diag_section_os_security">ОС та безпека</string>

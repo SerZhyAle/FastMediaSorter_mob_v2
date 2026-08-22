@@ -10,7 +10,6 @@ import com.sza.fastmediasorter.databinding.DialogStreamsFilterBinding
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog
 import com.sza.fastmediasorter.ui.streams.StreamsViewModel
-import timber.log.Timber
 
 /**
  * Hosts the streams filter dialog so [com.sza.fastmediasorter.ui.streams.StreamsActivity] stays free of

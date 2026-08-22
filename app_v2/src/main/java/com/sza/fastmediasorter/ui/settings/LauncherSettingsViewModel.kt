@@ -2,7 +2,9 @@ package com.sza.fastmediasorter.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.domain.usecase.launcher.ImportSystemShortcutsUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.ResetLauncherToDefaultsUseCase
+import com.sza.fastmediasorter.domain.usecase.launcher.ResolveProfileLauncherDensityUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -11,25 +13,38 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * S1400: the launcher settings dialog's own ViewModel, holding the one action that is not a settings
- * row. It is separate from [SettingsViewModel] rather than another dependency of it: that constructor
- * already carries an accepted `LongParameterList`, and adding a parameter would resurface the finding
- * against this ticket without making the class any better.
+ * S1400: the launcher settings dialog's own ViewModel.
  */
 @HiltViewModel
 class LauncherSettingsViewModel @Inject constructor(
     private val resetLauncherToDefaultsUseCase: ResetLauncherToDefaultsUseCase,
+    private val importSystemShortcutsUseCase: ImportSystemShortcutsUseCase,
+    private val resolveProfileLauncherDensityUseCase: ResolveProfileLauncherDensityUseCase,
 ) : ViewModel() {
 
     private val _resetResult = Channel<Boolean>(Channel.BUFFERED)
+    private val _importResult = Channel<Boolean>(Channel.BUFFERED)
 
     /** One outcome per reset attempt, consumed by the launcher settings dialog. */
     val resetResult: Flow<Boolean> = _resetResult.receiveAsFlow()
 
+    /** One outcome per import attempt, consumed by the launcher settings dialog. */
+    val importResult: Flow<Boolean> = _importResult.receiveAsFlow()
+
     /** Puts the launcher back to its as-installed state; the whole decision lives in the use case. */
-    fun resetToDefaults() {
+    fun resetToDefaults(densityFactor: Float) {
         viewModelScope.launch {
-            _resetResult.send(resetLauncherToDefaultsUseCase())
+            _resetResult.send(resetLauncherToDefaultsUseCase(densityFactor))
+        }
+    }
+
+    /** S1886: the density the reset dialog opens on, taken from the device profile preset. */
+    suspend fun presetDensityFactor(): Float = resolveProfileLauncherDensityUseCase()
+
+    /** Imports system desktop shortcuts onto the launcher desktop grid. */
+    fun importSystemShortcuts() {
+        viewModelScope.launch {
+            _importResult.send(importSystemShortcutsUseCase())
         }
     }
 }

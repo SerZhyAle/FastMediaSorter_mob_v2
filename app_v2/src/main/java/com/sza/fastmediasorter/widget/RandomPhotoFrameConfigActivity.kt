@@ -117,8 +117,12 @@ class RandomPhotoFrameConfigActivity : BaseActivity<ActivityResourceLaunchWidget
             RandomPhotoFrameWidgetRefresher.refresh(applicationContext, appWidgetId)
             // S0870: updateAppWidget's second refresh() call is a runBlocking Room+gzip+Gson
             // round-trip - keep it on IO and switch to Main only for the Activity result/teardown.
-            val appWidgetManager = AppWidgetManager.getInstance(applicationContext)
-            RandomPhotoFrameWidgetProvider.updateAppWidget(applicationContext, appWidgetManager, appWidgetId)
+            // S1930: the launcher runs this same screen for a desktop cell, which has no widget to
+            // push to; the snapshot written above is all it needs, and Phase 03 owns the redraw.
+            if (!LauncherWidgetToken.isLauncherToken(appWidgetId)) {
+                val appWidgetManager = AppWidgetManager.getInstance(applicationContext)
+                RandomPhotoFrameWidgetProvider.updateAppWidget(applicationContext, appWidgetManager, appWidgetId)
+            }
             withContext(Dispatchers.Main) {
                 finishWithResult()
             }

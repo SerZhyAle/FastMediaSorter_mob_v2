@@ -21,9 +21,9 @@ interface StreamQualityMemoryDao {
     suspend fun learnedRungFor(url: String): StreamQualityMemoryEntity?
 
     /**
-     * S1511: writes only when something other than the timestamp would change, mirroring the guard
-     * `StreamPlayOutcomeDao.markPlayOutcome` carries - an unchanged rung matches zero rows and never touches
-     * the table.
+     * S1511: writes only when something other than the timestamp would change - an unchanged rung
+     * matches zero rows, so SQLite's update hook stays silent and no observer of this table re-emits.
+     * The guard was copied from `StreamPlayOutcomeDao`, which S1832 retired along with its table.
      *
      * INSERT .. SELECT .. WHERE NOT EXISTS rather than upsert syntax: SQLite's native upsert clause needs
      * 3.24, which the framework only ships from API 30, and `legacy` runs on minSdk 23.

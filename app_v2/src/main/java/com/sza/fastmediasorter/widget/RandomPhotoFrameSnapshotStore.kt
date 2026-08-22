@@ -30,8 +30,12 @@ object RandomPhotoFrameSnapshotStore {
             override val token: String get() = appWidgetId.toString()
         }
 
-        data class LauncherCell(val cellId: Long) : SnapshotOwner {
-            override val token: String get() = "$CELL_PREFIX$cellId"
+        /**
+         * S1930: [instanceId] is the launcher's own token from [LauncherWidgetToken], not the desktop
+         * cell's row id - the add flow configures a cell before inserting it, so no row id exists yet.
+         */
+        data class LauncherCell(val instanceId: Long) : SnapshotOwner {
+            override val token: String get() = "$CELL_PREFIX$instanceId"
         }
 
         companion object {
@@ -102,15 +106,28 @@ object RandomPhotoFrameSnapshotStore {
         notifyOwner(context, owner, notifyWidgets)
     }
 
-    // Widget-id overloads, kept so every existing call site stays byte-identical in behaviour.
+    // Instance-id overloads, kept so every existing call site stays byte-identical in behaviour.
     fun read(context: Context, appWidgetId: Int): Snapshot =
-        read(context, SnapshotOwner.Widget(appWidgetId))
+        read(context, ownerFor(appWidgetId))
 
     fun write(context: Context, appWidgetId: Int, snapshot: Snapshot, notifyWidgets: Boolean = true) =
-        write(context, SnapshotOwner.Widget(appWidgetId), snapshot, notifyWidgets)
+        write(context, ownerFor(appWidgetId), snapshot, notifyWidgets)
 
     fun clear(context: Context, appWidgetId: Int, notifyWidgets: Boolean = true) =
-        clear(context, SnapshotOwner.Widget(appWidgetId), notifyWidgets)
+        clear(context, ownerFor(appWidgetId), notifyWidgets)
+
+    /**
+     * S1930: the configuration chain - config screen, refresher, cleanup - carries a bare `Int` and the
+     * launcher reuses that chain unchanged, so the id's range is the only thing that says who minted it.
+     * Resolving here rather than at each call site is what keeps the two writers on one namespace: the
+     * config screen and the gadget reach the same keys without either knowing about the other.
+     */
+    private fun ownerFor(appWidgetId: Int): SnapshotOwner =
+        if (LauncherWidgetToken.isLauncherToken(appWidgetId)) {
+            SnapshotOwner.LauncherCell(appWidgetId.toLong())
+        } else {
+            SnapshotOwner.Widget(appWidgetId)
+        }
 
     /**
      * Only a real widget has a host to notify. A launcher cell redraws from its own view, and asking

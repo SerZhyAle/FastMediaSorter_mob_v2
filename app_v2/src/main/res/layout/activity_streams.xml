@@ -44,6 +44,16 @@
         android:orientation="vertical"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
+        <!-- S1823: the ON_OPEN catalog offer, inflated only when the policy actually raises it
+             (CLAUDE.md Rule 18). It sits above the controls so an empty list and its remedy are on
+             screen together - the Snackbar it replaced faded before it could be acted on. -->
+        <ViewStub
+            android:id="@+id/stubCatalogBanner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout="@layout/view_streams_catalog_banner"
+            android:inflatedId="@+id/streamsCatalogBanner" />
+
         <LinearLayout
             android:id="@+id/streamControls"
             android:layout_width="match_parent"
@@ -203,6 +213,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:clipToPadding="false"
+                        android:paddingStart="@dimen/streams_list_side_padding"
+                        android:paddingEnd="@dimen/streams_list_side_padding"
                         android:paddingBottom="8dp"
                         android:scrollbars="vertical" />
 
@@ -268,6 +280,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:clipToPadding="false"
+                    android:paddingStart="@dimen/streams_list_side_padding"
+                    android:paddingEnd="@dimen/streams_list_side_padding"
                     android:paddingBottom="8dp"
                     android:scrollbars="vertical" />
 
@@ -406,7 +420,7 @@
             android:id="@+id/streamMiniControl"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:minHeight="56dp"
+            android:minHeight="@dimen/streams_mini_control_min_height"
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:background="?attr/colorSurface"
@@ -431,7 +445,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:maxLines="2"
+                android:maxLines="@integer/streams_mini_title_max_lines"
                 android:ellipsize="end"
                 android:textAppearance="?attr/textAppearanceBody2"
                 android:textColor="?attr/colorOnSurface" />

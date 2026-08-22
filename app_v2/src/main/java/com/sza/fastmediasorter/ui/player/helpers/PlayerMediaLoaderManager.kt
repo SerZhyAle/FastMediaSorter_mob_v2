@@ -50,12 +50,18 @@ import java.io.File
 /** Facade between PlayerActivity and specialized managers. Routes media by type (image/video/audio/PDF/EPUB/text), coordinates visibility, loading state, and image reload. */
 class PlayerMediaLoaderManager(
     private val activity: PlayerActivity,
-    private val binding: ActivityPlayerUnifiedBinding,
+    // S1549: var, not val - the host re-inflates the layout on rotation and re-points this manager
+    // at the fresh binding via [rebind]; the instance survives because its audio-service player
+    // listener must not be re-registered.
+    private var binding: ActivityPlayerUnifiedBinding,
     private val viewModel: PlayerViewModel,
-    private val imageLoadingManager: ImageLoadingManager,
+    // S1549: vars, not vals - a re-inflate re-creates both helpers against the fresh binding and
+    // [rebind] re-points this manager at them, because the audio-service listener on this instance
+    // must survive while the view-bound helpers it drives are replaced.
+    private var imageLoadingManager: ImageLoadingManager,
     private val videoPlayerManager: VideoPlayerManager,
     private val textViewerManagerProvider: () -> TextViewerManager,
-    private val exoPlayerControlsManager: ExoPlayerControlsManager,
+    private var exoPlayerControlsManager: ExoPlayerControlsManager,
     private val lifecycleScope: LifecycleCoroutineScope,
     // S0704: retained for the audio-readiness feedback toast only; the spinner is owned by
     // activity.loadingIndicatorCoordinator.
@@ -136,6 +142,33 @@ class PlayerMediaLoaderManager(
         // Wire first-frame extraction to dynamic background when video is opened
         videoPlayerManager.onFirstFrameReady = { bitmap, isPlaceholder ->
             imageLoadingManager.triggerVideoBackground(bitmap, isPlaceholder)
+        }
+    }
+
+    /**
+     * S1549: aim every `binding.` read at the freshly inflated hierarchy after a re-inflate, and
+     * re-point the two view-bound helpers that were re-created against the new binding.
+     *
+     * S1943: `playerView` is declared `gone` in both orientation layouts and the only code that ever
+     * reveals it is the one-shot call in [playVideo] at load time, so a re-inflate resurrects the
+     * surface hidden while the surviving ExoPlayer keeps decoding into it - the picture never comes
+     * back. Carry the pre-rebind visibility across and re-apply the media-type configuration that
+     * died with the old view. `binding` still points at the discarded tree on entry, which is what
+     * makes that state readable here instead of in the caller.
+     */
+    fun rebind(
+        newBinding: ActivityPlayerUnifiedBinding,
+        newImageLoadingManager: ImageLoadingManager,
+        newExoPlayerControlsManager: ExoPlayerControlsManager,
+    ) {
+        val playerSurfaceWasVisible = binding.playerView.isVisible
+        binding = newBinding
+        imageLoadingManager = newImageLoadingManager
+        exoPlayerControlsManager = newExoPlayerControlsManager
+        if (playerSurfaceWasVisible) {
+            binding.playerView.isVisible = true
+            val currentFile = viewModel.state.value.currentFile
+            configurePlayerViewForMediaType(currentFile?.type == MediaType.AUDIO, currentFile)
         }
     }
 

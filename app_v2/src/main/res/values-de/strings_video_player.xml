@@ -5,7 +5,7 @@
     <string name="playback">Wiedergabe und Sortierung</string>
     <string name="playback_control_brightness_value">Helligkeit: %1$+d%%</string>
     <string name="playback_control_done">Erledigt</string>
-    <string name="playback_control_hue_value">FARBTON: %1$+d°</string>
+    <string name="playback_control_hue_value">HUE: %1$+d°</string>
     <string name="playback_control_mute">Stumm</string>
     <string name="playback_control_mute_active">Gedämpft</string>
     <string name="playback_control_mute_inactive">Ton an</string>
@@ -55,11 +55,11 @@
     <string name="player_health_error_type_unknown">Fehlertyp: unbekannt</string>
     <string name="player_health_fallback_failed">Die Datei konnte mit dem Backup-Player nicht abgespielt werden. %1$s</string>
     <string name="player_health_file_label">Datei: %1$s</string>
-    <string name="player_health_io_block">Was ist passiert: E/A-Fehler - die Datei ist möglicherweise beschädigt, unvollständig oder nicht erreichbar.\n\nWas Sie versuchen können:\n• Stellen Sie sicher, dass die Datei vollständig heruntergeladen wurde\n• Überprüfen Sie, ob die Datei beschädigt ist\n• Überprüfen Sie bei Netzwerkdateien die Verbindung</string>
-    <string name="player_health_malformed_block">Was ist passiert: Das Dateiformat ist fehlerhaft oder beschädigt.\n\nDie Dateistruktur entspricht nicht den Medienspezifikationen.\n\nWas Sie versuchen können:\n• Die Datei ist möglicherweise beschädigt oder unvollständig.\n• Laden Sie die Datei erneut herunter oder kodieren Sie sie neu.\n• Stellen Sie sicher, dass die Datei korrekt übertragen wurde.</string>
+    <string name="player_health_io_block">Was ist passiert: E/A-Fehler - die Datei ist möglicherweise beschädigt, unvollständig oder nicht erreichbar.\n\nWas du versuchen kannst:\n• Stelle sicher, dass die Datei vollständig heruntergeladen wurde\n• Prüfe, ob die Datei beschädigt ist\n• Bei Netzwerkdateien die Verbindung prüfen</string>
+    <string name="player_health_malformed_block">Was ist passiert: das Dateiformat ist fehlerhaft oder beschädigt.\n\nDie Dateistruktur entspricht nicht der Medienspezifikation.\n\nWas du versuchen kannst:\n• Die Datei ist möglicherweise beschädigt oder unvollständig\n• Datei erneut herunterladen oder neu kodieren\n• Stelle sicher, dass die Datei korrekt übertragen wurde</string>
     <string name="player_health_switching_to_fallback">Die Audiowiedergabe hat Probleme - es wird auf den Backup-Player umgeschaltet..</string>
-    <string name="player_health_timeout_block">Was ist passiert? Die Operation wurde aufgrund einer Zeitüberschreitung abgebrochen.\n\nWas Sie versuchen können:\n• Überprüfen Sie die Netzwerkverbindung\n• Stellen Sie sicher, dass der Server antwortet\n• Versuchen Sie es später erneut</string>
-    <string name="player_health_unsupported_block">Was ist passiert: Dieses Format wird nicht unterstützt.\n\nDer Backup-Player kann dieses Format oder diesen Codec nicht verarbeiten.\n\nWas Sie versuchen können:\n• Öffnen Sie die Datei in einem externen Media-Player\n• Konvertieren Sie sie in ein Standardformat (MP4, H.264)</string>
+    <string name="player_health_timeout_block">Was ist passiert: die Operation hat das Zeitlimit überschritten.\n\nWas du versuchen kannst:\n• Netzwerkverbindung prüfen\n• Stelle sicher, dass der Server antwortet\n• Später erneut versuchen</string>
+    <string name="player_health_unsupported_block">Was ist passiert: dieses Format wird nicht unterstützt.\n\nDer Backup-Player kann dieses Format oder diesen Codec nicht verarbeiten.\n\nWas du versuchen kannst:\n• Öffne die Datei in einem externen Media-Player\n• In ein Standardformat konvertieren (MP4, H.264)</string>
     <string name="player_media_files_load_failed">Die Dateiliste konnte nicht geladen werden. Bitte versuchen Sie es erneut.</string>
     <string name="player_open_link_failed">Der Link ließ sich nicht öffnen.</string>
     <string name="player_page_not_ready">Diese Seite ist noch nicht fertig. Bitte versuchen Sie es erneut.</string>
@@ -76,7 +76,7 @@
     <string name="video_playback_failed_session_warning">Diese Datei konnte in dieser Sitzung zuvor nicht abgespielt werden.</string>
     <string name="video_playback_failed_with_name">Konnte nicht abgespielt werden: %1$s</string>
     <string name="video_resolution_label">Auflösung: %1$dx%2$d</string>
-    <string name="video_rotation_label">Rotation: %1$d°</string>
+    <string name="video_rotation_label">Drehung: %1$d°</string>
     <string name="video_size_limit">Beschränkung der Videodateigröße</string>
     <string name="video_size_limits">Videogrößenbeschränkungen (KB)</string>
     <string name="video_snapshot_resource_label">Ressource zum Speichern von Frames</string>

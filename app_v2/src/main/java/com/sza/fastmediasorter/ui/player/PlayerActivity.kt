@@ -22,7 +22,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.lifecycleScope
-import androidx.media3.common.Player
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
@@ -45,7 +44,6 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
-import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
@@ -62,7 +60,6 @@ import com.sza.fastmediasorter.ui.player.helpers.PlayerDialogAndUiStateManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerDisplayMode
 import com.sza.fastmediasorter.ui.player.helpers.PlayerFpsMeter
 import com.sza.fastmediasorter.ui.player.helpers.PlayerNavigationManager
-import com.sza.fastmediasorter.ui.player.helpers.toPlaybackOrderUiState
 import com.sza.fastmediasorter.ui.player.model.TouchZoneHintType
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
@@ -163,7 +160,27 @@ class PlayerActivity :
     internal var nowPlayingManager: com.sza.fastmediasorter.ui.player.helpers.NowPlayingManager? = null
     internal var sleepTimerManager: com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager? = null
     internal var pipManager: com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager? = null
-    internal val safeViews by lazy { PlayerBindingSafeViews(binding) }
+
+    // S1549: NOT a `by lazy`. A lazy never recomputes, so after a re-inflate it would keep handing
+    // out accessors resolved against the discarded hierarchy no matter how the binding is reassigned.
+    // Every consumer (PlayerViewerFactory included) reads through this property, so dropping the
+    // cached instance is enough to re-point all of them.
+    private var _safeViews: PlayerBindingSafeViews? = null
+    internal val safeViews: PlayerBindingSafeViews
+        get() = _safeViews ?: PlayerBindingSafeViews(binding).also { _safeViews = it }
+
+    /** S1549: drop the cached [safeViews] so the next read resolves against the current binding. */
+    internal fun invalidateSafeViews() {
+        _safeViews = null
+    }
+
+    /** S1549: orientation the current content view was inflated for; a flip drives the re-inflate. */
+    private var lastAppliedOrientation = Configuration.ORIENTATION_UNDEFINED
+
+    /** S1549: owns the per-holder re-bind operations after a re-inflate (see its KDoc inventory). */
+    private val playerLayoutRebindManager =
+        com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutRebindManager()
+
     internal lateinit var dialogAndUiStateManager: PlayerDialogAndUiStateManager
 
     // S0550: assigned late in PlayerManagerInitializer.initUiCoordinators(); the slideshow callback
@@ -343,7 +360,10 @@ class PlayerActivity :
 
     // Track current file path to avoid reloading when only metadata changes (e.g., isFavorite)
     internal var currentFilePath: String? = null
-    private var playbackOrderContextKey: String? = null
+
+    // S1963: owns the playback-order mode - where it is persisted and how it reaches the live engine.
+    private val playbackOrderManager =
+        com.sza.fastmediasorter.ui.player.helpers.PlaybackOrderManager(this)
 
     // Current settings cached for overlay visibility
     internal var currentSettings: AppSettings? = null
@@ -449,6 +469,11 @@ class PlayerActivity :
 
     @Inject internal lateinit var unifiedCacheLazy: Lazy<com.sza.fastmediasorter.core.cache.UnifiedFileCache>
 
+    // S1060: manages fallback to alternative playback engines (e.g. libVLC)
+    @Inject
+    internal lateinit var altEngineFallbackManager:
+        com.sza.fastmediasorter.ui.player.helpers.AltEngineFallbackManager
+
     @Inject lateinit var mediaFilesCacheManager: MediaFilesCacheManager
 
     @Inject lateinit var gamepadInputManager: GamepadInputManager
@@ -537,6 +562,7 @@ class PlayerActivity :
         if (!slideshowModeRequested && viewModel.resumeSlideshowEnabled) {
             slideshowModeRequested = true
         }
+        lastAppliedOrientation = resources.configuration.orientation
         initializeManagers()
         // S0159: pre-activate draw overlay when launched from Browse overflow ⋮ menu
         if (intent.getBooleanExtra(EXTRA_ACTIVATE_DRAW_MODE, false)) {
@@ -586,6 +612,7 @@ class PlayerActivity :
     private fun initializeManagers() {
         playerManagerInitializer = PlayerManagerInitializer(this)
         playerManagerInitializer.initialize()
+        altEngineFallbackManager.bindViewStub(binding.altEngineViewStub)
     }
 
     internal fun shouldUseAudioBackgroundManagers(state: PlayerViewModel.PlayerState): Boolean {
@@ -615,6 +642,10 @@ class PlayerActivity :
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+        if (newConfig.orientation != lastAppliedOrientation) {
+            lastAppliedOrientation = newConfig.orientation
+            rebindLayoutForOrientation()
+        }
         if (::commandPanelController.isInitialized) commandPanelController.notifyMultiWindowModeChanged()
         commandPanelController.updateOrientation(newConfig)
         // Hardware keyboard attach/detach arrives as a configuration change - re-evaluate slot number badges.
@@ -642,6 +673,62 @@ class PlayerActivity :
             binding.photoView.setImageDrawable(null)
             lifecycleScope.launch(Dispatchers.Main) { displayImage(currentFile.path) }
         }
+    }
+
+    /**
+     * S1549: apply the orientation-specific layout variant without a recreate - the player family
+     * absorbs rotation on purpose (ADR-1: a recreate tears down the live render surface). Re-inflates
+     * via [rebindContentView], re-points the stateful holders from the PlayerLayoutRebindManager
+     * inventory, re-runs the binding-bound half of manager construction (owner ruling 2026-08-16,
+     * strategic §6 item 5, variant A) and re-wires the listeners that died with the old tree.
+     */
+    private fun rebindLayoutForOrientation() {
+        Timber.d("S1549: PlayerActivity rebindLayoutForOrientation - layout re-inflated without a recreate")
+        rebindContentView()
+        invalidateSafeViews()
+        playerLayoutRebindManager.rebindDocumentViewers(
+            binding.root,
+            _pdfViewerManager,
+            _epubViewerManager,
+            _textViewerManager,
+            _officeDocumentViewerManager,
+        )
+        if (isDrawOverlayManagerReady) {
+            binding.photoDualSurfaceContainer?.let { container ->
+                playerLayoutRebindManager.rebindDrawOverlay(
+                    imageDrawOverlayManager,
+                    container,
+                    binding.drawOverlayToolbarStub.root,
+                )
+            }
+        }
+        _videoPlayerManager?.let { playerLayoutRebindManager.repointVideoSurface(it, binding.playerView) }
+        // Re-point the screen-level holders that capture the binding (constructed once per screen).
+        commandPanelController.rebind(activityBinding)
+        translationButtonManager.rebindRoot(binding.root)
+        lyricsManager.rebindRoot(binding.root)
+        nowPlayingManager?.rebind(activityBinding)
+        audioEmptyStateController?.rebindViews(
+            binding.audioCoverArtView,
+            binding.audioBarsView,
+            binding.audioVideoView,
+            binding.audioWaveParticleView,
+        )
+        // Re-create the binding-bound graph against the fresh tree, then re-point the media
+        // loader at the two helpers it drives.
+        playerManagerInitializer.constructBindingBoundManagers()
+        mediaLoaderManager.rebind(activityBinding, imageLoadingManager, exoPlayerControlsManager)
+        // Re-wire the listeners that were bound to the discarded tree.
+        setupGestureDetector()
+        setupToolbar()
+        setupControls()
+        setupCommandPanelControls()
+        setupTouchZones()
+        setupGoogleLensButtons()
+        if (_videoPlayerManager != null) exoPlayerControlsManager.setupExoPlayerNavigationButtons()
+        // Re-render what the fresh views start without (EPUB/Office move their live WebView over).
+        _pdfViewerManager?.let { it.showPdfPage(it.currentPageIndex()) }
+        _textViewerManager?.rerenderAfterRebind()
     }
 
     override fun setupViews() {
@@ -815,7 +902,6 @@ class PlayerActivity :
         // not be what instantiates VideoPlayerManager.
         if (castMediaManager.isCasting) {
             val panelCrop = _videoPlayerManager?.currentPanelStereoCrop
-            Timber.d("S1558: cast requested for ${currentFile.name} with panel crop $panelCrop")
             castMediaManager.sendCurrentMedia(currentFile, panelCrop)
         }
     }
@@ -966,7 +1052,7 @@ class PlayerActivity :
     internal fun updateAudioFormatInfo() = imageLoadingManager.updateAudioFormatInfo()
 
     internal fun updateTrackButtonsVisibility() {
-        applyPlaybackOrderModeToActivePlayer(viewModel.state.value.playbackOrderMode)
+        playbackOrderManager.applyToActivePlayer(viewModel.state.value.playbackOrderMode)
         exoPlayerControlsManager.updateTrackButtonsVisibility(
             viewModel.state.value.currentFile?.type == MediaType.VIDEO ||
                 viewModel.state.value.currentFile?.type == MediaType.AUDIO
@@ -1021,6 +1107,9 @@ class PlayerActivity :
     override fun onPause() {
         super.onPause()
         if (isInPictureInPictureMode) return
+        if (::altEngineFallbackManager.isInitialized && altEngineFallbackManager.isFallbackActive) {
+            altEngineFallbackManager.pause()
+        }
         lifecycleBridge.onPause()
     }
 
@@ -1044,7 +1133,12 @@ class PlayerActivity :
     internal fun extractTextFromCurrentImage() =
         imageOcrManager.extractTextFromCurrentImage(viewModel.state.value.currentFile)
 
-    override fun onResumeWithViews() = lifecycleBridge.onResumeWithViews()
+    override fun onResumeWithViews() {
+        lifecycleBridge.onResumeWithViews()
+        if (::altEngineFallbackManager.isInitialized && altEngineFallbackManager.isFallbackActive) {
+            altEngineFallbackManager.resume()
+        }
+    }
 
     /** S0021: reconcile FPS overlay visibility against settings + current file type. Open: only visible when `playerShowFps` is on AND current file is VIDEO. */
     internal fun updatePlayerFpsOverlay() {
@@ -1083,8 +1177,50 @@ class PlayerActivity :
         }
         if (::eventHandler.isInitialized) eventHandler.onDestroy()
         if (isPlayerFileOperationQueueInitialized) playerFileOperationQueue.shutdown()
+        if (::altEngineFallbackManager.isInitialized) {
+            altEngineFallbackManager.release()
+        }
         lifecycleManager.onDestroy()
         super.onDestroy()
+    }
+
+    internal fun tryAltEngineFallback(
+        file: com.sza.fastmediasorter.domain.model.MediaFile,
+        uri: android.net.Uri,
+        startPositionMs: Long
+    ): Boolean {
+        val ready = ::altEngineFallbackManager.isInitialized && altEngineFallbackManager.canFallback(file)
+        if (!ready) return false
+
+        timber.log.Timber.d("S1060: PlayerActivity: attempting alt engine fallback for file=%s", file.name)
+        stopExoPlayerForAltEngineFallback()
+        binding.playerView.visibility = android.view.View.GONE
+
+        return altEngineFallbackManager.tryFallback(
+            file = file,
+            uri = uri,
+            startPositionMs = startPositionMs,
+            stubOverride = binding.altEngineViewStub,
+            onSuccess = {
+                timber.log.Timber.i("PlayerActivity: alt engine fallback started successfully")
+            },
+            onError = { msg ->
+                timber.log.Timber.e("PlayerActivity: alt engine fallback error: %s", msg)
+            }
+        )
+    }
+
+    private fun stopExoPlayerForAltEngineFallback() {
+        if (_videoPlayerManager != null) {
+            try {
+                videoPlayerManager.exoPlayer?.let { player ->
+                    player.stop()
+                    player.clearVideoSurface()
+                }
+            } catch (e: IllegalStateException) {
+                timber.log.Timber.e(e, "PlayerActivity: error stopping exoPlayer for fallback")
+            }
+        }
     }
 
     private fun setupGoogleLensButtons() = googleLensButtonsManager.setupButtons()
@@ -1237,68 +1373,10 @@ class PlayerActivity :
         if (::imageLoadingManager.isInitialized) imageLoadingManager.applyRotation(angleDegrees)
     }
 
-    private fun applyPlaybackOrderModeToActivePlayer(mode: PlaybackOrderMode) {
-        when (viewModel.state.value.currentFile?.type) {
-            MediaType.AUDIO -> audioServiceController?.applyPlaybackOrderMode(mode)
-            MediaType.VIDEO -> {
-                val exoRepeatMode = if (mode == PlaybackOrderMode.REPEAT_ONE) {
-                    Player.REPEAT_MODE_ONE
-                } else {
-                    Player.REPEAT_MODE_OFF
-                }
-                _videoPlayerManager?.getPlayer()?.repeatMode = exoRepeatMode
-            }
-            else -> {}
-        }
-    }
+    internal fun syncPlaybackOrderForCurrentResource(state: PlayerViewModel.PlayerState): Boolean =
+        playbackOrderManager.syncForCurrentResource(state)
 
-    internal fun syncPlaybackOrderForCurrentResource(state: PlayerViewModel.PlayerState): Boolean {
-        val resourceId = state.resource?.id ?: return false
-        val mediaType = state.currentFile?.type ?: return false
-        val contextKey = "$resourceId:${PlaybackControlPreferences.modeScopeFor(mediaType)}"
-        if (playbackOrderContextKey == contextKey) {
-            return false
-        }
-
-        playbackOrderContextKey = contextKey
-        val prefs = getSharedPreferences(PlaybackControlPreferences.PREFS_NAME, MODE_PRIVATE)
-        val overrideValue = intent.getStringExtra(PlaybackControlPreferences.EXTRA_PLAYBACK_ORDER_OVERRIDE)
-        val overrideMode = overrideValue?.let(PlaybackOrderMode::fromPrefsString)
-        val resolvedMode = overrideMode ?: PlaybackControlPreferences.loadMode(prefs, resourceId, mediaType)
-
-        if (overrideMode != null) {
-            PlaybackControlPreferences.saveMode(prefs, resourceId, mediaType, overrideMode)
-            intent.removeExtra(PlaybackControlPreferences.EXTRA_PLAYBACK_ORDER_OVERRIDE)
-        }
-
-        applyPlaybackOrderModeToActivePlayer(resolvedMode)
-        exoPlayerControlsManager.updatePlaybackOrderButtonState()
-        if (state.playbackOrderMode == resolvedMode) {
-            return false
-        }
-
-        viewModel.setPlaybackOrderMode(resolvedMode)
-        return true
-    }
-
-    internal fun onPlaybackOrderClicked() {
-        val newMode = viewModel.cyclePlaybackOrderMode()
-        val currentState = viewModel.state.value
-        val resourceId = currentState.resource?.id
-        val mediaType = currentState.currentFile?.type
-        val prefs = getSharedPreferences(PlaybackControlPreferences.PREFS_NAME, MODE_PRIVATE)
-        if (resourceId != null) {
-            PlaybackControlPreferences.saveMode(prefs, resourceId, mediaType, newMode)
-        } else {
-            prefs.edit()
-                .putString(PlaybackControlPreferences.globalKeyFor(mediaType), newMode.toPrefsString())
-                .apply()
-        }
-        applyPlaybackOrderModeToActivePlayer(newMode)
-        exoPlayerControlsManager.updatePlaybackOrderButtonState()
-        val label = getString(newMode.toPlaybackOrderUiState().labelResId)
-        Toast.makeText(this, getString(R.string.playback_order_mode_set, label), Toast.LENGTH_SHORT).show()
-    }
+    internal fun onPlaybackOrderClicked() = playbackOrderManager.onPlaybackOrderClicked()
 
     internal fun onStreamFrameIngested(url: String) {
         setResult(

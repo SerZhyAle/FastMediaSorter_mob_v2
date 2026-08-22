@@ -31,8 +31,6 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.networkmonitor.NetworkMonitorContract
 import com.sza.fastmediasorter.domain.usecase.launcher.PlaceHomeWidgetOnLauncherDesktopUseCase
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
-import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
-import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.dialog.ListSelectionAdapter
 import com.sza.fastmediasorter.ui.dialog.ListSelectionConfig
 import com.sza.fastmediasorter.ui.dialog.ListSelectionDialog
@@ -40,6 +38,7 @@ import com.sza.fastmediasorter.ui.settings.DefaultAppsDialogFragment
 import com.sza.fastmediasorter.ui.settings.ScheduledOperationsViewModel
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
 import com.sza.fastmediasorter.ui.settings.gesture.EdgeGestureConfigDialogFragment
 import com.sza.fastmediasorter.ui.settings.helpers.HomeWidgetSettingsHelper
 import com.sza.fastmediasorter.ui.settings.helpers.LocalFolderDestinationPickerManager
@@ -47,7 +46,10 @@ import com.sza.fastmediasorter.ui.settings.helpers.OperationsCaptureManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsDestinationsManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsGesturesManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsScheduledManager
+import com.sza.fastmediasorter.ui.settings.helpers.OperationsSectionsManager
+import com.sza.fastmediasorter.ui.settings.helpers.OperationsWearGroupManager
 import com.sza.fastmediasorter.util.showBoundTo
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.widget.registry.HomeWidgetCatalog
 import com.sza.fastmediasorter.widget.registry.HomeWidgetPinner
 import dagger.hilt.android.AndroidEntryPoint
@@ -63,6 +65,10 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     private val binding get() = _binding!!
     private val viewModel: SettingsViewModel by activityViewModels()
     private val scheduledViewModel: ScheduledOperationsViewModel by activityViewModels()
+
+    // S1885: the paired-watch row reads Wear state, which belongs to the Wear view model rather
+    // than to the settings one.
+    private val wearSyncViewModel: WearSyncViewModel by activityViewModels()
 
     @Inject
     lateinit var capabilityAvailability: CapabilityAvailability
@@ -98,7 +104,10 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     @Inject
     lateinit var placeHomeWidgetOnLauncherDesktop: PlaceHomeWidgetOnLauncherDesktopUseCase
 
-    private val sectionsManager by lazy { CollapsibleSectionsManager(requireContext()) }
+    @Inject
+    lateinit var accessibilityControl: com.sza.fastmediasorter.core.screencapture.AccessibilityServiceControl
+
+    private val sectionsHost by lazy { OperationsSectionsManager(binding, requireContext()) }
     private val destinationsManager by lazy { OperationsDestinationsManager(binding, viewModel, this) }
     private val localFolderDestinationPickerManager by lazy {
         LocalFolderDestinationPickerManager(this, viewModel, localFolderDestinationPickerLauncher)
@@ -119,6 +128,16 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             binding, viewModel, mediaCapabilities, screenVideoRecordingControllers.isNotEmpty(),
             recordAudioPermissionLauncher, locationPermissionLauncher,
             { isUpdatingFromSettings }, ::showDestinationPicker, ::refreshDestinationLabel, this
+        )
+    }
+    private val wearGroupManager by lazy {
+        OperationsWearGroupManager(
+            binding,
+            this,
+            viewModel,
+            mediaCapabilities,
+            { isUpdatingFromSettings },
+            wearSyncViewModel::refreshPairedWatchStatus,
         )
     }
     private val gesturesManager by lazy {
@@ -203,63 +222,19 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupViews()
-        setupCollapsibleSections()
+        sectionsHost.registerAll(wearGroupManager.isAvailableInBuild, BuildConfig.ENABLE_SCHEDULED_OPERATIONS)
         scheduledManager.setup()
         observeData()
         scheduledManager.checkAndExpandFromIntent()
-        checkAndExpandSectionFromIntent()
+        sectionsHost.handleIntentSection(requireActivity().intent)
     }
 
     /**
-     * S0780: deep-link from the programs-panel "Configure" item - expand the Additional Programs group
-     * and scroll its header into view. The extra is consumed so it does not re-fire on rotation.
+     * S1967: replaced the never-called `ensureSectionExpanded(sectionId)` that stood here. A section
+     * name could not have worked - see the ticket - and the base now expands by the row's ancestors.
      */
-    private fun checkAndExpandSectionFromIntent() {
-        val intent = requireActivity().intent
-        val sectionId = intent.getStringExtra(SettingsActivity.EXTRA_EXPAND_SECTION) ?: return
-        if (sectionId != SettingsActivity.SECTION_ADDITIONAL_PROGRAMS) return
-        intent.removeExtra(SettingsActivity.EXTRA_EXPAND_SECTION)
-        ensureSectionExpanded(sectionId)
-    }
-
-    /** S0780: expand the named Operations group and scroll its header into view (deep-link target). */
-    fun ensureSectionExpanded(sectionId: String) {
-        val header = when (sectionId) {
-            SettingsActivity.SECTION_ADDITIONAL_PROGRAMS -> binding.headerAdditionalPrograms
-            else -> return
-        }
-        if (!header.isVisible) return
-        header.setExpanded(true, notify = true)
-        header.post {
-            val bounds = android.graphics.Rect(0, 0, header.width, header.height)
-            header.requestRectangleOnScreen(bounds, false)
-        }
-    }
-
-    // S0535: unified collapsible groups - one orchestrator + consolidated store, default collapsed.
-    // The Scheduled group is hidden when the flavor disables scheduled operations.
-    private fun setupCollapsibleSections() {
-        fun register(header: CollapsibleSectionHeader, container: View, key: String) {
-            sectionsManager.register(header, container, key, defaultExpanded = false)
-        }
-        register(binding.headerSafety, binding.containerSafety, "operations__safety")
-        register(binding.headerCopyMove, binding.containerFileOperations, "operations__file_ops")
-        register(binding.headerDestinations, binding.containerDestinations, "operations__destinations")
-        if (BuildConfig.ENABLE_SCHEDULED_OPERATIONS) {
-            register(binding.headerScheduled, binding.containerScheduled, "operations__scheduled")
-        } else {
-            binding.headerScheduled.isVisible = false
-            binding.containerScheduled.isVisible = false
-        }
-        register(binding.headerBehaviour, binding.containerBehaviour, "operations__behaviour")
-        register(binding.headerCameraPhotos, binding.containerCameraPhotos, "operations__photography")
-        register(binding.headerVideoCapture, binding.containerVideoCapture, "operations__video_recording")
-        register(binding.headerMicRecording, binding.containerMicRecording, "operations__voice_recorder")
-        register(binding.headerScreenRecording, binding.containerScreenRecording, "operations__screen_recording")
-        register(binding.headerAdditionalPrograms, binding.containerAdditionalPrograms, "operations__additional_programs")
-        register(binding.headerSystemApps, binding.containerSystemApps, "operations__system_apps")
-        register(binding.headerScreenGestures, binding.containerScreenGestures, "operations__screen_gestures")
-    }
+    override fun collapsibleSections(): com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager =
+        sectionsHost.sections()
 
     override fun onResume() {
         super.onResume()
@@ -386,6 +361,15 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         // Screen-gesture overlay group (noLegal-only capability).
         gesturesManager.setup()
 
+        // S1883: Wear OS group - the master checkbox, the install-guide link and the companion button.
+        wearGroupManager.setup()
+
+        // S1885: the paired-watch row. Collected lifecycle-aware rather than in a bare launch, so the
+        // bridge result is not delivered to a destroyed view (Rule 19).
+        if (wearGroupManager.isAvailableInBuild) {
+            collectOnLifecycle(wearSyncViewModel.pairedWatchStatus) { wearGroupManager.renderPairedWatch(it) }
+        }
+
         // S0880: default-player registration UI now lives in DefaultAppsDialogFragment; this is its launcher.
         binding.btnOpenDefaultAppsDialog.setOnClickListener {
             DefaultAppsDialogFragment().show(childFragmentManager, DefaultAppsDialogFragment.TAG)
@@ -457,9 +441,18 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(enableNetworkMonitor = isChecked))
         }
+        binding.rowEnableSystemInfo.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings(viewModel.settings.value.copy(enableSystemInfo = isChecked))
+        }
         binding.rowEmbeddedGame.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateEmbeddedGameEnabled(isChecked)
+        }
+        binding.rowFrontFlashlight.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            Timber.d("front flashlight toggle -> $isChecked")
+            viewModel.updateSettings(viewModel.settings.value.copy(frontFlashlightEnabled = isChecked))
         }
 
         // System apps group rows.
@@ -469,17 +462,35 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         val a11yController = screenGestureControllers.firstOrNull()
         val supportsA11ySilent = a11yController?.isFallbackCaptureAvailable() == true
         binding.tvAccessibilityShortcutHint.isVisible = supportsA11ySilent
-        binding.btnOpenAccessibilitySettings.isVisible = supportsA11ySilent
+        val isA11yActive = accessibilityControl.isServiceActive()
+        binding.btnOpenAccessibilitySettings.isVisible = supportsA11ySilent && !isA11yActive
+        binding.btnDisableAccessibilityService.isVisible = supportsA11ySilent && isA11yActive
         if (a11yController != null) {
             binding.btnOpenAccessibilitySettings.setOnClickListener {
                 try {
                     overlayPermissionLauncher.launch(a11yController.permissionSettingsIntent(requireContext()))
                 } catch (e: android.content.ActivityNotFoundException) {
-                    // Accessibility settings screen unreachable on this ROM: fall back to the educational
-                    // dialog, which routes to alternative entry points (S0449 ADR-1).
                     Timber.w(e, "Accessibility settings intent unresolved; showing fallback dialog")
                     showAccessibilityFallbackDialog(a11yController)
                 }
+            }
+        }
+        binding.btnDisableAccessibilityService.setOnClickListener {
+            if (accessibilityControl.disableSelf()) {
+                Snackbar.make(
+                    binding.root,
+                    getString(R.string.accessibility_service_status_disabled),
+                    Snackbar.LENGTH_SHORT
+                ).show()
+                binding.btnDisableAccessibilityService.isVisible = false
+                binding.btnOpenAccessibilitySettings.isVisible = supportsA11ySilent
+            }
+        }
+        binding.btnOpenDevSettings.setOnClickListener {
+            try {
+                startActivity(android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS))
+            } catch (e: android.content.ActivityNotFoundException) {
+                Timber.w(e, "Dev options intent unresolved")
             }
         }
         // S0162: hide rotation row on non-sensor devices.
@@ -607,8 +618,19 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                             if (binding.rowEnableNetworkMonitor.isChecked != settings.enableNetworkMonitor) {
                                 binding.rowEnableNetworkMonitor.setCheckedSilently(settings.enableNetworkMonitor)
                             }
+                            // No visibility line, unlike the Monitor above: system information is compiled
+                            // into every flavor, so the row is never absent from a build.
+                            if (binding.rowEnableSystemInfo.isChecked != settings.enableSystemInfo) {
+                                binding.rowEnableSystemInfo.setCheckedSilently(settings.enableSystemInfo)
+                            }
+                            // S1883: the whole Wear OS group - its checkbox, its button and its gates -
+                            // belongs to its own manager now, so nothing about it is rendered inline here.
+                            wearGroupManager.render(settings)
                             if (binding.rowEmbeddedGame.isChecked != settings.embeddedGameEnabled) {
                                 binding.rowEmbeddedGame.setCheckedSilently(settings.embeddedGameEnabled)
+                            }
+                            if (binding.rowFrontFlashlight.isChecked != settings.frontFlashlightEnabled) {
+                                binding.rowFrontFlashlight.setCheckedSilently(settings.frontFlashlightEnabled)
                             }
 
                             // SystemApps group (moved from Player tab).

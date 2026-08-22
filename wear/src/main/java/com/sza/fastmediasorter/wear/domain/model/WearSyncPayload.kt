@@ -16,7 +16,10 @@ data class WearNetworkSourcePayload(
     val shareName: String? = null,  // SMB only
     val basePath: String = "/",
     val domain: String = "",        // SMB domain
-    val sshPrivateKey: String? = null // SFTP key-auth
+    val sshPrivateKey: String? = null, // SFTP key-auth
+    // S1555: canonical SHA256 host-key pin, already normalised by the phone. Absent on payloads
+    // from an older phone, which keeps the permissive behaviour rather than refusing to connect.
+    val hostKeyFingerprint: String? = null
 )
 
 /**

@@ -30,6 +30,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureContract
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
 import com.sza.fastmediasorter.util.CaptureDestinationPolicy
+import com.sza.fastmediasorter.util.CaptureFileNamer
 import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -40,9 +41,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class BrowseCameraCaptureManager(
     private val activity: FragmentActivity,
@@ -126,13 +124,13 @@ class BrowseCameraCaptureManager(
             return
         }
 
-        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+        val fileName = CaptureFileNamer.shared.allocate(CaptureFileNamer.CaptureKind.PHOTO, ext)
         // S1609: [createTemp] mkdirs the app-private capture directory and creates the file, so it is a
         // disk write and may not run inline here. The coroutine resumes on the host's main dispatcher,
         // which preserves the ordering the result callback depends on: pendingTempFile is assigned
         // before launcher.launch fires, so a result can never arrive without its temp file.
         coroutineScope.launch {
-            val tempFile = createTemp(timestamp, ext) ?: run {
+            val tempFile = createTemp(fileName, ext) ?: run {
                 Timber.w("launch ABORT - createTemp returned null")
                 showSnackbar(R.string.camera_capture_error_temp_file)
                 pendingResource = null
@@ -226,10 +224,10 @@ class BrowseCameraCaptureManager(
             return
         }
 
-        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+        val fileName = CaptureFileNamer.shared.allocate(CaptureFileNamer.CaptureKind.VIDEO, ".mp4")
         // S1609: same off-main hop as the photo path - see the comment in [launch].
         coroutineScope.launch {
-            val tempFile = createTemp(timestamp, ".mp4") ?: run {
+            val tempFile = createTemp(fileName, ".mp4") ?: run {
                 Timber.w("VideoCapture: launchVideo ABORT - createTemp returned null")
                 showSnackbar(R.string.camera_capture_error_temp_file)
                 pendingResource = null
@@ -620,12 +618,13 @@ class BrowseCameraCaptureManager(
      * [android.content.Context.getExternalFilesDir] creates the directory on first use and
      * [File.createNewFile] writes an inode, both of which are StrictMode disk writes.
      */
-    private suspend fun createTemp(timestamp: String, ext: String): File? = withContext(Dispatchers.IO) {
+    private suspend fun createTemp(fileName: String, ext: String): File? = withContext(Dispatchers.IO) {
         try {
             val dir = activity.getExternalFilesDir(
                 if (ext == ".mp4") Environment.DIRECTORY_MOVIES else Environment.DIRECTORY_PICTURES
             ) ?: activity.filesDir
-            File(dir, "CAP_$timestamp$ext").also { it.createNewFile() }
+            Timber.d("S1882: browse camera output $fileName")
+            File(dir, fileName).also { it.createNewFile() }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

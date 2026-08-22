@@ -54,13 +54,6 @@ private class ClockGadgetView(context: Context) : LauncherGadgetView(context) {
         binding.gadgetClockDate.format24Hour = datePattern
         contentDescription = context.getString(R.string.launcher_gadget_clock_actions)
         doOnLayout {
-            Timber.d(
-                "S1610: clock card %dx%dpx, time %.1fpx, date %.1fpx",
-                it.width,
-                it.height,
-                binding.gadgetClockTime.textSize,
-                binding.gadgetClockDate.textSize,
-            )
         }
         setOnClickListener { openSystemClock(context) }
         setOnLongClickListener {

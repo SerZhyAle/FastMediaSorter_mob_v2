@@ -2,9 +2,11 @@
 <!-- S1433: the compact always-visible chart band strategic 3.1.2 fixes, with the text line under it that
      3.2 requires of every chart. One layout for every signal section, including the two SIM charts of the
      Mobile subscreen - each <include> gets its own id, so ViewBinding hands back distinct views. -->
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    style="@style/Widget.FastMediaSorter.NetworkMonitor.Card">
+    style="@style/Widget.FastMediaSorter.NetworkMonitor.Card"
+    android:clickable="true"
+    android:focusable="true">
 
     <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.CardContent">
 
@@ -34,4 +36,4 @@
             style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
             android:text="@string/network_monitor_chart_waiting" />
     </LinearLayout>
-</com.google.android.material.card.MaterialCardView>
+</com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>

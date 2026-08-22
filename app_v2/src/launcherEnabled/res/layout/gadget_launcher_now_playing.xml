@@ -6,7 +6,13 @@
      from each element's contour - the same choice every other launcher cell layout makes.
 
      Orientation-neutral, so no layout-land counterpart: the launcher stores spans per orientation and
-     measures the cell exactly, so this layout never sees an orientation. -->
+     measures the cell exactly, so this layout never sees an orientation.
+
+     S1177: the artwork sits square on the left, the text and transport to the right of it. That split is
+     the owner's ruling of 2026-08-17, taken over drawing the text on top of the image, because the cell
+     stays 2x1 for every desktop that already has one and the text stays readable over any album cover.
+     The artwork view is gone until a session publishes one - a placeholder box on the home screen says
+     nothing and costs a square. -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -16,11 +22,33 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center_vertical"
-        android:orientation="vertical"
+        android:orientation="horizontal"
         android:paddingStart="@dimen/margin_small"
         android:paddingTop="4dp"
         android:paddingEnd="@dimen/margin_small"
         android:paddingBottom="4dp">
+
+        <!-- Width follows the image at full cell height rather than a fixed dp: a square cover then draws
+             square, and a wide one keeps its proportions, without this layout having to know the cell
+             size the grid measured. -->
+        <ImageView
+            android:id="@+id/nowPlayingArtwork"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="@dimen/margin_small"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/launcher_now_playing_artwork"
+            android:scaleType="fitCenter"
+            android:visibility="gone"
+            tools:src="@drawable/ic_play"
+            tools:visibility="visible" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="vertical">
 
         <LinearLayout
             android:id="@+id/nowPlayingBody"
@@ -130,6 +158,8 @@
             android:textSize="11sp"
             android:visibility="gone"
             tools:visibility="visible" />
+
+        </LinearLayout>
 
     </LinearLayout>
 

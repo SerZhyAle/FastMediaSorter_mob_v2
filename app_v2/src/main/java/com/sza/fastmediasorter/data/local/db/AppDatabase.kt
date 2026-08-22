@@ -7,7 +7,6 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.sza.fastmediasorter.data.input.InputBindingDao
 import com.sza.fastmediasorter.data.input.InputBindingEntity
-import timber.log.Timber
 
 @Database(
     entities = [
@@ -27,8 +26,8 @@ import timber.log.Timber
         InputBindingEntity::class,
         DeviceProfileEntity::class,
         StreamSourceEntity::class,
-        StreamPlayOutcomeEntity::class,
         StreamQualityMemoryEntity::class,
+        StreamUserStateEntity::class,
         AppLaunchPanelTileEntity::class,
         LauncherCellEntity::class,
         LauncherJournalEntity::class,
@@ -39,7 +38,7 @@ import timber.log.Timber
         SensorSeriesPointEntity::class,
         NetworkMeasurementEntity::class
     ],
-    version = 50,
+    version = 53,
     // Export the schema JSON (committed under app_v2/schemas/) so future migrations can be
     // validated and the schema diff is reviewable. Arms the migration-test guard (S0731).
     exportSchema = true
@@ -61,8 +60,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun inputBindingDao(): InputBindingDao
     abstract fun deviceProfileDao(): DeviceProfileDao
     abstract fun streamSourceDao(): StreamSourceDao
-    abstract fun streamPlayOutcomeDao(): StreamPlayOutcomeDao
     abstract fun streamQualityMemoryDao(): StreamQualityMemoryDao
+    abstract fun streamUserStateDao(): StreamUserStateDao
     abstract fun appLaunchPanelTileDao(): AppLaunchPanelTileDao
     abstract fun launcherCellDao(): LauncherCellDao
     abstract fun launcherJournalDao(): LauncherJournalDao

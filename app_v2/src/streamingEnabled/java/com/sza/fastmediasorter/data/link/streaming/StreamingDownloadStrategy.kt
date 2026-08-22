@@ -39,6 +39,7 @@ class StreamingDownloadStrategy @Inject constructor(
         manifest: StreamingManifest,
         fileName: String,
         quality: MediaQualityPreference,
+        accountId: String?,
         onProgress: (downloadedBytes: Long, totalBytes: Long?) -> Unit,
     ): PipelineOutcome {
         val sessionId = cacheCleaner.newSessionId()
@@ -65,7 +66,7 @@ class StreamingDownloadStrategy @Inject constructor(
             }
 
             // 3. Segment download.
-            val bundle = segmentDownloader.downloadVariant(manifest, quality, sessionDir, onProgress)
+            val bundle = segmentDownloader.downloadVariant(manifest, quality, sessionDir, accountId, onProgress)
 
             // 4. Remux.
             LinkDownloadTrace.tag(

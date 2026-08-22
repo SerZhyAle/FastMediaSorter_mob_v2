@@ -45,13 +45,43 @@ try {
         return @(Compare-PinsToDocs -GradlePins $gradlePins -DocMentions $mentions)
     }
 
+    # S1852: a scenario mutates a copy of the tree to provoke a known FAIL. When the value it edits was
+    # written as a literal, the edit silently became a no-op the moment the project moved past it - the
+    # fixtures said 50 while the schema reached 53, the replace matched nothing, no FAIL record appeared,
+    # and the scenario failed while reporting nothing about the code under test. Worse, the suite stops at
+    # the first failed scenario, so the three after it had not run for as long as the drift existed.
+    #
+    # Every mutation now derives its value from the same gradle pins the audit itself reads, and asserts
+    # that the text actually changed. A fixture that stops matching now says so instead of going quiet.
+    function Set-MutatedContent {
+        param(
+            [Parameter(Mandatory)][string] $Path,
+            [Parameter(Mandatory)][string] $Text,
+            [Parameter(Mandatory)][string] $Pattern,
+            [Parameter(Mandatory)][string] $Replacement,
+            [Parameter(Mandatory)][string] $What
+        )
+        $mutated = $Text -replace $Pattern, $Replacement
+        if ($mutated -eq $Text) {
+            throw "fixture no longer matches the tree: $What (pattern '$Pattern' changed nothing)"
+        }
+        Set-Content -LiteralPath $Path -Value $mutated
+    }
+
+    # Current values, read from the same source the audit compares against.
+    $compileSdkNow = [int]$gradlePins['compile-sdk']
+    $targetSdkNow  = [int]$gradlePins['target-sdk']
+    $roomNow       = [int]$gradlePins['room-schema-version']
+
     Assert-Scenario 'baseline' {
         @(Get-ScenarioRecords | Where-Object { $_.Status -in @('FAIL', 'INCONSISTENT', 'MISSING') }).Count -eq 0
     }
 
     $techPath = Join-Path $tempRoot 'docs\TECH_STACK.md'
     $techText = Get-Content -LiteralPath $techPath -Raw
-    Set-Content -LiteralPath $techPath -Value ($techText -replace 'compileSdk` / `targetSdk`: `36`', 'compileSdk` / `targetSdk`: `35`')
+    Set-MutatedContent -Path $techPath -Text $techText -What 'compile-sdk in TECH_STACK.md' `
+        -Pattern ('compileSdk` / `targetSdk`: `' + $compileSdkNow + '`') `
+        -Replacement ('compileSdk` / `targetSdk`: `' + ($compileSdkNow - 1) + '`')
     Assert-Scenario 'compile-sdk-mismatch' {
         @(Get-ScenarioRecords | Where-Object { $_.Pin -eq 'compile-sdk' -and $_.Status -eq 'FAIL' }).Count -eq 1
     }
@@ -59,13 +89,15 @@ try {
 
     $requirementsPath = Join-Path $tempRoot 'dev\TECH_REQUIREMENTS.md'
     $requirementsText = Get-Content -LiteralPath $requirementsPath -Raw
-    Set-Content -LiteralPath $requirementsPath -Value ($requirementsText -replace '(?m)^(\| targetSdk\s+\| )36', '${1}35')
+    Set-MutatedContent -Path $requirementsPath -Text $requirementsText -What 'target-sdk in TECH_REQUIREMENTS.md' `
+        -Pattern ("(?m)^(\| targetSdk\s+\| ){0}" -f $targetSdkNow) `         -Replacement ('${1}' + ($targetSdkNow - 1))
     Assert-Scenario 'target-sdk-mismatch' {
         @(Get-ScenarioRecords | Where-Object { $_.Pin -eq 'target-sdk' -and $_.Status -eq 'FAIL' }).Count -eq 1
     }
     Set-Content -LiteralPath $requirementsPath -Value $requirementsText
 
-    Set-Content -LiteralPath $requirementsPath -Value ($requirementsText -replace '(?m)^(\| Room DB version\s+\| )50', '${1}49')
+    Set-MutatedContent -Path $requirementsPath -Text $requirementsText -What 'room-schema-version in TECH_REQUIREMENTS.md' `
+        -Pattern ("(?m)^(\| Room DB version\s+\| ){0}" -f $roomNow) `         -Replacement ('${1}' + ($roomNow - 1))
     Assert-Scenario 'room-schema-version-mismatch' {
         @(Get-ScenarioRecords | Where-Object { $_.Pin -eq 'room-schema-version' -and $_.Status -eq 'FAIL' }).Count -eq 1
     }
@@ -73,7 +105,8 @@ try {
 
     $devOpsPath = Join-Path $tempRoot 'docs\DEV_OPS.md'
     $devOpsText = Get-Content -LiteralPath $devOpsPath -Raw
-    Set-Content -LiteralPath $devOpsPath -Value ($devOpsText -replace 'Room schema version: 50', 'Room schema version: 49')
+    Set-MutatedContent -Path $devOpsPath -Text $devOpsText -What 'room-schema-version in DEV_OPS.md' `
+        -Pattern ("Room schema version: {0}" -f $roomNow) `         -Replacement ("Room schema version: {0}" -f ($roomNow - 1))
     Assert-Scenario 'room-schema-version-dev-ops-mismatch' {
         @(Get-ScenarioRecords | Where-Object { $_.Pin -eq 'room-schema-version' -and $_.Status -eq 'FAIL' }).Count -eq 1
     }

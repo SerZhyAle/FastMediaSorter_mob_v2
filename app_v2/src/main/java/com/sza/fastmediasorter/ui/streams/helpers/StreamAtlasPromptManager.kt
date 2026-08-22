@@ -13,7 +13,6 @@ import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * S1154: after a stream-catalog import, offers to download an artwork atlas when it is not already

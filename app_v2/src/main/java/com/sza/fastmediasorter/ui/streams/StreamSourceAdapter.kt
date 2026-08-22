@@ -62,6 +62,11 @@ class StreamSourceAdapter(
     private val onToggleFavorite: (StreamSourceEntity) -> Unit = {},
     private val favoritesEnabled: () -> Boolean = { false },
     private val isFavorite: (StreamSourceEntity) -> Boolean = { false },
+    // S1799: send a manual channel to the watch. The gate is a provider so the menu reflects the
+    // current Wear Companion setting without an adapter rebuild.
+    private val onSendToWatch: (StreamSourceEntity) -> Unit = {},
+    private val onOpenOnWatch: (StreamSourceEntity) -> Unit = {},
+    private val wearSendAvailable: () -> Boolean = { false },
     // S0668: favicon plumbing kept as plain collaborators (not DI) so the adapter stays test-friendly.
     // faviconResolver maps a url -> its sprite-atlas tile index (null = no favicon -> empty slot);
     // faviconTileLoader decodes that index into a 32 px bitmap off the main thread (the slicer's
@@ -352,7 +357,13 @@ class StreamSourceAdapter(
         canRun: (StreamMenuAction) -> Boolean,
     ) {
         val pinnedRows = currentList.filter { it.pinned }
-        val facts = StreamMenuBinder.factsOf(source, pinnedRows, favoritesEnabled(), isFavorite(source))
+        val facts = StreamMenuBinder.factsOf(
+            source,
+            pinnedRows,
+            favoritesEnabled(),
+            isFavorite(source),
+            wearSendAvailable(),
+        )
         StreamMenuBinder.build(menu, source, pinnedRows, facts, canRun)
     }
 
@@ -372,6 +383,8 @@ class StreamSourceAdapter(
             StreamMenuAction.TOGGLE_FAVORITE -> onToggleFavorite(source)
             StreamMenuAction.ADD_SHORTCUT -> onAddShortcut(source)
             StreamMenuAction.EDIT -> onEdit(source)
+            StreamMenuAction.SEND_TO_WATCH -> onSendToWatch(source)
+            StreamMenuAction.OPEN_ON_WATCH -> onOpenOnWatch(source)
             StreamMenuAction.ABOUT_CHANNEL -> onAboutChannel(source)
             StreamMenuAction.SHARE_LINK -> onShareLink(source)
             StreamMenuAction.REMOVE -> onRemove(source)

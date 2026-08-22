@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- S1549: mirrors values-land - layout-w600dp/activity_browse.xml is byte-identical to the
+         landscape file, and this bucket outranks values-land on a 600dp-wide screen. -->
+    <item name="browse_scroll_button_tint" type="color">@color/white</item>
+</resources>

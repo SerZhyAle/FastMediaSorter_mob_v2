@@ -15,6 +15,11 @@ $script:RepoRoot = $repoRoot
 # untouched by the move.
 . (Join-Path $libDir '_research-items.ps1')
 
+# S1864: the lifecycle-status sets live in their own leaf file for the same reason, so
+# preview.ps1's auto-skip verdict and this library's release-file routing answer from one
+# definition. Re-exported unchanged - Test-ReleaseReadyStatus keeps every caller it had.
+. (Join-Path $libDir '_status-sets.ps1')
+
 $script:CatalogPath = Join-Path $repoRoot 'PLAN\spec-catalog.jsonl'
 # Archived records live in a separate journal so the hot read path scans only
 # active tickets. See PLAN/S0454_spec-catalog-journal-compaction.md.
@@ -50,6 +55,10 @@ $script:ReleaseQueuePath     = Join-Path $repoRoot 'PLAN\RELEASE_QUEUE.md'
 $script:ReleaseReadyPath     = Join-Path $repoRoot 'PLAN\RELEASE_READY.md'
 $script:ReleaseQueueDonePath = Join-Path $repoRoot 'PLAN\RELEASE_QUEUE_DONE.md'
 $script:ReleaseQueueBacklog  = '--'
+# S1698: how many duplicate ticket lines the last Sync-ReleaseQueue collapsed. Reported by
+# release-queue.ps1 -Reconcile, because a silent repair of a line the owner can see is
+# indistinguishable from the reconcile having done nothing - which is what the defect looked like.
+$script:ReleaseQueueDuplicatesDropped = 0
 
 $script:RequiredFields = @('id', 'name', 'status', 'priority', 'file', 'created', 'updated')
 $script:StatusEnum = @(
@@ -302,6 +311,8 @@ function Get-ReleaseReadyPath { return $script:ReleaseReadyPath }
 
 function Get-ReleaseQueueDonePath { return $script:ReleaseQueueDonePath }
 
+function Get-ReleaseQueueDuplicatesDropped { return $script:ReleaseQueueDuplicatesDropped }
+
 function Get-TicketBaseName {
     # 'PLAN/S1291_slug.md' -> 'S1291_slug'. The queue shows the spec FILE name, so one column
     # carries both the id and the human-readable slug.
@@ -395,14 +406,8 @@ function Get-CurrentRelease {
     return $script:ReleaseQueueBacklog
 }
 
-function Test-ReleaseReadyStatus {
-    # Ready = the ticket's code is done as far as this release is concerned. Implemented and
-    # Verified are self-evident; BlockNeedUserTest counts too, because some flows are very hard
-    # to verify and the owner treats a long-pending device check as shipped - if it later turns
-    # out broken it simply comes back as fresh work in a later package.
-    param([Parameter(Mandatory)][string] $Status)
-    return $Status -in @('Implemented', 'Verified', 'BlockNeedUserTest')
-}
+# Test-ReleaseReadyStatus and Test-BlockerReleasedStatus now live in _status-sets.ps1,
+# dot-sourced above (S1864).
 
 function Sync-ReleaseQueue {
     # Reconcile BOTH release files against the catalog and move tickets between them by status.
@@ -419,11 +424,15 @@ function Sync-ReleaseQueue {
     #   - updates the changed-date ONLY when the status actually moved,
     #   - a status change across the ready boundary moves the line to the other file,
     #   - drops a line whose ticket left the active journal (archived or deleted),
-    #   - never ADDS a ready ticket that is in neither file: it shipped in an earlier package.
+    #   - never ADDS a ready ticket that is in neither file: it shipped in an earlier package,
+    #   - keeps ONE line per ticket id across both files: the first occurrence wins its position
+    #     and its `rel` column, every later one is dropped (S1698).
     param([Parameter(Mandatory)][AllowEmptyCollection()][object[]] $Records)
 
     if ($env:FMS_SKIP_RELEASE_QUEUE) { return }
     if (-not (Test-Path $script:ReleaseQueuePath)) { return }
+
+    $script:ReleaseQueueDuplicatesDropped = 0
 
     $byId = @{}
     foreach ($r in $Records) { $byId[$r.id] = $r }
@@ -480,8 +489,24 @@ function Select-ReleaseLines {
     $kept = New-Object System.Collections.Generic.List[object]
     if (-not (Test-Path $Path)) { return ,$kept }
 
+    # S1725: the id of the ticket line standing directly above the current one, within this file.
+    # A line that crosses to the sibling file carries it as an anchor, so coming back it can be put
+    # where the owner had it instead of at the end of its package. Before this the package survived a
+    # round trip and the position did not - and the position is what the ticket picker reads as the
+    # order of work, so a status that went ready and came back silently re-prioritised its own ticket.
+    $previousTicketId = $null
+
     foreach ($line in (Read-ReleaseFile -Path $Path)) {
         if ($line.Kind -ne 'ticket') { $kept.Add($line); continue }
+        # S1698: one line per id, across BOTH files. $Seen is shared by the two passes, so this
+        # collapses a line duplicated inside one file and a ticket listed in queue AND ready
+        # alike. Dropping the later occurrence is what makes -Reconcile the remedy -Validate
+        # prints for "duplicate line": before this, both copies were refreshed and written back,
+        # so the validator kept failing however many times the operator ran the fix.
+        if ($Seen.ContainsKey($line.Id)) {
+            $script:ReleaseQueueDuplicatesDropped++
+            continue
+        }
         if (-not $ById.ContainsKey($line.Id)) { continue }   # archived / deleted
 
         $rec = $ById[$line.Id]
@@ -494,7 +519,9 @@ function Select-ReleaseLines {
             Changed = $changed
             Status  = $rec.status
             Id      = $line.Id
+            After   = $previousTicketId                  # S1725: and so does its place in the block
         }
+        $previousTicketId = $line.Id
         if ((Test-ReleaseReadyStatus -Status $rec.status) -eq $WantReady) { $kept.Add($row) } else { $Moved.Add($row) }
     }
     return ,$kept
@@ -507,10 +534,34 @@ function Add-ReleaseLines {
         [Parameter(Mandatory)] $Target,
         [Parameter(Mandatory)] $Additions
     )
+    # S1698: an id already standing in the target file is never appended a second time. The
+    # Select pass makes this unreachable for well-formed input; it stays as the last barrier,
+    # because this is the only place a line is created rather than carried over.
+    $present = @{}
+    foreach ($t in $Target) { if ($t.Kind -eq 'ticket') { $present[$t.Id] = $true } }
+
     foreach ($add in $Additions) {
+        if ($present.ContainsKey($add.Id)) {
+            $script:ReleaseQueueDuplicatesDropped++
+            continue
+        }
+        $present[$add.Id] = $true
         $insertAt = -1
-        for ($i = 0; $i -lt $Target.Count; $i++) {
-            if ($Target[$i].Kind -eq 'ticket' -and $Target[$i].Release -eq $add.Release) { $insertAt = $i }
+        # S1725: put the line back where it stood, when we know where that was. The anchor is the id
+        # of the line it used to follow; if that line is still here, the returning ticket goes right
+        # after it. Only when the anchor is gone - or was never recorded, as for a brand-new ticket -
+        # does it fall back to the end of its package block, which is the correct place for something
+        # the owner has not ordered yet.
+        $anchorId = if ($add.PSObject.Properties['After']) { $add.After } else { $null }
+        if ($anchorId) {
+            for ($i = 0; $i -lt $Target.Count; $i++) {
+                if ($Target[$i].Kind -eq 'ticket' -and $Target[$i].Id -eq $anchorId) { $insertAt = $i; break }
+            }
+        }
+        if ($insertAt -lt 0) {
+            for ($i = 0; $i -lt $Target.Count; $i++) {
+                if ($Target[$i].Kind -eq 'ticket' -and $Target[$i].Release -eq $add.Release) { $insertAt = $i }
+            }
         }
         if ($insertAt -ge 0) { $Target.Insert($insertAt + 1, $add) } else { $Target.Add($add) }
     }

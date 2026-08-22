@@ -16,12 +16,17 @@ Origin tickets: **S0570** (catalog founding), **S0668** (favicon atlas + offline
 
 ## 1. Script identity
 
-- **One script**: `scripts/streams/collect-stream-candidates.ps1` - 67,202 bytes, 1,271 lines.
+- **One CLI entry script**: `scripts/streams/collect-stream-candidates.ps1` - the operator-facing
+  parameter surface and mode dispatch. Shared implementation is dot-sourced from
+  `scripts/streams/modules/`, and each publisher source file remains below the 1,500-line project ceiling.
 - `#requires -Version 7` - PowerShell 7+ only (uses `ForEach-Object -Parallel`,
   `System.Net.Http.HttpClient` with `CancellationToken`, and `System.Drawing`/GDI+ imaging).
-- **No sibling scripts.** All candidate harvesting, liveness probing, favicon fetching, atlas packing, zip
-  assembly, and `gh` upload live as PowerShell functions inside this single file. There is no separate
-  "packer" script.
+- **Publisher modules.** Candidate harvesting and liveness live in `StreamPublisher.Discovery.ps1` and
+  `StreamPublisher.Probes.ps1`; artwork and delivery guards live in `StreamPublisher.Artwork.ps1` and
+  `StreamPublisher.Delivery.ps1`; shared schema/helpers live in `StreamPublisher.Common.ps1`. The entry
+  script remains the only CLI and loads these modules in dependency order.
+- **Offline tests.** Deterministic publisher rules are covered by `scripts/streams.tests/*.Tests.ps1` and
+  run with `Invoke-Pester`; tests do not call network services, ffmpeg, GDI+ or GitHub upload.
 - Outbound User-Agent for every HTTP call: `FastMediaSorter-catalog/1.0 (+stream-candidate-collector)`.
 - **Windows-only imaging dependency**: the atlas is built with GDI+ via `Add-Type -AssemblyName
   System.Drawing`. On Windows this is native and needs no setup; on Linux/macOS .NET, `System.Drawing.Common`
@@ -30,9 +35,15 @@ Origin tickets: **S0570** (catalog founding), **S0668** (favicon atlas + offline
 
 ---
 
-## 2. Parameters (28)
+## 2. Parameters (28 as of the 2026-07-19 snapshot)
 
-The `param()` block (`:56-126`). Grouped:
+The `param()` block (`:56-126` in the 2026-07-19 snapshot; now `:70-226`). Grouped:
+
+> **Not re-audited for this refresh:** the live `param()` block now declares **64** parameters, not 28 -
+> the script has grown substantially since 2026-07-19 (new modes/axes such as `-ArtworkCacheOnly` and the
+> `-LogoCacheDir` incremental favicon cache, S1201's separate logo-atlas pass, and more). The groupings
+> below are the original 28 and are still accurate for what they describe, but are **not a complete list**.
+> Read the live `param()` block for the current full set before relying on flags not named here.
 
 **Discovery axes / sources**
 - `-Axis` (`ValidateSet 'livetv','genres','geo','webcam'`, default all four) - which harvest axes to run.
@@ -48,6 +59,7 @@ The `param()` block (`:56-126`). Grouped:
 **Liveness**
 - `-SkipLiveness` - skip probing entirely.
 - `-LivenessTimeoutSec` (12), `-Throttle` (12; auto-bumped to 48 under `-DeepSignal` unless pinned).
+- `-SkipCaptureFirst` - revert a VIDEO row's deep-signal test to ffprobe-only (pre-S1831). See 5.2.
 - `-DeepSignal`, `-SignalBytes` (16384), `-SignalMinBytes` (2048), `-SignalTimeoutSec` (8) - deep byte probe.
 - `-SkipDeepSignal` - skip the S0805 discovery append gate.
 
@@ -56,7 +68,7 @@ The `param()` block (`:56-126`). Grouped:
   atlas, stamp `favicon_index`.
 - `-FaviconS2Fallback` (default ON) - allow the Google s2 third-party fallback.
 - `-AtlasPath` (`delivery/stream-catalog/favicon-atlas.png`), `-FaviconTimeoutSec` (8),
-  `-FaviconThrottle` (16), `-MaxAtlasBytes` (3145728 = 3 MiB publish cap).
+  `-FaviconThrottle` (16), `-MaxAtlasBytes` (31457280 = 30 MB publish cap).
 
 **Publish**
 - `-Publish` - after the run, zip and upload.
@@ -139,8 +151,42 @@ Main body (`:1123-1271`):
   dead; ICY/status-line -> alive; timeout -> unknown.
 
 ### 5.2 Deep-signal probe - `Invoke-SignalProbe` (`-DeepSignal` / S0805 append gate)
-Pulls **real media bytes** (`-SignalBytes` cap 16 KB, alive threshold `-SignalMinBytes` 2 KB, per-fetch
-`-SignalTimeoutSec` 8 s, cancellation-bounded so an endless live body is never fully downloaded):
+
+The probe is a **ladder**, and the order is the safety argument. Each rung is tried only when the one above
+it could not decide, so nothing that distinguishes one failure from another is ever removed.
+
+**Rung 0, VIDEO rows only - take the frame (S1831).** `Get-CapturedFrameKinds` runs one ffmpeg
+`-frames:v 1` against the address, at `-loglevel info` so the input's `Stream #0:0: Video: h264` lines can
+be read back into `media_kinds` / `media_codecs`. A frame on disk means alive: not "declares a video track"
+but "handed us a picture just now", which is the criterion the catalog is supposed to apply. Measured over
+400 channels, one per provider: the capture confirms **360** where ffprobe confirms **340**, and the two
+calls cost the same (median 2 680 ms against 2 682 ms), so folding the capture into the probe **halves** the
+video portion of a sweep instead of adding to it.
+
+Three properties of rung 0 are load-bearing and easy to break:
+
+- **It never trusts a cached frame as evidence.** A frame proves the address served video on the day it was
+  taken; liveness is a claim about now. Short-circuiting on the cache reported channels captured eight days
+  earlier as alive without a single request - caught in testing, where a 24-row sample came back
+  "21 alive, 3 unknown" and not one `geo`.
+- **It captures to `<frame>.new` and moves on success.** ffmpeg opens its output with `-y`, so capturing
+  straight onto the cached path would truncate a good frame whenever the capture failed - and a channel
+  that is only geo-blocked from this network still plays in-region and should keep its thumbnail.
+- **A failed capture is never itself a verdict.** ffmpeg cannot tell 403 from 404 from a timeout. Control
+  falls to rung 1 and then to the branches below, which is what keeps `geo` separate from `dead` from
+  `unknown` - the distinction S1117 introduced and S1830 was opened to restore. Verified by running one
+  24-row sample down both paths: `-SkipCaptureFirst` and the default agreed on **24 of 24** verdicts.
+
+The frame lands on the preview cache path, so the sheet build packs what this pass already fetched rather
+than opening every address a second time. `-SkipCaptureFirst` reverts to the pre-S1831 ladder (rung 1 first)
+for baseline comparisons; it changes which rung is asked first, never what any verdict means.
+
+**Rung 1 - ask the decoder (S1830).** `Get-MediaStreamKinds` runs `ffprobe -show_streams`. This is where a
+non-VIDEO row starts, and where a VIDEO row lands when its capture failed.
+
+**Rung 2 and below - pull real media bytes** (`-SignalBytes` cap 16 KB, alive threshold `-SignalMinBytes`
+2 KB, per-fetch `-SignalTimeoutSec` 8 s, cancellation-bounded so an endless live body is never fully
+downloaded):
 - **RTSP**: raw-socket `OPTIONS ... RTSP/1.0` handshake; `RTSP/1.0 200` -> alive.
 - **HLS**: fetch the playlist; if a master (`#EXT-X-STREAM-INF`), resolve the first variant and re-fetch;
   then pull the first `#EXT-X-MAP` init segment or first media segment. `>= SignalMinBytes` -> alive; 404 ->
@@ -208,15 +254,15 @@ catalog) and the discovery append path (full merged set).
 
 - Written by `Write-CsvUtf8` = `$Rows | Select-Object $Schema | Export-Csv -NoTypeInformation -Encoding utf8`.
 - PS7 `-Encoding utf8` = **UTF-8 without BOM** (unlike Windows PowerShell 5.1). All fields quoted.
-- Column order = the `$Schema` array (18 columns, `favicon_index` last, existing columns never reordered).
-  See `03_catalog_format.md` for the full column table.
-- Live snapshot (measured): 966,495 bytes, 2,691 data rows - AUDIO 348 / VIDEO 2,337 / RTSP 6;
-  `favicon_index` populated on 1,636 rows (max index 1,635), blank on 1,055.
+- Column order = the `$Schema` array (19 columns, `favicon_index` second-to-last, `access` last, existing
+  columns never reordered). See `03_catalog_format.md` for the full column table.
+- Live snapshot (measured 2026-08-19): 5,834,634 bytes, 19,534 data rows - AUDIO 16,616 / VIDEO 2,917 /
+  RTSP 1; `favicon_index` populated on 5,624 rows (highest index in use 5,742), blank on 13,910.
 
 ## 8. `favicon-atlas.png` producer output
 
-- `delivery/stream-catalog/favicon-atlas.png`, 2,426,865 bytes (~2.31 MiB), **512 x 3,296 px** = 16 x 103
-  tiles = 1,648 capacity, 1,636 packed (12 transparent trailing cells). Under the 3 MiB publish cap.
+- `delivery/stream-catalog/favicon-atlas.png`, 6,992,874 bytes (~6.67 MiB), **512 x 11,488 px** = 16 x 359
+  tiles = 5,744 capacity. Under the 30 MB publish cap.
 - **`favicon-coords.json` is NOT produced here** - it does not exist on the producer side at all. The app
   derives it at import time from the CSV `favicon_index` column (see `01`/`04`).
 
@@ -229,7 +275,7 @@ Requires the `gh` CLI on PATH (`C:\Program Files\GitHub CLI\gh.exe`, not on PATH
 1. **CSV first** (entry 0): `Compress-Archive -Path streams.csv -DestinationPath temp/stream-catalog.zip -Force`
    creates a zip whose sole first entry is the CSV. `Compress-Archive` does not guarantee entry order for a
    multi-path call, so the CSV is packed **alone first** deliberately.
-2. **Atlas appended** (`-Update`) only if it exists **and** `size <= $MaxAtlasBytes` (3 MiB). Over the cap ->
+2. **Atlas appended** (`-Update`) only if it exists **and** `size <= $MaxAtlasBytes` (30 MB). Over the cap ->
    warning, CSV-only publish (the S0583 30 s import-timeout budget rationale).
 3. **S0925 guard** (`:1082-1091`): if the atlas was NOT bundled (missing or over-cap) **and** the CSV has
    any row with a numeric `favicon_index`, **throw and refuse to publish** unless `-AllowFaviconlessPublish`.
@@ -264,8 +310,8 @@ APK/AAB to a `v<version>` tag - a completely separate release; do not conflate.
 
 - **One-shot refresh + publish** (rebuild atlas + push): `pwsh -NoProfile -File
   scripts/streams/collect-stream-candidates.ps1 -WithFavicons -Publish`.
-- **Safer two-step**: run `-WithFavicons` **without** `-Publish` first, validate `streams.csv` (18 cols,
-  `favicon_index` range/no gaps) and the atlas (512 wide, < 3 MB), then `-CatalogOnly -SkipLiveness -Publish`
+- **Safer two-step**: run `-WithFavicons` **without** `-Publish` first, validate `streams.csv` (19 cols,
+  `favicon_index` in range) and the atlas (512 wide, < 30 MB), then `-CatalogOnly -SkipLiveness -Publish`
   (no re-probe/re-atlas).
 - **Re-publish an already-consistent pair** (no favicon re-fetch): `-CatalogOnly -SkipLiveness -Publish`.
 

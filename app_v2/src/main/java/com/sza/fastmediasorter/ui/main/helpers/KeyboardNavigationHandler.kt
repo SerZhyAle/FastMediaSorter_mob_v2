@@ -14,7 +14,6 @@ import com.sza.fastmediasorter.ui.common.input.InputAction
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.main.MainViewModel
 import com.sza.fastmediasorter.util.KeyboardShortcutHandler
-import timber.log.Timber
 
 /**
  * Handles all keyboard navigation for MainActivity RecyclerView.

@@ -42,7 +42,6 @@ import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
-import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -435,15 +434,15 @@ class ResourceEditorFragment : Fragment() {
         // Same icon the editor previews for this resource, so the pinned shortcut matches it.
         val iconRes = ResourceIconRegistry.resolveDrawable(formData.iconId) ?: R.drawable.ic_resource_local
         val icon = ContextCompat.getDrawable(requireContext(), iconRes)
-        val message = if (icon == null) {
-            R.string.resource_shortcut_unsupported
-        } else {
-            when (resourceShortcutPinManager.requestPin(currentResourceId, formData.name, icon)) {
-                ResourceShortcutPinManager.PinResult.Requested -> R.string.resource_shortcut_created
-                ResourceShortcutPinManager.PinResult.Unsupported -> R.string.resource_shortcut_unsupported
-            }
+        // S1917: an accepted pin request is not a created shortcut - the system confirmation dialog
+        // decides that next - so only the unsupported case is reported here. A missing icon is the
+        // same kind of refusal: nothing was requested at all.
+        val unsupported = icon == null ||
+            resourceShortcutPinManager.requestPin(currentResourceId, formData.name, icon) ==
+            ResourceShortcutPinManager.PinResult.Unsupported
+        if (unsupported) {
+            Toast.makeText(requireContext(), R.string.resource_shortcut_unsupported, Toast.LENGTH_LONG).show()
         }
-        Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
     }
 
     private fun observeUiState() {

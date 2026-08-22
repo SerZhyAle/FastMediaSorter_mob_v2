@@ -35,12 +35,14 @@ param(
     [switch] $Gate,
     [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path,
     [switch] $SkipManifestTest,  # escape hatch for environments without a JVM/gradle
-    [string[]] $ChangedFiles     # delta path: skip the gradle stage when nothing feeds the manifest
+    [string[]] $ChangedFiles,    # delta path: skip the gradle stage when nothing feeds the manifest
+    [int] $TimeoutSeconds = 600
 )
 
 $ErrorActionPreference = 'Stop'
 . (Join-Path $RepoRoot "scripts/utils/agent-lock.ps1")
 . (Join-Path $RepoRoot "scripts/builders/gradle-run-verdict.ps1")
+. (Join-Path $RepoRoot "scripts/utils/process-timeout.ps1")
 
 function Fail([string] $stage, [string] $detail) {
     Write-Host "settings-doc-sync: FAIL at stage '$stage'" -ForegroundColor Red
@@ -68,8 +70,11 @@ $manifestInputPatterns = @(
     '(^|/)app_v2/src/[^/]+/res/layout[^/]*/',
     '(^|/)app_v2/src/[^/]+/res/values[^/]*/strings',
     '(^|/)app_v2/src/[^/]+/java/com/sza/fastmediasorter/ui/settings/',
-    '(^|/)app_v2/src/[^/]+/java/com/sza/fastmediasorter/di/[^/]*SettingsSearch'
+    '(^|/)app_v2/src/[^/]+/java/com/sza/fastmediasorter/di/[^/]*SettingsSearch',
+    '(^|/)wear/src/[^/]+/res/values[^/]*/strings',
+    '(^|/)wear/src/[^/]+/java/com/sza/fastmediasorter/(wear/)?ui/settings/'
 )
+
 $scoped = @()
 foreach ($entry in ($ChangedFiles | Where-Object { $_ })) {
     $scoped += ($entry -split ',') | ForEach-Object { $_.Trim().Replace('\', '/') } | Where-Object { $_ }
@@ -90,7 +95,9 @@ if ($scoped.Count -gt 0) {
 
 # Stage 2 - manifest freshness (verify-mode test) -------------------------------
 if (-not $SkipManifestTest -and $manifestAffected) {
-    $reportFile = Join-Path $RepoRoot 'app_v2/build/test-results/testStandardDebugUnitTest/TEST-com.sza.fastmediasorter.ui.settings.search.SettingsManifestExportTest.xml'
+    $reportFileFiltered = Join-Path $RepoRoot 'app_v2/build/test-results/testStandardDebugUnitTest-filtered/TEST-com.sza.fastmediasorter.ui.settings.search.SettingsManifestExportTest.xml'
+    $reportFileStandard = Join-Path $RepoRoot 'app_v2/build/test-results/testStandardDebugUnitTest/TEST-com.sza.fastmediasorter.ui.settings.search.SettingsManifestExportTest.xml'
+    $reportFile = if (Test-Path $reportFileFiltered) { $reportFileFiltered } else { $reportFileStandard }
     $runStart = Get-Date
     # S1349: post-change.ps1 starts detekt-gate as a backgrounded Start-ThreadJob that holds
     # BUILD.LOCK for the full run; this stage lands only ~10s later in the pipeline, well before
@@ -100,12 +107,19 @@ if (-not $SkipManifestTest -and $manifestAffected) {
     Enter-BuildLockOrExit -Reason "assert-settings-doc-sync.ps1 (SettingsManifestExportTest)" -Wait
     Push-Location $RepoRoot
     try {
-        # S1464: the worker-death signature lives in this output, and it used to go to Out-Null - the
-        # gate threw away the one direct sign of "the run never happened" and then guessed from the
-        # report file's timestamp.
-        $manifestOutput = @(& ".\gradlew.bat" ":app_v2:testStandardDebugUnitTest" "--tests" "*SettingsManifestExportTest" 2>&1 | ForEach-Object { [string]$_ })
-        $manifestExit = $LASTEXITCODE
+        # S1786: execute with timeout ceiling
+        $gradleScript = if ($IsWindows -ne $false) { 'gradlew.bat' } else { 'gradlew' }
+        $gradlew = Join-Path $RepoRoot $gradleScript
+        $run = Invoke-ProcessWithTimeout -FilePath $gradlew -WorkingDirectory $RepoRoot `
+            -ArgumentList @(':app_v2:testStandardDebugUnitTest', '--tests', '*SettingsManifestExportTest') `
+            -TimeoutSeconds $TimeoutSeconds
+        $manifestOutput = $run.Output
+        $manifestExit = if ($run.TimedOut) { 2 } else { $run.ExitCode }
+        $timedOut = $run.TimedOut
     } finally { Pop-Location; Exit-AgentLock -Name Build }
+    if ($timedOut) {
+        CannotVerify 'manifest-fresh' "the SettingsManifestExportTest gradle run exceeded ${TimeoutSeconds}s and was killed (exit 2)."
+    }
     if ($manifestExit -ne 0) {
         # A non-zero gradle exit means the test asserted drift OR the run never got that far - a
         # compile failure, or a dead test worker. Each of those is "did not look", and saying

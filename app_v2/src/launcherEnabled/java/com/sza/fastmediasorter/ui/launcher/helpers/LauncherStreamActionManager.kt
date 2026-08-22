@@ -127,13 +127,12 @@ class LauncherStreamActionManager(
      * the desktop never loaded.
      */
     private fun pinShortcut(source: StreamSourceEntity) {
-        val requested = StreamShortcutPinManager(activity).requestPin(source)
-        val message = if (requested) {
-            R.string.streams_shortcut_created
-        } else {
-            R.string.streams_shortcut_unsupported
+        // S1917: only the refusal is ours to report. A accepted request has not created anything yet -
+        // the system asks the user next - so a success toast both lies and, on some devices, covers the
+        // very dialog that decides it.
+        if (!StreamShortcutPinManager(activity).requestPin(source)) {
+            Toast.makeText(activity, R.string.streams_shortcut_unsupported, Toast.LENGTH_LONG).show()
         }
-        Toast.makeText(activity, message, Toast.LENGTH_LONG).show()
     }
 
     /** The same chooser the streams screen raises, built from the same two extras. */

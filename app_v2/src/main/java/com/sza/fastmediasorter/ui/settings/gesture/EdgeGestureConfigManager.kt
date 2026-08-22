@@ -438,7 +438,6 @@ class EdgeGestureConfigManager(
         // S1408: both ways of choosing a zone land here - the tab itself, and the schema tap that
         // selects that tab - so the marker follows either without a second path into the view.
         selectedZone = tabZones.getOrNull(position)
-        Timber.d("S1408: edge gesture zone selected -> ${selectedZone?.name}")
         binding.edgeGestureSchema.setState(buildSchemaState(viewModel.settings.value))
     }
 

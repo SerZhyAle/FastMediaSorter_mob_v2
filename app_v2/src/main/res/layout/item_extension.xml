@@ -97,7 +97,7 @@
             android:textColor="?attr/colorOnSurface"
             android:alpha="0.7"
             android:layout_marginTop="8dp"
-            tools:text="Enables Tesseract and PaddleOCR native recognition libraries to parse text from image and document layouts offline." />
+            tools:text="Enables the Tesseract native recognition library to parse text from image and document layouts offline." />
 
         <!-- Progress Indicator -->
         <LinearLayout

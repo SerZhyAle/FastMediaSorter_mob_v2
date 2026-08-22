@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools" android:id="@+id/layoutCloudStorage" android:layout_width="@dimen/match_constraint" android:layout_height="0dp" android:visibility="gone" app:layout_constraintTop_toBottomOf="@id/layoutResourceTypes" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/padding_large">
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/select_cloud_provider" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" android:layout_marginBottom="@dimen/resource_margin_16dp" />
+
+        <!-- Google Drive Card -->
+        <com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView android:id="@+id/cardGoogleDrive" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" android:clickable="true" android:focusable="true">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="@dimen/padding_large" android:gravity="center_vertical">
+
+                <ImageView android:layout_width="@dimen/resource_card_icon_size" android:layout_height="@dimen/resource_card_icon_size" android:src="@drawable/ic_provider_google_drive" android:layout_marginEnd="@dimen/resource_card_icon_margin_end" />
+
+                <TextView android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/google_drive" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" />
+
+                <TextView android:id="@+id/tvGoogleDriveStatus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/not_connected" android:textSize="@dimen/resource_card_desc_text_size" android:textColor="?android:textColorSecondary" />
+
+            </LinearLayout>
+
+        </com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>
+
+        <!-- OneDrive Card -->
+        <com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView android:id="@+id/cardOneDrive" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" android:clickable="true" android:focusable="true">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="@dimen/padding_large" android:gravity="center_vertical">
+
+                <ImageView android:layout_width="@dimen/resource_card_icon_size" android:layout_height="@dimen/resource_card_icon_size" android:src="@drawable/ic_provider_onedrive" android:layout_marginEnd="@dimen/resource_card_icon_margin_end" />
+
+                <TextView android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/onedrive" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" />
+
+                <TextView android:id="@+id/tvOneDriveStatus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/not_connected" android:textSize="@dimen/resource_card_desc_text_size" android:textColor="?android:textColorSecondary" />
+
+            </LinearLayout>
+
+        </com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>
+
+        <!-- Dropbox Card -->
+        <com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView android:id="@+id/cardDropbox" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_margin_16dp" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" android:clickable="true" android:focusable="true">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="@dimen/padding_large" android:gravity="center_vertical">
+
+                <ImageView android:layout_width="@dimen/resource_card_icon_size" android:layout_height="@dimen/resource_card_icon_size" android:src="@drawable/ic_provider_dropbox" android:layout_marginEnd="@dimen/resource_card_icon_margin_end" />
+
+                <TextView android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/dropbox" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" />
+
+                <TextView android:id="@+id/tvDropboxStatus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/not_connected" android:textSize="@dimen/resource_card_desc_text_size" android:textColor="?android:textColorSecondary" />
+
+            </LinearLayout>
+
+        </com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>
+
+        <!-- Info Text -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/cloud_storage_info" android:textSize="@dimen/resource_card_desc_text_size" android:textColor="?android:textColorSecondary" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
+
+        <!-- Read-Only Mode checkbox -->
+        <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow android:id="@+id/cbCloudReadOnlyMode" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_section_margin_top" app:fcr_title="@string/read_only_mode" app:fcr_subtitle="@string/cb_cloud_read_only_mode_desc" />
+
+    </LinearLayout>
+
+</ScrollView>

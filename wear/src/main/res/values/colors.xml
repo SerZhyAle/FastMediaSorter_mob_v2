@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- S1706: the watch splash reuses the phone's sampled launcher-icon blues so both surfaces
+         show the same brand colour; the generator emits these names into the brand drawable.
+         The watch composition is the logo alone - the wordmark and slogan colours the phone
+         declares have no consumer here. -->
+    <color name="splash_logo_gradient_start">#FF98CFF1</color>
+    <color name="splash_logo_gradient_end">#FF0B82EB</color>
+</resources>

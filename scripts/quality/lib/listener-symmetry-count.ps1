@@ -23,6 +23,10 @@
       lifecycle.addObserver(..)               dropped by the lifecycle it is handed (S1559)
       addEventListener(..)                    a DOM call inside an HTML string literal (S1559)
       any `import` line                       an import is not a call at all (S1559)
+      any whole-line comment                  `//`, `/*` and KDoc `*` lines name calls, they do not
+                                              make them (S1815). Only a line whose FIRST non-space
+                                              characters are a comment marker is dropped, so a code
+                                              line carrying a `"http://.."` literal keeps its call.
 
     A discount only ever SHRINKS an imbalance in the leak direction. Subtracting it from the add count
     and then taking the absolute difference does the opposite on a file that pairs its call: the add
@@ -49,6 +53,14 @@ $addObserver = [regex]'\badd[A-Za-z0-9_]*Observer\b'
 $removeObserver = [regex]'\bremove[A-Za-z0-9_]*Observer\b'
 $addObserverLifecycle = [regex]'\blifecycle\s*(?:\r?\n\s*)?\.\s*addObserver\b'
 
+function Remove-CommentLines([string]$text) {
+    if ([string]::IsNullOrEmpty($text)) { return $text }
+    return (($text -split "`n") | Where-Object {
+        $t = $_.TrimStart()
+        -not ($t.StartsWith('//') -or $t.StartsWith('/*') -or $t.StartsWith('*'))
+    }) -join "`n"
+}
+
 function Remove-ImportLines([string]$text) {
     if ([string]::IsNullOrEmpty($text)) { return $text }
     return (($text -split "`n") | Where-Object { $_ -notmatch '^\s*import\s' }) -join "`n"
@@ -62,7 +74,7 @@ function Get-CategoryImbalance([int]$add, [int]$remove, [int]$discount) {
 
 function Get-FileImbalance([string]$text) {
     if ([string]::IsNullOrEmpty($text)) { return 0 }
-    $text = Remove-ImportLines $text
+    $text = Remove-CommentLines (Remove-ImportLines $text)
     $dObs = Get-CategoryImbalance $regContentObserver.Matches($text).Count $unregContentObserver.Matches($text).Count 0
     $dRec = Get-CategoryImbalance $regReceiver.Matches($text).Count $unregReceiver.Matches($text).Count $regReceiverNull.Matches($text).Count
     $dList = Get-CategoryImbalance $addListener.Matches($text).Count $removeListener.Matches($text).Count $addListenerDom.Matches($text).Count
@@ -76,7 +88,7 @@ function Get-FileImbalance([string]$text) {
 # "imbalance: 1", which reads as a broken gate rather than as a discounted call.
 function Get-FileImbalanceDetail([string]$text) {
     if ([string]::IsNullOrEmpty($text)) { return '' }
-    $text = Remove-ImportLines $text
+    $text = Remove-CommentLines (Remove-ImportLines $text)
     $parts = [System.Collections.Generic.List[string]]::new()
 
     $a = $regContentObserver.Matches($text).Count; $b = $unregContentObserver.Matches($text).Count

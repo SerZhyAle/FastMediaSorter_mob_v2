@@ -29,7 +29,7 @@ class AltitudeGadget @Inject constructor(
 ) : LauncherGadget {
 
     override val key: String = LauncherGadgetRegistry.KEY_ALTITUDE
-    override val defaultSpanW: Int = 2
+    override val defaultSpanW: Int = 1
     override val defaultSpanH: Int = 1
     override val minSpanW: Int = 1
     override val minSpanH: Int = 1

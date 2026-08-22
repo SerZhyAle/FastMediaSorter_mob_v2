@@ -3,10 +3,10 @@
      Untranslated keys are absent on purpose - Android falls back to English (S1190, ADR-6). -->
 <resources>
     <string name="settings">Configurações</string>
-    <string name="settings_3d_vr_help_message">O modo 3D VR oferece reprodução imersiva de vídeo e fotos em óculos como Meta Quest 3 e Android XR. Em aparelhos sem ambiente XR, o interruptor principal fica inativo. O aplicativo detecta o formato do vídeo (SBS, OU, 360°, VR180) automaticamente; a escolha manual está na caixa de diálogo do leitor.</string>
+    <string name="settings_3d_vr_help_message">O 3D VR oferece reprodução imersiva de vídeo e fotografia em auriculares como o Meta Quest 3 e o Android XR. Em dispositivos sem runtime XR, o interruptor principal permanece inativo. A app deteta automaticamente o formato de vídeo (SBS, OU, 360°, VR180); é possível substituir manualmente no diálogo do leitor.</string>
     <string name="settings_3d_vr_help_title">Sobre o modo 3D VR</string>
     <string name="settings_accept_shared_files">Aceitar arquivos compartilhados</string>
-    <string name="settings_already_default_player">✓ Já definido como padrão</string>
+    <string name="settings_already_default_player">✓ Já definido como predefinição</string>
     <string name="settings_application_log_title">Registro do aplicativo</string>
     <string name="settings_black_screen_button_desc">Mostrar na barra do leitor um botão que apaga a tela enquanto o áudio ou o vídeo continua</string>
     <string name="settings_black_screen_button_title">Mostrar o botão \"Tela preta\"</string>
@@ -150,7 +150,7 @@
     <string name="setting_enable_pip">Ativar picture-in-picture</string>
     <string name="setting_enable_pip_desc">Mostrar o botão PiP no leitor e entrar em PiP ao tocar em Início (Android 12+)</string>
     <string name="setting_enable_translation_desc">Ativar a tradução de texto por OCR</string>
-    <string name="setting_file_ops_in_overflow_menu_desc">Reunir Copiar/Mover/Renomear/Excluir num menu ⋮ por linha</string>
+    <string name="setting_file_ops_in_overflow_menu_desc">Agrupar Copiar/Mover/Renomear/Eliminar num menu ⋮ por linha</string>
     <string name="setting_follow_system_rotation_summary">Quando ligado, todas as janelas do aplicativo, exceto o leitor, seguem a rotação automática do sistema. Quando desligado, seguem o sensor do aparelho independentemente da configuração do sistema.</string>
     <string name="setting_follow_system_rotation_title">Girar a tela com a rotação automática do sistema (exceto o leitor)</string>
     <string name="setting_follow_system_rotation_player_title">Girar a tela do leitor com a rotação automática do sistema</string>
@@ -195,14 +195,14 @@
     <string name="pref_crop_images_fullscreen_title">Cortar imagens para preencher a tela</string>
     <string name="pref_dynamic_background_summary">Preencher as \"faixas pretas\" prolongando as cores da borda da imagem (efeito Ambilight)</string>
     <string name="pref_dynamic_background_title">Extensão dinâmica do fundo</string>
-    <string name="pref_file_ops_overflow_menu_desc">Reúne copiar, mover, renomear e excluir num botão ⋮ em cada linha de arquivo. O botão de reproduzir fica sempre separado.</string>
+    <string name="pref_file_ops_overflow_menu_desc">Agrupa copiar, mover, renomear e eliminar num botão ⋮ em cada linha de ficheiro. O botão de reprodução mantém-se sempre separado.</string>
     <string name="pref_file_ops_overflow_menu_title">Ações de arquivo no menu adicional</string>
     <string name="pref_panel_stereo_single_eye_summary">Quando ligado, vídeos estéreo lado a lado e sobrepostos e fotos em tela cheia são cortados para um olho e esticados para a tela inteira - confortável de ver sem óculos 3D. Padrão: ligado. A renderização imersiva de RV ignora esta configuração e mostra o quadro estéreo completo.</string>
     <string name="pref_panel_stereo_single_eye_title">Mostrar conteúdo 3D com um olho só</string>
     <string name="pref_prefetch_cache_auto">Automático</string>
-    <string name="pref_prefetch_cache_help_message">Controla quanto de um vídeo em streaming é armazenado à frente do ponto de reprodução.\n\n• Menos (0,5×) - buffer mínimo. O indicador de pré-cache e a oferta de \"salvar o vídeo em cache\" ficam ocultos. Economiza espaço e dados; em redes lentas a reprodução pode travar.\n• Automático - tamanho padrão escolhido pelo leitor conforme o aparelho e a rede atual.\n• Mais (2×) - buffer maior para uma reprodução mais fluida em redes instáveis. Ocupa mais espaço em disco.</string>
+    <string name="pref_prefetch_cache_help_message">Controla quanto vídeo em transmissão é colocado em buffer à frente da posição de reprodução.\n\n• Menos (0.5×) - buffer mínimo. O indicador de progresso de pré-cache e a oferta de \"guardar vídeo em cache\" ficam ocultos. Poupa espaço em disco e largura de banda; numa rede lenta a reprodução pode gaguejar.\n• Auto - tamanho predefinido escolhido pelo leitor com base no dispositivo e na rede atual.\n• Mais (2×) - buffer maior para uma reprodução mais suave em redes instáveis. Usa mais espaço em disco.</string>
     <string name="pref_prefetch_cache_help_title">Tamanho do pré-cache de vídeo</string>
-    <string name="pref_prefetch_cache_less">Menos (0,5×)</string>
+    <string name="pref_prefetch_cache_less">Menos (0.5×)</string>
     <string name="pref_prefetch_cache_more">Mais (2×)</string>
     <string name="pref_prefetch_cache_title">Tamanho do pré-cache de vídeo</string>
     <string name="pref_streaming_cleanup_ask">Perguntar sempre</string>
@@ -252,4 +252,13 @@
     <string name="settings_open_default_apps_dialog">Definir como padrão</string>
     <string name="default_apps_dialog_title">Aplicativo padrão</string>
     <string name="language_download_failed">Não foi possível baixar este idioma. Verifique sua conexão com a internet e tente de novo - o aplicativo continua no idioma que está usando agora.</string>
+    <string name="pref_resource_grid_cell_size_title">Tamanho da célula da grelha de recursos</string>
+    <string name="pref_resource_grid_cell_size_small">Pequeno</string>
+    <string name="pref_resource_grid_cell_size_medium">Médio</string>
+    <string name="pref_resource_grid_cell_size_large">Grande</string>
+    <string name="settings_enable_system_info">Informação do sistema</string>
+    <string name="settings_enable_system_info_summary">Mostrar informação do sistema no painel de programas e no menu</string>
+    <string name="settings_wear_group_title">Wear OS</string>
+    <string name="settings_wear_group_description">Ative isto se tiver um relógio Wear OS. A aplicação complementar abre a partir daqui e decide o que este telemóvel partilha com o relógio.</string>
+    <string name="settings_wear_install_guide_button">Como instalar num relógio</string>
 </resources>

@@ -10,8 +10,8 @@
     <string name="image_edit_contrast">বৈসাদৃশ্য</string>
     <string name="image_edit_filters">ফিল্টার</string>
     <string name="image_edit_flip">ফ্লিপ</string>
-    <string name="image_edit_flip_horizontal">উল্টান ↔</string>
-    <string name="image_edit_flip_vertical">উল্টান ↕</string>
+    <string name="image_edit_flip_horizontal">ফ্লিপ ↔</string>
+    <string name="image_edit_flip_vertical">ফ্লিপ ↕</string>
     <string name="image_edit_grayscale">গ্রেস্কেল</string>
     <string name="image_edit_negative">নেতিবাচক</string>
     <string name="image_edit_rotation">ঘূর্ণন</string>
@@ -36,7 +36,7 @@
     <string name="gif_edit_first_frame_help">অ্যানিমেশনটির প্রথম ফ্রেমটি বের করে ডাউনলোডস ফোল্ডারে একটি স্ট্যাটিক PNG ইমেজ হিসেবে সংরক্ষণ করুন। ফাইলের নাম: [original_name]_first_frame.png</string>
     <string name="gif_edit_save_first_frame">প্রথম ফ্রেমটি ছবি হিসেবে সংরক্ষণ করুন</string>
     <string name="gif_edit_speed">অ্যানিমেশন গতি</string>
-    <string name="gif_edit_speed_help">অ্যানিমেশনের গতি বাড়াতে বা কমাতে ফ্রেমগুলোর মধ্যেকার বিলম্ব সমন্বয় করুন। মূল ফাইলটি নতুন গতি দ্বারা ওভাররাইট করা হবে। পরিসর: ০.২৫x (৪ গুণ ধীর) থেকে ৪x (৪ গুণ দ্রুত)।</string>
+    <string name="gif_edit_speed_help">অ্যানিমেশন দ্রুত বা ধীর করতে ফ্রেমের মধ্যে বিলম্ব সামঞ্জস্য করুন। মূল ফাইলটি নতুন গতিতে ওভাররাইট হবে। পরিসীমা: 0.25x (4× ধীর) থেকে 4x (4× দ্রুত)।</string>
     <string name="gif_edit_speed_normal">গতি: স্বাভাবিক (১.০x)</string>
     <string name="gif_edit_speed_value">গতি: %1$.1fx</string>
     <string name="gif_edit_title">জিআইএফ সম্পাদক</string>

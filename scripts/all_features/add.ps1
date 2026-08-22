@@ -28,6 +28,11 @@ param(
     [Parameter(Mandatory = $true, ParameterSetName = 'Add')] [string]$Name,
     [Parameter(Mandatory = $true, ParameterSetName = 'Add')] [string]$Description,
     [Parameter(Mandatory = $true, ParameterSetName = 'Add')] [string]$Flavors,
+    # S1929: the BuildConfig flag this capability lives behind, if any. Deliberately optional and
+    # deliberately without a default: an absent `gate` asserts "behind no flag", so a default would
+    # turn that assertion into a guess. When present, validate.ps1 requires `flavors` to equal the
+    # flag's row in docs/FLAVOR_MATRIX.md.
+    [Parameter(Mandatory = $false, ParameterSetName = 'Add')] [string]$Gate = "",
     [Parameter(Mandatory = $false, ParameterSetName = 'Add')] [string]$Spec = "",
     [Parameter(Mandatory = $false, ParameterSetName = 'Add')] [ValidateSet("active", "removed")] [string]$Status = "active",
     [Parameter(Mandatory = $true, ParameterSetName = 'List')] [switch]$ListAreas,
@@ -110,6 +115,11 @@ $record = [ordered]@{
     flavors     = $flavorList
     spec        = $specVal
     status      = $Status
+}
+# S1929: omit the key entirely rather than writing an empty one. An absent `gate` is the assertion
+# "behind no flag"; a present-but-blank one would read as an unfinished record instead.
+if (-not [string]::IsNullOrWhiteSpace($Gate)) {
+    $record.Insert(5, 'gate', $Gate.Trim())
 }
 $line = ($record | ConvertTo-Json -Compress -Depth 5)
 

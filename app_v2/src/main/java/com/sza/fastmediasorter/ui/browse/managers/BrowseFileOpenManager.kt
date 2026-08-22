@@ -78,6 +78,13 @@ class BrowseFileOpenManager(
             foundIndex
         }
 
+        Timber.d(
+            "S1822: open %s -> idx=%d of stateList=%d",
+            file.name,
+            index,
+            stateFlow.value.mediaFiles.size
+        )
+
         // S1001: targeted single-column write - a full-entity update from this (possibly stale)
         // in-memory copy clobbers statistics written by BrowseMetadataManager during load.
         updateState { it.copy(resource = it.resource?.copy(lastViewedFile = file.path) ?: it.resource) }

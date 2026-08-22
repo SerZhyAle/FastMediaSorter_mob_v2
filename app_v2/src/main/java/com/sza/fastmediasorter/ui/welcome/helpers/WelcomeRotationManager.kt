@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.ui.welcome.helpers
 
 import android.content.ComponentCallbacks
 import android.content.res.Configuration
-import timber.log.Timber
 
 /**
  * S1377: reacts to a real orientation flip on the Welcome screen.

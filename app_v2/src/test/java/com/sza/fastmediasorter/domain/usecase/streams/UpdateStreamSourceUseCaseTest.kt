@@ -30,8 +30,8 @@ class UpdateStreamSourceUseCaseTest {
     private val repo get() = StreamSourceRepository(
         dbRule.db,
         dao,
-        dbRule.db.streamPlayOutcomeDao(),
         dbRule.db.streamQualityMemoryDao(),
+        dbRule.db.streamUserStateDao(),
     )
     private val useCase get() = UpdateStreamSourceUseCase(repo, StreamMediaKindClassifier())
 

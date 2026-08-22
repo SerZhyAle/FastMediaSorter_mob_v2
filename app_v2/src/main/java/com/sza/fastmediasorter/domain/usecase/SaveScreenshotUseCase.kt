@@ -12,17 +12,16 @@ import com.sza.fastmediasorter.domain.model.SaveFallbackReason
 import com.sza.fastmediasorter.domain.stats.CaptureKind
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
+import com.sza.fastmediasorter.util.CaptureFileNamer
 import com.sza.fastmediasorter.util.ScreenshotDestinationPolicy
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import javax.inject.Inject
 
 class SaveScreenshotUseCase @Inject constructor(
@@ -50,7 +49,8 @@ class SaveScreenshotUseCase @Inject constructor(
         bitmap: Bitmap,
         target: ScreenshotDestinationPolicy.Target
     ): SaveResult = withContext(Dispatchers.IO) {
-        val fileName = buildFileName()
+        val fileName = CaptureFileNamer.shared.allocate(CaptureFileNamer.CaptureKind.SCREENSHOT, ".png")
+        Timber.d("S1882: screenshot output $fileName")
         val tempDir = File(context.cacheDir, TEMP_DIR_NAME)
         if (!tempDir.exists() && !tempDir.mkdirs()) {
             return@withContext SaveResult.Failure(
@@ -164,11 +164,6 @@ class SaveScreenshotUseCase @Inject constructor(
             )
     }
 
-    private fun buildFileName(nowMs: Long = System.currentTimeMillis()): String {
-        val stamp = SimpleDateFormat(FILE_NAME_PATTERN, Locale.US).format(Date(nowMs))
-        return "screenshot_$stamp.png"
-    }
-
     private fun publicFolderLabel(relativePath: String): String {
         val normalized = relativePath.trim('/')
         if (normalized.equals(Environment.DIRECTORY_DOWNLOADS, ignoreCase = true)) {
@@ -181,6 +176,5 @@ class SaveScreenshotUseCase @Inject constructor(
         private const val TEMP_DIR_NAME = "screenshot_capture"
         private const val PNG_QUALITY = 100
         private const val PNG_MIME_TYPE = "image/png"
-        private const val FILE_NAME_PATTERN = "yyyyMMdd_HHmmss"
     }
 }

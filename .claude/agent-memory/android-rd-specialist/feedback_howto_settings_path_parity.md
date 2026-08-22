@@ -13,3 +13,10 @@ Two enforced invariants:
 - **Cross-locale parity:** EN/RU/UK must have the SAME number of `→` recipes and positionally (by scan order) the same signature. Adding a `→` recipe to one locale only breaks parity.
 
 **How to apply:** when documenting a feature's settings path in HOW_TO, either (a) make the recipe identical and present in all three locales in the same position (hard when the feature lands in different sections per language), or (b) write the nav with ASCII `>` so it is not gate-counted - this is what existing EN Streams docs do (`Settings > Media > Streams`). For a quick doc-only feature add, prefer `>` to avoid the positional-parity trap. Run the gate standalone (fast, no gradle) to check: `assert-howto-settings-paths.ps1`.
+
+**Two extensions measured 2026-08-18 (S1102):**
+
+- The gate scans **`docs/FAQ*.md` as well**, not only `HOW_TO*.md` - it reports "N recipes across 5 guide group(s)". A `→` recipe added to FAQ is validated and parity-checked exactly like a HOW_TO one.
+- **Two `→` chains on the SAME line are merged into one chain** and fail as unresolvable: the gate greedily swallows the sentence boundary, so `.. in **Settings → General**. Or go via **Settings → General → System launcher settings → ..**` reports `segment 'General' has no matching setting .. under the "General. Or go to Android's own list of home apps via Settings" tab`. The fix is one chain per line - a bulleted list of routes, not a prose sentence chaining several.
+
+**How to apply:** when a doc needs to name several navigation routes, write them as list items, one route per bullet. Mirror the bullet list across EN/RU/UK so positional parity holds. Verify with the standalone gate (fast, no gradle): `pwsh -NoProfile -File scripts/quality/assert-howto-settings-paths.ps1`.

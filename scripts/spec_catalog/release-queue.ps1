@@ -100,6 +100,12 @@ switch ($PSCmdlet.ParameterSetName) {
         Sync-ReleaseQueue -Records $records
         $after = (Get-QueueTickets -Lines (Read-ReleaseQueue)).Count
         Write-Output ("release-queue: reconciled - {0} ticket(s) before, {1} after" -f $before, $after)
+        # The counts above cover the QUEUE file only, so a duplicate collapsed in the READY file
+        # moves neither number - reporting it separately is the only proof the repair happened.
+        $dropped = Get-ReleaseQueueDuplicatesDropped
+        if ($dropped -gt 0) {
+            Write-Output ("release-queue: removed {0} duplicate line(s)" -f $dropped)
+        }
         exit 0
     }
 

@@ -95,6 +95,7 @@ If a feature is marked with "✗", choose the **Standard** or **XR / noLegal** b
 37. [Use the App as Your Home Screen](#how-to-use-the-app-as-your-home-screen)
 38. [Choose Where Captures and Downloads Are Saved](#how-to-choose-where-captures-and-downloads-are-saved)
 39. [Receive Files Shared from Another App](#how-to-receive-files-shared-from-another-app)
+40. [Use the Built-In Programs](#how-to-use-the-built-in-programs)
 
 ---
 
@@ -103,6 +104,8 @@ If a feature is marked with "✗", choose the **Standard** or **XR / noLegal** b
 These sections are intentionally more varied than the core reference blocks below. Each scenario mixes a fast path with context, trade-offs, and the situations where FastMediaSorter is especially strong.
 
 > **⭐ Featured: bring your PC's folders to your phone with one scan.** Run the free [Fast Media Sorter for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) companion on your PC, pick the folders with your videos, music, documents, or photos, and it shows a code on screen. On the phone, tap **Add**, choose **Import by barcode**, point the camera at the code - the PC folders are connected instantly, with no address, port, or password typing. Full walkthrough: [Open PC Folders by Scanning a Code](howto/scenario-companion-share.md) &bull; quick recipe: [Import a Windows Companion Share](#how-to-import-a-windows-companion-share).
+
+> **⌚ Wear OS Smartwatches:** Using a Wear OS watch? See our step-by-step guides for [Listen to Music on Your Watch](howto/scenario-watch-music.md) and [Connect Smartwatch to NAS & PC Shares](howto/scenario-watch-network.md).
 
 ## Home media, TV and living room flows
 
@@ -205,6 +208,7 @@ These sections are intentionally more varied than the core reference blocks belo
 - Switch the toolbar view toggle to **Grid** to see channels as tiles with their last captured frame - handy for browsing video streams at a glance. Your choice of list or grid is remembered next time you open Streams.
 - If a stream is cast-friendly and your phone is on Wi-Fi, tap **Cast** in the player to send it to a Chromecast on the same network. RTSP streams can't be cast.
 - ICY now-playing metadata (station name, current track) shows in the bottom mini-control.
+- A station you added yourself can be sent to your Wear OS watch: open the row's **⋮** menu and tap **Send to watch** (the command appears when the Wear Companion option is on). The transferred station stays on the watch through catalog refreshes; if the same address later appears in the online catalog, the catalog entry takes over.
 - Video and RTSP streams open in the fullscreen player; pressing Back returns to the Streams list with scroll position preserved.
 - Background audio behaviour follows **Settings > Playback > Background audio playback**: with it off, audio stops when you leave the screen and the app offers a Stop / Keep playing choice.
 
@@ -1132,40 +1136,55 @@ Automatically translate text from images, PDF, and text files using a **Hybrid O
 
 ## How to Use the App as Your Home Screen
 
-FastMediaSorter can replace your device's home screen with its own desktop - shortcuts to your resources, gadgets, an app grid and a taskbar. This is launcher mode, and it is available in the **Standard** and **noLegal** builds only.
+FastMediaSorter can take over your device's home screen and show its own desktop instead - your folders, a clock, the weather, your apps, and a taskbar along one edge. If you have ever used a Windows desktop it will feel familiar: things stay where you put them, and a Start button opens the menu. This is called launcher mode, and it ships in the **Standard** and **noLegal** builds only.
 
 **Turning it on:**
 
-1. Open **Settings → General** and turn on **Make this app the home screen**. On a brand-new install you can also flip **Use as home screen** on the welcome screen instead.
-2. Android asks which home screen to use. Pick FastMediaSorter and tap **Always**, or **Just once** if you want to try it first.
-3. Press Home. The app's desktop appears, already seeded with roughly a dozen useful shortcuts so it is not an empty grid on day one.
+1. Open **Settings → General** and turn on **Make this app the home screen**.
+2. Android asks you to confirm. On Android 10 and newer it is a single question - "Allow FastMediaSorter to be your Home app?" - so just allow it. On older versions the classic choice appears the next time you press Home: pick FastMediaSorter and tap **Always**, or **Just once** if you only want to try it for now.
+3. Press Home. The desktop appears, already filled with about a dozen useful things - a clock, the weather, your folders, a search box - so day one is not an empty grid.
+
+On a brand-new install there is a shortcut: tick **Use as home screen** on the first welcome page. That does not interrupt the setup with a system dialog - Android's confirmation comes up the first time you open **Settings → General** afterwards.
 
 **What lives on the desktop:**
 
 | Cell type | What it does |
 |-----------|--------------|
 | Resource shortcut | Opens a folder you added - and you choose whether it opens in browse, slideshow or play mode |
-| Gadget | Clock with seconds (tap for alarms), weather for a place you name, and others |
+| Gadget | A clock with seconds (tap for alarms), the weather where you live, what is playing right now, a translator, and two dozen more |
 | App shortcut | Starts any installed app; long-press lists that app's own quick actions |
 | Contact cell | Opens a person's card, calls them, sends an SMS, or opens their messenger conversation |
 | App widget | The same widgets the app offers for the Android home screen, placed here instead |
 
-**Arranging it:**
+**The taskbar and the Start menu:**
 
-- Long-press empty desktop space to enter edit mode. If you share the device, a lock in launcher settings disables that gesture so the layout cannot be rearranged by accident.
-- In edit mode, drag a gadget's handle to resize it, from its seed size up to the full screen.
-- The desktop scrolls when the shortcuts run past the bottom of the screen, with a scrollbar down the right edge.
-- **Settings → General → System launcher settings** holds the rest: grid density, the taskbar at the bottom (recent and pinned apps), the top bar, and the wallpaper - the branded animation, a static striped frame, an empty surface, or your own image.
-- The launcher can also replace the Android status bar with its own clock, network and battery indicators, if you prefer to keep everything in one place.
+- The taskbar sits along the bottom edge and holds the Start button, the apps you used recently, the ones you pinned, and a small tray with the clock, battery, network and SIM signal.
+- Prefer it along the top? **Settings → General → System launcher settings → Taskbar → Taskbar position** switches between **Bottom** and **Top**. The Start menu follows the bar and drops down from above when the bar is up there.
+- The Start button opens the menu: open FastMediaSorter, your resources, add a resource, Android settings, app settings, launcher settings, edit desktop contents, and at the end restart, power off and **Exit launcher mode**. Restart and power off only work if your device lets an ordinary app do that - on most phones they will simply do nothing.
 
-**Tips:**
+**Your apps:** the app grid groups apps into sections, each with a small header. Tap a header to collapse a section you rarely open; collapsed headers tuck in next to each other, so the desktop gets shorter instead of leaving gaps. A fresh desktop also gets a **GOOGLE** section holding the Google apps you already have installed. Long-press any app in the list for **Put on desktop** and **Pin to taskbar**.
 
-- Other apps can pin their own shortcuts to this desktop, exactly as they would to any other launcher.
-- Launcher settings carry a reset button that returns the desktop, taskbar and top bar to the as-installed state without touching the rest of your settings.
+**Rearranging it:**
 
-**Going back:**
+- Long-press an empty square of the desktop. Four choices appear: **Add an item..**, **Edit the desktop**, **Wallpaper**, **Launcher settings**. The new cell lands exactly on the square you pressed.
+- **Add an item..** opens a picker: an app, a feature, one of your folders, a radio stream, a person, a system action, a scheduled operation, a gadget, or an action. Among the gadgets are the now-playing card - it shows whatever is playing on the device and takes you to that player with one tap - and the translator cell.
+- **Edit the desktop** turns on edit mode, the same as **Edit desktop contents** in the Start menu. While editing: drag a cell to move it, drag a gadget's corner handle to resize it, tap **+** to add something, and choose **Remove from desktop** on a cell to take it off. Tap **Done** when you are finished.
+- Sharing the device with someone? Turn on **Lock desktop** in launcher settings - the long-press then does nothing, so the layout cannot be nudged by accident.
+- Other apps can put their own shortcuts here, exactly as they would on any other home screen.
 
-Choose **Exit launcher mode** from the launcher menu, or turn the setting off. Android restores your previous home screen. Your desktop layout is kept, so turning the mode on again brings it back as you left it.
+**Portrait and landscape are two separate desktops.** What you arrange upright is not what you get when you turn the device sideways - each orientation keeps its own layout and its own collapsed sections. The app mentions this once, the first time you rotate a desktop you have arranged. The settings themselves - taskbar position, density, wallpaper - are shared by both.
+
+**Fitting more, or less, on the screen:** **Settings → General → System launcher settings → Desktop → Grid density** offers **Sparse**, **Standard**, **Dense** and **Very dense** - roomier cells, or more shortcuts per screen.
+
+**Going back to your old home screen** - any of these three:
+
+- Open the Start menu, choose **Exit launcher mode**, and confirm.
+- Turn **Make this app the home screen** off in **Settings → General**.
+- Go straight to Android's own list of home apps: **Settings → General → System launcher settings → System → Change home screen**.
+
+Your desktop layout is kept either way, so switching the mode back on brings it back exactly as you left it.
+
+**One honest warning.** A few devices refuse to remember the choice. Some cheap aftermarket car radios and other built-in Android boxes force their factory home screen back every time they start up, whatever you picked. That is the device's own firmware overriding you, not a fault in the app, and no app can work around it. If yours behaves that way, pick FastMediaSorter as the home app again after a restart - and if it still will not stick, that device simply does not allow it.
 
 ---
 
@@ -1351,6 +1370,10 @@ Photos from the in-app camera, screenshots, snapshots and auto-downloaded files 
 - Each of the four settings has its own destination - screenshots and camera photos can land in completely different places.
 - Pointing several of them at one folder is fine if you would rather have everything in a single spot.
 
+### Capture file names
+
+New captures use the `prefix_yyMMdd_HHmmss` pattern. The stable prefixes are `photo`, `screenshot`, `audio`, `video`, `screen_video`, and `video_frame`, so the filename identifies its source. If a name already exists in the destination folder, the app adds the ` (2)` suffix before the extension. A filename entered manually in the camera remains an override and is not changed.
+
 ---
 
 ## How to Receive Files Shared from Another App
@@ -1366,6 +1389,57 @@ Any app's share sheet can send files to FastMediaSorter, which then copies them 
 **You do not have to wait for it.** The copy keeps running after the receive screen closes, with a notification showing progress while it works and a result notification when it finishes. Leave the app, lock the device, carry on - the transfer is not tied to that screen staying open.
 
 Available in the Standard, Lite, Photos and Legacy builds.
+
+---
+
+## How to Use the Built-In Programs
+
+**Available in:** all flavors - the programs menu and the panel ship in every build, but each program follows its own capability: Network Monitor needs Standard or noLegal, the Wear companion needs Standard, Legacy or noLegal, and the mini-game is absent from XR and noLegal. The calculator, the front flashlight and System information are in every build.
+
+Besides browsing and playing files, the app carries a set of small built-in programs - a calculator, a screen lamp, a network monitor, a voice recorder and more. They are off by default: each one is switched on by its own setting, and most of the dedicated switches sit together in **Settings → Operations**.
+
+**Quick Path**
+
+1. Go to **Settings → Operations** and turn on what you want - for example **Calculator**, **Front flashlight**, **Network Monitor**, **Mini-game** or **System information**.
+2. Open the main window dropdown menu. The programs you enabled are listed there.
+3. Tap one to run it.
+
+**Where a program shows up**
+
+A program can be offered on up to four surfaces, and every surface takes its contents and its order from the same single list, so they never drift apart:
+
+- **Programs menu** - the main-window dropdown, and the programs panel that repeats it.
+- **App-launch panel** - the quick-access overlay.
+- **Home-screen widget** - only for the programs that have one; pin it from the app's own widget picker.
+- **Launcher desktop** - when you use the app as your home screen, switching a program on adds its cell automatically.
+
+**What is in the set**
+
+In the order they appear:
+
+- **Quick capture** - take a photo straight into the app.
+- **Voice recording** - record a voice note.
+- **Calculator** - a scientific calculator with history and memory slots.
+- **Network Monitor** - live readings for the active link, Wi-Fi, mobile, Bluetooth and location.
+- **Photo OCR translate** - shoot text and translate it.
+- **Screen video recording** - record the screen.
+- **Download by link** - fetch a file from a pasted link.
+- **Mini-game** - the small game built into the app.
+- **System information** - a device report reachable without opening Settings.
+- **Wear Companion** - the watch screen, in builds that carry the watch bridge.
+- **Front flashlight** - turns the screen itself into a lamp: it opens white at full window brightness, a vertical swipe changes the brightness, a small top-left button picks and remembers another colour, and a single tap closes it. Only the window brightness is touched, so your device setting is unchanged afterwards.
+
+The panel and the launcher additionally carry direct camera shortcuts - take a photo and send it on, take a photo and edit it, take a photo and translate it, start a video recording, and open the camera folder.
+
+**When It Helps**
+
+- You want a calculator or a torch without leaving the app, or without hunting for a separate app on a crowded phone.
+- You run the app as your home screen and want a one-tap cell for a tool you reach for often.
+
+**Avoid This**
+
+- Do not look for the front flashlight in the dropdown menu - it is offered on the app-launch panel and the launcher desktop only.
+- Do not expect every program in every build - the list above is the full set, and a build without the underlying capability simply does not show that entry.
 
 ---
 

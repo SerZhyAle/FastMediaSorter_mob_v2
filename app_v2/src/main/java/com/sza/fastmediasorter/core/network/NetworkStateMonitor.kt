@@ -59,6 +59,10 @@ class NetworkStateMonitor @Inject constructor(
 
     @Volatile
     private var isMonitoring = false
+
+    // S1892: carries no behaviour - it only suppresses re-logging a link whose identity did not change.
+    @Volatile
+    private var lastLoggedLinkSignature: String? = null
     
     /**
      * Callback interface for network state changes.
@@ -98,8 +102,21 @@ class NetworkStateMonitor @Inject constructor(
         }
         
         override fun onLinkPropertiesChanged(network: Network, linkProperties: android.net.LinkProperties) {
-            // IP address or DNS changed - this is a common WiFi reconnection scenario
-            Timber.d("NetworkStateMonitor: Link properties changed - ${linkProperties.interfaceName}")
+            // IP address or DNS changed - this is a common WiFi reconnection scenario.
+            // S1892: the callback fires on every property refresh, so compare what actually
+            // identifies the link instead of logging the fact that it was refreshed.
+            val linkSignature = buildString {
+                append(linkProperties.interfaceName)
+                append('|')
+                append(linkProperties.linkAddresses)
+                append('|')
+                append(linkProperties.dnsServers)
+            }
+            if (linkSignature != lastLoggedLinkSignature) {
+                lastLoggedLinkSignature = linkSignature
+                Timber.d("S1892: link-properties gate passed iface=%s", linkProperties.interfaceName)
+                Timber.d("NetworkStateMonitor: Link properties changed - ${linkProperties.interfaceName}")
+            }
             handleNetworkChange(network)
         }
     }

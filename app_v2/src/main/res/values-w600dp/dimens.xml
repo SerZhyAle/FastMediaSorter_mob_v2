@@ -6,6 +6,12 @@
          smallestWidth bucket always outranked; the fate of the remaining thirteen is the open
          question in strategic §6.1. -->
 
+    <!-- S1549: the streams landscape values, mirrored here because layout-w600dp/activity_streams.xml
+         carried the same delta as the deleted landscape file - a values-land-only override would apply
+         portrait metrics over a tree inflated from the wide layout on a 600dp-wide portrait screen. -->
+    <dimen name="streams_list_side_padding">16dp</dimen>
+    <dimen name="streams_mini_control_min_height">48dp</dimen>
+
     <!-- Player controls - more compact vertically -->
     <dimen name="player_cmd_padding_vertical">0dp</dimen>
     <dimen name="player_cmd_padding_top">24dp</dimen>
@@ -24,4 +30,28 @@
     <dimen name="settings_margin_standard">6dp</dimen>
     <dimen name="settings_padding_vertical_small">6dp</dimen>
     <dimen name="settings_text_input_width">132dp</dimen>
+
+    <!-- S1549: same command-bar values as values-land. layout-w600dp/activity_{browse,main}.xml are
+         the landscape files (byte-identical for browse), and this bucket outranks values-land, so
+         without this copy a 600dp-wide screen would re-apply the portrait metrics over them. -->
+    <dimen name="browse_cmd_button_padding_start">12dp</dimen>
+    <dimen name="browse_cmd_button_padding_end">12dp</dimen>
+    <dimen name="browse_cmd_button_inset_vertical">6dp</dimen>
+    <dimen name="browse_cmd_button_icon_padding">8dp</dimen>
+    <dimen name="browse_controls_elevation">4dp</dimen>
+
+    <dimen name="main_cmd_first_min_width">@dimen/dimension_zero</dimen>
+    <dimen name="main_cmd_min_width">@dimen/dimension_zero</dimen>
+    <dimen name="main_cmd_menu_min_width">@dimen/dimension_zero</dimen>
+    <dimen name="main_cmd_first_padding_start">4dp</dimen>
+    <dimen name="main_cmd_first_padding_end">8dp</dimen>
+    <dimen name="main_cmd_padding_start">4dp</dimen>
+    <dimen name="main_cmd_padding_end">8dp</dimen>
+    <dimen name="main_cmd_menu_padding_start">4dp</dimen>
+    <dimen name="main_cmd_menu_padding_end">8dp</dimen>
+    <dimen name="main_cmd_first_icon_padding">4dp</dimen>
+    <dimen name="main_cmd_icon_padding">4dp</dimen>
+    <dimen name="main_cmd_text_size">16sp</dimen>
+    <dimen name="main_cmd_bar_separator_width">2dp</dimen>
+    <dimen name="main_tab_strip_leading_anchor">@dimen/main_top_panel_leading_anchor</dimen>
 </resources>

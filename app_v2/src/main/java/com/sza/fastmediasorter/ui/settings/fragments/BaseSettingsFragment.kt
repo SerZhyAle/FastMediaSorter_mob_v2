@@ -10,6 +10,7 @@ import android.widget.AdapterView
 import android.widget.CompoundButton
 import android.widget.EditText
 import androidx.fragment.app.Fragment
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
 import com.sza.fastmediasorter.ui.common.widget.SettingsGroupsGridLayout
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
@@ -42,6 +43,26 @@ abstract class BaseSettingsFragment : Fragment() {
     override fun onDestroyView() {
         groupsGrid = null
         super.onDestroyView()
+    }
+
+    /**
+     * S1967: the collapsible sections this tab owns, or null when it has none.
+     *
+     * A tab hands over the manager it already built rather than building a second one, so the
+     * expansion below acts on the same registrations the user's own toggles act on.
+     */
+    protected open fun collapsibleSections(): CollapsibleSectionsManager? = null
+
+    /**
+     * S1967: makes the row a search result points at actually visible, by expanding the section that
+     * encloses it.
+     *
+     * This lives on the base and not in each tab because the bug it fixes was precisely that: the
+     * expansion existed for one tab of four, and nothing forced the other three to have it. A tab with
+     * a lazily built section body may override to attach that body first, then call through.
+     */
+    open fun expandSectionForSearchTarget(ancestorIds: List<Int>) {
+        collapsibleSections()?.expandSectionContaining(ancestorIds)
     }
 
     protected inline fun withSettingsUpdate(block: () -> Unit) {

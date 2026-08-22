@@ -1,11 +1,22 @@
 package com.sza.fastmediasorter.wear.ui.settings
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.PermMedia
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Slideshow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -14,286 +25,138 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
+import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
+import androidx.wear.compose.foundation.lazy.ScalingLazyListState
+import androidx.wear.compose.foundation.lazy.items
+import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
-import androidx.wear.compose.material.ChipDefaults
+import androidx.wear.compose.material.Chip
+import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
-import androidx.wear.compose.material.ScalingLazyColumn
-import androidx.wear.compose.material.ScalingLazyListState
+import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
-import androidx.wear.compose.material.ToggleChip
-import androidx.wear.compose.material.ToggleChipDefaults
-import androidx.wear.compose.material.rememberScalingLazyListState
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.util.GridColumnFit
+import timber.log.Timber
 
-/**
- * Settings screen for Wear OS app.
- * Allows users to configure media types, slideshow, and album art settings.
- */
+private const val SINGLE_COLUMN = 1
+private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
+private val CELL_BUTTON_SIZE = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
+private val CELL_ICON_SIZE = 24.dp
+
 @Composable
 fun SettingsScreen(
     navController: NavController,
-    viewModel: SettingsViewModel = hiltViewModel(),
-    listState: ScalingLazyListState = rememberScalingLazyListState()
+    listState: ScalingLazyListState = rememberScalingLazyListState(),
+    viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    ScalingLazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        state = listState,
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+    Timber.d("S1724: grouped settings root displayed")
+    Timber.d("S1868: settings root applies the shared screen view")
+    WearScreenScaffold(
+        contentPadding = PaddingValues(0.dp),
+        scrollState = listState,
+        positionIndicator = { PositionIndicator(listState) }
     ) {
-        // Header
-        item {
-            Text(
-                text = stringResource(R.string.settings),
-                style = MaterialTheme.typography.title2,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp),
-                textAlign = TextAlign.Center
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val columns = GridColumnFit.columnsFor(uiState.viewMode, maxWidth.value.toInt())
+            val destinations = listOf(
+                SettingsRoutes.MEDIA_TYPES to stringResource(R.string.media_types),
+                SettingsRoutes.SLIDESHOW to stringResource(R.string.slideshow_settings),
+                SettingsRoutes.SCREEN to stringResource(R.string.screen_settings_title),
+                SettingsRoutes.OTHER to stringResource(R.string.settings_group_other),
+                SettingsRoutes.ABOUT to stringResource(R.string.about),
+                SettingsRoutes.SYSTEM_INFO to stringResource(R.string.system_info_title)
             )
-        }
-
-        // Media Types Section
-        item {
-            Text(
-                text = stringResource(R.string.media_types),
-                style = MaterialTheme.typography.title3,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp, bottom = 4.dp),
-                textAlign = TextAlign.Center
-            )
-        }
-
-        item {
-            ToggleChip(
-                checked = uiState.isAudioEnabled,
-                onCheckedChange = { viewModel.toggleAudio() },
-                label = {
-                    Text(text = stringResource(R.string.enable_audio))
-                },
-                toggleControl = {
-                    androidx.wear.compose.material.Icon(
-                        imageVector = ToggleChipDefaults.switchIcon(checked = uiState.isAudioEnabled),
-                        contentDescription = null
+            ScalingLazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                state = listState,
+                contentPadding = wearScreenInsets(),
+                verticalArrangement = Arrangement.spacedBy(GRID_GAP)
+            ) {
+                item {
+                    Text(
+                        text = stringResource(R.string.settings),
+                        style = MaterialTheme.typography.title2,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                        textAlign = TextAlign.Center
                     )
-                },
-                colors = ToggleChipDefaults.toggleChipColors()
-            )
-        }
-
-        item {
-            ToggleChip(
-                checked = uiState.isVideoEnabled,
-                onCheckedChange = { viewModel.toggleVideo() },
-                label = {
-                    Text(text = stringResource(R.string.enable_video))
-                },
-                toggleControl = {
-                    androidx.wear.compose.material.Icon(
-                        imageVector = ToggleChipDefaults.switchIcon(checked = uiState.isVideoEnabled),
-                        contentDescription = null
-                    )
-                },
-                colors = ToggleChipDefaults.toggleChipColors()
-            )
-        }
-
-        item {
-            ToggleChip(
-                checked = uiState.isImagesEnabled,
-                onCheckedChange = { viewModel.toggleImages() },
-                label = {
-                    Text(text = stringResource(R.string.enable_images))
-                },
-                toggleControl = {
-                    androidx.wear.compose.material.Icon(
-                        imageVector = ToggleChipDefaults.switchIcon(checked = uiState.isImagesEnabled),
-                        contentDescription = null
-                    )
-                },
-                colors = ToggleChipDefaults.toggleChipColors()
-            )
-        }
-
-        // Slideshow Section
-        item {
-            Text(
-                text = stringResource(R.string.slideshow_settings),
-                style = MaterialTheme.typography.title3,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp, bottom = 4.dp),
-                textAlign = TextAlign.Center
-            )
-        }
-
-        item {
-            ToggleChip(
-                checked = uiState.isSlideshowEnabled,
-                onCheckedChange = { viewModel.toggleSlideshow() },
-                label = {
-                    Text(text = stringResource(R.string.enable_slideshow))
-                },
-                toggleControl = {
-                    androidx.wear.compose.material.Icon(
-                        imageVector = ToggleChipDefaults.switchIcon(checked = uiState.isSlideshowEnabled),
-                        contentDescription = null
-                    )
-                },
-                colors = ToggleChipDefaults.toggleChipColors()
-            )
-        }
-
-        item {
-            SlideshowIntervalStepper(
-                currentSeconds = uiState.slideshowIntervalSeconds,
-                onIntervalChanged = { viewModel.setSlideshowInterval(it) }
-            )
-        }
-
-        item {
-            ToggleChip(
-                checked = uiState.slideshowWaitForFinish,
-                onCheckedChange = { viewModel.toggleWaitForFinish() },
-                label = {
-                    Text(text = stringResource(R.string.wait_for_finish))
-                },
-                toggleControl = {
-                    androidx.wear.compose.material.Icon(
-                        imageVector = ToggleChipDefaults.switchIcon(checked = uiState.slideshowWaitForFinish),
-                        contentDescription = null
-                    )
-                },
-                colors = ToggleChipDefaults.toggleChipColors()
-            )
-        }
-
-        // Audio Settings Section
-        item {
-            Text(
-                text = stringResource(R.string.audio_settings),
-                style = MaterialTheme.typography.title3,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp, bottom = 4.dp),
-                textAlign = TextAlign.Center
-            )
-        }
-
-        item {
-            ToggleChip(
-                checked = uiState.downloadAlbumArt,
-                onCheckedChange = { viewModel.toggleAlbumArt() },
-                label = {
-                    Text(text = stringResource(R.string.download_album_art))
-                },
-                toggleControl = {
-                    androidx.wear.compose.material.Icon(
-                        imageVector = ToggleChipDefaults.switchIcon(checked = uiState.downloadAlbumArt),
-                        contentDescription = null
-                    )
-                },
-                colors = ToggleChipDefaults.toggleChipColors()
-            )
-        }
-
-        // About Section
-        item {
-            Text(
-                text = stringResource(R.string.about),
-                style = MaterialTheme.typography.title3,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp, bottom = 4.dp),
-                textAlign = TextAlign.Center
-            )
-        }
-
-        item {
-            Text(
-                text = stringResource(R.string.version, uiState.appVersion),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 2.dp),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.caption1
-            )
-        }
-
-        item {
-            Text(
-                text = stringResource(R.string.build_number, uiState.buildNumber),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 2.dp),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.caption1
-            )
+                }
+                settingsItems(
+                    destinations = destinations,
+                    columns = columns,
+                    onClick = navController::navigate
+                )
+            }
         }
     }
 }
 
-private val SLIDESHOW_INTERVALS = intArrayOf(3, 5, 10, 15, 20, 30, 60)
-
-@Composable
-private fun SlideshowIntervalStepper(
-    currentSeconds: Int,
-    onIntervalChanged: (Int) -> Unit
+private fun ScalingLazyListScope.settingsItems(
+    destinations: List<Pair<String, String>>,
+    columns: Int,
+    onClick: (String) -> Unit
 ) {
-    val intervals = SLIDESHOW_INTERVALS
-    val currentIndex = intervals.indexOfFirst { it == currentSeconds }.coerceAtLeast(0)
-    val labelText = stringResource(R.string.slideshow_interval_label, intervals[currentIndex])
-    val decreaseDesc = stringResource(R.string.slideshow_interval_decrease)
-    val increaseDesc = stringResource(R.string.slideshow_interval_increase)
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Button(
-            onClick = {
-                if (currentIndex > 0) onIntervalChanged(intervals[currentIndex - 1])
-            },
-            enabled = currentIndex > 0,
-            modifier = Modifier
-                .size(36.dp)
-                .semantics { contentDescription = decreaseDesc },
-            colors = ButtonDefaults.secondaryButtonColors()
-        ) {
-            Text(text = "−", style = MaterialTheme.typography.button)
+    if (columns == SINGLE_COLUMN) {
+        items(destinations) { (route, label) ->
+            Chip(onClick = { onClick(route) }, label = { Text(label) })
         }
+        return
+    }
 
-        Text(
-            text = labelText,
-            modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 4.dp)
-                .semantics { contentDescription = labelText },
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.caption1
-        )
-
-        Button(
-            onClick = {
-                if (currentIndex < intervals.lastIndex) onIntervalChanged(intervals[currentIndex + 1])
-            },
-            enabled = currentIndex < intervals.lastIndex,
-            modifier = Modifier
-                .size(36.dp)
-                .semantics { contentDescription = increaseDesc },
-            colors = ButtonDefaults.secondaryButtonColors()
+    items(destinations.chunked(columns)) { rowDestinations ->
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(GRID_GAP)
         ) {
-            Text(text = "+", style = MaterialTheme.typography.button)
+            rowDestinations.forEach { (route, label) ->
+                Column(
+                    modifier = Modifier.weight(1f).semantics { contentDescription = label },
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Button(
+                        onClick = { onClick(route) },
+                        modifier = Modifier.size(CELL_BUTTON_SIZE),
+                        colors = ButtonDefaults.primaryButtonColors()
+                    ) {
+                        Icon(
+                            imageVector = iconFor(route),
+                            contentDescription = label,
+                            modifier = Modifier.size(CELL_ICON_SIZE)
+                        )
+                    }
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.caption3,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+            repeat(columns - rowDestinations.size) { Spacer(modifier = Modifier.weight(1f)) }
         }
     }
+}
+
+private fun iconFor(route: String) = when (route) {
+    SettingsRoutes.MEDIA_TYPES -> Icons.Filled.PermMedia
+    SettingsRoutes.SLIDESHOW -> Icons.Filled.Slideshow
+    SettingsRoutes.SCREEN -> Icons.Filled.Settings
+    SettingsRoutes.OTHER -> Icons.Filled.MoreHoriz
+    SettingsRoutes.ABOUT -> Icons.Filled.Info
+    SettingsRoutes.SYSTEM_INFO -> Icons.Filled.Memory
+    else -> Icons.Filled.Settings
 }

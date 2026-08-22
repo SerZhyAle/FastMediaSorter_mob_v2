@@ -1,5 +1,9 @@
 param(
-    [switch]$AutoVersion
+    # A packaged debug APK is a distribution artifact - it is copied to DOWNLOADS and installed
+    # by hand - so it carries its own build timestamp by default (S1873). Frozen versions belong
+    # to the compile-only fast checks (fk/fc/fr/fw) that produce no APK. Pass -AutoVersion:$false
+    # to opt back in when configuration-cache reuse matters more than a truthful version.
+    [switch]$AutoVersion = $true
 )
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
@@ -26,27 +30,11 @@ $gradleArgs = @(
     "-Pchaquopy.enabled=false",
     "--configuration-cache"
 )
+. "$PSScriptRoot\..\utils\build-version-stamp.ps1"
 if ($AutoVersion) {
-    $now = Get-Date
-    $year = $now.Year
-    $month = $now.Month
-    $day = $now.Day
-    $hour = $now.Hour
-    $minute = $now.Minute
-
-    $firstYearDigit = [int]($year.ToString()[0].ToString())
-    $lastYearDigit = [int]($year.ToString()[-1].ToString())
-    $firstMonthDigit = [int]($month.ToString("00")[0].ToString())
-    $secondMonthDigit = [int]($month.ToString("00")[1].ToString())
-    $dayStr = $day.ToString("00")
-    $firstHourDigit = [int]($hour.ToString("00")[0].ToString())
-    $secondHourDigit = [int]($hour.ToString("00")[1].ToString())
-    $minuteStr = $minute.ToString("00")
-    $firstMinuteDigit = [int]($minuteStr[0].ToString())
-
-    $versionCodeStr = $now.ToString("yyMMddHH") + $firstMinuteDigit.ToString()
-    $versionCodeInt = [Convert]::ToInt32($versionCodeStr)
-    $versionName = "$firstYearDigit.$lastYearDigit$firstMonthDigit.$secondMonthDigit$dayStr$firstHourDigit.$secondHourDigit$minuteStr"
+    $stamp = Get-BuildVersionStamp
+    $versionCodeInt = $stamp.AppVersionCode
+    $versionName = $stamp.VersionName
     Write-Host "Version override: $versionName (code: $versionCodeInt)" -ForegroundColor Green
     $gradleArgs += @(
         "-Pfms.versionCode=$versionCodeInt",
@@ -98,6 +86,18 @@ if (!(Test-Path -Path $downloadsDir)) {
     New-Item -ItemType Directory -Path $downloadsDir | Out-Null
 }
 $destName = "FastMediaSorter_standard_debug.apk"
+# Judge what was produced, not what was intended. A packaging path that lost its version
+# property still writes a fresh file - only the artifact's own metadata shows that the
+# version inside it belongs to an older build (S1873). Checked before the copy, because the
+# copy is what puts it in DOWNLOADS and on Google Drive.
+if ($AutoVersion) {
+    & (Join-Path $PSScriptRoot "..\quality\assert-artifact-version-fresh.ps1") -Path $apkDir
+    if ($LASTEXITCODE -eq 1) {
+        Write-Host "Refusing to distribute an artifact whose version is not its own." -ForegroundColor Red
+        exit 1
+    }
+}
+
 Copy-Item -Path $apkPath -Destination "$downloadsDir\$destName" -Force
 Write-Host "APK copied to $downloadsDir\$destName" -ForegroundColor Green
 

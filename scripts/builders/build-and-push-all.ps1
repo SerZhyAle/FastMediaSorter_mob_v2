@@ -23,10 +23,14 @@ Remove-Item -Path "$projectRoot\wear\build" -Recurse -Force -ErrorAction Silentl
 $maxRetries = 2
 $retryCount = 0
 $buildSuccess = $false
+. "$PSScriptRoot\..\utils\build-version-stamp.ps1"
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
 Enter-BuildLockOrExit -Reason "build-and-push-all.ps1"
 try {
+
+$stamp = Get-BuildVersionStamp
+Write-Host "Version override: $($stamp.VersionName)" -ForegroundColor Green
 
 while (-not $buildSuccess -and $retryCount -lt $maxRetries) {
     try {
@@ -49,8 +53,9 @@ while (-not $buildSuccess -and $retryCount -lt $maxRetries) {
         & $gradlew `
             assembleStandardDebug assembleLiteDebug assemblePhotosDebug assembleLegacyDebug assembleVrDebug `
             assembleStandardRelease assembleLiteRelease assemblePhotosRelease assembleLegacyRelease assembleVrRelease `
-            :wear:assembleDebug :wear:assembleRelease `
             "-Pchaquopy.enabled=false" `
+            "-Pfms.versionCode=$($stamp.AppVersionCode)" `
+            "-Pfms.versionName=$($stamp.VersionName)" `
             --max-workers=4 `
             --configuration-cache `
             | Tee-Object -FilePath "$projectRoot\build_all_log.txt"
@@ -60,10 +65,26 @@ while (-not $buildSuccess -and $retryCount -lt $maxRetries) {
             throw "Pass 1 (non-noLegal) failed with exit code $pass1Exit"
         }
 
+        Write-Host "  Pass 1b: Wear OS..." -ForegroundColor DarkGray
+        & $gradlew `
+            :wear:assembleDebug :wear:assembleRelease `
+            "-Pchaquopy.enabled=false" `
+            "-Pfms.versionCode=$($stamp.WearVersionCode)" `
+            "-Pfms.versionName=$($stamp.VersionName)" `
+            --max-workers=4 `
+            --configuration-cache `
+            | Tee-Object -Append -FilePath "$projectRoot\build_all_log.txt"
+
+        if ($LASTEXITCODE -ne 0) {
+            throw "Pass 1b (Wear OS) failed with exit code $LASTEXITCODE"
+        }
+
         Write-Host "  Pass 2: noLegal flavor..." -ForegroundColor DarkGray
         & $gradlew `
             assembleNoLegalDebug assembleNoLegalRelease `
             "-Pchaquopy.enabled=true" `
+            "-Pfms.versionCode=$($stamp.AppVersionCode)" `
+            "-Pfms.versionName=$($stamp.VersionName)" `
             --max-workers=4 `
             --no-configuration-cache `
             | Tee-Object -Append -FilePath "$projectRoot\build_all_log.txt"

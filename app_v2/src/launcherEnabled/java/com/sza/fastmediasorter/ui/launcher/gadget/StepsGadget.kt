@@ -15,7 +15,6 @@ import com.sza.fastmediasorter.domain.repository.SensorAvailabilityRepository
 import com.sza.fastmediasorter.domain.usecase.sensors.ObserveStepCountUseCase
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
-import timber.log.Timber
 import java.text.NumberFormat
 import java.util.Locale
 import javax.inject.Inject

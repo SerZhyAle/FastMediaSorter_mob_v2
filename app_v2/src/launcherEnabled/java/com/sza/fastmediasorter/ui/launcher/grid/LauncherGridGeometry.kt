@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
+import timber.log.Timber
 
 /**
  * S0404: desktop grid sizing. The column count is derived from the screen at render time and the
@@ -31,6 +32,40 @@ object LauncherGridGeometry {
     /** The square edge of one grid cell. Every cell rect derives from this (see [boundsFor]). */
     fun cellSizePx(availableWidthPx: Int, columns: Int): Int =
         if (columns <= 0) availableWidthPx else availableWidthPx / columns
+
+    /**
+     * S1757: visual dimensions for a shortcut cell proportional to the cell's edge size.
+     * When [cellSizeDp] is at nominal size (>= 88dp), standard dimensions are returned.
+     * At smaller sizes (dense grid mode), icon, paddings, and margins scale down so up to 2 lines of
+     * label text fit without clipping.
+     */
+    data class ShortcutCellLayoutSpec(
+        val iconSizeDp: Float,
+        val monogramTextSizeSp: Float,
+        val modeBadgeSizeDp: Float,
+        val contentPaddingVerticalDp: Float,
+        val labelMarginTopDp: Float,
+    )
+
+    fun shortcutLayoutSpec(cellSizeDp: Float): ShortcutCellLayoutSpec {
+        if (cellSizeDp >= 88f || cellSizeDp <= 0f) {
+            return ShortcutCellLayoutSpec(
+                iconSizeDp = 44f,
+                monogramTextSizeSp = 16f,
+                modeBadgeSizeDp = 18f,
+                contentPaddingVerticalDp = 4f,
+                labelMarginTopDp = 3f,
+            )
+        }
+        val scale = (cellSizeDp / 88f).coerceIn(0.55f, 1.0f)
+        return ShortcutCellLayoutSpec(
+            iconSizeDp = (44f * scale).coerceIn(26f, 44f),
+            monogramTextSizeSp = (16f * scale).coerceIn(10f, 16f),
+            modeBadgeSizeDp = (18f * scale).coerceIn(12f, 18f),
+            contentPaddingVerticalDp = (4f * scale).coerceIn(1f, 4f),
+            labelMarginTopDp = (3f * scale).coerceIn(1f, 3f),
+        )
+    }
 
     /**
      * How many rows the canvas needs to show every cell - the lowest occupied row, plus its own
@@ -106,8 +141,14 @@ object LauncherGridGeometry {
     fun footprintOf(cell: LauncherCell, columns: Int): CellFootprint =
         footprint(cell.rowIndex, cell.colIndex, renderSpanW(cell, columns), cell.spanH, columns)
 
-    /** S1428: a cell paired with the row it is drawn on once collapsed sections are folded shut. */
-    data class RenderedCell(val item: LauncherCellUi, val renderRow: Int)
+    /**
+     * S1428: a cell paired with the row it is drawn on once collapsed sections are folded shut.
+     *
+     * S1645 adds the column for the same reason the row exists: a packed header is drawn beside the
+     * previous one rather than at the column it is stored at. Every other cell reports its stored
+     * column here, so callers read one field and never have to know which case they are in.
+     */
+    data class RenderedCell(val item: LauncherCellUi, val renderRow: Int, val renderCol: Int)
 
     /**
      * S1428: the desktop as it is drawn - every cell inside a collapsed section dropped, everything
@@ -124,21 +165,47 @@ object LauncherGridGeometry {
      * user drags to another row is the same section, and a row that later carries a different header is
      * not.
      */
-    fun renderPlan(cells: List<LauncherCellUi>, collapsedSections: Set<String>): List<RenderedCell> {
+    fun renderPlan(
+        cells: List<LauncherCellUi>,
+        collapsedSections: Set<String>,
+        columns: Int,
+    ): List<RenderedCell> {
         val stored = cells.map { it.cell }
         val headerRows = LauncherSectionMembership.headerRows(stored)
         val collapsedHeaderRows = stored
             .filter { it.kind == LauncherCellKind.SECTION && it.target in collapsedSections }
             .map { it.rowIndex.coerceAtLeast(0) }
             .toSet()
-        return cells.mapNotNull { item ->
+        val drawnRowOf = { cell: LauncherCell ->
             LauncherSectionMembership.renderRowFor(
-                row = item.cell.rowIndex,
-                isHeader = item.cell.kind == LauncherCellKind.SECTION,
+                row = cell.rowIndex,
+                isHeader = cell.kind == LauncherCellKind.SECTION,
                 headerRows = headerRows,
                 collapsedHeaderRows = collapsedHeaderRows,
-            )?.let { RenderedCell(item, it) }
+            )
         }
+        // S1645: packing runs on the folded rows, so it continues the lift instead of fighting it.
+        val packed = LauncherSectionMembership.packedHeaderPositions(
+            cells = stored,
+            collapsedTargets = collapsedSections,
+            columns = columns,
+            renderRowOf = drawnRowOf,
+        )
+        Timber.d("S1645: render plan packed ${packed.size} collapsed header(s) across $columns columns")
+        return cells.mapNotNull { item ->
+            val drawnRow = drawnRowOf(item.cell) ?: return@mapNotNull null
+            val packedPosition = packed[item.cell.target]
+                ?.takeIf { item.cell.kind == LauncherCellKind.SECTION }
+            RenderedCell(
+                item = item,
+                renderRow = packedPosition?.row ?: drawnRow,
+                renderCol = packedPosition?.col ?: item.cell.colIndex,
+            )
+        }
+            // S1645: reading order, not storage order. The container adds children in this order and
+            // TalkBack follows that, so a packed header must be announced where it is seen - which the
+            // order the cells arrive in from the database does not describe once packing moves one.
+            .sortedWith(compareBy({ it.renderRow }, { it.renderCol }))
     }
 
     /**
@@ -152,7 +219,7 @@ object LauncherGridGeometry {
     /** [footprintOf] at the drawn row, so layout and the empty-slot sweep agree on a folded desktop. */
     fun footprintOfRendered(rendered: RenderedCell, columns: Int): CellFootprint = footprint(
         row = rendered.renderRow,
-        col = rendered.item.cell.colIndex,
+        col = rendered.renderCol,
         spanW = renderSpanW(rendered.item.cell, columns),
         spanH = rendered.item.cell.spanH,
         columns = columns,
@@ -168,6 +235,27 @@ object LauncherGridGeometry {
         width = footprint.spanW * cellSize,
         height = footprint.spanH * cellSize,
     )
+
+    /** One square of the grid, addressed the way [CellFootprint] reports a cell's origin. */
+    data class Slot(val row: Int, val col: Int)
+
+    /**
+     * S1466: the square under a point of the grid's content box, or null when the point is outside it.
+     *
+     * The inverse of [boundsOf] and it shares that function's assumption - cells tile the canvas with no
+     * gutter, so the square is plain integer division by [cellSize].
+     *
+     * Outside the grid yields no slot rather than a clamped one: the caller places a new cell at the
+     * answer, and a clamped one would drop the item on the last row while the user pressed past it.
+     * A point on the seam between two cells belongs to the later one, because the division floors.
+     */
+    fun slotAt(xPx: Int, yPx: Int, cellSize: Int, columns: Int, rows: Int): Slot? {
+        val measurable = cellSize > 0 && columns > 0 && rows > 0 && xPx >= 0 && yPx >= 0
+        if (!measurable) return null
+        val col = xPx / cellSize
+        val row = yPx / cellSize
+        return Slot(row = row, col = col).takeIf { col < columns && row < rows }
+    }
 
     /** Row and height clamps do not depend on the column count, so [rowsFor] can share them. */
     private fun safeRow(row: Int): Int = row.coerceAtLeast(0)

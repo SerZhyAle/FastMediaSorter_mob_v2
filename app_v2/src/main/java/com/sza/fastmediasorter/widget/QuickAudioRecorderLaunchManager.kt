@@ -11,7 +11,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationaleShort
-import timber.log.Timber
 
 /**
  * S0349 - decides what a Quick Audio Recorder widget tap should do, keeping all logic out of the

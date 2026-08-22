@@ -5,9 +5,6 @@
     <string name="ocr_best_model_delete">मिटाना</string>
     <string name="ocr_best_model_download">डाउनलोड करना</string>
     <string name="ocr_button_description">पाठ का अंश</string>
-    <string name="ocr_engine_type">ओसीआर इंजन</string>
-    <string name="ocr_engine_type_paddleocr">पैडलओसीआर</string>
-    <string name="ocr_engine_type_tesseract">टेसेरैक्ट (डिफ़ॉल्ट)</string>
     <string name="ocr_error">पाठ को पहचाना नहीं जा सका।</string>
     <string name="ocr_extract_image_failed">इस छवि को OCR के लिए तैयार नहीं किया जा सका। कृपया पुनः प्रयास करें।</string>
     <string name="ocr_font_family">ओसीआर फ़ॉन्ट परिवार</string>

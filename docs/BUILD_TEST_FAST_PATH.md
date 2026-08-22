@@ -49,6 +49,20 @@ Measured on this host, 2026-08-01, warm daemon, configuration cache reused:
 | `a.ps1 dq` | 18.4 s | foreground |
 | `a.ps1 d` / `dav` / `r` / `fu` | not measured | background |
 
+The `resource-link-gate` rows were measured on 2026-08-21 (S1915), warm daemon, `app_v2`:
+
+| Gate run | Wall clock | Verdict |
+| --- | ---: | --- |
+| one flavor, nothing to relink | 1.9 s | foreground |
+| one flavor, cold configuration cache | 10.6 s | foreground |
+| one flavor, red - aapt rejects a layout | 15.9 s | foreground |
+| one flavor, full relink after a resource change | 41.8 s | foreground |
+
+A two-flavor set costs the sum of two such runs, because the gate invokes the helper once per flavor -
+so the worst case observed here doubles to roughly 84 s and still clears the 120 s threshold. The
+1.9 s row is the one that matters for everyday cost: a closure whose resource set is already linked
+pays almost nothing, and the 41.8 s row is what an actual resource edit costs.
+
 The three `detekt-scoped` rows were measured on 2026-08-12 (S1595). They are the only detekt rows here that do NOT take `BUILD.LOCK`: the scoped runner drives detekt's CLI directly rather than through gradle, so it never queues behind a sibling session's build - which is why its number stays honest under contention while the `assert-detekt` row above does not.
 
 `assert-doc-icons-sync.ps1 -Gate` was measured on 2026-08-14 (S1545) as a completed foreground run with no lock wait. The 0.36 s figure is the gate's own wall-clock duration, not time spent queued for a repository lock.
@@ -69,7 +83,10 @@ Two caveats, recorded rather than smoothed over:
   one-file edit runs `fk` in **22-24 s**. Still foreground by a wide margin, and inside the ~44 s
   green compile-chain figure above, but the 14.1 s row is not reachable for an edit any more.
 
-Re-measure with `pwsh -NoProfile -File temp/S1338/measure-fast-path.ps1` on a green tree.
+Re-measure on a green tree by timing the targets themselves - `Measure-Command { pwsh -NoProfile -File ./a.ps1 fk }`
+and the same for `fc` and `fu`, once with no change and once after touching a single file. The harness this
+line used to name lived under `temp/`, which CLAUDE.md Rule 1 makes disposable; it is gone, and a document
+may not send a reader to a path that scratch cleanup is entitled to delete (S1850).
 
 ## Default command set
 
@@ -85,7 +102,10 @@ pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Assemble
 .\a.ps1 d
 .\a.ps1 db
 .\a.ps1 dq
-.\gradlew.bat :wear:assembleDebug
+.\a.ps1 fw
+.\a.ps1 fwr
+.\a.ps1 fwu
+.\gradlew.bat :wear:assembleDebug   # wear packaging proof only - fw/fwr/fwu cover the rest
 .\a.ps1 adb install -Flavor standard
 .\a.ps1 adb launch
 .\a.ps1 adb log -Tail 400 -Grep "FATAL|ANR|Sxxxx"
@@ -215,8 +235,13 @@ This is useful when compile/resources are not enough, but you still do not need 
 Use:
 
 ```powershell
-.\gradlew.bat :wear:assembleDebug
+.\a.ps1 fw                          # Kotlin under wear/
+.\a.ps1 fwr                         # resources/manifest under wear/
+.\a.ps1 fwu                         # unit tests under wear/src/test
+.\gradlew.bat :wear:assembleDebug   # only when packaging proof is the point
 ```
+
+**Never prove a wear change with `fk`/`fr`/`fc`/`fu` (S1807).** Those four check `app_v2` and exit 0 without compiling a single watch file, so the green they print is a verdict about the other module. Every fast check prints the module it checked in its own banner - read that line before quoting the exit code as proof.
 
 Escalate only if the change also affects shared code used by `app_v2/`.
 
@@ -295,7 +320,9 @@ Move upward only when needed:
 | Focused logic bug fix | targeted unit test | shared area or many tests affected |
 | Shared model / serializer / infra | `.\a.ps1 fu` | install/runtime behavior also changed |
 | Packaging/install concern | `.\a.ps1 d` | device-specific behavior matters |
-| Wear-only change | `:wear:assembleDebug` | shared app code also changed |
+| Wear-only Kotlin edit | `.\a.ps1 fw` | resources or tests also changed |
+| Wear-only resource/manifest edit | `.\a.ps1 fwr` | Kotlin also changed |
+| Wear-only logic change with tests | `.\a.ps1 fwu` | packaging proof needed - then `:wear:assembleDebug` |
 | Flavor-visible resources / flavor source sets | `.\a.ps1 fc -Flavor <name>` per affected flavor | packaging proof needed on that flavor |
 
 ## Anti-patterns
@@ -307,6 +334,7 @@ Avoid these habits:
 - using `dav` during normal development
 - jumping to the full unit suite before a targeted test
 - using standard fast checks for `noLegal` tasks
+- proving a `wear/` change with `fk`/`fr`/`fc`/`fu` - they check `app_v2` and pass without touching the watch module (S1807)
 - wiping all Gradle caches before trying targeted KAPT recovery
 
 ## Quick examples

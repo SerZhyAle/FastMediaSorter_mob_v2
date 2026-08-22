@@ -12,7 +12,8 @@ import timber.log.Timber
 /** WebView configuration, asset interception, and full destroy/clean-up for [EpubViewerManager]. */
 internal class EpubWebViewLifecycle(
     // S0380: root + safeViews seam instead of ActivityPlayerUnifiedBinding (works on trimmed layouts).
-    private val root: View,
+    // S1549: var so a host that re-inflates its layout can re-point this lifecycle (see [rebindLayoutRoot]).
+    private var root: View,
     private val safeViews: PlayerBindingSafeViews,
     private val resourceContentHelper: EpubResourceContentHelper,
     private val selectionBridge: EpubViewerManager.EpubSelectionBridge,
@@ -25,6 +26,24 @@ internal class EpubWebViewLifecycle(
     private var webView: WebView? = null
 
     fun current(): WebView? = webView
+
+    /**
+     * S1549: move the live WebView into the re-inflated hierarchy. Re-creating it would reload the
+     * book and lose the reading position, so the instance is detached from the discarded container
+     * and added to the new one; [safeViews] is re-pointed by the owning viewer before this runs.
+     */
+    fun rebindLayoutRoot(newRoot: View) {
+        root = newRoot
+        val wv = webView ?: return
+        (wv.parent as? android.view.ViewGroup)?.removeView(wv)
+        safeViews.epubWebView.addView(
+            wv,
+            FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT,
+            ),
+        )
+    }
 
     fun getOrCreate(): WebView {
         webView?.let { return it }

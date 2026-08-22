@@ -5,7 +5,6 @@ import android.content.SharedPreferences
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.domain.repository.PermissionRequestMarkerRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 

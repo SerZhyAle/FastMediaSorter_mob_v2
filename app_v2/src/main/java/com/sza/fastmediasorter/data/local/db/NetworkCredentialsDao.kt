@@ -68,4 +68,28 @@ interface NetworkCredentialsDao {
             (SELECT DISTINCT credentialsId FROM resources WHERE credentialsId IS NOT NULL AND credentialsId != '')"""
     )
     suspend fun getOrphanedCredentials(): List<NetworkCredentialsEntity>
+
+    /**
+     * S1649: records when the listed credentials were first seen orphaned.
+     *
+     * Only rows that carry no moment yet are touched, so a repeated audit run never pushes the clock
+     * forward and never shortens a grace period that is already running.
+     */
+    @Query(
+        """UPDATE network_credentials SET orphaned_since = :nowMs
+        WHERE credentialId IN (:credentialIds) AND orphaned_since IS NULL"""
+    )
+    suspend fun stampOrphanedSince(credentialIds: List<String>, nowMs: Long)
+
+    /**
+     * S1649: clears the orphan moment for credentials that are referenced by a resource again.
+     *
+     * This is what makes the deferral protect its stated scenario - a resource removed and added back
+     * restarts the clock from scratch rather than continuing an old countdown.
+     */
+    @Query(
+        """UPDATE network_credentials SET orphaned_since = NULL
+        WHERE credentialId IN (:credentialIds) AND orphaned_since IS NOT NULL"""
+    )
+    suspend fun clearOrphanedSince(credentialIds: List<String>)
 }

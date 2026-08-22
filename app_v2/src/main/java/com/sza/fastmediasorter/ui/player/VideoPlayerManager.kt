@@ -235,7 +235,6 @@ class VideoPlayerManager(
     // preferences file there was a blocking disk read of ~53 ms on the player's hot open path. Nothing
     // in the constructor reads a value, so the file is only needed when a control is actually used.
     private val playbackControlPrefs by lazy(LazyThreadSafetyMode.NONE) {
-        Timber.d("S1648: playback control prefs opened on first use")
         context.getSharedPreferences(PlaybackControlPreferences.PREFS_NAME, Context.MODE_PRIVATE)
     }
 
@@ -688,6 +687,12 @@ class VideoPlayerManager(
 
     /** Attach the [PlayerView] used for video rendering. Must be called before playback. */
     fun setPlayerView(playerView: PlayerView) {
+        // S1549: a re-inflate hands the surface over - detach the player from the discarded
+        // PlayerView first, or both views keep component listeners on the same player and the
+        // dying tree keeps receiving frame callbacks.
+        if (currentPlayerView !== playerView) {
+            currentPlayerView?.player = null
+        }
         currentPlayerView = playerView
         Timber.d("VideoPlayerManager: PlayerView set")
     }

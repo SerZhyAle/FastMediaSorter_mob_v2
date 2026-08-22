@@ -5,7 +5,6 @@ import androidx.lifecycle.LifecycleOwner
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
-import timber.log.Timber
 
 /**
  * Builds the per-direction screenshot-gesture action picker and maps actions to labels.

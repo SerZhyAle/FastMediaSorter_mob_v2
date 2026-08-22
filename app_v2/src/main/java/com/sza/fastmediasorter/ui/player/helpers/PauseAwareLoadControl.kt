@@ -8,7 +8,6 @@ import androidx.media3.exoplayer.Renderer
 import androidx.media3.exoplayer.source.MediaSource.MediaPeriodId
 import androidx.media3.exoplayer.source.TrackGroupArray
 import androidx.media3.exoplayer.trackselection.ExoTrackSelection
-import timber.log.Timber
 
 /**
  * Wraps [DefaultLoadControl] and returns false from [shouldContinueLoading] while the player
@@ -39,6 +38,9 @@ internal class PauseAwareLoadControl(
     // methods instead of delegate.<method>(...). LoadControl.java has pairs of cross-calling
     // default overloads (shouldStartPlayback, onTracksSelected) that recurse infinitely through
     // `this` (StackOverflowError). Explicit overrides below force dispatch to DefaultLoadControl.
+    // S1776 ADR-3: the deprecated-signature pair is load-bearing for exactly that reason -
+    // removing it to silence the deprecation warning reintroduces the recursion, so both the
+    // override and its delegate call carry a deliberate suppression instead.
     override fun shouldStartPlayback(
         timeline: Timeline,
         mediaPeriodId: MediaPeriodId,
@@ -50,7 +52,7 @@ internal class PauseAwareLoadControl(
         timeline, mediaPeriodId, bufferedDurationUs, playbackSpeed, rebuffering, targetLiveOffsetUs
     )
 
-    @Suppress("OVERRIDE_DEPRECATION")
+    @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
     override fun shouldStartPlayback(
         bufferedDurationUs: Long,
         playbackSpeed: Float,
@@ -68,7 +70,7 @@ internal class PauseAwareLoadControl(
         delegate.onTracksSelected(timeline, mediaPeriodId, renderers, trackGroups, trackSelections)
     }
 
-    @Suppress("OVERRIDE_DEPRECATION")
+    @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
     override fun onTracksSelected(
         renderers: Array<out Renderer>,
         trackGroups: TrackGroupArray,

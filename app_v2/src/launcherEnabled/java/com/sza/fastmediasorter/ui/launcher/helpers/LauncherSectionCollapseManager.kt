@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import timber.log.Timber
 
 /**
  * S1428: which launcher desktop sections are folded shut, and the tap that folds them (strategic §6.8).
@@ -67,6 +66,16 @@ class LauncherSectionCollapseManager(
         val key = keyFor(orientation.value, cell.target)
         val nowExpanded = !store.isExpanded(key, EXPANDED_BY_DEFAULT)
         store.setExpanded(key, nowExpanded)
+        revision.value += 1
+    }
+
+    /**
+     * S1742 §04.2: clears collapsed-state entry for [cell] when it is removed.
+     */
+    fun clear(cell: LauncherCell) {
+        if (cell.kind != LauncherCellKind.SECTION) return
+        val key = keyFor(orientation.value, cell.target)
+        store.setExpanded(key, EXPANDED_BY_DEFAULT)
         revision.value += 1
     }
 

@@ -27,7 +27,7 @@ enum class LauncherGeographicAction {
  * - `app:<packageName>`  - launch an installed application.
  * - `fn:<routeKey>`      - one of our own features (keys from `InternalRouteCatalog`).
  * - `res:<id>:<MODE>`    - open a specific resource in a specific view mode.
- * - `stream:<streamId>`  - play a channel from the stream catalog.
+ * - `stream:<identityKey>` - play a channel from the stream catalog, addressed by its derived identity.
  * - `os:<targetKey>`     - a curated OS system target (keys from `OsShortcutCatalog`).
  * - `op:<id>`            - trigger a saved scheduled operation (S1103).
  * - `act:<actionKey>`    - an action on the launcher itself (keys from `LauncherActionCatalog`, S1402).
@@ -54,8 +54,19 @@ sealed interface LauncherCellCommand {
         override fun encode(): String = "$PREFIX_RESOURCE$resourceId$SEPARATOR${mode.name}"
     }
 
-    data class Stream(val streamId: String) : LauncherCellCommand {
-        override fun encode(): String = "$PREFIX_STREAM$streamId"
+    /**
+     * S1832: a channel from the stream catalog, addressed by the identity derived from its address
+     * rather than by the catalog row's id.
+     *
+     * The row id was the payload until S1832, and a catalog import mints a fresh one for every row, so
+     * a channel dropped from the published bank and re-added later left the cell pointing at an id that
+     * no longer existed. `Migration52To53` rewrote every stored payload it could resolve; a cell whose
+     * row was already gone by then still carries the old id, and so does any cell restored from a backup
+     * taken before this change. `StreamSourceRepository.getByIdentityOrId` resolves both forms, which is
+     * why this field's name states the intent rather than the exhaustive set of what may be stored.
+     */
+    data class Stream(val identityKey: String) : LauncherCellCommand {
+        override fun encode(): String = "$PREFIX_STREAM$identityKey"
     }
 
     data class OsShortcut(val targetKey: String) : LauncherCellCommand {
@@ -151,6 +162,20 @@ sealed interface LauncherCellCommand {
     }
 
     /**
+     * S1440: an internal route opened at one of its sub-screens.
+     *
+     * Separate from [Feature] rather than an optional field on it because a route that names no
+     * sub-screen must keep encoding as `fn:<route>` - a placed cell outlives the release that wrote it,
+     * and widening [Feature]'s payload would strand every cell already stored in the old shape.
+     *
+     * [sectionKey] is the sub-screen's stable string, never an ordinal, and an unknown one resolves to
+     * the route's own default rather than failing the launch.
+     */
+    data class FeatureSection(val routeKey: String, val sectionKey: String) : LauncherCellCommand {
+        override fun encode(): String = "$PREFIX_FEATURE_SECTION$routeKey$SEPARATOR$sectionKey"
+    }
+
+    /**
      * S1428: a titled header owning every cell below it down to the next header.
      *
      * Carries [sectionKey] rather than the title text: strategic §5.3 requires a future user-created
@@ -164,6 +189,7 @@ sealed interface LauncherCellCommand {
     companion object {
         const val PREFIX_APP = "app:"
         const val PREFIX_FEATURE = "fn:"
+        const val PREFIX_FEATURE_SECTION = "fns:"
         const val PREFIX_RESOURCE = "res:"
         const val PREFIX_STREAM = "stream:"
         const val PREFIX_OS = "os:"
@@ -175,8 +201,17 @@ sealed interface LauncherCellCommand {
         const val PREFIX_GEOGRAPHIC = "geo:"
         const val PREFIX_SECTION = "sec:"
 
+        /** S1746: starter section for desktop widgets (clock, weather, search). */
+        const val SECTION_WIDGETS = "widgets"
+
+        /** S1746: starter section for user media and playlist resources. */
+        const val SECTION_RESOURCES = "resources"
+
         /** The preset section a fresh desktop opens with; §6.2 defers user-created ones to their own ticket. */
         const val SECTION_APP_FUNCTIONS = "app_functions"
+
+        /** S1746: starter section for installed Android applications. */
+        const val SECTION_ANDROID_APPS = "android_apps"
 
         /**
          * What ends [SECTION_APP_FUNCTIONS] (strategic §6.12). Membership is positional and the last
@@ -185,8 +220,21 @@ sealed interface LauncherCellCommand {
          *
          * Named for its position rather than its contents on purpose: the user may drag anything under
          * it, which would make a descriptive title false the moment they did.
+         *
+         * S1744 renames the constant and its label from "everything else" to "main" while keeping the
+         * stored value untouched: the owner rejected a name that described the section by negation, and
+         * every desktop already on disk addresses this section by the literal below. The two therefore
+         * disagree on purpose - the value is a persistence token, not a caption.
          */
-        const val SECTION_EVERYTHING_ELSE = "everything_else"
+        const val SECTION_MAIN = "everything_else"
+
+        /**
+         * S1644: the conditional section of installed Google applications, seeded only on a device that
+         * reports Google services. Named for its contents rather than its position, unlike
+         * [SECTION_MAIN], because the seed decides what goes in it and the user is not
+         * expected to refill it.
+         */
+        const val SECTION_GOOGLE = "google"
 
         private const val SEPARATOR = ":"
 
@@ -209,6 +257,7 @@ sealed interface LauncherCellCommand {
         // Field layout of a [Geographic] target. The three fields are a persistence format: append,
         // never reorder, and increase the count when a later version adds a field.
         private const val FIELD_GEOGRAPHIC_ACTION = 0
+        private const val FEATURE_SECTION_FIELD_COUNT = 2
         private const val FIELD_GEOGRAPHIC_QUERY = 1
         private const val FIELD_GEOGRAPHIC_LABEL = 2
         private const val GEOGRAPHIC_FIELD_COUNT = 3
@@ -250,6 +299,9 @@ sealed interface LauncherCellCommand {
         /** The prefixes whose payload carries a typed id or several joined fields. */
         private fun decodeMultiField(value: String): LauncherCellCommand? = when {
             value.startsWith(PREFIX_RESOURCE) -> decodeResource(value.removePrefix(PREFIX_RESOURCE))
+
+            value.startsWith(PREFIX_FEATURE_SECTION) ->
+                decodeFeatureSection(value.removePrefix(PREFIX_FEATURE_SECTION))
 
             value.startsWith(PREFIX_SCHEDULED_OP) ->
                 value.removePrefix(PREFIX_SCHEDULED_OP).toLongOrNull()?.let { ScheduledOp(it) }
@@ -350,6 +402,18 @@ sealed interface LauncherCellCommand {
 
         private fun decodeField(value: String): String =
             runCatching { URLDecoder.decode(value, Charsets.UTF_8.name()) }.getOrDefault("")
+
+        /** Both fields are required: a half-written payload opens the route's default sub-screen, not a wrong one. */
+        private fun decodeFeatureSection(payload: String): LauncherCellCommand? {
+            val parts = payload.split(SEPARATOR)
+            return if (parts.size == FEATURE_SECTION_FIELD_COUNT &&
+                parts[0].isNotEmpty() && parts[1].isNotEmpty()
+            ) {
+                FeatureSection(routeKey = parts[0], sectionKey = parts[1])
+            } else {
+                null
+            }
+        }
 
         private fun decodeResource(payload: String): Resource? {
             val separatorIndex = payload.indexOf(SEPARATOR)

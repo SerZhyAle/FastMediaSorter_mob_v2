@@ -6,6 +6,7 @@ import android.view.Gravity
 import android.view.ViewGroup
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogSearchableOptionPickerBinding
+import com.sza.fastmediasorter.ui.common.widget.MaxHeightLinearLayout
 
 /**
  * S1286: the window and surface treatment shared by every FragmentResult-hosted picker built on
@@ -31,9 +32,14 @@ object SearchableOptionPickerWindow {
 
     /** Full treatment for a self-drawn host: opaque card, capped height, centered sized window. */
     fun apply(dialog: Dialog?, binding: DialogSearchableOptionPickerBinding) {
-        binding.root.setBackgroundResource(R.drawable.bg_option_picker_surface)
-        applyHeightCap(binding)
-        val width = widthPx(binding.root.resources.displayMetrics)
+        apply(dialog, binding.root)
+    }
+
+    /** Full treatment taking root [MaxHeightLinearLayout] directly. */
+    fun apply(dialog: Dialog?, root: MaxHeightLinearLayout) {
+        root.setBackgroundResource(R.drawable.bg_option_picker_surface)
+        applyHeightCap(root)
+        val width = widthPx(root.resources.displayMetrics)
         dialog?.window?.apply {
             // The rounded card above is the visible surface, so the window itself must not paint square
             // corners behind it.
@@ -48,8 +54,13 @@ object SearchableOptionPickerWindow {
      * and must not gain a second one.
      */
     fun applyHeightCap(binding: DialogSearchableOptionPickerBinding) {
-        val metrics = binding.root.resources.displayMetrics
-        binding.root.maxHeightPx = (metrics.heightPixels * HEIGHT_FRACTION).toInt()
+        applyHeightCap(binding.root)
+    }
+
+    /** Height cap taking root [MaxHeightLinearLayout] directly. */
+    fun applyHeightCap(root: MaxHeightLinearLayout) {
+        val metrics = root.resources.displayMetrics
+        root.maxHeightPx = (metrics.heightPixels * HEIGHT_FRACTION).toInt()
     }
 
     /**

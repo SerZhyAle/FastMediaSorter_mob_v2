@@ -13,7 +13,6 @@ import com.sza.fastmediasorter.ui.streams.StreamTitleFormatter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * S0756: pinned stream channels on the main-window streams panel. Each chip shows a favicon thumbnail

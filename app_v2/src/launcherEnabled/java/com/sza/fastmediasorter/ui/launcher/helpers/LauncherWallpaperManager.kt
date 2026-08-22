@@ -5,11 +5,11 @@ import android.widget.ImageView
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
 import com.bumptech.glide.Glide
+import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.domain.model.launcher.LauncherWallpaper
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
 import com.sza.fastmediasorter.ui.player.helpers.AudioWaveParticleView
 import com.sza.fastmediasorter.utils.collectOnLifecycle
-import timber.log.Timber
 import java.io.File
 
 /**
@@ -81,8 +81,10 @@ class LauncherWallpaperManager(
                 imageLayer.isVisible = true
                 // Glide decodes stills and GIFs off the same call and sizes the bitmap to the view, so a
                 // large wallpaper never lands in memory at full resolution.
+                val file = File(wallpaper.absolutePath)
                 Glide.with(imageLayer)
-                    .load(File(wallpaper.absolutePath))
+                    .load(file)
+                    .signature(ObjectKey(file.lastModified()))
                     .into(imageLayer)
             }
         }

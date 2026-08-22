@@ -10,6 +10,10 @@
     <string name="s0183_apk_install_success">APK इंस्टॉल हो गया</string>
     <string name="s0183_apk_install_cancelled">स्थापना रद्द कर दी गई</string>
     <string name="s0183_apk_install_failed">स्थापना विफल</string>
+    <string name="s1686_apk_install_failed_downgrade">इंस्टॉलेशन विफल: एक नया वर्शन पहले से इंस्टॉल है</string>
+    <string name="s1686_apk_install_failed_incompatible">इंस्टॉलेशन विफल: यह APK इंस्टॉल किए गए ऐप से अलग तरह से साइन किया गया है</string>
+    <string name="s1686_apk_install_failed_storage">इंस्टॉलेशन विफल: पर्याप्त खाली जगह नहीं है</string>
+    <string name="s1686_apk_install_failed_corrupt">इंस्टॉलेशन विफल: APK फ़ाइल खराब या अधूरी है</string>
     <string name="setting_support_office_documents_desc">समर्थित होने पर, यह Word, स्प्रेडशीट और प्रेजेंटेशन फ़ाइलों को बिल्ट-इन व्यूअर में खोलता है।</string>
     <string name="nolegal_diag_section_os_security">ऑपरेटिंग सिस्टम और सुरक्षा</string>
     <string name="nolegal_diag_section_permissions">विशेष अनुमतियाँ</string>

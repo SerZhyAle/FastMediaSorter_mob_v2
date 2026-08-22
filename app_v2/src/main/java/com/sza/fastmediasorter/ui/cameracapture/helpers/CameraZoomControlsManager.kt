@@ -12,7 +12,6 @@ import com.google.android.material.slider.Slider
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
 import com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
-import timber.log.Timber
 import java.util.Locale
 import kotlin.math.abs
 
@@ -79,7 +78,6 @@ class CameraZoomControlsManager(
     fun configureLensPills(capabilities: CameraRuntimeCapabilities) {
         presetGroup.removeAllViews()
         val activeFloor = capabilities.ownEquivalentFloorDisplay
-        Timber.d("S1675: lens pill row - floors=${capabilities.rearLensEquivalentFloors} active=$activeFloor")
         capabilities.rearLensEquivalentFloors.forEach { floor ->
             val pill = buildPill(
                 labelValue = floor,

@@ -7,6 +7,7 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
 import android.os.Looper
+import androidx.core.location.LocationCompat
 import com.sza.fastmediasorter.domain.model.sensors.MotionReading
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
@@ -50,12 +51,22 @@ class MotionReadingSource @Inject constructor(
             // the other callbacks and throws at run time (same reason as CameraLocationProvider).
             val listener = object : LocationListener {
                 override fun onLocationChanged(location: Location) {
+                    Timber.d(
+                        "S1753: location fix received hasMslAltitude=%b hasAltitude=%b",
+                        LocationCompat.hasMslAltitude(location),
+                        location.hasAltitude(),
+                    )
                     val delta = distanceSince(previous, location)
                     previous = location
+                    val altitude = when {
+                        LocationCompat.hasMslAltitude(location) -> LocationCompat.getMslAltitudeMeters(location)
+                        location.hasAltitude() -> location.altitude
+                        else -> null
+                    }
                     trySend(
                         MotionReading.fromPlatformSpeed(
                             rawSpeed = location.speed.takeIf { location.hasSpeed() },
-                            altitudeMeters = location.altitude.takeIf { location.hasAltitude() },
+                            altitudeMeters = altitude,
                             distanceDeltaMeters = delta,
                             takenAtMillis = System.currentTimeMillis(),
                         ),

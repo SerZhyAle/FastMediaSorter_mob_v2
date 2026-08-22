@@ -4,25 +4,39 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.wearable.Wearable
+import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ExportSourcesUseCase
 import com.sza.fastmediasorter.wear.ui.network.SourceItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import javax.inject.Inject
+
+private const val VIEW_MODE_SUBSCRIPTION_MS = 5_000L
 
 sealed class SyncState {
     data object Idle : SyncState()
     data object Pending : SyncState()
     data class Success(val added: Int, val updated: Int) : SyncState()
     data class Error(val message: String) : SyncState()
+}
+
+/** S1833: the outcome of checking a source that is already saved, shown over the list. */
+sealed class ConnectionTestState {
+    data object Idle : ConnectionTestState()
+    data class Testing(val sourceName: String) : ConnectionTestState()
+    data class Finished(val sourceName: String, val message: String, val isError: Boolean) : ConnectionTestState()
 }
 
 sealed class ExportState {
@@ -40,8 +54,13 @@ sealed class ExportState {
 class NetworkSourcesViewModel @Inject constructor(
     private val networkSourceRepository: NetworkSourceRepository,
     @ApplicationContext private val context: Context,
-    private val exportSourcesUseCase: ExportSourcesUseCase
+    private val exportSourcesUseCase: ExportSourcesUseCase,
+    private val preferencesRepository: WearPreferencesRepository
 ) : ViewModel() {
+
+    /** S1781: ADR-1 - one stored view shared with the home screen, never a second setting here. */
+    val viewMode: StateFlow<WearViewMode> = preferencesRepository.viewMode
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(VIEW_MODE_SUBSCRIPTION_MS), WearViewMode.LIST)
 
     private val _uiState = MutableStateFlow<NetworkSourcesUiState>(NetworkSourcesUiState.Loading)
     val uiState: StateFlow<NetworkSourcesUiState> = _uiState.asStateFlow()
@@ -51,6 +70,9 @@ class NetworkSourcesViewModel @Inject constructor(
 
     private val _exportState = MutableStateFlow<ExportState>(ExportState.Idle)
     val exportState: StateFlow<ExportState> = _exportState.asStateFlow()
+
+    private val _connectionTestState = MutableStateFlow<ConnectionTestState>(ConnectionTestState.Idle)
+    val connectionTestState: StateFlow<ConnectionTestState> = _connectionTestState.asStateFlow()
 
     init {
         Timber.d("NetworkSourcesViewModel initialized")
@@ -76,9 +98,11 @@ class NetworkSourcesViewModel @Inject constructor(
                             SourceItem(
                                 id = source.id,
                                 name = source.name,
-                                server = source.server
+                                server = source.server,
+                                type = source.type
                             )
                         }
+                        Timber.d("S1952: observed types " + sourceItems.map { it.type })
                         Timber.d("Observed ${sourceItems.size} network sources")
                         NetworkSourcesUiState.Success(sourceItems)
                     }
@@ -148,10 +172,12 @@ class NetworkSourcesViewModel @Inject constructor(
                         SourceItem(
                             id = source.id,
                             name = source.name,
-                            server = source.server
+                            server = source.server,
+                            type = source.type
                         )
                     }
                     _uiState.value = NetworkSourcesUiState.Success(sourceItems)
+                    Timber.d("S1952: loaded types " + sourceItems.map { it.type })
                     Timber.d("Loaded ${sourceItems.size} network sources")
                 }
             } catch (e: Exception) {
@@ -161,6 +187,67 @@ class NetworkSourcesViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    /**
+     * S1781: the home screen's Last used section reads this, so it is written where a resource is
+     * opened. S1836: the identifier travels with the name, because the section addresses the source
+     * rather than merely captioning it.
+     */
+    fun rememberLastUsedResource(id: String, name: String) {
+        Timber.d("S1836: remembering resource $name ($id)")
+        viewModelScope.launch {
+            preferencesRepository.setLastUsedResource(id, name)
+        }
+    }
+
+    /**
+     * S1833: the check a saved source never had. Until now the test button lived inside the add form
+     * and could only judge what was typed there, so a source that stopped answering could not be
+     * checked at all. The probe is the repository call that form already makes, so a source is judged
+     * the same way whether it is being typed or has been stored for months.
+     */
+    fun testSource(id: String, name: String) {
+        viewModelScope.launch {
+            _connectionTestState.value = ConnectionTestState.Testing(name)
+            val source = networkSourceRepository.getSourceById(id)
+            if (source == null) {
+                Timber.w("Saved source $id vanished before its connection test could run")
+                _connectionTestState.value = ConnectionTestState.Finished(
+                    sourceName = name,
+                    message = context.getString(R.string.unknown_error),
+                    isError = true
+                )
+                return@launch
+            }
+            Timber.d("S1833: testing saved source $name (${source.type})")
+            val result = networkSourceRepository.testConnection(source)
+            val succeeded = result.isSuccess && result.getOrDefault(false)
+            _connectionTestState.value = ConnectionTestState.Finished(
+                sourceName = name,
+                message = if (succeeded) {
+                    context.getString(R.string.connection_successful)
+                } else {
+                    failureMessage(result.exceptionOrNull())
+                },
+                isError = !succeeded
+            )
+        }
+    }
+
+    private fun failureMessage(failure: Throwable?): String {
+        return if (failure is UnsupportedOperationException) {
+            context.getString(R.string.connection_test_not_supported)
+        } else {
+            context.getString(
+                R.string.connection_failed_with_reason,
+                failure?.message ?: context.getString(R.string.unknown_error)
+            )
+        }
+    }
+
+    fun resetConnectionTestState() {
+        _connectionTestState.value = ConnectionTestState.Idle
     }
 
     fun deleteSource(id: String) {

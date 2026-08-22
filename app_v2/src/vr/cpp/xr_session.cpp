@@ -1204,6 +1204,7 @@ void main() {
         constexpr int kInputEventHudSummon = 3;
         constexpr int kInputEventSeekForward = 4;
         constexpr int kInputEventSeekBack = 5;
+        constexpr int kInputEventMenuToggle = 6; // S1271: left menu button - settings panel
 
         void triggerJniInputCallback(int eventType)
         {
@@ -1449,6 +1450,14 @@ void main() {
                 return;
 
             xr_input_poll(g.localSpace, predictedTime);
+
+            // S1271: the left menu button toggles the settings panel. The edge detection lives in
+            // xr_input_poll (menuClicked is a rising edge), so this emits exactly one managed
+            // callback per press without touching exit / trigger / thumbstick / grip handling.
+            if (g_handInputStates[0].menuClicked)
+            {
+                triggerJniInputCallback(kInputEventMenuToggle);
+            }
 
             // S0290 Phase 10 (owner feedback round 2 2026-05-22): tighten thresholds to combat
             // over-sensitivity reports - user sees "still jumping" even with edge-detection because
@@ -1717,6 +1726,13 @@ void main() {
         // S0964: thin forwarder keeps the JNI surface uniform (everything goes through
         // xr_session_*); sizing logic lives with the quad state in xr_hud_world.
         xr_hud_set_quad_size(widthMeters, heightMeters, verticalOffsetMeters);
+    }
+
+    void xr_session_set_hud_quad_distance(float distanceMeters)
+    {
+        // S1271: thin forwarder keeps the JNI surface uniform (everything goes through
+        // xr_session_*); the distance state lives with the quad in xr_hud_world.
+        xr_hud_set_quad_distance(distanceMeters);
     }
 
     void xr_session_set_hud_visible(bool visible)

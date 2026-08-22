@@ -71,13 +71,14 @@
             "command": "pwsh -NoProfile -File \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-catalog-before-kt-search.ps1\""
           }
         ]
-      },
+      }
+    ],
+    "Stop": [
       {
-        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "pwsh -NoProfile -File \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-bash-slash-arg.ps1\""
+            "command": "pwsh -NoProfile -File \"$CLAUDE_PROJECT_DIR/.claude/hooks/refuse-spec-do-stop.ps1\""
           }
         ]
       }

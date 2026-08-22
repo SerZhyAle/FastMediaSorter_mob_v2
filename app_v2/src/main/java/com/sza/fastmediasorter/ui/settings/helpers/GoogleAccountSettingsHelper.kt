@@ -30,6 +30,9 @@ class GoogleAccountSettingsHelper(
     private val cctChecker: CctAvailabilityChecker
 ) {
 
+    // S1693: stays findViewById - the card layout is included twice without include-tag ids in
+    // fragment_settings_general, so no unambiguous CardGoogleAccountBinding reaches this helper;
+    // it scopes lookups to whichever card subtree the caller resolved.
     fun bind(cardView: View) {
         val tvSummary = cardView.findViewById<TextView>(R.id.tvAccountSummary)
         val tvEmail = cardView.findViewById<TextView>(R.id.tvAccountEmail)

@@ -7,7 +7,6 @@ import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.ui.common.copy.UiMessageFamily
 import com.sza.fastmediasorter.ui.common.copy.UiMessageSpec
-import timber.log.Timber
 
 /**
  * Maps [NetworkException] subtypes to user-facing string resource IDs.

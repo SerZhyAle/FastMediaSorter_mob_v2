@@ -11,22 +11,22 @@
     <string name="player_vr_overflow_open">افتح في الواقع الافتراضي</string>
     <string name="vr_cheatsheet_ctrl_a">أ (يمين) - إيقاف مؤقت / تشغيل</string>
     <string name="vr_cheatsheet_ctrl_b">ب (يمين) - الخروج إلى لوحة ثنائية الأبعاد</string>
-    <string name="vr_cheatsheet_ctrl_grip">الإمساك - الضغط مع تحريك اليد = تكبير/تصغير · الإمساك بكلتا اليدين لمدة ثانية واحدة أو أكثر = إعادة ضبط التكبير/التصغير</string>
-    <string name="vr_cheatsheet_ctrl_menu">≡ (يسار) - مربع حوار التحكم في التشغيل</string>
-    <string name="vr_cheatsheet_ctrl_stick_l">عصا التحكم اليسرى - رفع/خفض مستوى الصوت · تحريك المؤشر ±10 ثوانٍ · نقرة واحدة: وضع غامر ↔ وضع مسطح</string>
-    <string name="vr_cheatsheet_ctrl_stick_r">عصا التحكم اليمنى - رفع/خفض مستوى الصوت · ←→ الملف السابق/التالي · انقر: إعادة التمركز</string>
+    <string name="vr_cheatsheet_ctrl_grip">القبضة - اضغط مع تحريك اليد = تكبير/تصغير · كلتا القبضتين ≥ 1 ث = إعادة ضبط التكبير</string>
+    <string name="vr_cheatsheet_ctrl_menu">≡ (يسار) - مربع حوار التحكم بالتشغيل</string>
+    <string name="vr_cheatsheet_ctrl_stick_l">عصا L - ↑↓ مستوى الصوت · ←→ تقديم ±10 ث · نقر: غامر ↔ مسطح</string>
+    <string name="vr_cheatsheet_ctrl_stick_r">عصا R - ↑↓ مستوى الصوت · ←→ الملف السابق/التالي · نقر: إعادة التمركز</string>
     <string name="vr_cheatsheet_ctrl_x">X (يسار) - خروج (مكرر)</string>
     <string name="vr_cheatsheet_ctrl_y">Y (يسار) - عمليات الملفات (ضغط قصير) / هذه الورقة المختصرة (ضغط طويل)</string>
-    <string name="vr_cheatsheet_footer">انقر في أي مكان للإغلاق · اضغط مطولاً على Y أو F1 لإعادة الفتح</string>
+    <string name="vr_cheatsheet_footer">اضغط في أي مكان للإغلاق · اضغط مطولًا على Y أو F1 لإعادة الفتح</string>
     <string name="vr_cheatsheet_hands_double_pinch">الضغط المزدوج - إيقاف مؤقت / تشغيل</string>
-    <string name="vr_cheatsheet_hands_ray">وجّه يدك - وجّه الشعاع · قرّب إصبعيك - انقر على واجهة المستخدم</string>
-    <string name="vr_cheatsheet_hands_swipe">التمرير بالإبهام ←→ - البحث ±10 ثوانٍ · ↑↓ - مستوى الصوت</string>
-    <string name="vr_cheatsheet_kb_arrows">← → - البحث ±10 ثوانٍ · Shift+←→ - ±3 ثوانٍ · Ctrl+←→ - ±60 ثانية · ↑↓ - مستوى الصوت</string>
-    <string name="vr_cheatsheet_kb_ctrl">Ctrl+R - إعادة تسمية · Ctrl+C - نسخ · Ctrl+X - نقل · Ctrl+I - معلومات · Ctrl+Y - عمليات الملف</string>
-    <string name="vr_cheatsheet_kb_fkeys">F1 - هذه القائمة المختصرة · F2 - إعادة تسمية · F3 - حول · F4 - الإعدادات · F5 - نسخ · F6 - نقل · F7 - عمليات الملفات · F8 - حذف · F10 - خروج</string>
-    <string name="vr_cheatsheet_kb_space">المسافة / K - إيقاف مؤقت / تشغيل · J / L - ±10 ثوانٍ · N / P - السابق / التالي · M - كتم الصوت</string>
-    <string name="vr_cheatsheet_mouse_buttons">زر الفأرة الأيسر - إيقاف مؤقت / تشغيل · زر الفأرة الأيمن - الإعدادات · زر الفأرة الأوسط - إعادة التمركز · الزر 4/5 - الملف السابق / التالي</string>
-    <string name="vr_cheatsheet_mouse_wheel">عجلة التحكم - مستوى الصوت · Shift + عجلة التحكم - البحث ±10 ثوانٍ</string>
+    <string name="vr_cheatsheet_hands_ray">وجّه اليد - صوّب الشعاع · قرص - نقر على الواجهة</string>
+    <string name="vr_cheatsheet_hands_swipe">سحب الإبهام ←→ - تقديم ±10 ث · ↑↓ - مستوى الصوت</string>
+    <string name="vr_cheatsheet_kb_arrows">← → - تقديم ±10 ث · Shift+←→ - ±3 ث · Ctrl+←→ - ±60 ث · ↑↓ - مستوى الصوت</string>
+    <string name="vr_cheatsheet_kb_ctrl">Ctrl+R - إعادة تسمية · Ctrl+C - نسخ · Ctrl+X - نقل · Ctrl+I - معلومات · Ctrl+Y - عمليات الملفات</string>
+    <string name="vr_cheatsheet_kb_fkeys">F1 - ورقة الاختصارات هذه · F2 - إعادة تسمية · F3 - حول · F4 - الإعدادات · F5 - نسخ · F6 - نقل · F7 - عمليات الملفات · F8 - حذف · F10 - خروج</string>
+    <string name="vr_cheatsheet_kb_space">Space / K - إيقاف مؤقت / تشغيل · J / L - ±10 ث · N / P - السابق/التالي · M - كتم الصوت</string>
+    <string name="vr_cheatsheet_mouse_buttons">الزر الأيسر للفأرة - إيقاف مؤقت / تشغيل · الزر الأيمن - الإعدادات · الزر الأوسط - إعادة التمركز · الزر 4/5 - الملف السابق/التالي</string>
+    <string name="vr_cheatsheet_mouse_wheel">العجلة - مستوى الصوت · Shift+العجلة - تقديم ±10 ث</string>
     <string name="vr_cheatsheet_section_controllers">وحدات التحكم باللمس (Quest 2 / 3 / Pro):</string>
     <string name="vr_cheatsheet_section_hands">تتبع اليد (مع وضع أجهزة التحكم جانبًا):</string>
     <string name="vr_cheatsheet_section_keyboard">لوحة مفاتيح بلوتوث:</string>
@@ -52,7 +52,7 @@
     <string name="vr_hud_copy_done">تم النسخ</string>
     <string name="vr_hud_error_network">لا توجد شبكة</string>
     <string name="vr_hud_first_file">الملف الأول</string>
-    <string name="vr_hud_first_run_cheat">إيقاف/تشغيل مؤقت · البحث باستخدام عصا التحكم اليسرى · تغيير الملف/مستوى الصوت باستخدام عصا التحكم اليمنى · تكبير/تصغير المقبض · إعدادات القائمة</string>
+    <string name="vr_hud_first_run_cheat">A إيقاف مؤقت/تشغيل · عصا L تقديم · عصا R ملف/صوت · القبضة تكبير · Menu إعدادات</string>
     <string name="vr_hud_guard_controls">مربع حوار التحكم غير متوفر في الوضع الغامر. اخرج من الوضع الغامر لفتحه.</string>
     <string name="vr_hud_guard_file_ops">لوحة الملفات غير متاحة في وضع العرض الغامر. اخرج من وضع العرض الغامر لاستخدامها.</string>
     <string name="vr_hud_immersive_off">شاشة مسطحة</string>
@@ -99,7 +99,7 @@
     <string name="vr_save_frame_timeout">انتهت مهلة لقطة الواقع الافتراضي المجسمة</string>
     <string name="vr_save_frame_unavailable">لقطة الواقع الافتراضي المجسمة غير متاحة حاليًا</string>
     <string name="vr_settings_block_title">تشغيل وتحكم بتقنية الواقع الافتراضي ثلاثي الأبعاد</string>
-    <string name="vr_settings_test_immersive_content_description">افتح صورة نموذجية بزاوية 360 درجة في الوضع الغامر.</string>
+    <string name="vr_settings_test_immersive_content_description">افتح صورة 360° نموذجية في الوضع الغامر.</string>
     <string name="vr_settings_test_immersive_init_failure_toast">لا يمكن تشغيل الواقع الافتراضي. تأكد من توصيل سماعة الرأس.</string>
     <string name="vr_settings_test_immersive_label">اختبار غامر</string>
     <string name="vr_settings_test_immersive_runtime_loss_toast">انتهت جلسة الواقع الافتراضي بشكل غير متوقع.</string>

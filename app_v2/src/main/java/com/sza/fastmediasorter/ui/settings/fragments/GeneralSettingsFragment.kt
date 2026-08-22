@@ -23,8 +23,9 @@ import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.DeviceStorageState
 import com.sza.fastmediasorter.domain.repository.StreamingCacheRepository
 import com.sza.fastmediasorter.domain.usecase.CalculateOptimalCacheSizeUseCase
+import com.sza.fastmediasorter.domain.usecase.CredentialAuditor
+import com.sza.fastmediasorter.domain.usecase.DeleteUnusedCredentialsUseCase
 import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
-import com.sza.fastmediasorter.domain.usecase.GatherSystemInfoUseCase
 import com.sza.fastmediasorter.domain.usecase.SaveTextFileToResourceUseCase
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
@@ -38,6 +39,7 @@ import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsActionHelpers
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsBackupHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsCacheHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsCredentialHelper
+import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsGridCellSizeHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsHostContext
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsImportExportHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsLauncherHelper
@@ -47,6 +49,8 @@ import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsPrefetchHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsProfileHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsResetHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsViewSetupHelper
+import com.sza.fastmediasorter.ui.settings.helpers.UnusedCredentialsHelper
+import com.sza.fastmediasorter.ui.systeminfo.helpers.SystemInfoDialogManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -62,11 +66,17 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     private val binding get() = _binding!!
 
     @Inject lateinit var audioMetadataCacheRepository: AudioMetadataCacheRepository
+
+    @Inject lateinit var credentialAuditor: CredentialAuditor
+
+    @Inject lateinit var deleteUnusedCredentialsUseCase: DeleteUnusedCredentialsUseCase
+
     @Inject lateinit var streamingCacheRepository: StreamingCacheRepository
-    @Inject lateinit var gatherSystemInfoUseCase: GatherSystemInfoUseCase
+
+    @Inject lateinit var systemInfoDialogManager: SystemInfoDialogManager
+
     @Inject lateinit var ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase
     @Inject lateinit var saveTextFileToResourceUseCase: SaveTextFileToResourceUseCase
-    @Inject lateinit var mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities
 
     // S1088: gate + role plumbing for the System-launcher enable toggle relocated into General -> Interface.
     @Inject lateinit var launcherModeContract: LauncherModeContract
@@ -161,13 +171,16 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     // All helpers are lazy - binding is only valid after onCreateView, and helpers are first
     // accessed from onViewCreated, so initialization is always safe.
     private val sectionsManager by lazy { CollapsibleSectionsManager(requireContext()) }
+
+    /** S1967: hands the base the sections this tab registered, so a search jump can open one. */
+    override fun collapsibleSections(): CollapsibleSectionsManager = sectionsManager
     private val resetHelper by lazy { GeneralSettingsResetHelper(binding, viewModel, this) }
     private val logHelper by lazy {
         GeneralSettingsLogHelper(
             binding = binding,
             fragment = this,
             saveLogsLauncher = saveLogsLauncher,
-            gatherSystemInfoUseCase = gatherSystemInfoUseCase,
+            systemInfoDialogManager = systemInfoDialogManager,
             getDestinationsUseCase = viewModel.getDestinationsUseCase,
             saveTextFileToResourceUseCase = saveTextFileToResourceUseCase,
         )
@@ -177,6 +190,12 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     }
     private val credentialHelper by lazy {
         GeneralSettingsCredentialHelper(viewModel, this, importCredentialsLauncher)
+    }
+
+    // S1649: the unused-credentials row lives in its own helper for the same reason the cache row
+    // does - the fragment stays a wiring point rather than growing another screen's logic.
+    private val unusedCredentialsHelper by lazy {
+        UnusedCredentialsHelper(binding, this, credentialAuditor, deleteUnusedCredentialsUseCase)
     }
     private val cacheHelper by lazy {
         GeneralSettingsCacheHelper(
@@ -190,8 +209,12 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     }
     private val backupHelper by lazy {
         GeneralSettingsBackupHelper(
-            binding, this, backupViewModel, mediaCapabilities,
-            importFavoritesLauncher, exportResourcesLauncher, importResourcesLauncher,
+            binding,
+            this,
+            backupViewModel,
+            importFavoritesLauncher,
+            exportResourcesLauncher,
+            importResourcesLauncher,
         )
     }
     private val googleAccountHelper by lazy {
@@ -199,6 +222,9 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     }
     private val prefetchHelper by lazy {
         GeneralSettingsPrefetchHelper(binding, viewModel, this, streamingCacheRepository)
+    }
+    private val gridCellSizeHelper by lazy {
+        GeneralSettingsGridCellSizeHelper(binding, viewModel, this)
     }
     private val observersHelper by lazy {
         GeneralSettingsObserversHelper(
@@ -257,18 +283,23 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         setupGmsBanner()
         setupSavedAuthorizationsRow()
         logHelper.setupVersionInfo()
-        backupHelper.setupWearCompanionButton()
         // S0200 Phase 06: bind the new Google Account card after the layout is inflated.
+        // S1693: stays findViewById - the card is included TWICE in this layout (bare includes, no
+        // include-tag id), so no unambiguous binding field exists and the first-match lookup is the
+        // contract the re-parented tree relies on.
         view.findViewById<View>(R.id.cardGoogleAccount)?.let { googleAccountHelper.bind(it) }
         viewSetupHelper.setup()
         colorThemeHelper.setup()
         profileHelper.setup()
         prefetchHelper.setup()
         collectOnLifecycle(viewModel.settings) { settings -> prefetchHelper.updateFromSettings(settings) }
+        gridCellSizeHelper.setup()
+        collectOnLifecycle(viewModel.settings) { settings -> gridCellSizeHelper.updateFromSettings(settings) }
         observersHelper.observeData()
         observersHelper.observeManualNetworkSyncState()
         observersHelper.refreshLastSyncStatus()
         cacheHelper.checkAndSuggestOptimalCacheSize()
+        unusedCredentialsHelper.bind()
         setupGeneralLayouts()
         setupCollapsibleSections()
         launcherHelper.setup()

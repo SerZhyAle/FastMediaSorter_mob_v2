@@ -60,3 +60,41 @@ refreshed 3 dead seeds -> 12 deep-signal-verified 24/7 feeds (NASA dropped entir
 dead/403 after the NASA+ move; DW dwstream105 -> DW English amagi; + France24/AlJazeera/CGTN/InWonder/
 WildEarth/RedBull/AKC/30A across Documentary/News/Science & Space/Outdoor). Re-verify seed URLs with
 `-Axis webcam -PreviewOnly` before publish - CDN/akamai paths rotate.
+
+**Update 2026-08-19 - policy REVERSED for geo, owner ruling:** "в нашем списке трансляций много таких,
+которые существуют, но недоступны с моего адреса отсюда из Мальты - нужно их отфильтровать и не
+публиковать. мне всё равно если это будет доступно пользователю из его страны - пусть добавляет
+вручную." So the shipped bank is now defined as **what plays from the build machine**, not as
+"everything that exists somewhere". The two rules recorded above are superseded: `geo` rows are no
+longer kept-and-tagged, and "dead-from-here may be alive on a user's device" is no longer a reason to
+keep a row. Prune set becomes `dead`,`unknown`,`geo`.
+
+**How to apply:** the machinery already supports it with no code change -
+`-CatalogOnly -DeepSignal -PruneStatuses dead,unknown,geo [-PruneDead] [-Publish]`; pinning
+`-PruneStatuses` sets `$script:PruneStatusesExplicit`, which disables the S1117 auto-widening and uses
+exactly the pinned list. Dry-run first (omit `-PruneDead`) - it writes only
+`temp/stream-catalog-liveness.csv` and prints "Would prune N", and the per-row prune listing is
+thousands of lines, so redirect the whole run to a log file instead of reading it inline. Keep the
+trailing `access` CSV column even though it will now always be blank - the column count is part of the
+shared contract with the Windows consumer, and changing it is exactly the breakage being repaired
+elsewhere. Consequence to schedule: the S1117 "region-locked" globe chip in the Streams list loses its
+only producer and becomes dead code.
+
+**Correction 2026-08-20 - the "no two-strike safety is needed" claim above was wrong, and it cost
+1 321 live stations (S1830).** It read: "discovery re-appends a wrongly-dropped channel on the next
+collection run, since only signal-verified rows are appended". Both halves fail. A re-appended row
+gets a **new UUID**, so the user's pin and collection membership do not come back - the row returns,
+the user's data does not. And re-appending depends on the channel being re-discovered by the axes,
+which is not guaranteed for a bulk provider. What actually happened on the 2026-08-19 prune: of
+1 906 removed rows, **1 512 carried the verdict `unknown`**, not `dead`; 1 321 of them were a single
+provider (`*.stream.laut.fm`), and a sequential re-probe on 2026-08-20 got **200 on 25 of 25**. Two
+identical deep-signal runs six minutes apart over the same 19 534 rows disagreed by ~95 rows, so
+`unknown` is not a property of the channel at all - it is our probe under self-inflicted load
+(`throttle 64` with no per-provider cap).
+
+**How to apply:** treat a probe verdict as evidence about the probe, not about the channel. Before any
+`-PruneDead` run that widens past `dead`, group the would-prune set by **registrable domain (eTLD+1),
+not host** - per-station subdomains hide a bulk provider completely (laut.fm never rose above "17
+rows" in a host histogram) - and re-probe a sample of the biggest group sequentially. The pre-prune
+CSV is saved automatically by `Backup-IfExists` to `temp/streams.csv.<ts>.bak`; that file is the only
+rollback that exists, and it restores the list but never the users' pins.

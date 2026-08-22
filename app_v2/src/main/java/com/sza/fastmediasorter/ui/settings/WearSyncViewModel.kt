@@ -4,11 +4,14 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.domain.model.PairedWatchStatus
 import com.sza.fastmediasorter.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.domain.model.WearSourcesExportPayload
+import com.sza.fastmediasorter.domain.usecase.GetPairedWatchStatusUseCase
 import com.sza.fastmediasorter.domain.usecase.ImportWatchSourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.PushWearSettingsUseCase
 import com.sza.fastmediasorter.domain.usecase.SendPlaybackCommandUseCase
@@ -29,6 +32,9 @@ sealed class WearSyncUiState {
     data object Idle : WearSyncUiState()
     data object Sending : WearSyncUiState()
     data class Success(val sent: Int, val skipped: Int) : WearSyncUiState()
+
+    /** S1781: the owner has marked no resources for the watch, so nothing was sent - not a failure. */
+    data object NothingSelected : WearSyncUiState()
     data object SettingsPushed : WearSyncUiState()
     data class Error(val message: String) : WearSyncUiState()
 }
@@ -39,15 +45,39 @@ class WearSyncViewModel @Inject constructor(
     private val sendResourcesToWatchUseCase: SendResourcesToWatchUseCase,
     private val pushWearSettingsUseCase: PushWearSettingsUseCase,
     private val importWatchSourcesUseCase: ImportWatchSourcesUseCase,
-    private val sendPlaybackCommandUseCase: SendPlaybackCommandUseCase
+    private val sendPlaybackCommandUseCase: SendPlaybackCommandUseCase,
+    private val getPairedWatchStatusUseCase: GetPairedWatchStatusUseCase,
+    private val gson: Gson
 ) : ViewModel() {
+
+    // S1885: seeded Unknown so the settings row starts neutral instead of claiming a watch is
+    // absent before the bridge has been asked.
+    private val _pairedWatchStatus = MutableStateFlow<PairedWatchStatus>(PairedWatchStatus.Unknown)
+    val pairedWatchStatus: StateFlow<PairedWatchStatus> = _pairedWatchStatus.asStateFlow()
+
+    /**
+     * S1885: asked when the Wear group becomes visible and when the companion switch flips, never on
+     * a timer - the bridge call costs a round trip and the row is read by someone looking at it.
+     */
+    fun refreshPairedWatchStatus() {
+        viewModelScope.launch {
+            _pairedWatchStatus.value = getPairedWatchStatusUseCase()
+        }
+    }
 
     private val _uiState = MutableStateFlow<WearSyncUiState>(WearSyncUiState.Idle)
     val uiState: StateFlow<WearSyncUiState> = _uiState.asStateFlow()
 
     private var ackTimeoutJob: Job? = null
 
-    private val _watchSettingsState = MutableStateFlow<WearSettingsPayload?>(null)
+    private val prefs: SharedPreferences
+        get() = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+
+    // The sheet that shows these values is a BottomSheetDialogFragment, so this ViewModel dies with
+    // it and an in-memory-only mirror lost every edit the moment the sheet closed - a picked GRID_3
+    // read back as the LIST default on the next open. The watch has no channel to report its own
+    // settings back, so the phone's last known set is the only thing there is to restore.
+    private val _watchSettingsState = MutableStateFlow(readStoredSettings())
     val watchSettingsState: StateFlow<WearSettingsPayload?> = _watchSettingsState.asStateFlow()
 
     private val _pendingWatchSources = MutableStateFlow<WearSourcesExportPayload?>(null)
@@ -91,14 +121,20 @@ class WearSyncViewModel @Inject constructor(
         _uiState.value = WearSyncUiState.Sending
         viewModelScope.launch {
             sendResourcesToWatchUseCase()
-                .onSuccess {
-                    // S1682: the use case returns as soon as Play Services accepts the bytes, which is
-                    // necessarily before any watch ack can travel back. Declaring Success here used to
-                    // win that race every time, so the ack collector above could never fire and the
-                    // green check meant "accepted locally", never "the watch applied them". Stay in
-                    // Sending and let the ack decide; a watch that never answers ends in an error the
-                    // user can act on rather than in a check mark that is not true.
-                    startAckTimeout()
+                .onSuccess { result ->
+                    if (result.sent == 0) {
+                        // S1781: nothing left the phone, so no ack can ever arrive - waiting out the
+                        // timeout would report a watch failure for an empty selection instead.
+                        _uiState.value = WearSyncUiState.NothingSelected
+                    } else {
+                        // S1682: the use case returns as soon as Play Services accepts the bytes, which is
+                        // necessarily before any watch ack can travel back. Declaring Success here used to
+                        // win that race every time, so the ack collector above could never fire and the
+                        // green check meant "accepted locally", never "the watch applied them". Stay in
+                        // Sending and let the ack decide; a watch that never answers ends in an error the
+                        // user can act on rather than in a check mark that is not true.
+                        startAckTimeout()
+                    }
                 }
                 .onFailure { e ->
                     Timber.e(e, "Wear sync failed")
@@ -123,7 +159,7 @@ class WearSyncViewModel @Inject constructor(
     }
 
     fun pushSettings(settings: WearSettingsPayload) {
-        _watchSettingsState.value = settings
+        rememberSettings(settings)
         _uiState.value = WearSyncUiState.Sending
         viewModelScope.launch {
             pushWearSettingsUseCase(settings)
@@ -138,7 +174,22 @@ class WearSyncViewModel @Inject constructor(
     }
 
     fun updateWatchSettingsLocally(settings: WearSettingsPayload) {
+        rememberSettings(settings)
+    }
+
+    private fun rememberSettings(settings: WearSettingsPayload) {
         _watchSettingsState.value = settings
+        prefs.edit().putString(KEY_WATCH_SETTINGS, gson.toJson(settings)).apply()
+    }
+
+    // A payload written by an older build can no longer parse against the current model; falling
+    // back to "nothing known yet" shows the defaults, which is what the sheet did before anyway,
+    // whereas letting Gson throw here would take the whole settings screen down with it.
+    private fun readStoredSettings(): WearSettingsPayload? {
+        val stored = prefs.getString(KEY_WATCH_SETTINGS, null) ?: return null
+        return runCatching { gson.fromJson(stored, WearSettingsPayload::class.java) }
+            .onFailure { Timber.w(it, "Stored watch settings unreadable, falling back to defaults") }
+            .getOrNull()
     }
 
     fun acceptWatchImport() {
@@ -180,6 +231,7 @@ class WearSyncViewModel @Inject constructor(
     companion object {
         private const val PREFS = "wear_sync_prefs"
         private const val KEY_LAST_SYNC = "last_sync_timestamp"
+        private const val KEY_WATCH_SETTINGS = "watch_settings_payload"
 
         // Long enough for a Bluetooth-linked watch to wake and apply the payload, short enough that
         // a user staring at the dialog is not left guessing. The verified round trip of 2026-08-15

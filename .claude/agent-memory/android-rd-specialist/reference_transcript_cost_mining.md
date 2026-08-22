@@ -9,6 +9,10 @@ Session transcripts live at `~/.claude/projects/p--ANDROID-FastMediaSorter-mob-v
 
 **Cold tier (2026-08-07):** everything older than 2026-07-17 was moved out of `~/.claude/projects` into `C:\Users\serzh\claude-transcripts-archive\transcripts-before-2026-07-17.zip` (2,091 files, 786 MB -> 339 MB, relative paths preserved, both tiers included). A miner that only walks `~/.claude/projects` now silently reports a shorter window than it thinks - unzip the archive to a scratch dir and walk both roots when the question spans more than three weeks. Same treatment is likely for later cutoffs, so check the archive dir for additional zips before quoting any period total.
 
+**Cold tier (2026-08-22):** the second cutoff. Everything with no activity since 2026-08-15 moved into `C:\Users\serzh\claude-transcripts-archive\transcripts-2026-07-17-to-2026-08-15.zip` (332 sessions, 930 jsonl across both tiers, 572 MB, same relative-path layout, 7z-verified before the originals were deleted). 178 sessions remain live in `~/.claude/projects`. The two zips are contiguous: before-2026-07-17, then 2026-07-17-to-2026-08-15. Any question reaching past 2026-08-15 must unzip both.
+
+**Trap when rebuilding the cold list:** `ls -1` in this MSYS shell appends `/` to directory names, so `ls -1 | sed 's/\.jsonl$//'` yields `<id>` and `<id>/` as two distinct ids for the same session - it inflated a 509-session set to 746 and fed 7-Zip double-slash paths it could not resolve. Strip the trailing slash and filter to the UUID shape before classifying; a session dir with no `.jsonl` sibling is an orphan subagent tree and must be judged on its own mtime.
+
 Three traps, all of which silently inflate results:
 
 - **One API response is written as several JSONL records** (thinking block, text block, each `tool_use`), and every record repeats the same `usage` object verbatim. Forked sessions replay history on top. Summing records instead of unique `requestId` inflates tokens **3.13x** and counts (tool calls, reads, spawns) **1.43x**. Always dedup by `requestId`, keeping the max per id - one placeholder `(0,0,0,0)` row exists.

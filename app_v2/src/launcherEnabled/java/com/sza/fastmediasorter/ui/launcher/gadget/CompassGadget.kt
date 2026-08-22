@@ -16,6 +16,9 @@ import com.sza.fastmediasorter.domain.model.sensors.SensorCapability
 import com.sza.fastmediasorter.domain.repository.SensorAvailabilityRepository
 import com.sza.fastmediasorter.domain.usecase.sensors.ObserveCompassUseCase
 import com.sza.fastmediasorter.domain.usecase.sensors.ObserveMotionUseCase
+import android.content.Intent
+import android.net.Uri
+import com.sza.fastmediasorter.util.resolveActivityCompat
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -58,6 +61,10 @@ private class CompassGadgetView(
 ) : LauncherGadgetView(context) {
 
     private val binding = GadgetLauncherCompassBinding.inflate(LayoutInflater.from(context), this)
+
+    init {
+        setOnClickListener { openMapsApp(context) }
+    }
 
     /**
      * The heading needs no permission and the altitude does, so the two are collected separately and
@@ -107,7 +114,23 @@ private class CompassGadgetView(
         ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
             PackageManager.PERMISSION_GRANTED
 
+    /**
+     * Opens whichever map application the device has via a geo: intent. A device without a map app
+     * handles this as a silent no-op (matching MapGadget and WeatherGadget contracts).
+     */
+    private fun openMapsApp(context: Context) {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(GEO_URI))
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        if (context.packageManager.resolveActivityCompat(intent) == null) {
+            Timber.i("Launcher compass gadget: no map application to open")
+            return
+        }
+        runCatching { context.startActivity(intent) }
+            .onFailure { Timber.w(it, "Launcher compass gadget: map application refused to open") }
+    }
+
     private companion object {
+        const val GEO_URI = "geo:0,0"
         const val FULL_TURN = 360f
         const val SECTOR = 45f
         const val HALF_SECTOR = 22.5f

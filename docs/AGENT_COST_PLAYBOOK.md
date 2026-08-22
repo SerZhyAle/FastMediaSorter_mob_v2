@@ -34,7 +34,7 @@ The largest cost axis. Default to inline; spawning is the exception, not the ref
 
 **Hard rule:** never spawn a subagent for a lookup you could resolve inline. A subagent runs its own request fleet; its setup cost dominates a cheap lookup. When you do spawn, the agent's final message is the result you keep - relay the conclusion, not the file dumps.
 
-**Subagent MCP isolation:** when defining a subagent via `define_subagent`, always set `enable_mcp_tools` to `false` unless the subagent specifically needs to execute exploratory UI walks on the device (highly rare). This prevents spawning duplicate Node/MCP server processes.
+**Subagent MCP isolation:** a subagent is defined by a `.claude/agents/*.md` file and spawned with the `Agent` tool's `subagent_type`; there is no `define_subagent` tool, so the allowlist can only be written in that file. Always supply an explicit `tools:` frontmatter allowlist that omits MCP tool names, unless the subagent specifically needs to execute exploratory UI walks on the device (highly rare). This prevents spawning duplicate Node/MCP server processes. (S1348: `enable_mcp_tools` is not a real Claude Code option - do not use it; two fictional API names in one line is how that error kept propagating.)
 
 **Command frontmatter does not route (S1341, 2026-08-01).** A `model:` key in a `.claude/commands/*.md` file's frontmatter has no routing effect in this harness - only `.claude/agents/*.md` frontmatter and the Workflow tool's `opts.model` field actually select a model. Evidence: 115 of 115 measured command invocations kept the session model regardless of the command's own frontmatter. 14 command files carried a dead `model: sonnet` line for this reason until S1341 removed it - do not add one back expecting it to route anything.
 
@@ -102,7 +102,7 @@ expiry rule and the no-restatement rule are correctness measures.
 
 `mobile-mcp` results stay sticky in context for the rest of the session, so every walk has a lasting cost. Route by cheapest sufficient proof:
 
-- **`adb.ps1`** (`scripts/devtest/adb.ps1`, `.\a.ps1 adb <verb>`) for deterministic chores: launch, screenshot, prefs read/write, log tail/grep, fixed-coordinate tap/text, install. This is the default for one-off device work.
+- **`adb.ps1`** (`scripts/devtest/adb.ps1`, `.\a.ps1 adb <verb>`) for deterministic chores: launch, screenshot, prefs read/write, log tail/grep, tapping by resource-id (`tap-id`) or by label (`tap-label`), text, install. This is the default for one-off device work. Aim a tap by id first: a label is translated, so a label-aimed call passes only on the locale it was written on (S1879), and a remembered coordinate goes stale the moment the list scrolls (S1847).
 - **Maestro** (`scripts/devtest/maestro/`) for repeatable multi-step flows that will be re-run.
 - **`mobile-mcp` ONLY** for exploratory, agent-driven UI walks where element discovery or dynamic coordinates cannot be scripted up front.
 - Because MCP results are sticky, bound the mobile-mcp window and `/compact` immediately after the walk to flush the accumulated tool results.

@@ -63,4 +63,22 @@
     <string name="widget_camera_quick_capture_mode_label">ما الذي يجب تصويره؟</string>
     <string name="widget_camera_quick_capture_mode_photo">صورة</string>
     <string name="widget_camera_quick_capture_mode_video">فيديو</string>
+    <string name="widget_network_monitor_label">مراقب الشبكة</string>
+    <string name="widget_network_monitor_description">مؤشر شبكة واحد من اختيارك</string>
+    <string name="widget_network_monitor_config_title">اختر ما تريد عرضه</string>
+    <string name="widget_network_monitor_indicator_local_address">العنوان المحلي</string>
+    <string name="widget_network_monitor_indicator_radio_status">Wi-Fi, Bluetooth, SIM</string>
+    <string name="widget_network_monitor_indicator_signal_level">مستوى الإشارة</string>
+    <string name="widget_network_monitor_indicator_live_throughput">السرعة المباشرة</string>
+    <string name="widget_network_monitor_indicator_external_address">العنوان الخارجي</string>
+    <string name="widget_network_monitor_indicator_last_measurement">آخر اختبار سرعة</string>
+    <string name="widget_network_monitor_indicator_resource_reachability">المورد المحفوظ</string>
+    <string name="widget_network_monitor_indicator_satellite_count">الأقمار الصناعية</string>
+    <string name="widget_network_monitor_unavailable">لا توجد بيانات بعد</string>
+    <string name="widget_network_monitor_tap_to_read">اضغط للتحقق</string>
+    <string name="widget_network_monitor_behind_nat_unknown_depth">خلف NAT - العمق غير معروف</string>
+    <string name="widget_network_monitor_cgnat_likely">على الأرجح خلف NAT الخاص بمشغّل الشبكة</string>
+    <string name="widget_network_monitor_direct_connection">اتصال مباشر</string>
+    <string name="launcher_gadget_network_indicator">مؤشر الشبكة</string>
+    <string name="launcher_gadget_network_indicator_pick_title">أي مؤشر تريد عرضه</string>
 </resources>

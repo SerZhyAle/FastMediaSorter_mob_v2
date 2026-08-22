@@ -90,25 +90,25 @@ try {
     # nothing has accounted for. That is measured below, without a subprocess and without history.
     $commits = @()
 
-    # 2. inline code markers across .kt / .py / .xml / .md (excluding PLAN/ to avoid spec itself)
+    # 2. inline code markers under app_v2/src (PLAN/ is outside it, so the spec never counts itself)
+    #
+    # S1800: one pattern string feeds every backend. The two branches used to carry their own
+    # regex - ripgrep matched `\s*` after the comment opener and git grep `\s+` - so `//Sxxxx:`
+    # written without a space was drift down one path and clean down the other.
+    $markerRegex = "(//|#|<!--)\s*$Id[:\s]"
+    $scanRoot = Join-Path $root 'app_v2/src'
     $markers = @()
-    $patterns = @(
-        @{ Ext = '*.kt';  Glob = 'app_v2/src/**/*.kt' },
-        @{ Ext = '*.py';  Glob = 'app_v2/src/**/*.py' },
-        @{ Ext = '*.xml'; Glob = 'app_v2/src/**/*.xml' }
-    )
 
-    # Use ripgrep if available (much faster on Windows); fall back to git grep.
+    # Use ripgrep when it is on PATH (much faster on Windows); otherwise walk the tree in-process.
     $rgExe = Get-Command rg -ErrorAction SilentlyContinue
     if ($rgExe) {
-        $rgOut = & rg --no-heading --line-number --color=never "(//|#|<!--)\s*$Id[:\s]" `
-            'app_v2/src' 2>$null
+        $rgOut = & rg --no-heading --line-number --color=never $markerRegex 'app_v2/src' 2>$null
         if ($rgOut) {
             $markers = @($rgOut | ForEach-Object {
                     $parts = $_ -split ':', 3
                     if ($parts.Count -ge 3) {
                         [PSCustomObject]@{
-                            file = $parts[0]
+                            file = ($parts[0] -replace '\\', '/')
                             line = [int]$parts[1]
                             text = ($parts[2].Trim() -replace '\s+', ' ')
                         }
@@ -117,20 +117,26 @@ try {
         }
     }
     else {
-        # git grep fallback
-        $ggOut = git grep -n -E "(//|#|<!--)\s+$Id[:\s]" -- 'app_v2/src/**' 2>$null
-        if ($ggOut) {
-            $markers = @($ggOut | ForEach-Object {
-                    $parts = $_ -split ':', 3
-                    if ($parts.Count -ge 3) {
-                        [PSCustomObject]@{
-                            file = $parts[0]
-                            line = [int]$parts[1]
-                            text = ($parts[2].Trim() -replace '\s+', ' ')
-                        }
+        # S1800: the fallback used to be `git grep`, which reads the index and therefore cannot see
+        # a marker in a file that is new and not yet committed. That made the verdict depend on
+        # whether rg happened to be on PATH: the same marker in the same second read DRIFT from a
+        # shell that had rg and CLEAN from one that did not, and CLEAN is the reassuring answer, so
+        # the miss was silent. Here the working tree is the authority, so the fallback walks it.
+        $rootPrefix = $root.TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
+        $markers = @(
+            Get-ChildItem -Path $scanRoot -Recurse -File -ErrorAction SilentlyContinue `
+                -Include '*.kt', '*.java', '*.py', '*.xml' |
+                Select-String -Pattern $markerRegex -Encoding UTF8 |
+                ForEach-Object {
+                    $abs = $_.Path
+                    $rel = if ($abs.StartsWith($rootPrefix)) { $abs.Substring($rootPrefix.Length) } else { $abs }
+                    [PSCustomObject]@{
+                        file = ($rel -replace '\\', '/')
+                        line = $_.LineNumber
+                        text = ($_.Line.Trim() -replace '\s+', ' ')
                     }
-                } | Where-Object { $_ })
-        }
+                }
+        )
     }
 
     # 3. Verdict

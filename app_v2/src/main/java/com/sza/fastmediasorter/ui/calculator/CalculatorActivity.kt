@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityCalculatorBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorHistoryScaleManager
 import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorInputManager
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -23,12 +24,31 @@ class CalculatorActivity : BaseActivity<ActivityCalculatorBinding>() {
 
     private lateinit var inputManager: CalculatorInputManager
 
+    // S1719: the pinch that scales the history, and the size it remembers. A manager rather than code
+    // here - the activity holds no scaling arithmetic of its own (CLAUDE.md Rule 3).
+    private lateinit var historyScaleManager: CalculatorHistoryScaleManager
+
+    // S1549: setupViews runs from a post inside BaseActivity.onCreate and takes no arguments, so the state
+    // the recreate handed back has to be held here until it runs.
+    private var pendingRestoreState: Bundle? = null
+
     override fun getViewBinding(): ActivityCalculatorBinding =
         ActivityCalculatorBinding.inflate(layoutInflater)
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        pendingRestoreState = savedInstanceState
+        super.onCreate(savedInstanceState)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        if (::inputManager.isInitialized) inputManager.saveTo(outState)
+    }
 
     override fun keepScreenAwakeFor(settings: AppSettings): Boolean = false
 
     override fun setupViews() {
+        Timber.d("S1549: CalculatorActivity setupViews - recreation applies the orientation layout")
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finishWithResult() }
@@ -40,9 +60,21 @@ class CalculatorActivity : BaseActivity<ActivityCalculatorBinding>() {
                 }
             },
         )
+        historyScaleManager = CalculatorHistoryScaleManager(this, binding.calculatorHistory)
+        historyScaleManager.attachTo(binding.calculatorHistoryScroll)
+        // S1719: holding the menu key leaves the calculator. The short press still opens the menu,
+        // which is the only way to the rows strategic 5.5 deliberately left menu-only.
+        binding.btnCalculatorMenu.setOnLongClickListener {
+            finishWithResult()
+            true
+        }
         inputManager = CalculatorInputManager(binding, this).also {
             it.bind()
-            it.applyInitialInput(intent.getStringExtra(EXTRA_INITIAL_INPUT))
+            // A restored calculation outranks the intent's initial input: the intent is re-delivered on every
+            // recreate, so applying it again would wipe what the user was in the middle of typing.
+            val restored = it.restoreFrom(pendingRestoreState)
+            pendingRestoreState = null
+            if (!restored) it.applyInitialInput(intent.getStringExtra(EXTRA_INITIAL_INPUT))
         }
         binding.btnCalculatorOpenSettings.setOnClickListener { openSettings() }
     }

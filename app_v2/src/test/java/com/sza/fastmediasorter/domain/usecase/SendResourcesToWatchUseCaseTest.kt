@@ -1,9 +1,12 @@
 package com.sza.fastmediasorter.domain.usecase
 
+import com.google.gson.Gson
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
+import com.sza.fastmediasorter.data.repository.WearResourceSelectionRepositoryImpl
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.WearNode
+import com.sza.fastmediasorter.domain.model.WearSyncPayload
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
@@ -14,12 +17,21 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
+import org.robolectric.annotation.Config
 
+// Robolectric supplies the SharedPreferences the selection repository is backed by; the use case
+// reads that set on every call, so a test that sends anything has to state its selection first.
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
 class SendResourcesToWatchUseCaseTest {
 
     private lateinit var resourceRepository: FakeResourceRepository
     private lateinit var credentialsRepository: FakeNetworkCredentialsRepository
     private lateinit var wearableRepository: FakeWearableDataLayerRepository
+    private lateinit var selectionRepository: WearResourceSelectionRepositoryImpl
     private lateinit var useCase: SendResourcesToWatchUseCase
 
     @Before
@@ -27,7 +39,17 @@ class SendResourcesToWatchUseCaseTest {
         resourceRepository = FakeResourceRepository()
         credentialsRepository = FakeNetworkCredentialsRepository()
         wearableRepository = FakeWearableDataLayerRepository()
-        useCase = SendResourcesToWatchUseCase(resourceRepository, credentialsRepository, wearableRepository)
+        selectionRepository = WearResourceSelectionRepositoryImpl(RuntimeEnvironment.getApplication())
+        useCase = SendResourcesToWatchUseCase(
+            resourceRepository,
+            credentialsRepository,
+            wearableRepository,
+            selectionRepository
+        )
+    }
+
+    private fun select(vararg ids: Long) {
+        selectionRepository.setSelectedIds(ids.toSet())
     }
 
     @Test
@@ -46,6 +68,7 @@ class SendResourcesToWatchUseCaseTest {
             makeResource(id = 2, type = ResourceType.FTP, credId = "cred-2"),
             makeResource(id = 3, type = ResourceType.LOCAL, credId = null)
         )
+        select(1L, 2L, 3L)
         credentialsRepository.byCredentialId["cred-1"] = makeCredentials("cred-1", "pass1")
         credentialsRepository.byCredentialId["cred-2"] = makeCredentials("cred-2", "pass2")
 
@@ -61,6 +84,7 @@ class SendResourcesToWatchUseCaseTest {
     fun `skips resource with null credentialsId`() = runTest {
         wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
         resourceRepository.resources = listOf(makeResource(id = 1, type = ResourceType.SMB, credId = null))
+        select(1L)
 
         val result = useCase()
 
@@ -74,6 +98,7 @@ class SendResourcesToWatchUseCaseTest {
     fun `skips resource when credentials not found`() = runTest {
         wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
         resourceRepository.resources = listOf(makeResource(id = 1, type = ResourceType.SMB, credId = "missing-cred"))
+        select(1L)
 
         val result = useCase()
 
@@ -87,6 +112,7 @@ class SendResourcesToWatchUseCaseTest {
     fun `skips resource when password decryption failed`() = runTest {
         wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
         resourceRepository.resources = listOf(makeResource(id = 1, type = ResourceType.SMB, credId = "cred-bad"))
+        select(1L)
         credentialsRepository.byCredentialId["cred-bad"] = NetworkCredentialsEntity(
             credentialId = "cred-bad",
             type = "SMB",
@@ -110,6 +136,7 @@ class SendResourcesToWatchUseCaseTest {
     fun `sends valid payload as JSON bytes`() = runTest {
         wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
         resourceRepository.resources = listOf(makeResource(id = 5, type = ResourceType.SMB, credId = "cred-5"))
+        select(5L)
         credentialsRepository.byCredentialId["cred-5"] = makeCredentials("cred-5", "secret")
 
         val result = useCase()
@@ -121,6 +148,42 @@ class SendResourcesToWatchUseCaseTest {
         assertEquals("/fms/network_sources/push", call.path)
         assertTrue(json.contains("\"sources\""))
         assertTrue(json.contains("SMB"))
+    }
+
+    @Test
+    fun `sends only the selected resources out of the whole registry`() = runTest {
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
+        resourceRepository.resources = (1L..5L).map { id ->
+            makeResource(id = id, type = ResourceType.SMB, credId = "cred-$id")
+        }
+        (1L..5L).forEach { id ->
+            credentialsRepository.byCredentialId["cred-$id"] = makeCredentials("cred-$id", "pass$id")
+        }
+        select(2L, 4L)
+
+        val result = useCase()
+
+        assertTrue(result.isSuccess)
+        assertEquals(2, result.getOrThrow().sent)
+        val payload = Gson().fromJson(
+            wearableRepository.putCalls.single().payload.decodeToString(),
+            WearSyncPayload::class.java
+        )
+        assertEquals(listOf("2", "4"), payload.sources.map { it.id })
+    }
+
+    @Test
+    fun `empty selection sends nothing and never writes to the data layer`() = runTest {
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
+        resourceRepository.resources = listOf(makeResource(id = 1, type = ResourceType.SMB, credId = "cred-1"))
+        credentialsRepository.byCredentialId["cred-1"] = makeCredentials("cred-1", "pass1")
+
+        val result = useCase()
+
+        assertTrue(result.isSuccess)
+        assertEquals(0, result.getOrThrow().sent)
+        assertEquals(0, result.getOrThrow().skipped)
+        assertTrue(wearableRepository.putCalls.isEmpty())
     }
 
     private fun makeResource(id: Long, type: ResourceType, credId: String?) = MediaResource(

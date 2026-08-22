@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     S0889 - export the docs/site icon assets (SVG + PNG) for every drawable named in
     docs/icons/doc-icon-map.json.
@@ -13,10 +13,14 @@
       - <drawable>.png : a baked-colour raster (default #24292e) at 2x, for the markdown
         surfaces that embed via <img> (owner: "turn it into png to show on site").
     Conversion reuses the shared VectorDrawable->SVG lib (same path as the S0815 exporter);
-    rasterization is one cairosvg batch (scripts/docs/lib/rasterize_svgs.py, .venv).
+    rasterization is one resvg-py batch (scripts/docs/lib/rasterize_svgs.py, .venv;
+    provisioning: scripts/docs/lib/requirements.txt).
 
     Generated tree - never hand-edited. Deterministic: a re-run is byte-identical when the
     map and sources are unchanged. Stale assets (a drawable dropped from the map) are pruned.
+
+    Exit codes: 0 = complete asset set on disk; 1 = map or venv python absent, a mapped drawable
+    has no source XML, the rasterizer failed, or the set on disk is partial after the run.
 #>
 param(
     [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path,
@@ -84,13 +88,30 @@ if ($missing.Count -gt 0) {
     exit 1
 }
 
-# One cairosvg batch for every PNG.
+# One resvg-py batch for every PNG.
 $jobsFile = Join-Path $RepoRoot 'temp/_doc_icon_raster_jobs.json'
 $null = New-Item -ItemType Directory -Force -Path (Split-Path $jobsFile)
 [System.IO.File]::WriteAllText($jobsFile, ($jobs | ConvertTo-Json -Depth 4), $utf8)
 & $python $rasterizer $jobsFile
-if ($LASTEXITCODE -ne 0) { Write-Host "ERROR: rasterizer exited $LASTEXITCODE"; exit 1 }
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "ERROR: rasterizer exited $LASTEXITCODE"
+    Write-Host "HINT: provision its dependency into the venv it just used:"
+    Write-Host "      $python -m pip install -r scripts/docs/lib/requirements.txt"
+    exit 1
+}
 Remove-Item -LiteralPath $jobsFile -Force -ErrorAction SilentlyContinue
+
+# A partial asset set is fatal (S1956): the SVG half is written before rasterization, so a
+# rasterizer that failed - or silently skipped a job - would leave the tree half-exported and
+# apply-doc-icons.ps1 would then publish a reference to a PNG that is not there.
+$absent = @($expected | Where-Object { -not (Test-Path -LiteralPath (Join-Path $outDir $_)) } | Sort-Object)
+if ($absent.Count -gt 0) {
+    Write-Host ''
+    Write-Host ('ERROR: ' + $absent.Count + ' expected asset(s) missing after export under ' + $outDir + ':')
+    foreach ($a in $absent) { Write-Host ('    - ' + $a) }
+    Write-Host '  The asset set is partial - do not run apply-doc-icons.ps1 until this is resolved.'
+    exit 1
+}
 
 # Prune assets no longer backed by the map.
 $pruned = 0

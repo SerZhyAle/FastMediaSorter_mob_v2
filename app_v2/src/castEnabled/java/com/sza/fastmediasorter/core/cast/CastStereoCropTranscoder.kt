@@ -54,7 +54,6 @@ class CastStereoCropTranscoder {
         val durationMs = withContext(Dispatchers.IO) {
             readDurationMs(context.applicationContext, source)
         }
-        Timber.d("S1558: crop entered for ${source.name}; durationMs=$durationMs crop=$crop")
         return when {
             durationMs > MAX_CROP_DURATION_MS -> {
                 Timber.i(

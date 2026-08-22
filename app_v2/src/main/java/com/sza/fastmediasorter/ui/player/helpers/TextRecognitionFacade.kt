@@ -5,7 +5,7 @@ import android.graphics.Bitmap
 /**
  * OCR/recognition surface split out of [TranslationManager] (S0386 Phase 01).
  *
- * Owns ML Kit text recognition plus the offline OCR engines (Tesseract/Paddle); no translation.
+ * Owns the offline OCR engine (Tesseract; PaddleOCR withdrawn in S1703); no translation.
  * Enables delivering the OCR engines independently of the translation engine
  * (strategic spec §5.4 Set B vs Set A).
  *

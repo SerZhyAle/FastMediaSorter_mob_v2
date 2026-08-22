@@ -40,6 +40,85 @@ object LoggingHelper {
     fun getLogFiles(): List<File> = fileLoggingTree?.getLogFiles() ?: emptyList()
 
     /**
+     * Directory the app writes its log files into.
+     *
+     * External files when mounted, internal storage otherwise - the same fallback the file tree
+     * applies, expressed here once so a second caller cannot pick a different directory than the
+     * one the logs are actually in. Does not create the directory.
+     */
+    fun getLogsDirectory(context: Context): File =
+        File(context.getExternalFilesDir(null) ?: context.filesDir, LOG_DIR_NAME)
+
+    /** Name of the log directory under the app's files dir. */
+    internal const val LOG_DIR_NAME = "logs"
+
+    /** How many files of one kind the log directory keeps. Shared by both retention rules. */
+    const val MAX_LOG_FILES = 5
+
+    /**
+     * Shape of a log report the watch sent, owned here because three places need it: the receiver
+     * that writes one, the prune that bounds them, and the export that collects them. It used to
+     * live in the wearGms receiver, where main-source code could not see it at all (S1806).
+     */
+    const val WATCH_LOG_PREFIX = "watch_log_"
+    const val WATCH_LOG_SUFFIX = ".txt"
+
+    /** Shape of the phone's own session logs. */
+    const val LOG_FILE_PREFIX = "fastmediasorter_"
+    const val LOG_FILE_SUFFIX = ".log"
+
+    /**
+     * Everything in the log directory worth handing to the user: the phone's own logs and the
+     * reports the watch sent, newest first.
+     *
+     * S1806: the two export paths used to collect only [getLogFiles], whose name filter no watch
+     * report can match - so a stored report was reachable for exactly one tap, from the notification
+     * announcing it, and unreachable afterwards. Performs disk I/O - call off the main thread.
+     */
+    fun getExportableLogFiles(context: Context): List<File> {
+        val watchReports = listLogFiles(getLogsDirectory(context), WATCH_LOG_PREFIX, WATCH_LOG_SUFFIX)
+        return (getLogFiles() + watchReports).sortedByDescending { it.lastModified() }
+    }
+
+    /**
+     * Files named [namePrefix]..[nameSuffix] in [directory], newest first. Empty when the directory
+     * cannot be read - the callers all treat "nothing found" and "could not look" the same way.
+     */
+    private fun listLogFiles(directory: File, namePrefix: String, nameSuffix: String): List<File> =
+        try {
+            directory.listFiles { file ->
+                file.isFile && file.name.startsWith(namePrefix) && file.name.endsWith(nameSuffix)
+            }?.sortedByDescending { it.lastModified() }.orEmpty()
+        } catch (_: SecurityException) {
+            // Directory not readable: report nothing rather than guess at its contents.
+            emptyList()
+        }
+
+    /**
+     * Deletes the oldest files named [namePrefix]..[nameSuffix] in [directory], keeping [keep] newest.
+     *
+     * S1805: the directory holds two kinds of file - the phone's own logs and the reports arriving
+     * from the watch - and only the first kind had a retention rule, so the second grew without
+     * bound. Selection is by name because that is the only thing separating the two kinds in one
+     * directory, and both answer to [MAX_LOG_FILES] so the directory keeps a single rule.
+     *
+     * Takes the directory rather than a Context so it can be exercised without a device.
+     * Performs disk I/O - call off the main thread.
+     *
+     * Reports nothing, by design: rotation calls this from inside the logging pipeline itself, so a
+     * Timber call here would queue another write, which would reach the same rotation check - a file
+     * that cannot be deleted would amplify into a loop instead of being retried on the next prune.
+     */
+    fun pruneLogFiles(
+        directory: File,
+        namePrefix: String,
+        nameSuffix: String,
+        keep: Int = MAX_LOG_FILES
+    ) {
+        listLogFiles(directory, namePrefix, nameSuffix).drop(keep).forEach { file -> file.delete() }
+    }
+
+    /**
      * Debug-only hint: mirror the active session log into the currently opened local file folder
      * so reproductions from another machine can be shared without digging into app sandbox paths.
      *
@@ -220,18 +299,14 @@ object LoggingHelper {
         private val minPriority: Int = android.util.Log.VERBOSE
     ) : Timber.Tree() {
         
-        private val logDir: File = File(
-            // getExternalFilesDir() can return null if external storage is unmounted
-            // (e.g. on first boot, encrypted storage not yet ready, or no SD card).
-            // Fall back to internal storage so log files are always created.
-            context.getExternalFilesDir(null) ?: context.filesDir,
-            "logs"
-        )
+        // getExternalFilesDir() can return null if external storage is unmounted (e.g. on first
+        // boot, encrypted storage not yet ready, or no SD card). getLogsDirectory applies that
+        // fallback and is the one place that decides where logs live.
+        private val logDir: File = getLogsDirectory(context)
         private val maxFileSize = 5 * 1024 * 1024L // 5 MB
 
         /** S1310: hard cap for the debug mirror file, which appends across source-log rotations. */
         private val debugMirrorMaxBytes = 2 * maxFileSize
-        private val maxLogFiles = 5
         private val dateFormat = object : ThreadLocal<SimpleDateFormat>() {
             override fun initialValue() = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US)
         }
@@ -583,18 +658,9 @@ object LoggingHelper {
         }
         
         private fun rotateLogFilesIfNeeded() {
-            try {
-                val logFiles = logDir.listFiles { file -> 
-                    file.isFile && file.name.startsWith("fastmediasorter_") && file.name.endsWith(".log")
-                }?.sortedByDescending { it.lastModified() } ?: return
-                
-                // Keep only last maxLogFiles
-                if (logFiles.size >= maxLogFiles) {
-                    logFiles.drop(maxLogFiles - 1).forEach { it.delete() }
-                }
-            } catch (e: Exception) {
-                // Ignore rotation errors
-            }
+            // Runs before the next session file is opened, so one slot is left free for it and the
+            // directory still settles at MAX_LOG_FILES once that file exists.
+            pruneLogFiles(logDir, LOG_FILE_PREFIX, LOG_FILE_SUFFIX, MAX_LOG_FILES - 1)
         }
 
         /**
@@ -614,7 +680,10 @@ object LoggingHelper {
                 PrintWriter(OutputStreamWriter(FileOutputStream(crashFile, false), Charsets.UTF_8), true).use { pw ->
                     pw.println("=== CRASH REPORT: $timestamp ===")
                     pw.println("=== App: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) ===")
-                    pw.println("=== Thread: ${thread.name} [id=${thread.id}] ===")
+                    // S1685: same as CrashReportFormatter - threadId() is not available at our minSdk.
+                    @Suppress("DEPRECATION")
+                    val threadId = thread.id
+                    pw.println("=== Thread: ${thread.name} [id=$threadId] ===")
                     pw.println("=== ${throwable.javaClass.name}: ${throwable.message} ===")
                     pw.println(android.util.Log.getStackTraceString(throwable))
                     pw.println("=== END CRASH REPORT ===")
@@ -641,11 +710,7 @@ object LoggingHelper {
 
         fun getLogDir(): File = logDir
 
-        fun getLogFiles(): List<File> {
-            return logDir.listFiles { file ->
-                file.isFile && file.name.startsWith("fastmediasorter_") && file.name.endsWith(".log")
-            }?.sortedByDescending { it.lastModified() } ?: emptyList()
-        }
+        fun getLogFiles(): List<File> = listLogFiles(logDir, LOG_FILE_PREFIX, LOG_FILE_SUFFIX)
 
         private companion object {
             // S1203: deep enough that ordinary bursts never reach it, shallow enough that a runaway

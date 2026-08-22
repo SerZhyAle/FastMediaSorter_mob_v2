@@ -123,7 +123,7 @@
     <string name="file_not_found_title">Archivo no encontrado</string>
     <string name="file_operation_progress_preparing">Preparante..</string>
     <string name="file_ops_in_overflow_menu">Operaciones de archivos en el menú de desbordamiento</string>
-    <string name="file_ops_moved_to_menu_hint">Las acciones de archivo se han movido al menú ⋮ en cada archivo.</string>
+    <string name="file_ops_moved_to_menu_hint">Las acciones de archivo se movieron al menú ⋮ de cada archivo</string>
     <string name="file_path_label">Ruta: %1$s</string>
     <string name="file_renamed_successfully">Renombrado.</string>
     <string name="file_restored">Archivo restaurado: %1$s</string>

@@ -63,6 +63,8 @@ class GnssSectionFragment : Fragment() {
             summaryView = binding.gnssChart.chartSummary,
             emptyView = binding.gnssChart.chartEmpty,
             unit = ChartValueUnit.DB_HZ,
+            resetTarget = binding.gnssChart.root,
+            onResetRequested = viewModel::onChartResetRequested,
         )
         binding.gnssChart.chartHeading.setText(R.string.network_monitor_gnss_chart_heading)
         trackRow().setOnCheckedChangeListener { enabled -> viewModel.onRecordTrackChanged(enabled) }

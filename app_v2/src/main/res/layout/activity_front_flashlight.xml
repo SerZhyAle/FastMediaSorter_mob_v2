@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  S1796: the glow field is the whole window and its colour is set at runtime, so no background colour
+  is declared here. One orientation-agnostic file on purpose - the two controls are pinned to opposite
+  top corners of a plain frame, which reads the same in portrait and landscape.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/flashlightRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Insets padding is applied in code: the controls stay inside the safe bounds while the glow
+         itself keeps covering the cutout and the system-bar areas. -->
+    <FrameLayout
+        android:id="@+id/controlsOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="@dimen/margin_medium">
+
+        <ImageButton
+            android:id="@+id/btnColor"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="start|top"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/front_flashlight_color_button"
+            android:focusable="true"
+            android:padding="14dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_color_palette"
+            app:tint="@color/black" />
+
+        <TextView
+            android:id="@+id/tvClock"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_gravity="end|top"
+            android:gravity="center_vertical"
+            android:textColor="@color/black"
+            android:textSize="18sp" />
+
+    </FrameLayout>
+
+</FrameLayout>

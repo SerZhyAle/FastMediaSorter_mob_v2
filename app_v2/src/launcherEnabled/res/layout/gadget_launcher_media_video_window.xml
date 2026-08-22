@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1754: the video media window - the resource's video running inside its own desktop cell.
+
+     surface_type is a texture_view, not the default surface: a SurfaceView punches a hole through the
+     window and would draw over the wallpaper, the cell's own resize handle and every gadget the desktop
+     scrolls past it. A TextureView composites like any other view, which is what a cell has to do.
+
+     No controller: use_controller is false because a 2x2 cell cannot hold media3's control bar, and the
+     window's whole point is that the frame itself is the control - a tap on it plays and pauses.
+
+     Orientation-neutral, so no layout-land counterpart: the launcher measures a cell exactly. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <androidx.media3.ui.PlayerView
+        android:id="@+id/mediaVideoWindowPlayer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="true"
+        android:focusable="true"
+        app:resize_mode="zoom"
+        app:surface_type="texture_view"
+        app:use_controller="false" />
+
+    <TextView
+        android:id="@+id/mediaVideoWindowMessage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:maxLines="2"
+        android:padding="@dimen/margin_small"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:textSize="12sp"
+        android:visibility="gone"
+        tools:text="Unavailable"
+        tools:visibility="visible" />
+
+    <!-- The caption sits over the frame rather than above it: the video is the cell, and a title bar
+         stealing a strip of a 2x2 window would cost more than it tells. Outlined so it stays readable
+         over any frame the video happens to be showing. -->
+    <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
+        android:id="@+id/mediaVideoWindowTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:clickable="true"
+        android:ellipsize="end"
+        android:focusable="true"
+        android:foreground="@drawable/focus_button_background"
+        android:maxLines="1"
+        android:minHeight="28dp"
+        android:paddingStart="@dimen/margin_small"
+        android:paddingEnd="@dimen/margin_small"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
+        tools:text="Holiday clips" />
+
+</merge>

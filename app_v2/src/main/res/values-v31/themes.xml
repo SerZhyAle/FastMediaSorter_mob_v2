@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.FastMediaSorter" parent="Theme.FastMediaSorter.Base">
+        <!--
+            S1706: the parent chain sets windowDisablePreview=true, which suppresses the starting
+            window altogether - so from S0997 until this ticket none of the splash items below were
+            ever drawn and cold start showed a bare white windowBackground. Overridden here only,
+            leaving the pre-Android-12 behaviour of the base theme untouched.
+        -->
+        <item name="android:windowDisablePreview">false</item>
         <item name="android:windowSplashScreenBackground">#F5F5F5</item>
         <!-- S0997: center = app logo + wordmark fading in; author logo moved to the branding slot. -->
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash_animated</item>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1549: portrait empty state paints icon and text from the fixed colour resource; landscape uses
+     the theme attribute (color-land / color-w600dp). BrowseActivity absorbs the rotation, so
+     BrowseButtonSetupHelper re-applies this key instead of relying on the inflated layout. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/text_color_secondary" />
+</selector>

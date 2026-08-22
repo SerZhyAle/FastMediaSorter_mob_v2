@@ -76,7 +76,7 @@ class ImageOcrManager(
         }
 
         // Show progress + disable the OCR button so the user gets immediate visual feedback.
-        // First-call PaddleOCR/Tesseract init can take seconds (cold native library + model load);
+        // First-call Tesseract init can take seconds (cold native library + model load);
         // without this the UI looks frozen even though the IO coroutine is running.
         loadingIndicatorCoordinator.show(LoadingSource.OCR)
         binding.btnOcrImageCmd.isEnabled = false

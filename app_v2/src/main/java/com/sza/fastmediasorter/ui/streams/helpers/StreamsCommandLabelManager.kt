@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.streams.helpers
 import android.view.MenuItem
 import androidx.annotation.MenuRes
 import com.google.android.material.appbar.MaterialToolbar
-import timber.log.Timber
 
 /**
  * S1473: shows text labels on the streams command row while the screen is horizontal.

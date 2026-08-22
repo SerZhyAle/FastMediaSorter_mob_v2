@@ -41,8 +41,7 @@ Settings Screen
 ├── Slideshow Section
 │   ├── Enable Slideshow [Toggle]
 │   ├── Slideshow Interval [Selector: 3s, 5s, 10s, 15s, 30s]
-│   ├── Wait for Media Finish [Toggle]
-│   └── Auto-advance on Complete [Toggle]
+│   └── Wait for Media Finish [Toggle]
 ├── Audio Settings
 │   └── Download Album Art [Toggle]
 ├── About Section
@@ -104,8 +103,11 @@ Settings Screen
 
 2. **Auto-Advance Logic**
    - **Images**: Advance after configured interval (3s, 5s, 10s, 15s, 30s)
-   - **Audio**: Advance after track finishes (if "Wait for Finish" enabled)
-   - **Video**: Advance after video finishes (if "Wait for Finish" enabled)
+   - **Audio**: Advance after the track finishes, unconditionally (S1837)
+   - **Video**: Advance after the video finishes, while the slideshow is on (S1838)
+
+   The "Wait for Finish" toggle this section once planned as the gate was removed in S1839: both
+   players already play a file to its end, so the switch could never turn that off.
 
 3. **Slideshow Controls**
    - Pause/Resume button
@@ -171,12 +173,10 @@ Enable Wear OS app to connect to network storage (SMB, FTP, SFTP, Google Drive) 
 #### UI Flow
 
 ```
-Settings → Network Storage → Add SMB
-  ├── Server Address [Text Input]
-  ├── Share Name [Text Input]
-  ├── Username [Text Input]
-  ├── Password [Text Input]
-  └── Test Connection [Button]
+Home Screen → Network Storage
+  ├── Sources List (SMB, FTP, SFTP)
+  ├── Sync / Transfer from Companion Phone App (Release & Debug)
+  └── Add Source directly (Debug builds only; hidden in Play Store release per WO-P6)
 ```
 
 #### Implementation
@@ -412,6 +412,20 @@ implementation("androidx.datastore:datastore-preferences:1.1.7")
 // Security
 implementation("androidx.security:security-crypto:1.1.0-alpha06")
 ```
+
+---
+
+## 5.1 Delivered: Apps section (S1710)
+
+Shipped 2026-08-22. The watch gained an **Apps** section on the home screen with three standalone
+programs - calculator, network monitor of the watch's own connectivity, and a mini-game - none of
+which needs the phone to be in range.
+
+- Extended by a catalog record, not by a navigation change: add a `WearAppCatalog` entry plus the
+  program's own route.
+- Routes: `WearRoutes.CALCULATOR`, `WearRoutes.NETWORK_MONITOR`, `WearRoutes.GAME`.
+- The game's rules and levels are a mirror of the phone's, so a score is comparable between devices;
+  the network monitor is not a mirror - it reports the watch's radios.
 
 ---
 

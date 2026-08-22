@@ -46,6 +46,14 @@ All screenshots go to: `docs/howto/screenshots/`
 | `screenshot-hc-step2.png` | Home Cinema | 2 | SMB connection form with a **video share path**, e.g. `\\192.168.1.100\Series` | 📸 Phone/tablet |
 | `screenshot-hc-step3.png` | Home Cinema | 3 | Browse screen showing a video folder with **episode thumbnails** or file names with video icons | 📸 Phone/tablet (needs SMB with video files) |
 | `screenshot-hc-step5.png` | Home Cinema | 5 | Video **player full-screen** with a video actively playing, progress bar visible | ♻️ Rename `Screenshot_20260415_012507.png` |
+| `screenshot-wear-music-step1.png` | Wear Music | 1 | Wear OS main screen showing sections: Phone, Local, Resources, Streams, Apps | 📸 Smartwatch (Wear OS) |
+| `screenshot-wear-music-step3.png` | Wear Music | 3 | Browse screen on watch with audio track list, duration and album art | 📸 Smartwatch (Wear OS) |
+| `screenshot-wear-music-step4.png` | Wear Music | 4 | Full-screen audio player on watch with playback controls, draggable seekbar and volume | 📸 Smartwatch (Wear OS) |
+| `screenshot-wear-music-step5.png` | Wear Music | 5 | Audio player with Moon icon button for OLED battery-saving screen off mode | 📸 Smartwatch (Wear OS) |
+| `screenshot-wear-network-step1.png` | Wear Network | 1 | Resources screen on watch showing configured network sources and Sync from Phone | 📸 Smartwatch (Wear OS) |
+| `screenshot-wear-network-step2.png` | Wear Network | 2 | Add Network Source screen on watch with SMB/FTP/SFTP protocol selector and connection fields | 📸 Smartwatch (Wear OS) |
+| `screenshot-wear-network-step3.png` | Wear Network | 3 | Connection test with success status message and Save button | 📸 Smartwatch (Wear OS) |
+| `screenshot-wear-network-step4.png` | Wear Network | 4 | File browser on watch exploring remote SMB/SFTP/FTP network share files | 📸 Smartwatch (Wear OS) |
 
 ---
 

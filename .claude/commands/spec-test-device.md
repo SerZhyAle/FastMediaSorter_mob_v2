@@ -88,7 +88,7 @@ Sanity-check chosen device (one call - model, Android release, SDK, density, siz
 pwsh -NoProfile -File scripts/devtest/adb.ps1 props -DeviceId <id> -Json
 ```
 
-One-off device chores outside mobile-mcp scenario loop (force-stop, ad-hoc screenshot, quick log tail): use same swiss-army instead of raw `adb`: `adb.ps1 stop` / `shot` / `log -Tail N -Grep <re>` / `logcat-clear` / `shell -Cmd "..."` (`.\a.ps1 adb <verb>`). Resetting app data is `wipe-data -Yes` and is one-way - it destroys settings, runtime grants and onboarding, so never reach for it to clear a log buffer (`logcat-clear` does that). The old `clear` verb is gone and refuses.
+One-off device chores outside mobile-mcp scenario loop (force-stop, ad-hoc screenshot, quick log tail): use same swiss-army instead of raw `adb`: `adb.ps1 stop` / `shot` / `log -Tail N -Grep <re>` / `logcat-clear` / `shell -Cmd "..."`. To drive the UI, `uidump` lists every label with its resource-id and tap point, `tap-id -ResourceId "<name>"` taps by the identifier and `tap-label -Label "<text or content-desc>"` by the label - all re-read the tree in the same call, so a list that scrolled since the last dump cannot send `tap -X -Y` into the neighbouring row (S1847). Prefer the identifier: it does not move with the app locale, while a label does, so a label-aimed call passes on the emulator you wrote it on and returns 8 on the next device (S1879); `clip-check` reports content leaving the display shape, which is the round-watch check (`.\a.ps1 adb <verb>`). Resetting app data is `wipe-data -Yes` and is one-way - it destroys settings, runtime grants and onboarding, so never reach for it to clear a log buffer (`logcat-clear` does that). The old `clear` verb is gone and refuses.
 
 Record device profile in scenario file header.
 
@@ -140,7 +140,9 @@ Walk scenario steps in order. Per step:
    - element text matches expected substring
    - Toast / Snackbar text appears (re-list within 2 s - toasts auto-dismiss)
 4. Evidence: `mobile_save_screenshot saveTo=temp/<Sxxxx>/screens/step_<NN>.png` - writes PNG to disk, does NOT load image into context. One per step, zero token cost.
-5. Record one row in scenario `## Run log` table: `step | action | result (PASS/FAIL/INCONCLUSIVE) | evidence (screenshot path + log lines)`.
+5. Record one row in scenario `## Run log` table: `step | action | result (PASS/FAIL/INCONCLUSIVE/UNOBSERVED) | evidence (screenshot path + log lines)`.
+
+   **`UNOBSERVED` (S1914)** - the check ran and its precondition was absent, so there was nothing to observe. It is neither PASS nor FAIL: nothing was proven and nothing was disproven. Use it when a criterion rests on state this session did not create - pinned channels, an upgraded schema, an imported bank, accumulated history - and that state was not on the device. Say which precondition was missing in the evidence cell. The trap it exists for is real and cost a ticket: a run against a device with no pinned channels satisfied every "survives the upgrade" criterion identically, because nothing was there to lose, and the report was indistinguishable from a genuine pass.
 
 Use `mobile_take_screenshot` (inline image, costs context) ONLY when text tree cannot answer:
 - a11y tree empty / non-semantic (custom-rendered surfaces, games, `SurfaceView`/`GLSurfaceView`, WebView internals, Compose without `Modifier.semantics`);
@@ -213,13 +215,13 @@ Open `PLAN/Sxxxx_<slug>.md`, find `## Last Audit` block. Inside it, locate `### 
 For every checklist item this run actually exercised:
 - `PASS` -> flip `[ ]` to `[x]`, append ` - verified on-device <YYYY-MM-DD>`.
 - `FAIL` -> flip `[ ]` to `[!]` (custom marker audit recognises), append ` - failed on-device <YYYY-MM-DD>; see temp/<Sxxxx>/mobile_test_scenario_<TS>.md`.
-- `SKIPPED` / `INCONCLUSIVE` -> leave line unchanged.
+- `SKIPPED` / `INCONCLUSIVE` / `UNOBSERVED` -> leave line unchanged. For `UNOBSERVED` this is the whole point (S1914): an unmet precondition leaves the criterion unproven, so its `[ ]` must survive the run and the ticket must not read as verified.
 
 Append one line to spec's `## Revision History` (create section if missing):
 
 ```markdown
 - **<YYYY-MM-DD>** - by `/spec-test-device` (`<model-id>`, device: <id> <Android version>)
-  - Scenario: temp/<Sxxxx>/mobile_test_scenario_<TS>.md · PASS/FAIL/SKIPPED N/N/N · Errors in log: N
+  - Scenario: temp/<Sxxxx>/mobile_test_scenario_<TS>.md · PASS/FAIL/SKIPPED/UNOBSERVED N/N/N/N · Errors in log: N
 ```
 
 Touch journal `updated` **without changing status**:
@@ -231,7 +233,7 @@ pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx>
 ### 11 - Dev log
 
 ```powershell
-.\scripts\add_to_dev_log.ps1 "PLAN/Sxxxx_<slug>.md" "spec-test-device" "Device run on <device-id> -> PASS/FAIL/SKIPPED N/N/N"
+.\scripts\add_to_dev_log.ps1 "PLAN/Sxxxx_<slug>.md" "spec-test-device" "Device run on <device-id> -> PASS/FAIL/SKIPPED/UNOBSERVED N/N/N/N"
 ```
 
 If strategic spec untouched (zero checklist items recognised), still record run with scenario file path as target.
@@ -241,7 +243,7 @@ If strategic spec untouched (zero checklist items recognised), still record run 
 Single line:
 
 ```
-<Sxxxx>: device <id>, PASS/FAIL/SKIPPED N/N/N, log errors N. Scenario: temp/<Sxxxx>/mobile_test_scenario_<TS>.md
+<Sxxxx>: device <id>, PASS/FAIL/SKIPPED/UNOBSERVED N/N/N/N, log errors N. Scenario: temp/<Sxxxx>/mobile_test_scenario_<TS>.md
 ```
 
 Then one-line follow-up offer if `/spec-fix` or fresh `/spec` is obvious next step.

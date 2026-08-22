@@ -6,6 +6,13 @@
     <!-- Accent colors -->
     <color name="teal_700">#FF018786</color>
 
+    <!-- S1895: roles the app paints with but never defined, so they resolved from the Material 3
+         baseline palette - a value nobody chose and a library update can move. Values equal what
+         M3 resolved them to before, so taking ownership changes no pixel. -->
+    <color name="m3_surface_variant">#FFE7E0EC</color>
+    <color name="m3_tertiary">#FF7D5260</color>
+    <color name="m3_error">#FFB3261E</color>
+
     <!-- S0569: fixed palettes for the custom accent themes. Each theme is a single fixed-brightness
          set (night mode is forced separately for system-bar / base-resource consistency), so all
          values live in this default bucket and are referenced by the ThemeOverlay.* styles. -->
@@ -429,5 +436,29 @@
     <color name="stream_pin_badge_bg">#FFC62828</color>
     <!-- S0997: splash-screen center content (app logo + wordmark) - dark on the light splash background, light in night mode. -->
     <color name="splash_content">#FF37474F</color>
+    <!-- S1706: splash logo gradient, sampled from the lit and shaded faces of the launcher icon's
+         arrows in mipmap-xxxhdpi/ic_launcher_adaptive_fore.png, so the splash shows the same blue
+         the user tapped rather than a flat silhouette. -->
+    <color name="splash_logo_gradient_start">#FF98CFF1</color>
+    <color name="splash_logo_gradient_end">#FF0B82EB</color>
+    <!-- S1706: splash slogan - deeper than the logo blue to stay readable on the light splash background. -->
+    <color name="splash_slogan">#FF1565C0</color>
+
+    <!-- S0404 / S1768 / S1895: launcher taskbar and Start-panel foregrounds, day half. Blue for
+         Start and slate-blue for All Apps keep the two apart; the four row groups keep the hue
+         separation S1770 introduced, since after the lift to 7:1 lightness no longer tells them
+         apart. Every value here clears 7:1 against the surface it lands on in every theme -
+         measured by scripts/quality/assert-launcher-contrast.ps1. -->
+    <color name="launcher_taskbar_start_text">#FF0B3D91</color>
+    <color name="launcher_taskbar_all_apps_text">#FF2F3E46</color>
+    <color name="launcher_start_row_group1">#FF0D47A1</color>
+    <color name="launcher_start_row_group2">#FF00504F</color>
+    <color name="launcher_start_row_group3">#FF633B48</color>
+    <color name="launcher_start_row_group4">#FF8C1D18</color>
+
+    <!-- S1549: portrait keeps the pressed/focused accent of the shared player selector; the landscape
+         scroll buttons are flat white (see values-land/values-w600dp). An alias rather than a copied
+         selector, so the portrait state list stays defined in exactly one place. -->
+    <item name="browse_scroll_button_tint" type="color">@color/selector_player_button_tint</item>
 </resources>
 

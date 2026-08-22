@@ -220,6 +220,13 @@ class ScreenshotAccessibilityService : AccessibilityService() {
         return performGlobalAction(globalAction)
     }
 
+    /**
+     * S1887: opens Android's own power menu, the only path an unprivileged app has to reboot or
+     * power off - the system owns the dialog and the user makes the final choice, so no REBOOT or
+     * SHUTDOWN permission, protected broadcast, shell command or root fallback is involved.
+     */
+    fun openPowerDialog(): Boolean = performGlobalAction(GLOBAL_ACTION_POWER_DIALOG)
+
     private fun processScreenshotResult(screenshot: ScreenshotResult) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             captureInProgress = false

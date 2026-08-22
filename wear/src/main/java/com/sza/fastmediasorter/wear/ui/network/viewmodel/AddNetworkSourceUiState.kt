@@ -11,6 +11,7 @@ data class AddNetworkSourceUiState(
     val password: String = "",
     val shareName: String = "",
     val domain: String = "",
+    val basePath: String = "/",
     val useSshKey: Boolean = false,
     val sshPrivateKey: String = "",
     val isLoading: Boolean = false,

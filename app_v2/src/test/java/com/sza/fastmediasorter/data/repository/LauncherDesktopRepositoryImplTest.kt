@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.data.repository
 import com.sza.fastmediasorter.data.local.db.LauncherCellEntity
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCellPlacement
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
 import com.sza.fastmediasorter.testing.InMemoryRoomRule
@@ -100,9 +101,21 @@ class LauncherDesktopRepositoryImplTest {
 
     private suspend fun storedCell(id: Long) = dbRule.db.launcherCellDao().getById(id)
 
+    /**
+     * Seeds a cell and hands back its id, so a suite about placement rules is not rewritten every time
+     * the placement result gains a case (S1772 turned it from a nullable id into a typed outcome).
+     */
+    private suspend fun add(cell: LauncherCell): Long? =
+        repository.addCell(cell, columns = COLUMNS).idOrNull
+
+    private suspend fun placement(cell: LauncherCell, columns: Int = COLUMNS) =
+        repository.addCell(cell, columns = columns)
+
+    private suspend fun rowOf(id: Long?) = storedCell(id!!)?.rowIndex
+
     @Test
     fun `adding to a free square succeeds`() = runTest {
-        assertNotNull(repository.addCell(cell(row = 0, col = 0)))
+        assertNotNull(add(cell(row = 0, col = 0)))
     }
 
     @Test
@@ -119,8 +132,8 @@ class LauncherDesktopRepositoryImplTest {
 
     @Test
     fun `a second header on a row that already carries one is refused`() = runTest {
-        assertNotNull(repository.addCell(section(row = 0)))
-        assertNull(repository.addCell(section(row = 0)))
+        assertNotNull(add(section(row = 0)))
+        assertNull(add(section(row = 0)))
     }
 
     @Test
@@ -136,33 +149,75 @@ class LauncherDesktopRepositoryImplTest {
     }
 
     @Test
-    fun `adding onto an occupied square is refused`() = runTest {
-        repository.addCell(cell(row = 0, col = 0))
-        assertNull(repository.addCell(cell(row = 0, col = 0)))
+    fun `a resource shortcut is placed inside the resources section when present`() = runTest {
+        add(section(row = 0).copy(target = "sec:widgets"))
+        add(section(row = 4).copy(target = "sec:resources"))
+        val resourceCell = cell(row = 0, col = 0, target = "res:123")
+        val id = repository.addCellInFirstFreeSlot(resourceCell, columns = 8)
+        assertNotNull(id)
+        val stored = storedCell(id!!)
+        assertEquals(4, stored?.rowIndex)
+        assertEquals(2, stored?.colIndex)
     }
 
     @Test
-    fun `adding onto a square covered by a gadget is refused`() = runTest {
-        repository.addCell(cell(row = 0, col = 0, spanW = 2, spanH = 2))
+    fun `adding onto an occupied square pushes the occupant down`() = runTest {
+        // S1772: the anchor is the user's choice of place, so the desktop makes room instead of refusing.
+        val occupant = add(cell(row = 0, col = 0))
+        val arriving = add(cell(row = 0, col = 0))
+        assertNotNull(arriving)
+        assertEquals("the new cell took the square it was pointed at", 0, rowOf(arriving))
+        assertEquals("the occupant moved one row down", 1, rowOf(occupant))
+    }
+
+    @Test
+    fun `a widget lands on a square covered by a gadget and pushes it down`() = runTest {
         // (1,1) is inside the gadget but is not its anchor - the case the anchor-only predecessor missed.
-        assertNull(repository.addCell(cell(row = 1, col = 1)))
+        val gadget = add(cell(row = 0, col = 0, spanW = 2, spanH = 2))
+        val arriving = add(cell(row = 1, col = 1))
+        assertNotNull(arriving)
+        assertEquals(1, rowOf(arriving))
+        // The gadget started above the anchor and reached into it, so the push had to start at its own
+        // row - the case a shift keyed on the anchor alone would have left in the way.
+        assertEquals("the straddling gadget moved below the new cell", 2, rowOf(gadget))
+    }
+
+    @Test
+    fun `a footprint wider than the grid is refused with a reason`() = runTest {
+        val outcome = placement(cell(row = 0, col = 0, spanW = COLUMNS + 1), columns = COLUMNS)
+        assertEquals(LauncherCellPlacement.TooWide, outcome)
+    }
+
+    @Test
+    fun `a push keeps the desktop's order below the insertion point`() = runTest {
+        val first = add(cell(row = 0, col = 0, target = "app:a"))
+        val second = add(cell(row = 1, col = 0, target = "app:b"))
+        val arriving = add(cell(row = 0, col = 0, spanH = 2, target = "app:c"))
+        assertNotNull(arriving)
+        // Both existing cells moved by the same amount, so what was above stays above (ADR-1).
+        assertEquals(2, rowOf(first))
+        assertEquals(3, rowOf(second))
     }
 
     @Test
     fun `a degenerate span is stored as one square`() = runTest {
         // An empty rectangle intersects nothing, so an unnormalised zero span would make findOverlapping
         // report this cell's square free forever while the renderer still drew the cell there.
-        val id = repository.addCell(cell(row = 0, col = 0, spanW = 0, spanH = -3))
+        val id = add(cell(row = 0, col = 0, spanW = 0, spanH = -3))
         assertNotNull(id)
         val stored = storedCell(id!!)
         assertEquals(1, stored?.spanW)
         assertEquals(1, stored?.spanH)
-        assertNull("the normalised square must now block a second cell", repository.addCell(cell(0, 0)))
+        // S1772: a taken square now yields rather than blocks, so the proof that the span was normalised
+        // is that the arriving cell displaced it - an unnormalised empty rectangle would collide with
+        // nothing and leave the first cell exactly where it was.
+        assertNotNull(add(cell(0, 0)))
+        assertEquals("the normalised square was pushed down by the second cell", 1, rowOf(id))
     }
 
     @Test
     fun `a negative index is stored at the edge`() = runTest {
-        val id = repository.addCell(cell(row = -2, col = -5))
+        val id = add(cell(row = -2, col = -5))
         val stored = storedCell(id!!)
         assertEquals(0, stored?.rowIndex)
         assertEquals(0, stored?.colIndex)
@@ -178,8 +233,8 @@ class LauncherDesktopRepositoryImplTest {
 
     @Test
     fun `the scan skips occupied squares row-major`() = runTest {
-        repository.addCell(cell(row = 0, col = 0))
-        repository.addCell(cell(row = 0, col = 1))
+        add(cell(row = 0, col = 0))
+        add(cell(row = 0, col = 1))
         val id = repository.addCellInFirstFreeSlot(cell(row = 0, col = 0), columns = 3)!!
         val stored = storedCell(id)
         assertEquals(0, stored?.rowIndex)
@@ -188,8 +243,8 @@ class LauncherDesktopRepositoryImplTest {
 
     @Test
     fun `a full row pushes the cell onto a new row below`() = runTest {
-        repository.addCell(cell(row = 0, col = 0))
-        repository.addCell(cell(row = 0, col = 1))
+        add(cell(row = 0, col = 0))
+        add(cell(row = 0, col = 1))
         val id = repository.addCellInFirstFreeSlot(cell(row = 0, col = 0), columns = 2)!!
         assertEquals(1, storedCell(id)?.rowIndex)
         assertEquals(0, storedCell(id)?.colIndex)
@@ -197,7 +252,7 @@ class LauncherDesktopRepositoryImplTest {
 
     @Test
     fun `a wide gadget skips a row that cannot hold its whole span`() = runTest {
-        repository.addCell(cell(row = 0, col = 1))
+        add(cell(row = 0, col = 1))
         // Row 0 has a free square at column 0, but a 2-wide footprint there would cover the occupant.
         val id = repository.addCellInFirstFreeSlot(cell(row = 0, col = 0, spanW = 2), columns = 2)!!
         assertEquals(1, storedCell(id)?.rowIndex)
@@ -217,7 +272,7 @@ class LauncherDesktopRepositoryImplTest {
 
     @Test
     fun `the other orientation never blocks a free-slot placement`() = runTest {
-        repository.addCell(cell(row = 0, col = 0).copy(orientation = LauncherOrientation.LANDSCAPE))
+        add(cell(row = 0, col = 0).copy(orientation = LauncherOrientation.LANDSCAPE))
         val id = repository.addCellInFirstFreeSlot(cell(row = 0, col = 0), columns = 2)!!
         assertEquals(0, storedCell(id)?.rowIndex)
         assertEquals(0, storedCell(id)?.colIndex)
@@ -225,7 +280,7 @@ class LauncherDesktopRepositoryImplTest {
 
     @Test
     fun `moving to a free square succeeds`() = runTest {
-        val id = repository.addCell(cell(row = 0, col = 0))!!
+        val id = add(cell(row = 0, col = 0))!!
         assertTrue(repository.moveCell(id, rowIndex = 3, colIndex = 2))
         val stored = storedCell(id)
         assertEquals(3, stored?.rowIndex)
@@ -234,14 +289,14 @@ class LauncherDesktopRepositoryImplTest {
 
     @Test
     fun `moving onto itself changes nothing`() = runTest {
-        val id = repository.addCell(cell(row = 1, col = 1))!!
+        val id = add(cell(row = 1, col = 1))!!
         assertFalse(repository.moveCell(id, rowIndex = 1, colIndex = 1))
     }
 
     @Test
     fun `equal footprints trade places`() = runTest {
-        val moving = repository.addCell(cell(row = 0, col = 0, target = "app:a"))!!
-        val target = repository.addCell(cell(row = 2, col = 3, target = "app:b"))!!
+        val moving = add(cell(row = 0, col = 0, target = "app:a"))!!
+        val target = add(cell(row = 2, col = 3, target = "app:b"))!!
 
         assertTrue(repository.moveCell(moving, rowIndex = 2, colIndex = 3))
 
@@ -253,8 +308,8 @@ class LauncherDesktopRepositoryImplTest {
 
     @Test
     fun `a gadget cannot trade places with a shortcut`() = runTest {
-        val gadget = repository.addCell(cell(row = 0, col = 0, spanW = 2, spanH = 2))!!
-        val shortcut = repository.addCell(cell(row = 4, col = 4))!!
+        val gadget = add(cell(row = 0, col = 0, spanW = 2, spanH = 2))!!
+        val shortcut = add(cell(row = 4, col = 4))!!
 
         // Swapping here would put the 2x2 on the shortcut's neighbours - one overlap traded for another.
         assertFalse(repository.moveCell(gadget, rowIndex = 4, colIndex = 4))
@@ -264,8 +319,8 @@ class LauncherDesktopRepositoryImplTest {
 
     @Test
     fun `a trade lands on the anchor, not on the dropped square`() = runTest {
-        val moving = repository.addCell(cell(row = 0, col = 0, spanW = 2, spanH = 2, target = "app:a"))!!
-        val target = repository.addCell(cell(row = 4, col = 4, spanW = 2, spanH = 2, target = "app:b"))!!
+        val moving = add(cell(row = 0, col = 0, spanW = 2, spanH = 2, target = "app:a"))!!
+        val target = add(cell(row = 4, col = 4, spanW = 2, spanH = 2, target = "app:b"))!!
 
         // Dropped on (5,5) - inside the target, but not its anchor. Honouring the finger's square would
         // put the mover at rows 5-6, which is not where the target was, and could cover a third cell.
@@ -279,8 +334,8 @@ class LauncherDesktopRepositoryImplTest {
 
     @Test
     fun `the other orientation is untouched by a move`() = runTest {
-        val portrait = repository.addCell(cell(row = 0, col = 0))!!
-        val landscape = repository.addCell(
+        val portrait = add(cell(row = 0, col = 0))!!
+        val landscape = add(
             cell(row = 1, col = 1).copy(orientation = LauncherOrientation.LANDSCAPE)
         )!!
 
@@ -292,7 +347,7 @@ class LauncherDesktopRepositoryImplTest {
 
     @Test
     fun `resizing a gadget into free space grows and persists`() = runTest {
-        val id = repository.addCell(cell(row = 0, col = 0, spanW = 2, spanH = 2))!!
+        val id = add(cell(row = 0, col = 0, spanW = 2, spanH = 2))!!
         assertTrue(repository.resizeCell(id, spanW = 3, spanH = 3))
         val stored = storedCell(id)
         assertEquals(3, stored?.spanW)
@@ -301,9 +356,9 @@ class LauncherDesktopRepositoryImplTest {
 
     @Test
     fun `resizing over another cell is refused and keeps the size`() = runTest {
-        val gadget = repository.addCell(cell(row = 0, col = 0, spanW = 2, spanH = 2, target = "app:a"))!!
+        val gadget = add(cell(row = 0, col = 0, spanW = 2, spanH = 2, target = "app:a"))!!
         // A neighbour one column past the gadget's right edge: growing to 3 wide would cover it.
-        repository.addCell(cell(row = 0, col = 2, target = "app:b"))!!
+        add(cell(row = 0, col = 2, target = "app:b"))!!
         assertFalse(repository.resizeCell(gadget, spanW = 3, spanH = 2))
         val stored = storedCell(gadget)
         assertEquals(2, stored?.spanW)
@@ -312,7 +367,7 @@ class LauncherDesktopRepositoryImplTest {
 
     @Test
     fun `shrinking a gadget always succeeds`() = runTest {
-        val id = repository.addCell(cell(row = 0, col = 0, spanW = 3, spanH = 3))!!
+        val id = add(cell(row = 0, col = 0, spanW = 3, spanH = 3))!!
         assertTrue(repository.resizeCell(id, spanW = 2, spanH = 2))
         assertEquals(2, storedCell(id)?.spanW)
         assertEquals(2, storedCell(id)?.spanH)
@@ -322,7 +377,7 @@ class LauncherDesktopRepositoryImplTest {
 
     @Test
     fun `a header is stored at column zero at the compact span`() = runTest {
-        val id = repository.addCell(section(row = 2, col = 3))!!
+        val id = add(section(row = 2, col = 3))!!
         val stored = storedCell(id)
         assertEquals("a header opens its own row wherever it was requested", 0, stored?.colIndex)
         assertEquals(LauncherSectionMembership.HEADER_SPAN_W, stored?.spanW)
@@ -331,8 +386,8 @@ class LauncherDesktopRepositoryImplTest {
     @Test
     fun `a header leaves the rest of its row free for its own content`() = runTest {
         // Strategic §2.2: the compact header exists so the section's shortcuts start in the same row.
-        repository.addCell(section(row = 0))
-        assertNotNull(repository.addCell(cell(0, 3)))
+        add(section(row = 0))
+        assertNotNull(add(cell(0, 3)))
     }
 
     @Test
@@ -351,7 +406,7 @@ class LauncherDesktopRepositoryImplTest {
         // Strategic §6.3/§11.6: the compact rule reaches desktops seeded before it, and narrowing a header
         // only frees squares - no shortcut may shift for it.
         val headerId = insertHeaderWithSpan(row = 0, spanW = 12)
-        val shortcutId = repository.addCell(cell(row = 3, col = 2))!!
+        val shortcutId = add(cell(row = 3, col = 2))!!
 
         repository.normalizeSectionSpans()
 
@@ -364,7 +419,7 @@ class LauncherDesktopRepositoryImplTest {
 
     @Test
     fun `a moved header stays anchored at column zero`() = runTest {
-        val id = repository.addCell(section(row = 0))!!
+        val id = add(section(row = 0))!!
         assertTrue(repository.moveCell(id, rowIndex = 4, colIndex = 2))
         assertEquals(4, storedCell(id)?.rowIndex)
         assertEquals("moveCell writes a column without going through normalized()", 0, storedCell(id)?.colIndex)
@@ -372,7 +427,7 @@ class LauncherDesktopRepositoryImplTest {
 
     @Test
     fun `the free-slot scan skips a row a gadget would straddle`() = runTest {
-        repository.addCell(section(row = 1))
+        add(section(row = 1))
         val id = repository.addCellInFirstFreeSlot(gadget(row = 0), columns = 4)!!
         // Refusing outright would make a tall gadget unplaceable whenever the first free anchor sits
         // just above a header; the scan is expected to move past that row and keep looking.
@@ -385,9 +440,10 @@ class LauncherDesktopRepositoryImplTest {
     }
 
     @Test
-    fun `a gadget may not be added over a header row the overlap check cannot see`() = runTest {
+    fun `a gadget added over a header row pushes that header down`() = runTest {
         insertNarrowHeader(row = 2)
-        assertNull(repository.addCell(gadget(row = 1, col = 3)))
+        // S1772 §5 item 4: the header travels down with the cells it owns rather than blocking the add.
+        assertNotNull(add(gadget(row = 1, col = 3)))
     }
 
     @Test
@@ -395,13 +451,13 @@ class LauncherDesktopRepositoryImplTest {
         // The rule is scoped to gadgets, and only a cell taller than one row can start in one section and
         // end in the next - so a shortcut pays nothing for it.
         insertNarrowHeader(row = 2)
-        assertNotNull(repository.addCell(cell(row = 2, col = 3)))
+        assertNotNull(add(cell(row = 2, col = 3)))
     }
 
     @Test
     fun `moving a gadget onto such a header row is refused`() = runTest {
         insertNarrowHeader(row = 4)
-        val moving = repository.addCell(gadget(row = 0, col = 3))!!
+        val moving = add(gadget(row = 0, col = 3))!!
         assertFalse(repository.moveCell(moving, rowIndex = 3, colIndex = 3))
         assertEquals("the refused move must leave the cell where it was", 0, storedCell(moving)?.rowIndex)
     }
@@ -409,8 +465,86 @@ class LauncherDesktopRepositoryImplTest {
     @Test
     fun `growing a gadget down onto such a header row is refused`() = runTest {
         insertNarrowHeader(row = 3)
-        val growing = repository.addCell(gadget(row = 1, col = 3))!!
+        val growing = add(gadget(row = 1, col = 3))!!
         assertFalse(repository.resizeCell(growing, spanW = 1, spanH = 3))
         assertEquals("the refused resize must keep the last valid size", 2, storedCell(growing)?.spanH)
+    }
+
+    // ── S1742: section block swapping ────────────────────────────────────────
+
+    @Test
+    fun `swapping adjacent section blocks exchanges position and preserves ownership and internal order`() = runTest {
+        val secA = add(section(row = 0).copy(target = "sec:alpha"))!!
+        val scA1 = add(cell(row = 0, col = 2, target = "app:a1"))!!
+        val scA2 = add(cell(row = 1, col = 0, target = "app:a2"))!!
+
+        val secB = add(section(row = 2).copy(target = "sec:beta"))!!
+        val scB1 = add(cell(row = 2, col = 2, target = "app:b1"))!!
+        val scB2 = add(cell(row = 3, col = 1, target = "app:b2"))!!
+
+        val result = repository.swapSectionBlock(LauncherOrientation.PORTRAIT, secA, moveUp = false)
+        assertTrue(result)
+
+        assertEquals(0, storedCell(secB)?.rowIndex)
+        assertEquals(0, storedCell(scB1)?.rowIndex)
+        assertEquals(2, storedCell(scB1)?.colIndex)
+        assertEquals(1, storedCell(scB2)?.rowIndex)
+        assertEquals(1, storedCell(scB2)?.colIndex)
+
+        assertEquals(2, storedCell(secA)?.rowIndex)
+        assertEquals(2, storedCell(scA1)?.rowIndex)
+        assertEquals(2, storedCell(scA1)?.colIndex)
+        assertEquals(3, storedCell(scA2)?.rowIndex)
+        assertEquals(0, storedCell(scA2)?.colIndex)
+
+        val entities = dbRule.db.launcherCellDao().getAllCellsSync()
+        val domainCells = entities.mapNotNull {
+            val o = LauncherOrientation.entries.firstOrNull { e -> e.name == it.orientation }
+            val k = LauncherCellKind.entries.firstOrNull { e -> e.name == it.kind }
+            if (o != null && k != null) {
+                LauncherCell(
+                    id = it.id,
+                    orientation = o,
+                    rowIndex = it.rowIndex,
+                    colIndex = it.colIndex,
+                    spanW = it.spanW,
+                    spanH = it.spanH,
+                    kind = k,
+                    target = it.target,
+                    labelOverride = it.labelOverride,
+                    addedAt = it.addedAt,
+                )
+            } else {
+                null
+            }
+        }
+        val sectionsInOrder = LauncherSectionMembership.sectionsInOrder(domainCells)
+
+        val b1Cell = domainCells.first { it.id == scB1 }
+        val b2Cell = domainCells.first { it.id == scB2 }
+        val a1Cell = domainCells.first { it.id == scA1 }
+        val a2Cell = domainCells.first { it.id == scA2 }
+
+        assertEquals("sec:beta", LauncherSectionMembership.ownerOf(b1Cell, sectionsInOrder)?.target)
+        assertEquals("sec:beta", LauncherSectionMembership.ownerOf(b2Cell, sectionsInOrder)?.target)
+        assertEquals("sec:alpha", LauncherSectionMembership.ownerOf(a1Cell, sectionsInOrder)?.target)
+        assertEquals("sec:alpha", LauncherSectionMembership.ownerOf(a2Cell, sectionsInOrder)?.target)
+    }
+
+    @Test
+    fun `swapping past the first or last section is a no-op returning false`() = runTest {
+        val secA = add(section(row = 0).copy(target = "sec:alpha"))!!
+        val secB = add(section(row = 2).copy(target = "sec:beta"))!!
+
+        assertFalse(repository.swapSectionBlock(LauncherOrientation.PORTRAIT, secA, moveUp = true))
+        assertFalse(repository.swapSectionBlock(LauncherOrientation.PORTRAIT, secB, moveUp = false))
+
+        assertEquals(0, storedCell(secA)?.rowIndex)
+        assertEquals(2, storedCell(secB)?.rowIndex)
+    }
+
+    private companion object {
+        /** Wide enough that no seeding call is refused for width alone. */
+        const val COLUMNS = 8
     }
 }

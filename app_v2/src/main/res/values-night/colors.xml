@@ -8,6 +8,22 @@
     <!-- Accent colors -->
     <color name="teal_700">#FF4DB6AC</color>
 
+    <!-- S1895: night half of the three roles the app paints with but never defined. Values equal
+         what the Material 3 baseline resolved them to before, so ownership costs no pixel. -->
+    <color name="m3_surface_variant">#FF49454F</color>
+    <color name="m3_tertiary">#FFEFB8C8</color>
+    <color name="m3_error">#FFF2B8B5</color>
+
+    <!-- S1895: launcher taskbar and Start-panel foregrounds, night half. Group 2 is #80CBC4 rather
+         than the teal accent #4DB6AC: that value clears the bar on the base dark surface but falls
+         to 6.89:1 on the Dark Green theme's, and the threshold holds under every colour theme. -->
+    <color name="launcher_taskbar_start_text">#FFE1F0FD</color>
+    <color name="launcher_taskbar_all_apps_text">#FFE6EBED</color>
+    <color name="launcher_start_row_group1">#FF64B5F6</color>
+    <color name="launcher_start_row_group2">#FF80CBC4</color>
+    <color name="launcher_start_row_group3">#FFEFB8C8</color>
+    <color name="launcher_start_row_group4">#FFF2B8B5</color>
+
     <!-- Basic colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
@@ -196,4 +212,9 @@
     <color name="color_media_other">#FFB0BEC5</color>     <!-- Blue Grey 200 -->
     <!-- S0997: splash-screen center content (app logo + wordmark) - dark on the light splash background, light in night mode. -->
     <color name="splash_content">#FFECEFF1</color>
+    <!-- S1706: splash logo gradient - same sampled blues as day; they carry on the dark splash background too. -->
+    <color name="splash_logo_gradient_start">#FFB8DEF6</color>
+    <color name="splash_logo_gradient_end">#FF1E90F0</color>
+    <!-- S1706: splash slogan - lightened for contrast against the dark splash background. -->
+    <color name="splash_slogan">#FF64B5F6</color>
 </resources>

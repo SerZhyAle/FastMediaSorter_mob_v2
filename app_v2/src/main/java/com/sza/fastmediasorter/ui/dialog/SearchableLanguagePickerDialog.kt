@@ -17,17 +17,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.databinding.DialogSearchableLanguagePickerBinding
 import com.sza.fastmediasorter.databinding.ItemSearchableLanguageBinding
 import com.sza.fastmediasorter.ui.player.helpers.LanguageCapability
 import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
 import com.sza.fastmediasorter.ui.player.helpers.LanguageItem
 import com.sza.fastmediasorter.ui.player.helpers.TranslationLanguageCatalog
-import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import java.util.Locale
-import javax.inject.Inject
 
 /**
  * Searchable language picker. Returns the chosen language code to the host through a FragmentResult
@@ -35,11 +31,9 @@ import javax.inject.Inject
  * rebuilds a restored dialog with the no-arg constructor, so a field-held handler would be null and
  * the pick would be dropped without a trace.
  */
-@AndroidEntryPoint
+// S1703: @AndroidEntryPoint dropped - the dialog lost its only @Inject member with PaddleOCR's
+// withdrawal and injects nothing now (Rule 20).
 class SearchableLanguagePickerDialog : DialogFragment() {
-
-    @Inject
-    lateinit var capabilityAvailability: CapabilityAvailability
 
     private var _binding: DialogSearchableLanguagePickerBinding? = null
     private val binding get() = _binding!!
@@ -87,7 +81,6 @@ class SearchableLanguagePickerDialog : DialogFragment() {
         languageAdapter = LanguageAdapter(
             selectedCode = selectedCode,
             mode = mode,
-            noLegalOcrLabelsEnabled = capabilityAvailability.isOcrEngineSelectionAvailable(),
             onClick = { language ->
                 setFragmentResult(requestKey, bundleOf(RESULT_LANGUAGE_CODE to language.code))
                 dismiss()
@@ -175,7 +168,6 @@ class SearchableLanguagePickerDialog : DialogFragment() {
     private class LanguageAdapter(
         private val selectedCode: String,
         private val mode: Mode,
-        private val noLegalOcrLabelsEnabled: Boolean,
         private val onClick: (LanguageItem) -> Unit
     ) : RecyclerView.Adapter<LanguageAdapter.LanguageViewHolder>() {
 
@@ -188,7 +180,7 @@ class SearchableLanguagePickerDialog : DialogFragment() {
                 parent,
                 false
             )
-            return LanguageViewHolder(binding, mode, noLegalOcrLabelsEnabled, onClick)
+            return LanguageViewHolder(binding, mode, onClick)
         }
 
         override fun onBindViewHolder(holder: LanguageViewHolder, position: Int) {
@@ -222,7 +214,6 @@ class SearchableLanguagePickerDialog : DialogFragment() {
         private class LanguageViewHolder(
             private val binding: ItemSearchableLanguageBinding,
             private val mode: Mode,
-            private val noLegalOcrLabelsEnabled: Boolean,
             private val onClick: (LanguageItem) -> Unit
         ) : RecyclerView.ViewHolder(binding.root) {
 
@@ -268,12 +259,7 @@ class SearchableLanguagePickerDialog : DialogFragment() {
             private fun LanguageItem.capabilityLabel(context: Context, mode: Mode): String {
                 return capabilities
                     .filter { capability ->
-                        when {
-                            capability == LanguageCapability.TRANSLATION -> true
-                            mode != Mode.SOURCE -> false
-                            capability == LanguageCapability.NO_LEGAL_OCR -> noLegalOcrLabelsEnabled
-                            else -> true
-                        }
+                        capability == LanguageCapability.TRANSLATION || mode == Mode.SOURCE
                     }
                     .distinct()
                     .joinToString(separator = " · ") { capability ->
@@ -286,7 +272,6 @@ class SearchableLanguagePickerDialog : DialogFragment() {
                     LanguageCapability.TRANSLATION -> R.string.language_capability_translation
                     LanguageCapability.BASIC_OCR -> R.string.language_capability_basic_ocr
                     LanguageCapability.QUALITY_OCR -> R.string.language_capability_quality_ocr
-                    LanguageCapability.NO_LEGAL_OCR -> R.string.language_capability_nolegal_ocr
                 }
 
             companion object {

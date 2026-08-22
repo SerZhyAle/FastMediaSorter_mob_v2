@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLocationProvider
 import com.sza.fastmediasorter.ui.cameracapture.helpers.HeadlessPhotoCapturer
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraAspectSelection
 import com.sza.fastmediasorter.ui.player.standalone.PhotoVideoStandaloneActivity
+import com.sza.fastmediasorter.util.CaptureFileNamer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -23,9 +24,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
  * S0790-S0794 - all business logic for the edge-gesture "take photo" family, kept out of the thin
@@ -97,7 +95,9 @@ class PhotoCaptureLaunchManager(
             return
         }
         pendingDir = dir
-        pendingBaseName = "CAP_" + SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+        val fileName = CaptureFileNamer.shared.allocate(CaptureFileNamer.CaptureKind.PHOTO, ".jpg")
+        Timber.d("S1882: headless photo output $fileName")
+        pendingBaseName = fileName.removeSuffix(".jpg")
         if (hasCameraPermission()) performCapture() else requestPermission()
     }
 

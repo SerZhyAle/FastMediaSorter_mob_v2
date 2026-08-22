@@ -145,10 +145,30 @@ class ScanSubnetUseCase @Inject constructor(
         is SubnetScanTarget.AddressRange -> resolveRange(target)
     }
 
+    /**
+     * S1617: the range [SubnetScanTarget.DeviceSubnet] would scan, or null when the device has no usable
+     * IPv4 address.
+     *
+     * Exposed so the screen can show the default instead of leaving two empty fields that silently mean
+     * "this network". The screen must not derive the range itself: two derivations of one range drift the
+     * moment either is touched, and the scan is the one that has to be right.
+     *
+     * Suspending on the IO dispatcher rather than a plain call: finding the address enumerates every
+     * network interface on the device, and the first version of this did it on the main thread at screen
+     * open - blocking work for a value that is only a hint.
+     */
+    suspend fun deviceSubnetRange(): SubnetScanTarget.AddressRange? = withContext(ioDispatcher) {
+        val prefix = deviceSubnetPrefix() ?: return@withContext null
+        SubnetScanTarget.AddressRange("$prefix.$FIRST_HOST_OCTET", "$prefix.$LAST_HOST_OCTET")
+    }
+
+    private fun deviceSubnetPrefix(): String? =
+        prober.getLocalIpAddress()?.let { localIp -> prober.extractSubnet(localIp) }
+
     private fun resolveDeviceSubnet(): AddressResolution {
-        val localIp = prober.getLocalIpAddress()
+        val prefix = deviceSubnetPrefix()
             ?: return AddressResolution.Refused(SubnetScanState.SubnetUnknown)
-        val prefix = prober.extractSubnet(localIp)
+        val localIp = prober.getLocalIpAddress()
         val addresses = (FIRST_HOST_OCTET..LAST_HOST_OCTET)
             .map { octet -> "$prefix.$octet" }
             .filterNot { it == localIp }

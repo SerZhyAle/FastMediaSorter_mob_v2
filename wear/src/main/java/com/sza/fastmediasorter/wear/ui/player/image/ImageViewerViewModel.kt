@@ -4,7 +4,9 @@ import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
+import com.sza.fastmediasorter.wear.domain.model.favoriteSourceId
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
@@ -12,6 +14,7 @@ import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.DownloadNetworkFileUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.SendFavoritesDeltaUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.ToggleFavoriteUseCase
 import com.sza.fastmediasorter.wear.ui.slideshow.ImageSlideshowController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,6 +38,7 @@ class ImageViewerViewModel @Inject constructor(
     private val downloadNetworkFile: DownloadNetworkFileUseCase,
     private val favoritesRepository: WearFavoritesRepository,
     private val sendFavoritesDeltaUseCase: SendFavoritesDeltaUseCase,
+    private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -246,20 +250,32 @@ class ImageViewerViewModel @Inject constructor(
 
     fun toggleFavorite() {
         val selected = selectedMediaManager.getSelectedFileById(fileId)
-        val sourceId = if (selected?.isNetworkSource == true) "network" else "local"
-        val filePath = if (selected?.isNetworkSource == true) {
+        val isNetwork = selected?.isNetworkSource == true
+        // S1846: one rule for the source id, shared with the audio player - the two used to disagree.
+        val sourceId = favoriteSourceId(isNetwork, selected?.sourceId)
+        val filePath = if (isNetwork) {
             selected.streamUri
         } else {
             _uiState.value.mediaFile?.uri?.toString() ?: return
         }
+        val displayName = _uiState.value.mediaFile?.name ?: filePath.substringAfterLast('/')
         viewModelScope.launch {
-            if (_isFavorite.value) {
-                favoritesRepository.removeFavorite(sourceId, filePath)
+            // S1846: marking goes through the use case that also pushes the delta, which is what the audio
+            // player already did; this screen used to bypass it and repeat both halves by hand.
+            _isFavorite.value = if (_isFavorite.value) {
+                toggleFavoriteUseCase.toggle(sourceId, filePath, wasFavorite = true)
             } else {
-                favoritesRepository.addFavorite(sourceId, filePath)
+                favoritesRepository.addFavorite(
+                    WearFavoriteRecord(
+                        sourceId = sourceId,
+                        filePath = filePath,
+                        displayName = displayName,
+                        mimeType = _uiState.value.mediaFile?.mimeType
+                    )
+                )
+                sendFavoritesDeltaUseCase()
+                true
             }
-            _isFavorite.value = !_isFavorite.value
-            sendFavoritesDeltaUseCase()
         }
     }
 

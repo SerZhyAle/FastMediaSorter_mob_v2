@@ -13,7 +13,11 @@ object CrashReportFormatter {
         val sb = StringBuilder(4096)
         sb.append("FastMediaSorter DEBUG CRASH\n")
         sb.append("Timestamp: ${timeFormat.format(Date())}\n")
-        sb.append("Thread: ${thread.name} (${thread.id})\n")
+        // S1685: Thread.getId() is deprecated in newer JDKs in favour of threadId(), which Android does
+        // not expose at our minSdk - the id stays and the suppression records why.
+        @Suppress("DEPRECATION")
+        val threadId = thread.id
+        sb.append("Thread: ${thread.name} ($threadId)\n")
         sb.append("Exception: ${throwable.javaClass.name}\n")
         sb.append("Message: ${throwable.message ?: "<no message>"}\n\n")
 

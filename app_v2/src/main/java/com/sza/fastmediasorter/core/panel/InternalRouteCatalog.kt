@@ -40,6 +40,13 @@ object InternalRouteCatalog {
     const val KEY_SCREEN_RECORDING = "screen_recording"
     const val KEY_LINK_DOWNLOAD = "link_download"
 
+    // S1796: the screen itself used as a lamp - a program like its neighbours, with its own toggle.
+    const val KEY_FRONT_FLASHLIGHT = "front_flashlight"
+
+    // S1733: system information as a program of its own, reachable without going into settings.
+    const val KEY_SYSTEM_INFO = "system_info"
+    const val KEY_WEAR_COMPANION = "wear_companion"
+
     // S0978: the camera/video gesture actions that already have a Context-generic trampoline, offered
     // as panel routes too (labels reused from the left-edge gesture picker so wording never drifts).
     const val KEY_TAKE_PHOTO_SEND_TO = "take_photo_send_to"
@@ -68,6 +75,7 @@ object InternalRouteCatalog {
             labelRes = R.string.app_launch_panel_route_calculator,
             iconRes = R.drawable.ic_calculator,
             intent = AppLaunchPanelRouteIntents::calculator,
+            settingsIntent = AppLaunchPanelRouteIntents::calculatorSettings,
         ),
         Route(
             key = KEY_NETWORK_MONITOR,
@@ -82,6 +90,24 @@ object InternalRouteCatalog {
             iconRes = R.drawable.ic_game_kryvavitsa,
             intent = AppLaunchPanelRouteIntents::game,
             settingsIntent = { com.sza.fastmediasorter.core.game.GameLaunchIntents.settingsGameToggle(it) },
+        ),
+        // S1733: label reused from the settings dialog rather than minted fresh, the way the network
+        // monitor reuses its own title - two wordings for one program drift apart.
+        Route(
+            key = KEY_SYSTEM_INFO,
+            labelRes = R.string.settings_system_info_title,
+            iconRes = R.drawable.ic_info,
+            intent = AppLaunchPanelRouteIntents::systemInfo,
+            settingsIntent = AppLaunchPanelRouteIntents::systemInfoSettings,
+        ),
+        // S1883: label reused from the button that has always opened the companion, for the same reason
+        // system information reuses its settings string - two wordings for one program drift apart.
+        Route(
+            key = KEY_WEAR_COMPANION,
+            labelRes = R.string.wear_companion,
+            iconRes = R.drawable.ic_watch,
+            intent = AppLaunchPanelRouteIntents::wearCompanion,
+            settingsIntent = AppLaunchPanelRouteIntents::wearCompanionSettings,
         ),
         Route(
             key = KEY_OCR,
@@ -126,6 +152,13 @@ object InternalRouteCatalog {
             labelRes = R.string.download_by_link_menu_label,
             iconRes = R.drawable.ic_cloud_download,
             intent = AppLaunchPanelRouteIntents::linkDownload,
+        ),
+        Route(
+            key = KEY_FRONT_FLASHLIGHT,
+            labelRes = R.string.front_flashlight_title,
+            iconRes = R.drawable.ic_front_flashlight,
+            intent = AppLaunchPanelRouteIntents::frontFlashlight,
+            settingsIntent = AppLaunchPanelRouteIntents::frontFlashlightSettings,
         ),
         // S0978: camera/video gesture actions with an existing standalone trampoline. Labels reuse the
         // left-edge gesture picker's own strings; order follows the ScreenshotGestureAction enum order.

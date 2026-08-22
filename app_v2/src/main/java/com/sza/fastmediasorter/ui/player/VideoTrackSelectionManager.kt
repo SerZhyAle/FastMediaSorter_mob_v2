@@ -190,7 +190,9 @@ class VideoTrackSelectionManager(
             if (group.type != C.TRACK_TYPE_TEXT) continue
             for (trackIndex in 0 until group.length) {
                 val format = group.getTrackFormat(trackIndex)
-                val lang = format.language?.let { java.util.Locale(it).displayLanguage } ?: ""
+                // S1685: Media3 reports the track language as a BCP-47 tag, which is exactly what
+                // forLanguageTag parses - the deprecated constructor took a raw ISO code.
+                val lang = format.language?.let { java.util.Locale.forLanguageTag(it).displayLanguage } ?: ""
                 val label = if (lang.isNotEmpty()) {
                     "$lang (Track $trackNumber)"
                 } else {

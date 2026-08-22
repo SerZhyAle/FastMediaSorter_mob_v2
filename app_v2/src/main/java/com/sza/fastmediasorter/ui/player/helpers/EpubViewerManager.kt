@@ -66,6 +66,17 @@ class EpubViewerManager(
         }
     }
 
+    /**
+     * S1549: re-point at a re-inflated hierarchy. The parsed book, the chapter index and the live
+     * WebView all survive - the WebView is moved into the new container rather than re-created,
+     * which is what keeps the reading position across a rotation.
+     */
+    override fun rebindLayoutRoot(newRoot: View) {
+        super.rebindLayoutRoot(newRoot)
+        safeViews.rebindRoot(newRoot)
+        webViewLifecycle.rebindLayoutRoot(newRoot)
+    }
+
     interface EpubViewerCallback {
         fun showError(message: String)
         fun displayTranslatedText(text: String)
@@ -387,8 +398,6 @@ class EpubViewerManager(
 
                             if (chapterCount > 0) {
                                 showChapter(startChapter)
-                                if (startChapter > 0) {
-                                }
 
                                 // Hide navigation controls for single-chapter EPUBs
                                 val isSingleChapter = chapterCount == 1

@@ -3,10 +3,12 @@ package com.sza.fastmediasorter.ui.common.compose
 import android.content.Context
 import androidx.annotation.AttrRes
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
@@ -35,7 +37,13 @@ private const val DARK_SURFACE_LUMINANCE = 0.5f
 fun FastMediaSorterComposeTheme(content: @Composable () -> Unit) {
     val context = LocalContext.current
     val colorScheme = remember(context) { context.resolveComposeColorScheme() }
-    MaterialTheme(colorScheme = colorScheme, content = content)
+    MaterialTheme(colorScheme = colorScheme) {
+        // M3's MaterialTheme provides no LocalContentColor, and its composition-local default is a
+        // hardcoded Color.Black - so any Text outside a Surface, Card or Scaffold renders black and
+        // disappears on a dark background regardless of the scheme resolved above. Every island in
+        // this app is hosted on a themed View surface, which makes onSurface the right default.
+        CompositionLocalProvider(LocalContentColor provides colorScheme.onSurface, content = content)
+    }
 }
 
 private fun Context.resolveComposeColorScheme(): ColorScheme {

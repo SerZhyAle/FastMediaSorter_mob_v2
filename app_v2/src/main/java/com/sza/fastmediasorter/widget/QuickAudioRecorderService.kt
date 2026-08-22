@@ -29,6 +29,7 @@ import com.sza.fastmediasorter.data.transfer.strategies.LocalToSmbStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.CloudOperationStrategy
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.util.CaptureFileNamer
 import com.sza.fastmediasorter.util.RecordingElapsedTimer
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -38,9 +39,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import javax.inject.Inject
 
 /**
@@ -109,8 +107,9 @@ class QuickAudioRecorderService : Service() {
         }
 
         val dir = (getExternalFilesDir(Environment.DIRECTORY_MUSIC) ?: filesDir).apply { mkdirs() }
-        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        val file = File(dir, "REC_$timestamp.m4a")
+        val fileName = CaptureFileNamer.shared.allocate(CaptureFileNamer.CaptureKind.AUDIO, ".m4a")
+        Timber.d("S1882: widget audio output $fileName")
+        val file = File(dir, fileName)
         outputFile = file
 
         val recorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {

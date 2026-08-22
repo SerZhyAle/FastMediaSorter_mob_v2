@@ -3,7 +3,7 @@
      Untranslated keys are absent on purpose - Android falls back to English (S1190, ADR-6). -->
 <resources>
     <string name="settings">Paramètres</string>
-    <string name="settings_3d_vr_help_message">Le mode 3D VR offre une lecture immersive de vidéos et de photos sur les casques comme Meta Quest 3 et Android XR. Sur les appareils sans environnement XR, l\'interrupteur principal reste inactif. L\'application détecte le format vidéo (SBS, OU, 360°, VR180) automatiquement ; le réglage manuel se trouve dans la boîte de dialogue du lecteur.</string>
+    <string name="settings_3d_vr_help_message">La VR 3D offre une lecture immersive de vidéos et de photos sur des casques tels que Meta Quest 3 et Android XR. Sur les appareils sans environnement d\'exécution XR, l\'interrupteur principal reste inactif. L\'application détecte automatiquement le format vidéo (SBS, OU, 360°, VR180) ; une substitution manuelle est disponible dans la boîte de dialogue du lecteur.</string>
     <string name="settings_3d_vr_help_title">À propos du mode 3D VR</string>
     <string name="settings_accept_shared_files">Accepter les fichiers partagés</string>
     <string name="settings_already_default_player">✓ Déjà défini par défaut</string>
@@ -195,14 +195,14 @@
     <string name="pref_crop_images_fullscreen_title">Rogner les images pour remplir l\'écran</string>
     <string name="pref_dynamic_background_summary">Combler les \"bandes noires\" en prolongeant les couleurs du bord de l\'image (effet Ambilight)</string>
     <string name="pref_dynamic_background_title">Extension dynamique de l\'arrière-plan</string>
-    <string name="pref_file_ops_overflow_menu_desc">Regroupe copier, déplacer, renommer et supprimer dans un bouton ⋮ sur chaque ligne de fichier. Le bouton Lecture reste toujours séparé.</string>
+    <string name="pref_file_ops_overflow_menu_desc">Regroupe copier, déplacer, renommer et supprimer dans un bouton ⋮ sur chaque ligne de fichier. Le bouton lecture reste toujours séparé.</string>
     <string name="pref_file_ops_overflow_menu_title">Actions de fichier dans le menu déroulant</string>
     <string name="pref_panel_stereo_single_eye_summary">Quand l\'option est activée, les vidéos stéréo côte à côte et haut-bas ainsi que les photos plein écran sont rognées à un seul œil et étirées sur tout l\'écran - confortable à regarder sans lunettes 3D. Par défaut : activé. Le rendu VR immersif ignore ce réglage et affiche l\'image stéréo complète.</string>
     <string name="pref_panel_stereo_single_eye_title">Afficher le contenu 3D d\'un seul œil</string>
     <string name="pref_prefetch_cache_auto">Automatique</string>
-    <string name="pref_prefetch_cache_help_message">Détermine quelle portion d\'une vidéo en streaming est mise en mémoire tampon en avance.\n\n• Moins (0,5×) - tampon minimal. L\'indicateur de pré-cache et la proposition d\'\"enregistrer la vidéo mise en cache\" sont masqués. Économise l\'espace disque et la bande passante ; sur un réseau lent la lecture peut saccader.\n• Automatique - taille par défaut choisie par le lecteur selon l\'appareil et le réseau du moment.\n• Plus (2×) - tampon plus grand pour une lecture plus fluide sur les réseaux instables. Occupe plus d\'espace disque.</string>
+    <string name="pref_prefetch_cache_help_message">Contrôle la quantité de vidéo en streaming mise en mémoire tampon en avance sur la tête de lecture.\n\n• Moins (0.5×) - mise en mémoire tampon minimale. L\'indicateur de progression de pré-cache et l\'offre « enregistrer la vidéo mise en cache » sont masqués. Économise l\'espace disque et la bande passante ; sur un réseau lent, la lecture peut être saccadée.\n• Auto - taille par défaut choisie par le lecteur selon l\'appareil et le réseau actuel.\n• Plus (2×) - mémoire tampon plus grande pour une lecture plus fluide sur des réseaux instables. Utilise plus d\'espace disque.</string>
     <string name="pref_prefetch_cache_help_title">Taille du pré-cache vidéo</string>
-    <string name="pref_prefetch_cache_less">Moins (0,5×)</string>
+    <string name="pref_prefetch_cache_less">Moins (0.5×)</string>
     <string name="pref_prefetch_cache_more">Plus (2×)</string>
     <string name="pref_prefetch_cache_title">Taille du pré-cache vidéo</string>
     <string name="pref_streaming_cleanup_ask">Demander à chaque fois</string>
@@ -252,4 +252,13 @@
     <string name="settings_open_default_apps_dialog">Définir par défaut</string>
     <string name="default_apps_dialog_title">Application par défaut</string>
     <string name="language_download_failed">Impossible de télécharger cette langue. Vérifiez votre connexion internet et réessayez - l\'application conserve la langue qu\'elle utilise actuellement.</string>
+    <string name="pref_resource_grid_cell_size_title">Taille des cellules de la grille de ressources</string>
+    <string name="pref_resource_grid_cell_size_small">Petite</string>
+    <string name="pref_resource_grid_cell_size_medium">Moyenne</string>
+    <string name="pref_resource_grid_cell_size_large">Grande</string>
+    <string name="settings_enable_system_info">Informations système</string>
+    <string name="settings_enable_system_info_summary">Afficher les informations système dans le panneau des programmes et le menu</string>
+    <string name="settings_wear_group_title">Wear OS</string>
+    <string name="settings_wear_group_description">Activez cette option si vous avez une montre Wear OS. L\'application compagnon s\'ouvre d\'ici et décide ce que ce téléphone partage avec la montre.</string>
+    <string name="settings_wear_install_guide_button">Comment installer sur une montre</string>
 </resources>

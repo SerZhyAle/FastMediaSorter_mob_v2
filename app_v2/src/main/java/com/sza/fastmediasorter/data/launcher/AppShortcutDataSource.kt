@@ -161,7 +161,6 @@ class AppShortcutDataSource @Inject constructor(
         val pinned = raw
             .filter { it.isEnabled }
             .map { info -> toShortcut(service, info.`package`, info, decodeIcon = false) }
-        Timber.d("S1613: pinned set for this launcher - %d raw, %d live", raw.size, pinned.size)
         return pinned
     }
 

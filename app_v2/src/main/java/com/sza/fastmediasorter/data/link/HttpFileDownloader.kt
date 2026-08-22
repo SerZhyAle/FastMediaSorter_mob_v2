@@ -43,7 +43,6 @@ class HttpFileDownloader @Inject constructor(
                 Timber.i("Send-to http download: not an http(s) url: %s", url)
                 false
             } else {
-                Timber.d("S0494: materializing http source %s", url)
                 execute(httpUrl, target, onProgress)
             }
         }

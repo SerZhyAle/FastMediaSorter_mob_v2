@@ -54,6 +54,24 @@ pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly
 
 Read `.claude/reference/spec-prerelease.md` §"0 - Stream-catalog asset" before pruning, before publishing by any other path, or to read the `alive / dead / geo / unknown` breakdown.
 
+### 0.4 - Judge the release-scope gates over the whole tree (content, no device, GATING)
+
+Needs no device and no gradle. These are the gates whose subject is the state of the whole repository or a shipped artifact, so they say nothing useful about one changed file and everything useful about the scope about to ship (CLAUDE.md Rule 33).
+
+```powershell
+pwsh -NoProfile -File scripts/quality/assert-release-scope-gates.ps1
+```
+
+**Why it exists (S1939).** Applied per ticket, a repository-wide gate cannot attribute its finding to the change in front of it: it either fails on another session's work in flight or is demoted to advisory and stops meaning anything. Measured 2026-08-22 - `assert-unreferenced-strings` and `assert-splash-brand-sync` produced 50 of the 191 red lines that `fg` emitted over 53 runs, none of them about the operator's own work, and `assert-device-profile-matrix` spent 33 minutes of closure time over a month to report a single finding. The relocation is a script with an exit code rather than a list of calls in this file on purpose: gated rules hold at ~99%, rules stated as prose at 1-8%, so moving a gate into prose would change its force instead of its stage.
+
+Branch on the exit code:
+
+- **0** - the release scope is clean. Continue.
+- **1** - at least one gate found a defect. **Release blocker**, and the fix is a repository-wide one: regenerate the artifact the gate names, or delete the dead weight it found. Re-run until 0. The failure is expected to be a batch of small items that accumulated over the cycle - that is the design, not a surprise.
+- **2** - a gate script is absent. Treat as sweep abort (exit 2 in step 4), never as a pass.
+
+Carry the outcome into the step 4 verdict the way 0.7's is carried: exit 1 blocks a clean PASS, exit 2 aborts the sweep.
+
 ### 0.5 - Refresh externally-rotting dependency pins (content, no device, non-gating)
 
 Needs no device, does not gate the emulator verdict; its own failure is a finding on the deps report line, never a sweep abort. On `--dry-run`, list planned checks and run nothing (no network, no writes). Runs **before** step 1 prepare - both build, and `temp/BUILD.LOCK` (Rule 23) admits one gradle invocation at a time.
@@ -123,13 +141,33 @@ On exit 3, read `.claude/reference/spec-prerelease.md` §"0.7" - it names the ar
 
 ```powershell
 pwsh -NoProfile -File scripts/quality/assert-new-lexemes-translated.ps1
+pwsh -NoProfile -File scripts/quality/assert-new-lexemes-translated.ps1 -Module wear
 ```
 
-Branch on its exit code:
+**Both modules, every time (S1628).** The gate has always accepted `-Module`, and this step has always called it without one - so it judged `app_v2` and the watch was never judged at all. The watch is interface too: its 102 keys sat in three locales while the rule claimed thirteen, and nothing said so, because the only thing that would have said so was never invoked. Run both lines; either one at exit 1 blocks the release.
+
+Branch on each exit code:
 
 - **0** - every string reaches all thirteen locales, or its gap predates the rule. Continue.
-- **1** - new untranslated strings exist. **Hard release blocker**, and the fix is a task of this stage, not of the ticket that added the strings: hand `temp/S1627/new_lexemes_en.txt` (written by the gate's own run) to the external translation service, import each returned file with `scripts/utils/locale-bulk-import.ps1 -TextPath <returned file>`, then re-run this step until it is 0. When the values are already known, `set-android-string.ps1 -Action set -Key <key> -Locale <tag>` fills them directly instead. Do not proceed to step 1 on exit 1.
+- **1** - new untranslated strings exist. **Hard release blocker**, and the fix is a task of this stage, not of the ticket that added the strings: hand `temp/S1627/new_lexemes_en.txt` (written by the gate's own run) to the external translation service, import each returned file with `scripts/utils/locale-bulk-import.ps1 -TextPath <returned file>`, then re-run this step until it is 0. The wear run writes its own list; import it with `-Module wear` so the returned strings land in the watch's resources rather than the phone's. When the values are already known, `set-android-string.ps1 -Action set -Key <key> -Locale <tag>` fills them directly instead. Do not proceed to step 1 on exit 1.
 - **2** - the gate cannot verify: its producer or `scripts/quality/locale-untranslated-baseline.txt` is missing. Treat as sweep abort (exit 2 in step 4), same as any infrastructure failure - never as a pass.
+
+### 0.9 - Refuse a tree that still packages a deleted resource (content, no device, GATING)
+
+Needs no device and no gradle, and it runs before the clean install because the install in step 1 is built from exactly the tree this judges.
+
+```powershell
+pwsh -NoProfile -File scripts/quality/assert-no-orphan-merged-resources.ps1
+pwsh -NoProfile -File scripts/quality/assert-no-orphan-merged-resources.ps1 -Module wear
+```
+
+**Why it exists (S1825).** Deleting a file under `src/*/res` does not remove its compiled artifact from `build/intermediates/merged_res`; the artifact keeps shipping and, on a device whose configuration matches its qualifier, wins over the file that is actually in the tree. On 2026-08-20 every variant - `standardRelease` included - packaged a `layout-w600dp/activity_streams.xml` deleted nine days earlier. It stayed invisible while the stale copy was merely old, and turned into a crash on every wide-screen open the moment the live layout gained a view the old one lacks.
+
+Branch on each exit code:
+
+- **0** - every merged artifact still has a source, or nothing is built yet. Continue.
+- **1** - an artifact outlived its source. **Hard release blocker.** Re-run with `-Fix` (it drops the artifacts and the incremental merge state together), then rebuild so the variant re-merges from source, then re-run this step until it is 0. Do not proceed to step 1 on exit 1: the APK the sweep would install is the one carrying the stale resource.
+- **2** - the module directory is absent. Treat as sweep abort (exit 2 in step 4), never as a pass.
 
 Carry the outcome into the step 4 verdict the way 0.7's is carried: exit 1 blocks a clean PASS, exit 2 aborts the sweep.
 
@@ -218,7 +256,7 @@ pwsh -NoProfile -File scripts/devtest/prerelease-verdict.ps1 `
     -Json
 ```
 
-Exit `0` = PASS, `1` = content FAIL, `2` = infrastructure abort. Write timestamped report to `temp/S0484/prerelease_<TS>.md` (device profile, per-stage results, verdict breakdown, evidence paths). Aggregate verdict is `reindex AND log AND perf AND maestro`; screenshots evidence-only. A step-0.7 exit 2 (fresh settings mirror not yet committed) or exit 3 (unfixed catalog/annotation/HOW_TO inconsistency) forces a non-PASS just as a red log audit does - record it on the reindex report line. A step-0.8 exit 1 (new strings still untranslated) forces a non-PASS the same way; record it on its own report line, naming the key count.
+Exit `0` = PASS, `1` = content FAIL, `2` = infrastructure abort. Write timestamped report to `temp/S0484/prerelease_<TS>.md` (device profile, per-stage results, verdict breakdown, evidence paths). Aggregate verdict is `reindex AND log AND perf AND maestro`; screenshots evidence-only. A step-0.7 exit 2 (fresh settings mirror not yet committed) or exit 3 (unfixed catalog/annotation/HOW_TO inconsistency) forces a non-PASS just as a red log audit does - record it on the reindex report line. A step-0.8 exit 1 (new strings still untranslated) forces a non-PASS the same way; record it on its own report line, naming the key count. A step-0.9 exit 1 (a merged artifact outlived its source) forces a non-PASS as well, and its report line names the orphaned resource and the variants that carry it - the sweep's own install is built from that tree, so a pass there would certify a package nobody verified.
 
 Always run detailed log audit below before trusting a PASS - the verdict is a coarse gate; why it never proves a clean run is in `.claude/reference/spec-prerelease.md` §"4".
 
@@ -231,6 +269,8 @@ pwsh -NoProfile -File scripts/devtest/prerelease-log-audit.ps1 -LogFile temp/S04
 ```
 
 Exit `0` = clean, `1` = actionable clusters and/or error toasts present (triage), `2` = log unreadable.
+
+Read the `attribution` field before the clusters: `pid` means each cluster was matched to the app's own process, `heuristic` means the capture carried no app `Start proc` line and the clusters may belong to other processes (S1859).
 
 Treat every **actionable cluster** and every **error toast** as a finding even when machine verdict is PASS. Fold audit's actionable clusters into report's verdict breakdown and into FAIL-branch `/spec-draft` triage below. Include audit JSON path in evidence pack. On exit `1`, read `.claude/reference/spec-prerelease.md` §"4.1 - What the log audit does" to tell a benign cluster from an actionable one before triaging.
 

@@ -215,16 +215,17 @@ $requested = New-Object System.Collections.Generic.List[string]
 foreach ($token in ($Steps -split ',')) {
     $trimmed = $token.Trim()
     if (-not $trimmed) { continue }
-    if ($trimmed -match '^\d{1,2}\.\d{1,3}$') {
-        $parts = $trimmed -split '\.'
-        $tokenPhase = '{0:d2}' -f [int]$parts[0]
+    # The optional letter suffix is a real step id: a plan that inserts work between two already
+    # ticked steps numbers it 4a rather than renumbering everything after it.
+    if ($trimmed -match '^(\d{1,2})\.(\d{1,3})([a-z]?)$') {
+        $tokenPhase = '{0:d2}' -f [int]$Matches[1]
         if ($tokenPhase -ne $phaseNumber) {
             Write-Error "plan-tick: step '$trimmed' names phase $tokenPhase but -Phase is $phaseNumber." -ErrorAction Continue
             exit 2
         }
-        $requested.Add("$phaseNumber.$([int]$parts[1])")
-    } elseif ($trimmed -match '^\d{1,3}$') {
-        $requested.Add("$phaseNumber.$([int]$trimmed)")
+        $requested.Add("$phaseNumber.$([int]$Matches[2])$($Matches[3])")
+    } elseif ($trimmed -match '^(\d{1,3})([a-z]?)$') {
+        $requested.Add("$phaseNumber.$([int]$Matches[1])$($Matches[2])")
     } else {
         Write-Error "plan-tick: '$trimmed' is not a step number." -ErrorAction Continue
         exit 2
@@ -260,8 +261,8 @@ $markerIndexByStep = @{}
 $currentStep = $null
 for ($i = 0; $i -lt $lines.Length; $i++) {
     $line = $lines[$i]
-    if ($line -match '^###\s+Step\s+(\d{1,2})\.(\d{1,3})\b') {
-        $currentStep = "$('{0:d2}' -f [int]$Matches[1]).$([int]$Matches[2])"
+    if ($line -match '^###\s+Step\s+(\d{1,2})\.(\d{1,3})([a-z]?)(?![\w.])') {
+        $currentStep = "$('{0:d2}' -f [int]$Matches[1]).$([int]$Matches[2])$($Matches[3])"
         continue
     }
     if ($line -match '^##\s') { $currentStep = $null; continue }
@@ -353,6 +354,47 @@ for ($i = 0; $i -lt $lines.Length; $i++) {
     }
 }
 
+# S1723: the phase file's own header used to be left alone, so a finished phase read
+# "Status: not started" inside the very file documenting it while INDEX.md said Done for the same
+# phase - measured on 2026-08-17 as 74 of 138 phase files in PLAN/. The counter above and the row
+# in the index were kept in step with each other and with nothing else. Recomputed from the
+# markers, never incremented, for the same reason the index row is: a header that already drifted
+# by hand must end up equal to what the steps say, not equal to itself plus one.
+#
+# S1710: the two surfaces disagreed on the way down. The header recomputed all three states, while
+# the index row only ever moved up - Not started -> In Progress -> Done - so a step reopened after a
+# phase had finished left the row reading "✅ Done" above a "2/5" count, and **Phases:** below counts
+# exactly those ticks, which made the whole plan claim one more finished phase than it had. One
+# computed label now feeds both surfaces, so neither can drift from the markers in either direction.
+$phaseStatusLabel = if ($doneAfter -ge $totalSteps -and $totalSteps -gt 0) {
+    '✅ Done'
+} elseif ($doneAfter -gt 0) {
+    '🚧 In Progress'
+} else {
+    '⬜ Not started'
+}
+$phaseStatusText = "**Status:** $phaseStatusLabel"
+$today = Get-Date -Format 'yyyy-MM-dd'
+for ($i = 0; $i -lt $lines.Length; $i++) {
+    if ($lines[$i] -match '^\*\*Status:\*\*\s*(⛔|⏭)') {
+        # Blocked and Skipped are set by a person and carry a reason no step counter can express, so
+        # a tick leaves them standing; the operator clears them deliberately. The index row below
+        # applies the same exemption, because the two surfaces have to agree about it too.
+        continue
+    } elseif ($lines[$i] -match '^\*\*Status:\*\*\s*(⬜|🚧|✅)') {
+        # Only the header form is touched: a step's own "**Status:** `[x] done`" line never starts
+        # with one of these glyphs, so it cannot be hit by this branch.
+        $lines[$i] = $phaseStatusText
+    } elseif ($lines[$i] -match '^\*\*Started:\*\*\s*-\s*$' -and $doneAfter -gt 0) {
+        $lines[$i] = "**Started:** $today"
+    } elseif ($lines[$i] -match '^\*\*Completed:\*\*' -and $doneAfter -ge $totalSteps -and $totalSteps -gt 0) {
+        $lines[$i] = "**Completed:** $today"
+    } elseif ($lines[$i] -match '^\*\*Completed:\*\*' -and $doneAfter -lt $totalSteps) {
+        # A step reopened after the phase was finished: the completion date is no longer true.
+        $lines[$i] = '**Completed:** -'
+    }
+}
+
 # Durable trace. The primary machine-readable record of an execution is this script's own
 # invocation - a process audit reads transcripts, and the ticket, phase and step numbers are
 # right there in the arguments. The Step Log is the in-repository copy, so someone reading the
@@ -364,6 +406,11 @@ if ($State -eq 'Done' -and $changed.Count -gt 0) {
 
     # Descending, so an insertion never invalidates a marker index still to be processed.
     foreach ($entry in ($changed | Sort-Object -Property line -Descending)) {
+        # S1710: a re-tick that moved no marker gets no line unless the caller brought text of their
+        # own. The default "state set to done" would record a transition that did not happen, while
+        # an explicit -Log on an already-done step is exactly how a phase-boundary note is appended.
+        if ($entry.before -eq $entry.after -and -not $Log -and -not $Note) { continue }
+
         $markerLine = $entry.line - 1
         # NOT $note: PowerShell variable names are case-insensitive, so a local $note IS the
         # $Note parameter. Writing one step's default text into it made the next step reuse it.
@@ -416,10 +463,10 @@ if ($indexRowNumber -ge 0) {
     # equal to what the phase file says, not equal to itself plus one.
     $cells = $indexLines[$indexRowNumber] -split '\|'
     $cells[5] = " $doneAfter/$totalSteps "
-    if ($doneAfter -eq $totalSteps) {
-        $cells[4] = ' ✅ Done '
-    } elseif ($doneAfter -gt 0 -and $cells[4] -match 'Not started') {
-        $cells[4] = ' 🚧 In Progress '
+    if ($cells[4] -notmatch '⛔|⏭') {
+        # The same computed label the phase header just took, exempting only the two operator-set
+        # states. Assigned rather than compared, so the row moves down as readily as up.
+        $cells[4] = " $phaseStatusLabel "
     }
     $indexLines[$indexRowNumber] = ($cells -join '|')
 

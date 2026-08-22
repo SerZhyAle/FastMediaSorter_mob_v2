@@ -24,6 +24,14 @@ sealed interface SectionAvailability {
      */
     data class NoPermission(val manifestName: String) : SectionAvailability
 
+    /**
+     * The permission is granted but the system location switch is off.
+     *
+     * Told apart from [NoPermission] because the recovery differs: a permission dialog changes nothing
+     * here, and the platform withholds the same Wi-Fi facts in both states (S1853).
+     */
+    data object NoLocationService : SectionAvailability
+
     /** Hardware and permission are both fine; nothing is connected at this moment. */
     data object NoNetwork : SectionAvailability
 }

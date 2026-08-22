@@ -13,7 +13,6 @@ import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCa
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * S1500: the one edit-a-channel dialog, raised from wherever a channel can be edited.

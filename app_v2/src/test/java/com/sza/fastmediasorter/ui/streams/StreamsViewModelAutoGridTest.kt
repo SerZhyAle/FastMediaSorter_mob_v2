@@ -35,7 +35,7 @@ class StreamsViewModelAutoGridTest {
         val settingsRepository = mockk<SettingsRepository>()
         every { settingsRepository.getSettings() } returns flowOf(AppSettings())
         val favoritesUseCase = mockk<FavoritesUseCase>(relaxed = true)
-        every { favoritesUseCase.observeFavoriteStreamUrls() } returns flowOf(emptySet())
+        every { favoritesUseCase.observeFavoriteStreamIdentities() } returns flowOf(emptySet())
         val observeStreamPlayOutcomes = mockk<ObserveStreamPlayOutcomesUseCase>()
         every { observeStreamPlayOutcomes() } returns flowOf(emptyMap())
         return StreamsViewModel(
@@ -64,6 +64,10 @@ class StreamsViewModelAutoGridTest {
             // dispatcher keeps the emission synchronous, so the assertions below still observe the
             // state without waiting on a real background thread.
             defaultDispatcher = dispatcherRule.testDispatcher,
+            clearDownloadedStreams = mockk(relaxed = true),
+            // S1799: wear-send gate and use case are inert in this grid-focused test.
+            mediaCapabilities = mockk(relaxed = true),
+            sendStreamToWatchUseCase = mockk(relaxed = true),
         )
     }
 

@@ -14,6 +14,17 @@
     <attr name="dialogActionButtonMinHeight" format="dimension|reference" />
     <attr name="dialogActionButtonGap" format="dimension|reference" />
 
+    <!-- S1895: foreground colours of the launcher taskbar and Start panel. Each theme supplies its
+         own value, measured against the surface it lands on by assert-launcher-contrast.ps1. They
+         are launcher-scoped rather than M3 roles because the same roles paint the rest of the app,
+         where the required lightness would be an unrelated change. -->
+    <attr name="launcherTaskbarStartText" format="color" />
+    <attr name="launcherTaskbarAllAppsText" format="color" />
+    <attr name="launcherStartRowGroup1" format="color" />
+    <attr name="launcherStartRowGroup2" format="color" />
+    <attr name="launcherStartRowGroup3" format="color" />
+    <attr name="launcherStartRowGroup4" format="color" />
+
     <!-- Consumed by CollapsibleSectionHeader.kt. All public attrs use the csh_ prefix. -->
     <declare-styleable name="CollapsibleSectionHeader">
         <attr name="csh_title" format="string|reference" />
@@ -67,6 +78,7 @@
     <!-- Consumed by SettingsDropdownRow.kt. All public attrs use the sdr_ prefix. -->
     <declare-styleable name="SettingsDropdownRow">
         <attr name="sdr_title" format="string|reference" />
+        <attr name="sdr_subtitle" format="string|reference" />
         <attr name="sdr_showHelp" format="boolean" />
         <attr name="sdr_helpTitle" format="string|reference" />
         <attr name="sdr_helpMessage" format="string|reference" />

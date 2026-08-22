@@ -125,7 +125,11 @@ function Get-RulePromptScriptInventory {
     foreach ($root in $Manifest.ScriptRoots) {
         $absRoot = Join-Path $RepoRoot ([string]$root)
         if (-not (Test-Path -LiteralPath $absRoot -PathType Container)) { continue }
-        $files = @(Get-ChildItem -Path $absRoot -Recurse -File -Filter '*.ps1' -ErrorAction SilentlyContinue)
+        # S1850: .sh as well as .ps1. Find-MissingDocumentedScript matches both extensions, so an
+        # inventory of .ps1 alone made every documented .sh a structural false positive - there was no
+        # arrangement of the tree under which scripts/ci/fetch-prebuilt-libs.sh could ever resolve.
+        $files = @(Get-ChildItem -Path $absRoot -Recurse -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.Extension -in @('.ps1', '.sh') })
         foreach ($f in $files) {
             $rel = Convert-ToRelPath -AbsolutePath $f.FullName -RepoRoot $RepoRoot
             if (Test-RulePromptExcluded -RelPath $rel) { continue }

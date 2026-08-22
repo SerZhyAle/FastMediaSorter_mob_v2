@@ -10,6 +10,10 @@
     <string name="s0183_apk_install_success">APK ইনস্টল করা হয়েছে</string>
     <string name="s0183_apk_install_cancelled">ইনস্টলেশন বাতিল করা হয়েছে</string>
     <string name="s0183_apk_install_failed">ইনস্টলেশন ব্যর্থ হয়েছে</string>
+    <string name="s1686_apk_install_failed_downgrade">ইনস্টলেশন ব্যর্থ: একটি নতুন সংস্করণ ইতিমধ্যে ইনস্টল করা আছে</string>
+    <string name="s1686_apk_install_failed_incompatible">ইনস্টলেশন ব্যর্থ: এই APK ইনস্টল করা অ্যাপের চেয়ে ভিন্নভাবে সাইন করা আছে</string>
+    <string name="s1686_apk_install_failed_storage">ইনস্টলেশন ব্যর্থ: পর্যাপ্ত ফাঁকা স্থান নেই</string>
+    <string name="s1686_apk_install_failed_corrupt">ইনস্টলেশন ব্যর্থ: APK ফাইলটি ক্ষতিগ্রস্ত বা অসম্পূর্ণ</string>
     <string name="setting_support_office_documents_desc">সমর্থিত হলে বিল্ট-ইন ভিউয়ারে ওয়ার্ড, স্প্রেডশীট এবং প্রেজেন্টেশন ফাইল খোলে।</string>
     <string name="nolegal_diag_section_os_security">ওএস এবং নিরাপত্তা</string>
     <string name="nolegal_diag_section_permissions">বিশেষ অনুমতি</string>

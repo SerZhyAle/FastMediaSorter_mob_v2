@@ -4,7 +4,6 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
-import timber.log.Timber
 
 // S0238: VR-entry button visibility - open for video and pixel-media (image, gif).
 // Audio / docs / text / pdf / epub do not benefit from VR.

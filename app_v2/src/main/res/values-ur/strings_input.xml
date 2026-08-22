@@ -177,8 +177,8 @@
     <string name="kbm_help_player_playpause">چلائیں / روکیں۔</string>
     <string name="kbm_help_player_prev_next">پچھلی / اگلی فائل</string>
     <string name="kbm_help_player_save">سنیپ شاٹ / کرنٹ محفوظ کریں۔</string>
-    <string name="kbm_help_player_seek_10s">−10s / +10s تلاش کریں۔</string>
-    <string name="kbm_help_player_seek_60s">−60s / +60s تلاش کریں۔</string>
+    <string name="kbm_help_player_seek_10s">سیک −10s / +10s</string>
+    <string name="kbm_help_player_seek_60s">سیک −60s / +60s</string>
     <string name="kbm_help_player_volume">حجم اوپر / نیچے</string>
     <string name="kbm_help_section_dialog">ڈائیلاگ</string>
     <string name="kbm_help_section_file_ops">فائل آپریشنز</string>

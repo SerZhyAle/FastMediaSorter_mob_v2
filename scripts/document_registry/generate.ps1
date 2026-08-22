@@ -13,6 +13,45 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+function Get-PagePermalink {
+    <#
+        S1803: a page declares its own address in its front matter, and that declaration is the only
+        place the address cannot drift from what the site actually serves. A file that declares none
+        is not a page - that is what lets a user-facing group hold an authoring checklist beside its
+        guides without the checklist reaching search.
+    #>
+    param([string] $Path)
+    $head = @(Get-Content -LiteralPath $Path -TotalCount 12 -Encoding utf8 -ErrorAction SilentlyContinue)
+    if ($head.Count -eq 0) { return $null }
+    foreach ($line in $head) {
+        if ($line -match '^\s*permalink:\s*(\S+)\s*$') { return $Matches[1].Trim("'", '"') }
+    }
+    return $null
+}
+
+function Get-RecordPageAddresses {
+    <#
+        Resolve one record's path patterns to the addresses its pages declare, minus the ones the
+        record deliberately withholds. Returns addresses only; the caller decides what to do with them.
+    #>
+    param([object] $Record, [string] $RepoRoot)
+    $excluded = @()
+    if ($Record.PSObject.Properties.Name -contains 'sitemap_exclude') {
+        $excluded = @($Record.sitemap_exclude | ForEach-Object { $_.path })
+    }
+    $addresses = [System.Collections.Generic.List[string]]::new()
+    foreach ($pattern in @($Record.paths)) {
+        $full = Join-Path $RepoRoot $pattern
+        foreach ($file in @(Get-ChildItem -Path $full -File -ErrorAction SilentlyContinue)) {
+            $relative = $file.FullName.Substring($RepoRoot.Length).TrimStart('\', '/').Replace('\', '/')
+            if ($excluded -contains $relative) { continue }
+            $permalink = Get-PagePermalink -Path $file.FullName
+            if ($permalink) { [void]$addresses.Add($permalink) }
+        }
+    }
+    return $addresses
+}
+
 function Set-GeneratedFile {
     param([string] $Path, [string] $Content)
     $current = if (Test-Path -LiteralPath $Path) { Get-Content -LiteralPath $Path -Raw -Encoding utf8 } else { $null }
@@ -52,13 +91,18 @@ try {
     [void]$sitemap.AppendLine('<?xml version="1.0" encoding="UTF-8"?>')
     [void]$sitemap.AppendLine('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">')
     $siteBase = 'https://serzhyale.github.io/FastMediaSorter_mob_v2'
-    foreach ($record in ($records | Where-Object { $_.published -and $_.indexable } | Sort-Object url)) {
+    $indexable = @($records | Where-Object { $_.published -and $_.indexable })
+    # S1803: addresses this pass already announced, so the page-expansion pass below does not repeat
+    # a group's entry point or any of its translated siblings.
+    $announced = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($record in ($indexable | Sort-Object url)) {
         $localized = $record.localized_urls
         if (-not $localized) {
             # Single-language record: one entry, no hreflang cluster to describe.
             [void]$sitemap.AppendLine('  <url>')
             [void]$sitemap.AppendLine("    <loc>$siteBase$($record.url)</loc>")
             [void]$sitemap.AppendLine('  </url>')
+            [void]$announced.Add([string]$record.url)
             continue
         }
         # Translated record: every language is its own indexable page, and each entry repeats the
@@ -74,7 +118,27 @@ try {
             }
             [void]$sitemap.AppendLine(('    <xhtml:link rel="alternate" hreflang="x-default" href="{0}{1}"/>' -f $siteBase, $localized.$default))
             [void]$sitemap.AppendLine('  </url>')
+            [void]$announced.Add([string]$localized.$lang)
         }
+    }
+    # S1803: the loop above announces one address per record - the group's entry point. Every other
+    # page the group holds was built by the site, answered on its own address and was announced to
+    # nobody: 52 of the site's 71 pages, measured 2026-08-18. This pass announces them, taking each
+    # address from the page itself rather than from the record, and skipping the ones the record
+    # deliberately withholds. Language alternates are deliberately not derived here - the repository
+    # carries three locale-naming conventions and choosing between them belongs to S1211.
+    $expanded = [System.Collections.Generic.List[string]]::new()
+    foreach ($record in $indexable) {
+        foreach ($address in (Get-RecordPageAddresses -Record $record -RepoRoot $RepoRoot)) {
+            if ($announced.Contains($address)) { continue }
+            if ($expanded.Contains($address)) { continue }
+            [void]$expanded.Add($address)
+        }
+    }
+    foreach ($address in ($expanded | Sort-Object)) {
+        [void]$sitemap.AppendLine('  <url>')
+        [void]$sitemap.AppendLine("    <loc>$siteBase$address</loc>")
+        [void]$sitemap.AppendLine('  </url>')
     }
     [void]$sitemap.AppendLine('</urlset>')
     $mapDrift = Set-GeneratedFile -Path (Join-Path $RepoRoot 'docs/DOCS_MAP.md') -Content $mapContent

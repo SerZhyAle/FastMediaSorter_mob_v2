@@ -41,9 +41,14 @@ math. A consumer of the bank must slice tile `index` from exactly this rect.
 - **Height grows** with content: `height = ceil(packedTileCount / 16) * 32`.
 - Pixel format RGBA; the canvas is cleared to fully **transparent** before painting, so every unpacked
   cell (including the trailing cells of a partly-filled last row) is transparent, not garbage.
-- Live production atlas (measured): **512 x 3296 px** = 16 cols x 103 rows = 1,648 tile slots, of which
-  **1,636 are packed** (`ceil(1636/16) = 103` rows; the last row has `1648 - 1636 = 12` blank trailing
-  cells). Decoded size ~6.4 MB RGBA; PNG on disk ~2.31 MiB.
+- Live production atlas (measured 2026-08-19): **512 x 11,488 px** = 16 cols x 359 rows = 5,744 tile slots.
+  5,624 rows of the 19,534-row catalog carry a non-empty `favicon_index`; the highest index value
+  referenced by any row is 5,742. These two numbers are **not one-off-from-each-other the way the earlier
+  2026-07-19 snapshot's were** (that snapshot's packed count and highest index differed by exactly the
+  trailing-row remainder) - do not assume every index between 0 and the highest is populated; bounds-check
+  per tile (section 2) rather than trusting a row count. Roughly 71% of the 19,534 channels have **no**
+  favicon at all - that is the bank's normal state, not a defect; a consumer needs a no-favicon fallback for
+  the majority of rows. Decoded size ~22.4 MB RGBA; PNG on disk 6,992,874 bytes (~6.67 MiB).
 - The app never assumes a fixed height - it reads the decoded `Bitmap.width`/`Bitmap.height` at runtime.
 
 ### 1.3 Tile packing order **[CONTRACT-adjacent, important]**
@@ -58,11 +63,12 @@ ordinal in the next build. A consumer must resolve `favicon_index` against the a
 ### 1.4 Edge case: "in bounds but never packed"
 
 Bounds checking (section 2) only verifies a tile rect fits the decoded canvas; it cannot know how many
-tiles were actually packed. An index in `[packedCount, rowsNeeded*16 - 1]` (e.g. 1636..1647 above) is
-numerically in-bounds and decodes to a valid, non-null, **fully transparent** 32x32 bitmap - it does not
-hit the no-favicon fallback. A fresh packer+CSV pair never emits such an index (only mapped ordinals are
-written), but a tampered/foreign coords sidecar could. A stricter consumer can treat "index > max emitted
-ordinal" as invalid.
+tiles were actually painted. An index that fits the canvas but was never assigned to any row decodes to a
+valid, non-null, **fully transparent** 32x32 bitmap - it does not hit the no-favicon fallback. Do not treat
+"index <= highest index referenced in the CSV" as proof the tile is non-blank: the live 2026-08-19 bank
+shows the populated-row count (5,624) below the highest referenced index (5,742), so unused indices can sit
+anywhere in that range, not only past the end. Bounds-check per tile (section 2) and accept a transparent
+result gracefully; do not try to infer "packed" from the row count alone.
 
 ---
 
@@ -167,7 +173,7 @@ An entry named exactly `streams.csv` wins over any other `.csv` (captured as `fa
 entries are skipped. `CatalogPayload(csv, atlasPng: ByteArray?)` - `atlasPng == null` means no atlas entry
 (old catalog) and flows to `write(null, coords)`.
 
-Read caps (`:189-199`): `MAX_CSV_BYTES = 8 MB` (over-cap CSV aborts the import), `MAX_ATLAS_BYTES = 4 MB`
+Read caps (`:213-221`): `MAX_CSV_BYTES = 8 MB` (over-cap CSV aborts the import), `MAX_ATLAS_BYTES = 30 MB`
 (over-cap atlas is dropped, CSV kept), `CATALOG_CALL_TIMEOUT_SECONDS = 30`.
 
 Coords assembly (`:56-63`):
@@ -190,7 +196,8 @@ merge.
    name (skipped like any unknown entry). No crash; images simply invisible to that old app. This is why
    the packer writes the CSV entry **first** (an old app's zip walk reaches `streams.csv` without
    streaming past the whole atlas).
-3. **Atlas oversized**: dropped on read (>4 MB) or never bundled by the packer (>3 MB); CSV still processed.
+3. **Atlas oversized**: dropped on read (>30 MB) or never bundled by the packer (>30 MB); CSV still
+   processed.
 4. **Stale coords vs a smaller atlas**: `isInBounds` rejects -> no thumbnail. (Normally prevented because
    both files are rewritten together from one import.)
 5. **Publish guard (S0925)**: the packer refuses to publish a CSV with any `favicon_index` but no bundled
@@ -293,14 +300,16 @@ list floor `MIN_LIST_COLUMN_WIDTH_DP = 360`.
 |---|---|---|
 | Whole-zip download deadline | 30 s (`CATALOG_CALL_TIMEOUT_SECONDS`, OkHttp `callTimeout`) | app |
 | CSV entry accept cap | 8 MB (`MAX_CSV_BYTES`) | app |
-| Atlas entry accept cap | 4 MB (`MAX_ATLAS_BYTES`) | app |
-| Atlas **publish** cap | 3 MB (`$MaxAtlasBytes`) - stricter, enforced before the app sees it | packer |
+| Atlas entry accept cap | 30 MB (`MAX_ATLAS_BYTES`) | app |
+| Atlas **publish** cap | 30 MB (`$MaxAtlasBytes`) - numerically identical to the app's accept cap | packer |
 | Per-favicon fetch timeout | 8 s (`$FaviconTimeoutSec`) | packer |
 | Favicon fetch concurrency | 16 (`$FaviconThrottle`) | packer |
 | Live-frame capture timeout | 12 s (`CAPTURE_TIMEOUT_MS`) | app |
 | Live-frame TTL / periodic refresh | 60 s / 60 s | app |
 
-(The 4 MB app accept vs 3 MB packer publish gap is headroom, not a two-tier design.)
+(An earlier snapshot of this doc, 2026-07-19, described a 4 MB app accept cap over a 3 MB packer publish
+cap - deliberate headroom. Both sides were raised together to 30 MB and are now numerically identical; no
+headroom margin remains between producer and consumer.)
 
 ---
 

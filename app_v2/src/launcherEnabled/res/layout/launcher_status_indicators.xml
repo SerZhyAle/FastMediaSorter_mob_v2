@@ -2,7 +2,12 @@
 <!-- S1415: the five device indicators in the order the owner fixed (strategic §3.3) - Bluetooth, SIM1,
      SIM2, network type, battery. Bluetooth and the two SIM slots start GONE: each appears only once its
      own source reports a value, so an unreadable indicator is absent rather than empty (ADR-1).
-     S1431: defined once and inflated by both placements, so the set and the order cannot drift apart. -->
+     S1431: defined once and inflated by both placements, so the set and the order cannot drift apart.
+
+     S1767: every indicator is a control, not a label - a tap opens the Android settings section it
+     reports on. Focusable as well as clickable, because this row is read by a D-pad as often as by a
+     finger, and the ring goes in the FOREGROUND: the battery view's background is already its outline,
+     and on the ImageViews a background ring would replace the ripple instead of sitting over it. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/trayIndicators"
@@ -13,6 +18,9 @@
 
     <ImageView
         android:id="@+id/trayBluetooth"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="@drawable/focus_button_background"
         android:layout_width="@dimen/launcher_tray_icon_size"
         android:layout_height="@dimen/launcher_tray_icon_size"
         android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
@@ -22,6 +30,9 @@
 
     <ImageView
         android:id="@+id/traySim1"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="@drawable/focus_button_background"
         android:layout_width="@dimen/launcher_tray_icon_size"
         android:layout_height="@dimen/launcher_tray_icon_size"
         android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
@@ -31,6 +42,9 @@
 
     <ImageView
         android:id="@+id/traySim2"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="@drawable/focus_button_background"
         android:layout_width="@dimen/launcher_tray_icon_size"
         android:layout_height="@dimen/launcher_tray_icon_size"
         android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
@@ -40,6 +54,9 @@
 
     <ImageView
         android:id="@+id/trayNetwork"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="@drawable/focus_button_background"
         android:layout_width="@dimen/launcher_tray_icon_size"
         android:layout_height="@dimen/launcher_tray_icon_size"
         android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
@@ -47,6 +64,9 @@
 
     <TextView
         android:id="@+id/trayBatteryLevel"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="@drawable/focus_button_background"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/launcher_tray_battery_outline"

@@ -10,4 +10,6 @@
     <!-- S1049: landscape resource tabs keep the pre-existing width-aware fixed/fill or scrollable
          behaviour - the portrait fixed-grid does not apply here. -->
     <bool name="main_resource_tabs_fixed_grid">false</bool>
+    <!-- S1549: layout-land/activity_main.xml sets android:gravity="center_vertical" on the row. -->
+    <bool name="main_cmd_bar_center_vertical">true</bool>
 </resources>

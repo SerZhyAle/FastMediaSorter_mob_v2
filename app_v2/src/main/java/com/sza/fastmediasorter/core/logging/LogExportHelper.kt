@@ -43,8 +43,8 @@ object LogExportHelper {
      * Package all log files into the cache ZIP and return a shareable content:// URI, or null when
      * there are no logs or packaging failed. Performs disk I/O - call off the main thread.
      */
-    fun buildLogsZipUri(context: Context): Uri? {
-        val zipFile = buildLogsZip(context) ?: return null
+    fun buildLogsZipUri(context: Context, extraFiles: List<File> = emptyList()): Uri? {
+        val zipFile = buildLogsZip(context, extraFiles) ?: return null
         return try {
             FileProvider.getUriForFile(context, "${context.packageName}$AUTHORITY_SUFFIX", zipFile)
         } catch (e: IllegalArgumentException) {
@@ -53,9 +53,20 @@ object LogExportHelper {
         }
     }
 
-    private fun buildLogsZip(context: Context): File? = StrictModeHelper.allowDiskIO {
+    private fun buildLogsZip(
+        context: Context,
+        extraFiles: List<File> = emptyList()
+    ): File? = StrictModeHelper.allowDiskIO {
         try {
-            val logFiles = LoggingHelper.getLogFiles()
+            // Extra files sit beside the phone's own set rather than replacing it, and an empty phone
+            // log set no longer means an empty zip - a watch report is worth sending on its own.
+            //
+            // S1806: distinctBy is load-bearing, not tidiness. The set now already contains every
+            // watch report in the log directory, and the notification path passes the report it just
+            // wrote as an extra - the same file twice would make ZipOutputStream throw on the second
+            // entry of that name, losing the whole archive rather than one file.
+            val logFiles = (LoggingHelper.getExportableLogFiles(context) + extraFiles)
+                .distinctBy { file -> file.absolutePath }
             if (logFiles.isEmpty()) return@allowDiskIO null
 
             val cacheZip = File(context.cacheDir, ZIP_FILE_NAME)
@@ -85,7 +96,7 @@ object LogExportHelper {
      */
     fun writeZipToUri(context: Context, destUri: Uri): ExportResult {
         return try {
-            val logFiles = StrictModeHelper.allowDiskIO { LoggingHelper.getLogFiles() }
+            val logFiles = StrictModeHelper.allowDiskIO { LoggingHelper.getExportableLogFiles(context) }
             if (logFiles.isNullOrEmpty()) return ExportResult.NoLogs
 
             context.contentResolver.openOutputStream(destUri)?.use { out ->

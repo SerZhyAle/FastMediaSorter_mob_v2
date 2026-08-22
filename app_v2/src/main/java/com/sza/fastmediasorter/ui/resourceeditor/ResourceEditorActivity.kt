@@ -13,7 +13,6 @@ import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 @AndroidEntryPoint
 class ResourceEditorActivity : BaseActivity<ActivityResourceEditorBinding>() {

@@ -16,6 +16,9 @@ import com.sza.fastmediasorter.domain.model.launcher.InstalledAppSortOrder
 data class AppSettings(
     // UI State settings (Persisted view modes)
     val isResourceGridMode: Boolean = false, // Resource list view mode (List/Grid)
+    // S1285: cell size step for the resource grid. Scales the configuration's span count; MEDIUM is
+    // the identity, so an absent stored value leaves the grid exactly as it was.
+    val resourceGridCellSize: ResourceGridCellSize = ResourceGridCellSize.MEDIUM,
     val resourceOpsInOverflowMenu: Boolean = true, // S0160: collapse resource action buttons into ⋮ overflow menu
 
     // S0328: app color theme override. AUTO = follow device night-mode (default, no behavior change),
@@ -31,11 +34,22 @@ data class AppSettings(
     val showSmallControls: Boolean = false,
     val enableCalculator: Boolean = false,
     val embeddedGameEnabled: Boolean = false,
+    // S1796: the front flashlight is a program like its neighbours - off until the user asks for it.
+    val frontFlashlightEnabled: Boolean = false,
+    // S1796: ARGB of the glow. White is the requested start state; the picker writes any other choice here.
+    val frontFlashlightColor: Int = FRONT_FLASHLIGHT_DEFAULT_COLOR,
     // S1433: the Network Monitor program is off until the user asks for it, like every other program.
     val enableNetworkMonitor: Boolean = false,
     // S1433: recording a GNSS track is a separate choice from opening the Monitor - on by default it
     // would change the Play Data Safety answer without the user ever acting.
     val recordGnssTrack: Boolean = false,
+    // S1733: system information becomes a program like its neighbours - off until the user asks for it,
+    // so an update never changes the composition of the programs panel on its own.
+    val enableSystemInfo: Boolean = false,
+    // S1735: the Wear companion becomes a program like its neighbours. Off by default so an update never
+    // adds an entry to the programs panel on its own; it is shown at all only where the build carries the
+    // watch bridge, which is a separate condition read from MediaCapabilities.
+    val enableWearCompanion: Boolean = false,
     // S0755: mirror the programs "three-dots" menu as a horizontal panel on the main window. Default
     // OFF (no behaviour change on upgrade); when ON the top three-dots button is hidden (panel replaces it).
     val showProgramsPanelInMainWindow: Boolean = false,
@@ -378,6 +392,11 @@ data class AppSettings(
     // which frees the Start panel for a longer recents list. Meaningful only while
     // [launcherReplaceSystemStatusArea] is on, since without it there is no freed band to draw in.
     val launcherTopStatusStripMode: Boolean = false,
+    // S1465 ADR-4: whether the top strip also shows other applications' pending notifications as an icon
+    // and a count. Defaults OFF and stays OFF on upgrade: the system notification access may already have
+    // been granted for the "now playing" gadget, and silently widening a consent the user gave for one
+    // purpose to a second one is what gets an app pulled from publication.
+    val launcherForeignNotificationsEnabled: Boolean = false,
     // S1415: composition of the tray itself, one switch per indicator, in the tray's left-to-right order.
     // [launcherTaskbarShowTray] above stays the master switch for the whole block; these only decide what
     // the block contains once it is shown. All default ON so an upgrade looks exactly like the old tray
@@ -403,9 +422,22 @@ data class AppSettings(
     // S1401: the all-apps screen's chosen order, stored as an [InstalledAppSortOrder] name rather than
     // an ordinal so reordering the enum later cannot silently repoint a saved preference.
     val allAppsSortOrder: String = InstalledAppSortOrder.LABEL.name,
-    val allAppsSortDescending: Boolean = false
+    val allAppsSortDescending: Boolean = false,
+    // S1741: launcher-private screen blackout timeout in seconds (0 = Off).
+    val launcherScreenBlackoutTimeoutSeconds: Int = 0,
+    // S1748: launcher widget backdrop opacity (0.0f = 0% transparent, 0.85f = 85% default, 1.0f = 100% opaque).
+    val launcherWidgetBackdropAlpha: Float = 0.85f
 ) {
     companion object {
+        /** S1796: opaque white - the flashlight starts as a plain white lamp until a colour is picked. */
+        const val FRONT_FLASHLIGHT_DEFAULT_COLOR: Int = 0xFFFFFFFF.toInt()
+
+        /** S1748: selectable widget backdrop opacity levels. */
+        val LAUNCHER_WIDGET_BACKDROP_ALPHA_OPTIONS = listOf(0.0f, 0.25f, 0.50f, 0.70f, 0.85f, 1.0f)
+
+        /** S1741: preset screen blackout timeout seconds for launcher settings selector (0 = Off). */
+        val LAUNCHER_SCREEN_TIMEOUT_PRESETS = listOf(0, 5, 15, 30, 60, 300)
+
         /** S0404: selectable launcher grid densities (see [launcherDensityFactor]). */
         val LAUNCHER_DENSITY_OPTIONS = listOf(0.75f, 1.0f, 1.25f, 1.5f)
 

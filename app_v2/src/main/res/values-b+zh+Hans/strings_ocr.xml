@@ -5,9 +5,6 @@
     <string name="ocr_best_model_delete">删除</string>
     <string name="ocr_best_model_download">下载</string>
     <string name="ocr_button_description">提取文本</string>
-    <string name="ocr_engine_type">OCR引擎</string>
-    <string name="ocr_engine_type_paddleocr">桨板障碍赛</string>
-    <string name="ocr_engine_type_tesseract">Tesseract（默认）</string>
     <string name="ocr_error">无法识别文本。</string>
     <string name="ocr_extract_image_failed">无法将此图像准备好进行OCR识别。请重试。</string>
     <string name="ocr_font_family">OCR 字体系列</string>

@@ -4,7 +4,42 @@
     
     <!-- Network permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!--
+        S1728: asks the platform for a wide-band transport while a stream plays, and gives it back when
+        the stream ends. Only the request needs this; reading the current link needs nothing beyond
+        ACCESS_NETWORK_STATE, which already reaches this app through the merged manifest.
+    -->
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!--
+        S1710: the Network Monitor mini-program reads THIS watch's own radios. Only what the sampling
+        actually calls is declared (Rule 13). READ_PHONE_STATE is deliberately absent (owner ruling
+        2026-08-21): the operator name comes from TelephonyManager.networkOperatorName, which needs no
+        permission, and the per-SIM detail that does need it is not carried to the watch at all.
+    -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
+    <!-- Wi-Fi section: the visible-network list on API 33+. -->
+    <uses-permission
+        android:name="android.permission.NEARBY_WIFI_DEVICES"
+        android:minSdkVersion="33" />
+
+    <!-- Wi-Fi scan results and the last location fix age below API 33; the GNSS section's own reading. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!-- Bluetooth section on API 30 and below; API 31+ routes through BLUETOOTH_CONNECT instead. -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
+
+    <!-- Bluetooth section: adapter state on API 31+. -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_CONNECT"
+        android:minSdkVersion="31" />
     
     <!-- Storage permissions -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" 
@@ -19,16 +54,25 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:localeConfig="@xml/locales_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.DeviceDefault">
         <meta-data
             android:name="com.google.android.wearable.standalone"
             android:value="true" />
+        <!-- S1721: the watch absorbs a rotation instead of being recreated by it. On a 480x480 screen a
+             rotation changes no proportions, so a recreate reads as the screen resetting itself - the
+             Compose tree and the navigation stack are rebuilt for nothing.
+             Safe here and NOT a repeat of the S1549 defect: that rule is about layouts chosen by an
+             orientation qualifier at inflate time, and this module has no res/layout* at all. Compose
+             receives the new configuration through LocalConfiguration and recomposes. If a view layout ever
+             appears in this module, this declaration stops being free. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
+            android:theme="@style/Theme.FastMediaSorterWear">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -40,9 +84,21 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <!-- S1697: the mirror of the phone-side filter. onMessageReceived handled the phone's
+                     playback command and onDataChanged the settings push, but neither action nor path
+                     was declared, so GMS delivered only the network-sources data item. -->
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
                 <data
                     android:host="*"
                     android:pathPrefix="/fms/network_sources"
+                    android:scheme="wear" />
+                <data
+                    android:host="*"
+                    android:pathPrefix="/fms/phone"
+                    android:scheme="wear" />
+                <data
+                    android:host="*"
+                    android:pathPrefix="/fms/wear"
                     android:scheme="wear" />
             </intent-filter>
         </service>

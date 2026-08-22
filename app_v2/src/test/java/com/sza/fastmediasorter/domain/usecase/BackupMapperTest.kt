@@ -261,4 +261,65 @@ class BackupMapperTest {
 
         assertEquals(true, restored.linkAutoDownloadOpenInPlayer)
     }
+
+    // --- S1740: launcher export/import ---
+
+    @Test
+    fun `launcher settings round-trip through backup mapper`() {
+        val current = createAppSettings().copy(
+            launcherDensityFactor = 1.25f,
+            launcherTaskbarPlacement = "TOP",
+            launcherTaskbarShowRecents = false,
+            launcherWallpaperMode = "STATIC_STRIPES",
+            launcherWallpaperImagePath = "/path/to/custom_wallpaper.png",
+            launcherDesktopLocked = true,
+            allAppsSortOrder = "USAGE_COUNT",
+            allAppsSortDescending = true,
+            launcherScreenBlackoutTimeoutSeconds = 60
+        )
+
+        val backup = BackupMapper.toBackupSettings(current)
+        val restored = BackupMapper.toAppSettings(backup, createAppSettings(), BackupPayload.CURRENT_VERSION)
+
+        assertEquals(1.25f, restored.launcherDensityFactor)
+        assertEquals("TOP", restored.launcherTaskbarPlacement)
+        assertEquals(false, restored.launcherTaskbarShowRecents)
+        assertEquals("STATIC_STRIPES", restored.launcherWallpaperMode)
+        assertEquals("/path/to/custom_wallpaper.png", restored.launcherWallpaperImagePath)
+        assertEquals(true, restored.launcherDesktopLocked)
+        assertEquals("USAGE_COUNT", restored.allAppsSortOrder)
+        assertEquals(true, restored.allAppsSortDescending)
+        assertEquals(60, restored.launcherScreenBlackoutTimeoutSeconds)
+    }
+
+    @Test
+    fun `launcher cell round-trips through backup mapper`() {
+        val cellEntity = com.sza.fastmediasorter.data.local.db.LauncherCellEntity(
+            id = 100L,
+            orientation = "PORTRAIT",
+            rowIndex = 2,
+            colIndex = 3,
+            spanW = 2,
+            spanH = 1,
+            kind = "SHORTCUT",
+            target = "app:com.example.app",
+            labelOverride = "Custom App",
+            addedAt = 123456789L
+        )
+
+        val backupCell = BackupMapper.toBackupLauncherCell(cellEntity)
+        val restoredEntity = BackupMapper.toLauncherCellEntity(backupCell)
+
+        assertEquals(0L, restoredEntity.id)
+        assertEquals("PORTRAIT", restoredEntity.orientation)
+        assertEquals(2, restoredEntity.rowIndex)
+        assertEquals(3, restoredEntity.colIndex)
+        assertEquals(2, restoredEntity.spanW)
+        assertEquals(1, restoredEntity.spanH)
+        assertEquals("SHORTCUT", restoredEntity.kind)
+        assertEquals("app:com.example.app", restoredEntity.target)
+        assertEquals("Custom App", restoredEntity.labelOverride)
+        assertEquals(123456789L, restoredEntity.addedAt)
+    }
 }
+

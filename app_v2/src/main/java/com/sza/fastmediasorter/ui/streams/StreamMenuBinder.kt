@@ -27,6 +27,7 @@ object StreamMenuBinder {
         pinnedRows: List<StreamSourceEntity>,
         favoritesEnabled: Boolean,
         isFavorite: Boolean,
+        wearSendAvailable: Boolean,
     ) = StreamActionCatalog.Facts(
         isPinned = source.pinned,
         isFavorite = isFavorite,
@@ -34,6 +35,7 @@ object StreamMenuBinder {
         isReorderable = source.pinned && pinnedRows.size > 1,
         // CATALOG and IMPORTED rows are owned by their sync and must not be hand-edited (S0660 6.4).
         isManualOrigin = source.sourceOrigin == ORIGIN_MANUAL,
+        wearSendAvailable = wearSendAvailable,
     )
 
     fun build(

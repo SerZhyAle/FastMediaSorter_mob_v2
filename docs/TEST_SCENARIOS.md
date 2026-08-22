@@ -257,6 +257,69 @@ You no longer have to remember any of this while looking at a black PNG: `script
 
 ---
 
+---
+
+## Test Scenario 5: User-Auditor Agent Multi-Device Profile Scenarios
+
+### Objective: Formal User-Auditor evaluation protocol across 5 distinct hardware device profiles
+
+---
+
+### Profile 5.1: Smartphone (Portrait & Landscape Touch UI)
+- **Target Device**: Standard Android Smartphone (Pixel 7 / Galaxy S23, 6.1" - 6.7", 1080x2400)
+- **Primary Input**: Single-hand / two-hand multi-touch, edge swipes
+- **Audit Steps**:
+  1. Verify gesture-based fast media sorting (swipe left/right to move/copy).
+  2. Test portrait vs landscape rotation (`res/layout-land/` parity, safe insets, cutouts).
+  3. Validate touch target dimensions (>= 48dp) and action button spacing.
+  4. Verify Toast / Snackbar feedback visibility without obscuring navigation bars.
+
+---
+
+### Profile 5.2: Tablet (Dual-Pane Multi-Grid UI)
+- **Target Device**: Android Tablet (Pixel Tablet / Galaxy Tab, 10.5" - 12.9", sw600dp / sw720dp)
+- **Primary Input**: Touch + Drag-and-Drop + Physical Keyboard
+- **Audit Steps**:
+  1. Open Browse screen in grid view; verify multi-column layout uses extra screen width effectively without excessive whitespace.
+  2. Verify drag-and-drop file operations between source panel and destination panel.
+  3. Verify split-screen and multi-window behavior (no layout clipping or resource leaks).
+  4. Test physical keyboard shortcuts (Space bar for play/pause, Arrow keys for navigation, Delete key for deletion).
+
+---
+
+### Profile 5.3: Automotive / Car Head Unit (High-Contrast Large Touch & D-Pad)
+- **Target Device**: Car Head Unit / Android Auto Standalone Head Unit (7" - 10", 1024x600 / 1280x720)
+- **Primary Input**: Large Touch Targets + Steering Wheel / Rotary Knob / D-Pad
+- **Audit Steps**:
+  1. Verify high-contrast visibility under high ambient light conditions.
+  2. Test D-Pad / Rotary Knob navigation focus states (`focusable="true"`, `nextFocusDown`, `nextFocusRight` highlight visibility).
+  3. Verify large touch target sizes (>= 56dp for automotive touch controls).
+  4. Validate launcher mode / quick media sorting mode stability without distraction.
+
+---
+
+### Profile 5.4: Photo Frame / Leanback TV (D-Pad Remote & Slideshow)
+- **Target Device**: Android TV / Digital Photo Frame / Smart Display (15" - 55", 1920x1080 / 4K)
+- **Primary Input**: D-Pad Remote Controller / Leanback Input
+- **Audit Steps**:
+  1. Test automatic slideshow playback on start / idle timeout (`launcherScreenBlackoutTimeoutSeconds`).
+  2. Verify Leanback / D-Pad remote navigation focus across grid items and player controls.
+  3. Validate image rendering quality and scaling modes (FIT_CENTER, CENTER_CROP, no distortion).
+  4. Verify absence of screen burn-in elements or static un-dimmed overlays during prolonged playback.
+
+---
+
+### Profile 5.5: Smartwatch / Wear OS (Compact Screen & Rotary Input)
+- **Target Device**: Wear OS Smartwatch (1.2" - 1.5" Round / Square, 396x396 / 454x454)
+- **Primary Input**: Touch + Rotary Bezel / Crown + Voice / Quick Action Taps
+- **Audit Steps**:
+  1. Verify `wear/` app startup, standalone browsing, and Bluetooth / Wi-Fi sync with phone `app_v2`.
+  2. Test rotary crown / bezel scrolling through file lists and remote player controls.
+  3. Verify circular screen cutout clipping (curved text / buttons stay within safe bounds).
+  4. Validate quick action taps (Play/Pause, Next/Prev, Quick Sort, Favorite) for single-tap responsiveness on small touch targets.
+
+---
+
 ## Log Analysis Keywords
 
 When reviewing logs, look for:
@@ -292,7 +355,7 @@ For each test scenario:
 **Format**:
 ```
 ## SCENARIO X - [NAME]
-
+ 
 ### Observed Behavior:
 [Describe what you saw - any errors, unexpected reloads, UI issues]
 
@@ -322,3 +385,4 @@ For each test scenario:
 ---
 
 **Ready to start testing!** Execute scenarios in order and provide logs after each scenario.
+

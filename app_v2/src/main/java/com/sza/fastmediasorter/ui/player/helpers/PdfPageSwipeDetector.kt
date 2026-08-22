@@ -5,7 +5,6 @@ import android.content.Context
 import android.view.MotionEvent
 import android.view.ViewConfiguration
 import com.github.chrisbanes.photoview.PhotoView
-import timber.log.Timber
 import kotlin.math.abs
 import kotlin.math.hypot
 

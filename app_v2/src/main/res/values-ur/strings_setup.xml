@@ -11,7 +11,7 @@
     <string name="welcome_default_player_title">طے شدہ پلیئر</string>
     <string name="welcome_description_1">آپ کا سب کچھ ایک جگہ رکھنے والا میڈیا منتظم۔\nمقامی، نیٹ ورک اور کلاؤڈ اسٹوریج کی فائلیں دیکھیں، ترتیب دیں اور سنبھالیں - سب کچھ آسان لمس اشاروں سے۔</string>
     <string name="welcome_description_1_details">FastMediaSorter ہر قسم کا میڈیا ایک جگہ لے آتا ہے۔ اپنے آلے سے، نیٹ ورک شیئر سے یا کلاؤڈ اسٹوریج سے تصاویر، ویڈیو، GIF اور موسیقی کھولیں - اور دیر تک دبانے والے مینو کے بجائے تیز ٹیپ سے انہیں ترتیب دیں۔\n\nیہاں آپ جو کچھ طے کریں گے وہ بعد میں ترتیبات میں بدلا جا سکتا ہے، اس لیے اس اسکرین پر کوئی غلط انتخاب نہیں - آگے بڑھنے کے لیے صرف اگلا دبائیں۔</string>
-    <string name="welcome_description_3" formatted="false">پلیئر تیز کاموں کے لیے 9 لمس علاقے (3×3 گرڈ) استعمال کرتا ہے۔ گھومنے، فائلیں نقل کرنے، منتقل کرنے، حذف کرنے یا کمانڈ پینل کھولنے کے لیے علاقوں پر ٹیپ کریں۔ تفصیل کے لیے اوپر کا خاکہ دیکھیں۔</string>
+    <string name="welcome_description_3" formatted="false">پلیئر فوری اعمال کے لیے 9 ٹچ زونز (3×3 گرڈ) استعمال کرتا ہے۔ نیویگیٹ کرنے، فائلیں کاپی، منتقل، حذف کرنے، یا کمانڈ پینل تک رسائی کے لیے زونز پر ٹیپ کریں۔ تفصیلات کے لیے اوپر دیا گیا خاکہ دیکھیں۔</string>
     <string name="welcome_language_picker_hint">ایپ کی زبان منتخب کریں</string>
     <string name="welcome_profile_audio_player_desc">صرف آڈیو آلات یا MP3 پلیئرز کے لیے بہترین۔ تصاویر اور ویڈیو چھپاتا ہے؛ پس منظر کی آواز اور \"ابھی چل رہا ہے\" اسکرین بہتر بناتا ہے۔</string>
     <string name="welcome_profile_audio_player_title">آڈیو پلیئر</string>
@@ -34,7 +34,7 @@
     <string name="welcome_profile_tv_media_box_title">ٹی وی / میڈیا باکس</string>
     <string name="welcome_profile_video_player_desc">صرف ویڈیو آلات کے لیے بہترین۔ تصاویر، موسیقی اور دستاویزی ناظر چھپاتا ہے؛ تیز ویڈیو چلانے اور تھمب نیل کو ترجیح دیتا ہے۔</string>
     <string name="welcome_profile_video_player_title">ویڈیو پلیئر</string>
-    <string name="welcome_profile_vr_headset_desc">ورچوئل ریئلٹی آلات کے لیے بہترین۔ معاون ہارڈ ویئر پر 3D/360° ترتیبات اور غرق کن کنٹرول پہلے سے فعال کر دیتا ہے۔</string>
+    <string name="welcome_profile_vr_headset_desc">ورچوئل رئیلٹی آلات کے لیے بہترین۔ سپورٹڈ ہارڈویئر فلیورز پر 3D/360° لے آؤٹس اور عمیق کنٹرولز پہلے سے فعال کر دیتا ہے۔</string>
     <string name="welcome_profile_vr_headset_title">VR ہیڈسیٹ</string>
     <string name="welcome_recommended_badge">(تجویز کردہ)</string>
     <string name="welcome_title_1">FastMediaSorter میں خوش آمدید!</string>

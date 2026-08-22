@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResultListener
@@ -15,9 +16,11 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
+import com.sza.fastmediasorter.core.screencapture.AccessibilityServiceControl
 import com.sza.fastmediasorter.databinding.FragmentLauncherStartMenuBinding
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
@@ -45,6 +48,9 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
 
     @Inject
     lateinit var resourceCreateManager: LauncherResourceCreateManager
+
+    @Inject
+    lateinit var accessibilityServiceControl: AccessibilityServiceControl
 
     private val viewModel: LauncherHomeViewModel by activityViewModels()
 
@@ -134,6 +140,15 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
             viewModel.setEditMode(true)
             dismiss()
         }
+        // Hidden, not disabled: standard binds the No-Op control, so a flavor that cannot reach the
+        // system power menu shows no dead row and GONE keeps both out of the D-pad traversal order
+        // (owner ruling 2026-08-21).
+        val powerMenuAvailable = accessibilityServiceControl.isServiceActive()
+        binding.rowReboot.isVisible = powerMenuAvailable
+        binding.rowShutdown.isVisible = powerMenuAvailable
+        Timber.d("S1887: start menu power rows available=%s", powerMenuAvailable)
+        binding.rowReboot.setOnClickListener { confirmReboot() }
+        binding.rowShutdown.setOnClickListener { confirmShutdown() }
         binding.rowExitMode.setOnClickListener { confirmExit() }
 
         listenForPickedResource()
@@ -183,6 +198,8 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
         super.onDestroyView()
         exitDialog?.dismiss()
         exitDialog = null
+        powerDialog?.dismiss()
+        powerDialog = null
         _binding = null
     }
 
@@ -217,6 +234,51 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
             }
             .setNegativeButton(R.string.cancel, null)
             .showBoundTo(this@LauncherStartMenuFragment)
+    }
+
+    private var powerDialog: Dialog? = null
+
+    private fun confirmReboot() {
+        powerDialog?.dismiss()
+        powerDialog = MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.launcher_menu_reboot_confirm_title)
+            .setMessage(R.string.launcher_menu_reboot_confirm_message)
+            .setPositiveButton(R.string.launcher_menu_power_menu_action) { _, _ ->
+                openSystemPowerMenu()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .showBoundTo(this@LauncherStartMenuFragment)
+    }
+
+    private fun confirmShutdown() {
+        powerDialog?.dismiss()
+        powerDialog = MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.launcher_menu_shutdown_confirm_title)
+            .setMessage(R.string.launcher_menu_shutdown_confirm_message)
+            .setPositiveButton(R.string.launcher_menu_power_menu_action) { _, _ ->
+                openSystemPowerMenu()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .showBoundTo(this@LauncherStartMenuFragment)
+    }
+
+    /**
+     * The user can switch the service off between the row being drawn and the dialog being confirmed,
+     * so a refused dispatch keeps the sheet open and names the one thing that fixes it instead of
+     * falling back to a privileged path no unprivileged app is granted.
+     */
+    private fun openSystemPowerMenu() {
+        val dispatched = accessibilityServiceControl.openPowerDialog()
+        Timber.d("S1887: system power menu dispatch dispatched=%s", dispatched)
+        if (dispatched) {
+            dismiss()
+            return
+        }
+        Snackbar.make(
+            binding.root,
+            R.string.launcher_menu_power_menu_unavailable,
+            Snackbar.LENGTH_LONG,
+        ).show()
     }
 
     companion object {

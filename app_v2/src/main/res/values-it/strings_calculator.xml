@@ -39,7 +39,7 @@
     <string name="calculator_fn_power">xʸ (potenza)</string>
     <string name="calculator_fn_reciprocal">1/x (inverso)</string>
     <string name="calculator_fn_sin">peccato (seno)</string>
-    <string name="calculator_fn_sqrt">√x (radice quadrata)</string>
+    <string name="calculator_fn_sqrt">√x (radice)</string>
     <string name="calculator_fn_square">x² (quadrato)</string>
     <string name="calculator_fn_tan">tg (tangente)</string>
     <string name="calculator_history_cleared">Precedenti penali risolti.</string>

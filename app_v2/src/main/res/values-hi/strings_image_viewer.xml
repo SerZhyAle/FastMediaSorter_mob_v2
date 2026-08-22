@@ -36,7 +36,7 @@
     <string name="gif_edit_first_frame_help">एनिमेशन का पहला फ्रेम निकालें और उसे डाउनलोड फ़ोल्डर में एक स्थिर PNG इमेज के रूप में सेव करें। फ़ाइल का नाम: [original_name]_first_frame.png</string>
     <string name="gif_edit_save_first_frame">पहले फ्रेम को इमेज के रूप में सेव करें</string>
     <string name="gif_edit_speed">एनीमेशन गति</string>
-    <string name="gif_edit_speed_help">एनिमेशन की गति बढ़ाने या घटाने के लिए फ़्रेमों के बीच का विलंब समायोजित करें। मूल फ़ाइल नई गति के साथ ओवरराइट हो जाएगी। रेंज: 0.25x (4 गुना धीमा) से 4x (4 गुना तेज़)।</string>
+    <string name="gif_edit_speed_help">एनिमेशन तेज़ या धीमा करने के लिए फ़्रेम के बीच की देरी बदलें. मूल फ़ाइल नई गति से अधिलेखित हो जाएगी. सीमा: 0.25x (4× धीमी) से 4x (4× तेज़) तक.</string>
     <string name="gif_edit_speed_normal">गति: सामान्य (1.0x)</string>
     <string name="gif_edit_speed_value">गति: %1$.1fx</string>
     <string name="gif_edit_title">GIF संपादक</string>

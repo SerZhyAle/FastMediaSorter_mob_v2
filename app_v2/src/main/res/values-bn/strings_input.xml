@@ -177,8 +177,8 @@
     <string name="kbm_help_player_playpause">প্লে / পজ</string>
     <string name="kbm_help_player_prev_next">পূর্ববর্তী / পরবর্তী ফাইল</string>
     <string name="kbm_help_player_save">স্ন্যাপশট / বর্তমান সংরক্ষণ করুন</string>
-    <string name="kbm_help_player_seek_10s">−১০ সেকেন্ড / +১০ সেকেন্ড সন্ধান করুন</string>
-    <string name="kbm_help_player_seek_60s">−60s / +60s সন্ধান করুন</string>
+    <string name="kbm_help_player_seek_10s">সিক −10s / +10s</string>
+    <string name="kbm_help_player_seek_60s">সিক −60s / +60s</string>
     <string name="kbm_help_player_volume">ভলিউম বাড়ানো / কমানো</string>
     <string name="kbm_help_section_dialog">সংলাপ</string>
     <string name="kbm_help_section_file_ops">ফাইল অপারেশন</string>

@@ -3,10 +3,10 @@
      Untranslated keys are absent on purpose - Android falls back to English (S1190, ADR-6). -->
 <resources>
     <string name="settings">Ajustes</string>
-    <string name="settings_3d_vr_help_message">El modo 3D VR ofrece reproducción inmersiva de vídeo y fotos en visores como Meta Quest 3 y Android XR. En dispositivos sin entorno XR, el interruptor principal permanece inactivo. La aplicación detecta el formato del vídeo (SBS, OU, 360°, VR180) automáticamente; el ajuste manual está en el diálogo del reproductor.</string>
+    <string name="settings_3d_vr_help_message">3D VR ofrece reproducción inmersiva de vídeo y foto en visores como Meta Quest 3 y Android XR. En dispositivos sin runtime XR, el interruptor principal permanece inactivo. La app detecta el formato de vídeo (SBS, OU, 360°, VR180) automáticamente; hay anulación manual disponible en el diálogo del reproductor.</string>
     <string name="settings_3d_vr_help_title">Acerca del modo 3D VR</string>
     <string name="settings_accept_shared_files">Aceptar archivos compartidos</string>
-    <string name="settings_already_default_player">✓ Ya está establecido como predeterminado</string>
+    <string name="settings_already_default_player">✓ Ya establecido como predeterminado</string>
     <string name="settings_application_log_title">Registro de la aplicación</string>
     <string name="settings_black_screen_button_desc">Mostrar en la barra del reproductor un botón que apague la pantalla mientras el audio o el vídeo continúan</string>
     <string name="settings_black_screen_button_title">Mostrar el botón \"Pantalla negra\"</string>
@@ -195,14 +195,14 @@
     <string name="pref_crop_images_fullscreen_title">Recortar imágenes para llenar la pantalla</string>
     <string name="pref_dynamic_background_summary">Rellenar las \"bandas negras\" prolongando los colores del borde de la imagen (efecto Ambilight)</string>
     <string name="pref_dynamic_background_title">Extensión dinámica del fondo</string>
-    <string name="pref_file_ops_overflow_menu_desc">Agrupa copiar, mover, renombrar y eliminar en un botón ⋮ en cada fila de archivo. El botón de reproducir siempre queda aparte.</string>
+    <string name="pref_file_ops_overflow_menu_desc">Agrupa copiar, mover, renombrar y eliminar en un botón ⋮ en cada fila de archivo. El botón de reproducción siempre permanece separado.</string>
     <string name="pref_file_ops_overflow_menu_title">Acciones de archivo en el menú adicional</string>
     <string name="pref_panel_stereo_single_eye_summary">Cuando está activado, los vídeos estéreo lado a lado y arriba-abajo y las fotos a pantalla completa se recortan a un ojo y se estiran a toda la pantalla: cómodo de ver sin gafas 3D. Valor predeterminado: activado. El renderizado inmersivo de RV ignora este ajuste y muestra el fotograma estéreo completo.</string>
     <string name="pref_panel_stereo_single_eye_title">Mostrar el contenido 3D con un solo ojo</string>
     <string name="pref_prefetch_cache_auto">Automático</string>
-    <string name="pref_prefetch_cache_help_message">Controla cuánto vídeo en streaming se almacena por delante del punto de reproducción.\n\n• Menos (0,5×): almacenamiento mínimo. Se ocultan el indicador de precarga y la oferta de \"guardar el vídeo en caché\". Ahorra espacio y datos; en redes lentas la reproducción puede entrecortarse.\n• Automático: tamaño predeterminado que elige el reproductor según el dispositivo y la red actual.\n• Más (2×): búfer mayor para una reproducción más fluida en redes inestables. Ocupa más espacio en disco.</string>
+    <string name="pref_prefetch_cache_help_message">Controla cuánto vídeo en streaming se almacena en búfer por delante del cabezal de reproducción.\n\n• Menos (0.5×) - búfer mínimo. El indicador de progreso de precaché y la oferta de \"guardar vídeo en caché\" quedan ocultos. Ahorra espacio en disco y ancho de banda; en una red lenta la reproducción puede entrecortarse.\n• Auto - tamaño predeterminado elegido por el reproductor según el dispositivo y la red actual.\n• Más (2×) - búfer más grande para una reproducción más fluida en redes inestables. Usa más espacio en disco.</string>
     <string name="pref_prefetch_cache_help_title">Tamaño de la precarga de vídeo</string>
-    <string name="pref_prefetch_cache_less">Menos (0,5×)</string>
+    <string name="pref_prefetch_cache_less">Menos (0.5×)</string>
     <string name="pref_prefetch_cache_more">Más (2×)</string>
     <string name="pref_prefetch_cache_title">Tamaño de la precarga de vídeo</string>
     <string name="pref_streaming_cleanup_ask">Preguntar cada vez</string>
@@ -252,4 +252,13 @@
     <string name="settings_open_default_apps_dialog">Establecer como predeterminada</string>
     <string name="default_apps_dialog_title">Aplicación predeterminada</string>
     <string name="language_download_failed">No se pudo descargar este idioma. Compruebe su conexión a internet e inténtelo de nuevo: la aplicación se queda en el idioma que usa ahora.</string>
+    <string name="pref_resource_grid_cell_size_title">Tamaño de celda de la cuadrícula de recursos</string>
+    <string name="pref_resource_grid_cell_size_small">Pequeño</string>
+    <string name="pref_resource_grid_cell_size_medium">Mediano</string>
+    <string name="pref_resource_grid_cell_size_large">Grande</string>
+    <string name="settings_enable_system_info">Información del sistema</string>
+    <string name="settings_enable_system_info_summary">Mostrar información del sistema en el panel de programas y el menú</string>
+    <string name="settings_wear_group_title">Wear OS</string>
+    <string name="settings_wear_group_description">Activa esto si tienes un reloj Wear OS. La aplicación complementaria se abre desde aquí y decide qué comparte este teléfono con el reloj.</string>
+    <string name="settings_wear_install_guide_button">Cómo instalar en un reloj</string>
 </resources>

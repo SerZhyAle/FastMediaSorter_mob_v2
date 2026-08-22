@@ -404,7 +404,6 @@ class BrowseResourceLoadManager(
         } else {
             probeSuppressedCount(resource, ungated, "type-gate")
         }
-        Timber.d("S1696: empty-state cause size=$sizeSuppressed typeGate=$typeSuppressed")
         updateState { it.copy(filteredOutCount = sizeSuppressed, typeGatedOutCount = typeSuppressed) }
     }
 
@@ -532,13 +531,15 @@ class BrowseResourceLoadManager(
 
         val currentState = stateFlow.value
         loadingManager.loadFilesStandard(
-            resource = resource,
-            sortMode = currentState.sortMode,
-            sizeFilter = sizeFilter,
-            shouldStopScan = shouldStopScanRef,
-            showHiddenFiles = showHiddenFiles,
-            currentPath = currentState.currentPath,
-            isSubfolderMode = currentState.isSubfolderMode,
+            BrowseLoadingManager.StandardScanRequest(
+                resource = resource,
+                sortMode = currentState.sortMode,
+                sizeFilter = sizeFilter,
+                shouldStopScan = shouldStopScanRef,
+                showHiddenFiles = showHiddenFiles,
+                currentPath = currentState.currentPath,
+                isSubfolderMode = currentState.isSubfolderMode,
+            ),
             callbacks = callbacks
         )
     }

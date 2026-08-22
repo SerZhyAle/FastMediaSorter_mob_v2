@@ -26,7 +26,6 @@ import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.Option
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerWindow
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -193,12 +192,25 @@ class LauncherCellContentPickerDialogFragment : DialogFragment() {
      * S1428: a second level rather than one row, because two preset sections exist (strategic §6.12) and
      * a single row would always restore the first - leaving a deleted second header unrestorable.
      */
-    private fun sectionOptions(): List<Option> = LauncherSectionCatalog.all.map { section ->
-        Option(
-            id = SECTION_PREFIX + section.key,
-            label = getString(section.labelRes),
-            leading = LeadingVisual.IconRes(R.drawable.ic_view_list),
+    private fun sectionOptions(): List<Option> = buildList {
+        // S1742: first row, per the owner's ruling - creating a section is offered in the same list that
+        // offers the preset ones, not behind a separate button the user has to go looking for.
+        add(
+            Option(
+                id = SECTION_CREATE_ID,
+                label = getString(R.string.launcher_section_create),
+                leading = LeadingVisual.IconRes(R.drawable.ic_add),
+            )
         )
+        LauncherSectionCatalog.all.forEach { section ->
+            add(
+                Option(
+                    id = SECTION_PREFIX + section.key,
+                    label = getString(section.labelRes),
+                    leading = LeadingVisual.IconRes(R.drawable.ic_view_list),
+                )
+            )
+        }
     }
 
     private fun category(
@@ -287,6 +299,9 @@ class LauncherCellContentPickerDialogFragment : DialogFragment() {
         private const val GADGET_PREFIX = "gadget:"
         private const val ACTION_PREFIX = "action:"
         private const val SECTION_PREFIX = "section:"
+
+        /** S1742: chosen instead of a section key - the caller asks for a name and mints one. */
+        const val SECTION_CREATE_ID = "section-create"
         private const val ARG_ROW = "arg_row"
         private const val ARG_COL = "arg_col"
         private const val ARG_GADGET_MODE = "arg_gadget_mode"

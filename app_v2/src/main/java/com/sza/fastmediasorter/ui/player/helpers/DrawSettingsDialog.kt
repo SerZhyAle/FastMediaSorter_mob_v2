@@ -8,7 +8,6 @@ import android.widget.TextView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.util.showBoundToHost
-import timber.log.Timber
 
 /**
  * Draw editor settings dialog (S0192 Phase 02).

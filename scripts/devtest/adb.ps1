@@ -35,6 +35,23 @@
                          process, plus every line whose text names the package. -Tail N
                          (default 200), -Grep <regex>; full capture also to temp/scratch/
     tap                  input tap -X <x> -Y <y>
+    swipe                input swipe from -X,-Y to -X2,-Y2 over -Duration ms (default 300).
+                         A scroll is a swipe: this is how a list moves under uidump/tap-label
+    uidump               dump the uiautomator node tree, save the XML, and print every node that
+                         carries text or a content-description with its resource-id, its bounds and
+                         its tap point. -Grep <regex> filters by label OR resource-id; -Ids also
+                         lists the nodes named by an id alone (-Json: file, nodes[])
+    tap-id               locate a node by its resource-id and tap the centre of its bounds:
+                         -ResourceId <short-or-full> [-Exact] [-Index N]. PREFER THIS over tap-label:
+                         a label is translated and an id is not, so a label-aimed call passes on the
+                         locale it was written on and returns 8 everywhere else (S1879)
+    tap-label            find a node by its text or content-description and tap the centre of its
+                         bounds: -Label <substring> [-Exact] [-Index N]. Tapping a label instead of
+                         a remembered coordinate is what survives a list that scrolled (S1847).
+                         Right where there is no id to aim at - most of Compose on the watch
+    clip-check           report content that leaves the physical display shape. The shape is READ
+                         FROM THE DEVICE (mRoundedCorners), so a round watch and a rounded-corner
+                         phone use one rule and neither is hardcoded
     text                 input text -Text "<string>" (spaces handled)
     key                  input keyevent -Key <name-or-code> (e.g. BACK, 4, KEYCODE_HOME)
     prefs                pull app_settings.xml via run-as to temp/scratch/ (debuggable build only)
@@ -76,6 +93,21 @@
   with a count. That is deliberately NOT an error and has no exit code of its own - a silent
   `OK 0 line(s)` was the whole defect, an error would break every caller. Do not add one.
 
+  What clip-check calls a defect, and why it is not simply "the box left the circle" (S1847).
+  uiautomator reports bounds ALREADY clipped to the screen, so the naive test fires on every list
+  head and tail - measured on five real dumps, all five alarms were normal scrolling. Three classes:
+    EDGE       the box touches a screen edge, so the viewport cut it. Nothing can be concluded
+               about the element's full extent from this frame - scroll it inward and re-check
+    CLIPPED    the box leaves the glass here, but the node has a scrollable ancestor and would fit
+               if it were scrolled to the vertical centre, where the glass is widest. Normal
+    OFF-GLASS  no scroll position can make it fit, or the node has no scrollable ancestor at all.
+               This is the defect class, and the only one with an exit code
+  A wide box around narrow centred glyphs therefore lands in CLIPPED, not OFF-GLASS: the tree knows
+  the view box, never the glyphs, and a check that cries wolf gets ignored wholesale. For the same
+  reason only LEAF nodes are judged: a container's box is the extent of the group, and the launcher's
+  home-screen container - which carries a content-description and spans the whole wallpaper - was the
+  first thing this verb reported as a defect on a perfectly normal phone screen.
+
   Exit codes (stable; mirror device-ready.ps1 where they overlap):
     0 - OK
     1 - adb not found, or bad arguments
@@ -87,6 +119,11 @@
     6 - `pull`: the remote path does not exist on the device. Distinct from 7 because "the file was
         never written" and "the transfer failed" call for different next moves
     7 - the underlying adb command returned non-zero
+    8 - `tap-label` / `tap-id`: no visible node carried that label or that resource-id, so NOTHING
+        was tapped. Distinct from 7 because "the screen does not show it" and "the tap failed" call
+        for different next moves - the first usually means an animation was still running, or the
+        list needs scrolling
+    9 - `clip-check`: at least one node is OFF-GLASS. EDGE and CLIPPED never reach this code
 
   Human output: one verdict line per verb (plus the data the verb produces).
   Machine output (with -Json): a single JSON object on stdout, all human noise suppressed.
@@ -122,6 +159,24 @@
 .EXAMPLE
   pwsh -NoProfile -File scripts/devtest/adb.ps1 push -Local temp/scratch/fixture.mp4 -Remote /sdcard/Movies/
   Place a fixture on the device before a scenario runs.
+
+.EXAMPLE
+  pwsh -NoProfile -File scripts/devtest/adb.ps1 uidump -Grep "Settings|Media"
+  See where the matching controls actually are before tapping anything.
+
+.EXAMPLE
+  pwsh -NoProfile -File scripts/devtest/adb.ps1 tap-id -ResourceId rowLauncherModeEnabled
+  Tap the settings row by the name its layout gives it. The same call works on a device in any
+  language, which the equivalent tap-label does not.
+
+.EXAMPLE
+  pwsh -NoProfile -File scripts/devtest/adb.ps1 tap-label -Label "Media Types"
+  Tap the entry by name, so a list that scrolled since the last dump cannot land the tap on its
+  neighbour - the failure this verb exists to prevent.
+
+.EXAMPLE
+  pwsh -NoProfile -File scripts/devtest/adb.ps1 clip-check -OutDir temp/S1678
+  Check the current screen against the display shape and keep the tree beside the ticket evidence.
 #>
 [CmdletBinding()]
 param(
@@ -137,6 +192,12 @@ param(
     [string]$Flavor = 'standard',
     [int]$X,
     [int]$Y,
+    # swipe: the second point, and how long the gesture takes. A fling and a drag differ only in
+    # duration, and a list that is flung keeps scrolling after the gesture ends - which is why the
+    # default is a deliberate 300 ms drag rather than the snappier value.
+    [int]$X2,
+    [int]$Y2,
+    [int]$Duration = 300,
     [string]$Text,
     [string]$Key,
     [string]$Cmd,
@@ -144,6 +205,22 @@ param(
     [string]$Local,
     # pull: read -Remote as a directory or glob and take its newest entry.
     [switch]$Latest,
+    # tap-label / uidump: the label to match, against BOTH text and content-desc. Wear controls
+    # frequently carry only a content-description (the player buttons carry nothing else), so a
+    # text-only search finds nothing on exactly the screens that need this verb most.
+    [string]$Label,
+    [switch]$Exact,
+    # tap-id: the resource-id to match. Accepts the short name a layout writes (`rowExport`) or the
+    # full package-qualified value; unlike a label it does not change with the app locale (S1879).
+    [string]$ResourceId,
+    # uidump: also list the nodes named ONLY by a resource-id. Off by default - a real screen carries
+    # dozens of them, and burying the labels is how this verb stops being readable.
+    [switch]$Ids,
+    # tap-label / tap-id: which match to take when the target is not unique (1-based, document order).
+    [int]$Index = 1,
+    # Destination directory for the file-producing verbs (shot, uidump, clip-check, prefs, pull).
+    # Default stays temp/scratch/; point it at temp/Sxxxx/ to file the artifact with its ticket.
+    [string]$OutDir,
     [switch]$Json,
     # Confirmation for the one-way verbs (wipe-data, uninstall). This script is called by agents and by
     # other scripts, so an interactive prompt is not available - a required flag is the only gate that can
@@ -159,6 +236,7 @@ $DEBUG_PACKAGE  = "$BASE_PACKAGE.debug"
 $MAIN_ACTIVITY  = 'com.sza.fastmediasorter.ui.main.MainActivity'
 
 . (Join-Path $PSScriptRoot 'lib/adb-log-filter.ps1')
+. (Join-Path $PSScriptRoot 'lib/ui-tree.ps1')
 
 # ---------- result shape ----------
 
@@ -292,7 +370,15 @@ function Resolve-Package {
 
 function Get-TempDir {
     # Ad-hoc CLI outputs are no-ticket scratch by nature (CLAUDE.md Rule 10.1) -> temp/scratch/.
+    # -OutDir overrides that for work that IS ticket-bound, where Rule 10.1 asks for temp/Sxxxx/.
     $repoRoot = (Resolve-Path -Path (Join-Path $PSScriptRoot '..\..')).Path
+    if ($OutDir) {
+        $tempDir = if ([System.IO.Path]::IsPathRooted($OutDir)) { $OutDir } else { Join-Path $repoRoot $OutDir }
+        if (-not (Test-Path -LiteralPath $tempDir -PathType Container)) {
+            New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+        }
+        return (Resolve-Path -LiteralPath $tempDir).Path
+    }
     $tempDir  = Join-Path (Join-Path $repoRoot 'temp') 'scratch'
     if (-not (Test-Path -Path $tempDir -PathType Container)) {
         New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
@@ -304,12 +390,80 @@ function Get-TempDir {
 # replayable workflow), unlike the workflow runtime which forbids it.
 function Get-Stamp { (Get-Date).ToString('yyyyMMdd_HHmmss') }
 
+# ---------- uiautomator node tree ----------
+
+# Dump the node tree and bring it back as parsed XML. The remote path never crosses bash, which is
+# the same reason pull/push live in this script at all (S1578) - MSYS rewrites /sdcard/x into a path
+# inside the Git installation, and adb then reports a missing remote object.
+function Get-UiTree {
+    param([string]$Id, [string]$Destination)
+    $remote = '/sdcard/_fms_tree.xml'
+    # Remove it FIRST. uiautomator refuses while the window is animating and writes nothing at all,
+    # and `shot` uses this same remote path - so without this line a refused dump silently pulls the
+    # previous screen's tree and every verb above reports confidently about a frame that is gone.
+    Invoke-Adb $Id @('shell', 'rm', '-f', $remote) -AllowFail | Out-Null
+    Invoke-Adb $Id @('shell', 'uiautomator', 'dump', $remote) -AllowFail | Out-Null
+    Invoke-Adb $Id @('pull', $remote, $Destination) -AllowFail | Out-Null
+    Invoke-Adb $Id @('shell', 'rm', '-f', $remote) -AllowFail | Out-Null
+    if (-not (Test-Path -LiteralPath $Destination -PathType Leaf)) {
+        Fail 7 "uiautomator produced no tree. It refuses while the window is still animating ('could not get idle state') - let the screen settle and re-run"
+    }
+    # Explicit UTF8: uiautomator writes UTF-8 and the tree is the only place a non-Latin label
+    # survives, so a default-encoding read turns every Cyrillic label into a row of question marks.
+    $raw = Get-Content -LiteralPath $Destination -Raw -Encoding UTF8
+    try { return [xml]$raw } catch { Fail 7 "the node tree at $Destination is not valid XML: $($_.Exception.Message)" }
+}
+
+# Flatten the tree in document order, carrying down whether an ANCESTOR is scrollable. That flag is
+# what separates "cut by the list it lives in" from "cut by the layout" in clip-check, and document
+# order is what makes tap-label -Index reproducible between two dumps of the same screen.
+# ---------- display shape ----------
+
+# Read the physical glass outline off the device instead of hardcoding one (S1847). Measured
+# 2026-08-20: a Galaxy Watch reports radius=240 on a 480x480 display with all four corner centres at
+# (240,240) - a circle; a Galaxy S25 reports radius=105 on 1080x2340 with four distinct centres - a
+# rounded rectangle. One corner-quadrant rule covers both, and the circle is just the case where the
+# radius equals half the screen, so no watch-only branch is needed anywhere below.
+function Get-DisplayShape {
+    param([string]$Id)
+    $sizeRaw = (Invoke-Adb $Id @('shell', 'wm', 'size') -AllowFail) -join "`n"
+    # Override size wins when present: node bounds are reported in the overridden space.
+    $m = [regex]::Match($sizeRaw, 'Override size:\s*(\d+)x(\d+)')
+    if (-not $m.Success) { $m = [regex]::Match($sizeRaw, 'Physical size:\s*(\d+)x(\d+)') }
+    if (-not $m.Success) { Fail 7 "could not read the display size from 'wm size': $sizeRaw" }
+    $w = [int]$m.Groups[1].Value
+    $h = [int]$m.Groups[2].Value
+
+    $radius = 0
+    $shapeSource = 'no rounded-corner data - treated as a plain rectangle'
+    $winRaw = (Invoke-Adb $Id @('shell', 'dumpsys', 'window', 'displays') -AllowFail) -join "`n"
+    $block = [regex]::Match($winRaw, 'mRoundedCorners=RoundedCorners\{\[(.*?)\]\}')
+    if ($block.Success) {
+        $radii = @([regex]::Matches($block.Groups[1].Value, 'radius=(\d+)') | ForEach-Object { [int]$_.Groups[1].Value })
+        if ($radii.Count -ge 4) {
+            # Equal on every real device seen so far; the maximum is the conservative reading when
+            # they differ, because it is the one that shrinks the safe area rather than growing it.
+            $radius = ($radii | Measure-Object -Maximum).Maximum
+            $shapeSource = 'dumpsys window displays (mRoundedCorners)'
+        }
+    }
+    if ($radius -le 0) {
+        $chars = (Invoke-Adb $Id @('shell', 'getprop', 'ro.build.characteristics') -AllowFail) -join ''
+        if ($chars -match 'watch' -and $w -eq $h) {
+            $radius = [int]($w / 2)
+            $shapeSource = 'watch characteristic + square display - assumed round'
+        }
+    }
+    $isRound = ($radius * 2 -eq $w -and $radius * 2 -eq $h)
+    return [ordered]@{ width = $w; height = $h; radius = $radius; round = $isRound; source = $shapeSource }
+}
+
 # ---------- verbs ----------
 
 switch ($Verb.ToLowerInvariant()) {
 
     'help' {
-        if ($Json) { Emit-Ok @{ verbs = 'help,devices,props,current,launch,stop,logcat-clear,wipe-data,install,uninstall,shot,log,tap,text,key,prefs,pull,push,shell' } }
+        if ($Json) { Emit-Ok @{ verbs = 'help,devices,props,current,launch,stop,logcat-clear,wipe-data,install,uninstall,shot,uidump,clip-check,log,tap,tap-id,tap-label,swipe,text,key,prefs,pull,push,shell' } }
         Write-Host "adb.ps1 - ad-hoc device swiss-army" -ForegroundColor Cyan
         Write-Host "Usage: pwsh -NoProfile -File scripts/devtest/adb.ps1 <verb> [options]" -ForegroundColor Gray
         Write-Host ""
@@ -324,7 +478,12 @@ switch ($Verb.ToLowerInvariant()) {
         Write-Host "  uninstall  DESTRUCTIVE uninstall resolved package - needs -Yes" -ForegroundColor Yellow
         Write-Host "  shot       screenshot to temp/scratch/" -ForegroundColor White
         Write-Host "  log        logcat -d app tail (-Tail N, -Grep regex)" -ForegroundColor White
+        Write-Host "  uidump     dump the UI node tree: labels, ids, bounds, tap points (-Grep regex, -Ids)" -ForegroundColor White
+        Write-Host "  tap-id     tap a node by its resource-id: -ResourceId <s> [-Exact] [-Index N] - preferred" -ForegroundColor White
+        Write-Host "  tap-label  tap a node by its text/content-desc: -Label <s> [-Exact] [-Index N]" -ForegroundColor White
+        Write-Host "  clip-check report content leaving the display shape (read from the device)" -ForegroundColor White
         Write-Host "  tap        input tap -X <x> -Y <y>" -ForegroundColor White
+        Write-Host "  swipe      input swipe -X <x> -Y <y> -X2 <x> -Y2 <y> [-Duration ms]" -ForegroundColor White
         Write-Host "  text       input text -Text <string>" -ForegroundColor White
         Write-Host "  key        input keyevent -Key <name-or-code>" -ForegroundColor White
         Write-Host "  prefs      pull app_settings.xml to temp/scratch/ (run-as)" -ForegroundColor White
@@ -332,7 +491,7 @@ switch ($Verb.ToLowerInvariant()) {
         Write-Host "  push       send a file: -Local <path> -Remote <path>" -ForegroundColor White
         Write-Host "  shell      passthrough -Cmd <adb shell command>" -ForegroundColor White
         Write-Host ""
-        Write-Host "Common options: -DeviceId <id> -Release -Package <id> -Json" -ForegroundColor Gray
+        Write-Host "Common options: -DeviceId <id> -Release -Package <id> -OutDir <dir> -Json" -ForegroundColor Gray
         exit 0
     }
 
@@ -621,6 +780,142 @@ switch ($Verb.ToLowerInvariant()) {
         if ($Json) { Emit-Ok @{ id = $id; x = $X; y = $Y } }
         Write-Host "TAP ($X,$Y) on $id" -ForegroundColor Green
         exit 0
+    }
+
+    'swipe' {
+        $id = Select-Device
+        $script:result.device = $id
+        foreach ($p in @('X', 'Y', 'X2', 'Y2')) {
+            if (-not $PSBoundParameters.ContainsKey($p)) { Fail 1 "swipe needs -X <x> -Y <y> -X2 <x> -Y2 <y> (optional -Duration ms)" }
+        }
+        Invoke-Adb $id @('shell', 'input', 'swipe', "$X", "$Y", "$X2", "$Y2", "$Duration") | Out-Null
+        if ($Json) { Emit-Ok @{ id = $id; from = @($X, $Y); to = @($X2, $Y2); durationMs = $Duration } }
+        Write-Host "SWIPE ($X,$Y) -> ($X2,$Y2) in ${Duration}ms on $id" -ForegroundColor Green
+        exit 0
+    }
+
+    'uidump' {
+        $id = Select-Device
+        $script:result.device = $id
+        $file  = Join-Path (Get-TempDir) ("uitree_$($id -replace '[^A-Za-z0-9_.-]', '_')_$(Get-Stamp).xml")
+        $nodes = @(Get-UiNodes (Get-UiTree $id $file))
+        if (-not $Ids) { $nodes = @($nodes | Where-Object { $_.labelled }) }
+        # -Grep spans the identifier too, so the same regex serves both ways of naming a target.
+        if ($Grep) { $nodes = @($nodes | Where-Object { $_.label -match $Grep -or $_.resId -match $Grep }) }
+        if ($Json) { Emit-Ok @{ id = $id; file = $file; count = $nodes.Count; nodes = @($nodes) } }
+        Write-Host "TREE $file" -ForegroundColor Green
+        foreach ($n in $nodes) {
+            # The label is the product of this verb, so it goes to the success stream and survives a
+            # redirect; the file path and the count are decoration and stay on information (S1183).
+            Write-Output ("{0,-40} {1,-4} {2,-28} tap {3},{4}   bounds {5},{6}..{7},{8}" -f `
+                $n.label.Replace("`n", ' '), $n.source, $n.resIdShort, $n.tapX, $n.tapY, $n.x1, $n.y1, $n.x2, $n.y2)
+        }
+        $filterNote = if ($Grep) { " matching '$Grep'" } else { '' }
+        $kindNote   = if ($Ids) { 'named' } else { 'labelled' }
+        Write-Host ("OK {0} {1} node(s){2}" -f $nodes.Count, $kindNote, $filterNote) -ForegroundColor Cyan
+        if (-not $Ids) {
+            Write-Host "     -Ids also lists the nodes carrying only a resource-id (a switch, an icon)" -ForegroundColor Gray
+        }
+        exit 0
+    }
+
+    'tap-id' {
+        # Argument check BEFORE device selection: a call with no target is wrong whether or not a
+        # device is attached, and answering 2 ("no device") would send the caller after the wrong bug.
+        if (-not $ResourceId) { Fail 1 "tap-id needs -ResourceId <name-or-full-id> (add -Exact for a whole-value match)" }
+        $id = Select-Device
+        $script:result.device = $id
+        $file  = Join-Path (Get-TempDir) ("uitree_$($id -replace '[^A-Za-z0-9_.-]', '_')_$(Get-Stamp).xml")
+        $nodes = @(Get-UiNodes (Get-UiTree $id $file))
+        $hits  = @(Select-UiNodesById $nodes $ResourceId -Exact:$Exact)
+        if ($hits.Count -eq 0) {
+            Fail 8 "no visible node carries the resource-id '$ResourceId' - nothing was tapped. The tree is at $file; run 'uidump -Ids' against it, and remember a screen still animating or a list needing a scroll shows neither"
+        }
+        if ($Index -lt 1 -or $Index -gt $hits.Count) {
+            Fail 1 "-Index $Index is out of range: '$ResourceId' matches $($hits.Count) node(s)"
+        }
+        $hit = $hits[$Index - 1]
+        Invoke-Adb $id @('shell', 'input', 'tap', "$($hit.tapX)", "$($hit.tapY)") | Out-Null
+        if ($Json) { Emit-Ok @{ id = $id; resourceId = $hit.resId; label = $hit.label; x = $hit.tapX; y = $hit.tapY; matches = $hits.Count; file = $file } }
+        Write-Host ("TAP-ID '{0}' at {1},{2} on {3}" -f $hit.resId, $hit.tapX, $hit.tapY, $id) -ForegroundColor Green
+        if ($hits.Count -gt 1) {
+            Write-Host ("     {0} nodes match this id; tapped #{1}. Pass -Index to choose another, or -Exact so one name is not read as the start of another." -f $hits.Count, $Index) -ForegroundColor Yellow
+        }
+        exit 0
+    }
+
+    'tap-label' {
+        $id = Select-Device
+        $script:result.device = $id
+        if (-not $Label) { Fail 1 "tap-label needs -Label <text-or-content-desc> (add -Exact for a whole-value match)" }
+        $file  = Join-Path (Get-TempDir) ("uitree_$($id -replace '[^A-Za-z0-9_.-]', '_')_$(Get-Stamp).xml")
+        $nodes = @(Get-UiNodes (Get-UiTree $id $file))
+        $hits  = @($nodes | Where-Object {
+            if ($Exact) { $_.text -eq $Label -or $_.desc -eq $Label }
+            else { $_.text -like "*$Label*" -or $_.desc -like "*$Label*" }
+        })
+        if ($hits.Count -eq 0) {
+            Fail 8 "no visible node carries '$Label' - nothing was tapped. The tree is at $file; the usual causes are a screen still animating and a list that needs scrolling"
+        }
+        if ($Index -lt 1 -or $Index -gt $hits.Count) {
+            Fail 1 "-Index $Index is out of range: '$Label' matches $($hits.Count) node(s)"
+        }
+        $hit = $hits[$Index - 1]
+        Invoke-Adb $id @('shell', 'input', 'tap', "$($hit.tapX)", "$($hit.tapY)") | Out-Null
+        if ($Json) { Emit-Ok @{ id = $id; label = $hit.label; source = $hit.source; x = $hit.tapX; y = $hit.tapY; matches = $hits.Count; file = $file } }
+        Write-Host ("TAP-LABEL '{0}' ({1}) at {2},{3} on {4}" -f $hit.label.Replace("`n", ' '), $hit.source, $hit.tapX, $hit.tapY, $id) -ForegroundColor Green
+        if ($hits.Count -gt 1) {
+            Write-Host ("     {0} nodes carry this label; tapped #{1}. Pass -Index to choose another, or -Exact to narrow." -f $hits.Count, $Index) -ForegroundColor Yellow
+        }
+        exit 0
+    }
+
+    'clip-check' {
+        $id = Select-Device
+        $script:result.device = $id
+        $shape = Get-DisplayShape $id
+        $file  = Join-Path (Get-TempDir) ("uitree_$($id -replace '[^A-Za-z0-9_.-]', '_')_$(Get-Stamp).xml")
+        $nodes = @(Get-UiNodes (Get-UiTree $id $file))
+        $findings = New-Object System.Collections.Generic.List[object]
+        # Labelled only: S1879 widened the tree to nodes named by a resource-id alone, and this
+        # classification is calibrated against five recorded dumps. Judging the new nodes would move
+        # counts that were measured, not chosen.
+        $judged = @($nodes | Where-Object { $_.leaf -and $_.labelled })
+        foreach ($n in $judged) {
+            $v = Get-ClipVerdict $n $shape
+            if ($null -eq $v) { continue }
+            $findings.Add([ordered]@{
+                kind = $v.kind; label = $n.label.Replace("`n", ' '); overflow = [math]::Round($v.overflow, 1)
+                x1 = $n.x1; y1 = $n.y1; x2 = $n.x2; y2 = $n.y2
+            }) | Out-Null
+        }
+        $offGlass = @($findings | Where-Object { $_.kind -eq 'OFF-GLASS' })
+        if ($Json) {
+            $script:result.data = [ordered]@{ id = $id; file = $file; shape = $shape; checked = $judged.Count; findings = @($findings); offGlass = $offGlass.Count }
+            $script:result.ok = ($offGlass.Count -eq 0)
+            $script:result.exitCode = if ($offGlass.Count -eq 0) { 0 } else { 9 }
+            if ($offGlass.Count -gt 0) { $script:result.reason = "$($offGlass.Count) node(s) off-glass" }
+            $script:result | ConvertTo-Json -Compress -Depth 6
+            exit $script:result.exitCode
+        }
+        Write-Host "TREE $file" -ForegroundColor Green
+        Write-Host ("SHAPE {0}x{1} corner radius {2}{3} - {4}" -f `
+            $shape.width, $shape.height, $shape.radius, $(if ($shape.round) { ' (round)' } else { '' }), $shape.source) -ForegroundColor Gray
+        foreach ($f in $findings) {
+            $colour = if ($f.kind -eq 'OFF-GLASS') { 'Red' } else { 'Yellow' }
+            Write-Host ("{0,-10} {1,-36} bounds {2},{3}..{4},{5}  worst corner {6} px from its arc centre (limit {7})" -f `
+                $f.kind, $f.label, $f.x1, $f.y1, $f.x2, $f.y2, $f.overflow, $shape.radius) -ForegroundColor $colour
+        }
+        if ($shape.radius -le 0) {
+            Write-Host "OK - this display reports no rounded corners, so nothing can leave its glass" -ForegroundColor Cyan
+            exit 0
+        }
+        if ($offGlass.Count -eq 0) {
+            Write-Host ("CLEAN - {0} leaf node(s) checked, none off-glass ({1} EDGE, {2} CLIPPED are normal scrolling)" -f `
+                $judged.Count, @($findings | Where-Object { $_.kind -eq 'EDGE' }).Count, @($findings | Where-Object { $_.kind -eq 'CLIPPED' }).Count) -ForegroundColor Cyan
+            exit 0
+        }
+        Fail 9 "$($offGlass.Count) node(s) cannot fit on the glass at any scroll position"
     }
 
     'text' {

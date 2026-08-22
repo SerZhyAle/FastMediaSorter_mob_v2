@@ -2,16 +2,20 @@ package com.sza.fastmediasorter.ui.addresource
 
 import android.widget.Toast
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import timber.log.Timber
 
 @android.annotation.SuppressLint("SetTextI18n")
 class AddResourceHelper(
-    private val activity: AddResourceActivity,
-    private val binding: ActivityAddResourceBinding
+    private val activity: AddResourceActivity
 ) {
+
+    // S1519: lazy ViewStub-backed form bindings owned by the activity (inflate on first access).
+    private val localForm get() = activity.forms.local
+    private val smbForm get() = activity.forms.smb
+    private val sftpForm get() = activity.forms.sftp
 
     /**
      * Pre-fill form fields with data from resource being copied
@@ -29,7 +33,7 @@ class AddResourceHelper(
         when (resource.type) {
             ResourceType.LOCAL -> {
                 activity.showLocalFolderOptions()
-                binding.etLocalPinCode.setText(resource.accessPin.orEmpty())
+                localForm.etLocalPinCode.setText(resource.accessPin.orEmpty())
                 // For local, path is already selected by user via folder picker
                 // We can't pre-select it, but show message
                 Toast.makeText(
@@ -48,46 +52,46 @@ class AddResourceHelper(
                 val parts = smbPath.split("/", limit = 2)
 
                 if (parts.isNotEmpty()) {
-                    binding.etSmbServer.setText(parts[0])
+                    smbForm.etSmbServer.setText(parts[0])
                 }
                 if (parts.size > 1) {
                     // Keep entire share path including subfolders (e.g., "photos/2025")
-                    binding.etSmbShareName.setText(parts[1])
+                    smbForm.etSmbShareName.setText(parts[1])
                 }
 
                 // Pre-fill credentials
-                if (username != null) binding.etSmbUsername.setText(username)
-                if (password != null) binding.etSmbPassword.setText(password)
-                if (domain != null) binding.etSmbDomain.setText(domain)
-                binding.etSmbPinCode.setText(resource.accessPin.orEmpty())
+                if (username != null) smbForm.etSmbUsername.setText(username)
+                if (password != null) smbForm.etSmbPassword.setText(password)
+                if (domain != null) smbForm.etSmbDomain.setText(domain)
+                smbForm.etSmbPinCode.setText(resource.accessPin.orEmpty())
 
-                binding.etSmbPort.setText(R.string.default_smb_port)
+                smbForm.etSmbPort.setText(R.string.default_smb_port)
 
                 // Pre-fill comment
-                binding.etSmbComment.setText(resource.comment ?: "")
+                smbForm.etSmbComment.setText(resource.comment ?: "")
 
                 // Pre-fill scan subdirectories
-                binding.cbSmbScanSubdirectories.isChecked = resource.scanSubdirectories
+                smbForm.cbSmbScanSubdirectories.isChecked = resource.scanSubdirectories
 
                 // Pre-fill all files mode
-                binding.cbSmbAllFiles.isChecked = resource.allFiles
+                smbForm.cbSmbAllFiles.isChecked = resource.allFiles
 
                 // Pre-fill remember file list
-                binding.cbSmbRememberFileList.isChecked = resource.rememberFileList
+                smbForm.cbSmbRememberFileList.isChecked = resource.rememberFileList
 
                 // Pre-fill show subfolders as items and disable thumbnails - were added to create
                 // form as part of option-parity fix; must be restored from source resource on copy
-                binding.cbSmbShowSubfoldersAsItems.isChecked = resource.showSubfoldersAsItems
-                binding.cbSmbDisableThumbnails.isChecked = resource.disableThumbnails
+                smbForm.cbSmbShowSubfoldersAsItems.isChecked = resource.showSubfoldersAsItems
+                smbForm.cbSmbDisableThumbnails.isChecked = resource.disableThumbnails
 
                 // Pre-fill supported media types
-                binding.cbSmbSupportImage.isChecked = com.sza.fastmediasorter.domain.model.MediaType.IMAGE in resource.supportedMediaTypes
-                binding.cbSmbSupportVideo.isChecked = com.sza.fastmediasorter.domain.model.MediaType.VIDEO in resource.supportedMediaTypes
-                binding.cbSmbSupportAudio.isChecked = com.sza.fastmediasorter.domain.model.MediaType.AUDIO in resource.supportedMediaTypes
-                binding.cbSmbSupportGif.isChecked = com.sza.fastmediasorter.domain.model.MediaType.GIF in resource.supportedMediaTypes
-                binding.cbSmbSupportText.isChecked = com.sza.fastmediasorter.domain.model.MediaType.TEXT in resource.supportedMediaTypes
-                binding.cbSmbSupportPdf.isChecked = com.sza.fastmediasorter.domain.model.MediaType.PDF in resource.supportedMediaTypes
-                binding.cbSmbSupportEpub.isChecked = com.sza.fastmediasorter.domain.model.MediaType.EPUB in resource.supportedMediaTypes
+                smbForm.cbSmbSupportImage.isChecked = MediaType.IMAGE in resource.supportedMediaTypes
+                smbForm.cbSmbSupportVideo.isChecked = MediaType.VIDEO in resource.supportedMediaTypes
+                smbForm.cbSmbSupportAudio.isChecked = MediaType.AUDIO in resource.supportedMediaTypes
+                smbForm.cbSmbSupportGif.isChecked = MediaType.GIF in resource.supportedMediaTypes
+                smbForm.cbSmbSupportText.isChecked = MediaType.TEXT in resource.supportedMediaTypes
+                smbForm.cbSmbSupportPdf.isChecked = MediaType.PDF in resource.supportedMediaTypes
+                smbForm.cbSmbSupportEpub.isChecked = MediaType.EPUB in resource.supportedMediaTypes
 
                 Toast.makeText(
                     activity,
@@ -106,65 +110,65 @@ class AddResourceHelper(
 
                 if (hostAndPath.isNotEmpty()) {
                     val hostPort = hostAndPath[0].split(":")
-                    binding.etSftpHost.setText(hostPort[0])
+                    sftpForm.etSftpHost.setText(hostPort[0])
                     if (hostPort.size > 1) {
-                        binding.etSftpPort.setText(hostPort[1])
+                        sftpForm.etSftpPort.setText(hostPort[1])
                     } else {
-                        binding.etSftpPort.setText(R.string.default_sftp_port)
+                        sftpForm.etSftpPort.setText(R.string.default_sftp_port)
                     }
                 }
 
                 if (hostAndPath.size > 1) {
-                    binding.etSftpPath.setText(activity.getString(R.string.path_format, hostAndPath[1]))
+                    sftpForm.etSftpPath.setText(activity.getString(R.string.path_format, hostAndPath[1]))
                 }
 
-                binding.rbSftp.isChecked = true
+                sftpForm.rbSftp.isChecked = true
 
                 // Pre-fill credentials
-                if (username != null) binding.etSftpUsername.setText(username)
-                binding.etSftpPinCode.setText(resource.accessPin.orEmpty())
+                if (username != null) sftpForm.etSftpUsername.setText(username)
+                sftpForm.etSftpPinCode.setText(resource.accessPin.orEmpty())
                 // S0046: prefill the pinned host-key fingerprint; clearing it on save reverts to permissive mode.
-                binding.etSftpHostKeyFingerprint.setText(resource.hostKeyFingerprint.orEmpty())
+                sftpForm.etSftpHostKeyFingerprint.setText(resource.hostKeyFingerprint.orEmpty())
                 // Reveal the optional security block when a fingerprint is already pinned so the saved value is visible on edit.
                 // notify=false keeps this transient and avoids persisting the expanded state for future new resources.
                 if (!resource.hostKeyFingerprint.isNullOrBlank()) {
-                    binding.headerSftpServerVerification.setExpanded(true, notify = false)
-                    binding.contentSftpServerVerification.visibility = android.view.View.VISIBLE
+                    sftpForm.headerSftpServerVerification.setExpanded(true, notify = false)
+                    sftpForm.contentSftpServerVerification.visibility = android.view.View.VISIBLE
                 }
 
                 if (sshKey != null) {
-                    binding.rbSftpSshKey.isChecked = true
-                    binding.etSftpPrivateKey.setText(sshKey)
-                    if (sshPassphrase != null) binding.etSftpKeyPassphrase.setText(sshPassphrase)
+                    sftpForm.rbSftpSshKey.isChecked = true
+                    sftpForm.etSftpPrivateKey.setText(sshKey)
+                    if (sshPassphrase != null) sftpForm.etSftpKeyPassphrase.setText(sshPassphrase)
                 } else {
-                    binding.rbSftpPassword.isChecked = true
-                    if (password != null) binding.etSftpPassword.setText(password)
+                    sftpForm.rbSftpPassword.isChecked = true
+                    if (password != null) sftpForm.etSftpPassword.setText(password)
                 }
 
                 // Pre-fill comment
-                binding.etSftpComment.setText(resource.comment ?: "")
+                sftpForm.etSftpComment.setText(resource.comment ?: "")
 
                 // Pre-fill scan subdirectories
-                binding.cbSftpScanSubdirectories.isChecked = resource.scanSubdirectories
+                sftpForm.cbSftpScanSubdirectories.isChecked = resource.scanSubdirectories
 
                 // Pre-fill all files mode
-                binding.cbSftpAllFiles.isChecked = resource.allFiles
+                sftpForm.cbSftpAllFiles.isChecked = resource.allFiles
 
                 // Pre-fill remember file list
-                binding.cbSftpRememberFileList.isChecked = resource.rememberFileList
+                sftpForm.cbSftpRememberFileList.isChecked = resource.rememberFileList
 
                 // Pre-fill show subfolders as items and disable thumbnails - option-parity fields
-                binding.cbSftpShowSubfoldersAsItems.isChecked = resource.showSubfoldersAsItems
-                binding.cbSftpDisableThumbnails.isChecked = resource.disableThumbnails
+                sftpForm.cbSftpShowSubfoldersAsItems.isChecked = resource.showSubfoldersAsItems
+                sftpForm.cbSftpDisableThumbnails.isChecked = resource.disableThumbnails
 
                 // Pre-fill supported media types
-                binding.cbSftpSupportImage.isChecked = com.sza.fastmediasorter.domain.model.MediaType.IMAGE in resource.supportedMediaTypes
-                binding.cbSftpSupportVideo.isChecked = com.sza.fastmediasorter.domain.model.MediaType.VIDEO in resource.supportedMediaTypes
-                binding.cbSftpSupportAudio.isChecked = com.sza.fastmediasorter.domain.model.MediaType.AUDIO in resource.supportedMediaTypes
-                binding.cbSftpSupportGif.isChecked = com.sza.fastmediasorter.domain.model.MediaType.GIF in resource.supportedMediaTypes
-                binding.cbSftpSupportText.isChecked = com.sza.fastmediasorter.domain.model.MediaType.TEXT in resource.supportedMediaTypes
-                binding.cbSftpSupportPdf.isChecked = com.sza.fastmediasorter.domain.model.MediaType.PDF in resource.supportedMediaTypes
-                binding.cbSftpSupportEpub.isChecked = com.sza.fastmediasorter.domain.model.MediaType.EPUB in resource.supportedMediaTypes
+                sftpForm.cbSftpSupportImage.isChecked = MediaType.IMAGE in resource.supportedMediaTypes
+                sftpForm.cbSftpSupportVideo.isChecked = MediaType.VIDEO in resource.supportedMediaTypes
+                sftpForm.cbSftpSupportAudio.isChecked = MediaType.AUDIO in resource.supportedMediaTypes
+                sftpForm.cbSftpSupportGif.isChecked = MediaType.GIF in resource.supportedMediaTypes
+                sftpForm.cbSftpSupportText.isChecked = MediaType.TEXT in resource.supportedMediaTypes
+                sftpForm.cbSftpSupportPdf.isChecked = MediaType.PDF in resource.supportedMediaTypes
+                sftpForm.cbSftpSupportEpub.isChecked = MediaType.EPUB in resource.supportedMediaTypes
 
                 Toast.makeText(
                     activity,
@@ -183,49 +187,49 @@ class AddResourceHelper(
 
                 if (hostAndPath.isNotEmpty()) {
                     val hostPort = hostAndPath[0].split(":")
-                    binding.etSftpHost.setText(hostPort[0])
+                    sftpForm.etSftpHost.setText(hostPort[0])
                     if (hostPort.size > 1) {
-                        binding.etSftpPort.setText(hostPort[1])
+                        sftpForm.etSftpPort.setText(hostPort[1])
                     } else {
-                        binding.etSftpPort.setText(R.string.default_ftp_port)
+                        sftpForm.etSftpPort.setText(R.string.default_ftp_port)
                     }
                 }
 
                 if (hostAndPath.size > 1) {
-                    binding.etSftpPath.setText(activity.getString(R.string.path_format, hostAndPath[1]))
+                    sftpForm.etSftpPath.setText(activity.getString(R.string.path_format, hostAndPath[1]))
                 }
 
-                binding.rbFtp.isChecked = true
+                sftpForm.rbFtp.isChecked = true
 
                 // Pre-fill credentials
-                if (username != null) binding.etSftpUsername.setText(username)
-                if (password != null) binding.etSftpPassword.setText(password)
-                binding.etSftpPinCode.setText(resource.accessPin.orEmpty())
+                if (username != null) sftpForm.etSftpUsername.setText(username)
+                if (password != null) sftpForm.etSftpPassword.setText(password)
+                sftpForm.etSftpPinCode.setText(resource.accessPin.orEmpty())
 
                 // Pre-fill comment
-                binding.etSftpComment.setText(resource.comment ?: "")
+                sftpForm.etSftpComment.setText(resource.comment ?: "")
 
                 // Pre-fill scan subdirectories
-                binding.cbSftpScanSubdirectories.isChecked = resource.scanSubdirectories
+                sftpForm.cbSftpScanSubdirectories.isChecked = resource.scanSubdirectories
 
                 // Pre-fill all files mode
-                binding.cbSftpAllFiles.isChecked = resource.allFiles
+                sftpForm.cbSftpAllFiles.isChecked = resource.allFiles
 
                 // Pre-fill remember file list
-                binding.cbSftpRememberFileList.isChecked = resource.rememberFileList
+                sftpForm.cbSftpRememberFileList.isChecked = resource.rememberFileList
 
                 // Pre-fill show subfolders as items and disable thumbnails - option-parity fields
-                binding.cbSftpShowSubfoldersAsItems.isChecked = resource.showSubfoldersAsItems
-                binding.cbSftpDisableThumbnails.isChecked = resource.disableThumbnails
+                sftpForm.cbSftpShowSubfoldersAsItems.isChecked = resource.showSubfoldersAsItems
+                sftpForm.cbSftpDisableThumbnails.isChecked = resource.disableThumbnails
 
                 // Pre-fill supported media types
-                binding.cbSftpSupportImage.isChecked = com.sza.fastmediasorter.domain.model.MediaType.IMAGE in resource.supportedMediaTypes
-                binding.cbSftpSupportVideo.isChecked = com.sza.fastmediasorter.domain.model.MediaType.VIDEO in resource.supportedMediaTypes
-                binding.cbSftpSupportAudio.isChecked = com.sza.fastmediasorter.domain.model.MediaType.AUDIO in resource.supportedMediaTypes
-                binding.cbSftpSupportGif.isChecked = com.sza.fastmediasorter.domain.model.MediaType.GIF in resource.supportedMediaTypes
-                binding.cbSftpSupportText.isChecked = com.sza.fastmediasorter.domain.model.MediaType.TEXT in resource.supportedMediaTypes
-                binding.cbSftpSupportPdf.isChecked = com.sza.fastmediasorter.domain.model.MediaType.PDF in resource.supportedMediaTypes
-                binding.cbSftpSupportEpub.isChecked = com.sza.fastmediasorter.domain.model.MediaType.EPUB in resource.supportedMediaTypes
+                sftpForm.cbSftpSupportImage.isChecked = MediaType.IMAGE in resource.supportedMediaTypes
+                sftpForm.cbSftpSupportVideo.isChecked = MediaType.VIDEO in resource.supportedMediaTypes
+                sftpForm.cbSftpSupportAudio.isChecked = MediaType.AUDIO in resource.supportedMediaTypes
+                sftpForm.cbSftpSupportGif.isChecked = MediaType.GIF in resource.supportedMediaTypes
+                sftpForm.cbSftpSupportText.isChecked = MediaType.TEXT in resource.supportedMediaTypes
+                sftpForm.cbSftpSupportPdf.isChecked = MediaType.PDF in resource.supportedMediaTypes
+                sftpForm.cbSftpSupportEpub.isChecked = MediaType.EPUB in resource.supportedMediaTypes
 
                 Toast.makeText(
                     activity,

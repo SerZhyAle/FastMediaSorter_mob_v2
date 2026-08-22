@@ -6,8 +6,8 @@
 .DESCRIPTION
     CLAUDE.md Rule 16 (multimodal parity): every focusable/clickable control must show
     where the focus is, and not by colour alone, so TV / D-pad / keyboard users can see
-    the current target. This gate counts interactive views in app_v2/src/main/res/layout
-    and /res/layout-land that carry NO recognised focus indication.
+    the current target. This gate counts interactive views in every app_v2/src/main/res/layout*
+    directory that carry NO recognised focus indication.
 
     An element is INTERACTIVE when it has `android:clickable="true"`,
     `android:focusable="true"`, or an `android:onClick`.
@@ -117,7 +117,10 @@ function Test-Covered([string]$attrs, [string]$shortTag) {
     return $false
 }
 
-$layoutDirs = @('layout', 'layout-land') | ForEach-Object { Join-Path $resRoot $_ } | Where-Object { Test-Path $_ }
+# Every layout directory, not the two phone ones: a qualifier-specific copy of a screen is exactly
+# where a D-pad or keyboard is most likely (Rule 16), so it is the last place to leave unscanned.
+# Globbed rather than enumerated so a new qualifier is covered the day it appears (S1935).
+$layoutDirs = Get-ChildItem -LiteralPath $resRoot -Directory -Filter 'layout*' | Select-Object -ExpandProperty FullName | Sort-Object
 
 $current = 0
 $hits = [System.Collections.Generic.List[string]]::new()

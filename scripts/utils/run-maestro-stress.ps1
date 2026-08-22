@@ -452,7 +452,9 @@ if (-not $appInstalled) {
         Write-Host "⚠ App not installed, building..." -ForegroundColor Yellow
         Enter-BuildLockOrExit -Reason 'run-maestro-stress.ps1 (assembleStandardDebug)'
         try {
-            & "$ProjectRoot\gradlew.bat" assembleStandardDebug
+            . (Join-Path $ProjectRoot 'scripts/utils/build-version-stamp.ps1')
+            $stamp = Get-BuildVersionStamp
+            & "$ProjectRoot\gradlew.bat" assembleStandardDebug "-Pfms.versionCode=$($stamp.AppVersionCode)" "-Pfms.versionName=$($stamp.VersionName)"
         }
         finally {
             Exit-AgentLock -Name Build

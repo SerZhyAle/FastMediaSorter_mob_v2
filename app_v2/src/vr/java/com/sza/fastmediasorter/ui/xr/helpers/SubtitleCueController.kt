@@ -5,7 +5,6 @@ import android.graphics.Canvas
 import androidx.media3.common.text.CueGroup
 import com.sza.fastmediasorter.core.xr.runtime.DiagnosticXrRuntime
 import java.nio.ByteBuffer
-import timber.log.Timber
 
 /**
  * S0986: owns the subtitle-cue bitmap/buffer and pushes rendered cue text to the immersive subtitle

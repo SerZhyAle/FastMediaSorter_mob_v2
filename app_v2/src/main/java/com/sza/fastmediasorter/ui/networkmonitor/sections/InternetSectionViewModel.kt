@@ -24,9 +24,13 @@ import com.sza.fastmediasorter.domain.usecase.networkmonitor.SubnetScanState
 import com.sza.fastmediasorter.domain.usecase.networkmonitor.SubnetScanTarget
 import com.sza.fastmediasorter.domain.usecase.networkmonitor.ThroughputMode
 import com.sza.fastmediasorter.domain.usecase.networkmonitor.ThroughputState
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.ChartWindowEvent
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.ChartWindowResetManager
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.ExternalIpSessionStore
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.appendSample
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.collectingSignalWindow
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.emptySignalWindow
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.withChartResets
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,6 +38,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.stateIn
@@ -152,11 +157,30 @@ class InternetSectionViewModel @Inject constructor(
     private val snapshot: StateFlow<NetworkMonitorSnapshot?> = repository.observeSnapshot()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
 
+    private val chartResets = ChartWindowResetManager()
+
     val uiState: StateFlow<InternetSectionUiState> = combine(
         snapshot,
-        observeTrafficRate().scan(TrafficWindow.EMPTY) { window, section -> window.fold(section) },
+        observeTrafficRate()
+            .withChartResets(chartResets.resets)
+            .scan(TrafficWindow.EMPTY) { window, event ->
+                when (event) {
+                    is ChartWindowEvent.Sample -> window.fold(event.reading)
+                    is ChartWindowEvent.Reset -> TrafficWindow.RESTARTED
+                }
+            },
     ) { current, traffic -> current.toUiState(traffic) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), InternetSectionUiState.Empty)
+
+    /**
+     * Starts the traffic window over.
+     *
+     * The retained rate goes with it: a rate is a delta between two readings, and keeping the pre-reset one
+     * would make the first point after the restart a spike nobody measured (S1853).
+     */
+    fun onChartResetRequested() {
+        chartResets.reset(ChartWindowResetManager.SINGLE_CHART)
+    }
 
     val resources: StateFlow<List<InternetResource>> = resourceRepository.getAllResources()
         .map { saved -> saved.map { InternetResource(it.id, it.name) } }
@@ -169,6 +193,17 @@ class InternetSectionViewModel @Inject constructor(
     private var selectedResourceId: Long? = null
 
     private var subnetRange: SubnetScanTarget = SubnetScanTarget.DeviceSubnet
+
+    /**
+     * S1617: the range a scan with untouched fields would use, so the screen can show it.
+     *
+     * Resolved once per screen rather than observed: it changes only when the device changes network, and
+     * a value that rewrote itself under a user mid-edit would be worse than a stale one. Null means the
+     * device has no usable IPv4 address, which is also the case where the scan itself refuses.
+     */
+    val deviceSubnetRange: StateFlow<SubnetScanTarget.AddressRange?> =
+        flow { emit(scanSubnet.deviceSubnetRange()) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
 
     private var activeJob: Job? = null
 
@@ -393,6 +428,9 @@ private data class TrafficWindow(
     companion object {
 
         val EMPTY = TrafficWindow(emptySignalWindow(), null)
+
+        /** After a restart the source is unchanged, so the chart collects rather than naming a reason. */
+        val RESTARTED = TrafficWindow(collectingSignalWindow(), null)
     }
 }
 

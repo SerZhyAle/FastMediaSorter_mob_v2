@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.LruCache
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -64,31 +65,21 @@ class StreamTilePackReader(
         // moment and every later access on it throws - entry lookup as much as the read. Keep both
         // inside this try (the S1220 lesson from the region-decoder path).
         return try {
-            val startedAt = android.os.SystemClock.elapsedRealtime()
             zip.getEntry(index.toString())
                 ?.let { entry -> zip.getInputStream(entry).use { BitmapFactory.decodeStream(it) } }
-                ?.also {
-                    cache.put(index, it)
-                    logFirstDecode(index, android.os.SystemClock.elapsedRealtime() - startedAt)
-                }
+                ?.also { cache.put(index, it) }
         } catch (e: IOException) {
             Timber.i(e, "Stream tile pack entry unreadable for index=$index")
             null
+        } catch (e: CancellationException) {
+            // A cancelled read is not a closed container: answering null here caches "no tile" for
+            // an index that was never actually read (S1889).
+            Timber.d("S1889: tile pack read cancelled - rethrowing instead of caching no tile")
+            throw e
         } catch (e: IllegalStateException) {
             Timber.i(e, "Stream tile pack closed while reading index=$index")
             null
         }
-    }
-
-    // Temporary S1445 device probe: one line per (re)open, carrying the cost of the first tile read
-    // from that container - the number the ticket is about. Removed when the ticket leaves
-    // BlockNeedUserTest.
-    @Volatile
-    private var decodeProbeLogged = false
-
-    private fun logFirstDecode(index: Int, elapsedMs: Long) {
-        if (decodeProbeLogged) return
-        decodeProbeLogged = true
     }
 
     /** Closes the container and drops every cached tile, so the next [tile] re-reads the provider. */
@@ -100,7 +91,6 @@ class StreamTilePackReader(
         }
         archive = null
         opened = false
-        decodeProbeLogged = false
         cache.evictAll()
     }
 
@@ -123,6 +113,7 @@ class StreamTilePackReader(
     companion object {
         private const val BYTES_PER_MB = 1024 * 1024
         private const val MIN_CACHE_BYTES = 4 * BYTES_PER_MB
+
         // Two readers live side by side (previews and logos), so the ceiling is per payload and has to
         // be half of what one cache could afford on its own.
         private const val MAX_CACHE_BYTES = 12 * BYTES_PER_MB

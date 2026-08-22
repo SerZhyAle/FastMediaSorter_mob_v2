@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1823: the ON_OPEN catalog-refresh offer. It replaced a Snackbar, which faded after a few seconds
+     and was measurably hard to act on - three separate attempts missed it on a real device, and the
+     owner's own phone had never imported the catalog at all. This banner is the same offer with the
+     timeout removed: it stays until the user takes it or closes it. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/streamsCatalogBanner"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="?attr/colorSurfaceVariant"
+    android:paddingStart="@dimen/streams_section_header_padding"
+    android:paddingEnd="4dp"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp">
+
+    <TextView
+        android:id="@+id/tvCatalogBanner"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textAppearance="?attr/textAppearanceBody2"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:text="@string/streams_catalog_refresh_suggestion" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnCatalogBannerAction"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/streams_catalog_refresh_action"
+        android:focusable="true"
+        android:clickable="true"
+        android:nextFocusRight="@id/btnCatalogBannerDismiss" />
+
+    <ImageButton
+        android:id="@+id/btnCatalogBannerDismiss"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_clear"
+        android:focusable="true"
+        android:clickable="true"
+        android:nextFocusLeft="@id/btnCatalogBannerAction"
+        app:tint="?attr/colorOnSurfaceVariant"
+        android:contentDescription="@string/close" />
+</LinearLayout>

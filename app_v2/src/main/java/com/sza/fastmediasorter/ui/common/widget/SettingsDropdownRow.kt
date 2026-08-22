@@ -39,7 +39,9 @@ class SettingsDropdownRow @JvmOverloads constructor(
     defStyleAttr: Int = 0,
 ) : LinearLayout(context, attrs, defStyleAttr) {
 
+    private val textGroup: LinearLayout
     private val titleView: TextView
+    private val subtitleView: TextView
     private val helpIcon: ImageButton
     private val inputLayout: TextInputLayout
     private val valueView: TextInputEditText
@@ -58,7 +60,9 @@ class SettingsDropdownRow @JvmOverloads constructor(
         orientation = VERTICAL
         LayoutInflater.from(context).inflate(R.layout.view_settings_dropdown_row, this, true)
 
+        textGroup = findViewById(R.id.sdr_textGroup)
         titleView = findViewById(R.id.sdr_title)
+        subtitleView = findViewById(R.id.sdr_subtitle)
         helpIcon = findViewById(R.id.sdr_iconHelp)
         inputLayout = findViewById(R.id.sdr_inputLayout)
         valueView = findViewById(R.id.sdr_value)
@@ -81,6 +85,26 @@ class SettingsDropdownRow @JvmOverloads constructor(
      */
     fun setTitle(@StringRes resId: Int) {
         setTitle(context.getText(resId))
+    }
+
+    /**
+     * Sets the subtitle text. Empty/null hides the subtitle without breaking row layout.
+     */
+    fun setSubtitle(text: CharSequence?) {
+        if (text.isNullOrEmpty()) {
+            subtitleView.text = ""
+            subtitleView.visibility = View.GONE
+        } else {
+            subtitleView.text = text
+            subtitleView.visibility = View.VISIBLE
+        }
+    }
+
+    /**
+     * Sets the subtitle from a string resource.
+     */
+    fun setSubtitle(@StringRes resId: Int) {
+        setSubtitle(context.getText(resId))
     }
 
     /**
@@ -136,6 +160,7 @@ class SettingsDropdownRow @JvmOverloads constructor(
     override fun setEnabled(enabled: Boolean) {
         super.setEnabled(enabled)
         titleView.isEnabled = enabled
+        subtitleView.isEnabled = enabled
         helpIcon.isEnabled = enabled
         inputLayout.isEnabled = enabled
         valueView.isEnabled = enabled
@@ -217,6 +242,7 @@ class SettingsDropdownRow @JvmOverloads constructor(
         if (attrs == null) return
         context.obtainStyledAttributes(attrs, R.styleable.SettingsDropdownRow, defStyleAttr, 0).use { typedArray ->
             setTitle(typedArray.getText(R.styleable.SettingsDropdownRow_sdr_title) ?: "")
+            setSubtitle(typedArray.getText(R.styleable.SettingsDropdownRow_sdr_subtitle))
             helpTitleText = typedArray.getText(R.styleable.SettingsDropdownRow_sdr_helpTitle)
             helpMessageText = typedArray.getText(R.styleable.SettingsDropdownRow_sdr_helpMessage)
             val showHelp = typedArray.getBoolean(R.styleable.SettingsDropdownRow_sdr_showHelp, false)
@@ -246,8 +272,9 @@ class SettingsDropdownRow @JvmOverloads constructor(
     private fun applyInlineLayout() {
         orientation = HORIZONTAL
         gravity = android.view.Gravity.CENTER_VERTICAL
-        (titleView.parent as View).updateLayoutParams<LayoutParams> {
-            width = LayoutParams.WRAP_CONTENT
+        textGroup.updateLayoutParams<LayoutParams> {
+            width = 0
+            weight = 1f
             marginEnd = resources.getDimensionPixelSize(R.dimen.settings_help_icon_margin)
         }
         findViewById<View>(R.id.sdr_titleLineSpacer).visibility = View.GONE

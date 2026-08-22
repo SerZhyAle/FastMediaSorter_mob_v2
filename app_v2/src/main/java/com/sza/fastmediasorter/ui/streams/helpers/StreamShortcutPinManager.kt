@@ -8,6 +8,7 @@ import androidx.core.graphics.drawable.IconCompat
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.widget.StreamPlayLaunchActivity
+import timber.log.Timber
 
 /**
  * S0637: builds and requests a pinned home-screen shortcut for one stream source. Kept out of the
@@ -30,6 +31,7 @@ class StreamShortcutPinManager(private val context: Context) {
      * crop the square favicon.
      */
     fun requestPin(source: StreamSourceEntity, iconBitmap: Bitmap? = null): Boolean {
+        Timber.d("S1917: stream pin requested id=${source.id}")
         if (!ShortcutManagerCompat.isRequestPinShortcutSupported(context)) return false
         val icon = iconBitmap?.let { IconCompat.createWithBitmap(it) }
             ?: IconCompat.createWithResource(context, iconFor(source.mediaKind))

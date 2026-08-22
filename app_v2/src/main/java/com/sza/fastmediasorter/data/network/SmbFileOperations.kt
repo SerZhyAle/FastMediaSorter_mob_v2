@@ -11,7 +11,6 @@ import com.sza.fastmediasorter.data.network.model.SmbFileInfo
 import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
 import timber.log.Timber
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
@@ -37,9 +36,7 @@ import javax.inject.Singleton
 class SmbFileOperations @Inject constructor(
     private val connectionManager: SmbConnectionManager
 ) {
-    
-    private val smbDispatcher = Dispatchers.IO
-    
+
     /**
      * Download file from SMB to local output stream.
      * @param progressCallback Optional callback for progress updates (bytes transferred)

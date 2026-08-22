@@ -8,9 +8,14 @@ package com.sza.fastmediasorter.domain.model
  * @property label Human-readable label: "server:port (username)".
  * @property status Audit status - see [CredentialStatus].
  * @property createdAt Epoch ms when the credential was originally stored.
- * @property eligibleForCleanup True when [status] is [CredentialStatus.ORPHANED] AND the
- *   grace period defined by [com.sza.fastmediasorter.domain.usecase.UnusedCredentialPolicy]
- *   has elapsed. Credentials marked eligible should be reviewed and may be safely deleted.
+ * @property orphanedSince S1649: epoch ms when the credential was first observed with no resource
+ *   referencing it, or null when the last audit did not consider it orphaned. The grace period is
+ *   measured from this moment, never from [createdAt] - measuring from storage time gave a credential
+ *   stored a year ago no protection at all on the day its resource was removed.
+ * @property eligibleForCleanup True when [status] is [CredentialStatus.ORPHANED], [orphanedSince] is
+ *   known, AND the grace period defined by
+ *   [com.sza.fastmediasorter.domain.usecase.UnusedCredentialPolicy] has elapsed since it. Credentials
+ *   marked eligible should be reviewed and may be safely deleted.
  */
 data class CredentialAuditEntry(
     val credentialId: String,
@@ -18,6 +23,7 @@ data class CredentialAuditEntry(
     val label: String,
     val status: CredentialStatus,
     val createdAt: Long = 0L,
+    val orphanedSince: Long? = null,
     val eligibleForCleanup: Boolean = false
 )
 

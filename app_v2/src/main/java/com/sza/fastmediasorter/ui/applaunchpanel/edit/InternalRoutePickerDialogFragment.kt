@@ -11,6 +11,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
+import com.sza.fastmediasorter.core.panel.SubProgramCatalog
 import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
 import com.sza.fastmediasorter.databinding.DialogSearchableOptionPickerBinding
 import com.sza.fastmediasorter.domain.usecase.panel.ResolvePanelRouteAvailabilityUseCase
@@ -73,7 +74,7 @@ class InternalRoutePickerDialogFragment : DialogFragment() {
 
     private suspend fun buildOptions(): List<Option> {
         val availability = resolveRouteAvailability.all()
-        return InternalRouteCatalog.all().mapNotNull { route ->
+        return offeredRoutesInRegistryOrder().mapNotNull { route ->
             val state = availability[route.key] ?: return@mapNotNull null
             if (!state.availableInBuild) return@mapNotNull null
             val label = getString(route.labelRes)
@@ -85,6 +86,25 @@ class InternalRoutePickerDialogFragment : DialogFragment() {
             }
             Option(id = route.key, label = display, leading = LeadingVisual.IconRes(route.iconRes))
         }
+    }
+
+    /**
+     * S1736: sub-programs first, in the registry's one order (ADR-5), then everything else the route
+     * catalog offers in its own sequence.
+     *
+     * Not restricted to the registry: streams and favourites are parts of the main application rather
+     * than sub-programs (Non-goals), so they are absent from it, and dropping them from the picker
+     * would take a capability away instead of reordering it.
+     */
+    private fun offeredRoutesInRegistryOrder(): List<InternalRouteCatalog.Route> {
+        val registryOrder = SubProgramCatalog.all().mapIndexedNotNull { index, entry ->
+            InternalRouteCatalog.byKey(entry.routeKey)?.let { it.key to index }
+        }.toMap()
+        val subPrograms = InternalRouteCatalog.all()
+            .filter { it.key in registryOrder }
+            .sortedBy { registryOrder.getValue(it.key) }
+        val rest = InternalRouteCatalog.all().filterNot { it.key in registryOrder }
+        return subPrograms + rest
     }
 
     private fun onRoutePicked(routeKey: String) {

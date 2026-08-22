@@ -80,11 +80,11 @@ class GeneralSettingsColorThemeHelper(
             .setPositiveButton(R.string.restart) { _, _ ->
                 val current = viewModel.settings.value
                 viewModel.updateSettings(current.copy(colorTheme = newValue))
-                ColorThemePrefs.setMode(fragment.requireContext(), newValue)
                 ColorThemePrefs.applyMode(newValue)
                 LocaleHelper.markReturnToSettings(fragment.requireContext())
                 LocaleHelper.restartApp(fragment.requireActivity())
             }
+
             .setNegativeButton(R.string.cancel) { dialog, _ ->
                 setIsUpdatingSpinner(true)
                 binding.spinnerColorTheme.setSelection(valueToPosition(previousValue))

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1754: the image media window - the resource's newest pictures, cycling inside the cell.
+
+     One ImageView, not the 2x2 thumbnail grid of gadget_launcher_preview.xml: that gadget answers "what
+     is in this folder", while this one shows one picture at a time at cell size, which is what a photo
+     frame does. The two are complementary and both stay.
+
+     Orientation-neutral, so no layout-land counterpart: the launcher measures a cell exactly. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <ImageView
+        android:id="@+id/mediaImageWindowFrame"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="true"
+        android:contentDescription="@string/launcher_gadget_media_image_window"
+        android:focusable="true"
+        android:scaleType="centerCrop"
+        tools:src="@drawable/ic_image" />
+
+    <TextView
+        android:id="@+id/mediaImageWindowMessage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:maxLines="2"
+        android:padding="@dimen/margin_small"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:textSize="12sp"
+        android:visibility="gone"
+        tools:text="Unavailable"
+        tools:visibility="visible" />
+
+    <!-- Over the picture for the same reason the video window puts it there: the frame is the cell. -->
+    <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
+        android:id="@+id/mediaImageWindowTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:clickable="true"
+        android:ellipsize="end"
+        android:focusable="true"
+        android:foreground="@drawable/focus_button_background"
+        android:maxLines="1"
+        android:minHeight="28dp"
+        android:paddingStart="@dimen/margin_small"
+        android:paddingEnd="@dimen/margin_small"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
+        tools:text="Holiday photos" />
+
+</merge>

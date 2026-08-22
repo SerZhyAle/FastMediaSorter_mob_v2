@@ -7,7 +7,6 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherGeographicAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.usecase.launcher.AcceptLauncherPlaceUseCase
-import timber.log.Timber
 import javax.inject.Inject
 
 enum class LauncherPlaceShareOutcome {
@@ -29,9 +28,7 @@ class LauncherPlaceShareManager @Inject constructor(
         addedAt: Long,
     ): LauncherPlaceShareOutcome {
         val shape = shapeFrom(intent) ?: return LauncherPlaceShareOutcome.NOT_OURS
-        Timber.d("S1585: share intake shape=$shape")
         val command = commandFor(shape)
-        Timber.d("S1585: placing cell action=${command.action} query=${command.query}")
         val orientation = if (isLandscape) {
             LauncherOrientation.LANDSCAPE
         } else {

@@ -90,9 +90,25 @@ class MainResourceTabsManager(
             tabLayout.tabGravity = TabLayout.GRAVITY_FILL
         }
         applyLeadingCellAccent(fixedGrid)
+        applyLeadingAnchor()
 
         // S0781: (re)bind per-tab long-press to collapse + apply the persisted collapsed state.
         collapseManager.onTabsRebuilt()
+    }
+
+    /**
+     * S1549: the wide strip is inset by the shared leading anchor, and MainActivity absorbs the
+     * rotation, so the inset has to be re-applied here rather than left to layout-land. It is a
+     * margin, not a padding: S1659 measured that in tabMode=fixed TabLayout sizes its strip to the
+     * widget's full width and ignores horizontal padding, which pushed the last tab off-screen.
+     */
+    private fun applyLeadingAnchor() {
+        val anchor = tabLayout.resources.getDimensionPixelSize(R.dimen.main_tab_strip_leading_anchor)
+        val params = tabLayout.layoutParams as? ViewGroup.MarginLayoutParams ?: return
+        if (params.marginStart != anchor) {
+            params.marginStart = anchor
+            tabLayout.layoutParams = params
+        }
     }
 
     /**

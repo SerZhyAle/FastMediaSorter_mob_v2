@@ -8,6 +8,8 @@ import com.sza.fastmediasorter.ui.launcher.gadget.FavoritesGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.HomeWidgetGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.ScheduledTasksGadget
+import com.sza.fastmediasorter.ui.launcher.gadget.YouTubeGadget
+import com.sza.fastmediasorter.ui.launcher.gadget.YouTubeMusicGadget
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -56,12 +58,16 @@ object HomeWidgetGadgetModule {
         favorites: FavoritesGadget,
         scheduledTasks: ScheduledTasksGadget,
         audioNowPlaying: AudioNowPlayingGadget,
+        youtube: YouTubeGadget,
+        youtubeMusic: YouTubeMusicGadget,
     ): List<LauncherGadget> = listOf(
         // The two list widgets: their own classes, because a live list is not a fixed command.
         favorites,
         scheduledTasks,
         // Transport buttons are service intents, which the command dispatcher cannot express.
         audioNowPlaying,
+        youtube,
+        youtubeMusic,
         HomeWidgetGadget(
             key = KEY_CALCULATOR,
             labelRes = R.string.widget_calculator_label,

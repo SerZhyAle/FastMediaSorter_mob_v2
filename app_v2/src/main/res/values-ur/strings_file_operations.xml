@@ -123,7 +123,7 @@
     <string name="file_not_found_title">فائل نہیں ملی</string>
     <string name="file_operation_progress_preparing">تیاری کر رہا ہے..</string>
     <string name="file_ops_in_overflow_menu">اوور فلو مینو میں فائل آپریشنز</string>
-    <string name="file_ops_moved_to_menu_hint">فائل کی کارروائیاں ہر فائل پر ⋮ مینو میں منتقل ہو گئیں۔</string>
+    <string name="file_ops_moved_to_menu_hint">فائل کے اعمال ہر فائل پر ⋮ مینو میں منتقل کر دیے گئے</string>
     <string name="file_path_label">راستہ: %1$s</string>
     <string name="file_renamed_successfully">نام تبدیل کر دیا گیا۔</string>
     <string name="file_restored">فائل بحال ہو گئی: %1$s</string>

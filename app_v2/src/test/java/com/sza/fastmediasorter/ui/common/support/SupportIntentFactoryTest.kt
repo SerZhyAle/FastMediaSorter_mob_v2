@@ -71,6 +71,29 @@ class SupportIntentFactoryTest {
         assertTrue("URL must point at the EN docs base: $url", url.endsWith("/docs/howto/"))
     }
 
+    // ── wearInstallGuideUrl ─────────────────────────────────────────────────
+
+    @Test
+    fun `wearInstallGuideUrl - returns RU page when locale is ru`() {
+        every { LocaleHelper.getLanguage(context) } returns "ru"
+        val url = SupportIntentFactory.wearInstallGuideUrl(context)
+        assertTrue("URL must point at the RU install page: $url", url.endsWith("wear-install-ru.html"))
+    }
+
+    @Test
+    fun `wearInstallGuideUrl - returns UK page when locale is uk`() {
+        every { LocaleHelper.getLanguage(context) } returns "uk"
+        val url = SupportIntentFactory.wearInstallGuideUrl(context)
+        assertTrue("URL must point at the UK install page: $url", url.endsWith("wear-install-uk.html"))
+    }
+
+    @Test
+    fun `wearInstallGuideUrl - falls back to EN page when locale is unknown`() {
+        every { LocaleHelper.getLanguage(context) } returns "fr"
+        val url = SupportIntentFactory.wearInstallGuideUrl(context)
+        assertTrue("URL must point at the EN install page: $url", url.endsWith("wear-install.html"))
+    }
+
     // ── REPORT_PROBLEM ──────────────────────────────────────────────────────
 
     @Test

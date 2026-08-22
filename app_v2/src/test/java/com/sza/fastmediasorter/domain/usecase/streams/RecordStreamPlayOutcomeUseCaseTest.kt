@@ -36,8 +36,8 @@ class RecordStreamPlayOutcomeUseCaseTest {
     private val repo get() = StreamSourceRepository(
         dbRule.db,
         dao,
-        dbRule.db.streamPlayOutcomeDao(),
         dbRule.db.streamQualityMemoryDao(),
+        dbRule.db.streamUserStateDao(),
     )
     private val stats = RecordingStatsSink()
     private val useCase get() = RecordStreamPlayOutcomeUseCase(repo, stats)

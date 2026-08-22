@@ -3,7 +3,7 @@
      Untranslated keys are absent on purpose - Android falls back to English (S1190, ADR-6). -->
 <resources>
     <string name="settings">सेटिंग</string>
-    <string name="settings_3d_vr_help_message">3D VR मोड Meta Quest 3 और Android XR जैसे हेडसेट पर वीडियो और तस्वीरों का इमर्सिव प्लेबैक देता है। जिन डिवाइस में XR रनटाइम नहीं है, वहाँ मुख्य स्विच निष्क्रिय रहता है। ऐप वीडियो का प्रारूप (SBS, OU, 360°, VR180) अपने आप पहचान लेता है; प्लेयर डायलॉग में इसे हाथ से भी चुना जा सकता है।</string>
+    <string name="settings_3d_vr_help_message">3D VR, Meta Quest 3 और Android XR जैसे हेडसेट पर इमर्सिव वीडियो और फ़ोटो प्लेबैक देता है. बिना XR रनटाइम वाले डिवाइस पर मास्टर टॉगल निष्क्रिय रहता है. ऐप वीडियो फ़ॉर्मेट (SBS, OU, 360°, VR180) को अपने आप पहचानता है; मैन्युअल ओवरराइड प्लेयर डायलॉग में उपलब्ध है.</string>
     <string name="settings_3d_vr_help_title">3D VR मोड के बारे में</string>
     <string name="settings_accept_shared_files">साझा की गई फ़ाइलें स्वीकार करें</string>
     <string name="settings_already_default_player">✓ पहले से डिफ़ॉल्ट सेट है</string>
@@ -150,7 +150,7 @@
     <string name="setting_enable_pip">पिक्चर-इन-पिक्चर चालू करें</string>
     <string name="setting_enable_pip_desc">प्लेयर में PiP बटन दिखाएँ और होम दबाने पर अपने आप PiP में जाएँ (Android 12+)</string>
     <string name="setting_enable_translation_desc">OCR के ज़रिये पाठ अनुवाद चालू करें</string>
-    <string name="setting_file_ops_in_overflow_menu_desc">कॉपी/स्थानांतरण/नाम बदलना/हटाना को हर पंक्ति के ⋮ मेन्यू में समेटें</string>
+    <string name="setting_file_ops_in_overflow_menu_desc">कॉपी/मूव/रीनेम/डिलीट को प्रति-पंक्ति ⋮ मेनू में समेटें</string>
     <string name="setting_follow_system_rotation_summary">चालू होने पर प्लेयर छोड़कर ऐप की सभी विंडो सिस्टम की स्वतः-घुमाव सेटिंग का अनुसरण करती हैं। बंद होने पर वे सिस्टम सेटिंग की परवाह किए बिना डिवाइस सेंसर का अनुसरण करती हैं।</string>
     <string name="setting_follow_system_rotation_title">सिस्टम स्वतः-घुमाव के साथ स्क्रीन घुमाएँ (प्लेयर को छोड़कर)</string>
     <string name="setting_follow_system_rotation_player_title">सिस्टम स्वतः-घुमाव के साथ प्लेयर स्क्रीन घुमाएँ</string>
@@ -195,12 +195,12 @@
     <string name="pref_crop_images_fullscreen_title">स्क्रीन भरने के लिए छवियाँ काटें</string>
     <string name="pref_dynamic_background_summary">छवि के किनारे के रंग बढ़ाकर \"काली पट्टियाँ\" भरें (Ambilight प्रभाव)</string>
     <string name="pref_dynamic_background_title">गतिशील पृष्ठभूमि विस्तार</string>
-    <string name="pref_file_ops_overflow_menu_desc">कॉपी, स्थानांतरण, नाम बदलना और हटाना को हर फ़ाइल पंक्ति के ⋮ बटन में समेटता है। चलाने का बटन हमेशा अलग रहता है।</string>
+    <string name="pref_file_ops_overflow_menu_desc">कॉपी, मूव, रीनेम और डिलीट को हर फ़ाइल पंक्ति पर एक ⋮ बटन में समेटता है. प्ले बटन हमेशा अलग रहता है.</string>
     <string name="pref_file_ops_overflow_menu_title">अतिरिक्त मेन्यू में फ़ाइल क्रियाएँ</string>
     <string name="pref_panel_stereo_single_eye_summary">चालू होने पर, साथ-साथ और ऊपर-नीचे वाले स्टीरियो वीडियो तथा पूर्ण-स्क्रीन तस्वीरें एक आँख तक काटकर पूरी स्क्रीन पर फैला दी जाती हैं - 3D चश्मे के बिना देखने में आरामदायक। डिफ़ॉल्ट: चालू। इमर्सिव VR रेंडरिंग इस सेटिंग को दरकिनार कर पूरा स्टीरियो फ़्रेम दिखाती है।</string>
     <string name="pref_panel_stereo_single_eye_title">3D सामग्री एक आँख से दिखाएँ</string>
     <string name="pref_prefetch_cache_auto">स्वचालित</string>
-    <string name="pref_prefetch_cache_help_message">तय करता है कि स्ट्रीम किए जा रहे वीडियो का कितना हिस्सा प्लेहेड से आगे बफ़र किया जाए।\n\n• कम (0.5×) - न्यूनतम बफ़रिंग। प्री-कैश प्रगति संकेतक और \"कैश किया वीडियो सहेजें\" का प्रस्ताव छिपे रहते हैं। जगह और डेटा बचाता है; धीमे नेटवर्क पर प्लेबैक रुक सकता है।\n• स्वचालित - डिवाइस और मौजूदा नेटवर्क के आधार पर प्लेयर द्वारा चुना गया डिफ़ॉल्ट आकार।\n• अधिक (2×) - अस्थिर नेटवर्क पर सहज प्लेबैक के लिए बड़ा बफ़र। अधिक डिस्क जगह लेता है।</string>
+    <string name="pref_prefetch_cache_help_message">यह नियंत्रित करता है कि स्ट्रीम किए जा रहे वीडियो का कितना हिस्सा प्लेहेड से आगे बफ़र होता है.\n\n• कम (0.5×) - न्यूनतम बफ़रिंग. प्री-कैश प्रगति संकेतक और \"कैश्ड वीडियो सेव करें\" ऑफ़र छिपे रहते हैं. डिस्क स्थान और बैंडविड्थ बचाता है; धीमे नेटवर्क पर प्लेबैक अटक सकता है.\n• ऑटो - डिवाइस और मौजूदा नेटवर्क के आधार पर प्लेयर द्वारा चुना गया डिफ़ॉल्ट आकार.\n• अधिक (2×) - अस्थिर नेटवर्क पर स्मूथ प्लेबैक के लिए बड़ा बफ़र. अधिक डिस्क स्थान उपयोग करता है.</string>
     <string name="pref_prefetch_cache_help_title">वीडियो प्री-कैश का आकार</string>
     <string name="pref_prefetch_cache_less">कम (0.5×)</string>
     <string name="pref_prefetch_cache_more">अधिक (2×)</string>
@@ -252,4 +252,13 @@
     <string name="settings_open_default_apps_dialog">डिफ़ॉल्ट बनाएँ</string>
     <string name="default_apps_dialog_title">डिफ़ॉल्ट ऐप</string>
     <string name="language_download_failed">यह भाषा डाउनलोड नहीं हो सकी। अपना इंटरनेट कनेक्शन जाँचें और फिर कोशिश करें - ऐप उसी भाषा में बना रहेगा जो अभी चल रही है।</string>
+    <string name="pref_resource_grid_cell_size_title">संसाधन ग्रिड सेल आकार</string>
+    <string name="pref_resource_grid_cell_size_small">छोटा</string>
+    <string name="pref_resource_grid_cell_size_medium">मध्यम</string>
+    <string name="pref_resource_grid_cell_size_large">बड़ा</string>
+    <string name="settings_enable_system_info">सिस्टम जानकारी</string>
+    <string name="settings_enable_system_info_summary">प्रोग्राम पैनल और मेनू में सिस्टम जानकारी दिखाएं</string>
+    <string name="settings_wear_group_title">Wear OS</string>
+    <string name="settings_wear_group_description">अगर आपके पास Wear OS घड़ी है तो इसे चालू करें। साथी ऐप यहीं से खुलता है और तय करता है कि यह फ़ोन घड़ी के साथ क्या साझा करेगा।</string>
+    <string name="settings_wear_install_guide_button">घड़ी पर कैसे इंस्टॉल करें</string>
 </resources>

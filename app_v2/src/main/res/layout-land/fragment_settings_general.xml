@@ -85,6 +85,17 @@
                         app:str_helpTitle="@string/tooltip_compact_elements_title"
                         app:str_helpMessage="@string/tooltip_compact_elements_message" />
 
+                    <!-- S1285: cell size of the main-window resource grid. Orientation parity with
+                         portrait - kept full width rather than folded into a weighted pair, so it
+                         stays adjacent to the compact toggle it is most easily confused with. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                        android:id="@+id/rowResourceGridCellSize"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_tiny"
+                        app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                        app:sdr_title="@string/pref_resource_grid_cell_size_title" />
+
                     <!-- Row: Allow new windows (S0028) | Enable Favorites.
                          Two compact toggles share one landscape row to cut vertical scroll (S0618 R2).
                          S0911: the third toggle formerly here (Resource ops overflow) moved to the new
@@ -132,6 +143,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_tiny"
+                        app:str_icon="@drawable/ic_launcher_mode"
                         app:str_title="@string/launcher_settings_enable_title"
                         app:str_subtitle="@string/launcher_settings_enable_desc"
                         app:str_showHelp="true"
@@ -143,6 +155,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_tiny"
+                        app:ssr_icon="@drawable/ic_launcher_mode"
                         app:ssr_navMode="true"
                         app:ssr_title="@string/launcher_settings_dialog_title" />
 
@@ -374,6 +387,17 @@
                         app:str_helpTitle="@string/settings_remote_source_cloud_help_title"
                         app:str_helpMessage="@string/settings_remote_source_cloud_help_message" />
 
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnUnusedCredentials"
+                        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:text="@string/settings_unused_credentials_title"
+                        android:textSize="@dimen/toggler_title_text_size"
+                        android:visibility="gone"
+                        app:icon="@drawable/ic_delete" />
+
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -454,15 +478,6 @@
                         android:layout_height="wrap_content"
                         app:str_title="@string/settings_secure_sensitive_screens_title"
                         app:str_subtitle="@string/settings_secure_sensitive_screens_summary" />
-
-                    <!-- Wear OS Companion (hidden when SUPPORT_WEAR_COMPANION=false). Width hugs the label per UI request. Help icon explains the feature. -->
-                    <LinearLayout android:id="@+id/containerWearCompanion" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
-
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnWearCompanion" style="@style/Widget.FastMediaSorter.SettingsButton.Tonal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/wear_companion" app:icon="@drawable/ic_watch" app:iconGravity="start" />
-
-                        <ImageButton android:id="@+id/iconHelpWearCompanion" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_wear_companion_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
-
-                    </LinearLayout>
 
                 </LinearLayout>
             </LinearLayout>
@@ -773,6 +788,20 @@
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnShowSessionLog" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:text="@string/show_current_session_log" app:layout_constraintStart_toEndOf="@+id/btnShowLog" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="600dp" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- S1783: debug-only listing of the tickets this build carries. It belongs to this
+                         group, not to the backup card - the group is already BuildConfig.DEBUG-gated. -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnReleasedTickets"
+                        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_tiny"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="@string/released_tickets_button"
+                        android:textSize="@dimen/toggler_title_text_size"
+                        app:icon="@drawable/ic_help_outline_24" />
 
                     <!-- Integration Tests + Import Test Credentials -->
                     <androidx.constraintlayout.widget.ConstraintLayout android:id="@+id/containerIntegrationTests" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_tiny" android:layout_marginBottom="@dimen/margin_tiny">

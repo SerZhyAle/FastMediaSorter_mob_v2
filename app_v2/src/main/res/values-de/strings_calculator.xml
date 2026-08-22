@@ -28,13 +28,13 @@
     <string name="calculator_enable_prompt_title">Der Taschenrechner ist ausgeschaltet.</string>
     <string name="calculator_error_division_by_zero">Man kann nicht durch Null teilen.</string>
     <string name="calculator_error_math_domain">Das geht mit dieser Zahl nicht.</string>
-    <string name="calculator_fn_cbrt">∛x (Kubik)</string>
+    <string name="calculator_fn_cbrt">∛x (Kubikwurzel)</string>
     <string name="calculator_fn_cos">cos (Kosinus)</string>
     <string name="calculator_fn_cot">ctg (cotan)</string>
     <string name="calculator_fn_div">DIV (Ganzzahl)</string>
     <string name="calculator_fn_factorial">n! (Fakultät)</string>
     <string name="calculator_fn_ln">ln (nat. log)</string>
-    <string name="calculator_fn_log10">log₁₀ (log)</string>
+    <string name="calculator_fn_log10">log₁₀ (Log)</string>
     <string name="calculator_fn_mod">mod (remain)</string>
     <string name="calculator_fn_power">xʸ (Potenz)</string>
     <string name="calculator_fn_reciprocal">1/x (umgekehrt)</string>

@@ -11,6 +11,20 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+// Versioning is one system across both modules, stamped together by
+// scripts/release/build-release-spectrum.ps1 from a single timestamp:
+//   versionName  Y.YM.MDDH.Hmm  - byte-identical to app_v2, the watch and the phone ship one version.
+//   versionCode  yyMMddHH (8 digits) - app_v2 appends the first minute digit and gets 9. The two
+//     codes MUST differ: both modules publish under the same applicationId (S1681), and Play refuses
+//     a release whose artifacts repeat a versionCode. Wear = app_v2 code without its last digit.
+// Gate: scripts/quality/assert-module-version-parity.ps1.
+val defaultAppVersionCode = 26081516
+val defaultAppVersionName = "2.60.8151.612"
+val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
+    raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
+}
+val overrideAppVersionName = providers.gradleProperty("fms.versionName").orNull
+
 fun findRootSecretFile(vararg relativePaths: String): File? =
     relativePaths
         .asSequence()
@@ -48,11 +62,11 @@ android {
         minSdk = 28  // Wear OS 2.0+ support
         // CRITICAL: Do not change - required for Wear OS Play Store compliance
         targetSdk = 36
-        // Version is kept in sync with app_v2 by build-with-version.ps1
-        // versionCode format: yyMMddHH (8 digits, same base as main app minus minute digit)
-        // versionName format: Y.YM.MDDH.Hmm (identical to main app)
-        versionCode = 26061419
-        versionName = "2.60.6141.930"
+        // Version is kept in sync with app_v2 by build-with-version.ps1 / release scripts
+        // via -Pfms.versionCode and -Pfms.versionName properties.
+        // Default values provide stable configuration cache in local builds.
+        versionCode = overrideAppVersionCode ?: defaultAppVersionCode
+        versionName = overrideAppVersionName ?: defaultAppVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -137,6 +151,11 @@ kotlin {
     compilerOptions {
         // CRITICAL: Do not change - must match compileOptions.targetCompatibility
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+        // S1804: Kotlin 2.2 warns (KT-73255) that an annotation on a constructor parameter currently
+        // lands on the parameter only and will also land on the field in a future release. app_v2
+        // settled this on 2026-04-11 with the same flag; the wear module never got it, which is why
+        // the warning resurfaced here. Same answer in both modules beats two answers to one question.
+        freeCompilerArgs.add("-Xannotation-default-target=param-property")
     }
 }
 
@@ -178,8 +197,11 @@ dependencies {
     // Accompanist Permissions (for runtime permission handling)
     implementation("com.google.accompanist:accompanist-permissions:0.34.0")
     
-    // Media3 for audio playback
+    // Media3 for audio playback and streaming (S1708)
     implementation("androidx.media3:media3-exoplayer:1.2.1")
+    implementation("androidx.media3:media3-exoplayer-hls:1.2.1")
+    implementation("androidx.media3:media3-exoplayer-dash:1.2.1")
+    implementation("androidx.media3:media3-exoplayer-rtsp:1.2.1")
     implementation("androidx.media3:media3-ui:1.2.1")
     implementation("androidx.media3:media3-common:1.2.1")
     
@@ -222,6 +244,9 @@ dependencies {
     // Testing
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    // S1697: the watch ViewModels sit on Data Layer clients that need an Android Context to build,
+    // so a state test can only exist here with a mocking library. Same version as app_v2.
+    testImplementation("io.mockk:mockk:1.13.9")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")

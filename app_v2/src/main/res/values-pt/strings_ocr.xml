@@ -5,9 +5,6 @@
     <string name="ocr_best_model_delete">Excluir</string>
     <string name="ocr_best_model_download">Download</string>
     <string name="ocr_button_description">Extrair texto</string>
-    <string name="ocr_engine_type">Motor OCR</string>
-    <string name="ocr_engine_type_paddleocr">PaddleOCR</string>
-    <string name="ocr_engine_type_tesseract">Tesseract (Padrão)</string>
     <string name="ocr_error">Não foi possível reconhecer o texto.</string>
     <string name="ocr_extract_image_failed">Não foi possível preparar esta imagem para OCR. Tente novamente.</string>
     <string name="ocr_font_family">Família de fontes OCR</string>

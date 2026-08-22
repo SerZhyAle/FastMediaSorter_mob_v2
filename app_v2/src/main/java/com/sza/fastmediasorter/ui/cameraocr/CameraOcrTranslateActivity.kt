@@ -184,6 +184,7 @@ class CameraOcrTranslateActivity :
     }
 
     override fun showCropStep(bitmap: Bitmap) {
+        Timber.d("S1921: crop step shown, action bar visible")
         binding.layoutCropState.isVisible = true
         binding.layoutResultContent.isVisible = false
         binding.layoutEmptyState.isVisible = false

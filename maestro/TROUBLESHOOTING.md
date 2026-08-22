@@ -368,6 +368,41 @@ adb install <new_apk>
 unzip -t <apk_file>
 ```
 
+### 13. Every flow fails in `_shared/go_home.yaml` on `tabResourceTypes`
+
+**Problem**: the failure names the resource-type tabs, so it reads as a defect in whatever
+capability the flow was checking - but the whole suite fails the same way, in the shared fragment,
+and the capability is not involved at all.
+
+The usual cause is **launcher mode left on** by an earlier device test of the launcher desktop.
+With the HOME component enabled, leaving `MainActivity` lands on the app's own
+`LauncherHomeActivity`, which is not on the app's back stack - so `go_home`'s guarded back presses
+change nothing and its final assert fails. The HOME role returning to the system launcher does not
+turn the mode off, which is what makes the state look already restored.
+
+**Diagnosis**:
+
+```bash
+# Which activity is actually in the foreground when the flow fails
+pwsh -NoProfile -File scripts/devtest/adb.ps1 current
+
+# Is launcher mode on? The mode flag IS the enabled state of this component.
+# (launcher_role_prefs.xml is onboarding bookkeeping only - routinely empty while the mode is on)
+adb shell dumpsys package com.sza.fastmediasorter.debug | grep -A5 enabledComponents
+```
+
+`maestro/run-tests.ps1` prints the same verdict in its header (`launcher-mode: on|off`) and in its
+`-Json` object as `launcherMode`.
+
+**Solution**: none needed for the suite - `go_home.yaml` relaunches the app to escape the desktop
+(`MainActivity` holds `MAIN/LAUNCHER`, `LauncherHomeActivity` only `MAIN/HOME`, so the launcher
+intent always resolves to `MainActivity`). If a flow still fails on the desktop, turn the mode off
+in the app: **Settings > General > use as home screen**. `adb shell pm disable` cannot do it -
+shell is refused component-state changes for this package.
+
+If launcher mode is off and the failure persists, the foreground activity from `adb.ps1 current`
+names the real blocker - a system dialog or a permission-controller screen on top of the app.
+
 ## Debugging Tips
 
 ### 1. Run with debug output

@@ -91,7 +91,8 @@ the grid.
 ### 4.2 On-disk cache (survives restarts, cold-start warmth)
 - One JPEG per channel, **quality ~75**, in a dedicated folder. **Filename = a hash of the URL** (the app
   uses `SHA-256(url)` hex + `.jpg`) - no separate index file; the hash is the lookup key.
-- Cap the folder at **64 files**, evicting the oldest by modified-time.
+- Cap the folder at **150 MB total** (a size budget, not a file count), evicting oldest-by-modified-time
+  until back under budget.
 - All disk I/O off the UI thread; any failure just falls back to the favicon on the next bind (never fatal).
 - On entering grid mode, **pre-warm** the in-memory cache from disk so the grid shows last session's frames
   immediately, then refresh them live.
@@ -133,7 +134,7 @@ the grid.
 | In-memory cache capacity | 64 entries (LRU) |
 | Periodic re-capture interval (visible tiles) | 60 s |
 | On-disk JPEG quality | ~75 |
-| On-disk file cap | 64 files (oldest-by-mtime evicted) |
+| On-disk cache cap | 150 MB total (oldest-by-mtime evicted until under budget) |
 | On-disk filename | `SHA-256(url)` hex + `.jpg` |
 | Grid min tile width | ~160 dp (min 2 columns) |
 

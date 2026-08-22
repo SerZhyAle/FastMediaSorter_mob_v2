@@ -5,7 +5,6 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.utils.UserActionLogger
-import timber.log.Timber
 
 /**
  * S0587: scroll-navigation buttons for the Streams list, mirroring the file browser

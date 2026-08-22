@@ -9,6 +9,7 @@ import androidx.work.WorkManager
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.duplicates.DuplicatesActivity
 import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignal
+import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignalIcon
 import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignalKind
 import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignalSource
 import com.sza.fastmediasorter.ui.main.MainActivity
@@ -73,7 +74,7 @@ class BackgroundWorkLauncherSignalSource @Inject constructor(
         return LauncherSignal(
             id = signalId,
             kind = LauncherSignalKind.BACKGROUND_WORK,
-            iconRes = iconRes,
+            icon = LauncherSignalIcon.Resource(iconRes),
             label = context.getString(labelRes),
         )
     }

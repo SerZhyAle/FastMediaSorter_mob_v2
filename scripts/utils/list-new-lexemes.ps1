@@ -63,6 +63,7 @@ param(
     [string]$Module = 'app_v2',
     [string[]]$SourceSet = @('main', 'vr', 'noLegal'),
     [string]$BaselinePath,
+    [string]$FingerprintsPath,
     [string]$OutDir,
     [switch]$Quiet
 )
@@ -72,6 +73,7 @@ $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 . (Join-Path $PSScriptRoot 'locale-set.ps1')
+. (Join-Path $repoRoot 'scripts/quality/lib/locale-fingerprints.ps1')
 
 # pwsh -File hands an array parameter one literal string, so -SourceSet main,vr arrives as a single
 # element with a comma in it.
@@ -79,6 +81,7 @@ $SourceSet = @($SourceSet | ForEach-Object { $_ -split ',' } | Where-Object { $_
 
 if (-not $OutDir) { $OutDir = Join-Path $repoRoot 'temp/S1627' }
 if (-not $BaselinePath) { $BaselinePath = Join-Path $repoRoot 'scripts/quality/locale-untranslated-baseline.txt' }
+if (-not $FingerprintsPath) { $FingerprintsPath = Join-Path $repoRoot 'scripts/quality/locale-source-fingerprints.json' }
 $corpusDir = Join-Path $OutDir 'corpus'
 
 $exporter = Join-Path $PSScriptRoot 'locale-bulk-export.ps1'
@@ -107,7 +110,10 @@ $presentCache = @{}
 function Get-PresentKeys([string]$Set, [string]$File, [string]$Tag) {
     <# Keys a locale's own copy of one resource file already carries. Absent file = nothing carried. #>
     $cacheKey = "$Set|$File|$Tag"
-    if ($presentCache.ContainsKey($cacheKey)) { return $presentCache[$cacheKey] }
+    # Comma operator, both here and below: PowerShell unrolls an enumerable on return, so a bare
+    # `return $keys` hands back $null for an empty set and the lone String for a one-key set - and
+    # .Contains() on a String is a substring test, so the caller was silently wrong before it crashed.
+    if ($presentCache.ContainsKey($cacheKey)) { return , $presentCache[$cacheKey] }
 
     $keys = [System.Collections.Generic.HashSet[string]]::new()
     $path = Join-Path $repoRoot "$Module/src/$Set/res/$(Get-LocaleResourceDir -Tag $Tag)/$File"
@@ -117,15 +123,34 @@ function Get-PresentKeys([string]$Set, [string]$File, [string]$Tag) {
         }
     }
     $presentCache[$cacheKey] = $keys
-    return $keys
+    return , $keys
 }
+
+$fingerprints = Get-LocaleSourceFingerprints -Path $FingerprintsPath
 
 $missingByIdentity = [ordered]@{}
 foreach ($record in $records) {
-    $identity = "$($record.set)|$($record.file)|$($record.key)"
+    $identity = Get-LocaleUnitId -Module $Module -Set $record.set -File $record.file -Key $record.key
+    $unitId = Get-LocaleUnitId -Module $Module -Set $record.set -File $record.file -Key $record.key -Slot ([string]$record.slot)
+    $enHash = Get-EnglishStringFingerprint -Text ([string]$record.en)
+
+    $missingForThisRecord = [System.Collections.Generic.List[string]]::new()
+    foreach ($tag in $bestEffort) {
+        $hasKey = (Get-PresentKeys $record.set $record.file $tag).Contains($record.key)
+        if (-not $hasKey) {
+            $missingForThisRecord.Add($tag)
+        } elseif (-not ($fingerprints.ContainsKey($tag) -and $fingerprints[$tag].ContainsKey($unitId))) {
+            $missingForThisRecord.Add($tag)
+        } elseif ($fingerprints[$tag][$unitId] -ne $enHash) {
+            $missingForThisRecord.Add($tag)
+        }
+    }
+
     if (-not $missingByIdentity.Contains($identity)) {
-        $missing = @($bestEffort | Where-Object { -not (Get-PresentKeys $record.set $record.file $_).Contains($record.key) })
-        $missingByIdentity[$identity] = $missing
+        $missingByIdentity[$identity] = [System.Collections.Generic.HashSet[string]]::new()
+    }
+    foreach ($m in $missingForThisRecord) {
+        [void]$missingByIdentity[$identity].Add($m)
     }
 }
 
@@ -143,7 +168,7 @@ if ($baselineFound) {
 $survivors = [System.Collections.Generic.List[object]]::new()
 $untranslated = [System.Collections.Generic.HashSet[string]]::new()
 foreach ($record in $records) {
-    $identity = "$($record.set)|$($record.file)|$($record.key)"
+    $identity = Get-LocaleUnitId -Module $Module -Set $record.set -File $record.file -Key $record.key
     if ($missingByIdentity[$identity].Count -eq 0) { continue }
     [void]$untranslated.Add($identity)
     if ($baselineIdentities.Contains($identity)) { continue }
@@ -178,7 +203,7 @@ $indexBody = if ($index.Count -gt 0) { ($index -join "`n") + "`n" } else { '' }
 [System.IO.File]::WriteAllText($textPath, $body, $utf8)
 [System.IO.File]::WriteAllText($indexPath, $indexBody, $utf8)
 
-$distinctKeys = @($survivors | ForEach-Object { "$($_.set)|$($_.file)|$($_.key)" } | Select-Object -Unique)
+$distinctKeys = @($survivors | ForEach-Object { Get-LocaleUnitId -Module $Module -Set $_.set -File $_.file -Key $_.key } | Select-Object -Unique)
 Write-Host "list-new-lexemes: new untranslated keys $($distinctKeys.Count) | lines $($lines.Count) | corpus $($records.Count) | baselined $($baselineIdentities.Count) | locales checked $($bestEffort.Count)"
 
 if (-not $Quiet) {

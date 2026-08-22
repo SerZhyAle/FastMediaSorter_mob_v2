@@ -11,7 +11,6 @@ import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.model.FavoritesConflictStrategy
 import com.sza.fastmediasorter.domain.model.FavoritesImportResult
@@ -37,31 +36,10 @@ class GeneralSettingsBackupHelper(
     private val binding: FragmentSettingsGeneralBinding,
     private val fragment: Fragment,
     private val backupViewModel: BackupRestoreViewModel,
-    private val mediaCapabilities: MediaCapabilities,
     private val importFavoritesLauncher: ActivityResultLauncher<Array<String>>,
     private val exportResourcesLauncher: ActivityResultLauncher<String>,
     private val importResourcesLauncher: ActivityResultLauncher<Array<String>>,
 ) {
-    fun setupWearCompanionButton() {
-        if (!mediaCapabilities.supportsWearCompanion) {
-            binding.containerWearCompanion?.visibility = View.GONE
-            return
-        }
-        binding.btnWearCompanion?.setOnClickListener {
-            if (fragment.childFragmentManager.findFragmentByTag("wear_sync") == null) {
-                com.sza.fastmediasorter.ui.settings.fragments.WearSyncSettingsFragment()
-                    .show(fragment.childFragmentManager, "wear_sync")
-            }
-        }
-        binding.iconHelpWearCompanion?.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
-                fragment.requireContext(),
-                R.string.tooltip_wear_companion_title,
-                R.string.tooltip_wear_companion_message
-            )
-        }
-    }
-
     fun setupBackupButtons() {
         binding.btnBackup.setOnClickListener { backupViewModel.startBackup() }
         binding.btnRestore.setOnClickListener { backupViewModel.startRestore() }

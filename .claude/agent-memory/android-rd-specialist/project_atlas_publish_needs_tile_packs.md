@@ -13,4 +13,15 @@ metadata:
 
 **How to apply:** any "refresh the atlases" request is a **two-step** job - build/publish the sheets, then `-WithTilePacks -PublishTilePacks`. Verify by timestamp, not by exit code: `gh release view delivery-so-v1 --json assets` and confirm the four stable names carry today's date and that the coords sha256 matches the sheet just built.
 
-Second trap in the same area: the preview sheet caps at **2040 slots**. With ~2900 video channels the run captures more frames than fit and drops the overflow with a WARNING, which is a capacity ceiling, not a failure - the uncovered channels fall back to the station logo. Related: [[stream-catalog-delivery]].
+**Superseded 2026-08-20 (S1831): the 2040-slot preview ceiling is gone.** It used to cap the sheet at
+60 rows via a self-imposed 8192x8192 budget, and the overflow was dropped with a WARNING while the run
+still reported success - that alone left 877 of 2917 video channels with no preview. Now the width is
+fixed at 8160 px (240x135 tiles, 34 columns) and **the height follows the tile count**; the 2026-08-20
+build is 8160x11340, 2830 tiles in 84 rows, 15,9 MiB. The real bounds are the WebP side limit of 16383 px
+(121 rows = 4114 tiles) and the 48 MiB file size StreamsPlayer declared, and a build that cannot place
+every tile now **fails instead of truncating**.
+
+**How to apply:** never assume a row count for the preview sheet - derive it from the image. Anything
+holding 60 rows slices the wrong rect for every tile past the first screenful, which looks like plausible
+pictures on the wrong channels rather than like a bug. Same shape of trap as a stale favicon atlas.
+Related: [[stream-catalog-delivery]], [[streams-player-catalog-consumer]].

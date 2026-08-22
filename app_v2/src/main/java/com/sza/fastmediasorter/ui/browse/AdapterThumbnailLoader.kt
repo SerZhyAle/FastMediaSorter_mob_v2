@@ -13,6 +13,7 @@ import com.bumptech.glide.RequestBuilder
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.load.resource.bitmap.DownsampleStrategy
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.Target
@@ -310,6 +311,10 @@ class AdapterThumbnailLoader(
             .load(fallback)
             .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE)
             .centerCrop()
+            // S1968: the fallback runs precisely when the primary request already failed, so it is the
+            // arm most likely to meet an unmeasurable source - it produced the last 3 OOMs after the
+            // primary was bounded. Same reason as the primary: MUST follow centerCrop to override it.
+            .downsample(DownsampleStrategy.AT_MOST)
             .dontAnimate()
             .error(generatedPlaceholder)
     }
@@ -580,39 +585,101 @@ class AdapterThumbnailLoader(
                     imageBuilder.into(imageView)
                 }
             }
-            else -> {
-                val localImageBuilder = Glide.with(context)
-                    .load(thumbnailModel(file))
-                    .format(decodeFormatResolver.decodeFormat())
-                    .signature(ObjectKey("${file.path}_${file.size}"))
-                    .priority(Priority.HIGH)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE)
-                    .centerCrop()
-                    .onlyRetrieveFromCache(isScrolling)
-                    .dontAnimate()
-                    .placeholder(generatedPlaceholder)
-                    .error(generatedPlaceholder)
-                    .error(thumbnailErrorRequest(context, file, generatedPlaceholder))
-                // S0110: no error/stats listener during scroll - cache miss triggers .error() placeholder naturally
-                if (!isScrolling) {
-                    localImageBuilder.listener(object : RequestListener<android.graphics.drawable.Drawable> {
-                        override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<android.graphics.drawable.Drawable>, isFirstResource: Boolean): Boolean {
-                            if (e != null) Timber.w("Local image load failed: ${file.name}, ${e.message}")
-                            applyPlaceholderStyle(imageView, file.type)
-                            return false
-                        }
-                        override fun onResourceReady(resource: android.graphics.drawable.Drawable, model: Any, target: Target<android.graphics.drawable.Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
-                            GlideCacheStats.recordLoad(dataSource)
-                            resetThumbnailStyle(imageView)
-                            return false
-                        }
-                    }).into(imageView)
-                } else {
-                    localImageBuilder.into(imageView)
-                }
-            }
+            else -> loadLocalImage(imageView, file, context, generatedPlaceholder, isScrolling)
         }
+    }
+
+    /**
+     * S1968: the local-image arm, lifted out of `loadImage` so its guard has somewhere to return to.
+     *
+     * `loadImage` sat exactly at the two-return limit, so the refusal could not be expressed there
+     * without a third return or wrapping the whole branch in an else. Extracting the branch is the
+     * smaller change and it shortens `loadImage` rather than nesting it deeper.
+     */
+    private fun loadLocalImage(
+        imageView: ImageView,
+        file: MediaFile,
+        context: Context,
+        generatedPlaceholder: BitmapDrawable,
+        isScrolling: Boolean,
+    ) {
+        if (skipLocalImageThumbnail(file)) {
+            showGeneratedPlaceholder(imageView, file)
+            return
+        }
+        val localImageBuilder = Glide.with(context)
+            .load(thumbnailModel(file))
+            .format(decodeFormatResolver.decodeFormat())
+            .signature(ObjectKey("${file.path}_${file.size}"))
+            .priority(Priority.HIGH)
+            .diskCacheStrategy(DiskCacheStrategy.ALL)
+            .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE)
+            .centerCrop()
+            .onlyRetrieveFromCache(isScrolling)
+            .dontAnimate()
+            .placeholder(generatedPlaceholder)
+            .error(generatedPlaceholder)
+            .error(thumbnailErrorRequest(context, file, generatedPlaceholder))
+        // S0110: no error/stats listener during scroll - cache miss triggers .error() placeholder naturally
+        if (!isScrolling) {
+            localImageBuilder.listener(object : RequestListener<android.graphics.drawable.Drawable> {
+                override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<android.graphics.drawable.Drawable>, isFirstResource: Boolean): Boolean {
+                    if (e != null) Timber.w("Local image load failed: ${file.name}, ${e.message}")
+                    applyPlaceholderStyle(imageView, file.type)
+                    return false
+                }
+                override fun onResourceReady(resource: android.graphics.drawable.Drawable, model: Any, target: Target<android.graphics.drawable.Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                    GlideCacheStats.recordLoad(dataSource)
+                    resetThumbnailStyle(imageView)
+                    return false
+                }
+            }).into(imageView)
+        } else {
+            localImageBuilder.into(imageView)
+        }
+    }
+
+    /**
+     * S1968: whether the local image arm should show a placeholder instead of asking Glide.
+     *
+     * Two reasons folded into one predicate. Either the file is already known to have failed - the
+     * negative cache the network arms three branches up already consult, which this arm never did,
+     * so the same doomed request was reissued on every rebind (254 identical allocation failures in
+     * one sweep) - or its declared size makes the centerCrop target unallocatable, checked before
+     * the request is issued and remembered so it is not asked again this session.
+     */
+    private fun skipLocalImageThumbnail(file: MediaFile): Boolean {
+        if (NetworkFileDataFetcher.isThumbnailFailed(file.path)) {
+            Timber.v("Skipping local image thumbnail for ${file.name} (cached as failed)")
+            return true
+        }
+        val overBudget = exceedsDecodeBudget(file)
+        if (overBudget) {
+            Timber.w("Thumbnail target over the decode budget for %s - placeholder, not retried", file.name)
+            NetworkFileDataFetcher.markThumbnailAsFailed(file.path)
+        }
+        return overBudget
+    }
+
+    /**
+     * True when this file's declared size would make the browse thumbnail unallocatable.
+     *
+     * Only the header is read (`inJustDecodeBounds`), so nothing is allocated to find out. A file we
+     * cannot measure - unreadable, or a header that reports nothing - returns false: the budget has no
+     * opinion there, and the ordinary decode path is still allowed to try and fail normally.
+     */
+    private fun exceedsDecodeBudget(file: MediaFile): Boolean {
+        val path = file.path
+        if (path.isBlank() || path.contains("://")) return false
+        return runCatching {
+            val options = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            android.graphics.BitmapFactory.decodeFile(path, options)
+            ThumbnailDecodeBudget.exceedsBudget(
+                sourceWidth = options.outWidth,
+                sourceHeight = options.outHeight,
+                target = CACHED_THUMBNAIL_SIZE,
+            )
+        }.getOrDefault(false)
     }
 
     private fun loadVideo(
@@ -707,41 +774,76 @@ class AdapterThumbnailLoader(
                     videoBuilder.into(imageView)
                 }
             }
-            else -> {
-                if (isListMode && !getShowVideoThumbnails()) {
-                    showGeneratedPlaceholder(imageView, file)
-                    return
+            else -> loadLocalVideo(imageView, file, context, generatedPlaceholder, isListMode, isScrolling)
+        }
+    }
+
+    /**
+     * S1968: the local-video arm, lifted out of `loadVideo` so its guard has somewhere to return to.
+     *
+     * Extracted for the same reason the image arm was: `loadVideo` was already at its return budget,
+     * so the skip could not be expressed inline without nesting the whole branch in an else.
+     */
+    private fun loadLocalVideo(
+        imageView: ImageView,
+        file: MediaFile,
+        context: Context,
+        generatedPlaceholder: BitmapDrawable,
+        isListMode: Boolean,
+        isScrolling: Boolean,
+    ) {
+        if (isListMode && !getShowVideoThumbnails()) {
+            showGeneratedPlaceholder(imageView, file)
+            return
+        }
+        // S1968: the local arm never consulted the negative cache the network arm three branches up
+        // already used, so a doomed frame extraction was reissued on every rebind.
+        if (NetworkFileDataFetcher.isVideoFailed(file.path)) {
+            Timber.v("Skipping local video thumbnail for ${file.name} (cached as failed)")
+            showGeneratedPlaceholder(imageView, file)
+            return
+        }
+        val localVideoBuilder = Glide.with(context)
+            .load(thumbnailModel(file))
+            .format(decodeFormatResolver.decodeFormat())
+            .signature(ObjectKey("${file.path}_${file.size}"))
+            .priority(Priority.NORMAL)
+            .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+            .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE)
+            .centerCrop()
+            // S1968: MUST follow centerCrop, which itself sets CENTER_OUTSIDE. That strategy scales to
+            // COVER the box, so a container reporting a degenerate frame size derives a target with
+            // nothing bounding it - an MPEG-2 file MediaStore cannot measure at all (width and height
+            // both NULL) produced 300 x 1970400, ~2.4 GB, 318 times in one sweep. AT_MOST never
+            // upscales, so the decode cannot exceed the box no matter what the source claims; the
+            // CenterCrop transformation still fills the cell afterwards.
+            .downsample(DownsampleStrategy.AT_MOST)
+            .onlyRetrieveFromCache(isScrolling)
+            .dontAnimate()
+            .placeholder(generatedPlaceholder)
+            .error(generatedPlaceholder)
+            .error(thumbnailErrorRequest(context, file, generatedPlaceholder))
+        // S0110: no failure-marking listener during scroll - cache miss triggers .error() placeholder naturally
+        if (!isScrolling) {
+            localVideoBuilder.listener(object : RequestListener<android.graphics.drawable.Drawable> {
+                override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<android.graphics.drawable.Drawable>, isFirstResource: Boolean): Boolean {
+                    // S1968: remember it, so a frame this device cannot extract is attempted once a
+                    // session rather than once a rebind. Back-pressure cancellations are not failures.
+                    if (!isVideoPriorityThumbnailSuspension(e)) {
+                        NetworkFileDataFetcher.markVideoAsFailed(file.path)
+                        Timber.v("Local video thumbnail failed: ${file.name} (cached, not retried)")
+                    }
+                    if (isListMode) applyPlaceholderStyle(imageView, file.type)
+                    return false
                 }
-                val localVideoBuilder = Glide.with(context)
-                    .load(thumbnailModel(file))
-                    .format(decodeFormatResolver.decodeFormat())
-                    .signature(ObjectKey("${file.path}_${file.size}"))
-                    .priority(Priority.NORMAL)
-                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                    .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE)
-                    .centerCrop()
-                    .onlyRetrieveFromCache(isScrolling)
-                    .dontAnimate()
-                    .placeholder(generatedPlaceholder)
-                    .error(generatedPlaceholder)
-                    .error(thumbnailErrorRequest(context, file, generatedPlaceholder))
-                // S0110: no failure-marking listener during scroll - cache miss triggers .error() placeholder naturally
-                if (!isScrolling) {
-                    localVideoBuilder.listener(object : RequestListener<android.graphics.drawable.Drawable> {
-                        override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<android.graphics.drawable.Drawable>, isFirstResource: Boolean): Boolean {
-                            if (isListMode) applyPlaceholderStyle(imageView, file.type)
-                            return false
-                        }
-                        override fun onResourceReady(resource: android.graphics.drawable.Drawable, model: Any, target: Target<android.graphics.drawable.Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
-                            GlideCacheStats.recordLoad(dataSource)
-                            resetThumbnailStyle(imageView)
-                            return false
-                        }
-                    }).into(imageView)
-                } else {
-                    localVideoBuilder.into(imageView)
+                override fun onResourceReady(resource: android.graphics.drawable.Drawable, model: Any, target: Target<android.graphics.drawable.Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                    GlideCacheStats.recordLoad(dataSource)
+                    resetThumbnailStyle(imageView)
+                    return false
                 }
-            }
+            }).into(imageView)
+        } else {
+            localVideoBuilder.into(imageView)
         }
     }
 

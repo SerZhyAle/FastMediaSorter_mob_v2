@@ -113,6 +113,11 @@
         Fix   = 'A manifest orientation lock implies a hardware feature requirement that would shrink device reach - declare the feature as not required.'
     }
 
+    'orientation-layout-pairing-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-orientation-layout-pairing.ps1 -Gate'
+        Fix   = 'An activity absorbs orientation in configChanges while owning a landscape layout, so that layout never applies on rotation - stop absorbing it, re-apply the variant in code and record the exemption with its reason in scripts/quality/orientation-layout-pairing-exceptions.txt, or delete the layout if it encodes no difference.'
+    }
+
     'all-features-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/all_features/validate.ps1'
         Fix   = 'The capability inventory is invalid or lost records - fix the JSONL row; add capabilities through scripts/all_features/add.ps1, never by hand.'
@@ -133,21 +138,9 @@
         Fix   = 'A launcher preference is not covered by the reset path - add it there so a reset leaves no stale state behind.'
     }
 
-    'icon-inventory-sync-gate' = @{
-        Repro = 'pwsh -NoProfile -File scripts/quality/assert-icon-inventory-sync.ps1'
-        Fix   = 'The icon inventory render is stale - regenerate it; repo-wide, so the finding may belong to another ticket in flight and stays advisory under -ScopeToFile.'
-    }
-
-    'doc-icons-sync-gate' = @{
-        Repro = 'pwsh -NoProfile -File scripts/quality/assert-doc-icons-sync.ps1 -Gate'
-        Fix   = 'A document-icon map, asset, generator or checked page drifted - regenerate the icon assets and checked surfaces, then run the gate again.'
-    }
-
-    'device-profile-matrix-gate' = @{
-        Repro = 'pwsh -NoProfile -File scripts/quality/assert-device-profile-matrix.ps1'
-        Fix   = 'The device-profile matrix render is stale - regenerate it; repo-wide, so it stays advisory under -ScopeToFile.'
-    }
-
+    # S1939: hints for icon-inventory-sync, doc-icons-sync and device-profile-matrix were removed
+    # with the gates themselves - they moved to scripts/quality/assert-release-scope-gates.ps1, which
+    # prints each child's own remediation line rather than reading this table.
     'doc-pins-sync' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/generate-toolchain-pins.ps1'
         Fix   = 'The generated toolchain pins are stale - regenerate them; the generated block is a render target and is never hand-edited.'
@@ -161,6 +154,16 @@
     'document-registry' = @{
         Repro = 'pwsh -NoProfile -File scripts/document_registry/query.ps1 -ProductArea "<area>"'
         Fix   = 'Your changed set touches registered documents - read the named records and pass their ids back as -RegistryAck on the same run.'
+    }
+
+    'resource-link-gate' = @{
+        Repro = 'pwsh -NoProfile -File ./a.ps1 fr'
+        Fix   = 'A changed resource or manifest does not link. The aapt line above names the file and the reference it could not resolve - fix that, because nothing else in the facade runs aapt and fk stays green on a broken layout. Exit 2 is a DIFFERENT answer: the target never started (most often JAVA_HOME pointing at a JDK that no longer exists), so nothing was checked and the resource is still unproven.'
+    }
+
+    'androidtest-compile-gate' = @{
+        Repro = 'pwsh -NoProfile -File ./a.ps1 fa'
+        Fix   = 'The instrumented set (app_v2 src/androidTest) does not compile. No other check compiles it - fk/fkn build src/main, fu builds src/test - so a break here can only surface via this gate. Read the compiler error above and fix the test source; a migration test that cannot compile is indistinguishable from an absent one.'
     }
 
     'catalog-sync' = @{

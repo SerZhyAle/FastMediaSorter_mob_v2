@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.util
 
 import android.content.Context
 import android.content.Intent
-import timber.log.Timber
 
 /**
  * S0189: checks whether Google Keep (or Keep Notes) can receive ACTION_SEND text/plain intents.

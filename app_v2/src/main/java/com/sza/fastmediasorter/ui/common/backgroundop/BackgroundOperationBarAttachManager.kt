@@ -4,7 +4,6 @@ import android.view.Gravity
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.sza.fastmediasorter.utils.collectOnLifecycle
-import timber.log.Timber
 
 /**
  * Lays the hairline background-operation bar over a screen's content root and feeds it.

@@ -9,6 +9,11 @@
     <string name="s0183_apk_install_success">APK installed</string>
     <string name="s0183_apk_install_cancelled">Installation cancelled</string>
     <string name="s0183_apk_install_failed">Installation failed</string>
+    <!-- S1686: the installer's reason, which used to be discarded. -->
+    <string name="s1686_apk_install_failed_downgrade">Installation failed: a newer version is already installed</string>
+    <string name="s1686_apk_install_failed_incompatible">Installation failed: this APK is signed differently from the installed app</string>
+    <string name="s1686_apk_install_failed_storage">Installation failed: not enough free space</string>
+    <string name="s1686_apk_install_failed_corrupt">Installation failed: the APK file is damaged or incomplete</string>
     <string name="setting_support_office_documents_desc">Opens Word, spreadsheet, and presentation files in the built-in viewer when supported</string>
     <!-- S0336: noLegal extended System info diagnostics (section titles; field labels stay fixed-English technical keys) -->
     <string name="nolegal_diag_section_os_security">OS &amp; Security</string>

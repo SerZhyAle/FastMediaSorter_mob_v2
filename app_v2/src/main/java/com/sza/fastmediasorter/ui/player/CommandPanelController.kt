@@ -38,7 +38,10 @@ private val VR_BUTTON_MEDIA_TYPES = setOf(MediaType.VIDEO, MediaType.IMAGE, Medi
 
 /** PlayerActivity command panel: button setup, availability/state updates, small-controls layout, original-height tracking, landscape/portrait adaptation. */
 class CommandPanelController(
-    private val binding: ActivityPlayerUnifiedBinding,
+    // S1549: var, not val - the host re-inflates the layout on rotation and re-points this
+    // controller at the fresh binding via [rebind]; the instance itself survives because
+    // bindCastManager's standing collector must not be re-registered.
+    private var binding: ActivityPlayerUnifiedBinding,
     private val settingsRepository: SettingsRepository,
     private val coroutineScope: CoroutineScope,
     private val callback: CommandPanelCallback,
@@ -46,6 +49,11 @@ class CommandPanelController(
     private val bigButtonsMode: Boolean = false,
     private val allowVrLaunch: () -> Boolean = { false },
 ) {
+
+    /** S1549: aim every `binding.` read at the freshly inflated hierarchy after a re-inflate. */
+    fun rebind(newBinding: ActivityPlayerUnifiedBinding) {
+        binding = newBinding
+    }
 
     interface CommandPanelCallback {
         fun onBackClicked()

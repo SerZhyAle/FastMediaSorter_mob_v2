@@ -3,7 +3,7 @@
      Untranslated keys are absent on purpose - Android falls back to English (S1190, ADR-6). -->
 <resources>
     <string name="settings">设置</string>
-    <string name="settings_3d_vr_help_message">3D VR 可在 Meta Quest 3、Android XR 等头显上提供沉浸式视频和照片播放。在没有 XR 运行时的设备上，主开关保持不可用。应用会自动识别视频格式（SBS、OU、360°、VR180）；播放器对话框中可手动指定。</string>
+    <string name="settings_3d_vr_help_message">3D VR 可在 Meta Quest 3、Android XR 等头显设备上提供沉浸式视频和照片播放。在没有 XR 运行时的设备上，主开关保持不可用。应用会自动检测视频格式（SBS、OU、360°、VR180）；也可在播放器对话框中手动覆盖。</string>
     <string name="settings_3d_vr_help_title">关于 3D VR 模式</string>
     <string name="settings_accept_shared_files">接收共享的文件</string>
     <string name="settings_already_default_player">✓ 已设为默认</string>
@@ -149,7 +149,7 @@
     <string name="setting_enable_pip">启用画中画</string>
     <string name="setting_enable_pip_desc">在播放器中显示画中画按钮，按主页键时自动进入画中画（Android 12+）</string>
     <string name="setting_enable_translation_desc">启用基于 OCR 的文字翻译</string>
-    <string name="setting_file_ops_in_overflow_menu_desc">把复制/移动/重命名/删除收进每行的 ⋮ 菜单</string>
+    <string name="setting_file_ops_in_overflow_menu_desc">将复制/移动/重命名/删除折叠为每行的 ⋮ 菜单</string>
     <string name="setting_follow_system_rotation_summary">开启时，除播放器外的所有应用窗口都跟随系统的自动旋转设置。关闭时，无论系统如何设置都跟随设备传感器。</string>
     <string name="setting_follow_system_rotation_title">随系统自动旋转转屏（播放器除外）</string>
     <string name="setting_follow_system_rotation_player_title">播放器画面随系统自动旋转转屏</string>
@@ -194,12 +194,12 @@
     <string name="pref_crop_images_fullscreen_title">裁剪图片以铺满屏幕</string>
     <string name="pref_dynamic_background_summary">延伸图片边缘的颜色来填补“黑边”（Ambilight 效果）</string>
     <string name="pref_dynamic_background_title">动态背景延伸</string>
-    <string name="pref_file_ops_overflow_menu_desc">把复制、移动、重命名和删除收进每个文件行上的 ⋮ 按钮。播放按钮始终单独保留。</string>
+    <string name="pref_file_ops_overflow_menu_desc">将复制、移动、重命名和删除折叠为每个文件行上的 ⋮ 按钮。播放按钮始终保持独立。</string>
     <string name="pref_file_ops_overflow_menu_title">文件操作放入更多菜单</string>
     <string name="pref_panel_stereo_single_eye_summary">开启时，左右和上下格式的立体视频以及全屏照片会裁剪为单眼画面并拉伸至全屏，不戴 3D 眼镜也便于观看。默认：开启。沉浸式 VR 渲染会忽略此设置并显示完整的立体画面。</string>
     <string name="pref_panel_stereo_single_eye_title">以单眼方式显示 3D 内容</string>
     <string name="pref_prefetch_cache_auto">自动</string>
-    <string name="pref_prefetch_cache_help_message">控制流媒体视频在播放点之前预先缓冲的量。\n\n• 较少（0.5×）- 最小缓冲。预缓存进度指示和“保存已缓存视频”的提示会被隐藏。节省磁盘和流量；网络较慢时播放可能卡顿。\n• 自动 - 播放器根据设备和当前网络选择的默认大小。\n• 较多（2×）- 更大的缓冲，在不稳定网络下播放更流畅。占用更多磁盘空间。</string>
+    <string name="pref_prefetch_cache_help_message">控制流媒体视频在播放位置之前缓冲的量。\n\n• 较少（0.5×）- 最小缓冲。预缓存进度指示器和\"保存缓存视频\"提示将被隐藏。节省磁盘空间和带宽；在网络较慢时播放可能卡顿。\n• 自动 - 播放器根据设备和当前网络选择的默认大小。\n• 较多（2×）- 更大的缓冲区，在不稳定网络下播放更流畅。占用更多磁盘空间。</string>
     <string name="pref_prefetch_cache_help_title">视频预缓存大小</string>
     <string name="pref_prefetch_cache_less">较少（0.5×）</string>
     <string name="pref_prefetch_cache_more">较多（2×）</string>
@@ -251,4 +251,13 @@
     <string name="settings_open_default_apps_dialog">设为默认</string>
     <string name="default_apps_dialog_title">默认应用</string>
     <string name="language_download_failed">无法下载该语言。请检查网络连接后重试 - 应用会保持当前使用的语言。</string>
+    <string name="pref_resource_grid_cell_size_title">资源网格单元格大小</string>
+    <string name="pref_resource_grid_cell_size_small">小</string>
+    <string name="pref_resource_grid_cell_size_medium">中</string>
+    <string name="pref_resource_grid_cell_size_large">大</string>
+    <string name="settings_enable_system_info">系统信息</string>
+    <string name="settings_enable_system_info_summary">在程序面板和菜单中显示系统信息</string>
+    <string name="settings_wear_group_title">Wear OS</string>
+    <string name="settings_wear_group_description">如果你有 Wear OS 手表，请开启此项。配套应用从这里打开，并决定这部手机与手表共享哪些内容。</string>
+    <string name="settings_wear_install_guide_button">如何在手表上安装</string>
 </resources>

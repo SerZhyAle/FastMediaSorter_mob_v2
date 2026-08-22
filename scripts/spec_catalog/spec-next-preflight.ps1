@@ -157,10 +157,28 @@ if (Test-Path -LiteralPath $leasePath) {
 }
 
 # 4. Drop skip-cached + excluded + leased ids from the ranked list (record what was dropped)
+#
+# S1864: one cached reason is deliberately NOT honoured here. `blocker-not-verified` is the
+# only skip verdict about ANOTHER ticket's status, so it goes stale from work that never
+# touches the cached ticket - the blocker ships and its dependent stays hidden for the rest
+# of the 7-day TTL. Measured: S1714 sat cached as "Depends on S1704(BlockNeedUserTest)" while
+# S1704's code was already in the tree. Caching it bought nothing either way, since step 5
+# re-derives the same verdict from preview.ps1 on every run. Every other reason is a judgement
+# about the ticket itself (tier-5 epic, owner gate, drift needing review) and still holds.
 $skipCachedIds = @()
+$skipCacheOverriddenIds = @()
 $rankedLive = New-Object System.Collections.Generic.List[object]
 foreach ($r in $ranked) {
-    if ($skipCache.Contains($r.id)) { $skipCachedIds += $r.id; continue }
+    if ($skipCache.Contains($r.id)) {
+        $cachedReason = [string]$skipCache[$r.id].reason
+        if ($cachedReason -like 'blocker-not-verified*') {
+            $skipCacheOverriddenIds += $r.id
+        }
+        else {
+            $skipCachedIds += $r.id
+            continue
+        }
+    }
     if ($excludeSet.ContainsKey($r.id)) { continue }
     if ($leaseSet.ContainsKey($r.id)) {
         $held = $leaseSet[$r.id]
@@ -313,6 +331,9 @@ $result = [PSCustomObject]@{
     ranked         = $rankedOut
     skip_cache     = $skipCacheOut
     skip_cached_ids = @($skipCachedIds)
+    # S1864: cached under a stale `blocker-not-verified` and re-derived live instead of dropped.
+    # Named in the payload so an operator sees the cache was overridden, not silently bypassed.
+    skip_cache_overridden_ids = @($skipCacheOverriddenIds)
     excluded_ids   = @($normalizedExcludeIds)
     leased_ids     = @($leasedDetail)
     auto_skipped   = @($autoSkipped)
@@ -337,6 +358,9 @@ if ($Format -eq 'json') {
     Write-Host "  order: PLAN/RELEASE_QUEUE.md (package, then line order) | current release: $(Get-CurrentRelease)" -ForegroundColor DarkGray
     if ($skipCachedIds.Count -gt 0) {
         Write-Host "  skip-cached out: $($skipCachedIds -join ', ')" -ForegroundColor DarkGray
+    }
+    if ($skipCacheOverriddenIds.Count -gt 0) {
+        Write-Host "  skip-cache overridden (blocker verdict re-derived live): $($skipCacheOverriddenIds -join ', ')" -ForegroundColor DarkGray
     }
     foreach ($l in $leasedDetail) {
         $seen = if ($null -ne $l.last_seen_minutes) { "last seen $($l.last_seen_minutes) min ago" } else { 'last seen unknown' }

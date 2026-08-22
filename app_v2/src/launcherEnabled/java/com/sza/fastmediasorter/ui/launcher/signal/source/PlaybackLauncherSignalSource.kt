@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignal
+import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignalIcon
 import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignalKind
 import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignalSource
 import com.sza.fastmediasorter.ui.main.MainActivity
@@ -47,7 +48,7 @@ class PlaybackLauncherSignalSource @Inject constructor(
             LauncherSignal(
                 id = SIGNAL_ID,
                 kind = LauncherSignalKind.PLAYBACK,
-                iconRes = R.drawable.ic_music_note,
+                icon = LauncherSignalIcon.Resource(R.drawable.ic_music_note),
                 label = snapshot.title.ifBlank { context.getString(R.string.launcher_signal_playback) },
                 detail = snapshot.artist.ifBlank { null },
             ),

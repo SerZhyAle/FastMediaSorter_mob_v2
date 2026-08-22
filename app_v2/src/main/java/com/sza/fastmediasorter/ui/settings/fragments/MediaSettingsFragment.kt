@@ -19,7 +19,6 @@ import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -46,6 +45,9 @@ class MediaSettingsFragment : BaseSettingsFragment() {
     // S0535: unified collapsible groups - one orchestrator + consolidated store replaces the
     // fragment-local section state machine; lazy child-fragment attach is kept via the expand hook.
     private val sectionsManager by lazy { CollapsibleSectionsManager(requireContext()) }
+
+    /** S1967: hands the base the sections this tab registered, so a search jump can open one. */
+    override fun collapsibleSections(): CollapsibleSectionsManager = sectionsManager
 
     private data class MediaChildSection(
         val header: CollapsibleSectionHeader,

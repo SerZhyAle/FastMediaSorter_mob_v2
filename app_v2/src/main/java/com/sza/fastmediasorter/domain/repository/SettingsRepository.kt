@@ -31,4 +31,7 @@ interface SettingsRepository {
     suspend fun isTouchZoneHintShown(type: TouchZoneHintType): Boolean
     suspend fun setTouchZoneHintShown(type: TouchZoneHintType, shown: Boolean)
     suspend fun resetAllTouchZoneHints()
+
+    /** S1692: returns true when consolidated DataStore storage is active. */
+    suspend fun isConsolidatedStorageActive(): Boolean
 }

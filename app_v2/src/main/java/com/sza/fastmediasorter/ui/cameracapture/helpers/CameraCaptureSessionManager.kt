@@ -341,7 +341,6 @@ class CameraCaptureSessionManager(
         manualIso = null
         manualShutterNs = null
         exposureCompensationIndex = 0
-        Timber.d("S1658: lens switch restoreSaved=$restoreSaved index=$resolvedIndex")
         if (restoreSaved) availableLenses.getOrNull(resolvedIndex)?.id?.let { onLensEntering?.invoke(it) }
         runCatching { bindToLifecycle(provider, preview) }
             .onFailure { Timber.e(it, "CameraCaptureSessionManager: lens switch failed") }
@@ -670,12 +669,18 @@ class CameraCaptureSessionManager(
         // S1658: only the full-screen selection still needs a crop - the other two are already the
         // shape the stream was requested at. Sampled here for the same reason as the zoom above.
         val cropRatioAtShutter = if (!videoMode && selectedAspect?.cropsToScreen == true) {
+            // S1920: the shape of the view that was actually on screen, not of the display. The two part
+            // company on system bars, a cutout and multi-window, and the file was being cropped to the
+            // display while the user was looking at the view.
+            // A zero edge means the view is not laid out yet, and only the display can answer for it.
             val metrics = previewView.resources.displayMetrics
-            CapturedPhotoAspectCropper.ratioOfScreen(metrics.widthPixels, metrics.heightPixels)
+            val laidOut = previewView.width > 0 && previewView.height > 0
+            val cropWidth = if (laidOut) previewView.width else metrics.widthPixels
+            val cropHeight = if (laidOut) previewView.height else metrics.heightPixels
+            CapturedPhotoAspectCropper.ratioOfScreen(cropWidth, cropHeight)
         } else {
             null
         }
-        Timber.d("S1658: shutter aspect=$selectedAspect cropRatio=$cropRatioAtShutter")
         val builder = ImageCapture.OutputFileOptions.Builder(outputFile)
         // S0766: opt-in geotag. CameraX writes GPS into the JPEG EXIF before any digital-zoom crop,
         // and the crop path preserves the GPS tags (PRESERVED_EXIF_TAGS, S0765), so a cropped shot

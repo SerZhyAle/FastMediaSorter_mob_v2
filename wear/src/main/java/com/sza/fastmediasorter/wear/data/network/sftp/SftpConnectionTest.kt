@@ -39,7 +39,8 @@ class SftpConnectionTest @Inject constructor() {
             }
             session = jsch.getSession(source.username, source.server, source.port)
             session.setPassword(source.password)
-            session.setConfig("StrictHostKeyChecking", "no")
+            val pin = WearHostKeyPolicy.apply(session, source)
+            Timber.d("S1555: SFTP session pinned=${pin != null}")
             session.connect(CONNECT_TIMEOUT_MS)
 
             channel = session.openChannel("sftp") as ChannelSftp

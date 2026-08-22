@@ -22,10 +22,14 @@
                 android:id="@+id/gadgetChartValue"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:autoSizeMaxTextSize="96sp"
+                android:autoSizeMinTextSize="12sp"
+                android:autoSizeTextType="uniform"
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textColor="?attr/colorOnSurface"
                 android:textStyle="bold"
+                tools:ignore="UnusedAttribute"
                 tools:text="64 km/h" />
 
             <TextView

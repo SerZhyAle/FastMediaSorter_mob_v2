@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- S1421: one signal in the "+N" list. Focusable and clickable at row level so a D-pad reaches every
-     signal the strip could not fit - that list is the only way to reach an overflowed one at all. -->
+     signal the strip could not fit - that list is the only way to reach an overflowed one at all.
+     S1908: one line - icon, source, detail, action - and two independent focus targets, because the row
+     opens the signal while the trailing button dismisses it without leaving the panel. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -11,7 +13,7 @@
     android:minHeight="48dp"
     android:orientation="horizontal"
     android:paddingStart="@dimen/margin_medium"
-    android:paddingEnd="@dimen/margin_medium">
+    android:paddingEnd="@dimen/margin_small">
 
     <ImageView
         android:id="@+id/launcherSignalItemIcon"
@@ -21,32 +23,44 @@
         android:scaleType="fitCenter"
         android:tint="?attr/colorOnSurface" />
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/launcherSignalItemLabel"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
         android:layout_marginStart="@dimen/margin_medium"
-        android:orientation="vertical">
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurface" />
 
-        <TextView
-            android:id="@+id/launcherSignalItemLabel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textColor="?attr/colorOnSurface" />
+    <!-- Sized to its content rather than weighted: the detail is a short count, and giving it a share of
+         the row would steal width from the source name, which is the part that identifies the row. -->
+    <TextView
+        android:id="@+id/launcherSignalItemDetail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/margin_small"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textAppearance="?attr/textAppearanceBodySmall"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:visibility="gone" />
 
-        <TextView
-            android:id="@+id/launcherSignalItemDetail"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textAppearance="?attr/textAppearanceBodySmall"
-            android:textColor="?attr/colorOnSurfaceVariant"
-            android:visibility="gone" />
-
-    </LinearLayout>
+    <!-- Gone by default: only a foreign notification can be dismissed, and strategic §6.2 hides an action
+         that would do nothing rather than showing it disabled (precedent S1887). The bind decides. -->
+    <ImageButton
+        android:id="@+id/launcherSignalItemDismiss"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="@dimen/margin_small"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/launcher_signal_dismiss"
+        android:focusable="true"
+        android:padding="@dimen/margin_small"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_clear"
+        android:tint="?attr/colorOnSurfaceVariant"
+        android:visibility="gone" />
 
 </LinearLayout>

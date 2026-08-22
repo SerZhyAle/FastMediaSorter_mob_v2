@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.widget.registry
 
 import android.appwidget.AppWidgetManager
+import android.appwidget.AppWidgetProvider
 import android.content.Context
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.panel.SubProgramCatalog
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.widget.AudioNowPlayingWidgetProvider
 import com.sza.fastmediasorter.widget.CalculatorWidgetProvider
@@ -18,6 +20,8 @@ import com.sza.fastmediasorter.widget.QuickAudioRecorderWidgetProvider
 import com.sza.fastmediasorter.widget.RandomMusicWidgetProvider
 import com.sza.fastmediasorter.widget.RandomPhotoFrameWidgetProvider
 import com.sza.fastmediasorter.widget.ScheduledTasksWidgetProvider
+import com.sza.fastmediasorter.widget.StreamLaunchWidgetProvider
+import com.sza.fastmediasorter.widget.networkmonitor.NetworkMonitorWidgetProvider
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -66,6 +70,8 @@ class HomeWidgetCatalog @Inject constructor(
         HomeWidgetEntry(
             // Removed via manifest tools:node="remove" in lite/photos (ENABLE_TRANSLATION=false);
             // the installedProviders gate hides it there without a compile-time flavor flag.
+            // S1736: no registry entry - this opens the OCR capture panel overlay, which no route
+            // launches as a program of its own.
             providerClass = CaptureOcrPanelWidgetProvider::class.java,
             gadgetKey = "capture_ocr_panel",
             gadgetSpanW = 2,
@@ -124,6 +130,19 @@ class HomeWidgetCatalog @Inject constructor(
             settingGate = { it.embeddedGameEnabled },
         ),
         HomeWidgetEntry(
+            // S1440: declared only in src/networkMonitor/AndroidManifest.xml (standard + noLegal), so
+            // the installedProviders lookup above is the flavor gate - no settingGate, no flavor flag.
+            providerClass = NetworkMonitorWidgetProvider::class.java,
+            gadgetKey = "network_monitor",
+            gadgetSpanW = 2,
+            gadgetSpanH = 1,
+            labelRes = R.string.widget_network_monitor_label,
+            iconRes = R.drawable.ic_network_monitor,
+            descriptionRes = R.string.widget_network_monitor_description,
+        ),
+        HomeWidgetEntry(
+            // S1736: no registry entry - a photo frame renders on the home screen rather than
+            // launching a program, so nothing in the registry can own it.
             providerClass = RandomPhotoFrameWidgetProvider::class.java,
             gadgetKey = "random_photo_frame",
             gadgetSpanW = 2,
@@ -142,6 +161,8 @@ class HomeWidgetCatalog @Inject constructor(
             descriptionRes = R.string.widget_random_music_description,
         ),
         HomeWidgetEntry(
+            // S1736: no registry entry - this shows and controls whatever is already playing; there
+            // is no program to launch, so no route and no registry row.
             providerClass = AudioNowPlayingWidgetProvider::class.java,
             gadgetKey = "audio_now_playing",
             gadgetSpanW = 2,
@@ -179,6 +200,37 @@ class HomeWidgetCatalog @Inject constructor(
             descriptionRes = R.string.widget_scheduled_tasks_description,
             settingGate = { it.enableScheduledOperations },
         ),
+        HomeWidgetEntry(
+            // S1916: removed via manifest tools:node="remove" in lite/photos (SUPPORT_STREAMS=false);
+            // installedProviders hides it there, so no settingGate and no compile-time flavor flag.
+            // Per-instance configuration is not an exclusion criterion - three of the four widgets
+            // declaring android:configure are listed here, and the one exclusion has its own recorded
+            // reason (a pin entry in the resource editor) that this widget has no equivalent of.
+            providerClass = StreamLaunchWidgetProvider::class.java,
+            gadgetKey = "stream_launch",
+            gadgetSpanW = 1,
+            gadgetSpanH = 1,
+            labelRes = R.string.widget_stream_launch_label,
+            iconRes = R.drawable.ic_cast,
+            descriptionRes = R.string.widget_stream_launch_description,
+        ),
+    ) + listOfNotNull(
+        runCatching {
+            val clsName = "com.sza.fastmediasorter.widget.NoLegalAccessibilityWidgetProvider"
+            Class.forName(clsName).asSubclass(AppWidgetProvider::class.java)
+        }.getOrNull()?.let { providerCls ->
+            HomeWidgetEntry(
+                // S1736: no registry entry - it toggles an accessibility service rather than
+                // launching a program, and it exists only where that service is compiled in.
+                providerClass = providerCls,
+                gadgetKey = "nolegal_accessibility_toggle",
+                gadgetSpanW = 1,
+                gadgetSpanH = 1,
+                labelRes = R.string.qs_tile_accessibility,
+                iconRes = R.drawable.ic_accessibility,
+                descriptionRes = R.string.qs_tile_accessibility,
+            )
+        }
     )
 
     /**
@@ -204,6 +256,22 @@ class HomeWidgetCatalog @Inject constructor(
         return allEntries.filter { entry ->
             entry.providerClass.name in installed &&
                 (entry.settingGate?.invoke(settings) ?: true)
-        }
+        }.sortedBy { registryOrder[it.gadgetKey] ?: WIDGET_ONLY_ORDER }
+    }
+
+    /**
+     * S1736 ADR-5: a widget that launches a sub-program is shown where that program sits in the one
+     * registry order, so the picker reads in the same sequence as the programs menu and the panel.
+     *
+     * Widget-only records keep their declaration sequence after them. `sortedBy` is stable, so they
+     * neither interleave with the paired ones nor reorder among themselves.
+     */
+    private val registryOrder: Map<String, Int> = SubProgramCatalog.all()
+        .mapIndexedNotNull { index, entry -> entry.widgetKey?.let { it to index } }
+        .toMap()
+
+    private companion object {
+        /** Sorts every unpaired widget after the last paired one without naming a count. */
+        const val WIDGET_ONLY_ORDER = Int.MAX_VALUE
     }
 }

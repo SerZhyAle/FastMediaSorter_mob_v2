@@ -5,6 +5,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -71,6 +72,24 @@ class FaviconAtlasSlicerTest {
     fun `tileFor returns null when the atlas file is absent`() = runTest {
         val noAtlas = FaviconAtlasSlicer { null }
         assertNull(noAtlas.tileFor(0))
+    }
+
+    @Test
+    fun `a second slicer over the same atlas gets the shared tile, not a second decode`() = runTest {
+        // One stable file for both owners: the cache keys on file identity, and fixtureAtlasFile()
+        // hands out a fresh temp path per call.
+        val atlas = fixtureAtlasFile()
+        val firstOwner = FaviconAtlasSlicer { atlas }
+        val secondOwner = FaviconAtlasSlicer { atlas }
+
+        val fromFirst = firstOwner.tileFor(0)
+        val fromSecond = secondOwner.tileFor(0)
+
+        assertNotNull("index 0 must decode", fromFirst)
+        // S1821: five owners construct a slicer of their own, and the launcher label path built one per
+        // call. Identity here is the assertion that they now share one decoded sheet and one tile cache
+        // rather than each decoding the 23,5 MB atlas.
+        assertSame(fromFirst, fromSecond)
     }
 
     private fun assertColorClose(expected: Int, actual: Int) {

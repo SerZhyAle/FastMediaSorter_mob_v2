@@ -72,7 +72,7 @@ class LinkAutoDownloadCoordinatorTest {
             savedAt = Instant.now(), lastUsedAt = null, cookieCount = 3,
         )
         // Exact host has cookies - must win without reaching listAllAccounts.
-        every { cookieStore.loadForAccount("instagram.com", "acc1") } returns cookies
+        every { cookieStore.loadForHostAccountOrBest("instagram.com", "acc1") } returns cookies
         every { cookieStore.loadUserAgentForAccount("instagram.com", "acc1") } returns pinnedUa
         every { cookieStore.listAllAccounts() } returns listOf("www.instagram.com" to candidateEntry)
 
@@ -90,11 +90,11 @@ class LinkAutoDownloadCoordinatorTest {
             savedAt = Instant.now(), lastUsedAt = null, cookieCount = 5,
         )
         // Exact www-host has no cookies.
-        every { cookieStore.loadForAccount("www.instagram.com", "acc1") } returns emptyList()
+        every { cookieStore.loadForHostAccountOrBest("www.instagram.com", "acc1") } returns emptyList()
         // eTLD+1 fallback finds the base-domain stored account.
         every { cookieStore.listAllAccounts() } returns listOf("instagram.com" to baseEntry)
         // Cookies loaded from the resolved stored host.
-        every { cookieStore.loadForAccount("instagram.com", "acc1") } returns cookies
+        every { cookieStore.loadForHostAccountOrBest("instagram.com", "acc1") } returns cookies
         every { cookieStore.loadUserAgentForAccount("instagram.com", "acc1") } returns pinnedUa
 
         coordinator.handle("https://www.instagram.com/p/test", noOpCallbacks, "acc1")
@@ -113,9 +113,9 @@ class LinkAutoDownloadCoordinatorTest {
         val strategy = mockk<UrlExtractionStrategy>()
         val streamBody = mockk<InputStream>(relaxed = true)
         // eTLD+1 fallback resolves "instagram.com" for request host "www.instagram.com".
-        every { cookieStore.loadForAccount("www.instagram.com", "acc1") } returns emptyList()
+        every { cookieStore.loadForHostAccountOrBest("www.instagram.com", "acc1") } returns emptyList()
         every { cookieStore.listAllAccounts() } returns listOf("instagram.com" to baseEntry)
-        every { cookieStore.loadForAccount("instagram.com", "acc1") } returns cookies
+        every { cookieStore.loadForHostAccountOrBest("instagram.com", "acc1") } returns cookies
         every { cookieStore.loadUserAgentForAccount("instagram.com", "acc1") } returns pinnedUa
         // Strategy pipeline returns a downloadable stream.
         every { strategy.id } returns "direct"
@@ -163,7 +163,6 @@ class LinkAutoDownloadCoordinatorTest {
     // Strategy A throws (simulates yt-dlp PyException). Strategy B must still be reached.
 
     @Test
-    @Suppress("DEPRECATION") // mirrors coordinator's @Suppress on cookieStore.loadFor(host)
     fun open_throwing_strategy_does_not_abort_cascade() = runTest {
         val strategyA = mockk<UrlExtractionStrategy>()
         val strategyB = mockk<UrlExtractionStrategy>()
@@ -178,8 +177,7 @@ class LinkAutoDownloadCoordinatorTest {
         )
         coEvery { strategyB.open(any(), any()) } returns OpenResult.NotFound(reason = "not-found-sentinel")
         every { registry.ordered() } returns listOf(strategyA, strategyB)
-        every { cookieStore.loadForAccount(any(), any()) } returns emptyList()
-        every { cookieStore.loadFor(any()) } returns emptyList()
+        every { cookieStore.loadForHostAccountOrBest(any(), any()) } returns emptyList()
         every { cookieStore.loadUserAgentForAccount(any(), any()) } returns null
         every { cookieStore.listAllAccounts() } returns emptyList()
 
@@ -195,7 +193,6 @@ class LinkAutoDownloadCoordinatorTest {
     }
 
     @Test
-    @Suppress("DEPRECATION") // mirrors coordinator's @Suppress on cookieStore.loadFor(host)
     fun cancellation_in_open_propagates_immediately() = runTest {
         val strategyA = mockk<UrlExtractionStrategy>()
         val strategyB = mockk<UrlExtractionStrategy>()
@@ -211,8 +208,7 @@ class LinkAutoDownloadCoordinatorTest {
         )
         coEvery { strategyB.open(any(), any()) } returns OpenResult.NotFound(reason = "not-found-sentinel")
         every { registry.ordered() } returns listOf(strategyA, strategyB)
-        every { cookieStore.loadForAccount(any(), any()) } returns emptyList()
-        every { cookieStore.loadFor(any()) } returns emptyList()
+        every { cookieStore.loadForHostAccountOrBest(any(), any()) } returns emptyList()
         every { cookieStore.loadUserAgentForAccount(any(), any()) } returns null
         every { cookieStore.listAllAccounts() } returns emptyList()
 
@@ -229,7 +225,6 @@ class LinkAutoDownloadCoordinatorTest {
     }
 
     @Test
-    @Suppress("DEPRECATION") // mirrors coordinator's @Suppress on cookieStore.loadFor(host)
     fun probe_throwing_already_handled_does_not_regress() = runTest {
         // Regression guard for the existing probe() try/catch (pre-S0186).
         val strategyA = mockk<UrlExtractionStrategy>()
@@ -242,8 +237,7 @@ class LinkAutoDownloadCoordinatorTest {
         )
         coEvery { strategyB.open(any(), any()) } returns OpenResult.NotFound(reason = "not-found-sentinel")
         every { registry.ordered() } returns listOf(strategyA, strategyB)
-        every { cookieStore.loadForAccount(any(), any()) } returns emptyList()
-        every { cookieStore.loadFor(any()) } returns emptyList()
+        every { cookieStore.loadForHostAccountOrBest(any(), any()) } returns emptyList()
         every { cookieStore.loadUserAgentForAccount(any(), any()) } returns null
         every { cookieStore.listAllAccounts() } returns emptyList()
 

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1549: label colour of the Browse and Main command bars. No orientation variant: the wide bars
+     are the only ones that show a label at all, and both name ?attr/colorControlNormal, so the value
+     varies by theme rather than by qualifier. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="?attr/colorControlNormal" />
+</selector>

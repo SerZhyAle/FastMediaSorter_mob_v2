@@ -205,8 +205,8 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
 
     private fun setDestinationPanelsSuppressed(suppressed: Boolean) {
         destinationPanelsSuppressed = suppressed
-        val copyPanel = binding.root.findViewById<View>(R.id.copyToPanel)
-        val movePanel = binding.root.findViewById<View>(R.id.moveToPanel)
+        val copyPanel: View? = binding.bottomPanelsContainer.copyToPanel
+        val movePanel: View? = binding.bottomPanelsContainer.moveToPanel
         if (suppressed) {
             copyPanelVisibleBeforeFullscreen = copyPanel?.isVisible == true
             movePanelVisibleBeforeFullscreen = movePanel?.isVisible == true
@@ -488,7 +488,7 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
         // S0612: the Copy/Move panels container is the bottom-most child, so the nav-bar bottom inset
         // moves here from mediaContentArea. setDecorFitsSystemWindows(false) draws behind the nav bar;
         // a GONE 0-height container still reserves the nav gap, keeping the document content above it.
-        binding.root.findViewById<View>(R.id.bottomPanelsContainer)?.let { panels ->
+        binding.bottomPanelsContainer.root.let { panels ->
             ViewCompat.setOnApplyWindowInsetsListener(panels) { view, insets ->
                 val nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
                 view.setPadding(0, 0, 0, nav.bottom)

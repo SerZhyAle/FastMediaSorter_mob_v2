@@ -99,7 +99,7 @@ operation resources and the file-operation menu is known tappable on that device
 
 - `permissions.yaml` - optional system permission taps.
 - `navigate_to_add_resource.yaml` - shared add-resource navigation fragment.
-- `go_home.yaml` - back out of any restored player/browse to the main resource tabs (resumeOnNextLaunch reopens the last file on cold start). Every capability flow runs this right after `permissions.yaml`.
+- `go_home.yaml` - back out of any restored player/browse to the main resource tabs (resumeOnNextLaunch reopens the last file on cold start). Every capability flow runs this right after `permissions.yaml`. When backing out cannot reach the tabs - the foreground screen is not on the app's back stack, as under launcher mode - it relaunches the app instead of failing (S1673).
 - `downloads_sort_reset.yaml` - scroll the open list back to the top (guarded `fabScrollToTop` tap), so a following down-only `scrollUntilVisible` reaches any target regardless of the per-resource scroll position restored by `rememberTheFileList`.
 
 ## Preconditions
@@ -121,6 +121,10 @@ Run against `standard-debug` (`com.sza.fastmediasorter.debug`). The capability f
   core flows.
 - **Stylus handwriting off** so text-entry flows land their input. The runner sets this on every
   invocation (`settings put secure stylus_handwriting_enabled 0`); no manual step needed.
+- **Launcher mode** may be left on by any device test of the launcher desktop, and nothing turns it
+  back off. It is not a precondition: `go_home.yaml` escapes the desktop by relaunching, so the
+  suite runs either way. The runner still prints the state (`launcher-mode: on|off`) in its
+  header, because otherwise it is invisible in every flow trace (S1673).
 
 The runner needs `resumeOnNextLaunch` and `rememberTheFileList` to stay at their defaults; the
 `go_home` and `downloads_sort_reset` fragments make flows deterministic against both. Flows do

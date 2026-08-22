@@ -65,18 +65,51 @@ import java.util.UUID
 /** Consolidates all manager initialization logic extracted from PlayerActivity. Called once from PlayerActivity.initializeManagers() to reduce activity size by ~650 lines. Each private init*() method corresponds to a former private method in PlayerActivity. */
 internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
 
+    /**
+     * S1549 (owner ruling 2026-08-16, strategic §6 item 5, variant A): initialization is split in
+     * two halves. The screen-level half runs exactly once per screen - managers with no view
+     * references, managers whose construction registers a standing collector/observer/listener,
+     * and stateful holders that get a rebind seam instead of a re-construction. The binding-bound
+     * half is re-runnable: managers that merely capture the binding (or views resolved from it)
+     * and register nothing but view listeners, which die with the discarded tree. After a
+     * re-inflate the activity re-runs only the binding-bound half - re-running the screen-level
+     * half would double every registration it contains.
+     */
     fun initialize() {
-        initBackgroundMedia()
-        initCoreCoordination()
+        constructScreenLevelOnce()
+        constructBindingBoundManagers()
+    }
+
+    private var screenLevelConstructed = false
+
+    private fun constructScreenLevelOnce() {
+        if (screenLevelConstructed) return
+        screenLevelConstructed = true
+        initScreenLevelCoreCoordination()
         initDialogHelper()
         initFileOps()
-        initCommandPanelAndImageLoading()
+        initCommandPanel()
+        initAudioEmptyState()
         initNetworkAndTranslation()
-        initPlayerControlsAndOcr()
+        initScreenLevelControlsAndSettings()
         initAudioAndMediaServices()
+        initScreenLevelUiCoordinators()
+        initPrefetchManager()
+    }
+
+    /**
+     * Re-runnable half of [initialize] - called again by the host after a re-inflate swapped the
+     * binding (S1549). Every manager created here is re-created against the current binding.
+     */
+    fun constructBindingBoundManagers() {
+        initBackgroundMedia()
+        initBindingBoundCore()
+        initImageLoading()
+        initBindingBoundControlsAndOcr()
+        initMediaLoaderOnce()
+        initBindingBoundMediaServices()
         initUiCoordinators()
         initSetupManagers()
-        initPrefetchManager()
     }
 
     // Helper must live at class scope because rename callbacks use it before initFileOps()
@@ -213,7 +246,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         }
     }
 
-    private fun initCoreCoordination() {
+    private fun initScreenLevelCoreCoordination() {
         activity.cloudAuthManager = BrowseCloudAuthManager(
             context = activity,
             coroutineScope = activity.lifecycleScope,
@@ -245,28 +278,6 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                 viewModel = activity.viewModel
             ),
             keyBindingManager = activity.keyBindingManager,
-        )
-
-        activity.uiStateCoordinator = com.sza.fastmediasorter.ui.player.helpers.PlayerUiStateCoordinator(
-            binding = activity.activityBinding,
-            settingsRepository = activity.playerHostFactory.settingsRepository,
-            coroutineScope = activity.lifecycleScope,
-            callback = com.sza.fastmediasorter.ui.player.callbacks.PlayerUiStateCoordinatorCallbackImpl(
-                activity = activity,
-                viewModel = activity.viewModel
-            )
-        )
-
-        activity.undoOperationManager = UndoOperationManager(
-            rootView = activity.activityBinding.root,
-            callback = object : UndoOperationManager.Callback {
-                override fun isActivityAlive(): Boolean = !(activity.isFinishing || activity.isDestroyed)
-                override fun getUndoActionText(): String =
-                    UndoOperationManager.defaultUndoActionText(activity.activityBinding.root)
-                override fun onUndoRequested() {
-                    activity.viewModel.undoLastOperation()
-                }
-            }
         )
 
         activity.systemBarsManager = SystemBarsManager(activity = activity)
@@ -312,16 +323,42 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.setupDrawOverlayActionCallbacks()
         activity.setupDrawOverlayInPlaceSaveCallback()
         activity.playerDrawingSaveHelper.setupDrawCropCallback()
-        activity.immersiveModeManager = com.sza.fastmediasorter.ui.player.helpers.PlayerImmersiveModeManager(
-            activity = activity,
-            safeViews = com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews(activity.activityBinding)
-        )
         activity.setupEditModeCallbacks()
         activity.eventHandler = PlayerEventHandler(activity = activity)
         activity.textEditorCalculatorBridge = com.sza.fastmediasorter.ui.player.helpers.TextEditorCalculatorBridge(
             context = activity,
             launcher = activity.textEditorCalculatorLauncher,
             textViewerManagerProvider = { activity._textViewerManager },
+        )
+    }
+
+    /** Binding-bound half: coordinators that only capture the binding and register nothing standing. */
+    private fun initBindingBoundCore() {
+        activity.uiStateCoordinator = com.sza.fastmediasorter.ui.player.helpers.PlayerUiStateCoordinator(
+            binding = activity.activityBinding,
+            settingsRepository = activity.playerHostFactory.settingsRepository,
+            coroutineScope = activity.lifecycleScope,
+            callback = com.sza.fastmediasorter.ui.player.callbacks.PlayerUiStateCoordinatorCallbackImpl(
+                activity = activity,
+                viewModel = activity.viewModel
+            )
+        )
+
+        activity.undoOperationManager = UndoOperationManager(
+            rootView = activity.activityBinding.root,
+            callback = object : UndoOperationManager.Callback {
+                override fun isActivityAlive(): Boolean = !(activity.isFinishing || activity.isDestroyed)
+                override fun getUndoActionText(): String =
+                    UndoOperationManager.defaultUndoActionText(activity.activityBinding.root)
+                override fun onUndoRequested() {
+                    activity.viewModel.undoLastOperation()
+                }
+            }
+        )
+
+        activity.immersiveModeManager = com.sza.fastmediasorter.ui.player.helpers.PlayerImmersiveModeManager(
+            activity = activity,
+            safeViews = com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews(activity.activityBinding)
         )
     }
 
@@ -409,7 +446,8 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         ).install()
     }
 
-    private fun initCommandPanelAndImageLoading() {
+    /** Screen-level half: the panel instance survives a re-inflate (bindCastManager's collector). */
+    private fun initCommandPanel() {
         val bigButtonsMode = PlayerLayoutModePrefs.isBigButtonsMode(activity)
         activity.commandPanelController = CommandPanelController(
             binding = activity.activityBinding,
@@ -424,7 +462,23 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             allowVrLaunch = { activity.playerVrLaunchManager?.isOverflowEntryVisible() == true },
         )
         activity.commandPanelController.updateOrientation(activity.resources.configuration)
+    }
 
+    /** Screen-level half: keeps its playback/visualization state and lifecycle registration. */
+    private fun initAudioEmptyState() {
+        activity.audioEmptyStateController = AudioEmptyStateController(
+            context = activity,
+            audioCoverArtView = activity.activityBinding.audioCoverArtView,
+            barsView = activity.activityBinding.audioBarsView,
+            videoView = activity.activityBinding.audioVideoView,
+            wavesView = activity.activityBinding.audioWaveParticleView,
+            deliveredSource = activity.deliveredAudioVisualizationSource,
+            lifecycle = activity.lifecycle
+        )
+    }
+
+    /** Binding-bound half: image loading registers nothing standing at construction. */
+    private fun initImageLoading() {
         activity.imageLoadingManager = ImageLoadingManager(
             binding = activity.activityBinding,
             settingsRepository = activity.playerHostFactory.settingsRepository,
@@ -441,15 +495,6 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             )
         )
 
-        activity.audioEmptyStateController = AudioEmptyStateController(
-            context = activity,
-            audioCoverArtView = activity.activityBinding.audioCoverArtView,
-            barsView = activity.activityBinding.audioBarsView,
-            videoView = activity.activityBinding.audioVideoView,
-            wavesView = activity.activityBinding.audioWaveParticleView,
-            deliveredSource = activity.deliveredAudioVisualizationSource,
-            lifecycle = activity.lifecycle
-        )
         activity.imageLoadingManager.setAudioEmptyStateController(activity.audioEmptyStateController!!)
     }
 
@@ -510,16 +555,8 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         )
     }
 
-    private fun initPlayerControlsAndOcr() {
+    private fun initScreenLevelControlsAndSettings() {
         // OPTIMIZATION: Document Viewers and VideoPlayerManager use lazy initialization
-        activity.playerGestureCallback = com.sza.fastmediasorter.ui.player.callbacks.PlayerGestureCallbackImpl(
-            activity = activity,
-            viewModel = activity.viewModel,
-            binding = activity.activityBinding,
-            pdfViewerManagerProvider = { activity.pdfViewerManager },
-            epubViewerManagerProvider = { activity.epubViewerManager }
-        )
-
         activity.lyricsManager = LyricsManager(
             context = activity,
             binding = activity.activityBinding,
@@ -527,21 +564,6 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             settingsRepository = activity.playerHostFactory.settingsRepository,
             searchLyricsUseCase = activity.playerHostFactory.searchLyrics,
             getTranslationSessionSettings = { activity.translationSessionSettings }
-        )
-
-        activity.gestureHelper = PlayerGestureHelper(
-            context = activity,
-            gestureCallback = activity.playerGestureCallback
-        )
-
-        activity.touchZoneGestureManager = TouchZoneGestureManager(
-            binding = activity.activityBinding,
-            viewModel = activity.viewModel,
-            touchZoneDetector = activity.touchZoneDetector,
-            callback = com.sza.fastmediasorter.ui.player.callbacks.PlayerTouchZoneCallbackImpl(
-                activity = activity,
-                viewModel = activity.viewModel
-            )
         )
 
         activity.translationButtonManager = TranslationButtonManager(
@@ -613,6 +635,32 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                     }
             }
         }
+    }
+
+    /** Binding-bound half: control/gesture/search helpers that only capture the binding. */
+    private fun initBindingBoundControlsAndOcr() {
+        activity.playerGestureCallback = com.sza.fastmediasorter.ui.player.callbacks.PlayerGestureCallbackImpl(
+            activity = activity,
+            viewModel = activity.viewModel,
+            binding = activity.activityBinding,
+            pdfViewerManagerProvider = { activity.pdfViewerManager },
+            epubViewerManagerProvider = { activity.epubViewerManager }
+        )
+
+        activity.gestureHelper = PlayerGestureHelper(
+            context = activity,
+            gestureCallback = activity.playerGestureCallback
+        )
+
+        activity.touchZoneGestureManager = TouchZoneGestureManager(
+            binding = activity.activityBinding,
+            viewModel = activity.viewModel,
+            touchZoneDetector = activity.touchZoneDetector,
+            callback = com.sza.fastmediasorter.ui.player.callbacks.PlayerTouchZoneCallbackImpl(
+                activity = activity,
+                viewModel = activity.viewModel
+            )
+        )
 
         activity.exoPlayerControlsManager = ExoPlayerControlsManager(
             binding = activity.activityBinding,
@@ -743,37 +791,22 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             faviconAtlasStore = activity.faviconAtlasStore,
             scope = activity.lifecycleScope
         )
-        activity.sleepTimerManager = SleepTimerManager(
-            vinylView = activity.activityBinding.vinylIndicator,
-            sleepTimerBadge = activity.activityBinding.sleepTimerBadge,
-            playerProvider = { activity.videoPlayerManager.getPlayer() }
-        )
-        activity.pipManager = PictureInPictureManager(
-            activity = activity,
-            playerView = activity.activityBinding.playerView,
-            chromeToHide = listOf(activity.activityBinding.toolbar, activity.activityBinding.topCommandPanel),
-            getPlayer = { activity.videoPlayerManager.getPlayer() },
-            onPlay = {
-                val isAudio = activity.isMediaLoaderManagerInitialized &&
-                        activity.mediaLoaderManager.isServiceAudioActive
-                if (isAudio) activity.audioServiceController?.player?.play()
-                else activity.videoPlayerManager.play()
-            },
-            onPause = {
-                val isAudio = activity.isMediaLoaderManagerInitialized &&
-                        activity.mediaLoaderManager.isServiceAudioActive
-                if (isAudio) activity.audioServiceController?.player?.pause()
-                else activity.videoPlayerManager.pause()
-            },
-            isVideoPlaying = {
-                val currentFile = activity.viewModel.state.value.currentFile
-                when (currentFile?.type) {
-                    MediaType.VIDEO -> activity.videoPlayerManager.getPlayer()?.isPlaying == true
-                    MediaType.AUDIO -> activity.audioServiceController?.player?.isPlaying == true
-                    else -> false
-                }
-            }
-        )
+    }
+
+    /**
+     * S1817: constructed HERE, in the binding-bound half, and no longer in [initAudioAndMediaServices]
+     * where it used to sit. The constructor reads `imageLoadingManager` and `exoPlayerControlsManager`,
+     * both created earlier in THIS half, so a screen-level construction read the first of them before
+     * its only assignment and killed every PlayerActivity open with an
+     * UninitializedPropertyAccessException.
+     *
+     * Still once per screen, despite living in the re-runnable half: this manager owns the audio
+     * service connection and the prefetch jobs, and it carries the S1549 [PlayerMediaLoaderManager.rebind]
+     * seam precisely so a re-inflate re-points it at the new views instead of re-creating it. The guard
+     * is what keeps both halves of that contract true, since a re-inflate re-runs this function.
+     */
+    private fun initMediaLoaderOnce() {
+        if (activity.isMediaLoaderManagerInitialized) return
         activity.mediaLoaderManager = PlayerMediaLoaderManager(
             activity = activity,
             binding = activity.activityBinding,
@@ -851,9 +884,56 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         )
     }
 
-    private fun initUiCoordinators() {
+    /** Binding-bound half: badge/PiP helpers that only capture views and register nothing standing. */
+    private fun initBindingBoundMediaServices() {
+        activity.sleepTimerManager = SleepTimerManager(
+            vinylView = activity.activityBinding.vinylIndicator,
+            sleepTimerBadge = activity.activityBinding.sleepTimerBadge,
+            playerProvider = { activity.videoPlayerManager.getPlayer() }
+        )
+        activity.pipManager = PictureInPictureManager(
+            activity = activity,
+            playerView = activity.activityBinding.playerView,
+            chromeToHide = listOf(activity.activityBinding.toolbar, activity.activityBinding.topCommandPanel),
+            getPlayer = { activity.videoPlayerManager.getPlayer() },
+            onPlay = {
+                val isAudio = activity.isMediaLoaderManagerInitialized &&
+                        activity.mediaLoaderManager.isServiceAudioActive
+                if (isAudio) activity.audioServiceController?.player?.play()
+                else activity.videoPlayerManager.play()
+            },
+            onPause = {
+                val isAudio = activity.isMediaLoaderManagerInitialized &&
+                        activity.mediaLoaderManager.isServiceAudioActive
+                if (isAudio) activity.audioServiceController?.player?.pause()
+                else activity.videoPlayerManager.pause()
+            },
+            isVideoPlaying = {
+                val currentFile = activity.viewModel.state.value.currentFile
+                when (currentFile?.type) {
+                    MediaType.VIDEO -> activity.videoPlayerManager.getPlayer()?.isPlaying == true
+                    MediaType.AUDIO -> activity.audioServiceController?.player?.isPlaying == true
+                    else -> false
+                }
+            }
+        )
+    }
+
+    /** Screen-level half: no views held; `bind()` registers standing collectors. */
+    private fun initScreenLevelUiCoordinators() {
         activity.audioMetadataManager = PlayerAudioMetadataManager(activity)
 
+        activity.playerVrLaunchManager = PlayerVrLaunchManager(
+            activity = activity,
+            viewModel = activity.viewModel,
+            settingsRepository = activity.playerHostFactory.settingsRepository,
+            detectionFacade = activity.xrDetectionFacade,
+            startVrPlaybackUseCase = activity.playerHostFactory.startVrPlayback,
+            payloadHolder = activity.vrLaunchPayloadHolder,
+        ).also { it.bind() }
+    }
+
+    private fun initUiCoordinators() {
         activity.dialogAndUiStateManager = PlayerDialogAndUiStateManager(
             activity = activity,
             viewModel = activity.viewModel,
@@ -896,15 +976,6 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         // Wire audioSlideshowPhotoModeManager into dialogAndUiStateManager (created just above)
         activity.dialogAndUiStateManager.audioSlideshowPhotoModeManager =
             activity.audioSlideshowPhotoModeManager
-
-        activity.playerVrLaunchManager = PlayerVrLaunchManager(
-            activity = activity,
-            viewModel = activity.viewModel,
-            settingsRepository = activity.playerHostFactory.settingsRepository,
-            detectionFacade = activity.xrDetectionFacade,
-            startVrPlaybackUseCase = activity.playerHostFactory.startVrPlayback,
-            payloadHolder = activity.vrLaunchPayloadHolder,
-        ).also { it.bind() }
 
         // Wire FilenameOverlayAutoHideManager - controls auto-hide timing for tvFileNameOverlay. Use actual command-panel visibility rather than raw showCommandPanel state, because audio can force the panel visible while the ViewModel flag stays false.
         activity.dialogAndUiStateManager.filenameOverlayManager = FilenameOverlayAutoHideManager(

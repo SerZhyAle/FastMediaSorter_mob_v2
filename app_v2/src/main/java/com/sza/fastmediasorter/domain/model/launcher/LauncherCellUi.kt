@@ -13,4 +13,6 @@ data class LauncherCellUi(
     val cell: LauncherCell,
     val visual: LauncherCommandVisual?,
     val modeBadge: LauncherResourceMode?,
+    val contactAction: LauncherContactAction? = null,
+    val messengerPackage: String? = null,
 )

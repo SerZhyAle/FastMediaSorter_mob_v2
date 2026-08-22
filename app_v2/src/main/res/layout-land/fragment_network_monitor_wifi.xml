@@ -18,6 +18,7 @@
 
         <TextView
             style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
+            android:drawableStart="@drawable/ic_wifi"
             android:text="@string/network_monitor_section_wifi" />
 
         <com.google.android.material.card.MaterialCardView
@@ -88,6 +89,10 @@
                                 <TextView
                                     android:id="@+id/wifiNetworkValue"
                                     style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                                    android:background="?attr/selectableItemBackground"
+                                    android:clickable="true"
+                                    android:focusable="true"
+                                    android:minHeight="@dimen/list_item_height"
                                     tools:text="Home-5G" />
                             </LinearLayout>
 

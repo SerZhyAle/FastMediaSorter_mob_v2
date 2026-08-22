@@ -7,7 +7,9 @@ import com.sza.fastmediasorter.data.local.db.LauncherCellEntity
 import com.sza.fastmediasorter.data.local.db.LauncherStateDao
 import com.sza.fastmediasorter.data.local.db.LauncherStateEntity
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCellPlacement
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
 import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
@@ -31,43 +33,99 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
             .map { entities -> entities.mapNotNull { it.toDomainOrNull() } }
             .distinctUntilChanged()
 
-    override suspend fun addCell(cell: LauncherCell): Long? = withContext(Dispatchers.IO) {
-        val candidate = cell.normalized()
-        // Check and insert must be one transaction: two concurrent adds that each saw free space would
-        // otherwise both land, and the "cells never overlap" invariant would be false forever after.
-        db.withTransaction {
-            val straddlesHeader = coversHeaderRow(
-                kindName = candidate.kind.name,
-                rowIndex = candidate.rowIndex,
-                spanH = candidate.spanH,
-                orientationName = candidate.orientation.name,
-            )
-            if (straddlesHeader) {
+    override suspend fun addCell(cell: LauncherCell, columns: Int): LauncherCellPlacement =
+        withContext(Dispatchers.IO) {
+            val candidate = cell.normalized()
+            // Nothing can seat a footprint wider than the grid, so this is decided before any writing.
+            if (columns >= MIN_SPAN && candidate.spanW > columns) {
                 Timber.i(
-                    "Launcher desktop: not adding at %d - a gadget may not cover a section header row",
-                    candidate.rowIndex,
+                    "Launcher desktop: %d columns cannot hold a %d-wide cell",
+                    columns,
+                    candidate.spanW,
                 )
-                return@withTransaction null
+                return@withContext LauncherCellPlacement.TooWide
             }
-            val blocker = cellDao.findOverlapping(
-                orientation = candidate.orientation.name,
-                rowIndex = candidate.rowIndex,
-                colIndex = candidate.colIndex,
-                spanW = candidate.spanW,
-                spanH = candidate.spanH,
-                excludeId = candidate.id,
-            )
-            if (blocker != null) {
-                Timber.i(
-                    "Launcher desktop: not adding at %d,%d - cell %d already covers it",
-                    candidate.rowIndex,
-                    candidate.colIndex,
-                    blocker.id,
-                )
-                return@withTransaction null
-            }
-            cellDao.upsert(candidate.toEntity())
+            // The push and the insert must be one transaction: a shift that landed without its cell would
+            // leave a hole in the desktop, and two concurrent adds that each saw free space would both
+            // land, making the "cells never overlap" invariant false forever after.
+            db.withTransaction { seat(candidate) }
         }
+
+    /**
+     * S1772: clears the candidate's footprint by pushing the desktop's tail down, then writes it.
+     *
+     * A section header never pushes: a second header on an occupied row is a duplicate, not a widget
+     * needing room, and moving the first one aside would leave the desktop with two of them.
+     */
+    private suspend fun seat(candidate: LauncherCell): LauncherCellPlacement {
+        val blocked = isBlocked(candidate)
+        if (blocked && candidate.kind == LauncherCellKind.SECTION) {
+            Timber.i("Launcher desktop: not adding a header at %d - that row already carries one", candidate.rowIndex)
+            return LauncherCellPlacement.Refused
+        }
+        if (blocked) {
+            pushTailDown(candidate)
+        }
+        Timber.d(
+            "S1772: seating %dx%d at %d,%d - pushed=%b",
+            candidate.spanW,
+            candidate.spanH,
+            candidate.rowIndex,
+            candidate.colIndex,
+            blocked,
+        )
+        return LauncherCellPlacement.Placed(cellDao.upsert(candidate.toEntity()))
+    }
+
+    private suspend fun isBlocked(candidate: LauncherCell): Boolean {
+        val straddlesHeader = coversHeaderRow(
+            kindName = candidate.kind.name,
+            rowIndex = candidate.rowIndex,
+            spanH = candidate.spanH,
+            orientationName = candidate.orientation.name,
+        )
+        val blocker = cellDao.findOverlapping(
+            orientation = candidate.orientation.name,
+            rowIndex = candidate.rowIndex,
+            colIndex = candidate.colIndex,
+            spanW = candidate.spanW,
+            spanH = candidate.spanH,
+            excludeId = candidate.id,
+        )
+        return straddlesHeader || blocker != null
+    }
+
+    /**
+     * Shifts every row from the first one in the way down far enough to clear the whole footprint.
+     *
+     * The push starts at the topmost row any obstruction *begins* on, not at the candidate's own anchor:
+     * a tall cell that started higher up and reaches down into the footprint would survive a push that
+     * only moved rows at or below the anchor, and would still be in the way. [delta] is then measured
+     * from that row, so everything moved ends up below the footprint's last row.
+     */
+    private suspend fun pushTailDown(candidate: LauncherCell) {
+        val band = cellDao.findInRowBand(
+            orientation = candidate.orientation.name,
+            fromRow = candidate.rowIndex,
+            spanH = candidate.spanH,
+        )
+        val fromRow = (band.minOfOrNull { it.rowIndex } ?: candidate.rowIndex)
+            .coerceAtMost(candidate.rowIndex)
+        val delta = candidate.rowIndex + candidate.spanH - fromRow
+        Timber.i(
+            "Launcher desktop: pushing rows from %d down by %d to seat a %dx%d cell at %d,%d",
+            fromRow,
+            delta,
+            candidate.spanW,
+            candidate.spanH,
+            candidate.rowIndex,
+            candidate.colIndex,
+        )
+        cellDao.pushRowsDown(
+            orientation = candidate.orientation.name,
+            fromRow = fromRow,
+            delta = delta,
+        )
     }
 
     override suspend fun addCellInFirstFreeSlot(cell: LauncherCell, columns: Int): Long? =
@@ -91,13 +149,6 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
             db.withTransaction {
                 val anchor = findFreeAnchor(candidate, columns) ?: return@withTransaction null
                 Timber.i("Launcher desktop: placing new cell at %d,%d", anchor.row, anchor.col)
-                Timber.d(
-                    "S1642: free-slot anchor kind=%s row=%d col=%d spanW=%d",
-                    candidate.kind.name,
-                    anchor.row,
-                    anchor.col,
-                    candidate.spanW,
-                )
                 cellDao.upsert(candidate.copy(rowIndex = anchor.row, colIndex = anchor.col).toEntity())
             }
         }
@@ -114,27 +165,52 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
      */
     private suspend fun findFreeAnchor(candidate: LauncherCell, columns: Int): GridAnchor? {
         val lastRow = cellDao.firstRowBelowAll(candidate.orientation.name)
-        // Read once, not once per row: the header rows cannot change while this scan runs - it is
-        // inside the same transaction as the insert that follows - so querying them in the loop would
-        // add one round trip per probed row for no new information.
         val headerRows = headerRowsFor(candidate.kind.name, candidate.spanH, candidate.orientation.name)
-        // A header carries the span of the widest grid, not of this one, so the scan uses the width it
-        // actually occupies here - the stored span would make the column range below empty and place
-        // nothing at all.
         val scanSpanW = candidate.spanW.coerceAtMost(columns)
-        // S1642: a header is stored at column 0 of its own row - the pin [normalized] applies on every
-        // other write path, and this scan is the one that bypasses it, because it writes the anchor it
-        // found rather than the normalized column. Probing column 0 alone restores the pin, and with it the
-        // rule that one row carries at most one header: a second header can only land on column 0, where
-        // the first already sits, so findOverlapping refuses it. Two headers on one row would hand two
-        // sections the same boundary, and membership is keyed on the row alone.
         val lastCol = if (candidate.kind == LauncherCellKind.SECTION) 0 else columns - scanSpanW
-        for (row in 0..lastRow) {
-            // S1428: a row a gadget may not straddle is skipped rather than refused, so a tall gadget
-            // still lands further down instead of becoming unplaceable because the first free anchor
-            // happened to sit just above a header.
+
+        // S1760: a resource shortcut lands in SECTION_RESOURCES first if the section exists and has room
+        if (candidate.kind == LauncherCellKind.SHORTCUT &&
+            candidate.target.startsWith(LauncherCellCommand.PREFIX_RESOURCE)
+        ) {
+            val sectionAnchor = findSectionFreeAnchor(
+                candidate = candidate,
+                sectionKey = LauncherCellCommand.SECTION_RESOURCES,
+                scanSpanW = scanSpanW,
+                lastCol = lastCol,
+                headerRows = headerRows,
+            )
+            if (sectionAnchor != null) return sectionAnchor
+        }
+
+        return scanRows(
+            rows = 0..lastRow,
+            candidate = candidate,
+            scanSpanW = scanSpanW,
+            headerRows = headerRows,
+            firstColOfRow = { 0 },
+            lastCol = lastCol,
+        )
+    }
+
+    /**
+     * The row-major probe both anchor scans share: the first row-and-column whose whole footprint is
+     * clear, or null when the range holds none.
+     *
+     * Extracted from the two callers rather than repeated: they differ only in which rows they walk and
+     * where each row starts, and each had its own copy of the same nested loop.
+     */
+    private suspend fun scanRows(
+        rows: IntRange,
+        candidate: LauncherCell,
+        scanSpanW: Int,
+        headerRows: List<Int>,
+        firstColOfRow: (Int) -> Int,
+        lastCol: Int,
+    ): GridAnchor? {
+        for (row in rows) {
             if (LauncherSectionMembership.coversHeaderRow(row, candidate.spanH, headerRows)) continue
-            for (col in 0..lastCol) {
+            for (col in firstColOfRow(row)..lastCol) {
                 val blocker = cellDao.findOverlapping(
                     orientation = candidate.orientation.name,
                     rowIndex = row,
@@ -149,7 +225,40 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         return null
     }
 
-    private data class GridAnchor(val row: Int, val col: Int)
+    /**
+     * S1760: scans for a free slot inside a specific section [sectionKey], starting at the section's
+     * header row down to the start of the next section.
+     */
+    private suspend fun findSectionFreeAnchor(
+        candidate: LauncherCell,
+        sectionKey: String,
+        scanSpanW: Int,
+        lastCol: Int,
+        headerRows: List<Int>,
+    ): GridAnchor? {
+        val sectionHeaderTarget = LauncherCellCommand.Section(sectionKey).encode()
+        val allCells = cellDao.getAllCellsSync()
+            .filter { it.orientation == candidate.orientation.name }
+            .mapNotNull { it.toDomainOrNull() }
+        val sectionHeader = allCells.firstOrNull {
+            it.kind == LauncherCellKind.SECTION &&
+                (it.target == sectionHeaderTarget || it.target.endsWith(":$sectionKey") || it.target == sectionKey)
+        } ?: return null
+
+        val startRow = sectionHeader.rowIndex.coerceAtLeast(0)
+        val endRowExclusive = LauncherSectionMembership.sectionEndExclusive(startRow, headerRows)
+        val maxRow = (endRowExclusive?.minus(1)) ?: cellDao.firstRowBelowAll(candidate.orientation.name)
+
+        // The header owns the head of its own row, so content on that row starts past it.
+        return scanRows(
+            rows = startRow..maxRow,
+            candidate = candidate,
+            scanSpanW = scanSpanW,
+            headerRows = headerRows,
+            firstColOfRow = { row -> if (row == startRow) LauncherSectionMembership.HEADER_SPAN_W else 0 },
+            lastCol = lastCol,
+        )
+    }
 
     /**
      * S1428, strategic §6.11 as refined by the owner on 2026-08-08: a gadget may not cover a section
@@ -199,7 +308,6 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
     override suspend fun normalizeSectionSpans() {
         withContext(Dispatchers.IO) {
             val narrowed = cellDao.narrowSectionSpans(SECTION_KIND, LauncherSectionMembership.HEADER_SPAN_W)
-            Timber.d("S1642: section-span normalization ran, narrowed %d header(s)", narrowed)
             if (narrowed > 0) {
                 Timber.i("Launcher desktop: narrowed %d section header(s) to the compact span", narrowed)
             }
@@ -245,6 +353,60 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
             cellDao.update(source.copy(target = target))
             true
         }
+
+    override suspend fun updateCellLabel(id: Long, labelOverride: String?): Boolean =
+        withContext(Dispatchers.IO) {
+            val source = cellDao.getById(id) ?: return@withContext false
+            if (source.labelOverride == labelOverride) return@withContext false
+            cellDao.update(source.copy(labelOverride = labelOverride))
+            true
+        }
+
+    override suspend fun swapSectionBlock(
+        orientation: LauncherOrientation,
+        sectionCellId: Long,
+        moveUp: Boolean,
+    ): Boolean = withContext(Dispatchers.IO) {
+        db.withTransaction {
+            val entities = cellDao.getAllCellsSync().filter { it.orientation == orientation.name }
+            val cells = entities.mapNotNull { it.toDomainOrNull() }
+            val sections = LauncherSectionMembership.sectionsInOrder(cells)
+            val targetIndex = sections.indexOfFirst { it.id == sectionCellId }
+            if (targetIndex == -1) return@withTransaction false
+
+            val adjacentIndex = if (moveUp) targetIndex - 1 else targetIndex + 1
+            if (adjacentIndex !in sections.indices) return@withTransaction false
+
+            val sectionA = if (moveUp) sections[adjacentIndex] else sections[targetIndex]
+            val sectionB = if (moveUp) sections[targetIndex] else sections[adjacentIndex]
+
+            val blockAEntities = entities.filter { entity ->
+                val domain = entity.toDomainOrNull() ?: return@filter false
+                LauncherSectionMembership.ownerOf(domain, sections)?.id == sectionA.id
+            }
+            val blockBEntities = entities.filter { entity ->
+                val domain = entity.toDomainOrNull() ?: return@filter false
+                LauncherSectionMembership.ownerOf(domain, sections)?.id == sectionB.id
+            }
+
+            if (blockAEntities.isEmpty() || blockBEntities.isEmpty()) return@withTransaction false
+
+            val minRowA = sectionA.rowIndex.coerceAtLeast(0)
+            val minRowB = sectionB.rowIndex.coerceAtLeast(0)
+            val maxRowBEnd = blockBEntities.maxOf { it.rowIndex + it.spanH }
+
+            val heightA = minRowB - minRowA
+            val heightB = maxRowBEnd - minRowB
+
+            blockAEntities.forEach { entity ->
+                cellDao.update(entity.copy(rowIndex = entity.rowIndex + heightB))
+            }
+            blockBEntities.forEach { entity ->
+                cellDao.update(entity.copy(rowIndex = entity.rowIndex - heightA))
+            }
+            true
+        }
+    }
 
     override suspend fun moveCell(id: Long, rowIndex: Int, colIndex: Int): Boolean =
         withContext(Dispatchers.IO) {
@@ -421,6 +583,9 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         columnsPortrait = columnsPortrait,
         columnsLandscape = columnsLandscape,
     )
+
+    /** A free square the scan settled on: where a cell's footprint starts. */
+    private data class GridAnchor(val row: Int, val col: Int)
 
     private companion object {
         /** A cell always covers at least its own square; see [normalized]. */

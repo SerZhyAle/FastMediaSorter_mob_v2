@@ -5,7 +5,6 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
-import timber.log.Timber
 
 /**
  * Manages Find & Replace panel and editor toolbar actions for the inline text editor.

@@ -3,9 +3,6 @@
     <string name="ocr_best_model_delete">Удалить</string>
     <string name="ocr_best_model_download">Скачать</string>
     <string name="ocr_button_description">Извлечь текст</string>
-    <string name="ocr_engine_type">Движок OCR</string>
-    <string name="ocr_engine_type_paddleocr">PaddleOCR</string>
-    <string name="ocr_engine_type_tesseract">Tesseract (по умолчанию)</string>
     <string name="ocr_error">Не удалось распознать текст.</string>
     <string name="ocr_extract_image_failed">Не получилось подготовить это изображение для распознавания. Попробуйте ещё раз.</string>
     <string name="ocr_font_family">Шрифт для OCR</string>

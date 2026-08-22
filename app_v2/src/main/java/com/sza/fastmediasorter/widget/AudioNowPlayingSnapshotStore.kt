@@ -39,7 +39,7 @@ object AudioNowPlayingSnapshotStore {
     }
 
     fun read(context: Context): Snapshot {
-        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val prefs = com.sza.fastmediasorter.data.SyncStorageCompat.getSyncPreferences(context, PREFS)
         return Snapshot(
             active = prefs.getBoolean(KEY_ACTIVE, false),
             title = prefs.getString(KEY_TITLE, "").orEmpty(),
@@ -55,7 +55,7 @@ object AudioNowPlayingSnapshotStore {
     }
 
     fun write(context: Context, snapshot: Snapshot) {
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        com.sza.fastmediasorter.data.SyncStorageCompat.getSyncPreferences(context, PREFS)
             .edit()
             .putBoolean(KEY_ACTIVE, snapshot.active)
             .putString(KEY_TITLE, snapshot.title)

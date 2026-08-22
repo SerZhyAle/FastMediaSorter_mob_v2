@@ -9,7 +9,6 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.util.showBoundToHost
-import timber.log.Timber
 
 @android.annotation.SuppressLint("SetTextI18n")
 internal class BrowseDeleteDialogManager(

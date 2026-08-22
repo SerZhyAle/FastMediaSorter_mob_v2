@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.domain.usecase
 
 import com.sza.fastmediasorter.wear.domain.model.ImportResult
+import com.sza.fastmediasorter.wear.domain.model.NetworkBasePath
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearSyncPayload
@@ -40,9 +41,12 @@ class ImportNetworkSourcesUseCase @Inject constructor(
                 username = item.username,
                 password = item.password,
                 shareName = item.shareName,
-                basePath = item.basePath,
+                // S1556: the phone ships a full URL; every watch client wants the path below the
+                // connection it opens, so the conversion happens once, here.
+                basePath = NetworkBasePath.normalize(item.basePath, type, item.shareName),
                 domain = item.domain,
-                sshPrivateKey = item.sshPrivateKey
+                sshPrivateKey = item.sshPrivateKey,
+                hostKeyFingerprint = item.hostKeyFingerprint
             )
             // upsertSource will update if merge key matches, add otherwise.
             // We detect add vs update by checking if the id already existed.

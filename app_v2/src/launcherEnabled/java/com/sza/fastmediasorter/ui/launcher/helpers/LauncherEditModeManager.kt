@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.view.DragEvent
 import android.view.View
 import androidx.core.view.isVisible
+import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
@@ -14,6 +15,7 @@ import com.sza.fastmediasorter.ui.launcher.grid.LauncherDesktopLayout
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import kotlin.math.roundToInt
 
 /**
@@ -29,8 +31,8 @@ import kotlin.math.roundToInt
  * @param addCellButton the slotless-add affordance (S1209). Owned here rather than by the activity's own
  *   edit-mode collector so that both taskbar buttons appear and disappear from one place and cannot
  *   drift apart.
- * @param onAddCellClick opening the content picker is the activity's job - this manager holds no
- *   `FragmentManager` and must not grow one.
+ * @param actions the screen's own entry points - opening a picker or a dialog is the activity's job, and
+ *   this manager holds no `FragmentManager` and must not grow one.
  */
 class LauncherEditModeManager(
     private val lifecycleOwner: LifecycleOwner,
@@ -39,27 +41,63 @@ class LauncherEditModeManager(
     private val addCellButton: View,
     private val snackbarAnchor: View,
     private val viewModel: LauncherHomeViewModel,
-    private val onAddCellClick: () -> Unit,
+    private val actions: LauncherDesktopActions,
 ) {
 
     fun attach() {
         desktop.setOnDragListener(dragListener)
-        // S1090: long-press on empty desktop enters edit mode. The listener sits on the container, so a
-        // press that lands on a cell or an interactive gadget is consumed by that child first and never
-        // reaches here. While the desktop is locked the gesture is a silent no-op by owner's decision.
+        // S1466: the gesture opens the quick menu; entering edit mode is now one of its items (ADR-1).
+        // The listener sits on the container, so a press that lands on a cell or an interactive gadget is
+        // consumed by that child first and never reaches here. While the desktop is locked, or edit mode is
+        // already on, the gesture stays the silent no-op it has been since S1090.
         desktop.setOnLongClickListener {
-            if (viewModel.desktopLocked.value || viewModel.editMode.value) return@setOnLongClickListener false
-            viewModel.setEditMode(true)
+            val locked = viewModel.desktopLocked.value
+            val editing = viewModel.editMode.value
+            Timber.d("S1466: desktop long press - locked=$locked editing=$editing")
+            if (locked || editing) return@setOnLongClickListener false
+            showQuickMenu()
             true
         }
+        // S1466: a popup anchored to the desktop must not survive the window it hangs on - leaving it up
+        // across a stop is the classic WindowLeaked, and home is left constantly.
+        lifecycleOwner.lifecycle.addObserver(
+            object : DefaultLifecycleObserver {
+                override fun onStop(owner: LifecycleOwner) {
+                    quickMenu?.dismiss()
+                    quickMenu = null
+                }
+            },
+        )
         doneButton.setOnClickListener { viewModel.setEditMode(false) }
         addCellButton.setOnClickListener {
-            onAddCellClick()
+            actions.addItem()
         }
         // Both affordances exist only while editing; the desktop stays clean otherwise.
         lifecycleOwner.collectOnLifecycle(viewModel.editMode) { editing ->
             doneButton.isVisible = editing
             addCellButton.isVisible = editing
+        }
+    }
+
+    /**
+     * S1466: built per gesture and dropped on dismiss, so no popup outlives the desktop that anchored it.
+     * "Add an item" carries the pressed square; a press the grid cannot name falls back to the first free
+     * position, which is exactly what the taskbar "+" does and never leaves the item unplaced.
+     */
+    private fun showQuickMenu() {
+        val slot = desktop.slotAt(desktop.lastPressX, desktop.lastPressY)
+        // Each gesture builds a fresh menu, so the popup's own replace-on-show guard never sees the
+        // previous instance - closing it here is what keeps two modal windows off the desktop.
+        quickMenu?.dismiss()
+        quickMenu = LauncherDesktopQuickMenu(
+            onAddItem = {
+                if (slot == null) actions.addItem() else actions.addItemAtSlot(slot.row, slot.col)
+            },
+            onEditDesktop = { viewModel.setEditMode(true) },
+            onWallpaper = actions.wallpaper,
+            onLauncherSettings = actions.launcherSettings,
+        ).also {
+            it.show(desktop, desktop.lastPressX.toInt(), desktop.lastPressY.toInt())
         }
     }
 
@@ -81,6 +119,10 @@ class LauncherEditModeManager(
      * ~100 ms before DataStore has read, and a rotation inside that window re-showed a dismissed hint.
      */
     fun onOrientationChanged() {
+        // S1466: rotation re-derives the column count, so the square under the menu is no longer the one it
+        // was opened for. The screen survives rotation in place (no recreate), so nothing else closes it.
+        quickMenu?.dismiss()
+        quickMenu = null
         lifecycleOwner.lifecycleScope.launch {
             val alreadyShown = viewModel.rotationHintShown.first()
             if (!alreadyShown && viewModel.cells.value.isNotEmpty()) {
@@ -89,6 +131,8 @@ class LauncherEditModeManager(
             }
         }
     }
+
+    private var quickMenu: LauncherDesktopQuickMenu? = null
 
     private val dragListener = View.OnDragListener { _, event ->
         when (event.action) {

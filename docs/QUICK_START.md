@@ -29,6 +29,8 @@ FastMediaSorter v2 ships **four flavors for everyday phones and tablets** - Stan
 
 ## First Launch: Choose Your Device Profile (30 seconds) 🧭
 
+The welcome flow opens by stating what the app is, as four **roles** rather than a sample of features: a **file manager**; a **player** of photos, video, music, GIFs, documents and text; a **reader** of sources on the device, on the network and in the cloud; and **one-tap sorting**. Each tile names the concrete protocols and services it means - SMB, FTP, SFTP, Google Drive, OneDrive, Dropbox - and lists only what your build can actually open, so what you read there is true for the flavor in your hands.
+
 On the very first launch, right under the language picker, the welcome screen asks **how you'll use this device**. Pick a profile and the app starts with sensible defaults for that style - layout, thumbnails, fullscreen, keep-screen-awake, background audio, delete/move confirmations, the reading view, link downloads, player controls, the streams start-up view and, where the launcher is available, the desktop itself. It's a one-time starting preset, not a lock - you can change anything afterwards.
 
 - 🎯 **Recommended badge:** the app guesses a likely profile for your device and marks it **(Recommended)**. If it guessed right, you barely have to do anything.

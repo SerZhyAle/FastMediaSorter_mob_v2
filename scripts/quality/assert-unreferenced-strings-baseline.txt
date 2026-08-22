@@ -13,3 +13,9 @@ passthrough_capture_permission_needed  # same feature
 # empty and nothing can reference these user-facing messages yet. That is the signature of scaffolding
 # awaiting wiring, not of a removed feature, and strategic §7 requires such names to be surfaced for a
 # decision rather than deleted silently.
+
+splash_slogan
+# S1706: consumed at authoring time, not at run time. The system splash window cannot render a
+# string, so scripts/utils/generate-splash-brand.ps1 reads this key and bakes it into the contours
+# of ic_splash_app_brand.xml. Nothing under app_v2/src can reference it by design, and deleting it
+# would silently empty the slogan on the next regeneration.

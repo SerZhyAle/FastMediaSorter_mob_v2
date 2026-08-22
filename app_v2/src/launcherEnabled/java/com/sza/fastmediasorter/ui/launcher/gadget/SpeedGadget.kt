@@ -16,7 +16,6 @@ import com.sza.fastmediasorter.domain.repository.SensorAvailabilityRepository
 import com.sza.fastmediasorter.domain.usecase.sensors.ObserveMotionUseCase
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
-import timber.log.Timber
 import javax.inject.Inject
 import kotlin.math.roundToInt
 

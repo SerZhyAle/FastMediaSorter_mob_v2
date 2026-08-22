@@ -36,6 +36,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_developer_options.svg" alt="ic_developer_options" width="24" height="24"> | Developer options |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Display |
 | <img src="icons/svg/ic_resource_favorites.svg" alt="ic_resource_favorites" width="24" height="24"> | Favorites |
+| <img src="icons/svg/ic_front_flashlight.svg" alt="ic_front_flashlight" width="24" height="24"> | Front flashlight |
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Mini-game |
 | <img src="icons/svg/ic_cloud_download.svg" alt="ic_cloud_download" width="24" height="24"> | Download by link |
 | <img src="icons/svg/ic_network_monitor.svg" alt="ic_network_monitor" width="24" height="24"> | Network Monitor |
@@ -51,10 +52,12 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Start video recording |
 | <img src="icons/svg/ic_storage.svg" alt="ic_storage" width="24" height="24"> | Storage |
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Streams |
+| <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | System information |
 | <img src="icons/svg/ic_edit_20.svg" alt="ic_edit_20" width="24" height="24"> | Take a photo and edit |
 | <img src="icons/svg/ic_camera_ocr_translate.svg" alt="ic_camera_ocr_translate" width="24" height="24"> | Take a photo and OCR-translate |
 | <img src="icons/svg/ic_camera_send_to.svg" alt="ic_camera_send_to" width="24" height="24"> | Take a photo and send to.. |
 | <img src="icons/svg/ic_lock.svg" alt="ic_lock" width="24" height="24"> | VPN |
+| <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Wear Companion |
 | <img src="icons/svg/ic_wifi.svg" alt="ic_wifi" width="24" height="24"> | Wi-Fi |
 | <img src="icons/svg/ic_wifi_tethering.svg" alt="ic_wifi_tethering" width="24" height="24"> | Wireless networks |
 
@@ -85,6 +88,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_android.svg" alt="ic_android" width="24" height="24"> | Operating system interaction |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Video and player settings |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Video recording |
+| <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Wear OS |
 
 ## Settings options
 
@@ -103,8 +107,13 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_picture_in_picture.svg" alt="ic_picture_in_picture" width="24" height="24"> | Enable Picture-in-Picture |
 | <img src="icons/svg/ic_schedule.svg" alt="ic_schedule" width="24" height="24"> | Use scheduled operations |
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Enable Streams |
+| <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | System information |
 | <img src="icons/svg/ic_translate.svg" alt="ic_translate" width="24" height="24"> | Enable Translation |
+| <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Wear companion |
+| <img src="icons/svg/ic_front_flashlight.svg" alt="ic_front_flashlight" width="24" height="24"> | Front flashlight |
 | <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Gesture overlay |
+| <img src="icons/svg/ic_launcher_mode.svg" alt="ic_launcher_mode" width="24" height="24"> | Make this app the home screen |
+| <img src="icons/svg/ic_launcher_mode.svg" alt="ic_launcher_mode" width="24" height="24"> | System launcher settings |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Enable microphone recording |
 | <img src="icons/svg/ic_history.svg" alt="ic_history" width="24" height="24"> | Statistics |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Screen video recording |

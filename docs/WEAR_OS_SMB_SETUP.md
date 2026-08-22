@@ -5,6 +5,8 @@ permalink: /docs/WEAR_OS_SMB_SETUP.html
 ---
 # Wear OS - How to Set Up SMB Network Storage
 
+> **Step-by-step guides:** See our visual walk-throughs: [Connect Smartwatch to NAS & PC Shares](howto/scenario-watch-network.md) and [Listen to Music on Your Watch](howto/scenario-watch-music.md).
+
 ## What is SMB in Wear OS?
 
 SMB allows your Wear OS watch to access files from:
@@ -13,20 +15,52 @@ SMB allows your Wear OS watch to access files from:
 - NAS devices (Synology, QNAP, etc.)
 - Linux servers (Samba)
 
-## UI Steps to Add SMB Connection
+## How to add a connection: use your phone
 
-### Step 1: Open Network Storage
+**Add network connections in the phone app. They sync to your watch automatically.** This is the normal
+way, and on a watch installed from Google Play it is the only way.
+
+1. **On your phone**, open FastMediaSorter.
+2. Go to **Resources**.
+3. Tap **+ Add Network Source**.
+4. Fill in the server, share, user and password with the phone keyboard.
+5. Tap **Save**.
+
+That is it. Within a few seconds the connection appears on the watch under **Browse -> Resources**, ready
+to browse. Nothing needs to be typed on the watch, and your password is never entered on the small screen.
+
+**If the connection has not appeared yet**, open **Browse -> Resources** on the watch and tap
+**Sync from Phone**. That pulls the current list from the phone straight away instead of waiting.
+
+> **Why the watch does not ask for a password.** Entering a username and password on a watch means a masked
+> field on a screen the size of a stamp, in public, with voice input as the realistic alternative. We chose
+> not to offer it: the credential stays on the phone, and the watch receives an already-working connection.
+
+Once a connection is on the watch you can do everything else there - browse it, play from it, check its
+status and remove it. Only *creating* one belongs to the phone.
+
+---
+
+## Adding a connection on the watch (development builds only)
+
+> **This section does not apply to the app from Google Play.** The **+ Add SMB Connection** button is
+> present only in development builds. If you are looking for that button and cannot find it, that is
+> expected - use the phone instead, as described above.
+
+### UI steps, development builds
+
+### Step 1: Open Resources
 
 **On your Wear watch:**
 
 1. Open **FastMediaSorter** app
 2. Navigate to **Browse** tab
-3. Scroll down to **Network Storage** section
-4. Tap on **Network Storage** or **Add Connection**
+3. Scroll down to **Resources** section
+4. Tap on **Resources** or **Add Connection**
 
 > **What you see:** A list showing:
 >
-> - "📡 Network Storage" (title)
+> - "📡 Resources" (title)
 > - Any previously saved connections (e.g., "Home NAS", "PC Shared")
 > - **+ Add SMB Connection** button at the bottom
 
@@ -39,6 +73,7 @@ Click the **"+ Add SMB Connection"** button
 > - Server
 > - Share
 > - User  
+> - Base path
 > - Status message
 > - Test Connection button
 > - Save button
@@ -61,7 +96,7 @@ Since Wear OS has limited text input, you'll need to enter details using:
 2. A character picker appears (tap letters/numbers)
 3. Enter your server address
 
-#### **Option C: Phone App** (Easier!)
+#### **Option C: Phone App** (see the phone route at the top of this page)
 
 1. On your **phone**, use the main app to add the network source
 2. Both devices share the same account
@@ -104,7 +139,7 @@ Since Wear OS has limited text input, you'll need to enter details using:
 
 1. Once test succeeds, tap **"Save"** button
 2. Watch shows: **"Connection saved"**
-3. You're returned to Network Storage list
+3. You're returned to Resources list
 4. Your new connection now appears in the list!
 
 ---
@@ -122,16 +157,15 @@ Password: your_password
 
 **Steps:**
 
-1. Go to Browse → Network Storage
-2. Tap "+ Add SMB Connection"
-3. Voice input: "Server: 192.168.1.50" (or use character picker)
-4. Swipe right → Tap "Share:" → Voice: "media"
-5. Swipe right → Tap "User:" → Voice: "admin"
-6. Swipe right → Tap "Password:" → Voice: your_password
-7. Scroll down → Tap "Test Connection"
-8. Wait for success message ✓
-9. Tap "Save"
-10. Done! Now browse your NAS files
+1. On the phone, open FastMediaSorter -> **Resources** -> **+ Add Network Source**
+2. Server: `192.168.1.50`
+3. Share: `media`
+4. User: `admin`, Password: your password
+5. Tap **Save**
+6. On the watch: **Browse -> Resources** - the NAS is there, ready to browse
+
+> In a development build you can also enter these on the watch itself; see the development-builds
+> section above.
 
 ---
 
@@ -148,13 +182,12 @@ Password: (leave empty)
 
 **Steps:**
 
-1. Go to Browse → Network Storage
-2. Tap "+ Add SMB Connection"
-3. Enter server IP: `192.168.1.100`
-4. Enter share name: `MyVideos`
-5. Leave user/password empty
-6. Test connection
-7. Save
+1. On the phone, open FastMediaSorter -> **Resources** -> **+ Add Network Source**
+2. Server: `192.168.1.100`
+3. Share: `MyVideos`
+4. Leave user and password empty
+5. Tap **Save**
+6. On the watch: **Browse -> Resources** - the shared folder is there
 
 ---
 
@@ -162,10 +195,25 @@ Password: (leave empty)
 
 After saving, your connection:
 
-1. Appears in the Network Storage list with icon 📡
+1. Appears in the Resources list with icon 📡
 2. Shows: **"[Name]"** and **"[Server IP]"**
 3. Tap it to **browse files** on that share
 4. Navigate folders like you would on your phone
+
+---
+
+## Checking a Connection You Already Saved
+
+When a saved connection stops answering, you can test it without retyping anything:
+
+1. Go to Browse -> Resources
+2. **Press and hold** the connection
+3. Choose **Test**
+4. The watch reports the same result the setup screen gives: success, or the reason it failed
+
+**Delete** sits in the same menu and still asks for confirmation before removing anything.
+
+This works for connections that arrived from your phone as well as ones typed on the watch.
 
 ---
 
@@ -207,13 +255,13 @@ After saving, your connection:
 
 ---
 
-## Using Phone App (Recommended for Setup)
+## Using the phone app
 
-Since text input on Wear is limited, **easier way to set up SMB:**
+This is the primary route, described in full at the top of this page. In short:
 
 1. **On your phone:**
    - Open main FastMediaSorter app
-   - Go to Network Storage
+   - Go to Resources
    - Tap "+ Add Network Source"
    - Fill in details easily with phone keyboard
    - Save
@@ -222,11 +270,11 @@ Since text input on Wear is limited, **easier way to set up SMB:**
    - Connection automatically syncs
    - Just browse and use!
 
-This way you don't have to voice input everything on the watch.
+On a Google Play build this is the only way to create a connection; on the watch you browse and use it.
 
 ---
 
-## Network Storage Files Browser
+## Resources Files Browser
 
 Once connected, you can:
 
@@ -249,7 +297,7 @@ Once connected, you can:
 
 ## Removing a Network Connection
 
-1. Go to Network Storage list
+1. Go to Resources list
 2. Long-press the connection you want to remove
 3. Tap "Delete" or "Remove"
 4. Confirm deletion

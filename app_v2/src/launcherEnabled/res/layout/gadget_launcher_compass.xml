@@ -21,24 +21,24 @@
             android:adjustViewBounds="true"
             android:contentDescription="@null"
             android:maxWidth="48dp"
-            android:src="@drawable/ic_compass"
-            android:tint="?attr/colorOnSurface"
-            tools:ignore="UseAppTint" />
+            android:src="@drawable/ic_compass" />
 
         <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="2"
             android:orientation="vertical">
 
             <TextView
                 android:id="@+id/gadgetCompassHeading"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:autoSizeMaxTextSize="24sp"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:autoSizeMaxTextSize="96sp"
                 android:autoSizeMinTextSize="11sp"
                 android:autoSizeTextType="uniform"
                 android:ellipsize="end"
+                android:gravity="center_vertical"
                 android:maxLines="1"
                 android:textColor="?attr/colorOnSurface"
                 android:textStyle="bold"

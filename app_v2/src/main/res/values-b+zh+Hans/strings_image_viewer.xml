@@ -36,7 +36,7 @@
     <string name="gif_edit_first_frame_help">提取动画的第一帧，并将其保存为静态 PNG 图像到“下载”文件夹。文件名：[原始名称]_first_frame.png</string>
     <string name="gif_edit_save_first_frame">将第一帧另存为图像</string>
     <string name="gif_edit_speed">动画速度</string>
-    <string name="gif_edit_speed_help">调整帧间延迟以加快或减慢动画速度。原始文件将被新的速度覆盖。范围：0.25倍（减慢4倍）至4倍（加快4倍）。</string>
+    <string name="gif_edit_speed_help">调整帧间延迟以加快或减慢动画播放速度。原文件将被新速度覆盖。范围：0.25x（慢4倍）到4x（快4倍）。</string>
     <string name="gif_edit_speed_normal">速度：正常（1.0倍）</string>
     <string name="gif_edit_speed_value">速度：%1$.1fx</string>
     <string name="gif_edit_title">GIF编辑器</string>

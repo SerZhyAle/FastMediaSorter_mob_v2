@@ -1,17 +1,21 @@
 package com.sza.fastmediasorter.domain.usecase
 
+import android.content.Context
 import androidx.room.withTransaction
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.db.AppDatabase
-import com.sza.fastmediasorter.data.local.db.FavoritesDao
+import com.sza.fastmediasorter.data.local.db.LauncherCellEntity
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.util.getPackageInfoCompat
 import com.sza.fastmediasorter.worker.WorkManagerScheduler
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -20,15 +24,15 @@ import javax.inject.Inject
 
 /**
  * S0406: single applier that restores a [BackupPayload] into app state - settings, resources,
- * network credentials (with passwords), favorites, scheduled operations and saved site
- * authorizations. Shared by the local-file import and Google Drive restore paths. Tolerant of
- * null sections so older (v4) backups apply without throwing. Merge keys per research/03.
+ * network credentials (with passwords), favorites, scheduled operations, launcher desktop items
+ * and saved site authorizations. Shared by the local-file import and Google Drive restore paths.
+ * Tolerant of null sections so older (v4) backups apply without throwing. Merge keys per research/03.
  */
 class ApplyBackupPayloadUseCase @Inject constructor(
+    @param:ApplicationContext private val context: Context,
     private val db: AppDatabase,
     private val settingsRepository: SettingsRepository,
     private val resourceRepository: ResourceRepository,
-    private val favoritesDao: FavoritesDao,
     private val scheduledOperationRepository: ScheduledOperationRepository,
     private val credentialsRepository: NetworkCredentialsRepository,
     private val authSessionRepository: AuthSessionRepository,
@@ -43,7 +47,8 @@ class ApplyBackupPayloadUseCase @Inject constructor(
         val favoritesAdded: Int,
         val favoritesSkipped: Int,
         val scheduledOpsAdded: Int,
-        val webSessionsRestored: Int
+        val webSessionsRestored: Int,
+        val launcherCellsRestored: Int = 0
     )
 
     suspend operator fun invoke(payload: BackupPayload): RestoreSummary = withContext(Dispatchers.IO) {
@@ -53,7 +58,11 @@ class ApplyBackupPayloadUseCase @Inject constructor(
             "Backup was created by a newer app version (${payload.appVersionName.orEmpty()}). Please update the app."
         }
         if (payload.version < BackupPayload.CURRENT_VERSION) {
-            Timber.w("ApplyBackup: restoring older backup v%d (current v%d)", payload.version, BackupPayload.CURRENT_VERSION)
+            Timber.w(
+                "ApplyBackup: restoring older backup v%d (current v%d)",
+                payload.version,
+                BackupPayload.CURRENT_VERSION
+            )
         }
 
         // 1. Settings (full replace, merged onto current to preserve unknown/local-only fields).
@@ -64,10 +73,9 @@ class ApplyBackupPayloadUseCase @Inject constructor(
             settingsRestored = true
         }
 
-        // 2-5. S0732: the Room sections (credentials, resources, favorites, scheduled-op rows) commit
-        // all-or-nothing in one transaction; a kill mid-restore no longer leaves a partial DB. Counts
-        // are hoisted out so the RestoreSummary can read them; WorkManager scheduling is deferred to
-        // after commit (it must not run inside the DB transaction).
+        // 2-6. S0732: the Room sections commit all-or-nothing in one transaction;
+        // a kill mid-restore no longer leaves a partial DB. Counts are hoisted out so
+        // RestoreSummary can read them; WorkManager scheduling is deferred to after commit.
         var credentialsRestored = 0
         var resourcesAdded = 0
         var resourcesUpdated = 0
@@ -75,7 +83,11 @@ class ApplyBackupPayloadUseCase @Inject constructor(
         var favoritesAdded = 0
         var favoritesSkipped = 0
         var scheduledOpsAdded = 0
+        var launcherCellsRestored = 0
         val enabledScheduledOpIds = mutableListOf<Long>()
+        val favoritesDao = db.favoritesDao()
+        val launcherCellDao = db.launcherCellDao()
+
         db.withTransaction {
             // 2. Network credentials (merge by credentialId; backup password wins per research/03).
             payload.networkCredentials?.let { creds ->
@@ -161,6 +173,50 @@ class ApplyBackupPayloadUseCase @Inject constructor(
                     }
                 }
             }
+
+            // 6. Launcher desktop cells (shortcuts, gadgets, sections).
+            payload.launcherCells?.let { cells ->
+                launcherCellDao.deleteAll()
+                val entitiesToInsert = mutableListOf<LauncherCellEntity>()
+                val packageManager = context.packageManager
+                cells.forEach { backupCell ->
+                    try {
+                        val target = backupCell.target
+                        val isApp = backupCell.kind == "SHORTCUT" &&
+                            target.startsWith(LauncherCellCommand.PREFIX_APP)
+                        val isPin = backupCell.kind == "SHORTCUT" &&
+                            target.startsWith(LauncherCellCommand.PREFIX_PIN)
+                        if (isApp || isPin) {
+                            val pkg = if (isApp) {
+                                target.removePrefix(LauncherCellCommand.PREFIX_APP)
+                            } else {
+                                target.removePrefix(LauncherCellCommand.PREFIX_PIN).substringBefore(":")
+                            }
+                            val isInstalled = try {
+                                packageManager.getPackageInfoCompat(pkg, 0)
+                                true
+                            } catch (_: android.content.pm.PackageManager.NameNotFoundException) {
+                                false
+                            } catch (e: Exception) {
+                                e.rethrowIfCancellation()
+                                false
+                            }
+                            if (!isInstalled) {
+                                Timber.i("ApplyBackup: skip launcher shortcut for uninstalled %s", pkg)
+                                return@forEach
+                            }
+                        }
+                        entitiesToInsert.add(BackupMapper.toLauncherCellEntity(backupCell))
+                        launcherCellsRestored++
+                    } catch (e: Exception) {
+                        e.rethrowIfCancellation()
+                        Timber.w(e, "ApplyBackup: skip launcher cell %s", backupCell.target)
+                    }
+                }
+                if (entitiesToInsert.isNotEmpty()) {
+                    launcherCellDao.insertAll(entitiesToInsert)
+                }
+            }
         }
 
         // Reschedule enabled operations after the transaction commits (WorkManager runs outside the tx).
@@ -168,7 +224,7 @@ class ApplyBackupPayloadUseCase @Inject constructor(
             scheduledOperationRepository.getById(id)?.let { workManagerScheduler.scheduleOperation(it) }
         }
 
-        // 6. Saved site authorizations (overwrite per host+accountId).
+        // 7. Saved site authorizations (overwrite per host+accountId).
         var webSessionsRestored = 0
         payload.webAuthSessions?.let { sessions ->
             val raws = sessions.map { BackupMapper.toRawAuthSession(it) }
@@ -177,8 +233,14 @@ class ApplyBackupPayloadUseCase @Inject constructor(
         }
 
         Timber.i(
-            "ApplyBackup done: res +%d ~%d, creds %d, favs +%d, ops %d, sessions %d",
-            resourcesAdded, resourcesUpdated, credentialsRestored, favoritesAdded, scheduledOpsAdded, webSessionsRestored
+            "ApplyBackup done: res +%d ~%d, creds %d, favs +%d, ops %d, sessions %d, launcher %d",
+            resourcesAdded,
+            resourcesUpdated,
+            credentialsRestored,
+            favoritesAdded,
+            scheduledOpsAdded,
+            webSessionsRestored,
+            launcherCellsRestored
         )
 
         RestoreSummary(
@@ -190,7 +252,8 @@ class ApplyBackupPayloadUseCase @Inject constructor(
             favoritesAdded = favoritesAdded,
             favoritesSkipped = favoritesSkipped,
             scheduledOpsAdded = scheduledOpsAdded,
-            webSessionsRestored = webSessionsRestored
+            webSessionsRestored = webSessionsRestored,
+            launcherCellsRestored = launcherCellsRestored
         )
     }
 

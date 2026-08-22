@@ -11,7 +11,7 @@
     <string name="welcome_default_player_title">डिफ़ॉल्ट प्लेयर</string>
     <string name="welcome_description_1">आपका सब कुछ एक जगह रखने वाला मीडिया प्रबंधक।\nलोकल, नेटवर्क और क्लाउड स्टोरेज की फ़ाइलें ब्राउज़ करें, छाँटें और संभालें - सब कुछ सहज टच जेस्चर से।</string>
     <string name="welcome_description_1_details">FastMediaSorter हर तरह के मीडिया को एक जगह ले आता है। अपने डिवाइस से, नेटवर्क शेयर से या क्लाउड स्टोरेज से फ़ोटो, वीडियो, GIF और संगीत खोलें - और लंबे दबाव वाले मेन्यू के बजाय झटपट टैप से उन्हें छाँटें।\n\nयहाँ आप जो भी सेट करेंगे वह बाद में सेटिंग में बदला जा सकता है, इसलिए इस स्क्रीन पर कोई गलत विकल्प नहीं है - आगे बढ़ने के लिए बस अगला दबाएँ।</string>
-    <string name="welcome_description_3" formatted="false">प्लेयर त्वरित क्रियाओं के लिए 9 टच क्षेत्र (3×3 ग्रिड) इस्तेमाल करता है। नेविगेट करने, फ़ाइलें कॉपी करने, हटाने या कमांड पैनल खोलने के लिए क्षेत्रों पर टैप करें। विवरण के लिए ऊपर की योजना देखें।</string>
+    <string name="welcome_description_3" formatted="false">प्लेयर त्वरित क्रियाओं के लिए 9 टच ज़ोन (3×3 ग्रिड) का उपयोग करता है. नेविगेट करने, फ़ाइलें कॉपी, मूव, डिलीट करने या कमांड पैनल खोलने के लिए ज़ोन टैप करें. विवरण के लिए ऊपर दी गई स्कीम देखें.</string>
     <string name="welcome_language_picker_hint">ऐप की भाषा चुनें</string>
     <string name="welcome_profile_audio_player_desc">केवल ऑडियो वाले डिवाइस या MP3 प्लेयर के लिए सबसे अच्छा। फ़ोटो और वीडियो छिपाता है; पृष्ठभूमि ऑडियो और अभी चल रही स्क्रीन को बेहतर बनाता है।</string>
     <string name="welcome_profile_audio_player_title">ऑडियो प्लेयर</string>
@@ -34,7 +34,7 @@
     <string name="welcome_profile_tv_media_box_title">टीवी / मीडिया बॉक्स</string>
     <string name="welcome_profile_video_player_desc">केवल वीडियो वाले डिवाइस के लिए सबसे अच्छा। फ़ोटो, संगीत और दस्तावेज़ व्यूअर छिपाता है; तेज़ वीडियो प्लेबैक और थंबनेल को प्राथमिकता देता है।</string>
     <string name="welcome_profile_video_player_title">वीडियो प्लेयर</string>
-    <string name="welcome_profile_vr_headset_desc">वर्चुअल रियलिटी डिवाइस के लिए सबसे अच्छा। समर्थित हार्डवेयर संस्करणों पर 3D/360° लेआउट और इमर्सिव नियंत्रण पहले से चालू कर देता है।</string>
+    <string name="welcome_profile_vr_headset_desc">वर्चुअल रियलिटी डिवाइस के लिए सर्वोत्तम. समर्थित हार्डवेयर फ़्लेवर पर 3D/360° लेआउट और इमर्सिव नियंत्रण पहले से सक्षम करता है.</string>
     <string name="welcome_profile_vr_headset_title">VR हेडसेट</string>
     <string name="welcome_recommended_badge">(अनुशंसित)</string>
     <string name="welcome_title_1">FastMediaSorter में आपका स्वागत है!</string>

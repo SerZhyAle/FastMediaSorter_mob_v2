@@ -15,7 +15,9 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.launcher.AppShortcut
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCellDraft
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCellPlacement
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
@@ -112,6 +114,15 @@ class LauncherHomeViewModel @Inject constructor(
     val densityFactor: StateFlow<Float> = settingsRepository.getSettings()
         .map { it.launcherDensityFactor }
         .stateIn(viewModelScope, SharingStarted.Eagerly, settingsDefaults.launcherDensityFactor)
+
+    /**
+     * S1904: how opaque a gadget's backdrop is drawn at rest. S1748 stored the setting and showed it in
+     * the launcher settings, but no renderer ever read it, so every value looked identical on screen.
+     */
+    val widgetBackdropAlpha: StateFlow<Float> = settingsRepository.getSettings()
+        .map { it.launcherWidgetBackdropAlpha }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, settingsDefaults.launcherWidgetBackdropAlpha)
 
     val taskbarComposition: Flow<LauncherTaskbarComposition> = settingsRepository.getSettings()
         .map {
@@ -293,6 +304,12 @@ class LauncherHomeViewModel @Inject constructor(
     val rotationHintShown: Flow<Boolean> = settingsRepository.getSettings()
         .map { it.launcherRotationHintShown }
 
+    // S1741: launcher-private screen blackout timeout in seconds (0 = Off).
+    val screenBlackoutTimeoutSeconds: StateFlow<Int> = settingsRepository.getSettings()
+        .map { it.launcherScreenBlackoutTimeoutSeconds }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
+
     private val _events = Channel<LauncherHomeEvent>(Channel.BUFFERED)
     val events: Flow<LauncherHomeEvent> = _events.receiveAsFlow()
 
@@ -311,35 +328,36 @@ class LauncherHomeViewModel @Inject constructor(
     }
 
     /**
-     * Places a new cell. Silently does nothing when the square is taken - the desktop only ever offers
-     * free squares to tap, so a collision here means the layout changed underneath and re-rendering
-     * says more than a message would.
+     * Places a new cell at the square the user pointed at.
+     *
+     * S1772: a taken square is no longer a silent no-op - the repository pushes the desktop's tail down
+     * to make room, and the only outcome the user still has to be told about is a footprint wider than
+     * the grid, which nothing can seat.
      */
-    fun addCell(
-        rowIndex: Int,
-        colIndex: Int,
-        kind: LauncherCellKind,
-        target: String,
-        spanW: Int,
-        spanH: Int,
-        rememberFileListResourceId: Long? = null,
-    ) {
+    fun addCell(rowIndex: Int, colIndex: Int, draft: LauncherCellDraft, columns: Int) {
         viewModelScope.launch {
-            rememberResourceFileList(rememberFileListResourceId)
-            desktopDependencies.desktopRepository.addCell(
+            rememberResourceFileList(draft.rememberFileListResourceId)
+            val placement = desktopDependencies.desktopRepository.addCell(
                 LauncherCell(
                     id = 0,
                     orientation = _orientation.value,
                     rowIndex = rowIndex,
                     colIndex = colIndex,
-                    spanW = spanW,
-                    spanH = spanH,
-                    kind = kind,
-                    target = target,
-                    labelOverride = null,
+                    spanW = draft.spanW,
+                    spanH = draft.spanH,
+                    kind = draft.kind,
+                    target = draft.target,
+                    labelOverride = draft.labelOverride,
                     addedAt = System.currentTimeMillis(),
-                )
+                ),
+                columns = columns,
             )
+            // Only TooWide reaches the user, and the message says what to do about it: every other
+            // outcome now succeeds by pushing the desktop down, and a refused header is a duplicate the
+            // user is never offered in the first place, so it stays in the log.
+            if (placement is LauncherCellPlacement.TooWide) {
+                _events.send(LauncherHomeEvent.Message(R.string.launcher_home_cell_too_wide))
+            }
         }
     }
 
@@ -360,6 +378,9 @@ class LauncherHomeViewModel @Inject constructor(
         spanW: Int,
         spanH: Int,
         rememberFileListResourceId: Long? = null,
+        // S1742: a user-created section carries its name from the moment it is placed - it has no preset
+        // label to fall back on, so a header written without one would draw as unavailable.
+        labelOverride: String? = null,
     ) {
         viewModelScope.launch {
             rememberResourceFileList(rememberFileListResourceId)
@@ -374,11 +395,17 @@ class LauncherHomeViewModel @Inject constructor(
                     spanH = spanH,
                     kind = kind,
                     target = target,
-                    labelOverride = null,
+                    labelOverride = labelOverride,
                     addedAt = System.currentTimeMillis(),
                 ),
                 columns,
             )
+        }
+    }
+
+    val renameSection: (cellId: Long, newName: String) -> Unit = { cellId, newName ->
+        viewModelScope.launch {
+            desktopDependencies.desktopRepository.updateCellLabel(cellId, newName.trim())
         }
     }
 
@@ -419,6 +446,10 @@ class LauncherHomeViewModel @Inject constructor(
 
     fun removeCell(id: Long) {
         viewModelScope.launch {
+            val cell = cells.value.find { it.cell.id == id }?.cell
+            if (cell != null && cell.kind == LauncherCellKind.SECTION) {
+                sections.clear(cell)
+            }
             desktopDependencies.desktopRepository.removeCell(id)
         }
     }
@@ -483,7 +514,13 @@ class LauncherHomeViewModel @Inject constructor(
     }
 
     /** Shared by the desktop, the taskbar strips, the Start menu and the gadgets - one guard for all. */
-    fun run(command: LauncherCellCommand) {
+    /**
+     * @param screenOnly S1767: for a status indicator, whose tap must open a settings section rather
+     * than toggle the radio the shared OsShortcut path would try first (ADR-1). A flag on this funnel
+     * rather than a second entry point, so the launch guard, the journal and the "cannot open" message
+     * keep covering every surface exactly once.
+     */
+    fun run(command: LauncherCellCommand, screenOnly: Boolean = false) {
         // A scheduled op may copy, move or delete files, so it is confirmed before it runs (S1103).
         // This belongs here rather than in onCellTapped: every surface reaches commands through this one
         // entry point, and ExecuteLauncherCommandUseCase deliberately refuses ScheduledOp because it can
@@ -505,7 +542,7 @@ class LauncherHomeViewModel @Inject constructor(
             !launchInFlight -> {
                 launchInFlight = true
                 viewModelScope.launch {
-                    if (!executeCommand.launch(command)) {
+                    if (!executeCommand.launch(command, screenOnly)) {
                         // Nothing opened, so nothing will bring the user back: re-arm now or the cell
                         // would stay dead until the next resume.
                         launchInFlight = false
@@ -563,8 +600,14 @@ class LauncherHomeViewModel @Inject constructor(
      * the same flow the picker reads, so the desktop menu cannot describe a channel the streams
      * screen has already dropped.
      */
-    suspend fun streamById(streamId: String): StreamSourceEntity? =
-        observeStreams().first().firstOrNull { it.id == streamId }
+    // S1832: [cellKey] is the channel's identity, or a row id for a cell written before that ticket.
+    // Matched in that order for the same reason the repository resolves it that way - the long-press
+    // menu must open on the channel the cell's tap would play, not on a different one.
+    suspend fun streamById(cellKey: String): StreamSourceEntity? {
+        val sources = observeStreams().first()
+        return sources.firstOrNull { it.identityKey == cellKey }
+            ?: sources.firstOrNull { it.id == cellKey }
+    }
 
     /**
      * S1500: what backs the desktop's edit-a-channel row. A passthrough property rather than three

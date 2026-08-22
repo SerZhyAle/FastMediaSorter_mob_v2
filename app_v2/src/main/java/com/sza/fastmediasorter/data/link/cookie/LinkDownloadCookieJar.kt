@@ -15,9 +15,8 @@ class LinkDownloadCookieJar @Inject constructor(
 
     override fun loadForRequest(url: HttpUrl): List<Cookie> {
         val host = url.host
-        @Suppress("DEPRECATION")
         val raw = context.cookiesFor(host)
-            ?: store.loadFor(host).ifEmpty { null }
+            ?: store.loadForHostAccountOrBest(host, null).ifEmpty { null }
             // S0171/S0176: eTLD+1 wildcard - forward registered-domain cookies to CDN subdomains.
             // Uses the shared PSL-aware resolver (S0176) so co.uk / com.au are handled correctly.
             ?: registrableDomainOrNull(host)?.let { reg ->

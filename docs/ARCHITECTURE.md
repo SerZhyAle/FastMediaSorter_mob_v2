@@ -204,6 +204,24 @@ Rules:
 - Exempt by design (do not migrate to this family): player/media `ImageButton` borderless controls, reserved ExoPlayer `@id/exo_*` controls, and the intentionally dark camera/viewfinder surfaces.
 - A new role that none of the five covers is added as a new `Widget.FastMediaSorter.Button.*` style here, not as an ad-hoc layout style.
 
+## UI Toolkit Boundary (MANDATORY)
+
+`app_v2` is View: XML layouts and ViewBinding. `wear` is Compose end to end and owns no XML layout at all. A new screen in `app_v2` is built in View, and a new `setContent { .. }` under `app_v2/src/main` is refused by the `compose-island` dimension of `scripts/quality/assert-source-gates.ps1` (CLAUDE.md Rule 32, S1694).
+
+The boundary is drawn by module rather than by screen because that is where the technical necessity already sits: on the watch Compose has no reasonable alternative, and in the phone app 404169 lines of View have no reason to move. Converting `app_v2` to Compose was proposed and rejected by the owner on 2026-08-15 - it is a rewrite with no user-visible result and a large regression surface.
+
+Six islands exist and are allowed to: the Wear companion settings screen, the beam animation dialog, and the four widget-configuration screens (resource shortcut, photo frame, camera quick capture, network monitor). They are removed **opportunistically** - when another ticket reaches one for its own reasons - never as a campaign. Each removal lowers the baseline in `scripts/quality/compose-island-baseline.txt` by one. The baseline is a ceiling that only descends; raising it is a boundary decision, not a build fix.
+
+Why a gate and not only this paragraph: the fifth-to-sixth island appeared five days after an audit had counted five, without anyone deciding to grow the set. A rule addressed to someone who is *already* writing an island (the theming section below) is read at the right moment; a rule addressed to someone still choosing a toolkit is not.
+
+### Removing Compose from app_v2 entirely
+
+Only possible once the last island is gone, and it has a precondition that is **not** discharged by removing the island:
+
+- `Icons.Default.Pause`, `Icons.Default.SkipNext` and `Icons.Default.SkipPrevious` exist only in `androidx.compose.material:material-icons-extended`, not in `material-icons-core`. All three are still in use. They must be migrated to vector drawables **first**, or the build stops compiling - which is exactly what happened in S0385 when a dependency audit declared the extended set dead.
+- Only then do the Compose lines in `app_v2/build.gradle.kts` come out: the Compose compiler plugin, `compose = true`, the BOM, and the `androidx.compose.*` / `activity-compose` / `lifecycle-viewmodel-compose` dependencies.
+- The argument for removal is dependency hygiene, not APK size: R8 already strips the unused extended icons from a release build.
+
 ## Compose Island Theming (MANDATORY)
 
 Every `ComposeView.setContent { .. }` in `app_v2` wraps its content in `FastMediaSorterComposeTheme` (`ui/common/compose/`). The app is View-based and its colours live in a View theme - `Theme.FastMediaSorter.App` plus whichever `ThemeOverlay.FastMediaSorter.*` accent the user picked (S0569). Compose reads none of that: an unthemed `setContent`, and equally a bare `MaterialTheme { .. }` with no `colorScheme` argument, falls back to the Material3 baseline palette and renders in stock purple no matter which accent is active. The island then looks foreign next to the Views around it, and an `AndroidView` hosted inside it - which does inherit the View theme - disagrees with its own container.
@@ -236,9 +254,23 @@ A bare `.show()` discards the returned `AlertDialog`, which leaves nothing able 
 
 Exempt: a `DialogFragment`, whose `FragmentManager` already dismisses it, and OS/system dialogs we do not own.
 
+## Landscape Layouts under `configChanges` (MANDATORY)
+
+An Activity that lists `orientation` in `android:configChanges` does not recreate on rotation, and an Activity that does not recreate never re-inflates its layout. Its `layout-land/` (or `layout-w600dp/`) variant therefore applies only when the screen is opened while already in that configuration - a file that looks live, is referenced by nothing, and drifts silently. S1549 found sixteen screens in this state.
+
+Owning a landscape layout and absorbing the rotation is the pair that must never coexist. Three resolutions count as fixed, and only the applied result matters, not the means (ADR-2a):
+
+- Stop absorbing - drop `orientation|screenSize` from the manifest entry, so the system re-inflates and resolves the variant itself. Requires that nothing is lost on recreation; state that would be lost goes through `onSaveInstanceState` first.
+- Re-apply in code - keep absorbing (a live media surface, an unfinished user action) and set the landscape values in the rotation handler. Every value comes from a qualified resource, never a literal, so the two orientations stay declared in `values/` and `values-land/`.
+- Delete the file - a landscape variant that encodes no difference is dead weight, not a fix to apply.
+
+Two traps worth knowing before touching this. **`values-w600dp` outranks `values-land`**, and it matches a tablet or an unfolded foldable held in *portrait*: a landscape-only override under a `layout-w600dp` variant re-applies portrait metrics over a wide-layout tree. **A partial re-inflate has no seam** - `BaseActivity` assigns its ViewBinding once and never reassigns it, so swapping a subtree leaves every binding field and every helper built from it pointing at discarded views, silently. **And re-pointing every reference is still not enough**: a view whose state was set once, imperatively, at load time - and is never re-derived from any observable state - comes back at its XML default and nothing restores it. S1943 lost stream video to exactly this, `PlayerView` being declared `gone` and revealed only by the one-shot call in the media loader, so the surviving ExoPlayer decoded into a hidden surface for good. When you inventory what a re-inflate must carry, list one-shot view state beside the reference holders; a reference audit alone will not find it.
+
+Gate: `scripts/quality/assert-orientation-layout-pairing.ps1`, wired into `.\a.ps1 fg` and `post-change.ps1`. Exceptions live in `scripts/quality/orientation-layout-pairing-exceptions.txt`, and every entry carries a mandatory `#` reason naming both what the screen would lose on recreation and where its re-apply lives - a list without reasons is indistinguishable from a list of forgotten defects.
+
 ## Standalone Player Toolbar Order (MANDATORY)
 
-The four standalone hosts (`PhotoVideoStandaloneActivity`, `TextStandaloneActivity`, `DocumentStandaloneActivity`, `AudioStandaloneActivity`) share ONE top-toolbar button order so a file feels the same whichever host opened it (S0920). Each host declares its own `activity_standalone_*.xml` (portrait + `layout-land/`), so there is no single shared layout to enforce this - a new host or an edit must follow the order by hand.
+The four standalone hosts (`PhotoVideoStandaloneActivity`, `TextStandaloneActivity`, `DocumentStandaloneActivity`, `AudioStandaloneActivity`) share ONE top-toolbar button order so a file feels the same whichever host opened it (S0920). Each host declares its own `activity_standalone_*.xml`, so there is no single shared layout to enforce this - a new host or an edit must follow the order by hand.
 
 Canonical order: `Back -> [paging: Prev, Next, Random, Slideshow] -> Delete -> Favorite -> Share -> Info -> Rename -> [type-specific actions] -> Overflow`.
 
@@ -246,7 +278,7 @@ Rules:
 
 - Rename comes BEFORE the type-specific cluster (Crop/Rotate for image/video, Search/Translate/Copy/Edit for text, PDF/EPUB/Text tools for documents), never after it.
 - Type-specific buttons are the only per-host variation; everything before Rename and the trailing Overflow are fixed.
-- Keep `layout/` and `layout-land/` in the same order (Rule 11).
+- These four layouts have **no** `layout-land/` variant, and re-creating one is a defect (S1549). The landscape copies existed but were byte-identical to the portrait files, and the hosts declare `configChanges` for orientation - so Android never re-inflated them and the copies could not have applied even if they had differed. Rule 11 parity therefore has nothing to keep in sync here; a real landscape difference on these screens has to be applied by the orientation gate, not by a second file.
 
 ## Directory Operations Subsystem
 
@@ -269,7 +301,7 @@ Dedicated screen for internet audio/video/RTSP sources. Architectural boundaries
 - **Video/RTSP**: delegates to the existing fullscreen player. `VideoPlayerManager` routes `HTTP_STREAM`/`RTSP_STREAM` to `playStreamVideo` (`StreamPlaybackHelper`), which builds the ExoPlayer media source through `StreamDataSourceFactoryProvider` with a per-session `BandwidthAdaptiveLoadControl` (HLS/DASH/progressive; RTSP where the build's media stack supports it, logged when not). `NetworkAwareMediaSourceFactory` is the audio-service factory (`AudioPlaybackService`/`AudioServiceController`), not the fullscreen-video path.
 - **Stream thumbnails**: both the grid snapshot engine and the fullscreen player's one-shot `TextureView` capture pass decoded frames to `StreamFrameIngestor`. The shared owner rejects empty/recycled or nearly-black frames, then updates `StreamFrameCache` and `StreamFramePersistentStore`. A successful fullscreen adoption returns the stream URL through the Activity Result API so `StreamsActivity` repaints only the matching grid tile; persistence keeps that frame available after restart.
 - **Data flow**: `StreamsViewModel` -> `ImportStreamCatalogUseCase` (with `StreamCatalogCsvParser`, `StreamMediaKindClassifier`, `FaviconAtlasStore`) -> `StreamSourceRepository` -> `StreamSourceDao` / `StreamSourceEntity` (Room). The catalog ships as a mutable GitHub Release asset (`delivery/stream-catalog/`), fetched over HTTP, parsed, and merged de-duplicated by URL.
-- **Play-outcome side channel (S1502)**: the green/red/amber row status is NOT part of the list state. It lives in its own table, `stream_play_outcome`, reached through `StreamPlayOutcomeDao` -> `StreamSourceRepository.observePlayOutcomes()` -> `ObserveStreamPlayOutcomesUseCase` -> a `StreamsViewModel.playOutcomes` StateFlow the Activity pushes into all four adapters, which repaint only the affected rows. The split exists because Room invalidates per table, not per column: while the outcome sat on the catalog row, every finished reachability probe re-emitted all ~20k rows and forced a full filter, sort and diff pass. The one-shot read for the channel-info window goes through `GetStreamPlayOutcomeUseCase` instead, since that surface renders once and observes nothing.
+- **Play-outcome side channel (S1502, re-keyed by S1832)**: the green/red/amber row status is NOT part of the list state. It lives in its own table, and since S1832 that table is `stream_user_state`, keyed by the channel's derived identity rather than by the catalog row id, so the history survives a prune and a later re-import. `stream_play_outcome` was dropped in schema 53 after `MIGRATION_51_52` copied every outcome across. Reads go `StreamSourceDao.observePlayOutcomesByRowId()`, which joins identity back to the current row id so every consumer keeps the map-keyed-by-id contract it was written against, -> `StreamSourceRepository.observePlayOutcomes()` -> `ObserveStreamPlayOutcomesUseCase` -> a `StreamsViewModel.playOutcomes` StateFlow the Activity pushes into all four adapters, which repaint only the affected rows. Writes and the clear-all action go through `StreamUserStateDao`. The split exists because Room invalidates per table, not per column: while the outcome sat on the catalog row, every finished reachability probe re-emitted all ~20k rows and forced a full filter, sort and diff pass. The one-shot read for the channel-info window goes through `GetStreamPlayOutcomeUseCase` instead, since that surface renders once and observes nothing.
 - **Catalog import**: `ImportStreamCatalogUseCase` enforces a connect+read timeout; fails fast on dead/slow-trickle host instead of blocking indefinitely.
 - **Flavor scope**: standard/legacy/noLegal/vr - HLS, DASH VOD, RTSP, progressive HTTP/ICY (`SUPPORT_STREAMS=true`); lite/photos - feature absent, no entry point (`SUPPORT_STREAMS=false`, lite hidden by S0575).
 - **Public cleartext**: `android:usesCleartextTraffic` allowed for internet radio (most streams are http://).
@@ -329,7 +361,9 @@ Launcher Mode turns the app into an Android home screen: a cell desktop, a botto
 
 **Taskbar and command funnel.** The taskbar is bottom-anchored in both orientations, hosting the Start button, the recents and pinned strips, and the status tray. Each tray indicator subscribes to its source *only* while that indicator is switched on and the launcher owns the status area, and going false cancels the collector rather than merely hiding the view; an indicator whose state cannot be read is absent rather than drawn as "off". Every tap on every surface - desktop cell, either taskbar strip, Start menu row, gadget-issued command - funnels through a single guarded execution path on the launcher's ViewModel, so there is exactly one launch guard and one failure message, and a gadget never builds a parallel one.
 
-Related specs: S0404 (the founding ADR set, archived), S1103 (cell actions), S1170 (widget-to-gadget bridge), S1415 (tray composition), S1461 (this section), S1587 (per-section seeding floor and content-first order). Launcher classes are indexed in the class catalog under the `launcher` sector.
+**Surface colours.** Every foreground on the taskbar and the Start panel comes from a launcher-scoped theme attribute - `launcherTaskbarStartText` and `launcherTaskbarAllAppsText` for the two taskbar buttons, which sit on `colorSurfaceVariant`, and `launcherStartRowGroup1`..`launcherStartRowGroup4` for the four semantic row groups, which sit on `colorSurface`. Three rules hold together. Each attribute has a value in **every** theme set: the base day and night themes define all six, and the six `ThemeOverlay.FastMediaSorter.*` colour themes inherit them, overriding one only where their own surfaces would fall short. Each M3 role the app actually paints with is defined **by the app** in both sets - `colorSurfaceVariant`, `colorTertiary` and `colorError` used to resolve from the library baseline, which is a colour nobody chose and a library upgrade can move. And the result is **measured, not eyeballed**: `scripts/quality/assert-launcher-contrast.ps1` (in the `.\a.ps1 fg` batch) resolves each attribute and its background out of the resource files for all eight themes and fails below 7:1, the owner's threshold, above WCAG's 4.5:1 for ordinary text. The attributes are launcher-scoped rather than plain M3 roles because those roles paint dozens of other surfaces, where the lightness this threshold demands would be an unrelated change; the check is a script because the previous pass over these same colours was signed off by looking at it and shipped the Start label at 4.22:1. A new colour theme, or a new Start-panel row, runs the gate rather than matching a value by eye.
+
+Related specs: S0404 (the founding ADR set, archived), S1103 (cell actions), S1170 (widget-to-gadget bridge), S1415 (tray composition), S1461 (this section), S1587 (per-section seeding floor and content-first order), S1895 (surface colours and the contrast gate). Launcher classes are indexed in the class catalog under the `launcher` sector.
 
 ## Performance & Resource Optimization
 

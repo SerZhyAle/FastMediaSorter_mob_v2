@@ -51,10 +51,10 @@ FastMediaSorter собран на перечисленных ниже компо
 | AndroidX Media3 Decoder | `androidx.media3:media3-decoder` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://github.com/androidx/media) |
 | AndroidX Media3 Effect | `androidx.media3:media3-effect` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://github.com/androidx/media) |
 | AndroidX Media3 ExoPlayer | `androidx.media3:media3-exoplayer` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://github.com/androidx/media) |
-| AndroidX Media3 ExoPlayer DASH | `androidx.media3:media3-exoplayer-dash` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | legacy, noLegal, standard, vr | [link](https://github.com/androidx/media) |
-| AndroidX Media3 ExoPlayer HLS | `androidx.media3:media3-exoplayer-hls` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | legacy, noLegal, standard, vr | [link](https://github.com/androidx/media) |
+| AndroidX Media3 ExoPlayer DASH | `androidx.media3:media3-exoplayer-dash` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://github.com/androidx/media) |
+| AndroidX Media3 ExoPlayer HLS | `androidx.media3:media3-exoplayer-hls` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://github.com/androidx/media) |
 | AndroidX Media3 ExoPlayer MIDI | `androidx.media3:media3-exoplayer-midi` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | legacy, lite, noLegal, standard, vr | [link](https://github.com/androidx/media) |
-| AndroidX Media3 ExoPlayer RTSP | `androidx.media3:media3-exoplayer-rtsp` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | legacy, noLegal, standard, vr | [link](https://github.com/androidx/media) |
+| AndroidX Media3 ExoPlayer RTSP | `androidx.media3:media3-exoplayer-rtsp` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://github.com/androidx/media) |
 | AndroidX Media3 Session | `androidx.media3:media3-session` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://github.com/androidx/media) |
 | AndroidX Media3 Transformer | `androidx.media3:media3-transformer` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://github.com/androidx/media) |
 | AndroidX Media3 UI | `androidx.media3:media3-ui` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://github.com/androidx/media) |
@@ -106,6 +106,7 @@ FastMediaSorter собран на перечисленных ниже компо
 | jsoup | `org.jsoup:jsoup` | [MIT](https://raw.githubusercontent.com/jhy/jsoup/master/LICENSE) | все сборки | [link](https://github.com/jhy/jsoup) |
 | OpenXR Loader for Android | `org.khronos.openxr:openxr_loader_for_android` | [Apache-2.0](https://raw.githubusercontent.com/KhronosGroup/OpenXR-SDK/main/LICENSE) | noLegal, vr | [link](https://github.com/KhronosGroup/OpenXR-SDK-Source) |
 | NanoHTTPD | `org.nanohttpd:nanohttpd` | [BSD-3-Clause](https://raw.githubusercontent.com/NanoHttpd/nanohttpd/master/LICENSE.md) | legacy, lite, noLegal, photos, standard | [link](https://github.com/NanoHttpd/nanohttpd) |
+| libVLC for Android | `org.videolan.android:libvlc-all` | [LGPL-2.1-or-later](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html) | noLegal | [link](https://code.videolan.org/videolan/libvlcjni) |
 
 ## Компоненты на условиях поставщика
 
@@ -137,6 +138,7 @@ FastMediaSorter собран на перечисленных ниже компо
 - **Bouncy Castle Provider** (`MIT`) - Published as the "Bouncy Castle Licence"; the text is verbatim MIT with their copyright, so scanners report NOASSERTION and the identifier is set by hand.
 - **OpenXR Loader for Android** (`Apache-2.0`) - Loader sources carry Apache-2.0 OR MIT. The shipped native library statically links jsoncpp (MIT), jnipp (MIT) and android-jni-wrappers (BSL-1.0).
 - **NanoHTTPD** (`BSD-3-Clause`) - Licence inherited from the nanohttpd-project POM; the artifact declares no licences block of its own.
+- **libVLC for Android** (`LGPL-2.1-or-later`) - S1060: noLegal-only (sideload). Java bindings and the shipped native libvlc are LGPL-2.1-or-later; the app links dynamically and ships no modified sources.
 
 ---
 [К условиям использования](TERMS_OF_SERVICE.md) | [На главную](../index.html)

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    S1706: the arrows settle into place, growing slightly to full size - the phone's motion,
+    mirrored on the watch.
+
+    Motion, not a fade. The splash window closes when the app is ready, so anything that starts
+    from invisible may never be seen; every element stays fully opaque and only moves.
+-->
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <objectAnimator
+        android:propertyName="scaleX"
+        android:valueFrom="0.82"
+        android:valueTo="1.0"
+        android:valueType="floatType"
+        android:duration="380"
+        android:interpolator="@android:interpolator/decelerate_quint" />
+    <objectAnimator
+        android:propertyName="scaleY"
+        android:valueFrom="0.82"
+        android:valueTo="1.0"
+        android:valueType="floatType"
+        android:duration="380"
+        android:interpolator="@android:interpolator/decelerate_quint" />
+</set>

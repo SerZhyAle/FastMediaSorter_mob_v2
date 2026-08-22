@@ -13,6 +13,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.util.CaptureFileNamer
 import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,9 +22,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class BrowseMicRecordingManager(
     private val activity: FragmentActivity,
@@ -60,10 +58,12 @@ class BrowseMicRecordingManager(
         }
         pendingResource = resource
 
-        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         val tempFile = try {
             val dir = activity.getExternalFilesDir(Environment.DIRECTORY_MUSIC) ?: activity.filesDir
-            File(dir, "REC_$timestamp.m4a").also { it.createNewFile() }
+            val fileName = CaptureFileNamer.shared.allocate(CaptureFileNamer.CaptureKind.AUDIO, ".m4a")
+            Timber.d("S1882: browse audio output $fileName")
+            File(dir, fileName)
+                .also { it.createNewFile() }
         } catch (e: Exception) {
             Timber.e(e, "startRecording failed to create temp file")
             pendingResource = null

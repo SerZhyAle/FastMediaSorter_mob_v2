@@ -56,9 +56,10 @@ class StreamLogoAtlasSlicerTest {
 
     @Test
     fun `isInBounds rejects negative and over-range indices on the packer row budget`() {
-        // Sheet height varies per publish (rows = ceil(count / COLS)); the packer's row BUDGET is
-        // the stable ceiling, so bounds are asserted against a full-budget sheet rather than a
-        // point-in-time published size that goes stale on the next catalog publish (S1245).
+        // Sheet height varies per publish (rows = ceil(count / COLS)), so bounds are asserted
+        // against a full-budget sheet rather than a point-in-time published size that goes stale on
+        // the next catalog publish (S1245). The budget derives from the packer's only remaining
+        // ceiling, the WebP dimension limit - the 60-row cap it used to be went with S1841 (S1855).
         val cols = StreamLogoAtlasSlicer.COLS
         val w = cols * StreamLogoAtlasSlicer.TILE_W
         val h = PACKER_ROW_BUDGET * StreamLogoAtlasSlicer.TILE_H
@@ -71,9 +72,11 @@ class StreamLogoAtlasSlicerTest {
 
     @Test
     fun `app grid constants match the offline packer script`() {
-        // Two halves of one contract: scripts/streams/collect-stream-candidates.ps1 writes the
-        // sheet this slicer cuts. Unit tests run with the module as the working directory.
-        val packer = File("../scripts/streams/collect-stream-candidates.ps1")
+        // Two halves of one contract: the publisher's Artwork module writes the sheet this slicer
+        // cuts. Unit tests run with the module as the working directory. S1855: the constants moved
+        // here when collect-stream-candidates.ps1 was split, and that script still exists as the
+        // entry point, so a stale path passes exists() and fails on a constant that is not there.
+        val packer = File("../scripts/streams/modules/StreamPublisher.Artwork.ps1")
         assertTrue("packer script not found at ${packer.absolutePath}", packer.exists())
         val text = packer.readText()
         assertEquals(
@@ -88,7 +91,7 @@ class StreamLogoAtlasSlicerTest {
             StreamLogoAtlasSlicer.COLS,
             packerValue(text, "LogoCols"),
         )
-        assertEquals(PACKER_ROW_BUDGET, packerValue(text, "LogoMaxRows"))
+        assertEquals(PACKER_MAX_SHEET_PX, packerValue(text, "LogoMaxSheetPx"))
     }
 
     private fun packerValue(script: String, name: String): Int {
@@ -98,7 +101,14 @@ class StreamLogoAtlasSlicerTest {
     }
 
     private companion object {
-        /** Mirrors `$script:LogoMaxRows` - the packer's sheet-capacity ceiling. */
-        const val PACKER_ROW_BUDGET = 60
+        /**
+         * Mirrors `$script:LogoMaxSheetPx` - the packer's only declared ceiling, the 14-bit VP8
+         * dimension limit rather than a row count. The retired `LogoMaxRows` cap of 60 was a
+         * self-imposed sheet budget no consumer ever asked for and S1841 removed it.
+         */
+        const val PACKER_MAX_SHEET_PX = 16383
+
+        /** Tallest sheet the format permits, in whole tiles - what a full-budget sheet holds. */
+        const val PACKER_ROW_BUDGET = PACKER_MAX_SHEET_PX / StreamLogoAtlasSlicer.TILE_H
     }
 }

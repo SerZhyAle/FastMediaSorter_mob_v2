@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="browse_media_type_disabled">Цей тип медіа вимкнено. Увімкніть його в налаштуваннях.</string>
+    <string name="browse_no_media_files">Медіафайли не знайдено. Спробуйте іншу теку або тип медіа.</string>
+    <string name="browse_network_source_not_found">Це мережеве джерело більше недоступне. Поверніться та виберіть інше.</string>
+    <string name="browse_network_connection_failed">Не вдалося підключитися до джерела. Перевірте з’єднання та повторіть.</string>
+    <string name="browse_load_failed">Не вдалося завантажити файли. Повторіть спробу.</string>
+</resources>

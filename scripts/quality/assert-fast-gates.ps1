@@ -22,16 +22,30 @@
 - assert-sdk-pin-claims        (S1438 SDK pins stated in prose vs the build files)
       - assert-ctor-arg-slots        (S1470 primary constructors near the 255 argument-slot ceiling)
       - assert-packaging-excludes-parity (S1679 shared-library payload stripped in one module only)
+      - assert-module-version-parity  (app_v2 / wear version fields under one applicationId)
       - assert-retired-dependency-names (S1489 prose naming a dependency the project replaced)
       - assert-notification-small-icon (S1399 a small-icon setter handed a drawable literal)
       - assert-backup-rules-consistent (S1552 API 31+ extraction rules vs the pre-31 backup rules)
       - assert-launcher-reset-coverage (S1540 launcher settings vs the launcher reset's field list)
-      - assert-unreferenced-strings   (S1568 string keys nothing under <module>/src references)
       - assert-maestro-oracle        (S1612 Maestro flows that are green without proving anything)
       - assert-hook-inventory        (S1604 registered Claude Code hooks vs docs/AGENT_HOOKS.md)
       - assert-rule-digest-sync      (S1548 CLAUDE.md numbered rules vs the two full digests)
       - assert-gson-persistence-contract (S1639 a durable Gson model whose wire names nothing pins)
+      - assert-stream-asset-revisions (S1828 a pinned stream-catalog asset that would stop being published)
+      - assert-migration-test-pairing (S1844 a Room migration with no instrumented migration test)
+      - assert-launcher-contrast     (S1895 a launcher colour measured under 7:1 on its own surface)
       - assert-detekt                (only with -IncludeDetekt; honours -ChangedFiles)
+
+    S1939: assert-unreferenced-strings, assert-splash-brand-sync and assert-device-profile-matrix
+    left this batch for scripts/quality/assert-release-scope-gates.ps1. None of the three judges
+    the changed file: a string key is unreferenced this minute and referenced by the next ticket,
+    the splash drawables are a generated shipped artifact, and the device-profile matrix is an
+    agreement among three data files that no single edit can be blamed for. Between them they
+    produced 68 of the 191 red lines this runner emitted over 53 runs, none of them about the work
+    in front of the operator - which is how a runner teaches its reader to skim past red, and
+    assert-device-profile-matrix alone spent 33 minutes of closure time in a month to report one
+    finding. Rule 20 already said the dead-weight sweep belongs on a release build; the placement
+    test is CLAUDE.md Rule 33.
 
     Each child runs as its own process so a child `exit` cannot kill this aggregator.
 
@@ -57,6 +71,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'lib/gate-telemetry.ps1')
 
 $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") {
     "$env:ProgramFiles\PowerShell\7\pwsh.exe"
@@ -69,17 +84,22 @@ else {
 $gates = [ordered]@{
     'assert-no-ticket-logs.ps1'                 = @('-Quiet')
     'assert-ticket-acceptance-probes.ps1'       = @('-Quiet')
+    'assert-acceptance-preconditions.ps1'       = @('-Quiet')
     # S1338: one entry, twelve lexical rules, ONE walk of the tree. It replaces the five
     # separate entries that each spawned a pwsh process and each re-walked app_v2/src -
     # neuroslop (nine rules), flavor-flags, public-mutable-flow and deprecated-pm-flags.
     # The individual scripts still exist as wrappers for any direct caller.
     'assert-source-gates.ps1'                   = @()
+    'assert-wear-route-literals.ps1'            = @()
     'assert-listener-symmetry.ps1'              = @()
     'assert-orientation-implied-feature.ps1'    = @()
+    # S1549: an activity that absorbs 'orientation' in configChanges never re-inflates on
+    # rotation, so its res/layout-land variant applies only on a landscape cold start. The
+    # same defect was fixed pointwise twice before anyone inventoried the project.
+    'assert-orientation-layout-pairing.ps1'     = @()
     # S1568: a string resource nothing references. 397 had accumulated in values/strings.xml, each
     # one paid for again by every locale tranche. Baseline is an allowlist of NAMES, not a count, so
     # a new dead key cannot hide behind a deleted one.
-    'assert-unreferenced-strings.ps1'           = @('-Quiet')
     # S1612: Maestro flow YAML vs the oracle convention. A flow that carries optional: true on its
     # proof assertion, a regex selector Maestro never matches, or a coordinate tap standing in for
     # an assertion is GREEN while proving nothing - that is how the previous generation of flows
@@ -89,6 +109,17 @@ $gates = [ordered]@{
     # EAP=Stop makes the following `exit N` unreachable, so a script's documented code
     # collapses to 1. Cheap (scans scripts/*.ps1 only) and the class has regrown 3 times.
     'assert-exit-contract.ps1'                  = @('-Quiet')
+    # S1844: a Room migration with no instrumented migration test. Nothing compiled androidTest and
+    # nothing checked the pairing, so a migration could ship untested while a plausible-looking test
+    # file sat beside it - AppDatabaseMigration50To51Test.kt referenced a constant it never declared
+    # and could not compile at all. Ratchet over two directory listings, no gradle daemon; the 12
+    # migrations that predate the habit are baselined so only a NEW gap fails.
+    'assert-migration-test-pairing.ps1'         = @()
+    # S1895: the launcher taskbar and Start panel measured against the surfaces they land on, in all
+    # eight themes. The previous change to these same colours was closed on a visual check and
+    # shipped the Start label at 4.22:1; contrast is arithmetic, so it can be checked rather than
+    # looked at. Reads four resource files, no gradle daemon.
+    'assert-launcher-contrast.ps1'              = @('-Quiet')
     # S1075: dev/TECH_REQUIREMENTS.md pins vs Gradle truth. Static parse of build files
     # + one doc; no gradle daemon. Catches a dependency bump that forgot the doc.
     'assert-doc-pin-drift.ps1'                  = @('-Quiet')
@@ -98,15 +129,36 @@ $gates = [ordered]@{
     # wear shipped them for months - 1.2 MB, 10 % of its release APK, on a watch. Parses the two
     # build files by brace balance, no gradle daemon.
     'assert-packaging-excludes-parity.ps1'      = @('-Quiet')
+    # The version fields of app_v2 and wear are one contract under one applicationId: the same
+    # versionName, and versionCodes that must NOT collide - Play refuses the repeat at submission
+    # time, long after the build passed. The tree carried both modules on 260815161. Reads the two
+    # checked-in constants; no gradle daemon.
+    'assert-module-version-parity.ps1'          = @('-Quiet')
+    # S1872: a script nothing calls is invisible - the only way to find one was a hand sweep of the
+    # repository, which is an answer that is true once. Judges live wiring only: a mention in an
+    # archived spec or a changelog row remembers a script, it does not call one. Ratcheted against
+    # script-reference-baseline.txt; no gradle daemon.
+    'assert-script-references.ps1'              = @('-Quiet')
+    # S1872: the inventory is generated from script headers, so a script with no synopsis lands in
+    # it as a name and a parameter list and explains nothing. Two ratcheted counts, kept apart so
+    # neither hides behind the other: no synopsis, and exits without a documented contract.
+    # Baselines in script-described-baseline.txt; no gradle daemon.
+    'assert-script-described.ps1'               = @('-Quiet')
+    # S1270: Rule 2's 1500-line ceiling had no mechanical check of any kind - detekt carries
+    # LongMethod but no FileLength, and it never sees a .cpp at all. xr_session.cpp grew 2101 ->
+    # 2154 lines while a ticket about its size sat open. Ratcheted count over .kt/.java/.cpp/.h;
+    # no gradle daemon.
+    'assert-file-line-ceiling.ps1'              = @('-Quiet')
+    # S1356's gate existed and nothing ran it. Re-freezing a detekt baseline is the quietest way
+    # to make a file look clean while its debt grows, and five tickets were written about the same
+    # mechanism in five different files - S1186, S1198, S1247, S1269, S1311 - before anyone noticed
+    # the check was never in the batch. Reads the committed ID snapshot; no gradle daemon.
+    'assert-detekt-baseline-absorption.ps1'     = @()
     # S1438: SDK pins stated in ORDINARY PROSE, which the managed-block gate above cannot see -
     # an index line, an architecture bullet, an agent definition, agent memory. Eight copies said
     # compileSdk 35 while Gradle compiled against 36, and an agent reading one concludes an API is
     # unavailable. Reads the value from the build file every run, so it can never itself go stale.
     'assert-sdk-pin-claims.ps1'                 = @('-Quiet')
-    # S1216: device-profile preset matrix vs AppSettings, the non-presettable registry and the
-    # applier branches. Data-file parse like the gate above, no gradle daemon. Catches a new
-    # setting that never reached the matrix - the drift that left 40 fields uncovered.
-    'assert-device-profile-matrix.ps1'          = @('-Quiet')
     # S1259: android:id parity between layout-land and layout-w600dp siblings. w600dp beats
     # -land on wide landscape devices, so an id missing on one side is a latent findViewById
     # null (the recording-indicator include NPE). Static regex over 4 shared files, ~ms.
@@ -116,6 +168,13 @@ $gates = [ordered]@{
     # invisible to the build and to lint, and it survived a year in dimens.xml. Parses a handful of
     # small values-*.xml files, no gradle daemon.
     'assert-qualifier-shadowing.ps1'            = @('-Quiet')
+    # S1825: detect orphaned intermediate .flat compiled resources in merged_res/
+    'assert-orphaned-merged-resources.ps1'       = @('-Quiet')
+    # S1828: a pinned stream-catalog asset that would stop being published. External consumers
+    # hard-code revisioned asset names and never roll forward, and nothing here deletes an asset -
+    # so a pinned revision survives only because no action removes it. Reads the pinned names from
+    # docs/STREAM_CATALOG_CONSUMERS.md and the revision defaults from the publisher; two file reads.
+    'assert-stream-asset-revisions.ps1'         = @('-Quiet')
     # S1470: primary constructors approaching the 255 argument-slot ceiling. AppSettings crossed it
     # at one field per ticket; kotlinc and D8 both accepted the class and only the runtime verifier
     # refused it, so the build stayed green while the app could not start at all. Source parse of
@@ -218,6 +277,7 @@ foreach ($entry in $gates.GetEnumerator()) {
     $path = Join-Path $PSScriptRoot $entry.Key
     if (-not (Test-Path $path)) {
         $results.Add([pscustomobject]@{ Gate = $entry.Key; Status = 'MISSING'; Ms = 0 })
+        Write-GateTelemetryRecord -Runner 'assert-fast-gates' -Gate $entry.Key -Status 'MISSING' -ExitCode 2 -ElapsedMs 0
         continue
     }
     $extraArgs = @($entry.Value)
@@ -231,6 +291,7 @@ foreach ($entry in $gates.GetEnumerator()) {
     $sw.Stop()
     $status = ($LASTEXITCODE -eq 0) ? 'PASS' : 'FAIL'
     $results.Add([pscustomobject]@{ Gate = $entry.Key; Status = $status; Ms = [int]$sw.Elapsed.TotalMilliseconds })
+    Write-GateTelemetryRecord -Runner 'assert-fast-gates' -Gate $entry.Key -Status $status -ExitCode ([int]$LASTEXITCODE) -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds)
 }
 
 if ($IncludeDetekt) {
@@ -242,6 +303,7 @@ if ($IncludeDetekt) {
     $sw.Stop()
     $status = ($LASTEXITCODE -eq 0) ? 'PASS' : 'FAIL'
     $results.Add([pscustomobject]@{ Gate = 'assert-detekt.ps1'; Status = $status; Ms = [int]$sw.Elapsed.TotalMilliseconds })
+    Write-GateTelemetryRecord -Runner 'assert-fast-gates' -Gate 'assert-detekt.ps1' -Status $status -ExitCode ([int]$LASTEXITCODE) -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds)
 }
 
 Write-Host ''

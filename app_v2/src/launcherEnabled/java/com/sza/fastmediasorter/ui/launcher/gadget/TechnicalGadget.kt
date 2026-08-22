@@ -12,7 +12,6 @@ import com.sza.fastmediasorter.domain.model.devicestatus.DeviceStatusProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import timber.log.Timber
 
 /**
  * S1178: one technical status cell on the desktop - network, battery, storage or resources.

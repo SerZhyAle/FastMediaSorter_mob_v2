@@ -15,7 +15,6 @@ import com.sza.fastmediasorter.domain.model.PermissionTask
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import com.sza.fastmediasorter.util.RecordingElapsedTimer
 import com.sza.fastmediasorter.utils.collectOnLifecycle
-import timber.log.Timber
 
 /**
  * S0774: host-neutral in-app driver for screen video recording. Checks RECORD_AUDIO and (API 33+)

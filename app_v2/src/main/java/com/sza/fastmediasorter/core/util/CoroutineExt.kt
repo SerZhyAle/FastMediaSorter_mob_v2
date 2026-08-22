@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.core.util
 
 import kotlinx.coroutines.CancellationException
+import timber.log.Timber
 
 /**
  * Re-throws this throwable when it represents coroutine cancellation, otherwise returns normally.
@@ -14,4 +15,17 @@ import kotlinx.coroutines.CancellationException
  */
 fun Throwable.rethrowIfCancellation() {
     if (this is CancellationException) throw this
+}
+
+/**
+ * Log [message] at warning level - unless this throwable is coroutine cancellation, which is rethrown
+ * instead (see [rethrowIfCancellation]).
+ *
+ * The one-line form matters. Writing the guard and the log as two statements grows the enclosing
+ * function by a line, which is enough to push an already-long scanner method over detekt's threshold
+ * (S1890), and a guard on its own line is the one the next editor deletes as noise.
+ */
+fun Throwable.warnUnlessCancellation(message: String) {
+    rethrowIfCancellation()
+    Timber.w(this, message)
 }

@@ -3,9 +3,6 @@
     <string name="ocr_best_model_delete">Delete</string>
     <string name="ocr_best_model_download">Download</string>
     <string name="ocr_button_description">Extract Text</string>
-    <string name="ocr_engine_type">OCR Engine</string>
-    <string name="ocr_engine_type_paddleocr">PaddleOCR</string>
-    <string name="ocr_engine_type_tesseract">Tesseract (Default)</string>
     <string name="ocr_error">Could not recognize the text.</string>
     <string name="ocr_extract_image_failed">Couldn\'t prepare this image for OCR. Try again.</string>
     <string name="ocr_font_family">OCR Font Family</string>

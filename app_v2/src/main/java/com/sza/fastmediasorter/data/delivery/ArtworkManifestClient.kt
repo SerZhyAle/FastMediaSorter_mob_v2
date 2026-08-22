@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.domain.delivery.ArtworkManifest
 import com.sza.fastmediasorter.domain.delivery.ArtworkManifestSet
 import com.sza.fastmediasorter.domain.delivery.ArtworkManifestSource
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -77,6 +78,11 @@ class ArtworkManifestClient @Inject constructor(
             // Network refusal, DNS failure, a socket that dies mid-body: all mean the same thing here.
             Timber.i(e, "Artwork manifest unreachable - treating as no update")
             null
+        } catch (e: CancellationException) {
+            // Cancellation is the caller giving up, not the manifest answering - reporting it as
+            // "no update" would hide a torn-down fetch behind a legitimate-looking result (S1889).
+            Timber.d("S1889: artwork manifest fetch cancelled - rethrowing instead of reporting no update")
+            throw e
         } catch (e: IllegalStateException) {
             // OkHttp raises this for a call reused or closed out of order; still just "no answer".
             Timber.i(e, "Artwork manifest call failed - treating as no update")

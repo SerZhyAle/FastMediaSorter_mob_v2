@@ -15,7 +15,6 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
-import timber.log.Timber
 
 /**
  * Owns the capture subgroup of the Operations tab: camera-photos, video-recording, and

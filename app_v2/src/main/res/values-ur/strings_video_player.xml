@@ -5,7 +5,7 @@
     <string name="playback">پلے بیک اور چھانٹی</string>
     <string name="playback_control_brightness_value">چمک: %1$+d%%</string>
     <string name="playback_control_done">ہو گیا</string>
-    <string name="playback_control_hue_value">رنگت: %1$+d°</string>
+    <string name="playback_control_hue_value">ہیو: %1$+d°</string>
     <string name="playback_control_mute">خاموش</string>
     <string name="playback_control_mute_active">خاموش</string>
     <string name="playback_control_mute_inactive">آواز آن</string>
@@ -55,11 +55,11 @@
     <string name="player_health_error_type_unknown">خرابی کی قسم: نامعلوم</string>
     <string name="player_health_fallback_failed">اس فائل کو بیک اپ پلیئر کے ساتھ نہیں چلایا جا سکا۔ %1$s</string>
     <string name="player_health_file_label">فائل: %1$s</string>
-    <string name="player_health_io_block">کیا ہوا: I/O خرابی - فائل خراب، نامکمل، یا ناقابل رسائی ہو سکتی ہے۔\n\nآپ کیا آزما سکتے ہیں:\n• یقینی بنائیں کہ فائل مکمل طور پر ڈاؤن لوڈ ہو گئی ہے\n• چیک کریں کہ آیا فائل خراب ہے\n• نیٹ ورک فائلوں کے لیے، کنکشن چیک کریں</string>
-    <string name="player_health_malformed_block">کیا ہوا: فائل کا فارمیٹ خراب یا خراب ہے۔\n\nفائل کا ڈھانچہ میڈیا کی تفصیلات سے مماثل نہیں ہے۔\n\nآپ کیا آزما سکتے ہیں:\n• فائل خراب یا نامکمل ہو سکتی ہے\n• فائل کو دوبارہ ڈاؤن لوڈ یا دوبارہ انکوڈ کریں\n• یقینی بنائیں کہ فائل کو صحیح طریقے سے منتقل کیا گیا تھا۔</string>
+    <string name="player_health_io_block">کیا ہوا: I/O خرابی - فائل خراب، نامکمل، یا ناقابل رسائی ہو سکتی ہے۔\n\nآپ یہ آزما سکتے ہیں:\n• یقینی بنائیں کہ فائل مکمل طور پر ڈاؤن لوڈ ہو چکی ہے\n• چیک کریں کہ فائل خراب تو نہیں\n• نیٹ ورک فائلوں کے لیے، کنکشن چیک کریں</string>
+    <string name="player_health_malformed_block">کیا ہوا: فائل فارمیٹ خراب یا غلط ہے۔\n\nفائل کا ڈھانچہ میڈیا اسپیسیفیکیشن سے میل نہیں کھاتا۔\n\nآپ یہ آزما سکتے ہیں:\n• فائل خراب یا نامکمل ہو سکتی ہے\n• فائل دوبارہ ڈاؤن لوڈ یا ری اینکوڈ کریں\n• یقینی بنائیں کہ فائل صحیح طریقے سے منتقل ہوئی تھی</string>
     <string name="player_health_switching_to_fallback">آڈیو پلے بیک میں دشواری ہو رہی ہے - بیک اپ پلیئر پر سوئچ کر رہے ہیں۔</string>
-    <string name="player_health_timeout_block">کیا ہوا: آپریشن کا وقت ختم ہو گیا۔\n\nآپ کیا آزما سکتے ہیں:\n• نیٹ ورک کنکشن چیک کریں\n• یقینی بنائیں کہ سرور جواب دے رہا ہے\n• بعد میں دوبارہ کوشش کریں</string>
-    <string name="player_health_unsupported_block">کیا ہوا: یہ فارمیٹ تعاون یافتہ نہیں ہے۔\n\nبیک اپ پلیئر اس فارمیٹ یا کوڈیک کو ہینڈل نہیں کر سکتا۔\n\nآپ کیا آزما سکتے ہیں:\n• فائل کو ایک بیرونی میڈیا پلیئر میں کھولیں\n• اسے ایک معیاری فارمیٹ میں تبدیل کریں (MP4, H.264)</string>
+    <string name="player_health_timeout_block">کیا ہوا: آپریشن کا وقت ختم ہو گیا۔\n\nآپ یہ آزما سکتے ہیں:\n• نیٹ ورک کنکشن چیک کریں\n• یقینی بنائیں کہ سرور جواب دے رہا ہے\n• بعد میں دوبارہ کوشش کریں</string>
+    <string name="player_health_unsupported_block">کیا ہوا: یہ فارمیٹ سپورٹڈ نہیں ہے۔\n\nبیک اپ پلیئر اس فارمیٹ یا کوڈیک کو ہینڈل نہیں کر سکتا۔\n\nآپ یہ آزما سکتے ہیں:\n• فائل کو کسی بیرونی میڈیا پلیئر میں کھولیں\n• اسے معیاری فارمیٹ (MP4, H.264) میں تبدیل کریں</string>
     <string name="player_media_files_load_failed">فائل کی فہرست لوڈ نہیں ہو سکی۔ دوبارہ کوشش کریں۔</string>
     <string name="player_open_link_failed">وہ لنک نہیں کھول سکا۔</string>
     <string name="player_page_not_ready">وہ صفحہ ابھی تک تیار نہیں ہے۔ دوبارہ کوشش کریں۔</string>

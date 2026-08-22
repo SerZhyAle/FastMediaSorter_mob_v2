@@ -3,8 +3,12 @@ package com.sza.fastmediasorter.ui.calculator.helpers
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.RelativeSizeSpan
 import android.util.TypedValue
 import android.view.ContextThemeWrapper
 import android.view.Gravity
@@ -18,14 +22,14 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isVisible
-import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.orientation.isWideLayout
-import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
-import com.sza.fastmediasorter.core.share.SharePayload
-import com.sza.fastmediasorter.core.share.SystemShareInvoker
-import com.sza.fastmediasorter.databinding.ActivityCalculatorBinding
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.orientation.isWideLayout
+import com.sza.fastmediasorter.core.share.SharePayload
+import com.sza.fastmediasorter.core.share.SystemShareInvoker
+import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
+import com.sza.fastmediasorter.databinding.ActivityCalculatorBinding
 import timber.log.Timber
 import java.io.File
 import kotlin.concurrent.thread
@@ -49,6 +53,68 @@ class CalculatorInputManager(
     private val prankManager = CalculatorAprilFoolsPrankManager(context)
     private var memoryRowExpanded = false
 
+    /**
+     * S1549: what a rotation must carry across a rebuilt view hierarchy - the engine's calculation plus the
+     * two display-level facts that live here and nowhere else.
+     */
+    data class State(
+        val engine: CalculatorEngine.State,
+        val memoryRowExpanded: Boolean,
+        val hasReturnableResult: Boolean,
+    )
+
+    fun snapshot(): State = State(
+        engine = engine.snapshot(),
+        memoryRowExpanded = memoryRowExpanded,
+        hasReturnableResult = hasReturnableResult,
+    )
+
+    fun restore(state: State) {
+        engine.restore(state.engine)
+        memoryRowExpanded = state.memoryRowExpanded
+        hasReturnableResult = state.hasReturnableResult
+        render()
+    }
+
+    /** S1549: the calculation crosses a rotation-induced recreate through the instance state. */
+    fun saveTo(outState: Bundle) {
+        val state = snapshot()
+        outState.putString(STATE_DISPLAY, state.engine.display)
+        outState.putString(STATE_OPERATION_HISTORY, state.engine.operationHistory)
+        outState.putStringArrayList(STATE_COMPLETED_HISTORY, ArrayList(state.engine.completedHistory))
+        outState.putString(STATE_ACCUMULATOR, state.engine.accumulator)
+        outState.putString(STATE_PENDING_OPERATOR, state.engine.pendingOperatorSymbol)
+        outState.putString(STATE_REPEAT_OPERATOR, state.engine.repeatOperatorSymbol)
+        outState.putString(STATE_REPEAT_OPERAND, state.engine.repeatOperand)
+        outState.putBoolean(STATE_START_NEW_INPUT, state.engine.startNewInput)
+        outState.putString(STATE_MEMORY, state.engine.memory)
+        outState.putBoolean(STATE_MEMORY_ROW_EXPANDED, state.memoryRowExpanded)
+        outState.putBoolean(STATE_HAS_RETURNABLE_RESULT, state.hasReturnableResult)
+    }
+
+    /** Returns true when a calculation was restored, so the caller knows not to re-apply its intent input. */
+    fun restoreFrom(savedState: Bundle?): Boolean {
+        val display = savedState?.getString(STATE_DISPLAY) ?: return false
+        restore(
+            State(
+                engine = CalculatorEngine.State(
+                    display = display,
+                    operationHistory = savedState.getString(STATE_OPERATION_HISTORY).orEmpty(),
+                    completedHistory = savedState.getStringArrayList(STATE_COMPLETED_HISTORY).orEmpty(),
+                    accumulator = savedState.getString(STATE_ACCUMULATOR),
+                    pendingOperatorSymbol = savedState.getString(STATE_PENDING_OPERATOR),
+                    repeatOperatorSymbol = savedState.getString(STATE_REPEAT_OPERATOR),
+                    repeatOperand = savedState.getString(STATE_REPEAT_OPERAND),
+                    startNewInput = savedState.getBoolean(STATE_START_NEW_INPUT, true),
+                    memory = savedState.getString(STATE_MEMORY) ?: "0",
+                ),
+                memoryRowExpanded = savedState.getBoolean(STATE_MEMORY_ROW_EXPANDED, false),
+                hasReturnableResult = savedState.getBoolean(STATE_HAS_RETURNABLE_RESULT, false),
+            )
+        )
+        return true
+    }
+
     fun bind() {
         bindDigitButtons()
         binding.btnCalculatorDecimal.setOnClickListener { update { inputDecimal() } }
@@ -64,9 +130,94 @@ class CalculatorInputManager(
         binding.btnCalculatorDivide.setOnClickListener { update { inputOperator("÷") } }
         binding.btnCalculatorEquals.setOnClickListener { update { inputEquals() } }
         bindMemoryButtons()
+        bindLongPressActions()
         render()
         loadPersistedHistory()
         loadPersistedMemory()
+    }
+
+    /**
+     * S1719: the second action on a key. Every entry reaches the same handler its menu row uses, so a
+     * key and its menu twin cannot become two implementations of one function.
+     *
+     * The keys are listed through the generated binding rather than resolved by id (S1693 forbids
+     * `findViewById` here), and each one asks the table what it carries - so a key the table does not
+     * name gains no listener at all and keeps exactly today's behaviour. The backspace key is in the
+     * list and deliberately absent from the table.
+     */
+    private fun bindLongPressActions() {
+        listOf(
+            binding.btnCalculatorZero,
+            binding.btnCalculatorOne,
+            binding.btnCalculatorTwo,
+            binding.btnCalculatorThree,
+            binding.btnCalculatorFour,
+            binding.btnCalculatorFive,
+            binding.btnCalculatorSix,
+            binding.btnCalculatorSeven,
+            binding.btnCalculatorEight,
+            binding.btnCalculatorNine,
+            binding.btnCalculatorDecimal,
+            binding.btnCalculatorToggleSign,
+            binding.btnCalculatorAdd,
+            binding.btnCalculatorSubtract,
+            binding.btnCalculatorMultiply,
+            binding.btnCalculatorDivide,
+            binding.btnCalculatorPercent,
+            binding.btnCalculatorBackspace,
+        ).forEach { key ->
+            val action = CalculatorLongPressMap.actionFor(key.id) ?: return@forEach
+            key.setOnLongClickListener {
+                perform(action)
+                // Consumed: without this the key would also deliver its ordinary click, so a held
+                // finger on 7 would type a 7 and then take the sine of it.
+                true
+            }
+            showHintOn(key, action.hint)
+        }
+    }
+
+    /**
+     * S1719: writes the key's own symbol and, under it in small type, what a long press does.
+     *
+     * Rendered into the button's text rather than added as a second view in the layouts: a key is one
+     * `MaterialButton` cell of a `GridLayout`, so a separate label would mean wrapping seventeen cells
+     * in two layout files and re-deriving their column weights and touch targets. Writing the hint
+     * here also means portrait and landscape cannot disagree - there is nothing to keep in step.
+     */
+    private fun showHintOn(key: MaterialButton, hint: CalculatorLongPressMap.Hint) {
+        val hintText = when (hint) {
+            is CalculatorLongPressMap.Hint.Notation -> hint.text
+            is CalculatorLongPressMap.Hint.Word -> context.getString(hint.res)
+        }
+        val symbol = key.text?.toString().orEmpty().substringBefore('\n')
+        val combined = SpannableString("$symbol\n$hintText")
+        combined.setSpan(
+            RelativeSizeSpan(HINT_TEXT_SCALE),
+            symbol.length + 1,
+            combined.length,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+        )
+        // The symbol keeps its own line, so re-binding never stacks a second hint on an existing one.
+        key.maxLines = HINT_KEY_MAX_LINES
+        key.text = combined
+    }
+
+    /** S1719: one long-press action, expressed as the call the menu already makes. */
+    private fun perform(action: CalculatorLongPressMap.Action) {
+        Timber.d("S1719: long press action=${action::class.simpleName}")
+        when (action) {
+            is CalculatorLongPressMap.Action.Function -> handleMenuItem(action.itemId)
+            is CalculatorLongPressMap.Action.MenuCommand -> handleMenuItem(action.itemId)
+            // Three ordinary zero presses rather than a new engine call: the shortcut must mean
+            // exactly what typing 0 three times means, including whatever the engine does about a
+            // leading zero, and a second implementation could only disagree with it.
+            CalculatorLongPressMap.Action.TripleZero -> update {
+                inputDigit(0)
+                inputDigit(0)
+                inputDigit(0)
+            }
+        }
     }
 
     private fun bindMemoryButtons() {
@@ -470,30 +621,27 @@ class CalculatorInputManager(
     }
 
     private companion object {
-        const val MENU_COPY = 1
-        const val MENU_PASTE = 2
-        const val MENU_ROUND = 3
-        const val MENU_SHARE_RESULT = 4
-        const val MENU_SAVE_HISTORY = 5
-        const val MENU_CLEAR_HISTORY = 6
-        const val MENU_FUNCTION = 7
-        const val FN_SIN = 100
-        const val FN_COS = 101
-        const val FN_TAN = 102
-        const val FN_COT = 103
-        const val FN_SQRT = 104
-        const val FN_CBRT = 105
-        const val FN_SQUARE = 106
-        const val FN_POWER = 107
-        const val FN_RECIPROCAL = 108
-        const val FN_LOG10 = 109
-        const val FN_LN = 110
-        const val FN_FACTORIAL = 111
-        const val FN_PI = 112
-        const val FN_MOD = 113
-        const val FN_INTEGER_DIVIDE = 114
+        /** S1719: the hint reads as a caption under the key's symbol, not as a second symbol. */
+        const val HINT_TEXT_SCALE = 0.42f
+
+        /** Symbol line plus hint line - never more, so a re-bind cannot stack hints. */
+        const val HINT_KEY_MAX_LINES = 2
+
         const val CLIP_LABEL = "calculator"
         const val HISTORY_FILE_NAME = "calculator_history.txt"
+
+        // S1549: instance-state keys for the in-progress calculation.
+        const val STATE_DISPLAY = "calc_display"
+        const val STATE_OPERATION_HISTORY = "calc_operation_history"
+        const val STATE_COMPLETED_HISTORY = "calc_completed_history"
+        const val STATE_ACCUMULATOR = "calc_accumulator"
+        const val STATE_PENDING_OPERATOR = "calc_pending_operator"
+        const val STATE_REPEAT_OPERATOR = "calc_repeat_operator"
+        const val STATE_REPEAT_OPERAND = "calc_repeat_operand"
+        const val STATE_START_NEW_INPUT = "calc_start_new_input"
+        const val STATE_MEMORY = "calc_memory"
+        const val STATE_MEMORY_ROW_EXPANDED = "calc_memory_row_expanded"
+        const val STATE_HAS_RETURNABLE_RESULT = "calc_has_returnable_result"
         const val FUNCTION_DIALOG_COLUMN_COUNT = 2
         const val FUNCTION_DIALOG_BUTTON_HEIGHT_DP = 44
         const val FUNCTION_DIALOG_SIDE_MARGIN_DP = 16

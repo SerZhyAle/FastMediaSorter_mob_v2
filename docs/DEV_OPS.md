@@ -66,7 +66,10 @@
 | `.\a.ps1 fk`   | Fast Kotlin compile check (standard; add `-Flavor <name>` for any other) |
 | `.\a.ps1 fr`   | Fast resources/manifest check (`-Flavor` applies) |
 | `.\a.ps1 fc`   | Fast code + resources check (`-Flavor` applies) |
-| `.\a.ps1 fu`   | Fast full unit-test suite |
+| `.\a.ps1 fu`   | Fast full unit-test suite (**`app_v2` only**) |
+| `.\a.ps1 fw`   | Fast Kotlin compile check, **`wear` module** |
+| `.\a.ps1 fwr`  | Fast resources/manifest check, **`wear` module** |
+| `.\a.ps1 fwu`  | Fast unit-test suite, **`wear` module** |
 | `.\a.ps1 flr`  | Fast lint-rules detector test suite (`:lint-rules:test`); `-Tests <filter>` narrows it |
 | `.\a.ps1 dc`   | Clean + debug build |
 | `.\a.ps1 cls`  | Clean Gradle caches |
@@ -78,9 +81,10 @@
 
 `scripts/devtest/adb.ps1` is the quick swiss-army for one-off work against a connected
 emulator / device - runs natively (~0 LLM tokens), auto-discovers adb (not on PATH),
-takes `-DeviceId` / `-Release` / `-Package` / `-Json`, and uses stable exit codes
+takes `-DeviceId` / `-Release` / `-Package` / `-OutDir` / `-Json`, and uses stable exit codes
 (0 ok / 1 no-adb-or-bad-args / 2 no-device / 3 multi-device / 4 pkg-not-installed /
-5 destructive verb refused / 7 adb-failed).
+5 destructive verb refused / 6 pull: no such remote path / 7 adb-failed / 8 `tap-label` / `tap-id`:
+the target is not on screen and nothing was tapped / 9 clip-check: content off-glass).
 
 **Two verbs are one-way and both require `-Yes`: `wipe-data` and `uninstall`.** The verb that used to be
 called `clear` is gone - it was twice read as "clear the log" and wiped app data instead (S1167, S1572), so
@@ -98,8 +102,44 @@ called `clear` is gone - it was twice read as "clear the log" and wiped app data
 .\a.ps1 adb current                           # focused activity / package
 .\a.ps1 adb install -Flavor standard          # install -r -d newest debug APK (or -Apk <path>)
 .\a.ps1 adb tap -X 540 -Y 1000                # input tap / text -Text / key -Key
+.\a.ps1 adb swipe -X 900 -Y 1200 -X2 200 -Y2 1200   # scroll or page: -Duration ms (default 300)
+.\a.ps1 adb uidump -Grep "Settings|Media"     # labels, ids, bounds and tap points from the node tree
+.\a.ps1 adb uidump -Ids                       # also list the nodes that carry only a resource-id
+.\a.ps1 adb tap-id -ResourceId rowExport      # tap by resource-id; -Exact, -Index N; exit 8 if absent
+.\a.ps1 adb tap-label -Label "Media Types"    # tap by label; -Exact, -Index N; exit 8 if absent
+.\a.ps1 adb clip-check                        # content leaving the display shape; exit 9 on a defect
 .\a.ps1 adb shell -Cmd "getprop ro.product.cpu.abi"
 ```
+
+### Tapping by label, and what clip-check calls a defect (S1847)
+
+`tap -X -Y` needs a coordinate, and a coordinate goes stale the moment the list under it scrolls -
+in one wear sweep that put two taps on the row next to the intended one. `tap-label` takes the dump
+and the tap in the SAME call, so there is no window for the screen to move, and when the label is
+not on screen it exits **8** without tapping anything rather than guessing.
+
+**Prefer `tap-id` when the element has a resource-id (S1879).** A label is translated and a
+`resource-id` is not, so a call written against the label works on the locale the dump was taken on
+and returns 8 on every other one - the same script, the same element, a different phone. `tap-id
+-ResourceId <name>` takes the short name straight from the layout (`-Exact` also accepts the full
+`<package>:id/<name>`, and matching is a case-insensitive substring by default, so `rowExport` also
+reaches `rowExportAll` - pass `-Exact` when one name is the beginning of another). `uidump` prints
+the identifier beside every label, and `uidump -Ids` additionally lists the nodes that carry no
+label at all - a switch or an icon with nothing but an id was invisible to the tool before S1879.
+`tap-label` stays correct where there is no id to aim at, which is most of Compose on the watch.
+
+`clip-check` reads the glass outline from the device (`mRoundedCorners` in `dumpsys window
+displays`), so the round watch (radius 240 on 480x480 - a circle) and the phone (radius 105 on
+1080x2340 - a rounded rectangle) are one rule with no hardcoded geometry. It classifies rather than
+alarms, because uiautomator reports bounds already clipped to the screen and the naive "did the box
+leave the circle" test fires on every list head and tail:
+
+- `EDGE` - the viewport cut it; this frame says nothing about the element's real extent.
+- `CLIPPED` - it has a scrollable ancestor and would fit at the vertical centre. Normal.
+- `OFF-GLASS` - no scroll position saves it. The only class with an exit code (**9**).
+
+Only leaf nodes are judged: a container's box is the extent of a group, not of anything visible, and
+the launcher's home-screen container was the first thing the verb called a defect on a normal phone.
 
 `log` picks lines by process id, so the app's own Timber output survives even though Timber tags
 a line with the class name and never with the package (S1332); the package-text arm remains, and is
@@ -125,6 +165,11 @@ layer; `mobile-mcp` drives agent UI walks, Maestro runs repeatable flows
 .\a.ps1 fc -Flavor Legacy       # covers minSdk 23
 .\a.ps1 fc -Flavor Vr           # the only check that compiles src/vr
 
+# WEAR MODULE - fk/fr/fc/fu never look at it, they exit 0 having checked app_v2
+.\a.ps1 fw                      # Kotlin changes under wear/
+.\a.ps1 fwr                     # resources/manifest changes under wear/
+.\a.ps1 fwu                     # unit tests under wear/src/test
+
 # UNIT TESTS
 .\a.ps1 fu
 .\gradlew.bat testStandardDebugUnitTest
@@ -144,6 +189,8 @@ pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Unit -Tests
 4. `pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Unit -Tests "..."` for focused logic changes.
 5. `.\a.ps1 fc -Flavor <name>` per affected flavor when a change touches flavor-visible resources or flavor source sets. This is what satisfies a spec demanding proof on "every affected variant" - all six flavors are reachable and each call takes `BUILD.LOCK`, so the requirement never needs a direct `gradlew` call or a deferral (S1589; S1568 deferred it only because the flag was undocumented).
 6. `.\a.ps1 d` only when you need APK packaging / installable artifact proof.
+
+**Pick the rung by module first, not by change type (S1807).** Every rung above checks `app_v2`. A change under `wear/` is proved by `.\a.ps1 fw` (Kotlin), `.\a.ps1 fwr` (resources/manifest) and `.\a.ps1 fwu` (unit tests); the phone target exits 0 without compiling a single watch file, so quoting it under a wear ticket records a verdict about the other module. A change touching both modules needs one rung from each column.
 
 `.\a.ps1 dav` is the slow artifact path. It keeps timestamped in-app versioning, but each unique override creates a fresh configuration-cache entry by design.
 
@@ -183,10 +230,10 @@ Fallback path - abort the stalled invocation, then:
 
 ```powershell
 # 1. Clean only volatile kapt/kotlin/executionHistory dirs and retry once with --no-daemon.
-pwsh -File scripts/utils/recover-kapt-stall.ps1 -Task ":app_v2:testStandardDebugUnitTest"
+pwsh -NoProfile -File scripts/utils/recover-kapt-stall.ps1 -Task ":app_v2:testStandardDebugUnitTest"
 
 # 2. Or recover and retry manually (omit -Task to skip the auto-retry).
-pwsh -File scripts/utils/recover-kapt-stall.ps1
+pwsh -NoProfile -File scripts/utils/recover-kapt-stall.ps1
 .\gradlew.bat :app_v2:testStandardDebugUnitTest --no-daemon
 
 # 3. Last resort if the targeted retry stalls again - full wipe (forces a cold rebuild).
@@ -222,6 +269,29 @@ Two independent locks under `temp/`, both driven through `scripts/utils/agent-lo
 - **`temp/BUILD.LOCK`** - acquired by `Enter-BuildLockOrExit` before any direct `gradlew`/`gradlew.bat` invocation, released by `Exit-AgentLock` after (success or failure). Since S1432 a busy lock **queues** the caller instead of refusing: it takes a ticket, reports its position and starts when its turn comes. Pass `-NoWait` (or set `FMS_LOCK_NO_WAIT=1`) where an immediate answer matters more than a turn.
 - **`temp/CODE.LOCK`** - acquired via `scripts/utils/enter-code-lock.ps1 -Reason "<ticket/skill>"` before a multi-file source edit (Kotlin/XML/build-file). Since S1432 a busy lock queues the caller and **exits 4** ("queued, not yet your turn") rather than waving the edit through. Auto-releases from `post-change.ps1`'s closure - and that release is owner-checked, so it never removes a lock belonging to another live session; a skill that skips the facade (`/skill-fix`) must call `scripts/utils/exit-code-lock.ps1` itself when the edit is done.
 
+#### Device leases - S1926
+
+The third contended resource, and the last one to get an arbiter. `adb devices` reports an emulator as online whether or not somebody is mid-run on it, so before this a session discovered the conflict by breaking something: installing its APK, or switching HOME, out from under a running scenario (observed 2026-08-21 in S1895).
+
+```powershell
+# Take / give back a specific device
+pwsh -NoProfile -File scripts/devtest/device-lease.ps1 -Verb Claim   -Id emulator-5554 -Reason "/spec-test-device S1234"
+pwsh -NoProfile -File scripts/devtest/device-lease.ps1 -Verb Release -Id emulator-5554
+
+# Who holds what
+pwsh -NoProfile -File scripts/devtest/device-lease.ps1 -Verb Status
+```
+
+Exit codes match the ticket lease exactly, because it is the ticket lease's shape rather than the build lock's: **0** done, **1** error, **3** claim lost (a live sibling got there first - take a different device, this is not a fault), **4** release refused (a live foreign session owns it). One file per lease under `temp/DEVICE.LEASES/<serial>.json`, and the claim is an atomic file creation, so two sessions racing for one device cannot both win.
+
+**There is deliberately no queue.** A build finishes on its own in minutes, so waiting for `BUILD.LOCK` terminates; a sibling's device scenario can run arbitrarily long, so waiting for a device does not. A taken device is a reason to defer the device stage, not to block on it.
+
+**Eviction is by session liveness, with no watchdog** - whoever reads next sweeps, matching S1432. The liveness rule itself is not restated in the lease script: it comes from `Get-AgentTicketLiveness`, and the timings from `$Script:AgentLockTimings.Device` (45-minute silence window, matching the ticket lease because a session building and installing an APK writes nothing for a long time; 120-minute absolute ceiling, far below the ticket lease's 480 because a device is held for a scenario rather than for a ticket's whole life).
+
+**The readiness probe consults it only when asked.** `device-ready.ps1 -ClaimFree` walks the online devices and keeps the first it can claim, turning the old `multiple-devices` refusal into a selection; `all-devices-leased` (statusCode 7) is a distinct answer from `no-device`, because "nothing to test on" ends the device stage while "everyone else is on them" means retry later. Without the switch the probe answers exactly as it always has - existing sessions do not change behaviour underneath themselves.
+
+Like every other lock here, this is **advisory**: it coordinates consenting callers and does not stop a raw `adb` command, exactly as `BUILD.LOCK` does not stop a raw `gradlew`.
+
 **The queue (S1432).** Each lock has a queue directory `temp/<NAME>.QUEUE` holding one ticket file per waiter, numbered in order. The head of the queue owns the turn: a free lock is **not** enough to acquire, because a live head that has not yet spent its reservation window (5 min for Build, 3 for Code) still owns it - that window is what survives the gap between "your turn" and the moment gradle actually starts. Ownership of a ticket belongs to an agent **session**, not a process. A ticket whose owner has gone quiet, or which passed its ceiling (60 min Build, 20 min Code), is evicted by whoever reads the queue next. Every timing lives in one table, `$Script:AgentLockTimings`.
 
 **Queue fairness and liveness (S1448).** Four rules make the queue actually hand out turns in order, each of them fixing an observed starvation where a session sat still for tens of minutes without a single error:
@@ -242,11 +312,22 @@ pwsh -NoProfile -File scripts/utils/lock-status.ps1 -Name Code -Queue -Json
 pwsh -NoProfile -File scripts/utils/wait-for-lock-turn.ps1 -Name Code -Reason "S0900 edit"
 ```
 
-`wait-for-lock-turn.ps1` takes a ticket, blocks, and **exits** the moment the turn arrives - its exit is the "your turn" signal, which is the only channel through which an external event returns an agent to work. The ticket deliberately survives that exit: the caller inherits it, protected by the reservation window, and passes it to `Enter-AgentLock -Ticket`. Exit codes: **0** granted, **2** timed out, **3** ticket evicted while waiting, **4** could not enqueue. Do not read the verdict from the exit code a background task reports - that is the exit of the last command in the launch line, and it has already turned a refused build into an apparently green one. Read the marker instead: `temp/<NAME>.TURN-<sessionId>.json`, carrying `outcome` (`granted` / `timeout` / `evicted`), the ticket number and how long the wait took.
+`wait-for-lock-turn.ps1` takes a ticket, blocks, and **exits** the moment the turn arrives - its exit is the "your turn" signal, which is the only channel through which an external event returns an agent to work. The ticket deliberately survives that exit: the caller inherits it, protected by the reservation window, and passes it to `Enter-AgentLock -Ticket`. Exit codes: **0** granted, **2** timed out, **3** ticket evicted while waiting, **4** could not enqueue. Do not read the verdict from the exit code a background task reports - that is the exit of the last command in the launch line, and it has already turned a refused build into an apparently green one. Read the marker instead: `temp/<NAME>.TURN-<sessionId>.json`, carrying `outcome` (`granted` / `timeout` / `evicted` / `enqueue-failed`), the ticket number and how long the wait took.
 
 **Re-entrancy.** Several gates run a nested script while already holding `BUILD.LOCK`, and `& other.ps1` executes in the same process - so a nested acquire would queue behind a lock this very run owns. `Enter-BuildLockOrExit` recognises the holder as itself (same pid) or as the ancestor that launched it (inherited `FMS_BUILD_LOCK_HELD_BY`) and reuses the lock instead of waiting.
 
 `Enter-BuildLockOrExit` runs one check before it even reaches the lock (S1425): it resolves the JVM Gradle will run on - `org.gradle.java.home` from the user-level `gradle.properties`, then the repository one, then `JAVA_HOME` - and verifies that `bin/java(.exe)` and `lib/jvm.cfg` both exist under it. If either is missing it prints the resolved path, the missing file and the config file that set it, then **exits 3**: the environment cannot build, which is a different fact from a build that failed (exit 1) and from a wait that timed out (exit 2). Nothing is built and the lock is never taken. The check is two `Test-Path` calls and never launches a JVM, so it costs nothing per build. It exists because a partial Android Studio uninstall deleted `jbr/lib/jvm.cfg` while leaving `jbr/bin/java.exe`: the daemon already running kept compiling from memory, every compile check stayed green, and only forked JVMs failed - the whole unit-test tier was down for hours before anything said so.
+
+**Stale-snapshot repair (S1928).** Before that refusal fires on the launcher JVM, the guard asks a second question: is the *machine* misconfigured, or has only this process's snapshot of `JAVA_HOME` gone stale? An environment variable inside a running process is a snapshot taken at launch, so a JDK point-update leaves a long-lived agent session pointing at a directory that no longer exists while the machine's persisted value is already correct - and because every shell the session spawns inherits that snapshot, every gradle target fails identically until the process is restarted. When the persisted `JAVA_HOME` (User scope, then Machine) exists, differs from the snapshot and passes the same two-file check, the guard updates `$env:JAVA_HOME` for the current process and carries on:
+
+```
+JAVA_HOME snapshot was stale - refreshed from the persisted User value.
+  was: C:\Program Files\Java\jdk-21.0.10 (missing bin/java(.exe), lib/jvm.cfg)
+  now: C:\Program Files\Java\latest\jdk-21
+  Only this process was changed. Fix the environment your session inherits, or the next one starts stale too.
+```
+
+Three properties make this a refresh rather than a silent JVM swap, and all three are deliberate. It **reads the persisted variable rather than choosing a JDK** - it never scans the disk, never reaches for the Android Studio `jbr`, and can only return a value the operator persisted themselves, which is the very value the stale snapshot is a snapshot of. It is **loud**, printing both values and the scope. It **writes nothing outside the current process** - no `setx`, no registry. When there is nothing to refresh (no persisted value, one equal to the snapshot, or one that is itself unusable) the original refusal and its exit 3 are unchanged. The repair buys the session, not a cure: the environment the session inherits still wants fixing, or the next session starts stale too.
 
 Staleness is judged by the holder's own liveness, never by a guessed timeout while the holder is still working. `BUILD.LOCK` has a real process, so it is judged by PID liveness (with a start-time check against PID reuse). `CODE.LOCK` has no process - an editing turn is not one continuous process - so since S1432 it is judged by its owning **session**: a live owner keeps the lock however long the edit takes, because expiring a working session by the clock would hand its turn to the next agent mid-edit. A lock written before S1432 carries no session id and still expires by wall clock, so old files read correctly. A build script that finds `CODE.LOCK` fresh still only warns - it never refuses - so a session that legitimately needs to build while someone else edits cannot be deadlocked.
 
@@ -299,6 +380,8 @@ Each failed gate prints two extra lines - `repro:`, the command that runs that g
 For Kotlin and XML-resource changes, the unfiltered `neuroslop-gate` is the sole automatic lexical pass for every rule in `source-matchers.ps1`, including `flavor-flags`, `public-mutable-flow` and `deprecated-pm-flags`. Their narrow wrapper commands remain available for direct diagnosis, but the facade must not route them a second time.
 
 `doc-icons-sync-gate` runs only when the changed set includes a document-icon input: `docs/icons/doc-icon-map.json`, generated `docs/icons/doc/` assets, an icon generator, `index*.html`, `docs/howto/index*.md`, `docs/DOCS_MAP.md` or `docs/SETTINGS_REFERENCE*.md`. It is skipped for unrelated documentation edits. Run `pwsh -NoProfile -File scripts/quality/assert-doc-icons-sync.ps1 -Gate` to reproduce a failure; regenerate the assets and checked surfaces named by the report before closing again.
+
+Regenerating those assets needs one Python dependency, and it lives in the repo venv the exporter already looks for (`.venv/Scripts/python.exe`), not on the machine: `.venv\Scripts\python.exe -m pip install -r scripts/docs/lib/requirements.txt`. The rasterizer is `resvg-py`, whose pip wheels carry the renderer compiled in. It replaced `cairosvg` in S1964 for exactly that reason - `cairosvg` has no native code of its own and dlopens a system `libcairo`, which on Windows only exists if GTK or some unrelated application installed it. Nobody ever installed it deliberately, nothing recorded that it was needed, and the day the machine no longer had it the exporter stopped mid-run and blocked a ticket (S1931). Do not go back to a backend that resolves its native half outside `.venv`.
 
 ### Static analysis (detekt + ktlint) - S0720
 
@@ -366,6 +449,47 @@ pwsh -NoProfile -File scripts/quality/audit-detekt-baseline-drift.ps1 -BaselineF
 ```
 
 Each stale entry prints as `DRIFTED` (the same rule is still live elsewhere in the same file, under a shape this entry no longer covers - a debt that quietly thawed) or `DEAD (prune candidate)` / `DEAD (file removed)` (nothing under that rule is live in the file at all - most likely already fixed, safe to prune after a glance). Diagnostic-only: it never fails a build and never mutates the baseline file - the classification is advisory input for a human decision, not an automated cleanup.
+
+### Resource-link gate - S1915
+
+Prints as `resource-link-gate`. The only gate in the closure facade that runs aapt. It fires when the changed set carries a resource or a manifest (`$isResourceChange`, so a Kotlin-only or docs-only closure skips it and pays nothing) and links those resources for every variant the set touches.
+
+```powershell
+# What the gate runs, one call per selected flavor - also the fix loop when it goes red
+pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Resources -Module app_v2 -Flavor Standard
+
+# The same thing by its launcher shortcut
+pwsh -NoProfile -File ./a.ps1 fr
+```
+
+**Variant selection.** `src/main` and every non-flavor source set ship inside the default variant, so `Standard` is always linked; a path under `src/<flavor>/` adds that flavor on top, deduplicated. A resource under `src/vr/res` linked only as `standard` would be judged by a variant that never sees the file - the same false green S1807 found when a phone target was quoted as proof under a wear change. The `wear` module declares no product flavors and `check-standard-fast.ps1` exits 2 on any non-default `-Flavor`, so the watch is answered before source sets are read at all.
+
+**Why it exists.** Every other gate in the facade is lexical. Before S1915 no path in it ran aapt, and `a.ps1 fk` compiles Kotlin without linking anything - so a layout that did not link closed green, and the ticket reached `BlockNeedUserTest`, which means "install this on a device and test it", without anything ever having built what gets installed (S1881). The gate runs the link rather than asking whether a build happened, which is why it needs no build journal, no `temp/` marker and no dev-log parsing, and why parallel sessions raise no question here.
+
+**Reading its verdict.** Exit 1 is a resource that does not link - the aapt line above the verdict names the file and the reference it could not resolve. Exit 2 is a different answer: the target never started, most often a `JAVA_HOME` pointing at a JDK that no longer exists (S1928), so nothing was checked and the resource is still unproven. The gate prints the module and every flavor it linked before running, so a green verdict cannot be read as covering a module it never touched.
+
+Cost, measured 2026-08-21 on a warm daemon: 1.9 s with nothing to relink, 10.6 s for a flavor whose configuration cache was cold, 15.9 s on the red path, 41.8 s for a full relink after a real resource change - all foreground, table in `docs/BUILD_TEST_FAST_PATH.md`.
+
+### Layout dimension-literal ratchet - S1922
+
+Prints as `layout-hardcoded-dimens`. A growth stop, not a migration order: it counts hardcoded `NNdp` / `NNsp` values in layout attributes across all five layout directories (`layout`, `layout-land`, `layout-sw480dp`, `layout-sw720dp`, `layout-w600dp`) and fails only when the total rises above the frozen baseline.
+
+```powershell
+# Current count vs baseline, with every offending file listed
+pwsh -NoProfile -File scripts/quality/assert-source-gates.ps1 -Only layout-hardcoded-dimens -List
+
+# PASS/FAIL verdict (this is how post-change.ps1 reaches it, via the neuroslop umbrella)
+pwsh -NoProfile -File scripts/quality/assert-source-gates.ps1 -Only layout-hardcoded-dimens -Gate
+
+# Ratchet the baseline DOWN after migrating some literals
+pwsh -NoProfile -File scripts/quality/assert-source-gates.ps1 -Only layout-hardcoded-dimens -UpdateBaseline
+```
+
+**`0dp` is not counted, deliberately.** Measured 2026-08-21, 1561 of the 3454 literals in those directories are `"0dp"` - 45% of them. In a `ConstraintLayout` that is the "match constraints" keyword, a structural token rather than a size: it has no value anyone could want to change in one place, and moving it into `@dimen/` destroys the idiom. The baseline therefore reads **1893**, the count of literals that genuinely could be migrated, not 3454.
+
+**Migration model - the Rule 32 model, same as `findviewbyid`.** No campaign over the 331 layout files is scheduled, and the previous attempt at one reached 63% before being abandoned and deleted. A literal converts when another ticket reaches its file for its own reasons; the next green `-UpdateBaseline` run lowers the baseline; the baseline never rises without a boundary decision. The gate's job is that last clause - it is why the count cannot drift back up while nobody is looking.
+
+The rule lives in the shared registry (`scripts/quality/lib/source-matchers.ps1`) and rides the single tree walk with every other lexical rule, so it adds no traversal of its own: 331 files in roughly 0.3 s.
 
 ### Listener symmetry ratchet gate - S0721
 
@@ -436,7 +560,8 @@ An AST-based custom lint checker `:lint-rules` enforcing structural project rule
 - **UiContextLeak**: No storage of UI Context (Activity, Fragment, View) in ViewModels or `@Singleton`s.
 - **UnsafeFlowCollect**: No lifecycle-unsafe Flow `.collect` calls without `repeatOnLifecycle` or `flowWithLifecycle`.
 - **PlayerNotReleased**: Classes holding media players must release them via `release()`.
-- **MainThreadIo**: Blocking file/network I/O calls on the main thread in UI / ViewModel classes.
+- **MainThreadIo**: Blocking file I/O calls on the main thread in UI / ViewModel classes.
+- **NetworkDataSourceDispatcher**: Blocking socket network I/O calls (smbj, commons-net, jsch) without explicit background dispatcher confinement.
 
 Usage:
 ```powershell
@@ -444,7 +569,7 @@ Usage:
 .\gradlew.bat :app_v2:lintStandardDebug
 
 # Run tests of the lint rules module itself
-.\gradlew.bat :lint-rules:test
+pwsh -NoProfile -File ./a.ps1 flr
 ```
 
 ### Memory Leak Testing (LeakCanary) - S0721
@@ -463,16 +588,16 @@ Usage:
 
 ```powershell
 # SINGLE-LOCALE UPDATE
-pwsh -File scripts/utils/set-android-string.ps1 -Module app_v2 -Locale en -Key "cloud_check_failed" -Value "Could not check the cloud connection. Try again."
+pwsh -NoProfile -File scripts/utils/set-android-string.ps1 -Module app_v2 -Locale en -Key "cloud_check_failed" -Value "Could not check the cloud connection. Try again."
 
 # EN/RU/UK UPDATE IN ONE CALL
-pwsh -File scripts/utils/set-android-strings.ps1 -Module app_v2 -Key "cloud_check_failed" -EnValue "Could not check the cloud connection. Try again." -RuValue "Не удалось проверить подключение к облаку. Попробуйте ещё раз." -UkValue "Не вдалося перевірити підключення до хмари. Спробуйте ще раз."
+pwsh -NoProfile -File scripts/utils/set-android-strings.ps1 -Module app_v2 -Key "cloud_check_failed" -EnValue "Could not check the cloud connection. Try again." -RuValue "Не удалось проверить подключение к облаку. Попробуйте ещё раз." -UkValue "Не вдалося перевірити підключення до хмари. Спробуйте ще раз."
 
 # OPTIONAL SAFETY GUARDS
-pwsh -File scripts/utils/set-android-strings.ps1 -Module app_v2 -Key "cloud_check_failed" -EnValue "Could not check the cloud connection. Try again." -RuValue "Не удалось проверить подключение к облаку. Попробуйте ещё раз." -UkValue "Не вдалося перевірити підключення до хмари. Спробуйте ще раз." -ExpectedOldEnValue "Could not check the cloud connection." -ExpectedOldRuValue "Не удалось проверить подключение к облаку." -ExpectedOldUkValue "Не вдалося перевірити підключення до хмари."
+pwsh -NoProfile -File scripts/utils/set-android-strings.ps1 -Module app_v2 -Key "cloud_check_failed" -EnValue "Could not check the cloud connection. Try again." -RuValue "Не удалось проверить подключение к облаку. Попробуйте ещё раз." -UkValue "Не вдалося перевірити підключення до хмари. Спробуйте ще раз." -ExpectedOldEnValue "Could not check the cloud connection." -ExpectedOldRuValue "Не удалось проверить подключение к облаку." -ExpectedOldUkValue "Не вдалося перевірити підключення до хмари."
 
 # LOCALE PARITY CHECK
-pwsh -File scripts/check_strings_localized.ps1 -Module app_v2 -KeyPrefix "cloud_check_failed"
+pwsh -NoProfile -File scripts/check_strings_localized.ps1 -Module app_v2 -KeyPrefix "cloud_check_failed"
 ```
 
 Use the string updater scripts for targeted `<string>` edits. Manual XML editing is still appropriate for structural resource changes such as `plurals`, `string-array`, comments, regrouping, or bulk rewrites.
@@ -497,6 +622,20 @@ Three facts a reader cannot derive from the commands:
 - **A key kept despite being unreferenced belongs in the baseline, with a reason.** `scripts/quality/assert-unreferenced-strings-baseline.txt` is an allowlist of names, not a count, so a new dead key cannot slip in behind a deleted one. The reason column is the record of why the key was kept - an unexplained entry is how the previous 397 accumulated.
 
 The three actions share one definition of "a reference", in `scripts/quality/lib/android-string-liveness.ps1`. Change it there, never in a caller.
+
+### Generated splash drawables - S1706
+
+```powershell
+# THE ONLY WRITER of ic_splash_app_brand.xml, in either module
+pwsh -NoProfile -File scripts/utils/generate-splash-brand.ps1 -Module <app_v2|wear>
+
+# THE SAME COMPARISON AS A GATE (fails on a hand-edited or stale variant; in .\a.ps1 fg)
+pwsh -NoProfile -File scripts/quality/assert-splash-brand-sync.ps1
+```
+
+- **The drawable is generated, never authored.** The system splash window cannot render a string, so the wordmark and the slogan exist only as contours baked in from `splash_slogan` and one template. A hand edit therefore compiles, renders, and diverges silently from every other locale.
+- **`splash_slogan` is consumed at authoring time, not at run time.** Nothing under `app_v2/src` references it and nothing can, which is why it sits in the unreferenced-strings baseline with that reason rather than being deleted as dead.
+- **The two modules generate different compositions on purpose.** The phone carries arrows, wordmark and slogan with one variant per locale; the watch carries the arrows alone, because measured on a Galaxy Watch 7 the wordmark rendered 10 px tall and the slogan 12 px, roughly 5-7 dp against Wear OS's 12 sp floor. `-Module wear` therefore adds `--arrows-only`, and the watch has no per-locale variant at all.
 
 ### Gson persistence contract - S1639
 
@@ -526,8 +665,9 @@ Four facts a reader cannot derive from the commands:
 # WHAT DOES NOT YET REACH EVERY DECLARED LOCALE (0 clean, 3 non-empty, 1 unusable input)
 pwsh -NoProfile -File scripts/utils/list-new-lexemes.ps1
 
-# THE SAME SET AS A RELEASE BLOCKER (0 clean, 1 blocked, 2 cannot verify)
+# THE SAME SET AS A RELEASE BLOCKER (0 clean, 1 blocked, 2 cannot verify) - ONCE PER MODULE
 pwsh -NoProfile -File scripts/quality/assert-new-lexemes-translated.ps1
+pwsh -NoProfile -File scripts/quality/assert-new-lexemes-translated.ps1 -Module wear
 
 # THE BULK ROUND TRIP THAT CLEARS IT
 pwsh -NoProfile -File scripts/utils/locale-bulk-import.ps1 -TextPath <file returned by the translator>
@@ -539,11 +679,12 @@ The app declares thirteen interface locales in `app_v2/src/main/res/xml/locales_
 2. Closing a ticket that touched a strings file prints the `new-lexeme-count` advisory. Also not a refusal.
 3. The pre-release sweep runs step `0.8`, which **is** the refusal. `list-new-lexemes.ps1` writes `temp/S1627/new_lexemes_en.txt`; that file goes to the external translation service, each returned file comes back through `locale-bulk-import.ps1`, and the step is re-run until it is 0.
 
-Three facts a reader cannot derive from the commands:
+Four facts a reader cannot derive from the commands:
 
 - **The refusal sits at the release, not at the ticket, by owner decision (strategic ADR-2).** Nothing ships between releases, so translating each key the day it is written buys the user nothing while costing ten translations per ticket; one batch per release costs one round trip for all of them.
 - **A missing translation is an absent key, never an English copy (ADR-6, S1190).** Android falls back to English on its own, so a partial locale is a shippable state. This is why the producer asks each locale's resource file which keys it carries, rather than comparing values.
-- **`scripts/quality/locale-untranslated-baseline.txt` holds identities, not a count.** It froze the 19 keys already untranslated on 2026-08-14 - all of them `S1626`'s placeholder-misread phrasings - so a pre-existing gap cannot be reported as new. A count would let a new key slip in behind an old one cleared in the same release. Entries leave the file as `S1626` clears them, and the producer reports a cleared entry as stale; do not expect that soon, since `S1626` is `BlockExternal` - the rule that looked obvious (placeholder at a string edge) was measured over all 307 placeholder-bearing strings and does not discriminate, so the set clears through a probe in a future bulk round rather than through an edit anyone can make today.
+- **Provenance is tracked per module, and the gate runs once per module (S1858).** `scripts/quality/locale-source-fingerprints.json` addresses a unit as `module|set|file|key[|slot]`. It has to: `app_v2` and `wear` each ship `src/main/res/values/strings.xml` and share 14 key names, 6 of them with different English text, so an unqualified identity gave the two modules one slot with room for one hash. Whichever module imported last won it, and the gate then measured the other module's text against the wrong hash and called six translated keys untranslated - unfixable by re-importing, because re-importing only moved the red to the other module. A registry written before that split declares no schema version, reads as v1 and is refused with exit 2 until `scripts/quality/migrate-locale-fingerprints-module.ps1` rewrites it; a v1 store read as v2 would reproduce the same false report with nothing left to explain it.
+- **`scripts/quality/locale-untranslated-baseline.txt` holds identities, not a count.** It froze the keys already untranslated on 2026-08-14 - all of them `S1626`'s placeholder-misread phrasings - so a pre-existing gap cannot be reported as new. A count would let a new key slip in behind an old one cleared in the same release. Its entries are module-qualified for the same reason the registry's are. Entries leave the file as `S1626` clears them, and the producer reports a cleared entry as stale; do not expect that soon, since `S1626` is `BlockExternal` - the rule that looked obvious (placeholder at a string edge) was measured over all 307 placeholder-bearing strings and does not discriminate, so the set clears through a probe in a future bulk round rather than through an edit anyone can make today.
 
 ### Maestro oracle convention - S1612
 
@@ -600,6 +741,48 @@ Two facts a reader cannot derive from the commands:
 
 - **Documentation prose carries no gate on purpose.** Measured 2026-08-14 (S1544): 134 of 137 files under `docs/` were clean without one, and the three that were not are the gitignored `FEATURES_noLegal*` showcases, which are never published. A gate would cost every run and defend a surface where nothing accumulates. S1340 §5 forbids growing the `assert-*` inventory for cosmetics, and this ticket shrank the script count by four rather than adding to it.
 - **The `ResourceValue` area skips values that are wholly machine-readable** - a URL, a path, a bare format placeholder - because a literal `...` inside an address is part of the address. That path test demands printable ASCII end to end: Chinese and Japanese set no spaces between words, so "no whitespace and contains a slash" on its own matched whole CJK sentences and left them unfixed.
+
+## SCRIPT HYGIENE (S1872)
+
+Three checks keep the repository's ~370 PowerShell scripts findable, described and alive. All three are ratcheted: their ceilings may fall, never rise, so existing debt never blocks an unrelated ticket while a new script must be correct on the day it is written.
+
+**`scripts/quality/assert-script-references.ps1`** - a script nothing references is either deleted or declares itself a hand-run tool.
+
+- Judges **live wiring only**. A mention in an archived spec, a `dev/CHANGELOG.md` row or a read-only zone remembers a script; it does not call one. The repository holds over 6000 such documents, enough to make every dead script look wired - with them in the corpus the check reported 0 orphans out of 340 and could not fail.
+- `docs/SCRIPT_CHEATSHEET.md` is excluded **by definition, not by setting**: it names every script by construction.
+- A Pester suite beside a `Run-Tests.ps1` is reached by discovery, not by name, and is excused automatically.
+- Escape hatch for a script you run by hand: put a line in its comment-based help reading `Manual tool: <why it exists and who runs it>`. An empty reason does not count.
+- `-Memory` mode checks the other direction: every `.ps1` path written in `.claude/agent-memory/**` must resolve, or carry a `Historical:` / `External:` marker on its line or the line above.
+- Baseline: `scripts/quality/script-reference-baseline.txt`. Exit 0 at or below it, 1 above, 2 when a root is missing.
+
+**`scripts/quality/assert-script-described.ps1`** - a script says what it does and which codes it returns.
+
+- Two counts, kept apart so neither hides behind the other: no `.SYNOPSIS`, and declares `exit N` while documenting no `Exit codes:` block. A library that never exits is not asked for a contract.
+- Baseline file carries **two lines**: undescribed count, then undocumented-exit count.
+- Exit 0 at or below both ceilings, 1 above either, 2 when a root or the baseline is missing.
+
+**`scripts/utils/script-help-text.ps1`** - the one reader both the gate and the cheatsheet generator use.
+
+- `GetHelpContent()` returns **nothing** when a `#requires` statement sits above the help block, and this repository puts `#requires -Version 7.0` on line 1 by convention. Every conforming script was therefore invisible to the generator: the cheatsheet carried a synopsis for **0 of 373** entries, which read as "nobody writes synopses" when in fact many do and none could be read. The helper tries the parser first, then reads the leading comment block literally. Repairing the reader beat moving `#requires` in 370 files.
+- Because the gate and `help.ps1` share this reader, the inventory and the gate can never disagree about whether a script is described.
+
+**`scripts/quality/assert-file-line-ceiling.ps1`** - Rule 2's 1500-line ceiling, measured for the first time (S1270).
+
+- Counts physical lines of `.kt`, `.java`, `.cpp` and `.h` under `app_v2/src` and `wear/src` - the same number `wc -l` gives, so a disagreement with the gate is always resolvable by hand.
+- Ratcheted on the **count** of files above the ceiling, not on a list of names: a list would pin offenders by name and then a rename would read as a new violation.
+- Baseline `scripts/quality/file-line-ceiling-baseline.txt`. Exit 0 at or below it, 1 above, 2 when a source root is missing.
+- Before this the ceiling was advice: no script measured file length, and detekt's config carries `LongMethod` but no `FileLength` - and detekt never sees a `.cpp` at all. `app_v2/src/vr/cpp/xr_session.cpp` grew from 2101 to 2154 lines while a ticket about its size sat open.
+
+**`scripts/quality/assert-detekt-baseline-absorption.ps1`** - existed since S1356 and was never wired into anything until 2026-08-21.
+
+- Refuses a detekt baseline that **absorbed** a finding absent from the committed ID snapshot. Its mirror, `audit-detekt-baseline-drift.ps1` (S1334), classifies entries that went dead.
+- Re-freezing a baseline is the quietest way to make a file look clean while its debt grows. Five tickets - S1186, S1198, S1247, S1269, S1311 - were written about that one mechanism in five different files before anyone noticed the check was written and never run.
+- Takes no `-Quiet`; the fast-gate batch calls it with no arguments.
+
+**One root set.** `help.ps1`, `assert-exit-contract.ps1` and both gates above scan `scripts/`, `dev/CATALOG/scripts/` and `dev/ACTIVITY_CATALOG/scripts/`. A population visible to one tool and invisible to another is the population nobody watches.
+
+**Retiring a script.** Delete it together with its references in the same change. Do not leave a forwarding wrapper: nine such wrappers accumulated in `scripts/quality/`, each header claiming it stayed on disk "so every existing caller keeps working unchanged" while having zero callers, and every one of their rules already ran through `assert-source-gates.ps1`.
+
 
 ## BUILD TYPES
 
@@ -665,7 +848,7 @@ Cast is disabled in `vr` (Horizon OS lacks the Google Play Services Cast module)
 
 ## DATABASE
 
-Room schema version: 50 (`@Database(version = ..)` in `AppDatabase.kt` is the source of truth - read it rather than this line).
+Room schema version: 53 (`@Database(version = ..)` in `AppDatabase.kt` is the source of truth - read it rather than this line).
 Library: `room-runtime:2.7.0`.
 Migrations: one `MigrationNNToNN.kt` file per step in `data/local/db/`, registered in `core/di/DatabaseModule.kt`.
 Exported schemas: `app_v2/schemas/<db-class>/<version>.json`, generated by the build and committed.
@@ -900,7 +1083,7 @@ Steps:
 5. Add an explicit `## Note: signing-key rotation` subsection to
    `docs/WHATS_NEW.md` for the release that rotates the key, with a
    one-line "users must reinstall via direct download" instruction.
-6. Run the publisher: `pwsh -File scripts/release/publish-github-release.ps1`
+6. Run the publisher: `pwsh -NoProfile -File scripts/release/publish-github-release.ps1`
    from the release worktree on `main`. The Assert-ExpectedFingerprint gate
    will now pass against the new pin.
 7. Append an ADR-style entry inside this section recording: rotation date,

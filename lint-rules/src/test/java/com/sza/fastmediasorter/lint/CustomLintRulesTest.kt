@@ -158,6 +158,48 @@ class CustomLintRulesTest {
         """.trimIndent()
     )
 
+    private val smbjStub = kotlin(
+        """
+        package com.hierynomus.smbj
+
+        class SMBClient {
+            fun connect(hostname: String): Any = Any()
+        }
+        """.trimIndent()
+    )
+
+    private val commonsNetStub = kotlin(
+        """
+        package org.apache.commons.net.ftp
+
+        class FTPClient {
+            fun connect(hostname: String) {}
+            fun listFiles(): Array<Any> = emptyArray()
+        }
+        """.trimIndent()
+    )
+
+    private val jschStub = kotlin(
+        """
+        package com.jcraft.jsch
+
+        interface JSch {
+            fun getSession(user: String, host: String, port: Int): Session
+        }
+
+        interface Session {
+            fun connect()
+            fun openChannel(type: String): Channel
+        }
+
+        interface Channel
+        interface ChannelSftp : Channel {
+            fun connect()
+            fun ls(path: String): List<Any>
+        }
+        """.trimIndent()
+    )
+
     private val uiStubs = arrayOf(
         androidUiStub,
         androidAppStub,
@@ -1166,6 +1208,202 @@ class CustomLintRulesTest {
                 )
             )
             .issues(MainThreadIoDetector.ISSUE)
+            .run()
+            .expectErrorCount(1)
+    }
+
+    @Test
+    fun testNetworkDataSourceDispatcherFlagsUnconfinedSmbCall() {
+        lint()
+            .allowMissingSdk()
+            .files(
+                coroutinesStub,
+                smbjStub,
+                kotlin(
+                    """
+                    package com.sza.fastmediasorter.data.network
+
+                    import com.hierynomus.smbj.SMBClient
+
+                    class SmbDataSource(private val client: SMBClient) {
+                        suspend fun listShares(): Any {
+                            return client.connect("192.168.1.1")
+                        }
+                    }
+                    """.trimIndent()
+                )
+            )
+            .issues(NetworkDataSourceDispatcherDetector.ISSUE)
+            .run()
+            .expectErrorCount(1)
+    }
+
+    @Test
+    fun testNetworkDataSourceDispatcherFlagsUnconfinedFtpCall() {
+        lint()
+            .allowMissingSdk()
+            .files(
+                coroutinesStub,
+                commonsNetStub,
+                kotlin(
+                    """
+                    package com.sza.fastmediasorter.data.network
+
+                    import org.apache.commons.net.ftp.FTPClient
+
+                    class FtpDataSource(private val client: FTPClient) {
+                        suspend fun listFiles(): Array<Any> {
+                            return client.listFiles()
+                        }
+                    }
+                    """.trimIndent()
+                )
+            )
+            .issues(NetworkDataSourceDispatcherDetector.ISSUE)
+            .run()
+            .expectErrorCount(1)
+    }
+
+    @Test
+    fun testNetworkDataSourceDispatcherFlagsUnconfinedSftpCall() {
+        lint()
+            .allowMissingSdk()
+            .files(
+                coroutinesStub,
+                jschStub,
+                kotlin(
+                    """
+                    package com.sza.fastmediasorter.data.network
+
+                    import com.jcraft.jsch.ChannelSftp
+
+                    class SftpDataSource(private val channel: ChannelSftp) {
+                        suspend fun listFiles(): List<Any> {
+                            return channel.ls("/path")
+                        }
+                    }
+                    """.trimIndent()
+                )
+            )
+            .issues(NetworkDataSourceDispatcherDetector.ISSUE)
+            .run()
+            .expectErrorCount(1)
+    }
+
+    @Test
+    fun testNetworkDataSourceDispatcherAcceptsWithContextIo() {
+        lint()
+            .allowMissingSdk()
+            .files(
+                coroutinesStub,
+                smbjStub,
+                kotlin(
+                    """
+                    package com.sza.fastmediasorter.data.network
+
+                    import com.hierynomus.smbj.SMBClient
+                    import kotlinx.coroutines.Dispatchers
+                    import kotlinx.coroutines.withContext
+
+                    class SmbDataSource(private val client: SMBClient) {
+                        suspend fun listShares(): Any = withContext(Dispatchers.IO) {
+                            client.connect("192.168.1.1")
+                        }
+                    }
+                    """.trimIndent()
+                )
+            )
+            .issues(NetworkDataSourceDispatcherDetector.ISSUE)
+            .run()
+            .expectClean()
+    }
+
+    @Test
+    fun testNetworkDataSourceDispatcherAcceptsConfinedPrivateHelper() {
+        lint()
+            .allowMissingSdk()
+            .files(
+                coroutinesStub,
+                commonsNetStub,
+                kotlin(
+                    """
+                    package com.sza.fastmediasorter.data.network
+
+                    import org.apache.commons.net.ftp.FTPClient
+                    import kotlinx.coroutines.Dispatchers
+                    import kotlinx.coroutines.withContext
+
+                    class FtpDataSource(private val client: FTPClient) {
+                        suspend fun fetch(): Array<Any> = withContext(Dispatchers.IO) {
+                            doList()
+                        }
+
+                        private fun doList(): Array<Any> {
+                            return client.listFiles()
+                        }
+                    }
+                    """.trimIndent()
+                )
+            )
+            .issues(NetworkDataSourceDispatcherDetector.ISSUE)
+            .run()
+            .expectClean()
+    }
+
+    @Test
+    fun testNetworkDataSourceDispatcherAcceptsFieldStoredDispatcher() {
+        lint()
+            .allowMissingSdk()
+            .files(
+                coroutinesStub,
+                jschStub,
+                kotlin(
+                    """
+                    package com.sza.fastmediasorter.data.network
+
+                    import com.jcraft.jsch.ChannelSftp
+                    import kotlinx.coroutines.Dispatchers
+                    import kotlinx.coroutines.withContext
+
+                    class SftpDataSource(private val channel: ChannelSftp) {
+                        private val ioDispatcher = Dispatchers.IO
+
+                        suspend fun list(): List<Any> = withContext(ioDispatcher) {
+                            channel.ls("/path")
+                        }
+                    }
+                    """.trimIndent()
+                )
+            )
+            .issues(NetworkDataSourceDispatcherDetector.ISSUE)
+            .run()
+            .expectClean()
+    }
+
+    @Test
+    fun testNetworkDataSourceDispatcherRejectsMainDispatcher() {
+        lint()
+            .allowMissingSdk()
+            .files(
+                coroutinesStub,
+                smbjStub,
+                kotlin(
+                    """
+                    package com.sza.fastmediasorter.data.network
+
+                    import com.hierynomus.smbj.SMBClient
+                    import kotlinx.coroutines.Dispatchers
+                    import kotlinx.coroutines.withContext
+
+                    class SmbDataSource(private val client: SMBClient) {
+                        suspend fun list(): Any = withContext(Dispatchers.Main) {
+                            client.connect("192.168.1.1")
+                        }
+                    }
+                    """.trimIndent()
+                )
+            )
+            .issues(NetworkDataSourceDispatcherDetector.ISSUE)
             .run()
             .expectErrorCount(1)
     }

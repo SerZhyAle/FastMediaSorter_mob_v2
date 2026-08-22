@@ -11,7 +11,7 @@
     <string name="welcome_default_player_title">ডিফল্ট প্লেয়ার</string>
     <string name="welcome_description_1">আপনার সবকিছু এক জায়গায় রাখা মিডিয়া ব্যবস্থাপক।\nলোকাল, নেটওয়ার্ক ও ক্লাউড স্টোরেজের ফাইল ব্রাউজ করুন, সাজান ও পরিচালনা করুন - সবই সহজ স্পর্শ অঙ্গভঙ্গিতে।</string>
     <string name="welcome_description_1_details">FastMediaSorter সব ধরনের মিডিয়া এক জায়গায় নিয়ে আসে। আপনার ডিভাইস থেকে, নেটওয়ার্ক শেয়ার থেকে বা ক্লাউড স্টোরেজ থেকে ছবি, ভিডিও, GIF ও গান খুলুন - এবং দীর্ঘক্ষণ চেপে ধরা মেনুর বদলে দ্রুত ট্যাপে সেগুলো সাজান।\n\nএখানে যা কিছু ঠিক করবেন তা পরে সেটিংসে বদলানো যাবে, তাই এই পর্দায় ভুল পছন্দ বলে কিছু নেই - এগোতে শুধু পরবর্তী চাপুন।</string>
-    <string name="welcome_description_3" formatted="false">প্লেয়ার দ্রুত কাজের জন্য ৯টি স্পর্শ অঞ্চল (৩×৩ গ্রিড) ব্যবহার করে। চলাচল, ফাইল কপি, সরানো, মোছা বা কমান্ড প্যানেল খুলতে অঞ্চলগুলোতে ট্যাপ করুন। বিস্তারিত উপরের নকশায় দেখুন।</string>
+    <string name="welcome_description_3" formatted="false">প্লেয়ার দ্রুত অ্যাকশনের জন্য 9টি টাচ জোন (3×3 গ্রিড) ব্যবহার করে। নেভিগেট করতে, ফাইল কপি/মুভ/ডিলিট করতে, বা কমান্ড প্যানেল অ্যাক্সেস করতে জোনে ট্যাপ করুন। বিস্তারিত জানতে উপরের স্কিমটি দেখুন।</string>
     <string name="welcome_language_picker_hint">অ্যাপের ভাষা বেছে নিন</string>
     <string name="welcome_profile_audio_player_desc">শুধু অডিও ডিভাইস বা MP3 প্লেয়ারের জন্য সবচেয়ে উপযুক্ত। ছবি ও ভিডিও লুকায়; পটভূমির অডিও ও এখন বাজছে পর্দা উন্নত করে।</string>
     <string name="welcome_profile_audio_player_title">অডিও প্লেয়ার</string>
@@ -34,7 +34,7 @@
     <string name="welcome_profile_tv_media_box_title">টিভি / মিডিয়া বক্স</string>
     <string name="welcome_profile_video_player_desc">শুধু ভিডিও ডিভাইসের জন্য সবচেয়ে উপযুক্ত। ছবি, গান ও নথি দর্শক লুকায়; দ্রুত ভিডিও চালানো ও থাম্বনেইলকে অগ্রাধিকার দেয়।</string>
     <string name="welcome_profile_video_player_title">ভিডিও প্লেয়ার</string>
-    <string name="welcome_profile_vr_headset_desc">ভার্চুয়াল রিয়ালিটি ডিভাইসের জন্য সবচেয়ে উপযুক্ত। সমর্থিত হার্ডওয়্যার সংস্করণে 3D/360° বিন্যাস ও নিমজ্জিত নিয়ন্ত্রণ আগেভাগে চালু করে।</string>
+    <string name="welcome_profile_vr_headset_desc">ভার্চুয়াল রিয়েলিটি ডিভাইসের জন্য সেরা। সমর্থিত হার্ডওয়্যার ফ্লেভারে 3D/360° লেআউট এবং ইমার্সিভ কন্ট্রোল আগে থেকেই সক্রিয় করে।</string>
     <string name="welcome_profile_vr_headset_title">VR হেডসেট</string>
     <string name="welcome_recommended_badge">(প্রস্তাবিত)</string>
     <string name="welcome_title_1">FastMediaSorter-এ স্বাগতম!</string>

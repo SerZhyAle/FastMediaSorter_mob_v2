@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FolderOpen
@@ -28,6 +27,7 @@ import androidx.wear.compose.material.Text
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import timber.log.Timber
 
 /**
@@ -69,65 +69,65 @@ fun PermissionsScreen(
         }
     }
     
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            imageVector = Icons.Default.FolderOpen,
-            contentDescription = null,
-            modifier = Modifier.size(48.dp),
-            tint = Color.White
-        )
-        
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        Text(
-            text = stringResource(R.string.permission_title),
-            fontSize = 16.sp,
-            textAlign = TextAlign.Center,
-            color = Color.White
-        )
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        Text(
-            text = stringResource(R.string.permission_description),
-            fontSize = 12.sp,
-            textAlign = TextAlign.Center,
-            color = Color.Gray
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        Chip(
-            onClick = {
-                Timber.d("Requesting permissions: $mediaPermissions")
-                permissionsState.launchMultiplePermissionRequest()
-            },
-            modifier = Modifier.fillMaxWidth(),
-            label = {
-                Text(
-                    text = stringResource(R.string.permission_grant_button),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
-            colors = ChipDefaults.primaryChipColors()
-        )
-        
-        // Show rationale if needed
-        if (permissionsState.shouldShowRationale) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = stringResource(R.string.permission_rationale),
-                fontSize = 10.sp,
-                textAlign = TextAlign.Center,
-                color = Color(0xFFFF9800) // Orange warning color
+    WearScreenScaffold {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.FolderOpen,
+                contentDescription = null,
+                modifier = Modifier.size(48.dp),
+                tint = Color.White
             )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = stringResource(R.string.permission_title),
+                fontSize = 16.sp,
+                textAlign = TextAlign.Center,
+                color = Color.White
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = stringResource(R.string.permission_description),
+                fontSize = 12.sp,
+                textAlign = TextAlign.Center,
+                color = Color.Gray
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Chip(
+                onClick = {
+                    Timber.d("Requesting permissions: $mediaPermissions")
+                    permissionsState.launchMultiplePermissionRequest()
+                },
+                modifier = Modifier.fillMaxWidth(),
+                label = {
+                    Text(
+                        text = stringResource(R.string.permission_grant_button),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
+                colors = ChipDefaults.primaryChipColors()
+            )
+
+            // Show rationale if needed
+            if (permissionsState.shouldShowRationale) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = stringResource(R.string.permission_rationale),
+                    fontSize = 10.sp,
+                    textAlign = TextAlign.Center,
+                    color = Color(0xFFFF9800) // Orange warning color
+                )
+            }
         }
     }
 }

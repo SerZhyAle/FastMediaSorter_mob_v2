@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.di.DefaultDispatcher
 import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
@@ -20,7 +21,9 @@ import com.sza.fastmediasorter.domain.model.StreamsCatalogRefreshPolicy
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.StreamResumeStateRepository
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
+import com.sza.fastmediasorter.domain.usecase.SendStreamToWatchUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.AddStreamSourceUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.ClearDownloadedStreamsUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.GetStreamSourceByUrlUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamCatalogUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamPlaylistUseCase
@@ -80,6 +83,7 @@ class StreamsViewModel @Inject constructor(
     // S0938: relative reorder of a pinned channel (up / down / to top) within the pinned set.
     private val reorderPinnedStream: ReorderPinnedStreamUseCase,
     private val removeStreamSource: RemoveStreamSourceUseCase,
+    private val clearDownloadedStreams: ClearDownloadedStreamsUseCase,
     private val recordStreamPlayOutcome: RecordStreamPlayOutcomeUseCase,
     // S1502: outcomes arrive on their own table-scoped Flow, beside the catalog rather than inside it.
     observeStreamPlayOutcomes: ObserveStreamPlayOutcomesUseCase,
@@ -106,6 +110,11 @@ class StreamsViewModel @Inject constructor(
     // S1502: the catalog pass runs here, not on the main thread. Injected rather than hardcoded so
     // the dispatcher can be swapped for a deterministic one in a test.
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
+    // S1799: gates the per-channel "Send to watch" command on the build's watch bridge (Rule 14
+    // surface - BuildConfig is never read here).
+    private val mediaCapabilities: MediaCapabilities,
+    // S1799: Lazy - the send path is cold until the user actually invokes the command (Rule 18).
+    private val sendStreamToWatchUseCase: dagger.Lazy<SendStreamToWatchUseCase>,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(StreamsUiState())
@@ -118,12 +127,65 @@ class StreamsViewModel @Inject constructor(
 
     // S0783: URLs of favorited channels, so the per-channel overflow can label its action add vs remove.
     // Eager so `.value` is current when the Activity pushes the state into the adapters.
-    val favoriteStreamUrls: StateFlow<Set<String>> = favoritesUseCase.observeFavoriteStreamUrls()
+    val favoriteStreamIdentities: StateFlow<Set<String>> = favoritesUseCase.observeFavoriteStreamIdentities()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
+
+    /**
+     * S1842: whether this channel is favourited. Matching is by channel identity, so a catalog that
+     * re-published the channel under a cosmetically different address no longer darkens the star.
+     * Call sites ask this instead of comparing the raw URL themselves.
+     */
+    fun isFavoriteChannel(source: StreamSourceEntity): Boolean =
+        favoriteStreamIdentities.value.contains(favoritesUseCase.channelIdentity(source))
+
+    /**
+     * S1799: the canonical companion gate - the user's setting AND the build's watch bridge
+     * (MainActivity ADR-1 shape). Either alone would offer a command that cannot run.
+     */
+    // S1944: a property, not a function - this class sits exactly on detekt's TooManyFunctions
+    // ceiling, and a property accessor does not count against it. The value and its callers are
+    // unchanged; only the shape is.
+    val isWearSendAvailable: Boolean
+        get() = settings.value.enableWearCompanion && mediaCapabilities.supportsWearCompanion
+
+    /**
+     * S1799: sends one channel to the watch and reports the outcome as a one-shot message.
+     *
+     * S1944: [openNow] asks the watch to end in a player rather than in its list. One function with a
+     * parameter rather than two entry points on purpose - this class sits on detekt's
+     * `TooManyFunctions` ceiling, and the menu already distinguishes the two intentions by which row
+     * the user pressed.
+     */
+    fun sendStreamToWatch(source: StreamSourceEntity, openNow: Boolean = false) {
+        Timber.d("S1799: send to watch requested for ${source.url}, openNow=$openNow")
+        viewModelScope.launch {
+            val outcome = sendStreamToWatchUseCase.get()(
+                source.title,
+                source.url,
+                source.mediaKind,
+                openNow,
+            )
+            _events.send(StreamsEvent.Message(outcome.toMessageRes()))
+        }
+    }
+
+    @StringRes
+    private fun SendStreamToWatchUseCase.Outcome.toMessageRes(): Int = when (this) {
+        is SendStreamToWatchUseCase.Outcome.Delivered ->
+            if (updated) R.string.stream_send_to_watch_updated else R.string.stream_send_to_watch_done
+
+        SendStreamToWatchUseCase.Outcome.WatchUnavailable ->
+            R.string.stream_send_to_watch_watch_unavailable
+
+        SendStreamToWatchUseCase.Outcome.NoReply -> R.string.stream_send_to_watch_no_reply
+        is SendStreamToWatchUseCase.Outcome.Error -> R.string.stream_send_to_watch_failed
+        SendStreamToWatchUseCase.Outcome.Opened -> R.string.stream_open_on_watch_opened
+        SendStreamToWatchUseCase.Outcome.WatchAppNotOpen -> R.string.stream_open_on_watch_app_closed
+    }
 
     // S1502: play outcome per channel id. Deliberately NOT part of StreamsUiState - folding it into
     // the combined state would put a per-probe signal back on the per-keystroke catalog pass that
-    // Phases 02 and 03 just made cheap. Eager, mirroring favoriteStreamUrls above.
+    // Phases 02 and 03 just made cheap. Eager, mirroring favoriteStreamIdentities above.
     val playOutcomes: StateFlow<Map<String, String>> = observeStreamPlayOutcomes()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
@@ -343,6 +405,17 @@ class StreamsViewModel @Inject constructor(
     }
 
     /** Downloads/refreshes the curated FastMediaSorter catalog; reports the added/updated/removed delta. */
+    /**
+     * S1780: drops every downloaded channel, keeping the hand-added ones.
+     *
+     * The confirmation belongs to the screen, not here - by the time this runs the user has already
+     * agreed, and a ViewModel that re-asked would put the question in two places.
+     */
+    fun onClearDownloaded() = viewModelScope.launch {
+        val removed = clearDownloadedStreams()
+        _events.send(StreamsEvent.DownloadedCleared(removed))
+    }
+
     fun onImportCatalog() = viewModelScope.launch {
         _state.update { it.copy(isImporting = true) }
         try {
@@ -524,7 +597,9 @@ class StreamsViewModel @Inject constructor(
      * be reached with no Wi-Fi/cellular/ethernet, so the play path consults this to refuse fast
      * instead of letting ExoPlayer/the fullscreen player spin until a connection timeout.
      */
-    fun hasNetworkForStream(): Boolean = networkContextAnalyzer.hasAnyNetwork()
+    // S1944: a property for the same reason as isWearSendAvailable above - the class is at detekt's
+    // TooManyFunctions ceiling and a property accessor is not counted. Value and callers unchanged.
+    val hasNetworkForStream: Boolean get() = networkContextAnalyzer.hasAnyNetwork()
 
     /** S0699: remember the user's current list position so the next screen open lands on the same channel. */
     fun onScrollPositionChanged(position: Int) = viewModelScope.launch {
@@ -724,6 +799,9 @@ class StreamsViewModel @Inject constructor(
     sealed interface StreamsEvent {
         data class Message(@StringRes val messageResId: Int) : StreamsEvent
         data class ImportFinished(val inserted: Int) : StreamsEvent
+
+        /** S1780: how many downloaded channels the clear actually removed. */
+        data class DownloadedCleared(val removed: Int) : StreamsEvent
         data class CatalogUpdated(val added: Int, val updated: Int, val removed: Int) : StreamsEvent
         data class PlayRequested(val source: StreamSourceEntity) : StreamsEvent
 

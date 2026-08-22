@@ -15,6 +15,11 @@
     .\scripts\all_features\validate.ps1
 .EXAMPLE
     .\scripts\all_features\validate.ps1 -Gate
+
+.NOTES
+    Exit codes:
+      0 inventory valid, and the S1934 ungated-flavors ratchet is at or below its baseline.
+      1 a schema rule was violated, the ratchet grew past its baseline, or the baseline is unreadable.
 #>
 param(
     [switch]$NoLegal,
@@ -29,9 +34,62 @@ $validFlavors = @("standard", "lite", "photos", "legacy", "vr", "noLegal")
 $validStatus = @("active", "removed")
 $required = @("id", "area", "name", "description", "flavors")
 
+# S1934: the full flavor set. A capability nothing gates cannot be narrower than the app itself,
+# so this set - or the row of some matrix flag - is the only shape an ungated record may claim.
+$allFlavors = @("standard", "lite", "photos", "legacy", "vr", "noLegal")
+
 function Test-NonAscii([string]$s) {
     foreach ($ch in $s.ToCharArray()) { if ([int][char]$ch -gt 127) { return $true } }
     return $false
+}
+
+function Get-FlavorMatrixFlags {
+    <#
+    .SYNOPSIS
+        flag name -> the flavors it is ON in, read from the generated flavor matrix (S1929).
+    .DESCRIPTION
+        docs/FLAVOR_MATRIX.md is generated from the productFlavors block and is the only permitted
+        source for this grid: CLAUDE.md forbids restating it from memory after S1392, where a
+        summary in a prompt claimed `lite` had no audio and four documents followed it.
+
+        The column order is read from the table's own header rather than assumed, so the parser
+        does not silently transpose if a flavor is ever added or reordered.
+
+        A cell is ON when it carries `[+]`. The trailing asterisk in `[+]*` / `[-]*` means the
+        value was inherited from defaultConfig rather than declared by the flavor (see the file's
+        own legend) - that is a fact about where the value came from, not about what it is.
+
+        Returns an empty hashtable when the matrix cannot be read; the caller decides what that
+        means rather than having a guess made for it here.
+    #>
+    param([Parameter(Mandatory)][string]$MatrixPath)
+
+    $flags = @{}
+    if (-not (Test-Path -LiteralPath $MatrixPath)) { return $flags }
+
+    $columns = @()
+    foreach ($line in (Get-Content -LiteralPath $MatrixPath -Encoding UTF8)) {
+        if ($line -notmatch '^\s*\|') { continue }
+        $cells = @($line.Trim().Trim('|').Split('|') | ForEach-Object { $_.Trim() })
+        if ($cells.Count -lt 2) { continue }
+
+        if ($columns.Count -eq 0) {
+            # The header is the first table row whose leading cell is the flag column's title.
+            if ($cells[0] -eq 'Flag') { $columns = @($cells[1..($cells.Count - 1)]) }
+            continue
+        }
+        if ($cells[0] -match '^:?-{2,}') { continue }   # the alignment row
+
+        $name = $cells[0].Trim('`')
+        if ($name -notmatch '^[A-Z][A-Z0-9_]*$') { continue }
+
+        $on = @()
+        for ($i = 0; $i -lt $columns.Count -and ($i + 1) -lt $cells.Count; $i++) {
+            if ($cells[$i + 1] -like '*[[]+]*') { $on += $columns[$i] }
+        }
+        $flags[$name] = $on
+    }
+    return $flags
 }
 
 # Resolve repo root
@@ -45,8 +103,12 @@ $fileName = if ($NoLegal) { "ALL_FEATURES_noLegal.jsonl" } else { "ALL_FEATURES.
 $dataFile = Join-Path (Join-Path $repoRoot "docs") $fileName
 
 $errors = New-Object System.Collections.Generic.List[string]
+$unexplained = New-Object System.Collections.Generic.List[string]
 $seenIds = @{}
 $count = 0
+
+# Read once for the whole file rather than per record - the matrix does not change mid-run.
+$matrixFlags = Get-FlavorMatrixFlags -MatrixPath (Join-Path (Join-Path $repoRoot "docs") "FLAVOR_MATRIX.md")
 
 if (Test-Path $dataFile) {
     $lineNo = 0
@@ -93,6 +155,47 @@ if (Test-Path $dataFile) {
                 }
             }
         }
+        # gate (S1929) - NOTE: the record's `gate` field is unrelated to this script's -Gate switch,
+        # which only silences success output.
+        #
+        # A record may name the BuildConfig flag its capability lives behind. When it does, its
+        # flavors must equal that flag's row in the generated matrix: the field is what makes the
+        # claim checkable at all, because nothing in the code says which capability sits behind
+        # which flag. When it does not, nothing is claimed and nothing is checked - that silence is
+        # an assertion ("behind no flag"), which is why documentation-only records keep their own
+        # sets instead of being swept to a runtime flag's.
+        if ($obj.PSObject.Properties.Name -contains 'gate' -and
+            -not [string]::IsNullOrWhiteSpace("$($obj.gate)")) {
+            $gateName = "$($obj.gate)".Trim()
+            if ($matrixFlags.Count -eq 0) {
+                $errors.Add("L${lineNo}: record names gate '$gateName' but the flavor matrix could not be read")
+            }
+            elseif (-not $matrixFlags.ContainsKey($gateName)) {
+                # An unknown name is an error rather than a skip: a typo would otherwise turn the
+                # check off for that record and look exactly like a record that passed.
+                $errors.Add("L${lineNo}: gate '$gateName' is not a flag in docs/FLAVOR_MATRIX.md")
+            }
+            else {
+                $expected = @($matrixFlags[$gateName] | Sort-Object)
+                $actual = @($obj.flavors | Sort-Object)
+                if (($expected -join ',') -ne ($actual -join ',')) {
+                    $errors.Add("L${lineNo}: flavors disagree with gate '$gateName' - expected [$($expected -join ', ')], recorded [$($actual -join ', ')]")
+                }
+            }
+        }
+        elseif ($obj.flavors -is [array] -and $obj.flavors.Count -gt 0 -and $matrixFlags.Count -gt 0) {
+            # Unexplained flavor set (S1934) - counted, not refused: 242 records predate the rule.
+            # An ungated record may claim the full six (nothing narrows it) or exactly some flag's
+            # row (that flag narrows it). Anything else names a reach the build does not produce.
+            $actualSet = ($obj.flavors | Sort-Object) -join ','
+            $explained = ($actualSet -eq (($allFlavors | Sort-Object) -join ','))
+            if (-not $explained) {
+                foreach ($row in $matrixFlags.Values) {
+                    if ((($row | Sort-Object) -join ',') -eq $actualSet) { $explained = $true; break }
+                }
+            }
+            if (-not $explained) { $unexplained.Add("$($obj.id) [$actualSet]") | Out-Null }
+        }
         # spec
         if ($obj.PSObject.Properties.Name -contains 'spec' -and $null -ne $obj.spec) {
             if ("$($obj.spec)" -notmatch '^S\d{4}$') {
@@ -121,6 +224,38 @@ if ($errors.Count -gt 0) {
         foreach ($e in $errors) { Write-Host "  $e" -ForegroundColor Red }
     }
     exit 1
+}
+
+# S1934 ratchet. The public inventory only: the noLegal file has its own contents and no baseline.
+if (-not $NoLegal) {
+    $baselineFile = Join-Path $PSScriptRoot "unexplained-flavors-baseline.txt"
+    if ($matrixFlags.Count -eq 0) {
+        if (-not $Gate) {
+            Write-Host "ALL_FEATURES: ungated-flavors ratchet SKIPPED - docs/FLAVOR_MATRIX.md unreadable" -ForegroundColor Yellow
+        }
+    }
+    elseif (-not (Test-Path -LiteralPath $baselineFile)) {
+        if (-not $Gate) {
+            Write-Host "ALL_FEATURES: ungated-flavors ratchet SKIPPED - baseline file missing ($baselineFile)" -ForegroundColor Yellow
+        }
+    }
+    else {
+        $baseline = 0
+        $baselineRaw = ((Get-Content -LiteralPath $baselineFile -Raw) -replace '\s', '')
+        if (-not [int]::TryParse($baselineRaw, [ref]$baseline)) {
+            Write-Host "ALL_FEATURES: ungated-flavors baseline is not an integer ($baselineFile)" -ForegroundColor Red
+            exit 1
+        }
+        if ($unexplained.Count -gt $baseline) {
+            Write-Host ("ALL_FEATURES: ungated-flavors ratchet FAILED - {0} record(s) claim a reach the build system does not produce, baseline {1}." -f $unexplained.Count, $baseline) -ForegroundColor Red
+            Write-Host "  An ungated record carries the full six flavors, or exactly one flag's row in docs/FLAVOR_MATRIX.md (S1934)." -ForegroundColor Red
+            foreach ($u in $unexplained) { Write-Host "  $u" -ForegroundColor Red }
+            exit 1
+        }
+        if ($unexplained.Count -lt $baseline -and -not $Gate) {
+            Write-Host ("ALL_FEATURES: ungated-flavors ratchet improved - {0} record(s) against baseline {1}; lower the baseline in {2}." -f $unexplained.Count, $baseline, $baselineFile) -ForegroundColor Yellow
+        }
+    }
 }
 
 if (-not $Gate -and -not $Quiet) {

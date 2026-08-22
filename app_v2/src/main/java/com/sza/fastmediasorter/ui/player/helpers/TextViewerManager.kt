@@ -143,8 +143,15 @@ class TextViewerManager(
     // S0189 Phase 07: auto-fit font manager; created fresh on each enterEditMode
     private var autoFitFontManager: TextEditorAutoFitFontManager? = null
     private val safeViews = PlayerBindingSafeViews(root)
-    private val actionPanelManager: com.sza.fastmediasorter.ui.editor.actions.EditorActionPanel by lazy {
-        com.sza.fastmediasorter.ui.editor.actions.EditorActionPanelBinder(
+
+    // S1549: not a `by lazy` - it binds concrete editor-toolbar views, and a lazy would keep handing
+    // out the discarded ones after a re-inflate, leaving Save/Cancel dead in the new layout.
+    private var _actionPanelManager: com.sza.fastmediasorter.ui.editor.actions.EditorActionPanel? = null
+    private val actionPanelManager: com.sza.fastmediasorter.ui.editor.actions.EditorActionPanel
+        get() = _actionPanelManager ?: buildActionPanelManager().also { _actionPanelManager = it }
+
+    private fun buildActionPanelManager(): com.sza.fastmediasorter.ui.editor.actions.EditorActionPanel {
+        return com.sza.fastmediasorter.ui.editor.actions.EditorActionPanelBinder(
             buttons = com.sza.fastmediasorter.ui.editor.actions.EditorActionButtons(
                 save = safeViews.btnEditorSave,
                 saveClose = safeViews.btnEditorSaveClose,
@@ -161,6 +168,16 @@ class TextViewerManager(
             cleanColor = com.sza.fastmediasorter.ui.editor.dirty.DirtyToolbarTinter.TRANSPARENT_PRESERVE_ORIGINAL,
             dirtyColor = android.graphics.Color.parseColor("#992C2C"),
         )
+    }
+
+    /**
+     * S1549: re-point at a re-inflated hierarchy. The loaded text, the current page and the editor
+     * buffer stay in this instance; every delegate reads through the shared [safeViews], so
+     * re-pointing that one object covers them all. The caller re-renders the current page after.
+     */
+    fun rebindLayoutRoot(newRoot: View) {
+        safeViews.rebindRoot(newRoot)
+        _actionPanelManager = null
     }
 
     // Delegated helpers
@@ -828,6 +845,16 @@ class TextViewerManager(
                 renderPageContent(pageText, settings.showTextLineNumbers, startLine)
             }
         }
+    }
+
+    /**
+     * S1549: re-render the held page after a layout re-inflate - the pager, page index and editor
+     * buffer live in this instance, only the views it renders into were replaced.
+     */
+    fun rerenderAfterRebind() {
+        if (textFilePager == null) return
+        reloadCurrentPage()
+        updatePageIndicator()
     }
 
     // ===== H.3: Editor enter/exit/save =====

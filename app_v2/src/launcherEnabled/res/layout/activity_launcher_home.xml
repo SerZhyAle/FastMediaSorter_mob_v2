@@ -8,7 +8,7 @@
 
     <!-- S1101: wallpaper layers, behind the grid. At most one is visible; both stay GONE for the "empty"
          mode, and neither allocates anything until it is sized, so the idle cost of the unused layer is a
-         view object. Ids must exist in layout-land/ too (one ViewBinding, Rule 11). -->
+         view object. -->
     <ImageView
         android:id="@+id/launcherWallpaperImage"
         android:layout_width="0dp"
@@ -33,8 +33,7 @@
 
     <!-- S1421: the band the system status bar leaves behind. GONE unless the launcher replaces the status
          area, and a GONE include collapses onto its own anchor, so the grid below lands at the parent top
-         exactly as it did before this strip existed. Ids must exist in layout-land/ too (one ViewBinding,
-         Rule 11). -->
+         exactly as it did before this strip existed. -->
     <include
         android:id="@+id/launcherStatusStrip"
         layout="@layout/launcher_status_strip"
@@ -51,12 +50,9 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:clipToPadding="false"
-        android:fadeScrollbars="false"
         android:fillViewport="true"
-        android:scrollbarThumbVertical="@color/scrollbar_thumb"
-        android:scrollbars="vertical"
-        android:paddingStart="@dimen/margin_small"
-        android:paddingEnd="@dimen/margin_small"
+        android:paddingStart="@dimen/launcher_grid_side_padding"
+        android:paddingEnd="@dimen/launcher_grid_side_padding"
         app:layout_constraintBottom_toTopOf="@+id/launcherTaskbar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -68,6 +64,18 @@
             android:layout_height="wrap_content" />
 
     </androidx.core.widget.NestedScrollView>
+
+    <!-- S1430: replaces the scroll container's system bar, which is drawn but never touchable. Declared
+         after the container so it draws on top, and anchored to the container rather than to the parent
+         because LauncherTaskbarPlacementManager re-constrains the container for a top or bottom taskbar. -->
+    <com.sza.fastmediasorter.ui.launcher.grid.LauncherScrollThumbView
+        android:id="@+id/launcherScrollThumb"
+        android:layout_width="@dimen/launcher_scroll_thumb_touch_width"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/launcherGridScroll"
+        app:layout_constraintEnd_toEndOf="@+id/launcherGridScroll"
+        app:layout_constraintTop_toTopOf="@+id/launcherGridScroll" />
 
     <include
         android:id="@+id/launcherTaskbar"

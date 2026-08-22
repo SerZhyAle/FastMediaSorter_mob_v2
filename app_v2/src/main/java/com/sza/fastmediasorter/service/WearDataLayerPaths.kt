@@ -22,6 +22,30 @@ object WearDataLayerPaths {
     /** Message, watch → phone. Carries favorites delta payload. */
     const val FAVORITES_DELTA = "/fms/watch/favorites_delta"
 
+    /** Message, watch → phone. Requests a paired-phone resource page. */
+    const val PHONE_RESOURCE_BROWSE_REQUEST = "/fms/watch/phone_resource/browse"
+
+    /** Message, watch → phone. Requests an on-demand paired-phone media channel. */
+    const val PHONE_RESOURCE_OPEN_REQUEST = "/fms/watch/phone_resource/open"
+
+    /** Data Item, phone → watch. Carries a correlated paired-phone resource page. */
+    const val PHONE_RESOURCE_PAGE = "/fms/phone/phone_resource/page"
+
+    /** Channel, phone → watch. Carries the bytes of one approved paired-phone media item. */
+    const val PHONE_RESOURCE_TRANSFER = "/fms/phone/phone_resource/transfer"
+
+    /** Message, watch → phone. Carries one log report for the developer. */
+    const val LOG_REPORT_REQUEST = "/fms/watch/log_report"
+
+    /** Message, phone → watch. Answers one log report - accepted, or refused with a reason. */
+    const val LOG_REPORT_ACK = "/fms/phone/log_report_ack"
+
+    /** Message, phone → watch. Carries one stream channel description to store on the watch. */
+    const val STREAM_TRANSFER = "/fms/phone/stream_transfer"
+
+    /** Message, watch → phone. Carries the transfer outcome for one stream channel. */
+    const val STREAM_TRANSFER_ACK = "/fms/watch/stream_transfer_ack"
+
     // --- WearEventEnvelope.eventType constants ---
 
     /** eventType value for SETTINGS_PUSH envelopes. */
@@ -38,4 +62,10 @@ object WearDataLayerPaths {
 
     /** eventType value for FAVORITES_DELTA envelopes. */
     const val EVENT_FAVORITES = "FAVORITES_DELTA"
+
+    /** eventType value for PHONE_RESOURCE_PAGE envelopes. */
+    const val EVENT_PHONE_RESOURCE_PAGE = "PHONE_RESOURCE_PAGE"
+
+    /** eventType value for STREAM_TRANSFER envelopes. */
+    const val EVENT_STREAM_TRANSFER = "STREAM_TRANSFER"
 }

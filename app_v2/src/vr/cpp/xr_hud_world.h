@@ -32,6 +32,11 @@ struct HUDWorldState {
     // below the film instead of on top of it. Persisted across sessions like the size above.
     float overrideVerticalOffset{0.0f};
 
+    // S1271: caller-requested gaze distance of the HUD quad in meters. 1.5 is the S0290 placement
+    // every surface used until the settings panel made it user-adjustable. Persisted across
+    // sessions like the size above.
+    float overrideDistance{1.5f};
+
     // Gaze-kept target states
     XrVector3f targetCenter;
     XrQuaternionf targetRot;
@@ -52,6 +57,10 @@ void xr_hud_init();
 // S1228: verticalOffsetMeters places the quad relative to the gaze ray (0 = centred, negative =
 // below). Size and placement travel together so a caller cannot set one and forget the other.
 void xr_hud_set_quad_size(float widthMeters, float heightMeters, float verticalOffsetMeters);
+
+// S1271: request the HUD quad's gaze distance in meters; clamped to a sane reach and persisted
+// across sessions like the size override above.
+void xr_hud_set_quad_distance(float distanceMeters);
 
 // S1232: show or hide the HUD quad. Hidden means fully hidden - the quad, the laser lines and
 // the cursor dots stop drawing, and ray processing stops with them, so an invisible panel can

@@ -41,6 +41,7 @@ class AuthSessionsActivity : BaseActivity<ActivityAuthSessionsBinding>() {
     }
 
     override fun setupViews() {
+        Timber.d("S1549: AuthSessionsActivity setupViews - recreation applies the orientation layout")
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }

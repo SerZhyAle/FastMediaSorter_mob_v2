@@ -2,13 +2,15 @@ package com.sza.fastmediasorter.data.repository
 
 import androidx.room.withTransaction
 import com.sza.fastmediasorter.data.local.db.AppDatabase
-import com.sza.fastmediasorter.data.local.db.StreamPlayOutcomeDao
 import com.sza.fastmediasorter.data.local.db.StreamQualityMemoryDao
 import com.sza.fastmediasorter.data.local.db.StreamQualityMemoryEntity
 import com.sza.fastmediasorter.data.local.db.StreamSourceDao
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
+import com.sza.fastmediasorter.data.local.db.StreamUserStateDao
+import com.sza.fastmediasorter.data.util.StreamChannelIdentity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,8 +22,8 @@ import javax.inject.Singleton
 class StreamSourceRepository @Inject constructor(
     private val db: AppDatabase,
     private val dao: StreamSourceDao,
-    private val streamPlayOutcomeDao: StreamPlayOutcomeDao,
-    private val streamQualityMemoryDao: StreamQualityMemoryDao
+    private val streamQualityMemoryDao: StreamQualityMemoryDao,
+    private val streamUserStateDao: StreamUserStateDao
 ) {
 
     fun observeSources(): Flow<List<StreamSourceEntity>> = dao.observeAll()
@@ -32,14 +34,14 @@ class StreamSourceRepository @Inject constructor(
      * whole catalog - Room invalidates per table, which is why the value no longer lives on the row.
      */
     fun observePlayOutcomes(): Flow<Map<String, String>> =
-        streamPlayOutcomeDao.observeAll().map { outcomes ->
+        dao.observePlayOutcomesByRowId().map { outcomes ->
             outcomes.associate { it.streamId to it.outcome }
         }
 
     /** S0756: pinned channels only, in pin order, for the main-window streams panel. */
     fun observePinnedSources(): Flow<List<StreamSourceEntity>> = dao.observePinned()
 
-    suspend fun add(source: StreamSourceEntity) = dao.upsert(source)
+    suspend fun add(source: StreamSourceEntity) = dao.upsert(source.withIdentity())
 
     /** Inserts new sources, ignoring duplicates by url; returns how many were actually inserted. */
     suspend fun addAllIgnoringDuplicates(sources: List<StreamSourceEntity>): Int =
@@ -48,16 +50,32 @@ class StreamSourceRepository @Inject constructor(
         db.withTransaction {
             var inserted = 0
             for (source in sources) {
-                if (dao.insertIgnore(source) != -1L) inserted++
+                if (dao.insertIgnore(source.withIdentity()) != -1L) inserted++
             }
             inserted
         }
 
-    /** Raises a source above all others in the local list (feature-local favorite). */
-    suspend fun pinToTop(id: String) {
-        val newSortIndex = (dao.minSortIndex() ?: 0) - 1
-        dao.pin(id, newSortIndex)
-    }
+    /**
+     * Raises a source above all others in the local list (feature-local favorite).
+     *
+     * S1832: the durable copy is written first and the catalog row second, in one transaction - the row
+     * is a projection that a merge repaints, so a pin recorded only there is a pin the next import eats.
+     * The new lowest position comes from `stream_user_state`, not from the catalog: a channel currently
+     * missing from the published bank still holds a position, and numbering around it would collide with
+     * that channel the moment it returned.
+     */
+    suspend fun pinToTop(id: String) =
+        db.withTransaction {
+            val identity = dao.identityOf(id) ?: return@withTransaction
+            val newSortIndex = (streamUserStateDao.minSortIndex() ?: 0) - 1
+            streamUserStateDao.setPin(
+                identityKey = identity,
+                pinned = true,
+                sortIndex = newSortIndex,
+                atMillis = System.currentTimeMillis()
+            )
+            dao.pin(id, newSortIndex)
+        }
 
     /** S0938: snapshot of the pinned set in display order, used to compute a reorder move. */
     suspend fun pinnedSnapshot(): List<StreamSourceEntity> = dao.pinnedSnapshot()
@@ -69,22 +87,48 @@ class StreamSourceRepository @Inject constructor(
      */
     suspend fun reorderPinned(orderedIds: List<String>) =
         db.withTransaction {
-            orderedIds.forEachIndexed { index, id -> dao.setSortIndex(id, index) }
+            val now = System.currentTimeMillis()
+            orderedIds.forEachIndexed { index, id ->
+                dao.identityOf(id)?.let { streamUserStateDao.setSortIndex(it, index, now) }
+                dao.setSortIndex(id, index)
+            }
         }
 
-    /** S1502: the outcome now lives in its own table, so removing a channel must take its row too. */
+    /**
+     * S1502: the outcome lives outside the catalog row, so removing a channel must take it too.
+     *
+     * S1832: this is the user deciding a channel should go, which is the one case where the durable state
+     * must NOT survive. Keeping it would resurrect the pin the user just removed the next time the bank
+     * republished that address - the opposite of what an explicit delete means.
+     */
     suspend fun remove(source: StreamSourceEntity) =
         db.withTransaction {
             dao.delete(source)
-            streamPlayOutcomeDao.deleteByStreamId(source.id)
+            streamUserStateDao.deleteByIdentity(source.identityKey)
         }
 
-    /** S0770: unpin a channel so it leaves the main-window streams panel; the catalog row is kept. */
-    suspend fun unpin(id: String) = dao.unpin(id)
+    /**
+     * S0770: unpin a channel so it leaves the main-window streams panel; the catalog row is kept.
+     *
+     * S1832: the position is preserved rather than reset, so re-pinning the channel puts it back where it
+     * was instead of at the top - the user removed it from the panel, not from their ordering.
+     */
+    suspend fun unpin(id: String) =
+        db.withTransaction {
+            val identity = dao.identityOf(id) ?: return@withTransaction
+            val keptSortIndex = streamUserStateDao.stateFor(identity)?.sortIndex ?: 0
+            streamUserStateDao.setPin(
+                identityKey = identity,
+                pinned = false,
+                sortIndex = keptSortIndex,
+                atMillis = System.currentTimeMillis()
+            )
+            dao.unpin(id)
+        }
 
     /** S0660: in-place edit of a MANUAL channel's url/title/mediaKind (pin/sort/origin preserved). */
     suspend fun updateUserFields(id: String, url: String, title: String, mediaKind: String) =
-        dao.updateUserFields(id, url, title, mediaKind)
+        dao.updateUserFields(id, url, title, mediaKind, StreamChannelIdentity.of(url))
 
     /** S0581: find the stored stream behind a playback URL (null if it is not a saved list entry). */
     suspend fun getByUrl(url: String): StreamSourceEntity? = dao.getByUrl(url)
@@ -92,17 +136,56 @@ class StreamSourceRepository @Inject constructor(
     /** S0404: resolve a channel a launcher shortcut pinned by id (null once the user removes it). */
     suspend fun getById(id: String): StreamSourceEntity? = dao.getById(id)
 
+    /**
+     * S1832: resolve the channel behind a launcher cell, whose payload is an identity today and was a
+     * row id before this ticket.
+     *
+     * The two key spaces cannot collide - a row id is a UUID and an identity is a normalized address -
+     * so trying one after the other is unambiguous rather than a guess. The id half stays permanently:
+     * `ApplyBackupPayloadUseCase` writes cells straight out of a backup file, and a backup taken before
+     * this change carries row-id payloads no migration will ever see.
+     *
+     * Lives here rather than in each caller so the three surfaces that resolve a cell - launch, label,
+     * long-press menu - cannot drift into resolving it differently.
+     */
+    suspend fun getByIdentityOrId(key: String): StreamSourceEntity? {
+        val byIdentity = dao.getByIdentity(key)
+        return byIdentity ?: dao.getById(key)
+    }
+
     suspend fun markPlayed(id: String, atMillis: Long) = dao.markPlayed(id, atMillis)
 
     /** S0593: persist the last local play outcome ("OK"/"FAIL") for the streams-list status bullet. */
-    suspend fun recordPlayOutcome(id: String, outcome: String) =
-        streamPlayOutcomeDao.markPlayOutcome(id, outcome, System.currentTimeMillis())
+    suspend fun recordPlayOutcome(id: String, outcome: String) {
+        val identity = dao.identityOf(id) ?: return
+        val now = System.currentTimeMillis()
+        streamUserStateDao.setOutcome(identity, outcome, recordedAt = now, atMillis = now)
+    }
 
     /** S1502: one-shot outcome read for a single channel, for surfaces that render once (info window). */
-    suspend fun playOutcome(id: String): String? = streamPlayOutcomeDao.outcomeFor(id)
+    suspend fun playOutcome(id: String): String? =
+        dao.identityOf(id)?.let { streamUserStateDao.stateFor(it)?.playOutcome }
 
-    /** S0659: clear all OK/FAIL status bullets without removing any channel. */
-    suspend fun clearPlayOutcomes() = streamPlayOutcomeDao.clearAllPlayOutcomes()
+    /** S0659: clear all OK/FAIL status bullets without removing any channel - and no pin with them. */
+    suspend fun clearPlayOutcomes() = streamUserStateDao.clearOutcomes()
+
+    /**
+     * S1780: drop every downloaded stream, keeping the hand-added ones.
+     *
+     * S1826: one transaction, because the outcome rows must go with their channels. This path deletes
+     * by origin and so never learns the ids it removed, which is why it purges by what is left over
+     * rather than by a list of ids the way [remove] does.
+     */
+    suspend fun deleteAllDownloaded(): Int =
+        db.withTransaction {
+            // S1832: the identities have to be read before the rows go - afterwards there is nothing left
+            // to resolve them from, and the state would linger as an unreachable row that re-pins the
+            // channel on the next import.
+            val identities = dao.downloadedIdentities()
+            val removed = dao.deleteAllDownloaded()
+            identities.forEach { streamUserStateDao.deleteByIdentity(it) }
+            removed
+        }
 
     /**
      * S1511: the rung this channel last settled on, keyed by normalized address so it survives the catalog
@@ -141,6 +224,9 @@ class StreamSourceRepository @Inject constructor(
     /** S0654: stored media kind (RTSP/VIDEO/AUDIO) behind a source id, for the stream-played metric. */
     suspend fun getMediaKind(id: String): String? = dao.getMediaKindById(id)
 
+    /** S1918: number of catalog-origin rows currently stored; zero means the catalog was never imported. */
+    suspend fun catalogSourceCount(): Int = dao.countCatalogSources()
+
     /**
      * S0570: synchronize the curated catalog into stream_sources. New catalog rows are inserted,
      * existing catalog rows have their metadata refreshed in place (sortIndex/pinned preserved), and
@@ -170,7 +256,7 @@ class StreamSourceRepository @Inject constructor(
                         access = entry.access
                     )
                     updated++
-                } else if (dao.insertIgnore(entry) != -1L) {
+                } else if (dao.insertIgnore(entry.withIdentity()) != -1L) {
                     added++
                 }
                 // insertIgnore == -1 means the url is owned by a non-CATALOG row; leave the user row alone.
@@ -183,8 +269,43 @@ class StreamSourceRepository @Inject constructor(
             // transaction, identical semantics (only CATALOG rows whose url left the new list).
             val urlsToDelete = existingCatalogUrls.filter { it !in newUrls }
             urlsToDelete.chunked(SQLITE_IN_CLAUSE_LIMIT).forEach { dao.deleteCatalogByUrls(it) }
+            // S1832: every row that just arrived - or just came back under a new id - takes the pin and
+            // the position the user gave that channel. One statement over the affected rows, inside the
+            // same transaction, so the list never renders a half-restored catalog.
+            dao.restorePinProjection()
+            // S1832: this replaces S1826's unconditional orphan purge, which was the mechanism actively
+            // deleting the history this ticket exists to keep. State for an absent channel is now kept on
+            // purpose; what is bounded is the part the user never asked for - an unpinned row carrying a
+            // stale OK/FAIL bullet. A pinned row is never pruned, whatever its age.
+            pruneStaleUserState()
             CatalogMergeResult(added = added, updated = updated, removed = urlsToDelete.size)
         }
+
+    /**
+     * S1832: bound `stream_user_state`, which by design outlives the catalog rows pointing at it and would
+     * otherwise grow without limit as the published bank churns. Callers must already be inside a
+     * transaction.
+     *
+     * Only unpinned rows age out. A pin is the user saying "keep this", so it is kept regardless of when
+     * it was last touched; what expires is an OK/FAIL bullet for a channel nobody pinned and nobody has
+     * played in half a year.
+     */
+    private suspend fun pruneStaleUserState() {
+        val cutoff = System.currentTimeMillis() - USER_STATE_RETENTION_MILLIS
+        val pruned = streamUserStateDao.pruneUnpinnedOlderThan(cutoff)
+        if (pruned > 0) {
+            Timber.i("Stream user state: pruned %d stale unpinned rows", pruned)
+        }
+    }
+
+    /**
+     * S1832: every row reaches the table through this repository, so deriving the identity here is
+     * what makes "no `stream_sources` row without a correct `identityKey`" an invariant rather than a
+     * convention each caller has to remember. The entity keeps a Kotlin default so its many
+     * construction sites stay readable; this is the only place that default is meant to be overwritten.
+     */
+    private fun StreamSourceEntity.withIdentity(): StreamSourceEntity =
+        copy(identityKey = StreamChannelIdentity.of(url))
 
     /** S0570: outcome of a [mergeCatalog] run. */
     data class CatalogMergeResult(val added: Int, val updated: Int, val removed: Int)
@@ -193,5 +314,11 @@ class StreamSourceRepository @Inject constructor(
         // SQLite caps host parameters per statement (999 on the API levels we still ship to);
         // keep delete batches under it. Mirrors FavoritesRepositoryImpl's chunking.
         const val SQLITE_IN_CLAUSE_LIMIT = 900
+
+        // S1832: how long an unpinned channel's play outcome is worth keeping once the channel itself is
+        // gone from the bank. Half a year - long enough that a channel dropped for a season comes back
+        // with its history, short enough that the table cannot grow forever on catalog churn.
+        const val USER_STATE_RETENTION_DAYS = 180L
+        const val USER_STATE_RETENTION_MILLIS = USER_STATE_RETENTION_DAYS * 24L * 60L * 60L * 1000L
     }
 }

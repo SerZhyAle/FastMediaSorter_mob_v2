@@ -18,6 +18,9 @@ class CollapsibleSectionsManager(
     private val store: CollapsibleSectionStore,
 ) {
 
+    /** S1967: container view id -> its header, so a row's ancestors can name the section to expand. */
+    private val headersByContainerId = mutableMapOf<Int, CollapsibleSectionHeader>()
+
     constructor(context: Context) : this(SharedPreferencesCollapsibleSectionStore(context)) {
         // Fold the legacy per-screen namespaces into the consolidated store once, before any
         // register() reads state. Guarded + idempotent, so later screens pay only one boolean read.
@@ -40,6 +43,9 @@ class CollapsibleSectionsManager(
         defaultExpanded: Boolean = false,
         onExpandedChanged: ((Boolean) -> Unit)? = null,
     ) {
+        if (container.id != View.NO_ID) {
+            headersByContainerId[container.id] = header
+        }
         val expanded = store.isExpanded(key, defaultExpanded)
         onExpandedChanged?.invoke(expanded)
         // Restore must not animate (avoids flicker on screen entry); only user toggles animate.
@@ -53,6 +59,25 @@ class CollapsibleSectionsManager(
             container.isVisible = isExpanded
             store.setExpanded(key, isExpanded)
         }
+    }
+
+    /**
+     * S1967: expands whichever registered section encloses a row, named by that row's ancestor view
+     * ids rather than by a section name.
+     *
+     * The persistence key cannot serve here: one settings layout carries eight sections under a
+     * single indexed name, so the name identifies the screen and not the section. The container's own
+     * view id does identify it, and the search index already records every ancestor of every row.
+     *
+     * @return true when a registered section was found among [ancestorIds] - false means the row sits
+     *   in no collapsible section on this screen, which is a normal answer and not a failure.
+     */
+    fun expandSectionContaining(ancestorIds: List<Int>): Boolean {
+        val header = ancestorIds.firstNotNullOfOrNull { headersByContainerId[it] } ?: return false
+        // Already-expanded is a no-op inside the header itself, so this neither re-animates nor
+        // re-persists a section the user had open.
+        header.setExpanded(true)
+        return true
     }
 
     private fun buildBodyTransition(): AutoTransition =

@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.welcome.helpers
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.ui.welcome.FeatureCard
-import timber.log.Timber
 
 /**
  * Builds the pitch shown on the first welcome page.

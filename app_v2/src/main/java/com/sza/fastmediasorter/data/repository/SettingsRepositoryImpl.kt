@@ -11,8 +11,10 @@ import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
 import com.sza.fastmediasorter.data.repository.settings.AudioSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.CaptureSettingsStore
+import com.sza.fastmediasorter.data.repository.settings.LauncherSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.LinkSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.MediaSizeFilterSettingsStore
+import com.sza.fastmediasorter.data.repository.settings.ProgramsSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.RemoteSourceSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.ScreenshotSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.SlideshowSettingsStore
@@ -22,8 +24,8 @@ import com.sza.fastmediasorter.data.repository.settings.TextRecognitionSettingsS
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureSettings
 import com.sza.fastmediasorter.domain.model.SortMode
-import com.sza.fastmediasorter.domain.model.launcher.InstalledAppSortOrder
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
 import com.sza.fastmediasorter.ui.player.model.TouchZoneHintType
 import com.sza.fastmediasorter.util.getPackageInfoCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -59,13 +61,8 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_PREVENT_SLEEP = booleanPreferencesKey("prevent_sleep")
         private val KEY_KEEP_SCREEN_ON_PLAYER = booleanPreferencesKey("keep_screen_on_player")
         private val KEY_SHOW_SMALL_CONTROLS = booleanPreferencesKey("show_small_controls")
-        private val KEY_ENABLE_CALCULATOR = booleanPreferencesKey("enable_calculator")
-        private val KEY_ENABLE_NETWORK_MONITOR = booleanPreferencesKey("enable_network_monitor")
-        private val KEY_RECORD_GNSS_TRACK = booleanPreferencesKey("record_gnss_track")
-        private val KEY_EMBEDDED_GAME_ENABLED = booleanPreferencesKey("embedded_game_enabled")
 
         // S0755: main-window programs panel toggle (flat boolean alongside the other programs settings).
-        private val KEY_SHOW_PROGRAMS_PANEL = booleanPreferencesKey("show_programs_panel_main_window")
         private val KEY_DEFAULT_USER = stringPreferencesKey("default_user")
         private val KEY_DEFAULT_PASSWORD = stringPreferencesKey("default_password")
         private val KEY_NETWORK_PARALLELISM = intPreferencesKey("network_parallelism")
@@ -150,7 +147,6 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_OVERWRITE_ON_MOVE = booleanPreferencesKey("overwrite_on_move")
         private val KEY_ENABLE_UNDO = booleanPreferencesKey("enable_undo")
         private val KEY_MAX_RECIPIENTS = intPreferencesKey("max_recipients")
-        private val KEY_ENABLE_FAVORITES = booleanPreferencesKey("enable_favorites")
         private val KEY_DISABLE_CAMERA_CAPTURE = booleanPreferencesKey("disable_camera_capture")
         private val KEY_SKIP_CAMERA_FILENAME_DIALOG = booleanPreferencesKey("skip_camera_filename_dialog")
         // Camera-capture + mic-recording keys moved to data.repository.settings.CaptureSettingsStore (responsibility extraction).
@@ -213,28 +209,7 @@ class SettingsRepositoryImpl @Inject constructor(
         // S1045: secure-by-default flag for credential-bearing screens (blocks screenshots/Recents).
         private val KEY_SECURE_SENSITIVE_SCREENS = booleanPreferencesKey("secure_sensitive_screens")
 
-        // S0404: launcher-mode desktop tuning (grid density + taskbar composition).
-        private val KEY_LAUNCHER_DENSITY_FACTOR = floatPreferencesKey("launcher_density_factor")
-        private val KEY_LAUNCHER_TASKBAR_SHOW_RECENTS = booleanPreferencesKey("launcher_taskbar_show_recents")
-        private val KEY_LAUNCHER_TASKBAR_SHOW_PINNED = booleanPreferencesKey("launcher_taskbar_show_pinned")
-        private val KEY_LAUNCHER_TASKBAR_SHOW_TRAY = booleanPreferencesKey("launcher_taskbar_show_tray")
-        private val KEY_LAUNCHER_TRAY_SHOW_CLOCK = booleanPreferencesKey("launcher_tray_show_clock")
-        private val KEY_LAUNCHER_TRAY_SHOW_BLUETOOTH = booleanPreferencesKey("launcher_tray_show_bluetooth")
-        private val KEY_LAUNCHER_TRAY_SHOW_SIM1 = booleanPreferencesKey("launcher_tray_show_sim1")
-        private val KEY_LAUNCHER_TRAY_SHOW_SIM2 = booleanPreferencesKey("launcher_tray_show_sim2")
-        private val KEY_LAUNCHER_TRAY_SHOW_NETWORK = booleanPreferencesKey("launcher_tray_show_network")
-        private val KEY_LAUNCHER_TRAY_SHOW_BATTERY = booleanPreferencesKey("launcher_tray_show_battery")
-        private val KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA =
-            booleanPreferencesKey("launcher_replace_system_status_area")
-        private val KEY_LAUNCHER_TOP_STATUS_STRIP_MODE =
-            booleanPreferencesKey("launcher_top_status_strip_mode")
-        private val KEY_LAUNCHER_TASKBAR_PLACEMENT = stringPreferencesKey("launcher_taskbar_placement")
-        private val KEY_LAUNCHER_ROTATION_HINT_SHOWN = booleanPreferencesKey("launcher_rotation_hint_shown")
-        private val KEY_LAUNCHER_DESKTOP_LOCKED = booleanPreferencesKey("launcher_desktop_locked")
-        private val KEY_LAUNCHER_WALLPAPER_MODE = stringPreferencesKey("launcher_wallpaper_mode")
-        private val KEY_LAUNCHER_WALLPAPER_IMAGE_PATH = stringPreferencesKey("launcher_wallpaper_image_path")
-        private val KEY_ALL_APPS_SORT_ORDER = stringPreferencesKey("all_apps_sort_order")
-        private val KEY_ALL_APPS_SORT_DESCENDING = booleanPreferencesKey("all_apps_sort_descending")
+        // Launcher desktop keys moved to data.repository.settings.LauncherSettingsStore (responsibility extraction).
 
         // Legacy keys removed by S0241 / S0251 (vr_auto_detect_format, vr_forced_format,
         // vr_forced_plat_format, vr_forced_spherical_format, vr_remember_file_format). Their
@@ -263,6 +238,7 @@ class SettingsRepositoryImpl @Inject constructor(
 
         // Adaptive pre-cache strategy (spec §5)
         private val KEY_PREFETCH_CACHE_MULTIPLIER = stringPreferencesKey("prefetch_cache_multiplier")
+        private val KEY_RESOURCE_GRID_CELL_SIZE = stringPreferencesKey("resource_grid_cell_size")
         private val KEY_STREAMING_CACHE_CLEANUP_MODE = stringPreferencesKey("streaming_cache_cleanup_mode")
         private val KEY_STREAMING_CACHE_TTL_DAYS = intPreferencesKey("streaming_cache_ttl_days")
 
@@ -330,6 +306,8 @@ class SettingsRepositoryImpl @Inject constructor(
                 val mediaSize = MediaSizeFilterSettingsStore.read(preferences)
                 val remoteSource = RemoteSourceSettingsStore.read(preferences)
                 val streams = StreamsSettingsStore.read(preferences)
+                val programs = ProgramsSettingsStore.read(preferences)
+                val launcher = LauncherSettingsStore.read(preferences)
 
                 AppSettings(
                     language = language,
@@ -337,11 +315,15 @@ class SettingsRepositoryImpl @Inject constructor(
                     preventSleep = preferences[KEY_PREVENT_SLEEP] ?: true,
                     keepScreenOnPlayer = preferences[KEY_KEEP_SCREEN_ON_PLAYER] ?: true,
                     showSmallControls = preferences[KEY_SHOW_SMALL_CONTROLS] ?: false,
-                    enableCalculator = preferences[KEY_ENABLE_CALCULATOR] ?: false,
-                    enableNetworkMonitor = preferences[KEY_ENABLE_NETWORK_MONITOR] ?: false,
-                    recordGnssTrack = preferences[KEY_RECORD_GNSS_TRACK] ?: false,
-                    embeddedGameEnabled = preferences[KEY_EMBEDDED_GAME_ENABLED] ?: false,
-                    showProgramsPanelInMainWindow = preferences[KEY_SHOW_PROGRAMS_PANEL] ?: false,
+                    enableCalculator = programs.enableCalculator,
+                    enableNetworkMonitor = programs.enableNetworkMonitor,
+                    enableSystemInfo = programs.enableSystemInfo,
+                    enableWearCompanion = programs.enableWearCompanion,
+                    recordGnssTrack = programs.recordGnssTrack,
+                    embeddedGameEnabled = programs.embeddedGameEnabled,
+                    frontFlashlightEnabled = programs.frontFlashlightEnabled,
+                    frontFlashlightColor = programs.frontFlashlightColor,
+                    showProgramsPanelInMainWindow = programs.showProgramsPanelInMainWindow,
                     defaultUser = preferences[KEY_DEFAULT_USER] ?: "",
                     defaultPassword = decryptPassword(preferences[KEY_DEFAULT_PASSWORD]),
                     networkParallelism = preferences[KEY_NETWORK_PARALLELISM] ?: 4,
@@ -350,6 +332,10 @@ class SettingsRepositoryImpl @Inject constructor(
                     enabledShareTargets = preferences[KEY_ENABLED_SHARE_TARGETS] ?: emptySet(),
                     disabledShareTargets = preferences[KEY_DISABLED_SHARE_TARGETS] ?: emptySet(),
                     isResourceGridMode = preferences[KEY_IS_RESOURCE_GRID_MODE] ?: false,
+                    // fromName, not valueOf: a stored value from a renamed or corrupted entry has to
+                    // degrade to the default instead of throwing while settings load.
+                    resourceGridCellSize = com.sza.fastmediasorter.domain.model.ResourceGridCellSize
+                        .fromName(preferences[KEY_RESOURCE_GRID_CELL_SIZE]),
                     resourceOpsInOverflowMenu = preferences[KEY_RESOURCE_OPS_IN_OVERFLOW_MENU] ?: isFreshInstall, // S0253: fresh install → ON; existing user → OFF
                     enableBackgroundSync = preferences[KEY_ENABLE_BACKGROUND_SYNC] ?: false,
                     backgroundSyncIntervalHours = preferences[KEY_BACKGROUND_SYNC_INTERVAL_HOURS] ?: 4,
@@ -461,7 +447,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     overwriteOnMove = preferences[KEY_OVERWRITE_ON_MOVE] ?: false,
                     enableUndo = preferences[KEY_ENABLE_UNDO] ?: true,
                     maxRecipients = (preferences[KEY_MAX_RECIPIENTS] ?: 10).coerceIn(1, 10),
-                    enableFavorites = preferences[KEY_ENABLE_FAVORITES] ?: true,
+                    enableFavorites = programs.enableFavorites,
                     disableCameraCapture = preferences[KEY_DISABLE_CAMERA_CAPTURE] ?: false,
                     skipCameraFilenameDialog = preferences[KEY_SKIP_CAMERA_FILENAME_DIALOG] ?: false,
                     cameraCaptureOpenForEditing = capture.cameraCaptureOpenForEditing,
@@ -584,36 +570,28 @@ class SettingsRepositoryImpl @Inject constructor(
                     // S1045: absent key → true (secure by default on fresh install).
                     secureSensitiveScreens = preferences[KEY_SECURE_SENSITIVE_SCREENS] ?: true,
 
-                    // S0404: launcher desktop tuning; absent keys → auto density + full taskbar.
-                    launcherDensityFactor = preferences[KEY_LAUNCHER_DENSITY_FACTOR] ?: 1.0f,
-                    launcherTaskbarShowRecents = preferences[KEY_LAUNCHER_TASKBAR_SHOW_RECENTS] ?: true,
-                    launcherTaskbarShowPinned = preferences[KEY_LAUNCHER_TASKBAR_SHOW_PINNED] ?: true,
-                    launcherTaskbarShowTray = preferences[KEY_LAUNCHER_TASKBAR_SHOW_TRAY] ?: true,
-                    launcherTrayShowClock = preferences[KEY_LAUNCHER_TRAY_SHOW_CLOCK] ?: true,
-                    launcherTrayShowBluetooth = preferences[KEY_LAUNCHER_TRAY_SHOW_BLUETOOTH] ?: true,
-                    launcherTrayShowSim1 = preferences[KEY_LAUNCHER_TRAY_SHOW_SIM1] ?: true,
-                    launcherTrayShowSim2 = preferences[KEY_LAUNCHER_TRAY_SHOW_SIM2] ?: true,
-                    launcherTrayShowNetwork = preferences[KEY_LAUNCHER_TRAY_SHOW_NETWORK] ?: true,
-                    launcherTrayShowBattery = preferences[KEY_LAUNCHER_TRAY_SHOW_BATTERY] ?: true,
-                    launcherReplaceSystemStatusArea =
-                        preferences[KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA] ?: false,
-                    launcherTopStatusStripMode =
-                        preferences[KEY_LAUNCHER_TOP_STATUS_STRIP_MODE] ?: false,
-                    // S1643: an unknown token (older/newer build, corrupted value) degrades to the bottom edge.
-                    launcherTaskbarPlacement = preferences[KEY_LAUNCHER_TASKBAR_PLACEMENT]
-                        ?.takeIf { it in AppSettings.LAUNCHER_TASKBAR_PLACEMENT_OPTIONS }
-                        ?: AppSettings.LAUNCHER_TASKBAR_PLACEMENT_BOTTOM,
-                    launcherRotationHintShown = preferences[KEY_LAUNCHER_ROTATION_HINT_SHOWN] ?: false,
-                    launcherDesktopLocked = preferences[KEY_LAUNCHER_DESKTOP_LOCKED] ?: false,
-                    // S1101: an unknown token (older/newer build, corrupted value) degrades to the branded default.
-                    launcherWallpaperMode = preferences[KEY_LAUNCHER_WALLPAPER_MODE]
-                        ?.takeIf { it in AppSettings.LAUNCHER_WALLPAPER_MODES }
-                        ?: AppSettings.LAUNCHER_WALLPAPER_BRANDED,
-                    launcherWallpaperImagePath = preferences[KEY_LAUNCHER_WALLPAPER_IMAGE_PATH] ?: "",
-                    // S1401: stored as an enum name; an unknown one degrades to the default order.
-                    allAppsSortOrder = InstalledAppSortOrder
-                        .fromNameOrDefault(preferences[KEY_ALL_APPS_SORT_ORDER]).name,
-                    allAppsSortDescending = preferences[KEY_ALL_APPS_SORT_DESCENDING] ?: false,
+                    // S0404: launcher desktop tuning - owned by LauncherSettingsStore.
+                    launcherDensityFactor = launcher.launcherDensityFactor,
+                    launcherTaskbarShowRecents = launcher.launcherTaskbarShowRecents,
+                    launcherTaskbarShowPinned = launcher.launcherTaskbarShowPinned,
+                    launcherTaskbarShowTray = launcher.launcherTaskbarShowTray,
+                    launcherTrayShowClock = launcher.launcherTrayShowClock,
+                    launcherTrayShowBluetooth = launcher.launcherTrayShowBluetooth,
+                    launcherTrayShowSim1 = launcher.launcherTrayShowSim1,
+                    launcherTrayShowSim2 = launcher.launcherTrayShowSim2,
+                    launcherTrayShowNetwork = launcher.launcherTrayShowNetwork,
+                    launcherTrayShowBattery = launcher.launcherTrayShowBattery,
+                    launcherReplaceSystemStatusArea = launcher.launcherReplaceSystemStatusArea,
+                    launcherTopStatusStripMode = launcher.launcherTopStatusStripMode,
+                    launcherForeignNotificationsEnabled = launcher.launcherForeignNotificationsEnabled,
+                    launcherTaskbarPlacement = launcher.launcherTaskbarPlacement,
+                    launcherRotationHintShown = launcher.launcherRotationHintShown,
+                    launcherDesktopLocked = launcher.launcherDesktopLocked,
+                    launcherWallpaperMode = launcher.launcherWallpaperMode,
+                    launcherWallpaperImagePath = launcher.launcherWallpaperImagePath,
+                    allAppsSortOrder = launcher.allAppsSortOrder,
+                    allAppsSortDescending = launcher.allAppsSortDescending,
+                    launcherScreenBlackoutTimeoutSeconds = launcher.launcherScreenBlackoutTimeoutSeconds,
 
                     // Adaptive pre-cache strategy (spec §5)
                     prefetchCacheMultiplier = com.sza.fastmediasorter.domain.model.PrefetchCacheMultiplier
@@ -678,6 +656,14 @@ class SettingsRepositoryImpl @Inject constructor(
             RadioStreamBufferConfig.syncMirror(context, settings.streamsSmartBuffering)
         }
 
+        // S1792: mirrors for synchronous reads of color theme and compact player elements.
+        if (current == null || current.colorTheme != settings.colorTheme) {
+            ColorThemePrefs.setMode(context, settings.colorTheme)
+        }
+        if (current == null || current.useCompactElements != settings.useCompactElements) {
+            PlayerLayoutModePrefs.setCompact(context, settings.useCompactElements)
+        }
+
         dataStore.edit { preferences ->
             // Preserve the follow-system sentinel so later settings writes do not silently pin the
             // app to the currently effective language.
@@ -686,11 +672,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_PREVENT_SLEEP] = settings.preventSleep
             preferences[KEY_KEEP_SCREEN_ON_PLAYER] = settings.keepScreenOnPlayer
             preferences[KEY_SHOW_SMALL_CONTROLS] = settings.showSmallControls
-            preferences[KEY_ENABLE_CALCULATOR] = settings.enableCalculator
-            preferences[KEY_ENABLE_NETWORK_MONITOR] = settings.enableNetworkMonitor
-            preferences[KEY_RECORD_GNSS_TRACK] = settings.recordGnssTrack
-            preferences[KEY_EMBEDDED_GAME_ENABLED] = settings.embeddedGameEnabled
-            preferences[KEY_SHOW_PROGRAMS_PANEL] = settings.showProgramsPanelInMainWindow
+            ProgramsSettingsStore.write(preferences, settings)
             preferences[KEY_DEFAULT_USER] = settings.defaultUser
             preferences[KEY_DEFAULT_PASSWORD] = encryptPassword(settings.defaultPassword)
             preferences[KEY_NETWORK_PARALLELISM] = settings.networkParallelism
@@ -769,7 +751,6 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_OVERWRITE_ON_MOVE] = settings.overwriteOnMove
             preferences[KEY_ENABLE_UNDO] = settings.enableUndo
             preferences[KEY_MAX_RECIPIENTS] = settings.maxRecipients.coerceIn(1, 10)
-            preferences[KEY_ENABLE_FAVORITES] = settings.enableFavorites
             preferences[KEY_DISABLE_CAMERA_CAPTURE] = settings.disableCameraCapture
             preferences[KEY_SKIP_CAMERA_FILENAME_DIALOG] = settings.skipCameraFilenameDialog
             CaptureSettingsStore.write(preferences, settings)
@@ -786,6 +767,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_LAST_USED_RESOURCE_ID] = settings.lastUsedResourceId
             preferences[KEY_DEFAULT_REMEMBER_FILE_LIST] = settings.defaultRememberFileList
             preferences[KEY_IS_RESOURCE_GRID_MODE] = settings.isResourceGridMode
+            preferences[KEY_RESOURCE_GRID_CELL_SIZE] = settings.resourceGridCellSize.name
             preferences[KEY_RESOURCE_OPS_IN_OVERFLOW_MENU] = settings.resourceOpsInOverflowMenu
             preferences[KEY_DYNAMIC_BACKGROUND_EXTENSION] = settings.dynamicBackgroundExtension
             preferences[KEY_IS_PRIMARY_MEDIA_PLAYER] = settings.isPrimaryMediaPlayer
@@ -825,26 +807,8 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_ENABLE_STATISTICS] = settings.enableStatistics
             // S1045: secure sensitive screens (opt-out)
             preferences[KEY_SECURE_SENSITIVE_SCREENS] = settings.secureSensitiveScreens
-            // S0404: launcher desktop tuning
-            preferences[KEY_LAUNCHER_DENSITY_FACTOR] = settings.launcherDensityFactor
-            preferences[KEY_LAUNCHER_TASKBAR_SHOW_RECENTS] = settings.launcherTaskbarShowRecents
-            preferences[KEY_LAUNCHER_TASKBAR_SHOW_PINNED] = settings.launcherTaskbarShowPinned
-            preferences[KEY_LAUNCHER_TASKBAR_SHOW_TRAY] = settings.launcherTaskbarShowTray
-            preferences[KEY_LAUNCHER_TRAY_SHOW_CLOCK] = settings.launcherTrayShowClock
-            preferences[KEY_LAUNCHER_TRAY_SHOW_BLUETOOTH] = settings.launcherTrayShowBluetooth
-            preferences[KEY_LAUNCHER_TRAY_SHOW_SIM1] = settings.launcherTrayShowSim1
-            preferences[KEY_LAUNCHER_TRAY_SHOW_SIM2] = settings.launcherTrayShowSim2
-            preferences[KEY_LAUNCHER_TRAY_SHOW_NETWORK] = settings.launcherTrayShowNetwork
-            preferences[KEY_LAUNCHER_TRAY_SHOW_BATTERY] = settings.launcherTrayShowBattery
-            preferences[KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA] = settings.launcherReplaceSystemStatusArea
-            preferences[KEY_LAUNCHER_TOP_STATUS_STRIP_MODE] = settings.launcherTopStatusStripMode
-            preferences[KEY_LAUNCHER_TASKBAR_PLACEMENT] = settings.launcherTaskbarPlacement
-            preferences[KEY_LAUNCHER_ROTATION_HINT_SHOWN] = settings.launcherRotationHintShown
-            preferences[KEY_LAUNCHER_DESKTOP_LOCKED] = settings.launcherDesktopLocked
-            preferences[KEY_LAUNCHER_WALLPAPER_MODE] = settings.launcherWallpaperMode
-            preferences[KEY_LAUNCHER_WALLPAPER_IMAGE_PATH] = settings.launcherWallpaperImagePath
-            preferences[KEY_ALL_APPS_SORT_ORDER] = settings.allAppsSortOrder
-            preferences[KEY_ALL_APPS_SORT_DESCENDING] = settings.allAppsSortDescending
+            // S0404: launcher desktop tuning - owned by LauncherSettingsStore.
+            LauncherSettingsStore.write(preferences, settings)
 
             // Adaptive pre-cache strategy (spec §5)
             preferences[KEY_PREFETCH_CACHE_MULTIPLIER] = settings.prefetchCacheMultiplier.name
@@ -891,7 +855,7 @@ class SettingsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateEmbeddedGameEnabled(enabled: Boolean) {
-        dataStore.edit { it[KEY_EMBEDDED_GAME_ENABLED] = enabled }
+        dataStore.edit { ProgramsSettingsStore.writeEmbeddedGameEnabled(it, enabled) }
     }
 
     override suspend fun updateScheduledOperationsPaused(paused: Boolean) {
@@ -969,4 +933,7 @@ class SettingsRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun isConsolidatedStorageActive(): Boolean {
+        return true
+    }
 }

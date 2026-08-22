@@ -306,6 +306,40 @@ try {
     Assert-That 'D2 mounted test set with no directory contributes nothing' `
     ($absentRootExit -eq 0) `
         "expected exit 0 with testMissing mounted but absent, got $absentRootExit"
+
+    # S1732: flavorless module (like wear) with no productFlavors block
+    $flavorlessGradle = @'
+android {
+    defaultConfig {
+        applicationId = "com.sza.wear"
+    }
+}
+'@
+    $flavorlessRoot = Join-Path $repoRoot "temp/scratch/s1732-fixture-$PID-flavorless"
+    if (Test-Path -LiteralPath $flavorlessRoot) { Remove-Item -LiteralPath $flavorlessRoot -Recurse -Force }
+    $fixtures += $flavorlessRoot
+    New-Item -ItemType Directory -Path (Join-Path $flavorlessRoot 'wear/src/test/java/com/w') -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $flavorlessRoot 'wear/build.gradle.kts') -Value $flavorlessGradle -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $flavorlessRoot 'wear/src/test/java/com/w/WearTest.kt') `
+        -Value "package com.w`n`nclass WearTest" -Encoding UTF8
+
+    $flavorlessReportDir = Join-Path $flavorlessRoot 'wear/build/test-results/testDebugUnitTest'
+    New-Item -ItemType Directory -Path $flavorlessReportDir -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $flavorlessReportDir 'TEST-com.w.WearTest.xml') `
+        -Value '<testsuite name="com.w.WearTest" tests="1" failures="0"/>' -Encoding UTF8
+
+    & $pwshExe -NoProfile -File $completenessScript -Module 'wear' -TaskDir 'testDebugUnitTest' -RepoRoot $flavorlessRoot | Out-Null
+    $flavorlessPassExit = $LASTEXITCODE
+    Assert-That 'D3 flavorless module with complete reports passes' `
+    ($flavorlessPassExit -eq 0) `
+        "expected exit 0 for flavorless module, got $flavorlessPassExit"
+
+    Remove-Item -LiteralPath (Join-Path $flavorlessReportDir 'TEST-com.w.WearTest.xml') -Force
+    & $pwshExe -NoProfile -File $completenessScript -Module 'wear' -TaskDir 'testDebugUnitTest' -RepoRoot $flavorlessRoot 2>&1 | Out-Null
+    $flavorlessMissingExit = $LASTEXITCODE
+    Assert-That 'D4 flavorless module with missing reports fails' `
+    ($flavorlessMissingExit -eq 1) `
+        "expected exit 1 for flavorless module missing report, got $flavorlessMissingExit"
 }
 finally {
     foreach ($fixture in $fixtures) {

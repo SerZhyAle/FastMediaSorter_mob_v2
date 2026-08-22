@@ -14,7 +14,12 @@ data class WearMediaFile(
     val size: Long,
     val dateModified: Long,
     val duration: Long = 0, // For audio/video in milliseconds
-    val albumArt: Uri? = null // For music files
+    val albumArt: Uri? = null, // For music files
+    // S1689: the network cover lookup asks by artist and album, so the pair must reach the player.
+    // Only a MediaStore row carries them - a network listing knows the file name and nothing else.
+    val artist: String? = null,
+    val album: String? = null,
+    val title: String? = null
 )
 
 /**

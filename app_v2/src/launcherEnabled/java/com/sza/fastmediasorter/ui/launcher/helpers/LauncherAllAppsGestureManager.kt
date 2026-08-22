@@ -5,7 +5,6 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
-import timber.log.Timber
 import kotlin.math.abs
 
 /**
@@ -55,12 +54,7 @@ class LauncherAllAppsGestureManager(
     }
 
     /** Scrolled down: this swipe belongs to the scroll, not to us. */
-    private fun isDesktopAtTop(): Boolean {
-        val atTop = viewport.scrollY == 0
-        if (!atTop) {
-        }
-        return atTop
-    }
+    private fun isDesktopAtTop(): Boolean = viewport.scrollY == 0
 
     private fun isOpeningSwipe(e1: MotionEvent, e2: MotionEvent, velocityY: Float): Boolean {
         val distanceY = e1.y - e2.y

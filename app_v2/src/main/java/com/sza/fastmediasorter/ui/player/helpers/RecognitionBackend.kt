@@ -8,6 +8,9 @@ import com.sza.fastmediasorter.data.delivery.DeliveredNativeLibraryLoader
 import com.sza.fastmediasorter.data.delivery.DeliveredPayloadCorruptException
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
+import com.sza.fastmediasorter.domain.ocr.OcrBlockFilter
+import com.sza.fastmediasorter.domain.ocr.OcrDiscardRecorder
+import com.sza.fastmediasorter.domain.ocr.OcrLineGeometry
 import com.sza.fastmediasorter.domain.ocr.OfflineOcrEngineProvider
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.stats.StatsEvent
@@ -17,7 +20,7 @@ import timber.log.Timber
 
 /**
  * OCR/recognition backend split out of [TranslationManager] (S0386 Phase 01). Owns the offline
- * OCR engines via [OfflineOcrEngineProvider] (Tesseract default, PaddleOCR in noLegal).
+ * OCR engine via [OfflineOcrEngineProvider] (Tesseract; PaddleOCR withdrawn in S1703).
  * ML Kit Text-Recognition is removed (S0386 Phase 05).
  */
 class RecognitionBackend(
@@ -29,6 +32,9 @@ class RecognitionBackend(
     private val capabilityRepository: DeliverableCapabilityRepository,
     private val libraryLoader: DeliveredNativeLibraryLoader,
     private val statsSink: StatsSink,
+    // S1712: the discard channel. Off by default, and while it is off this costs one flag comparison
+    // per fragment and allocates nothing.
+    private val discardRecorder: OcrDiscardRecorder = OcrDiscardRecorder(),
 ) : TextRecognitionFacade {
 
     // Languages that use Cyrillic script.
@@ -77,17 +83,16 @@ class RecognitionBackend(
             return null
         }
 
-        var paddlePayloadMissing = false
         try {
             libraryLoader.load(DeliverableSet.OCR_ENGINES)
         } catch (e: DeliveredPayloadCorruptException) {
             if (e.reason.contains("payload file missing")) {
-                // Tesseract .so was already injected by the loader before the first missing Paddle
-                // file was detected - fall back to Tesseract for this operation. The loader already
-                // enqueued async uninstall of the partial set; re-download prompt fires on the next
-                // enable-time check via DeliveryEnableInterceptor.
-                Timber.i("OCR engines payload partially missing; falling back to Tesseract")
-                paddlePayloadMissing = true
+                // S1703: a partial OCR payload now means Tesseract's own members (.so plus
+                // .traineddata) are incomplete on disk. Whatever loaded before the first missing
+                // file was injected already; the loader enqueued async uninstall of the partial
+                // set and the re-download prompt fires on the next enable-time check via
+                // DeliveryEnableInterceptor - so this operation proceeds with the loaded engine.
+                Timber.i("OCR engines payload partially missing; proceeding with the loaded engine")
             } else {
                 Timber.e(e, "Failed to load OCR engines native libraries")
                 callback.showError(context.getString(R.string.ocr_engines_damaged))
@@ -104,8 +109,7 @@ class RecognitionBackend(
 
         val settings = settingsRepository.getSettings().first()
         val tessLang = mlKitToTesseractLang(sourceLangCode)
-        val ocrEngine = if (paddlePayloadMissing) offlineOcrEngineProvider.defaultEngine
-                        else offlineOcrEngineProvider.engineFor(settings, sourceLangCode)
+        val ocrEngine = offlineOcrEngineProvider.engineFor(settings, sourceLangCode)
         Timber.d("TranslationManager.recognizeText: Trying offline OCR engine=${settings.ocrEngineType} for $sourceLangCode")
         val ocrResult = offlineOcrEngineProvider.recognizeTextWithFallback(settings, bitmap, sourceLangCode, tessLang, ocrEngine)
         if (!ocrResult.isNullOrBlank()) {
@@ -126,13 +130,12 @@ class RecognitionBackend(
             return null
         }
 
-        var paddlePayloadMissing = false
         try {
             libraryLoader.load(DeliverableSet.OCR_ENGINES)
         } catch (e: DeliveredPayloadCorruptException) {
             if (e.reason.contains("payload file missing")) {
-                Timber.i("OCR engines payload partially missing; falling back to Tesseract for block recognition")
-                paddlePayloadMissing = true
+                // S1703: partial payload = incomplete Tesseract member set; proceed as above.
+                Timber.i("OCR engines payload partially missing; proceeding with the loaded engine for block recognition")
             } else {
                 Timber.e(e, "Failed to load OCR engines native libraries")
                 callback.showError(context.getString(R.string.ocr_engines_damaged))
@@ -149,27 +152,21 @@ class RecognitionBackend(
 
         val settings = settingsRepository.getSettings().first()
         val tessLang = mlKitToTesseractLang(sourceLang)
-        val ocrEngine = if (paddlePayloadMissing) offlineOcrEngineProvider.defaultEngine
-                        else offlineOcrEngineProvider.engineFor(settings, sourceLang)
+        val ocrEngine = offlineOcrEngineProvider.engineFor(settings, sourceLang)
         val ocrBlocks = offlineOcrEngineProvider.recognizeTextBlocksWithFallback(settings, bitmap, sourceLang, tessLang, ocrEngine)
 
         if (!ocrBlocks.isNullOrEmpty()) {
+            // S1712: the four thresholds live in OcrBlockFilter now, so the reason a fragment was
+            // dropped survives the decision instead of collapsing into a boolean. The recorder reads that
+            // same verdict - one function, two readers - and stays silent while its channel is off.
+            discardRecorder.beginRun()
             val filteredBlocks = ocrBlocks.filter { block ->
-                if (block.confidence < 30f) return@filter false
-                if (block.text.trim().length < 3) return@filter false
-
-                val letters = block.text.count { it.isLetter() }
-                val specialChars = block.text.count { !it.isLetterOrDigit() && !it.isWhitespace() }
-                val ratio = if (letters > 0) specialChars.toFloat() / letters else Float.MAX_VALUE
-                if (ratio > 0.5f) return@filter false
-
-                val boxWidth = block.boundingBox.width()
-                val boxHeight = block.boundingBox.height()
-                if (boxWidth < 20 || boxHeight < 10) return@filter false
-
-                true
+                val verdict = OcrBlockFilter.evaluate(block)
+                discardRecorder.record(block, verdict)
+                verdict == OcrBlockFilter.Verdict.ACCEPTED
             }
 
+            Timber.d("S1711: applying word-level line geometry to the recognised blocks")
             val translatedBlocks = mutableListOf<TranslationManager.TranslatedTextBlock>()
             for (block in filteredBlocks) {
                 val translatedText = translation.translate(block.text, sourceLang, targetLang)
@@ -178,8 +175,12 @@ class RecognitionBackend(
                         TranslationManager.TranslatedTextBlock(
                             originalText = block.text,
                             translatedText = translatedText,
-                            boundingBox = block.boundingBox,
-                            confidence = block.confidence
+                            // S1711: the box drops the artifact words and the type size comes from the
+                            // median of the real ones - both together, because fixing either alone was
+                            // measured to make the overlay worse.
+                            boundingBox = OcrLineGeometry.tightenedBounds(block),
+                            confidence = block.confidence,
+                            typeSizePx = OcrLineGeometry.typeSizePx(block)
                         )
                     )
                 }
@@ -198,13 +199,12 @@ class RecognitionBackend(
             return null
         }
 
-        var paddlePayloadMissing = false
         try {
             libraryLoader.load(DeliverableSet.OCR_ENGINES)
         } catch (e: DeliveredPayloadCorruptException) {
             if (e.reason.contains("payload file missing")) {
-                Timber.i("OCR engines payload partially missing; running Tesseract for word selection")
-                paddlePayloadMissing = true
+                // S1703: partial payload = incomplete Tesseract member set; proceed as above.
+                Timber.i("OCR engines payload partially missing; proceeding with the loaded engine for word selection")
             } else {
                 Timber.e(e, "Failed to load OCR engines native libraries")
                 return null
@@ -219,8 +219,7 @@ class RecognitionBackend(
 
         val settings = settingsRepository.getSettings().first()
         val tessLang = "eng"
-        val ocrEngine = if (paddlePayloadMissing) offlineOcrEngineProvider.defaultEngine
-                        else offlineOcrEngineProvider.engineFor(settings, "en")
+        val ocrEngine = offlineOcrEngineProvider.engineFor(settings, "en")
         val ocrBlocks = ocrEngine.recognizeTextBlocks(bitmap, tessLang) ?: return null
 
         val words = mutableListOf<TranslationManager.TranslatedTextBlock>()
@@ -229,8 +228,9 @@ class RecognitionBackend(
                 TranslationManager.TranslatedTextBlock(
                     originalText = block.text,
                     translatedText = "",
-                    boundingBox = block.boundingBox,
-                    confidence = block.confidence
+                    boundingBox = OcrLineGeometry.tightenedBounds(block),
+                    confidence = block.confidence,
+                    typeSizePx = OcrLineGeometry.typeSizePx(block)
                 )
             )
         }

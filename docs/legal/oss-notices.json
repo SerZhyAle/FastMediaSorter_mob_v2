@@ -893,7 +893,8 @@
     {
       "coordinate": "androidx.media3:media3-exoplayer-dash",
       "modules": [
-        "app_v2"
+        "app_v2",
+        "wear"
       ],
       "name": "AndroidX Media3 ExoPlayer DASH",
       "spdx": "Apache-2.0",
@@ -902,11 +903,13 @@
       "oss": true,
       "shippedIn": [
         "legacy",
+        "lite",
         "noLegal",
+        "photos",
         "standard",
         "vr"
       ],
-      "allFlavors": false,
+      "allFlavors": true,
       "transitive": false,
       "via": null,
       "bundled": false,
@@ -915,7 +918,8 @@
     {
       "coordinate": "androidx.media3:media3-exoplayer-hls",
       "modules": [
-        "app_v2"
+        "app_v2",
+        "wear"
       ],
       "name": "AndroidX Media3 ExoPlayer HLS",
       "spdx": "Apache-2.0",
@@ -924,11 +928,13 @@
       "oss": true,
       "shippedIn": [
         "legacy",
+        "lite",
         "noLegal",
+        "photos",
         "standard",
         "vr"
       ],
-      "allFlavors": false,
+      "allFlavors": true,
       "transitive": false,
       "via": null,
       "bundled": false,
@@ -960,7 +966,8 @@
     {
       "coordinate": "androidx.media3:media3-exoplayer-rtsp",
       "modules": [
-        "app_v2"
+        "app_v2",
+        "wear"
       ],
       "name": "AndroidX Media3 ExoPlayer RTSP",
       "spdx": "Apache-2.0",
@@ -969,11 +976,13 @@
       "oss": true,
       "shippedIn": [
         "legacy",
+        "lite",
         "noLegal",
+        "photos",
         "standard",
         "vr"
       ],
-      "allFlavors": false,
+      "allFlavors": true,
       "transitive": false,
       "via": null,
       "bundled": false,
@@ -2200,6 +2209,25 @@
       "via": null,
       "bundled": false,
       "note": "Licence inherited from the nanohttpd-project POM; the artifact declares no licences block of its own."
+    },
+    {
+      "coordinate": "org.videolan.android:libvlc-all",
+      "modules": [
+        "app_v2"
+      ],
+      "name": "libVLC for Android",
+      "spdx": "LGPL-2.1-or-later",
+      "licenseUrl": "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html",
+      "sourceUrl": "https://code.videolan.org/videolan/libvlcjni",
+      "oss": true,
+      "shippedIn": [
+        "noLegal"
+      ],
+      "allFlavors": false,
+      "transitive": false,
+      "via": null,
+      "bundled": false,
+      "note": "S1060: noLegal-only (sideload). Java bindings and the shipped native libvlc are LGPL-2.1-or-later; the app links dynamically and ships no modified sources."
     },
     {
       "coordinate": "com.google.android.gms:play-services-auth",

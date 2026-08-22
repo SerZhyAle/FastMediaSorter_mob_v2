@@ -30,7 +30,7 @@ class HttpMapsShortLinkResolver @Inject constructor() : MapsShortLinkResolver {
         if (!isMapsShortLink(link)) return null
         return withContext(Dispatchers.IO) {
             withTimeoutOrNull(RESOLVE_BUDGET_MS) { followRedirect(link)?.let(::pointFrom) }
-        }.also { Timber.d("S1585: resolved link to $it") }
+        }
     }
 
     /**

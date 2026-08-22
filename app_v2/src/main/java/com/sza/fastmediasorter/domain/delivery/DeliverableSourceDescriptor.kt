@@ -8,8 +8,8 @@ package com.sza.fastmediasorter.domain.delivery
  * Source ordering (B1):
  * - Module sets (A/B/C/D) have no vendor URL (Maven-AAR or first-party), so each file lists our
  *   GitHub mirror as the sole/primary source.
- * - Language-data items list the vendor URL first (e.g. `tessdata_best/4.1.0`,
- *   `paddlelite-demo.bj.bcebos.com`) and our mirror as the auto-failover fallback.
+ * - Language-data items list the vendor URL first (e.g. `tessdata_best/4.1.0`) and our mirror as the
+ *   auto-failover fallback.
  *
  * Integrity (B2): [PayloadFile.sha256] and [PayloadFile.minSize] are compiled into the APK and pinned
  * to the shipping app version - the mirror cannot substitute a payload because the hash would not

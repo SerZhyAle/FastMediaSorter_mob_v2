@@ -2,12 +2,16 @@ package com.sza.fastmediasorter.data.networkmonitor
 
 import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
 import android.os.Build
+import androidx.core.content.ContextCompat
+import androidx.core.location.LocationManagerCompat
 import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
 import com.sza.fastmediasorter.core.network.NetworkStateMonitor
 import com.sza.fastmediasorter.data.network.lifecycle.NetworkLifecycleBootstrapper
@@ -24,6 +28,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.net.Inet4Address
 import java.net.Inet6Address
 import javax.inject.Inject
@@ -172,13 +177,54 @@ class ConnectivitySnapshotDataSource @Inject constructor(
         }
     }
 
-    private fun wifiEntry(info: WifiInfo) = WifiEntry(
-        ssid = info.ssid?.trim('"')?.takeIf { it.isNotBlank() && it != UNKNOWN_SSID },
-        rssiDbm = info.rssi,
-        frequencyMhz = info.frequency,
-        linkSpeedMbps = info.linkSpeed.takeIf { it > 0 },
-        standard = wifiStandardName(info),
-    )
+    private fun wifiEntry(info: WifiInfo): WifiEntry {
+        val name = networkName(info)
+        return WifiEntry(
+            ssid = name,
+            ssidAvailability = if (name != null) SectionAvailability.Available else withheldSsidReason(),
+            rssiDbm = info.rssi,
+            frequencyMhz = info.frequency,
+            linkSpeedMbps = info.linkSpeed.takeIf { it > 0 },
+            standard = wifiStandardName(info),
+        )
+    }
+
+    /**
+     * The connected network's name, or null when the platform will not disclose it.
+     *
+     * Measured on emulator-5554 (Android 15, S1853): the `WifiInfo` reached through
+     * `NetworkCapabilities.getTransportInfo()` answers `<unknown ssid>` **even with `ACCESS_FINE_LOCATION`
+     * granted and location services on** - the capabilities returned by a direct query are redacted by the
+     * platform, and only a registered `NetworkCallback` receives them unredacted. `WifiManager` answered
+     * with the real name in the same second. So the name is read from there and every other Wi-Fi fact
+     * still comes from the capabilities object, which is not redacted for them.
+     */
+    private fun networkName(info: WifiInfo): String? =
+        usableSsid(info.ssid) ?: usableSsid(legacyWifiInfo()?.ssid)
+
+    private fun usableSsid(raw: String?): String? =
+        raw?.trim('"')?.takeIf { it.isNotBlank() && it != UNKNOWN_SSID }
+
+    /**
+     * Why the platform replaced the network name with its marker.
+     *
+     * The grant and the system location switch are separate gates and only one of them a permission dialog
+     * can open, so the two are reported apart (S1853). Neither explaining it leaves the name simply absent -
+     * which happens while a connection is still settling.
+     */
+    private fun withheldSsidReason(): SectionAvailability = when {
+        !hasFineLocation() -> SectionAvailability.NoPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+        !isLocationServiceOn() -> SectionAvailability.NoLocationService
+        else -> SectionAvailability.NoNetwork
+    }.also { Timber.d("S1853: wifi name withheld, reason=%s", it) }
+
+    private fun hasFineLocation(): Boolean =
+        ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED
+
+    private fun isLocationServiceOn(): Boolean =
+        (context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager)
+            ?.let(LocationManagerCompat::isLocationEnabled) == true
 
     private fun wifiInfo(active: Network?): WifiInfo? =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

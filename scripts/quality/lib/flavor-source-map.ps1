@@ -193,8 +193,17 @@ function Get-GradleMountWalk {
 function Get-EffectiveTestSourceRoots {
     param(
         [Parameter(Mandatory)][object]$Map,
-        [Parameter(Mandatory)][string]$Flavor
+        [string]$Flavor = ''
     )
+
+    if ([string]::IsNullOrEmpty($Flavor) -or $Map.FlavorNames.Count -eq 0) {
+        $roots = [System.Collections.Generic.List[string]]::new()
+        $relative = "$($Map.Module)/src/test"
+        if (Test-Path -LiteralPath (Join-Path $Map.RepoRoot $relative)) {
+            $roots.Add($relative)
+        }
+        return $roots.ToArray()
+    }
 
     $unitTestSet = Get-UnitTestSetName $Flavor
     if (-not $Map.TestSets.Contains($unitTestSet)) {
@@ -232,15 +241,21 @@ function Get-FlavorSourceMap {
     $lines = @(Get-Content -LiteralPath $gradleFile)
 
     $flavorsBlock = Get-GradleBlockRange -Lines $lines -HeaderPattern '^\s*productFlavors\s*\{'
-    if (-not $flavorsBlock) { throw "flavor-source-map: productFlavors block not found in $gradleFile" }
-
     $sourceSetsBlock = Get-GradleBlockRange -Lines $lines -HeaderPattern '^\s*sourceSets\s*\{'
-    if (-not $sourceSetsBlock) { throw "flavor-source-map: sourceSets block not found in $gradleFile" }
 
-    $flavorNames = Get-GradleFlavorNames -Lines $lines -Start $flavorsBlock.Start -End $flavorsBlock.End
-    if ($flavorNames.Count -eq 0) { throw "flavor-source-map: productFlavors block declares no flavor in $gradleFile" }
+    $flavorNames = if ($flavorsBlock) {
+        Get-GradleFlavorNames -Lines $lines -Start $flavorsBlock.Start -End $flavorsBlock.End
+    }
+    else {
+        @()
+    }
 
-    $walk = Get-GradleMountWalk -Lines $lines -Start $sourceSetsBlock.Start -End $sourceSetsBlock.End
+    $walk = if ($sourceSetsBlock) {
+        Get-GradleMountWalk -Lines $lines -Start $sourceSetsBlock.Start -End $sourceSetsBlock.End
+    }
+    else {
+        [pscustomobject]@{ Mounts = @(); Unattributed = @() }
+    }
 
     $flavors = [ordered]@{}
     $testSets = [ordered]@{}

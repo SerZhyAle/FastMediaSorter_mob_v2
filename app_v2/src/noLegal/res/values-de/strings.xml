@@ -10,6 +10,10 @@
     <string name="s0183_apk_install_success">APK installiert</string>
     <string name="s0183_apk_install_cancelled">Installation abgesagt</string>
     <string name="s0183_apk_install_failed">Installation fehlgeschlagen</string>
+    <string name="s1686_apk_install_failed_downgrade">Installation fehlgeschlagen: Eine neuere Version ist bereits installiert</string>
+    <string name="s1686_apk_install_failed_incompatible">Installation fehlgeschlagen: Diese APK ist anders signiert als die installierte App</string>
+    <string name="s1686_apk_install_failed_storage">Installation fehlgeschlagen: Nicht genügend freier Speicherplatz</string>
+    <string name="s1686_apk_install_failed_corrupt">Installation fehlgeschlagen: Die APK-Datei ist beschädigt oder unvollständig</string>
     <string name="setting_support_office_documents_desc">Öffnet Word-, Tabellenkalkulations- und Präsentationsdateien im integrierten Viewer, sofern unterstützt.</string>
     <string name="nolegal_diag_section_os_security">Betriebssystem und Sicherheit</string>
     <string name="nolegal_diag_section_permissions">Sondergenehmigungen</string>

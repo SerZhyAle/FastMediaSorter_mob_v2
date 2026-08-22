@@ -41,10 +41,13 @@ import kotlin.random.Random
  */
 class AudioEmptyStateController(
     private val context: Context,
-    private val audioCoverArtView: ImageView,
-    private val barsView: AudioBreathingBarsView,
-    private val videoView: TextureView,
-    private val wavesView: AudioWaveParticleView,
+    // S1549: vars, not vals - the host re-inflates the layout on rotation and re-points this
+    // controller via [rebindViews]; the instance survives because its lifecycle observer
+    // registration and playback state must not be rebuilt.
+    private var audioCoverArtView: ImageView,
+    private var barsView: AudioBreathingBarsView,
+    private var videoView: TextureView,
+    private var wavesView: AudioWaveParticleView,
     private val deliveredSource: DeliveredAudioVisualizationSource,
     // S0893: self-registers so onStop()/onStart() release/rebuild the video-visualization codec on
     // the API24+ multi-window edge, mirroring VideoPlayerManager's own DefaultLifecycleObserver use.
@@ -225,6 +228,33 @@ class AudioEmptyStateController(
         releaseMediaPlayer()
         videoView.surfaceTextureListener = null
         lifecycle.removeObserver(this)
+    }
+
+    /**
+     * S1549: re-point at freshly inflated views after a layout re-inflate. Unlike [release], the
+     * lifecycle observer registration and the playing/mode state survive; a live visualization is
+     * rebuilt on the new views through the normal [show] path, because the old tree is discarded.
+     */
+    fun rebindViews(
+        audioCoverArtView: ImageView,
+        barsView: AudioBreathingBarsView,
+        videoView: TextureView,
+        wavesView: AudioWaveParticleView,
+    ) {
+        this.barsView.stopAndReset()
+        this.wavesView.stopAndReset()
+        releaseMediaPlayer()
+        this.videoView.surfaceTextureListener = null
+        videoActive = false
+        this.audioCoverArtView = audioCoverArtView
+        this.barsView = barsView
+        this.videoView = videoView
+        this.wavesView = wavesView
+        if (currentMode != MODE_NONE) {
+            val modeToRestore = currentMode
+            currentMode = MODE_NONE
+            show(modeToRestore)
+        }
     }
 
     // ────────────────────────── Private ──────────────────────────

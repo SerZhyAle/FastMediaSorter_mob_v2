@@ -66,12 +66,23 @@ if ($sourceMap.Unparsed.Count -gt 0) {
 
 # TaskDir has the shape test<Flavor><BuildType>UnitTest. Longest match wins, so a flavor whose name
 # is a prefix of another cannot silently claim the wrong variant.
-$flavor = $sourceMap.FlavorNames |
-    Where-Object { $TaskDir -clike "test$($_.Substring(0,1).ToUpperInvariant())$($_.Substring(1))*" } |
-    Sort-Object -Property Length -Descending |
-    Select-Object -First 1
+# For flavorless modules (e.g. wear), TaskDir is testDebugUnitTest or testReleaseUnitTest.
+$flavor = if ($sourceMap.FlavorNames.Count -gt 0) {
+    $sourceMap.FlavorNames |
+        Where-Object { $TaskDir -clike "test$($_.Substring(0, 1).ToUpperInvariant())$($_.Substring(1))*" } |
+        Sort-Object -Property Length -Descending |
+        Select-Object -First 1
+}
+else {
+    if ($TaskDir -match '^test(Debug|Release)UnitTest$') {
+        ''
+    }
+    else {
+        $null
+    }
+}
 
-if (-not $flavor) {
+if ($null -eq $flavor) {
     $known = ($sourceMap.FlavorNames -join ', ')
     Write-Error "assert-test-suite-complete: cannot read a flavor out of -TaskDir '$TaskDir' (known flavors: $known)" -ErrorAction Continue
     exit 2

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="48dp"
+    android:minHeight="48dp"
+    android:targetCellWidth="1"
+    android:targetCellHeight="1"
+    android:updatePeriodMillis="0"
+    android:initialLayout="@layout/widget_stream_launch"
+    android:configure="com.sza.fastmediasorter.widget.StreamLaunchWidgetConfigActivity"
+    android:description="@string/widget_stream_launch_description"
+    android:resizeMode="none"
+    android:widgetCategory="home_screen"
+    android:theme="@style/Widget.FastMediaSorter"
+    android:previewImage="@drawable/ic_cast" />

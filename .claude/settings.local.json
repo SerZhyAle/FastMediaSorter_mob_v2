@@ -13,7 +13,9 @@
       "Bash(pwsh -NoProfile -Command 'Select-String -Path '\\\\''docs/settings/settings-manifest.json'\\\\'','\\\\''docs/SETTINGS_REFERENCE.md'\\\\'','\\\\''docs/settings/settings-annotations.json'\\\\'' -Pattern '\\\\''cropImagesToFullscreen|crop_images_to_fullscreen'\\\\'' | ForEach-Object { \\(Split-Path $_.Path -Leaf\\) + '\\\\'':'\\\\'' + $_.LineNumber + '\\\\'': '\\\\'' + $_.Line.Trim\\(\\) }')",
       "Bash(pwsh -NoProfile -Command \"Get-Content docs/settings/settings-manifest.json | Select-Object -Skip 1468 -First 16\")",
       "Bash(pwsh -NoProfile -File scripts/quality/assert-settings-doc-sync.ps1)",
-      "Bash(echo \"EXIT=$?\")"
+      "Bash(echo \"EXIT=$?\")",
+      "PowerShell(pwsh -NoProfile -File scripts/devtest/adb.ps1 devices)",
+      "PowerShell($c = Get-Command adb -ErrorAction SilentlyContinue; if \\($c\\) { $c.Source } else { $p = @\\(\"$env:LOCALAPPDATA\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\",\"$env:ANDROID_HOME\\\\platform-tools\\\\adb.exe\",\"$env:ANDROID_SDK_ROOT\\\\platform-tools\\\\adb.exe\",\"C:\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\",\"P:\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\"\\); $p | Where-Object { $_ -and \\(Test-Path $_\\) } })"
     ]
   },
   "enableAllProjectMcpServers": true,

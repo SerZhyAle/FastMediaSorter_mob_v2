@@ -67,18 +67,6 @@ interface AuthSessionRepository {
 
     /** S0406: restore sessions from a backup payload, overwriting per (host, accountId). */
     suspend fun importSessions(sessions: List<RawAuthSession>)
-
-    @Deprecated("Use observeAccounts()", level = DeprecationLevel.WARNING)
-    fun observeDomains(): Flow<List<AuthSessionDomain>>
-
-    @Deprecated("Use saveSession(host, accountId, displayName, cookies)", level = DeprecationLevel.WARNING)
-    suspend fun saveSession(domain: String, cookies: List<HttpCookie>)
-
-    @Deprecated("Use deleteAccount(host, accountId)", level = DeprecationLevel.WARNING)
-    suspend fun deleteSession(domain: String)
-
-    @Deprecated("Use hasAnySession(host)", level = DeprecationLevel.WARNING)
-    suspend fun hasSession(domain: String): Boolean
 }
 
 data class AuthAccountDomain(
@@ -89,13 +77,6 @@ data class AuthAccountDomain(
     val savedAt: Instant,
     val lastUsedAt: Instant?,
     val isDismissed: Boolean = false,
-)
-
-@Deprecated("Use AuthAccountDomain", level = DeprecationLevel.WARNING)
-data class AuthSessionDomain(
-    val host: String,
-    val cookieCount: Int,
-    val savedAt: Instant,
 )
 
 /**

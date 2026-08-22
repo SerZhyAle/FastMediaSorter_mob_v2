@@ -14,6 +14,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentNetworkMonitorInternetBinding
 import com.sza.fastmediasorter.domain.usecase.networkmonitor.CgnatVerdict
+import com.sza.fastmediasorter.domain.usecase.networkmonitor.SubnetScanTarget
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.ChartValueUnit
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.NetworkPathNode
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.SignalChartBinder
@@ -68,12 +69,15 @@ class InternetSectionFragment : Fragment() {
             summaryView = binding.internetChart.chartSummary,
             emptyView = binding.internetChart.chartEmpty,
             unit = ChartValueUnit.BYTES_PER_SECOND,
+            resetTarget = binding.internetChart.root,
+            onResetRequested = viewModel::onChartResetRequested,
         )
         binding.internetChart.chartHeading.setText(R.string.network_monitor_traffic_heading)
         bindActions()
         collectOnLifecycle(viewModel.uiState) { render(it) }
         collectOnLifecycle(viewModel.resources) { renderResources(it) }
         collectOnLifecycle(viewModel.actionState) { renderAction(it) }
+        collectOnLifecycle(viewModel.deviceSubnetRange) { prefillSubnetRange(it) }
     }
 
     override fun onDestroyView() {
@@ -84,6 +88,26 @@ class InternetSectionFragment : Fragment() {
         pickerResources = emptyList()
         pickerLabels = emptyList()
         _binding = null
+    }
+
+    /**
+     * S1617: shows the range an untouched scan would use.
+     *
+     * The fields already meant "this network" when left blank, but two empty boxes cannot say so - the
+     * owner read them as a range he had to type. Only an empty field is written: that guard covers the
+     * restored-on-rotation case and the mid-edit case at once, without the screen having to know which
+     * of the two put text there.
+     */
+    private fun prefillSubnetRange(range: SubnetScanTarget.AddressRange?) {
+        if (range == null) {
+            return
+        }
+        if (binding.internetRangeFirst.text.isNullOrBlank()) {
+            binding.internetRangeFirst.setText(range.firstAddress)
+        }
+        if (binding.internetRangeLast.text.isNullOrBlank()) {
+            binding.internetRangeLast.setText(range.lastAddress)
+        }
     }
 
     private fun bindActions() {

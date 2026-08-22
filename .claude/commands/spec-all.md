@@ -95,7 +95,7 @@ What it catches: `.claude/reference/spec-all.md` section 1 - read only if tempte
 | `Verified` | Print final report - already done |
 | `BlockNeedUserTest` | Add to manual items; delete this spec's `Timber.d("Sxxxx:` tags from `.kt` (status leaving `BlockNeedUserTest` - CLAUDE.md "Debug Verification Tags"); set status `Implemented`; jump to F5 |
 | `BlockQuestions` | Read §6 Open items; resolve any answerable from codebase; continue from last active stage; add unresolvable to manual list |
-| `BlockByOtherTask` | Read §10; if blocking spec `Verified` -> unblock and continue from last stage; else -> add to manual list, continue non-blocked work |
+| `BlockByOtherTask` | Read §10; if the blocking spec is release-ready (`Implemented` / `Verified` / `BlockNeedUserTest`) or `Archived` -> unblock and continue from last stage; else -> add to manual list, continue non-blocked work. The releasing set is the owner's, not this command's: a dependency releases the moment its blocker reaches `BlockNeedUserTest`, because the code is in the tree by then and only the device pass is left (`PLAN/RELEASE_QUEUE.md`, owner ruling 2026-08-07). Waiting for `Verified` here made the picker offer a ticket this table then refused, once per session, every session (S1878) |
 | `BlockExternal` | Add to manual items; continue non-blocked work from last stage |
 | `Archived` | Abort: spec archived; suggest new one. |
 
@@ -187,12 +187,14 @@ Build only from files **this pipeline run actually edited**, never from `git dif
 
 Follow `/spec-check` (full mode). `Verified` -> final report.
 
+`BlockNeedUserTest` is also terminal here (S1899): since that ticket, `/spec-check` scores it when every check passed except one a machine cannot run. Nothing is broken, so there is nothing for `/spec-fix` to fix - apply the **Device-test gate** and go to the final report. Feeding it into the iteration loop below would burn all five iterations and end in a false `Incomplete`.
+
 Each iteration:
 
 1. `/spec-fix <Sxxxx>`.
 2. Implement "Action items" directly. If requires design decision not derivable from codebase -> mark `[FOLLOW-UP]`, skip.
 3. Code modified -> `/build` -> `standard debug` (+ `vr debug` if `src/vr/` touched).
-4. `/spec-check <Sxxxx>`. `Verified` -> final report.
+4. `/spec-check <Sxxxx>`. `Verified` -> final report. `BlockNeedUserTest` -> Device-test gate, then final report.
 
 MAX_FIX_ITERATIONS exhausted -> final report as Incomplete.
 

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    S1706: watch splash entrance. Only the arrows are animated here - the wordmark and slogan sit
+    still, because the watch splash window is shorter than the phone's and a staggered entrance
+    would leave them mid-flight when it closes.
+
+    The target name must match the group name emitted by scripts/utils/generate-splash-brand.ps1.
+    A target matching nothing is not an error and fails silently.
+-->
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/ic_splash_app_brand">
+    <target
+        android:name="arrows"
+        android:animation="@animator/splash_arrows_enter" />
+</animated-vector>

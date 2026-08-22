@@ -97,6 +97,11 @@
                         app:srcCompat="@drawable/ic_wifi" />
 
                     <TextView
+                        android:id="@+id/tileWifiFact"
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.TileFact"
+                        android:visibility="gone" />
+
+                    <TextView
                         android:id="@+id/tileWifiStatus"
                         style="@style/Widget.FastMediaSorter.NetworkMonitor.TileStatus"
                         android:text="@string/network_monitor_status_unknown" />
@@ -121,6 +126,11 @@
                         android:layout_marginTop="@dimen/margin_small"
                         android:contentDescription="@null"
                         app:srcCompat="@drawable/ic_mobile_network" />
+
+                    <TextView
+                        android:id="@+id/tileMobileFact"
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.TileFact"
+                        android:visibility="gone" />
 
                     <TextView
                         android:id="@+id/tileMobileStatus"
@@ -150,6 +160,11 @@
                         app:srcCompat="@drawable/ic_bluetooth" />
 
                     <TextView
+                        android:id="@+id/tileBluetoothFact"
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.TileFact"
+                        android:visibility="gone" />
+
+                    <TextView
                         android:id="@+id/tileBluetoothStatus"
                         style="@style/Widget.FastMediaSorter.NetworkMonitor.TileStatus"
                         android:text="@string/network_monitor_status_unknown" />
@@ -175,6 +190,11 @@
                         android:layout_marginTop="@dimen/margin_small"
                         android:contentDescription="@null"
                         app:srcCompat="@drawable/ic_location" />
+
+                    <TextView
+                        android:id="@+id/tileGnssFact"
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.TileFact"
+                        android:visibility="gone" />
 
                     <TextView
                         android:id="@+id/tileGnssStatus"
@@ -203,6 +223,11 @@
                         app:srcCompat="@drawable/ic_internet" />
 
                     <TextView
+                        android:id="@+id/tileInternetFact"
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.TileFact"
+                        android:visibility="gone" />
+
+                    <TextView
                         android:id="@+id/tileInternetStatus"
                         style="@style/Widget.FastMediaSorter.NetworkMonitor.TileStatus"
                         android:text="@string/network_monitor_status_unknown" />
@@ -227,6 +252,11 @@
                         android:layout_marginTop="@dimen/margin_small"
                         android:contentDescription="@null"
                         app:srcCompat="@drawable/ic_history" />
+
+                    <TextView
+                        android:id="@+id/tileHistoryFact"
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.TileFact"
+                        android:visibility="gone" />
 
                     <TextView
                         android:id="@+id/tileHistoryStatus"

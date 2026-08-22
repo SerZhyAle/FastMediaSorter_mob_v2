@@ -85,8 +85,6 @@ class SettingsSearchCapabilityGate @Inject constructor(
         "rowCameraOcrOnly",
         "spinnerTranslationSourceLanguage",
         "spinnerTranslationTargetLanguage",
-        "rowOcrEngineType",
-        "rowPaddleOcrModel",
         "rowOcrFontSize",
         "rowOcrFontFamily" -> capabilityAvailability.isTranslationAvailable()
         // Downloadable extensions - GeneralSettingsFragment.

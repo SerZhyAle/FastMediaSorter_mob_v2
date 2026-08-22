@@ -8,7 +8,6 @@ import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.util.TextNoteTargetPolicy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import javax.inject.Inject
 
 /**

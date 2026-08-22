@@ -11,7 +11,7 @@
     <string name="welcome_default_player_title">Standard-Player</string>
     <string name="welcome_description_1">Ihr Medienmanager für alles.\nDurchsuchen, sortieren und verwalten Sie Dateien auf lokalem, Netzwerk- und Cloud-Speicher - alles mit intuitiven Touch-Gesten.</string>
     <string name="welcome_description_1_details">FastMediaSorter bringt jede Art von Medien an einen Ort. Öffnen Sie Fotos, Videos, GIFs und Musik von Ihrem Gerät, von einer Netzwerkfreigabe oder aus dem Cloud-Speicher - und sortieren Sie sie mit kurzen Tipps statt mit Menüs beim langen Drücken.\n\nAlles, was Sie hier einrichten, lässt sich später in den Einstellungen ändern. Auf diesem Bildschirm gibt es also keine falsche Wahl - tippen Sie einfach auf Weiter.</string>
-    <string name="welcome_description_3" formatted="false">Der Player nutzt 9 Berührungszonen (3×3-Raster) für schnelle Aktionen. Tippen Sie auf Zonen, um zu navigieren, Dateien zu kopieren, zu verschieben, zu löschen oder das Befehlsfeld zu öffnen. Details zeigt das Schema oben.</string>
+    <string name="welcome_description_3" formatted="false">Der Player verwendet 9 Touch-Zonen (3×3-Raster) für Schnellaktionen. Tippe auf die Zonen, um zu navigieren, Dateien zu kopieren, zu verschieben, zu löschen oder das Befehlspanel zu öffnen. Details siehe Schema oben.</string>
     <string name="welcome_language_picker_hint">App-Sprache wählen</string>
     <string name="welcome_profile_audio_player_desc">Ideal für reine Audiogeräte oder MP3-Player. Blendet Fotos und Videos aus, optimiert Hintergrundwiedergabe und Wiedergabeanzeige.</string>
     <string name="welcome_profile_audio_player_title">Audioplayer</string>
@@ -34,7 +34,7 @@
     <string name="welcome_profile_tv_media_box_title">TV / Media-Box</string>
     <string name="welcome_profile_video_player_desc">Ideal für reine Videogeräte. Blendet Fotos, Musik und Dokumentenansicht aus, bevorzugt schnelle Wiedergabe und Vorschaubilder.</string>
     <string name="welcome_profile_video_player_title">Videoplayer</string>
-    <string name="welcome_profile_vr_headset_desc">Ideal für Virtual-Reality-Geräte. Aktiviert vorab 3D-/360°-Ansichten und immersive Steuerung auf unterstützter Hardware.</string>
+    <string name="welcome_profile_vr_headset_desc">Am besten für Virtual-Reality-Geräte geeignet. Aktiviert 3D/360°-Layouts und immersive Steuerelemente vorab auf unterstützten Hardware-Varianten.</string>
     <string name="welcome_profile_vr_headset_title">VR-Headset</string>
     <string name="welcome_recommended_badge">(Empfohlen)</string>
     <string name="welcome_title_1">Willkommen bei FastMediaSorter!</string>

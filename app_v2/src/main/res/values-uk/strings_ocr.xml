@@ -3,9 +3,6 @@
     <string name="ocr_best_model_delete">Видалити</string>
     <string name="ocr_best_model_download">Завантажити</string>
     <string name="ocr_button_description">Витягти текст</string>
-    <string name="ocr_engine_type">Двигун OCR</string>
-    <string name="ocr_engine_type_paddleocr">PaddleOCR</string>
-    <string name="ocr_engine_type_tesseract">Tesseract (за замовчуванням)</string>
     <string name="ocr_error">Не вдалося розпізнати текст.</string>
     <string name="ocr_extract_image_failed">Не вдалося підготувати це зображення для розпізнавання. Спробуйте ще раз.</string>
     <string name="ocr_font_family">Шрифт для OCR</string>

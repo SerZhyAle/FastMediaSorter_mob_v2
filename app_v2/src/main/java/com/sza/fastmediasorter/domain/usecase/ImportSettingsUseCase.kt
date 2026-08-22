@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.local.db.AppDatabase
+import com.sza.fastmediasorter.data.repository.settings.TextRecognitionSettingsStore
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.FileTypeFlags
@@ -168,6 +169,8 @@ class ImportSettingsUseCase @Inject constructor(
                                 currentResource?.let { data ->
                                         settings = AppSettings(
                                         isResourceGridMode = data["isResourceGridMode"]?.toBoolean() ?: false,
+                                        resourceGridCellSize = com.sza.fastmediasorter.domain.model
+                                            .ResourceGridCellSize.fromName(data["resourceGridCellSize"]),
                                         
                                         language = data["language"] ?: "en",
                                         preventSleep = data["preventSleep"]?.toBoolean() ?: true,
@@ -221,12 +224,18 @@ class ImportSettingsUseCase @Inject constructor(
                                         enableOcr = data["enableOcr"]?.toBoolean() ?: false,
                                         ocrDefaultFontSize = data["ocrDefaultFontSize"] ?: "AUTO",
                                         ocrDefaultFontFamily = data["ocrDefaultFontFamily"] ?: "DEFAULT",
-                                        ocrEngineType = data["ocrEngineType"] ?: "TESSERACT",
+                                        // S1703: a backup can carry the withdrawn engine long after the
+                                        // code that understood it is gone - normalise on the way in.
+                                        ocrEngineType = TextRecognitionSettingsStore
+                                            .normaliseEngine(data["ocrEngineType"]),
                                         paddleOcrModel = data["paddleOcrModel"] ?: "CYRILLIC",
                                         
                                         defaultSortMode = SortMode.valueOf(data["defaultSortMode"] ?: "NAME_ASC"),
                                         slideshowInterval = data["slideshowInterval"]?.toInt() ?: 10,
                                         embeddedGameEnabled = data["embeddedGameEnabled"]?.toBoolean() ?: false,
+                                        frontFlashlightEnabled = data["frontFlashlightEnabled"]?.toBoolean() ?: false,
+                                        frontFlashlightColor = data["frontFlashlightColor"]?.toIntOrNull()
+                                            ?: AppSettings.FRONT_FLASHLIGHT_DEFAULT_COLOR,
                                         enableSlideshowBackgroundMusic = data["enableSlideshowBackgroundMusic"]?.toBoolean() ?: false,
                                         slideshowMusicResourceId = data["slideshowMusicResourceId"]?.toLongOrNull(),
                                         

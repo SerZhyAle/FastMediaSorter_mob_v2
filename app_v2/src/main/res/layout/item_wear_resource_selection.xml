@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rowRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/item_focus_selector"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:minHeight="48dp"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/margin_small"
+    android:paddingEnd="@dimen/margin_small">
+
+    <com.google.android.material.checkbox.MaterialCheckBox
+        android:id="@+id/cbSelected"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="false"
+        android:focusable="false" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:paddingTop="@dimen/item_padding_vertical"
+        android:paddingBottom="@dimen/item_padding_vertical">
+
+        <TextView
+            android:id="@+id/tvResourceName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="@dimen/item_title_text_size"
+            tools:text="Downloads" />
+
+        <TextView
+            android:id="@+id/tvResourcePath"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="middle"
+            android:maxLines="1"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="@dimen/item_detail_text_size_small"
+            tools:text="smb://nas/media" />
+    </LinearLayout>
+</LinearLayout>

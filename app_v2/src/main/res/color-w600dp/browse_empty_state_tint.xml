@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1549: mirrors color-land - layout-w600dp/activity_browse.xml is byte-identical to the landscape
+     file, and the w600dp bucket outranks land on a 600dp-wide screen. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="?android:attr/textColorSecondary" />
+</selector>

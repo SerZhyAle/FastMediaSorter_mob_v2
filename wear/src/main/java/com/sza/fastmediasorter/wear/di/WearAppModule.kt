@@ -4,23 +4,30 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import com.sza.fastmediasorter.wear.data.network.itunes.ITunesApiService
+import com.google.gson.Gson
+import com.sza.fastmediasorter.wear.data.network.StreamNetworkHoldManager
+import com.sza.fastmediasorter.wear.data.network.WearNetworkChannelMonitorImpl
 import com.sza.fastmediasorter.wear.data.network.ftp.FtpConnectionTest
 import com.sza.fastmediasorter.wear.data.network.ftp.FtpDataSource
+import com.sza.fastmediasorter.wear.data.network.itunes.ITunesApiService
 import com.sza.fastmediasorter.wear.data.network.sftp.SftpConnectionTest
 import com.sza.fastmediasorter.wear.data.network.sftp.SftpDataSource
 import com.sza.fastmediasorter.wear.data.network.smb.SmbDataSource
 import com.sza.fastmediasorter.wear.data.preferences.NetworkSourceRepositoryImpl
 import com.sza.fastmediasorter.wear.data.preferences.WearPreferencesRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.AlbumArtRepositoryImpl
-import com.sza.fastmediasorter.wear.data.repository.WearMediaRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearFavoritesRepositoryImpl
+import com.sza.fastmediasorter.wear.data.repository.WearMediaRepositoryImpl
+import com.sza.fastmediasorter.wear.data.wear.AndroidWearSystemInfoDataSource
+import com.sza.fastmediasorter.wear.domain.game.GameBoardGenerator
 import com.sza.fastmediasorter.wear.domain.repository.AlbumArtRepository
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
+import com.sza.fastmediasorter.wear.domain.repository.StreamNetworkHold
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearNetworkChannelMonitor
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
-import com.google.gson.Gson
+import com.sza.fastmediasorter.wear.domain.repository.WearSystemInfoDataSource
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -30,6 +37,9 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Qualifier
 import javax.inject.Singleton
+
+/** Applied to connect, read and write alike: one number, because a watch waits for all three the same. */
+private const val HTTP_TIMEOUT_SECONDS = 10L
 
 /**
  * Qualifier for EncryptedSharedPreferences.
@@ -94,6 +104,12 @@ object WearAppModule {
         return WearPreferencesRepositoryImpl(context)
     }
     
+    // S1710: GameBoardGenerator takes a defaulted attempt budget that Dagger cannot bind, so it
+    // is constructed here rather than injected. Stateless, hence shared.
+    @Provides
+    @Singleton
+    fun provideGameBoardGenerator(): GameBoardGenerator = GameBoardGenerator()
+
     @Provides
     @Singleton
     fun provideGson(): Gson = Gson()
@@ -176,4 +192,36 @@ object WearAppModule {
     @Provides
     @Singleton
     fun provideWearFavoritesRepository(impl: WearFavoritesRepositoryImpl): WearFavoritesRepository = impl
+
+    @Provides
+    @Singleton
+    fun provideWearSystemInfoDataSource(
+        impl: AndroidWearSystemInfoDataSource
+    ): WearSystemInfoDataSource = impl
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(): okhttp3.OkHttpClient {
+        return okhttp3.OkHttpClient.Builder()
+            .connectTimeout(HTTP_TIMEOUT_SECONDS, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(HTTP_TIMEOUT_SECONDS, java.util.concurrent.TimeUnit.SECONDS)
+            .writeTimeout(HTTP_TIMEOUT_SECONDS, java.util.concurrent.TimeUnit.SECONDS)
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideWearStreamChannelRepository(
+        impl: com.sza.fastmediasorter.wear.data.repository.WearStreamChannelRepositoryImpl
+    ): com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository = impl
+
+    @Provides
+    @Singleton
+    fun provideWearNetworkChannelMonitor(
+        impl: WearNetworkChannelMonitorImpl
+    ): WearNetworkChannelMonitor = impl
+
+    @Provides
+    @Singleton
+    fun provideStreamNetworkHold(impl: StreamNetworkHoldManager): StreamNetworkHold = impl
 }

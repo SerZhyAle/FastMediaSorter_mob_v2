@@ -220,8 +220,6 @@ Desktop.ini
 .github/*
 !.github/workflows/
 !.github/copilot-instructions.md
-!.github/prompts/
-!.github/prompts/*.prompt.md
 !.github/agents/
 !.github/agents/*.agent.md
 

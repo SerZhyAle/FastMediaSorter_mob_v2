@@ -39,35 +39,43 @@ layer - see `07_entrypoints_and_gating.md`). A `lite`/`photos` build still ships
 
 ## 2. `stream_sources` table
 
-### 2.1 Schema version 41 snapshot (Room-exported baseline) **[CONTRACT for on-device state; the bank itself is CSV, see 01/03]**
+### 2.1 Schema version 51 snapshot (Room-exported baseline) **[CONTRACT for on-device state; the bank itself is CSV, see 01/03]**
 
-Source of truth: `app_v2/schemas/com.sza.fastmediasorter.data.local.db.AppDatabase/41.json:1453-1557`
-(Room's own schema-validation export, gated by `exportSchema = true` in `AppDatabase.kt:39`).
+Source of truth: `app_v2/schemas/com.sza.fastmediasorter.data.local.db.AppDatabase/51.json:1470-1585`
+(Room's own schema-validation export, gated by `exportSchema = true` in `AppDatabase.kt:44`).
+Current `version = 51` (`AppDatabase.kt:41`).
 
 ```sql
 CREATE TABLE IF NOT EXISTS `stream_sources` (
-    `id`                TEXT    NOT NULL,
-    `url`               TEXT    NOT NULL,
-    `title`             TEXT    NOT NULL,
-    `mediaKind`         TEXT    NOT NULL,
-    `sourceOrigin`      TEXT    NOT NULL,
-    `sortIndex`         INTEGER NOT NULL,
-    `pinned`            INTEGER NOT NULL,
-    `addedAt`           INTEGER NOT NULL,
-    `lastPlayedAt`      INTEGER,
-    `category`          TEXT,
-    `topic`             TEXT,
-    `language`          TEXT,
-    `country`           TEXT,
-    `lastPlayOutcome`   TEXT,
-    `lastPlayOutcomeAt` INTEGER,
+    `id`                    TEXT    NOT NULL,
+    `url`                   TEXT    NOT NULL,
+    `title`                 TEXT    NOT NULL,
+    `mediaKind`             TEXT    NOT NULL,
+    `sourceOrigin`          TEXT    NOT NULL,
+    `sortIndex`             INTEGER NOT NULL,
+    `pinned`                INTEGER NOT NULL,
+    `addedAt`               INTEGER NOT NULL,
+    `lastPlayedAt`          INTEGER,
+    `category`              TEXT,
+    `topic`                 TEXT,
+    `language`              TEXT,
+    `country`               TEXT,
+    `access`                TEXT,
+    `preferredAudioLang`    TEXT,
+    `preferredSubtitleLang` TEXT,
+    `subtitlesEnabled`      INTEGER,
     PRIMARY KEY(`id`)
 );
 CREATE UNIQUE INDEX IF NOT EXISTS `index_stream_sources_url` ON `stream_sources`(`url`);
 ```
 
-15 columns, primary key `id` (`autoGenerate = false` - the app supplies the UUID string itself), unique
+17 columns, primary key `id` (`autoGenerate = false` - the app supplies the UUID string itself), unique
 constraint on `url`, no foreign keys.
+
+**Play outcome is no longer a column on this table.** `lastPlayOutcome` and `lastPlayOutcomeAt` lived here
+through schema 47 and were moved into the dedicated `stream_play_outcome` table by S1502 (`51.json:1587`).
+A consumer reading an older revision of this file against a device at schema 48 or newer will not find
+them, and a query naming them fails rather than returning null.
 
 ### 2.2 Column reference
 
@@ -86,17 +94,21 @@ constraint on `url`, no foreign keys.
 | `topic` | TEXT | yes | CATALOG-only |
 | `language` | TEXT | yes | CATALOG-only; lowercase language name(s), comma-separated inside one cell |
 | `country` | TEXT | yes | CATALOG-only; ISO 3166-1 alpha-2 (S0761) |
-| `lastPlayOutcome` | TEXT | yes | `null` = never tried (amber), `"OK"` = green, `"FAIL"` = red, `"UNKNOWN"` = probe-only (never a real failed play). See `RecordStreamPlayOutcomeUseCase`, section 8. |
-| `lastPlayOutcomeAt` | INTEGER (epoch ms) | yes | timestamp of the last outcome write |
+| `access` | TEXT | yes | CATALOG-only region-restriction flag from the catalog's `access` CSV column: `"geo"` = region-restricted, `null` = open (S1117) |
+| `preferredAudioLang` | TEXT | yes | per-channel track memory: the audio language last chosen for this channel; `null` = never chosen (S1144) |
+| `preferredSubtitleLang` | TEXT | yes | per-channel track memory: the subtitle language last chosen for this channel; `null` = never chosen (S1144) |
+| `subtitlesEnabled` | INTEGER (bool) | yes | per-channel track memory: whether subtitles were left on; `null` = never chosen, which is distinct from an explicit off (S1144) |
 
 Entity source: `app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/StreamSourceEntity.kt`. Note:
-the inline KDoc on `sourceOrigin` says "MANUAL / IMPORTED" - **stale**; the true value set is 3 (CATALOG
-was added by S0570 without updating this one comment).
+the inline KDoc on `sourceOrigin` (`StreamSourceEntity.kt:27`) says "MANUAL / IMPORTED" - **stale**; the
+true value set is 3 (CATALOG was added by S0570 without updating this one comment).
 
 ### 2.3 Migration history (only migrations that touch `stream_sources`)
 
-`AppDatabase.kt:36` current `version = 41`. Full migration chain registered in
-`core/di/DatabaseModule.kt:74-115` (one `.addMigrations(...)` call, no `fallbackToDestructiveMigration`).
+`AppDatabase.kt:41` current `version = 51`. Full migration chain registered in
+`core/di/DatabaseModule.kt:90-141` (one `.addMigrations(...)` call); there is deliberately no
+`fallbackToDestructiveMigration`, so a missing or failed migration throws rather than wiping the
+database (`DatabaseModule.kt:142`).
 
 | Migration | Ticket | Effect |
 |---|---|---|
@@ -104,10 +116,20 @@ was added by S0570 without updating this one comment).
 | 33 -> 34 | S0570 | `ADD COLUMN category TEXT`, `topic TEXT`, `language TEXT` (nullable, no backfill) |
 | 34 -> 35 | S0593 | `ADD COLUMN lastPlayOutcome TEXT`, `lastPlayOutcomeAt INTEGER` |
 | 36 -> 37 | S0761 | `ADD COLUMN country TEXT` |
+| 41 -> 42 | S1117 | `ADD COLUMN access TEXT DEFAULT NULL` |
+| 42 -> 43 | S1144 | `ADD COLUMN preferredAudioLang TEXT`, `preferredSubtitleLang TEXT`, `subtitlesEnabled INTEGER` - all `DEFAULT NULL` |
+| 47 -> 48 | S1502 | **Removes** `lastPlayOutcome` and `lastPlayOutcomeAt`, creates `stream_play_outcome` and copies the recorded outcomes into it |
 
-Migrations 35->36 and 37->38..40->41 do not touch `stream_sources`. The creating SQL (migration 32->33,
-`Migration32To33.kt:10-31`) matches the exported schema above. The three `ALTER TABLE .. ADD COLUMN`
-migrations are forward-only with no `IF NOT EXISTS` guard.
+Migration 47 -> 48 is the only one in this list that is not a plain `ALTER TABLE`: SQLite on minSdk 23 has
+no `DROP COLUMN`, so the table is rebuilt - create `stream_sources_new`, copy the surviving columns,
+`DROP TABLE stream_sources`, rename. The unique `url` index is re-created explicitly afterwards, because
+`DROP TABLE` takes the old table's index with it.
+
+Every other migration in the chain leaves `stream_sources` untouched: 35 -> 36, 37 -> 38 .. 40 -> 41,
+43 -> 44, 44 -> 45, 45 -> 46, 46 -> 47, 48 -> 49, 49 -> 50 and 50 -> 51. Migration 44 -> 45 names the
+table only in a KDoc line citing 42 -> 43 as the nullable-TEXT precedent; it alters `resources`. The
+creating SQL (migration 32 -> 33, `Migration32To33.kt:10-31`) matches the exported schema above, and the
+`ALTER TABLE .. ADD COLUMN` migrations are forward-only with no `IF NOT EXISTS` guard.
 
 ---
 
@@ -133,8 +155,11 @@ Source: `app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/StreamSource
 - `unpin(id)` - `UPDATE ... SET pinned = 0 WHERE id = :id` (S0770: drop pin only; row survives).
 - `updateUserFields(id, url, title, mediaKind)` - `UPDATE ... SET url=:url, title=:title, mediaKind=:mediaKind WHERE id=:id AND sourceOrigin='MANUAL'` (S0660 in-place edit, SQL-scoped to MANUAL rows; `pinned`/`sortIndex`/outcome columns untouched).
 - `markPlayed(id, atMillis)` - `UPDATE ... SET lastPlayedAt = :atMillis WHERE id = :id`. *(Present but not invoked by any use case - dead path.)*
-- `markPlayOutcome(id, outcome, atMillis)` - `UPDATE ... SET lastPlayOutcome = :outcome, lastPlayOutcomeAt = :atMillis WHERE id = :id` (S0593 status bullet).
-- `clearAllPlayOutcomes()` - `UPDATE ... SET lastPlayOutcome = NULL, lastPlayOutcomeAt = NULL` (S0659; no rows deleted).
+- Play-outcome writes left this DAO in S1502. `markPlayOutcome(id, outcome, atMillis)`, `outcomeFor(id)`,
+  `clearAllPlayOutcomes()` and `deleteByStreamId(id)` now live on `StreamPlayOutcomeDao` against the
+  `stream_play_outcome` table, and `observeAll(): Flow<List<StreamPlayOutcomeEntity>>` there is what the
+  list observes. Room invalidates per table, so while the outcome sat on the catalog row every probe
+  result re-emitted the whole catalog to the streams list.
 
 **Catalog-scoped helpers (all SQL-guarded to `sourceOrigin='CATALOG'`)**
 - `catalogSources(): List<StreamSourceEntity>` - `... WHERE sourceOrigin = 'CATALOG'`; merge-delta input.
@@ -286,13 +311,15 @@ All are plain `@Inject constructor()` classes exposing `operator fun invoke(...)
 | `ReorderPinnedStreamUseCase` (+ `enum PinnedStreamMove { UP, DOWN, TO_TOP }`) | `suspend (id, move)` | read `pinnedSnapshot()`, compute new index in memory, no-op on edge, else `reorderPinned(orderedIds)` renumbers the whole pinned set `0..N-1` |
 | `GetStreamSourceByUrlUseCase` | `suspend (url): StreamSourceEntity?` | `getByUrl(url)`; null lets the player fall back to generic error handling (S0581) |
 | `RecordStreamPlayOutcomeUseCase` | `suspend (id, ok)` + `suspend recordProbe(id, reachable)` | `invoke` writes OK/FAIL for a real play; on `ok=true` also records `StatsEvent.StreamPlayed(kind)`. `recordProbe` writes OK/UNKNOWN (never FAIL) for a reachability probe / grid-frame capture (S0700: red is reserved for a real failed play). Constants: `OUTCOME_OK="OK"`, `OUTCOME_FAIL="FAIL"`, `OUTCOME_UNKNOWN="UNKNOWN"`. |
-| `ClearStreamPlayOutcomesUseCase` | `suspend ()` | `clearPlayOutcomes()` = null out both outcome columns on every row (no deletes) |
+| `ClearStreamPlayOutcomesUseCase` | `suspend ()` | `clearAllPlayOutcomes()` = `DELETE FROM stream_play_outcome` (S1502: the outcome owns its own table now, so clearing deletes rows there and never touches `stream_sources`) |
 | `ImportStreamCatalogUseCase` | `suspend (): CatalogImportResult` | see `01`/`03` |
 | `ImportStreamPlaylistUseCase` | `suspend (listUrl): ImportResult` | see `03` |
 | `StreamMediaKindClassifier` | `isSupportedScheme(url)`, `classify(url)` | see `03` |
 
-So `lastPlayOutcome` has a 4-value practical domain: `null` (never tried), `"OK"`, `"FAIL"`, `"UNKNOWN"`
-(probe-only).
+So a channel's outcome still has a 4-value practical domain - `"OK"`, `"FAIL"`, `"UNKNOWN"` (probe-only)
+and "never tried" - but since S1502 the fourth case is the **absence of a row** in `stream_play_outcome`,
+not a `NULL` column on `stream_sources`. A consumer must `LEFT JOIN` that table instead of reading a
+column, and `RecordStreamPlayOutcomeUseCase.kt:61` still defines `OUTCOME_UNKNOWN`.
 
 ---
 

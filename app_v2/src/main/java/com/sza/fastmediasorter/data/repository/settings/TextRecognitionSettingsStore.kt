@@ -5,10 +5,12 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.sza.fastmediasorter.domain.model.AppSettings
+import timber.log.Timber
 
 /**
  * Owns persistence of the text-recognition / translation feature settings: OCR
- * (engine, fonts, PaddleOCR model), in-image translation (source/target language,
+ * (engine, fonts, plus the retired PaddleOCR model key kept for stored-value
+ * compatibility - S1703), in-image translation (source/target language,
  * lens style), and the camera-OCR modes.
  *
  * Extracted from SettingsRepositoryImpl so this cohesive feature is a single named
@@ -17,6 +19,9 @@ import com.sza.fastmediasorter.domain.model.AppSettings
  * preserved; only the "where these keys/defaults/mapping live" responsibility moves.
  */
 object TextRecognitionSettingsStore {
+
+    /** S1703: the only recognition engine that ships. */
+    const val DEFAULT_ENGINE = "TESSERACT"
 
     private val KEY_ENABLE_TRANSLATION = booleanPreferencesKey("enable_translation")
     private val KEY_TRANSLATION_SOURCE_LANGUAGE = stringPreferencesKey("translation_source_language")
@@ -57,9 +62,22 @@ object TextRecognitionSettingsStore {
         cameraOcrOnly = preferences[KEY_CAMERA_OCR_ONLY] ?: false,
         ocrDefaultFontSize = preferences[KEY_OCR_DEFAULT_FONT_SIZE] ?: "AUTO",
         ocrDefaultFontFamily = preferences[KEY_OCR_DEFAULT_FONT_FAMILY] ?: "DEFAULT",
-        ocrEngineType = preferences[KEY_OCR_ENGINE_TYPE] ?: "TESSERACT",
+        ocrEngineType = normaliseEngine(preferences[KEY_OCR_ENGINE_TYPE]),
         paddleOcrModel = preferences[KEY_PADDLE_OCR_MODEL] ?: "CYRILLIC",
     )
+
+    /**
+     * S1703: the engine choice is a stored string, and a device that once chose the withdrawn engine still
+     * carries its name. Reading it back as the default is what keeps that device working after the code
+     * that understood the word is gone; the substitution is logged because a setting that changes by itself
+     * is otherwise indistinguishable from a bug.
+     */
+    fun normaliseEngine(stored: String?): String {
+        if (stored != null && stored != DEFAULT_ENGINE) {
+            Timber.i("OCR engine '$stored' is no longer available - falling back to $DEFAULT_ENGINE")
+        }
+        return DEFAULT_ENGINE
+    }
 
     fun write(preferences: MutablePreferences, settings: AppSettings) {
         preferences[KEY_ENABLE_TRANSLATION] = settings.enableTranslation

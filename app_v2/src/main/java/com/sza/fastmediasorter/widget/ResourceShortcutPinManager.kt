@@ -8,6 +8,7 @@ import androidx.core.graphics.drawable.IconCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import dagger.hilt.android.qualifiers.ApplicationContext
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -28,6 +29,7 @@ class ResourceShortcutPinManager @Inject constructor(
      * the launcher cannot pin, so the caller can report it.
      */
     fun requestPin(resourceId: Long, label: String, icon: Drawable): PinResult {
+        Timber.d("S1917: resource pin requested id=$resourceId")
         if (!ShortcutManagerCompat.isRequestPinShortcutSupported(context)) return PinResult.Unsupported
         val bitmap = icon.toBitmap(SHORTCUT_ICON_SIZE_PX, SHORTCUT_ICON_SIZE_PX)
         val info = ShortcutInfoCompat.Builder(context, "resource_$resourceId")

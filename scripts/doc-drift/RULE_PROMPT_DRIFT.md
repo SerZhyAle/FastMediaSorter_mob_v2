@@ -8,7 +8,8 @@ Strategic context: `PLAN/S0315_rule-prompt-drift-audit.md`. Parent umbrella: S03
 
 - Canonical authority: `CLAUDE.md`.
 - Comparison surfaces are declared as data in `scripts/doc-drift/sources.psd1` (`.claude/commands/*.md`, `.claude/agents/*.md`, `AGENTS.md`, `.github/copilot-instructions.md`, `dev/AGENT_WORKFLOW.md`, `dev/PROJECT_OPERATIONS_INDEX.md`). Extend the set by editing the manifest - no code change.
-- On-disk script reality is gathered from the manifest `ScriptRoots`.
+- On-disk script reality is gathered from the manifest `ScriptRoots` (`scripts`, the two catalog script dirs, and `.claude/hooks`).
+- Routes cited as `/name` that legitimately have no `.claude/commands/<name>.md` are listed in the manifest `KnownRoutes`, each with the reason it is exempt - a built-in CLI command, a plugin skill, a documented chat alias, a retired command name cited historically, or a documentation metavariable (S1849). Add the route there rather than teaching the detector a new special case.
 
 ## Mismatch kinds (closed taxonomy)
 

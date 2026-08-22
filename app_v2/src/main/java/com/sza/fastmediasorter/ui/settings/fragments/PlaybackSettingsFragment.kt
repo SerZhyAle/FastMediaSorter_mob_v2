@@ -75,6 +75,9 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
     // fragment-local section state machine (was a UI-layer business-logic violation).
     private val sectionsManager by lazy { CollapsibleSectionsManager(requireContext()) }
 
+    /** S1967: hands the base the sections this tab registered, so a search jump can open one. */
+    override fun collapsibleSections(): CollapsibleSectionsManager = sectionsManager
+
     // S0577: background-audio block (moved from AudioSettingsFragment). The POST_NOTIFICATIONS
     // request (API 33+) is wired to the persistent-playback toggle.
     private val notificationPermissionLauncher = registerForActivityResult(

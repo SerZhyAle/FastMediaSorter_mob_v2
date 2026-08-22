@@ -9,6 +9,11 @@ permalink: /docs/WEAR_OS_IMPLEMENTATION_STEPS.html
 **Date**: 2026-01-27  
 **Type**: Step-by-Step Implementation Guide
 
+> **Superseded in part (S1839).** Every `slideshowWaitForFinish` / `toggleWaitForFinish` /
+> `wait_for_finish` element in the steps and code listings below was removed from the watch. Do not
+> re-add it: the watch already plays a file to its end in all three players, so the switch had
+> nothing to turn off. The slideshow steps still apply minus that field.
+
 ---
 
 ## How to Use This Document
@@ -40,7 +45,7 @@ Create a domain-layer interface for Wear OS preferences management. This interfa
 Define the following settings keys:
 
 - Media type toggles (audio, video, images)
-- Slideshow configuration (enabled, interval, wait for finish)
+- Slideshow configuration (enabled, interval; the "wait for finish" key was removed in S1839)
 - Album art download toggle
 
 **Files to Create**:

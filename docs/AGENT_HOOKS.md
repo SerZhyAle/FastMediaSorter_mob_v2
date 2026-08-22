@@ -1,6 +1,6 @@
 # Agent Hooks - the complete inventory
 
-Claude Code hooks run around your tool calls. One may **refuse** a call before it happens, **rewrite** its input, **observe** its result, **warn** you, or **arm** a gate for the session. This file is the whole live set. It exists because five of the eleven registered hooks were named in no file an agent reads, and two of those five alter the call itself (S1604).
+Claude Code hooks run around your tool calls. One may **refuse** a call before it happens, **rewrite** its input, **observe** its result, **warn** you, or **arm** a gate for the session. This file is the whole live set. It exists because, when it was written, five of the eleven registered hooks were named in no file an agent reads, and two of those five alter the call itself (S1604).
 
 **When a call is refused or a result looks altered, start here.** The refusal text is self-sufficient by design: it names the hook, cites its `CLAUDE.md` rule, states the reason, gives the exact remedy and names the escape hatch, and it arrives on stderr, which is shown to the model. This file carries the full contract behind that one-line remedy.
 
@@ -10,6 +10,8 @@ Claude Code hooks run around your tool calls. One may **refuse** a call before i
 - **project** - `.claude/hooks/`, registered in `.claude/settings.json`. Travels with the checkout, so it is live for everyone who clones the repository.
 
 The canon ships some of these guards in its own `hooks/` folder. Until the *installed* plugin cache carries a given `.ps1`, the hand-wired registration in `~/.claude/settings.json` is the only thing making it live - removing one "because the plugin has it now" silently disarms it. Verify the installed cache, not the marketplace clone.
+
+**Open as of the 2026-08-18 canon re-sync: every `global` row below is now also shipped by the plugin, and both fire.** The installed cache at `sza/2026.818.1` carries `guard-bash.ps1` (absorbing the `find`, `.ps1`-head, cmdlet-head and missing-interpreter checks), `guard-fire-and-forget.ps1`, `guard-uncapped-read.ps1` and `on-user-prompt.ps1`. Each therefore costs a second PowerShell start (170-250 ms) on every matching call and, for the read guard, a second rewrite of the same input - the plugin's window is 500 lines against the hand-wired one's own threshold. Dropping the six hand-wired registrations from `~/.claude/settings.json` is the canon-sanctioned fix, but that file is **per-machine and outside this repository**, so it is the owner's call and is deliberately not made here. The rows stay listed while they stay registered: `assert-hook-inventory.ps1` judges the global half against that file whenever it is readable, so deleting a row before its registration would fail the gate.
 
 ## Inventory
 
@@ -22,10 +24,10 @@ The canon ships some of these guards in its own `hooks/` folder. Until the *inst
 | `guard-uncapped-read.ps1` | PreToolUse / Read | **rewrites** | global | - | `.claude/hooks/global-hook-tests/Run-GuardUncappedRead-Tests.ps1` |
 | `warn-context-size.ps1` | UserPromptSubmit / `*` | warns | global | - | - |
 | `guard-catalog-before-kt-search.ps1` | PreToolUse / Grep, Glob | refuses | project | - | `.claude/hooks/tests/run-guard-catalog-cases.ps1` |
-| `guard-bash-slash-arg.ps1` | PreToolUse / Bash | refuses | project | 27 | `.claude/hooks/guard-bash-slash-arg.tests/Run-Tests.ps1` |
 | `observe-empty-grep.ps1` | PostToolUse / Grep | observes | project | - | `.claude/hooks/tests/Run-ObserveEmptyGrep-Tests.ps1` |
 | `nudge-small-task-tier.ps1` | UserPromptSubmit | nudges | project | - | - |
 | `reset-catalog-touch-marker.ps1` | SessionStart | arms | project | - | - |
+| `refuse-spec-do-stop.ps1` | Stop | **refuses** | project | - | `.claude/hooks/tests/Run-RefuseSpecDoStop-Tests.ps1` |
 
 ## Contracts and escape hatches
 
@@ -35,8 +37,14 @@ The canon ships some of these guards in its own `hooks/` folder. Until the *inst
 - **`guard-ps1-in-bash`** (Rule 25) refuses a `.ps1` in *command-head* position, because Bash cannot execute one and the failure still reports **exit 0** - a broken build looks like a passing one. **Escape:** `pwsh -NoProfile -File ./a.ps1 <cmd>`. A `.ps1` as an argument, or read with `Read`/`grep`, is fine.
 - **`guard-fire-and-forget`** (Rule 26) refuses `run_in_background` on a gate, a closure facade or a catalog mutator. **Escape:** a genuinely long job on the same command line (`gradlew`, `a.ps1 d/db/dav/cd/nd/nl/r/fu`) overrides the block. **Coverage limit worth knowing:** it is registered on the **Bash** matcher only, so backgrounding the same script through the PowerShell tool is not intercepted - the rule still binds you there.
 - **`guard-bash-unavailable-command`** (Rule 28) refuses three heads: a PowerShell cmdlet, an interpreter absent from this machine (`node`, `npm`, `npx`), and `& {` at the start of a command. **Escape:** the PowerShell tool, or `pwsh -NoProfile -Command "<pipeline>"`. Only a *head* is refused - a cmdlet in quotes, in a heredoc, or as an argument passes. `python3` is deliberately **not** refused: `~/bin/python3` shims to the `python` on PATH.
-- **`guard-bash-slash-arg`** (Rule 27) refuses a slash-command name as an argument value in a Bash-tool `pwsh` call, because MSYS rewrites the leading `/name` into the Git installation root **silently**, at exit code 0, corrupting lock and lease diagnostics. **Escape:** double the slash (`//spec-dev ..`), prefix `MSYS2_ARG_CONV_EXCL='*'`, or issue the call from the PowerShell tool. A real path like `/release/x` is never refused; only a name matching `.claude/commands/*.md` closed by whitespace or a quote.
+- **Rule 27 (the slash-command argument value) is no longer a project hook.** The canon's `sza` plugin ships the check as check 6 of its own `guard-bash.ps1`, verified present in the *installed* cache and proven live by refusal on 2026-08-18, so the project copy `guard-bash-slash-arg.ps1` was removed rather than run twice. **Escape:** unchanged - double the slash (`//spec-dev ..`), prefix `MSYS2_ARG_CONV_EXCL='*'`, or issue the call from the PowerShell tool. **One coverage difference, recorded rather than glossed:** the project hook matched names read from `.claude/commands/*.md`, while the canon guard matches any first path segment that is not a POSIX root - so a future command named `run`, `dev`, `var`, `bin`, `etc`, `opt`, `lib`, `tmp` or `usr` would pass unrefused. None of the current 32 command names collides.
 - **`guard-catalog-before-kt-search`** refuses an **unnarrowed** Kotlin search issued before the class catalogue was consulted this session. All three must hold: the tool is `Grep`/`Glob`, the call targets `.kt`, and it carries no path or glob restricting it to a subtree. **Escape:** name a subtree, or run `dev/CATALOG/scripts/query.ps1` first - any successful query writes `temp/catalog-touch.marker`, which is the pass condition for the rest of the session.
+
+### Refusing to finish - the one hook that guards a turn, not a tool call
+
+- **`refuse-spec-do-stop`** is the only hook on the `Stop` event, and the only one whose subject is the model rather than a tool call: while a `/spec-do` endless marker is armed for **this** session, it answers the Stop event with `{"decision":"block"}` and hands the loop its own next step. It exists because `/spec-do`'s "only the operator ends this loop" was prose, and a loop ended itself at a round boundary anyway, asking the operator to compact and say "continue" - a stop wearing a report's clothes. **Escape:** `pwsh -NoProfile -File scripts/utils/spec-do-marker.ps1 -Action disarm -Token <token>`, which the refusal text always names; the hook never arms anything itself, so a session that armed nothing is never touched.
+- Four allow-paths keep it from holding a session hostage, each pinned by a contract test: no marker; a marker claimed by a **different** session; a marker older than 24 h (purged, never inherited - a killed session must not hold a new one open); and a **live idle wait**, `temp/SPEC-DO.WORK-*.json` with `outcome: waiting` refreshed within 15 minutes, because blocking there would force the loop to spin instead of waiting. A streak of blocks under 20 s apart escalates the instruction to "launch the waiter in the background" rather than surrendering - the cure for a spin is the wait, not a stop.
+- It ignores `stop_hook_active` on purpose. That flag exists so an ordinary hook cannot loop forever; looping forever is this one's contract.
 
 ### Rewriting and observing
 

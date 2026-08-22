@@ -10,10 +10,61 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+
+// S1783: a debug build carries the list of tickets it contains, so a tester holding the APK can see
+// what there is to test without the repository. The selection happens here, once, rather than on the
+// settings screen - the screen only renders whatever this task emitted.
+@CacheableTask
+abstract class GenerateReleasedTicketsTask : DefaultTask() {
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val releaseQueueFile: RegularFileProperty
+
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val releaseReadyFile: RegularFileProperty
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @TaskAction
+    fun generate() {
+        val queueFile = releaseQueueFile.asFile.get()
+        val markerRx = Regex("""^\s*current-next-release:\s*(\d+)\s*$""")
+        // The marker is the only authority on which package this build carries. The highest package
+        // present in RELEASE_READY.md is NOT it: that file legitimately holds rows for the next
+        // package too, so reading the maximum would ship a listing of the wrong, tiny package.
+        val currentRelease = queueFile.readLines()
+            .firstNotNullOfOrNull { markerRx.find(it)?.groupValues?.get(1) }
+            ?: throw GradleException(
+                "No 'current-next-release:' marker in $queueFile - cannot tell which release " +
+                    "package this build carries."
+            )
+
+        val rowRx = Regex("""^\s*(\d+)\s+(S\d{4})_(\S+)\s+\d{4}-\d{2}-\d{2}\s+(\S+)\s*$""")
+        val rows = releaseReadyFile.asFile.get().readLines()
+            .mapNotNull { rowRx.find(it)?.groupValues }
+            .filter { it[1] == currentRelease }
+
+        // BlockNeedUserTest first - those are the rows a tester actually has to act on. sortedBy is
+        // stable, so the owner's order inside each group survives.
+        val ordered = rows.sortedBy { if (it[4] == "BlockNeedUserTest") 0 else 1 }
+
+        val target = outputDir.get().asFile
+        target.mkdirs()
+        File(target, "released_tickets.tsv").writeText(
+            ordered.joinToString(separator = "\n") { "${it[2]}\t${it[3]}\t${it[4]}" }
+        )
+        logger.lifecycle(
+            "released tickets: ${ordered.size} row(s) for package $currentRelease"
+        )
+    }
+}
 
 @CacheableTask
 abstract class VerifyNoPlatformNamesTask : DefaultTask() {
@@ -252,12 +303,10 @@ android {
         // === STARTUP DEBUG INFO ===
         // Owner trigger - read from local.properties (excluded from VCS)
         // If local.properties is absent or the key is missing, field is empty → no special behavior
-        val localProps = Properties()
-        val localPropsFile = rootProject.file("local.properties")
-        if (localPropsFile.exists()) {
-            localProps.load(FileInputStream(localPropsFile))
-        }
-        buildConfigField("String", "OWNER_TRIGGER", "\"${localProps.getProperty("sza.owner.trigger", "")}\"")
+        // S1666: OWNER_TRIGGER and its local.properties key `sza.owner.trigger` are gone. The trigger
+        // guarded an import of credentials that shipped inside every APK regardless of it - with the
+        // bundled file withdrawn there is nothing left to guard, and the string itself no longer ends up
+        // in the built BuildConfig.
 
         // Git Hash
         // === STARTUP DEBUG INFO ===
@@ -819,6 +868,46 @@ android {
                     "icon.inventory.generate",
                     System.getProperty("icon.inventory.generate") ?: "false"
                 )
+                // S1789: Redirect XML and HTML reports for filtered test runs (--tests) to a -filtered subdirectory
+                // so filtered runs do not clear the full unit test suite XML reports in build/test-results/test<Variant>UnitTest/.
+                val defaultXmlDir = layout.buildDirectory.dir("test-results/${it.name}")
+                val filteredXmlDir = layout.buildDirectory.dir("test-results/${it.name}-filtered")
+                val defaultHtmlDir = layout.buildDirectory.dir("reports/tests/${it.name}")
+                val filteredHtmlDir = layout.buildDirectory.dir("reports/tests/${it.name}-filtered")
+
+                it.reports.junitXml.outputLocation.set(
+                    provider {
+                        val filterObj = it.filter
+                        val hasCmdFilter = try {
+                            val method = filterObj.javaClass.getMethod("getCommandLineIncludePatterns")
+                            (method.invoke(filterObj) as? Set<*>)?.isNotEmpty() == true
+                        } catch (_: Exception) {
+                            false
+                        }
+                        if (filterObj.includePatterns.isNotEmpty() || hasCmdFilter) {
+                            filteredXmlDir.get()
+                        } else {
+                            defaultXmlDir.get()
+                        }
+                    }
+                )
+
+                it.reports.html.outputLocation.set(
+                    provider {
+                        val filterObj = it.filter
+                        val hasCmdFilter = try {
+                            val method = filterObj.javaClass.getMethod("getCommandLineIncludePatterns")
+                            (method.invoke(filterObj) as? Set<*>)?.isNotEmpty() == true
+                        } catch (_: Exception) {
+                            false
+                        }
+                        if (filterObj.includePatterns.isNotEmpty() || hasCmdFilter) {
+                            filteredHtmlDir.get()
+                        } else {
+                            defaultHtmlDir.get()
+                        }
+                    }
+                )
             }
         }
     }
@@ -1126,6 +1215,22 @@ androidComponents {
     onVariants { variant ->
         val buildType = variant.buildType ?: ""
         val flavorName = variant.flavorName ?: ""
+
+        // S1783: the released-tickets listing is bound to the debug build type, not to a flag inside
+        // the code, so a release build cannot carry it even by mistake.
+        if (buildType == "debug") {
+            val generateReleasedTickets = tasks.register<GenerateReleasedTicketsTask>(
+                "generateReleasedTickets${variant.name.replaceFirstChar { it.uppercase() }}"
+            ) {
+                releaseQueueFile.set(rootProject.layout.projectDirectory.file("PLAN/RELEASE_QUEUE.md"))
+                releaseReadyFile.set(rootProject.layout.projectDirectory.file("PLAN/RELEASE_READY.md"))
+            }
+            variant.sources.assets?.addGeneratedSourceDirectory(
+                generateReleasedTickets,
+                GenerateReleasedTicketsTask::outputDir
+            )
+        }
+
         variant.outputs.forEach { output ->
             output.outputFileName.set(
                 output.versionName.map { vn ->
@@ -1327,10 +1432,13 @@ if (isNoLegalBuild) {
                     // Still on nightly - PyPI stable remains 2026.7.4, older than the pinned nightly
                     // date, so it does not supersede. Freshest nightly at ship time; needs an on-device
                     // link-download to verify extraction.
-                    install(
-                        "yt-dlp @ https://github.com/yt-dlp/yt-dlp-nightly-builds/" +
-                            "releases/download/2026.08.04.234419/yt-dlp.tar.gz",
-                    )
+                    // 2026-08-20 (pre-release refresh): back to the stable channel, 2026.08.04.234419
+                    // → 2026.8.19. PyPI stable finally moved past the pinned nightly date, which is the
+                    // documented condition for leaving nightly: stable carries the same Instagram
+                    // Rework lineage plus two weeks of maintenance, and is the better-tested of the two
+                    // for every other site. Needs an on-device link-download to verify extraction -
+                    // a pip resolve alone proves nothing.
+                    install("yt-dlp==2026.8.19")
                 }
             }
         }
@@ -1471,6 +1579,12 @@ dependencies {
     "noLegalImplementation"("androidx.media3:media3-exoplayer-rtsp:1.2.1")
     "legacyImplementation"("androidx.media3:media3-exoplayer-rtsp:1.2.1")
     "vrImplementation"("androidx.media3:media3-exoplayer-rtsp:1.2.1")
+    // S1060: libVLC software decoding of patented codecs + DVD/BD ISO playback. noLegal ONLY -
+    // the flavor boundary is the ticket's legal premise (patents/DMCA), so this must never move
+    // to implementation(). Ships prebuilt .so per ABI; noLegal abiFilters govern which are packaged.
+    // 3.7.5, not the spec's 3.6.0 pin: 3.6.0's libvlc.so is 4 KB-aligned and fails the repo's
+    // 16 KB page-alignment rule; 3.7.5 ships 16 KB-aligned .so for arm64-v8a and x86_64 (measured).
+    "noLegalImplementation"("org.videolan.android:libvlc-all:3.7.5")
     // S0305: MIDI playback is available only in flavors that support audio.
     "standardImplementation"("androidx.media3:media3-exoplayer-midi:1.2.1")
     "noLegalImplementation"("androidx.media3:media3-exoplayer-midi:1.2.1")

@@ -1,0 +1,79 @@
+---
+layout: default
+title: "Put FastMedia on Your Watch - FastMediaSorter v2"
+permalink: /docs/howto/wear-install.html
+---
+# <img src="../icons/doc/ic_display.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Put FastMedia on Your Watch
+
+> **Level:** Beginner &bull; **Time:** ~5 minutes &bull; **Device:** Wear OS smartwatch paired with an Android phone
+
+[Русский](wear-install-ru.md) | [Українська](wear-install-uk.md)
+
+FastMedia Wear is the watch half of FastMediaSorter. Once it is on your wrist you can play music and view photos straight from the watch, reach folders shared by your paired phone, and open network shares the watch connects to on its own. This page gets it installed and paired.
+
+---
+
+## What You Will Need
+
+- A smartwatch running **Wear OS 3.0** or newer
+- An Android phone with FastMediaSorter installed and the watch already paired to it in the system settings
+- A Wi-Fi or mobile connection on the watch, or on the phone it is paired with, for the download
+
+---
+
+## Step 1 - Install FastMedia Wear on the Watch
+
+1. On the watch, open the apps list and tap **Play Store**.
+2. Search for **FastMedia Wear**.
+3. Tap **Install** and wait for the download to finish. The watch will show the app in its apps list when it is done.
+
+> Watches vary in how much they let you type. If searching on the wrist is awkward, open the Play Store on your phone, find FastMedia Wear, and choose your watch as the install target - the watch downloads it by itself.
+
+---
+
+## Step 2 - Turn On the Wear Companion on the Phone
+
+The phone side is switched off until you say you own a watch.
+
+1. Open FastMediaSorter on the phone.
+2. Go to **Settings** and open the **Management** tab.
+3. Find the **Wear OS** group and expand it.
+4. Turn the **Wear companion** checkbox on.
+
+The checkbox switches the whole companion on: the button that opens its window appears right below, an entry for it joins the programs list, and it becomes available as a panel tile and a launcher shortcut.
+
+> Builds without the watch bridge do not show this group at all. If you cannot find it, you are running a flavor that ships without Wear support.
+
+---
+
+## Step 3 - Choose What Travels to the Watch
+
+1. In the same group, tap **Wear companion**. Its window opens over the app.
+2. Pick the resources you want the watch to see. Nothing is sent until you choose - an empty selection sends nothing rather than pushing your whole library.
+3. Adjust the watch's own preferences here as well: view mode, keep-awake behaviour and the sections shown on the watch home screen.
+
+---
+
+## Step 4 - Check That Both Halves See Each Other
+
+1. Open **FastMedia Wear** on the watch.
+2. The home screen lists its sections - **Phone**, **Local**, **Resources**, **Streams** and **Apps**.
+3. Tap **Phone**. The folders you selected in Step 3 appear.
+
+If the Phone section is empty, return to the companion window on the phone and confirm that at least one resource is selected.
+
+---
+
+## If Something Does Not Work
+
+- **The watch app does not appear in the Play Store.** Confirm the watch runs Wear OS 3.0 or newer. Older watches use a different app model and are not supported.
+- **The Wear OS group is missing from the phone settings.** The build you are running does not carry the watch bridge.
+- **The Phone section on the watch is empty.** Nothing is selected in the companion window, or the watch and the phone have lost their pairing - check the pairing in the system settings first.
+- **Playback stutters over the phone connection.** Bluetooth between watch and phone is narrow. For long listening, transfer the files to the watch or connect the watch to a network share directly.
+
+---
+
+## Where to Go Next
+
+- [Music on Smartwatch](scenario-watch-music.md) - play your collection on the watch, with cover art, shuffle and bezel volume.
+- [Connect Watch to Network Shares](scenario-watch-network.md) - reach a NAS or a PC share from the watch over Wi-Fi, without the phone.

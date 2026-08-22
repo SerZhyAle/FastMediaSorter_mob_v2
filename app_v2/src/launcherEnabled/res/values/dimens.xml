@@ -75,4 +75,15 @@
     <dimen name="launcher_cell_label_plate_radius">6dp</dimen>
     <dimen name="launcher_cell_label_plate_padding_horizontal">4dp</dimen>
     <dimen name="launcher_cell_label_plate_padding_vertical">1dp</dimen>
+
+    <!-- S1743: how tall the caption plate is drawn inside the header's square. The square itself stays a
+         full grid row - the grid measures rows x cellSize and maps a drop back through the same number, so
+         a shorter row would desynchronise the two (strategic ADR-1). Only what is drawn inside it shrinks. -->
+    <dimen name="launcher_section_strip_height">28dp</dimen>
+
+    <!-- S1430: the drawn track keeps the width of the system bar it replaces, while the view around it is
+         wide enough to catch a finger - the owner chose the invisible touch zone over a thicker bar. -->
+    <dimen name="launcher_scroll_thumb_track_width">4dp</dimen>
+    <dimen name="launcher_scroll_thumb_touch_width">24dp</dimen>
+    <dimen name="launcher_scroll_thumb_min_height">32dp</dimen>
 </resources>

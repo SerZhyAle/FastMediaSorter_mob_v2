@@ -16,7 +16,6 @@ import com.sza.fastmediasorter.domain.model.PermissionGrantKind
 import com.sza.fastmediasorter.domain.model.PermissionStatus
 import com.sza.fastmediasorter.domain.repository.PermissionRequestMarkerRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 

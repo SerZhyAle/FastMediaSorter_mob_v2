@@ -18,6 +18,7 @@ import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.notification.NotificationIcons
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
 import com.sza.fastmediasorter.ui.player.dispatch.StandalonePlayerDispatcherActivity
 import com.sza.fastmediasorter.ui.share.ReceiveShareActivity
@@ -26,6 +27,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.first
 import timber.log.Timber
 
 /**
@@ -48,6 +50,7 @@ class LinkDownloadWorker @AssistedInject constructor(
     @Assisted workerParams: WorkerParameters,
     private val coordinator: LinkAutoDownloadCoordinator,
     private val authSessionRepository: AuthSessionRepository,
+    private val settingsRepository: SettingsRepository,
     private val resultBus: ShareDownloadResultBus,
 ) : CoroutineWorker(context, workerParams) {
 
@@ -121,7 +124,19 @@ class LinkDownloadWorker @AssistedInject constructor(
         val isDismissedHost = (result as? LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly)
             ?.let { runCatching { authSessionRepository.isDismissedForHost(it.host) }.getOrDefault(false) }
             ?: false
-        postResultNotification(result, originalUrl = url ?: urls?.firstOrNull() ?: "", isDismissedHost = isDismissedHost)
+        // S1785: the notification tap is the second "open in player" entry point and must obey the
+        // same setting as the foreground auto-open path. Read here (suspend context) so
+        // postResultNotification stays non-suspend, and default to false if the read fails - a
+        // notification that does not open the player is the recoverable half of the mistake.
+        val openInPlayer = runCatching { settingsRepository.getSettings().first().linkAutoDownloadOpenInPlayer }
+            .onFailure { Timber.w(it, "LinkDownloadWorker: open-in-player setting read failed - treating as off") }
+            .getOrDefault(false)
+        postResultNotification(
+            result,
+            originalUrl = url ?: urls?.firstOrNull() ?: "",
+            isDismissedHost = isDismissedHost,
+            openInPlayer = openInPlayer,
+        )
         // S0202: surface the coordinator Result kind in outputData so the share Activity
         // observer can dispatch on it (e.g. unknown-host NoMediaFound auth escalation) when
         // the worker completes before the activity's 4-second watchdog.
@@ -211,6 +226,7 @@ class LinkDownloadWorker @AssistedInject constructor(
         result: LinkAutoDownloadCoordinator.Result,
         originalUrl: String,
         isDismissedHost: Boolean = false,
+        openInPlayer: Boolean = false,
     ) {
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         ensureChannel(nm)
@@ -226,11 +242,11 @@ class LinkDownloadWorker @AssistedInject constructor(
                 builder
                     .setContentTitle(context.getString(R.string.link_download_notif_title_done))
                     .setContentText(context.getString(R.string.link_download_notif_text_saved, result.fileName))
-                // S0257: tap on the notification body opens StandalonePlayerActivity on the
-                // saved file. The URI is now always populated (coordinator no longer nullifies
-                // it when linkAutoDownloadOpenInPlayer == false) - an explicit tap is treated
-                // as a manual choice that overrides the auto-open setting.
-                result.openInPlayerUri?.let {
+                // S0257/S1785: tap on the notification body opens StandalonePlayerActivity on the
+                // saved file, but only while linkAutoDownloadOpenInPlayer is on. S0257 originally
+                // treated the tap as a manual override; that made the setting unable to stop the
+                // player from opening at all, which is what the setting exists to do.
+                result.openInPlayerUri?.takeIf { openInPlayer }?.let {
                     builder.setContentIntent(buildOpenInPlayerPendingIntent(it, originalUrl))
                 }
             }
@@ -248,8 +264,8 @@ class LinkDownloadWorker @AssistedInject constructor(
                 builder
                     .setContentTitle(context.getString(R.string.link_download_notif_title_done))
                     .setContentText(context.getString(textRes, result.fileName))
-                // S0257: see Saved branch.
-                result.openInPlayerUri?.let {
+                // S0257/S1785: see Saved branch.
+                result.openInPlayerUri?.takeIf { openInPlayer }?.let {
                     builder.setContentIntent(buildOpenInPlayerPendingIntent(it, originalUrl))
                 }
             }
@@ -269,10 +285,10 @@ class LinkDownloadWorker @AssistedInject constructor(
                     .setContentText(
                         context.getString(R.string.link_download_notif_text_batch_done, s.successCount, s.totalItems),
                     )
-                // S0257: for a batched share, the notification tap opens the first successfully
-                // saved file. `firstSavedUri` is null when every batch item failed, in which case
-                // the notification stays informational with no content intent.
-                s.firstSavedUri?.let {
+                // S0257/S1785: for a batched share, the notification tap opens the first successfully
+                // saved file while the setting is on. `firstSavedUri` is null when every batch item
+                // failed, in which case the notification stays informational with no content intent.
+                s.firstSavedUri?.takeIf { openInPlayer }?.let {
                     builder.setContentIntent(buildOpenInPlayerPendingIntent(it, originalUrl))
                 }
             }
@@ -282,35 +298,8 @@ class LinkDownloadWorker @AssistedInject constructor(
                     .setContentText(context.getString(R.string.link_autodownload_error_youtube_community_post))
                     .addAction(buildOpenUrlAction(originalUrl))
             }
-            is LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly -> {
-                // S0211: worker cannot show dialogs. Three branches:
-                // - extractor already ran with a valid stored session (hadExistingSession) - honest
-                //   notice, no Sign-In CTA. Mirrors LinkAutoDownloadResultPresenter.presentSocialPreviewOnly.
-                // - "don't ask" recorded for this host - quiet failure notification.
-                // - no session yet - heads-up sign-in notification with re-auth CTA.
-                when {
-                    result.hadExistingSession -> {
-                        builder
-                            .setContentTitle(context.getString(R.string.link_download_notif_title_done))
-                            .setContentText(
-                                context.getString(R.string.link_download_notif_text_preview_only_signed_in),
-                            )
-                    }
-                    isDismissedHost -> {
-                        builder
-                            .setContentTitle(context.getString(R.string.link_download_notif_title_done))
-                            .setContentText(context.getString(R.string.link_download_notif_text_failed))
-                    }
-                    else -> {
-                        builder
-                            .setContentTitle(context.getString(R.string.link_download_notif_title_sign_in_needed))
-                            .setContentText(
-                                context.getString(R.string.link_download_notif_text_sign_in_needed, result.host),
-                            )
-                            .addAction(buildSignInAction(result.originalUrl))
-                    }
-                }
-            }
+            is LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly ->
+                applySocialPreviewOnly(builder, result, isDismissedHost)
             is LinkAutoDownloadCoordinator.Result.Failed -> {
                 builder
                     .setContentTitle(context.getString(R.string.link_download_notif_title_done))
@@ -322,6 +311,38 @@ class LinkDownloadWorker @AssistedInject constructor(
         // overwriting unrelated results while bounding the ID range.
         val notifId = NOTIF_ID_RESULT_BASE + Math.floorMod(originalUrl.hashCode(), 100)
         nm.notify(notifId, builder.build())
+    }
+
+    /**
+     * S0211: worker cannot show dialogs. Three branches:
+     * - extractor already ran with a valid stored session (hadExistingSession) - honest notice,
+     *   no Sign-In CTA. Mirrors `LinkAutoDownloadResultPresenter.presentSocialPreviewOnly`.
+     * - "don't ask" recorded for this host - quiet failure notification.
+     * - no session yet - heads-up sign-in notification with re-auth CTA.
+     */
+    private fun applySocialPreviewOnly(
+        builder: NotificationCompat.Builder,
+        result: LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly,
+        isDismissedHost: Boolean,
+    ) {
+        when {
+            result.hadExistingSession -> {
+                builder
+                    .setContentTitle(context.getString(R.string.link_download_notif_title_done))
+                    .setContentText(context.getString(R.string.link_download_notif_text_preview_only_signed_in))
+            }
+            isDismissedHost -> {
+                builder
+                    .setContentTitle(context.getString(R.string.link_download_notif_title_done))
+                    .setContentText(context.getString(R.string.link_download_notif_text_failed))
+            }
+            else -> {
+                builder
+                    .setContentTitle(context.getString(R.string.link_download_notif_title_sign_in_needed))
+                    .setContentText(context.getString(R.string.link_download_notif_text_sign_in_needed, result.host))
+                    .addAction(buildSignInAction(result.originalUrl))
+            }
+        }
     }
 
     /**

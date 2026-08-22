@@ -78,6 +78,7 @@ import com.sza.fastmediasorter.ui.main.helpers.MainStorageVolumeWatchManager
 import com.sza.fastmediasorter.ui.main.helpers.MainStreamsMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainStreamsPanelManager
 import com.sza.fastmediasorter.ui.main.helpers.MainVoiceCaptureManager
+import com.sza.fastmediasorter.ui.main.helpers.MainWearCompanionMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
 import com.sza.fastmediasorter.ui.main.helpers.ResourceVrCinemaLaunchManager
 import com.sza.fastmediasorter.ui.main.helpers.StartupNoticeManager
@@ -98,8 +99,10 @@ import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -120,6 +123,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var layoutChrome: MainLayoutChromeManager
     private lateinit var commandOverflowMenuManager: MainCommandOverflowMenuManager
     private lateinit var miniGameMenuManager: MainMiniGameMenuManager
+    private lateinit var wearCompanionMenuManager: MainWearCompanionMenuManager
     private lateinit var streamsMenuManager: MainStreamsMenuManager
     private lateinit var voiceCaptureManager: MainVoiceCaptureManager
     private lateinit var cameraCaptureManager: MainCameraCaptureManager
@@ -152,7 +156,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private var startupFullyDrawnReported = false
     private var startupAprilFoolsPrankChecked = false
     private var isCalculatorEnabled = false
+
+    // S1285: last cell-size step handed to the layout chrome. The settings collector below compares
+    // against it, because that collector re-fires for every unrelated setting and rebuilding the
+    // layout manager each time would drop the grid's scroll position.
+    private var appliedResourceGridCellSize =
+        com.sza.fastmediasorter.domain.model.ResourceGridCellSize.DEFAULT
     private var isNetworkMonitorEnabled = false
+    private var isSystemInfoEnabled = false
+    private var isWearCompanionEnabled = false
     private var isEmbeddedGameEnabled = false
     private var isCameraOcrEnabled = false
     private var isQuickVoiceEnabled = false
@@ -392,6 +404,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             activity = this,
             binding = binding,
             isResourceGridMode = { viewModel.state.value.isResourceGridMode },
+            resourceGridCellSize = { appliedResourceGridCellSize },
             onControlBarFreeWidth = { freeWidthPx ->
                 controlBarFreeWidthPx = freeWidthPx
                 collapsedChipsPlacement.apply(freeWidthPx, isWideLayout())
@@ -762,6 +775,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         linkDownload = isLinkDownloadEnabled,
         miniGame = isEmbeddedGameEnabled,
         screenRecording = isScreenRecordingEnabled,
+        systemInfo = isSystemInfoEnabled,
+        wearCompanion = isWearCompanionEnabled,
     )
 
     private fun showMainWindowDropdownMenu() {
@@ -812,6 +827,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
         storageVolumeWatchManager.attach()
         miniGameMenuManager = MainMiniGameMenuManager(this)
+        wearCompanionMenuManager = MainWearCompanionMenuManager(this)
         streamsMenuManager = MainStreamsMenuManager(this)
         voiceCaptureManager = MainVoiceCaptureManager(
             this, lifecycleScope, localDestinationClassifier, localDestinationWriter, statsSink,
@@ -861,6 +877,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         programsMenuCoordinator = MainProgramsMenuCoordinator(
             activity = this,
             miniGameMenuManager = miniGameMenuManager,
+            wearCompanionMenuManager = wearCompanionMenuManager,
             streamsMenuManager = streamsMenuManager,
             quickCaptureMenuManager = quickCaptureMenuManager,
             linkDownloadMenuManager = linkDownloadMenuManager,
@@ -932,7 +949,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 // S0783: add/remove the channel from the shared Favorites (feature-gated, label per state).
                 onToggleFavorite = { channel -> viewModel.toggleStreamFavorite(channel) },
                 isFavoritesEnabled = { latestSettings?.enableFavorites == true },
-                isChannelFavorite = { channel -> viewModel.favoriteStreamUrls.value.contains(channel.url) },
+                isChannelFavorite = { channel -> viewModel.isFavoriteChannel(channel) },
             ),
             // S0809: collapsed chip lives in the shared collapsed-panels row (activity layout).
             collapsedChip = binding.chipStreamsCollapsed,
@@ -1070,11 +1087,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
 
         binding.btnRefresh.setOnClickListenerDebounced {
-            // Force SMB client reset before scanning resources
-            smbClient.forceFullReset()
-            // Clear failed video thumbnail cache to retry previously failed videos
-            NetworkFileDataFetcher.clearFailedVideoCache()
-            viewModel.scanAllResources()
+            // S1812: forceFullReset() ends in three synchronous SMBClient.close() calls - socket
+            // teardown that ran on the click callback's own stack, on the main thread, every time
+            // this button was tapped. The scan must still start after the reset, so the ordering
+            // moves into the coroutine rather than the reset moving out of it.
+            lifecycleScope.launch {
+                withContext(Dispatchers.IO) { smbClient.forceFullReset() }
+                // Clear failed video thumbnail cache to retry previously failed videos
+                NetworkFileDataFetcher.clearFailedVideoCache()
+                viewModel.scanAllResources()
+            }
         }
 
         // S0759: the top-left exit button minimizes (moveTaskToBack) when any background function is
@@ -1224,6 +1246,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             val networkMonitorNowEnabled =
                 settings.enableNetworkMonitor && networkMonitorContract.isAvailableInBuild
             val networkMonitorEnabledChanged = isNetworkMonitorEnabled != networkMonitorNowEnabled
+            val systemInfoEnabledChanged = isSystemInfoEnabled != settings.enableSystemInfo
+            // S1735 (ADR-1): the setting AND the build's watch bridge. The setting alone would offer the
+            // companion where no bridge exists; the capability alone would deny the user the switch.
+            val wearCompanionNowEnabled =
+                settings.enableWearCompanion && mediaCapabilities.supportsWearCompanion
+            val wearCompanionEnabledChanged = isWearCompanionEnabled != wearCompanionNowEnabled
+            Timber.d("S1735: companion gate=%s", wearCompanionNowEnabled)
             val embeddedGameEnabledChanged = isEmbeddedGameEnabled != settings.embeddedGameEnabled
             val cameraOcrEnabledChanged = isCameraOcrEnabled != settings.cameraOcrTranslationEnabled
             // S0523: the quick-capture menu entries reuse the existing capture toggles - no separate
@@ -1244,6 +1273,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             val screenRecordingEnabledChanged = isScreenRecordingEnabled != screenRecordingNowEnabled
             isCalculatorEnabled = settings.enableCalculator
             isNetworkMonitorEnabled = networkMonitorNowEnabled
+            isSystemInfoEnabled = settings.enableSystemInfo
+            isWearCompanionEnabled = wearCompanionNowEnabled
             isEmbeddedGameEnabled = settings.embeddedGameEnabled
             isCameraOcrEnabled = settings.cameraOcrTranslationEnabled
             isQuickVoiceEnabled = settings.micRecordingEnabled
@@ -1270,6 +1301,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             resourceAdapter.setOpenInVrCinemaVisible(resourceVrCinemaLaunchManager.isAvailable)
             layoutChrome.applyCompactToolbar(settings.useCompactElements)
             layoutChrome.refreshGridSpacing()
+            // S1285: this collector is the only one that sees a cell-size change, and until now it
+            // could not alter the span count - without this the new step would sit unapplied until
+            // the next rotation or state emission, reading to the user as a setting that did nothing.
+            if (appliedResourceGridCellSize != settings.resourceGridCellSize) {
+                appliedResourceGridCellSize = settings.resourceGridCellSize
+                layoutChrome.updateLayoutManagerForScreenSize()
+            }
             // S0759: the left-edge gesture overlay is a setting, not a service - feed its live value to
             // the exit button so the minimize/close mode (and icon) tracks it without an app restart.
             exitButtonManager.setGestureOverlayEnabled(settings.gestureOverlayEnabled)
@@ -1277,7 +1315,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             // (the programs panel mirrors the menu) and refreshes the three-dots button visibility.
             val panelInputsChanged = listOf(
                 calculatorEnabledChanged, embeddedGameEnabledChanged, cameraOcrEnabledChanged,
-                networkMonitorEnabledChanged,
+                networkMonitorEnabledChanged, systemInfoEnabledChanged,
+                wearCompanionEnabledChanged,
                 quickVoiceEnabledChanged, quickVideoEnabledChanged, quickPhotoEnabledChanged,
                 linkDownloadEnabledChanged, streamsEnabledChanged, programsPanelChanged, streamsPanelChanged,
                 screenRecordingEnabledChanged,
@@ -1295,6 +1334,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     /** Recalculates grid layout, toolbar labels and tabs after screen rotation. */
     override fun onLayoutConfigurationChanged(newConfig: Configuration) {
+        Timber.d("S1549: MainActivity onLayoutConfigurationChanged - command bar and tab anchor re-applied on rotation")
         layoutChrome.updateToolbarButtonLabels(newConfig)
         layoutChrome.updateLayoutManagerForScreenSize()
 
@@ -1423,11 +1463,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun pinResourceLaunchShortcut(resource: com.sza.fastmediasorter.domain.model.MediaResource) {
         // Reuse the exact drawable the resource shows in the grid so the pinned icon matches it.
         val icon = ResourceIconComposer.compose(this, resource)
-        val message = when (resourceShortcutPinManager.requestPin(resource.id, resource.name, icon)) {
-            ResourceShortcutPinManager.PinResult.Requested -> R.string.resource_shortcut_created
-            ResourceShortcutPinManager.PinResult.Unsupported -> R.string.resource_shortcut_unsupported
+        // S1917: an accepted pin request is not a created shortcut - the system confirmation dialog
+        // decides that next - so only the unsupported case is reported here.
+        if (resourceShortcutPinManager.requestPin(resource.id, resource.name, icon) ==
+            ResourceShortcutPinManager.PinResult.Unsupported
+        ) {
+            Toast.makeText(this, R.string.resource_shortcut_unsupported, Toast.LENGTH_LONG).show()
         }
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
 
     companion object {

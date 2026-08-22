@@ -24,14 +24,14 @@ import javax.inject.Singleton
  *
  * Why path injection and not a bare `System.load`: the de-bundled engines load their own libraries by
  * name from a static initializer that we cannot edit - `TessBaseAPI` runs
- * `System.loadLibrary("jpeg"/"pngx"/"leptonica"/"tesseract")`, `PaddleLiteInitializer` runs
- * `System.loadLibrary("paddle_lite_jni")`, and media3's `FfmpegLibrary` loads `ffmpegJNI` through its
+ * `System.loadLibrary("jpeg"/"pngx"/"leptonica"/"tesseract")`, and media3's `FfmpegLibrary` loads
+ * `ffmpegJNI` through its
  * own `LibraryLoader`. `System.load(absolutePath)` does not satisfy a later `System.loadLibrary(name)`
  * because the latter resolves names against the classloader's native search path, which does not
  * include `filesDir`. So we splice the delivered directory into that search path (the SoLoader /
  * ReLinker technique) before the wrapper's own loader runs, then warm-load each `.so` to fail fast.
  *
- * Scope: self-downloaded first-party / OSS `.so` only - Tesseract (+ leptonica/jpeg/pngx), PaddleOCR,
+ * Scope: self-downloaded first-party / OSS `.so` only - Tesseract (+ leptonica/jpeg/pngx),
  * FFmpeg DTS, and ML Kit Translate (fallback delivery for store flavors).
  */
 @Singleton

@@ -38,12 +38,14 @@ object DetectionHelper {
     /**
      * Check for TV / leanback feature (TV box, media box).
      */
+    // S1685: FEATURE_TELEVISION is deprecated in favour of FEATURE_LEANBACK, which the line above
+    // already checks, but pre-Leanback set-top boxes still report only the old one and `legacy` runs
+    // down to API 23. The check stays deliberately; the suppression is what makes that visible.
+    @Suppress("DEPRECATION")
     fun hasTelevisionFeature(context: Context): Boolean {
         val pm = context.packageManager
-        if (pm.hasSystemFeature(PackageManager.FEATURE_LEANBACK)) return true
-        if (pm.hasSystemFeature(PackageManager.FEATURE_TELEVISION)) return true
-
-        return false
+        return pm.hasSystemFeature(PackageManager.FEATURE_LEANBACK) ||
+            pm.hasSystemFeature(PackageManager.FEATURE_TELEVISION)
     }
 
     /**

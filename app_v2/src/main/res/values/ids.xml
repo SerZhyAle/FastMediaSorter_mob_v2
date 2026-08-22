@@ -4,6 +4,10 @@
     <item name="browseApkVrBadgeRequestToken" type="id" />
     <item name="browseApkVrBadgeBoundPath" type="id" />
     <item name="flThumbnailFrame" type="id" />
+    <!-- Tag key holding a view's padding as it was before applySystemBarInsetPadding first added an
+         inset to it. Kept on the view rather than in a map so it dies with the view, and so a second
+         call on the same view measures from the same base instead of from its own previous result. -->
+    <item name="systemBarInsetBasePadding" type="id" />
     <!-- S0459: command id for PlayerCommand.SHARE. The player overflow no longer lists it (unified
          «Send to..» covers Share), but CommandPanelController still maps the enum to the live
          btnShareCmd standalone-host view, so the id must exist independent of the player menu XML. -->

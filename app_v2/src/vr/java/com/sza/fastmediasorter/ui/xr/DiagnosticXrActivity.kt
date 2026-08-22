@@ -50,6 +50,9 @@ import com.sza.fastmediasorter.ui.xr.helpers.HudLegendController
 import com.sza.fastmediasorter.ui.xr.helpers.HudLegendRenderer
 import com.sza.fastmediasorter.ui.xr.helpers.HudPlaybackController
 import com.sza.fastmediasorter.ui.xr.helpers.HudSeekProgressTicker
+import com.sza.fastmediasorter.ui.xr.helpers.HudSettingsController
+import com.sza.fastmediasorter.ui.xr.helpers.HudSettingsInteractionDispatcher
+import com.sza.fastmediasorter.ui.xr.helpers.HudSettingsRenderer
 import com.sza.fastmediasorter.ui.xr.helpers.HudTrackController
 import com.sza.fastmediasorter.ui.xr.helpers.ProjectionType
 import com.sza.fastmediasorter.ui.xr.helpers.RenderConfig
@@ -142,7 +145,10 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         VrDiagnosticPlaybackController(
             context = this,
             runtime = runtime,
-            snapshotProvider = { launchInput.snapshot },
+            // S1271 (04.3): the resume-position control gates the handoff snapshot for this
+            // session only. The launch snapshot stays the single resume-state source; disabled
+            // means "start from the beginning", never a persisted preference.
+            snapshotProvider = { if (resumeFromLastPosition) launchInput.snapshot else null },
             runOnUiThread = { block -> runOnUiThread(block) },
             isHostActive = { !isFinishing && !isDestroyed },
             onSurfaceUnavailable = { hudRenderer.isPlaying = false },
@@ -198,6 +204,21 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     private var subtitleController: SubtitleCueController? = null
     private var hudSubsOffLabel: String = ""
     private var hudNoTracksLabel: String = ""
+
+    // S1271: the settings panel - second interactive owner of the single HUD channel, modal over
+    // the strip. Controller created in proceedWithInitialization like the legend's.
+    private val settingsRenderer = HudSettingsRenderer()
+    private var settingsController: HudSettingsController? = null
+    private lateinit var settingsDispatcher: HudSettingsInteractionDispatcher
+
+    // S1271 (Q4): the five panel values are immersive-session scoped - fields, never persistence.
+    // Null override = keep the per-file detection (VrStereoConfigResolver).
+    private var layoutOverride: StereoLayout? = null
+    private var projectionOverride: ProjectionType? = null
+    private var lastAutoConfig: RenderConfig? = null
+    private var stripQuadScale = 1.0f
+    private var hudQuadDistanceM = HUD_QUAD_DEFAULT_DISTANCE_M
+    private var resumeFromLastPosition = true
 
     // S0964: panel repaints are debounced so a volume-slider drag (per ray-tick callbacks)
     // cannot turn into a per-frame queueHud storm (S0290 rule: state-driven uploads only).
@@ -354,6 +375,20 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         legendRenderer.footer = getString(R.string.vr_legend_footer)
         legendRenderer.rows = buildLegendRows()
         legendController = HudLegendController(runtime, legendRenderer, ::restoreStripAfterLegend)
+
+        // S1271: settings panel - captions injected localized, controller owns the channel while
+        // visible, and the dispatcher below is consulted only while the panel is the quad owner.
+        settingsRenderer.title = getString(R.string.vr_settings_title)
+        settingsRenderer.footer = getString(R.string.vr_settings_footer)
+        settingsRenderer.layoutCaption = getString(R.string.vr_settings_layout)
+        settingsRenderer.projectionCaption = getString(R.string.vr_settings_projection)
+        settingsRenderer.distanceCaption = getString(R.string.vr_settings_distance)
+        settingsRenderer.sizeCaption = getString(R.string.vr_settings_size)
+        settingsRenderer.subtitlesCaption = getString(R.string.vr_settings_subtitles)
+        settingsRenderer.resumeCaption = getString(R.string.vr_settings_resume)
+        settingsController = HudSettingsController(runtime, settingsRenderer, ::restoreStripAfterSettings)
+        settingsDispatcher = HudSettingsInteractionDispatcher(settingsRenderer, buildSettingsListener())
+
         val hudInteractionListener = object : HudInteractionDispatcher.InteractionListener {
             override fun onPlayPauseClick() {
                 hapticBridge.triggerClickFeedback()
@@ -713,6 +748,9 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         row(R.string.vr_legend_input_grip_stick_x, R.string.vr_legend_action_file_step),
         row(R.string.vr_legend_input_stick_y, R.string.vr_legend_action_zoom),
         row(R.string.vr_legend_input_grip, R.string.vr_legend_action_move_panel),
+        // S1271 (goal 5): the settings panel must be named here, or the menu binding is a new
+        // undiscoverable surface.
+        row(R.string.vr_legend_input_menu, R.string.vr_legend_action_settings),
         row(R.string.vr_legend_input_ax, R.string.vr_legend_action_exit),
         row(R.string.vr_legend_input_panel_buttons, R.string.vr_legend_action_panel_buttons),
     )
@@ -735,12 +773,165 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     }
 
     private fun restoreStripAfterLegend() {
-        runtime.setHudQuadSize(PANEL_QUAD_WIDTH_M, PANEL_QUAD_HEIGHT_M, PANEL_QUAD_OFFSET_Y_M)
+        applyStripQuadGeometry()
         hudVisible = true
         renderPanelHud()
         refreshSeekPosition()
         seekTicker.start()
     }
+
+    /**
+     * S1271: the single restore point after the settings panel hands the HUD channel back - the
+     * mirror of [restoreStripAfterLegend]. Both go through [applyStripQuadGeometry], so the size
+     * setting survives every ownership round-trip and no path can leave the strip at panel
+     * geometry.
+     */
+    private fun restoreStripAfterSettings() {
+        Timber.d("S1271: settings panel dismissed - strip restored at scale $stripQuadScale")
+        applyStripQuadGeometry()
+        hudVisible = true
+        renderPanelHud()
+        refreshSeekPosition()
+        seekTicker.start()
+    }
+
+    /** S1271: strip quad geometry with the session's size setting applied. */
+    private fun applyStripQuadGeometry() {
+        runtime.setHudQuadSize(
+            PANEL_QUAD_WIDTH_M * stripQuadScale,
+            PANEL_QUAD_HEIGHT_M * stripQuadScale,
+            PANEL_QUAD_OFFSET_Y_M
+        )
+    }
+
+    /**
+     * S1271: the left menu button. The panel is modal over the strip on the one HUD channel; the
+     * seek tick stands down like it does for the legend, and dismissal restores through
+     * [restoreStripAfterSettings] only.
+     */
+    private fun toggleSettingsPanel() {
+        val controller = settingsController ?: return
+        Timber.d("S1271: menu toggle - settings panel ${if (controller.isVisible) "closing" else "opening"}")
+        if (controller.dismiss()) return
+        seekTicker.stop()
+        refreshSettingsPanelModel()
+        controller.show()
+    }
+
+    /** S1271: pull current override/track state into the panel model before painting. */
+    private fun refreshSettingsPanelModel() {
+        val autoLabel = getString(R.string.vr_settings_value_auto)
+        settingsRenderer.layoutValue = layoutOverride?.let(::layoutLabel) ?: autoLabel
+        settingsRenderer.projectionValue = projectionOverride?.let(::projectionLabel) ?: autoLabel
+        settingsRenderer.subtitlesValue =
+            if (::trackController.isInitialized) {
+                trackController.subtitleLabel(hudSubsOffLabel, hudNoTracksLabel)
+            } else {
+                hudNoTracksLabel
+            }
+        settingsRenderer.resumeValue = getString(
+            if (resumeFromLastPosition) R.string.vr_settings_value_on else R.string.vr_settings_value_off
+        )
+        settingsRenderer.distanceValue =
+            (hudQuadDistanceM - HUD_QUAD_MIN_DISTANCE_M) / (HUD_QUAD_MAX_DISTANCE_M - HUD_QUAD_MIN_DISTANCE_M)
+        settingsRenderer.sizeValue =
+            (stripQuadScale - STRIP_SCALE_MIN) / (STRIP_SCALE_MAX - STRIP_SCALE_MIN)
+    }
+
+    private fun layoutLabel(layout: StereoLayout): String = when (layout) {
+        StereoLayout.MONO -> getString(R.string.vr_settings_value_mono)
+        StereoLayout.SIDE_BY_SIDE -> getString(R.string.vr_settings_value_sbs)
+        StereoLayout.TOP_BOTTOM -> getString(R.string.vr_settings_value_over_under)
+    }
+
+    private fun projectionLabel(projection: ProjectionType): String = when (projection) {
+        ProjectionType.FLAT -> getString(R.string.vr_settings_value_flat)
+        // Degree values are locale-neutral numerals, deliberately not string resources.
+        ProjectionType.HEMISPHERE_180 -> "180°"
+        ProjectionType.SPHERE_360 -> "360°"
+    }
+
+    /**
+     * S1271 (04.1): one funnel for every render-config application. The session override, when
+     * set, wins over the per-file detection; clearing it (Auto) re-applies the last detected
+     * config. Detection itself stays with [VrStereoConfigResolver] - the override never replaces
+     * the default, it shadows it for the session.
+     */
+    private fun applyRenderConfig(config: RenderConfig) {
+        lastAutoConfig = config
+        runtime.setRenderConfig(
+            (projectionOverride ?: config.projection).value,
+            (layoutOverride ?: config.layout).value
+        )
+    }
+
+    private fun reapplyRenderConfig() {
+        lastAutoConfig?.let { applyRenderConfig(it) }
+    }
+
+    private fun buildSettingsListener() = object : HudSettingsInteractionDispatcher.SettingsListener {
+        override fun onLayoutCycle(step: Int) {
+            hapticBridge.triggerClickFeedback()
+            layoutOverride = cycleRing(LAYOUT_RING, layoutOverride, step)
+            reapplyRenderConfig()
+            refreshSettingsPanelModel()
+            settingsController?.requestRepaint()
+        }
+
+        override fun onProjectionCycle(step: Int) {
+            hapticBridge.triggerClickFeedback()
+            projectionOverride = cycleRing(PROJECTION_RING, projectionOverride, step)
+            reapplyRenderConfig()
+            refreshSettingsPanelModel()
+            settingsController?.requestRepaint()
+        }
+
+        override fun onDistanceChanged(value: Float) {
+            hudQuadDistanceM =
+                HUD_QUAD_MIN_DISTANCE_M + value * (HUD_QUAD_MAX_DISTANCE_M - HUD_QUAD_MIN_DISTANCE_M)
+            // Applies to the quad the panel itself sits on - the user sees the distance move live.
+            runtime.setHudQuadDistance(hudQuadDistanceM)
+            settingsController?.requestRepaint()
+        }
+
+        override fun onSizeChanged(value: Float) {
+            stripQuadScale = STRIP_SCALE_MIN + value * (STRIP_SCALE_MAX - STRIP_SCALE_MIN)
+            // Live feedback on the panel's own quad; the strip takes the same scale at the
+            // restore point (applyStripQuadGeometry).
+            runtime.setHudQuadSize(
+                HudSettingsController.QUAD_WIDTH_M * stripQuadScale,
+                HudSettingsController.QUAD_HEIGHT_M * stripQuadScale,
+                HudSettingsController.QUAD_OFFSET_Y_M
+            )
+            settingsController?.requestRepaint()
+        }
+
+        override fun onSubtitlesCycle(step: Int) {
+            hapticBridge.triggerClickFeedback()
+            if (!::trackController.isInitialized) return
+            trackController.cycleSubtitle(step) {
+                refreshTrackRowsAndRepaint()
+                refreshSettingsPanelModel()
+                settingsController?.requestRepaint()
+            }
+        }
+
+        override fun onResumeCycle(step: Int) {
+            hapticBridge.triggerClickFeedback()
+            resumeFromLastPosition = !resumeFromLastPosition
+            refreshSettingsPanelModel()
+            settingsController?.requestRepaint()
+        }
+
+        override fun onHoverStateChanged(isHovered: Boolean) {
+            hapticBridge.triggerHoverFeedback()
+            settingsController?.requestRepaint()
+        }
+    }
+
+    /** S1271: cycle a nullable ring (null = Auto) by [step]. */
+    private fun <T> cycleRing(ring: List<T?>, current: T?, step: Int): T? =
+        ring[(ring.indexOf(current) + step).mod(ring.size)]
 
     /**
      * S0964: paint the interactive panel (nav, volume, depth, track rows) into the HUD quad.
@@ -750,7 +941,11 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         // S1223: the legend borrows this same texture channel. Uploading the strip while it is up
         // would stretch a 2560x360 texture across the legend's quad - one guard at the only queueHud
         // call site covers every repaint trigger (ticker, track change, slider drag) at once.
-        if (isFinishing || isDestroyed || legendController?.isVisible == true) return
+        if (isFinishing || isDestroyed || legendController?.isVisible == true ||
+            settingsController?.isVisible == true
+        ) {
+            return
+        }
         val bitmap = hudBitmap
         val canvas = hudCanvas
         if (bitmap == null || canvas == null) return
@@ -820,7 +1015,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     }
 
     private suspend fun decodeBundledAsset(): Boolean {
-        runtime.setRenderConfig(ProjectionType.SPHERE_360.value, StereoLayout.MONO.value)
+        applyRenderConfig(RenderConfig(ProjectionType.SPHERE_360, StereoLayout.MONO))
         hudRenderer.depthRowVisible = false
         hudRenderer.currentFilename = "vr_diagnostic_360_mono.jpg (bundled)"
         if (isPanelHudMode()) {
@@ -844,7 +1039,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     private suspend fun decodeImageToActivityBytes(file: File): Boolean {
         val config = stereoConfigResolver.resolve(file.name)
-        runtime.setRenderConfig(config.projection.value, config.layout.value)
+        applyRenderConfig(config)
         hudRenderer.depthRowVisible = config.layout != StereoLayout.MONO
         hudRenderer.currentFilename = file.name
         if (isPanelHudMode()) {
@@ -905,7 +1100,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             config.projection,
             filename,
         )
-        runtime.setRenderConfig(config.projection.value, config.layout.value)
+        applyRenderConfig(config)
         hudRenderer.depthRowVisible = true
         if (isPanelHudMode()) scheduleHudPanelRepaint()
     }
@@ -919,7 +1114,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         playbackCtrl.release()
 
         val config = stereoConfigResolver.resolve(file.name)
-        runtime.setRenderConfig(config.projection.value, config.layout.value)
+        applyRenderConfig(config)
         hudRenderer.depthRowVisible = config.layout != StereoLayout.MONO
         if (isPanelHudMode()) {
             refreshTrackRowsAndRepaint()
@@ -978,6 +1173,13 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             // dismissed and seeked would teach the user that the binding they just read about does
             // something unrelated to what it said.
             if (legendController?.dismiss() == true) return@runOnUiThread
+            // S1271: the menu button is a pure toggle - open the settings panel, or close it and
+            // restore the strip. Checked before every media-gated branch for the same reason as
+            // summon below: the panel must stay reachable with an empty playlist.
+            if (eventType == INPUT_EVENT_MENU_TOGGLE) {
+                toggleSettingsPanel()
+                return@runOnUiThread
+            }
             // S1232: summon is checked before the playlist guard below. Bringing the panel back is
             // valid with an empty playlist - navigation is not - and gating it on media would make
             // a hidden HUD unrecoverable in exactly the state where the user needs to reach exit.
@@ -1031,6 +1233,12 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             // S1223: only a real press closes the legend. Dismissing on hover would take it away
             // the moment the ray crossed it, which is before anyone has read it.
             if (isClick && legendController?.dismiss() == true) return@runOnUiThread
+            // S1271: exactly one dispatcher is consulted - the one belonging to the current quad
+            // owner. The strip's hidden rectangles must never receive a settings-panel ray click.
+            if (settingsController?.isVisible == true) {
+                settingsDispatcher.dispatch(uvX, uvY, isHover, isClick)
+                return@runOnUiThread
+            }
             interactionDispatcher.dispatch(uvX, uvY, isHover, isClick)
         }
     }
@@ -1114,6 +1322,12 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         hudBanner.releaseBuffers()
         legendController?.release()
         legendController = null
+        // S1271: free the panel's buffers and reset the natively-persisted quad distance - the
+        // five controls are session-scoped, and the distance override outlives the session in
+        // native state unless it is put back.
+        settingsController?.release()
+        settingsController = null
+        runtime.setHudQuadDistance(HUD_QUAD_DEFAULT_DISTANCE_M)
         reusablePanelHudBuffer = null
         reusablePanelHudBytes = null
         // S1640: unsubscribe at the terminal boundary, never in surfaceDestroyed - the surface is
@@ -1181,14 +1395,14 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             // repaints the banner instead of leaving the placeholder. Video already did this; image
             // items previously relied solely on the one-time onCreate decode path, which is not
             // re-run when a session is recreated, leaving the placeholder visible on re-entry.
-            runtime.setRenderConfig(config.projection.value, config.layout.value)
+            applyRenderConfig(config)
             hudRenderer.depthRowVisible = config.layout != StereoLayout.MONO
             hudRenderer.currentFilename = file.name
             // S0964: the quad-size override persists in native state across sessions within one
             // process, so EVERY mode must (re)assert its own size here - a diagnostic launch after
             // a VR Cinema one would otherwise stretch the banner onto the panel-sized quad.
             if (isPanelHudMode()) {
-                runtime.setHudQuadSize(PANEL_QUAD_WIDTH_M, PANEL_QUAD_HEIGHT_M, PANEL_QUAD_OFFSET_Y_M)
+                applyStripQuadGeometry()
             } else {
                 runtime.setHudQuadSize(BANNER_QUAD_WIDTH_M, BANNER_QUAD_HEIGHT_M, BANNER_QUAD_OFFSET_Y_M)
                 hudBanner.queueFilename(file.name, config.projection, config.layout)
@@ -1238,6 +1452,23 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         private const val INPUT_EVENT_HUD_SUMMON = 3
         private const val INPUT_EVENT_SEEK_FORWARD = 4
         private const val INPUT_EVENT_SEEK_BACK = 5
+        private const val INPUT_EVENT_MENU_TOGGLE = 6 // S1271: left menu button - settings panel
+
+        // S1271: settings-panel slider ranges. Distance mirrors the native clamp in
+        // xr_hud_set_quad_distance; scale bounds keep the strip readable at either end.
+        private const val HUD_QUAD_MIN_DISTANCE_M = 0.8f
+        private const val HUD_QUAD_MAX_DISTANCE_M = 3.0f
+        private const val HUD_QUAD_DEFAULT_DISTANCE_M = 1.5f
+        private const val STRIP_SCALE_MIN = 0.6f
+        private const val STRIP_SCALE_MAX = 1.6f
+
+        // S1271: cycle rings for the override rows; null = Auto (per-file detection).
+        private val LAYOUT_RING = listOf(
+            null, StereoLayout.MONO, StereoLayout.SIDE_BY_SIDE, StereoLayout.TOP_BOTTOM
+        )
+        private val PROJECTION_RING = listOf(
+            null, ProjectionType.FLAT, ProjectionType.HEMISPHERE_180, ProjectionType.SPHERE_360
+        )
 
         // S1240: one thumbstick deflection = one 10 s step. The number is not invented - it is what
         // docs/VR_CONTROLS.md has documented as the intended seek granularity since before the

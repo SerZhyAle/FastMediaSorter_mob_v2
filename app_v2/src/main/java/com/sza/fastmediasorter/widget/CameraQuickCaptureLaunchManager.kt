@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureActivity
 import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureContract
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
+import com.sza.fastmediasorter.util.CaptureFileNamer
 import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,9 +33,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
  * S0369 - all business logic for the quick camera-capture widget tap, kept out of the thin
@@ -137,8 +135,11 @@ class CameraQuickCaptureLaunchManager(
             toastAndFinish(R.string.camera_capture_error_no_camera_app)
             return
         }
-        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        val tempFile = createTemp(timestamp) ?: run {
+        val extension = if (isVideoMode) ".mp4" else ".jpg"
+        val kind = if (isVideoMode) CaptureFileNamer.CaptureKind.VIDEO else CaptureFileNamer.CaptureKind.PHOTO
+        val fileName = CaptureFileNamer.shared.allocate(kind, extension)
+        Timber.d("S1882: quick camera output $fileName")
+        val tempFile = createTemp(fileName) ?: run {
             toastAndFinish(R.string.camera_capture_error_temp_file)
             return
         }
@@ -253,12 +254,11 @@ class CameraQuickCaptureLaunchManager(
         ContextCompat.checkSelfPermission(activity, android.Manifest.permission.CAMERA) ==
             PackageManager.PERMISSION_GRANTED
 
-    private fun createTemp(timestamp: String): File? = try {
+    private fun createTemp(fileName: String): File? = try {
         // S0371: video temps go to DIRECTORY_MOVIES as .mp4; photos stay .jpg in DIRECTORY_PICTURES.
         val dirType = if (isVideoMode) Environment.DIRECTORY_MOVIES else Environment.DIRECTORY_PICTURES
-        val ext = if (isVideoMode) ".mp4" else ".jpg"
         val dir = activity.getExternalFilesDir(dirType) ?: activity.filesDir
-        File(dir, "CAP_$timestamp$ext").also { it.createNewFile() }
+        File(dir, fileName).also { it.createNewFile() }
     } catch (e: Exception) {
         Timber.e(e, "CameraQuickCapture: createTemp failed")
         null

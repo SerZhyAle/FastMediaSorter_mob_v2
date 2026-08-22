@@ -10,6 +10,10 @@
     <string name="s0183_apk_install_success">APK انسٹال ہے۔</string>
     <string name="s0183_apk_install_cancelled">تنصیب منسوخ کر دی گئی۔</string>
     <string name="s0183_apk_install_failed">تنصیب ناکام ہو گئی۔</string>
+    <string name="s1686_apk_install_failed_downgrade">انسٹالیشن ناکام: ایک نیا ورژن پہلے سے انسٹال ہے</string>
+    <string name="s1686_apk_install_failed_incompatible">انسٹالیشن ناکام: یہ APK انسٹال شدہ ایپ سے مختلف طریقے سے سائن شدہ ہے</string>
+    <string name="s1686_apk_install_failed_storage">انسٹالیشن ناکام: کافی خالی جگہ نہیں ہے</string>
+    <string name="s1686_apk_install_failed_corrupt">انسٹالیشن ناکام: APK فائل خراب یا نامکمل ہے</string>
     <string name="setting_support_office_documents_desc">سپورٹ ہونے پر ورڈ، اسپریڈشیٹ اور پریزنٹیشن فائلوں کو بلٹ ان ویور میں کھولتا ہے۔</string>
     <string name="nolegal_diag_section_os_security">OS اور سیکیورٹی</string>
     <string name="nolegal_diag_section_permissions">خصوصی اجازتیں۔</string>

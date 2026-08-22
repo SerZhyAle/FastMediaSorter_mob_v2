@@ -9,8 +9,11 @@ feature and **reuse the same stream bank and favicon atlas**.
 - **What this does NOT do**: prescribe a Windows design. How the feature is built on Windows is out of
   scope. Facts that a reuse **must match** to stay compatible with the shared bank are marked **[CONTRACT]**
   in each file; Android-internal implementation is marked *(impl detail)*.
-- **Snapshot**: extracted from the working tree on branch `DEBUG-v026`, 2026-07-19. Line numbers and code
-  excerpts are from that snapshot; verify against live code before acting on a specific line.
+- **Snapshot**: prose and code excerpts extracted from the working tree on branch `DEBUG-v026`, 2026-07-19;
+  line numbers are from that snapshot - verify against live code before acting on a specific line. The
+  delivery-contract numbers (bank size, row/column counts, atlas geometry) were **re-measured against the
+  live published `stream-catalog.zip` on 2026-08-19** - see the changelog note at the top of
+  `01_delivery_contract.md` for the full list of what changed.
 
 ---
 
@@ -22,10 +25,11 @@ single downloadable artifact both apps share:
 - **URL**: `https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/stream-catalog.zip`
   (GitHub Release, tag `delivery-so-v1`, asset `stream-catalog.zip`, overwritten in place, not SHA-pinned).
 - **ZIP contents**: `streams.csv` (entry 0, always first) + optional `favicon-atlas.png`.
-- **`streams.csv`**: UTF-8 no BOM, RFC-4180, 18 columns matched **by header name**; `name` + `url` required.
+- **`streams.csv`**: UTF-8 no BOM, RFC-4180, 19 columns matched **by header name**; `name` + `url` required.
 - **`favicon-atlas.png`**: 32x32-px tiles, 16-column row-major grid, width fixed 512 px; each row points at
   its tile via the `favicon_index` column; indices are per-build (pair CSV+atlas from the same ZIP).
-- Live snapshot: 2,691 channels (AUDIO 348 / VIDEO 2,337 / RTSP 6); atlas 512x3296, 1,636 favicons; ZIP ~2.5 MB.
+- Live snapshot (2026-08-19): 19,534 channels (AUDIO 16,616 / VIDEO 2,917 / RTSP 1); atlas 512x11488,
+  5,624 favicons; ZIP ~7.56 MB (7,557,268 bytes).
 
 The Windows app can consume this ZIP directly, and/or regenerate it with the same pipeline
 (`08_build_publish_pipeline.md`).
@@ -45,8 +49,12 @@ The Windows app can consume this ZIP directly, and/or regenerate it with the sam
 | `06_player_routing.md` | Playback: AUDIO->inline vs VIDEO/RTSP->fullscreen, ICY metadata, bandwidth-adaptive buffer, live-edge recovery, stall watchdog, control profile, casting, protocol matrix, play-outcome. |
 | `07_entrypoints_and_gating.md` | Flavor gate (`SUPPORT_STREAMS`) + user master toggle (`enableStreams`), main-window menu + pinned panel, settings, onboarding, launcher gadget, extensions download, app-launch panel, device presets. |
 | `08_build_publish_pipeline.md` | The offline producer: `collect-stream-candidates.ps1` (harvest, liveness probe, favicon fetch, atlas pack, CSV write, ZIP assemble, `gh` publish) and its guards. |
+| `09_logo_and_preview_atlases.md` | The two on-demand atlases delivered outside `stream-catalog.zip`: channel-preview and stream-logo geometry, sidecars, the Deliverable payloads, tile-pack vs sheet, and the render fallback order. |
+| `10_contract_amendment_2026-08-20.md` | **[Read first if you already implemented against this set]** What the 2026-08-19 catalog incident and the exchange with StreamsPlayer settled: the build is atomic, a row's absence never deletes user data, artwork is read by stable name plus manifest, and the preview sheet's height now follows its tile count - a breaking change for anyone who hardcoded 60 rows. |
 
 Read order for a full understanding: `01` -> `03` -> `04` -> `02` -> `05` -> `06` -> `07` -> `08`.
+Already implemented against an earlier copy of this set? Read `10` first - it is the only file that
+changes rules rather than describing them.
 
 ---
 
@@ -154,8 +162,9 @@ To stay compatible with the shared bank, a reimplementation must:
 5. De-duplicate and merge channels **by url**; never overwrite or remove user-created channels from a catalog
    import (a url collision favors the user row; prune only ever removes catalog-origin rows).
 6. Tolerate a missing atlas entry (older/degraded bank) without error - render no favicons.
-7. (If regenerating the bank) keep `streams.csv` as ZIP entry 0, cap the atlas at 3 MiB, and never publish a
-   CSV with `favicon_index` values without a matching atlas (the S0925 hazard - see `08`).
+7. (If regenerating the bank) keep `streams.csv` as ZIP entry 0, cap the atlas at 30 MB (current
+   `-MaxAtlasBytes` default), and never publish a CSV with `favicon_index` values without a matching atlas
+   (the S0925 hazard - see `08`).
 
 ---
 
@@ -169,6 +178,9 @@ The subsystem spans ~40 tickets (all Archived unless noted). Grouped by area:
   prune), S0805 (deep-signal liveness), S0843 (webcam seeds), S0588 (catalog replenish).
 - **Favicon atlas**: S0668 (sprite atlas end-to-end), S0785 (list country-flag fallback), S0925 (publish
   guard), S1067 (favicon shortcut icon).
+- **Logo / preview atlases** (file `09`, on-demand, NOT in the bank ZIP): S1154 (channel-preview atlas),
+  S1201 (stream-logo atlas), S1445 (tile pack replaces the sheet as the primary read path), S1220
+  (decoder recycle guard), S1483 (artwork payloads unpinned).
 - **Grid frames**: S0675 (grid mode + capture), S0700 (probe outcome), S0712 (persistent frames), S0784
   (always-show-last-frame), S0933 (TextureView capture).
 - **Browse screen**: S0580 (filter + searchable picker), S0587 (scroll buttons), S0593 (play-status bullet),

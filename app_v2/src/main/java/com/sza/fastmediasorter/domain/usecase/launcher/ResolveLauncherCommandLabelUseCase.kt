@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase.launcher
 
 import android.content.Context
 import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -12,9 +13,11 @@ import com.sza.fastmediasorter.core.launcher.LauncherSectionCatalog
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.data.launcher.AppShortcutDataSource
 import com.sza.fastmediasorter.data.launcher.LiveContactDataSource
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
+import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
 import com.sza.fastmediasorter.domain.icon.ResourceIconProvider
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
@@ -23,6 +26,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherGeographicAction
 import com.sza.fastmediasorter.domain.radio.RadioKind
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
+import com.sza.fastmediasorter.ui.streams.FaviconAtlasSlicer
 import com.sza.fastmediasorter.util.getApplicationInfoCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -112,30 +116,39 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
     private val resourceIconProvider: ResourceIconProvider,
     private val appShortcutDataSource: AppShortcutDataSource,
     private val liveContactDataSource: LiveContactDataSource,
+    private val faviconAtlasStore: FaviconAtlasStore,
 ) {
 
     suspend operator fun invoke(
         command: LauncherCellCommand,
         radioStates: RadioStates = RadioStates(),
+        language: String? = null,
     ): LauncherCommandVisual? =
         withContext(Dispatchers.IO) {
+            val targetContext = if (language != null) {
+                LocaleHelper.applyLocale(context, language)
+            } else {
+                context
+            }
             when (command) {
                 is LauncherCellCommand.App -> appVisual(command.packageName)
-                is LauncherCellCommand.Feature -> featureVisual(command.routeKey)
+                is LauncherCellCommand.Feature -> featureVisual(command.routeKey, targetContext)
+                is LauncherCellCommand.FeatureSection ->
+                    featureVisual(command.routeKey, targetContext)
                 is LauncherCellCommand.Resource -> resourceVisual(command.resourceId)
-                is LauncherCellCommand.Stream -> streamVisual(command.streamId)
-                is LauncherCellCommand.OsShortcut -> osVisual(command.targetKey, radioStates)
-                is LauncherCellCommand.ScheduledOp -> scheduledOpVisual(command.operationId)
+                is LauncherCellCommand.Stream -> streamVisual(command.identityKey)
+                is LauncherCellCommand.OsShortcut -> osVisual(command.targetKey, radioStates, targetContext)
+                is LauncherCellCommand.ScheduledOp -> scheduledOpVisual(command.operationId, targetContext)
                 // S1170: a favourite file is produced by a gadget row tap, never stored in a cell's
                 // target, so nothing asks the grid to draw it. Answering with the file's own name still
                 // costs nothing and keeps the resolver total, which is what makes this `when` a
                 // compile-time check that a new command kind was considered everywhere.
                 is LauncherCellCommand.FavoriteFile -> favoriteFileVisual(command.filePath)
-                is LauncherCellCommand.Contact -> contactVisual(command.target)
-                is LauncherCellCommand.LauncherAction -> launcherActionVisual(command.actionKey)
+                is LauncherCellCommand.Contact -> contactVisual(command.target, targetContext)
+                is LauncherCellCommand.LauncherAction -> launcherActionVisual(command.actionKey, targetContext)
                 is LauncherCellCommand.PinnedShortcut -> pinnedShortcutVisual(command)
                 is LauncherCellCommand.Geographic -> geographicVisual(command)
-                is LauncherCellCommand.Section -> sectionVisual(command.sectionKey)
+                is LauncherCellCommand.Section -> sectionVisual(command.sectionKey, targetContext)
             }
         }
 
@@ -152,7 +165,10 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
      * then to a generic caption. The label is never empty, because it is the only thing that tells two
      * monograms apart.
      */
-    private suspend fun contactVisual(target: LauncherContactTarget): LauncherCommandVisual? {
+    private suspend fun contactVisual(
+        target: LauncherContactTarget,
+        targetCtx: Context,
+    ): LauncherCommandVisual? {
         if (!target.isUsable) return null
         // Every action captures a lookup key at pin time - a phone row carries Phone.LOOKUP_KEY and a
         // messaging row Entity.LOOKUP_KEY - so all four kinds of cell follow the address book, not just
@@ -161,7 +177,7 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
         val label = live?.displayName.orEmpty()
             .ifBlank { target.displayName }
             .ifBlank { target.phoneNumber }
-            .ifBlank { context.getString(R.string.launcher_contact_cell_unnamed) }
+            .ifBlank { targetCtx.getString(R.string.launcher_contact_cell_unnamed) }
         val photoUri = live?.photoUri
         val photo = photoUri?.let(::contactPhoto)
         return LauncherCommandVisual(
@@ -178,7 +194,7 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
             } else {
                 null
             },
-            spokenLabel = context.getString(spokenLabelRes(target.action), label),
+            spokenLabel = targetCtx.getString(spokenLabelRes(target.action), label),
         )
     }
 
@@ -218,7 +234,10 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
         iconRes = R.drawable.ic_widget_favorites,
     )
 
-    private suspend fun scheduledOpVisual(operationId: Long): LauncherCommandVisual? {
+    private suspend fun scheduledOpVisual(
+        operationId: Long,
+        targetCtx: Context,
+    ): LauncherCommandVisual? {
         val operation = scheduledOperationRepository.getById(operationId) ?: return null
         val source = resourceRepository.getResourceById(operation.sourceResourceId)?.name
             ?: operation.sourceResourceId.toString()
@@ -226,7 +245,7 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
             ?.let { resourceRepository.getResourceById(it)?.name ?: it.toString() }
             ?: "-"
         return LauncherCommandVisual(
-            label = context.getString(
+            label = targetCtx.getString(
                 R.string.launcher_cell_scheduled_op_label,
                 operation.operationType.name,
                 source,
@@ -288,10 +307,10 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
             },
         )
 
-    private fun featureVisual(routeKey: String): LauncherCommandVisual? {
+    private fun featureVisual(routeKey: String, targetCtx: Context): LauncherCommandVisual? {
         val route = InternalRouteCatalog.byKey(routeKey) ?: return null
         return LauncherCommandVisual(
-            label = context.getString(route.labelRes),
+            label = targetCtx.getString(route.labelRes),
             iconRes = route.iconRes,
         )
     }
@@ -313,17 +332,36 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
         )
     }
 
-    private suspend fun streamVisual(streamId: String): LauncherCommandVisual? {
-        val source = streamSourceRepository.getById(streamId) ?: return null
-        // S1414: every stream cell draws the same glyph, so a nameless stream would be indistinguishable
-        // from the next one. The host of its address is still a distinguishing mark.
+    // S1832: [cellKey] is the channel's identity, or a row id for a cell written before that ticket.
+    // Resolving the same way the launch path does is what keeps a cell's caption and its tap agreeing
+    // about which channel it is.
+    private suspend fun streamVisual(cellKey: String): LauncherCommandVisual? {
+        val source = streamSourceRepository.getByIdentityOrId(cellKey) ?: return null
         val label = source.title
             .ifBlank { source.url.toUri().host.orEmpty() }
             .ifBlank { source.url }
-        return LauncherCommandVisual(
-            label = label,
-            iconRes = R.drawable.ic_cast,
-        )
+
+        val coords: Map<String, Int> = runCatching { faviconAtlasStore.coords() }.getOrDefault(emptyMap())
+        val tileIndex: Int? = coords[source.url]
+        val tileBitmap = tileIndex?.let { index ->
+            runCatching {
+                FaviconAtlasSlicer { faviconAtlasStore.atlasFile() }.tileFor(index)
+            }.getOrNull()
+        }
+
+        return if (tileBitmap != null) {
+            LauncherCommandVisual(
+                label = label,
+                iconRes = null,
+                iconDrawable = BitmapDrawable(context.resources, tileBitmap),
+                iconKey = "stream_favicon_${source.id}_${source.url}",
+            )
+        } else {
+            LauncherCommandVisual(
+                label = label,
+                iconRes = R.drawable.ic_cast,
+            )
+        }
     }
 
     /**
@@ -331,10 +369,10 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
      * unresolvable shortcut as an unavailable cell the user can remove, and inventing a caption would
      * hide a cell that leads nowhere.
      */
-    private fun launcherActionVisual(actionKey: String): LauncherCommandVisual? {
+    private fun launcherActionVisual(actionKey: String, targetCtx: Context): LauncherCommandVisual? {
         val action = LauncherActionCatalog.byKey(actionKey) ?: return null
         return LauncherCommandVisual(
-            label = context.getString(action.labelRes),
+            label = targetCtx.getString(action.labelRes),
             iconRes = action.iconRes,
         )
     }
@@ -345,14 +383,15 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
      *
      * `iconRes` stays null because the header is a caption, not a cell with a glyph.
      */
-    private fun sectionVisual(sectionKey: String): LauncherCommandVisual? {
+    private fun sectionVisual(sectionKey: String, targetCtx: Context): LauncherCommandVisual? {
         val section = LauncherSectionCatalog.byKey(sectionKey) ?: return null
-        return LauncherCommandVisual(label = context.getString(section.labelRes), iconRes = null)
+        return LauncherCommandVisual(label = targetCtx.getString(section.labelRes), iconRes = null)
     }
 
     private fun osVisual(
         targetKey: String,
         radioStates: RadioStates = RadioStates(),
+        targetCtx: Context = context,
     ): LauncherCommandVisual? {
         val target = OsShortcutCatalog.byKey(targetKey) ?: return null
         // This resolver is launcher-only, so relabel the OS Settings cell "Android settings" to avoid
@@ -363,7 +402,7 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
             target.labelRes
         }
         return LauncherCommandVisual(
-            label = context.getString(labelRes),
+            label = targetCtx.getString(labelRes),
             iconRes = offStateIconRes(target.radio, radioStates) ?: target.iconRes,
         )
     }

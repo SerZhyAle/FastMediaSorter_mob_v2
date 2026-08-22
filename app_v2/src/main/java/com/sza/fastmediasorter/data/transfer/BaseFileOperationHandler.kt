@@ -30,6 +30,10 @@ abstract class BaseFileOperationHandler(
     protected abstract fun getStrategies(): List<FileOperationStrategy>
     protected fun getStrategyForPath(path: String): FileOperationStrategy? = getStrategies().firstOrNull { it.supportsProtocol(path) }
 
+    // S1813: executeCopy, executeMove and executeDelete each confine to Dispatchers.IO in their
+    // OWN body, which an override replaces wholesale - inheriting the declaration does not
+    // inherit the confinement. Five overrides had lost it before this comment existed. An
+    // override either restates withContext(Dispatchers.IO) or delegates to super.
     open suspend fun executeCopy(
         operation: FileOperation.Copy,
         progressCallback: ByteProgressCallback? = null

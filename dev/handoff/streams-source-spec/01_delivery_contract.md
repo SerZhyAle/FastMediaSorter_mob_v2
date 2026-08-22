@@ -9,6 +9,14 @@ Everything here is a **[CONTRACT]** unless marked *(impl detail)*. Facts cite `p
 `03_catalog_format.md` (every CSV column), `04_favicon_atlas.md` (atlas internals),
 `08_build_publish_pipeline.md` (how the bank is produced).
 
+**What changed since the 2026-07-19 snapshot (re-measured 2026-08-19 against the live published
+`stream-catalog.zip`):**
+- CSV columns: **18 -> 19** (new column `access`, section 3.2).
+- CSV rows: **2,691 -> 19,534**.
+- Atlas: **512x3296 -> 512x11488 px**; ZIP: **~2.5 MB -> 7.56 MB** (7,557,268 bytes).
+- Producer publish cap: **3 MiB -> 30 MB** (`-MaxAtlasBytes` default is now `31457280`); the app's accept
+  cap moved with it and the two are now numerically identical (section 4.4).
+
 ---
 
 ## 1. What the bank is, at a glance
@@ -28,8 +36,8 @@ stream-catalog.zip
   derives it from the CSV at import time. It is documented here only because it is the app's on-disk form
   of the same mapping (section 5.3).
 
-Live sizes (measured 2026-07-19): `streams.csv` = 966,495 bytes / 2,691 channels; `favicon-atlas.png` =
-2,426,865 bytes / 512x3296 px / 1,636 favicons; ZIP ~2.5 MB.
+Live sizes (measured 2026-08-19): `streams.csv` = 5,834,634 bytes / 19,534 channels; `favicon-atlas.png` =
+6,992,874 bytes / 512x11488 px / 5,624 favicons; ZIP = 7,557,268 bytes (~7.56 MB).
 
 ---
 
@@ -47,7 +55,10 @@ Live sizes (measured 2026-07-19): `streams.csv` = 966,495 bytes / 2,691 channels
   --clobber`, so the URL is stable across updates.
 - **Fetch discipline in the app** *(impl detail; a consumer may choose its own)*: OkHttp with a 30 s overall
   `callTimeout` (DNS+connect+write+full-body read as one deadline), on top of the shared client's 10 s
-  per-phase timeouts. This 30 s budget is why the atlas is capped at 3 MiB at publish time (section 4.4).
+  per-phase timeouts. This 30 s budget was the original rationale for the atlas size cap (section 4.4); that
+  cap has since grown from 3 MiB to 30 MB without the 30 s deadline changing, so the whole 7.56 MB ZIP now
+  needs roughly 2 Mbps+ sustained to land inside the window on a slow connection - not re-validated as part
+  of this refresh.
 - Re-fetch is only ever triggered by an **explicit** user action (Streams refresh/import or Welcome
   onboarding) - **never** automatically on app update.
 
@@ -66,19 +77,19 @@ Full column semantics are in `03_catalog_format.md`; this is the contract summar
   header row. The producer may reorder or append columns without breaking older consumers; a consumer newer
   than the catalog reads missing columns as blank.
 
-### 3.2 The 18 columns (producer write order)
+### 3.2 The 19 columns (producer write order)
 
 ```
 category, topic, name, url, media_kind, protocol, format, bitrate,
 is_live, https, language, country, homepage, source_kind,
-license_note, notes, confidence, favicon_index
+license_note, notes, confidence, favicon_index, access
 ```
 
 Minimum a consumer must read: **`name`**, **`url`** (both required - a row missing either is dropped),
 **`media_kind`**, and (for favicons) **`favicon_index`**. Useful metadata: `category`, `topic`, `language`,
-`country`, `homepage`. The remaining columns (`protocol`, `format`, `bitrate`, `is_live`, `https`,
-`source_kind`, `license_note`, `notes`, `confidence`) are maintainer/tooling metadata the Android app
-parses but does not store.
+`country`, `homepage`, `access` (section 3.3). The remaining columns (`protocol`, `format`, `bitrate`,
+`is_live`, `https`, `source_kind`, `license_note`, `notes`, `confidence`) are maintainer/tooling metadata
+the Android app parses but does not store.
 
 ### 3.3 Key field semantics
 - **`url`** - the **direct, playable** stream URL (playlists already resolved to the underlying stream). It
@@ -93,6 +104,10 @@ parses but does not store.
   playback field.
 - **`language`** - lowercase language name(s), comma-separated inside one cell (e.g. `english,german`).
 - **`country`** - ISO 3166-1 alpha-2.
+- **`access`** *(added S1117)* - `""` = open, `"geo"` = region-locked (HTTP 403/451 observed from the
+  build machine's network; the channel may still play for a user physically inside that region). Produced
+  only by the offline deep-signal probe. **Stored** app-side (`StreamSourceEntity.access`). Currently a
+  small minority of rows carry `geo` - a consumer must tolerate every row being blank.
 
 ### 3.4 URL -> media-kind classification **[CONTRACT]** (used when `media_kind` is blank, or by manual/playlist adds)
 ```
@@ -124,14 +139,21 @@ Full internals in `04_favicon_atlas.md`; this is the contract summary.
 ### 4.3 Bounds safety
 - A stale/oversized/negative index that does not fit the actual decoded atlas must degrade to "no favicon",
   never crash. (The app: `index < 0` or `rect.right/bottom > atlas.width/height` -> null tile.)
-- Edge case: an index in `[packedCount, rowsNeeded*16 - 1]` (a partly-filled last row) is geometrically
-  in-bounds but decodes to a transparent tile. A strict consumer can treat "index > max emitted ordinal" as
-  invalid (see `04` §1.4).
+- Edge case: an index that fits the decoded canvas but was never assigned to any row decodes to a valid,
+  fully transparent tile - the "in bounds" check alone cannot tell you a tile was actually painted. Do
+  **not** assume every index up to the highest one referenced in the CSV is populated: the live 2026-08-19
+  bank's populated-row count sits below its highest referenced index (see `04` §1.4), so an unused index
+  can appear anywhere in that range, not only past the end. Bounds-check per tile and accept a transparent
+  result gracefully.
 
 ### 4.4 Size budget
-- Producer publish cap **3 MiB** (`$MaxAtlasBytes = 3145728`); over the cap -> the ZIP ships CSV-only.
-- App accept cap **4 MiB** (`MAX_ATLAS_BYTES`); over the cap -> the atlas is dropped, the CSV is kept.
-- (The 1 MiB gap is headroom, not a two-tier design.)
+- Producer publish cap **30 MB** (`$MaxAtlasBytes = 31457280`, the packer's current default); over the cap
+  -> the ZIP ships CSV-only.
+- App accept cap **30 MB** (`MAX_ATLAS_BYTES = 31457280`); over the cap -> the atlas is dropped, the CSV
+  is kept.
+- The two caps are now numerically identical - no headroom margin between producer and consumer. (An
+  earlier snapshot of this doc, 2026-07-19, described a 3 MiB producer cap under a 4 MiB app cap; both
+  sides were raised together and now match exactly.)
 
 ### 4.5 Favicon source
 - The producer fetches each channel's favicon from its **`homepage`** column (not the stream URL), via

@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
+import timber.log.Timber
 
 /**
  * S0404: profile -> starter desktop, as pure data + a pure row-major packer (strategic §5.3: adding a
@@ -37,12 +38,26 @@ object LauncherStarterSets {
     // S1560: the tiles the per-profile grid adds, under the same duplication contract as the four above.
     private const val GADGET_WEATHER = "weather"
     private const val GADGET_SPEED = "speed"
-    private const val GADGET_ALTITUDE = "altitude"
-    private const val GADGET_SATELLITES = "satellites"
+
+    // S1747: the compass replaced altitude and satellites in the seed. Both gadgets still exist and stay
+    // addable by hand - the owner's objection was that a bare satellite count says nothing to a user and
+    // that altitude is a thing one adds deliberately, not something a fresh desktop should decide for them.
+    private const val GADGET_COMPASS = "compass"
     private const val GADGET_AUDIO_NOW_PLAYING = "audio_now_playing"
 
     // S1566: same duplication contract again - the web search field every profile opens with.
     private const val GADGET_SEARCH = "search"
+
+    // S1886: the S1754 media-window family, one window per profile. These are the closest keys the
+    // launcher can actually render to the system-desktop widgets the request named - the launcher hosts
+    // gadgets, not AppWidgets, so RandomPhotoFrame and its siblings are unreachable from a seed.
+    private const val GADGET_MEDIA_IMAGE_WINDOW = "media_image_window"
+    private const val GADGET_MEDIA_AUDIO_WINDOW = "media_audio_window"
+    private const val GADGET_MEDIA_VIDEO_WINDOW = "media_video_window"
+    private const val GADGET_MEDIA_DOCUMENT_WINDOW = "media_document_window"
+
+    // S1886: the headset seeds charge rather than a media window - a window decides nothing there.
+    private const val GADGET_BATTERY = "battery"
 
     /**
      * Every gadget key this table can emit. Public because the parity test cannot reach the private
@@ -56,10 +71,14 @@ object LauncherStarterSets {
         GADGET_FOLDER_PREVIEW,
         GADGET_WEATHER,
         GADGET_SPEED,
-        GADGET_ALTITUDE,
-        GADGET_SATELLITES,
+        GADGET_COMPASS,
         GADGET_AUDIO_NOW_PLAYING,
         GADGET_SEARCH,
+        GADGET_MEDIA_IMAGE_WINDOW,
+        GADGET_MEDIA_AUDIO_WINDOW,
+        GADGET_MEDIA_VIDEO_WINDOW,
+        GADGET_MEDIA_DOCUMENT_WINDOW,
+        GADGET_BATTERY,
     )
 
     // S1560: third-party targets this table may seed. A cell is placed only when its package is present,
@@ -81,9 +100,46 @@ object LauncherStarterSets {
         "com.lge.fmradio",
     )
 
+    // S1644: the Google applications the conditional GOOGLE section may hold, in the owner's order
+    // (strategic §6.1). Every name was read off a GMS device rather than recalled, because a wrong
+    // package name is indistinguishable from an uninstalled app and silently yields no cell.
+    private const val PACKAGE_PLAY_STORE = "com.android.vending"
+    private const val PACKAGE_CHROME = "com.android.chrome"
+    private const val PACKAGE_GMAIL = "com.google.android.gm"
+    private const val PACKAGE_GOOGLE_SEARCH = "com.google.android.googlequicksearchbox"
+    private const val PACKAGE_PHOTOS = "com.google.android.apps.photos"
+    private const val PACKAGE_DRIVE = "com.google.android.apps.docs"
+    private const val PACKAGE_CALENDAR = "com.google.android.calendar"
+
+    /**
+     * S1644: the closed, ordered catalogue of strategic ADR-3 - membership is decided by this list and
+     * the package being installed, never by a popularity heuristic, a store rating or a category.
+     */
+    val GOOGLE_APP_PACKAGES: List<String> = listOf(
+        PACKAGE_PLAY_STORE,
+        PACKAGE_CHROME,
+        PACKAGE_GMAIL,
+        PACKAGE_GOOGLE_SEARCH,
+        PACKAGE_PHOTOS,
+        PACKAGE_DRIVE,
+        PACKAGE_MAPS,
+        PACKAGE_YOUTUBE,
+        PACKAGE_YOUTUBE_MUSIC,
+        PACKAGE_CALENDAR,
+    )
+
+    private val DIALER_CANDIDATES = listOf(
+        "com.google.android.dialer",
+        "com.android.dialer",
+        "com.samsung.android.dialer",
+    )
+
     /** Everything the seed must ask the package manager about, in one set. */
     val candidatePackages: Set<String> =
-        setOf(PACKAGE_YOUTUBE, PACKAGE_YOUTUBE_MUSIC, PACKAGE_MAPS) + FM_RADIO_CANDIDATES
+        setOf(PACKAGE_YOUTUBE, PACKAGE_YOUTUBE_MUSIC, PACKAGE_MAPS, PACKAGE_CHROME) +
+            FM_RADIO_CANDIDATES +
+            DIALER_CANDIDATES +
+            GOOGLE_APP_PACKAGES
 
     // S1560: the rows of the approved grid that cut across profiles, one set each. Membership tests
     // rather than eleven near-identical `when` branches: the owner reads the grid row-wise, and a row
@@ -125,7 +181,7 @@ object LauncherStarterSets {
         DeviceProfileType.PHOTO_FRAME,
     )
 
-    /** Altitude and satellites travel together - both read the same location fix. */
+    /** S1747: the profiles a fresh desktop seeds the compass on - the one location tile that survived. */
     private val LOCATION_TILE_PROFILES = setOf(
         DeviceProfileType.CAR_HEAD_UNIT,
         DeviceProfileType.PERSONAL_SMARTPHONE,
@@ -169,6 +225,7 @@ object LauncherStarterSets {
         val allDocsId: Long? = null,
         val cameraId: Long? = null,
         val lastResourceId: Long? = null,
+        val userResourceIds: List<Long> = emptyList(),
     )
 
     /**
@@ -188,38 +245,128 @@ object LauncherStarterSets {
      * section on the desktop has no lower bound, so a single header would own every cell below it.
      *
      * S1613: [importedShortcuts] land at the tail of the content section, never inside the app-functions
-     * section, and any whose target the starter set already placed is dropped.
+     * section.
+     *
+     * S1644: a repeated target is placed, not dropped. This used to discard an imported shortcut whose
+     * target the starter set had already placed, which was the only target-uniqueness check anywhere in
+     * the seed; the owner ruled that uniqueness belongs to the grid rectangle alone, so one application
+     * may hold as many cells as it has free positions. [place] is what still keeps two cells apart.
      */
     fun itemsFor(
         profile: DeviceProfileType,
         resources: StarterResources,
         routeAvailableInBuild: Map<String, Boolean>,
         installedPackages: Set<String>,
+        googleServicesAvailable: Boolean = false,
         importedShortcuts: List<StarterItem> = emptyList(),
     ): List<StarterItem> {
         val streamsAvailable = routeAvailableInBuild[InternalRouteCatalog.KEY_STREAMS] == true
-        val items = mutableListOf(section(LauncherCellCommand.SECTION_EVERYTHING_ELSE))
+        val items = mutableListOf<StarterItem>()
+
+        // 1. Unsectioned top items ("все")
         items += clock()
-        // S1566: directly after the clock, never before it - LauncherStarterSetsParityTest reads the first
-        // GADGET item of an OTHER-profile set and expects the clock.
         items += gadget(GADGET_SEARCH)
         weatherOrNull(profile)?.let { items += it }
-        items += commonResources(resources)
-        items += profileItems(profile, resources, streamsAvailable, installedPackages)
-        items += commonFeatures(routeAvailableInBuild)
-        items += commonThirdPartyApps(installedPackages)
-        val placedTargets = items.mapTo(mutableSetOf()) { it.target }
-        items += importedShortcuts.filterNot { it.target in placedTargets }
-        items += section(LauncherCellCommand.SECTION_APP_FUNCTIONS)
-        items += launcherActions(profile)
-        items += commonTail()
+
+        // 2. Widgets section
+        val widgets = buildList {
+            addAll(profileGadgets(profile, resources, streamsAvailable))
+            if (profile in LOCATION_TILE_PROFILES) {
+                add(gadget(GADGET_COMPASS))
+                Timber.d("S1747: seeded the compass for %s, altitude and satellites left out", profile)
+            }
+            if (profile == DeviceProfileType.CAR_HEAD_UNIT) {
+                add(gadget(GADGET_SPEED))
+            }
+            if (profile in NOW_PLAYING_PROFILES) {
+                add(gadget(GADGET_AUDIO_NOW_PLAYING))
+            }
+            mediaWindowOrNull(profile, resources)?.let(::add)
+        }
+        Timber.d("S1886: widgets group for %s seeded with %d tile(s)", profile, widgets.size)
+        if (widgets.isNotEmpty()) {
+            items += section(LauncherCellCommand.SECTION_WIDGETS)
+            items += widgets
+        }
+
+        // 3. Resources section
+        val resItems = buildList {
+            addAll(commonResources(resources))
+            addAll(importedShortcuts)
+        }
+        if (resItems.isNotEmpty()) {
+            items += section(LauncherCellCommand.SECTION_RESOURCES)
+            items += resItems
+        }
+
+        // 4. App functions section
+        val appFuncs = buildList {
+            addAll(commonFeatures(routeAvailableInBuild))
+            addAll(launcherActions(profile))
+            addAll(commonTail())
+        }
+        if (appFuncs.isNotEmpty()) {
+            items += section(LauncherCellCommand.SECTION_APP_FUNCTIONS)
+            items += appFuncs
+        }
+
+        // 5. Android apps section
+        val androidApps = buildList {
+            if (profile == DeviceProfileType.CAR_HEAD_UNIT) {
+                appIfInstalled(PACKAGE_MAPS, installedPackages)?.let(::add)
+                firstInstalled(FM_RADIO_CANDIDATES, installedPackages)?.let(::add)
+            } else if (profile in MAPS_PROFILES) {
+                appIfInstalled(PACKAGE_MAPS, installedPackages)?.let(::add)
+            }
+            if (profile in WIFI_PROFILES) {
+                add(shortcut(LauncherCellCommand.OsShortcut(OsShortcutCatalog.KEY_WIFI)))
+            }
+            if (profile in BLUETOOTH_PROFILES) {
+                add(shortcut(LauncherCellCommand.OsShortcut(OsShortcutCatalog.KEY_BLUETOOTH)))
+            }
+            addAll(commonThirdPartyApps(installedPackages))
+        }
+        if (androidApps.isNotEmpty()) {
+            items += section(LauncherCellCommand.SECTION_ANDROID_APPS)
+            items += androidApps
+        }
+
+        // 6. Google section (conditional)
+        items += googleSection(googleServicesAvailable, installedPackages)
+
         return items
     }
 
-    /** The two media apps the owner assigned to every profile, each conditional on being installed. */
+    /**
+     * S1644: the conditional Google section - its header and the installed members of
+     * [GOOGLE_APP_PACKAGES], in catalogue order. The header is emitted only alongside at least one app,
+     * because a header with nothing under it would own every cell below it: section membership is
+     * positional (see [LauncherSectionMembership]), so an empty section is not merely ugly, it swallows
+     * the section that follows. Every installed candidate is seeded - strategic §6.4 rules there is no
+     * cap and the desktop scrolls instead.
+     */
+    private fun googleSection(
+        googleServicesAvailable: Boolean,
+        installedPackages: Set<String>,
+    ): List<StarterItem> {
+        val apps = if (googleServicesAvailable) {
+            GOOGLE_APP_PACKAGES.mapNotNull { appIfInstalled(it, installedPackages) }
+        } else {
+            emptyList()
+        }
+        return if (apps.isEmpty()) {
+            emptyList()
+        } else {
+            listOf(section(LauncherCellCommand.SECTION_GOOGLE)) + apps
+        }
+    }
+
+    /** The third party apps assigned to profiles, conditional on being installed. */
     private fun commonThirdPartyApps(installedPackages: Set<String>): List<StarterItem> = buildList {
         appIfInstalled(PACKAGE_YOUTUBE, installedPackages)?.let(::add)
         appIfInstalled(PACKAGE_YOUTUBE_MUSIC, installedPackages)?.let(::add)
+        appIfInstalled(PACKAGE_CHROME, installedPackages)?.let(::add)
+        firstInstalled(DIALER_CANDIDATES, installedPackages)?.let(::add)
     }
 
     private fun appIfInstalled(packageName: String, installedPackages: Set<String>): StarterItem? =
@@ -234,6 +381,9 @@ object LauncherStarterSets {
         resources.allVideoId?.let { add(resourceShortcut(it, LauncherResourceMode.BROWSE)) }
         resources.allDocsId?.let { add(resourceShortcut(it, LauncherResourceMode.BROWSE)) }
         resources.cameraId?.let { add(resourceShortcut(it, LauncherResourceMode.BROWSE)) }
+        resources.userResourceIds.forEach { id ->
+            add(resourceShortcut(id, LauncherResourceMode.BROWSE))
+        }
     }
 
     // Padding feature shortcuts that fill the desktop toward the 12-15 target. Gated on build presence
@@ -249,42 +399,6 @@ object LauncherStarterSets {
         )
         paddingKeys.forEach { key ->
             if (routeAvailableInBuild[key] == true) add(shortcut(LauncherCellCommand.Feature(key)))
-        }
-    }
-
-    // Expression `when` (not a statement): a future DeviceProfileType added without a branch is a
-    // compile error here, instead of silently falling through to the clock + common tail.
-    // S1560 Phase 04: cross-profile rows expressed as membership sets, plus the existing per-profile
-    // gadget/resource items. The `when` stays exhaustive so a new profile is a compile error.
-    private fun profileItems(
-        profile: DeviceProfileType,
-        resources: StarterResources,
-        streamsAvailable: Boolean,
-        installedPackages: Set<String>,
-    ): List<StarterItem> = buildList {
-        // Per-profile gadgets/resources (the original `when` branches).
-        addAll(profileGadgets(profile, resources, streamsAvailable))
-        // Cross-profile rows driven by membership sets (S1560 Phase 04 grid).
-        if (profile in LOCATION_TILE_PROFILES) {
-            add(gadget(GADGET_ALTITUDE))
-            add(gadget(GADGET_SATELLITES))
-        }
-        if (profile == DeviceProfileType.CAR_HEAD_UNIT) {
-            add(gadget(GADGET_SPEED))
-            appIfInstalled(PACKAGE_MAPS, installedPackages)?.let(::add)
-            firstInstalled(FM_RADIO_CANDIDATES, installedPackages)?.let(::add)
-        }
-        if (profile in MAPS_PROFILES && profile != DeviceProfileType.CAR_HEAD_UNIT) {
-            appIfInstalled(PACKAGE_MAPS, installedPackages)?.let(::add)
-        }
-        if (profile in WIFI_PROFILES) {
-            add(shortcut(LauncherCellCommand.OsShortcut(OsShortcutCatalog.KEY_WIFI)))
-        }
-        if (profile in BLUETOOTH_PROFILES) {
-            add(shortcut(LauncherCellCommand.OsShortcut(OsShortcutCatalog.KEY_BLUETOOTH)))
-        }
-        if (profile in NOW_PLAYING_PROFILES) {
-            add(gadget(GADGET_AUDIO_NOW_PLAYING))
         }
     }
 
@@ -319,6 +433,33 @@ object LauncherStarterSets {
         DeviceProfileType.VR_HEADSET,
         DeviceProfileType.OTHER -> emptyList()
     }
+
+    /**
+     * S1886: the media window a profile opens its widgets group with, or null when the device has no
+     * resource to point it at. Kept beside the compass/speed/now-playing rules in [itemsFor] rather than
+     * inside [profileGadgets], because this is a cross-profile row and folding nine more branches into
+     * that `when` pushed it past the complexity ceiling.
+     *
+     * The id is not optional: every window declares `requiresResourceParam`, so a bare key seeds a cell
+     * that can only ever render "unavailable". Each window also filters its files by type, which is why
+     * the matching all-of-type resource is preferred over the merely last-used one.
+     */
+    private fun mediaWindowOrNull(profile: DeviceProfileType, resources: StarterResources): StarterItem? =
+        when (profile) {
+            DeviceProfileType.PHOTO_FRAME, DeviceProfileType.HOME_TABLET ->
+                (resources.allImagesId ?: resources.lastResourceId)?.let { gadget(GADGET_MEDIA_IMAGE_WINDOW, it) }
+            DeviceProfileType.AUDIO_PLAYER, DeviceProfileType.MEDIA_PLAYER ->
+                resources.allAudioId?.let { gadget(GADGET_MEDIA_AUDIO_WINDOW, it) }
+            DeviceProfileType.VIDEO_PLAYER, DeviceProfileType.TV_MEDIA_BOX ->
+                (resources.allVideoId ?: resources.lastResourceId)?.let { gadget(GADGET_MEDIA_VIDEO_WINDOW, it) }
+            DeviceProfileType.EBOOK_READER ->
+                (resources.allDocsId ?: resources.lastResourceId)?.let { gadget(GADGET_MEDIA_DOCUMENT_WINDOW, it) }
+            // The headset seeds charge instead: a media window decides nothing there, the battery does.
+            DeviceProfileType.VR_HEADSET -> gadget(GADGET_BATTERY)
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            DeviceProfileType.CAR_HEAD_UNIT,
+            DeviceProfileType.OTHER -> null
+        }
 
     /**
      * Lays [items] row-major over an occupancy grid of [columns] columns: each item takes the first

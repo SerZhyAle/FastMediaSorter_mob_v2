@@ -35,6 +35,7 @@ import com.sza.fastmediasorter.databinding.ActivitySettingsBinding
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.settings.fragments.BaseSettingsFragment
 import com.sza.fastmediasorter.ui.settings.fragments.MediaSettingsFragment
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
@@ -50,8 +51,16 @@ import kotlin.math.max
 @AndroidEntryPoint
 class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
 
-    // S1045: Authorization tab reveals plaintext defaultUser/defaultPassword; secure the whole window.
-    override fun isSensitiveScreen(): Boolean = true
+    // S1784: deliberately NOT a sensitive screen, reversing S1045.
+    //
+    // S1045 secured the whole window because the Authorization tab shows the default user and password in
+    // plaintext. The owner overruled that on 2026-08-17: "ничего тут сенситив нет, а пароль по умолчанию
+    // личная проблема пользователя". The cost was concrete and one-sided - FLAG_SECURE blanks every
+    // screenshot of the settings screen, so neither a bug report nor a device-test artefact could ever
+    // show it, which is why the UI evidence gate has a black-frame branch at all.
+    //
+    // The two screens that hold a resource's own credentials - adding a resource and editing one - keep
+    // the flag, so `secureSensitiveScreens` still means what it says.
 
     // S0245: flavor-supplied extra Settings tabs (currently only the VR flavor adds an entry).
     @Inject lateinit var settingsTabExtensions: Set<@JvmSuppressWildcards SettingsTabExtension>
@@ -123,6 +132,9 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         /** S0780: deep-link section ids consumed by the tab fragments' checkAndExpandSectionFromIntent. */
         const val SECTION_STREAMS = "streams"
         const val SECTION_ADDITIONAL_PROGRAMS = "additional_programs"
+
+        /** S1883: the Wear OS group on the Operations tab - the settings target of the companion route. */
+        const val SECTION_WEAR = "wear"
         private const val PREFS_NAME = "settings_state"
         private const val KEY_LAST_TAB_POSITION = "last_tab_position"
 
@@ -180,6 +192,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Timber.d("S1549: SettingsActivity onCreate - recreation applies the orientation layout")
         // Measure actionBarSize and register insets listener before the first frame
         // to prevent toolbarContainer height from jumping on activity open.
         val tv = TypedValue()
@@ -460,7 +473,8 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             } else {
                 resources.getDimensionPixelSize(R.dimen.settings_tabs_height)
             }
-            binding.root.findViewById<View>(R.id.titleRow)?.let { titleRow ->
+            // S1693: titleRow exists only in the portrait layout, so the generated field is nullable.
+            binding.titleRow?.let { titleRow ->
                 titleRow.layoutParams.height = titleH
                 titleRow.requestLayout()
             }
@@ -489,12 +503,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         }
     }
 
-    override fun onLayoutConfigurationChanged(newConfig: android.content.res.Configuration) {
-        if (binding.searchOverlay.isVisible) {
-            closeSearchOverlay()
-        }
-    }
-    
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (keyboardManager.handleKeyDown(keyCode, event)) return true
         return super.onKeyDown(keyCode, event)
@@ -579,21 +587,36 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         closeSearchOverlay()
         binding.viewPager.currentItem = item.destination.tabIndex
 
-        binding.viewPager.post {
-            if (item.destination == SettingsSearchDestination.MEDIA) {
-                (getSettingsFragment(item.destination.tabIndex) as? MediaSettingsFragment)
-                    ?.ensureSectionExpanded(item.sectionId)
-            }
-            navigateToTarget(item.viewId, retryCount = 0)
-        }
+        binding.viewPager.post { navigateToTarget(item, retryCount = 0) }
     }
 
-    private fun navigateToTarget(viewId: Int, retryCount: Int) {
-        val targetView = findViewById<View>(viewId)
+    /**
+     * S1967: opens the collapsible section holding the row a search result points at.
+     *
+     * Called on every attempt of [navigateToTarget] rather than once before it, because only the
+     * initially created tab has its fragment ready at the moment the tab is selected. Aimed at a
+     * fragment that does not exist yet, the expansion does nothing and no one notices - which is
+     * exactly how the first version of this fix passed on General and failed on Playback.
+     */
+    private fun expandSectionForTarget(item: SettingsSearchIndex) {
+        val fragment = getSettingsFragment(item.destination.tabIndex)
+        // Media's sections build their child fragment on first expand, so opening the container is
+        // necessary but not sufficient there; this path attaches the child and is left as it was.
+        if (fragment is MediaSettingsFragment) {
+            fragment.ensureSectionExpanded(item.sectionId)
+        }
+        // Every destination, not only Media. The row's ancestors name the section that encloses it,
+        // which a section name cannot do where one layout carries eight sections under one name.
+        (fragment as? BaseSettingsFragment)?.expandSectionForSearchTarget(item.ancestorIds)
+    }
+
+    private fun navigateToTarget(item: SettingsSearchIndex, retryCount: Int) {
+        expandSectionForTarget(item)
+        val targetView = findViewById<View>(item.viewId)
         if (targetView == null) {
             if (retryCount < 25) {
                 binding.viewPager.postDelayed(
-                    { navigateToTarget(viewId, retryCount + 1) },
+                    { navigateToTarget(item, retryCount + 1) },
                     80L
                 )
             }

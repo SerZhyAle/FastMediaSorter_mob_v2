@@ -10,6 +10,9 @@ import com.sza.fastmediasorter.domain.model.networkmonitor.SimEntry
 import com.sza.fastmediasorter.domain.repository.NetworkMonitorRepository
 import com.sza.fastmediasorter.domain.usecase.networkmonitor.ObserveCellularSignalUseCase
 import com.sza.fastmediasorter.domain.usecase.networkmonitor.SimSignalSample
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.ChartWindowEvent
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.ChartWindowResetManager
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.withChartResets
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -60,11 +63,25 @@ class MobileSectionViewModel @Inject constructor(
     observeCellularSignal: ObserveCellularSignalUseCase,
 ) : ViewModel() {
 
+    private val chartResets = ChartWindowResetManager()
+
     val uiState: StateFlow<MobileSectionUiState> = combine(
         repository.observeSnapshot(),
-        observeCellularSignal().scan(emptySimWindows()) { windows, reading -> windows.append(reading) },
+        observeCellularSignal()
+            .withChartResets(chartResets.resets)
+            .scan(emptySimWindows()) { windows, event ->
+                when (event) {
+                    is ChartWindowEvent.Sample -> windows.append(event.reading)
+                    is ChartWindowEvent.Reset -> windows.clear(event.chartKey)
+                }
+            },
     ) { snapshot, signals -> snapshot.toUiState(signals) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), MobileSectionUiState.Empty)
+
+    /** Starts the window of the chart drawn for [slotIndex] over, leaving the other SIM's history alone. */
+    fun onChartResetRequested(slotIndex: Int) {
+        chartResets.reset(ChartWindowResetManager.simChart(slotIndex))
+    }
 }
 
 private fun emptySimWindows(): MonitorSection<List<SimSignalWindow>> =
@@ -86,6 +103,27 @@ private fun MonitorSection<List<SimSignalWindow>>.append(
         samples.map { sample ->
             val series = existing[sample.slotIndex]?.series ?: SignalSeries()
             SimSignalWindow(sample.slotIndex, series.append(sample.sample))
+        }
+    )
+}
+
+/**
+ * Empties the window of one SIM's chart, keeping every other SIM's history.
+ *
+ * The section draws one chart per SIM from a single flow, so a reset that cleared the whole map would
+ * restart a chart the user did not tap (S1853).
+ */
+private fun MonitorSection<List<SimSignalWindow>>.clear(
+    chartKey: String,
+): MonitorSection<List<SimSignalWindow>> {
+    val windows = data ?: return this
+    return MonitorSection.available(
+        windows.map { window ->
+            if (ChartWindowResetManager.simChart(window.slotIndex) == chartKey) {
+                SimSignalWindow(window.slotIndex, SignalSeries())
+            } else {
+                window
+            }
         }
     )
 }

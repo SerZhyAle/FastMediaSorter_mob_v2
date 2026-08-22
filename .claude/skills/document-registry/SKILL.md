@@ -32,3 +32,5 @@ pwsh -NoProfile -File scripts/document_registry/generate.ps1 -Check
 ```
 
 Never hand-edit generated `docs/DOCS_MAP.md` or `sitemap.xml`. Register maintained documents and pages before relying on them in a workflow.
+
+Adding or withholding a page follows one model, written out in `scripts/document_registry/README.md`: the page declares its own address with a `permalink:`, the record decides publication for the whole group, a page that must not be announced is named in that record's `sitemap_exclude` with a reason someone can re-judge in a year, and a file with no declared address is not a page. `validate.ps1` fails on a file under an indexable record that is none of those, so a note dropped beside real pages cannot reach the sitemap unnoticed.

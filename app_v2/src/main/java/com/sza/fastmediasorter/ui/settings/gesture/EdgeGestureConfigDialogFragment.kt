@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.settings.gesture
 
 import android.app.Dialog
-import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -34,7 +33,6 @@ import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionPicker
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -94,12 +92,13 @@ class EdgeGestureConfigDialogFragment : DialogFragment(), EdgeGestureConfigManag
             localFolderDestinationPickerManager.onFolderPicked(uri)
         }
 
-    // S1123: not `by lazy` - the manager captures the binding, so a re-inflate for a new orientation
-    // has to hand it a fresh one, and a lazy cannot be reset.
+    // Not `by lazy` - the manager captures the binding, so a new view hierarchy has to hand it a fresh
+    // one, and a lazy cannot be reset.
     private var manager: EdgeGestureConfigManager? = null
 
-    /** Orientation the currently inflated layout variant was chosen for. */
-    private var inflatedOrientation = Configuration.ORIENTATION_UNDEFINED
+    // S1549: TabLayout does not save its selection, and the host now recreates on rotation, so the chosen
+    // zone has to be carried across by hand or the dialog jumps back to the first zone on every rotation.
+    private var restoredZoneTab = 0
 
     // S1036: the slot the app picker is currently choosing for. Held here rather than in the manager
     // because the manager is rebuilt on every re-inflate, and saved because losing it mid-pick would
@@ -138,6 +137,7 @@ class EdgeGestureConfigDialogFragment : DialogFragment(), EdgeGestureConfigManag
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         pendingAppSlot = restorePendingAppSlot(savedInstanceState)
+        restoredZoneTab = savedInstanceState?.getInt(STATE_SELECTED_ZONE_TAB, 0) ?: 0
         // Registered on childFragmentManager because that is the manager showAppPicker shows the picker
         // in - this host is itself a DialogFragment. The request key is this dialog's own, so the panel
         // editor's picks on the activity's manager never arrive here (S0404).
@@ -153,6 +153,7 @@ class EdgeGestureConfigDialogFragment : DialogFragment(), EdgeGestureConfigManag
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
+        _binding?.let { outState.putInt(STATE_SELECTED_ZONE_TAB, it.tabsEdgeGestureZones.selectedTabPosition) }
         val slot = pendingAppSlot ?: return
         outState.putString(STATE_PENDING_ZONE, slot.first.name)
         outState.putString(STATE_PENDING_DIRECTION, slot.second.name)
@@ -179,48 +180,18 @@ class EdgeGestureConfigDialogFragment : DialogFragment(), EdgeGestureConfigManag
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = DialogEdgeGestureConfigBinding.inflate(inflater, container, false)
-        inflatedOrientation = resources.configuration.orientation
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         bindContent()
-        // Reads the field, not a captured instance, so a re-inflate keeps this collector driving the
-        // manager that owns the views currently on screen.
+        if (restoredZoneTab > 0) binding.tabsEdgeGestureZones.getTabAt(restoredZoneTab)?.select()
         collectOnLifecycle(viewModel.settings) { settings ->
             isUpdatingFromSettings = true
             manager?.render(settings)
             isUpdatingFromSettings = false
         }
-    }
-
-    /**
-     * S1123: the host Activity declares `configChanges` for orientation, so a rotation recreates
-     * neither it nor this fragment and [onCreateView] never runs again - the layout variant inflated
-     * when the dialog opened stays on screen for the rest of its life. Swap the content for the one
-     * the new configuration resolves, which is what a recreate would have produced.
-     */
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        val hostDialog = dialog ?: return
-        if (newConfig.orientation == inflatedOrientation) return
-
-        // The chosen zone lives in the TabLayout, which the re-inflate replaces - carry it across, or
-        // the dialog silently jumps back to the first zone on every rotation.
-        val selectedZoneTab = binding.tabsEdgeGestureZones.selectedTabPosition
-
-        manager?.teardown()
-        _binding = DialogEdgeGestureConfigBinding.inflate(LayoutInflater.from(requireContext()))
-        inflatedOrientation = newConfig.orientation
-        hostDialog.setContentView(binding.root)
-        bindContent()
-        // onStart does not run again either, so the window chrome has to be re-applied by hand.
-        applyDialogChrome()
-        isUpdatingFromSettings = true
-        manager?.render(viewModel.settings.value)
-        isUpdatingFromSettings = false
-        if (selectedZoneTab > 0) binding.tabsEdgeGestureZones.getTabAt(selectedZoneTab)?.select()
     }
 
     private fun bindContent() {
@@ -293,5 +264,6 @@ class EdgeGestureConfigDialogFragment : DialogFragment(), EdgeGestureConfigManag
         private const val APP_PICKER_REQUEST_KEY = "edge_gesture_app_picker_result"
         private const val STATE_PENDING_ZONE = "pending_app_zone"
         private const val STATE_PENDING_DIRECTION = "pending_app_direction"
+        private const val STATE_SELECTED_ZONE_TAB = "selected_zone_tab"
     }
 }

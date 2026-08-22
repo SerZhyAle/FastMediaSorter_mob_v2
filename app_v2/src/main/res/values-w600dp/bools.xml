@@ -6,4 +6,6 @@
          resolution) keeps the pre-existing width-aware fixed/fill resource-tabs behaviour - only the
          plain portrait bucket (values/bools.xml default) uses the fixed two-module grid. -->
     <bool name="main_resource_tabs_fixed_grid">false</bool>
+    <!-- S1549: mirrors values-land - layout-w600dp/activity_main.xml centres the row too. -->
+    <bool name="main_cmd_bar_center_vertical">true</bool>
 </resources>

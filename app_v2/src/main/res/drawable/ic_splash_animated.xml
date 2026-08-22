@@ -1,8 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- S0997: splash icon - app logo + wordmark fading in (windowSplashScreenAnimatedIcon, API 31+). -->
+<!--
+    S1706: splash icon entrance - the arrows grow into place, the wordmark and then the slogan
+    rise to their resting positions. Nothing fades: the splash window closes when the app is
+    ready, so an element that starts invisible may never be seen.
+
+    Target names must match the group names emitted by scripts/utils/generate-splash-brand.ps1.
+    A target matching nothing is not an error and fails silently.
+-->
 <animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:drawable="@drawable/ic_splash_app_brand">
     <target
-        android:name="splash"
-        android:animation="@animator/splash_fade_in" />
+        android:name="arrows"
+        android:animation="@animator/splash_arrows_scale" />
+    <target
+        android:name="wordmark"
+        android:animation="@animator/splash_text_enter" />
+    <target
+        android:name="slogan"
+        android:animation="@animator/splash_slogan_enter" />
 </animated-vector>

@@ -10,6 +10,10 @@
     <string name="s0183_apk_install_success">تم تثبيت ملف APK</string>
     <string name="s0183_apk_install_cancelled">تم إلغاء التثبيت</string>
     <string name="s0183_apk_install_failed">فشلت عملية التثبيت</string>
+    <string name="s1686_apk_install_failed_downgrade">فشل التثبيت: يوجد بالفعل إصدار أحدث مثبَّت</string>
+    <string name="s1686_apk_install_failed_incompatible">فشل التثبيت: تم توقيع ملف APK هذا بشكل مختلف عن التطبيق المثبَّت</string>
+    <string name="s1686_apk_install_failed_storage">فشل التثبيت: لا توجد مساحة خالية كافية</string>
+    <string name="s1686_apk_install_failed_corrupt">فشل التثبيت: ملف APK تالف أو غير مكتمل</string>
     <string name="setting_support_office_documents_desc">يفتح ملفات Word وجداول البيانات والعروض التقديمية في العارض المدمج عند دعمه.</string>
     <string name="nolegal_diag_section_os_security">نظام التشغيل والأمان</string>
     <string name="nolegal_diag_section_permissions">تصاريح خاصة</string>

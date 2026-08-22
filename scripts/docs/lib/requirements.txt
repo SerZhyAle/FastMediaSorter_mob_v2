@@ -1,0 +1,10 @@
+# S1964 - the doc-icon rasterizer's only dependency (scripts/docs/lib/rasterize_svgs.py,
+# driven by scripts/docs/export-doc-icon-pngs.ps1).
+#
+# Provision into the repo venv that the exporter looks for:
+#     .venv/Scripts/python.exe -m pip install -r scripts/docs/lib/requirements.txt
+#
+# resvg-py ships prebuilt wheels with the Rust renderer inside, so nothing needs to be
+# installed on the machine itself. Do not go back to cairosvg: it dlopens a system
+# libcairo that Windows does not have unless some unrelated application put it there.
+resvg-py>=0.4.0

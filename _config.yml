@@ -9,3 +9,45 @@ author:
   name: SerZhyAle
   email: sza@ukr.net
 lang: en
+
+# Jekyll's source is the whole repository, so without this list it parses every
+# .md in the repo as a Liquid template. A spec file containing a brace sequence
+# such as "{{0,0}" then aborts the entire Pages build (run 31899495845).
+# It also cut JekyllRelativeLinks from ~62 s to a fraction of that.
+# The published site is: index*.html, nolegal*.html, styles.css, docs/, q/,
+# assets/, icons/, DOWNLOADS/ and the root legal/readme files.
+exclude:
+  - PLAN/
+  - app_v2/
+  - wear/
+  - benchmark/
+  - lint-rules/
+  - corex/
+  - dev/
+  - scripts/
+  - config/
+  - delivery/
+  - fastlane/
+  - play/
+  - store_assets/
+  - maestro/
+  - logs/
+  - temp/
+  - build/
+  - gradle/
+  - V1/
+  - v2_6/
+  - spec_v2/
+  - AGENTS.md
+  - CLAUDE.md
+  - GEMINI.md
+  - a.ps1
+  - build-debug.PS1
+  - build.gradle.kts
+  - settings.gradle.kts
+  - gradle.properties
+  - gradlew
+  - gradlew.bat
+  - local.properties
+  - build_all_log.txt
+  - test_credentials.json.template

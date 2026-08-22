@@ -70,13 +70,17 @@ Verification mechanics:
 | Step status consistency | Parse `[x] done` in phase file; cross-check Verification predicates |
 | Phase status consistency | INDEX row status == phase `Status:` header |
 | Open item carried | `pwsh -NoProfile -File scripts/spec_catalog/check-open-items-carried.ps1 -Id <Sxxxx>` - PASS iff exit 0. Every research-section item must be `Resolved` or carry a literal `Carrier: Sxxxx`. FAIL blocks the `Verified` flip anyway: `close.ps1` runs the same gate (S1607) |
+| Unticked manual line | Read the spec's existing `## Last Audit` block, if any, and every `- [ ]` line in it. Each one is a check that was written down and never closed - count it `MANUAL`. **Never omit it from the tally:** an unticked device line that nothing enumerates reads as `MANUAL 0`, which says "no manual checks exist" rather than "a manual check is still open", and that is the exact reading that let S1697 leave the queue with an unproven acceptance criterion (S1899) |
 | Debug-tag invariant | Current journal status `BlockNeedUserTest`: `Grep` for `Timber.d("<Sxxxx>:` across `.kt` - PASS iff ≥1 hit, FAIL if none (spec lost its device-test probe). Any other status: PASS iff zero hits - surviving tags stale (WARN, list them; verdict flip in step 6 deletes them). |
 
 **4 - Score.**
 
-- `Verified` - every check is PASS, MANUAL, or EXEMPT. Zero WARN and FAIL.
+- `Verified` - every check is PASS or EXEMPT. Zero WARN, FAIL **and MANUAL**.
+- `BlockNeedUserTest` - zero WARN and FAIL, but ≥1 MANUAL. Nothing is broken; something is simply unobserved, and that is what this status means. Supply `-StatusNote` naming every open manual line verbatim.
 - `Partial` - zero FAIL, ≥1 WARN. Collapses to `Broken` under `--strict`.
 - `Broken` - ≥1 FAIL.
+
+**`MANUAL` is not a pass (S1899).** It used to satisfy `Verified`, so a spec could be declared done while carrying a check nobody had run - S1697 did exactly that, and an hour on a real pair showed one of its five acceptance criteria failing outright. A check a machine cannot run is a check that has not happened yet; only a device pass converts it, which is what `BlockNeedUserTest` and `/spec-sweep` are for.
 
 **5 - Write `## Last Audit` block** at bottom of `PLAN/Sxxxx_<slug>.md` (overwrite if present). Use compact template below - keep under ~40 lines, PASS counts + FAIL/WARN action items only. No verbose tables. Action items are input `/spec-fix` consumes.
 
@@ -84,7 +88,7 @@ Verification mechanics:
 
 Full/strategic mode: flip strategic spec `Status:` to score (`Verified` / `Partial` / `Broken`). Always touch journal status via `update.ps1`.
 
-Whenever verdict flips journal/strategic status (full or strategic mode), enforce debug-tag invariant: spec no longer `BlockNeedUserTest`, so must carry zero `Timber.d("<Sxxxx>:` tags. `Grep` all `.kt` for `Timber.d("<Sxxxx>:` and delete every matching line (idempotent no-op if none). Run dev log line per `.kt` file that lost a tag. See CLAUDE.md "Debug Verification Tags". Only `.kt` mutation `/spec-check` performs.
+Whenever verdict flips journal/strategic status (full or strategic mode), enforce debug-tag invariant. **Scored `BlockNeedUserTest` (≥1 MANUAL): the spec STAYS in that status, so its tags must stay too - delete nothing, and if it carries none, add one at the changed flow entry before flipping, or the ticket-log gate refuses the close.** For every other score the spec is no longer `BlockNeedUserTest`, so it must carry zero `Timber.d("<Sxxxx>:` tags. `Grep` all `.kt` for `Timber.d("<Sxxxx>:` and delete every matching line (idempotent no-op if none). Run dev log line per `.kt` file that lost a tag. See CLAUDE.md "Debug Verification Tags". Only `.kt` mutation `/spec-check` performs.
 
 Tactical-only mode: update INDEX `Status:` + audited phase rows + phase headers. Do not touch strategic `Status:`. Do not touch debug tags.
 

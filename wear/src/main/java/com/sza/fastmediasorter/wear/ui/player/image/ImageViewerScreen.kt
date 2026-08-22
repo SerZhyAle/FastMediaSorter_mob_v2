@@ -1,11 +1,14 @@
 package com.sza.fastmediasorter.wear.ui.player.image
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.awaitHorizontalTouchSlopOrCancellation
+import androidx.compose.foundation.gestures.horizontalDrag
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -37,12 +41,20 @@ import androidx.wear.compose.material.Text
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import com.sza.fastmediasorter.wear.R
-import com.sza.fastmediasorter.wear.ui.player.common.PlayerScaffold
-import com.sza.fastmediasorter.wear.ui.player.common.playerOverlayInsets
+import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
+import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import timber.log.Timber
 import kotlin.math.abs
 
 private const val SWIPE_THRESHOLD = 100f
+
+// Measured on the owner's Galaxy Watch 7, 480 px wide (S1683 research 02): the platform
+// swipe-to-dismiss needs about 305 px of rightward travel, so only a drag starting left of this
+// fraction of the width can ever reach it. Leaving that band's rightward drags unconsumed is what
+// gives this screen back an exit gesture; forward paging never competes, since dismiss ignores
+// leftward travel entirely.
+private const val DISMISS_BAND_FRACTION = 0.36f
 
 /**
  * Image viewer screen for Wear OS.
@@ -57,7 +69,10 @@ fun ImageViewerScreen(
 
     Timber.d("ImageViewerScreen composing, index: ${uiState.currentIndex}")
 
-    PlayerScaffold {
+    // An image has no playing state, so having one on screen is itself the active condition.
+    KeepScreenOnEffect(enabled = uiState.mediaFile != null)
+
+    WearScreenScaffold(contentPadding = PaddingValues(0.dp)) {
         when {
             uiState.error != null -> {
                 ErrorContent(message = uiState.error!!)
@@ -88,27 +103,39 @@ private fun ImageViewerContent(
     onToggleSlideshow: () -> Unit,
     onToggleFavorite: () -> Unit
 ) {
-    var dragOffset by remember { mutableFloatStateOf(0f) }
-    
     Box(
         modifier = Modifier
             .fillMaxSize()
             .pointerInput(Unit) {
-                detectHorizontalDragGestures(
-                    onDragEnd = {
+                val dismissBandPx = size.width * DISMISS_BAND_FRACTION
+                awaitEachGesture {
+                    val down = awaitFirstDown(requireUnconsumed = false)
+                    val startedInDismissBand = down.position.x <= dismissBandPx
+                    var dragOffset = 0f
+                    var leaveToPlatform = false
+                    val slop = awaitHorizontalTouchSlopOrCancellation(down.id) { change, overSlop ->
+                        if (startedInDismissBand && overSlop > 0f) {
+                            leaveToPlatform = true
+                        } else {
+                            change.consume()
+                            dragOffset += overSlop
+                        }
+                    }
+                    Timber.d(
+                        "S1705: image drag start x=${down.position.x} band=$startedInDismissBand " +
+                            "leaveToPlatform=$leaveToPlatform"
+                    )
+                    if (slop != null && !leaveToPlatform) {
+                        horizontalDrag(slop.id) { change ->
+                            dragOffset += change.positionChange().x
+                            change.consume()
+                        }
                         when {
                             dragOffset < -SWIPE_THRESHOLD -> onSwipeLeft()
                             dragOffset > SWIPE_THRESHOLD -> onSwipeRight()
                         }
-                        dragOffset = 0f
-                    },
-                    onDragCancel = {
-                        dragOffset = 0f
-                    },
-                    onHorizontalDrag = { _, dragAmount ->
-                        dragOffset += dragAmount
                     }
-                )
+                }
             }
     ) {
         // Image
@@ -146,7 +173,7 @@ private fun ImageViewerContent(
                 .background(Color.Black.copy(alpha = 0.6f))
                 // The scrim stays full-bleed; only its content is inset, so the labels at the ends
                 // of the row keep clear of the curve at the bottom of a round screen.
-                .padding(playerOverlayInsets()),
+                .padding(wearScreenInsets()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // File name
@@ -164,8 +191,10 @@ private fun ImageViewerContent(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
+                    // The arrows stay outside the resource: they are decoration, and a translator
+                    // handed "← Prev" has to guess whether the glyph is part of the word.
                     Text(
-                        text = "← Prev",
+                        text = "← " + stringResource(R.string.previous),
                         style = MaterialTheme.typography.caption3,
                         color = Color.Gray
                     )
@@ -175,7 +204,7 @@ private fun ImageViewerContent(
                         color = Color.White
                     )
                     Text(
-                        text = "Next →",
+                        text = stringResource(R.string.next) + " →",
                         style = MaterialTheme.typography.caption3,
                         color = Color.Gray
                     )
@@ -185,7 +214,7 @@ private fun ImageViewerContent(
             // Slideshow indicator
             if (uiState.isSlideshowActive) {
                 Text(
-                    text = "▶ Slideshow Active",
+                    text = "▶ " + stringResource(R.string.slideshow_active),
                     style = MaterialTheme.typography.caption3,
                     color = Color.Green,
                     modifier = Modifier.padding(top = 4.dp)
@@ -195,8 +224,10 @@ private fun ImageViewerContent(
             // Favorite toggle button
             Button(
                 onClick = onToggleFavorite,
+                // Wear OS asks for a 48.dp press target; this button was drawn at 32.dp, and this
+                // module has no Material dependency offering a target larger than the button.
                 modifier = Modifier
-                    .size(32.dp)
+                    .size(48.dp)
                     .padding(top = 4.dp),
                 colors = if (isFavorite) ButtonDefaults.primaryButtonColors() else ButtonDefaults.secondaryButtonColors()
             ) {

@@ -176,10 +176,8 @@ class ImportFavoritesUseCase @Inject constructor(
             // raw Kotlin NPE text becomes the message the user is shown.
             @Suppress("SENSELESS_COMPARISON")
             if (model.version == null || model.favorites == null) {
-                Timber.d("S1632: import rejected - keys did not match, every field arrived null")
                 return Result.failure(IllegalArgumentException("File is corrupted or invalid"))
             }
-            Timber.d("S1632: import parsed version=${model.version} count=${model.favorites.size}")
 
             // Version check (major version must match)
             val majorVersion = model.version.substringBefore(".")

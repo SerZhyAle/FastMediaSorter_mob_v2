@@ -44,6 +44,13 @@ class TranslationButtonManager(
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
 
+    /**
+     * S1549: re-point every accessor at a re-inflated hierarchy. This manager is constructed once
+     * per screen - its settings collector in [setupTranslationButtonIcons] must not double - so a
+     * layout re-inflate re-points it instead of re-creating it.
+     */
+    fun rebindRoot(newRoot: android.view.View) = safeViews.rebindRoot(newRoot)
+
     interface TranslationButtonCallback {
         fun getTranslationSessionSettings(): TranslationSessionSettings
         fun setTranslationSessionSettings(settings: TranslationSessionSettings)

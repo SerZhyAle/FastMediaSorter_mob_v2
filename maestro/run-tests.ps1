@@ -35,8 +35,9 @@
   one device is online.
 
 .PARAMETER Json
-  Emit a single JSON object { pass, total, failed, flows:[{flow,pass,log}] } instead of
-  human-readable lines.
+  Emit a single JSON object { pass, total, failed, reason, launcherMode, flows:[{flow,pass,log}] }
+  instead of human-readable lines. launcherMode is on|off|unknown - the environment state that
+  changes where a back press out of MainActivity lands (S1673).
 
 .EXAMPLE
   pwsh -NoProfile -File maestro/run-tests.ps1 -Suite smoke -Json
@@ -60,6 +61,9 @@ $MaestroDir  = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = Split-Path -Parent $MaestroDir
 $TempDir     = Join-Path $ProjectRoot 'temp'
 
+# Probed once in the preflight; reported in both output modes so -Json callers see it too (S1673).
+$script:LauncherMode = 'unknown'
+
 function Write-Line {
     param([string]$Text, [string]$Color = 'White')
     if (-not $Json) { Write-Host $Text -ForegroundColor $Color }
@@ -68,7 +72,8 @@ function Write-Line {
 function Exit-Suite {
     param([int]$Code, [bool]$Pass, [int]$Total, [int]$Failed, [array]$Flows, [string]$Reason)
     if ($Json) {
-        ([ordered]@{ pass = $Pass; total = $Total; failed = $Failed; reason = $Reason; flows = $Flows } |
+        ([ordered]@{ pass = $Pass; total = $Total; failed = $Failed; reason = $Reason
+                     launcherMode = $script:LauncherMode; flows = $Flows } |
             ConvertTo-Json -Depth 5 -Compress)
     } else {
         $verdict = if ($Pass) { 'PASS' } else { 'FAIL' }
@@ -131,6 +136,33 @@ function Find-Adb {
         if (Test-Path -Path $candidate -PathType Leaf) { return $candidate }
     }
     return $null
+}
+
+# S1673: launcher mode is invisible in a flow trace but changes where a back press out of
+# MainActivity lands (the app's own desktop, not the system home). _shared/go_home.yaml escapes it
+# with an explicit relaunch, so this probe never blocks the run - it only names the state in the
+# header, so a red that follows a launcher-mode device test is readable as such at a glance.
+#
+# The mode flag IS the enabled state of the HOME component (LauncherRoleManager.isModeEnabled), so
+# read that and nothing else: launcher_role_prefs.xml holds only onboarding bookkeeping and is
+# routinely empty while the mode is on. Scope the match to the enabledComponents block - the
+# activity resolver table lists the component from the parsed manifest whether it is enabled or not.
+function Get-LauncherModeState {
+    param([string]$Sdk, [string]$Device)
+    $adb = Find-Adb -Sdk $Sdk
+    if (-not $adb) { return 'unknown' }
+    $target = if ($Device) { @('-s', $Device) } else { @() }
+    $dump = $null
+    try { $dump = & $adb @target shell dumpsys package com.sza.fastmediasorter.debug 2>$null } catch { return 'unknown' }
+    if (-not $dump) { return 'unknown' }
+    $inEnabledBlock = $false
+    foreach ($line in @($dump)) {
+        if ($line -match '^\s*enabledComponents:\s*$') { $inEnabledBlock = $true; continue }
+        if (-not $inEnabledBlock) { continue }
+        if ($line -notmatch '^\s+\S') { $inEnabledBlock = $false; continue }
+        if ($line -match 'LauncherHomeActivity') { return 'on' }
+    }
+    return 'off'
 }
 
 # Stylus handwriting turns text-field taps into a handwriting panel on API 34 tablet images,
@@ -264,6 +296,18 @@ Write-Line "OK android-sdk: $(if ($sdk) { $sdk } else { '(not found - Maestro ma
 
 # Deterministic device input state (stylus handwriting off) so text-entry flows are reliable.
 Set-DeviceInputDeterminism -Sdk $sdk -Device $DeviceId
+
+# Environment state that changes flow behaviour without appearing in any flow trace (S1673).
+$script:LauncherMode = Get-LauncherModeState -Sdk $sdk -Device $DeviceId
+switch ($script:LauncherMode) {
+    'on' {
+        Write-Line ('WARN launcher-mode: ON - the app is a home-screen candidate, so leaving MainActivity ' +
+            'lands on its own desktop; _shared/go_home.yaml relaunches to escape it (S1673). ' +
+            'Turn it off in Settings > General if a flow still fails on the desktop.') 'Yellow'
+    }
+    'off'   { Write-Line 'OK launcher-mode: off' 'Green' }
+    default { Write-Line 'OK launcher-mode: (not probed - adb unavailable)' 'Yellow' }
+}
 
 $flows = Get-FlowSet -Selection $Suite
 if ($flows.Count -eq 0) {

@@ -1,14 +1,17 @@
 package com.sza.fastmediasorter.di
 
+import com.sza.fastmediasorter.core.screencapture.AccessibilityServiceControl
 import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
 import com.sza.fastmediasorter.screencapture.ScreenGestureOverlayControllerImpl
 import com.sza.fastmediasorter.widget.QuickRecorderIndicatorController
 import com.sza.fastmediasorter.widget.QuickRecorderIndicatorControllerImpl
 import dagger.Binds
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -25,4 +28,11 @@ abstract class ScreenCaptureModule {
     abstract fun bindQuickRecorderIndicatorController(
         impl: QuickRecorderIndicatorControllerImpl
     ): QuickRecorderIndicatorController
+
+    companion object {
+        @Provides
+        @Singleton
+        fun provideAccessibilityServiceControl(): AccessibilityServiceControl =
+            AccessibilityServiceControl.NoOp
+    }
 }

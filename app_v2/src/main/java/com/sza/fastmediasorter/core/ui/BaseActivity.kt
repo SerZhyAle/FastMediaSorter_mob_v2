@@ -204,6 +204,24 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         }
     }
 
+    /**
+     * S1549: re-inflate the layout for the current configuration and hand back the fresh binding.
+     * Only a screen that absorbs a configuration change instead of recreating (the player family,
+     * which would lose its live render surface on a recreate) can ever apply an orientation-specific
+     * layout variant, and it can only do so if the base class - the single owner of [_binding] -
+     * reassigns it; a subclass swapping the content view on its own would leave [binding] and every
+     * helper built from it pointing at the discarded hierarchy with no exception raised.
+     *
+     * The caller owns everything downstream: every holder built from the previous binding still
+     * references the detached tree until it is re-bound or re-constructed.
+     */
+    protected fun rebindContentView(): VB {
+        val rebuilt = getViewBinding()
+        _binding = rebuilt
+        setContentView(rebuilt.root)
+        return rebuilt
+    }
+
     override fun onResume() {
         super.onResume()
         // Reapply wake lock in case it was cleared by system

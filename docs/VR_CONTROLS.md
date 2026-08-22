@@ -38,6 +38,16 @@ small control scheme:
   is a modifier, and a grip used that way will not drag the panel along with
   it. Live sources with no known length ignore the seek instead of jumping
   somewhere arbitrary.
+- The **left controller's menu button (≡)** opens the in-headset **session
+  settings panel**, and pressing it again closes the panel and brings the strip
+  back. The panel is modal over the strip - they share the one HUD surface - and
+  playback keeps running underneath. Five rows, all scoped to the current
+  session and reset on exit: **layout** override (Auto / mono / side-by-side /
+  over-under), **projection** override (Auto / flat / 180° / 360°), **panel
+  distance** and **panel size** sliders for the control strip, **subtitles**
+  (same cycle as the strip's row), and **resume position** (continue from the
+  flat player's position, or start from the beginning). Auto keeps the
+  filename-based detection.
 - On the **first immersive entry after install** a controls legend appears by
   itself and lists every binding above. Any controller press closes it, and that
   press does nothing else. The **HELP** button on the strip, immediately left of
@@ -215,9 +225,10 @@ Auto-dismissing toasts overlaid on the scene provide visual feedback:
 ## 6. Troubleshooting (today)
 
 - **A controller button in immersive does nothing.** Only the inputs listed in
-  "Where things stand today" are wired - trigger, thumbstick, grip, and A/X. B,
-  Y, the menu button and the thumbstick click are deliberately left free. The
-  legend on first entry, or the strip's HELP button, lists the live set.
+  "Where things stand today" are wired - trigger, thumbstick, grip, A/X and the
+  left menu button (session settings panel). B, Y and the thumbstick click are
+  deliberately left free. The legend on first entry, or the strip's HELP
+  button, lists the live set.
 - **The on-screen banner is a blank grey rectangle.** Known bug (S0961) - it's
   meant to show the filename and detected 3D format; a fix is in progress.
 - **A Bluetooth keyboard or mouse does not control playback in immersive.**

@@ -41,7 +41,14 @@ data class NetworkCredentialsEntity(
     // Stored on every credential entity for the same server so the history survives partial deletions.
     @ColumnInfo(name = "manual_share_names")
     val manualShareNames: String = "",
-    val createdDate: Long = System.currentTimeMillis()
+    val createdDate: Long = System.currentTimeMillis(),
+    // S1649: epoch millis when this credential was first observed with no resource referencing it.
+    // Null means the last audit did not consider it orphaned. The deletion deferral is measured from
+    // this moment, never from createdDate: a credential stored a year ago whose resource vanished a
+    // minute ago must still get its full grace period, which is the scenario the deferral exists for.
+    // A null clock is never treated as an expired one - see UnusedCredentialPolicy.
+    @ColumnInfo(name = "orphaned_since")
+    val orphanedSince: Long? = null
 ) {
     /**
      * Returns decrypted password for use in app.
@@ -54,10 +61,13 @@ data class NetworkCredentialsEntity(
             val decrypted = CryptoHelper.decrypt(encryptedPassword)
             when {
                 // CryptoHelper returns null only on decryption error (e.g. Keystore key invalidated).
-                // Do NOT fall back to raw encryptedPassword – sending ciphertext as a password
+                // Do NOT fall back to raw encryptedPassword - sending ciphertext as a password
                 // would silently fail auth (STATUS_LOGON_FAILURE) with no actionable log.
                 decrypted == null -> {
-                    Timber.e("Password decryption returned null for credentialId: $credentialId – Keystore key may be invalidated. Returning empty string.")
+                    Timber.e(
+                        "Password decryption returned null for credentialId: $credentialId - " +
+                            "Keystore key may be invalidated. Returning empty string."
+                    )
                     ""
                 }
                 // CryptoHelper returns "" for empty-string input (valid empty password stored).
@@ -66,21 +76,24 @@ data class NetworkCredentialsEntity(
                         Timber.w("Empty password stored for credentialId: $credentialId")
                         ""
                     } else {
-                        // Non-empty encryptedPassword decrypted to "" is unexpected – treat the
+                        // Non-empty encryptedPassword decrypted to "" is unexpected - treat the
                         // stored value as plaintext (migration / pre-encryption legacy).
-                        Timber.i("Decryption produced empty string for non-empty stored value – using plaintext fallback for credentialId: $credentialId")
+                        Timber.i(
+                            "Decryption produced empty string for non-empty stored value - " +
+                                "using plaintext fallback for credentialId: $credentialId"
+                        )
                         encryptedPassword
                     }
                 }
                 else -> decrypted
             }
         } catch (e: IllegalArgumentException) {
-            // Base64 decode error – password is plaintext (migration case, no Base64 prefix)
+            // Base64 decode error - password is plaintext (migration case, no Base64 prefix)
             Timber.i("Password is plaintext for credentialId: $credentialId (migration, storedLength=${encryptedPassword.length})")
             encryptedPassword
         } catch (e: Exception) {
-            // Unexpected error – return empty rather than leaking encrypted bytes as password
-            Timber.e(e, "Unexpected error in password getter for credentialId: $credentialId – returning empty string")
+            // Unexpected error - return empty rather than leaking encrypted bytes as password
+            Timber.e(e, "Unexpected error in password getter for credentialId: $credentialId - returning empty string")
             ""
         }
     

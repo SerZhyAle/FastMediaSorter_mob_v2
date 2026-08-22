@@ -1,30 +1,42 @@
 package com.sza.fastmediasorter.wear.ui.browse
 
-import android.webkit.MimeTypeMap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.network.ftp.FtpDataSource
 import com.sza.fastmediasorter.wear.data.network.sftp.SftpDataSource
 import com.sza.fastmediasorter.wear.data.network.smb.SmbDataSource
 import com.sza.fastmediasorter.wear.domain.model.MediaType
+import com.sza.fastmediasorter.wear.domain.model.NetworkBasePath
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
+import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
+import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearThumbnailRepository
+import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
+import com.sza.fastmediasorter.wear.util.MediaMimeTypes
+import com.sza.fastmediasorter.wear.util.WearThumbnailBudget
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
+
+private const val VIEW_MODE_SUBSCRIPTION_MS = 5_000L
 
 /**
  * ViewModel for the browse screen.
@@ -39,7 +51,8 @@ class BrowseViewModel @Inject constructor(
     private val sftpDataSource: SftpDataSource,
     private val networkSourceRepository: NetworkSourceRepository,
     private val selectedMediaManager: SelectedMediaManager,
-    private val playbackSetManager: PlaybackSetManager
+    private val playbackSetManager: PlaybackSetManager,
+    private val thumbnailRepository: WearThumbnailRepository
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow<BrowseUiState>(BrowseUiState.Loading)
@@ -47,6 +60,13 @@ class BrowseViewModel @Inject constructor(
     
     private val _selectedFile = MutableStateFlow<WearMediaFile?>(null)
     val selectedFile: StateFlow<WearMediaFile?> = _selectedFile.asStateFlow()
+
+    /** The file list's own stored view, separate from the navigation screens' mode. */
+    val fileListViewMode: StateFlow<WearViewMode> = preferencesRepository.fileListViewMode
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(VIEW_MODE_SUBSCRIPTION_MS), WearViewMode.LIST)
+
+    private val _thumbnails = MutableStateFlow<Map<Long, WearThumbnail>>(emptyMap())
+    val thumbnails: StateFlow<Map<Long, WearThumbnail>> = _thumbnails.asStateFlow()
     
     // Navigation arguments - to be set from UI layer
     private var _mediaType: MediaType = MediaType.MUSIC
@@ -94,26 +114,26 @@ class BrowseViewModel @Inject constructor(
         }
         
         if (!isEnabled) {
-            _uiState.value = BrowseUiState.Empty("This media type is disabled in settings")
+            _uiState.value = BrowseUiState.Empty(ScreenTitle.Resource(R.string.browse_media_type_disabled))
             return
         }
         
         mediaRepository.getMediaFiles(mediaType)
             .catch { e ->
                 Timber.e(e, "Error loading local media files")
-                _uiState.value = BrowseUiState.Error(e.message ?: "Unknown error")
+                _uiState.value = BrowseUiState.Error(ScreenTitle.Resource(R.string.browse_load_failed))
             }
             .collect { result ->
                 result.fold(
                     onSuccess = { files ->
                         _uiState.value = if (files.isEmpty()) {
-                            BrowseUiState.Empty("No ${mediaType.name.lowercase()} files found")
+                            BrowseUiState.Empty(ScreenTitle.Resource(R.string.browse_no_media_files))
                         } else {
                             BrowseUiState.Success(files)
                         }
                     },
                     onFailure = { e ->
-                        _uiState.value = BrowseUiState.Error(e.message ?: "Unknown error")
+                        _uiState.value = BrowseUiState.Error(ScreenTitle.Resource(R.string.browse_load_failed))
                     }
                 )
             }
@@ -126,12 +146,21 @@ class BrowseViewModel @Inject constructor(
                 val source = networkSourceRepository.getSourceById(sourceId)
                 if (source == null) {
                     withContext(Dispatchers.Main) {
-                        _uiState.value = BrowseUiState.Error("Network source not found")
+                        _uiState.value = BrowseUiState.Error(
+                            ScreenTitle.Resource(R.string.browse_network_source_not_found)
+                        )
                     }
                     return@withContext
                 }
                 
-                val currentPath = "/"
+                // S1556: the source's own path, not the server root. The watch's SFTP connection
+                // test already asserts this path is reachable, so listing the root instead showed
+                // the user something other than what the same screen had just verified.
+                // Normalised again here, idempotently: a source stored before S1556's import fix
+                // still holds the phone's URL form, and no phone has to be nearby to correct it.
+                val currentPath = NetworkBasePath
+                    .normalize(source.basePath, source.type, source.shareName)
+                    .ifBlank { "/" }
                 Timber.d("Connecting to ${source.type} source: ${source.server}")
 
                 val mediaFiles: List<WearMediaFile> = when (source.type) {
@@ -141,7 +170,9 @@ class BrowseViewModel @Inject constructor(
                             val error = connectResult.exceptionOrNull()?.message ?: "Connection failed"
                             Timber.e("Failed to connect to SMB: $error")
                             withContext(Dispatchers.Main) {
-                                _uiState.value = BrowseUiState.Error("Connection failed: $error")
+                                _uiState.value = BrowseUiState.Error(
+                                    ScreenTitle.Resource(R.string.browse_network_connection_failed)
+                                )
                             }
                             return@withContext
                         }
@@ -149,19 +180,19 @@ class BrowseViewModel @Inject constructor(
                         if (result.isFailure) {
                             error(result.exceptionOrNull()?.message ?: "SMB list failed")
                         }
-                        result.getOrDefault(emptyList()).mapIndexed { index, fileName ->
+                        result.getOrDefault(emptyList()).mapIndexed { index, entry ->
                             val fullPath = if (currentPath == "/" || currentPath.isEmpty()) {
-                                fileName
+                                entry.name
                             } else {
-                                "${currentPath.trimEnd('/')}/$fileName"
+                                "${currentPath.trimEnd('/')}/${entry.name}"
                             }
                             WearMediaFile(
                                 id = index.toLong(),
-                                name = fileName,
+                                name = entry.name,
                                 uri = android.net.Uri.parse(fullPath),
-                                mimeType = getMimeTypeFromFileName(fileName),
-                                size = 0,
-                                dateModified = 0,
+                                mimeType = MediaMimeTypes.fromFileName(entry.name),
+                                size = entry.size,
+                                dateModified = entry.modifiedTime,
                                 duration = 0
                             )
                         }
@@ -169,12 +200,14 @@ class BrowseViewModel @Inject constructor(
                     NetworkSourceType.FTP -> ftpDataSource.listDirectory(source, currentPath)
                     NetworkSourceType.SFTP -> sftpDataSource.listDirectory(source, currentPath)
                     NetworkSourceType.GOOGLE_DRIVE -> error("Google Drive not supported on Wear")
-                }.filter { isSupportedMediaFile(it.mimeType) }
+                }.filter { matchesMediaType(it.mimeType, mediaType) }
+                Timber.d("S1690: network kept ${mediaFiles.size} $mediaType file(s)")
+                Timber.d("S1556: listed $currentPath on ${source.type}")
 
                 Timber.d("Loaded ${mediaFiles.size} media files from ${source.type}")
                 withContext(Dispatchers.Main) {
                     _uiState.value = if (mediaFiles.isEmpty()) {
-                        BrowseUiState.Empty("No media files found")
+                        BrowseUiState.Empty(ScreenTitle.Resource(R.string.browse_no_media_files))
                     } else {
                         BrowseUiState.Success(mediaFiles)
                     }
@@ -182,12 +215,40 @@ class BrowseViewModel @Inject constructor(
             } catch (e: Exception) {
                 Timber.e(e, "Exception loading network files")
                 withContext(Dispatchers.Main) {
-                    _uiState.value = BrowseUiState.Error(e.message ?: "Network error")
+                    _uiState.value = BrowseUiState.Error(ScreenTitle.Resource(R.string.browse_load_failed))
                 }
             }
         }
     }
     
+    /**
+     * Publishes this file's picture once and keeps the answer.
+     *
+     * A file already carrying an entry is never asked again, so re-laying the same items in another
+     * view mode costs no second trip to the network. The read runs in [viewModelScope], so leaving
+     * the screen cancels whatever has not finished.
+     */
+    fun thumbnailFor(file: WearMediaFile) {
+        if (_thumbnails.value.containsKey(file.id)) return
+        publish(file.id, WearThumbnail.Loading)
+        viewModelScope.launch {
+            publish(file.id, thumbnailRepository.thumbnailFor(file, _sourceId))
+        }
+    }
+
+    /**
+     * A long folder must not turn this map into an unbounded bitmap holder, so it is capped at the
+     * same count the repository caches. Dropping the oldest entry is safe: a scroll back re-asks,
+     * and the repository answers from its own cache without reopening a connection.
+     */
+    private fun publish(id: Long, thumbnail: WearThumbnail) {
+        _thumbnails.update { current ->
+            val next = current + (id to thumbnail)
+            val excess = next.size - WearThumbnailBudget.MAX_CACHED_THUMBNAILS
+            if (excess <= 0) next else next.entries.drop(excess).associate { it.key to it.value }
+        }
+    }
+
     fun selectFile(file: WearMediaFile) {
         Timber.d("File selected: ${file.name}")
         _selectedFile.value = file
@@ -224,61 +285,27 @@ class BrowseViewModel @Inject constructor(
         playbackSetManager.clear()
     }
     
-    fun getScreenTitle(): String {
-        return if (isNetworkSource) {
-            sourceName ?: "Network Storage"
-        } else {
-            when (mediaType) {
-                MediaType.MUSIC -> "Music"
-                MediaType.VIDEO -> "Videos"
-                MediaType.PHOTO -> "Photos"
+    /**
+     * S1683: the title is either a source's own name, which no dictionary can translate, or one of
+     * four resources. It used to be four English literals, so the browse list stayed English under a
+     * Russian interface - the defect that put the localization constraint in the spec at all.
+     */
+    fun getScreenTitle(): ScreenTitle {
+        if (isNetworkSource) {
+            val name = sourceName
+            return if (name.isNullOrBlank()) {
+                ScreenTitle.Resource(R.string.network_storage)
+            } else {
+                ScreenTitle.Text(name)
             }
         }
-    }
-    
-    /**
-     * Get MIME type from filename using file extension.
-     * Uses Android's MimeTypeMap with fallback for common media types.
-     */
-    private fun getMimeTypeFromFileName(fileName: String): String? {
-        val extension = fileName.substringAfterLast('.', "").lowercase()
-        if (extension.isEmpty()) return null
-        
-        // Use system MimeTypeMap first
-        val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
-        if (mimeType != null) return mimeType
-        
-        // Fallback for common media types not in MimeTypeMap
-        return when (extension) {
-            // Images
-            "png" -> "image/png"
-            "jpg", "jpeg" -> "image/jpeg"
-            "gif" -> "image/gif"
-            "webp" -> "image/webp"
-            "bmp" -> "image/bmp"
-            "svg" -> "image/svg+xml"
-            "heic", "heif" -> "image/heic"
-            // Videos
-            "mp4", "m4v" -> "video/mp4"
-            "mkv" -> "video/x-matroska"
-            "webm" -> "video/webm"
-            "avi" -> "video/avi"
-            "mov" -> "video/quicktime"
-            "wmv" -> "video/x-ms-wmv"
-            "flv" -> "video/x-flv"
-            "3gp" -> "video/3gpp"
-            // Audio
-            "mp3" -> "audio/mpeg"
-            "m4a", "aac" -> "audio/aac"
-            "wav" -> "audio/wav"
-            "ogg", "oga" -> "audio/ogg"
-            "flac" -> "audio/flac"
-            "wma" -> "audio/x-ms-wma"
-            // Documents (for filtering)
-            "pdf" -> "application/pdf"
-            "epub" -> "application/epub+zip"
-            else -> null
-        }
+        return ScreenTitle.Resource(
+            when (mediaType) {
+                MediaType.MUSIC -> R.string.music
+                MediaType.VIDEO -> R.string.videos
+                MediaType.PHOTO -> R.string.photos
+            }
+        )
     }
     
     /**
@@ -292,15 +319,5 @@ class BrowseViewModel @Inject constructor(
             MediaType.VIDEO -> mimeType.startsWith("video/")
             MediaType.MUSIC -> mimeType.startsWith("audio/")
         }
-    }
-    
-    /**
-     * Check if this is a supported media file (image, video, or audio).
-     */
-    private fun isSupportedMediaFile(mimeType: String?): Boolean {
-        if (mimeType == null) return false
-        return mimeType.startsWith("image/") ||
-               mimeType.startsWith("video/") ||
-               mimeType.startsWith("audio/")
     }
 }

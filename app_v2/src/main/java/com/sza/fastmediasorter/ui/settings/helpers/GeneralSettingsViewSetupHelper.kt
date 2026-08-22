@@ -160,11 +160,10 @@ class GeneralSettingsViewSetupHelper(
                     .setCancelable(false)
                     .setPositiveButton(R.string.restart) { _, _ ->
                         viewModel.updateSettings(current.copy(useCompactElements = isChecked))
-                        com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
-                            .setCompact(fragment.requireContext(), isChecked)
                         LocaleHelper.markReturnToSettings(fragment.requireContext())
                         LocaleHelper.restartApp(fragment.requireActivity())
                     }
+
                     .setNegativeButton(R.string.cancel) { dialog, _ ->
                         isUpdatingSpinner.set(true)
                         row.setCheckedSilently(current.useCompactElements)
@@ -553,17 +552,11 @@ class GeneralSettingsViewSetupHelper(
 
         lastCommittedDefaultUser = newUser
         val current = viewModel.settings.value
-        val ownerTrigger = BuildConfig.OWNER_TRIGGER
+        // S1666: the secret trigger that imported the bundled credential file is gone with the file. It
+        // guarded the action while the data shipped in every APK regardless - resources now come in only
+        // through the user's own file, which needs no hidden entry point.
         if (current.defaultUser != newUser) {
             viewModel.updateSettings(current.copy(defaultUser = newUser))
-        }
-        if (ownerTrigger.isNotEmpty() && newUser.equals(ownerTrigger, ignoreCase = true)) {
-            MaterialAlertDialogBuilder(fragment.requireContext())
-                .setTitle(R.string.import_resources_title)
-                .setMessage(R.string.import_resources_message)
-                .setPositiveButton(R.string.yes) { _, _ -> viewModel.importSzaResources(fragment.requireContext()) }
-                .setNegativeButton(R.string.no, null)
-                .showBoundTo(fragment)
         }
     }
 

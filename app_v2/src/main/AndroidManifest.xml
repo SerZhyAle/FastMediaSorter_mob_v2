@@ -251,13 +251,29 @@
 
         <activity android:name=".ui.game.GameActivity" android:exported="false" android:label="@string/game_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
-        <activity android:name=".ui.game.GameHelpActivity" android:exported="false" android:label="@string/game_help_title" android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" android:parentActivityName=".ui.game.GameActivity" />
+        <!-- S1549: no orientation|screenSize - the screen holds no state outside its ViewModel, so letting the
+             system recreate it is what makes its layout-land variant apply at all. -->
+        <activity android:name=".ui.game.GameHelpActivity" android:exported="false" android:label="@string/game_help_title" android:configChanges="screenLayout|keyboardHidden" android:parentActivityName=".ui.game.GameActivity" />
 
         <activity android:name=".ui.player.PlayerActivity" android:exported="true" android:supportsPictureInPicture="true" android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
 
-        <activity android:name=".ui.settings.SettingsActivity" android:exported="true" android:label="@string/settings" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" android:windowSoftInputMode="adjustPan" />
+        <!-- S1549: no orientation|screenSize - the selected tab is restored by the framework, so recreation
+             costs nothing and is what makes the thirteen tab fragments resolve their landscape variants. -->
+        <activity android:name=".ui.settings.SettingsActivity" android:exported="true" android:label="@string/settings" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" android:windowSoftInputMode="adjustPan" />
 
-        <activity android:name=".ui.calculator.CalculatorActivity" android:exported="false" android:label="@string/calculator_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+        <!-- S1549: no orientation|screenSize - the landscape variant reparents display and keypad into two
+             columns, which no attribute pass reproduces, and the in-progress calculation now crosses the
+             recreate through CalculatorInputManager.saveTo/restoreFrom. -->
+        <activity android:name=".ui.calculator.CalculatorActivity" android:exported="false" android:label="@string/calculator_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+
+        <!-- S1796: no orientation|screenSize in configChanges - the glow layout is orientation-agnostic,
+             but absorbing the change would keep stale insets on the corner controls after a rotation. -->
+        <!-- S1733: a transparent host for the system-information report, so a launcher cell or a panel
+             tile can open it with no screen of ours behind it. Not exported: the report describes the
+             user's own device and is meant to be read here, not handed to another app. -->
+        <activity android:name=".ui.systeminfo.SystemInfoActivity" android:exported="false" android:label="@string/settings_system_info_title" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+
+        <activity android:name=".ui.flashlight.FrontFlashlightActivity" android:exported="false" android:label="@string/front_flashlight_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
         <!-- S1433: no orientation|screenSize in configChanges on purpose - the Summary screen has a
              layout-land variant, and an Activity that absorbs the configuration change never re-inflates it. -->
@@ -285,10 +301,21 @@
         <activity android:name=".ui.applaunchpanel.AppLaunchPanelActivity" android:exported="false" android:theme="@style/Theme.FMS.TransparentPanelHost" android:excludeFromRecents="true" android:launchMode="singleTask" />
 
         <!-- S0116 §5.1 pillar K: saved auth sessions sub-screen launched from PlaybackSettingsFragment. -->
-        <activity android:name=".ui.settings.auth.AuthSessionsActivity" android:exported="false" android:label="@string/setting_saved_authorizations_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
+        <!-- S1549: no orientation|screenSize - the session list is re-read from its ViewModel on recreation,
+             which is what makes the layout-land variant apply. -->
+        <activity android:name=".ui.settings.auth.AuthSessionsActivity" android:exported="false" android:label="@string/setting_saved_authorizations_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
 
         <!-- S0473 Phase 04: opt-in statistics dashboard launched from General settings (visible only when the toggle is on). -->
         <activity android:name=".ui.statistics.StatisticsActivity" android:exported="false" android:label="@string/statistics_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
+
+        <!-- S1781: full-screen picker of the resources that get transferred to the watch. -->
+        <activity android:name=".ui.wearresources.WearResourceSelectionActivity" android:exported="false" android:label="@string/wear_resource_selection_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
+        <!-- S1735: the window the Wear companion opens in. Translucent because it hosts the existing
+             bottom sheet and has no content of its own; excluded from recents for the same reason.
+             Declared here rather than in the wearGms overlay, following its neighbour above: only the
+             GMS service needs the overlay, because only it references Play Services types that must not
+             reach a flavor without them. -->
+        <activity android:name=".ui.wear.WearCompanionActivity" android:exported="false" android:theme="@style/Theme.FMS.TransparentPanelHost" android:excludeFromRecents="true" />
 
         <activity android:name=".ui.addresource.AddResourceActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
 
@@ -441,6 +468,19 @@
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_resource_launch_info" />
         </receiver>
+
+        <!-- S1916: Stream launch widget - present wherever SUPPORT_STREAMS is, removed in lite/photos -->
+        <receiver android:name=".widget.StreamLaunchWidgetProvider" android:exported="true" android:label="@string/widget_stream_launch_label" android:icon="@drawable/ic_cast">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_stream_launch_info" />
+        </receiver>
+        <activity android:name=".widget.StreamLaunchWidgetConfigActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
 
         <!-- Continue Reading Widget -->
         <receiver android:name=".widget.ContinueReadingWidgetProvider" android:exported="true" android:label="@string/widget_continue_reading_label" android:icon="@drawable/ic_widget_continue_reading">

@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -46,6 +45,8 @@ class ResolveLauncherDesktopUseCase @Inject constructor(
      * S1206: the address-book signal is combined in for the same reason - a contact renamed in the system
      * writes nothing of ours, so without this input a pinned cell would keep the caption it was pinned with
      * until some unrelated desktop edit happened to rebuild the list.
+     *
+     * S1745: language is combined in so system section names and actions refresh immediately on locale change.
      */
     operator fun invoke(orientation: LauncherOrientation): Flow<List<LauncherCellUi>> =
         combine(
@@ -54,13 +55,33 @@ class ResolveLauncherDesktopUseCase @Inject constructor(
             radioControl.state(RadioKind.BLUETOOTH),
             liveContactDataSource.changes(),
             settingsRepository.getSettings()
-                .map { it.enableNetworkMonitor }
+                .map { it.enableNetworkMonitor to it.language }
                 .distinctUntilChanged(),
-        ) { cells, wifi, bluetooth, _, networkMonitorEnabled ->
+        ) { cells, wifi, bluetooth, _, (networkMonitorEnabled, language) ->
             val radioStates = RadioStates(wifi, bluetooth)
             cells.filterNot { it.hidesWithDisabledNetworkMonitor(networkMonitorEnabled) }
-                .map { it.toUi(radioStates) }
+                .map { it.toUi(radioStates, language) }
         }.flowOn(Dispatchers.IO)
+
+    /**
+     * S1742: the caption of a section this build's catalogue does not know.
+     *
+     * A user-created section's key exists only on the user's own desktop, so the resolver above answers
+     * null for it and, before this, the override was never consulted - it is applied inside the non-null
+     * branch, so the header drew "unavailable" whatever the user had named it (research 01 item 1).
+     *
+     * Deliberately narrow: only a section command, and only when the cell carries a caption of its own.
+     * A section with neither a known key nor a name is still unresolvable, and every other unresolvable
+     * cell keeps drawing as unavailable - a shortcut whose target is gone must not be rescued by an old
+     * caption into looking as though it still works.
+     */
+    private fun LauncherCell.userSectionVisual(command: LauncherCellCommand?): LauncherCommandVisual? {
+        if (command !is LauncherCellCommand.Section) {
+            return null
+        }
+        return labelOverride?.takeIf { it.isNotBlank() }
+            ?.let { LauncherCommandVisual(label = it, iconRes = null) }
+    }
 
     private fun LauncherCell.hidesWithDisabledNetworkMonitor(networkMonitorEnabled: Boolean): Boolean {
         val command = LauncherCellCommand.decode(target) as? LauncherCellCommand.Feature
@@ -68,19 +89,22 @@ class ResolveLauncherDesktopUseCase @Inject constructor(
             (!networkMonitorContract.isAvailableInBuild || !networkMonitorEnabled)
     }
 
-    private suspend fun LauncherCell.toUi(radioStates: RadioStates): LauncherCellUi {
+    private suspend fun LauncherCell.toUi(radioStates: RadioStates, language: String): LauncherCellUi {
         // A gadget carries no command, and an undecodable target has none left; both render as an
         // unavailable cell, which is what a null command produces below without a branch of its own.
         val command = if (kind == LauncherCellKind.GADGET) null else LauncherCellCommand.decode(target)
-        val resolved = command?.let { resolveVisual(it, radioStates) }
+        val resolved = command?.let { resolveVisual(it, radioStates, language) }
         // A user-set caption always wins over the resolved one (app-launch panel precedent).
         val visual = resolved?.let { base ->
             labelOverride?.let { base.withLabel(it) } ?: base
-        }
+        } ?: userSectionVisual(command)
+        val contactTarget = (command as? LauncherCellCommand.Contact)?.target
         return LauncherCellUi(
             cell = this,
             visual = visual,
             modeBadge = (command as? LauncherCellCommand.Resource)?.mode,
+            contactAction = contactTarget?.action,
+            messengerPackage = contactTarget?.messagePackage?.takeIf { it.isNotBlank() },
         )
     }
 }

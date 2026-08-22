@@ -32,11 +32,37 @@ enum class InternetReachability {
 }
 
 /**
+ * S1617: the one fact a tile carries beside its availability - the thing worth knowing without opening
+ * the section.
+ *
+ * A section with nothing to say has no entry at all rather than a placeholder: this whole ticket exists
+ * because six tiles that only said "on" or "off" filled half the screen, and a line reading "no data"
+ * would add bulk while adding nothing.
+ */
+sealed interface SectionFact {
+
+    /** A name the platform gave us, rendered as it came - a mobile operator. */
+    data class Name(val value: String) : SectionFact
+
+    /** The connected network and how fast the link to it is; either half may be missing. */
+    data class WifiLink(val ssid: String?, val linkSpeedMbps: Int?) : SectionFact
+
+    /** A count and never a list: naming bonded devices needs BLUETOOTH_CONNECT and says who the user is. */
+    data class BondedDevices(val count: Int) : SectionFact
+
+    /** The address the outside world sees, once the user has asked for it. */
+    data class ExternalAddress(val value: String) : SectionFact
+}
+
+/**
  * S1433: everything the Summary screen renders, already decided.
  *
  * [sections] maps a tile to the reason it may be empty. A null value means the snapshot cannot answer for
  * that section - GNSS needs a registered status callback that only its own screen owns - and the tile says
  * so instead of guessing "available".
+ *
+ * [facts] carries at most one fact per tile (S1617). A missing key means this section has nothing to say
+ * right now, which is a different thing from having a fact whose value is unknown.
  */
 data class NetworkMonitorSummaryUiState(
     val transport: NetworkTransport?,
@@ -45,6 +71,7 @@ data class NetworkMonitorSummaryUiState(
     val externalIp: String?,
     val internet: InternetReachability,
     val sections: Map<NetworkMonitorSection, SectionAvailability?>,
+    val facts: Map<NetworkMonitorSection, SectionFact>,
 ) {
     companion object {
 
@@ -56,6 +83,7 @@ data class NetworkMonitorSummaryUiState(
             externalIp = null,
             internet = InternetReachability.OFFLINE,
             sections = emptyMap(),
+            facts = emptyMap(),
         )
     }
 }
@@ -99,8 +127,34 @@ private fun NetworkMonitorSnapshot.toUiState(externalIp: String?): NetworkMonito
             NetworkMonitorSection.Internet to active.toSectionAvailability(),
             NetworkMonitorSection.History to SectionAvailability.Available,
         ),
+        facts = collectFacts(externalIp),
     )
 }
+
+/**
+ * S1617: one fact per tile, and only where the snapshot actually holds one.
+ *
+ * Satellites and History are absent by construction rather than by omission: neither is a field of this
+ * snapshot - GNSS state belongs to the screen that registers its callback, and the history count lives in
+ * a table this read path never touches.
+ */
+private fun NetworkMonitorSnapshot.collectFacts(externalIp: String?): Map<NetworkMonitorSection, SectionFact> =
+    buildMap {
+        val wifiEntry = wifi.data
+        if (wifiEntry?.ssid != null || wifiEntry?.linkSpeedMbps != null) {
+            put(NetworkMonitorSection.Wifi, SectionFact.WifiLink(wifiEntry.ssid, wifiEntry.linkSpeedMbps))
+        }
+        val operator = sims.data?.firstOrNull { it.isDataPreferred }?.operatorName
+        if (!operator.isNullOrBlank()) {
+            put(NetworkMonitorSection.Mobile, SectionFact.Name(operator))
+        }
+        bluetooth.data?.bondedDeviceCount?.let { count ->
+            put(NetworkMonitorSection.Bluetooth, SectionFact.BondedDevices(count))
+        }
+        if (!externalIp.isNullOrBlank()) {
+            put(NetworkMonitorSection.Internet, SectionFact.ExternalAddress(externalIp))
+        }
+    }
 
 /** The human name of the active network, which lives in a different section per transport. */
 private fun NetworkMonitorSnapshot.resolveNetworkName(transport: NetworkTransport?): String? =

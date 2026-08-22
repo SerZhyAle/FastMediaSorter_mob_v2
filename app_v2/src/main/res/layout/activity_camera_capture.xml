@@ -8,18 +8,35 @@
     android:keepScreenOn="true"
     tools:context=".ui.cameracapture.CameraCaptureActivity">
 
-    <!-- S1658: scaleType here is only the pre-selection default; the host overrides it per selected
-         frame shape (fill for full screen, fit for 4:3 and 16:9). -->
-    <androidx.camera.view.PreviewView
-        android:id="@+id/previewViewCamera"
+    <!-- S1920: the soft zoom scales the PreviewView, and a view is clipped by its parent and never by
+         itself - so the rectangle the zoom must be clipped to has to be a parent. The host gives this
+         box the selected stream's ratio, which makes the visible crop equal the file crop (ADR-1).
+         The ratio here is the default selection (16:9 in portrait), so the first frame is built at the
+         shape it will keep instead of being laid out full-screen and resized a moment later.
+         What actually hides the overflowing surface below API 35 is not clipChildren: the SurfaceView
+         punches its own hole with PorterDuff.CLEAR and THAT obeys the ancestors' canvas clip, leaving
+         the opaque root background over the spill. Two preconditions follow - every ancestor outside
+         this box stays opaque, and the preview never goes setZOrderOnTop/MediaOverlay. -->
+    <FrameLayout
+        android:id="@+id/previewClipBox"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:implementationMode="performance"
+        android:clipChildren="true"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintDimensionRatio="9:16"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:scaleType="fitCenter" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- S1658: scaleType here is only the pre-selection default; the host overrides it per selected
+             frame shape (fill for full screen, fit for 4:3 and 16:9). -->
+        <androidx.camera.view.PreviewView
+            android:id="@+id/previewViewCamera"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:implementationMode="performance"
+            app:scaleType="fitCenter" />
+    </FrameLayout>
 
     <com.sza.fastmediasorter.ui.cameracapture.FocusRingOverlayView
         android:id="@+id/focusRingOverlay"
@@ -27,10 +44,10 @@
         android:layout_height="0dp"
         android:clickable="false"
         android:focusable="false"
-        app:layout_constraintBottom_toBottomOf="@id/previewViewCamera"
-        app:layout_constraintEnd_toEndOf="@id/previewViewCamera"
-        app:layout_constraintStart_toStartOf="@id/previewViewCamera"
-        app:layout_constraintTop_toTopOf="@id/previewViewCamera" />
+        app:layout_constraintBottom_toBottomOf="@id/previewClipBox"
+        app:layout_constraintEnd_toEndOf="@id/previewClipBox"
+        app:layout_constraintStart_toStartOf="@id/previewClipBox"
+        app:layout_constraintTop_toTopOf="@id/previewClipBox" />
 
     <com.sza.fastmediasorter.ui.cameracapture.GridOverlayView
         android:id="@+id/cameraGridOverlay"
@@ -39,10 +56,10 @@
         android:clickable="false"
         android:focusable="false"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/previewViewCamera"
-        app:layout_constraintEnd_toEndOf="@id/previewViewCamera"
-        app:layout_constraintStart_toStartOf="@id/previewViewCamera"
-        app:layout_constraintTop_toTopOf="@id/previewViewCamera"
+        app:layout_constraintBottom_toBottomOf="@id/previewClipBox"
+        app:layout_constraintEnd_toEndOf="@id/previewClipBox"
+        app:layout_constraintStart_toStartOf="@id/previewClipBox"
+        app:layout_constraintTop_toTopOf="@id/previewClipBox"
         tools:visibility="visible" />
 
     <LinearLayout

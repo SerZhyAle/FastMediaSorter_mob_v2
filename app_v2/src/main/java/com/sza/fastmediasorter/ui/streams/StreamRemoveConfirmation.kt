@@ -6,7 +6,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.util.showBoundToHost
-import timber.log.Timber
 
 /**
  * S1424: the one remove-channel confirmation, raised from wherever a channel can be removed.

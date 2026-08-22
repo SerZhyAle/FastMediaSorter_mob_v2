@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1886: content view of the launcher-reset confirmation dialog. An AlertDialog shows either a
+     message or a list in its content area, so carrying both the warning and the density selector
+     requires this custom view.
+     No layout-land counterpart exists: the content is a single column inside an alert dialog, and the
+     ScrollView is what handles a short landscape window. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/padding_large">
+
+        <TextView
+            android:id="@+id/textResetMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/launcher_settings_reset_message"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?android:attr/textColorPrimary" />
+
+        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+            android:id="@+id/rowResetDensity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_normal"
+            app:sdr_inline="true"
+            app:sdr_title="@string/launcher_settings_density_title" />
+
+    </LinearLayout>
+
+</ScrollView>

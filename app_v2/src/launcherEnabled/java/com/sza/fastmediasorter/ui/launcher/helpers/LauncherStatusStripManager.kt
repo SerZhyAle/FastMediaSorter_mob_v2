@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.databinding.LauncherStatusStripBinding
 import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignal
 import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignalListBottomSheet
 import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignalRegistry
+import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayCallbacks
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayComposition
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -86,7 +87,7 @@ class LauncherStatusStripManager @Inject constructor(
         replaceSystemStatusArea: Flow<Boolean>,
         topStatusStripMode: Flow<Boolean>,
         trayComposition: Flow<LauncherTrayComposition>,
-        onRequestPhoneStatePermission: () -> Unit,
+        callbacks: LauncherTrayCallbacks,
     ) {
         this.binding = binding
         this.fragmentManager = fragmentManager
@@ -100,20 +101,18 @@ class LauncherStatusStripManager @Inject constructor(
             lifecycleOwner = lifecycleOwner,
             topStatusStripMode = topStatusStripMode,
             trayComposition = trayComposition,
-            onRequestPhoneStatePermission = onRequestPhoneStatePermission,
+            callbacks = callbacks,
         )
         lifecycleOwner.collectOnLifecycle(topStatusStripMode) { enabled ->
             applyStripMode(enabled)
-            val clockPinned = stripClock?.root?.parent != null
-            val indicatorsPinned = stripIndicators?.root?.parent != null
         }
         lifecycleOwner.collectOnLifecycle(replaceSystemStatusArea) { replace ->
             // The band exists only while the launcher owns the status area; with the Android bar left in
             // place there is no freed space to draw in.
             this.binding?.root?.isVisible = replace
             // The inset the band must respect moves with the bar, so a stale one leaves either a gap or
-            // content under the cutout (Rule 17). Re-dispatch rather than re-applying the padding helper,
-            // which would compound onto the padding it already added.
+            // content under the cutout (Rule 17). A re-dispatch is all it takes - the listener the padding
+            // helper registered in bind() is still on this view and recomputes from the same base.
             this.binding?.root?.let(ViewCompat::requestApplyInsets)
         }
         lifecycleOwner.collectOnLifecycle(signalRegistry.observe()) { current ->
@@ -123,6 +122,11 @@ class LauncherStatusStripManager @Inject constructor(
                 canOpen = { signalRegistry.open(it) != null },
                 onTap = ::openSignal,
             )
+            // S1908: the panel stays open while a dismissal takes effect, so the new list has to reach it
+            // too. Without this the strip updates behind a sheet still listing the notifications the user
+            // just cleared, and the header keeps offering to clear them again.
+            (fragmentManager?.findFragmentByTag(SIGNAL_LIST_TAG) as? LauncherSignalListBottomSheet)
+                ?.submit(current)
         }
         lifecycleOwner.collectOnLifecycle(cutoutBounds) { bounds ->
             this.binding?.launcherSignalRow?.setCutoutBounds(bounds)
@@ -143,7 +147,7 @@ class LauncherStatusStripManager @Inject constructor(
         lifecycleOwner: LifecycleOwner,
         topStatusStripMode: Flow<Boolean>,
         trayComposition: Flow<LauncherTrayComposition>,
-        onRequestPhoneStatePermission: () -> Unit,
+        callbacks: LauncherTrayCallbacks,
     ) {
         val row = binding.launcherSignalRow
         val inflater = LayoutInflater.from(row.context)
@@ -156,7 +160,7 @@ class LauncherStatusStripManager @Inject constructor(
             lifecycleOwner = lifecycleOwner,
             clock = clock,
             indicators = indicators,
-            onRequestPhoneStatePermission = onRequestPhoneStatePermission,
+            callbacks = callbacks,
         ).apply { bind(topStatusStripMode, trayComposition) }
     }
 
@@ -267,6 +271,11 @@ class LauncherStatusStripManager @Inject constructor(
         LauncherSignalListBottomSheet().apply {
             signals = _signals.value
             onTap = ::openSignal
+            // S1908: the sheet holds no registry - that is what keeps exactly one navigation path (ADR-2) -
+            // so dismissal arrives the same way the tap route does, as callbacks from the strip's owner.
+            canDismiss = signalRegistry::canDismiss
+            onDismiss = signalRegistry::dismiss
+            onDismissAll = signalRegistry::dismissAll
         }.show(manager, SIGNAL_LIST_TAG)
     }
 

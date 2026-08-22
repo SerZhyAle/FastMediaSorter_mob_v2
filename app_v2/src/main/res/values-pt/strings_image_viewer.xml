@@ -10,8 +10,8 @@
     <string name="image_edit_contrast">Contraste</string>
     <string name="image_edit_filters">Filtros</string>
     <string name="image_edit_flip">Virar</string>
-    <string name="image_edit_flip_horizontal">Virar ↔</string>
-    <string name="image_edit_flip_vertical">Virar ↕</string>
+    <string name="image_edit_flip_horizontal">Inverter ↔</string>
+    <string name="image_edit_flip_vertical">Inverter ↕</string>
     <string name="image_edit_grayscale">Escala de cinza</string>
     <string name="image_edit_negative">Negativo</string>
     <string name="image_edit_rotation">Rotação</string>
@@ -36,7 +36,7 @@
     <string name="gif_edit_first_frame_help">Extraia o primeiro quadro da animação e salve-o como uma imagem PNG estática na pasta Downloads. Nome do arquivo: [nome_original]_primeiro_quadro.png</string>
     <string name="gif_edit_save_first_frame">Salvar o primeiro quadro como imagem</string>
     <string name="gif_edit_speed">Velocidade da animação</string>
-    <string name="gif_edit_speed_help">Ajuste o atraso entre os quadros para acelerar ou desacelerar a animação. O arquivo original será sobrescrito com a nova velocidade. Intervalo: 0,25x (4 vezes mais lento) a 4x (4 vezes mais rápido).</string>
+    <string name="gif_edit_speed_help">Ajuste o atraso entre fotogramas para acelerar ou abrandar a animação. O ficheiro original será substituído com a nova velocidade. Intervalo: 0.25x (4× mais lento) a 4x (4× mais rápido).</string>
     <string name="gif_edit_speed_normal">Velocidade: Normal (1,0x)</string>
     <string name="gif_edit_speed_value">Velocidade: %1$.1fx</string>
     <string name="gif_edit_title">Editor de GIFs</string>

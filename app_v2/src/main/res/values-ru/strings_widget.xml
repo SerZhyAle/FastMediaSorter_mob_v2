@@ -63,4 +63,22 @@
     <string name="widget_camera_quick_capture_mode_label">Что снимать</string>
     <string name="widget_camera_quick_capture_mode_photo">Фото</string>
     <string name="widget_camera_quick_capture_mode_video">Видео</string>
+    <string name="widget_network_monitor_label">Сетевой монитор</string>
+    <string name="widget_network_monitor_description">Один сетевой показатель на выбор</string>
+    <string name="widget_network_monitor_config_title">Выберите, что показывать</string>
+    <string name="widget_network_monitor_indicator_local_address">Локальный адрес</string>
+    <string name="widget_network_monitor_indicator_radio_status">Wi-Fi, Bluetooth, SIM</string>
+    <string name="widget_network_monitor_indicator_signal_level">Уровень сигнала</string>
+    <string name="widget_network_monitor_indicator_live_throughput">Текущая скорость</string>
+    <string name="widget_network_monitor_indicator_external_address">Внешний адрес</string>
+    <string name="widget_network_monitor_indicator_last_measurement">Последний замер скорости</string>
+    <string name="widget_network_monitor_indicator_resource_reachability">Сохранённый ресурс</string>
+    <string name="widget_network_monitor_indicator_satellite_count">Спутники</string>
+    <string name="widget_network_monitor_unavailable">Данных пока нет</string>
+    <string name="widget_network_monitor_tap_to_read">Нажмите, чтобы проверить</string>
+    <string name="widget_network_monitor_behind_nat_unknown_depth">За NAT - глубина неизвестна</string>
+    <string name="widget_network_monitor_cgnat_likely">Вероятно, за NAT оператора</string>
+    <string name="widget_network_monitor_direct_connection">Прямое подключение</string>
+    <string name="launcher_gadget_network_indicator">Сетевой показатель</string>
+    <string name="launcher_gadget_network_indicator_pick_title">Какой показатель показывать</string>
 </resources>

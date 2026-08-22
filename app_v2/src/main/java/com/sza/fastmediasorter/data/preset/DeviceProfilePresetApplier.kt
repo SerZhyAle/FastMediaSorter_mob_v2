@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.PrefetchCacheMultiplier
+import com.sza.fastmediasorter.domain.model.ResourceGridCellSize
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.model.StereoMode
@@ -41,13 +42,19 @@ class DeviceProfilePresetApplier @Inject constructor(
         return when (field) {
             // ── Booleans ──────────────────────────────────────────────────
             "isResourceGridMode" -> settings.copy(isResourceGridMode = raw.toBool())
+            "resourceGridCellSize" ->
+                runCatching { ResourceGridCellSize.valueOf(raw.trim()) }.getOrNull()
+                    ?.let { settings.copy(resourceGridCellSize = it) } ?: skip(field, raw, settings)
             "resourceOpsInOverflowMenu" -> settings.copy(resourceOpsInOverflowMenu = raw.toBool())
             "preventSleep" -> settings.copy(preventSleep = raw.toBool())
             "keepScreenOnPlayer" -> settings.copy(keepScreenOnPlayer = raw.toBool())
             "showSmallControls" -> settings.copy(showSmallControls = raw.toBool())
             "enableCalculator" -> settings.copy(enableCalculator = raw.toBool())
             "embeddedGameEnabled" -> settings.copy(embeddedGameEnabled = raw.toBool())
+            "frontFlashlightEnabled" -> settings.copy(frontFlashlightEnabled = raw.toBool())
             "enableNetworkMonitor" -> settings.copy(enableNetworkMonitor = raw.toBool())
+            "enableSystemInfo" -> settings.copy(enableSystemInfo = raw.toBool())
+            "enableWearCompanion" -> settings.copy(enableWearCompanion = raw.toBool())
             "isCacheSizeUserModified" -> settings.copy(isCacheSizeUserModified = raw.toBool())
             "enableBackgroundSync" -> settings.copy(enableBackgroundSync = raw.toBool())
             "enableStreams" -> settings.copy(enableStreams = raw.toBool())
@@ -348,6 +355,9 @@ class DeviceProfilePresetApplier @Inject constructor(
             "launcherTopStatusStripMode" -> applyLauncherField(field, raw, settings) { s ->
                 s.copy(launcherTopStatusStripMode = raw.toBool())
             }
+            "launcherForeignNotificationsEnabled" -> applyLauncherField(field, raw, settings) { s ->
+                s.copy(launcherForeignNotificationsEnabled = raw.toBool())
+            }
             "launcherTrayShowClock" -> applyLauncherField(field, raw, settings) { s ->
                 s.copy(launcherTrayShowClock = raw.toBool())
             }
@@ -372,6 +382,9 @@ class DeviceProfilePresetApplier @Inject constructor(
             "launcherWallpaperMode" -> applyLauncherField(field, raw, settings) { s ->
                 raw.trim().takeIf { it in AppSettings.LAUNCHER_WALLPAPER_MODES }
                     ?.let { s.copy(launcherWallpaperMode = it) }
+            }
+            "launcherScreenBlackoutTimeoutSeconds" -> applyLauncherField(field, raw, settings) { s ->
+                raw.trim().toIntOrNull()?.coerceAtLeast(0)?.let { s.copy(launcherScreenBlackoutTimeoutSeconds = it) }
             }
 
             // ── String set fields (delimiter: comma, semicolon or pipe) ───

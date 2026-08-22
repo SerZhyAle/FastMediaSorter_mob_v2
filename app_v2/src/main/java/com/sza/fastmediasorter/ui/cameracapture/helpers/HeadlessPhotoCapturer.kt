@@ -200,6 +200,11 @@ class HeadlessPhotoCapturer(
             onSaved()
             return
         }
+        // S1920: the camera screen crops to its measured PreviewView instead, because the display and the
+        // visible view part company on system bars, a cutout and multi-window. This route has no
+        // PreviewView at all - it is the edge-gesture shot, taken with no viewfinder on screen - so the
+        // display is the only geometry there is, and the crop is an estimate of what a viewfinder would
+        // have shown rather than a record of what one did.
         val metrics = context.resources.displayMetrics
         val targetRatio = CapturedPhotoAspectCropper.ratioOfScreen(metrics.widthPixels, metrics.heightPixels)
         val worker = Executors.newSingleThreadExecutor()

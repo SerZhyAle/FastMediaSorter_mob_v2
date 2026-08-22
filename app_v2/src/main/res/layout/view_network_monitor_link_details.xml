@@ -98,16 +98,30 @@
                 tools:text="@string/network_monitor_value_unknown" />
         </LinearLayout>
 
+        <!-- S1617: two rows, not one. "down 100000 kbit/s, up 20000 kbit/s" on a single line was read
+             as one quantity, and the owner asked for the two directions to stand apart. -->
         <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
 
             <TextView
                 style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
-                android:text="@string/network_monitor_link_bandwidth_label" />
+                android:text="@string/network_monitor_link_bandwidth_down_label" />
 
             <TextView
-                android:id="@+id/linkBandwidthValue"
+                android:id="@+id/linkBandwidthDownValue"
                 style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
-                tools:text="down 100000 kbit/s, up 20000 kbit/s" />
+                tools:text="100000 kbit/s" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+            <TextView
+                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                android:text="@string/network_monitor_link_bandwidth_up_label" />
+
+            <TextView
+                android:id="@+id/linkBandwidthUpValue"
+                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                tools:text="20000 kbit/s" />
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

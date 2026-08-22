@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- S0427: one published quick action of an installed app, shown in the long-press popup - icon
      beside a single-line label. Lives inside a floating window, so it is orientation-neutral and has
-     no layout-land counterpart. Focusable so the popup is walkable with a D-pad, keyboard and mouse. -->
+     no layout-land counterpart. The row must stay non-clickable and non-focusable: it is a ListView
+     item, and a row that consumes the touch itself leaves AdapterView.OnItemClickListener unfired -
+     the ripple plays and the menu does nothing (S1466). D-pad and mouse walk the list through the
+     ListView's own selection, which ListPopupWindow.isModal already routes focus into. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/shortcutRow"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?attr/selectableItemBackground"
-    android:clickable="true"
-    android:focusable="true"
     android:gravity="center_vertical"
     android:orientation="horizontal"
     android:paddingStart="12dp"

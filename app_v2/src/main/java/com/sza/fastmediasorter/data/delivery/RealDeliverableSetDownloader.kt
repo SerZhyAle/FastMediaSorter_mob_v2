@@ -212,6 +212,11 @@ class RealDeliverableSetDownloader @Inject constructor(
      * the backup. If the final rename fails, restore the backup so a re-download keeps the previous
      * working payload instead of being left with nothing. Renames within `filesDir` are atomic.
      */
+    // S1703: a retired payload file is left where it is rather than hunted down. Dropping an entry from a
+    // descriptor changes that set's stamp, so a device holding the old payload reports UpdateAvailable and
+    // its next download lands here, where the whole directory is replaced - the retired file goes with it.
+    // Verification never sees the stale file either: the loop above verifies the descriptor's own staged
+    // files, so an extra one on disk cannot make a user's payload look damaged.
     private fun promote(stagingDir: File, payloadDir: File): Boolean {
         payloadDir.parentFile?.mkdirs()
         val backup = File(payloadDir.parentFile, "${payloadDir.name}.bak")

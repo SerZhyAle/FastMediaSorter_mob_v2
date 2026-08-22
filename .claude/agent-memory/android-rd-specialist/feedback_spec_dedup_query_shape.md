@@ -1,11 +1,21 @@
 ---
 name: spec-dedup-query-shape
-description: Dedup before /spec-draft with single distinctive words, not multi-word phrases - spec_catalog/search.ps1 misses phrases and lets duplicates through
+description: spec_catalog/search.ps1 matches only the ticket NAME, never the spec body - dedup by symptom needs a grep over PLAN/*.md, plus single-word name queries
 metadata:
   type: feedback
 ---
 
-Before parking a finding with `/spec-draft`, dedup-check `scripts/spec_catalog/search.ps1` with **several single distinctive words**, one query each - never one multi-word phrase. Search the symptom's vocabulary, not your title for it.
+**`search.ps1 -Query` matches the ticket's `name` and `title` and nothing else** - read from the script on 2026-08-20:
+
+```powershell
+$records | Where-Object { $_.name -ilike "*$Query*" -or $_.title -ilike "*$Query*" }
+```
+
+It never opens a single `PLAN/*.md`. So the dedup step CLAUDE.md 3.1 asks for - "dedup-check by symptom" - **cannot be done with this script alone**, because a symptom is described in the spec body and only summarized in the slug. On 2026-08-20 four queries (`favourites`, `phone browse`, `избранное`, `Coming soon`) all returned "(no records)" while `grep -rliE "PHONE_BROWSE|Coming soon|NotYetHere" PLAN/*.md` immediately named the two specs that discuss it. A bare "(no records)" from `search.ps1` is therefore never evidence that a symptom is unticketed - only that no ticket is *named* after it.
+
+**How to dedup properly:** grep the spec bodies first (`grep -rliE "<symptom|identifier|route name>" PLAN/*.md`), then run the name queries below to catch a ticket whose slug says it but whose body words differ. Both halves are needed; either alone lets a duplicate through.
+
+Then, for the name half: use **several single distinctive words**, one query each - never one multi-word phrase. Search the symptom's vocabulary, not your title for it.
 
 **Why:** on 2026-08-07 I parked S1484 ("ARCHITECTURE.md has no launcher section") after dedup-searching `-Query "ARCHITECTURE launcher"`, which returned nothing. S1461, describing the identical symptom, had been captured 04:23 that same day. Re-testing afterwards: `-Query "launcher subsystem"` also returns **zero**, while `-Query "undocumented"` finds S1461 instantly. The spec-catalog search does not tokenize a phrase across fields the way `dev/CATALOG/scripts/query.ps1 -Search` does (that one was fixed for multi-word in 2026-07-15; this is a different script and did not get the fix). The duplicate cost a full research pass under the wrong number, then an archive-and-merge.
 

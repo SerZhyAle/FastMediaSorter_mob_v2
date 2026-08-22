@@ -52,4 +52,23 @@ class CropRegionManagerTest {
         assertTrue("left within bounds", r.left in 0..100)
         assertTrue("top within bounds", r.top in 0..200)
     }
+
+    /**
+     * S1923: the capture that hung was decoded at sensor resolution. These pin the budget itself,
+     * because the failure it prevents leaves no exception to assert on - the screen simply never
+     * leaves its loading state.
+     */
+    @Test
+    fun animageWithinTheBudgetIsNotDownsampled() {
+        assertEquals(1, CropRegionManager.sampleSizeFor(4096))
+        assertEquals(1, CropRegionManager.sampleSizeFor(1080))
+    }
+
+    @Test
+    fun aSensorSizedImageIsDownsampledToFitTheBudget() {
+        // 108 Mpx class capture, 12000 on the long side: 12000 / 4 = 3000, inside the budget.
+        assertEquals(4, CropRegionManager.sampleSizeFor(12000))
+        // Just past the budget still costs one halving, never more.
+        assertEquals(2, CropRegionManager.sampleSizeFor(4097))
+    }
 }

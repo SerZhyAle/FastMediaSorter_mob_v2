@@ -331,8 +331,12 @@ class LauncherSignalRowView @JvmOverloads constructor(
     }
 
     private fun bindChip(chip: View, signal: LauncherSignal) {
-        (chip as ImageView).setImageResource(signal.iconRes)
-        chip.contentDescription = signal.label
+        LauncherSignalIconBinder.bind(chip as ImageView, signal.icon)
+        // The chip is an icon and nothing else, so its spoken form is the only place the signal's detail can
+        // reach a screen reader - strategic §3.3 of S1465 requires a foreign chip to announce the source
+        // application and how many notifications it has, and the label alone carries only the first.
+        chip.contentDescription = listOfNotNull(signal.label, signal.detail?.takeIf { it.isNotBlank() })
+            .joinToString(separator = ", ")
         if (canOpen(signal)) {
             chip.setOnClickListener { onTap(signal) }
         } else {

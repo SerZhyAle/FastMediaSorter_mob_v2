@@ -13,7 +13,6 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import com.sza.fastmediasorter.R
-import timber.log.Timber
 
 /**
  * Full-screen canvas-based custom View that shows a draggable crop rectangle

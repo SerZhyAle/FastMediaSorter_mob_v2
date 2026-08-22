@@ -13,7 +13,6 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityCompanionQrScanBinding
 import com.sza.fastmediasorter.domain.model.PermissionTask
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationaleShort
-import timber.log.Timber
 
 /**
  * S0988: camera QR scan for the companion `.fmscfg` import. Decodes a QR into the raw payload string

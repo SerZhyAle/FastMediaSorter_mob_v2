@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.ui.player.PlayerActivity
+import com.sza.fastmediasorter.util.CaptureFileNamer
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -38,8 +39,6 @@ private const val JPEG_QUALITY = 85  // standard quality for JPEG frame saves
  * 5. Shows a Toast with the actual save location or an error.
  *
  * Format: PNG (lossless) or JPG (85% quality) - controlled by videoSnapshotFormat setting.
- * Filename: {video_name}_{HH}h{MM}m{SS}s.{ext} - based on current video track position.
- * Overwrite: existing files with the same name are always replaced.
  */
 class SaveVideoFrameManager(
     private val activity: PlayerActivity,
@@ -61,17 +60,17 @@ class SaveVideoFrameManager(
             return
         }
 
-        // Capture playback position on main thread before launching coroutine -
-        // player.currentPosition is only safe to read on main thread
-        val positionMs = activity._videoPlayerManager?.getPlayer()?.currentPosition ?: 0L
-        val sourceFileName = activity.viewModel.state.value.currentFile?.name
-
         activity.lifecycleScope.launch {
             try {
                 // Load settings in coroutine (suspends on IO, avoids blocking UI thread)
                 val settings = activity.playerHostFactory.settingsRepository.getSettings().first()
                 val useJpeg = settings.videoSnapshotFormat == "JPG"
-                val fileName = buildFileName(sourceFileName, positionMs, useJpeg)
+                val extension = if (useJpeg) ".jpg" else ".png"
+                val fileName = CaptureFileNamer.shared.allocate(
+                    CaptureFileNamer.CaptureKind.VIDEO_FRAME,
+                    extension,
+                )
+                Timber.d("S1882: video frame output $fileName")
                 val tempFile = writeTempFile(bitmap, fileName, useJpeg)
 
                 val resourceId = settings.videoSnapshotResourceId
@@ -227,8 +226,8 @@ class SaveVideoFrameManager(
 
     /**
      * Saves [tempFile] to the system Downloads folder through the shared local destination
-     * writer in overwrite mode, so collision behaviour is identical across API levels and the
-     * MediaStore write path is not duplicated. Throws on failure so the caller's catch reports it.
+     * writer; the resolved capture name is passed through unchanged. Throws on failure so the
+     * caller's catch reports it.
      */
     private suspend fun saveToDownloads(tempFile: File, fileName: String) = withContext(Dispatchers.IO) {
         val targetPath = File(
@@ -257,26 +256,6 @@ class SaveVideoFrameManager(
             MediaStoreNotifier.notifyFile(activity, savedPath, "save-frame")
         }
         Timber.i("SaveVideoFrameManager: frame saved to Downloads as $fileName")
-    }
-
-    /**
-     * Builds a filename from the source video name and current video track position.
-     * Format: {video_name}_{HH}h{MM}m{SS}s.{ext}
-     * Example: my_clip_00h01m23s.jpg
-     */
-    private fun buildFileName(sourceFileName: String?, positionMs: Long, useJpeg: Boolean): String {
-        val base = sourceFileName
-            ?.substringBeforeLast(".")
-            ?.replace(Regex("[^a-zA-Z0-9_\\-]"), "_")
-            ?.take(40)
-            ?: "frame"
-        val totalSeconds = positionMs / 1000
-        val hours = totalSeconds / 3600
-        val minutes = (totalSeconds % 3600) / 60
-        val seconds = totalSeconds % 60
-        val pos = "%02dh%02dm%02ds".format(hours, minutes, seconds)
-        val ext = if (useJpeg) "jpg" else "png"
-        return "${base}_${pos}.${ext}"
     }
 
     // Toast renders in a system overlay, immune to view hierarchy and edge-to-edge insets -

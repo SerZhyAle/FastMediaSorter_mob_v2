@@ -28,4 +28,23 @@ interface LauncherSignalSource {
      * no-op activity, so a ripple never promises something that does not happen.
      */
     fun open(signal: LauncherSignal): Intent?
+
+    /**
+     * S1908: whether [signal] can be dismissed from the panel right now.
+     *
+     * Defaulted to false, which is the answer for every signal describing this app's own work: playback, a
+     * transfer and background work are not notifications and there is nothing in them to dismiss. The default
+     * is what keeps that true - the three own-signal sources are not edited, so none of them can acquire the
+     * action by being overlooked, and strategic §6.2's "no button at all" holds by construction.
+     *
+     * Asked per signal rather than per source because availability can change under a source: the foreign
+     * notification source can list signals while the listener that dismisses them is disconnected.
+     */
+    fun canDismiss(signal: LauncherSignal): Boolean = false
+
+    /**
+     * S1908: dismisses what [signal] stands for. A no-op unless [canDismiss] answered true for the same
+     * signal, so a caller that skipped the check cannot dismiss something this source never offered.
+     */
+    fun dismiss(signal: LauncherSignal) = Unit
 }

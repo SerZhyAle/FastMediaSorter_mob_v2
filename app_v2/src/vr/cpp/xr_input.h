@@ -39,6 +39,9 @@ struct HandInputState {
     bool gripIsModifier{false};
     float thumbstickX{0.0f};      // Thumbstick X axis value
     float thumbstickY{0.0f};      // Thumbstick Y axis value
+    // S1271: rising edge of the controller menu button (bound on the left hand only - the right
+    // "menu" position is the Meta system button and cannot be bound by applications).
+    bool menuClicked{false};
 };
 
 // Symmetrically tracks left (0) and right (1) input sources.

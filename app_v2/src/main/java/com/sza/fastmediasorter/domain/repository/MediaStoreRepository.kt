@@ -57,4 +57,11 @@ interface MediaStoreRepository {
     suspend fun getStandardFolders(): List<FolderInfo>
 
     suspend fun findCameraFolderPath(): String?
+
+    /**
+     * Resolves one entry by its MediaStore row id. An element of a virtual resource has no path
+     * inside its resource - only this record - so a caller holding just the id has no other way
+     * back to the file. Null means the id matches no readable row.
+     */
+    suspend fun getFileByMediaStoreId(id: Long): MediaFile?
 }

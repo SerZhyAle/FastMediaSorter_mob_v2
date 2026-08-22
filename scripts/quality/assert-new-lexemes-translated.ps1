@@ -34,6 +34,10 @@
     Its absence is exit 2, not exit 1 - a missing baseline means the gate cannot tell old from new,
     which is "could not verify", never "found a defect".
 
+.PARAMETER FingerprintsPath
+    Translation provenance registry. Default scripts/quality/locale-source-fingerprints.json.
+    A registry declaring an identity schema below v2 is exit 2, not exit 1 - see S1858.
+
 .PARAMETER OutDir
     Where the producer writes the translator-ready files. Default temp/S1627.
 
@@ -47,13 +51,15 @@
     Exit codes:
       0 - every string reaches all thirteen declared locales, or its gap predates the rule.
       1 - new untranslated strings exist; the release is blocked until they are translated.
-      2 - the gate cannot verify: the producer or the baseline is missing.
+      2 - the gate cannot verify: the producer is missing, the baseline is missing, or the
+          fingerprint registry predates the per-module identity split (S1858) and must be migrated.
 #>
 [CmdletBinding()]
 param(
     [string]$Module = 'app_v2',
     [string[]]$SourceSet = @('main', 'vr', 'noLegal'),
     [string]$BaselinePath,
+    [string]$FingerprintsPath,
     [string]$OutDir,
     [switch]$Quiet
 )
@@ -62,10 +68,22 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+. (Join-Path $repoRoot 'scripts/quality/lib/locale-fingerprints.ps1')
 $SourceSet = @($SourceSet | ForEach-Object { $_ -split ',' } | Where-Object { $_ } | ForEach-Object { $_.Trim() })
 
 if (-not $OutDir) { $OutDir = Join-Path $repoRoot 'temp/S1627' }
 if (-not $BaselinePath) { $BaselinePath = Join-Path $repoRoot 'scripts/quality/locale-untranslated-baseline.txt' }
+if (-not $FingerprintsPath) { $FingerprintsPath = Join-Path $repoRoot 'scripts/quality/locale-source-fingerprints.json' }
+
+# A pre-S1858 registry keys provenance without a module segment, so app_v2 and wear share one slot
+# and the loser of the last import is reported untranslated. Reading it as if it were namespaced
+# produces that same false report with nothing to explain it - refuse instead of guessing.
+$registryVersion = Get-LocaleFingerprintsSchemaVersion -Path $FingerprintsPath
+if ($registryVersion -lt 2) {
+    $msg = "assert-new-lexemes-translated: fingerprint registry at $FingerprintsPath declares identity schema v$registryVersion, but this gate reads v2 (module-qualified, S1858) - cannot verify. Migrate it: pwsh -NoProfile -File scripts/quality/migrate-locale-fingerprints-module.ps1"
+    Write-Error $msg -ErrorAction Continue
+    exit 2
+}
 
 $producer = Join-Path $repoRoot 'scripts/utils/list-new-lexemes.ps1'
 if (-not (Test-Path -LiteralPath $producer)) {
@@ -79,7 +97,7 @@ if (-not (Test-Path -LiteralPath $BaselinePath)) {
     exit 2
 }
 
-& pwsh -NoProfile -File $producer -Module $Module -SourceSet ($SourceSet -join ',') -BaselinePath $BaselinePath -OutDir $OutDir -Quiet | Out-Null
+& pwsh -NoProfile -File $producer -Module $Module -SourceSet ($SourceSet -join ',') -BaselinePath $BaselinePath -FingerprintsPath $FingerprintsPath -OutDir $OutDir -Quiet | Out-Null
 $producerExit = $LASTEXITCODE
 
 if ($producerExit -eq 1) {
@@ -102,7 +120,7 @@ if (-not (Test-Path -LiteralPath $indexPath)) {
 }
 
 $records = @(Get-Content -LiteralPath $indexPath -Encoding UTF8 | Where-Object { $_ } | ForEach-Object { $_ | ConvertFrom-Json })
-$keys = @($records | ForEach-Object { "$($_.set)|$($_.file)|$($_.key)" } | Select-Object -Unique)
+$keys = @($records | ForEach-Object { Get-LocaleUnitId -Module $Module -Set $_.set -File $_.file -Key $_.key } | Select-Object -Unique)
 
 if (-not $Quiet) {
     Write-Host ''

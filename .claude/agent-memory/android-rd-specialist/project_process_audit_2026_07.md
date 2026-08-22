@@ -85,3 +85,21 @@ any audit number, read the branch of the mining script that produced it.
 
 Measurement method and its traps: [[transcript-cost-mining]]. Harness capabilities a hook can and
 cannot use: [[claude-code-hook-capabilities]].
+
+**Third pass 2026-08-20 - where the >300k spend actually sits.** Owner asked "am I burning tokens
+for nothing". Measured 2026-08-11..20 (1,190 files, 38,522 deduped requests, both tiers):
+8.96 G cache_read, 27.9 M output, **98.7% of billed tokens are cache_read and 0.3% are output** -
+so nothing written (spec text, code, prose) is a cost lever, only the number of turns and the
+context each one carries. Main-tier average context **277,892 tokens per request**; nested 93,051.
+**The finding: 34.9% of main-tier requests run above 300k and carry 58.0% of the tier's cache_read.**
+Attributed by each session's dominant slash command: `/spec-next` 2 sessions, 0.050 G, **0.000 G
+above 300k - the Stage 5b threshold stop works perfectly**; `/spec-do` 17 sessions, 2.091 G, of
+which **1.636 G (78%) above 300k**, peak context 999,154 on a single request. `/spec-do` documents
+this by design ("the sanctioned way to decline the threshold trade", its own rule 5 says a
+`--threshold` argument is read by nothing). Counterfactual: capping every main-tier request at
+300k = -20.3% of that tier's cache_read; at 200k = -37.2%. Output for the same window bought
+2,062 dev-log rows, 371 distinct tickets touched, 85 `-> Verified` audits.
+**How to apply:** the loop's endlessness, not its verbosity, is the whole overspend - do not
+propose trimming prose, artifacts or re-reads to fix it (section 5 already refuted those). The
+open design question is a self-halt with auto-resume for `/spec-do`, since an agent cannot run
+`/clear` itself. Hard tool-failure rate for the window: 1,640 / 44,520 tool_result blocks = 3.7%.

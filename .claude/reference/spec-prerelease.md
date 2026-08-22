@@ -132,6 +132,10 @@ Verdict's log signal is a single number; red toasts and handled-but-loud failure
 
 Parses both logcat formats, keeps app-process lines, folds stack traces into throwing cluster, then splits clusters into **benign** (known emulator/capability fallbacks - Cast/Dynamite absent, `WifiRequiredException`, emulator GPU noise) and **actionable**, separately flags user-facing error surfaces (toast / snackbar / `showError`).
 
+"Keeps app-process lines" means the pid column, matched against the process ids the capture itself announces in `Start proc <pid>:com.sza.fastmediasorter` - the same recovery `search-log.ps1 -AppOnly` performs, sharing `Get-AppPidsFromLog` (S1332). A line from another pid is not classified at all, whatever it says: attribution is a different question from the benign allowlists below, which silence a cluster by identity. The tag denylists still run after the pid filter, so a cluster suppressed by tag stays suppressed.
+
+The audit reports which rule decided, as `attribution` in the JSON and as a header line in text mode. `pid` is the normal case. `heuristic` means the capture carries no app `Start proc` announcement - it began after the app was already running - so lines were kept by tag alone, and a tag denylist is enumerative: an unlisted tag reaches the actionable list even from another process. Read an `exit 1` under `heuristic` as "these clusters may not be ours" and re-capture with the app restart inside the window before triaging (S1859: two `E/A` clusters from Google's tiktok tracing framework failed the mandatory step on a run where the app logged nothing wrong).
+
 A working stream that still throws a red toast (e.g. FTP active-mode fallback NPE during otherwise-fine audio playback) is a real defect.
 
 An emulator-only benign cluster recurring every sweep is a candidate for audit's benign allowlist, not a ticket.

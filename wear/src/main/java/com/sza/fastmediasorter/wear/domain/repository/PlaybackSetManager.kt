@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.random.Random
 
 /**
  * An ordered set of files together with the position inside it.
@@ -54,15 +55,28 @@ class PlaybackSetManager @Inject constructor() {
         _currentSet.value = PlaybackSet(files, safeIndex)
     }
 
+    /**
+     * S1701: shuffle is a mode over this same set, not a second collection. Nothing is reordered or
+     * stored - only the answer to "which file follows this one" changes, which is why turning it on
+     * mid-playback costs nothing and cannot disagree with the list the browse screen published.
+     */
+    var shuffleEnabled: Boolean = false
+
     /** Past the end the set wraps to its first file (strategic S1683 section 6.5). */
-    fun next(): WearMediaFile? = moveByIndex { index, files -> (index + 1) % files.size }
+    fun next(): WearMediaFile? = moveByIndex { index, files ->
+        if (shuffleEnabled) {
+            otherIndex(index, files.size)
+        } else {
+            (index + 1) % files.size
+        }
+    }
 
     /** Before the start the set wraps to its last file (strategic S1683 section 6.5). */
     fun previous(): WearMediaFile? = moveByIndex { index, files ->
-        if (index > 0) {
-            index - 1
-        } else {
-            files.lastIndex
+        when {
+            shuffleEnabled -> otherIndex(index, files.size)
+            index > 0 -> index - 1
+            else -> files.lastIndex
         }
     }
 
@@ -84,6 +98,18 @@ class PlaybackSetManager @Inject constructor() {
     fun clear() {
         Timber.d("PlaybackSetManager: set cleared")
         _currentSet.value = null
+    }
+
+    /**
+     * A uniform pick among every index except [current]. Drawing an offset in 1..size-1 rather than
+     * an index in 0..size-1 removes the retry loop and with it the chance of repeating the file the
+     * user is listening to right now, which reads as a broken shuffle rather than as chance.
+     */
+    private fun otherIndex(current: Int, size: Int): Int {
+        if (size <= 1) {
+            return current
+        }
+        return (current + Random.nextInt(size - 1) + 1) % size
     }
 
     private fun moveByIndex(

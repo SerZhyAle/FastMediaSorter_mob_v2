@@ -158,10 +158,8 @@ class ImportStreamCatalogUseCase @Inject constructor(
                     entry.isDirectory -> Unit
                     name.endsWith(".csv") -> {
                         val text = readCappedUtf8(zip)
-                        if (text != null) {
-                            if (name.endsWith("streams.csv")) streamsCsv = text
-                            else if (fallbackCsv == null) fallbackCsv = text
-                        }
+                        if (name.endsWith("streams.csv")) streamsCsv = text
+                        else if (fallbackCsv == null) fallbackCsv = text
                     }
                     name.endsWith("favicon-atlas.png") -> {
                         // Over-cap atlas -> drop the atlas, KEEP the CSV (favicons just stay absent).
@@ -177,9 +175,17 @@ class ImportStreamCatalogUseCase @Inject constructor(
         }
     }
 
-    /** Reads the current zip entry as UTF-8, returning null if it exceeds [MAX_CSV_BYTES]. */
-    private fun readCappedUtf8(zip: ZipInputStream): String? {
-        val bytes = readCappedBytes(zip, MAX_CSV_BYTES) ?: return null
+    /**
+     * Reads the current zip entry as UTF-8. S1820: an over-cap CSV THROWS rather than returning null.
+     * Returning null here collapsed into the same `Empty` result as an archive holding no CSV at all,
+     * so the day the bank outgrew the cap every user would have seen "catalog is empty" with nothing in
+     * the log to tell the two apart. The throw is caught by the `downloadCatalog()` caller and reported
+     * as a Failure naming the cap. The atlas path deliberately keeps the null tolerance - there
+     * over-cap means "drop the atlas, keep the CSV" (S0668).
+     */
+    private fun readCappedUtf8(zip: ZipInputStream): String {
+        val bytes = readCappedBytes(zip, MAX_CSV_BYTES)
+            ?: error("catalog CSV exceeds the ${MAX_CSV_BYTES / BYTES_PER_MIB} MiB cap")
         return String(bytes, Charsets.UTF_8)
     }
 
@@ -210,14 +216,27 @@ class ImportStreamCatalogUseCase @Inject constructor(
     private companion object {
         const val CATALOG_URL =
             "https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/stream-catalog.zip"
-        const val MAX_CSV_BYTES = 8 * 1024 * 1024
+
+        const val BYTES_PER_MIB = 1024 * 1024
+
+        // S1820: raised from 8 MiB. Measured 2026-08-19, the published streams.csv is 5.83 MB across
+        // 19534 rows, up from 2691 rows a month earlier - the old cap left 1.4x headroom against
+        // sevenfold monthly growth, so the bank would have outgrown it silently. Re-derive this from a
+        // fresh measurement of the published asset, not from memory, when it next needs review.
+        const val MAX_CSV_BYTES = 32 * BYTES_PER_MIB
 
         // S0668: atlas cap, separate from the CSV cap. A 16-col grid of 32 px tiles for a partial-coverage
         // catalog compresses well under this; over-cap drops the atlas but keeps the CSV.
         const val MAX_ATLAS_BYTES = 30 * 1024 * 1024
 
-        // Hard ceiling on the whole catalog fetch (DNS + connect + write + zip body read). Mirrors the
-        // download-client callTimeout in di/LinkDownloadModule.kt; generous for a small catalog zip.
-        const val CATALOG_CALL_TIMEOUT_SECONDS = 30L
+        // Hard ceiling on the whole catalog fetch (DNS + connect + write + zip body read). S1820 raised
+        // it from 30 s: the published zip is 7.31 MB, which 30 s demanded be pulled at ~250 KB/s with no
+        // dip, so an ordinary mobile link failed the whole import with no resume and no partial apply.
+        // 180 s drops the required floor to ~42 KB/s. The ceiling stays finite on purpose - see the
+        // downloadCatalog KDoc: a host that trickles bytes resets the read timeout on every chunk and
+        // would otherwise hold the import coroutine forever. (The comment here used to claim it mirrored
+        // di/LinkDownloadModule.kt; that client has had callTimeout(0) since S1139, so the claim had been
+        // false and pointed the wrong way.)
+        const val CATALOG_CALL_TIMEOUT_SECONDS = 180L
     }
 }

@@ -36,11 +36,11 @@
     <string name="calculator_fn_ln">ln (nat. log)</string>
     <string name="calculator_fn_log10">log₁₀ (لاگ)</string>
     <string name="calculator_fn_mod">موڈ (باقی)</string>
-    <string name="calculator_fn_power">xʸ (طاقت)</string>
+    <string name="calculator_fn_power">xʸ (پاور)</string>
     <string name="calculator_fn_reciprocal">1/x (الٹا)</string>
     <string name="calculator_fn_sin">گناہ (سائن)</string>
-    <string name="calculator_fn_sqrt">√x (جڑ)</string>
-    <string name="calculator_fn_square">x² (مربع)</string>
+    <string name="calculator_fn_sqrt">√x (روٹ)</string>
+    <string name="calculator_fn_square">x² (اسکوائر)</string>
     <string name="calculator_fn_tan">ٹی جی (ٹینجنٹ)</string>
     <string name="calculator_history_cleared">تاریخ صاف ہو گئی۔</string>
     <string name="calculator_history_empty">ابھی تک کوئی تاریخ نہیں۔</string>

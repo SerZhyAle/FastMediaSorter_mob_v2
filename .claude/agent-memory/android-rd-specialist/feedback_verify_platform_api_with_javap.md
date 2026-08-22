@@ -40,4 +40,17 @@ to settle "will X work". Any change to a shortcut, widget, notification, foregro
 share-target payload - the places where the platform validates a Bundle/Intent at runtime - needs the
 gesture actually performed on a device before the ticket is called done.
 
+**It also cannot tell you which permission an API needs - the SDK ships none of that (measured 2026-08-21, S1728).**
+A tactical step was written as "use `javap` and read the `@RequiresPermission` annotation on the overload
+being called". Run as written it answers nothing: `javap -p -v` on `android/net/ConnectivityManager.class`
+from `platforms/android-36/android.jar` prints 1516 lines and **zero** occurrences of `RequiresPermission`
+- the stubs carry signatures plus `throw new RuntimeException("Stub!")` bodies and no annotations at all.
+The SDK's external annotations are not a fallback either: `platforms/android-36/data/annotations.zip` has
+153 entries, `android/net/annotations.xml` carries no `requestNetwork` item, and the only entry mentioning
+`CHANGE_NETWORK_STATE` anywhere in the archive is `android/content/pm/annotations.xml`, a different API.
+So for a permission question the authority is the platform documentation (CLAUDE.md section 6 names
+developer.android.com as preferred) - and note the docs page for a class reference is a JS-rendered SPA
+that `WebFetch` returns as navigation chrome, so `WebSearch` against `developer.android.com` is what
+actually returns the sentence. Do not plan a step around javap answering a permission question.
+
 Related: [[verify-full-evidence]], [[tactical-plan-file-list-may-be-wrong]], [[feedback-phase-boundary-audit]].

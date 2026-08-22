@@ -44,6 +44,24 @@ class OfficeDocumentViewerManager(
 
     private val safeViews = PlayerBindingSafeViews(root)
 
+    /**
+     * S1549: move the rendered document into a re-inflated hierarchy. The WebView holds the whole
+     * render, so it is re-parented rather than re-created; [container] resolves through [safeViews],
+     * which is re-pointed first.
+     */
+    override fun rebindLayoutRoot(newRoot: View) {
+        val wasVisible = webView != null && container.isVisible
+        val view = webView
+        if (view != null) {
+            container.removeView(view)
+        }
+        safeViews.rebindRoot(newRoot)
+        if (view != null) {
+            container.addView(view)
+            container.isVisible = wasVisible
+        }
+    }
+
     private val engineBridge = OfficeDocumentEngineBridge()
     private val hyperlinkPolicy = OfficeDocumentHyperlinkPolicy()
     // S0301 Phase 04: family-specific render delegates keep sheet/slide navigation models and

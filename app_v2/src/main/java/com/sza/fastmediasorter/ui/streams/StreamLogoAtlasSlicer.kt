@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory
 import android.graphics.BitmapRegionDecoder
 import android.graphics.Rect
 import android.os.Build
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -88,6 +89,11 @@ class StreamLogoAtlasSlicer(
             // A region outside the sheet yields no tile rather than a crash.
             Timber.i(e, "Stream logo atlas region decode rejected for index=$index")
             null
+        } catch (e: CancellationException) {
+            // A cancelled read is not a recycled decoder: answering null here caches "no tile" for
+            // an index that was never actually read (S1889).
+            Timber.d("S1889: stream-logo tile read cancelled - rethrowing instead of caching no tile")
+            throw e
         } catch (e: IllegalStateException) {
             // A decoder recycled mid-read (post-invalidate race) yields no tile rather than a crash.
             Timber.i(e, "Stream logo atlas decoder unusable for index=$index")

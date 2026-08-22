@@ -4,7 +4,6 @@ import android.content.Context
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.common.copy.UiMessageFamily
 import com.sza.fastmediasorter.ui.common.copy.UiMessageSpec
-import timber.log.Timber
 
 /**
  * Utility for formatting file operation error messages in a user-friendly way.

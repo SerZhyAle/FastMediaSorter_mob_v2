@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.local.db
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -14,7 +15,11 @@ import androidx.room.PrimaryKey
 @Entity(
     tableName = "stream_sources",
     indices = [
-        Index(value = ["url"], unique = true, name = "index_stream_sources_url")
+        Index(value = ["url"], unique = true, name = "index_stream_sources_url"),
+        // S1832: deliberately NOT unique. 58 groups of published catalog rows fold onto a
+        // single identity; a unique index would turn each of them into an insert conflict
+        // and shrink the catalog on the first import after the upgrade.
+        Index(value = ["identityKey"], name = "index_stream_sources_identityKey")
     ]
 )
 data class StreamSourceEntity(
@@ -40,5 +45,16 @@ data class StreamSourceEntity(
     // live-manifest reloads). subtitlesEnabled null = follow global default, true/false = per-channel override.
     val preferredAudioLang: String? = null,
     val preferredSubtitleLang: String? = null,
-    val subtitlesEnabled: Boolean? = null
+    val subtitlesEnabled: Boolean? = null,
+    // S1832: the key every kind of user-authored data about this channel is filed under,
+    // derived from [url] by StreamChannelIdentity. Stored rather than recomputed so a merge
+    // can join on it instead of re-parsing every address in the bank on each import.
+    //
+    // The Kotlin default exists so the many construction sites stay readable; it is NOT the
+    // value that reaches the table. StreamSourceRepository derives the identity on every write
+    // path, which is why no caller has to remember to - see its `withIdentity` helper.
+    // The @ColumnInfo default is what MIGRATION_51_52 backfills over, declared here because
+    // runMigrationsAndValidate compares defaults as well as names and types.
+    @ColumnInfo(defaultValue = "")
+    val identityKey: String = ""
 )

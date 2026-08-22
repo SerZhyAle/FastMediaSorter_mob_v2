@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env pwsh
+#!/usr/bin/env pwsh
 <#
 .SYNOPSIS
     FastMediaSorter project scripts launcher
@@ -24,7 +24,13 @@
            -Flavor Standard|NoLegal|Lite|Photos|Legacy|Vr, e.g. `.\a.ps1 fc -Flavor Lite`.
            This is how "build every affected variant" is satisfied - each call takes
            BUILD.LOCK, so no direct gradlew invocation is needed.
-    fu   - Fast full unit-test suite
+    fu   - Fast full unit-test suite (app_v2)
+    fa   - Fast instrumented-test COMPILE check (app_v2 androidTest; does not run them)
+    fw   - Fast Kotlin compile check, wear module
+    fwr  - Fast resources/manifest check, wear module
+    fwu  - Fast unit-test suite, wear module
+           fk/fkn/fr/fc/fu all check app_v2. A change under wear/ needs fw/fwr/fwu -
+           the phone target exits 0 without looking at the watch module at all.
     flr  - Fast lint-rules detector test suite (:lint-rules:test)
     fg   - Fast static gates batch (neuroslop+pm+listener+flavor+ticket-log; -IncludeDetekt opt-in)
     mb   - Run standard macrobenchmark suite
@@ -97,7 +103,10 @@ $scripts = @{
     'fr'        = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Resources' } }
     'fc'        = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'CodeAndResources' } }
     'fu'        = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Unit' } }
+    'fa'        = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'AndroidTest' } }  # S1844: compile the instrumented set - no other target does
     'fw'        = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Code'; Module = 'wear' } }  # S1496: fast Kotlin compile for the wear module
+    'fwr'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Resources'; Module = 'wear' } }  # S1807: fast resources/manifest check for the wear module
+    'fwu'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Unit'; Module = 'wear' } }  # S1807: fast unit-test suite for the wear module
     'flr'       = @{ Path = 'scripts\builders\check-lint-rules.ps1'; Args = @{} }  # S1195: custom lint detectors' own test suite
     'fg'        = @{ Path = 'scripts\quality\assert-fast-gates.ps1'; Args = @{} }  # S0826: batch fast static gates in one process
     'mb'        = @{ Path = 'scripts\builders\run-standard-macrobenchmark.ps1'; Args = @{} }
@@ -154,7 +163,12 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  fc   - Fast code + resources check" -ForegroundColor Cyan
     Write-Host "         fk/fr/fc take -Flavor Standard|NoLegal|Lite|Photos|Legacy|Vr," -ForegroundColor DarkCyan
     Write-Host "         e.g. '.\a.ps1 fc -Flavor Lite' - proves any of the six flavors." -ForegroundColor DarkCyan
-    Write-Host "  fu   - Fast full unit-test suite" -ForegroundColor Cyan
+    Write-Host "  fu   - Fast full unit-test suite (app_v2)" -ForegroundColor Cyan
+    Write-Host "  fa   - Fast instrumented-test COMPILE check (app_v2 androidTest)" -ForegroundColor Cyan
+    Write-Host "  fw   - Fast Kotlin compile check, wear module" -ForegroundColor Cyan
+    Write-Host "  fwr  - Fast resources/manifest check, wear module" -ForegroundColor Cyan
+    Write-Host "  fwu  - Fast unit-test suite, wear module" -ForegroundColor Cyan
+    Write-Host "         fk/fkn/fr/fc/fu all check app_v2 - a wear/ change needs fw/fwr/fwu." -ForegroundColor DarkCyan
     Write-Host "  flr  - Fast lint-rules detector test suite (:lint-rules:test)" -ForegroundColor Cyan
     Write-Host "  fg   - Fast static gates batch (neuroslop+pm+listener+flavor+ticket-log)" -ForegroundColor Cyan
     Write-Host "  mb   - Run standard macrobenchmark suite" -ForegroundColor Cyan

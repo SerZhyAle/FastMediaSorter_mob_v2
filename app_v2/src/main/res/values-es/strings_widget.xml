@@ -63,4 +63,22 @@
     <string name="widget_camera_quick_capture_mode_label">Qué capturar</string>
     <string name="widget_camera_quick_capture_mode_photo">Foto</string>
     <string name="widget_camera_quick_capture_mode_video">Video</string>
+    <string name="widget_network_monitor_label">Monitor de red</string>
+    <string name="widget_network_monitor_description">Un indicador de red a tu elección</string>
+    <string name="widget_network_monitor_config_title">Elige qué mostrar</string>
+    <string name="widget_network_monitor_indicator_local_address">Dirección local</string>
+    <string name="widget_network_monitor_indicator_radio_status">Wi-Fi, Bluetooth, SIM</string>
+    <string name="widget_network_monitor_indicator_signal_level">Nivel de señal</string>
+    <string name="widget_network_monitor_indicator_live_throughput">Velocidad en vivo</string>
+    <string name="widget_network_monitor_indicator_external_address">Dirección externa</string>
+    <string name="widget_network_monitor_indicator_last_measurement">Última prueba de velocidad</string>
+    <string name="widget_network_monitor_indicator_resource_reachability">Recurso guardado</string>
+    <string name="widget_network_monitor_indicator_satellite_count">Satélites</string>
+    <string name="widget_network_monitor_unavailable">Aún no hay datos</string>
+    <string name="widget_network_monitor_tap_to_read">Toca para comprobar</string>
+    <string name="widget_network_monitor_behind_nat_unknown_depth">Detrás de un NAT - profundidad desconocida</string>
+    <string name="widget_network_monitor_cgnat_likely">Probablemente detrás de un NAT del operador</string>
+    <string name="widget_network_monitor_direct_connection">Conexión directa</string>
+    <string name="launcher_gadget_network_indicator">Indicador de red</string>
+    <string name="launcher_gadget_network_indicator_pick_title">Qué indicador mostrar</string>
 </resources>
