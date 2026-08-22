@@ -1,0 +1,6 @@
+• Wear OS companion - browse, play and sort your phone's media from the watch.
+• Watch mini-programs - calculator, network monitor and a game, on your wrist.
+• Watch players - audio and video with shuffle, bezel volume and screen-off mode.
+• Streams on the watch - open, manage and receive channels sent from the phone.
+• Launcher desktop gadgets - media windows, now-playing art, translator and scroll thumb.
+..
