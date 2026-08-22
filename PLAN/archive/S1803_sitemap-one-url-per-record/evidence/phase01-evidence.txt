@@ -1,0 +1,19 @@
+=== S1803 phase 01 evidence, 2026-08-18T19:12:35Z ===
+
+-- step 01.2 generator expansion --
+sitemap <url> before: 19
+sitemap <url> after expansion: 74
+sitemap <url> after first exclusion: 73
+scenario pages announced: 24
+baseline addresses lost: 0 (comm -23 baseline current returned empty)
+
+-- step 01.3 exclusion honoured --
+settings-reference now carries sitemap_exclude for docs/SETTINGS_REFERENCE_noLegal.md
+noLegal addresses in sitemap: 0
+reason: the noLegal landing pages are deliberately unindexed (nolegal-landing record), so its settings reference must not be announced either
+
+-- step 01.4 validator checks fire (isolated probe tree) --
+Document registry FAILED: 3 error(s)
+  bad-address: declared address resolves to no page: /docs/TYPO.html
+  thin-reason: sitemap_exclude reason too thin for docs/PROBE.md
+  ghost-exclusion: sitemap_exclude names a missing file: docs/NOPE.md

@@ -1,0 +1,7 @@
+{
+  "_comment": "S1956 repro fixture - names a drawable whose PNG is absent from docs/icons/doc, so apply-doc-icons.ps1 must refuse before writing anything.",
+  "landing": [],
+  "howto": [ { "emoji": "\ud83d\udcf7", "drawable": "ic_absent_asset" } ],
+  "docsMap": [],
+  "settingsSections": {}
+}

@@ -1,0 +1,33 @@
+=== S1803 final verification chain - 2026-08-18 ===
+
+Run in order, each exit code read from the process rather than from a pipe:
+
+  1. scripts/document_registry/validate.ps1            exit 0
+  2. scripts/document_registry/generate.ps1            exit 0
+  3. scripts/document_registry/generate.ps1 -Check     exit 0
+  4. PLAN/S1803_sitemap-one-url-per-record/evidence/resolve.py (address resolution pass)   exit 0
+
+All four zero.
+
+=== Final counts (one run, PLAN/S1803_sitemap-one-url-per-record/evidence/arithmetic.py) ===
+
+  files under the 7 indexable records ....... 85
+  excluded with a reason .................... 11
+  announced via their own front matter ...... 70
+  sitemap <url> entries ..................... 73
+
+=== The equality, stated honestly ===
+
+  85 files - 11 excluded - 4 landing sources = 70 announced by front matter
+  70 + 3 landing addresses (/, /index-ru.html, /index-uk.html) = 73 = sitemap entries
+
+The four site-landing files are not a gap: they back the three addresses the site-landing record
+declares itself (README.md and index.html both source the root), which is why the validator's
+unclassified-page check treats a record-level address as accounting for its own source file. Every
+other file under an indexable record either declares a permalink or is named in sitemap_exclude.
+
+=== Address resolution ===
+
+  PLAN/S1803_sitemap-one-url-per-record/evidence/address-resolution.txt: entries=73 unresolved=0
+
+Every announced address resolves to a file that exists.
