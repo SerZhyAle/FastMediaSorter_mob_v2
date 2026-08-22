@@ -30,6 +30,7 @@ Practical walkthroughs for real-world use cases. No prior experience needed - ev
 - <img src="../icons/doc/ic_vr_headset.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I want to watch SBS 3D movies on my phone, or go fully immersive on a Quest"_ → [OpenXR VR Immersive Cinema](../HOW_TO.md#openxr-vr-immersive-cinema)
 - <img src="../icons/doc/ic_calculator.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I want to quickly extract numbers and calculate math formulas from texts/images"_ → [Quick Math & Text Calculations](../HOW_TO.md#quick-math-and-text-calculations)
 - <img src="../icons/doc/ic_edit_20.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I want to edit Markdown and code notes directly on my cloud or network drive"_ → [Cloud Markdown & Code Notes](../HOW_TO.md#cloud-markdown-and-code-notes)
+- <img src="../icons/doc/ic_launcher_mode.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I want my old tablet to show my folders, clock and weather instead of an app grid"_ → [Use the App as Your Home Screen](scenario-launcher-mode.md)
 
 ---
 
@@ -52,6 +53,7 @@ Practical walkthroughs for real-world use cases. No prior experience needed - ev
 | [<img src="../icons/doc/ic_vr_headset.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> OpenXR VR Immersive Cinema](../HOW_TO.md#openxr-vr-immersive-cinema) | Single-eye SBS/OU/180°/360° 3D on any flavor's flat player; full per-eye immersion on a Quest (noLegal sideload) | ~10 min | Any (flat 3D) / noLegal (immersion) |
 | [<img src="../icons/doc/ic_calculator.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Quick Math & Text Calculations](../HOW_TO.md#quick-math-and-text-calculations) | Select math equations in PDFs or OCR results to evaluate them in a popup | ~5 min | Standard / Legacy / VR / noLegal |
 | [<img src="../icons/doc/ic_edit_20.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Cloud Markdown & Code Notes](../HOW_TO.md#cloud-markdown-and-code-notes) | Create and edit Markdown text files and code notes directly on cloud or network drives | ~10 min | Standard / Legacy / VR / noLegal |
+| [<img src="../icons/doc/ic_launcher_mode.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Use the App as Your Home Screen](scenario-launcher-mode.md) | Replace the device home screen with a desktop of your own folders, clock, weather, apps and a taskbar | ~10 min | Standard / noLegal |
 
 ---
 

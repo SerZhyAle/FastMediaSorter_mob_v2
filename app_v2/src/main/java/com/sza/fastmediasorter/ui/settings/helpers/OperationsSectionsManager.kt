@@ -25,6 +25,9 @@ class OperationsSectionsManager(
 
     private val sectionsManager = CollapsibleSectionsManager(context)
 
+    /** S1967: the fragment hands this to the base so a search jump can expand the group it landed in. */
+    fun sections(): CollapsibleSectionsManager = sectionsManager
+
     /**
      * Registers every group, default collapsed. Both build-dependent groups are decided by the caller
      * rather than read here: CLAUDE.md Rule 14 keeps flavor flags out of shared code, and the caller

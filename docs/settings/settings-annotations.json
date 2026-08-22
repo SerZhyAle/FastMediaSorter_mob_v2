@@ -1041,8 +1041,8 @@
   },
   "rowLauncherModeEnabled": {
     "en": "Makes the app the device home screen, so the Home button opens your own desktop.",
-    "ru": "Делает приложение домашним экраном устройства - кнопка «Домой» открывает ваш рабочий стол.",
-    "uk": "Робить застосунок домашнім екраном пристрою - кнопка «Додому» відкриває ваш робочий стіл."
+    "ru": "Включает лаунчер: приложение становится домашним экраном устройства, и кнопка «Домой» открывает его рабочий стол.",
+    "uk": "Вмикає лаунчер: застосунок стає домашнім екраном пристрою, і кнопка «Додому» відкриває його робочий стіл."
   },
   "rowLauncherOpenHomeSettings": {
     "en": "Opens Android's default-launcher chooser to switch the system home screen.",
@@ -1213,6 +1213,11 @@
     "en": "Writes the satellite positions to a file on this device while the Network Monitor Satellites screen is open. Off after installation; the track never leaves the device and can be shared from that screen.",
     "ru": "Записывает спутниковые координаты в файл на этом устройстве, пока открыт экран «Спутники» Монитора сети. После установки выключено; трек не покидает устройство, а поделиться им можно с того же экрана.",
     "uk": "Записує супутникові координати у файл на цьому пристрої, поки відкрито екран «Супутники» Монітора мережі. Після встановлення вимкнено; трек не залишає пристрій, а поділитися ним можна з того самого екрана."
+  },
+  "rowResetDensity": {
+    "en": "Chooses the icon density the launcher reset lays the starter set out at; it opens on the density your device profile suggests.",
+    "ru": "Задаёт плотность значков, с которой сброс лаунчера раскладывает стартовый набор; открывается на плотности из профиля устройства.",
+    "uk": "Задає щільність піктограм, з якою скидання лаунчера розкладає стартовий набір; відкривається на щільності з профілю пристрою."
   },
   "rowResourceGridCellSize": {
     "en": "Sets how large the resource cells are in the main window grid: small fits more resources per row, large makes each one bigger.",

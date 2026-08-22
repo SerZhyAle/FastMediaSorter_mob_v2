@@ -118,7 +118,18 @@ class CalculatorViewModel @Inject constructor(
             display = engine.display(),
             memoryOccupied = memory != null,
             history = history.entries(),
-            isError = engine.isError
+            isError = engine.isError,
+            operation = shownOperation()
         )
     }
+
+    /**
+     * S1942: the owner's chain of 2026-08-22 - the operation waiting to be applied, else the last one
+     * chosen, else addition.
+     *
+     * It lives here and not in the composable because it is a product rule, and a rule worked out
+     * while drawing would sit where nobody looks for rules.
+     */
+    private fun shownOperation(): WearCalculatorEngine.Operator =
+        engine.pendingOperator ?: engine.lastChosenOperator ?: WearCalculatorEngine.Operator.PLUS
 }

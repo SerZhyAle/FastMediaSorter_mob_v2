@@ -305,6 +305,30 @@ command, gated on the Wear Companion option AND `MediaCapabilities.supportsWearC
 
 ---
 
+## 🎮 Apps: the mini-programs section (S1710)
+
+The watch home screen carries an **Apps** section holding three self-contained programs, each usable
+with the phone out of range: a **calculator**, a **network monitor** and a **mini-game**.
+
+- The list is data, not navigation: `ui/apps/WearAppCatalog.kt` is what a program is added to. A new
+  program registers a catalog record and its own route; the Apps screen itself does not change.
+- Routes registered: `WearRoutes.CALCULATOR`, `WearRoutes.NETWORK_MONITOR`, `WearRoutes.GAME`.
+- **Network monitor** measures THIS watch, not the phone. `sectionsFor(capabilities)` in
+  `domain/netmonitor/WearNetworkSection.kt` drops the sections whose hardware the watch lacks, so a
+  watch without mobile data never shows an empty mobile page. Sampling runs only while the screen
+  collects it: `WhileSubscribed()` with no grace period plus the flow's own `awaitClose` teardown, so
+  a program the user left measures nothing. A permission the user declined yields a null field, never
+  a zero - a zero would read as a measurement. `READ_PHONE_STATE` is deliberately not declared.
+- **Game** mirrors the phone's rules, board generation and scoring rather than sharing them (ADR-1):
+  the same level config and seed produce the same board, and the mirrored functions carry a narrow
+  `@Suppress("ReturnCount")` naming the phone function they hold identical - a restructure here is
+  exactly where a divergence would enter.
+- **Calculator** keeps counting on the keypad and every function behind the single menu key; its
+  history and memory are written on every change, because a watch program is dismissed by a gesture
+  that gives no reliable exit callback.
+
+---
+
 ## 🛠️ Technical Details for Developers
 
 - **Install package (`applicationId`)**: `com.sza.fastmediasorter` - the phone app's identity, required for Data Layer delivery (S1681)

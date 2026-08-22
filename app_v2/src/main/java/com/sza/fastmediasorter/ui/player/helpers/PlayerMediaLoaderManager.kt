@@ -148,15 +148,28 @@ class PlayerMediaLoaderManager(
     /**
      * S1549: aim every `binding.` read at the freshly inflated hierarchy after a re-inflate, and
      * re-point the two view-bound helpers that were re-created against the new binding.
+     *
+     * S1943: `playerView` is declared `gone` in both orientation layouts and the only code that ever
+     * reveals it is the one-shot call in [playVideo] at load time, so a re-inflate resurrects the
+     * surface hidden while the surviving ExoPlayer keeps decoding into it - the picture never comes
+     * back. Carry the pre-rebind visibility across and re-apply the media-type configuration that
+     * died with the old view. `binding` still points at the discarded tree on entry, which is what
+     * makes that state readable here instead of in the caller.
      */
     fun rebind(
         newBinding: ActivityPlayerUnifiedBinding,
         newImageLoadingManager: ImageLoadingManager,
         newExoPlayerControlsManager: ExoPlayerControlsManager,
     ) {
+        val playerSurfaceWasVisible = binding.playerView.isVisible
         binding = newBinding
         imageLoadingManager = newImageLoadingManager
         exoPlayerControlsManager = newExoPlayerControlsManager
+        if (playerSurfaceWasVisible) {
+            binding.playerView.isVisible = true
+            val currentFile = viewModel.state.value.currentFile
+            configurePlayerViewForMediaType(currentFile?.type == MediaType.AUDIO, currentFile)
+        }
     }
 
     companion object {

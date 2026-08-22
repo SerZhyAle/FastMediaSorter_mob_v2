@@ -34,12 +34,28 @@ class SendStreamToWatchUseCase @Inject constructor(
         data object WatchUnavailable : Outcome
         data object NoReply : Outcome
         data class Error(val message: String?) : Outcome
+
+        /** S1944: stored and playing - the watch app was on screen and navigated to its player. */
+        data object Opened : Outcome
+
+        /**
+         * S1944: stored, but not opened, because the watch app was not on screen. Kept apart from
+         * [Error] deliberately: the platform forbids waking the watch app from a Data Layer message
+         * (ADR-1), so this is the ordinary ending of a normal request, and the user is told what to
+         * do rather than that something broke.
+         */
+        data object WatchAppNotOpen : Outcome
     }
 
     // Test seam: production keeps the default; unit tests shrink it so NoReply cases finish fast.
     internal var ackTimeoutMs: Long = ACK_TIMEOUT_MS
 
-    suspend operator fun invoke(title: String, url: String, mediaKind: String): Outcome {
+    suspend operator fun invoke(
+        title: String,
+        url: String,
+        mediaKind: String,
+        openNow: Boolean = false,
+    ): Outcome {
         val nodes = wearableRepository.getConnectedNodes()
         if (nodes.isEmpty()) return Outcome.WatchUnavailable
 
@@ -48,7 +64,10 @@ class SendStreamToWatchUseCase @Inject constructor(
             requestId = requestId,
             name = title,
             url = url,
-            mediaKind = mediaKind
+            mediaKind = mediaKind,
+            // S1944: the same transfer, asked to end in a player rather than in a list. The default
+            // keeps every existing caller sending exactly what it sent before.
+            openNow = openNow
         )
         val envelope = WearEventEnvelope(
             eventType = WearDataLayerPaths.EVENT_STREAM_TRANSFER,
@@ -78,6 +97,8 @@ class SendStreamToWatchUseCase @Inject constructor(
         null -> Outcome.NoReply
         WearStreamTransferAck.OUTCOME_STORED -> Outcome.Delivered(updated = false)
         WearStreamTransferAck.OUTCOME_UPDATED -> Outcome.Delivered(updated = true)
+        WearStreamTransferAck.OUTCOME_OPENED -> Outcome.Opened
+        WearStreamTransferAck.OUTCOME_NOT_FOREGROUND -> Outcome.WatchAppNotOpen
         else -> Outcome.Error(ack.message)
     }
 

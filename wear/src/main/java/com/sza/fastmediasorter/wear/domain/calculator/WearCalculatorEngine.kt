@@ -43,6 +43,24 @@ class WearCalculatorEngine {
     var lastExpression: String? = null
         private set
 
+    /**
+     * S1942: the operator waiting to be applied, read-only for the screen.
+     *
+     * It goes null the moment it is applied, which is exactly what makes it an indicator of what will
+     * happen rather than a record of what did.
+     */
+    val pendingOperator: Operator?
+        get() = pending
+
+    /**
+     * S1942: the last operator the user chose, which outlives [pendingOperator].
+     *
+     * The two differ precisely after `=`, and that gap is why the owner asked for a fallback: an
+     * element showing only the pending operator would go blank there.
+     */
+    var lastChosenOperator: Operator? = null
+        private set
+
     private var display: String = ZERO
     private var accumulator: BigDecimal? = null
     private var pending: Operator? = null
@@ -83,6 +101,7 @@ class WearCalculatorEngine {
             accumulator = currentValue()
         }
         pending = operator
+        lastChosenOperator = operator
         startsNewNumber = true
         return display
     }
@@ -135,6 +154,10 @@ class WearCalculatorEngine {
         display = ZERO
         accumulator = null
         pending = null
+        // S1942: the chosen operator is session state, so a cleared calculator is a fresh one and its
+        // indicator falls back to addition rather than remembering the operator of a session the user
+        // just discarded.
+        lastChosenOperator = null
         startsNewNumber = true
         isError = false
         lastExpression = null

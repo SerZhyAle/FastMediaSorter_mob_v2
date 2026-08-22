@@ -495,12 +495,40 @@ function Get-SourceRules {
         (New-RegexRule -Name 'empty-catch' `
                 -Pattern ([regex]'catch\s*\([^)]*\)\s*\{\s*(?:(?://[^\r\n]*)|(?:/\*[\s\S]*?\*/))?\s*\}') `
                 -FailMessage 'new empty catch block introduced. Recover, use a safe default, or log at the correct level.'),
+        # S1932: all five layout directories, not the two this rule was declared with. A colour
+        # hardcoded in layout-sw480dp, layout-sw720dp or layout-w600dp was forbidden by Rule 19 and
+        # counted by nobody. Widening cannot move the baseline: measured 2026-08-21, those three
+        # directories hold five files between them and zero hardcoded colours, while layout (29) and
+        # layout-land (59) sum to exactly the baseline of 88.
         (New-RegexRule -Name 'layout-hardcoded-colors' `
                 -Pattern ([regex]'="#[0-9a-fA-F]{3,8}"') `
                 -Extensions @('.xml') `
-                -Roots @('app_v2/src/main/res/layout', 'app_v2/src/main/res/layout-land') `
-                -PathFilter 'app_v2/src/main/res/layout(-land)?/' `
+                -Roots @('app_v2/src/main/res/layout', 'app_v2/src/main/res/layout-land',
+                         'app_v2/src/main/res/layout-sw480dp', 'app_v2/src/main/res/layout-sw720dp',
+                         'app_v2/src/main/res/layout-w600dp') `
+                -PathFilter 'app_v2/src/main/res/layout(-land|-sw480dp|-sw720dp|-w600dp)?/' `
                 -FailMessage 'new hardcoded layout color introduced. Reference a theme attr or named color.'),
+        # S1922: growth stop for dimension literals, on the Rule 32 / findviewbyid model above -
+        # literals convert when another ticket reaches the file, each conversion lowers the baseline
+        # on the next green full run, and no campaign over the 331 layout files is scheduled.
+        #
+        # '0dp' is excluded deliberately, and it is not a rounding decision: measured 2026-08-21,
+        # 1561 of the 3454 literals in these directories are "0dp", which is 45% of them. In a
+        # ConstraintLayout '0dp' means "match constraints" - a structural keyword, not a size. It has
+        # no value anyone could want to change in one place, and moving it into @dimen/ destroys the
+        # idiom's readability. Counting it would demand ~1561 conversions that must not happen.
+        #
+        # Five roots, not the two the colour rule above uses: this module has five layout directories
+        # and the ticket's measurement covered all of them. The colour rule's narrower scope is its
+        # own gap and is tracked separately (S1932), not widened here - that would move its baseline.
+        (New-RegexRule -Name 'layout-hardcoded-dimens' `
+                -Pattern ([regex]'="(?!0dp")[0-9]+(\.[0-9]+)?(dp|sp)"') `
+                -Extensions @('.xml') `
+                -Roots @('app_v2/src/main/res/layout', 'app_v2/src/main/res/layout-land',
+                         'app_v2/src/main/res/layout-sw480dp', 'app_v2/src/main/res/layout-sw720dp',
+                         'app_v2/src/main/res/layout-w600dp') `
+                -PathFilter 'app_v2/src/main/res/layout(-land|-sw480dp|-sw720dp|-w600dp)?/' `
+                -FailMessage 'new hardcoded dimension literal in a layout (S1922). Move the value into @dimen/ and reference it, so the size can be changed in one place. Structural "0dp" (ConstraintLayout match-constraints) is NOT counted by this rule - if that is what you added, this is not the finding.'),
         [pscustomobject]@{
             Name        = 'unsafe-collect'
             Extensions  = @('.kt')
@@ -597,6 +625,22 @@ function Get-SourceRules {
             CountInText  = { param($t) Measure-SwallowedCancellationText $t }
             LocateInText = { param($t) Find-SwallowedCancellationLines $t }
             FailMessage  = 'new catch in coroutine code that swallows CancellationException - a broad arm, or an IllegalStateException/RuntimeException arm, both of which are its supertypes. Add `catch (e: CancellationException) { throw e }` as the first arm of the chain (S1363/S1889).'
+        },
+        # S1910: the watch module needs its OWN entry and its OWN baseline, not a wider Roots on the
+        # rule above. One shared integer would let a regression in one module hide behind a cleanup in
+        # the other and still read as at-or-below baseline, which is the one thing a ratchet exists to
+        # prevent. Seeded at the measured 29 after the five reachable sites were fixed (34 before);
+        # like every ratchet here it may fall and never rise.
+        [pscustomobject]@{
+            Name         = 'swallowed-cancellation-wear'
+            Extensions   = @('.kt')
+            Roots        = @('wear/src')
+            PathFilter   = 'wear/src/'
+            Baseline     = 'swallowed-cancellation-wear-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-SwallowedCancellationText $t }
+            LocateInText = { param($t) Find-SwallowedCancellationLines $t }
+            FailMessage  = 'new catch in wear coroutine code that swallows CancellationException - a broad arm, or an IllegalStateException/RuntimeException arm, both of which are its supertypes. Add `catch (e: CancellationException) { throw e }` as the first arm of the chain (S1363/S1889/S1910).'
         },
         [pscustomobject]@{
             Name         = 'activity-logic'

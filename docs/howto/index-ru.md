@@ -30,6 +30,7 @@ permalink: /docs/howto/index-ru.html
 - <img src="../icons/doc/ic_vr_headset.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу смотреть SBS 3D-фильмы на телефоне или полностью погрузиться на Quest»_ → [Иммерсивный кинотеатр OpenXR VR](../HOW_TO_RU.md#иммерсивный-кинотеатр-openxr-vr)
 - <img src="../icons/doc/ic_calculator.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу быстро вычислять математические формулы прямо из текста документов или фото»_ → [Быстрые вычисления из текста и OCR](../HOW_TO_RU.md#быстрые-вычисления-из-текста-и-ocr)
 - <img src="../icons/doc/ic_edit_20.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу создавать и редактировать заметки Markdown прямо на облаке или сетевом диске»_ → [Облачные заметки Markdown и код](../HOW_TO_RU.md#облачные-заметки-markdown-и-код)
+- <img src="../icons/doc/ic_launcher_mode.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу, чтобы старый планшет показывал мои папки, часы и погоду вместо сетки иконок»_ → [Приложение вместо домашнего экрана](scenario-launcher-mode-ru.md)
 
 ---
 
@@ -52,6 +53,7 @@ permalink: /docs/howto/index-ru.html
 | [<img src="../icons/doc/ic_vr_headset.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Иммерсивный кинотеатр OpenXR VR](../HOW_TO_RU.md#иммерсивный-кинотеатр-openxr-vr) | Single-eye 3D для SBS/OU/180°/360° в обычном плеере на любой версии; полное погружение на Quest (сборка noLegal) | ~10 мин | Любая (плоское 3D) / noLegal (погружение) |
 | [<img src="../icons/doc/ic_calculator.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Быстрые вычисления из текста и OCR](../HOW_TO_RU.md#быстрые-вычисления-из-текста-и-ocr) | Выделяйте формулы и числа в PDF или результатах распознавания текста для быстрого расчёта | ~5 мин | Standard / Legacy / VR / noLegal |
 | [<img src="../icons/doc/ic_edit_20.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Облачные заметки Markdown и код](../HOW_TO_RU.md#облачные-заметки-markdown-и-код) | Создавайте и редактируйте текстовые заметки и файлы кода прямо на сетевых и облачных дисках | ~10 мин | Standard / Legacy / VR / noLegal |
+| [<img src="../icons/doc/ic_launcher_mode.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Приложение вместо домашнего экрана](scenario-launcher-mode-ru.md) | Домашний экран заменяется рабочим столом с вашими папками, часами, погодой, приложениями и панелью задач | ~10 мин | Standard / noLegal |
 
 ---
 

@@ -415,6 +415,20 @@ implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
 ---
 
+## 5.1 Delivered: Apps section (S1710)
+
+Shipped 2026-08-22. The watch gained an **Apps** section on the home screen with three standalone
+programs - calculator, network monitor of the watch's own connectivity, and a mini-game - none of
+which needs the phone to be in range.
+
+- Extended by a catalog record, not by a navigation change: add a `WearAppCatalog` entry plus the
+  program's own route.
+- Routes: `WearRoutes.CALCULATOR`, `WearRoutes.NETWORK_MONITOR`, `WearRoutes.GAME`.
+- The game's rules and levels are a mirror of the phone's, so a score is comparable between devices;
+  the network monitor is not a mirror - it reports the watch's radios.
+
+---
+
 ## 6. Open Questions
 
 1. **Companion App Integration**: Should network credentials be synced from phone app to watch?

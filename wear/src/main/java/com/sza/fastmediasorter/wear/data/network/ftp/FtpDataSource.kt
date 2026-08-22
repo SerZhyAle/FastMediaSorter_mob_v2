@@ -4,6 +4,7 @@ import android.net.Uri
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.util.MediaMimeTypes
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.apache.commons.net.ftp.FTP
@@ -64,6 +65,8 @@ class FtpDataSource @Inject constructor() {
                     ?: error("FTP retrieveFileStream returned null for path=$path (code=${client.replyCode})")
 
                 Result.success(streamClosingClient(stream, client, path))
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: IOException) {
                 failStream(e, client, path)
             } catch (e: IllegalStateException) {

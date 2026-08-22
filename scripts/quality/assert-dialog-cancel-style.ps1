@@ -39,7 +39,14 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $scanRoots = @(
     (Join-Path $repoRoot 'app_v2/src/main/res/layout'),
-    (Join-Path $repoRoot 'app_v2/src/main/res/layout-land')
+    (Join-Path $repoRoot 'app_v2/src/main/res/layout-land'),
+    # S1932: the alternate layout roots were outside every layout rule but one. Safe to add here by
+    # measurement rather than by hope - none of the five files in them is a dialog_* or
+    # bottom_sheet_*, so the finding count cannot change today, and a dialog added there later is
+    # now seen instead of silently exempt.
+    (Join-Path $repoRoot 'app_v2/src/main/res/layout-sw480dp'),
+    (Join-Path $repoRoot 'app_v2/src/main/res/layout-sw720dp'),
+    (Join-Path $repoRoot 'app_v2/src/main/res/layout-w600dp')
 )
 $baselineFile = Join-Path $PSScriptRoot 'dialog-cancel-style-baseline.txt'
 

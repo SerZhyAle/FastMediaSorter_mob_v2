@@ -5,12 +5,12 @@ import androidx.annotation.StringRes
 /** Sections of the watch home screen, declared in the fixed order the owner specified. */
 enum class HomeSectionId {
     LAST_USED_RESOURCE,
-    FAVOURITES,
     RESOURCES,
     PHONE,
     LOCAL,
     STREAMS,
-    APPS
+    APPS,
+    FAVOURITES
 }
 
 /**
@@ -34,7 +34,6 @@ data class HomeSection(
  * held apart could disagree, and the row needs the identifier to address anything at all.
  */
 data class HomeSectionVisibility(
-    val favouritesEnabled: Boolean,
     val lastUsedResource: LastUsedResource?,
     val streamsEnabled: Boolean
 )

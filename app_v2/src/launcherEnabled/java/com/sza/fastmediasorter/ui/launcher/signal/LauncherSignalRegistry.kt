@@ -49,6 +49,32 @@ class LauncherSignalRegistry @Inject constructor(
     }
 
     /**
+     * S1908: whether any source claims [signal] as dismissible. Asked the same way [open] asks - the panel
+     * must not learn the kinds, or every source added later would have to be added to a `when` as well as
+     * declare itself (S1421 ADR-4).
+     */
+    fun canDismiss(signal: LauncherSignal): Boolean = sources.any { source ->
+        runCatching { source.canDismiss(signal) }
+            .onFailure { Timber.w(it, "Launcher signal source %s failed canDismiss", source.javaClass.simpleName) }
+            .getOrDefault(false)
+    }
+
+    /**
+     * S1908: dismisses [signal] through whichever source owns it. Every source is offered it, because only
+     * the owner acts - the rest default to a no-op - and a throwing source is skipped rather than taking the
+     * panel down with it, matching [open]'s guard.
+     */
+    fun dismiss(signal: LauncherSignal) {
+        sources.forEach { source ->
+            runCatching { source.dismiss(signal) }
+                .onFailure { Timber.w(it, "Launcher signal source %s failed to dismiss", source.javaClass.simpleName) }
+        }
+    }
+
+    /** S1908: [dismiss] over a set, for the panel's single "dismiss all" action. */
+    fun dismissAll(signals: List<LauncherSignal>) = signals.forEach(::dismiss)
+
+    /**
      * `combine` waits for every input to emit before producing anything, so one silent source would hold the
      * whole strip empty. Seeding each with an empty list keeps a slow or broken producer from stalling the
      * others, and a failed one drops out instead of cancelling the merge.

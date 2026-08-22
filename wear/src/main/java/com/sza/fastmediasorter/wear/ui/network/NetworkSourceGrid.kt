@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.network
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -7,12 +8,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Storage
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -29,12 +30,27 @@ import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.util.GridColumnFit
+import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
 private val CELL_BUTTON_SIZE = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
 private val CELL_ICON_SIZE = 24.dp
+
+/**
+ * The per-type glyph, taken from the phone's own vectors so one entity wears one icon across both
+ * apps - the rule `HomeScreen.iconFor` already follows. Before S1952 every row drew the same
+ * generic Storage mark, so a NAS share and a cloud account were indistinguishable.
+ */
+@DrawableRes
+private fun iconFor(type: NetworkSourceType): Int = when (type) {
+    NetworkSourceType.SMB -> R.drawable.ic_resource_smb
+    NetworkSourceType.FTP -> R.drawable.ic_resource_ftp
+    NetworkSourceType.SFTP -> R.drawable.ic_resource_sftp
+    NetworkSourceType.GOOGLE_DRIVE -> R.drawable.ic_resource_cloud
+}
 
 /** One column keeps the informative chip; a grid trades the server line for a reachable cell. */
 internal fun ScalingLazyListScope.sourceItems(
@@ -63,6 +79,14 @@ private fun SourceChip(
         label = {
             Text(text = "${source.name}\n${source.server}")
         },
+        icon = {
+            Icon(
+                painter = painterResource(id = iconFor(source.type)),
+                contentDescription = null,
+                modifier = Modifier.size(CELL_ICON_SIZE),
+                tint = Color.Unspecified
+            )
+        },
         secondaryLabel = {
             Text(
                 text = stringResource(R.string.hold_to_delete),
@@ -71,8 +95,16 @@ private fun SourceChip(
         },
         modifier = Modifier
             .fillMaxWidth()
+            // detectTapGestures consumes the down unconditionally, so the chip's own clickable never
+            // sees the press - the tap has to be served from this detector too, or it is lost (S1953).
             .pointerInput(source.id) {
-                detectTapGestures(onLongPress = { actions.onSourceLongPress(source) })
+                detectTapGestures(
+                    onTap = {
+                        Timber.d("S1953: source chip tap id=${source.id}")
+                        actions.onSourceClick(source.id, source.name)
+                    },
+                    onLongPress = { actions.onSourceLongPress(source) }
+                )
             },
         colors = ChipDefaults.primaryChipColors()
     )
@@ -119,15 +151,23 @@ private fun SourceCell(
             // target no matter which view mode produced it.
             modifier = Modifier
                 .size(CELL_BUTTON_SIZE)
+                // Same consumption rule as the chip: the tap is served here or not at all (S1953).
                 .pointerInput(source.id) {
-                    detectTapGestures(onLongPress = { actions.onSourceLongPress(source) })
+                    detectTapGestures(
+                        onTap = {
+                            Timber.d("S1953: source cell tap id=${source.id}")
+                            actions.onSourceClick(source.id, source.name)
+                        },
+                        onLongPress = { actions.onSourceLongPress(source) }
+                    )
                 },
             colors = ButtonDefaults.primaryButtonColors()
         ) {
             Icon(
-                imageVector = Icons.Filled.Storage,
+                painter = painterResource(id = iconFor(source.type)),
                 contentDescription = null,
-                modifier = Modifier.size(CELL_ICON_SIZE)
+                modifier = Modifier.size(CELL_ICON_SIZE),
+                tint = Color.Unspecified
             )
         }
         Text(

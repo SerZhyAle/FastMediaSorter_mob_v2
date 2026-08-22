@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.PairedWatchStatus
 import com.sza.fastmediasorter.domain.model.WearPlaybackCommand
@@ -45,7 +46,8 @@ class WearSyncViewModel @Inject constructor(
     private val pushWearSettingsUseCase: PushWearSettingsUseCase,
     private val importWatchSourcesUseCase: ImportWatchSourcesUseCase,
     private val sendPlaybackCommandUseCase: SendPlaybackCommandUseCase,
-    private val getPairedWatchStatusUseCase: GetPairedWatchStatusUseCase
+    private val getPairedWatchStatusUseCase: GetPairedWatchStatusUseCase,
+    private val gson: Gson
 ) : ViewModel() {
 
     // S1885: seeded Unknown so the settings row starts neutral instead of claiming a watch is
@@ -68,7 +70,14 @@ class WearSyncViewModel @Inject constructor(
 
     private var ackTimeoutJob: Job? = null
 
-    private val _watchSettingsState = MutableStateFlow<WearSettingsPayload?>(null)
+    private val prefs: SharedPreferences
+        get() = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+
+    // The sheet that shows these values is a BottomSheetDialogFragment, so this ViewModel dies with
+    // it and an in-memory-only mirror lost every edit the moment the sheet closed - a picked GRID_3
+    // read back as the LIST default on the next open. The watch has no channel to report its own
+    // settings back, so the phone's last known set is the only thing there is to restore.
+    private val _watchSettingsState = MutableStateFlow(readStoredSettings())
     val watchSettingsState: StateFlow<WearSettingsPayload?> = _watchSettingsState.asStateFlow()
 
     private val _pendingWatchSources = MutableStateFlow<WearSourcesExportPayload?>(null)
@@ -150,7 +159,7 @@ class WearSyncViewModel @Inject constructor(
     }
 
     fun pushSettings(settings: WearSettingsPayload) {
-        _watchSettingsState.value = settings
+        rememberSettings(settings)
         _uiState.value = WearSyncUiState.Sending
         viewModelScope.launch {
             pushWearSettingsUseCase(settings)
@@ -165,7 +174,22 @@ class WearSyncViewModel @Inject constructor(
     }
 
     fun updateWatchSettingsLocally(settings: WearSettingsPayload) {
+        rememberSettings(settings)
+    }
+
+    private fun rememberSettings(settings: WearSettingsPayload) {
         _watchSettingsState.value = settings
+        prefs.edit().putString(KEY_WATCH_SETTINGS, gson.toJson(settings)).apply()
+    }
+
+    // A payload written by an older build can no longer parse against the current model; falling
+    // back to "nothing known yet" shows the defaults, which is what the sheet did before anyway,
+    // whereas letting Gson throw here would take the whole settings screen down with it.
+    private fun readStoredSettings(): WearSettingsPayload? {
+        val stored = prefs.getString(KEY_WATCH_SETTINGS, null) ?: return null
+        return runCatching { gson.fromJson(stored, WearSettingsPayload::class.java) }
+            .onFailure { Timber.w(it, "Stored watch settings unreadable, falling back to defaults") }
+            .getOrNull()
     }
 
     fun acceptWatchImport() {
@@ -207,6 +231,7 @@ class WearSyncViewModel @Inject constructor(
     companion object {
         private const val PREFS = "wear_sync_prefs"
         private const val KEY_LAST_SYNC = "last_sync_timestamp"
+        private const val KEY_WATCH_SETTINGS = "watch_settings_payload"
 
         // Long enough for a Bluetooth-linked watch to wake and apply the payload, short enough that
         // a user staring at the dialog is not left guessing. The verified round trip of 2026-08-15

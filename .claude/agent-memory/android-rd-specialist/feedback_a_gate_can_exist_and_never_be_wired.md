@@ -1,6 +1,6 @@
 ---
 name: a-gate-can-exist-and-never-be-wired
-description: Before writing a gate for a recurring finding, grep assert-fast-gates.ps1 and post-change.ps1 - the gate may already exist and simply never have been wired into either
+description: Before writing a gate, grep assert-fast-gates.ps1 and post-change.ps1 - it may already exist unwired; and before calling an unwired gate ungated, check whether an umbrella runs its rule as a dimension
 metadata:
   type: feedback
 ---
@@ -33,3 +33,20 @@ batch time.
 - The same question is worth asking of a rule with no gate at all: CLAUDE.md Rule 2's 1500-line ceiling had
   been stated for months and was measured by nothing until S1270 - detekt carried `LongMethod` but no
   `FileLength`, and never sees a `.cpp`.
+
+**The mirror case, and it is the more embarrassing one (2026-08-22): unwired is not the same as ungated.**
+An audit found ten `assert-*.ps1` that no `.ps1` runner invokes and reported an enforcement hole, naming
+`assert-deprecated-pm-flags.ps1` and CLAUDE.md Rule 21, which pointed at that file "(in post-change.ps1)".
+Both halves were wrong. Since S1338 the lexical rules live once in `lib/source-matchers.ps1` and run as
+named **dimensions** of `assert-source-gates.ps1`; `assert-neuroslop.ps1` forwards to it **with no -Only
+filter**, so every closure judges all two dozen dimensions under the single label `neuroslop-gate`. The
+seven "dead" scripts turned out to be 36-line forwarders (`$forward = @{ Only = 'globalscope' }`) kept as
+named hand-run entry points. Nothing was ungated and nothing was worth deleting.
+
+- The tell was in the output, not the wiring: running `assert-neuroslop.ps1 -Gate -ChangedFiles <f>` prints
+  `assert-source-gates: PASS`, which says outright who does the work. Run the gate before theorising about it.
+- A gate label disappearing from the transcripts (deprecated-pm-flags-gate, public-mutable-flow-gate and
+  flavor-flag-gate all stop on 2026-08-14) means the **invocation** was consolidated, not that the rule
+  stopped being judged. Check `assert-source-gates.ps1 -List` for the dimension name before concluding.
+- Sequence that would have saved the whole detour: `-List` the umbrella, then grep the dimension name, then
+  read the suspect script's first 30 lines. Three minutes against forty.

@@ -229,10 +229,12 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         sectionsHost.handleIntentSection(requireActivity().intent)
     }
 
-    /** S0780: deep-link target, called by SettingsActivity when its search lands on a group here. */
-    fun ensureSectionExpanded(sectionId: String) {
-        sectionsHost.ensureExpanded(sectionId)
-    }
+    /**
+     * S1967: replaced the never-called `ensureSectionExpanded(sectionId)` that stood here. A section
+     * name could not have worked - see the ticket - and the base now expands by the row's ancestors.
+     */
+    override fun collapsibleSections(): com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager =
+        sectionsHost.sections()
 
     override fun onResume() {
         super.onResume()

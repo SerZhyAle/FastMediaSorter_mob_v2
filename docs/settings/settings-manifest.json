@@ -1567,8 +1567,8 @@
       "layout": "fragment_settings_general",
       "kind": "TOGGLE_ROW",
       "titleEn": "Make this app the home screen",
-      "titleRu": "Сделать приложение домашним экраном",
-      "titleUk": "Зробити застосунок домашнім екраном"
+      "titleRu": "Лаунчер: сделать приложение домашним экраном",
+      "titleUk": "Лаунчер: зробити застосунок домашнім екраном"
     },
     {
       "key": "rowLauncherSettings",
@@ -2197,8 +2197,8 @@
       "layout": "dialog_launcher_settings",
       "kind": "SECTION_HEADER",
       "titleEn": "Desktop",
-      "titleRu": "Рабочий стол",
-      "titleUk": "Робочий стіл"
+      "titleRu": "Рабочий стол лаунчера",
+      "titleUk": "Робочий стіл лаунчера"
     },
     {
       "key": "headerLauncherSystem",
@@ -2419,6 +2419,16 @@
       "titleEn": "Widget backdrop opacity",
       "titleRu": "Прозрачность подложки виджетов",
       "titleUk": "Прозорість підкладки віджетів"
+    },
+    {
+      "key": "rowResetDensity",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_reset_confirm",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Grid density",
+      "titleRu": "Плотность сетки",
+      "titleUk": "Щільність сітки"
     },
     {
       "key": "rowRecordGnssTrack",

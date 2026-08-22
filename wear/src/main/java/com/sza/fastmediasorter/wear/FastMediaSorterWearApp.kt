@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.wear.core.logging.WearLogTree
 import com.sza.fastmediasorter.wear.core.util.WearLocaleManager
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
@@ -37,6 +38,8 @@ class FastMediaSorterWearApp : Application() {
                 preferencesRepository.appLanguage.firstOrNull()?.let { lang ->
                     WearLocaleManager.applyLocale(this@FastMediaSorterWearApp, lang)
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: IllegalStateException) {
                 Timber.w(e, "FastMediaSorterWearApp: Failed to initialize app locale")
             }

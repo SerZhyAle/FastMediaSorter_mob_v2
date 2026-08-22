@@ -96,10 +96,6 @@ class WearFavoritesRepositoryImpl @Inject constructor(
         readFavorites().contains(key) || readRecords().any { it.identity == key }
     }
 
-    override suspend fun hasAnyFavorite(): Boolean = withContext(Dispatchers.IO) {
-        readFavorites().isNotEmpty() || readRecords().isNotEmpty()
-    }
-
     override suspend fun getPendingDelta(): List<WearFavoriteDeltaItem> = withContext(Dispatchers.IO) {
         readDelta()
     }

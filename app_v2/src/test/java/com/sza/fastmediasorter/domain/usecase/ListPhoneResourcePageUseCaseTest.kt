@@ -14,6 +14,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -119,6 +120,21 @@ class ListPhoneResourcePageUseCaseTest {
         val page = useCase(request(WearPhoneResourceRequestKind.CHILDREN, parentToken = "1:"))
 
         assertEquals(listOf("visible.jpg"), page.items.map { it.name })
+    }
+
+    /**
+     * S1911: an unreachable source and an abandoned request are different answers. `runCatching` made
+     * them one, so a cancelled request told the watch SOURCE_UNAVAILABLE - a page the same cancelled
+     * scope could never publish, leaving only a wrong status and an E-level line about a routine
+     * teardown. Cancellation belongs to the caller, so it leaves this use case as itself.
+     */
+    @Test(expected = CancellationException::class)
+    fun `a cancelled scan propagates instead of becoming source unavailable`() = runTest {
+        coEvery { resourceRepository.getResourceById(1L) } returns resource(id = 1, name = "Photos")
+        coEvery { scanner.listDirectoryContents(any(), any(), any(), any(), any()) } throws
+            CancellationException("scope torn down")
+
+        useCase(request(WearPhoneResourceRequestKind.CHILDREN, parentToken = "1:"))
     }
 
     @Test
@@ -250,6 +266,47 @@ class ListPhoneResourcePageUseCaseTest {
         assertTrue("a timed-out scan carries no metadata", page.items.isEmpty())
     }
 
+    @Test
+    fun `a token without a MediaStore id keeps the pre-change wire form`() {
+        val token = PhoneResourceToken(resourceId = 7L, relativePath = "holiday/beach.jpg")
+
+        assertEquals("7:holiday/beach.jpg", token.serialize())
+    }
+
+    @Test
+    fun `a token with a MediaStore id round-trips through serialize and parse`() {
+        val token = PhoneResourceToken(resourceId = 7L, relativePath = "", mediaStoreId = 4321L)
+
+        val parsed = PhoneResourceToken.parse(token.serialize())
+
+        assertEquals(token, parsed)
+        assertEquals(4321L, parsed?.mediaStoreId)
+        assertEquals("", parsed?.relativePath)
+    }
+
+    @Test
+    fun `an identity token whose id is not a number is refused`() {
+        assertNull(PhoneResourceToken.parse("7:media:not-a-number"))
+    }
+
+    @Test
+    fun `two same-named files of one resource get different tokens`() = runTest {
+        coEvery { resourceRepository.getResourceById(1L) } returns resource(id = 1, name = "Camera")
+        coEvery { scanner.listDirectoryContents(any(), any(), any(), any(), any()) } returns listOf(
+            file(name = "IMG_0001.jpg", contentUri = "content://media/external/images/media/100"),
+            file(name = "IMG_0001.jpg", contentUri = "content://media/external/images/media/200")
+        )
+
+        val page = useCase(request(WearPhoneResourceRequestKind.CHILDREN, parentToken = "1:"))
+
+        assertEquals(listOf("IMG_0001.jpg", "IMG_0001.jpg"), page.items.map { it.name })
+        assertEquals(
+            "a shared name must not collapse two files onto one token",
+            2,
+            page.items.map { it.token }.distinct().size
+        )
+    }
+
     private fun request(
         kind: WearPhoneResourceRequestKind,
         parentToken: String? = null,
@@ -281,12 +338,13 @@ class ListPhoneResourcePageUseCaseTest {
         supportedMediaTypes = supportedMediaTypes
     )
 
-    private fun file(name: String, hidden: Boolean = false) = MediaFile(
+    private fun file(name: String, hidden: Boolean = false, contentUri: String? = null) = MediaFile(
         name = name,
         path = "/storage/emulated/0/Photos/$name",
         type = MediaType.IMAGE,
         size = 1024L,
         createdDate = 0L,
+        contentUri = contentUri,
         attributes = if (hidden) FileAttributes(readOnly = false, hidden = true) else null
     )
 

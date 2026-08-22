@@ -18,6 +18,14 @@
         <!-- S0423: ML Kit Translate is bundled in the legacy base, so its AAR-merged init components
              run normally (no on-demand DFM, nothing to strip). -->
 
+        <!-- S1941: .core.AppLaunchPanelTileService is deliberately NOT removed here, though its base
+             class TileService arrives in API 24 and this flavor's floor is 23. legacy installs on
+             every API from 23 up, and the Quick Launch Panel it opens ships in src/main for all
+             flavors, so removing the tile would take a working entry point away from every legacy
+             user on API 24+ to guard a platform that cannot reach it anyway: nothing in the app
+             references the class, and an API 23 system knows no QS_TILE action, so it never binds
+             the service and never loads the class. Checked 2026-08-22 on the merged legacy manifest. -->
+
     </application>
 
 </manifest>

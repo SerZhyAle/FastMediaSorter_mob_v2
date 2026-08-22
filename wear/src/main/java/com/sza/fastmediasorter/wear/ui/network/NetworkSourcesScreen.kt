@@ -31,6 +31,7 @@ import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.dialog.Alert
 import com.sza.fastmediasorter.wear.BuildConfig
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
@@ -556,5 +557,8 @@ private fun ErrorContent(
 data class SourceItem(
     val id: String,
     val name: String,
-    val server: String
+    val server: String,
+    // S1952: the list showed one glyph for every row because the type never reached the UI model,
+    // so a share and a cloud account were indistinguishable at a glance.
+    val type: NetworkSourceType
 )

@@ -14,6 +14,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -112,6 +113,56 @@ class SendStreamToWatchUseCaseTest {
             )
         )
         assertEquals(SendStreamToWatchUseCase.Outcome.Error("store broken"), result.await())
+    }
+
+    @Test
+    fun `S1944 - the open intent travels only when asked for`() = runBlocking {
+        val repository = FakeWearableRepository(nodes = listOf(WearNode("n1", "Watch")))
+        async { useCase(repository, timeoutMs = SHORT_TIMEOUT_MS)("t", "https://u", "AUDIO", openNow = true) }
+        awaitSend(repository)
+        assertTrue("the intent must reach the wire", sentPayload(repository).openNow)
+
+        val plain = FakeWearableRepository(nodes = listOf(WearNode("n2", "Watch")))
+        async { useCase(plain, timeoutMs = SHORT_TIMEOUT_MS)("t", "https://u", "AUDIO") }
+        awaitSend(plain)
+        assertFalse("an ordinary send is unchanged by this ticket", sentPayload(plain).openNow)
+    }
+
+    @Test
+    fun `S1944 - opened ack resolves Opened`() = runBlocking {
+        val repository = FakeWearableRepository(nodes = listOf(WearNode("n1", "Watch")))
+        val result = async {
+            useCase(repository, timeoutMs = LONG_TIMEOUT_MS)("t", "https://u", "AUDIO", openNow = true)
+        }
+        awaitSend(repository)
+        WearSyncEvents.emitStreamTransferAck(
+            WearStreamTransferAck(sentRequestId(repository), WearStreamTransferAck.OUTCOME_OPENED)
+        )
+        assertEquals(SendStreamToWatchUseCase.Outcome.Opened, result.await())
+    }
+
+    @Test
+    fun `S1944 - a closed watch app is its own outcome, never an error`() = runBlocking {
+        // The distinction this ticket exists for: the platform forbids waking the watch app from a
+        // Data Layer message, so "not open" is the ordinary ending of a correct request. Folded into
+        // Error it would reach the user as a failure and send them looking for a broken pairing.
+        val repository = FakeWearableRepository(nodes = listOf(WearNode("n1", "Watch")))
+        val result = async {
+            useCase(repository, timeoutMs = LONG_TIMEOUT_MS)("t", "https://u", "AUDIO", openNow = true)
+        }
+        awaitSend(repository)
+        WearSyncEvents.emitStreamTransferAck(
+            WearStreamTransferAck(sentRequestId(repository), WearStreamTransferAck.OUTCOME_NOT_FOREGROUND)
+        )
+        assertEquals(SendStreamToWatchUseCase.Outcome.WatchAppNotOpen, result.await())
+    }
+
+    private fun sentPayload(repository: FakeWearableRepository): WearStreamTransferPayload {
+        val (_, bytes) = repository.sentMessages.single()
+        return gson.fromJson(
+            envelopeCodec.decode(bytes).data.decodeToString(),
+            WearStreamTransferPayload::class.java
+        )
     }
 
     private companion object {

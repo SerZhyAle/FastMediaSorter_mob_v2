@@ -5,6 +5,7 @@ import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.launcher.signal.ForeignNotificationCounts
+import com.sza.fastmediasorter.ui.launcher.signal.ForeignNotificationDismisser
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,6 +35,10 @@ import javax.inject.Inject
  * - **What it still never reads:** the title, the text, the extras, the actions, the attachments. Not by
  *   promise - [ForeignNotificationCounts] has no member that would accept any of them, so a later edit that
  *   tried to pass content through would not compile.
+ * - **S1908: what it now also does:** cancels notifications by key, on the signal panel's request, through
+ *   [ForeignNotificationDismisser]. Cancelling reads nothing - a key identifies a notification without
+ *   describing it - and the capability exists only between [onListenerConnected] and
+ *   [onListenerDisconnected], which is exactly as long as the system trusts this listener.
  * - **A second listener service is deliberately not declared.** The system asks the user's consent per
  *   component, so a second one would send them back to the same system screen to grant the same access
  *   twice; the permission registry also holds one row per manifest permission, and its parity test would
@@ -44,6 +49,9 @@ class MediaSessionAccessService : NotificationListenerService() {
 
     @Inject
     lateinit var counts: ForeignNotificationCounts
+
+    @Inject
+    lateinit var dismisser: ForeignNotificationDismisser
 
     @Inject
     lateinit var settingsRepository: SettingsRepository
@@ -66,6 +74,11 @@ class MediaSessionAccessService : NotificationListenerService() {
     }
 
     override fun onDestroy() {
+        // S1908: the registered canceller is a bound reference to THIS service, held by an
+        // application-scoped singleton that outlives it. onListenerDisconnected is the usual withdrawal,
+        // but it is not guaranteed to precede destruction, and a canceller left behind would both leak the
+        // service and throw on the next tap.
+        dismisser.unregister()
         serviceScope.cancel()
         super.onDestroy()
     }
@@ -97,6 +110,10 @@ class MediaSessionAccessService : NotificationListenerService() {
     override fun onListenerConnected() {
         super.onListenerConnected()
         counts.reset(activeNotifications.orEmpty().map(::toPosted))
+        // S1908: cancelling is an instance operation of this service and works only while the system has it
+        // connected, so the capability is published here and withdrawn on disconnect rather than held by
+        // whoever asked for it.
+        dismisser.register(::cancelNotifications)
     }
 
     /**
@@ -107,6 +124,7 @@ class MediaSessionAccessService : NotificationListenerService() {
     override fun onListenerDisconnected() {
         super.onListenerDisconnected()
         counts.clear()
+        dismisser.unregister()
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification?) {

@@ -78,6 +78,20 @@ class LauncherStarterSetsParityTest {
         assertEquals(false, LauncherGadgetRegistry.KEY_ALTITUDE in sensors)
         assertEquals(false, LauncherGadgetRegistry.KEY_SATELLITES in sensors)
         assertEquals(true, LauncherGadgetRegistry.KEY_AUDIO_NOW_PLAYING in sensors)
+
+        // S1886: the two profiles whose widgets group was empty before this ticket, so a regression
+        // that drops the seed shows up here as an empty group rather than as a silently plainer desktop.
+        // The image window carries its resource id, so the assertion is on the `key:id` prefix.
+        val tabletWindow = LauncherStarterSets
+            .itemsFor(DeviceProfileType.HOME_TABLET, StarterResources(allImagesId = 3L), emptyMap(), emptySet())
+            .first { it.target.startsWith(LauncherGadgetRegistry.KEY_MEDIA_IMAGE_WINDOW) }
+        assertEquals("${LauncherGadgetRegistry.KEY_MEDIA_IMAGE_WINDOW}:3", tabletWindow.target)
+
+        val headsetTargets = LauncherStarterSets
+            .itemsFor(DeviceProfileType.VR_HEADSET, StarterResources(), emptyMap(), emptySet())
+            .map { it.target }
+            .toSet()
+        assertEquals(true, LauncherGadgetRegistry.KEY_BATTERY in headsetTargets)
     }
 
     @Test
@@ -92,6 +106,11 @@ class LauncherStarterSetsParityTest {
             LauncherGadgetRegistry.KEY_COMPASS,
             LauncherGadgetRegistry.KEY_AUDIO_NOW_PLAYING,
             LauncherGadgetRegistry.KEY_SEARCH,
+            LauncherGadgetRegistry.KEY_MEDIA_IMAGE_WINDOW,
+            LauncherGadgetRegistry.KEY_MEDIA_AUDIO_WINDOW,
+            LauncherGadgetRegistry.KEY_MEDIA_VIDEO_WINDOW,
+            LauncherGadgetRegistry.KEY_MEDIA_DOCUMENT_WINDOW,
+            LauncherGadgetRegistry.KEY_BATTERY,
         )
         assertEquals(registryKeys, LauncherStarterSets.gadgetKeys)
     }

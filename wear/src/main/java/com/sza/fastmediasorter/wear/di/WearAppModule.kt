@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.wear.data.repository.AlbumArtRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearFavoritesRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearMediaRepositoryImpl
 import com.sza.fastmediasorter.wear.data.wear.AndroidWearSystemInfoDataSource
+import com.sza.fastmediasorter.wear.domain.game.GameBoardGenerator
 import com.sza.fastmediasorter.wear.domain.repository.AlbumArtRepository
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.StreamNetworkHold
@@ -103,6 +104,12 @@ object WearAppModule {
         return WearPreferencesRepositoryImpl(context)
     }
     
+    // S1710: GameBoardGenerator takes a defaulted attempt budget that Dagger cannot bind, so it
+    // is constructed here rather than injected. Stateless, hence shared.
+    @Provides
+    @Singleton
+    fun provideGameBoardGenerator(): GameBoardGenerator = GameBoardGenerator()
+
     @Provides
     @Singleton
     fun provideGson(): Gson = Gson()

@@ -119,6 +119,33 @@ class StreamActionCatalogTest {
     }
 
     @Test
+    fun `S1944 - open on watch needs only the wear gate, unlike its neighbour`() {
+        // The difference between the two watch commands, pinned so a later reader does not "fix" it
+        // into symmetry: transferring a channel is for manual rows only, because catalog rows reach
+        // the watch by themselves - which is exactly why OPENING one is worth offering on a catalog
+        // row. Gating this on isManualOrigin would hide it on most of the user's channels.
+        assertTrue(
+            StreamActionCatalog.actionsFor(
+                MenuActionSurface.MAIN_WINDOW,
+                catalogChannel.copy(wearSendAvailable = true),
+            ).contains(StreamMenuAction.OPEN_ON_WATCH),
+        )
+        assertTrue(
+            StreamActionCatalog.actionsFor(
+                MenuActionSurface.MAIN_WINDOW,
+                catalogChannel.copy(isManualOrigin = true, wearSendAvailable = true),
+            ).contains(StreamMenuAction.OPEN_ON_WATCH),
+        )
+        // Gate off - absent, because the command could not run and an unwired row is worse than none.
+        assertFalse(
+            StreamActionCatalog.actionsFor(
+                MenuActionSurface.MAIN_WINDOW,
+                catalogChannel.copy(isManualOrigin = true),
+            ).contains(StreamMenuAction.OPEN_ON_WATCH),
+        )
+    }
+
+    @Test
     fun `the two state-dependent captions flip with the channel`() {
         val pinnedFavorite = StreamActionCatalog.Facts(isPinned = true, isFavorite = true)
 

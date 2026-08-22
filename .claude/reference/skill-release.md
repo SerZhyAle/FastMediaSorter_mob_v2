@@ -190,6 +190,7 @@ Developer inventory `docs/ALL_FEATURES.jsonl` (EN-only, written per-spec by `/sp
 Showcase editing rules, applied to the diff before any `FEATURES*` file is touched:
 
 1. Select important/standout capabilities a user would notice (skip internal/minor inventory entries - most inventory records never reach showcase).
+   A diff-added record whose `spec` names a ticket that did not ship in this window is a **re-carved** record - one half of an inventory record split along its gate boundary (S1933) - not a new capability. `diff.ps1` keys by `id` and never reports an id that disappeared, so a split reads as two additions; announcing one would re-announce something shipped releases ago.
 2. Add or update them in `docs/FEATURES.md` + `_RU` + `_UK` in lockstep (EN/RU/UK parity), in relevant numbered section. Keep author style (`..` not `...`, `ё`). ONLY place `FEATURES*` is edited.
 3. Set each bullet's flavor label (e.g. `[Standard / VR]`, `[VR Only]`, `[Standard Only]`) from inventory record's `flavors` field - never guess. A capability whose `flavors` is noLegal-only must NOT appear in public `FEATURES*`; route per point 4.
 4. noLegal-only standout items come from gitignored `docs/ALL_FEATURES_noLegal.jsonl` and go into gitignored `docs/FEATURES_noLegal*`, never public files.

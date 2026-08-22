@@ -469,6 +469,19 @@
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_resource_launch_info" />
         </receiver>
 
+        <!-- S1916: Stream launch widget - present wherever SUPPORT_STREAMS is, removed in lite/photos -->
+        <receiver android:name=".widget.StreamLaunchWidgetProvider" android:exported="true" android:label="@string/widget_stream_launch_label" android:icon="@drawable/ic_cast">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_stream_launch_info" />
+        </receiver>
+        <activity android:name=".widget.StreamLaunchWidgetConfigActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+
         <!-- Continue Reading Widget -->
         <receiver android:name=".widget.ContinueReadingWidgetProvider" android:exported="true" android:label="@string/widget_continue_reading_label" android:icon="@drawable/ic_widget_continue_reading">
             <intent-filter>

@@ -27,9 +27,12 @@ import com.sza.fastmediasorter.domain.usecase.OpenPhoneResourceChannelUseCase
 import com.sza.fastmediasorter.domain.usecase.PhoneResourceChannel
 import com.sza.fastmediasorter.domain.usecase.SendResourcesToWatchUseCase
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -200,6 +203,10 @@ class PhoneWearListenerService : WearableListenerService() {
         val channelClient = Wearable.getChannelClient(applicationContext)
         val channel = try {
             channelClient.openChannel(nodeId, WearDataLayerPaths.PHONE_RESOURCE_TRANSFER).await()
+        } catch (e: CancellationException) {
+            // S1927: same reason as S1889 and S1911 - a scope going away is not an open that failed,
+            // and reporting it at E made a routine teardown read as an app error.
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Failed to open phone resource channel")
             sendPhoneResourcePage(
@@ -215,12 +222,22 @@ class PhoneWearListenerService : WearableListenerService() {
             channelClient.getOutputStream(channel).await().use { output ->
                 approved.openStream().use { input -> input.copyTo(output) }
             }
+        } catch (e: CancellationException) {
+            // S1927: matches sendPhoneResourcePage below - a scope going away is not a transfer that
+            // failed, so it propagates. The finally still runs on the way out.
+            throw e
         } catch (e: Exception) {
-            // A watch that walks away cancels this scope; the channel still has to be closed below.
+            // S1927: a watch that walks away raises IOException on the copy, not cancellation -
+            // applicationScope is a never-cancelled SupervisorJob. The old comment claimed the
+            // opposite and was the reason S1911 left this arm alone.
             Timber.w(e, "Phone resource transfer interrupted")
         } finally {
-            runCatching { channelClient.close(channel).await() }
-                .onFailure { Timber.w(it, "Failed to close phone resource channel") }
+            // S1927: close() asks GMS to close before await() can suspend, so the channel is released
+            // either way; NonCancellable keeps the confirmation if this scope ever becomes cancellable.
+            withContext(NonCancellable) {
+                runCatching { channelClient.close(channel).await() }
+                    .onFailure { Timber.w(it, "Failed to close phone resource channel") }
+            }
         }
     }
 
@@ -231,14 +248,24 @@ class PhoneWearListenerService : WearableListenerService() {
         null
     }
 
+    // S1911: a publish failure has exactly one answer whatever GMS raised, so the broad arm is the
+    // contract. Cancellation is rethrown as the first arm above it rather than folded in.
+    @Suppress("TooGenericExceptionCaught")
     private suspend fun sendPhoneResourcePage(page: WearPhoneResourcePage) {
         val envelopeBytes = withinWireLimit(page)
-        runCatching {
+        try {
             wearableDataLayerRepository.putDataItem(
                 WearDataLayerPaths.PHONE_RESOURCE_PAGE,
                 envelopeBytes
             )
-        }.onFailure { Timber.e(it, "Failed to publish phone resource page") }
+        } catch (e: CancellationException) {
+            // S1911: this scope going away is why the page cannot be published - not a publish that
+            // failed. Logging it at E made a routine teardown read as an app error.
+            Timber.d("S1911: phone resource page publish cancelled, propagating instead of reporting")
+            throw e
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to publish phone resource page")
+        }
     }
 
     private fun encodePage(page: WearPhoneResourcePage): ByteArray {
@@ -300,6 +327,5 @@ class PhoneWearListenerService : WearableListenerService() {
 
         /** S1860: what GMS accepts in one data item; anything larger comes back DATA_ITEM_TOO_LARGE. */
         private const val MAX_DATA_ITEM_BYTES = 100 * 1024
-
     }
 }

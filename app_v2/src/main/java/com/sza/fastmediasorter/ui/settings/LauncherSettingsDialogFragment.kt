@@ -15,10 +15,12 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
+import com.sza.fastmediasorter.databinding.DialogLauncherResetConfirmBinding
 import com.sza.fastmediasorter.databinding.DialogLauncherSettingsBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
@@ -27,6 +29,7 @@ import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -182,24 +185,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             val factor = options.getOrElse(index) { options[DENSITY_DEFAULT_INDEX] }
             viewModel.updateSettings(viewModel.settings.value.copy(launcherDensityFactor = factor))
         }
-        binding.rowLauncherWallpaper.setEntries(
-            listOf(
-                getText(R.string.launcher_settings_wallpaper_branded),
-                getText(R.string.launcher_settings_wallpaper_static_stripes),
-                getText(R.string.launcher_settings_wallpaper_none),
-                getText(R.string.launcher_settings_wallpaper_image),
-            )
-        )
-        binding.rowLauncherWallpaper.setOnItemSelectedListener { index ->
-            if (isUpdatingFromSettings) return@setOnItemSelectedListener
-            val modes = AppSettings.LAUNCHER_WALLPAPER_MODES
-            when (val mode = modes.getOrElse(index) { AppSettings.LAUNCHER_WALLPAPER_BRANDED }) {
-                // Image mode only becomes real once a file is actually picked and copied, so the write
-                // happens in the picker callback, not here.
-                AppSettings.LAUNCHER_WALLPAPER_IMAGE -> pickWallpaperImage.launch(WALLPAPER_MIME_TYPES)
-                else -> viewModel.applyLauncherWallpaperMode(mode)
-            }
-        }
+        setupWallpaperRow()
         binding.rowLauncherLockDesktop.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(launcherDesktopLocked = isChecked))
@@ -257,6 +243,27 @@ class LauncherSettingsDialogFragment : DialogFragment() {
     }
 
     /** S1748: widget backdrop opacity presets selector. */
+    private fun setupWallpaperRow() {
+        binding.rowLauncherWallpaper.setEntries(
+            listOf(
+                getText(R.string.launcher_settings_wallpaper_branded),
+                getText(R.string.launcher_settings_wallpaper_static_stripes),
+                getText(R.string.launcher_settings_wallpaper_none),
+                getText(R.string.launcher_settings_wallpaper_image),
+            )
+        )
+        binding.rowLauncherWallpaper.setOnItemSelectedListener { index ->
+            if (isUpdatingFromSettings) return@setOnItemSelectedListener
+            val modes = AppSettings.LAUNCHER_WALLPAPER_MODES
+            when (val mode = modes.getOrElse(index) { AppSettings.LAUNCHER_WALLPAPER_BRANDED }) {
+                // Image mode only becomes real once a file is actually picked and copied, so the write
+                // happens in the picker callback, not here.
+                AppSettings.LAUNCHER_WALLPAPER_IMAGE -> pickWallpaperImage.launch(WALLPAPER_MIME_TYPES)
+                else -> viewModel.applyLauncherWallpaperMode(mode)
+            }
+        }
+    }
+
     private fun setupWidgetBackdropAlphaRow() {
         binding.rowLauncherWidgetBackdropAlpha.setEntries(
             listOf(
@@ -271,7 +278,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         binding.rowLauncherWidgetBackdropAlpha.setOnItemSelectedListener { index ->
             if (isUpdatingFromSettings) return@setOnItemSelectedListener
             val options = AppSettings.LAUNCHER_WIDGET_BACKDROP_ALPHA_OPTIONS
-            val alpha = options.getOrElse(index) { 0.85f }
+            val alpha = options.getOrElse(index) { options[BACKDROP_ALPHA_DEFAULT_INDEX] }
             viewModel.updateSettings(viewModel.settings.value.copy(launcherWidgetBackdropAlpha = alpha))
         }
     }
@@ -307,20 +314,44 @@ class LauncherSettingsDialogFragment : DialogFragment() {
     /**
      * S1400: every other control here applies immediately, so the one destructive action is the only
      * one that asks first.
+     *
+     * S1886: the preselected density is a one-shot suspend read of the device profile preset, so the
+     * dialog is built inside a coroutine rather than collected - there is no stream to observe.
      */
     private fun confirmReset() {
-        MaterialAlertDialogBuilder(
-            requireContext(),
-            R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive,
-        )
-            .setTitle(R.string.launcher_settings_reset_title)
-            .setMessage(R.string.launcher_settings_reset_message)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                launcherViewModel.resetToDefaults()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .showBoundTo(this@LauncherSettingsDialogFragment)
+        viewLifecycleOwner.lifecycleScope.launch {
+            val presetIndex = densityIndexOf(launcherViewModel.presetDensityFactor())
+            val content = DialogLauncherResetConfirmBinding.inflate(layoutInflater)
+            content.rowResetDensity.setEntries(
+                listOf(
+                    getText(R.string.launcher_settings_density_sparse),
+                    getText(R.string.launcher_settings_density_default),
+                    getText(R.string.launcher_settings_density_dense),
+                    getText(R.string.launcher_settings_density_densest),
+                ),
+            )
+            content.rowResetDensity.setSelection(presetIndex)
+            MaterialAlertDialogBuilder(
+                requireContext(),
+                R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive,
+            )
+                .setTitle(R.string.launcher_settings_reset_title)
+                .setView(content.root)
+                .setPositiveButton(android.R.string.ok) { _, _ ->
+                    val index = densityIndexOrDefault(content.rowResetDensity.getSelectedIndex())
+                    launcherViewModel.resetToDefaults(AppSettings.LAUNCHER_DENSITY_OPTIONS[index])
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .showBoundTo(this@LauncherSettingsDialogFragment)
+        }
     }
+
+    /** S1886: a preset factor outside the four-step scale falls back to the standard step. */
+    private fun densityIndexOf(factor: Float): Int =
+        densityIndexOrDefault(AppSettings.LAUNCHER_DENSITY_OPTIONS.indexOf(factor))
+
+    private fun densityIndexOrDefault(index: Int): Int =
+        if (index in AppSettings.LAUNCHER_DENSITY_OPTIONS.indices) index else DENSITY_DEFAULT_INDEX
 
     private fun observeSettings() {
         collectOnLifecycle(viewModel.settings) { settings ->
@@ -472,8 +503,10 @@ class LauncherSettingsDialogFragment : DialogFragment() {
 
     private fun renderWidgetBackdropAlphaRow(settings: AppSettings) {
         val options = AppSettings.LAUNCHER_WIDGET_BACKDROP_ALPHA_OPTIONS
-        val index = options.indexOfFirst { kotlin.math.abs(it - settings.launcherWidgetBackdropAlpha) < 0.01f }
-        binding.rowLauncherWidgetBackdropAlpha.setSelection(if (index >= 0) index else 4)
+        val index = options.indexOfFirst {
+            kotlin.math.abs(it - settings.launcherWidgetBackdropAlpha) < ALPHA_MATCH_EPSILON
+        }
+        binding.rowLauncherWidgetBackdropAlpha.setSelection(if (index >= 0) index else BACKDROP_ALPHA_DEFAULT_INDEX)
     }
 
     private fun showCustomScreenTimeoutDialog() {
@@ -560,6 +593,12 @@ class LauncherSettingsDialogFragment : DialogFragment() {
 
         // Standard density (1.0f) sits at index 1 of AppSettings.LAUNCHER_DENSITY_OPTIONS.
         private const val DENSITY_DEFAULT_INDEX = 1
+
+        // 0.85f sits at index 4 of AppSettings.LAUNCHER_WIDGET_BACKDROP_ALPHA_OPTIONS.
+        private const val BACKDROP_ALPHA_DEFAULT_INDEX = 4
+
+        // The stored alpha is a float, so the row matches it by proximity rather than by equality.
+        private const val ALPHA_MATCH_EPSILON = 0.01f
 
         // S1101: stills and GIFs both arrive as image/*; the decoder picks the right path per file.
         private val WALLPAPER_MIME_TYPES = arrayOf("image/*")

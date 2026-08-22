@@ -17,6 +17,7 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -25,10 +26,14 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import kotlin.io.path.createTempDirectory
+
+/** S1898: the watch's own `TRANSFER_TIMEOUT_MS`, long enough that a tap outlives the list it was made on. */
+private const val TRANSFER_MS = 30_000L
 
 /**
  * S1697: a paired phone disappears often and briefly, so what the screen shows on a failed round
@@ -199,6 +204,52 @@ class PhoneResourceViewModelTest {
     private fun PhoneResourceViewModel.contentTitle(): ScreenTitle =
         (uiState.value as PhoneResourceUiState.Content).title
 
+    /**
+     * S1898: the refusal line is anchored to the screen now, so it no longer scrolls out of sight on
+     * its own. Walking into another folder has to drop it, or it stays on screen naming a file the
+     * folder in front of the user does not contain.
+     */
+    @Test
+    fun `walking into a folder drops the refusal raised in the previous one`() = runTest {
+        coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.Page(page(item("Camera")))
+        coEvery { client.open(any(), any()) } returns PhoneResourceOutcome.PhoneUnavailable
+
+        val viewModel = PhoneResourceViewModel(client, selectedMedia, context, preferences, SavedStateHandle())
+        advanceUntilIdle()
+
+        viewModel.openFile(fileItem("holiday.jpg"))
+        advanceUntilIdle()
+        assertEquals(PhoneFileOpenOutcome.Failed(null), viewModel.openOutcome.value)
+
+        viewModel.openFolder("1:Camera", "Camera")
+        advanceUntilIdle()
+
+        assertNull("a refusal must not follow the user into the next folder", viewModel.openOutcome.value)
+    }
+
+    /**
+     * S1898: walking away does not stop the transfer, which is out of scope to cancel. What it must do
+     * is stop the transfer from speaking: landing 30 s later, it would otherwise repaint the pinned row
+     * over a folder that never held the file it names.
+     */
+    @Test
+    fun `a transfer that lands after the user walked away says nothing`() = runTest {
+        coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.Page(page(item("Camera")))
+        coEvery { client.open(any(), any()) } coAnswers {
+            delay(TRANSFER_MS)
+            PhoneResourceOutcome.PhoneUnavailable
+        }
+
+        val viewModel = PhoneResourceViewModel(client, selectedMedia, context, preferences, SavedStateHandle())
+        advanceUntilIdle()
+
+        viewModel.openFile(fileItem("holiday.jpg"))
+        viewModel.openFolder("1:Camera", "Camera")
+        advanceUntilIdle()
+
+        assertNull("a transfer outlived its list and must not repaint over the new one", viewModel.openOutcome.value)
+    }
+
     private fun page(vararg items: WearPhoneResourceItem) = WearPhoneResourcePage(
         requestId = "req-1",
         status = if (items.isEmpty()) {
@@ -213,5 +264,12 @@ class PhoneResourceViewModelTest {
         token = "1:$name",
         name = name,
         isDirectory = true
+    )
+
+    private fun fileItem(name: String) = WearPhoneResourceItem(
+        token = "1:$name",
+        name = name,
+        mimeType = "image/jpeg",
+        isDirectory = false
     )
 }

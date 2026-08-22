@@ -2,7 +2,9 @@ package com.sza.fastmediasorter.wear.ui.phone
 
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Folder
@@ -18,6 +21,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -55,6 +59,11 @@ import timber.log.Timber
 private const val SINGLE_COLUMN = 1
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
 private val ENTRY_ICON_SIZE = 24.dp
+private val STATUS_CORNER_RADIUS = 12.dp
+private val STATUS_GAP = 8.dp
+private val STATUS_PADDING_HORIZONTAL = 12.dp
+private val STATUS_PADDING_VERTICAL = 6.dp
+private val STATUS_PROGRESS_SIZE = 16.dp
 
 @Composable
 fun PhoneResourceScreen(
@@ -71,6 +80,7 @@ fun PhoneResourceScreen(
     val openOutcome by viewModel.openOutcome.collectAsStateWithLifecycle()
     LaunchedEffect(openOutcome) {
         val outcome = openOutcome
+        Timber.d("S1898: pinned open status outcome=$outcome")
         if (outcome is PhoneFileOpenOutcome.Ready) {
             navController.navigate(playerRouteFor(outcome.fileId, outcome.mimeType))
             viewModel.consumeOpenOutcome()
@@ -97,17 +107,37 @@ fun PhoneResourceScreen(
                 showProgress = true
             )
 
-            is PhoneResourceUiState.Content -> PhoneResourceList(
-                items = current.items,
-                listState = listState,
-                viewMode = fileListViewMode,
-                thumbnails = thumbnails,
-                title = current.title,
-                openStatusRes = openOutcome.toStatusRes(),
-                onEntryClick = { entry ->
-                    if (entry.isDirectory) viewModel.openFolder(entry.token, entry.name) else viewModel.openFile(entry)
+            is PhoneResourceUiState.Content -> Box(modifier = Modifier.fillMaxSize()) {
+                PhoneResourceList(
+                    items = current.items,
+                    listState = listState,
+                    viewMode = fileListViewMode,
+                    thumbnails = thumbnails,
+                    title = current.title,
+                    onEntryClick = { entry ->
+                        if (entry.isDirectory) {
+                            viewModel.openFolder(entry.token, entry.name)
+                        } else {
+                            viewModel.openFile(entry)
+                        }
+                    }
+                )
+
+                // S1898: the outcome is anchored to the screen, not to the start of the list. Reaching a
+                // file means scrolling to it, so a line drawn as the list's second item reports the result
+                // outside the viewport it was meant for - which is why 30 s of waiting and the refusal that
+                // followed it both read as nothing happening at all.
+                val statusRes = openOutcome.toStatusRes()
+                if (statusRes != null) {
+                    PinnedOpenStatus(
+                        statusRes = statusRes,
+                        showProgress = openOutcome == PhoneFileOpenOutcome.Opening,
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(wearScreenInsets())
+                    )
                 }
-            )
+            }
 
             is PhoneResourceUiState.Empty -> RetryMessage(
                 // A filtered list that says "your phone has nothing to show" would blame the phone for
@@ -135,7 +165,6 @@ private fun PhoneResourceList(
     viewMode: WearViewMode,
     thumbnails: Map<String, WearThumbnail>,
     title: ScreenTitle,
-    @StringRes openStatusRes: Int?,
     onEntryClick: (WearPhoneResourceItem) -> Unit
 ) {
     // The column count comes from the width this composable actually gets, so this browser answers
@@ -163,22 +192,6 @@ private fun PhoneResourceList(
                 )
             }
 
-            // S1846: a tap that could not open anything says so here and leaves the list in place -
-            // replacing the list with an error would lose the user's position for a per-file problem.
-            if (openStatusRes != null) {
-                item {
-                    Text(
-                        text = stringResource(openStatusRes),
-                        style = MaterialTheme.typography.caption2,
-                        color = MaterialTheme.colors.error,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp),
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-
             entryItems(
                 items = items,
                 columns = columns,
@@ -186,6 +199,40 @@ private fun PhoneResourceList(
                 onEntryClick = onEntryClick
             )
         }
+    }
+}
+
+/**
+ * S1898: the single place a tap's outcome is reported - the wait first, then whatever it came to, at
+ * one coordinate rather than two.
+ *
+ * Opaque behind the text because the list keeps scrolling underneath it, and deliberately neither
+ * clickable nor focusable so the rotating crown keeps addressing the list rather than this row.
+ */
+@Composable
+private fun PinnedOpenStatus(
+    @StringRes statusRes: Int,
+    showProgress: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colors.surface, RoundedCornerShape(STATUS_CORNER_RADIUS))
+            .padding(horizontal = STATUS_PADDING_HORIZONTAL, vertical = STATUS_PADDING_VERTICAL),
+        horizontalArrangement = Arrangement.spacedBy(STATUS_GAP, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (showProgress) {
+            CircularProgressIndicator(modifier = Modifier.size(STATUS_PROGRESS_SIZE))
+        }
+        Text(
+            text = stringResource(statusRes),
+            style = MaterialTheme.typography.caption2,
+            // Waiting is not a failure: the error colour belongs to the outcomes that are one.
+            color = if (showProgress) MaterialTheme.colors.onSurface else MaterialTheme.colors.error,
+            textAlign = TextAlign.Center
+        )
     }
 }
 
@@ -328,8 +375,9 @@ private fun RetryMessage(text: String, onRetry: () -> Unit) {
  * actually take, per `docs/COMMUNICATION_POLICY.md`.
  */
 /**
- * S1846: the line shown above the list after a tap that did not reach a player, or null when there is
- * nothing to say. `Ready` shows nothing because the screen is already leaving for the player.
+ * S1846: the line shown after a tap that did not reach a player, or null when there is nothing to say.
+ * `Ready` shows nothing because the screen is already leaving for the player. S1898 moved where it is
+ * drawn - see [PinnedOpenStatus] - without changing which outcomes speak.
  */
 @StringRes
 private fun PhoneFileOpenOutcome?.toStatusRes(): Int? = when (this) {
@@ -357,5 +405,9 @@ private fun WearPhoneResourceResponseStatus?.toMessageRes(): Int = when (this) {
     WearPhoneResourceResponseStatus.ACCESS_DENIED -> R.string.phone_resource_access_denied
     WearPhoneResourceResponseStatus.UNSUPPORTED_MEDIA -> R.string.phone_resource_unsupported
     WearPhoneResourceResponseStatus.TRANSFER_REJECTED -> R.string.phone_resource_transfer_rejected
+    // S1897: the phone answered and refused - it just could not find the file. Without its own message
+    // this fell to the fallback below and told the user the phone was out of reach, which a device run
+    // showed being read as "nothing happened" while the phone had in fact replied in 41 ms.
+    WearPhoneResourceResponseStatus.NOT_FOUND -> R.string.phone_resource_not_found
     else -> R.string.phone_resource_unavailable
 }

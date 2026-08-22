@@ -81,6 +81,23 @@ Password: [your password]
 
 ---
 
+## Apps on the watch
+
+The watch home screen has an **Apps** section with three small programs. They run on the watch
+itself, so they keep working when the phone is out of range or switched off.
+
+- **Calculator** - counting on the keypad, everything else behind the menu key. Your history and the
+  memory value stay until you clear them.
+- **Network monitor** - what the watch itself is connected through: Wi-Fi, mobile, Bluetooth,
+  location and whether the internet is reachable. Swipe sideways to move between the pages. A page
+  appears only for hardware your watch has, and a reading your watch cannot take is labelled plainly
+  instead of showing a zero.
+- **Game** - the same rules and levels as the game on the phone, so scores are comparable.
+
+The monitor measures only while it is open. Leave the screen and it stops.
+
+---
+
 ## Troubleshooting
 
 | Error | Solution |

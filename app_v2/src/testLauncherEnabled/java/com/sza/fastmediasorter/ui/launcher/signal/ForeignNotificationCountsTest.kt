@@ -121,6 +121,66 @@ class ForeignNotificationCountsTest {
         assertTrue(counts.counts.value.isEmpty())
     }
 
+    /**
+     * S1908: a dismissal addresses notifications by key, so the accessor has to return every key of the
+     * package it was asked about and nothing from its neighbour - cancelling by a key that belongs to
+     * another application would clear notifications the user never touched.
+     */
+    @Test
+    fun `keysFor returns every key of that package and none of another`() {
+        counts.onPosted(CHAT, key = "a", isGroupSummary = false)
+        counts.onPosted(CHAT, key = "b", isGroupSummary = false)
+        counts.onPosted(MAIL, key = "c", isGroupSummary = false)
+
+        assertEquals(setOf("a", "b"), counts.keysFor(CHAT))
+        assertEquals(setOf("c"), counts.keysFor(MAIL))
+    }
+
+    @Test
+    fun `keysFor is empty for a package that posted nothing`() {
+        counts.onPosted(CHAT, key = "a", isGroupSummary = false)
+
+        assertTrue(counts.keysFor(MAIL).isEmpty())
+    }
+
+    @Test
+    fun `allKeys spans every counted package`() {
+        counts.onPosted(CHAT, key = "a", isGroupSummary = false)
+        counts.onPosted(MAIL, key = "b", isGroupSummary = false)
+
+        assertEquals(setOf("a", "b"), counts.allKeys())
+    }
+
+    /**
+     * S1465 ADR-4 holds nothing at all while the capability is off, and that has to include the keys: an
+     * accessor that still answered would let a dismissal reach notifications the user opted out of counting.
+     */
+    @Test
+    fun `keys are unreachable while the capability is disabled`() {
+        counts.onPosted(CHAT, key = "a", isGroupSummary = false)
+        counts.setEnabled(false)
+
+        assertTrue(counts.keysFor(CHAT).isEmpty())
+        assertTrue(counts.allKeys().isEmpty())
+    }
+
+    /**
+     * The returned set must be a copy. The system delivers listener callbacks on its own thread while the
+     * panel reads these keys on another, so handing out the live set would let a caller observe - or corrupt -
+     * a set that the next callback is writing.
+     */
+    @Test
+    fun `a returned key set is a copy and cannot mutate the counter`() {
+        counts.onPosted(CHAT, key = "a", isGroupSummary = false)
+
+        val handedOut = counts.keysFor(CHAT).toMutableSet()
+        handedOut.add("injected")
+        handedOut.remove("a")
+
+        assertEquals(setOf("a"), counts.keysFor(CHAT))
+        assertEquals(mapOf(CHAT to 1), counts.counts.value)
+    }
+
     private companion object {
         const val CHAT = "com.example.chat"
         const val MAIL = "com.example.mail"

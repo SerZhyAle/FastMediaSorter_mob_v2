@@ -49,6 +49,20 @@ Measured on this host, 2026-08-01, warm daemon, configuration cache reused:
 | `a.ps1 dq` | 18.4 s | foreground |
 | `a.ps1 d` / `dav` / `r` / `fu` | not measured | background |
 
+The `resource-link-gate` rows were measured on 2026-08-21 (S1915), warm daemon, `app_v2`:
+
+| Gate run | Wall clock | Verdict |
+| --- | ---: | --- |
+| one flavor, nothing to relink | 1.9 s | foreground |
+| one flavor, cold configuration cache | 10.6 s | foreground |
+| one flavor, red - aapt rejects a layout | 15.9 s | foreground |
+| one flavor, full relink after a resource change | 41.8 s | foreground |
+
+A two-flavor set costs the sum of two such runs, because the gate invokes the helper once per flavor -
+so the worst case observed here doubles to roughly 84 s and still clears the 120 s threshold. The
+1.9 s row is the one that matters for everyday cost: a closure whose resource set is already linked
+pays almost nothing, and the 41.8 s row is what an actual resource edit costs.
+
 The three `detekt-scoped` rows were measured on 2026-08-12 (S1595). They are the only detekt rows here that do NOT take `BUILD.LOCK`: the scoped runner drives detekt's CLI directly rather than through gradle, so it never queues behind a sibling session's build - which is why its number stays honest under contention while the `assert-detekt` row above does not.
 
 `assert-doc-icons-sync.ps1 -Gate` was measured on 2026-08-14 (S1545) as a completed foreground run with no lock wait. The 0.36 s figure is the gate's own wall-clock duration, not time spent queued for a repository lock.

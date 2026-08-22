@@ -13,7 +13,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.IOException
+import java.io.InputStream
 import javax.inject.Inject
 
 /** Longest edge of the produced picture. A watch cell never draws more than this. */
@@ -65,11 +67,32 @@ class BuildWatchThumbnailUseCase @Inject constructor(
      */
     private fun decodeImage(file: MediaFile): Bitmap? {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeFile(file.path, bounds)
+        readStream(file)?.use { BitmapFactory.decodeStream(it, null, bounds) }
         val options = BitmapFactory.Options().apply {
             inSampleSize = sampleSizeFor(bounds.outWidth, bounds.outHeight)
         }
-        return BitmapFactory.decodeFile(file.path, options)
+        return readStream(file)?.use { BitmapFactory.decodeStream(it, null, options) }
+    }
+
+    /**
+     * S1950: the MediaStore uri is preferred over the path, exactly as the video and audio branches
+     * already do it. Since Android 11 a file another app owns is readable through the resolver and
+     * not always through its path, and a picture that fails to decode ships to the watch as no
+     * picture at all - indistinguishable from a phone that has none.
+     */
+    private fun readStream(file: MediaFile): InputStream? = try {
+        Timber.d("S1950: thumbnail stream byUri=%s", file.contentUri != null)
+        file.contentUri?.let { context.contentResolver.openInputStream(Uri.parse(it)) }
+            ?: File(file.path).takeIf { it.canRead() }?.inputStream()
+    } catch (e: IOException) {
+        declinedStream(file, e)
+    } catch (e: SecurityException) {
+        declinedStream(file, e)
+    }
+
+    private fun declinedStream(file: MediaFile, error: Exception): InputStream? {
+        Timber.w(error, "No readable stream for %s", file.name)
+        return null
     }
 
     private fun decodeVideoFrame(file: MediaFile): Bitmap? =

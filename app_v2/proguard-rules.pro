@@ -330,6 +330,9 @@
 -keepclassmembernames enum com.sza.fastmediasorter.domain.model.PrefetchCacheMultiplier {
     <fields>;
 }
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.ResourceGridCellSize {
+    <fields>;
+}
 -keepclassmembernames enum com.sza.fastmediasorter.domain.model.ResourceType {
     <fields>;
 }

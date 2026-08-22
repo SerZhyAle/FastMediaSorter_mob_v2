@@ -30,6 +30,12 @@ data class StreamsUiState(
     val filterKind: StreamFilterKind = StreamFilterKind.ALL,
     val sortOrder: StreamSortOrder = StreamSortOrder.DEFAULT,
     val showSearchDialog: Boolean = false,
+    /**
+     * S1946: no activity answered the request for text or speech input. The screen has to say so -
+     * the dialog is already closed by then, so a silent refusal is indistinguishable from a search
+     * that ran and matched everything.
+     */
+    val searchInputUnavailable: Boolean = false,
     val showFilterDialog: Boolean = false,
     val showSortDialog: Boolean = false
 )

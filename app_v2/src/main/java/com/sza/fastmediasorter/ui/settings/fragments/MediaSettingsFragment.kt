@@ -46,6 +46,9 @@ class MediaSettingsFragment : BaseSettingsFragment() {
     // fragment-local section state machine; lazy child-fragment attach is kept via the expand hook.
     private val sectionsManager by lazy { CollapsibleSectionsManager(requireContext()) }
 
+    /** S1967: hands the base the sections this tab registered, so a search jump can open one. */
+    override fun collapsibleSections(): CollapsibleSectionsManager = sectionsManager
+
     private data class MediaChildSection(
         val header: CollapsibleSectionHeader,
         val container: View,

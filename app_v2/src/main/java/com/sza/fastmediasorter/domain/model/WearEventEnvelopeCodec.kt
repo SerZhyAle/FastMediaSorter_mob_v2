@@ -12,7 +12,7 @@ import java.util.Base64
  */
 class WearEventEnvelopeCodec {
 
-    private val gson = GsonBuilder().disableHtmlEscaping().create()
+    private val gson: Gson = GsonBuilder().disableHtmlEscaping().create()
 
     fun encode(envelope: WearEventEnvelope): ByteArray {
         val json = JsonObject().apply {

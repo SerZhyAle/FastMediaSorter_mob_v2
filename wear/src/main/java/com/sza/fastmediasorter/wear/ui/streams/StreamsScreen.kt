@@ -67,6 +67,11 @@ import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 private const val KEY_SEARCH_QUERY = "search_query"
+
+// S1962: the toolbar buttons were 40 dp, under the project's own interactive minimum. The constant is
+// the same one GridColumnFit drops a column to protect, so the toolbar and the grid now answer the
+// touch-target question with one number instead of two. VideoActionButtons already sits at 48 dp.
+private val TOOLBAR_BUTTON_SIZE = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
 private val CELL_BUTTON_SIZE = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
 private val CELL_ICON_SIZE = 24.dp
@@ -88,7 +93,6 @@ fun StreamsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberScalingLazyListState()
-    Timber.d("S1871: StreamsScreen search filter sort controls rendered")
 
     val searchHint = stringResource(R.string.wear_streams_search_hint)
     val searchLauncher = rememberLauncherForActivityResult(
@@ -96,7 +100,15 @@ fun StreamsScreen(
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK && result.data != null) {
             val remoteResults = RemoteInput.getResultsFromIntent(result.data)
-            val remoteQuery = remoteResults?.getCharSequence(KEY_SEARCH_QUERY)?.toString()
+            // S1946: the keyed answer first, then any other text the bundle carries. A watch that
+            // returns the typed string under a key of its own choosing used to be read as "the user
+            // entered nothing", which is the same screen as a search that matched everything.
+            val remoteQuery = remoteResults?.let { results ->
+                results.getCharSequence(KEY_SEARCH_QUERY)?.toString()
+                    ?: results.keySet().firstNotNullOfOrNull { key ->
+                        results.getCharSequence(key)?.toString()?.takeIf { it.isNotBlank() }
+                    }
+            }
             val speechResults = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
             val query = remoteQuery ?: speechResults?.firstOrNull()
             if (!query.isNullOrBlank()) {
@@ -106,7 +118,11 @@ fun StreamsScreen(
     }
 
     val launchSearchInput: () -> Unit = {
-        launchRemoteOrSpeechInput(searchHint) { searchLauncher.launch(it) }
+        launchRemoteOrSpeechInput(
+            searchHint = searchHint,
+            onUnavailable = viewModel::setSearchInputUnavailable,
+            launch = { searchLauncher.launch(it) },
+        )
     }
 
     val actions = StreamsActions(
@@ -145,7 +161,11 @@ fun StreamsScreen(
     )
 }
 
-private fun launchRemoteOrSpeechInput(searchHint: String, launch: (Intent) -> Unit) {
+private fun launchRemoteOrSpeechInput(
+    searchHint: String,
+    onUnavailable: () -> Unit,
+    launch: (Intent) -> Unit,
+) {
     val remoteInputIntent = Intent("androidx.wear.input.action.REMOTE_INPUT").apply {
         putExtra("androidx.wear.input.extra.DISALLOW_EMOJI", true)
         val remoteInput = RemoteInput.Builder(KEY_SEARCH_QUERY)
@@ -164,6 +184,7 @@ private fun launchRemoteOrSpeechInput(searchHint: String, launch: (Intent) -> Un
             launch(speechIntent)
         } catch (e: ActivityNotFoundException) {
             Timber.w(e, "Search input launcher failed")
+            onUnavailable()
         }
     }
 }
@@ -235,31 +256,7 @@ private fun StreamsMainContent(
                 )
             }
 
-            if (uiState.searchQuery.isNotEmpty()) {
-                item {
-                    Chip(
-                        onClick = actions.onClearSearch,
-                        label = {
-                            Text(
-                                text = uiState.searchQuery,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        },
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Filled.Close,
-                                contentDescription = stringResource(R.string.wear_streams_clear_search),
-                                modifier = Modifier.size(20.dp)
-                            )
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        colors = ChipDefaults.secondaryChipColors()
-                    )
-                }
-            }
+            streamsSearchState(uiState = uiState, onClearSearch = actions.onClearSearch)
 
             if (uiState.displayChannels.isEmpty()) {
                 streamsEmptyOrLoading(uiState = uiState, onRefresh = actions.onRefresh)
@@ -277,6 +274,55 @@ private fun StreamsMainContent(
                     RefreshFooterChip(isRefreshing = uiState.isRefreshing, onRefresh = actions.onRefresh)
                 }
             }
+        }
+    }
+}
+
+/**
+ * S1946: what the list says about the search itself - the refusal of the input path, and the query
+ * that is currently narrowing the list. Its own scope function for the reason
+ * [streamsEmptyOrLoading] is one: the screen body is at detekt's length ceiling.
+ */
+private fun ScalingLazyListScope.streamsSearchState(
+    uiState: StreamsUiState,
+    onClearSearch: () -> Unit
+) {
+    if (uiState.searchInputUnavailable) {
+        item {
+            Text(
+                text = stringResource(R.string.wear_streams_search_unavailable),
+                style = MaterialTheme.typography.caption2,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+
+    if (uiState.searchQuery.isNotEmpty()) {
+        item {
+            Chip(
+                onClick = onClearSearch,
+                label = {
+                    Text(
+                        text = uiState.searchQuery,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = stringResource(R.string.wear_streams_clear_search),
+                        modifier = Modifier.size(20.dp)
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                colors = ChipDefaults.secondaryChipColors()
+            )
         }
     }
 }
@@ -382,8 +428,11 @@ private fun StreamsControlHeader(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Button(
-            onClick = onSearchClick,
-            modifier = Modifier.size(40.dp),
+            onClick = {
+                Timber.d("S1962: streams toolbar button size=$TOOLBAR_BUTTON_SIZE")
+                onSearchClick()
+            },
+            modifier = Modifier.size(TOOLBAR_BUTTON_SIZE),
             colors = if (searchQuery.isNotEmpty()) {
                 ButtonDefaults.primaryButtonColors()
             } else {
@@ -399,7 +448,7 @@ private fun StreamsControlHeader(
 
         Button(
             onClick = onFilterClick,
-            modifier = Modifier.size(40.dp),
+            modifier = Modifier.size(TOOLBAR_BUTTON_SIZE),
             colors = if (filterKind != StreamFilterKind.ALL) {
                 ButtonDefaults.primaryButtonColors()
             } else {
@@ -415,7 +464,7 @@ private fun StreamsControlHeader(
 
         Button(
             onClick = onSortClick,
-            modifier = Modifier.size(40.dp),
+            modifier = Modifier.size(TOOLBAR_BUTTON_SIZE),
             colors = if (sortOrder != StreamSortOrder.DEFAULT) {
                 ButtonDefaults.primaryButtonColors()
             } else {

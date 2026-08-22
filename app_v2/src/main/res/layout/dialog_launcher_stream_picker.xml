@@ -65,14 +65,14 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginEnd="@dimen/margin_small"
-                android:minHeight="48dp" />
+                android:minHeight="@dimen/button_height" />
 
             <Spinner
                 android:id="@+id/spinnerLanguage"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:minHeight="48dp" />
+                android:minHeight="@dimen/button_height" />
         </LinearLayout>
     </LinearLayout>
 

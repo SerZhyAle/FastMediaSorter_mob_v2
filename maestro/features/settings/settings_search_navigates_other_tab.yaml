@@ -1,0 +1,51 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: a search result on a tab OTHER than the initially shown one lands on a visible row.
+# Oracle: rowAllowRename is visible after the jump - it sits inside containerFileOperations, one of
+#   six collapsible sections that share the single fragment_settings_playback layout.
+#
+# S1967 note: settings_search_navigates.yaml covers General, which is the tab the screen opens on.
+# That is not the same test. The bug this flow exists for expanded the target section for exactly one
+# destination of four, and General passing said nothing about the other three - which is how a search
+# jump could land on a row nobody could see. One tab is not the feature; four are.
+#
+# The query is a PREFIX of the row's title, not the whole title. `tapOn: text:` would otherwise match
+# the search input, which by then contains the text that was just typed into it, and the flow would
+# tap the field it typed into and still report the step COMPLETED.
+
+- launchApp
+- runFlow: ../../_shared/permissions.yaml
+- runFlow: ../../_shared/go_home.yaml
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnSettings"
+- runFlow: ../../_shared/dismiss_settings_dialogs.yaml
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/titleText"
+    timeout: 10000
+
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/searchButton"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/searchInput"
+    timeout: 8000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/searchInput"
+- inputText: "Allow ren"
+
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/searchResultsRecycler"
+    timeout: 8000
+- assertNotVisible:
+    id: "com.sza.fastmediasorter.debug:id/searchEmptyText"
+
+- tapOn:
+    text: "Allow rename"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rowAllowRename"
+    timeout: 10000
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/rowAllowRename"

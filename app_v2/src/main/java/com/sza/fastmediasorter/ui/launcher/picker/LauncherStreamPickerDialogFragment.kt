@@ -14,6 +14,7 @@ import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
+import com.google.android.material.button.MaterialButtonToggleGroup
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
@@ -47,7 +48,9 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
     lateinit var faviconAtlasStore: FaviconAtlasStore
 
     private var _binding: DialogLauncherStreamPickerBinding? = null
-    private val binding get() = _binding!!
+    private val binding get() = requireNotNull(_binding)
+
+    private var mediaKindListener: MaterialButtonToggleGroup.OnButtonCheckedListener? = null
 
     private val faviconSlicer = FaviconAtlasSlicer { faviconAtlasStore.atlasFile() }
 
@@ -105,7 +108,7 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
 
     private fun setupFilterListeners() {
         binding.toggleMediaKind.check(R.id.btnMediaAll)
-        binding.toggleMediaKind.addOnButtonCheckedListener { _, checkedId, isChecked ->
+        val mediaKindListener = MaterialButtonToggleGroup.OnButtonCheckedListener { _, checkedId, isChecked ->
             if (isChecked) {
                 selectedMediaKind = when (checkedId) {
                     R.id.btnMediaAudio -> KIND_AUDIO
@@ -115,6 +118,8 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
                 applyFiltersAndAttach()
             }
         }
+        this.mediaKindListener = mediaKindListener
+        binding.toggleMediaKind.addOnButtonCheckedListener(mediaKindListener)
 
         binding.spinnerTopic.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
@@ -232,6 +237,14 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        // Detach before dropping the binding: this dialog is reopened per pick, so a listener left on
+        // a destroyed view hierarchy accumulates one leaked instance per open.
+        _binding?.let { views ->
+            mediaKindListener?.let { views.toggleMediaKind.removeOnButtonCheckedListener(it) }
+            views.spinnerTopic.onItemSelectedListener = null
+            views.spinnerLanguage.onItemSelectedListener = null
+        }
+        mediaKindListener = null
         _binding = null
     }
 

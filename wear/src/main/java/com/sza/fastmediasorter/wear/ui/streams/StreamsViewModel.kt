@@ -1,18 +1,16 @@
 package com.sza.fastmediasorter.wear.ui.streams
 
 import android.graphics.Bitmap
-import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.data.repository.WearFaviconAtlasStore
 import com.sza.fastmediasorter.wear.domain.model.CatalogImportResult
-import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
-import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
-import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ImportWearStreamCatalogUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearStreamPlaybackUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.isVideoKind
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,9 +28,8 @@ class StreamsViewModel @Inject constructor(
     private val repository: WearStreamChannelRepository,
     private val importCatalogUseCase: ImportWearStreamCatalogUseCase,
     private val faviconAtlasStore: WearFaviconAtlasStore,
-    private val selectedMediaManager: SelectedMediaManager,
-    private val playbackSetManager: PlaybackSetManager,
-    private val preferencesRepository: WearPreferencesRepository
+    private val preferencesRepository: WearPreferencesRepository,
+    private val preparePlayback: PrepareWearStreamPlaybackUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(StreamsUiState())
@@ -67,10 +64,22 @@ class StreamsViewModel @Inject constructor(
     }
 
     fun setSearchQuery(query: String) {
+        Timber.d("S1946: streams search query reached the state, length=${query.length}")
         _uiState.update { state ->
             val display = computeDisplayChannels(state.channels, query, state.filterKind, state.sortOrder)
-            state.copy(searchQuery = query, displayChannels = display, showSearchDialog = false)
+            state.copy(
+                searchQuery = query,
+                displayChannels = display,
+                showSearchDialog = false,
+                // A query arriving is proof the input path answered, so any earlier refusal is stale.
+                searchInputUnavailable = false,
+            )
         }
+    }
+
+    /** S1946: no text or speech input activity answered, and the user is owed that in words. */
+    fun setSearchInputUnavailable() {
+        _uiState.update { it.copy(searchInputUnavailable = true) }
     }
 
     fun setFilterKind(kind: StreamFilterKind) {
@@ -137,52 +146,15 @@ class StreamsViewModel @Inject constructor(
         return faviconSlicer.tileFor(faviconIndex)
     }
 
+    /**
+     * S1944: the preparation moved to [PrepareWearStreamPlaybackUseCase] - the phone can now ask the
+     * watch to open a channel, and that request lands in the Data Layer listener rather than here, so
+     * both entrances must share one answer. The list still supplies what it was showing, which is
+     * what keeps paging inside the user's current view.
+     */
     fun prepareStreamPlayback(channel: WearStreamChannel): StreamPlaybackTarget {
-        val isVideo = channel.mediaKind.equals("VIDEO", ignoreCase = true) ||
-            channel.mediaKind.equals("RTSP", ignoreCase = true)
-
-        val mediaFile = WearMediaFile(
-            id = channel.url.hashCode().toLong(),
-            name = channel.name,
-            uri = Uri.parse(channel.url),
-            mimeType = if (isVideo) "video/*" else "audio/*",
-            size = 0L,
-            dateModified = 0L
-        )
-
-        selectedMediaManager.selectFile(
-            file = mediaFile,
-            isNetworkSource = true,
-            streamUri = channel.url,
-            sourceId = "stream",
-            isDirectStream = true
-        )
-
-        val channels = _uiState.value.displayChannels
-        val matchingChannels = if (isVideo) {
-            channels.filter { it.isVideoKind() }
-        } else {
-            channels.filter { !it.isVideoKind() }
-        }
-
-        val files = matchingChannels.map { ch ->
-            WearMediaFile(
-                id = ch.url.hashCode().toLong(),
-                name = ch.name,
-                uri = Uri.parse(ch.url),
-                mimeType = if (isVideo) "video/*" else "audio/*",
-                size = 0L,
-                dateModified = 0L
-            )
-        }
-
-        val startIndex = matchingChannels.indexOfFirst { it.url == channel.url }.coerceAtLeast(0)
-        playbackSetManager.publish(files, startIndex)
-
-        return StreamPlaybackTarget(
-            fileId = mediaFile.id,
-            isVideo = isVideo
-        )
+        val target = preparePlayback(channel, _uiState.value.displayChannels)
+        return StreamPlaybackTarget(fileId = target.fileId, isVideo = target.isVideo)
     }
 
     data class StreamPlaybackTarget(
@@ -224,8 +196,3 @@ private fun computeDisplayChannels(
 
     return result
 }
-
-// A catalog row carries its kind as free text, so VIDEO and RTSP are both "play it in the video
-// player" and the two spellings must never drift apart between the two call sites above.
-private fun WearStreamChannel.isVideoKind(): Boolean =
-    mediaKind.equals("VIDEO", ignoreCase = true) || mediaKind.equals("RTSP", ignoreCase = true)

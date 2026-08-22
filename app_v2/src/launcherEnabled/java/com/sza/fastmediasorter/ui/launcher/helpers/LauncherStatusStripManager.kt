@@ -122,6 +122,11 @@ class LauncherStatusStripManager @Inject constructor(
                 canOpen = { signalRegistry.open(it) != null },
                 onTap = ::openSignal,
             )
+            // S1908: the panel stays open while a dismissal takes effect, so the new list has to reach it
+            // too. Without this the strip updates behind a sheet still listing the notifications the user
+            // just cleared, and the header keeps offering to clear them again.
+            (fragmentManager?.findFragmentByTag(SIGNAL_LIST_TAG) as? LauncherSignalListBottomSheet)
+                ?.submit(current)
         }
         lifecycleOwner.collectOnLifecycle(cutoutBounds) { bounds ->
             this.binding?.launcherSignalRow?.setCutoutBounds(bounds)
@@ -266,6 +271,11 @@ class LauncherStatusStripManager @Inject constructor(
         LauncherSignalListBottomSheet().apply {
             signals = _signals.value
             onTap = ::openSignal
+            // S1908: the sheet holds no registry - that is what keeps exactly one navigation path (ADR-2) -
+            // so dismissal arrives the same way the tap route does, as callbacks from the strip's owner.
+            canDismiss = signalRegistry::canDismiss
+            onDismiss = signalRegistry::dismiss
+            onDismissAll = signalRegistry::dismissAll
         }.show(manager, SIGNAL_LIST_TAG)
     }
 

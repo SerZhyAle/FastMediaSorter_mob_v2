@@ -1,10 +1,14 @@
 package com.sza.fastmediasorter.wear.ui.apps.calculator
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -20,9 +24,16 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.calculator.WearCalculatorFunction
+import com.sza.fastmediasorter.wear.domain.model.WearViewMode
+import com.sza.fastmediasorter.wear.util.GridColumnFit
+import timber.log.Timber
 
 private val TITLE_VERTICAL_PADDING = 12.dp
 private val LIST_SIDE_PADDING = 8.dp
+private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
+
+/** S1942: the same interactive minimum the keypad respects, so a grid cell stays as hittable as a key. */
+private val GRID_CELL_HEIGHT = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
 
 /**
  * The single entrance to everything the keypad does not carry: every function, the memory cell and
@@ -32,24 +43,39 @@ private val LIST_SIDE_PADDING = 8.dp
  * calculator rather than closing the menu - the menu is closed by choosing something or by its own
  * close row, which is why that row exists.
  */
+/**
+ * S1966: the menu's callbacks travel as one object rather than eight parameters, the shape this
+ * module already uses for a composable with a handful of actions - NetworkSourcesActions,
+ * StreamsActions, VideoPlayerActions, AudioPlayerActions.
+ */
+data class CalculatorMenuActions(
+    val onFunction: (WearCalculatorFunction) -> Unit,
+    val onMemoryAdd: () -> Unit,
+    val onMemorySubtract: () -> Unit,
+    val onMemoryRecall: () -> Unit,
+    val onMemoryClear: () -> Unit,
+    val onHistory: () -> Unit,
+    val onDismiss: () -> Unit
+)
+
 @Composable
 fun CalculatorMenuSheet(
     memoryOccupied: Boolean,
-    onFunction: (WearCalculatorFunction) -> Unit,
-    onMemoryAdd: () -> Unit,
-    onMemorySubtract: () -> Unit,
-    onMemoryRecall: () -> Unit,
-    onMemoryClear: () -> Unit,
-    onHistory: () -> Unit,
-    onDismiss: () -> Unit
+    actions: CalculatorMenuActions
 ) {
     val listState = rememberScalingLazyListState()
 
-    Box(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colors.background)
     ) {
+        // S1942: the width decides, and nothing else - no setting and no stored mode (owner,
+        // 2026-08-22). Three columns are requested and the shared fit rule drops to fewer on a narrow
+        // watch rather than shrinking a cell under the interactive minimum.
+        val columns = GridColumnFit.columnsFor(WearViewMode.GRID_3, maxWidth.value.toInt())
+        Timber.d("S1942: menu grid columns=$columns width=${maxWidth.value}")
+
         ScalingLazyColumn(
             modifier = Modifier.fillMaxSize(),
             state = listState,
@@ -66,18 +92,21 @@ fun CalculatorMenuSheet(
                 )
             }
 
-            items(WearCalculatorFunction.entries.toList()) { function ->
-                MenuRow(
-                    label = stringResource(labelResFor(function)),
-                    onClick = { onFunction(function) }
+            // The functions are the grid; the rows below it are not. A close button in a grid cell is
+            // harder to hit, not easier, and the owner asked for the functions specifically.
+            items(WearCalculatorFunction.entries.toList().chunked(columns)) { row ->
+                FunctionGridRow(
+                    functions = row,
+                    columns = columns,
+                    onFunction = { function -> actions.onFunction(function) },
                 )
             }
 
-            item { MenuRow(label = stringResource(R.string.wear_calc_memory_add), onClick = onMemoryAdd) }
+            item { MenuRow(label = stringResource(R.string.wear_calc_memory_add), onClick = actions.onMemoryAdd) }
             item {
                 MenuRow(
                     label = stringResource(R.string.wear_calc_memory_subtract),
-                    onClick = onMemorySubtract
+                    onClick = actions.onMemorySubtract
                 )
             }
             // Recall and clear are offered only when the cell holds something: an empty memory has
@@ -86,19 +115,52 @@ fun CalculatorMenuSheet(
                 item {
                     MenuRow(
                         label = stringResource(R.string.wear_calc_memory_recall),
-                        onClick = onMemoryRecall
+                        onClick = actions.onMemoryRecall
                     )
                 }
                 item {
                     MenuRow(
                         label = stringResource(R.string.wear_calc_memory_clear),
-                        onClick = onMemoryClear
+                        onClick = actions.onMemoryClear
                     )
                 }
             }
 
-            item { MenuRow(label = stringResource(R.string.wear_calc_history), onClick = onHistory) }
-            item { MenuRow(label = stringResource(R.string.wear_calc_close), onClick = onDismiss) }
+            item { MenuRow(label = stringResource(R.string.wear_calc_history), onClick = actions.onHistory) }
+            item { MenuRow(label = stringResource(R.string.wear_calc_close), onClick = actions.onDismiss) }
+        }
+    }
+}
+
+/**
+ * S1942: one row of the function grid.
+ *
+ * The last row is padded with empty weight so a short final row keeps the same cell width as the rows
+ * above it - without it, two leftover functions would stretch to half the screen each and stop looking
+ * like the same kind of thing.
+ */
+@Composable
+private fun FunctionGridRow(
+    functions: List<WearCalculatorFunction>,
+    columns: Int,
+    onFunction: (WearCalculatorFunction) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(GRID_GAP),
+    ) {
+        functions.forEach { function ->
+            Chip(
+                onClick = { onFunction(function) },
+                label = { Text(text = stringResource(labelResFor(function)), maxLines = 1) },
+                modifier = Modifier
+                    .weight(1f)
+                    .height(GRID_CELL_HEIGHT),
+                colors = ChipDefaults.secondaryChipColors(),
+            )
+        }
+        repeat(columns - functions.size) {
+            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }

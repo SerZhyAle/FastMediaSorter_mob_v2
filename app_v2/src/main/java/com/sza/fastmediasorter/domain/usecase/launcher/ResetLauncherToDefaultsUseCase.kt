@@ -39,6 +39,10 @@ import javax.inject.Inject
  * after this reset, so releasing the pins here would delete the restore silently instead of failing
  * visibly. Clearing our own cells is the whole job; the pins are not ours to drop.
  *
+ * S1886: `defaults` inside [restoreLauncherSettings] is not plain factory state - it is the state the reset
+ * brings settings to, which is the factory value of every launcher field except the icon density, supplied
+ * by the reset dialog.
+ *
  * Re-seeding the starter desktop is NOT done here (strategic ADR-2, rewritten 2026-08-06). Only the
  * launcher knows the real grid geometry: the widths persisted in the desktop state cover just the
  * orientation that has actually been rendered, so a device that never rotated stores zero for the
@@ -55,14 +59,15 @@ class ResetLauncherToDefaultsUseCase @Inject constructor(
 ) {
 
     /** Returns whether the reset completed, so the caller can tell the user it did not happen. */
-    suspend operator fun invoke(): Boolean = withContext(Dispatchers.IO) {
+    suspend operator fun invoke(densityFactor: Float): Boolean = withContext(Dispatchers.IO) {
+        Timber.d("S1886: launcher reset requested at density %s", densityFactor)
         runCatching {
             desktop.clearAll()
             pins.clearPins()
             journal.clearJournal()
             installedApps.clearLaunchStats()
 
-            restoreLauncherSettings()
+            restoreLauncherSettings(densityFactor)
             storeLauncherWallpaperUseCase.clear()
             true
         }.getOrElse { error ->
@@ -75,8 +80,8 @@ class ResetLauncherToDefaultsUseCase @Inject constructor(
      * Copies back the launcher fields one by one instead of replacing the whole settings object,
      * so nothing outside the launcher is touched.
      */
-    private suspend fun restoreLauncherSettings() {
-        val defaults = AppSettings()
+    private suspend fun restoreLauncherSettings(densityFactor: Float) {
+        val defaults = AppSettings().copy(launcherDensityFactor = densityFactor)
         settings.updateSettings { current ->
             current.copy(
                 launcherDensityFactor = defaults.launcherDensityFactor,

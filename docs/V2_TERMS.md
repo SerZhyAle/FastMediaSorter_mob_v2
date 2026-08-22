@@ -14,6 +14,8 @@ permalink: /docs/V2_TERMS.html
 - **Favorites** - locally stored list of marked files
 - **Touch Zones** - 3×3 interactive areas in player mode
 - **Soft Delete** - moving local files into `.trash/` instead of immediate hard delete
+- **Launcher** - the mode in which the app replaces the Android home screen; the Home button opens the app's own desktop
+- **Desktop** - the launcher's screen of cells: shortcuts and gadgets. Part of the launcher, not a synonym for it
 
 ## Additional terms
 

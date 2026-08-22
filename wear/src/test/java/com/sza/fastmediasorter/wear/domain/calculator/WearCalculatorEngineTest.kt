@@ -131,6 +131,26 @@ class WearCalculatorEngineTest {
     }
 
     @Test
+    fun `pending operator is the one waiting to be applied`() {
+        engine.enter("2")
+        engine.inputOperator("+")
+
+        assertEquals(WearCalculatorEngine.Operator.PLUS, engine.pendingOperator)
+        assertEquals(WearCalculatorEngine.Operator.PLUS, engine.lastChosenOperator)
+    }
+
+    @Test
+    fun `equals extinguishes the pending operator but not the chosen one`() {
+        engine.enter("2")
+        engine.inputOperator("+")
+        engine.enter("3")
+        engine.inputEquals()
+
+        assertEquals(null, engine.pendingOperator)
+        assertEquals(WearCalculatorEngine.Operator.PLUS, engine.lastChosenOperator)
+    }
+
+    @Test
     fun `clear resets the whole engine`() {
         engine.enter("12")
         engine.inputOperator("+")
@@ -139,6 +159,8 @@ class WearCalculatorEngineTest {
 
         assertEquals("0", engine.clear())
         assertEquals(null, engine.lastExpression)
+        assertEquals(null, engine.pendingOperator)
+        assertEquals(null, engine.lastChosenOperator)
         assertFalse(engine.isError)
     }
 }

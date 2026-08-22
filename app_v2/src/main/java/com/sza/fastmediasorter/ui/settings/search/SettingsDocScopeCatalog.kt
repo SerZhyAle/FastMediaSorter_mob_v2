@@ -41,6 +41,14 @@ object SettingsDocScopeCatalog {
             SettingsSearchDestination.GENERAL,
             "rowLauncherSettings"
         ),
+        // S1886: the reset confirmation carries its own density selector, so it is a settings surface
+        // of its own; btnResetLauncher inside the launcher settings dialog is what opens it.
+        DocScopeSurface(
+            R.layout.dialog_launcher_reset_confirm,
+            "launcher",
+            SettingsSearchDestination.GENERAL,
+            "btnResetLauncher"
+        ),
         DocScopeSurface(
             R.layout.dialog_edge_gesture_config,
             "gestures",

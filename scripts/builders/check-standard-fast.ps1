@@ -202,6 +202,28 @@ if ($gradleExit -ne 0) {
 
 Write-Host "`nFast check passed." -ForegroundColor Green
 
+# S1920: name the directory Gradle actually wrote to. A --tests run may report into a directory of its
+# own (`<task>-filtered`) while the plain one keeps whatever the last FULL run left there, so a reader
+# who checks the obvious path sees another run's counts under this run's green line - three sessions
+# have now read the wrong one and concluded a passing test never ran.
+# S1946: which of the two receives them is not fixed - the same call filtered into `-filtered` on
+# app_v2 and into the plain directory on wear - so this reports the newest match instead of naming a
+# path from a rule. A guess here would recreate the very failure the line exists to prevent.
+if ($Tests -and $Mode -eq "Unit") {
+    $resultsRoot = Join-Path $projectRoot "$Module\build\test-results"
+    $written = if (Test-Path $resultsRoot) {
+        Get-ChildItem -Path $resultsRoot -Directory |
+            Where-Object { $_.Name -like "test*UnitTest*" } |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 1
+    } else {
+        $null
+    }
+    if ($written) {
+        Write-Host "Reports (this filtered run): $($written.FullName)" -ForegroundColor Yellow
+    }
+}
+
 }
 finally {
     Exit-AgentLock -Name Build

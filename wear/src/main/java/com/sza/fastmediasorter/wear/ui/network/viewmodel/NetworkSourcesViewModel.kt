@@ -98,9 +98,11 @@ class NetworkSourcesViewModel @Inject constructor(
                             SourceItem(
                                 id = source.id,
                                 name = source.name,
-                                server = source.server
+                                server = source.server,
+                                type = source.type
                             )
                         }
+                        Timber.d("S1952: observed types " + sourceItems.map { it.type })
                         Timber.d("Observed ${sourceItems.size} network sources")
                         NetworkSourcesUiState.Success(sourceItems)
                     }
@@ -170,10 +172,12 @@ class NetworkSourcesViewModel @Inject constructor(
                         SourceItem(
                             id = source.id,
                             name = source.name,
-                            server = source.server
+                            server = source.server,
+                            type = source.type
                         )
                     }
                     _uiState.value = NetworkSourcesUiState.Success(sourceItems)
+                    Timber.d("S1952: loaded types " + sourceItems.map { it.type })
                     Timber.d("Loaded ${sourceItems.size} network sources")
                 }
             } catch (e: Exception) {

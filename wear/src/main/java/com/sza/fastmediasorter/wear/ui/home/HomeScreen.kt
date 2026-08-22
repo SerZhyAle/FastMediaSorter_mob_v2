@@ -217,7 +217,9 @@ private fun HomeSectionCell(
 private fun iconFor(id: HomeSectionId): Int = when (id) {
     HomeSectionId.LAST_USED_RESOURCE -> R.drawable.ic_history
     HomeSectionId.FAVOURITES -> R.drawable.ic_resource_favorites
-    HomeSectionId.RESOURCES -> R.drawable.ic_wifi
+    // ic_resource is the phone's canonical umbrella glyph for "a source registered in this app",
+    // which is what this section lists. ic_wifi described the transport, not the entity (S1952).
+    HomeSectionId.RESOURCES -> R.drawable.ic_resource
     HomeSectionId.PHONE -> R.drawable.ic_profile_personal_smartphone
     // Local means the watch's own storage, so it takes the phone's glyph for the watch - the phone's
     // "local storage" icon is a smartphone and would have been indistinguishable from PHONE above.

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.apps.calculator
 
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -16,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -25,7 +28,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
@@ -35,12 +37,23 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.domain.calculator.WearCalculatorEngine
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.util.GridColumnFit
+import timber.log.Timber
 
-private val KEY_HEIGHT = 26.dp
+// S1965: was 26.dp - about half the interactive minimum, while the KDoc below and
+// docs/WEAR_OS_STATUS.md both said 48. That KDoc names the target size as the FIXED side of the
+// trade and scrolling as its price, so the constant was what stood out of line, not the rule.
+private val KEY_HEIGHT = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
 private val KEY_GAP = 2.dp
 private val KEYPAD_SIDE_PADDING = 6.dp
-private val DISPLAY_VERTICAL_PADDING = 8.dp
+
+/** S1942: the value row's operation element, held at the same interactive minimum as a keypad key. */
+private val OPERATION_ELEMENT_SIZE = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
+
+/** S1719: how many zeros the held zero key enters, mirroring the phone's quick entry. */
+private const val TRIPLE_ZERO_COUNT = 3
 
 /**
  * What a key does when pressed. The screen holds no arithmetic - every action is one call into the
@@ -68,9 +81,12 @@ private sealed interface CalculatorKey {
  */
 @Composable
 fun CalculatorScreen(
-    navController: NavController,
+    // S1719: holding the menu key leaves the calculator. The screen does not own the back stack, so
+    // leaving is the host's word, handed in - the same way every other route here stays navigation-free.
+    onLeave: () -> Unit = {},
     viewModel: CalculatorViewModel = hiltViewModel()
 ) {
+    Timber.d("S1965: calculator key height=$KEY_HEIGHT")
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberScalingLazyListState()
     var menuOpen by remember { mutableStateOf(false) }
@@ -85,7 +101,12 @@ fun CalculatorScreen(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            CalculatorDisplay(uiState = uiState)
+            CalculatorDisplay(
+                uiState = uiState,
+                // The same view-model entry the operator keys reach through `dispatch`; the element
+                // repeats an operation, it does not open a second way into the arithmetic.
+                onOperation = { symbol -> viewModel.onOperator(symbol) }
+            )
             ScalingLazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -96,25 +117,22 @@ fun CalculatorScreen(
                 items(keypadRows()) { row ->
                     CalculatorKeyRow(
                         keys = row,
-                        onKey = { key -> dispatch(key, viewModel) { menuOpen = true } }
+                        onKey = { key -> dispatch(key, viewModel) { menuOpen = true } },
+                        onLongKey = { key -> dispatchLongPress(key, viewModel, onLeave) },
                     )
                 }
             }
         }
 
         if (menuOpen) {
-            CalculatorMenuSheet(
+            CalculatorMenuOverlay(
                 memoryOccupied = uiState.memoryOccupied,
-                onFunction = { function ->
-                    viewModel.onFunction(function)
+                viewModel = viewModel,
+                onClose = { menuOpen = false },
+                onHistory = {
                     menuOpen = false
-                },
-                onMemoryAdd = { viewModel.onMemoryAdd(); menuOpen = false },
-                onMemorySubtract = { viewModel.onMemorySubtract(); menuOpen = false },
-                onMemoryRecall = { viewModel.onMemoryRecall(); menuOpen = false },
-                onMemoryClear = { viewModel.onMemoryClear(); menuOpen = false },
-                onHistory = { menuOpen = false; historyOpen = true },
-                onDismiss = { menuOpen = false }
+                    historyOpen = true
+                }
             )
         }
 
@@ -132,26 +150,119 @@ fun CalculatorScreen(
     }
 }
 
+/**
+ * The menu overlay and the wiring that closes it.
+ *
+ * Extracted from [CalculatorScreen] because every one of these actions ends the same way - do the
+ * thing, then shut the menu - and eight repetitions of that pair inside the screen buried the screen's
+ * own structure under its menu's bookkeeping.
+ */
 @Composable
-private fun CalculatorDisplay(uiState: CalculatorUiState) {
+private fun CalculatorMenuOverlay(
+    memoryOccupied: Boolean,
+    viewModel: CalculatorViewModel,
+    onClose: () -> Unit,
+    onHistory: () -> Unit,
+) {
+    CalculatorMenuSheet(
+        memoryOccupied = memoryOccupied,
+        actions = CalculatorMenuActions(
+            onFunction = { function ->
+                viewModel.onFunction(function)
+                onClose()
+            },
+            onMemoryAdd = {
+                viewModel.onMemoryAdd()
+                onClose()
+            },
+            onMemorySubtract = {
+                viewModel.onMemorySubtract()
+                onClose()
+            },
+            onMemoryRecall = {
+                viewModel.onMemoryRecall()
+                onClose()
+            },
+            onMemoryClear = {
+                viewModel.onMemoryClear()
+                onClose()
+            },
+            onHistory = onHistory,
+            onDismiss = onClose
+        )
+    )
+}
+
+@Composable
+private fun CalculatorDisplay(uiState: CalculatorUiState, onOperation: (String) -> Unit) {
     val text = if (uiState.isError) stringResource(R.string.wear_calc_error) else uiState.display
-    Text(
-        text = text,
-        style = MaterialTheme.typography.title1,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        textAlign = TextAlign.Center,
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = KEYPAD_SIDE_PADDING, end = KEYPAD_SIDE_PADDING, top = 16.dp, bottom = 4.dp)
-            .semantics { contentDescription = text }
+            .padding(start = KEYPAD_SIDE_PADDING, end = KEYPAD_SIDE_PADDING, top = 16.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.title1,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
+            // The number keeps its own type size and takes whatever the small element leaves;
+            // strategic 3.2 fixes legibility, so the element is what stays small, not the value.
+            modifier = Modifier
+                .weight(1f)
+                .semantics { contentDescription = text }
+        )
+        OperationElement(operation = uiState.operation, onOperation = onOperation)
+    }
+}
+
+/**
+ * S1942: one element for both halves of the owner's ruling of 2026-08-22 - it shows the operation
+ * that will be applied and repeats it on a tap, which is what let this ticket absorb S1900 instead of
+ * putting a second control on the same row.
+ *
+ * A lone operator sign beside a number announces nothing to a screen reader, hence the spoken
+ * description naming both the operation and what a tap does.
+ */
+@Composable
+private fun OperationElement(operation: WearCalculatorEngine.Operator, onOperation: (String) -> Unit) {
+    val description = stringResource(
+        R.string.wear_calc_current_operation,
+        stringResource(operationDescriptionRes(operation))
     )
+    Button(
+        onClick = {
+            Timber.d("S1942: operation element tap ${operation.symbol}")
+            onOperation(operation.symbol)
+        },
+        modifier = Modifier
+            .size(OPERATION_ELEMENT_SIZE)
+            .semantics { contentDescription = description },
+        shape = RoundedCornerShape(4.dp),
+        colors = ButtonDefaults.primaryButtonColors()
+    ) {
+        Text(
+            text = operation.symbol,
+            style = MaterialTheme.typography.title3.copy(fontWeight = FontWeight.Bold),
+            maxLines = 1
+        )
+    }
+}
+
+private fun operationDescriptionRes(operation: WearCalculatorEngine.Operator): Int = when (operation) {
+    WearCalculatorEngine.Operator.PLUS -> R.string.wear_calc_plus
+    WearCalculatorEngine.Operator.MINUS -> R.string.wear_calc_minus
+    WearCalculatorEngine.Operator.TIMES -> R.string.wear_calc_times
+    WearCalculatorEngine.Operator.DIVIDE -> R.string.wear_calc_divide
 }
 
 @Composable
 private fun CalculatorKeyRow(
     keys: List<CalculatorKey>,
-    onKey: (CalculatorKey) -> Unit
+    onKey: (CalculatorKey) -> Unit,
+    onLongKey: (CalculatorKey) -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -161,11 +272,14 @@ private fun CalculatorKeyRow(
             val label = labelFor(key)
             val description = descriptionFor(key)
             Button(
+                // Kept even for the two keys that carry a long press: this is the click TalkBack
+                // activates, and it must reach the same place a finger tap does.
                 onClick = { onKey(key) },
                 modifier = Modifier
                     .weight(1f)
                     .height(KEY_HEIGHT)
-                    .semantics { contentDescription = description },
+                    .semantics { contentDescription = description }
+                    .then(longPressModifier(key, onKey, onLongKey)),
                 shape = RoundedCornerShape(4.dp),
                 colors = if (key is CalculatorKey.Digit) {
                     ButtonDefaults.secondaryButtonColors()
@@ -183,6 +297,44 @@ private fun CalculatorKeyRow(
     }
 }
 
+/**
+ * S1719: the long-press detector for the two keys that carry one, and nothing for the rest.
+ *
+ * `onTap` is supplied alongside `onLongPress` deliberately: `detectTapGestures` consumes the press
+ * unconditionally, so a key that declared only the long press would stop reacting to an ordinary tap
+ * entirely. This repository has already paid for that once on the watch resources list (S1953).
+ */
+private fun longPressModifier(
+    key: CalculatorKey,
+    onKey: (CalculatorKey) -> Unit,
+    onLongKey: (CalculatorKey) -> Unit,
+): Modifier {
+    if (!hasLongPress(key)) return Modifier
+    return Modifier.pointerInput(key) {
+        detectTapGestures(
+            onTap = { onKey(key) },
+            onLongPress = { onLongKey(key) },
+        )
+    }
+}
+
+/** S1719: the watch keypad stays arithmetic-only (owner, 2026-08-19) - exactly two keys carry more. */
+private fun hasLongPress(key: CalculatorKey): Boolean =
+    key == CalculatorKey.Menu || (key is CalculatorKey.Digit && key.value == 0)
+
+/** S1719: three zeros through the ordinary digit path, and leaving from the menu key. */
+private fun dispatchLongPress(
+    key: CalculatorKey,
+    viewModel: CalculatorViewModel,
+    onLeave: () -> Unit,
+) {
+    when {
+        key == CalculatorKey.Menu -> onLeave()
+        key is CalculatorKey.Digit && key.value == 0 -> repeat(TRIPLE_ZERO_COUNT) { viewModel.onDigit(0) }
+        else -> Unit
+    }
+}
+
 private fun dispatch(key: CalculatorKey, viewModel: CalculatorViewModel, openMenu: () -> Unit) {
     when (key) {
         is CalculatorKey.Digit -> viewModel.onDigit(key.value)
@@ -196,6 +348,9 @@ private fun dispatch(key: CalculatorKey, viewModel: CalculatorViewModel, openMen
     }
 }
 
+// S1966: the numbers here ARE the digits the keys carry, so naming each one as a constant would
+// rename 7 to SEVEN and explain nothing. This is the case suppression exists for.
+@Suppress("MagicNumber")
 private fun keypadRows(): List<List<CalculatorKey>> = listOf(
     listOf(
         CalculatorKey.Digit(7),

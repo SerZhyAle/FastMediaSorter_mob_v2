@@ -25,7 +25,18 @@ mid-implementation. The tell was not a lock or an error: it was **my own phase f
 under me**. Treat an unexplained edit to a file you are the only author of as a lease check, not as a
 mystery.
 
+Fourth occurrence, 2026-08-21, with a **new trigger worth naming separately: waiting in the `CODE.LOCK`
+queue burns the lease.** Driving S1897 needed the code lock four separate times, and with three sibling
+sessions live each wait ran minutes. The work between waits was short and correct - no long phase, no
+gradle marathon - yet the accumulated *queue* time was enough to lose the lease, and session `787173c7`
+(`/spec-all`) took S1897 and completed a phase I had planned. The tell was the same as last time: a phase
+file I authored showed up as ✅ Done with an audit section I had not written. Being blocked feels like
+doing nothing, so it does not register as elapsed time - but the lease measures wall clock, not effort.
+
 **How to apply:**
+
+- Re-claim right after every `enter-code-lock` / `wait-for-lock-turn` round trip, not only after a phase.
+  A queued wait is a lease-expiry event even though no work happened during it.
 
 - Claim again right after each `plan-tick ... -State Done` that closes a phase. It is one cheap call
   and re-claiming a lease you already hold prints `already held by this session`.

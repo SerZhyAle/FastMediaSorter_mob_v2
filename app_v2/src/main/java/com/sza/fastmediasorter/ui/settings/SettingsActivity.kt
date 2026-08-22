@@ -35,6 +35,7 @@ import com.sza.fastmediasorter.databinding.ActivitySettingsBinding
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.settings.fragments.BaseSettingsFragment
 import com.sza.fastmediasorter.ui.settings.fragments.MediaSettingsFragment
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
@@ -586,21 +587,36 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         closeSearchOverlay()
         binding.viewPager.currentItem = item.destination.tabIndex
 
-        binding.viewPager.post {
-            if (item.destination == SettingsSearchDestination.MEDIA) {
-                (getSettingsFragment(item.destination.tabIndex) as? MediaSettingsFragment)
-                    ?.ensureSectionExpanded(item.sectionId)
-            }
-            navigateToTarget(item.viewId, retryCount = 0)
-        }
+        binding.viewPager.post { navigateToTarget(item, retryCount = 0) }
     }
 
-    private fun navigateToTarget(viewId: Int, retryCount: Int) {
-        val targetView = findViewById<View>(viewId)
+    /**
+     * S1967: opens the collapsible section holding the row a search result points at.
+     *
+     * Called on every attempt of [navigateToTarget] rather than once before it, because only the
+     * initially created tab has its fragment ready at the moment the tab is selected. Aimed at a
+     * fragment that does not exist yet, the expansion does nothing and no one notices - which is
+     * exactly how the first version of this fix passed on General and failed on Playback.
+     */
+    private fun expandSectionForTarget(item: SettingsSearchIndex) {
+        val fragment = getSettingsFragment(item.destination.tabIndex)
+        // Media's sections build their child fragment on first expand, so opening the container is
+        // necessary but not sufficient there; this path attaches the child and is left as it was.
+        if (fragment is MediaSettingsFragment) {
+            fragment.ensureSectionExpanded(item.sectionId)
+        }
+        // Every destination, not only Media. The row's ancestors name the section that encloses it,
+        // which a section name cannot do where one layout carries eight sections under one name.
+        (fragment as? BaseSettingsFragment)?.expandSectionForSearchTarget(item.ancestorIds)
+    }
+
+    private fun navigateToTarget(item: SettingsSearchIndex, retryCount: Int) {
+        expandSectionForTarget(item)
+        val targetView = findViewById<View>(item.viewId)
         if (targetView == null) {
             if (retryCount < 25) {
                 binding.viewPager.postDelayed(
-                    { navigateToTarget(viewId, retryCount + 1) },
+                    { navigateToTarget(item, retryCount + 1) },
                     80L
                 )
             }

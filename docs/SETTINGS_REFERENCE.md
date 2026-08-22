@@ -312,6 +312,7 @@ _Settings -> General -> System launcher settings_
 | SIM 2 signal | Shows the signal level of the second SIM in the launcher tray. Needs permission to read the phone state; the indicator is absent without it or on a single-SIM device. |
 | Desktop wallpaper | Chooses the launcher desktop's wallpaper: branded animation, a static striped frame refreshed when you return to the launcher, an empty surface, or your own image. |
 | Widget backdrop opacity | Controls the opacity of widget background cards on the launcher desktop (0% transparent to 100% opaque; 85% default). |
+| Grid density | Chooses the icon density the launcher reset lays the starter set out at; it opens on the density your device profile suggests. |
 
 ## Edge gestures
 

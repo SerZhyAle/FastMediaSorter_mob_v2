@@ -215,7 +215,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         favoritesEnabled = { viewModel.settings.value.enableFavorites },
         isFavorite = { viewModel.isFavoriteChannel(it) },
         onSendToWatch = { viewModel.sendStreamToWatch(it) },
-        wearSendAvailable = { viewModel.isWearSendAvailable() },
+        onOpenOnWatch = { viewModel.sendStreamToWatch(it, openNow = true) },
+        wearSendAvailable = { viewModel.isWearSendAvailable },
         faviconResolver = { url -> faviconCoords[url] },
         faviconTileLoader = { index -> faviconSlicer.tileFor(index) },
         faviconScope = lifecycleScope,
@@ -238,7 +239,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         favoritesEnabled = { viewModel.settings.value.enableFavorites },
         isFavorite = { viewModel.isFavoriteChannel(it) },
         onSendToWatch = { viewModel.sendStreamToWatch(it) },
-        wearSendAvailable = { viewModel.isWearSendAvailable() },
+        onOpenOnWatch = { viewModel.sendStreamToWatch(it, openNow = true) },
+        wearSendAvailable = { viewModel.isWearSendAvailable },
         faviconResolver = { url -> faviconCoords[url] },
         faviconTileLoader = { index -> faviconSlicer.tileFor(index) },
         faviconScope = lifecycleScope,
@@ -277,7 +279,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             favoritesEnabled = { viewModel.settings.value.enableFavorites },
             isFavorite = { viewModel.isFavoriteChannel(it) },
             onSendToWatch = { viewModel.sendStreamToWatch(it) },
-            wearSendAvailable = { viewModel.isWearSendAvailable() },
+            onOpenOnWatch = { viewModel.sendStreamToWatch(it, openNow = true) },
+            wearSendAvailable = { viewModel.isWearSendAvailable },
             frameProvider = streamFrameCache::get,
             requestCapture = snapshotManager::request,
             faviconResolver = { url -> faviconCoords[url] },
@@ -319,7 +322,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             favoritesEnabled = { viewModel.settings.value.enableFavorites },
             isFavorite = { viewModel.isFavoriteChannel(it) },
             onSendToWatch = { viewModel.sendStreamToWatch(it) },
-            wearSendAvailable = { viewModel.isWearSendAvailable() },
+            onOpenOnWatch = { viewModel.sendStreamToWatch(it, openNow = true) },
+            wearSendAvailable = { viewModel.isWearSendAvailable },
             frameProvider = streamFrameCache::get,
             requestCapture = pinnedSnapshotManager::request,
             faviconResolver = { url -> faviconCoords[url] },
@@ -972,10 +976,15 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private fun onAddShortcut(source: StreamSourceEntity) {
         lifecycleScope.launch {
             val iconTile = faviconCoords[source.url]?.let { faviconSlicer.tileFor(it) }
-            val requested = StreamShortcutPinManager(this@StreamsActivity).requestPin(source, iconTile)
-            val message =
-                if (requested) R.string.streams_shortcut_created else R.string.streams_shortcut_unsupported
-            Toast.makeText(this@StreamsActivity, message, Toast.LENGTH_LONG).show()
+            // S1917: an accepted pin request is not a created shortcut - the system confirmation
+            // dialog decides that next - so only the unsupported case is reported here.
+            if (!StreamShortcutPinManager(this@StreamsActivity).requestPin(source, iconTile)) {
+                Toast.makeText(
+                    this@StreamsActivity,
+                    R.string.streams_shortcut_unsupported,
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         }
     }
 
@@ -994,7 +1003,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             // S0711: starting any stream needs at least one active transport. Refuse fast (no spinner, no
             // connection-timeout) when fully offline. Covers tile taps and the playByUrl shortcut path,
             // both of which funnel through onPlay.
-            !viewModel.hasNetworkForStream() ->
+            !viewModel.hasNetworkForStream ->
                 Toast.makeText(this, R.string.streams_error_no_network, Toast.LENGTH_SHORT).show()
             source.mediaKind == "AUDIO" ->
                 inlineAudio.play(source, useBackgroundService = isBackgroundAudioEnabled())
@@ -1104,7 +1113,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private fun showStreamUnavailable(source: StreamSourceEntity) {
         // S1509: one connectivity sample drives both the recorded outcome and the dialog, so the row
         // bullet and the buttons can never disagree about what just happened.
-        val hasNetwork = viewModel.hasNetworkForStream()
+        val hasNetwork = viewModel.hasNetworkForStream
         // S0593/S1509: the inline audio attempt failed -> red when the channel is to blame, amber when
         // the network was down.
         viewModel.recordStreamPlayFailure(source.id, hasNetwork)

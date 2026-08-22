@@ -50,6 +50,25 @@ class ForeignNotificationCounts @Inject constructor(
     val counts: StateFlow<Map<String, Int>> = mutableCounts.asStateFlow()
 
     /**
+     * S1908: the keys behind one package's count, for dismissing exactly the notifications that produced it.
+     *
+     * A copy, taken under the same monitor every mutation holds: the system delivers listener callbacks on
+     * its own thread while the panel reads this from another, so handing out the live set would let a caller
+     * iterate a set the next callback is writing.
+     *
+     * Still content-free. A key identifies a notification without describing it, so this widens what the
+     * class hands out without widening what it knows - the shape rule of S1465 ADR-2 is intact.
+     */
+    fun keysFor(packageName: String): Set<String> = synchronized(keysByPackage) {
+        if (!isEnabled) emptySet() else keysByPackage[packageName]?.toSet().orEmpty()
+    }
+
+    /** S1908: every key currently counted, across all packages - what "dismiss all" resolves to. */
+    fun allKeys(): Set<String> = synchronized(keysByPackage) {
+        if (!isEnabled) emptySet() else keysByPackage.values.flatMapTo(mutableSetOf()) { it }
+    }
+
+    /**
      * Records that [packageName] has a notification identified by [key] posted.
      *
      * @param isGroupSummary whether the system marked this notification as the summary of a group. A flag,

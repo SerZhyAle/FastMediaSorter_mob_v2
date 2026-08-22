@@ -33,22 +33,12 @@ internal object CapturedPhotoAspectCropper {
             val decoder = BitmapRegionDecoder.newInstance(file.absolutePath, false) ?: return
             val w = decoder.width
             val h = decoder.height
-            val longEdge = maxOf(w, h)
-            val shortEdge = minOf(w, h)
-            // A non-positive target resolves to the untouched short edge, which the guard below turns
-            // into "leave the photo alone" - one exit instead of a second early return.
-            val targetShort = if (targetRatio > 0f) (longEdge / targetRatio).toInt() else shortEdge
-            if (targetShort >= shortEdge) {
+            val crop = CaptureCropGeometry.cropRectForRatio(w, h, targetRatio)
+            if (crop.right - crop.left == w && crop.bottom - crop.top == h) {
                 decoder.recycle()
                 return
             }
-            val rect = if (w >= h) {
-                val top = (h - targetShort) / 2
-                Rect(0, top, w, top + targetShort)
-            } else {
-                val left = (w - targetShort) / 2
-                Rect(left, 0, left + targetShort, h)
-            }
+            val rect = Rect(crop.left, crop.top, crop.right, crop.bottom)
             val cropped = decoder.decodeRegion(rect, null)
             decoder.recycle()
             FileOutputStream(file).use { cropped.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, it) }
@@ -75,11 +65,8 @@ internal object CapturedPhotoAspectCropper {
             val decoder = BitmapRegionDecoder.newInstance(file.absolutePath, false) ?: return
             val w = decoder.width
             val h = decoder.height
-            val cropW = (w / factor).toInt().coerceAtLeast(1)
-            val cropH = (h / factor).toInt().coerceAtLeast(1)
-            val left = (w - cropW) / 2
-            val top = (h - cropH) / 2
-            val region = decoder.decodeRegion(Rect(left, top, left + cropW, top + cropH), null)
+            val crop = CaptureCropGeometry.centreCropByFactor(w, h, factor)
+            val region = decoder.decodeRegion(Rect(crop.left, crop.top, crop.right, crop.bottom), null)
             decoder.recycle()
             val scaled = Bitmap.createScaledBitmap(region, w, h, true)
             FileOutputStream(file).use { scaled.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, it) }

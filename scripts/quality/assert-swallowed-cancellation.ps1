@@ -24,6 +24,11 @@
     and this gate read the file as clean the whole time.
 
 .NOTES
+    S1910: the rule is registered TWICE, once per module - `swallowed-cancellation` over
+    app_v2/src/main and `swallowed-cancellation-wear` over wear/src - each with its own baseline
+    integer. One shared count across both roots would let a regression in one module hide behind a
+    cleanup in the other and still read as at-or-below baseline. This wrapper reports both.
+
     Exit codes: 0 at or below baseline, 1 above baseline under -Gate, 2 cannot verify.
 #>
 [CmdletBinding()]
@@ -37,7 +42,9 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$forward = @{ Only = 'swallowed-cancellation' }
+# S1910: both module rules, or this wrapper would silently report on app_v2 alone while the watch
+# half - which has its own Roots and its own baseline - went unmentioned by the gate named after it.
+$forward = @{ Only = @('swallowed-cancellation', 'swallowed-cancellation-wear') }
 if ($Gate) { $forward.Gate = $true }
 if ($UpdateBaseline) { $forward.UpdateBaseline = $true }
 if ($List) { $forward.List = $true }

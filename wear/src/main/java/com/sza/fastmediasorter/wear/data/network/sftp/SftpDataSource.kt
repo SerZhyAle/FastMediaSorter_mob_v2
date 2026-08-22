@@ -9,6 +9,7 @@ import com.jcraft.jsch.SftpException
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.util.MediaMimeTypes
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -69,6 +70,8 @@ class SftpDataSource @Inject constructor() {
                     ?: error("SFTP get returned null for path=$path")
 
                 Result.success(streamClosingSession(stream, channel, session))
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: JSchException) {
                 failStream(e, channel, session, path)
             } catch (e: SftpException) {

@@ -141,11 +141,13 @@ class LauncherResourceActionManager(
     /** The same request, icon and message the main window's "Add to home screen" produces. */
     private fun pinShortcut(resource: MediaResource) {
         val icon = ResourceIconComposer.compose(activity, resource)
-        val message = when (shortcutPinManager.requestPin(resource.id, resource.name, icon)) {
-            ResourceShortcutPinManager.PinResult.Requested -> R.string.resource_shortcut_created
-            ResourceShortcutPinManager.PinResult.Unsupported -> R.string.resource_shortcut_unsupported
+        // S1917: see LauncherStreamActionManager - a pin request is not a created shortcut, so only
+        // the unsupported case is worth a toast.
+        if (shortcutPinManager.requestPin(resource.id, resource.name, icon) ==
+            ResourceShortcutPinManager.PinResult.Unsupported
+        ) {
+            Toast.makeText(activity, R.string.resource_shortcut_unsupported, Toast.LENGTH_LONG).show()
         }
-        Toast.makeText(activity, message, Toast.LENGTH_LONG).show()
     }
 
     private fun confirmDelete(resource: MediaResource) {

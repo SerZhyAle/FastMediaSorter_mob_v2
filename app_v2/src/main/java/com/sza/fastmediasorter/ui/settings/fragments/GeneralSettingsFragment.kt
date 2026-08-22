@@ -171,6 +171,9 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     // All helpers are lazy - binding is only valid after onCreateView, and helpers are first
     // accessed from onViewCreated, so initialization is always safe.
     private val sectionsManager by lazy { CollapsibleSectionsManager(requireContext()) }
+
+    /** S1967: hands the base the sections this tab registered, so a search jump can open one. */
+    override fun collapsibleSections(): CollapsibleSectionsManager = sectionsManager
     private val resetHelper by lazy { GeneralSettingsResetHelper(binding, viewModel, this) }
     private val logHelper by lazy {
         GeneralSettingsLogHelper(

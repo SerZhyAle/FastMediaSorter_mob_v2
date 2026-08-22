@@ -112,6 +112,8 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Компаньон часов |
 | <img src="icons/svg/ic_front_flashlight.svg" alt="ic_front_flashlight" width="24" height="24"> | Фронтальный фонарик |
 | <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Оверлей жестов |
+| <img src="icons/svg/ic_launcher_mode.svg" alt="ic_launcher_mode" width="24" height="24"> | Лаунчер: сделать приложение домашним экраном |
+| <img src="icons/svg/ic_launcher_mode.svg" alt="ic_launcher_mode" width="24" height="24"> | Настройки системного лаунчера |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Включить запись с микрофона |
 | <img src="icons/svg/ic_history.svg" alt="ic_history" width="24" height="24"> | Статистика |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Видеозапись экрана |

@@ -137,6 +137,22 @@ $Script:AgentLockTimings = @{
         ReservationMinutes   = 0
         SessionStaleMinutes  = 45
     }
+    # S1926: a device lease has the same shape as a spec-ticket lease - no lock file, no queue -
+    # so LockStaleMinutes and ReservationMinutes stay 0 for the same reason.
+    #
+    # SessionStaleMinutes matches SpecTicket rather than Code: a session driving a device scenario
+    # spends long stretches building and installing an APK without writing anything, and Code's
+    # 15-minute window would evict it mid-install and hand its device to a sibling.
+    #
+    # TicketCeilingMinutes is far shorter than SpecTicket's 480 because the resource is held for a
+    # scenario, not for a ticket's whole life - research, spec writing and gates need no device, so
+    # a lease still standing after two hours is an abandoned one, not a slow one.
+    Device = [pscustomobject]@{
+        LockStaleMinutes    = 0
+        TicketCeilingMinutes = 120
+        ReservationMinutes   = 0
+        SessionStaleMinutes  = 45
+    }
 }
 
 function Get-AgentLockTimings {
@@ -144,7 +160,7 @@ function Get-AgentLockTimings {
     .SYNOPSIS
         Timings for one lock. Single source for every minute value in this file.
     #>
-    param([Parameter(Mandatory)][ValidateSet('Build', 'Code', 'SpecTicket')][string]$Name)
+    param([Parameter(Mandatory)][ValidateSet('Build', 'Code', 'SpecTicket', 'Device')][string]$Name)
     return $Script:AgentLockTimings[$Name]
 }
 
@@ -871,6 +887,63 @@ function Resolve-GradleJvmHome {
     return $null
 }
 
+function Test-JvmHomeMissingParts {
+    <#
+    .SYNOPSIS
+        Return the names of the JVM parts missing from a candidate JVM home. Empty means usable.
+    .DESCRIPTION
+        S1425 checks files rather than launching a JVM, because proving it by spawning a process
+        would cost that spawn on every build. S1896 gave the same two probes a second caller - the
+        launcher JVM - so they live here instead of being written twice and drifting apart.
+    #>
+    param([Parameter(Mandatory)][string]$JvmHome)
+
+    $missing = @()
+    if (-not (@('bin\java.exe', 'bin/java') | Where-Object { Test-Path -LiteralPath (Join-Path $JvmHome $_) })) {
+        $missing += 'bin/java(.exe)'
+    }
+    if (-not (Test-Path -LiteralPath (Join-Path $JvmHome 'lib/jvm.cfg'))) {
+        $missing += 'lib/jvm.cfg'
+    }
+    return , $missing
+}
+
+function Resolve-PersistedJavaHomeRepair {
+    <#
+    .SYNOPSIS
+        The persisted JAVA_HOME, for when this process's snapshot of it has gone stale (S1928).
+    .DESCRIPTION
+        An environment variable inside a running process is a snapshot taken when that process
+        started. A long-lived agent session carries the snapshot for hours, so a JDK point-update
+        on the machine leaves it naming a directory that no longer exists while the machine's own
+        persisted value is already correct. Observed 2026-08-21: every gradle target of a session
+        failed identically for the rest of that session, and the fix was to restart the process.
+
+        This is deliberately NOT a fallback-JDK search. It never looks at the disk, never considers
+        the Android Studio jbr, and can only ever return a value the operator persisted themselves -
+        the very value the stale snapshot is a snapshot OF. Picking a JVM nobody configured is what
+        the guard below is right to refuse; refreshing a snapshot is a different act.
+
+        All three conditions are required. A persisted value equal to the snapshot has nothing to
+        refresh - the JDK really is gone. An unusable one is not worth taking. An absent one leaves
+        the refusal exactly as it was.
+
+        Returns the usable persisted value with the scope it came from, or $null.
+    #>
+    param([Parameter(Mandatory)][AllowEmptyString()][string]$CurrentValue)
+
+    foreach ($scope in @('User', 'Machine')) {
+        $candidate = $null
+        # Reading a scope is unsupported off Windows and simply yields nothing there.
+        try { $candidate = [Environment]::GetEnvironmentVariable('JAVA_HOME', $scope) } catch { continue }
+        if ([string]::IsNullOrWhiteSpace($candidate)) { continue }
+        if ($candidate -eq $CurrentValue) { continue }
+        if ((Test-JvmHomeMissingParts -JvmHome $candidate).Count -gt 0) { continue }
+        return [pscustomobject]@{ Path = $candidate; Scope = $scope }
+    }
+    return $null
+}
+
 function Assert-GradleToolchainOrExit {
     <#
     .SYNOPSIS
@@ -883,18 +956,46 @@ function Assert-GradleToolchainOrExit {
         first gradle call buy that signal back; launching the JVM to prove it would cost a
         process spawn on every build, which is why this checks files only.
     #>
+    # S1896: the LAUNCHER JVM first, and separately from the daemon one below. gradlew.bat starts
+    # on JAVA_HOME; only after that does Gradle read org.gradle.java.home. Resolve-GradleJvmHome
+    # returns the first of (user gradle.properties, repo gradle.properties, JAVA_HOME), so a valid
+    # org.gradle.java.home made this function pass while gradlew.bat died on a stale JAVA_HOME -
+    # the wrapper printed its own error and nothing here ever looked at that variable.
+    if (-not [string]::IsNullOrWhiteSpace($env:JAVA_HOME)) {
+        $launcherMissing = Test-JvmHomeMissingParts -JvmHome $env:JAVA_HOME
+        # S1928: before refusing, ask whether the machine is actually misconfigured or whether only
+        # this process's snapshot of JAVA_HOME went stale. The repair is loud on purpose - a silent
+        # JVM swap is worse than stopping, and the line below is what makes this a refresh rather
+        # than a swap.
+        $javaHomeRepair = if ($launcherMissing.Count -gt 0) {
+            Resolve-PersistedJavaHomeRepair -CurrentValue $env:JAVA_HOME
+        }
+        else { $null }
+        if ($null -ne $javaHomeRepair) {
+            Write-Host "JAVA_HOME snapshot was stale - refreshed from the persisted $($javaHomeRepair.Scope) value." -ForegroundColor Yellow
+            Write-Host "  was: $env:JAVA_HOME (missing $($launcherMissing -join ', '))" -ForegroundColor Yellow
+            Write-Host "  now: $($javaHomeRepair.Path)" -ForegroundColor Yellow
+            Write-Host "  Only this process was changed. Fix the environment your session inherits, or the next one starts stale too." -ForegroundColor Gray
+            $env:JAVA_HOME = $javaHomeRepair.Path
+            $launcherMissing = @()
+        }
+        if ($launcherMissing.Count -gt 0) {
+            Write-Host "Launcher JVM unusable - refusing to start gradle. Nothing was built." -ForegroundColor Red
+            Write-Host "  JAVA_HOME: $env:JAVA_HOME" -ForegroundColor Red
+            Write-Host "  Missing: $($launcherMissing -join ', ')" -ForegroundColor Red
+            Write-Host "  gradlew.bat launches on JAVA_HOME, before Gradle ever reads org.gradle.java.home," -ForegroundColor Gray
+            Write-Host "  so a valid org.gradle.java.home does not rescue this." -ForegroundColor Gray
+            Write-Host "  Point JAVA_HOME at a JDK 17, 21, or 25 install, or clear it to let the wrapper search." -ForegroundColor Gray
+            exit 3
+        }
+    }
+
     $resolved = Resolve-GradleJvmHome
     # Nothing configured anywhere - Gradle picks its own JVM, and there is nothing to verify.
     if ($null -eq $resolved) { return }
 
     $jvmHome = $resolved.Path
-    $missing = @()
-    if (-not (@('bin\java.exe', 'bin/java') | Where-Object { Test-Path -LiteralPath (Join-Path $jvmHome $_) })) {
-        $missing += 'bin/java(.exe)'
-    }
-    if (-not (Test-Path -LiteralPath (Join-Path $jvmHome 'lib/jvm.cfg'))) {
-        $missing += 'lib/jvm.cfg'
-    }
+    $missing = Test-JvmHomeMissingParts -JvmHome $jvmHome
     if ($missing.Count -eq 0) { return }
 
     Write-Host "Toolchain JVM unusable - refusing to start gradle. Nothing was built." -ForegroundColor Red
@@ -920,7 +1021,8 @@ function Enter-BuildLockOrExit {
         Exit codes this function can impose on its caller:
           1 - BUILD.LOCK held and fail-fast was requested (-NoWait / FMS_LOCK_NO_WAIT=1).
           2 - the wait ran out of time; nothing was inspected and nothing was built.
-          3 - the configured toolchain JVM cannot launch (see Assert-GradleToolchainOrExit).
+          3 - the launcher JVM (JAVA_HOME) or the configured toolchain JVM cannot launch
+              (see Assert-GradleToolchainOrExit - it checks both, and they can differ).
         The toolchain check runs FIRST, so a broken environment never takes the lock or a place
         in the queue.
     #>

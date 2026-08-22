@@ -24,10 +24,10 @@
             android:foreground="@drawable/focus_button_background"
             android:gravity="start|center_vertical"
             android:text="@string/launcher_menu_open_app"
-            android:textColor="?attr/colorPrimary"
+            android:textColor="?attr/launcherStartRowGroup1"
             app:icon="@drawable/ic_app_logo"
             app:iconGravity="start"
-            app:iconTint="?attr/colorPrimary" />
+            app:iconTint="?attr/launcherStartRowGroup1" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/rowResources"
@@ -38,10 +38,10 @@
             android:foreground="@drawable/focus_button_background"
             android:gravity="start|center_vertical"
             android:text="@string/launcher_menu_resources"
-            android:textColor="?attr/colorPrimary"
+            android:textColor="?attr/launcherStartRowGroup1"
             app:icon="@drawable/ic_resource_local"
             app:iconGravity="start"
-            app:iconTint="?attr/colorPrimary" />
+            app:iconTint="?attr/launcherStartRowGroup1" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/rowCreateResource"
@@ -52,10 +52,10 @@
             android:foreground="@drawable/focus_button_background"
             android:gravity="start|center_vertical"
             android:text="@string/launcher_create_resource_menu_row"
-            android:textColor="?attr/colorPrimary"
+            android:textColor="?attr/launcherStartRowGroup1"
             app:icon="@drawable/ic_add"
             app:iconGravity="start"
-            app:iconTint="?attr/colorPrimary" />
+            app:iconTint="?attr/launcherStartRowGroup1" />
 
         <!-- S1401: the "All apps" row and the grid it expanded are gone (ADR-2). One app list, reached
              from the taskbar button beside Start or by swiping up on the desktop. -->
@@ -70,10 +70,10 @@
             android:foreground="@drawable/focus_button_background"
             android:gravity="start|center_vertical"
             android:text="@string/launcher_menu_android_settings"
-            android:textColor="?attr/colorSecondary"
+            android:textColor="?attr/launcherStartRowGroup2"
             app:icon="@drawable/ic_android"
             app:iconGravity="start"
-            app:iconTint="?attr/colorSecondary" />
+            app:iconTint="?attr/launcherStartRowGroup2" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/rowAppSettings"
@@ -84,10 +84,10 @@
             android:foreground="@drawable/focus_button_background"
             android:gravity="start|center_vertical"
             android:text="@string/launcher_menu_app_settings"
-            android:textColor="?attr/colorSecondary"
+            android:textColor="?attr/launcherStartRowGroup2"
             app:icon="@drawable/ic_settings"
             app:iconGravity="start"
-            app:iconTint="?attr/colorSecondary" />
+            app:iconTint="?attr/launcherStartRowGroup2" />
 
         <!-- S1088: the launcher's own settings dialog, in place next to Android/App settings. -->
         <com.google.android.material.button.MaterialButton
@@ -99,10 +99,10 @@
             android:foreground="@drawable/focus_button_background"
             android:gravity="start|center_vertical"
             android:text="@string/launcher_menu_launcher_settings"
-            android:textColor="?attr/colorSecondary"
+            android:textColor="?attr/launcherStartRowGroup2"
             app:icon="@drawable/ic_launcher_mode"
             app:iconGravity="start"
-            app:iconTint="?attr/colorSecondary" />
+            app:iconTint="?attr/launcherStartRowGroup2" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/rowEditDesktop"
@@ -113,10 +113,10 @@
             android:foreground="@drawable/focus_button_background"
             android:gravity="start|center_vertical"
             android:text="@string/launcher_edit_enter"
-            android:textColor="?attr/colorSecondary"
+            android:textColor="?attr/launcherStartRowGroup2"
             app:icon="@drawable/ic_tune"
             app:iconGravity="start"
-            app:iconTint="?attr/colorSecondary" />
+            app:iconTint="?attr/launcherStartRowGroup2" />
 
         <View
             android:layout_width="match_parent"
@@ -135,10 +135,10 @@
             android:foreground="@drawable/focus_button_background"
             android:gravity="start|center_vertical"
             android:text="@string/launcher_menu_reboot"
-            android:textColor="?attr/colorTertiary"
+            android:textColor="?attr/launcherStartRowGroup3"
             app:icon="@drawable/ic_refresh"
             app:iconGravity="start"
-            app:iconTint="?attr/colorTertiary" />
+            app:iconTint="?attr/launcherStartRowGroup3" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/rowShutdown"
@@ -149,10 +149,10 @@
             android:foreground="@drawable/focus_button_background"
             android:gravity="start|center_vertical"
             android:text="@string/launcher_menu_shutdown"
-            android:textColor="?attr/colorError"
+            android:textColor="?attr/launcherStartRowGroup4"
             app:icon="@drawable/ic_power"
             app:iconGravity="start"
-            app:iconTint="?attr/colorError" />
+            app:iconTint="?attr/launcherStartRowGroup4" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/rowExitMode"
@@ -163,10 +163,10 @@
             android:foreground="@drawable/focus_button_background"
             android:gravity="start|center_vertical"
             android:text="@string/launcher_menu_exit_mode"
-            android:textColor="?attr/colorTertiary"
+            android:textColor="?attr/launcherStartRowGroup3"
             app:icon="@drawable/ic_exit_to_app"
             app:iconGravity="start"
-            app:iconTint="?attr/colorTertiary" />
+            app:iconTint="?attr/launcherStartRowGroup3" />
 
     </LinearLayout>
 

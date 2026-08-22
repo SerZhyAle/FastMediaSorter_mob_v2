@@ -16,6 +16,19 @@
         <item name="colorSurface">@color/white</item>
         <item name="colorOnBackground">@color/black</item>
         <item name="colorOnSurface">@color/black</item>
+        <!-- S1895: defined by the app rather than inherited from the M3 baseline palette. -->
+        <item name="colorSurfaceVariant">@color/m3_surface_variant</item>
+        <item name="colorTertiary">@color/m3_tertiary</item>
+        <item name="colorError">@color/m3_error</item>
+
+        <!-- S1895: launcher foregrounds. The six ThemeOverlay.FastMediaSorter.* themes inherit
+             these, so a value here reaches every colour theme. -->
+        <item name="launcherTaskbarStartText">@color/launcher_taskbar_start_text</item>
+        <item name="launcherTaskbarAllAppsText">@color/launcher_taskbar_all_apps_text</item>
+        <item name="launcherStartRowGroup1">@color/launcher_start_row_group1</item>
+        <item name="launcherStartRowGroup2">@color/launcher_start_row_group2</item>
+        <item name="launcherStartRowGroup3">@color/launcher_start_row_group3</item>
+        <item name="launcherStartRowGroup4">@color/launcher_start_row_group4</item>
         <item name="colorOnSurfaceVariant">#FF655E6A</item>
         <item name="android:textColorSecondary">#FF655E6A</item>
         <item name="colorOutline">#FF6F6875</item>
@@ -74,6 +87,11 @@
         <item name="colorOnPrimaryContainer">@color/theme_dark_green_on_primary_container</item>
         <item name="colorSecondaryContainer">@color/theme_dark_green_secondary_container</item>
         <item name="colorOnSecondaryContainer">@color/theme_dark_green_on_secondary_container</item>
+        <!-- S1895: the same role set the base theme defines, so colouring under this theme is not
+             assembled half from the chosen palette and half from the library baseline. -->
+        <item name="colorSecondary">@color/teal_700</item>
+        <item name="colorTertiary">@color/m3_tertiary</item>
+        <item name="colorError">@color/m3_error</item>
     </style>
 
     <style name="ThemeOverlay.FastMediaSorter.DarkBlue" parent="">
@@ -98,6 +116,11 @@
         <item name="colorOnPrimaryContainer">@color/theme_dark_blue_on_primary_container</item>
         <item name="colorSecondaryContainer">@color/theme_dark_blue_secondary_container</item>
         <item name="colorOnSecondaryContainer">@color/theme_dark_blue_on_secondary_container</item>
+        <!-- S1895: the same role set the base theme defines, so colouring under this theme is not
+             assembled half from the chosen palette and half from the library baseline. -->
+        <item name="colorSecondary">@color/teal_700</item>
+        <item name="colorTertiary">@color/m3_tertiary</item>
+        <item name="colorError">@color/m3_error</item>
     </style>
 
     <style name="ThemeOverlay.FastMediaSorter.DarkRed" parent="">
@@ -122,6 +145,11 @@
         <item name="colorOnPrimaryContainer">@color/theme_dark_red_on_primary_container</item>
         <item name="colorSecondaryContainer">@color/theme_dark_red_secondary_container</item>
         <item name="colorOnSecondaryContainer">@color/theme_dark_red_on_secondary_container</item>
+        <!-- S1895: the same role set the base theme defines, so colouring under this theme is not
+             assembled half from the chosen palette and half from the library baseline. -->
+        <item name="colorSecondary">@color/teal_700</item>
+        <item name="colorTertiary">@color/m3_tertiary</item>
+        <item name="colorError">@color/m3_error</item>
     </style>
 
     <style name="ThemeOverlay.FastMediaSorter.LightGreen" parent="">
@@ -146,6 +174,11 @@
         <item name="colorOnPrimaryContainer">@color/theme_light_green_on_primary_container</item>
         <item name="colorSecondaryContainer">@color/theme_light_green_secondary_container</item>
         <item name="colorOnSecondaryContainer">@color/theme_light_green_on_secondary_container</item>
+        <!-- S1895: the same role set the base theme defines, so colouring under this theme is not
+             assembled half from the chosen palette and half from the library baseline. -->
+        <item name="colorSecondary">@color/teal_700</item>
+        <item name="colorTertiary">@color/m3_tertiary</item>
+        <item name="colorError">@color/m3_error</item>
     </style>
 
     <style name="ThemeOverlay.FastMediaSorter.LightBlue" parent="">
@@ -170,6 +203,11 @@
         <item name="colorOnPrimaryContainer">@color/theme_light_blue_on_primary_container</item>
         <item name="colorSecondaryContainer">@color/theme_light_blue_secondary_container</item>
         <item name="colorOnSecondaryContainer">@color/theme_light_blue_on_secondary_container</item>
+        <!-- S1895: the same role set the base theme defines, so colouring under this theme is not
+             assembled half from the chosen palette and half from the library baseline. -->
+        <item name="colorSecondary">@color/teal_700</item>
+        <item name="colorTertiary">@color/m3_tertiary</item>
+        <item name="colorError">@color/m3_error</item>
     </style>
 
     <style name="ThemeOverlay.FastMediaSorter.LightRed" parent="">
@@ -194,6 +232,11 @@
         <item name="colorOnPrimaryContainer">@color/theme_light_red_on_primary_container</item>
         <item name="colorSecondaryContainer">@color/theme_light_red_secondary_container</item>
         <item name="colorOnSecondaryContainer">@color/theme_light_red_on_secondary_container</item>
+        <!-- S1895: the same role set the base theme defines, so colouring under this theme is not
+             assembled half from the chosen palette and half from the library baseline. -->
+        <item name="colorSecondary">@color/teal_700</item>
+        <item name="colorTertiary">@color/m3_tertiary</item>
+        <item name="colorError">@color/m3_error</item>
     </style>
 
     <!-- Pre-35 transparent bars. enableEdgeToEdge() sets these at runtime, but release R8 strips

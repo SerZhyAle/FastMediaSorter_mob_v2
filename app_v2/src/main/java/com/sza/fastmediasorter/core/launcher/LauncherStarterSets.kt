@@ -48,6 +48,17 @@ object LauncherStarterSets {
     // S1566: same duplication contract again - the web search field every profile opens with.
     private const val GADGET_SEARCH = "search"
 
+    // S1886: the S1754 media-window family, one window per profile. These are the closest keys the
+    // launcher can actually render to the system-desktop widgets the request named - the launcher hosts
+    // gadgets, not AppWidgets, so RandomPhotoFrame and its siblings are unreachable from a seed.
+    private const val GADGET_MEDIA_IMAGE_WINDOW = "media_image_window"
+    private const val GADGET_MEDIA_AUDIO_WINDOW = "media_audio_window"
+    private const val GADGET_MEDIA_VIDEO_WINDOW = "media_video_window"
+    private const val GADGET_MEDIA_DOCUMENT_WINDOW = "media_document_window"
+
+    // S1886: the headset seeds charge rather than a media window - a window decides nothing there.
+    private const val GADGET_BATTERY = "battery"
+
     /**
      * Every gadget key this table can emit. Public because the parity test cannot reach the private
      * consts above, and a hand-written list over there is what let the previous four-key guard fall
@@ -63,6 +74,11 @@ object LauncherStarterSets {
         GADGET_COMPASS,
         GADGET_AUDIO_NOW_PLAYING,
         GADGET_SEARCH,
+        GADGET_MEDIA_IMAGE_WINDOW,
+        GADGET_MEDIA_AUDIO_WINDOW,
+        GADGET_MEDIA_VIDEO_WINDOW,
+        GADGET_MEDIA_DOCUMENT_WINDOW,
+        GADGET_BATTERY,
     )
 
     // S1560: third-party targets this table may seed. A cell is placed only when its package is present,
@@ -257,6 +273,7 @@ object LauncherStarterSets {
             addAll(profileGadgets(profile, resources, streamsAvailable))
             if (profile in LOCATION_TILE_PROFILES) {
                 add(gadget(GADGET_COMPASS))
+                Timber.d("S1747: seeded the compass for %s, altitude and satellites left out", profile)
             }
             if (profile == DeviceProfileType.CAR_HEAD_UNIT) {
                 add(gadget(GADGET_SPEED))
@@ -264,7 +281,9 @@ object LauncherStarterSets {
             if (profile in NOW_PLAYING_PROFILES) {
                 add(gadget(GADGET_AUDIO_NOW_PLAYING))
             }
+            mediaWindowOrNull(profile, resources)?.let(::add)
         }
+        Timber.d("S1886: widgets group for %s seeded with %d tile(s)", profile, widgets.size)
         if (widgets.isNotEmpty()) {
             items += section(LauncherCellCommand.SECTION_WIDGETS)
             items += widgets
@@ -383,42 +402,6 @@ object LauncherStarterSets {
         }
     }
 
-    // Expression `when` (not a statement): a future DeviceProfileType added without a branch is a
-    // compile error here, instead of silently falling through to the clock + common tail.
-    // S1560 Phase 04: cross-profile rows expressed as membership sets, plus the existing per-profile
-    // gadget/resource items. The `when` stays exhaustive so a new profile is a compile error.
-    private fun profileItems(
-        profile: DeviceProfileType,
-        resources: StarterResources,
-        streamsAvailable: Boolean,
-        installedPackages: Set<String>,
-    ): List<StarterItem> = buildList {
-        // Per-profile gadgets/resources (the original `when` branches).
-        addAll(profileGadgets(profile, resources, streamsAvailable))
-        // Cross-profile rows driven by membership sets (S1560 Phase 04 grid).
-        if (profile in LOCATION_TILE_PROFILES) {
-            add(gadget(GADGET_COMPASS))
-            Timber.d("S1747: seeded the compass for %s, altitude and satellites left out", profile)
-        }
-        if (profile == DeviceProfileType.CAR_HEAD_UNIT) {
-            add(gadget(GADGET_SPEED))
-            appIfInstalled(PACKAGE_MAPS, installedPackages)?.let(::add)
-            firstInstalled(FM_RADIO_CANDIDATES, installedPackages)?.let(::add)
-        }
-        if (profile in MAPS_PROFILES && profile != DeviceProfileType.CAR_HEAD_UNIT) {
-            appIfInstalled(PACKAGE_MAPS, installedPackages)?.let(::add)
-        }
-        if (profile in WIFI_PROFILES) {
-            add(shortcut(LauncherCellCommand.OsShortcut(OsShortcutCatalog.KEY_WIFI)))
-        }
-        if (profile in BLUETOOTH_PROFILES) {
-            add(shortcut(LauncherCellCommand.OsShortcut(OsShortcutCatalog.KEY_BLUETOOTH)))
-        }
-        if (profile in NOW_PLAYING_PROFILES) {
-            add(gadget(GADGET_AUDIO_NOW_PLAYING))
-        }
-    }
-
     /**
      * The original per-profile gadget/resource items that were already in the table before S1560.
      * Exhaustive over [DeviceProfileType] so a new profile is a compile error.
@@ -450,6 +433,33 @@ object LauncherStarterSets {
         DeviceProfileType.VR_HEADSET,
         DeviceProfileType.OTHER -> emptyList()
     }
+
+    /**
+     * S1886: the media window a profile opens its widgets group with, or null when the device has no
+     * resource to point it at. Kept beside the compass/speed/now-playing rules in [itemsFor] rather than
+     * inside [profileGadgets], because this is a cross-profile row and folding nine more branches into
+     * that `when` pushed it past the complexity ceiling.
+     *
+     * The id is not optional: every window declares `requiresResourceParam`, so a bare key seeds a cell
+     * that can only ever render "unavailable". Each window also filters its files by type, which is why
+     * the matching all-of-type resource is preferred over the merely last-used one.
+     */
+    private fun mediaWindowOrNull(profile: DeviceProfileType, resources: StarterResources): StarterItem? =
+        when (profile) {
+            DeviceProfileType.PHOTO_FRAME, DeviceProfileType.HOME_TABLET ->
+                (resources.allImagesId ?: resources.lastResourceId)?.let { gadget(GADGET_MEDIA_IMAGE_WINDOW, it) }
+            DeviceProfileType.AUDIO_PLAYER, DeviceProfileType.MEDIA_PLAYER ->
+                resources.allAudioId?.let { gadget(GADGET_MEDIA_AUDIO_WINDOW, it) }
+            DeviceProfileType.VIDEO_PLAYER, DeviceProfileType.TV_MEDIA_BOX ->
+                (resources.allVideoId ?: resources.lastResourceId)?.let { gadget(GADGET_MEDIA_VIDEO_WINDOW, it) }
+            DeviceProfileType.EBOOK_READER ->
+                (resources.allDocsId ?: resources.lastResourceId)?.let { gadget(GADGET_MEDIA_DOCUMENT_WINDOW, it) }
+            // The headset seeds charge instead: a media window decides nothing there, the battery does.
+            DeviceProfileType.VR_HEADSET -> gadget(GADGET_BATTERY)
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            DeviceProfileType.CAR_HEAD_UNIT,
+            DeviceProfileType.OTHER -> null
+        }
 
     /**
      * Lays [items] row-major over an occupancy grid of [columns] columns: each item takes the first

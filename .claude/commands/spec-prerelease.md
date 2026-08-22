@@ -54,6 +54,24 @@ pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly
 
 Read `.claude/reference/spec-prerelease.md` §"0 - Stream-catalog asset" before pruning, before publishing by any other path, or to read the `alive / dead / geo / unknown` breakdown.
 
+### 0.4 - Judge the release-scope gates over the whole tree (content, no device, GATING)
+
+Needs no device and no gradle. These are the gates whose subject is the state of the whole repository or a shipped artifact, so they say nothing useful about one changed file and everything useful about the scope about to ship (CLAUDE.md Rule 33).
+
+```powershell
+pwsh -NoProfile -File scripts/quality/assert-release-scope-gates.ps1
+```
+
+**Why it exists (S1939).** Applied per ticket, a repository-wide gate cannot attribute its finding to the change in front of it: it either fails on another session's work in flight or is demoted to advisory and stops meaning anything. Measured 2026-08-22 - `assert-unreferenced-strings` and `assert-splash-brand-sync` produced 50 of the 191 red lines that `fg` emitted over 53 runs, none of them about the operator's own work, and `assert-device-profile-matrix` spent 33 minutes of closure time over a month to report a single finding. The relocation is a script with an exit code rather than a list of calls in this file on purpose: gated rules hold at ~99%, rules stated as prose at 1-8%, so moving a gate into prose would change its force instead of its stage.
+
+Branch on the exit code:
+
+- **0** - the release scope is clean. Continue.
+- **1** - at least one gate found a defect. **Release blocker**, and the fix is a repository-wide one: regenerate the artifact the gate names, or delete the dead weight it found. Re-run until 0. The failure is expected to be a batch of small items that accumulated over the cycle - that is the design, not a surprise.
+- **2** - a gate script is absent. Treat as sweep abort (exit 2 in step 4), never as a pass.
+
+Carry the outcome into the step 4 verdict the way 0.7's is carried: exit 1 blocks a clean PASS, exit 2 aborts the sweep.
+
 ### 0.5 - Refresh externally-rotting dependency pins (content, no device, non-gating)
 
 Needs no device, does not gate the emulator verdict; its own failure is a finding on the deps report line, never a sweep abort. On `--dry-run`, list planned checks and run nothing (no network, no writes). Runs **before** step 1 prepare - both build, and `temp/BUILD.LOCK` (Rule 23) admits one gradle invocation at a time.

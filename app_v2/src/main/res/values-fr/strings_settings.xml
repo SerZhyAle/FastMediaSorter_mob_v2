@@ -258,4 +258,7 @@
     <string name="pref_resource_grid_cell_size_large">Grande</string>
     <string name="settings_enable_system_info">Informations système</string>
     <string name="settings_enable_system_info_summary">Afficher les informations système dans le panneau des programmes et le menu</string>
+    <string name="settings_wear_group_title">Wear OS</string>
+    <string name="settings_wear_group_description">Activez cette option si vous avez une montre Wear OS. L\'application compagnon s\'ouvre d\'ici et décide ce que ce téléphone partage avec la montre.</string>
+    <string name="settings_wear_install_guide_button">Comment installer sur une montre</string>
 </resources>

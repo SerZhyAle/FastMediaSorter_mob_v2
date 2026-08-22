@@ -14,6 +14,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.view.PreviewView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
@@ -526,7 +527,11 @@ class CameraCaptureActivity :
             zoomControlsManager = zoomControlsManager,
             selectMode = ::selectMode,
         )
-        gestureManager = CameraCaptureGestureManager(binding.previewViewCamera, gestureCallbackHandler)
+        gestureManager = CameraCaptureGestureManager(
+            touchSurface = binding.root,
+            previewView = binding.previewViewCamera,
+            callbacks = gestureCallbackHandler,
+        )
         gestureManager.attach()
     }
 
@@ -798,12 +803,29 @@ class CameraCaptureActivity :
      * re-shapes the preview without leaving the screen.
      */
     private fun applyPreviewScaleType() {
+        // S1920: the selection as the CURRENT MODE resolves it. Video has no post-encode crop, so
+        // full screen degrades to the 16:9 stream it is built from (CameraAspectSelection.forMode) -
+        // and the capture path already reads it that way. Reading the raw selection here cropped the
+        // video viewfinder to the screen while the recorder kept the whole 16:9 frame.
+        val selection = sessionManager.currentAspect?.forMode(flowManager.isVideoMode)
+        val fullScreen = selection?.cropsToScreen == true
         binding.previewViewCamera.scaleType =
-            if (sessionManager.currentAspect?.cropsToScreen == true) {
+            if (fullScreen) {
                 PreviewView.ScaleType.FILL_CENTER
             } else {
                 PreviewView.ScaleType.FIT_CENTER
             }
+        // S1920 (ADR-1): give the clip box the stream's own shape, so the soft-zoom scale is clipped
+        // by the same rectangle CapturedPhotoAspectCropper.cropCenter writes to the file - 1/factor on
+        // both axes. Left unshaped, the box is the screen and the viewfinder keeps more scene
+        // vertically than the file does, which is the reported mismatch.
+        val ratio = if (fullScreen) null else portraitClipRatio(selection)
+        val params = binding.previewClipBox.layoutParams as ConstraintLayout.LayoutParams
+        if (params.dimensionRatio != ratio) {
+            params.dimensionRatio = ratio
+            binding.previewClipBox.layoutParams = params
+        }
+        Timber.d("S1920: preview clip box ratio=${ratio ?: "full-screen"}")
     }
 
     /** S1658: after the settings dialog applies a shape, re-scale the preview and remember the choice. */
@@ -816,6 +838,22 @@ class CameraCaptureActivity :
 
 private const val TAB_SELECTED_ALPHA = 1f
 private const val TAB_UNSELECTED_ALPHA = 0.5f
+
+/** S1920: the 4:3 stream as a portrait width-to-height, for the clip box that must match it. */
+private const val CLIP_RATIO_4_3 = "3:4"
+
+/** S1920: the 16:9 stream as a portrait width-to-height - every selection but 4:3 is built on it. */
+private const val CLIP_RATIO_16_9 = "9:16"
+
+/**
+ * S1920: the stream [selection] asks CameraX for, expressed as the clip box's width-to-height.
+ *
+ * Portrait, because the manifest locks this activity to it (S0754) - a branch on the configuration
+ * would be a branch that can never take its other side. Top-level for the reason [styleModeTab] is:
+ * the class sits on the detekt `TooManyFunctions` ceiling and this reads no Activity state.
+ */
+private fun portraitClipRatio(selection: CameraAspectSelection?): String =
+    if (selection == CameraAspectSelection.RATIO_4_3) CLIP_RATIO_4_3 else CLIP_RATIO_16_9
 
 // S1336: top-level, not a class member - a pure TextView styling helper needs no Activity state, and
 // CameraCaptureActivity already sits at the detekt TooManyFunctions ceiling (CLAUDE.md Rule 19).

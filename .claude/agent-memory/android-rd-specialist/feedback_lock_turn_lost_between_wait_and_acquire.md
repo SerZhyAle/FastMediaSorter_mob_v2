@@ -28,3 +28,20 @@ notification round trip is the widest possible gap.
 its own. Keep the `-Reason` string byte-identical across the wait and the acquire so your queue ticket is
 reused instead of a second one being issued. Then hold the lock for the single edit and release it at once:
 five sessions were queued behind me and the head had already waited 19 minutes.
+
+## Never chain an edit behind the lock call with `&&` or `;` (2026-08-22, S1944)
+
+`enter-code-lock.ps1` returns **4** when you are queued, not 0 - but a pipeline like
+
+    pwsh ... enter-code-lock.ps1 ... | tail -1; python3 - <<'PY' ... PY
+
+runs the edit regardless, because `tail` succeeds and `;` does not care. It happened **three times in
+one session**: each time the lock belonged to another session, the edit landed anyway, and the release
+call afterwards printed "CODE.LOCK belongs to session <other> - leaving it in place" - which is the
+only sign anything was wrong, and it appears *after* the damage.
+
+**How to apply:** make the lock call its own tool call, read its exit code, and only then edit. If the
+output ends in "Meanwhile do lock-free work", you did NOT get the lock - background
+`wait-for-lock-turn.ps1` chained with `enter-code-lock.ps1` in ONE pwsh process, wait for the
+notification, and edit after it. Treat "I already wrote the file" as a reason to tell the operator,
+not as a reason to continue.

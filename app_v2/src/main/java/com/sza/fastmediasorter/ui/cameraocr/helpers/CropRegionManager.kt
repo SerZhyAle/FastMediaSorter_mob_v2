@@ -10,6 +10,12 @@ import timber.log.Timber
 import java.io.File
 
 /**
+ * S1923: ceiling for the long side of a decoded capture. Chosen well above what OCR needs - the crop
+ * step still works on this bitmap - while keeping one copy in the tens of MB rather than hundreds.
+ */
+private const val MAX_DECODE_LONG_SIDE_PX = 4096
+
+/**
  * Pure image geometry for the Camera-OCR crop step: decodes a captured photo with EXIF orientation
  * applied (so preview, OCR and the saved image stay consistent) and crops a bitmap to a normalized
  * selection rectangle. No Android view or coroutine dependencies - all math is side-effect free for
@@ -18,16 +24,51 @@ import java.io.File
 class CropRegionManager {
 
     /**
+     * S1923: decodes [file] with a ceiling on the pixel count instead of at whatever the sensor
+     * produced.
+     *
+     * A full-resolution decode is unbounded by construction: a 108 Mpx capture is about 432 MB in
+     * `ARGB_8888`, and the EXIF rotation below holds a second copy while it runs. On the reporter's
+     * device that pair never finished - the screen sat on "Processing photo.." past three minutes
+     * with the process alive, nothing in logcat and no crash, which is what allocation pressure of
+     * that size looks like from the outside rather than a thrown failure.
+     *
+     * [MAX_DECODE_LONG_SIDE_PX] is deliberately generous: the crop step and OCR run on this bitmap,
+     * so the ceiling is set far above what text recognition needs rather than at a thumbnail size.
+     */
+    private fun decodeWithinBudget(file: File): Bitmap? {
+        val path = file.absolutePath
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        try {
+            BitmapFactory.decodeFile(path, bounds)
+        } catch (e: Exception) {
+            Timber.e(e, "CropRegionManager: Read bitmap bounds failed")
+            return null
+        }
+
+        val options = BitmapFactory.Options().apply {
+            inSampleSize = sampleSizeFor(maxOf(bounds.outWidth, bounds.outHeight))
+        }
+        Timber.d("S1923: decode ${bounds.outWidth}x${bounds.outHeight} sample=${options.inSampleSize}")
+        return try {
+            BitmapFactory.decodeFile(path, options)
+        } catch (e: OutOfMemoryError) {
+            // Not an Exception, so the arm below would miss it and the flow would hang on its
+            // loading state rather than report anything.
+            Timber.e(e, "CropRegionManager: Decode bitmap ran out of memory")
+            null
+        } catch (e: Exception) {
+            Timber.e(e, "CropRegionManager: Decode bitmap failed")
+            null
+        }
+    }
+
+    /**
      * Decodes [file] and rotates/flips it to display orientation per its EXIF tag.
      * Returns null when the file cannot be decoded.
      */
     fun loadOrientedBitmap(file: File): Bitmap? {
-        val decoded = try {
-            BitmapFactory.decodeFile(file.absolutePath)
-        } catch (e: Exception) {
-            Timber.e(e, "CropRegionManager: Decode bitmap failed")
-            null
-        } ?: return null
+        val decoded = decodeWithinBudget(file) ?: return null
 
         val orientation = try {
             ExifInterface(file.absolutePath)
@@ -83,6 +124,18 @@ class CropRegionManager {
     }
 
     companion object {
+        /**
+         * S1923: smallest power-of-two divisor that brings [longSide] to at most
+         * [MAX_DECODE_LONG_SIDE_PX]. Pure function - the unit-test entry point for the decode budget.
+         */
+        fun sampleSizeFor(longSide: Int): Int {
+            var sample = 1
+            while (longSide / sample > MAX_DECODE_LONG_SIDE_PX) {
+                sample *= 2
+            }
+            return sample
+        }
+
         /** Minimum side, in pixels, that a cropped region is allowed to collapse to. */
         const val MIN_SIDE_PX = 1
 

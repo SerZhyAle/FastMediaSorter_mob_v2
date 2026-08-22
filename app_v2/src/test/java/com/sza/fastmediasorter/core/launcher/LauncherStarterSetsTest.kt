@@ -35,8 +35,11 @@ class LauncherStarterSetsTest {
     /** The utilities every profile closes with, below the second header. */
     private val commonTail = listOf("fn:favorites", "os:settings", "app:__self__")
 
-    /** S1587: content opens the desktop, so the first item of every set is the everything-else header. */
-    private val contentHeader = listOf("sec:everything_else")
+    /** The launcher actions a profile seeds, in catalogue order. */
+    private fun actionTargets(profile: DeviceProfileType): List<String> =
+        LauncherActionCatalog.all
+            .filter { it.key != LauncherActionCatalog.KEY_BLACK_SCREEN || profile in BLACK_SCREEN_PROFILES }
+            .map { "act:${it.key}" }
 
     private val columnCounts = listOf(3, 4, 6, 12)
 
@@ -82,16 +85,14 @@ class LauncherStarterSetsTest {
         DeviceProfileType.OTHER to ProfileGrid(wifi = true, bluetooth = true),
     )
 
-    // ── itemsFor ────────────────────────────────────────────────────────────
+    // ── itemsFor ────────
 
     @Test
     fun `every set opens with top unsectioned items and closes with the launcher actions`() {
         val items = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap(), emptySet())
         assertEquals(
             listOf("clock", "search", "weather", "sec:app_functions") +
-                LauncherActionCatalog.all
-                    .filter { it.key != LauncherActionCatalog.KEY_BLACK_SCREEN || DeviceProfileType.OTHER in BLACK_SCREEN_PROFILES }
-                    .map { "act:${it.key}" } +
+                actionTargets(DeviceProfileType.OTHER) +
                 commonTail +
                 listOf("sec:android_apps", "os:wifi", "os:bluetooth"),
             items.map { it.target },
@@ -114,7 +115,8 @@ class LauncherStarterSetsTest {
         val actions = targets.filter { it.startsWith("act:") }
         assertEquals(LauncherActionCatalog.all.size - 1, actions.size)
         assertTrue("widgets header must come first", widgetsHeaderIndex < actionsHeaderIndex)
-        assertEquals(actions, targets.subList(actionsHeaderIndex + allPaddingAvailable.size + 1, actionsHeaderIndex + allPaddingAvailable.size + 1 + actions.size))
+        val actionsStart = actionsHeaderIndex + allPaddingAvailable.size + 1
+        assertEquals(actions, targets.subList(actionsStart, actionsStart + actions.size))
     }
 
     @Test
@@ -148,8 +150,17 @@ class LauncherStarterSetsTest {
             listOf(
                 "clock", "search", "weather",
                 "sec:widgets", "compass",
-                "sec:resources", "res:1:BROWSE", "res:2:BROWSE", "res:3:BROWSE", "res:4:BROWSE", "res:5:BROWSE", "res:6:BROWSE",
-            ) + sectionTail(DeviceProfileType.PERSONAL_SMARTPHONE),
+                "sec:resources",
+                "res:1:BROWSE", "res:2:BROWSE", "res:3:BROWSE",
+                "res:4:BROWSE", "res:5:BROWSE", "res:6:BROWSE",
+                // S1913: listed rather than folded into sectionTail(), which has no padding cells by
+                // construction. This assertion is named "and padding set" and is called with
+                // allPaddingAvailable, so commonFeatures emits all six - the helper silently dropped
+                // them when the flat tail was refactored away, which is what made this test red.
+                "sec:app_functions",
+                "fn:streams", "fn:quick_camera", "fn:quick_voice",
+                "fn:calculator", "fn:network_monitor", "fn:ocr",
+            ) + actionTargets(DeviceProfileType.PERSONAL_SMARTPHONE) + commonTail,
             items.map { it.target },
         )
     }
@@ -169,9 +180,7 @@ class LauncherStarterSetsTest {
                 "sec:resources", "res:1:BROWSE",
                 "sec:app_functions", "fn:calculator",
             ) +
-                LauncherActionCatalog.all
-                    .filter { it.key != LauncherActionCatalog.KEY_BLACK_SCREEN || DeviceProfileType.PERSONAL_SMARTPHONE in BLACK_SCREEN_PROFILES }
-                    .map { "act:${it.key}" } +
+                actionTargets(DeviceProfileType.PERSONAL_SMARTPHONE) +
                 commonTail,
             items.map { it.target },
         )
@@ -188,13 +197,16 @@ class LauncherStarterSetsTest {
         assertEquals(
             listOf(
                 "clock", "search", "weather",
-                "sec:widgets", "folder_preview:5",
-                "sec:resources", "res:5:SLIDESHOW",
+                // S1913: no sec:resources header here. profileGadgets seeds the PHOTO_FRAME
+                // slideshow shortcut into the widgets bucket beside its folder-preview gadget, the
+                // way EBOOK_READER seeds its PLAY shortcut, while commonResources is scoped to one
+                // BROWSE shortcut per virtual resource and never reads lastResourceId. resItems is
+                // therefore empty, and an empty section must not print a header - a header with
+                // nothing under it swallows the section below it, section membership being positional.
+                "sec:widgets", "folder_preview:5", "res:5:SLIDESHOW", "media_image_window:5",
                 "sec:app_functions",
             ) +
-                LauncherActionCatalog.all
-                    .filter { it.key != LauncherActionCatalog.KEY_BLACK_SCREEN || DeviceProfileType.PHOTO_FRAME in BLACK_SCREEN_PROFILES }
-                    .map { "act:${it.key}" } +
+                actionTargets(DeviceProfileType.PHOTO_FRAME) +
                 commonTail +
                 listOf("sec:android_apps", "os:wifi"),
             items.map { it.target },
@@ -210,9 +222,7 @@ class LauncherStarterSetsTest {
                 "clock", "search", "weather",
                 "sec:app_functions",
             ) +
-                LauncherActionCatalog.all
-                    .filter { it.key != LauncherActionCatalog.KEY_BLACK_SCREEN || DeviceProfileType.PHOTO_FRAME in BLACK_SCREEN_PROFILES }
-                    .map { "act:${it.key}" } +
+                actionTargets(DeviceProfileType.PHOTO_FRAME) +
                 commonTail +
                 listOf("sec:android_apps", "os:wifi"),
             items.map { it.target },
@@ -230,13 +240,11 @@ class LauncherStarterSetsTest {
         assertEquals(
             listOf(
                 "clock", "search",
-                "sec:widgets", "playlist:7", "streams", "audio_now_playing",
+                "sec:widgets", "playlist:7", "streams", "audio_now_playing", "media_audio_window:7",
                 "sec:resources", "res:7:BROWSE",
                 "sec:app_functions", "fn:streams",
             ) +
-                LauncherActionCatalog.all
-                    .filter { it.key != LauncherActionCatalog.KEY_BLACK_SCREEN || DeviceProfileType.AUDIO_PLAYER in BLACK_SCREEN_PROFILES }
-                    .map { "act:${it.key}" } +
+                actionTargets(DeviceProfileType.AUDIO_PLAYER) +
                 commonTail +
                 listOf("sec:android_apps", "os:wifi", "os:bluetooth"),
             withStreams.map { it.target },
@@ -321,7 +329,29 @@ class LauncherStarterSetsTest {
         }
     }
 
-    // ── place (the overlap invariant) ───────────────────────────────────────
+    @Test
+    fun `every profile opens a widgets section and the tablet and reader fill it differently`() {
+        // S1886: HOME_TABLET and VR_HEADSET seeded no widgets section at all before this ticket, so the
+        // group the device profile is supposed to describe never reached the desktop.
+        assertTrue("tablet widgets", widgetTargets(DeviceProfileType.HOME_TABLET).isNotEmpty())
+        assertTrue("headset widgets", widgetTargets(DeviceProfileType.VR_HEADSET).isNotEmpty())
+        assertNotEquals(
+            widgetTargets(DeviceProfileType.HOME_TABLET),
+            widgetTargets(DeviceProfileType.EBOOK_READER),
+        )
+    }
+
+    /** Targets between the widgets header and the next section header; empty when the group is absent. */
+    private fun widgetTargets(profile: DeviceProfileType): List<String> {
+        val res = StarterResources(allImagesId = 9, allDocsId = 9, lastResourceId = 9)
+        val targets = LauncherStarterSets.itemsFor(profile, res, emptyMap(), emptySet()).map { it.target }
+        val start = targets.indexOf("sec:widgets")
+        if (start < 0) return emptyList()
+        val rest = targets.drop(start + 1)
+        return rest.take(rest.indexOfFirst { it.startsWith("sec:") }.takeIf { it >= 0 } ?: rest.size)
+    }
+
+    // ── place (the overlap invariant) ────────
 
     @Test
     fun `place never overlaps two footprints and keeps every cell inside the grid`() {
@@ -399,7 +429,7 @@ class LauncherStarterSetsTest {
         }
     }
 
-    // ── S1644: the conditional GOOGLE section ───────────────────────────────
+    // ── S1644: the conditional GOOGLE section ────────
 
     private fun googleItems(
         googleServicesAvailable: Boolean,
@@ -442,10 +472,20 @@ class LauncherStarterSetsTest {
         val installed = LauncherStarterSets.GOOGLE_APP_PACKAGES.toSet()
         val targets = googleItems(googleServicesAvailable = false, installed = installed).map { it.target }
         assertFalse(targets.contains(sectionTarget(LauncherCellCommand.SECTION_GOOGLE)))
+        // S1913: these four reach the desktop through paths the Google gating does not control -
+        // YouTube, YouTube Music and Chrome from commonThirdPartyApps, Maps from the MAPS_PROFILES
+        // rule - so seeing them here says nothing about whether the Google section was suppressed.
+        // Chrome's literal rather than the constant because PACKAGE_CHROME is private, as with
+        // FM_RADIO_PACKAGE elsewhere in this file. Holding a cell in two sections is allowed: S1644
+        // ruled that a repeated target is not what makes a cell a duplicate.
+        val seededOutsideGoogleSection = setOf(
+            LauncherStarterSets.PACKAGE_YOUTUBE,
+            LauncherStarterSets.PACKAGE_YOUTUBE_MUSIC,
+            LauncherStarterSets.PACKAGE_MAPS,
+            "com.android.chrome",
+        )
         LauncherStarterSets.GOOGLE_APP_PACKAGES
-            .filterNot { it == LauncherStarterSets.PACKAGE_YOUTUBE }
-            .filterNot { it == LauncherStarterSets.PACKAGE_YOUTUBE_MUSIC }
-            .filterNot { it == LauncherStarterSets.PACKAGE_MAPS }
+            .filterNot { it in seededOutsideGoogleSection }
             .forEach { assertFalse("seeded without services: $it", targets.contains("app:$it")) }
     }
 

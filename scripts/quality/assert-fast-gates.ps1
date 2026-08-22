@@ -23,19 +23,29 @@
       - assert-ctor-arg-slots        (S1470 primary constructors near the 255 argument-slot ceiling)
       - assert-packaging-excludes-parity (S1679 shared-library payload stripped in one module only)
       - assert-module-version-parity  (app_v2 / wear version fields under one applicationId)
-      - assert-splash-brand-sync     (S1706 generated splash drawables vs their strings and template)
       - assert-retired-dependency-names (S1489 prose naming a dependency the project replaced)
       - assert-notification-small-icon (S1399 a small-icon setter handed a drawable literal)
       - assert-backup-rules-consistent (S1552 API 31+ extraction rules vs the pre-31 backup rules)
       - assert-launcher-reset-coverage (S1540 launcher settings vs the launcher reset's field list)
-      - assert-unreferenced-strings   (S1568 string keys nothing under <module>/src references)
       - assert-maestro-oracle        (S1612 Maestro flows that are green without proving anything)
       - assert-hook-inventory        (S1604 registered Claude Code hooks vs docs/AGENT_HOOKS.md)
       - assert-rule-digest-sync      (S1548 CLAUDE.md numbered rules vs the two full digests)
       - assert-gson-persistence-contract (S1639 a durable Gson model whose wire names nothing pins)
       - assert-stream-asset-revisions (S1828 a pinned stream-catalog asset that would stop being published)
       - assert-migration-test-pairing (S1844 a Room migration with no instrumented migration test)
+      - assert-launcher-contrast     (S1895 a launcher colour measured under 7:1 on its own surface)
       - assert-detekt                (only with -IncludeDetekt; honours -ChangedFiles)
+
+    S1939: assert-unreferenced-strings, assert-splash-brand-sync and assert-device-profile-matrix
+    left this batch for scripts/quality/assert-release-scope-gates.ps1. None of the three judges
+    the changed file: a string key is unreferenced this minute and referenced by the next ticket,
+    the splash drawables are a generated shipped artifact, and the device-profile matrix is an
+    agreement among three data files that no single edit can be blamed for. Between them they
+    produced 68 of the 191 red lines this runner emitted over 53 runs, none of them about the work
+    in front of the operator - which is how a runner teaches its reader to skim past red, and
+    assert-device-profile-matrix alone spent 33 minutes of closure time in a month to report one
+    finding. Rule 20 already said the dead-weight sweep belongs on a release build; the placement
+    test is CLAUDE.md Rule 33.
 
     Each child runs as its own process so a child `exit` cannot kill this aggregator.
 
@@ -74,6 +84,7 @@ else {
 $gates = [ordered]@{
     'assert-no-ticket-logs.ps1'                 = @('-Quiet')
     'assert-ticket-acceptance-probes.ps1'       = @('-Quiet')
+    'assert-acceptance-preconditions.ps1'       = @('-Quiet')
     # S1338: one entry, twelve lexical rules, ONE walk of the tree. It replaces the five
     # separate entries that each spawned a pwsh process and each re-walked app_v2/src -
     # neuroslop (nine rules), flavor-flags, public-mutable-flow and deprecated-pm-flags.
@@ -89,7 +100,6 @@ $gates = [ordered]@{
     # S1568: a string resource nothing references. 397 had accumulated in values/strings.xml, each
     # one paid for again by every locale tranche. Baseline is an allowlist of NAMES, not a count, so
     # a new dead key cannot hide behind a deleted one.
-    'assert-unreferenced-strings.ps1'           = @('-Quiet')
     # S1612: Maestro flow YAML vs the oracle convention. A flow that carries optional: true on its
     # proof assertion, a regex selector Maestro never matches, or a coordinate tap standing in for
     # an assertion is GREEN while proving nothing - that is how the previous generation of flows
@@ -105,6 +115,11 @@ $gates = [ordered]@{
     # and could not compile at all. Ratchet over two directory listings, no gradle daemon; the 12
     # migrations that predate the habit are baselined so only a NEW gap fails.
     'assert-migration-test-pairing.ps1'         = @()
+    # S1895: the launcher taskbar and Start panel measured against the surfaces they land on, in all
+    # eight themes. The previous change to these same colours was closed on a visual check and
+    # shipped the Start label at 4.22:1; contrast is arithmetic, so it can be checked rather than
+    # looked at. Reads four resource files, no gradle daemon.
+    'assert-launcher-contrast.ps1'              = @('-Quiet')
     # S1075: dev/TECH_REQUIREMENTS.md pins vs Gradle truth. Static parse of build files
     # + one doc; no gradle daemon. Catches a dependency bump that forgot the doc.
     'assert-doc-pin-drift.ps1'                  = @('-Quiet')
@@ -139,19 +154,11 @@ $gates = [ordered]@{
     # mechanism in five different files - S1186, S1198, S1247, S1269, S1311 - before anyone noticed
     # the check was never in the batch. Reads the committed ID snapshot; no gradle daemon.
     'assert-detekt-baseline-absorption.ps1'     = @()
-    # S1706: ic_splash_app_brand.xml is generated per locale from the strings and one template, so a
-    # hand edit to one variant compiles and renders while silently diverging from the other twelve.
-    # Runs the generator in -Check mode for both modules; no gradle daemon.
-    'assert-splash-brand-sync.ps1'              = @('-Quiet')
     # S1438: SDK pins stated in ORDINARY PROSE, which the managed-block gate above cannot see -
     # an index line, an architecture bullet, an agent definition, agent memory. Eight copies said
     # compileSdk 35 while Gradle compiled against 36, and an agent reading one concludes an API is
     # unavailable. Reads the value from the build file every run, so it can never itself go stale.
     'assert-sdk-pin-claims.ps1'                 = @('-Quiet')
-    # S1216: device-profile preset matrix vs AppSettings, the non-presettable registry and the
-    # applier branches. Data-file parse like the gate above, no gradle daemon. Catches a new
-    # setting that never reached the matrix - the drift that left 40 fields uncovered.
-    'assert-device-profile-matrix.ps1'          = @('-Quiet')
     # S1259: android:id parity between layout-land and layout-w600dp siblings. w600dp beats
     # -land on wide landscape devices, so an id missing on one side is a latent findViewById
     # null (the recording-indicator include NPE). Static regex over 4 shared files, ~ms.

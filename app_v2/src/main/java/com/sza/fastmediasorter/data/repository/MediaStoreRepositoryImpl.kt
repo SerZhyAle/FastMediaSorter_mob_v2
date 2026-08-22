@@ -1,10 +1,10 @@
 package com.sza.fastmediasorter.data.repository
 
 import android.content.ContentResolver
+import android.content.ContentUris
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
-import android.content.ContentUris
 import android.provider.MediaStore
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.data.transfer.trash.TrashFolderContract
@@ -479,9 +479,21 @@ class MediaStoreRepositoryImpl @Inject constructor(
         fun build() = MediaStoreRepository.FolderInfo(path, name, count, types)
     }
 
+    override suspend fun getFileByMediaStoreId(
+        id: Long
+    ): com.sza.fastmediasorter.domain.model.MediaFile? = withContext(Dispatchers.IO) {
+        queryMediaStoreItemById(
+            resolver = context.contentResolver,
+            id = id,
+            isTrashPath = ::isTrashPath,
+            resolveType = ::resolveType,
+            resolveCreatedDate = MediaStoreDateUtils::resolveCreatedDate
+        )
+    }
+
     override suspend fun getFilesInFolder(
-        folderPath: String, 
-        allowedTypes: Set<MediaType>, 
+        folderPath: String,
+        allowedTypes: Set<MediaType>,
         recursive: Boolean,
         showHiddenFiles: Boolean
     ): List<com.sza.fastmediasorter.domain.model.MediaFile> = withContext(Dispatchers.IO) {

@@ -50,6 +50,14 @@
 #   A caller must distinguish 1 from 2. "Found a defect" and "did not look"
 #   are different answers, and treating 2 as success is how a green verdict
 #   comes to certify nothing at all.
+#
+#   Output shape (S1937): steps that did not apply are NOT printed one per line.
+#   They are collapsed into a single "skipped (n, not applicable ..): a, b, c"
+#   line above the verdict, on both the passing and the failing path. Pass
+#   -ShowSkips for the old per-step lines with their reasons. Every step's
+#   outcome - PASS, FAIL and SKIP alike - is appended to the machine journal
+#   temp/metrics/gate-executions.jsonl regardless of what the console shows,
+#   and scripts/quality/measure-gate-frequency.ps1 reports from that journal.
 
 param(
     [string]$File,
@@ -78,11 +86,23 @@ param(
     # which teaches that a mandate is optional. It is a trigger now: a closure whose changed
     # set intersects a registered document's `paths` names the matching record ids and stays
     # short of a clean PASS until they are passed back here. Accepts ids or 'all'.
-    [string[]]$RegistryAck
+    [string[]]$RegistryAck,
+    # S1937: restore the per-step SKIP lines. Off by default because a closure skips far more
+    # steps than it runs (measured 17,973 SKIP lines against 16,253 PASS lines over one month),
+    # and every one of them rides in the session context for the rest of the session. The names
+    # still appear in the collapsed summary; this switch adds each step's reason back.
+    [switch]$ShowSkips
 )
 
 $ErrorActionPreference = "Stop"
 $root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+
+# S1937: the gate journal that measure-gate-frequency.ps1 reads. S1795 wired it into
+# assert-fast-gates.ps1 only, so the journal saw ~11 runs a day and missed the ~61 closures
+# that actually execute these gates - the runner carrying the majority of the evidence was
+# the one not reporting. Telemetry never changes a verdict (the writer swallows its own
+# errors), so a broken journal cannot fail a closure.
+. (Join-Path $root 'scripts/quality/lib/gate-telemetry.ps1')
 
 # S1338: one resolved set drives every downstream consumer, so a gate can never
 # silently judge a narrower slice than the verdict claims to cover. $File keeps
@@ -181,6 +201,12 @@ $script:AdvisoryFindings = @()
 # the next one, because each run could only ever name the first thing wrong.
 $script:FatalFindings = @()
 
+# S1937: steps that did not apply to this change. Collected instead of printed one per line -
+# a closure skips more steps than it runs, and each printed line stays in the session context
+# for every later request. The summary keeps every name, so "why did detekt not run" is still
+# answerable; -ShowSkips restores the per-step reason.
+$script:SkippedSteps = @()
+
 # S1598: label -> @{ Repro = '<command that runs this gate alone>'; Fix = '<what to do>' }.
 # Data, not prose in the facade, so registering a new gate never edits the output
 # logic (owner input). A label with no entry prints without a hint - not an error;
@@ -201,8 +227,12 @@ function Write-StepResult(
     [string]$Label,
     [ValidateSet('PASS', 'FAIL', 'SKIP')][string]$Status,
     [int]$ElapsedMs,
-    [string]$Details = ''
+    [string]$Details = '',
+    [int]$ExitCode = 0
 ) {
+    Write-GateTelemetryRecord -Runner 'post-change' -Gate $Label -Status $Status `
+        -ExitCode $ExitCode -ElapsedMs ([Math]::Max($ElapsedMs, 0))
+
     $color = switch ($Status) {
         'PASS' { 'Green' }
         'FAIL' { 'Red' }
@@ -242,7 +272,8 @@ function Invoke-Step([string]$Label, [scriptblock]$Action) {
             $reason = "child exit code $exitCode"
         }
 
-        Write-StepResult -Label $Label -Status FAIL -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds) -Details $reason
+        Write-StepResult -Label $Label -Status FAIL -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds) `
+            -Details $reason -ExitCode $exitCode
         exit $exitCode
     }
 }
@@ -274,7 +305,8 @@ function Invoke-Gate([string]$Label, [scriptblock]$Action) {
             $reason = "child exit code $exitCode"
         }
 
-        Write-StepResult -Label $Label -Status FAIL -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds) -Details $reason
+        Write-StepResult -Label $Label -Status FAIL -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds) `
+            -Details $reason -ExitCode $exitCode
         $hint = Get-GateHint $Label
         if ($hint) {
             if ($hint.Repro) { Write-Host "      repro: $($hint.Repro)" -ForegroundColor Yellow }
@@ -291,6 +323,7 @@ function Test-FatalFindings {
     if ($script:FatalFindings.Count -eq 0) { return }
 
     Write-Host ''
+    Write-SkippedSummary
     Write-Host "post-change: FAIL ($($script:FatalFindings.Count) gate(s), $resolvedChangeType)" -ForegroundColor Red
     foreach ($finding in $script:FatalFindings) {
         Write-Host "  failed: $($finding.Label) (exit $($finding.ExitCode))" -ForegroundColor Red
@@ -302,7 +335,23 @@ function Test-FatalFindings {
 }
 
 function Skip-Step([string]$Label, [string]$Reason) {
-    Write-StepResult -Label $Label -Status SKIP -ElapsedMs 0 -Details $Reason
+    $script:SkippedSteps += [pscustomobject]@{ Label = $Label; Reason = $Reason }
+    if ($ShowSkips) {
+        Write-StepResult -Label $Label -Status SKIP -ElapsedMs 0 -Details $Reason
+        return
+    }
+    # The journal still records every skip even when the console does not print it - the
+    # question "which gate never runs" is answered from the journal, not from scrollback.
+    Write-GateTelemetryRecord -Runner 'post-change' -Gate $Label -Status 'SKIP' -ExitCode 0 -ElapsedMs 0
+}
+
+# S1937: one line for the whole not-applicable set, printed before the verdict on both the
+# passing and the failing path so a failed closure still shows what never ran.
+function Write-SkippedSummary {
+    if ($ShowSkips -or $script:SkippedSteps.Count -eq 0) { return }
+    $names = ($script:SkippedSteps | ForEach-Object { $_.Label }) -join ', '
+    Write-Host "  skipped ($($script:SkippedSteps.Count), not applicable to this change): $names" -ForegroundColor DarkGray
+    Write-Host '  reasons: re-run with -ShowSkips' -ForegroundColor DarkGray
 }
 
 # S0826: like Invoke-Step but non-fatal. A project-wide gate that cannot attribute its
@@ -368,6 +417,36 @@ function Get-FirstChangedFileMatch([string]$Pattern) {
         if ($candidate -match $Pattern) { return $candidate }
     }
     return $null
+}
+
+# S1915: the flavors app_v2 declares, spelled exactly as check-standard-fast.ps1 accepts them.
+$script:ResourceLinkFlavors = @('Standard', 'NoLegal', 'Lite', 'Photos', 'Legacy', 'Vr')
+
+function Get-ResourceLinkFlavors([string]$TargetModule) {
+    # Which variants have to link before the changed set counts as proven. A resource under
+    # src/<flavor>/res is compiled into that flavor alone, so linking it as `standard` renders a
+    # verdict about a variant that never sees the file - the same false green S1807 found when a
+    # phone target was quoted as proof under a wear change.
+    #
+    # wear declares no product flavors and check-standard-fast.ps1 exits 2 on any -Flavor but the
+    # default, so the watch module is answered before the source sets are read at all.
+    if ($TargetModule -eq 'wear') { return @('Standard') }
+
+    # src/main, src/debug and every other non-flavor source set ship inside the default variant,
+    # so it is always linked; the loop only ever ADDS flavors on top of it.
+    $selected = [System.Collections.Generic.List[string]]::new()
+    $selected.Add('Standard')
+
+    foreach ($candidate in $normChangedFiles) {
+        if ($candidate -match '(^|/)src/([^/]+)/') {
+            $sourceSet = $Matches[2]
+            foreach ($flavor in $script:ResourceLinkFlavors) {
+                # -eq on strings is case-insensitive here, which is what lets `vr` select `Vr`.
+                if ($sourceSet -eq $flavor -and -not $selected.Contains($flavor)) { $selected.Add($flavor) }
+            }
+        }
+    }
+    return $selected.ToArray()
 }
 
 $docIconRoutingFile = Join-Path $root 'scripts/quality/lib/doc-icon-gate-routing.ps1'
@@ -446,30 +525,12 @@ $runsSettingsDocGate = (
 # gradle) so a doc edit stays fast; also runs as stage 5 of the settings-doc
 # composite so a manifest/vocab change re-checks every guide.
 $runsHowToPathGate = Test-AnyChangedFile 'docs/(HOW_TO|README|QUICK_START|FAQ|TROUBLESHOOTING)[A-Z_]*\.md$'
-# S0815/S0939 icon-inventory drift gate. Fires for generated icon docs AND for
-# settings-source files that can stale the committed inventory/legend:
-# - docs/icons/**, docs/ICON_LEGEND*
-# - app_v2/src/main/res/layout/fragment_settings_*.xml
-# - app_v2/src/main/res/values*/strings*.xml
-# Re-checks the cheap settings-source freshness scan, asset coverage, orphans,
-# legend freshness, and cross-locale parity (pure text/file, no gradle). The heavy
-# inventory-vs-source export test stays opt-in / CI-only, so it is NOT run here.
-$runsIconInventoryGate = (
-    ($resolvedChangeType -in @('Doc', 'Xml', 'Mixed')) -and
-    (
-        (Test-AnyChangedFile 'docs/icons/') -or
-        (Test-AnyChangedFile 'docs/ICON_LEGEND') -or
-        (Test-AnyChangedFile 'app_v2/src/main/res/layout/fragment_settings_.*\.xml$') -or
-        (Test-AnyChangedFile 'app_v2/src/main/res/values[^/]*/strings.*\.xml$')
-    )
-)
 # S1548 rule-digest gate. Fires when a file holding one of the four mirroring roles is in the
 # changed set: the authority (CLAUDE.md), a full digest (AGENTS.md, .github/copilot-instructions.md)
 # or the pointer (GEMINI.md). Editing any of them is exactly when a digest can fall behind, and the
 # check is pure text over four markdown files, so it costs nothing on the fast path.
 # Roles and their obligations: dev/RULE_AND_SKILL_AUTHORING.md "Rule mirroring contract".
 $runsRuleDigestGate = Test-AnyChangedFile '^(CLAUDE\.md|AGENTS\.md|GEMINI\.md|\.github/copilot-instructions\.md)$'
-$runsDocIconGate = Test-DocIconGateRoute -ChangedFiles $normChangedFiles
 # S0684 dialog-cancel-style gate. Fires only when a dialog / bottom-sheet layout is touched -
 # a cancel/negative action button in such a pair must use Widget.FastMediaSorter.Button.DialogCancel,
 # never a one-off cancel style. Baseline ratchets DOWN. Narrow trigger keeps it cheap.
@@ -509,6 +570,15 @@ $runsGsonContractGate = (Test-AnyChangedFile '\.kt$') -or (Test-AnyChangedFile '
 # foreground threshold of CLAUDE.md section 6.
 $runsAndroidTestCompileGate = (Test-AnyChangedFile '(^|/)src/androidTest/') -or `
     (Test-AnyChangedFile 'data/local/db/(Migration\d+To\d+|AppDatabase|.*Dao|.*Entity)\.kt$')
+# S1915: the resource-link gate - the third gradle task the facade adds beyond detekt. Every other
+# gate here is lexical, so before this one NO path in the facade ran aapt: a layout that did not link
+# closed green, and the ticket reached BlockNeedUserTest - "install this and test it" - without
+# anything ever having packaged what the tester installs (S1881). `fk` cannot cover the gap because
+# it compiles Kotlin and never links resources.
+#
+# Reuses $isResourceChange rather than a new predicate so a Kotlin-only or docs-only set is skipped
+# by construction and pays nothing, which is what keeps the gate from being falsely strict.
+$runsResourceLinkGate = $isResourceChange
 # Script-cheatsheet drift gate. Fires when a repo PowerShell script (under the
 # cheatsheet's discovery roots scripts/ and dev/CATALOG/scripts/) or the generated
 # doc itself is touched - a changed param() block staleens docs/SCRIPT_CHEATSHEET.md
@@ -617,10 +687,41 @@ else {
 }
 
 if ($runsTicketLogAudit) {
-    Invoke-Gate "ticket-log-audit" {
-        # S1338: -Quiet suppressed exactly the File:Line list needed to fix a violation,
-        # so a FAIL here reported that something was wrong and nothing about where.
-        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-no-ticket-logs.ps1") -Gate
+    # S1338: -Quiet suppressed exactly the File:Line list needed to fix a violation, so a FAIL here
+    # reported that something was wrong and nothing about where.
+    $ticketLogArgs = @(
+        '-NoProfile',
+        '-File',
+        (Join-Path $root "scripts/quality/assert-no-ticket-logs.ps1"),
+        '-Gate'
+    )
+    # S1912: hand the gate the changed set under -ScopeToFile, the same way the ratchets and detekt
+    # already get it. It then judges forbidden log ids on THIS change and returns 3 - not 1 - when the
+    # only remaining complaint is that some other ticket sits in BlockNeedUserTest without its probe.
+    # That window is minutes long and its owner is another session; charging this closure for it made
+    # CLAUDE.md section 12's promise ("other tickets' in-flight WIP does not block the close") false
+    # for this one gate, and blocked every session in the tree at once (S1889, S1895).
+    if ($ScopeToFile -and $changedFiles.Count -gt 0) {
+        $ticketLogArgs += @('-ChangedFiles', ($changedFiles -join ','))
+    }
+    # The gate runs first and the verdict is chosen from its exit code, because only code 3 is
+    # advisory. Deciding inside Invoke-AdvisoryStep is not an option: its catch block turns any
+    # exception into a SKIP, so raising one for code 1 would downgrade this change's own forbidden
+    # log id to an advisory - weakening the gate instead of scoping it.
+    $ticketLogOutput = & $pwsh @ticketLogArgs 2>&1 | Out-String
+    $ticketLogExit = if ($LASTEXITCODE) { [int]$LASTEXITCODE } else { 0 }
+    if (-not [string]::IsNullOrWhiteSpace($ticketLogOutput)) { Write-Host $ticketLogOutput.TrimEnd() }
+
+    if ($ScopeToFile -and $ticketLogExit -eq 3) {
+        Invoke-AdvisoryStep "ticket-log-audit" { $global:LASTEXITCODE = 3 } `
+            -AdvisoryDetails ("a ticket other than this change's sits in BlockNeedUserTest without its probe. " +
+                "Its author owns that probe - it belongs at the entry of their changed flow - so this closure is " +
+                "not charged for it. Run assert-no-ticket-logs.ps1 with no -ChangedFiles for the project-wide verdict.")
+    }
+    else {
+        # Code 1 (a forbidden log id in the changed set) and code 2 (the gate could not run) both
+        # stay fatal, scoped or not.
+        Invoke-Gate "ticket-log-audit" { $global:LASTEXITCODE = $ticketLogExit }
     }
 }
 else {
@@ -851,26 +952,12 @@ else {
     Skip-Step "howto-settings-paths-gate" "not applicable - no changed file is a HOW_TO or narrative settings-path guide"
 }
 
-if ($runsIconInventoryGate) {
-    # Strict on a full run; advisory under -ScopeToFile because the legend re-render
-    # reads live app strings, so unrelated string WIP on the dirty tree could show as
-    # legend drift that is not attributable to this change.
-    & $ratchetRunner "icon-inventory-sync-gate" {
-        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-icon-inventory-sync.ps1") -Gate
-    }
-}
-else {
-    Skip-Step "icon-inventory-sync-gate" "not applicable - no changed file is icon docs or a settings icon/title source"
-}
-
-if ($runsDocIconGate) {
-    Invoke-Gate "doc-icons-sync-gate" {
-        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-doc-icons-sync.ps1") -Gate
-    }
-}
-else {
-    Skip-Step "doc-icons-sync-gate" "not applicable - no changed file is a document-icon gate input"
-}
+# S1939: icon-inventory-sync and doc-icons-sync moved to the release-scope runner
+# (scripts/quality/assert-release-scope-gates.ps1, run by /spec-prerelease). Both judge a
+# repository-wide inventory rather than the changed file - icon-inventory was already advisory
+# under -ScopeToFile for exactly that reason, because its legend re-render reads live app
+# strings and another ticket's string WIP showed up as drift here. Measured over a month:
+# 896 and 237 closures, 85 and 7 actual executions, zero findings between them.
 
 if ($runsScriptCheatsheetGate) {
     # Advisory under -ScopeToFile: the check regenerates from every script, so
@@ -994,14 +1081,12 @@ else {
     Skip-Step "document-registry" "cannot verify - docs/DOCUMENT_REGISTRY.jsonl not found"
 }
 
-# S1216: device-profile preset matrix vs AppSettings, the non-presettable registry and the applier
-# branches. Runs on every change because the drift it catches is introduced by adding a settings
-# field, which can land under several ChangeTypes. Advisory under -ScopeToFile like the other
-# project-wide gates: it reads the whole matrix, so another ticket's settings WIP on a dirty tree
-# would otherwise block this ticket's closure. Strict on a full run.
-& $ratchetRunner "device-profile-matrix-gate" {
-    & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-device-profile-matrix.ps1") -Gate -Quiet
-}
+# S1939: the S1216 device-profile matrix gate moved to the release-scope runner. It ran on 1040
+# of 1053 closures over a month - 33.2 minutes of closure time - and reported ONE finding, and it
+# was already advisory under -ScopeToFile because it reads the whole matrix and another ticket's
+# settings WIP would otherwise block this closure. A gate that cannot attribute its finding to the
+# change in front of it is not judging that change; it is judging the tree, which is what
+# scripts/quality/assert-release-scope-gates.ps1 does once, over the whole release scope.
 
 # S1540: the fourth edit adding a launcher setting needs - the line in the launcher reset - had no gate,
 # so a forgotten one reached the user as a reset that leaves that setting alone. Stays FATAL under
@@ -1028,6 +1113,26 @@ if ($runsGsonContractGate) {
 }
 else {
     Skip-Step "gson-persistence-contract-gate" "not applicable - no changed file is a Kotlin source or an obfuscation rules file"
+}
+
+# S1915: links the changed resources. Routed through check-standard-fast.ps1 for the same reason as the
+# gate below - the helper takes BUILD.LOCK, and calling gradlew here would race every sibling session
+# (CLAUDE.md Rule 23).
+if ($runsResourceLinkGate) {
+    $resourceLinkFlavors = Get-ResourceLinkFlavors -TargetModule $Module
+    Write-Host "  resource-link: module $Module, flavor(s) $($resourceLinkFlavors -join ', ')" -ForegroundColor DarkGray
+    Invoke-Gate "resource-link-gate" {
+        foreach ($resourceFlavor in $resourceLinkFlavors) {
+            & $pwsh -NoProfile -File (Join-Path $root "scripts/builders/check-standard-fast.ps1") `
+                -Mode Resources -Module $Module -Flavor $resourceFlavor
+            # Stop at the first red. Without this the loop would run on and Invoke-Gate would read the
+            # LAST flavor's exit code, turning an earlier failure into a pass.
+            if ($LASTEXITCODE -ne 0) { return }
+        }
+    }
+}
+else {
+    Skip-Step "resource-link-gate" "not applicable - no changed file is a resource or manifest under a source set"
 }
 
 # S1844: compiles app_v2's instrumented set. Routed through check-standard-fast.ps1 rather than gradlew
@@ -1143,6 +1248,7 @@ $totalSw.Stop()
 # invisible in the verdict, so the facade printed PASS on 19% of runs that
 # contained a gate failure - and 66% of callers read only the tail.
 $elapsedMs = [int]$totalSw.Elapsed.TotalMilliseconds
+Write-SkippedSummary
 if ($script:AdvisoryFindings.Count -gt 0) {
     Write-Host ("post-change: PASS WITH ADVISORIES ($($script:AdvisoryFindings.Count)) " +
         "($resolvedChangeType, $elapsedMs ms)") -ForegroundColor Yellow

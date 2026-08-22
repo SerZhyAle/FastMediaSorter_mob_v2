@@ -6,7 +6,9 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceRequest
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceResponseStatus
+import com.sza.fastmediasorter.domain.repository.MediaStoreRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
+import com.sza.fastmediasorter.util.VirtualPathUtils
 import timber.log.Timber
 import java.io.File
 import java.io.InputStream
@@ -19,10 +21,12 @@ import javax.inject.Inject
  * enforce a limit it does not own.
  */
 class OpenPhoneResourceChannelUseCase @Inject constructor(
-    private val resourceRepository: ResourceRepository
+    private val resourceRepository: ResourceRepository,
+    private val mediaStoreRepository: MediaStoreRepository
 ) {
 
     suspend operator fun invoke(request: WearPhoneResourceRequest): PhoneResourceChannel {
+        Timber.d("S1697: phone open request itemToken=%s", request.itemToken)
         val item = request.itemToken?.let { PhoneResourceToken.parse(it) }
             ?: return PhoneResourceChannel.Rejected(WearPhoneResourceResponseStatus.NOT_FOUND)
 
@@ -40,8 +44,12 @@ class OpenPhoneResourceChannelUseCase @Inject constructor(
         }
     }
 
-    private fun approveOrReject(resource: MediaResource, item: PhoneResourceToken): PhoneResourceChannel {
-        val file = File(item.resolveAgainst(resource))
+    private suspend fun approveOrReject(
+        resource: MediaResource,
+        item: PhoneResourceToken
+    ): PhoneResourceChannel {
+        val file = resolveFile(resource, item)
+            ?: return PhoneResourceChannel.Rejected(WearPhoneResourceResponseStatus.NOT_FOUND)
         val mediaType = MediaExtensions.getMediaType(file.extension)
         val readable = runCatching { file.isFile && file.canRead() }.getOrDefault(false)
 
@@ -61,6 +69,41 @@ class OpenPhoneResourceChannelUseCase @Inject constructor(
             )
         }
     }
+
+    /**
+     * Resolves the item the token names by the same authority that listed it. An identity token is
+     * answered from MediaStore, because an element of a virtual resource has no path inside its
+     * resource; a path token keeps the original lookup.
+     */
+    private suspend fun resolveFile(resource: MediaResource, item: PhoneResourceToken): File? =
+        when {
+            item.mediaStoreId != null -> resolveById(resource, item.mediaStoreId)
+            // A virtual resource merges several folders, so its relative path is a bare name that
+            // can address more than one file. Refusing beats handing over an arbitrary namesake.
+            VirtualPathUtils.isVirtualPath(resource.path) -> null
+            else -> File(item.resolveAgainst(resource))
+        }
+
+    /**
+     * A MediaStore id addresses the whole device index rather than one resource, so an ordinary
+     * folder confines the answer to itself here - otherwise an id would reach past the resource
+     * and undo the containment `escapesResource` enforces on the path form. A virtual resource is
+     * a device-wide aggregate with no path of its own, so there is nothing to confine it to.
+     */
+    private suspend fun resolveById(resource: MediaResource, mediaStoreId: Long): File? {
+        val file = mediaStoreRepository.getFileByMediaStoreId(mediaStoreId)?.let { File(it.path) }
+        Timber.d("S1897: resolveById id=$mediaStoreId found=${file != null}")
+        return when {
+            file == null -> null
+            VirtualPathUtils.isVirtualPath(resource.path) -> file
+            file.isInside(resource.path) -> file
+            else -> null
+        }
+    }
+
+    private fun File.isInside(root: String): Boolean = runCatching {
+        canonicalPath.startsWith(File(root).canonicalPath + File.separator)
+    }.getOrDefault(false)
 
     /**
      * Only phone-owned storage is delivered. A network resource is deliberately excluded: the watch

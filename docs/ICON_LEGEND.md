@@ -112,6 +112,8 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Wear companion |
 | <img src="icons/svg/ic_front_flashlight.svg" alt="ic_front_flashlight" width="24" height="24"> | Front flashlight |
 | <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Gesture overlay |
+| <img src="icons/svg/ic_launcher_mode.svg" alt="ic_launcher_mode" width="24" height="24"> | Make this app the home screen |
+| <img src="icons/svg/ic_launcher_mode.svg" alt="ic_launcher_mode" width="24" height="24"> | System launcher settings |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Enable microphone recording |
 | <img src="icons/svg/ic_history.svg" alt="ic_history" width="24" height="24"> | Statistics |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Screen video recording |

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.ui.streams
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -45,6 +46,8 @@ class WearFaviconAtlasSlicer(
                 val rect = rectFor(index)
                 Bitmap.createBitmap(atlas, rect.left, rect.top, TILE, TILE)
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: IllegalStateException) {
             Timber.i(e, "Favicon atlas bitmap unusable for index=$index")
             null

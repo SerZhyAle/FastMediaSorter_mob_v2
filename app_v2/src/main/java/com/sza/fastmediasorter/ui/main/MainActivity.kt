@@ -1463,11 +1463,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun pinResourceLaunchShortcut(resource: com.sza.fastmediasorter.domain.model.MediaResource) {
         // Reuse the exact drawable the resource shows in the grid so the pinned icon matches it.
         val icon = ResourceIconComposer.compose(this, resource)
-        val message = when (resourceShortcutPinManager.requestPin(resource.id, resource.name, icon)) {
-            ResourceShortcutPinManager.PinResult.Requested -> R.string.resource_shortcut_created
-            ResourceShortcutPinManager.PinResult.Unsupported -> R.string.resource_shortcut_unsupported
+        // S1917: an accepted pin request is not a created shortcut - the system confirmation dialog
+        // decides that next - so only the unsupported case is reported here.
+        if (resourceShortcutPinManager.requestPin(resource.id, resource.name, icon) ==
+            ResourceShortcutPinManager.PinResult.Unsupported
+        ) {
+            Toast.makeText(this, R.string.resource_shortcut_unsupported, Toast.LENGTH_LONG).show()
         }
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
 
     companion object {

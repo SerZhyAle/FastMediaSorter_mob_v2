@@ -22,7 +22,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.lifecycleScope
-import androidx.media3.common.Player
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
@@ -45,7 +44,6 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
-import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
@@ -62,7 +60,6 @@ import com.sza.fastmediasorter.ui.player.helpers.PlayerDialogAndUiStateManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerDisplayMode
 import com.sza.fastmediasorter.ui.player.helpers.PlayerFpsMeter
 import com.sza.fastmediasorter.ui.player.helpers.PlayerNavigationManager
-import com.sza.fastmediasorter.ui.player.helpers.toPlaybackOrderUiState
 import com.sza.fastmediasorter.ui.player.model.TouchZoneHintType
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
@@ -363,7 +360,10 @@ class PlayerActivity :
 
     // Track current file path to avoid reloading when only metadata changes (e.g., isFavorite)
     internal var currentFilePath: String? = null
-    private var playbackOrderContextKey: String? = null
+
+    // S1963: owns the playback-order mode - where it is persisted and how it reaches the live engine.
+    private val playbackOrderManager =
+        com.sza.fastmediasorter.ui.player.helpers.PlaybackOrderManager(this)
 
     // Current settings cached for overlay visibility
     internal var currentSettings: AppSettings? = null
@@ -1052,7 +1052,7 @@ class PlayerActivity :
     internal fun updateAudioFormatInfo() = imageLoadingManager.updateAudioFormatInfo()
 
     internal fun updateTrackButtonsVisibility() {
-        applyPlaybackOrderModeToActivePlayer(viewModel.state.value.playbackOrderMode)
+        playbackOrderManager.applyToActivePlayer(viewModel.state.value.playbackOrderMode)
         exoPlayerControlsManager.updateTrackButtonsVisibility(
             viewModel.state.value.currentFile?.type == MediaType.VIDEO ||
                 viewModel.state.value.currentFile?.type == MediaType.AUDIO
@@ -1373,68 +1373,10 @@ class PlayerActivity :
         if (::imageLoadingManager.isInitialized) imageLoadingManager.applyRotation(angleDegrees)
     }
 
-    private fun applyPlaybackOrderModeToActivePlayer(mode: PlaybackOrderMode) {
-        when (viewModel.state.value.currentFile?.type) {
-            MediaType.AUDIO -> audioServiceController?.applyPlaybackOrderMode(mode)
-            MediaType.VIDEO -> {
-                val exoRepeatMode = if (mode == PlaybackOrderMode.REPEAT_ONE) {
-                    Player.REPEAT_MODE_ONE
-                } else {
-                    Player.REPEAT_MODE_OFF
-                }
-                _videoPlayerManager?.getPlayer()?.repeatMode = exoRepeatMode
-            }
-            else -> {}
-        }
-    }
+    internal fun syncPlaybackOrderForCurrentResource(state: PlayerViewModel.PlayerState): Boolean =
+        playbackOrderManager.syncForCurrentResource(state)
 
-    internal fun syncPlaybackOrderForCurrentResource(state: PlayerViewModel.PlayerState): Boolean {
-        val resourceId = state.resource?.id ?: return false
-        val mediaType = state.currentFile?.type ?: return false
-        val contextKey = "$resourceId:${PlaybackControlPreferences.modeScopeFor(mediaType)}"
-        if (playbackOrderContextKey == contextKey) {
-            return false
-        }
-
-        playbackOrderContextKey = contextKey
-        val prefs = getSharedPreferences(PlaybackControlPreferences.PREFS_NAME, MODE_PRIVATE)
-        val overrideValue = intent.getStringExtra(PlaybackControlPreferences.EXTRA_PLAYBACK_ORDER_OVERRIDE)
-        val overrideMode = overrideValue?.let(PlaybackOrderMode::fromPrefsString)
-        val resolvedMode = overrideMode ?: PlaybackControlPreferences.loadMode(prefs, resourceId, mediaType)
-
-        if (overrideMode != null) {
-            PlaybackControlPreferences.saveMode(prefs, resourceId, mediaType, overrideMode)
-            intent.removeExtra(PlaybackControlPreferences.EXTRA_PLAYBACK_ORDER_OVERRIDE)
-        }
-
-        applyPlaybackOrderModeToActivePlayer(resolvedMode)
-        exoPlayerControlsManager.updatePlaybackOrderButtonState()
-        if (state.playbackOrderMode == resolvedMode) {
-            return false
-        }
-
-        viewModel.setPlaybackOrderMode(resolvedMode)
-        return true
-    }
-
-    internal fun onPlaybackOrderClicked() {
-        val newMode = viewModel.cyclePlaybackOrderMode()
-        val currentState = viewModel.state.value
-        val resourceId = currentState.resource?.id
-        val mediaType = currentState.currentFile?.type
-        val prefs = getSharedPreferences(PlaybackControlPreferences.PREFS_NAME, MODE_PRIVATE)
-        if (resourceId != null) {
-            PlaybackControlPreferences.saveMode(prefs, resourceId, mediaType, newMode)
-        } else {
-            prefs.edit()
-                .putString(PlaybackControlPreferences.globalKeyFor(mediaType), newMode.toPrefsString())
-                .apply()
-        }
-        applyPlaybackOrderModeToActivePlayer(newMode)
-        exoPlayerControlsManager.updatePlaybackOrderButtonState()
-        val label = getString(newMode.toPlaybackOrderUiState().labelResId)
-        Toast.makeText(this, getString(R.string.playback_order_mode_set, label), Toast.LENGTH_SHORT).show()
-    }
+    internal fun onPlaybackOrderClicked() = playbackOrderManager.onPlaybackOrderClicked()
 
     internal fun onStreamFrameIngested(url: String) {
         setResult(

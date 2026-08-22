@@ -170,6 +170,7 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     var calculatorMemoryValue: String? = null
     var autoRotationEnabledValue = false
     var appLanguageValue: String? = null
+    var gameStateValue: String? = null
 
     override val isAudioEnabled: Flow<Boolean> = MutableStateFlow(audioEnabled)
     override val isVideoEnabled: Flow<Boolean> = MutableStateFlow(videoEnabled)
@@ -187,6 +188,11 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     override val calculatorMemory: Flow<String?> = MutableStateFlow(calculatorMemoryValue)
     override val isAutoRotationEnabled: Flow<Boolean> = MutableStateFlow(autoRotationEnabledValue)
     override val appLanguage: Flow<String?> = MutableStateFlow(appLanguageValue)
+    override val gameState: Flow<String?> = MutableStateFlow(gameStateValue)
+
+    override suspend fun setGameState(value: String?) {
+        gameStateValue = value
+    }
 
     override suspend fun setAudioEnabled(enabled: Boolean) {
         audioEnabled = enabled

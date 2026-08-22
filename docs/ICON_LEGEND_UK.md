@@ -112,6 +112,8 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Компаньйон годинника |
 | <img src="icons/svg/ic_front_flashlight.svg" alt="ic_front_flashlight" width="24" height="24"> | Фронтальний ліхтарик |
 | <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Оверлей жестів |
+| <img src="icons/svg/ic_launcher_mode.svg" alt="ic_launcher_mode" width="24" height="24"> | Лаунчер: зробити застосунок домашнім екраном |
+| <img src="icons/svg/ic_launcher_mode.svg" alt="ic_launcher_mode" width="24" height="24"> | Налаштування системного лаунчера |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Увімкнути запис із мікрофона |
 | <img src="icons/svg/ic_history.svg" alt="ic_history" width="24" height="24"> | Статистика |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Відеозапис екрана |

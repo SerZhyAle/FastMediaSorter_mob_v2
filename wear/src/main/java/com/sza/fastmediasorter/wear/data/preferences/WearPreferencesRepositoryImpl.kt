@@ -51,6 +51,7 @@ class WearPreferencesRepositoryImpl(
 
         val CALCULATOR_HISTORY = stringPreferencesKey("wear_calculator_history")
         val CALCULATOR_MEMORY = stringPreferencesKey("wear_calculator_memory")
+        val GAME_STATE = stringPreferencesKey("wear_game_state")
         val AUTO_ROTATION_ENABLED = booleanPreferencesKey("wear_auto_rotation_enabled")
         val APP_LANGUAGE = stringPreferencesKey("wear_app_language")
     }
@@ -221,6 +222,22 @@ class WearPreferencesRepositoryImpl(
                 prefs.remove(PreferencesKeys.CALCULATOR_MEMORY)
             } else {
                 prefs[PreferencesKeys.CALCULATOR_MEMORY] = value
+            }
+        }
+    }
+
+    // S1710: the raw serialized snapshot, kept opaque here - the store must not know the game's
+    // schema, so an unreadable string is rejected by GameStateSnapshot and never by this layer.
+    override val gameState: Flow<String?> = context.dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.GAME_STATE]
+    }
+
+    override suspend fun setGameState(value: String?) {
+        context.dataStore.edit { prefs ->
+            if (value == null) {
+                prefs.remove(PreferencesKeys.GAME_STATE)
+            } else {
+                prefs[PreferencesKeys.GAME_STATE] = value
             }
         }
     }

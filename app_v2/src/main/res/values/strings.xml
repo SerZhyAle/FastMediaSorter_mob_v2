@@ -2333,7 +2333,6 @@
     <string name="screenshot_gesture_action_open_app">Launch a chosen app</string>
     <string name="streams_shortcut_channel_missing">This stream is no longer in your list</string>
     <string name="streams_add_to_home_screen">Add to home screen</string>
-    <string name="streams_shortcut_created">Shortcut added to home screen</string>
     <string name="streams_shortcut_unsupported">Your launcher does not support home-screen shortcuts</string>
     <string name="streams_more_actions">More actions</string>
     <string name="disable_nine_zone_tracking">Disable 9-zone tracking</string>
@@ -2642,7 +2641,6 @@
     <string name="streams_pin">Pin</string>
     <string name="streams_unpin">Unpin</string>
     <string name="streams_pinned_badge">Pinned</string>
-    <string name="resource_shortcut_created">Shortcut added to home screen</string>
     <string name="resource_shortcut_unsupported">Your launcher does not support home-screen shortcuts</string>
     <string name="streams_panel_empty_hint">Pin streams to see them on this panel.</string>
     <string name="launcher_home_cell_unavailable">Unavailable</string>
@@ -2660,10 +2658,10 @@
     <string name="launcher_menu_exit_mode">Exit launcher mode</string>
     <string name="launcher_menu_reboot">Reboot</string>
     <string name="launcher_menu_reboot_confirm_title">Reboot device?</string>
-    <string name="launcher_menu_reboot_confirm_message">Are you sure you want to reboot the device?</string>
+    <string name="launcher_menu_reboot_confirm_message">The Android system power menu will open. Choose Restart there to reboot the device.</string>
     <string name="launcher_menu_shutdown">Power off</string>
     <string name="launcher_menu_shutdown_confirm_title">Power off device?</string>
-    <string name="launcher_menu_shutdown_confirm_message">Are you sure you want to power off the device?</string>
+    <string name="launcher_menu_shutdown_confirm_message">The Android system power menu will open. Choose Power off there to switch the device off.</string>
     <string name="launcher_menu_exit_confirm_title">Exit launcher mode?</string>
     <string name="launcher_menu_exit_confirm_message">Your device will go back to its previous home screen. Your desktop is kept, so you can turn the mode on again at any time.</string>
     <string name="launcher_menu_exit_confirm_action">Exit</string>
@@ -3165,7 +3163,6 @@
     <string name="network_monitor_bluetooth_adapter_absent">Not on this device</string>
     <string name="network_monitor_bluetooth_state_on">On</string>
     <string name="network_monitor_bluetooth_state_off">Off</string>
-    <string name="network_monitor_bluetooth_paired_heading">Paired devices</string>
     <string name="network_monitor_bluetooth_paired_empty">Nothing is paired with this device.</string>
     <string name="network_monitor_bluetooth_picker_label">Chart a connected device</string>
     <string name="network_monitor_bluetooth_picker_none">Not selected</string>
@@ -3406,9 +3403,6 @@
     <string name="network_monitor_chart_reset_done">Chart restarted. Collecting from now.</string>
     <string name="settings_enable_wear_companion">Wear companion</string>
     <string name="settings_enable_wear_companion_summary">Show the watch companion in the programs panel and menu</string>
-    <string name="wear_watch_resource_name"></string>
-    <string name="wear_watch_transfer_success"></string>
-    <string name="wear_watch_transfer_failed"></string>
     <string name="stream_action_send_to_watch">Send to watch</string>
     <string name="stream_send_to_watch_done">Stream sent to the watch</string>
     <string name="stream_send_to_watch_updated">Stream updated on the watch</string>
@@ -3433,12 +3427,24 @@
     <string name="vr_legend_input_menu">Left menu button</string>
     <string name="vr_legend_action_settings">Open or close session settings</string>
     <string name="accessibility_service_disable_now">Disable accessibility service</string>
-    <string name="accessibility_service_status_active">Accessibility: Active</string>
     <string name="accessibility_service_status_disabled">Accessibility: Disabled</string>
     <string name="qs_tile_accessibility">FMS Accessibility</string>
     <string name="dev_options_shortcut">Developer options</string>
-    <string name="usb_debugging_status">USB debugging: %s</string>
     <string name="settings_wear_paired_watch_checking">Checking the link..</string>
     <string name="settings_wear_paired_watch_connected">%1$s - connected</string>
     <string name="settings_wear_paired_watch_not_connected">No watch on the link</string>
+    <string name="launcher_menu_power_menu_action">Open power menu</string>
+    <string name="launcher_menu_power_menu_unavailable">The accessibility service is off, so the system power menu cannot open. Turn it on to use this action.</string>
+    <string name="launcher_signal_dismiss">Dismiss</string>
+    <string name="launcher_signal_dismiss_all">Dismiss all</string>
+    <string name="widget_stream_launch_label">Stream</string>
+    <string name="widget_stream_launch_description">Open a saved channel from the home screen</string>
+    <string name="stream_open_on_watch_opened">Playing on the watch</string>
+    <string name="stream_open_on_watch_app_closed">Saved to the watch - open the watch app to play it</string>
+    <string name="stream_action_open_on_watch">Open on watch</string>
+    <string name="calculator_hint_copy">Copy</string>
+    <string name="calculator_hint_paste">Paste</string>
+    <string name="calculator_hint_share">Share</string>
+    <string name="calculator_hint_round">Round</string>
+    <string name="calculator_hint_save">Save</string>
 </resources>

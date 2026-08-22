@@ -258,4 +258,7 @@
     <string name="pref_resource_grid_cell_size_large">Grande</string>
     <string name="settings_enable_system_info">Informação do sistema</string>
     <string name="settings_enable_system_info_summary">Mostrar informação do sistema no painel de programas e no menu</string>
+    <string name="settings_wear_group_title">Wear OS</string>
+    <string name="settings_wear_group_description">Ative isto se tiver um relógio Wear OS. A aplicação complementar abre a partir daqui e decide o que este telemóvel partilha com o relógio.</string>
+    <string name="settings_wear_install_guide_button">Como instalar num relógio</string>
 </resources>

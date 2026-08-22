@@ -34,6 +34,13 @@ object LocaleHelper {
     /** In-memory cache - avoids repeated SharedPreferences/LocaleManager reads per Activity creation. */
     @Volatile private var cachedLanguageCode: String? = null
 
+    // S1892: these two carry no behaviour - they exist only so an unchanged value is not re-logged.
+    // Both sites below run on every language resolution, and printing an unchanged value 500 times
+    // displaces real events out of the ring buffer a user log is truncated to.
+    @Volatile private var lastLoggedSystemFallback: String? = null
+
+    @Volatile private var lastLoggedAppliedLanguage: String? = null
+
     fun isFollowSystemLanguage(languageCode: String?): Boolean {
         val normalized = languageCode?.trim()?.lowercase(Locale.ROOT)
         return normalized.isNullOrBlank() ||
@@ -138,7 +145,11 @@ object LocaleHelper {
 
         // No explicit preference yet - use system OS language (ru/uk) or fall back to en
         val systemLanguage = detectSystemLanguage()
-        Timber.d("LocaleHelper: No saved language preference; using system language: $systemLanguage")
+        if (systemLanguage != lastLoggedSystemFallback) {
+            lastLoggedSystemFallback = systemLanguage
+            Timber.d("S1892: system-language fallback gate passed lang=%s", systemLanguage)
+            Timber.d("LocaleHelper: No saved language preference; using system language: $systemLanguage")
+        }
         cachedLanguageCode = null
         return@allowDiskReads systemLanguage
     }
@@ -213,23 +224,27 @@ object LocaleHelper {
         // and every later caller can read it without carrying a Context.
         UiLanguageCatalog.ensureInitialized(context)
         val resolvedLanguageCode = resolveSupportedLanguageCode(languageCode)
-        if (BuildConfig.DEBUG) {
-            val t0 = SystemClock.uptimeMillis()
-            val caller = Thread.currentThread().stackTrace
-                .dropWhile { frame -> !frame.className.contains("LocaleHelper") }
-                .drop(1)
-                .firstOrNull { frame ->
-                    frame.className.contains("fastmediasorter") &&
-                        !frame.className.contains("LocaleHelper")
+        if (resolvedLanguageCode != lastLoggedAppliedLanguage) {
+            lastLoggedAppliedLanguage = resolvedLanguageCode
+            Timber.d("S1892: applyLocale log gate passed code=%s", resolvedLanguageCode)
+            if (BuildConfig.DEBUG) {
+                val t0 = SystemClock.uptimeMillis()
+                val caller = Thread.currentThread().stackTrace
+                    .dropWhile { frame -> !frame.className.contains("LocaleHelper") }
+                    .drop(1)
+                    .firstOrNull { frame ->
+                        frame.className.contains("fastmediasorter") &&
+                            !frame.className.contains("LocaleHelper")
+                    }
+                val callerLabel = if (caller != null) {
+                    "${caller.className.substringAfterLast('.')}.${caller.methodName}"
+                } else {
+                    "unknown"
                 }
-            val callerLabel = if (caller != null) {
-                "${caller.className.substringAfterLast('.')}.${caller.methodName}"
-            } else {
-                "unknown"
+                Timber.d("LocaleHelper: applyLocale('$resolvedLanguageCode') called from $callerLabel [${t0}ms uptime]")
             }
-            Timber.d("LocaleHelper: applyLocale('$resolvedLanguageCode') called from $callerLabel [${t0}ms uptime]")
+            Timber.d("LocaleHelper: Applying locale: $resolvedLanguageCode")
         }
-        Timber.d("LocaleHelper: Applying locale: $resolvedLanguageCode")
         
         // forLanguageTag, not the Locale(String) constructor: a declared tag may carry a script subtag
         // ("zh-Hans"), which the constructor would take for a language code of its own.

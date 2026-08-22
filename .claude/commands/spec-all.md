@@ -187,12 +187,14 @@ Build only from files **this pipeline run actually edited**, never from `git dif
 
 Follow `/spec-check` (full mode). `Verified` -> final report.
 
+`BlockNeedUserTest` is also terminal here (S1899): since that ticket, `/spec-check` scores it when every check passed except one a machine cannot run. Nothing is broken, so there is nothing for `/spec-fix` to fix - apply the **Device-test gate** and go to the final report. Feeding it into the iteration loop below would burn all five iterations and end in a false `Incomplete`.
+
 Each iteration:
 
 1. `/spec-fix <Sxxxx>`.
 2. Implement "Action items" directly. If requires design decision not derivable from codebase -> mark `[FOLLOW-UP]`, skip.
 3. Code modified -> `/build` -> `standard debug` (+ `vr debug` if `src/vr/` touched).
-4. `/spec-check <Sxxxx>`. `Verified` -> final report.
+4. `/spec-check <Sxxxx>`. `Verified` -> final report. `BlockNeedUserTest` -> Device-test gate, then final report.
 
 MAX_FIX_ITERATIONS exhausted -> final report as Incomplete.
 

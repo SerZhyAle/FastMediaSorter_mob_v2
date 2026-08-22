@@ -224,6 +224,9 @@ class StreamSourceRepository @Inject constructor(
     /** S0654: stored media kind (RTSP/VIDEO/AUDIO) behind a source id, for the stream-played metric. */
     suspend fun getMediaKind(id: String): String? = dao.getMediaKindById(id)
 
+    /** S1918: number of catalog-origin rows currently stored; zero means the catalog was never imported. */
+    suspend fun catalogSourceCount(): Int = dao.countCatalogSources()
+
     /**
      * S0570: synchronize the curated catalog into stream_sources. New catalog rows are inserted,
      * existing catalog rows have their metadata refreshed in place (sortIndex/pinned preserved), and

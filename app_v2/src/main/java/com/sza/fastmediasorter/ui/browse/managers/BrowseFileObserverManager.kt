@@ -278,7 +278,11 @@ class BrowseFileObserverManager(
 
             val fileIndex = currentList.indexOfFirst { it.name == oldName }
             if (fileIndex == -1) {
-                if (oldName.startsWith(".pending-")) {
+                if (oldName.startsWith(PENDING_NAME_PREFIX)) {
+                    // S1891: Android hides a file while IS_PENDING is set, so a '.pending-' source name
+                    // can never be in the visible list - this is a publication, not a rename, and the
+                    // immediate fallback below would rescan the folder once per published file.
+                    Timber.d("S1891: pending publication debounced oldName=%s", oldName)
                     Timber.i("FileObserver.handleFileRename: pending file published - scheduling debounced reload")
                     scheduleReload()
                     return@launch
@@ -305,5 +309,9 @@ class BrowseFileObserverManager(
             updateState { it.copy(mediaFiles = sortedList) }
             Timber.i("FileObserver.handleFileRename: list updated, total=${sortedList.size}")
         }
+    }
+
+    companion object {
+        private const val PENDING_NAME_PREFIX = ".pending-"
     }
 }

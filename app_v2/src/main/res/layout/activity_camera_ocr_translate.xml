@@ -322,43 +322,52 @@
 
         </FrameLayout>
 
-        <!-- Bottom Action Bar: Retry / OK -->
+        <!-- Bottom Action Bar: retake / languages / confirm.
+             S1921: the two action buttons are pinned to the ends at a fixed 48dp and only the
+             language cluster gives up width. As a plain wrap_content row the confirm button was the
+             last child, so on a 375dp screen with a long localized retake label it measured to zero
+             and disappeared - and only in translate mode, where the arrow and the target-language
+             button widen the cluster. -->
         <LinearLayout
             android:id="@+id/cropActionBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
+            android:gravity="center_vertical"
             android:orientation="horizontal"
             android:padding="8dp">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCropRetry"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="wrap_content"
+                android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:layout_marginEnd="8dp"
                 android:clickable="true"
+                android:contentDescription="@string/camera_ocr_crop_retry"
                 android:focusable="true"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
-                android:maxLines="1"
                 android:minWidth="0dp"
                 android:minHeight="48dp"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
                 android:nextFocusRight="@+id/btnCropOcrLang"
-                android:text="@string/camera_ocr_crop_retry"
-                android:textColor="@color/camera_ocr_text_primary"
+                android:padding="0dp"
+                android:tooltipText="@string/camera_ocr_crop_retry"
+                app:icon="@drawable/ic_refresh"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="20dp"
+                app:iconTint="@color/camera_ocr_text_primary"
                 app:strokeColor="@color/camera_ocr_stroke" />
 
             <!-- S0354: language cluster - OCR lang, direction arrow, translation lang.
                  Arrow + target button are shown only when translation is available. -->
             <LinearLayout
                 android:id="@+id/layoutCropLangCluster"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
                 android:layout_marginEnd="8dp"
-                android:gravity="center_vertical"
+                android:gravity="center"
                 android:orientation="horizontal">
 
                 <com.google.android.material.button.MaterialButton
@@ -419,21 +428,24 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCropConfirm"
-                android:layout_width="wrap_content"
+                android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:clickable="true"
+                android:contentDescription="@string/camera_ocr_crop_confirm"
                 android:focusable="true"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
-                android:maxLines="1"
-                android:minWidth="56dp"
+                android:minWidth="0dp"
                 android:minHeight="48dp"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
                 android:nextFocusLeft="@+id/btnCropTargetLang"
-                android:text="@string/camera_ocr_crop_confirm"
-                android:textColor="@color/camera_ocr_text_emphasis"
-                app:backgroundTint="?attr/colorPrimary" />
+                android:padding="0dp"
+                android:tooltipText="@string/camera_ocr_crop_confirm"
+                app:backgroundTint="?attr/colorPrimary"
+                app:icon="@drawable/ic_check"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="24dp"
+                app:iconTint="@color/camera_ocr_text_emphasis" />
 
         </LinearLayout>
 

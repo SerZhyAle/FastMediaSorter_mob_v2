@@ -2291,7 +2291,6 @@
     <string name="screenshot_gesture_action_open_app">Запустить выбранную программу</string>
     <string name="streams_shortcut_channel_missing">Этой трансляции больше нет в списке</string>
     <string name="streams_add_to_home_screen">На домашний экран</string>
-    <string name="streams_shortcut_created">Ярлык добавлен на домашний экран</string>
     <string name="streams_shortcut_unsupported">Ваш лаунчер не поддерживает ярлыки на домашнем экране</string>
     <string name="streams_more_actions">Ещё</string>
     <string name="disable_nine_zone_tracking">Отключить отслеживание 9 зон</string>
@@ -2601,7 +2600,6 @@
     <string name="streams_pin">Закрепить</string>
     <string name="streams_unpin">Открепить</string>
     <string name="streams_pinned_badge">Закреплён</string>
-    <string name="resource_shortcut_created">Ярлык добавлен на домашний экран</string>
     <string name="resource_shortcut_unsupported">Ваш лаунчер не поддерживает ярлыки на домашнем экране</string>
     <string name="streams_panel_empty_hint">Закрепите трансляции, чтобы они были на этой панели.</string>
     <string name="launcher_home_cell_unavailable">Недоступно</string>
@@ -2619,10 +2617,10 @@
     <string name="launcher_menu_exit_mode">Выйти из режима лаунчера</string>
     <string name="launcher_menu_reboot">Перезагрузить</string>
     <string name="launcher_menu_reboot_confirm_title">Перезагрузить устройство?</string>
-    <string name="launcher_menu_reboot_confirm_message">Вы уверены, что хотите перезагрузить устройство?</string>
+    <string name="launcher_menu_reboot_confirm_message">Откроется системное меню питания Android. Выберите в нём «Перезагрузка», чтобы перезагрузить устройство.</string>
     <string name="launcher_menu_shutdown">Выключить</string>
     <string name="launcher_menu_shutdown_confirm_title">Выключить устройство?</string>
-    <string name="launcher_menu_shutdown_confirm_message">Вы уверены, что хотите выключить устройство?</string>
+    <string name="launcher_menu_shutdown_confirm_message">Откроется системное меню питания Android. Выберите в нём «Выключение», чтобы выключить устройство.</string>
     <string name="launcher_menu_exit_confirm_title">Выйти из режима лаунчера?</string>
     <string name="launcher_menu_exit_confirm_message">Устройство вернётся к прежнему домашнему экрану. Рабочий стол сохранится - включить режим снова можно в любой момент.</string>
     <string name="launcher_menu_exit_confirm_action">Выйти</string>
@@ -2661,10 +2659,10 @@
     <string name="launcher_edit_rotation_hint">Вертикальный и горизонтальный рабочие столы настраиваются отдельно - оформите каждый по-своему.</string>
     <string name="launcher_edit_pin_add">Закрепить приложение</string>
     <string name="launcher_edit_unpin_named">Открепить %1$s</string>
-    <string name="launcher_settings_enable_title">Сделать приложение домашним экраном</string>
-    <string name="launcher_settings_enable_desc">Кнопка «Домой» открывает ваш рабочий стол с ярлыками и гаджетами. Выключите в любой момент, чтобы вернуть прежний домашний экран.</string>
-    <string name="launcher_settings_enable_help_title">Режим домашнего экрана</string>
-    <string name="launcher_settings_enable_help_message">После включения Android спросит, какой домашний экран использовать - выберите это приложение и нажмите «Всегда» (или «Только сейчас», чтобы попробовать). Чтобы вернуться, выключите режим, и Android восстановит прежний домашний экран.</string>
+    <string name="launcher_settings_enable_title">Лаунчер: сделать приложение домашним экраном</string>
+    <string name="launcher_settings_enable_desc">Кнопка «Домой» открывает лаунчер - ваш рабочий стол с ярлыками и гаджетами. Выключите в любой момент, чтобы вернуть прежний домашний экран.</string>
+    <string name="launcher_settings_enable_help_title">Режим лаунчера</string>
+    <string name="launcher_settings_enable_help_message">После включения лаунчера Android спросит, какой домашний экран использовать - выберите это приложение и нажмите «Всегда» (или «Только сейчас», чтобы попробовать). Чтобы вернуться, выключите режим, и Android восстановит прежний домашний экран.</string>
     <string name="launcher_settings_show_recents_title">Показывать недавние приложения</string>
     <string name="launcher_settings_show_pinned_title">Показывать закреплённые приложения</string>
     <string name="launcher_settings_show_tray_title">Показывать трей статуса</string>
@@ -2983,7 +2981,7 @@
     <string name="launcher_signal_list_title">Активные сигналы</string>
     <string name="launcher_settings_group_taskbar">Панель задач</string>
     <string name="launcher_settings_group_top_bar">Верхняя полоса</string>
-    <string name="launcher_settings_group_desktop">Рабочий стол</string>
+    <string name="launcher_settings_group_desktop">Рабочий стол лаунчера</string>
     <string name="launcher_settings_group_system">Система</string>
     <string name="stream_info_menu_title">О канале</string>
     <string name="stream_info_window_title">О канале</string>
@@ -3128,7 +3126,6 @@
     <string name="network_monitor_bluetooth_adapter_absent">Отсутствует на этом устройстве</string>
     <string name="network_monitor_bluetooth_state_on">Включено</string>
     <string name="network_monitor_bluetooth_state_off">Выключено</string>
-    <string name="network_monitor_bluetooth_paired_heading">Сопряжённые устройства</string>
     <string name="network_monitor_bluetooth_paired_empty">С этим устройством ничего не сопряжено.</string>
     <string name="network_monitor_bluetooth_picker_label">График подключённого устройства</string>
     <string name="network_monitor_bluetooth_picker_none">Не выбрано</string>
@@ -3366,9 +3363,6 @@
     <string name="network_monitor_chart_reset_done">График перезапущен. Замер идёт заново.</string>
     <string name="settings_enable_wear_companion">Компаньон часов</string>
     <string name="settings_enable_wear_companion_summary">Показывать компаньон часов в панели и меню программ</string>
-    <string name="wear_watch_resource_name"></string>
-    <string name="wear_watch_transfer_success"></string>
-    <string name="wear_watch_transfer_failed"></string>
     <string name="stream_action_send_to_watch">Передать на часы</string>
     <string name="stream_send_to_watch_done">Трансляция передана на часы</string>
     <string name="stream_send_to_watch_updated">Трансляция обновлена на часах</string>
@@ -3393,12 +3387,24 @@
     <string name="vr_legend_input_menu">Левая кнопка меню</string>
     <string name="vr_legend_action_settings">Открыть или закрыть настройки сеанса</string>
     <string name="accessibility_service_disable_now">Отключить доступность</string>
-    <string name="accessibility_service_status_active">Доступность: Активна</string>
     <string name="accessibility_service_status_disabled">Доступность: Отключена</string>
     <string name="qs_tile_accessibility">FMS Доступность</string>
     <string name="dev_options_shortcut">Настройки разработчика</string>
-    <string name="usb_debugging_status">Отладка по USB: %s</string>
     <string name="settings_wear_paired_watch_checking">Проверка связи..</string>
     <string name="settings_wear_paired_watch_connected">%1$s - на связи</string>
     <string name="settings_wear_paired_watch_not_connected">Часы не на связи</string>
+    <string name="launcher_menu_power_menu_action">Открыть меню питания</string>
+    <string name="launcher_menu_power_menu_unavailable">Служба специальных возможностей выключена, поэтому системное меню питания не откроется. Включите её, чтобы пользоваться этим действием.</string>
+    <string name="launcher_signal_dismiss">Снять</string>
+    <string name="launcher_signal_dismiss_all">Снять все</string>
+    <string name="widget_stream_launch_label">Трансляция</string>
+    <string name="widget_stream_launch_description">Открывает сохранённый канал с рабочего стола</string>
+    <string name="stream_open_on_watch_opened">Играет на часах</string>
+    <string name="stream_open_on_watch_app_closed">Сохранено на часах - откройте приложение на часах, чтобы включить</string>
+    <string name="stream_action_open_on_watch">Открыть на часах</string>
+    <string name="calculator_hint_copy">Копировать</string>
+    <string name="calculator_hint_paste">Вставить</string>
+    <string name="calculator_hint_share">Отправить</string>
+    <string name="calculator_hint_round">Округлить</string>
+    <string name="calculator_hint_save">Сохранить</string>
 </resources>

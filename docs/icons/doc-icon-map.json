@@ -20,6 +20,7 @@
     { "title": "Duplicate Cleanup", "drawable": "ic_sort_random" },
     { "title": "Chromecast Playback", "drawable": "ic_cast" },
     { "title": "Home-Screen Smart Widgets", "drawable": "ic_widget_resource_launch" },
+    { "title": "Home Screen Replacement (Launcher)", "drawable": "ic_launcher_mode" },
     { "title": "OpenXR VR Immersive Cinema", "drawable": "ic_vr_headset" },
     { "title": "Quick Math & Calculations", "drawable": "ic_calculator" },
     { "title": "Cloud Markdown & Code Notes", "drawable": "ic_edit_20" },
@@ -39,7 +40,8 @@
     { "emoji": "🧮", "drawable": "ic_calculator" },
     { "emoji": "📝", "drawable": "ic_edit_20" },
     { "emoji": "📖", "drawable": "ic_book" },
-    { "emoji": "🧭", "drawable": "ic_info" }
+    { "emoji": "🧭", "drawable": "ic_info" },
+    { "emoji": "🪟", "drawable": "ic_launcher_mode" }
   ],
   "docsMap": [
     { "emoji": "🗺️", "drawable": "ic_book" },

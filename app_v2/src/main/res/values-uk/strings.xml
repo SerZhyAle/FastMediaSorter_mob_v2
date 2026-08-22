@@ -2264,7 +2264,6 @@
     <string name="screenshot_gesture_action_open_app">Запустити вибрану програму</string>
     <string name="streams_shortcut_channel_missing">Цієї трансляції більше немає в списку</string>
     <string name="streams_add_to_home_screen">На домашній екран</string>
-    <string name="streams_shortcut_created">Ярлик додано на домашній екран</string>
     <string name="streams_shortcut_unsupported">Ваш лаунчер не підтримує ярлики на домашньому екрані</string>
     <string name="streams_more_actions">Ще</string>
     <string name="disable_nine_zone_tracking">Вимкнути відстеження 9 зон</string>
@@ -2575,7 +2574,6 @@
     <string name="streams_pin">Закріпити</string>
     <string name="streams_unpin">Відкріпити</string>
     <string name="streams_pinned_badge">Закріплено</string>
-    <string name="resource_shortcut_created">Ярлик додано на домашній екран</string>
     <string name="resource_shortcut_unsupported">Ваш лаунчер не підтримує ярлики на домашньому екрані</string>
     <string name="streams_panel_empty_hint">Закріпіть трансляції, щоб вони були на цій панелі.</string>
     <string name="launcher_home_cell_unavailable">Недоступно</string>
@@ -2593,10 +2591,10 @@
     <string name="launcher_menu_exit_mode">Вийти з режиму лаунчера</string>
     <string name="launcher_menu_reboot">Перезавантажити</string>
     <string name="launcher_menu_reboot_confirm_title">Перезавантажити пристрій?</string>
-    <string name="launcher_menu_reboot_confirm_message">Ви впевнені, що хочете перезавантажити пристрій?</string>
+    <string name="launcher_menu_reboot_confirm_message">Відкриється системне меню живлення Android. Виберіть у ньому «Перезавантаження», щоб перезавантажити пристрій.</string>
     <string name="launcher_menu_shutdown">Вимкнути</string>
     <string name="launcher_menu_shutdown_confirm_title">Вимкнути пристрій?</string>
-    <string name="launcher_menu_shutdown_confirm_message">Ви впевнені, що хочете вимкнути пристрій?</string>
+    <string name="launcher_menu_shutdown_confirm_message">Відкриється системне меню живлення Android. Виберіть у ньому «Вимкнення», щоб вимкнути пристрій.</string>
     <string name="launcher_menu_exit_confirm_title">Вийти з режиму лаунчера?</string>
     <string name="launcher_menu_exit_confirm_message">Пристрій повернеться до попереднього домашнього екрана. Робочий стіл збережеться - увімкнути режим знову можна будь-коли.</string>
     <string name="launcher_menu_exit_confirm_action">Вийти</string>
@@ -2635,10 +2633,10 @@
     <string name="launcher_edit_rotation_hint">Вертикальний і горизонтальний робочі столи налаштовуються окремо - оформте кожен по-своєму.</string>
     <string name="launcher_edit_pin_add">Закріпити застосунок</string>
     <string name="launcher_edit_unpin_named">Відкріпити %1$s</string>
-    <string name="launcher_settings_enable_title">Зробити застосунок домашнім екраном</string>
-    <string name="launcher_settings_enable_desc">Кнопка «Додому» відкриває ваш робочий стіл з ярликами та гаджетами. Вимкніть будь-коли, щоб повернути попередній домашній екран.</string>
-    <string name="launcher_settings_enable_help_title">Режим домашнього екрана</string>
-    <string name="launcher_settings_enable_help_message">Після ввімкнення Android запитає, який домашній екран використовувати - виберіть цей застосунок і натисніть «Завжди» (або «Лише зараз», щоб спробувати). Щоб повернутися, вимкніть режим, і Android відновить попередній домашній екран.</string>
+    <string name="launcher_settings_enable_title">Лаунчер: зробити застосунок домашнім екраном</string>
+    <string name="launcher_settings_enable_desc">Кнопка «Додому» відкриває лаунчер - ваш робочий стіл з ярликами та гаджетами. Вимкніть будь-коли, щоб повернути попередній домашній екран.</string>
+    <string name="launcher_settings_enable_help_title">Режим лаунчера</string>
+    <string name="launcher_settings_enable_help_message">Після ввімкнення лаунчера Android запитає, який домашній екран використовувати - виберіть цей застосунок і натисніть «Завжди» (або «Лише зараз», щоб спробувати). Щоб повернутися, вимкніть режим, і Android відновить попередній домашній екран.</string>
     <string name="launcher_settings_show_recents_title">Показувати нещодавні застосунки</string>
     <string name="launcher_settings_show_pinned_title">Показувати закріплені застосунки</string>
     <string name="launcher_settings_show_tray_title">Показувати трей статусу</string>
@@ -2968,7 +2966,7 @@
     <string name="launcher_signal_list_title">Активні сигнали</string>
     <string name="launcher_settings_group_taskbar">Панель задач</string>
     <string name="launcher_settings_group_top_bar">Верхня смуга</string>
-    <string name="launcher_settings_group_desktop">Робочий стіл</string>
+    <string name="launcher_settings_group_desktop">Робочий стіл лаунчера</string>
     <string name="launcher_settings_group_system">Система</string>
     <string name="stream_info_menu_title">Про канал</string>
     <string name="stream_info_window_title">Про канал</string>
@@ -3113,7 +3111,6 @@
     <string name="network_monitor_bluetooth_adapter_absent">Відсутній на цьому пристрої</string>
     <string name="network_monitor_bluetooth_state_on">Увімкнено</string>
     <string name="network_monitor_bluetooth_state_off">Вимкнено</string>
-    <string name="network_monitor_bluetooth_paired_heading">Спарені пристрої</string>
     <string name="network_monitor_bluetooth_paired_empty">З цим пристроєм нічого не спарено.</string>
     <string name="network_monitor_bluetooth_picker_label">Графік підключеного пристрою</string>
     <string name="network_monitor_bluetooth_picker_none">Не вибрано</string>
@@ -3351,9 +3348,6 @@
     <string name="network_monitor_chart_reset_done">Графік перезапущено. Замір іде наново.</string>
     <string name="settings_enable_wear_companion">Компаньйон годинника</string>
     <string name="settings_enable_wear_companion_summary">Показувати компаньйон годинника в панелі та меню програм</string>
-    <string name="wear_watch_resource_name"></string>
-    <string name="wear_watch_transfer_success"></string>
-    <string name="wear_watch_transfer_failed"></string>
     <string name="stream_action_send_to_watch">Надіслати на годинник</string>
     <string name="stream_send_to_watch_done">Трансляцію надіслано на годинник</string>
     <string name="stream_send_to_watch_updated">Трансляцію оновлено на годиннику</string>
@@ -3378,12 +3372,24 @@
     <string name="vr_legend_input_menu">Ліва кнопка меню</string>
     <string name="vr_legend_action_settings">Відкрити або закрити налаштування сеансу</string>
     <string name="accessibility_service_disable_now">Вимкнути доступність</string>
-    <string name="accessibility_service_status_active">Доступність: Активна</string>
     <string name="accessibility_service_status_disabled">Доступність: Вимкнена</string>
     <string name="qs_tile_accessibility">FMS Доступність</string>
     <string name="dev_options_shortcut">Налаштування розробника</string>
-    <string name="usb_debugging_status">Налагодження USB: %s</string>
     <string name="settings_wear_paired_watch_checking">Перевірка зв\'язку..</string>
     <string name="settings_wear_paired_watch_connected">%1$s - на зв\'язку</string>
     <string name="settings_wear_paired_watch_not_connected">Годинник не на зв\'язку</string>
+    <string name="launcher_menu_power_menu_action">Відкрити меню живлення</string>
+    <string name="launcher_menu_power_menu_unavailable">Службу спеціальних можливостей вимкнено, тому системне меню живлення не відкриється. Увімкніть її, щоб користуватися цією дією.</string>
+    <string name="launcher_signal_dismiss">Зняти</string>
+    <string name="launcher_signal_dismiss_all">Зняти всі</string>
+    <string name="widget_stream_launch_label">Трансляція</string>
+    <string name="widget_stream_launch_description">Відкриває збережений канал з робочого столу</string>
+    <string name="stream_open_on_watch_opened">Грає на годиннику</string>
+    <string name="stream_open_on_watch_app_closed">Збережено на годиннику - відкрийте застосунок на годиннику, щоб увімкнути</string>
+    <string name="stream_action_open_on_watch">Відкрити на годиннику</string>
+    <string name="calculator_hint_copy">Копіювати</string>
+    <string name="calculator_hint_paste">Вставити</string>
+    <string name="calculator_hint_share">Надіслати</string>
+    <string name="calculator_hint_round">Округлити</string>
+    <string name="calculator_hint_save">Зберегти</string>
 </resources>

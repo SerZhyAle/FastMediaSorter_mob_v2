@@ -1,7 +1,8 @@
 package com.sza.fastmediasorter.domain.usecase.panel
 
-import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
+import com.sza.fastmediasorter.core.panel.SubProgramCatalog
+import com.sza.fastmediasorter.core.panel.SubProgramSurface
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.model.APP_LAUNCH_PANEL_SLOT_COUNT
 import com.sza.fastmediasorter.domain.model.AppLaunchPanelTile
@@ -30,11 +31,12 @@ class SeedDefaultAppLaunchPanelUseCase @Inject constructor(
         var slot = 0
         repository.setTile(AppLaunchPanelTile(slot++, AppLaunchPanelTileType.OWN_APP, null, null, now))
 
-        // Ours first: seed each curated feature compiled into this build; skip + shift up otherwise.
-        for (routeKey in SEED_FEATURE_ORDER) {
-            if (slot >= SEED_SLOT_LIMIT) break
-            if (!resolveRouteAvailability(routeKey).availableInBuild) continue
-            slot = seedRouteTile(slot, AppLaunchPanelRouteTarget.Feature(routeKey), now)
+        // S1736: ours first, taken from the one registry of sub-programs in its one order, no longer
+        // from a list this use case curated for itself.
+        for (entry in SubProgramCatalog.forSurface(SubProgramSurface.QUICK_ACCESS_PANEL)) {
+            if (slot >= SEED_FEATURE_SLOT_LIMIT) break
+            if (!resolveRouteAvailability(entry.routeKey).availableInBuild) continue
+            slot = seedRouteTile(slot, AppLaunchPanelRouteTarget.Feature(entry.routeKey), now)
         }
 
         // A specific resource (§5.1.C): only if a real default exists, else skip (no dangling id, §04.2).
@@ -64,16 +66,15 @@ class SeedDefaultAppLaunchPanelUseCase @Inject constructor(
     }
 
     private companion object {
-        // Favorites is intentionally excluded from the default seed (strategic §5.1.E lists these four).
-        val SEED_FEATURE_ORDER = listOf(
-            InternalRouteCatalog.KEY_CALCULATOR,
-            InternalRouteCatalog.KEY_GAME,
-            InternalRouteCatalog.KEY_OCR,
-            InternalRouteCatalog.KEY_STREAMS,
-        )
-
         // Leave a guaranteed band of empty slots as an invitation to add the user's own apps (§6.5).
         const val SEED_SLOT_LIMIT = APP_LAUNCH_PANEL_SLOT_COUNT - 4
+
+        // S1736: the registry offers more panel-eligible programs than the curated list it replaces, so
+        // feature seeding stops two slots early to keep the resource tile and the Settings tile that
+        // follow it. Without the reservation the programs alone reach SEED_SLOT_LIMIT and both trailing
+        // tiles are silently dropped, which is a change to the first-run panel this ticket never asked
+        // for - it is a migration of where the composition comes from, not of what the default is.
+        const val SEED_FEATURE_SLOT_LIMIT = SEED_SLOT_LIMIT - 2
 
         val VIRTUAL_ALL_PATHS = setOf(
             LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES,

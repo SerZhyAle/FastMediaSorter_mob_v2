@@ -5,6 +5,7 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 import androidx.core.content.getSystemService
+import com.google.android.gms.wearable.ChannelClient
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
@@ -12,10 +13,12 @@ import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Wearable
 import com.google.android.gms.wearable.WearableListenerService
 import com.google.gson.Gson
+import com.sza.fastmediasorter.wear.data.repository.WearFileReceiverManager
 import com.sza.fastmediasorter.wear.domain.model.ImportResult
 import com.sza.fastmediasorter.wear.domain.model.WearEventEnvelopeCodec
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.wear.domain.model.WearSettingsPayload
+import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearStreamTransferAck
 import com.sza.fastmediasorter.wear.domain.model.WearStreamTransferPayload
 import com.sza.fastmediasorter.wear.domain.model.WearSyncPayload
@@ -24,17 +27,18 @@ import com.sza.fastmediasorter.wear.domain.usecase.ImportNetworkSourcesUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.StoreTransferredStreamUseCase
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import javax.inject.Inject
-
-import com.sza.fastmediasorter.wear.data.repository.WearFileReceiverManager
-import com.google.android.gms.wearable.ChannelClient
 
 private const val PATH_PUSH = "/fms/network_sources/push"
 private const val PATH_ACK  = "/fms/network_sources/ack"
@@ -45,9 +49,13 @@ class WatchWearListenerService : WearableListenerService() {
     private val envelopeCodec = WearEventEnvelopeCodec()
 
     @Inject lateinit var importNetworkSourcesUseCase: ImportNetworkSourcesUseCase
+
     @Inject lateinit var applyWearSettingsUseCase: ApplyWearSettingsUseCase
+
     @Inject lateinit var wearFileReceiverManager: WearFileReceiverManager
+
     @Inject lateinit var storeTransferredStreamUseCase: StoreTransferredStreamUseCase
+
     @Inject lateinit var gson: Gson
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -100,12 +108,45 @@ class WatchWearListenerService : WearableListenerService() {
                 Timber.e(e, "Failed to deserialize stream transfer payload")
                 null
             } ?: return@launch
-            val ack = storeTransferredStreamUseCase(payload)
-            if (ack.outcome != WearStreamTransferAck.OUTCOME_ERROR) {
+            val result = storeTransferredStreamUseCase(payload)
+            if (result.ack.outcome != WearStreamTransferAck.OUTCOME_ERROR) {
                 vibrateSuccess()
+            }
+            val ack = if (payload.openNow && result.channel != null) {
+                openOnWatch(result.channel, payload.requestId)
+            } else {
+                result.ack
             }
             sendStreamTransferAck(nodeId, ack)
         }
+    }
+
+    /**
+     * S1944: asks whatever screen is on to open [channel], and answers with what actually happened.
+     *
+     * The platform does not let this service raise the app from the background (strategic ADR-1), so
+     * the honest answer when nobody is listening is NOT_FOREGROUND rather than a claim of playback.
+     * The wait is short on purpose: a live collector answers in milliseconds, and anything longer is
+     * a closed app - waiting out the phone's own ack timeout would report silence instead.
+     */
+    private suspend fun openOnWatch(
+        channel: WearStreamChannel,
+        requestId: String,
+    ): WearStreamTransferAck {
+        val handled = withTimeoutOrNull(OPEN_CONFIRM_TIMEOUT_MS) {
+            val confirmation = async(start = CoroutineStart.UNDISPATCHED) {
+                WatchStreamOpenEvents.openedFlow.first { it == channel.url }
+            }
+            WatchStreamOpenEvents.requestFlow.emit(channel)
+            confirmation.await()
+        }
+        val outcome = if (handled != null) {
+            WearStreamTransferAck.OUTCOME_OPENED
+        } else {
+            WearStreamTransferAck.OUTCOME_NOT_FOREGROUND
+        }
+        Timber.d("S1944: open on watch -> $outcome for ${channel.url}")
+        return WearStreamTransferAck(requestId = requestId, outcome = outcome)
     }
 
     private suspend fun sendStreamTransferAck(nodeId: String, ack: WearStreamTransferAck) {
@@ -205,3 +246,18 @@ object WatchSyncEvents {
 object WatchPlaybackCommandEvents {
     val commandFlow = MutableSharedFlow<WearPlaybackCommand>(extraBufferCapacity = 4)
 }
+
+/**
+ * S1944: the phone asking the watch to open a channel, and the host saying it did.
+ *
+ * Same shape as [WatchPlaybackCommandEvents] and for the same reason: this service holds no reference
+ * to the Activity or its navigation and cannot acquire one. The confirmation half exists because the
+ * answer sent back to the phone depends on whether a screen was actually there to listen.
+ */
+object WatchStreamOpenEvents {
+    val requestFlow = MutableSharedFlow<WearStreamChannel>(extraBufferCapacity = 4)
+    val openedFlow = MutableSharedFlow<String>(extraBufferCapacity = 4)
+}
+
+/** S1944: long enough for a composed collector, far below the phone's own 15 s ack timeout. */
+private const val OPEN_CONFIRM_TIMEOUT_MS = 2_000L

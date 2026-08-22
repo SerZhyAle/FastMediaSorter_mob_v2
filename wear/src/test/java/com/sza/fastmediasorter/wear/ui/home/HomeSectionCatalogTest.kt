@@ -41,10 +41,36 @@ class HomeSectionCatalogTest {
         assertNull(sections.firstOrNull { it.id == HomeSectionId.LAST_USED_RESOURCE })
     }
 
-    private fun visibility(lastUsedResource: LastUsedResource?) = HomeSectionVisibility(
-        favouritesEnabled = false,
+    @Test
+    fun `favourites is the last section`() {
+        val sections = HomeSectionCatalog.sectionsFor(visibility())
+
+        assertEquals(HomeSectionId.FAVOURITES, sections.last().id)
+    }
+
+    @Test
+    fun `favourites is offered before anything is marked`() {
+        val sections = HomeSectionCatalog.sectionsFor(visibility())
+
+        val favourites = sections.first { it.id == HomeSectionId.FAVOURITES }
+        assertEquals(WearRoutes.FAVOURITES, favourites.route)
+    }
+
+    @Test
+    fun `a conditional section cannot displace favourites from the end`() {
+        val sections = HomeSectionCatalog.sectionsFor(
+            visibility(LastUsedResource(SOURCE_ID, SOURCE_NAME), streamsEnabled = true)
+        )
+
+        assertEquals(HomeSectionId.FAVOURITES, sections.last().id)
+    }
+
+    private fun visibility(
+        lastUsedResource: LastUsedResource? = null,
+        streamsEnabled: Boolean = false
+    ) = HomeSectionVisibility(
         lastUsedResource = lastUsedResource,
-        streamsEnabled = false
+        streamsEnabled = streamsEnabled
     )
 
     private companion object {

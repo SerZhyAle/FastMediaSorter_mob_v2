@@ -1,45 +1,42 @@
 package com.sza.fastmediasorter.domain.usecase.launcher
 
-import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
+import com.sza.fastmediasorter.core.panel.SubProgramCatalog
+import com.sza.fastmediasorter.core.panel.SubProgramSurface
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.usecase.panel.ResolvePanelRouteAvailabilityUseCase
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 /**
- * S1746: Ensures enabled tools (calculator, game, and since S1883 the Wear companion) have corresponding
- * shortcuts on the launcher desktop across orientations, appending them to the first free slot if missing.
+ * S1746: Ensures enabled tools have corresponding shortcuts on the launcher desktop across
+ * orientations, appending them to the first free slot if missing.
+ *
+ * S1736: which tools those are is no longer stated here. The set is every registry entry declaring
+ * [SubProgramSurface.LAUNCHER_SHORTCUT], so switching a program on seeds its cell without this file
+ * being edited - before this, three programs were hand-listed and every other one silently had no
+ * desktop cell, which is the concrete shape of the broken "enable it and it appears everywhere".
  */
 class SyncEnabledToolShortcutsUseCase @Inject constructor(
     private val desktop: LauncherDesktopRepository,
-    private val settings: SettingsRepository,
+    private val resolveRouteAvailability: ResolvePanelRouteAvailabilityUseCase,
 ) {
     suspend operator fun invoke() {
-        val appSettings = settings.getSettings().first()
         val state = desktop.state()
         val orientations = listOf(
             LauncherOrientation.PORTRAIT to state.columnsPortrait,
             LauncherOrientation.LANDSCAPE to state.columnsLandscape,
         )
 
-        val toolsToSync = mutableListOf<String>()
-        if (appSettings.enableCalculator) {
-            toolsToSync.add(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_CALCULATOR).encode())
-        }
-        if (appSettings.embeddedGameEnabled) {
-            toolsToSync.add(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_GAME).encode())
-        }
-        // S1883: no capability check beside the switch, unlike the panel's availability chain. The
-        // launcher ships only in standard and noLegal, and both carry the watch bridge, so a build that
-        // can run this code can always run the companion; a stale cell would be refused by that chain
-        // anyway, which is the gate that decides whether a placed cell launches.
-        if (appSettings.enableWearCompanion) {
-            toolsToSync.add(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_WEAR_COMPANION).encode())
-        }
+        // Both axes, in one settings read: a program compiled out of this build and a program the
+        // user switched off are equally "no cell", and the resolver is the single place that knows.
+        val availability = resolveRouteAvailability.all()
+        val toolsToSync = SubProgramCatalog.forSurface(SubProgramSurface.LAUNCHER_SHORTCUT)
+            .filter { availability[it.routeKey]?.isLaunchable == true }
+            .map { LauncherCellCommand.Feature(it.routeKey).encode() }
 
         if (toolsToSync.isEmpty()) return
 

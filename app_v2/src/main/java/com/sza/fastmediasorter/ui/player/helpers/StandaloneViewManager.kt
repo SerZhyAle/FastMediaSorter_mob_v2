@@ -29,7 +29,6 @@ import com.github.chrisbanes.photoview.OnSingleFlingListener
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
-import com.sza.fastmediasorter.core.share.ShareableContent
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
@@ -60,7 +59,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -124,17 +122,28 @@ class StandaloneViewManager(
         // Resolved against the OLD root: the discarded PlayerView must release the player before
         // the fresh one takes it, or both views keep component listeners on the same instance.
         val oldPlayerView = safeViews.playerView
+        // S1959: PlayerView is declared `gone` in the layout and only playVideo/playAudio ever
+        // reveal it, so a re-inflate resurrects the surface hidden while playback keeps running -
+        // the picture never comes back. Both values are readable only off the OLD view, which is
+        // why they are captured here rather than in the caller. Audio is restored too: its player
+        // lives in AudioPlaybackService, so `exoPlayer` is null and the block below never runs.
+        val playerSurfaceWasVisible = oldPlayerView.isVisible
+        val playerControllerShowTimeoutMs = oldPlayerView.controllerShowTimeoutMs
         currentRoot = newRoot
         safeViews.rebindRoot(newRoot)
         _pdfViewerManager?.rebindLayoutRoot(newRoot)
         _epubViewerManager?.rebindLayoutRoot(newRoot)
         _textViewerManager?.rebindLayoutRoot(newRoot)
-        if (officeDocumentViewerHostDelegate.isInitialized()) {
-            officeDocumentViewerHost.rebindLayoutRoot(newRoot)
+        if (officeDocumentPresenterDelegate.isInitialized()) {
+            officeDocumentPresenter.rebindLayoutRoot(newRoot)
         }
         exoPlayer?.let {
             oldPlayerView.player = null
             safeViews.playerView.player = it
+        }
+        if (playerSurfaceWasVisible) {
+            safeViews.playerView.isVisible = true
+            safeViews.playerView.controllerShowTimeoutMs = playerControllerShowTimeoutMs
         }
         // Re-render what the fresh views start without (EPUB/Office move their live WebView over).
         _pdfViewerManager?.let { it.showPdfPage(it.currentPageIndex()) }
@@ -356,7 +365,7 @@ class StandaloneViewManager(
             MediaType.PDF   -> showPdf(mediaFile)
             MediaType.EPUB  -> showEpub(mediaFile)
             MediaType.TEXT  -> showText(mediaFile)
-            MediaType.OFFICE_DOCUMENT -> displayOfficeDocument(mediaFile)
+            MediaType.OFFICE_DOCUMENT -> officeDocumentPresenter.display(mediaFile)
             else -> {
                 Timber.w("StandaloneViewManager: binary type $mediaType not supported standalone")
                 showToastError(activity.getString(R.string.unsupported_format_use_external_player))
@@ -713,8 +722,8 @@ class StandaloneViewManager(
 
     /** Returns the active document WebView selection callback, prioritizing Office over EPUB. */
     fun getDocumentSelectionActionModeCallback(): DocumentSelectionActionModeCallback? {
-        val officeCallback = if (officeDocumentViewerHostDelegate.isInitialized() && officeDocumentViewerHost.isActive) {
-            officeDocumentViewerHost.getSelectionActionModeCallback()
+        val officeCallback = if (officeDocumentPresenterDelegate.isInitialized()) {
+            officeDocumentPresenter.selectionActionModeCallback()
         } else {
             null
         }
@@ -745,153 +754,25 @@ class StandaloneViewManager(
         textViewerManager.displayText(mediaFile, isWritable = false)
     }
 
-    // S0301 Phase 02: flavor-safe Office viewer decision provider for standalone mode.
-    // Market flavors delegate externally (S0299); noLegal plugs an embedded viewer in Phase 03.
-    private val officeDocumentViewerProvider by lazy {
-        OfficeDocumentViewerProviderFactory().create()
-    }
-
-    // S0301 Phase 03: embedded Office viewer host for standalone mode. Market = no-op host,
-    // noLegal = engine-backed read-only in-app viewer. Fullscreen toggling is a no-op here;
-    // standalone mode has no system-bars manager wired.
-    private val officeDocumentViewerHostDelegate = lazy {
-        OfficeDocumentViewerProviderFactory().createViewerHost(
-            // S0380: Office host is decoupled to a layout root; works on any standalone layout that
-            // includes the officeDocumentViewerContainer surface (full unified or trimmed document).
-            root = root,
-            coroutineScope = lifecycleScope,
-            callback = object : OfficeDocumentViewerHost.Callback {
+    // S1960: the whole Office scenario lives in its own presenter. The collaborators are passed as
+    // suppliers so the lazily-built singletons above stay owned here and shared with the viewers.
+    private val officeDocumentPresenterDelegate = lazy {
+        OfficeDocumentPresenter(
+            activity = activity,
+            root = currentRoot,
+            lifecycleScope = lifecycleScope,
+            settingsRepository = settingsRepository,
+            networkFileManager = { networkFileManager },
+            translationManager = { translationManager },
+            callback = object : OfficeDocumentPresenter.Callback {
                 override fun showError(message: String) = showToastError(message)
+                override fun showTranslatedText(text: String) = showTranslatedTextDialog(text)
                 override fun onEnterFullscreenMode() { onDocumentEnterFullscreen?.invoke() }
                 override fun onExitFullscreenMode() { onDocumentExitFullscreen?.invoke() }
-                override fun onTranslateSelection(text: String) = translateOfficeSelection(text)
-                override fun onRequireExternalFallback(mediaFile: MediaFile) {
-                    // S0301 Phase 05: engine could not render internally - show the explicit
-                    // external / share / cancel dialog. Cancel keeps the current screen open per
-                    // the approved fallback contract.
-                    showOfficeFallbackDialog(mediaFile)
-                }
             },
         )
     }
-    private val officeDocumentViewerHost: OfficeDocumentViewerHost by officeDocumentViewerHostDelegate
-
-    private fun displayOfficeDocument(mediaFile: MediaFile) {
-        val session = officeDocumentViewerProvider.resolve(mediaFile)
-        when (session.outcome) {
-            OfficeDocumentViewerOutcome.DISPLAY_INTERNALLY ->
-                displayOfficeDocumentInternally(mediaFile)
-            // S0301 Phase 05: provider asked for the explicit external / share / cancel dialog.
-            // Cancel keeps the standalone screen open, matching the shared Office UX contract.
-            OfficeDocumentViewerOutcome.SHOW_FALLBACK_DIALOG ->
-                showOfficeFallbackDialog(mediaFile)
-            OfficeDocumentViewerOutcome.DELEGATE_EXTERNAL ->
-                displayOfficeDocumentExternally(mediaFile, finishAfterHandoff = true)
-        }
-    }
-
-    /**
-     * Explicit Office fallback dialog for standalone mode (S0301 Phase 05). Offers opening in
-     * another app or sharing the file. Cancel keeps the screen open per the approved fallback
-     * contract. Strings stay factual (COMMUNICATION_POLICY §6).
-     */
-    private fun showOfficeFallbackDialog(mediaFile: MediaFile) {
-        MaterialAlertDialogBuilder(activity)
-            .setTitle(R.string.office_viewer_fallback_title)
-            .setMessage(R.string.office_viewer_fallback_message)
-            .setPositiveButton(R.string.office_viewer_fallback_open_external) { _, _ ->
-                displayOfficeDocumentExternally(mediaFile, finishAfterHandoff = true)
-            }
-            .setNeutralButton(R.string.office_viewer_fallback_share) { _, _ ->
-                shareOfficeDocument(mediaFile)
-            }
-            .setNegativeButton(R.string.office_viewer_fallback_cancel, null)
-            .showBoundToHost(activity)
-    }
-
-    /**
-     * Share the prepared Office [mediaFile] through the unified «Send to..» menu (S0459 Phase 06,
-     * was a standalone ACTION_SEND chooser in S0301 Phase 05). [prepareFileForRead] keeps network
-     * fetches off the main thread as before; the resulting FileProvider Uri is handed to the menu.
-     */
-    private fun shareOfficeDocument(mediaFile: MediaFile) {
-        val host = activity as? androidx.fragment.app.FragmentActivity ?: run {
-            Timber.w("Office share host is not a FragmentActivity - cannot open send-to menu")
-            return
-        }
-        lifecycleScope.launch {
-            try {
-                val preparedFile = networkFileManager.prepareFileForRead(mediaFile)
-                val uri = androidx.core.content.FileProvider.getUriForFile(
-                    activity,
-                    "${activity.packageName}.fileprovider",
-                    preparedFile
-                )
-                val settings = settingsRepository.getSettings().first()
-                val content = ShareableContent(
-                    uris = listOf(uri),
-                    mime = "application/octet-stream",
-                    mediaType = MediaType.OFFICE_DOCUMENT,
-                    displayName = mediaFile.name,
-                    mediaFile = mediaFile,
-                )
-                sendToMenuManager().show(host, content, settings)
-            } catch (e: Exception) {
-                Timber.e(e, "StandaloneViewManager: failed to share Office document")
-                showToastError(activity.getString(R.string.error_opening_file_simple))
-            }
-        }
-    }
-
-    /** S0459: app-scoped accessor for [SendToMenuManager] (Singleton) from the manually-built view manager. */
-    private fun sendToMenuManager(): com.sza.fastmediasorter.ui.share.SendToMenuManager =
-        dagger.hilt.android.EntryPointAccessors
-            .fromApplication(activity.applicationContext, SendToMenuEntryPoint::class.java)
-            .sendToMenuManager()
-
-    @dagger.hilt.EntryPoint
-    @dagger.hilt.InstallIn(dagger.hilt.components.SingletonComponent::class)
-    internal interface SendToMenuEntryPoint {
-        fun sendToMenuManager(): com.sza.fastmediasorter.ui.share.SendToMenuManager
-    }
-
-    /**
-     * Render an Office document inside the in-app viewer (S0301 Phase 03, noLegal standalone).
-     * Falls back to the explicit Office dialog when the host cannot accept the prepared file.
-     */
-    private fun displayOfficeDocumentInternally(mediaFile: MediaFile) {
-        lifecycleScope.launch {
-            try {
-                val preparedFile = networkFileManager.prepareFileForRead(mediaFile)
-                val started = officeDocumentViewerHost.open(mediaFile, preparedFile)
-                if (!started) showOfficeFallbackDialog(mediaFile)
-            } catch (e: Exception) {
-                Timber.e(e, "StandaloneViewManager: failed to render Office document internally")
-                showOfficeFallbackDialog(mediaFile)
-            }
-        }
-    }
-
-    private fun displayOfficeDocumentExternally(mediaFile: MediaFile, finishAfterHandoff: Boolean) {
-        lifecycleScope.launch {
-            try {
-                val preparedFile = networkFileManager.prepareFileForRead(mediaFile)
-                val opened = OfficeDocumentOpenManager.openPreparedFile(
-                    activity = activity,
-                    file = preparedFile,
-                    displayName = mediaFile.name
-                )
-                if (!opened) {
-                    showToastError(activity.getString(R.string.no_app_to_open))
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "StandaloneViewManager: failed to open Office document externally")
-                showToastError(activity.getString(R.string.error_opening_file_simple))
-            } finally {
-                if (finishAfterHandoff) activity.finish()
-            }
-        }
-    }
+    private val officeDocumentPresenter: OfficeDocumentPresenter by officeDocumentPresenterDelegate
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
@@ -920,23 +801,6 @@ class StandaloneViewManager(
             }
             .setNegativeButton(R.string.close, null)
             .showBoundToHost(activity)
-    }
-
-    private fun translateOfficeSelection(text: String) {
-        if (text.isBlank()) return
-        lifecycleScope.launch(Dispatchers.IO) {
-            val settings = settingsRepository.getSettings().first()
-            val sourceLang = TranslationManager.languageCodeToMLKit(settings.translationSourceLanguage)
-            val targetLang = TranslationManager.languageCodeToMLKit(settings.translationTargetLanguage)
-            val translated = translationManager.translate(text, sourceLang, targetLang)
-            withContext(Dispatchers.Main) {
-                if (translated != null) {
-                    showTranslatedTextDialog(translated)
-                } else {
-                    showToastError(activity.getString(R.string.translation_error))
-                }
-            }
-        }
     }
 
     private fun createPlayerErrorListener(): Player.Listener = object : Player.Listener {

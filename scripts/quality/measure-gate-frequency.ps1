@@ -8,6 +8,16 @@
     with exit 2 when no records exist, because an empty telemetry source is not evidence
     that every gate has zero invocations or zero failures.
 
+    Columns: Executed counts the records where the gate actually ran; Skipped counts the ones
+    where it did not apply; Failures counts FAIL and MISSING only. FailureRatePct and AverageMs
+    are per EXECUTED run, so a gate that skips on most closures is not flattered by its skips.
+    Runners names which runner produced the records - a gate showing only one runner is enforced
+    on that runner's cadence alone.
+
+    S1937: until 2026-08-22 only assert-fast-gates.ps1 wrote records, so the journal saw
+    roughly 11 runs a day and missed the ~61 daily closures that execute the same gates.
+    A report over that journal answered a different question than the one it was asked.
+
 .PARAMETER Filter
     Restrict the report to gate names matching this regular expression.
 
@@ -65,17 +75,25 @@ if ($records.Count -eq 0) {
 $report = @(
     $records | Group-Object gate | ForEach-Object {
         $group = @($_.Group)
-        $failures = @($group | Where-Object { $_.status -ne 'PASS' }).Count
+        # S1937: a SKIP is not a failure. post-change.ps1 now journals its skips too - a gate
+        # that did not apply to a change used to be indistinguishable here from one that found
+        # a defect, which would have turned the report's own answer upside down: the gates that
+        # skip most often are exactly the ones this report exists to identify as never firing.
+        $skips = @($group | Where-Object { $_.status -eq 'SKIP' }).Count
+        $failures = @($group | Where-Object { $_.status -eq 'FAIL' -or $_.status -eq 'MISSING' }).Count
+        $executed = $group.Count - $skips
         $totalMs = [int]($group | Measure-Object -Property elapsedMs -Sum).Sum
         [pscustomobject]@{
             Gate           = $_.Name
-            Invocations    = $group.Count
+            Executed       = $executed
+            Skipped        = $skips
             Failures       = $failures
-            FailureRatePct = [Math]::Round(($failures * 100.0) / $group.Count, 2)
+            FailureRatePct = if ($executed -gt 0) { [Math]::Round(($failures * 100.0) / $executed, 2) } else { 0 }
             TotalMs        = $totalMs
-            AverageMs      = [Math]::Round($totalMs / $group.Count, 2)
+            AverageMs      = if ($executed -gt 0) { [Math]::Round($totalMs / $executed, 2) } else { 0 }
+            Runners        = (@($group | Select-Object -ExpandProperty runner -Unique) | Sort-Object) -join '+'
         }
-    } | Sort-Object -Property Invocations, Gate -Descending
+    } | Sort-Object -Property Executed, Skipped, Gate -Descending
 )
 
 if ($Json) {

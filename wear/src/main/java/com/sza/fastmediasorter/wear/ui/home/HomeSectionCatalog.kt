@@ -12,6 +12,10 @@ import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
  * Order is fixed here rather than at the call site so adding a section stays a one-line change and
  * cannot silently reorder the screen. STREAMS and APPS are entrances owned by other tickets - S1708
  * and S1710 respectively - which is why they are ordinary rows here rather than screen-specific code.
+ *
+ * S1940: FAVOURITES is last and unconditional. It is the section the owner asked to sit directly above
+ * the Settings command bar, and the position is stated as that relation rather than as a tile number
+ * because LAST_USED_RESOURCE and STREAMS are conditional, so the count of drawn rows varies.
  */
 object HomeSectionCatalog {
 
@@ -25,15 +29,6 @@ object HomeSectionCatalog {
                     labelRes = R.string.wear_section_last_used,
                     route = WearRoutes.sourceMediaType(target.id, target.name),
                     dynamicLabel = target.name
-                )
-            )
-        }
-        if (visibility.favouritesEnabled) {
-            add(
-                HomeSection(
-                    id = HomeSectionId.FAVOURITES,
-                    labelRes = R.string.wear_section_favourites,
-                    route = WearRoutes.FAVOURITES
                 )
             )
         }
@@ -72,6 +67,13 @@ object HomeSectionCatalog {
                 id = HomeSectionId.APPS,
                 labelRes = R.string.wear_section_apps,
                 route = WearRoutes.APPS
+            )
+        )
+        add(
+            HomeSection(
+                id = HomeSectionId.FAVOURITES,
+                labelRes = R.string.wear_section_favourites,
+                route = WearRoutes.FAVOURITES
             )
         )
     }

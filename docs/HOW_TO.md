@@ -95,6 +95,7 @@ If a feature is marked with "✗", choose the **Standard** or **XR / noLegal** b
 37. [Use the App as Your Home Screen](#how-to-use-the-app-as-your-home-screen)
 38. [Choose Where Captures and Downloads Are Saved](#how-to-choose-where-captures-and-downloads-are-saved)
 39. [Receive Files Shared from Another App](#how-to-receive-files-shared-from-another-app)
+40. [Use the Built-In Programs](#how-to-use-the-built-in-programs)
 
 ---
 
@@ -1388,6 +1389,57 @@ Any app's share sheet can send files to FastMediaSorter, which then copies them 
 **You do not have to wait for it.** The copy keeps running after the receive screen closes, with a notification showing progress while it works and a result notification when it finishes. Leave the app, lock the device, carry on - the transfer is not tied to that screen staying open.
 
 Available in the Standard, Lite, Photos and Legacy builds.
+
+---
+
+## How to Use the Built-In Programs
+
+**Available in:** all flavors - the programs menu and the panel ship in every build, but each program follows its own capability: Network Monitor needs Standard or noLegal, the Wear companion needs Standard, Legacy or noLegal, and the mini-game is absent from XR and noLegal. The calculator, the front flashlight and System information are in every build.
+
+Besides browsing and playing files, the app carries a set of small built-in programs - a calculator, a screen lamp, a network monitor, a voice recorder and more. They are off by default: each one is switched on by its own setting, and most of the dedicated switches sit together in **Settings → Operations**.
+
+**Quick Path**
+
+1. Go to **Settings → Operations** and turn on what you want - for example **Calculator**, **Front flashlight**, **Network Monitor**, **Mini-game** or **System information**.
+2. Open the main window dropdown menu. The programs you enabled are listed there.
+3. Tap one to run it.
+
+**Where a program shows up**
+
+A program can be offered on up to four surfaces, and every surface takes its contents and its order from the same single list, so they never drift apart:
+
+- **Programs menu** - the main-window dropdown, and the programs panel that repeats it.
+- **App-launch panel** - the quick-access overlay.
+- **Home-screen widget** - only for the programs that have one; pin it from the app's own widget picker.
+- **Launcher desktop** - when you use the app as your home screen, switching a program on adds its cell automatically.
+
+**What is in the set**
+
+In the order they appear:
+
+- **Quick capture** - take a photo straight into the app.
+- **Voice recording** - record a voice note.
+- **Calculator** - a scientific calculator with history and memory slots.
+- **Network Monitor** - live readings for the active link, Wi-Fi, mobile, Bluetooth and location.
+- **Photo OCR translate** - shoot text and translate it.
+- **Screen video recording** - record the screen.
+- **Download by link** - fetch a file from a pasted link.
+- **Mini-game** - the small game built into the app.
+- **System information** - a device report reachable without opening Settings.
+- **Wear Companion** - the watch screen, in builds that carry the watch bridge.
+- **Front flashlight** - turns the screen itself into a lamp: it opens white at full window brightness, a vertical swipe changes the brightness, a small top-left button picks and remembers another colour, and a single tap closes it. Only the window brightness is touched, so your device setting is unchanged afterwards.
+
+The panel and the launcher additionally carry direct camera shortcuts - take a photo and send it on, take a photo and edit it, take a photo and translate it, start a video recording, and open the camera folder.
+
+**When It Helps**
+
+- You want a calculator or a torch without leaving the app, or without hunting for a separate app on a crowded phone.
+- You run the app as your home screen and want a one-tap cell for a tool you reach for often.
+
+**Avoid This**
+
+- Do not look for the front flashlight in the dropdown menu - it is offered on the app-launch panel and the launcher desktop only.
+- Do not expect every program in every build - the list above is the full set, and a build without the underlying capability simply does not show that entry.
 
 ---
 

@@ -14,6 +14,9 @@ import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceRequest
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceRequestKind
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceResponseStatus
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeoutOrNull
@@ -70,19 +73,27 @@ class PhoneResourceClient @Inject constructor(
      * phone accepted the request, and it is deleted again if the transfer does not complete - a
      * half-written media file would fail later, further from the cause.
      */
-    suspend fun open(itemToken: String, destination: File): PhoneResourceOutcome {
+    suspend fun open(itemToken: String, destination: File): PhoneResourceOutcome = coroutineScope {
         val request = WearPhoneResourceRequest(
             requestId = UUID.randomUUID().toString(),
             kind = WearPhoneResourceRequestKind.OPEN,
             itemToken = itemToken
         )
 
+        // S1950: the phone opens the transfer channel the moment it has answered, and a channel
+        // callback registered after that answer is never told about a channel that is already open.
+        // Waiting for the channel is therefore armed before the request leaves, so the open cannot
+        // fall into the gap and leave the watch waiting out the whole transfer timeout.
+        val channelClient = Wearable.getChannelClient(context)
+        Timber.d("S1950: channel wait armed before open request")
+        val transfer = async { awaitChannel(channelClient) }
         val approval = request(request, WearDataLayerPaths.PHONE_RESOURCE_OPEN_REQUEST)
-        if (approval !is PhoneResourceOutcome.Page) {
-            return approval
+        if (approval is PhoneResourceOutcome.Page) {
+            receiveTransfer(channelClient, transfer, destination)
+        } else {
+            transfer.cancel()
+            approval
         }
-
-        return receiveTransfer(destination)
     }
 
     private suspend fun request(request: WearPhoneResourceRequest, path: String): PhoneResourceOutcome {
@@ -150,17 +161,26 @@ class PhoneResourceClient @Inject constructor(
 
     private fun decodePage(payload: ByteArray): WearPhoneResourcePage? = runCatching {
         val envelope = envelopeCodec.decode(payload)
+        Timber.d("S1893: page envelope decoded wireBytes=%d payloadBytes=%d", payload.size, envelope.data.size)
         gson.fromJson(envelope.data.decodeToString(), WearPhoneResourcePage::class.java)
     }.onFailure { Timber.w(it, "Unreadable phone resource page") }.getOrNull()
 
     /**
      * Accepts the channel the phone opens after an approved open request and writes it to disk.
      */
-    private suspend fun receiveTransfer(destination: File): PhoneResourceOutcome {
+    private suspend fun receiveTransfer(
+        channelClient: ChannelClient,
+        transfer: Deferred<ChannelClient.Channel>,
+        destination: File
+    ): PhoneResourceOutcome {
         Timber.d("S1860: receiveTransfer for ${destination.name}")
-        val channelClient = Wearable.getChannelClient(context)
-        val channel = withTimeoutOrNull(TRANSFER_TIMEOUT_MS) { awaitChannel(channelClient) }
-            ?: return PhoneResourceOutcome.PhoneUnavailable
+        // The budget is spent from the approval on, not from the request: the wait was armed
+        // earlier only so an early channel is not missed, never to shorten what the phone gets.
+        val channel = withTimeoutOrNull(TRANSFER_TIMEOUT_MS) { transfer.await() }
+        if (channel == null) {
+            transfer.cancel()
+            return PhoneResourceOutcome.PhoneUnavailable
+        }
 
         val copied = runCatching {
             channelClient.getInputStream(channel).await().use { input -> input.writeTo(destination) }

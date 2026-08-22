@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.domain.model.WearPhoneResourceRequest
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceRequestKind
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceResponseStatus
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withTimeoutOrNull
@@ -54,6 +55,10 @@ class ListPhoneResourcePageUseCase @Inject constructor(
             WearPhoneResourceRequestKind.OPEN -> failure(request, WearPhoneResourceResponseStatus.NOT_FOUND)
         }
 
+    // S1911: the scan is a plugin boundary - any host, protocol or provider failure must become one
+    // domain answer, so the broad arm is the contract rather than laziness. The one throwable that
+    // must NOT be folded in, CancellationException, is rethrown as the first arm above it.
+    @Suppress("TooGenericExceptionCaught")
     private suspend fun listFlatItems(request: WearPhoneResourceRequest): WearPhoneResourcePage {
         val filter = request.mediaTypeFilter()
         val resources = runCatching { resourceRepository.getAllResourcesSync() }
@@ -71,7 +76,7 @@ class ListPhoneResourcePageUseCase @Inject constructor(
         for (resource in resources) {
             val scanner = runCatching { mediaScannerFactory.getScanner(resource.type) }.getOrNull()
             if (scanner != null) {
-                val children = runCatching {
+                val children = try {
                     withinScanBudget(deadline) {
                         scanner.listDirectoryContents(
                             path = resource.path,
@@ -80,7 +85,12 @@ class ListPhoneResourcePageUseCase @Inject constructor(
                             showHiddenFiles = resource.showHiddenFiles
                         )
                     }
-                }.getOrNull()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Timber.w(e, "Phone resource flat listing failed")
+                    null
+                }
                 if (children != null) {
                     val visibleFiles = children.visibleTo(resource).filter { !it.isDirectory }
                     for (file in visibleFiles) {
@@ -126,6 +136,10 @@ class ListPhoneResourcePageUseCase @Inject constructor(
         }
     }
 
+    // S1911: the scan is a plugin boundary - any host, protocol or provider failure must become one
+    // domain answer, so the broad arm is the contract rather than laziness. The one throwable that
+    // must NOT be folded in, CancellationException, is rethrown as the first arm above it.
+    @Suppress("TooGenericExceptionCaught")
     private suspend fun listChildrenOf(
         request: WearPhoneResourceRequest,
         parent: PhoneResourceToken,
@@ -134,7 +148,7 @@ class ListPhoneResourcePageUseCase @Inject constructor(
         val scanner = runCatching { mediaScannerFactory.getScanner(resource.type) }.getOrNull()
         val deadline = scanDeadline()
         val children = scanner?.let { active ->
-            runCatching {
+            try {
                 withinScanBudget(deadline) {
                     active.listDirectoryContents(
                         path = parent.resolveAgainst(resource),
@@ -143,7 +157,16 @@ class ListPhoneResourcePageUseCase @Inject constructor(
                         showHiddenFiles = resource.showHiddenFiles
                     )
                 }
-            }.onFailure { Timber.w(it, "Phone resource listing failed") }.getOrNull()
+            } catch (e: CancellationException) {
+                // S1911: an abandoned request is not a failed scan. `runCatching` caught this too and
+                // answered the watch SOURCE_UNAVAILABLE, which nothing could deliver anyway - the same
+                // cancelled scope publishes the page - so it only mislabelled the log and the status.
+                Timber.d("S1911: phone resource listing cancelled, propagating instead of reporting")
+                throw e
+            } catch (e: Exception) {
+                Timber.w(e, "Phone resource listing failed")
+                null
+            }
         }
 
         return when {
@@ -167,7 +190,14 @@ class ListPhoneResourcePageUseCase @Inject constructor(
         gate: ThumbnailGate
     ): WearPhoneResourceItem =
         WearPhoneResourceItem(
-            token = PhoneResourceToken(parent.resourceId, parent.childPath(name)).serialize(),
+            // A folder is always addressed by its path; a file prefers its MediaStore identity,
+            // which is the only thing that separates two same-named files merged into one
+            // virtual resource from different folders.
+            token = PhoneResourceToken(
+                resourceId = parent.resourceId,
+                relativePath = parent.childPath(name),
+                mediaStoreId = if (isDirectory) null else mediaStoreIdOrNull()
+            ).serialize(),
             name = name,
             mimeType = if (isDirectory) null else type.toWireMimeType(),
             sizeBytes = size,
@@ -180,6 +210,14 @@ class ListPhoneResourcePageUseCase @Inject constructor(
                 gate { buildWatchThumbnail(this@toWireItem) }
             }
         )
+
+    /**
+     * The trailing segment of a MediaStore `content://` URI is the row id. Null here is an ordinary
+     * state, not a failure: the File-API scan fallback produces entries without a `contentUri`, and
+     * those keep being addressed by their path.
+     */
+    private fun MediaFile.mediaStoreIdOrNull(): Long? =
+        contentUri?.substringAfterLast('/')?.toLongOrNull()
 
     /**
      * The page window is applied here rather than by the scanner: a scanner page would count
@@ -387,10 +425,16 @@ class ListPhoneResourcePageUseCase @Inject constructor(
  */
 internal data class PhoneResourceToken(
     val resourceId: Long,
-    val relativePath: String
+    val relativePath: String,
+    val mediaStoreId: Long? = null
 ) {
 
-    fun serialize(): String = "$resourceId$SEPARATOR$relativePath"
+    fun serialize(): String =
+        if (mediaStoreId == null) {
+            "$resourceId$SEPARATOR$relativePath"
+        } else {
+            "$resourceId$SEPARATOR$MEDIA_ID_PREFIX$mediaStoreId"
+        }
 
     fun childPath(name: String): String = if (relativePath.isEmpty()) name else "$relativePath/$name"
 
@@ -400,17 +444,28 @@ internal data class PhoneResourceToken(
     companion object {
         private const val SEPARATOR = ':'
 
+        /**
+         * Marks a token addressing its item by MediaStore id rather than by a path inside the
+         * resource. An element of a virtual resource has no path within its resource - only a
+         * MediaStore record - so resolving it by name would pick an arbitrary one of several
+         * same-named files merged into that resource from different folders.
+         */
+        private const val MEDIA_ID_PREFIX = "media:"
+
         fun parse(raw: String): PhoneResourceToken? {
             val separator = raw.indexOf(SEPARATOR)
             val resourceId = if (separator > 0) raw.substring(0, separator).toLongOrNull() else null
-            val relativePath = if (separator > 0) raw.substring(separator + 1) else ""
+            val payload = if (separator > 0) raw.substring(separator + 1) else ""
             // A traversal segment would let the watch address a folder the resource does not own.
-            val escapesResource = relativePath.startsWith("/") || relativePath.split('/').contains("..")
+            val escapesResource = payload.startsWith("/") || payload.split('/').contains("..")
 
-            return if (resourceId == null || escapesResource) {
-                null
-            } else {
-                PhoneResourceToken(resourceId, relativePath)
+            return when {
+                resourceId == null -> null
+                payload.startsWith(MEDIA_ID_PREFIX) ->
+                    payload.removePrefix(MEDIA_ID_PREFIX).toLongOrNull()
+                        ?.let { PhoneResourceToken(resourceId, "", it) }
+                escapesResource -> null
+                else -> PhoneResourceToken(resourceId, payload)
             }
         }
     }

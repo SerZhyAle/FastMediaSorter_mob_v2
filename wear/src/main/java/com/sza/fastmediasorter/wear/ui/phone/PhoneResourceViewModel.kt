@@ -170,6 +170,16 @@ class PhoneResourceViewModel @Inject constructor(
 
     private var decodeJob: Job? = null
 
+    /**
+     * S1898: which list the screen currently stands on, bumped by every [load].
+     *
+     * A transfer runs for up to its 30 s timeout, and walking away does not stop it - cancelling it is
+     * deliberately out of this ticket's scope. Clearing the outcome in [load] alone would therefore be
+     * undone by the transfer landing afterwards and repainting a pinned row over a folder that never
+     * held that file, so the result is published only while the list that asked for it is still shown.
+     */
+    private var loadGeneration = 0
+
     init {
         load(parentToken = null)
     }
@@ -198,13 +208,18 @@ class PhoneResourceViewModel @Inject constructor(
      * and delete.
      */
     fun openFile(entry: WearPhoneResourceItem) {
+        Timber.d("S1697: watch file tap token=%s", entry.token)
         _openOutcome.value = PhoneFileOpenOutcome.Opening
+        val openedFrom = loadGeneration
         viewModelScope.launch {
             val destination = File(cacheDir, entry.token.toCacheFileName(entry.name))
-            _openOutcome.value = when (val outcome = phoneResourceClient.open(entry.token, destination)) {
+            val result = when (val outcome = phoneResourceClient.open(entry.token, destination)) {
                 is PhoneResourceOutcome.Transferred -> handOver(entry, outcome.file)
                 is PhoneResourceOutcome.Rejected -> PhoneFileOpenOutcome.Failed(outcome.status)
                 else -> PhoneFileOpenOutcome.Failed(null)
+            }
+            if (openedFrom == loadGeneration) {
+                _openOutcome.value = result
             }
         }
     }
@@ -237,6 +252,12 @@ class PhoneResourceViewModel @Inject constructor(
     private fun String.toCacheFileName(displayName: String): String = "${hashCode()}-$displayName"
 
     private fun load(parentToken: String?) {
+        // S1898: a refusal belongs to the list it was raised on. The line is anchored to the screen
+        // now instead of scrolling away with the list, so without this it would follow the user into
+        // the next folder and name a file that folder does not contain.
+        Timber.d("S1898: clearing open outcome on reload parentToken=$parentToken")
+        loadGeneration++
+        _openOutcome.value = null
         _uiState.value = PhoneResourceUiState.Loading
         // Tokens are per folder, so keeping the previous page's pictures would only hold bitmaps
         // no cell can ask for again.

@@ -258,4 +258,7 @@
     <string name="pref_resource_grid_cell_size_large">Groß</string>
     <string name="settings_enable_system_info">Systeminformationen</string>
     <string name="settings_enable_system_info_summary">Systeminformationen im Programmpanel und Menü anzeigen</string>
+    <string name="settings_wear_group_title">Wear OS</string>
+    <string name="settings_wear_group_description">Aktivieren Sie dies, wenn Sie eine Wear OS Uhr haben. Die Begleit-App wird von hier geöffnet und legt fest, was dieses Telefon mit der Uhr teilt.</string>
+    <string name="settings_wear_install_guide_button">So installieren Sie es auf einer Uhr</string>
 </resources>

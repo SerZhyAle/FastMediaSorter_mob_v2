@@ -32,7 +32,7 @@ English" - which is false. The file's only consumer is `ui/settings/helpers/SzaR
 which imports resources, network credentials and destinations and touches no locale at all; the language
 is an ordinary in-app setting. What actually happens is longer: the missing file kills
 `prerelease-configure.ps1` at `load-config`, so its later `set:Language` stage never runs. Once the
-locale has been applied by hand it stays applied, and the caveat is discharged for that device. One
+locale has been applied by hand it survives until the package is reinstalled - which every sweep does, because prerelease-prepare.ps1 uninstalls first and a per-app locale dies with the package. Measured 2026-08-22: get-app-locales answered [] immediately after prepare. Apply it after EVERY prepare, not once per device. One
 command settles it:
 
     adb shell cmd locale get-app-locales com.sza.fastmediasorter.debug --user current

@@ -20,7 +20,7 @@ Over budget? Split a section into `INDEX_*.md` - never cut a hook short: [how](f
 - [Devices](reference_test_device_galaxy_s21.md) - owner's phones + Galaxy Watch 7
 - [No system roles on owner phone](feedback_never_grant_system_roles_on_owner_phone.md) · [test media](reference_setup_test_media.md) · [gh CLI](reference_gh_cli_location.md)
 - [Old mapping](reference_play_console_mapping_recovery.md) - Play never returns an uploaded mapping; unzip the AAB
-- [am start refused for non-exported](feedback_am_start_refused_for_non_exported.md) · [logcat wraps in 2 min](feedback_logcat_dump_wraps_before_you_read_it.md)
+- [am start refused for non-exported](feedback_am_start_refused_for_non_exported.md) - reach it by action via exported MainActivity · [logcat wraps in 2 min](feedback_logcat_dump_wraps_before_you_read_it.md)
 - Second-level index: [release, Play Console, store listings](INDEX_release.md) - open in the release flow.
 
 ## Emulator & device testing
@@ -35,8 +35,8 @@ Over budget? Split a section into `INDEX_*.md` - never cut a hook short: [how](f
 - detekt, by symptom: [gate](project_detekt_gate_in_post_change.md) · [dirty](feedback_detekt_gate_dirty_tree.md) · [scope](feedback_closure_on_dirty_tree.md) · [resurface](feedback_detekt_baseline_signature_resurface.md) · [imports](project_detekt_ktlint_import_layout.md) · [sort imports](feedback_ktlint_import_order_sort_dont_guess.md) · [shift](feedback_detekt_scoped_gate_line_shift.md) · [debt](feedback_detekt_scoped_gate_surfaces_untouched_debt.md) · [1 file](feedback_post_change_scopes_detekt_to_one_file.md) · [hand-edit](project_detekt_baseline_hand_edit_daemon_stale.md) · [stale](feedback_post_change_detekt_stale_report.md) · [no -Gate](feedback_assert_detekt_exit_zero_without_gate.md)
 - [Coroutine wrap trips swallowed-cancellation](feedback_wrapping_code_in_coroutine_trips_swallowed_cancellation.md)
 - [Moving code re-fires the ratchets](feedback_moving_code_resurfaces_ratchet_findings.md) - an extraction reads as a birth; pass the flavor boolean, don't move the flag
-- [Gate may exist unwired](feedback_a_gate_can_exist_and_never_be_wired.md) · [Debt premise decays](feedback_detekt_debt_ticket_premise_decays.md) · [lint needs FQN](project_lint_test_modes_enforce_resolution.md) · [lint baseline fuzzy](project_lint_baseline_matching_and_runner.md)
-- [Stale test XML](feedback_stale_test_results_xml.md) · [fu OOMs mid-run](project_unit_suite_oom_truncation.md) - verify per class
+- [Unwired != ungated](feedback_a_gate_can_exist_and_never_be_wired.md) - check the umbrella's dimensions both ways · [Debt premise decays](feedback_detekt_debt_ticket_premise_decays.md) · [lint needs FQN](project_lint_test_modes_enforce_resolution.md) · [lint baseline fuzzy](project_lint_baseline_matching_and_runner.md)
+- [Stale test XML](feedback_stale_test_results_xml.md) - a `-Tests` run's report dir varies by module; read the path the runner prints · [fu OOMs mid-run](project_unit_suite_oom_truncation.md)
 - [FAIL may mean never ran](feedback_gate_fail_may_mean_never_ran.md) - read the XML before believing it
 - [Ask what state a green check read](feedback_ask_what_state_a_green_check_read.md) - a check that observed nothing passes like one that observed success
 - [A PASS that observed nothing](feedback_a_pass_that_observed_nothing.md) - verify the preconditions existed before believing a green acceptance line
@@ -44,10 +44,12 @@ Over budget? Split a section into `INDEX_*.md` - never cut a hook short: [how](f
 - [ticket-log audit stale after a status flip](feedback_ticket_log_audit_stale_right_after_status_flip.md) - re-run it; don't add a second probe
 - [Probe must be one line](feedback_debug_probe_must_be_one_line.md) - a wrapped Timber.d( hides it from the removal grep
 - [Probe vs 120 chars](feedback_probe_tag_collides_with_detekt_line_length.md) - one line, under 120 chars, never wrapped
+- [No-Kotlin ticket can't be BlockNeedUserTest](feedback_no_kotlin_ticket_cannot_end_at_blockneedusertest.md) - no flow entry to host the probe; shoot evidence, close Implemented
 - [Settings docs Rule 22](feedback_settings_manifest_regen.md) · [Kotlin skips doc-pin](feedback_post_change_kotlin_skips_doc_pin_gate.md)
-- [-Files: whole set](feedback_post_change_dev_log_first_file_only.md) · [Gate cost](reference_gate_cost_mining.md) - detekt is 86%; ms includes lock wait
+- [-Files: whole set](feedback_post_change_dev_log_first_file_only.md) · [Gate cost](reference_gate_cost_mining.md) - detekt dominates; three runners since Rule 33; read the journal, not transcripts
 - [-RegistryAck up front](feedback_registry_ack_up_front.md) - `.claude/**` needs it on the FIRST call
 - [Discount shrinks the imbalance, not the add](feedback_discount_must_shrink_not_subtract.md)
+- [Never probe with the closure facade](feedback_never_probe_with_the_closure_facade.md) - a dummy -Description writes a permanent changelog row
 
 ## Long-run correctness
 - [Radio toggles: firmware](project_radio_toggle_restriction_is_firmware_not_targetsdk.md) - not targetSdk; the direct path works
@@ -62,6 +64,7 @@ Over budget? Split a section into `INDEX_*.md` - never cut a hook short: [how](f
 - Second-level index: [wear build/launch traps, rotation, Data Layer ids, locked watch, Play](INDEX_wear.md) - open when the task touches the watch.
 
 ## OCR
+- [Wear ALL_FEATURES record needs the companion gate](project_all_features_wear_record_needs_companion_gate.md) - ["standard"] trips the S1934 ratchet
 - [Overlay accuracy exchange](reference_ocr_overlay_exchange.md) - three-sided; the constants live in two other repos
 
 ## Brand

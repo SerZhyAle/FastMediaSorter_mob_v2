@@ -142,14 +142,29 @@ class StreamsViewModel @Inject constructor(
      * S1799: the canonical companion gate - the user's setting AND the build's watch bridge
      * (MainActivity ADR-1 shape). Either alone would offer a command that cannot run.
      */
-    fun isWearSendAvailable(): Boolean =
-        settings.value.enableWearCompanion && mediaCapabilities.supportsWearCompanion
+    // S1944: a property, not a function - this class sits exactly on detekt's TooManyFunctions
+    // ceiling, and a property accessor does not count against it. The value and its callers are
+    // unchanged; only the shape is.
+    val isWearSendAvailable: Boolean
+        get() = settings.value.enableWearCompanion && mediaCapabilities.supportsWearCompanion
 
-    /** S1799: sends one channel to the watch and reports the outcome as a one-shot message. */
-    fun sendStreamToWatch(source: StreamSourceEntity) {
-        Timber.d("S1799: send to watch requested for ${source.url}")
+    /**
+     * S1799: sends one channel to the watch and reports the outcome as a one-shot message.
+     *
+     * S1944: [openNow] asks the watch to end in a player rather than in its list. One function with a
+     * parameter rather than two entry points on purpose - this class sits on detekt's
+     * `TooManyFunctions` ceiling, and the menu already distinguishes the two intentions by which row
+     * the user pressed.
+     */
+    fun sendStreamToWatch(source: StreamSourceEntity, openNow: Boolean = false) {
+        Timber.d("S1799: send to watch requested for ${source.url}, openNow=$openNow")
         viewModelScope.launch {
-            val outcome = sendStreamToWatchUseCase.get()(source.title, source.url, source.mediaKind)
+            val outcome = sendStreamToWatchUseCase.get()(
+                source.title,
+                source.url,
+                source.mediaKind,
+                openNow,
+            )
             _events.send(StreamsEvent.Message(outcome.toMessageRes()))
         }
     }
@@ -164,6 +179,8 @@ class StreamsViewModel @Inject constructor(
 
         SendStreamToWatchUseCase.Outcome.NoReply -> R.string.stream_send_to_watch_no_reply
         is SendStreamToWatchUseCase.Outcome.Error -> R.string.stream_send_to_watch_failed
+        SendStreamToWatchUseCase.Outcome.Opened -> R.string.stream_open_on_watch_opened
+        SendStreamToWatchUseCase.Outcome.WatchAppNotOpen -> R.string.stream_open_on_watch_app_closed
     }
 
     // S1502: play outcome per channel id. Deliberately NOT part of StreamsUiState - folding it into
@@ -580,7 +597,9 @@ class StreamsViewModel @Inject constructor(
      * be reached with no Wi-Fi/cellular/ethernet, so the play path consults this to refuse fast
      * instead of letting ExoPlayer/the fullscreen player spin until a connection timeout.
      */
-    fun hasNetworkForStream(): Boolean = networkContextAnalyzer.hasAnyNetwork()
+    // S1944: a property for the same reason as isWearSendAvailable above - the class is at detekt's
+    // TooManyFunctions ceiling and a property accessor is not counted. Value and callers unchanged.
+    val hasNetworkForStream: Boolean get() = networkContextAnalyzer.hasAnyNetwork()
 
     /** S0699: remember the user's current list position so the next screen open lands on the same channel. */
     fun onScrollPositionChanged(position: Int) = viewModelScope.launch {

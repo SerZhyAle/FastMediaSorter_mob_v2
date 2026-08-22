@@ -57,7 +57,7 @@ class StoreTransferredStreamUseCaseTest {
     @Test
     fun `new url is stored with phone origin`() = runBlocking {
         val repository = FakeRepository()
-        val ack = useCase(repository)(payload())
+        val ack = useCase(repository)(payload()).ack
         assertEquals(WearStreamTransferAck.OUTCOME_STORED, ack.outcome)
         assertEquals("req-1", ack.requestId)
         assertEquals(WearStreamChannel.ORIGIN_PHONE, repository.channels.single().origin)
@@ -72,7 +72,7 @@ class StoreTransferredStreamUseCaseTest {
             mediaKind = "AUDIO"
         )
         val repository = FakeRepository(initial = listOf(existing))
-        val ack = useCase(repository)(payload())
+        val ack = useCase(repository)(payload()).ack
         assertEquals(WearStreamTransferAck.OUTCOME_UPDATED, ack.outcome)
         assertEquals(1, repository.channels.size)
         assertEquals("My stream", repository.channels.single().name)
@@ -86,9 +86,38 @@ class StoreTransferredStreamUseCaseTest {
     }
 
     @Test
+    fun `S1944 - an unrecognised media kind is re-derived from the url, not stored raw`() = runBlocking {
+        // Before this, only a BLANK kind was classified. A non-blank value the watch does not act on -
+        // a typo, or a kind a newer phone knows - was stored verbatim and then routed to the audio
+        // player, because playback treats "not VIDEO and not RTSP" as audio without ever looking at
+        // the URL. An "open on watch" landing in the wrong player is the visible form of that.
+        val repository = FakeRepository()
+        useCase(repository)(payload(url = "https://tv.example/live.m3u8", mediaKind = "viedo"))
+        assertEquals("VIDEO", repository.channels.single().mediaKind)
+    }
+
+    @Test
+    fun `S1944 - a recognised media kind is trusted as sent`() = runBlocking {
+        // The phone stays the authority when it says something the watch understands: a radio station
+        // whose URL happens to end in .mp4 must not be re-derived into the video player.
+        val repository = FakeRepository()
+        useCase(repository)(payload(url = "https://radio.example/stream.mp4", mediaKind = "AUDIO"))
+        assertEquals("AUDIO", repository.channels.single().mediaKind)
+    }
+
+    @Test
+    fun `S1944 - the stored channel comes back beside the ack`() = runBlocking {
+        // The listener needs the record the list would have used, not the raw payload, to decide which
+        // player to open.
+        val repository = FakeRepository()
+        val result = useCase(repository)(payload())
+        assertEquals(repository.channels.single().url, result.channel?.url)
+    }
+
+    @Test
     fun `blank url answers an error ack without touching the store`() = runBlocking {
         val repository = FakeRepository()
-        val ack = useCase(repository)(payload(url = " "))
+        val ack = useCase(repository)(payload(url = " ")).ack
         assertEquals(WearStreamTransferAck.OUTCOME_ERROR, ack.outcome)
         assertEquals(0, repository.channels.size)
     }
@@ -96,14 +125,14 @@ class StoreTransferredStreamUseCaseTest {
     @Test
     fun `persistence failure answers an error ack with the cause`() = runBlocking {
         val repository = FakeRepository(failOnUpsert = true)
-        val ack = useCase(repository)(payload())
+        val ack = useCase(repository)(payload()).ack
         assertEquals(WearStreamTransferAck.OUTCOME_ERROR, ack.outcome)
         assertEquals("store broken", ack.message)
     }
 
     @Test
     fun `success ack carries no message`() = runBlocking {
-        val ack = useCase(FakeRepository())(payload())
+        val ack = useCase(FakeRepository())(payload()).ack
         assertNull(ack.message)
     }
 }

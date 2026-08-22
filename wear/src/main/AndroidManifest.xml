@@ -11,6 +11,35 @@
     -->
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!--
+        S1710: the Network Monitor mini-program reads THIS watch's own radios. Only what the sampling
+        actually calls is declared (Rule 13). READ_PHONE_STATE is deliberately absent (owner ruling
+        2026-08-21): the operator name comes from TelephonyManager.networkOperatorName, which needs no
+        permission, and the per-SIM detail that does need it is not carried to the watch at all.
+    -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
+    <!-- Wi-Fi section: the visible-network list on API 33+. -->
+    <uses-permission
+        android:name="android.permission.NEARBY_WIFI_DEVICES"
+        android:minSdkVersion="33" />
+
+    <!-- Wi-Fi scan results and the last location fix age below API 33; the GNSS section's own reading. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!-- Bluetooth section on API 30 and below; API 31+ routes through BLUETOOTH_CONNECT instead. -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
+
+    <!-- Bluetooth section: adapter state on API 31+. -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_CONNECT"
+        android:minSdkVersion="31" />
     
     <!-- Storage permissions -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" 

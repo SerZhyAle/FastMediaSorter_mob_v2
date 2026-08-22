@@ -36,11 +36,11 @@
         android:paddingStart="@dimen/margin_tiny"
         android:paddingEnd="@dimen/margin_tiny"
         android:text="@string/launcher_taskbar_start"
-        android:textColor="@color/launcher_taskbar_btn_start_text"
+        android:textColor="?attr/launcherTaskbarStartText"
         app:icon="@drawable/ic_launcher_mode"
         app:iconGravity="start"
         app:iconPadding="@dimen/margin_tiny"
-        app:iconTint="@color/launcher_taskbar_btn_start_text" />
+        app:iconTint="?attr/launcherTaskbarStartText" />
 
     <!-- S1401: opens the full-screen app list. Icon-only (owner, 2026-08-05) and deliberately OUTSIDE
          the weighted strip block below, so a long recents strip can never squeeze it away.
@@ -66,11 +66,11 @@
         android:nextFocusRight="@id/taskbarRecents"
         android:paddingStart="@dimen/margin_small"
         android:paddingEnd="@dimen/margin_small"
-        android:textColor="@color/launcher_taskbar_btn_all_apps_text"
+        android:textColor="?attr/launcherTaskbarAllAppsText"
         app:icon="@drawable/ic_view_grid"
         app:iconGravity="textStart"
         app:iconPadding="0dp"
-        app:iconTint="@color/launcher_taskbar_btn_all_apps_text" />
+        app:iconTint="?attr/launcherTaskbarAllAppsText" />
 
     <!-- Both strips live inside one weighted block so they can only ever consume the slack left by the
          Start button and the tray. A wrap_content strip placed directly in the bar is measured against the

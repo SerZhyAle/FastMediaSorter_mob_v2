@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.launcher.gadget.nowplaying.NotificationAccessState
 import com.sza.fastmediasorter.ui.launcher.signal.ForeignNotificationCounts
+import com.sza.fastmediasorter.ui.launcher.signal.ForeignNotificationDismisser
 import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignal
 import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignalIcon
 import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignalKind
@@ -29,6 +30,7 @@ import javax.inject.Inject
 class ForeignNotificationSignalSource @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val counts: ForeignNotificationCounts,
+    private val dismisser: ForeignNotificationDismisser,
 ) : LauncherSignalSource {
 
     /**
@@ -85,6 +87,28 @@ class ForeignNotificationSignalSource @Inject constructor(
         return context.packageManager.getLaunchIntentForPackage(packageName)?.apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
+    }
+
+    /**
+     * S1908: true only for a signal this source produced, and only while a connected listener can actually
+     * carry the dismissal out. Both halves matter: the id check keeps the action off this app's own signals,
+     * and the availability check keeps a button from appearing that would silently do nothing after the user
+     * revoked notification access while the panel was open (strategic §5.1 pillar 4).
+     */
+    override fun canDismiss(signal: LauncherSignal): Boolean =
+        signal.id.startsWith(SIGNAL_ID_PREFIX) && dismisser.isAvailable
+
+    /**
+     * Dismisses every notification of the row's package, because the row IS the package: the count sums a
+     * package's notifications and their content is never read, so no smaller unit is addressable (S1465
+     * ADR-2, strategic §6.4). The row disappears because its count falls to zero, through the same removal
+     * callback that already redraws the list.
+     */
+    override fun dismiss(signal: LauncherSignal) {
+        if (!canDismiss(signal)) {
+            return
+        }
+        dismisser.dismiss(counts.keysFor(signal.id.removePrefix(SIGNAL_ID_PREFIX)))
     }
 
     private companion object {

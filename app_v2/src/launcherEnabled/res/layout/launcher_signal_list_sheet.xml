@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- S1421: the full list behind the "+N" chip. A picker - tapping a row is the action - so it carries no
-     confirm/cancel pair, which CLAUDE.md §11 exempts for exactly this shape. -->
+     confirm/cancel pair, which CLAUDE.md §11 exempts for exactly this shape.
+     S1908: the header carries the one "dismiss all" action. In the header by owner ruling (§6.3) so it does
+     not scroll away with the list and needs no landscape variant. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -8,16 +10,36 @@
     android:paddingTop="@dimen/margin_medium"
     android:paddingBottom="@dimen/margin_medium">
 
-    <TextView
-        android:id="@+id/launcherSignalListTitle"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
         android:paddingStart="@dimen/margin_medium"
-        android:paddingEnd="@dimen/margin_medium"
-        android:paddingBottom="@dimen/margin_small"
-        android:text="@string/launcher_signal_list_title"
-        android:textAppearance="?attr/textAppearanceTitleMedium"
-        android:textColor="?attr/colorOnSurface" />
+        android:paddingEnd="@dimen/margin_small"
+        android:paddingBottom="@dimen/margin_small">
+
+        <TextView
+            android:id="@+id/launcherSignalListTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/launcher_signal_list_title"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="?attr/colorOnSurface" />
+
+        <!-- Gone by default: strategic §6.3 shows this only while at least one foreign notification is
+             listed, because the app's own signals cannot be cleared - they describe work happening now. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/launcherSignalDismissAll"
+            style="@style/Widget.FastMediaSorter.Button.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:text="@string/launcher_signal_dismiss_all"
+            android:visibility="gone" />
+
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/launcherSignalList"

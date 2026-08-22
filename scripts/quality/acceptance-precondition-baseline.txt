@@ -1,0 +1,6 @@
+# S1914 acceptance-precondition baseline.
+# A debt record, not an approval: every line is a criterion that claims accumulated state
+# survives without naming the state that must exist first. Entries leave this list when the
+# criterion is reworded; nothing is added except by a deliberate -UpdateBaseline run.
+S0403_fdroid-foss-flavor.md:225
+S1832_stable-channel-identity-survives-prune.md:197

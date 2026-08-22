@@ -435,7 +435,8 @@ private fun WatchSettingsControls(
     Spacer(Modifier.height(SPACING_SMALL))
     SlideshowIntervalSlider(
         seconds = state.slideshowInterval,
-        onSecondsChange = { state.slideshowInterval = it }
+        onSecondsChange = { state.slideshowInterval = it },
+        onSecondsSettled = onChanged
     )
     Spacer(Modifier.height(SPACING_SMALL))
     Button(
@@ -464,8 +465,17 @@ private fun WatchSettingsHeader(expanded: Boolean, onExpandedChange: (Boolean) -
     )
 }
 
+/**
+ * [onSecondsSettled] fires once the drag ends, not on every frame: every other control here reports
+ * its edit immediately, but doing that per pixel would rebuild the edited copy of the settings under
+ * the moving thumb. Without it the interval was the one value the sheet forgot unless it was pushed.
+ */
 @Composable
-private fun SlideshowIntervalSlider(seconds: Float, onSecondsChange: (Float) -> Unit) {
+private fun SlideshowIntervalSlider(
+    seconds: Float,
+    onSecondsChange: (Float) -> Unit,
+    onSecondsSettled: () -> Unit
+) {
     Text(
         text = stringResource(R.string.wear_settings_slideshow_interval) + ": " + seconds.toInt(),
         style = MaterialTheme.typography.bodySmall
@@ -473,6 +483,7 @@ private fun SlideshowIntervalSlider(seconds: Float, onSecondsChange: (Float) -> 
     Slider(
         value = seconds,
         onValueChange = onSecondsChange,
+        onValueChangeFinished = onSecondsSettled,
         valueRange = 1f..SLIDESHOW_INTERVAL_MAX_SECONDS,
         modifier = Modifier.fillMaxWidth()
     )

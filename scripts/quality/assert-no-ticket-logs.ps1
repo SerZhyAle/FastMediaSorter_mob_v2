@@ -18,6 +18,10 @@
       1 - substantive failure: a forbidden permanent-log ticket id remains.
       2 - the gate itself cannot run (spec-catalog.jsonl missing - without it no
           probe's status can be resolved). Distinct from 1 on purpose.
+      3 - only the catalog-state half failed: some ticket is BlockNeedUserTest with no
+          probe, and -ChangedFiles was supplied, so the caller asked to be judged on
+          its own files. Distinct from 1 because the caller cannot fix it - the probe
+          belongs at the entry of ANOTHER ticket's changed flow (S1912).
 
     Allowed-probe status is resolved against PLAN/spec-catalog.jsonl.
 
@@ -30,6 +34,12 @@
 .PARAMETER Quiet
     Suppress the per-finding list; print only the expected/actual summary.
 
+.PARAMETER ChangedFiles
+    Repo-relative paths of the files the caller changed, comma-joined. Supplying it narrows
+    the forbidden-log half to those files and downgrades the missing-probe half to exit 3,
+    because that half reads catalog state and belongs to no file set. Omit it - as
+    assert-fast-gates.ps1 and the release path do - and both halves stay project-wide and fatal.
+
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-no-ticket-logs.ps1
     pwsh -NoProfile -File scripts/quality/assert-no-ticket-logs.ps1 -Gate
@@ -37,7 +47,10 @@
 [CmdletBinding()]
 param(
     [switch]$Gate,
-    [switch]$Quiet
+    [switch]$Quiet,
+    # S1184/S1340: `pwsh -File` binds only the first element of a [string[]] and rejects the rest as
+    # positional args, so callers comma-join and this splits it back.
+    [string[]]$ChangedFiles
 )
 
 Set-StrictMode -Version Latest
@@ -195,6 +208,24 @@ foreach ($root in $scanRoots) {
 
 $actual = $findings.Count
 
+# S1912: the two halves of this gate have different natures. A forbidden log id is a property of a
+# file's CONTENT, so a caller that names its changed set can be judged on that set alone. A missing
+# probe is a property of CATALOG STATE - a ticket sits in BlockNeedUserTest without one - and belongs
+# to no file set at all: the probe must sit at the entry of that ticket's changed flow, which only its
+# author knows. Judging both project-wide meant one session's minutes-long window between the status
+# flip and the probe blocked every other session in the tree from closing (S1889, S1895).
+$scopeSet = @($ChangedFiles |
+    ForEach-Object { $_ -split ',' } |
+    ForEach-Object { $_.Trim() -replace '\\', '/' } |
+    Where-Object { $_ })
+$scoped = $scopeSet.Count -gt 0
+$outOfScope = @()
+if ($scoped) {
+    $outOfScope = @($findings | Where-Object { $_.File -notin $scopeSet })
+    $findings = [System.Collections.Generic.List[object]]@($findings | Where-Object { $_.File -in $scopeSet })
+    $actual = $findings.Count
+}
+
 # S1290 - the other direction of the same invariant. The gate already holds both sides in memory
 # at this point, so the check costs neither an extra catalogue read nor a second source walk.
 # Exceptions are an allow-list rather than a count: measured 2026-08-14, every real gap had a
@@ -220,6 +251,16 @@ if (-not $Quiet -and $actual -gt 0) {
     Write-Host ''
 }
 
+if (-not $Quiet -and $scoped -and $outOfScope.Count -gt 0) {
+    # Reported, never hidden: a finding outside the changed set is still real, it just is not this
+    # caller's to fix. Silently dropping it would make the scoped run read as "the tree is clean".
+    Write-Host ("Outside the changed set - reported, not charged to this run ({0}):`n" -f $outOfScope.Count)
+    foreach ($f in ($outOfScope | Sort-Object File, Line)) {
+        Write-Host ("  {0}:{1}  [{2}]  {3}" -f $f.File, $f.Line, $f.Ticket, $f.Reason)
+    }
+    Write-Host ''
+}
+
 if (-not $Quiet -and $missingProbe.Count -gt 0) {
     Write-Host "BlockNeedUserTest tickets with no probe in source:`n"
     foreach ($id in $missingProbe) {
@@ -231,5 +272,9 @@ if (-not $Quiet -and $missingProbe.Count -gt 0) {
 Write-Host ("assert-no-ticket-logs: expected: 0 | actual: {0} forbidden log id(s), {1} missing probe(s)  (BlockNeedUserTest: {2}, probes in source: {3}, excused: {4})" -f
     $actual, $missingProbe.Count, $blockNeedUserTest.Count, $probeIds.Count, $excused.Count)
 
-if ($Gate -and ($actual + $missingProbe.Count) -gt 0) { exit 1 }
+if ($Gate -and $actual -gt 0) { exit 1 }
+# S1912: a missing probe is fatal on a project-wide run - the release path and assert-fast-gates.ps1
+# both take that branch - but exits 3 for a caller that named its changed set, so post-change.ps1 can
+# report it without charging one session for another session's half-finished ticket.
+if ($Gate -and $missingProbe.Count -gt 0) { if ($scoped) { exit 3 } else { exit 1 } }
 exit 0

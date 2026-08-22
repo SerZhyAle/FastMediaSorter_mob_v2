@@ -40,8 +40,12 @@ static-audit case, not weaker.
 - Close on the half that ran, never the whole. S1715 stayed at `BlockNeedUserTest` with a clean reading
   because only the fast-model branch fired and the best-model branch had never been observed.
 - A cheap check being green is not evidence the expensive one would be: `a.ps1 fk` does not link
-  resources, and `a.ps1 fg` runs `assert-no-ticket-logs` **without** `-Gate`, so `fg` stays green while
-  every `post-change` closure fails.
+  resources, so it stays green on a layout naming a drawable that exists in no source set.
+  (Corrected 2026-08-21: this bullet used to add that `a.ps1 fg` runs `assert-no-ticket-logs`
+  **without** `-Gate`, so `fg` stayed green while `post-change` failed. That is no longer true -
+  `assert-fast-gates.ps1` builds every child call as `-Gate @extraArgs`, and an observed run reported
+  `assert-no-ticket-logs.ps1 FAIL` in its own summary. Re-read the runner before repeating a claim
+  about which gate a batch softens.)
 
 Related: [[split-device-acceptance-before-draining]], [[gate-fail-may-mean-never-ran]] (the inverse
 reading), [[device-subagent-needs-known-tap-path]].

@@ -162,6 +162,14 @@ interface StreamSourceDao {
     suspend fun catalogSources(): List<StreamSourceEntity>
 
     /**
+     * S1918: how many catalog rows are stored, answered on the database side. Callers that only need
+     * "was the catalog ever downloaded" must not pull [catalogSources] - after a successful import it
+     * holds thousands of rows.
+     */
+    @Query("SELECT COUNT(*) FROM stream_sources WHERE sourceOrigin = 'CATALOG'")
+    suspend fun countCatalogSources(): Int
+
+    /**
      * S1780: everything that arrived by download, and nothing the user typed.
      *
      * CATALOG rows come from the curated catalog and IMPORTED rows from a playlist this app fetched over

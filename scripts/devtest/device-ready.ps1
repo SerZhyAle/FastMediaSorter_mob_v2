@@ -28,12 +28,24 @@
     4 - target package not installed      (state: package-not-installed)
     5 - installed versionName mismatch    (state: version-mismatch)
     6 - mobile-mcp launcher not resolvable (state: mcp-unavailable)
+    7 - every online device is leased by another session (state: all-devices-leased)
+        or the named -DeviceId is                        (state: device-leased)
+        Reachable only under -ClaimFree. Deliberately distinct from no-device and from
+        multiple-devices (S1926): "there is nothing to test on" ends the device stage, while
+        "somebody else is on all of them" means try again later.
 
   Human output:  one line per check + final verdict line.
   Machine output (with -Json): single JSON object on stdout, all human noise suppressed.
 
 .PARAMETER DeviceId
-  Specific adb device id (the "serial" from `adb devices`). Required when multiple devices are online.
+  Specific adb device id (the "serial" from `adb devices`). Required when multiple devices are online,
+  unless -ClaimFree is passed.
+
+.PARAMETER ClaimFree
+  Take a device lease (S1926) instead of refusing when several devices are online: walk the online
+  devices and keep the first one this session can claim. Opt-in on purpose - without it the probe
+  answers exactly as it did before the lease existed. With a -DeviceId it claims that device and
+  reports state `device-leased` if a sibling holds it.
 
 .PARAMETER Package
   Target package name to verify is installed (e.g. com.sza.fastmediasorter, com.sza.fastmediasorter.debug).
@@ -71,7 +83,12 @@ param(
     [string]$ExpectedVersion,
     [switch]$CheckMcp,
     [switch]$Json,
-    [switch]$StrictExit
+    [switch]$StrictExit,
+    # S1926. Opt-in, and opt-in on purpose (ADR-2): sibling sessions are running right now, and
+    # silently changing a shared probe's answer mid-run is the same class of surprise the device
+    # lease exists to remove. Without this switch the probe behaves exactly as it always has,
+    # `multiple-devices` included.
+    [switch]$ClaimFree
 )
 
 $ErrorActionPreference = 'Stop'
@@ -196,12 +213,52 @@ if ($devices.Count -eq 0) {
     Stop-NotReady 2 'no-device' "no online device (boot an emulator or connect a phone, then re-run)"
 }
 
+function Get-DevicePreferenceOrder {
+    <#
+        S1926 section 5.3: the ONE place the choosing order lives. A later preference - favour an
+        emulator over the owner's physical phone, or a device that already carries the package -
+        belongs here, so it cannot drift apart across the callers that pick a device.
+        Today the order is "as adb listed them".
+    #>
+    param([Parameter(Mandatory)]$Candidates)
+    return @($Candidates)
+}
+
+function Request-DeviceLease {
+    <#
+        Returns $true when this session now holds the lease on $Serial. Exit 3 is the normal "a
+        sibling got there first" answer, not a fault. A missing lease script is not fatal either:
+        the probe still worked before the lease existed, and refusing to answer because an optional
+        coordination file is absent would be worse than the conflict it prevents.
+    #>
+    param([Parameter(Mandatory)][string]$Serial)
+    $leaseScript = Join-Path $PSScriptRoot 'device-lease.ps1'
+    if (-not (Test-Path -LiteralPath $leaseScript)) { return $true }
+    & pwsh -NoProfile -File $leaseScript -Verb Claim -Id $Serial -Reason 'device-ready' *> $null
+    return ($LASTEXITCODE -eq 0)
+}
+
 $selected = $null
 if ($DeviceId) {
     $selected = $devices | Where-Object { $_.id -eq $DeviceId } | Select-Object -First 1
     if (-not $selected) { Stop-NotReady 2 'no-device' "device '$DeviceId' is not online (online: $($devices.id -join ', '))" }
+    if ($ClaimFree -and -not (Request-DeviceLease -Serial $selected.id)) {
+        Stop-NotReady 7 'device-leased' "device '$($selected.id)' is leased by another session; run device-lease.ps1 -Verb Status to see who"
+    }
+} elseif ($ClaimFree) {
+    # The claim itself arbitrates - there is deliberately no "list the free ones, then take one",
+    # because the gap between those two calls is exactly how two sessions take one device. Walk the
+    # candidates and keep the first one that lets us claim it.
+    $contested = @()
+    foreach ($candidate in (Get-DevicePreferenceOrder -Candidates $devices)) {
+        if (Request-DeviceLease -Serial $candidate.id) { $selected = $candidate; break }
+        $contested += $candidate.id
+    }
+    if (-not $selected) {
+        Stop-NotReady 7 'all-devices-leased' "every online device is leased by another session ($($contested -join ', ')); this is not 'no device' - retry later or run device-lease.ps1 -Verb Status"
+    }
 } elseif ($devices.Count -gt 1) {
-    Stop-NotReady 3 'multiple-devices' "multiple online devices ($($devices.id -join ', ')); pass -DeviceId"
+    Stop-NotReady 3 'multiple-devices' "multiple online devices ($($devices.id -join ', ')); pass -DeviceId, or -ClaimFree to take a free one"
 } else {
     $selected = $devices[0]
 }

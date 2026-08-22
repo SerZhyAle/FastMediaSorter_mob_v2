@@ -1,0 +1,149 @@
+#requires -Version 7.0
+<#
+.SYNOPSIS
+    S1939: run the RELEASE-SCOPE quality gates in ONE process over the whole tree.
+
+.DESCRIPTION
+    The third gate runner. Two already existed - post-change.ps1 judges one ticket's changed
+    set on every closure, assert-fast-gates.ps1 judges the tree on demand. Neither fits a gate
+    whose subject is the state of the whole repository or a shipped artifact: applied per
+    changed file such a gate cannot attribute its finding to the change in front of it, so it
+    either fails on another session's work in flight or is demoted to advisory and stops
+    meaning anything. Measured 2026-08-22: three such gates produced 68 of the 191 red lines
+    across 53 fast-gates runs, and device-profile-matrix cost 33 minutes of closure time over
+    a month to report a single finding.
+
+    Placement test (CLAUDE.md Rule 33). A gate belongs HERE when all four hold:
+      1. Between releases the defect cannot reach a user.
+      2. Its subject is the whole tree or a shipped artifact, not the changed file.
+      3. The finding names its own location - no attribution to a ticket is needed.
+      4. Fixing the batch is no more expensive than fixing it per ticket.
+    It stays per-ticket when any one of these holds: later work builds on the defect
+    (compilation, resource linking, a migration, a cross-module contract); the evidence exists
+    only at the moment of the change (author's intent, a ticket status a probe is bound to);
+    or agents read the artifact between releases, where staleness poisons decisions (S1392).
+
+    This runner is a SCRIPT with an exit code on purpose, not a list of calls in the
+    /spec-prerelease markdown. Measured in the 2026-07-31 process audit: gated rules hold at
+    ~99%, rules stated as prose at 1-8%. Moving a gate into prose changes its force, not its
+    stage - which would have made the whole relocation a downgrade (S1939 ADR-1).
+
+    Gates (in order):
+      - assert-unreferenced-strings    (S1568 string keys nothing under <module>/src references)
+      - assert-splash-brand-sync       (S1706 generated splash drawables vs strings and template)
+      - assert-icon-inventory-sync     (S0815 icon docs vs the settings icon/title sources)
+      - assert-doc-icons-sync          (S0889 doc icon assets vs their inventory)
+      - assert-device-profile-matrix   (S1216 device matrix, registry and applier agreement)
+
+    Deliberately NOT moved here: assert-oss-notices. It ships inside the package, so criteria 1
+    and 2 hold - but its own wiring comment records that both of its findings ARE attributable to
+    the change that fired them (a coordinate this change declared, a page this change edited), and
+    it executes 8 times a month. Criterion 3 fails, so it stays per-ticket. Applying the test
+    honestly matters more than the size of the moved set.
+
+    Deliberately NOT absorbed: assert-new-lexemes-translated, assert-guide-coverage,
+    assert-no-orphan-merged-resources and assert-deobfuscation-retained already run from
+    /spec-prerelease with their own surrounding flow (a bulk locale import loop, an advisory
+    report, a previous-release artifact comparison). Folding them in would hide those flows.
+
+    Each child runs as its own process so a child `exit` cannot kill this aggregator, and each
+    outcome is appended to the gate journal under runner 'assert-release-scope-gates'.
+
+.PARAMETER Json
+    Emit the per-gate result set as JSON instead of the human table.
+
+.PARAMETER Help
+    Show help documentation and usage.
+
+.EXAMPLE
+    pwsh -NoProfile -File scripts/quality/assert-release-scope-gates.ps1
+
+.NOTES
+    Exit codes (CLAUDE.md Rule 7):
+      0  every gate passed.
+      1  at least one gate found a defect. The release does not ship until it is fixed.
+      2  cannot verify - a gate script is missing from scripts/quality/.
+#>
+[CmdletBinding()]
+param(
+    [switch]$Json,
+    [switch]$Help
+)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'lib/gate-telemetry.ps1')
+
+if ($Help) {
+    Get-Help $PSCommandPath
+    exit 0
+}
+
+$pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") {
+    "$env:ProgramFiles\PowerShell\7\pwsh.exe"
+}
+else {
+    'pwsh'
+}
+
+# name -> extra args (beyond -Gate). Cheapest first, so a missing script surfaces early.
+$gates = [ordered]@{
+    'assert-unreferenced-strings.ps1'  = @('-Quiet')
+    'assert-splash-brand-sync.ps1'     = @('-Quiet')
+    'assert-icon-inventory-sync.ps1'   = @()
+    'assert-doc-icons-sync.ps1'        = @()
+    'assert-device-profile-matrix.ps1' = @('-Quiet')
+}
+
+$results = [System.Collections.Generic.List[object]]::new()
+$missing = 0
+foreach ($entry in $gates.GetEnumerator()) {
+    $path = Join-Path $PSScriptRoot $entry.Key
+    if (-not (Test-Path $path)) {
+        $results.Add([pscustomobject]@{ Gate = $entry.Key; Status = 'MISSING'; Ms = 0 })
+        Write-GateTelemetryRecord -Runner 'assert-release-scope-gates' -Gate $entry.Key `
+            -Status 'MISSING' -ExitCode 2 -ElapsedMs 0
+        $missing++
+        continue
+    }
+
+    $sw = [System.Diagnostics.Stopwatch]::StartNew()
+    & $pwshExe -NoProfile -File $path -Gate @($entry.Value) | Write-Host
+    $sw.Stop()
+    $status = ($LASTEXITCODE -eq 0) ? 'PASS' : 'FAIL'
+    $results.Add([pscustomobject]@{ Gate = $entry.Key; Status = $status; Ms = [int]$sw.Elapsed.TotalMilliseconds })
+    Write-GateTelemetryRecord -Runner 'assert-release-scope-gates' -Gate $entry.Key `
+        -Status $status -ExitCode ([int]$LASTEXITCODE) -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds)
+}
+
+if ($Json) {
+    [ordered]@{
+        status = if ($missing -gt 0) { 'cannot-verify' } elseif (@($results | Where-Object { $_.Status -ne 'PASS' }).Count -gt 0) { 'fail' } else { 'pass' }
+        gates  = $results
+    } | ConvertTo-Json -Depth 4
+}
+else {
+    Write-Host ''
+    Write-Host 'assert-release-scope-gates summary:' -ForegroundColor Cyan
+    foreach ($r in $results) {
+        $color = switch ($r.Status) { 'PASS' { 'Green' } 'FAIL' { 'Red' } default { 'Yellow' } }
+        Write-Host ("  {0,-40} {1} ({2} ms)" -f $r.Gate, $r.Status, $r.Ms) -ForegroundColor $color
+    }
+}
+
+if ($missing -gt 0) {
+    Write-Error "assert-release-scope-gates: CANNOT VERIFY - $missing gate script(s) absent." -ErrorAction Continue
+    exit 2
+}
+
+$failed = @($results | Where-Object { $_.Status -ne 'PASS' }).Count
+if ($failed -gt 0) {
+    $names = (@($results | Where-Object { $_.Status -ne 'PASS' } | ForEach-Object { $_.Gate }) -join ', ')
+    Write-Error ("assert-release-scope-gates: FAIL - $failed gate(s) found a defect in the release scope: " +
+        "$names. Each printed its own remediation above; fix and re-run until this exits 0. " +
+        'The release does not ship on a red scope.') -ErrorAction Continue
+    exit 1
+}
+
+Write-Host 'assert-release-scope-gates: PASS (release scope clean).' -ForegroundColor Green
+exit 0

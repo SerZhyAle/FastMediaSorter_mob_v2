@@ -116,7 +116,11 @@ class CameraQuickCaptureWidgetProvider : AppWidgetProvider() {
             }
             views.setOnClickPendingIntent(R.id.widget_camera_quick_capture_container, pendingIntent)
 
-            appWidgetManager.updateAppWidget(appWidgetId, views)
+            // S1930: a launcher cell has no AppWidget host, and a negative id matches no widget - pushing
+            // these views would either throw or poke a stranger. The cell's gadget view redraws itself.
+            if (!LauncherWidgetToken.isLauncherToken(appWidgetId)) {
+                appWidgetManager.updateAppWidget(appWidgetId, views)
+            }
         }
     }
 }

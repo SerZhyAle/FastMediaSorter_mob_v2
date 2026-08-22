@@ -26,6 +26,9 @@ enum class StreamMenuAction(@param:DrawableRes val iconRes: Int) {
     // S1799: sits by EDIT - both are manual-channel-only commands.
     SEND_TO_WATCH(R.drawable.ic_watch),
 
+    // S1944: the second watch command, next to the first so the two read as a pair.
+    OPEN_ON_WATCH(R.drawable.ic_watch),
+
     // S1474: sits with the other reading actions, above sharing and well clear of removal.
     ABOUT_CHANNEL(R.drawable.ic_info),
     SHARE_LINK(R.drawable.ic_share),
@@ -113,6 +116,7 @@ object StreamActionCatalog {
         StreamMenuAction.ADD_SHORTCUT -> R.string.streams_add_to_home_screen
         StreamMenuAction.EDIT -> R.string.streams_edit
         StreamMenuAction.SEND_TO_WATCH -> R.string.stream_action_send_to_watch
+        StreamMenuAction.OPEN_ON_WATCH -> R.string.stream_action_open_on_watch
         StreamMenuAction.ABOUT_CHANNEL -> R.string.stream_info_menu_title
         StreamMenuAction.SHARE_LINK -> R.string.streams_send_link
         StreamMenuAction.REMOVE -> R.string.streams_remove
@@ -137,6 +141,10 @@ object StreamActionCatalog {
         StreamMenuAction.EDIT -> facts.isManualOrigin
         // S1799: only a manual channel can be sent - catalog rows reach the watch by themselves.
         StreamMenuAction.SEND_TO_WATCH -> facts.isManualOrigin && facts.wearSendAvailable
+        // S1944: deliberately NOT gated on isManualOrigin, unlike its neighbour above. That gate is
+        // right for transferring a channel and inverts for opening one: a catalog channel is already
+        // on the watch, which is exactly when "play it there now" is worth offering.
+        StreamMenuAction.OPEN_ON_WATCH -> facts.wearSendAvailable
         else -> true
     }
 }

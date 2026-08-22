@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.domain.usecase.launcher.ImportSystemShortcutsUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.ResetLauncherToDefaultsUseCase
+import com.sza.fastmediasorter.domain.usecase.launcher.ResolveProfileLauncherDensityUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -18,6 +19,7 @@ import javax.inject.Inject
 class LauncherSettingsViewModel @Inject constructor(
     private val resetLauncherToDefaultsUseCase: ResetLauncherToDefaultsUseCase,
     private val importSystemShortcutsUseCase: ImportSystemShortcutsUseCase,
+    private val resolveProfileLauncherDensityUseCase: ResolveProfileLauncherDensityUseCase,
 ) : ViewModel() {
 
     private val _resetResult = Channel<Boolean>(Channel.BUFFERED)
@@ -30,11 +32,14 @@ class LauncherSettingsViewModel @Inject constructor(
     val importResult: Flow<Boolean> = _importResult.receiveAsFlow()
 
     /** Puts the launcher back to its as-installed state; the whole decision lives in the use case. */
-    fun resetToDefaults() {
+    fun resetToDefaults(densityFactor: Float) {
         viewModelScope.launch {
-            _resetResult.send(resetLauncherToDefaultsUseCase())
+            _resetResult.send(resetLauncherToDefaultsUseCase(densityFactor))
         }
     }
+
+    /** S1886: the density the reset dialog opens on, taken from the device profile preset. */
+    suspend fun presetDensityFactor(): Float = resolveProfileLauncherDensityUseCase()
 
     /** Imports system desktop shortcuts onto the launcher desktop grid. */
     fun importSystemShortcuts() {

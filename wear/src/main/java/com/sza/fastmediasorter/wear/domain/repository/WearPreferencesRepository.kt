@@ -69,6 +69,15 @@ interface WearPreferencesRepository {
     val calculatorMemory: Flow<String?>
     suspend fun setCalculatorMemory(value: String?)
 
+    /**
+     * S1710: the game started on the watch, serialized by GameStateSnapshot.
+     *
+     * Null means no game has been started - an absent key is a first run, not a broken save, and a
+     * stored string the snapshot cannot read is discarded the same way rather than reported.
+     */
+    val gameState: Flow<String?>
+    suspend fun setGameState(value: String?)
+
     /** S1718: watch screen auto-rotation setting. Default: false (forbidden). */
     val isAutoRotationEnabled: Flow<Boolean>
     suspend fun setAutoRotationEnabled(enabled: Boolean)

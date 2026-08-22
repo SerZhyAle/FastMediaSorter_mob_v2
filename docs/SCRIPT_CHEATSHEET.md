@@ -283,6 +283,7 @@ scripts/post-change.ps1
     -SkipScan            [SwitchParameter]
     -ScopeToFile         [SwitchParameter]
     -RegistryAck         [String[]]
+    -ShowSkips           [SwitchParameter]
   Exit: 0 every gate that ran passed. The verdict line reads either
 ```
 
@@ -315,6 +316,7 @@ scripts/all_features/add.ps1
     -Name         (req)  [String]
     -Description  (req)  [String]
     -Flavors      (req)  [String]
+    -Gate                [String] = ""
     -Spec                [String] = ""
     -Status              [String] = "active"  {active|removed}
     -ListAreas    (req)  [SwitchParameter]
@@ -401,6 +403,7 @@ scripts/all_features/validate.ps1
     -NoLegal         [SwitchParameter]
     -Gate            [SwitchParameter]
     -Quiet           [SwitchParameter]
+  Exit: 0 inventory valid, and the S1934 ungated-flavors ratchet is at or below its baseline.; 1 a schema rule was violated, the ratchet grew past its baseline, or the baseline is unreadable.
 ```
 
 ## scripts\builders
@@ -773,6 +776,52 @@ scripts/devtest/adb.ps1
   Exit: 0 - OK; 1 - adb not found, or bad arguments; 2 - no online device; 3 - multiple online devices and -DeviceId not supplied (for verbs needing a device); 4 - target package not installed (for app verbs); 5 - a destructive verb was refused: `clear` (removed), or `wipe-data`/`uninstall` without -Yes.
 ```
 
+### camera-wysiwyg-selftest.ps1
+S1920: check that camera_fov_compare.py can actually FAIL before its PASS is believed. .DESCRIPTION camera-wysiwyg-sweep.ps1 answers "does the saved photo match the viewfinder". A run of it that cannot fail says nothing, and the 2026-08-21 sweep returned PASS on every measured cell while the owner was still seeing a cropped frame - so the comparator itself needs a control. Two cases are put through the comparator: positive - a pair that agrees -> must report keep 1.0/1.0 and exit 0 negative - the same pair, photo centre-cropped to 0.74 on both axes -> must report FAIL, exit 1, and recover 0.74 The negative case is the whole point: the injected crop is known exactly, so the comparator has to both refuse the pair AND name the crop it was given. A tool that fails for the wrong reason passes a bare FAIL check. By default the pair is synthesised, so this runs on any checkout with no device and no stored artifacts. Point -Screenshot and -Photo at a real captured pair to run the same two cases against device data instead; a named pair that is missing is an error, never a silent fall back to synthetic. .PARAMETER Screenshot Viewfinder screenshot PNG. Requires -Photo. Omit both to synthesise the pair. .PARAMETER Photo The JPEG the shutter produced. Requires -Screenshot. .PARAMETER OutDir Where the synthesised pair and the cropped negative land. Default temp/S1920/selftest. .EXITCODES 0 - both cases behaved: the comparator passed the matching pair and failed the cropped one 1 - the comparator misbehaved on at least one case (it is the harness that is broken, not the app) 2 - could not run: no usable Python, comparator missing, or a named pair that does not exist
+
+```
+scripts/devtest/camera-wysiwyg-selftest.ps1
+  S1920: check that camera_fov_compare.py can actually FAIL before its PASS is believed. .DESCRIPTION camera-wysiwyg-sweep.ps1 answers "does the saved photo match the viewfinder". A run of it that cannot fail says nothing, and the 2026-08-21 sweep returned PASS on every measured cell while the owner was still seeing a cropped frame - so the comparator itself needs a control. Two cases are put through the comparator: positive - a pair that agrees -> must report keep 1.0/1.0 and exit 0 negative - the same pair, photo centre-cropped to 0.74 on both axes -> must report FAIL, exit 1, and recover 0.74 The negative case is the whole point: the injected crop is known exactly, so the comparator has to both refuse the pair AND name the crop it was given. A tool that fails for the wrong reason passes a bare FAIL check. By default the pair is synthesised, so this runs on any checkout with no device and no stored artifacts. Point -Screenshot and -Photo at a real captured pair to run the same two cases against device data instead; a named pair that is missing is an error, never a silent fall back to synthetic. .PARAMETER Screenshot Viewfinder screenshot PNG. Requires -Photo. Omit both to synthesise the pair. .PARAMETER Photo The JPEG the shutter produced. Requires -Screenshot. .PARAMETER OutDir Where the synthesised pair and the cropped negative land. Default temp/S1920/selftest. .EXITCODES 0 - both cases behaved: the comparator passed the matching pair and failed the cropped one 1 - the comparator misbehaved on at least one case (it is the harness that is broken, not the app) 2 - could not run: no usable Python, comparator missing, or a named pair that does not exist
+  Params:
+    -Screenshot         [String]
+    -Photo              [String]
+    -OutDir             [String] = 'temp/S1920/selftest'
+  Exit: 0 - both cases behaved: the comparator passed the matching pair and failed the cropped one; 1 - the comparator misbehaved on at least one case (it is the harness that is broken, not the app); 2 - could not run: no usable Python, comparator missing, or a named pair that does not exist
+```
+
+### camera-wysiwyg-sweep.ps1
+S1920: sweep the in-app camera and check that each saved photo shows what the viewfinder showed. .DESCRIPTION Drives an ALREADY-OPEN camera screen on a connected device. For every zoom preset (and, with -SweepLenses, every lens) it screenshots the live viewfinder, presses the shutter, waits for the produced JPEG, pulls it, and measures the field-of-view agreement between the two with scripts/devtest/camera_fov_compare.py. The camera screen is NOT opened by this script, because every camera Activity in this app is android:exported="false" and `am start` refuses a non-exported component. Open it by hand, or through the exported MainActivity action: adb shell am start -a com.sza.fastmediasorter.action.CAMERA_OCR_TRANSLATE -n com.sza.fastmediasorter.debug/com.sza.fastmediasorter.ui.main.MainActivity The expected keep-fractions are derived from the measured PreviewView bounds and the requested stream aspect, NOT hardcoded: with scaleType=fitCenter the stream is letterboxed inside the view, so a correct capture matches the letterboxed content, not the whole view. Point the camera at a textured scene. A blank wall carries no structure to correlate and the comparator refuses it rather than reporting a confident number derived from noise. .PARAMETER DeviceId Target device serial. Required when more than one device is online. .PARAMETER Zooms Zoom preset labels to visit, as printed on the zoom row (e.g. 1,3,5). Default: 1. .PARAMETER Shapes Frame shapes to visit, in order: 4:3, 16:9, full. Default: all three, 16:9 first because it is the app default and therefore the shape the owner most likely shot on. A shape the device does not offer is reported and skipped, never silently replaced by the one already selected. .PARAMETER SweepLenses Also cycle btnCameraLensSwitch once per zoom pass. .PARAMETER StreamAspect Requested stream long/short ratio used to predict the letterbox. Default 1.7778 (16:9). .PARAMETER Tolerance Allowed absolute deviation of each keep-fraction before a row counts FAIL. Default 0.05. .PARAMETER OutDir Where screenshots, pulled photos and the report land. Default temp/S1920/sweep. .PARAMETER KeepArtifacts Keep the pulled photos. Without it they are deleted locally after comparison; the device copy is always removed, because this runs on the owner's working phone. .EXITCODES 0 - every measured combination agreed with its prediction 1 - at least one combination disagreed (the defect reproduced) 2 - could not measure (no device, camera screen not open, no photo produced, scene too flat)
+
+```
+scripts/devtest/camera-wysiwyg-sweep.ps1
+  S1920: sweep the in-app camera and check that each saved photo shows what the viewfinder showed. .DESCRIPTION Drives an ALREADY-OPEN camera screen on a connected device. For every zoom preset (and, with -SweepLenses, every lens) it screenshots the live viewfinder, presses the shutter, waits for the produced JPEG, pulls it, and measures the field-of-view agreement between the two with scripts/devtest/camera_fov_compare.py. The camera screen is NOT opened by this script, because every camera Activity in this app is android:exported="false" and `am start` refuses a non-exported component. Open it by hand, or through the exported MainActivity action: adb shell am start -a com.sza.fastmediasorter.action.CAMERA_OCR_TRANSLATE -n com.sza.fastmediasorter.debug/com.sza.fastmediasorter.ui.main.MainActivity The expected keep-fractions are derived from the measured PreviewView bounds and the requested stream aspect, NOT hardcoded: with scaleType=fitCenter the stream is letterboxed inside the view, so a correct capture matches the letterboxed content, not the whole view. Point the camera at a textured scene. A blank wall carries no structure to correlate and the comparator refuses it rather than reporting a confident number derived from noise. .PARAMETER DeviceId Target device serial. Required when more than one device is online. .PARAMETER Zooms Zoom preset labels to visit, as printed on the zoom row (e.g. 1,3,5). Default: 1. .PARAMETER Shapes Frame shapes to visit, in order: 4:3, 16:9, full. Default: all three, 16:9 first because it is the app default and therefore the shape the owner most likely shot on. A shape the device does not offer is reported and skipped, never silently replaced by the one already selected. .PARAMETER SweepLenses Also cycle btnCameraLensSwitch once per zoom pass. .PARAMETER StreamAspect Requested stream long/short ratio used to predict the letterbox. Default 1.7778 (16:9). .PARAMETER Tolerance Allowed absolute deviation of each keep-fraction before a row counts FAIL. Default 0.05. .PARAMETER OutDir Where screenshots, pulled photos and the report land. Default temp/S1920/sweep. .PARAMETER KeepArtifacts Keep the pulled photos. Without it they are deleted locally after comparison; the device copy is always removed, because this runs on the owner's working phone. .EXITCODES 0 - every measured combination agreed with its prediction 1 - at least one combination disagreed (the defect reproduced) 2 - could not measure (no device, camera screen not open, no photo produced, scene too flat)
+  Params:
+    -DeviceId              [String]
+    -Zooms                 [String[]] = @('1')
+    -Shapes                [String[]] = @('16:9', '4:3', 'full')  {4:3|16:9|full}
+    -SweepLenses           [SwitchParameter]
+    -StreamAspect          [Double] = 1.7778
+    -Tolerance             [Double] = 0.05
+    -OutDir                [String] = 'temp/S1920/sweep'
+    -KeepArtifacts         [SwitchParameter]
+  Exit: 0 - every measured combination agreed with its prediction; 1 - at least one combination disagreed (the defect reproduced); 2 - could not measure (no device, camera screen not open, no photo produced, scene too flat)
+```
+
+### device-lease.ps1
+Device leases for parallel agent sessions (S1926).
+
+```
+scripts/devtest/device-lease.ps1
+  Device leases for parallel agent sessions (S1926).
+  Params:
+    -Verb          (req)  [String]  {Claim|Release|List|Status|Sweep}
+    -Id                   [String]
+    -Reason               [String] = 'device-lease'
+    -Json                 [SwitchParameter]
+    -StaleMinutes         [Int32] = 0
+  Exit: 0 - done: claimed, released, or reported.; 1 - error: unreadable store, bad argument shape, write failure.; 3 - claim lost: a live foreign session already holds this device.; 4 - release refused: a live foreign session owns this lease.
+```
+
 ### device-ready.ps1
 Pre-flight readiness check for on-device testing skills (/spec-test-device, /verify).
 
@@ -786,6 +835,7 @@ scripts/devtest/device-ready.ps1
     -CheckMcp                [SwitchParameter]
     -Json                    [SwitchParameter]
     -StrictExit              [SwitchParameter]
+    -ClaimFree               [SwitchParameter]
   Exit: 0 - state determined and reported: ready, or not-ready with a `state`/`reason`; 2 - the probe itself could not run
 ```
 
@@ -917,6 +967,18 @@ scripts/devtest/adb-tap-id.tests/Run-Tests.ps1
   S1879 matcher suite for `adb.ps1 tap-id` - selecting a node by its resource-id.
   (no param block)
   Exit: 0 - every case passed; 1 - at least one case failed
+```
+
+## scripts\devtest\device-lease.tests
+
+### Run-Tests.ps1
+Regression tests for the device lease sweep (S1926).
+
+```
+scripts/devtest/device-lease.tests/Run-Tests.ps1
+  Regression tests for the device lease sweep (S1926).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - a case failed.
 ```
 
 ## scripts\devtest\lib
@@ -1515,6 +1577,20 @@ scripts/quality/assert-16kb-alignment.ps1
   Exit: 0 - all checked 64-bit .so have every LOAD segment aligned >= 16 KB, OR nothing
 ```
 
+### assert-acceptance-preconditions.ps1
+Refuse an acceptance criterion that rests on accumulated state without naming it (S1914).
+
+```
+scripts/quality/assert-acceptance-preconditions.ps1
+  Refuse an acceptance criterion that rests on accumulated state without naming it (S1914).
+  Params:
+    -Gate                   [SwitchParameter]
+    -Quiet                  [SwitchParameter]
+    -Path                   [String]
+    -UpdateBaseline         [SwitchParameter]
+  Exit: 0 - clean, or violations reported in audit mode.; 1 - `-Gate` found a criterion outside the baseline that names no precondition.; 2 - the spec corpus or the baseline cannot be read.
+```
+
 ### assert-activity-logic-not-growing.ps1
 Ratchet gate: the number of domain-layer field injections in Activities must never grow.
 
@@ -1879,16 +1955,28 @@ scripts/quality/assert-icon-inventory-sync.ps1
   Exit: 0 - every enforced check passed, or the inventory was regenerated.; 1 - a check failed.; 2 - regeneration could not run (gradle returned non-zero).
 ```
 
+### assert-launcher-contrast.ps1
+S1895: measure the launcher's foreground colours against the surfaces they land on.
+
+```
+scripts/quality/assert-launcher-contrast.ps1
+  S1895: measure the launcher's foreground colours against the surfaces they land on.
+  Params:
+    -Quiet         [SwitchParameter]
+    -Gate          [SwitchParameter]
+  Exit: 0 - every measured pair is at or above the threshold.; 1 - at least one pair is below the threshold, or an attribute resolves to nothing.; 2 - a resource file is missing or unparseable; the gate could not measure.
+```
+
 ### assert-launcher-reset-coverage.ps1
-S1540: every launcher field of AppSettings is restored by the launcher reset, or excused by name.
+S1540: every launcher field of AppSettings is restored by the launcher reset, or excused by name. .DESCRIPTION Adding one launcher setting takes four coordinated edits. Three of them are held by a gate; the fourth - the field list inside `ResetLauncherToDefaultsUseCase.restoreLauncherSettings()` - was held by nothing. A forgotten line there compiles, passes every other gate, and reaches the user as a reset that silently leaves one setting untouched: the toggle it belongs with goes back to default while it stays on, which is an inconsistent state in the store rather than a cosmetic miss. This gate compares two lists that are both derivable from source: * the `launcher*` properties declared in `AppSettings`; * the assignments inside `restoreLauncherSettings()`, in either accepted form. Two assignment forms count as coverage: * `<name> = defaults.<name>` - the ordinary form, restoring the factory value; * `<name> = <identifier>` - the parameter form, restoring a value the caller supplied instead of the factory one. S1886 introduced it: the launcher reset writes the icon density chosen in the reset dialog, so for that one field `AppSettings()` is not the value the reset restores. The parameter form is accepted only for a field named in `$ParameterRestoredFields` below. An undeclared one fails: silently counting any bare assignment as coverage would let `launcherFoo = x` stand in for a real restore, which is the hole this gate exists to close. A field in the first list and not the second fails, unless it is named in `$ExcusedFields` below with the reason it must survive a reset. A name in the second list that no longer exists in `AppSettings` fails too - a stale line is how a rename hides an uncovered field. Deliberately lexical: it reads the two files as text rather than compiling them, so it costs milliseconds and runs inside `post-change.ps1` on every change, which is the only cadence at which it would have caught the case it was written for. Why the launcher prefix is the rule here and nowhere else: the launcher reset is the one call site whose contract is "all of this feature's settings". Its siblings - enable-all, backup restore, gesture seeding - are deliberate subsets chosen per field, so completeness is not derivable for them and a prefix rule would produce false failures. .PARAMETER Gate Gate framing: exit 1 on any violation, print a one-line verdict. .PARAMETER Quiet Suppress the informational counters. Violations are always printed. .NOTES Exit codes (CLAUDE.md Rule 7 / S1070 contract): 0 PASS - every launcher field is restored or excused. 1 FAIL - a launcher field is not restored, a restored name no longer exists, or a field is written from a parameter without being declared in $ParameterRestoredFields. 2 CANNOT VERIFY - a source file is missing or no launcher field could be parsed at all. .EXAMPLE pwsh -NoProfile -File scripts/quality/assert-launcher-reset-coverage.ps1 -Gate
 
 ```
 scripts/quality/assert-launcher-reset-coverage.ps1
-  S1540: every launcher field of AppSettings is restored by the launcher reset, or excused by name.
+  S1540: every launcher field of AppSettings is restored by the launcher reset, or excused by name. .DESCRIPTION Adding one launcher setting takes four coordinated edits. Three of them are held by a gate; the fourth - the field list inside `ResetLauncherToDefaultsUseCase.restoreLauncherSettings()` - was held by nothing. A forgotten line there compiles, passes every other gate, and reaches the user as a reset that silently leaves one setting untouched: the toggle it belongs with goes back to default while it stays on, which is an inconsistent state in the store rather than a cosmetic miss. This gate compares two lists that are both derivable from source: * the `launcher*` properties declared in `AppSettings`; * the assignments inside `restoreLauncherSettings()`, in either accepted form. Two assignment forms count as coverage: * `<name> = defaults.<name>` - the ordinary form, restoring the factory value; * `<name> = <identifier>` - the parameter form, restoring a value the caller supplied instead of the factory one. S1886 introduced it: the launcher reset writes the icon density chosen in the reset dialog, so for that one field `AppSettings()` is not the value the reset restores. The parameter form is accepted only for a field named in `$ParameterRestoredFields` below. An undeclared one fails: silently counting any bare assignment as coverage would let `launcherFoo = x` stand in for a real restore, which is the hole this gate exists to close. A field in the first list and not the second fails, unless it is named in `$ExcusedFields` below with the reason it must survive a reset. A name in the second list that no longer exists in `AppSettings` fails too - a stale line is how a rename hides an uncovered field. Deliberately lexical: it reads the two files as text rather than compiling them, so it costs milliseconds and runs inside `post-change.ps1` on every change, which is the only cadence at which it would have caught the case it was written for. Why the launcher prefix is the rule here and nowhere else: the launcher reset is the one call site whose contract is "all of this feature's settings". Its siblings - enable-all, backup restore, gesture seeding - are deliberate subsets chosen per field, so completeness is not derivable for them and a prefix rule would produce false failures. .PARAMETER Gate Gate framing: exit 1 on any violation, print a one-line verdict. .PARAMETER Quiet Suppress the informational counters. Violations are always printed. .NOTES Exit codes (CLAUDE.md Rule 7 / S1070 contract): 0 PASS - every launcher field is restored or excused. 1 FAIL - a launcher field is not restored, a restored name no longer exists, or a field is written from a parameter without being declared in $ParameterRestoredFields. 2 CANNOT VERIFY - a source file is missing or no launcher field could be parsed at all. .EXAMPLE pwsh -NoProfile -File scripts/quality/assert-launcher-reset-coverage.ps1 -Gate
   Params:
     -Gate          [SwitchParameter]
     -Quiet         [SwitchParameter]
-  Exit: 0 PASS - every launcher field is restored or excused.; 1 FAIL - a launcher field is not restored, or a restored name no longer exists.; 2 CANNOT VERIFY - a source file is missing or no launcher field could be parsed at all.
+  Exit: 0 PASS - every launcher field is restored or excused.; 1 FAIL - a launcher field is not restored, a restored name no longer exists, or a field is
 ```
 
 ### assert-layout-variant-id-parity.ps1
@@ -2009,15 +2097,16 @@ scripts/quality/assert-no-orphan-merged-resources.ps1
 ```
 
 ### assert-no-ticket-logs.ps1
-Audit permanent Timber logs for embedded Sxxxx ticket ids. .DESCRIPTION Scans app_v2 and wear Kotlin sources for `Sxxxx` ticket ids inside log messages. Per CLAUDE.md "Debug Verification Tags", a ticket id may appear in log text ONLY as a temporary probe of the exact form Timber.d("Sxxxx: ..") whose ticket is currently in status BlockNeedUserTest. Every other occurrence is a forbidden permanent-log ticket id: - any Sxxxx inside Timber.i / Timber.w / Timber.e; - any Sxxxx inside Timber.d that is not the "Sxxxx:" probe prefix; - a "Sxxxx:" probe whose ticket is NOT currently BlockNeedUserTest (stale). Exit codes (S1070): 0 - clean (or audit mode). 1 - substantive failure: a forbidden permanent-log ticket id remains. 2 - the gate itself cannot run (spec-catalog.jsonl missing - without it no probe's status can be resolved). Distinct from 1 on purpose. Allowed-probe status is resolved against PLAN/spec-catalog.jsonl. Default mode reports findings and exits 0 (audit). With -Gate the script exits 1 when any forbidden occurrence remains (fail-closed hygiene gate). .PARAMETER Gate Fail-closed: exit 1 if any forbidden permanent-log ticket id is found. .PARAMETER Quiet Suppress the per-finding list; print only the expected/actual summary. .EXAMPLE pwsh -NoProfile -File scripts/quality/assert-no-ticket-logs.ps1 pwsh -NoProfile -File scripts/quality/assert-no-ticket-logs.ps1 -Gate
+Audit permanent Timber logs for embedded Sxxxx ticket ids. .DESCRIPTION Scans app_v2 and wear Kotlin sources for `Sxxxx` ticket ids inside log messages. Per CLAUDE.md "Debug Verification Tags", a ticket id may appear in log text ONLY as a temporary probe of the exact form Timber.d("Sxxxx: ..") whose ticket is currently in status BlockNeedUserTest. Every other occurrence is a forbidden permanent-log ticket id: - any Sxxxx inside Timber.i / Timber.w / Timber.e; - any Sxxxx inside Timber.d that is not the "Sxxxx:" probe prefix; - a "Sxxxx:" probe whose ticket is NOT currently BlockNeedUserTest (stale). Exit codes (S1070): 0 - clean (or audit mode). 1 - substantive failure: a forbidden permanent-log ticket id remains. 2 - the gate itself cannot run (spec-catalog.jsonl missing - without it no probe's status can be resolved). Distinct from 1 on purpose. 3 - only the catalog-state half failed: some ticket is BlockNeedUserTest with no probe, and -ChangedFiles was supplied, so the caller asked to be judged on its own files. Distinct from 1 because the caller cannot fix it - the probe belongs at the entry of ANOTHER ticket's changed flow (S1912). Allowed-probe status is resolved against PLAN/spec-catalog.jsonl. Default mode reports findings and exits 0 (audit). With -Gate the script exits 1 when any forbidden occurrence remains (fail-closed hygiene gate). .PARAMETER Gate Fail-closed: exit 1 if any forbidden permanent-log ticket id is found. .PARAMETER Quiet Suppress the per-finding list; print only the expected/actual summary. .PARAMETER ChangedFiles Repo-relative paths of the files the caller changed, comma-joined. Supplying it narrows the forbidden-log half to those files and downgrades the missing-probe half to exit 3, because that half reads catalog state and belongs to no file set. Omit it - as assert-fast-gates.ps1 and the release path do - and both halves stay project-wide and fatal. .EXAMPLE pwsh -NoProfile -File scripts/quality/assert-no-ticket-logs.ps1 pwsh -NoProfile -File scripts/quality/assert-no-ticket-logs.ps1 -Gate
 
 ```
 scripts/quality/assert-no-ticket-logs.ps1
-  Audit permanent Timber logs for embedded Sxxxx ticket ids. .DESCRIPTION Scans app_v2 and wear Kotlin sources for `Sxxxx` ticket ids inside log messages. Per CLAUDE.md "Debug Verification Tags", a ticket id may appear in log text ONLY as a temporary probe of the exact form Timber.d("Sxxxx: ..") whose ticket is currently in status BlockNeedUserTest. Every other occurrence is a forbidden permanent-log ticket id: - any Sxxxx inside Timber.i / Timber.w / Timber.e; - any Sxxxx inside Timber.d that is not the "Sxxxx:" probe prefix; - a "Sxxxx:" probe whose ticket is NOT currently BlockNeedUserTest (stale). Exit codes (S1070): 0 - clean (or audit mode). 1 - substantive failure: a forbidden permanent-log ticket id remains. 2 - the gate itself cannot run (spec-catalog.jsonl missing - without it no probe's status can be resolved). Distinct from 1 on purpose. Allowed-probe status is resolved against PLAN/spec-catalog.jsonl. Default mode reports findings and exits 0 (audit). With -Gate the script exits 1 when any forbidden occurrence remains (fail-closed hygiene gate). .PARAMETER Gate Fail-closed: exit 1 if any forbidden permanent-log ticket id is found. .PARAMETER Quiet Suppress the per-finding list; print only the expected/actual summary. .EXAMPLE pwsh -NoProfile -File scripts/quality/assert-no-ticket-logs.ps1 pwsh -NoProfile -File scripts/quality/assert-no-ticket-logs.ps1 -Gate
+  Audit permanent Timber logs for embedded Sxxxx ticket ids. .DESCRIPTION Scans app_v2 and wear Kotlin sources for `Sxxxx` ticket ids inside log messages. Per CLAUDE.md "Debug Verification Tags", a ticket id may appear in log text ONLY as a temporary probe of the exact form Timber.d("Sxxxx: ..") whose ticket is currently in status BlockNeedUserTest. Every other occurrence is a forbidden permanent-log ticket id: - any Sxxxx inside Timber.i / Timber.w / Timber.e; - any Sxxxx inside Timber.d that is not the "Sxxxx:" probe prefix; - a "Sxxxx:" probe whose ticket is NOT currently BlockNeedUserTest (stale). Exit codes (S1070): 0 - clean (or audit mode). 1 - substantive failure: a forbidden permanent-log ticket id remains. 2 - the gate itself cannot run (spec-catalog.jsonl missing - without it no probe's status can be resolved). Distinct from 1 on purpose. 3 - only the catalog-state half failed: some ticket is BlockNeedUserTest with no probe, and -ChangedFiles was supplied, so the caller asked to be judged on its own files. Distinct from 1 because the caller cannot fix it - the probe belongs at the entry of ANOTHER ticket's changed flow (S1912). Allowed-probe status is resolved against PLAN/spec-catalog.jsonl. Default mode reports findings and exits 0 (audit). With -Gate the script exits 1 when any forbidden occurrence remains (fail-closed hygiene gate). .PARAMETER Gate Fail-closed: exit 1 if any forbidden permanent-log ticket id is found. .PARAMETER Quiet Suppress the per-finding list; print only the expected/actual summary. .PARAMETER ChangedFiles Repo-relative paths of the files the caller changed, comma-joined. Supplying it narrows the forbidden-log half to those files and downgrades the missing-probe half to exit 3, because that half reads catalog state and belongs to no file set. Omit it - as assert-fast-gates.ps1 and the release path do - and both halves stay project-wide and fatal. .EXAMPLE pwsh -NoProfile -File scripts/quality/assert-no-ticket-logs.ps1 pwsh -NoProfile -File scripts/quality/assert-no-ticket-logs.ps1 -Gate
   Params:
-    -Gate          [SwitchParameter]
-    -Quiet         [SwitchParameter]
-  Exit: 0 - clean (or audit mode).; 1 - substantive failure: a forbidden permanent-log ticket id remains.; 2 - the gate itself cannot run (spec-catalog.jsonl missing - without it no
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+    -ChangedFiles         [String[]]
+  Exit: 0 - clean (or audit mode).; 1 - substantive failure: a forbidden permanent-log ticket id remains.; 2 - the gate itself cannot run (spec-catalog.jsonl missing - without it no; 3 - only the catalog-state half failed: some ticket is BlockNeedUserTest with no
 ```
 
 ### assert-non-null-assertion.ps1
@@ -2114,6 +2203,18 @@ scripts/quality/assert-qualifier-shadowing.ps1
   Params:
     -Gate          [SwitchParameter]
     -Quiet         [SwitchParameter]
+```
+
+### assert-release-scope-gates.ps1
+S1939: run the RELEASE-SCOPE quality gates in ONE process over the whole tree.
+
+```
+scripts/quality/assert-release-scope-gates.ps1
+  S1939: run the RELEASE-SCOPE quality gates in ONE process over the whole tree.
+  Params:
+    -Json         [SwitchParameter]
+    -Help         [SwitchParameter]
+  Exit: 0 every gate passed.; 1 at least one gate found a defect. The release does not ship until it is fixed.; 2 cannot verify - a gate script is missing from scripts/quality/.
 ```
 
 ### assert-retired-dependency-names.ps1
@@ -2655,6 +2756,16 @@ scripts/quality/assert-hook-inventory.tests/run-tests.ps1
 scripts/quality/assert-listener-symmetry.tests/Run-Tests.ps1
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\quality\assert-no-ticket-logs.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/assert-no-ticket-logs.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 the suite could not run (the gate under test is missing).
 ```
 
 ## scripts\quality\assert-orientation-layout-pairing.tests
@@ -4374,6 +4485,18 @@ scripts/utils/wait-for-ticket-work.ps1
     -Reason               [String] = ''
     -MarkerPath           [String] = ''
   Exit: 0 - work is available now; the marker names the kind (impl / device-drain) and the ticket.; 3 - required preflight script is missing.; 4 - usage error.
+```
+
+## scripts\utils\agent-lock.tests
+
+### Run-Tests.ps1
+Regression tests for the stale-JAVA_HOME snapshot repair (S1928).
+
+```
+scripts/utils/agent-lock.tests/Run-Tests.ps1
+  Regression tests for the stale-JAVA_HOME snapshot repair (S1928).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - a case failed.
 ```
 
 ## scripts\utils\format-kotlin-imports.tests

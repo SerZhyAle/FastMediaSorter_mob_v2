@@ -59,6 +59,14 @@
             android:name=".widget.AudioNowPlayingWidgetProvider"
             tools:node="remove" />
 
+        <!-- Remove Stream launch widget from photos flavor (SUPPORT_STREAMS=false, S1916) -->
+        <receiver
+            android:name=".widget.StreamLaunchWidgetProvider"
+            tools:node="remove" />
+        <activity
+            android:name=".widget.StreamLaunchWidgetConfigActivity"
+            tools:node="remove" />
+
         <!-- Remove Quick Audio Recorder from photos flavor (SUPPORT_MIC_RECORDING=false, S0349) -->
         <receiver
             android:name=".widget.QuickAudioRecorderWidgetProvider"

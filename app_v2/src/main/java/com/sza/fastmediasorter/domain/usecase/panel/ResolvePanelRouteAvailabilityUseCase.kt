@@ -54,9 +54,20 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
 
     // S0912: every route's availability lives in this one chain, so a future route cannot silently
     // drift into "insufficient": either it declares its own availableInBuild/enabledAtRuntime pair
-    // here or in [resolveWidgetMirrorRoute], or the single default at the end of that chain reports it
+    // in [resolveOrNull] or in [resolveWidgetMirrorRoute], or the single fallback below reports it
     // unavailable - there is no second toggle to forget.
     private fun resolve(routeKey: String, settings: AppSettings): Availability =
+        resolveOrNull(routeKey, settings) ?: Availability(availableInBuild = false, enabledAtRuntime = false)
+
+    /**
+     * S1736: the same chain as [resolve], but null when no branch claims [routeKey] instead of the
+     * fabricated unavailable pair.
+     *
+     * A declared-but-unavailable route and an undeclared one are otherwise the same answer, so a
+     * sub-program missing from a surface reads exactly like one the build switched off. The
+     * completeness test needs the two apart to assert anything at all.
+     */
+    fun resolveOrNull(routeKey: String, settings: AppSettings): Availability? =
         when (routeKey) {
             // S1103: the quick-access panel exists in every launcher build and has no runtime toggle.
             InternalRouteCatalog.KEY_APP_LAUNCH_PANEL ->
@@ -118,16 +129,16 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
     /**
      * S0978: the four capture routes - two photo shortcuts, the OCR-translate variant and the video one.
      *
-     * Split out of [resolve] for the same reason [resolveWidgetMirrorRoute] was (S1883 pushed the chain
-     * back to detekt's cyclomatic ceiling when the Wear companion joined it). The closed-set contract is
-     * unchanged: this function ends in the widget-mirror chain, which ends in the same "an unknown route
-     * is unavailable" default the single chain used to hold.
+     * Split out of [resolveOrNull] for the same reason [resolveWidgetMirrorRoute] was (S1883 pushed the
+     * chain back to detekt's cyclomatic ceiling when the Wear companion joined it). The closed-set
+     * contract is unchanged: this function ends in the widget-mirror chain, which ends in the same
+     * "no branch claims this route" answer the single chain used to hold.
      *
      * All four gate on the global camera-capture toggle rather than a per-route one; the OCR-translate
      * variant additionally needs the translation capability compiled in, and the video route reads the
      * video capability and the video toggle instead of their photo counterparts.
      */
-    private fun resolveCaptureRoute(routeKey: String, settings: AppSettings): Availability =
+    private fun resolveCaptureRoute(routeKey: String, settings: AppSettings): Availability? =
         when (routeKey) {
             InternalRouteCatalog.KEY_TAKE_PHOTO_SEND_TO,
             InternalRouteCatalog.KEY_TAKE_PHOTO_EDIT ->
@@ -151,14 +162,14 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
     /**
      * S1170: the five routes that exist to mirror a home-screen widget's own tap destination.
      *
-     * Split out of [resolve] only to stay under detekt's cyclomatic ceiling - the closed-set contract
-     * above is unchanged, because this function ends in the same "an unknown route is unavailable"
-     * default that [resolve] used to hold. Each gate is the one its widget provider already applies, so
+     * Split out of [resolveOrNull] only to stay under detekt's cyclomatic ceiling - the closed-set
+     * contract above is unchanged, because this function ends in the same unclaimed-route answer that
+     * [resolveOrNull] used to hold. Each gate is the one its widget provider already applies, so
      * a desktop cell and the same widget on the Android home screen agree on when the destination is
      * dead. Without these branches the default would swallow all five and every launcher gadget built on
      * them would silently do nothing.
      */
-    private fun resolveWidgetMirrorRoute(routeKey: String, settings: AppSettings): Availability =
+    private fun resolveWidgetMirrorRoute(routeKey: String, settings: AppSettings): Availability? =
         when (routeKey) {
             InternalRouteCatalog.KEY_CAMERA_PHOTOS ->
                 Availability(availableInBuild = mediaCapabilities.supportsImages, enabledAtRuntime = true)
@@ -176,6 +187,6 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
                 Availability(availableInBuild = mediaCapabilities.supportsAudio, enabledAtRuntime = true)
             InternalRouteCatalog.KEY_SCHEDULED_TASKS ->
                 Availability(availableInBuild = true, enabledAtRuntime = settings.enableScheduledOperations)
-            else -> Availability(availableInBuild = false, enabledAtRuntime = false)
+            else -> null
         }
 }

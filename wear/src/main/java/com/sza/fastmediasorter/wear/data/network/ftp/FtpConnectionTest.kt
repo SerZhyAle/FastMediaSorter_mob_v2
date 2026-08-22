@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.data.network.ftp
 
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.apache.commons.net.ftp.FTPClient
@@ -37,6 +38,8 @@ class FtpConnectionTest @Inject constructor() {
             } else {
                 Result.failure(IOException("FTP path not reachable: $path"))
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: IOException) {
             failure(source, e)
         } catch (e: IllegalStateException) {
