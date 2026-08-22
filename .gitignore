@@ -304,3 +304,12 @@ dev/agent-continuity/
 .env
 *token*
 *secret*
+
+# ..but a source file named after the concept is not a credential. The two blanket patterns above
+# matched LauncherWidgetToken.kt and its test in app_v2/src/main, so `git add .` silently skipped
+# them, they never reached main, and the release build failed on an unresolved reference that had
+# compiled fine in every local debug build. Credentials never live in .kt/.java - they live in
+# local.properties, gradle properties, and the explicitly-named files listed elsewhere here, which
+# these two negations deliberately do not touch (they re-include code under a src/ tree only).
+!**/src/**/*.kt
+!**/src/**/*.java
