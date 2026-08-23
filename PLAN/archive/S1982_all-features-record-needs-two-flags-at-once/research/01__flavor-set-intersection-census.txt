@@ -1,0 +1,28 @@
+flags parsed: 23
+distinct flag rows (as sets): 8
+distinct non-empty pairwise intersections: 10
+  of them NOT already a flag row: 3
+    [legacy,lite,noLegal,standard] <- DECLARES_MIC_RECORDING+SUPPORT_CAST
+    [legacy,noLegal,photos,standard] <- ENABLE_ANIMATIONS+SUPPORT_CAST
+    [legacy,noLegal,standard] <- ENABLE_EPUB+SUPPORT_CAST
+
+coverage of the 63 non-empty flavor subsets:
+  by single rows       : 8
+  by rows+pairwise int : 11
+
+records: gated=31 ungated-full=147 ungated-equals-a-row=382 unexplained=238
+  unexplained that equal SOME pairwise intersection: 3
+
+distinct unexplained sets, by frequency:
+   113 x [legacy,lite,photos,standard]  -
+    65 x [standard]  -
+    38 x [noLegal,vr]  -
+     7 x [legacy,lite,photos,standard,vr]  -
+     3 x [legacy,noLegal,photos,standard]  PAIR:ENABLE_ANIMATIONS+SUPPORT_CAST
+     3 x [legacy,photos,standard,vr]  -
+     3 x [legacy,standard,vr]  -
+     2 x [legacy,standard]  -
+     1 x [legacy,lite,standard]  -
+     1 x [lite]  -
+     1 x [lite,photos]  -
+     1 x [photos]  -
