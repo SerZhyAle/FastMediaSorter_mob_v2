@@ -6,7 +6,27 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.8222.348** (August 2026)
+**Current release: 2.60.8232.251** (August 2026)
+
+> Changes since version 2.60.8222.348
+
+---
+
+## What's New
+
+- **Send files to the watch** - the paired watch is a resource you can copy media into.
+- **Rectangular watch tiles** - grid cells use the full screen instead of round ones.
+
+## What's Fixed
+
+- Resource rows on the watch respond to taps again.
+- Recent resources no longer fill the whole first row of the watch home grid.
+- The watch startup splash shows the watch branding, not the phone one.
+- The legacy edition's watch companion now matches the watch app identity.
+
+---
+
+## Previous Release: 2.60.8222.348 (August 2026)
 
 > Changes since version 2.60.8151.948
 
