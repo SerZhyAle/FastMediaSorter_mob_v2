@@ -1,0 +1,21 @@
+=== S1803 sitemap baseline 2026-08-18T19:06:53Z ===
+https://serzhyale.github.io/FastMediaSorter_mob_v2/
+https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ru.html
+https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html
+https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/FEATURES.html
+https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/FEATURES_RU.html
+https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/FEATURES_UK.html
+https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/OPEN_SOURCE.html
+https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/OPEN_SOURCE.ru.html
+https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/OPEN_SOURCE.uk.html
+https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/PRIVACY_POLICY.html
+https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/PRIVACY_POLICY.ru.html
+https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/PRIVACY_POLICY.uk.html
+https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html
+https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_RU.html
+https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_UK.html
+https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/SETTINGS_REFERENCE.html
+https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/SETTINGS_REFERENCE_RU.html
+https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/SETTINGS_REFERENCE_UK.html
+https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/WEAR_OS_SMB_SETUP.html
+TOTAL_URL_COUNT=19

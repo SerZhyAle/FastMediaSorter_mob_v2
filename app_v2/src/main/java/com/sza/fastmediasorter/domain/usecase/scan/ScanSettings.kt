@@ -54,6 +54,9 @@ class ScanSettings @Inject constructor() {
         ResourceType.CLOUD,
         ResourceType.HTTP_STREAM,
         ResourceType.RTSP_STREAM -> cloudParallelism
+        // S1861: kept in step with ScanDispatcher.semaphoreFor - the bridge admits one channel at a
+        // time, so a wider limit would only queue the requests one layer higher up.
+        ResourceType.WEAR_WATCH -> cloudParallelism
     }
 
     companion object {

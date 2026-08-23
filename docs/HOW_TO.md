@@ -1394,7 +1394,7 @@ Available in the Standard, Lite, Photos and Legacy builds.
 
 ## How to Use the Built-In Programs
 
-**Available in:** all flavors - the programs menu and the panel ship in every build, but each program follows its own capability: Network Monitor needs Standard or noLegal, the Wear companion needs Standard, Legacy or noLegal, and the mini-game is absent from XR and noLegal. The calculator, the front flashlight and System information are in every build.
+**Available in:** all flavors - the programs menu and the panel ship in every build, but each program follows its own capability: Network Monitor needs Standard or noLegal, the Wear companion needs Standard or noLegal, and the mini-game is absent from XR and noLegal. The calculator, the front flashlight and System information are in every build.
 
 Besides browsing and playing files, the app carries a set of small built-in programs - a calculator, a screen lamp, a network monitor, a voice recorder and more. They are off by default: each one is switched on by its own setting, and most of the dedicated switches sit together in **Settings → Operations**.
 

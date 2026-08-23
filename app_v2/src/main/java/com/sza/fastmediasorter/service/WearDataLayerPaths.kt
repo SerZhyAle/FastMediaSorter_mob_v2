@@ -46,6 +46,24 @@ object WearDataLayerPaths {
     /** Message, watch → phone. Carries the transfer outcome for one stream channel. */
     const val STREAM_TRANSFER_ACK = "/fms/watch/stream_transfer_ack"
 
+    /**
+     * Channel, phone → watch. Carries the bytes of one file sent to the paired watch (S1861).
+     *
+     * The file name rides in the path as a trailing segment ("$FILE_TRANSFER/photo.jpg"): the watch
+     * half already names the received file from the last segment, so the channel needs no separate
+     * metadata message to land the bytes under the right name.
+     */
+    const val FILE_TRANSFER = "/fms/transfer_file"
+
+    /**
+     * Message, either direction. Announces name, size and type of the file the channel will carry
+     * (S1861), so the receiving side can refuse an oversized file before a byte is written.
+     *
+     * A separate path rather than a prefix of [FILE_TRANSFER], so the manifest filter that starts the
+     * service for a message cannot be confused with the one that starts it for a channel.
+     */
+    const val FILE_TRANSFER_META = "/fms/transfer_file_meta"
+
     // --- WearEventEnvelope.eventType constants ---
 
     /** eventType value for SETTINGS_PUSH envelopes. */

@@ -454,6 +454,9 @@ class ResourceEditorUseCase @Inject constructor(
 
             ResourceType.CLOUD -> formData.path
             ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> formData.path
+            // S1861: the path names a folder in the watch's own storage and carries no host or port to
+            // compose, so the typed value is already the stored form.
+            ResourceType.WEAR_WATCH -> formData.path
         }
     }
 

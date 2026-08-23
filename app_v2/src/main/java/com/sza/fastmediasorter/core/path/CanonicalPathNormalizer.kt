@@ -36,6 +36,9 @@ class CanonicalPathNormalizer @Inject constructor() : PathNormalizer {
                 ResourceType.FTP -> canonicalizeNetwork(trimmed, SCHEME_FTP)
                 ResourceType.CLOUD -> canonicalizeCloud(trimmed)
                 ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> trimmed
+                // S1861: a watch path names a location in the watch's own storage, so resolving it
+                // against this device's filesystem would produce a path that exists on neither.
+                ResourceType.WEAR_WATCH -> trimmed
             }
         } catch (t: Throwable) {
             Timber.w(t, "PathNormalizer: failed to canonicalize %s for %s", rawPath, resourceType)

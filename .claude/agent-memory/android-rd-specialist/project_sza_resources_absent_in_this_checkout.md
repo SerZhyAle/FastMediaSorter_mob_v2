@@ -41,4 +41,10 @@ If that already answers `[ru]`, a failing Russian selector is a regression, not 
 not write the caveat into a ticket as though it were still pending. Measured on the emulator that day:
 locales `[ru]`, and all 6 smoke flows passed.
 
-A sweep on the owner's own machine, where the file exists, is what actually covers the network paths.
+**It is absent on the owner's own machine too (2026-08-23).** An earlier revision of this memory closed
+with "a sweep on the owner's own machine, where the file exists, is what actually covers the network
+paths" - that is wrong, and it reads as though the gap were someone else's environment. The release-34
+sweep ran in `P:\ANDROID\FastMediaSorter_mob_v2`, which has `sza.owner.trigger` in `local.properties`
+and the release keystore in `.secrets/`, and `prerelease-configure.ps1` still died at `load-config`.
+No machine in reach covers the network paths, so every sweep report must say the SMB/FTP/SFTP paths and
+network-listing perf went unmeasured, rather than implying some other run covered them.

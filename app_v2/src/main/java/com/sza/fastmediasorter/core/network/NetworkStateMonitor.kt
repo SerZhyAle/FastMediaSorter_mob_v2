@@ -271,6 +271,10 @@ class NetworkStateMonitor @Inject constructor(
         ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP -> isLocalNetworkAvailable()
         ResourceType.CLOUD -> isInternetAvailable()
         ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> isInternetAvailable()
+        // S1861: the watch hangs off the Data Layer bridge, which is Bluetooth or a Wi-Fi pairing the
+        // phone's own transports say nothing about. Answering false on mobile data would suppress a
+        // send that would have worked, so the send itself reports the outcome instead.
+        ResourceType.WEAR_WATCH -> true
     }
 
     private fun activeCapabilities(): NetworkCapabilities? =

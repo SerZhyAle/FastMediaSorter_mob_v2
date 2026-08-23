@@ -58,13 +58,13 @@ FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. O
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.60.8222.348 (August 2026)
+## What's New in v2.60.8232.251 (August 2026)
 
 **New:**
-Wear OS companion that browses, plays and sorts the phone's media from the watch, watch mini-programs (calculator, network monitor, game), watch audio and video players with shuffle, bezel volume and screen-off mode, streams opened and managed on the watch, launcher desktop gadgets for media windows, now-playing art and the translator, other apps' notifications in the launcher top bar, widget backdrop opacity, Network Monitor widget, launcher tile and Bluetooth device list, stream home-screen widget, channel previews, station logo pack, front flashlight, System information as its own program, resource grid cell size, branded startup splash, immersive HUD settings panel, calculator long-press actions, unified capture filenames, credential cleanup.
+The paired watch is a resource you can copy media into, rectangular watch tiles that use the full screen instead of round ones.
 
 **Fixed:**
-Saved photo matches the viewfinder, the player opens reliably, rotation no longer blanks the standalone player, settings search opens the target section directly, the Start button and panel are readable in both themes, channels keep their pin and history across catalog drops, channel favourites survive a cosmetic address change, the watch honours the SFTP host key pinned on phone, watch network browsing shows the media type you asked for, album art downloads and FTP connection testing work on the watch, Wear screens no longer clip content on round displays, widget placement makes room and explains a refusal.
+Resource rows on the watch respond to taps again, recent resources no longer fill the whole first row of the watch home grid, the watch startup splash shows the watch branding rather than the phone one, the legacy edition's watch companion matches the watch app identity.
 
 [Full release notes →](docs/WHATS_NEW.md)
 
@@ -309,7 +309,6 @@ Detailed guides are available in multiple languages:
 - [Program Limitations](docs/LIMITATIONS.md)
 - [Downloads Guide](docs/DOWNLOADS_EN.md)
 - [Complete Feature List](docs/FEATURES.md)
-- [Module Selection Guide](docs/MODULE_SELECTION.md)
 
 **🇷🇺 Русский:**
 
@@ -355,6 +354,8 @@ Wear OS docs:
 - [Wear OS section in Features](docs/FEATURES.md#20-wear-os-companion-app)
 
 ## Build Instructions
+
+Which module and which flavor you build, and how to switch between them: [Module Selection Guide](docs/MODULE_SELECTION.md).
 
 ### Requirements
 

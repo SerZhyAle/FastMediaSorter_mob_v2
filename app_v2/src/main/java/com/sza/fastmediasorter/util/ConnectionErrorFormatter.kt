@@ -190,6 +190,7 @@ object ConnectionErrorFormatter {
             ResourceType.CLOUD -> context.getString(R.string.resource_type_cloud)
             ResourceType.HTTP_STREAM -> "HTTP"
             ResourceType.RTSP_STREAM -> "RTSP"
+            ResourceType.WEAR_WATCH -> context.getString(R.string.resource_type_wear_watch)
         }
     }
     

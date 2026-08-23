@@ -15,7 +15,12 @@ enum class ResourceType {
     // S0565: internet streams. Routed by URI scheme in determineResourceType() before the LOCAL
     // fallback. Excluded from isNetworkResource - public streams carry no SMB-style credentials.
     HTTP_STREAM,
-    RTSP_STREAM;
+    RTSP_STREAM,
+
+    // S1861: the paired watch, reachable only over the Wear Data Layer bridge. Deliberately outside
+    // isNetworkResource - it carries no SMB-style credentials and never travels the phone's network,
+    // so the credential prompts and reachability probes that key off that flag must not fire for it.
+    WEAR_WATCH;
 
     val isNetworkResource: Boolean
         get() = this in listOf(SMB, SFTP, FTP, CLOUD)

@@ -11,10 +11,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Icon
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 
 private val BAR_VERTICAL_PADDING = 8.dp
 private val COMMAND_BUTTON_SIZE = 48.dp
@@ -34,7 +34,7 @@ fun HomeCommandBar(onSettingsClick: () -> Unit) {
             .padding(vertical = BAR_VERTICAL_PADDING),
         horizontalArrangement = Arrangement.Center
     ) {
-        Button(
+        RectangularButton(
             onClick = onSettingsClick,
             modifier = Modifier.size(COMMAND_BUTTON_SIZE),
             colors = ButtonDefaults.secondaryButtonColors()

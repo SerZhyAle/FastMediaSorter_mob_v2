@@ -5,59 +5,45 @@ permalink: /docs/WEAR_OS_BUILD_CONFIG.html
 ---
 # Wear OS Build Configuration Summary
 
-**Date**: January 27, 2026  
-**Status**: ✅ Ready for Development
+**Originally written**: January 27, 2026
+**Last reconciled against the tree**: 2026-08-23 (S1978)
+**Status**: Ready for development
 
-## What's Been Set Up
+> This page describes the `wear` module as it exists in the repository. It deliberately says nothing
+> about Android Studio run configurations: `.idea/` is gitignored, so no run configuration, default
+> module, or startup setting travels with a clone. Choosing what to run is a local, per-developer
+> action - see [MODULE_SELECTION.md](MODULE_SELECTION.md).
 
-### 1. **Annotation Processing Migration** ✅
+## Build Setup
+
+### 1. Annotation Processing: KSP
 
 - **From**: KAPT (deprecated, had NullPointerException bug with SavedStateHandle)
 - **To**: KSP (modern, recommended by Google)
-- **Files Changed**:
-  - `build.gradle.kts` - Added KSP plugin v1.9.24-1.0.20
-  - `wear/build.gradle.kts` - Replaced KAPT with KSP for Hilt compilation
+- **Files**:
+  - `build.gradle.kts` - KSP plugin
+  - `wear/build.gradle.kts` - KSP for Hilt compilation
 
-### 2. **Compilation Errors Fixed** ✅
+### 2. Compilation Fixes Applied
 
-All compilation errors resolved:
+- SavedStateHandle removed from ViewModels (KAPT bug workaround)
+- WearMediaFile constructor calls fixed
+- NetworkSourcesUiState duplicate removed
+- Missing composable branches added to NetworkSourcesScreen
 
-- ✅ SavedStateHandle removed from ViewModels (KAPT bug workaround)
-- ✅ WearMediaFile constructor calls fixed
-- ✅ NetworkSourcesUiState duplicate removed
-- ✅ Missing composable branches added to NetworkSourcesScreen
+### 3. Build Scripts
 
-### 3. **Android Studio Run Configurations** ✅
+Available in `scripts/builders/`:
 
-Created two production-ready configurations with Wear OS as default:
+- `scripts/builders/build-wear-debug.PS1` - Quick debug build
+- `scripts/builders/build-wear-release.PS1` - Release build
 
-| Configuration | Location | Build Type | Purpose | Default |
-|---|---|---|---|---|
-| `wear [Debug]` | `.idea/runConfigurations/wear__Debug_.xml` | Debug | Fast iteration, debuggable | ✅ Yes |
-| `wear [Release]` | `.idea/runConfigurations/wear__Release_.xml` | Release | Production, optimized | - |
+Fast checks live on the `a.ps1` launcher. The phone targets do not cover this module: `fk`, `fkn`,
+`fr`, `fc` and `fu` all check `app_v2` and exit 0 without compiling a single watch file.
 
-**Default Behavior**:
-
-- Wear OS [Debug] is set as the startup module in `.idea/runConfigurations.xml`
-- When you click Run in Android Studio, it automatically runs Wear OS
-- Can be changed anytime using the run configuration dropdown or `select-wear-module.ps1` script
-
-### 4. **Module Selection Setup** ✅
-
-Added interactive module selection:
-
-- Script: `scripts/select-wear-module.ps1` - Interactive module selector
-- Documentation: `docs/MODULE_SELECTION.md` - Complete guide for switching modules
-- Default: Wear OS is pre-configured as the primary module
-- Configuration: `.idea/runConfigurations.xml` - Specifies which module runs by default
-
-### 5. **Build Scripts** ✅
-
-Already available in `scripts/`:
-
-- `build-wear-debug.PS1` - Quick debug build
-- `build-wear-release.PS1` - Release build
-- `select-wear-module.ps1` - Interactive module selection
+- `.\a.ps1 fw` - Kotlin compile check, wear module
+- `.\a.ps1 fwr` - Resources / manifest check, wear module
+- `.\a.ps1 fwu` - Unit suite, wear module
 
 Neither wear builder stamps a version: both carry the constants checked into
 `wear/build.gradle.kts`. A release version is stamped into `app_v2` and `wear` together by
@@ -66,15 +52,13 @@ Neither wear builder stamps a version: both carry the constants checked into
 minute digit, because Play refuses a release that repeats a `versionCode` under the shared
 `applicationId`. Gate: `scripts/quality/assert-module-version-parity.ps1`.
 
-### 6. **Documentation** ✅
-
-Comprehensive guides created:
+### 4. Documentation
 
 | Document | Path | Purpose |
 |---|---|---|
 | **WEAR_OS_QUICK_START.md** | `docs/WEAR_OS_QUICK_START.md` | Get started in 5 min |
 | **WEAR_OS_SETUP.md** | `docs/WEAR_OS_SETUP.md` | Complete setup guide |
-| **MODULE_SELECTION.md** | `docs/MODULE_SELECTION.md` | Switch between modules |
+| **MODULE_SELECTION.md** | `docs/MODULE_SELECTION.md` | Pick which module you build and run |
 
 ## Build Status
 
@@ -95,9 +79,9 @@ Size, measured 2026-08-15 (S1679). Compare a new build against the **release** n
 ### In Android Studio
 
 1. Sync Gradle: `File → Sync Now`
-2. Select: **wear [Debug]** from Run Configuration dropdown
-3. Click: Green Run button
-4. Select: Your device/emulator
+2. Select **wear** from the Run Configuration dropdown
+3. Click the green Run button
+4. Select your device/emulator
 
 ### From Command Line
 
@@ -147,11 +131,6 @@ wear/
 - ✅ KAPT → KSP migration complete
 - ✅ No compilation errors
 - ✅ APK builds successfully
-- ✅ Wear OS set as default module
-- ✅ Module selection script available (`select-wear-module.ps1`)
-- ✅ Run configurations available in dropdown
-- ✅ Android Studio configs created
-- ✅ Run configurations available in dropdown
 - ✅ Build scripts functional
 - ✅ Documentation complete
 
@@ -168,42 +147,22 @@ wear/
 
 ## Next Steps
 
-1. **Module Selection (Optional)**
-   - Run: `.\scripts\select-wear-module.ps1` to interactively choose module
-   - Or manually select from dropdown in Android Studio
-   - Wear OS is already the default
-
-2. **Test Device Setup**
+1. **Test Device Setup**
    - Set up Wear OS emulator (Tools → Device Manager)
    - Or connect physical Wear OS device
 
-3. **First Run**
-   - Wear OS [Debug] is pre-selected in dropdown
-   - Just click Run button (or Shift+F10)
+2. **First Run**
+   - Select **wear** in the Run Configuration dropdown
+   - Click Run (or Shift+F10)
    - App will build and deploy
 
-4. **Debug/Develop**
+3. **Debug/Develop**
    - Use Logcat for debugging
    - Hot reload: Ctrl+M
    - Layout Inspector: Tools → Layout Inspector
 
-5. **Switch Modules** (Optional)
-   - Click run config dropdown
-   - Select different module
-   - Click Run
-
-6. **Release**
-   - Use `wear [Release]` config or
+4. **Release**
    - Run `.\scripts\builders\build-wear-release.PS1`
-
-## Module Selection
-
-See [MODULE_SELECTION.md](MODULE_SELECTION.md) for:
-
-- Interactive module selection script
-- Manual selection via dropdown
-- Default configuration explained
-- Troubleshooting module issues
 
 ## Troubleshooting
 
@@ -219,13 +178,10 @@ File → Sync Now  # or Ctrl+Shift+Y
 .\gradlew.bat :wear:clean :wear:assembleDebug
 ```
 
-### "Wrong module selected"
+### Wrong module selected
 
-```powershell
-# Use interactive selection
-.\scripts\select-wear-module.ps1
-
-# Or manually select from dropdown in Android Studio toolbar
+Check the Run Configuration dropdown in the toolbar, then check the active variant in
+`View → Tool Windows → Build Variants`. Nothing in the repository sets either one.
 
 ### Emulator not appearing
 
@@ -241,9 +197,5 @@ File → Sync Now  # or Ctrl+Shift+Y
 
 ---
 
-**Configuration Complete!** ✅
-
-You're ready to build and run the Wear OS app in Android Studio.
-
-For quick start: See `docs/WEAR_OS_QUICK_START.md`  
+For quick start: See `docs/WEAR_OS_QUICK_START.md`
 For detailed guide: See `docs/WEAR_OS_SETUP.md`

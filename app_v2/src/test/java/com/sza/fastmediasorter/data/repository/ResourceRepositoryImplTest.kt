@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.StorageVolumeInfo
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.StorageVolumeRepository
+import com.sza.fastmediasorter.domain.scanner.WearWatchMediaScanner
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import com.sza.fastmediasorter.testing.createMediaResource
 import io.mockk.coEvery
@@ -37,6 +38,7 @@ class ResourceRepositoryImplTest {
     private lateinit var credentialsRepository: NetworkCredentialsRepository
     private lateinit var smbOperations: SmbOperationsUseCase
     private lateinit var storageVolumeRepository: StorageVolumeRepository
+    private lateinit var wearWatchMediaScanner: WearWatchMediaScanner
     private lateinit var repo: ResourceRepositoryImpl
 
     @Before
@@ -45,11 +47,18 @@ class ResourceRepositoryImplTest {
         credentialsRepository = mockk(relaxed = true)
         smbOperations = mockk(relaxed = true)
         storageVolumeRepository = mockk(relaxed = true)
+        wearWatchMediaScanner = mockk(relaxed = true)
         coEvery { credentialsRepository.getAllCredentials() } returns flowOf(emptyList())
         // S1378: these paths bind no resource to a volume, so the availability pass short-circuits
         // and never reaches the registry - relaxed mock is enough.
         coEvery { storageVolumeRepository.getVolumes() } returns emptyList()
-        repo = ResourceRepositoryImpl(dao, credentialsRepository, smbOperations, storageVolumeRepository)
+        repo = ResourceRepositoryImpl(
+            dao,
+            credentialsRepository,
+            smbOperations,
+            storageVolumeRepository,
+            wearWatchMediaScanner
+        )
     }
 
     private fun entity(

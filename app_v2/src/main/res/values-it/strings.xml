@@ -2979,4 +2979,16 @@
     <string name="calculator_hint_share">Condividi</string>
     <string name="calculator_hint_round">Arrotonda</string>
     <string name="calculator_hint_save">Salva</string>
+    <string name="resource_type_wear_watch">Orologio</string>
+    <string name="paired_watch">Orologio associato</string>
+    <string name="paired_watch_description">Invia file all\'orologio e recupera ciò che registra</string>
+    <string name="paired_watch_name_dialog_title">Nome della risorsa orologio</string>
+    <string name="paired_watch_already_added">L\'orologio associato è già tra le tue risorse</string>
+    <string name="paired_watch_not_connected">Orologio non connesso</string>
+    <string name="paired_watch_resource_added">Risorsa orologio \"%1$s\" aggiunta</string>
+    <string name="wear_watch_operation_unsupported">I file sull\'orologio non possono ancora essere rinominati o eliminati dal telefono.</string>
+    <string name="wear_watch_transfer_too_large">%1$s è troppo grande per l\'orologio (limite 32 MB).</string>
+    <string name="wear_watch_transfer_unreachable">L\'orologio non è connesso, quindi %1$s non è stato inviato.</string>
+    <string name="wear_watch_transfer_cancelled">L\'invio di %1$s all\'orologio è stato annullato.</string>
+    <string name="wear_watch_transfer_failed_file">%1$s non è arrivato all\'orologio.</string>
 </resources>

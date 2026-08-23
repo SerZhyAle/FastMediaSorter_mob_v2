@@ -47,10 +47,15 @@ interface WearPreferencesRepository {
     suspend fun setKeepScreenAwakeOutsidePlayers(enabled: Boolean)
 
     /**
-     * S1781: the resource opened last. S1836: null means there is no shortcut - nothing has been
-     * opened yet, or the stored entry predates the identifier and cannot address a source.
+     * S1781: the resources opened last, newest first. S1836: an entry that predates the identifier
+     * cannot address a source and never reaches this list. S1974: a list rather than a single value,
+     * because the home screen fills its first row with as many shortcuts as it has columns; an empty
+     * list is the whole of "there is no shortcut".
+     *
+     * [setLastUsedResource] pushes onto that history - an id already in it moves to the front rather
+     * than appearing twice - and [clearLastUsedResource] empties it.
      */
-    val lastUsedResource: Flow<LastUsedResource?>
+    val lastUsedResources: Flow<List<LastUsedResource>>
     suspend fun setLastUsedResource(id: String, name: String)
     suspend fun clearLastUsedResource()
 

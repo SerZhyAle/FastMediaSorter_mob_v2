@@ -475,6 +475,15 @@ $runsDocPinsSync = $resolvedChangeType -in @('Config', 'Doc', 'Mixed', 'Tooling'
 # S1075: same trigger as doc-pins-sync - drift enters via a Gradle bump (Config) or a
 # hand edit to dev/TECH_REQUIREMENTS.md (Doc). Checks the doc pins the generator does not own.
 $runsDocPinDrift = $resolvedChangeType -in @('Config', 'Doc', 'Mixed', 'Tooling')
+# S1979: a live document naming a .ps1 that does not exist hands its reader a command that cannot
+# run - thirteen such lines survived in three registered documents until a hand sweep found them.
+# Keyed on the changed set, not on ChangeType: the corpus is docs/, dev/, .claude/ and the four
+# agent-rule files at the root, and a .ps1 in the set is included because renaming or deleting a
+# script is what breaks the documents naming it.
+$runsDocScriptReferences =
+    (Test-AnyChangedFile '^(docs|dev|\.claude)/.*\.(md|json|jsonl)$') -or
+    (Test-AnyChangedFile '^(CLAUDE|AGENTS|GEMINI|README)\.md$') -or
+    (Test-AnyChangedFile '\.ps1$')
 # S0383 neuroslop ratchet gate. Covers Kotlin (trivial comments / swallowing catch /
 # unsafe Flow collects) and Xml (hardcoded layout colors, build-invisible string-resource
 # quotes). Baselines only ratchet DOWN. The live set is whatever source-matchers.ps1
@@ -753,6 +762,22 @@ if ($runsDocPinDrift) {
 }
 else {
     Skip-Step "doc-pin-drift" "not applicable for ChangeType $resolvedChangeType"
+}
+
+if ($runsDocScriptReferences) {
+    Invoke-Gate "doc-script-references" {
+        $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-script-references.ps1"), '-Docs', '-Quiet')
+        # Under -ScopeToFile the gate judges only the documents this change touched, so another
+        # session's in-flight document cannot fail this closure. The gate itself widens back to the
+        # whole corpus when the set carries a .ps1.
+        if ($ScopeToFile -and $changedFiles.Count -gt 0) {
+            $a += @('-ChangedFiles', ($changedFiles -join ','))
+        }
+        & $pwsh @a
+    }
+}
+else {
+    Skip-Step "doc-script-references" "not applicable - no changed file is a corpus document or a script"
 }
 
 # S1356: fatal, never advisory. The whole defect was that absorbing another ticket's debt produced

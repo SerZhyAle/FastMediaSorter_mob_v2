@@ -144,6 +144,10 @@ class FilterResourceDialog : DialogFragment() {
                 ResourceType.LOCAL -> true
                 ResourceType.CLOUD -> remoteSourceGate.anyCloudEnabled()
                 ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> false
+                // S1861: same reason as the streams above - no UI entry point creates a watch
+                // resource yet, so the chip could only ever match nothing. Flip this to a
+                // capability check once the add-resource flow offers the watch.
+                ResourceType.WEAR_WATCH -> false
                 else -> RemoteSourceId.networkFromResourceType(type)
                     ?.let { remoteSourceGate.isEnabled(it) } ?: true
             }

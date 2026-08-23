@@ -1,7 +1,11 @@
 package com.sza.fastmediasorter.di
 
+import com.sza.fastmediasorter.data.wear.WearFileTransferRepositoryImpl
+import com.sza.fastmediasorter.data.wear.WearWatchMediaScannerImpl
 import com.sza.fastmediasorter.data.wear.WearableDataLayerRepositoryImpl
+import com.sza.fastmediasorter.domain.repository.WearFileTransferRepository
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
+import com.sza.fastmediasorter.domain.scanner.WearWatchMediaScanner
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -25,4 +29,16 @@ abstract class WearModule {
     abstract fun bindWearableDataLayerRepository(
         impl: WearableDataLayerRepositoryImpl
     ): WearableDataLayerRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindWearWatchMediaScanner(
+        impl: WearWatchMediaScannerImpl
+    ): WearWatchMediaScanner
+
+    @Binds
+    @Singleton
+    abstract fun bindWearFileTransferRepository(
+        impl: WearFileTransferRepositoryImpl
+    ): WearFileTransferRepository
 }

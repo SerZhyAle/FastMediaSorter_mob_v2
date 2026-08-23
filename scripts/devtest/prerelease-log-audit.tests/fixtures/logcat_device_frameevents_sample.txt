@@ -1,0 +1,3 @@
+08-22 22:33:59.001  1600  1600 I ActivityManager: Start proc 11774:com.sza.fastmediasorter.debug/u0a263 for next-top-activity {com.sza.fastmediasorter.debug/com.sza.fastmediasorter.ui.main.MainActivity}
+08-22 22:34:00.980 11774 11774 D MainActivity: onResume
+08-22 22:34:01.137 11774 11836 E FrameEvents: addRelease: Did not find frame.

@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.wear.ui.home
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,14 +12,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,8 +26,6 @@ import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
-import androidx.wear.compose.material.Button
-import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
@@ -40,6 +35,9 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.HomeSection
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionId
+import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
+import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
+import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
@@ -48,7 +46,6 @@ import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
-private val CELL_BUTTON_SIZE = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
 private val CELL_ICON_SIZE = 24.dp
 private val TITLE_VERTICAL_PADDING = 16.dp
 
@@ -71,10 +68,13 @@ fun HomeScreen(
         // name - a narrow round watch cannot give three columns a 48 dp target (strategic ADR-2).
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val columns = GridColumnFit.columnsFor(uiState.viewMode, maxWidth.value.toInt())
+            Timber.d("S1970: home grid columns=$columns, cells shrink toward the round edge")
+            Timber.d("S1974: home columns=$columns, shortcuts=${uiState.lastUsedResources.size}")
             ScalingLazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = listState,
-                contentPadding = wearScreenInsets()
+                contentPadding = wearScreenInsets(),
+                scalingParams = WearGridScalingParams
             ) {
                 item {
                     Text(
@@ -86,6 +86,12 @@ fun HomeScreen(
                         textAlign = TextAlign.Center
                     )
                 }
+
+                lastUsedItems(
+                    shortcuts = uiState.lastUsedResources,
+                    columns = columns,
+                    onSectionClick = { section -> navController.navigate(section.route) }
+                )
 
                 sectionItems(
                     sections = uiState.sections,
@@ -123,6 +129,36 @@ private fun ScalingLazyListScope.sectionItems(
     }
 }
 
+/**
+ * S1974: the shortcuts own the whole first row, so every predefined section below keeps its cell no
+ * matter how many resources have been opened.
+ *
+ * In a grid the row is emitted even when there is nothing to put in it - that empty row is precisely
+ * what holds the sections still. A single column has no cells to misalign, so there it stays the
+ * plain chip it was and a missing shortcut costs no vertical space at all (strategic ADR-1).
+ */
+private fun ScalingLazyListScope.lastUsedItems(
+    shortcuts: List<HomeSection>,
+    columns: Int,
+    onSectionClick: (HomeSection) -> Unit
+) {
+    if (columns == SINGLE_COLUMN) {
+        items(shortcuts) { section ->
+            HomeSectionChip(section = section, onClick = { onSectionClick(section) })
+        }
+    } else {
+        item {
+            HomeSectionRow(
+                // Never more cells than the row was measured for: GridColumnFit can refuse the mode's
+                // requested column count on a narrow round display (strategic ADR-2).
+                sections = shortcuts.take(columns),
+                columns = columns,
+                onSectionClick = onSectionClick
+            )
+        }
+    }
+}
+
 @Composable
 private fun HomeSectionChip(
     section: HomeSection,
@@ -148,7 +184,14 @@ private fun HomeSectionChip(
     )
 }
 
-/** A short row is padded with empty weights so its cells keep the width of a full row's cells. */
+/**
+ * A short row is padded with empty weights so its cells keep the width of a full row's cells.
+ *
+ * S1974: both the shortcut row and the section rows come through here, so the padding rule exists
+ * once. A second copy is how the two rows would drift into different cell widths - the very defect
+ * this ticket removes. An empty weight is a Spacer and nothing more: it takes no focus, announces
+ * nothing and handles no click, because a cell that addresses nothing cannot navigate (ADR-4).
+ */
 @Composable
 private fun HomeSectionRow(
     sections: List<HomeSection>,
@@ -179,30 +222,16 @@ private fun HomeSectionCell(
     onClick: () -> Unit
 ) {
     val label = section.dynamicLabel ?: stringResource(section.labelRes)
-    Column(
-        modifier = modifier.semantics { contentDescription = label },
-        horizontalAlignment = Alignment.CenterHorizontally
+    ThumbnailCell(
+        thumbnail = WearThumbnail.Unavailable,
+        caption = label,
+        onClick = onClick,
+        modifier = modifier
     ) {
-        Button(
-            onClick = onClick,
-            // CELL_BUTTON_SIZE is the interactive minimum itself, so a grid cell keeps a reachable
-            // target no matter which view mode produced it.
-            modifier = Modifier.size(CELL_BUTTON_SIZE),
-            colors = ButtonDefaults.primaryButtonColors()
-        ) {
-            Icon(
-                painter = painterResource(iconFor(section.id)),
-                contentDescription = label,
-                modifier = Modifier.size(CELL_ICON_SIZE)
-            )
-        }
-        Text(
-            text = label,
-            style = MaterialTheme.typography.caption3,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
+        Icon(
+            painter = painterResource(iconFor(section.id)),
+            contentDescription = null,
+            modifier = Modifier.size(CELL_ICON_SIZE)
         )
     }
 }

@@ -5,7 +5,7 @@ permalink: /docs/FEATURES.html
 ---
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-08-15*
+*Last updated: 2026-08-23*
 
 This document is the curated showcase of standout user-facing features. The complete developer inventory of every implemented capability lives in `docs/ALL_FEATURES.jsonl`.
 
@@ -35,6 +35,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Send captures where you want them** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Assign any local folder as the write destination for captures, screenshots, snapshots, and auto-downloads, separately from your browsing sources.
 - **Frame the shot the way it will save** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Choose 4:3, 16:9, or full screen and the viewfinder itself changes, so the picture you see is the picture you get, and every lens keeps its own zoom and scenario for next time.
 
+- **Front flashlight** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: The screen itself becomes a lamp - it opens white at full brightness, a vertical swipe dims it, a corner button remembers another colour, and one tap closes it without touching your device brightness setting.
 ## 4. Replace a basic file viewer with a sorting workstation
 - **Instant sorting panel** `[Standard / VR]`: Keep up to 30 favorite destination folders in the player and sort the current file in one tap, with optional auto-advance to the next item.
 - **Open a file from another app and keep browsing nearby files** `[Standard / VR]`: When another app hands off one file, continue with next, previous, random, or slideshow inside the same folder instead of getting stuck on a single item.
@@ -54,6 +55,8 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Subtitles the way you read them** `[Standard / Lite / Legacy / VR / noLegal]`: Set the subtitle font, size, and colour in the windowed player instead of living with the default.
 - **Browse inside the headset** `[VR / noLegal]`: Walk the library on a virtual screen, point with the controller ray, and start playback without taking the headset off.
 
+- **Your phone's media on the watch** `[Wear OS]`: Browse the paired phone's folders and favourites as a grid with thumbnails, filter by media type, and open a file straight on the wrist.
+- **A real player on the watch** `[Wear OS]`: Audio and video play on the watch with shuffle, bezel volume, a draggable position bar, paging controls, and a screen-off mode that keeps the sound going.
 ## 6. Replace OCR, translation, and note extraction tools
 - **Offline OCR and offline translation** `[Standard / VR]`: Extract text from images and PDFs, then translate it locally without sending content to a cloud OCR service.
 - **Photo-to-text and screenshot-to-translation flow** `[Standard / VR]`: Capture, crop, recognize, translate, and save the result as editable text in one flow.
@@ -73,6 +76,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Start a stream without opening the list** `[Standard / Legacy / VR / noLegal]`: A stream shortcut on the home screen begins playback in the background, no channel screen in the way.
 - **Live streams on Wear OS** `[Wear OS]`: The watch app now plays live radio and video streams straight from its own channel list, over the watch's own network, with no phone nearby.
 
+- **Stream widget on the home screen** `[Standard / Legacy / VR / noLegal]`: Start a channel straight from the home screen without opening the app first.
 ## 8. Replace setup migration and utility clutter
 - **Unified settings backup and restore** `[Standard / VR]`: Back up sources, favorites, schedules, passwords, and sign-ins to a local file or Google Drive, then restore the whole setup after reinstalling or moving devices.
 - **App panel for apps, tools, and internal actions** `[Standard]`: Build a quick-launch panel that mixes Android apps, system shortcuts, captures, OCR tools, streams, and chosen resources in one place.
@@ -82,6 +86,8 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Screen rotation switch on Wear OS** `[Wear OS]`: The watch app now has its own screen-rotation switch, so you can stop the watch screen from turning with your wrist without changing any system setting.
 - **Accessibility Service quick disable before banking** `[noLegal]`: 1-tap disabling of Accessibility Service from Settings, Android Quick Settings Tile, or 1x1 homescreen AppWidget for safe banking app execution.
 
+- **Mini-programs on the watch** `[Wear OS]`: The calculator, the network monitor and the mini-game each get their own watch screen, so the wrist is not just a remote.
+- **System information as a program** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: The full device report sits in the programs menu instead of behind Settings, and the watch has its own screen for it.
 ## 9. Replace your home-screen launcher
 - **Use the app as your home screen** `[Standard / noLegal]`: Launcher mode turns FastMediaSorter into the device home screen, with resizable gadgets, a working clock, and a labeled scrollable app grid.
 - **Make the desktop yours** `[Standard / noLegal]`: Choose the branded waves-and-particles animation, a flat empty surface, or a picture of your own including an animated GIF, cropped to fill the screen.
@@ -95,3 +101,5 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Technical and sensor gadgets** `[Standard / noLegal]`: Put clock, sensors, signal strength, and a current-position map straight on the desktop, alongside a Now Playing cell that follows whichever app is playing.
 - **Every installed app on one screen** `[Standard / noLegal]`: A full-screen list of everything installed, reachable from the desktop without a drawer hunt.
 - **Search the web and switch radios from the desktop** `[Standard / noLegal]`: Type a query and it opens in the browser, and the Wi-Fi and Bluetooth tiles turn the radios on or off in place.
+- **Other apps' notifications on the desktop** `[Standard / noLegal]`: The launcher top bar shows what other apps are reporting, and the Active signals panel lets you dismiss them without leaving the desktop.
+- **See the wallpaper through your gadgets** `[Standard / noLegal]`: Desktop cells draw anywhere from fully transparent to an opaque card, and edit mode always shows the full card so a cell stays easy to grab.

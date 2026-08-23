@@ -243,9 +243,6 @@
     <string name="wear_streams_sort_kind">За типом медіа</string>
     <string name="wear_streams_search_hint">Пошук</string>
     <string name="wear_streams_clear_search">Очистити пошук</string>
-    <string name="wear_watch_resource_name"></string>
-    <string name="wear_watch_transfer_success"></string>
-    <string name="wear_watch_transfer_failed"></string>
     <string name="wear_stream_channel_narrow">Мережа надто повільна для цієї трансляції. Підійдіть ближче до Wi-Fi і повторіть.</string>
     <string name="wear_stream_channel_offline">Годинник не в мережі. Відновіть підключення і повторіть.</string>
     <string name="wear_stream_channel_unverified">Мережу ще не перевірено. Відтворення може перерватися - тоді повторіть.</string>

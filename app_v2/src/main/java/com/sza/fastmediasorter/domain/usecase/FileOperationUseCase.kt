@@ -15,11 +15,13 @@ import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
 import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
 import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.repository.WearFileTransferRepository
 import com.sza.fastmediasorter.domain.stats.FileOpAction
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsMediaType
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.domain.transfer.TransferProgressReporter
+import com.sza.fastmediasorter.domain.transfer.WearWatchFileOperation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -97,6 +99,10 @@ data class OperationHistory(
     val timestamp: Long = System.currentTimeMillis()
 )
 
+// LongParameterList: DI aggregator - one independently-injected collaborator per transport, same
+// shape as SmbFileOperationHandler; folding them into a params object would hide the wiring without
+// reducing real coupling.
+@Suppress("LongParameterList")
 class FileOperationUseCase @Inject constructor(
     private val context: Context,
     private val smbFileOperationHandler: SmbFileOperationHandler,
@@ -109,6 +115,9 @@ class FileOperationUseCase @Inject constructor(
     // S1025: single pre-flight probe of the network destination before the batch loop.
     private val hostReachabilityChecker: HostReachabilityChecker,
     private val transferProgressReporter: TransferProgressReporter,
+    // S1861: the interface, never the wearGms class - this file is in src/main, where rule 14
+    // forbids a build-variant check; the inert twin is bound in the wearStub source set.
+    private val wearFileTransferRepository: WearFileTransferRepository,
 ) {
 
     private var lastOperation: OperationHistory? = null
@@ -122,6 +131,7 @@ class FileOperationUseCase @Inject constructor(
         isSharedStorage = { path -> localOperationStrategy.isSharedStoragePath(path) }
     )
     private val renameOp = LocalRenameFileOperation(context) { path -> scanNewFile(path) }
+    private val wearOp = WearWatchFileOperation(context, wearFileTransferRepository)
 
     private fun scanNewFile(path: String) {
         com.sza.fastmediasorter.utils.MediaStoreNotifier.notifyFile(context, path, "file-operation")
@@ -268,11 +278,12 @@ class FileOperationUseCase @Inject constructor(
             val hasSftpPath = hasProtocol("sftp")
             val hasFtpPath = hasProtocol("ftp")
             val hasCloudPath = hasProtocol("cloud")
+            val hasWearPath = hasProtocol("wear")
 
             // S1027: single per-operation classification summary (replaced the 16 per-branch lines).
             Timber.d(
                 "FileOperation.${operation.javaClass.simpleName}: " +
-                    "smb=$hasSmbPath sftp=$hasSftpPath ftp=$hasFtpPath cloud=$hasCloudPath",
+                    "smb=$hasSmbPath sftp=$hasSftpPath ftp=$hasFtpPath cloud=$hasCloudPath wear=$hasWearPath",
             )
 
             // S1025: one destination-reachability probe before entering any per-file loop. Keys off
@@ -377,6 +388,13 @@ class FileOperationUseCase @Inject constructor(
                         is FileOperation.Delete -> sftpFileOperationHandler.executeDelete(operation)
                         is FileOperation.Rename -> sftpFileOperationHandler.executeRename(operation)
                     }
+                }
+                // S1861: the watch is not a network path - it hangs off the Data Layer bridge - so
+                // this branch sits beside the transports rather than inside the local fallback,
+                // which would resolve wear://watch as a relative directory and fail on copyTo.
+                hasWearPath -> {
+                    Timber.d("FileOperation: Using the paired-watch transfer queue")
+                    wearOp.execute(operation, progressCallback)
                 }
                 else -> {
                     Timber.d("FileOperation: Using local file operations")

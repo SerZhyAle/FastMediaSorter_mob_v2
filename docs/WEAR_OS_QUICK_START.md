@@ -7,14 +7,6 @@ permalink: /docs/WEAR_OS_QUICK_START.html
 
 ## TL;DR - Get Running in 5 Minutes
 
-### Step 0: Configure Wear Module (First Time Only - Optional)
-
-```powershell
-.\scripts\select-wear-module.ps1
-```
-
-This interactive script helps you select Wear OS as your primary module. If you skip this, Wear OS is already the default.
-
 ### Step 1: Sync Gradle (First Time Only)
 
 ```
@@ -23,9 +15,10 @@ File → Sync Now
 
 ### Step 2: Select Run Configuration
 
-- In Android Studio toolbar, find the **Run Configuration** dropdown
-- It should show **wear [Debug]** (already selected by default)
-- Or click the dropdown and select **wear [Debug]** or **wear [Release]**
+- In the Android Studio toolbar, find the **Run Configuration** dropdown
+- Select **wear** from it
+
+The dropdown starts empty on a fresh clone and fills in after the sync above. The repository ships no run configuration and no default module - `.idea/` is gitignored, so this choice is local to your machine. See [MODULE_SELECTION.md](MODULE_SELECTION.md) for the full explanation.
 
 ### Step 3: Launch
 
@@ -36,30 +29,13 @@ File → Sync Now
 
 ---
 
-## Module Selection
+## Switching Between Modules
 
-### Wear OS is Set as Default ✅
-
-The project is configured so **Wear OS [Debug]** is the default run configuration. This means:
-
-- ✅ Just click Run and it builds/deploys Wear OS
-- ✅ Faster iteration for Wear OS development
-- ✅ Can easily switch to other modules anytime
-
-### Switch Between Modules
-
-To change which module runs:
-
-```powershell
-# Interactive selection
-.\scripts\select-wear-module.ps1
-```
-
-Or manually:
-
-1. Click run config dropdown in Android Studio
+1. Click the run config dropdown in Android Studio
 2. Select your desired module
 3. Click Run
+
+For a build that does not depend on IDE state at all, use the command line instead - see [Running Without Android Studio](#running-without-android-studio) below.
 
 For details: See [MODULE_SELECTION.md](MODULE_SELECTION.md)
 
@@ -125,12 +101,8 @@ Tools → Device Manager → Create Device
 
 ## Configuration Files
 
-The following have been created/updated:
-
 | File | Purpose |
 |------|---------|
-| `.idea/runConfigurations/wear__Debug_.xml` | Android Studio debug configuration |
-| `.idea/runConfigurations/wear__Release_.xml` | Android Studio release configuration |
 | `wear/build.gradle.kts` | Module build config (uses KSP, not KAPT) |
 | `docs/WEAR_OS_SETUP.md` | Complete setup guide |
 
@@ -192,6 +164,11 @@ Already fixed! This project uses **KSP** instead of deprecated KAPT for annotati
 ## Key Commands
 
 ```powershell
+# Fast checks (wear module - the app_v2 checks do not cover it)
+.\a.ps1 fw     # Kotlin compile check
+.\a.ps1 fwr    # Resources / manifest check
+.\a.ps1 fwu    # Unit suite
+
 # Build
 .\scripts\builders\build-wear-debug.PS1       # Fast debug build
 .\scripts\builders\build-wear-release.PS1     # Optimized release

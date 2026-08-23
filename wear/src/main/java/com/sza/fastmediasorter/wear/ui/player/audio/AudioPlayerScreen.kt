@@ -52,7 +52,6 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
-import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.Icon
@@ -64,6 +63,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.StreamChannelReason
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
+import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.WaveParticleBackground
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
@@ -573,7 +573,7 @@ private fun SecondaryControls(
 private fun ScreenOffButton(onToggleDimmed: () -> Unit) {
     val screenOffDesc = stringResource(R.string.wear_screen_off)
 
-    Button(
+    RectangularButton(
         onClick = {
             Timber.d("S1865: screen-off action tapped from secondary controls")
             onToggleDimmed()
@@ -596,7 +596,7 @@ private fun ControlButton(
     description: String,
     highlighted: Boolean = false
 ) {
-    Button(
+    RectangularButton(
         onClick = onClick,
         modifier = Modifier.size(CONTROL_BUTTON_SIZE),
         colors = if (highlighted) {

@@ -31,7 +31,8 @@ param(
     # S1929: the BuildConfig flag this capability lives behind, if any. Deliberately optional and
     # deliberately without a default: an absent `gate` asserts "behind no flag", so a default would
     # turn that assertion into a guess. When present, validate.ps1 requires `flavors` to equal the
-    # flag's row in docs/FLAVOR_MATRIX.md.
+    # flag's row in docs/FLAVOR_MATRIX.md. S1982: flags joined by '+' mean the capability needs all
+    # of them at once, and `flavors` must then equal the intersection of their rows.
     [Parameter(Mandatory = $false, ParameterSetName = 'Add')] [string]$Gate = "",
     [Parameter(Mandatory = $false, ParameterSetName = 'Add')] [string]$Spec = "",
     [Parameter(Mandatory = $false, ParameterSetName = 'Add')] [ValidateSet("active", "removed")] [string]$Status = "active",
@@ -101,6 +102,21 @@ if (-not [string]::IsNullOrWhiteSpace($Spec)) {
     $specVal = $specT
 }
 
+# S1982: mirror the schema's `gate` shape here, so a mistyped flag fails at authoring time instead
+# of surfacing in whatever ticket next runs the closure gate. Semantics stay in validate.ps1, the
+# only place that reads docs/FLAVOR_MATRIX.md: whether the flag exists, and whether `flavors` equal
+# its row - or, for a conjunction, the intersection of the named rows.
+$gateN = $Gate.Trim()
+if ($gateN) {
+    if ($gateN -cnotmatch '^[A-Z][A-Z0-9_]*(?:\+[A-Z][A-Z0-9_]*)*$') {
+        Fail "Invalid -Gate '$gateN'. Expected a BuildConfig flag, or flags joined by '+' when the capability needs all of them at once."
+    }
+    $gateTerms = @($gateN -split '\+')
+    if (@($gateTerms | Sort-Object -Unique).Count -ne $gateTerms.Count) {
+        Fail "Invalid -Gate '$gateN'. A repeated flag narrows nothing - the second term is meant to be a different flag."
+    }
+}
+
 # EN-only inventory: reject non-ASCII in name/description
 if ((Test-NonAscii $nameN) -or (Test-NonAscii $descN)) {
     Fail "ALL_FEATURES is EN-only: non-ASCII found in -Name/-Description."
@@ -118,8 +134,8 @@ $record = [ordered]@{
 }
 # S1929: omit the key entirely rather than writing an empty one. An absent `gate` is the assertion
 # "behind no flag"; a present-but-blank one would read as an unfinished record instead.
-if (-not [string]::IsNullOrWhiteSpace($Gate)) {
-    $record.Insert(5, 'gate', $Gate.Trim())
+if ($gateN) {
+    $record.Insert(5, 'gate', $gateN)
 }
 $line = ($record | ConvertTo-Json -Compress -Depth 5)
 

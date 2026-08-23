@@ -73,6 +73,9 @@ internal class AddResourceFormManager(
         binding.cardSftpFolder.isVisible =
             remoteSourceGate.isEnabled(RemoteSourceId.SFTP) || remoteSourceGate.isEnabled(RemoteSourceId.FTP)
         binding.cardCloudStorage.isVisible = remoteSourceGate.anyCloudEnabled()
+        // S1861: the paired-watch card exists only where the Wear companion is compiled in. The
+        // scanner answers that instead of a BuildConfig flag, which Rule 14 forbids in src/main.
+        binding.cardPairedWatch.isVisible = viewModel.isPairedWatchAvailable
         val showEpub = mediaCapabilities.supportsEpub
         val showOfficeDocuments = supportsOfficeDocuments()
         smbForm.cbSmbSupportEpub.isVisible = showEpub

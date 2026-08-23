@@ -137,7 +137,8 @@ Engineering effort estimate:
 - Sideload / XR-only surface: Chaquopy Python `3.12`, `yt-dlp` nightly `2026.07.23.234303`, OpenXR loader `1.1.48`, NewPipeExtractor `v0.26.1`
 
 ## Feature Surface Notes
-- `standard` and `legacy` keep the broadest phone/tablet surface: media, cloud, documents, translation, Wear companion, Cast
+- `standard` keeps the broadest phone/tablet surface: media, cloud, documents, translation, Wear companion, Cast
+- `legacy` matches it everywhere except the Wear companion: its `applicationIdSuffix = ".legacy"` cannot match the watch app's applicationId, and Play Services routes the Wear Data Layer by that identity (S1951)
 - `lite` removes cloud, documents, local-network protocols, translation, persistent audio, and Wear companion to reduce app surface
 - `photos` keeps images plus cloud/network storage, but removes audio/video/document features
 - `noLegal` extends the full build with sideload-only integrations and XR-capable runtime hooks

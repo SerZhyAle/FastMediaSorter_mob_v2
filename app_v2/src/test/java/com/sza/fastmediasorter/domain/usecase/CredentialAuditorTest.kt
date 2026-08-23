@@ -18,7 +18,13 @@ class CredentialAuditorTest {
     private val repository = mockk<NetworkCredentialsRepository>()
     private lateinit var auditor: CredentialAuditor
 
-    private fun cred(id: String, createdDate: Long = 0L) = NetworkCredentialsEntity(
+    // S1649: orphanedSince, not createdDate, is the clock the policy reads - a case that only sets
+    // the storage date describes a row the worker has not stamped yet, which is never eligible.
+    private fun cred(
+        id: String,
+        createdDate: Long = 0L,
+        orphanedSince: Long? = null
+    ) = NetworkCredentialsEntity(
         credentialId = id,
         type = "SMB",
         server = "host",
@@ -26,6 +32,7 @@ class CredentialAuditorTest {
         username = "user",
         encryptedPassword = "enc",
         createdDate = createdDate,
+        orphanedSince = orphanedSince,
     )
 
     @Before
@@ -53,7 +60,7 @@ class CredentialAuditorTest {
 
     @Test
     fun `audit flags orphaned credential past grace period as eligible`() = runTest {
-        val orphan = cred("orphan", createdDate = 1L) // far in the past vs now
+        val orphan = cred("orphan", createdDate = 1L, orphanedSince = 1L) // far in the past vs now
         every { repository.getAllCredentials() } returns flowOf(listOf(orphan))
         coEvery { repository.getOrphanedCredentials() } returns listOf(orphan)
 

@@ -2,11 +2,15 @@ package com.sza.fastmediasorter.wear.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.domain.model.HomeSection
+import com.sza.fastmediasorter.wear.domain.model.HomeSectionId
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionVisibility
 import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ResolveLastUsedResourceUseCase
+import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -34,16 +38,14 @@ class HomeViewModel @Inject constructor(
         resolveLastUsedResource(),
         preferencesRepository.streamsSectionEnabled,
         preferencesRepository.viewMode
-    ) { lastUsedResource, streamsEnabled, viewMode ->
-        HomeSources(lastUsedResource, streamsEnabled, viewMode)
+    ) { lastUsedResources, streamsEnabled, viewMode ->
+        HomeSources(lastUsedResources, streamsEnabled, viewMode)
     }.map { sources ->
         Timber.d("S1940: home sections rebuilt, favourites always last")
         HomeUiState(
+            lastUsedResources = sources.lastUsedResources.map(::shortcutSection),
             sections = HomeSectionCatalog.sectionsFor(
-                HomeSectionVisibility(
-                    lastUsedResource = sources.lastUsedResource,
-                    streamsEnabled = sources.streamsEnabled
-                )
+                HomeSectionVisibility(streamsEnabled = sources.streamsEnabled)
             ),
             viewMode = sources.viewMode
         )
@@ -52,11 +54,22 @@ class HomeViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS),
         initialValue = HomeUiState()
     )
+
+    /**
+     * S1836: the same route builder a tap in the sources list uses, so the shortcut and the list
+     * cannot drift into two entrances to one resource.
+     */
+    private fun shortcutSection(resource: LastUsedResource) = HomeSection(
+        id = HomeSectionId.LAST_USED_RESOURCE,
+        labelRes = R.string.wear_section_last_used,
+        route = WearRoutes.sourceMediaType(resource.id, resource.name),
+        dynamicLabel = resource.name
+    )
 }
 
 /** Carries the three observed preferences into one emission so the mapping reads by name. */
 private data class HomeSources(
-    val lastUsedResource: LastUsedResource?,
+    val lastUsedResources: List<LastUsedResource>,
     val streamsEnabled: Boolean,
     val viewMode: WearViewMode
 )

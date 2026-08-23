@@ -275,6 +275,8 @@ fun ResourceItem(
                         com.sza.fastmediasorter.domain.model.ResourceType.CLOUD -> R.string.resource_type_cloud
                         com.sza.fastmediasorter.domain.model.ResourceType.HTTP_STREAM,
                         com.sza.fastmediasorter.domain.model.ResourceType.RTSP_STREAM -> R.string.resource_type_stream
+                        com.sza.fastmediasorter.domain.model.ResourceType.WEAR_WATCH ->
+                            R.string.resource_type_wear_watch
                     }
                 ),
                 style = MaterialTheme.typography.labelSmall,

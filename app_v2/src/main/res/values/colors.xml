@@ -173,6 +173,7 @@
     <color name="chip_sftp_bg">#FFE082</color>    <!-- Amber 200 -->
     <color name="chip_ftp_bg">#FFCC80</color>    <!-- Orange 200 -->
     <color name="chip_cloud_bg">#CE93D8</color>    <!-- Purple 200 -->
+    <color name="chip_wear_watch_bg">#B0BEC5</color>    <!-- Blue Grey 200 -->
     <color name="error_color">#FFD32F2F</color>
     <color name="warning_color">#FFF57C00</color>
     <color name="success_color">#FF2E7D32</color>

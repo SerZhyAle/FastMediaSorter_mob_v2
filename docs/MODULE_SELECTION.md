@@ -14,7 +14,7 @@ FastMediaSorter is a multi-module project with different build targets. The publ
 | **wear** | Wear OS App | Smartwatch companion app |
 | **app_v2** | Android App | Main phone app (Standard, Lite, Photos, Legacy, XR / noLegal) |
 
-This guide explains how to select and configure which module runs by default.
+This guide explains how to pick which module you build and run.
 
 ### Feature availability by flavor
 
@@ -22,217 +22,131 @@ Some features are flavor-scoped. Key examples:
 
 - **Internet Streams** (internet radio, HLS/DASH/RTSP playback, curated catalog): full scope on `standard`, `legacy`, `noLegal`, and `vr`; absent on `lite` and `photos` - the screen has no entry point in either.
 - **VR / OpenXR rendering**: only the `vr` and `noLegal` flavors compile the VR source set, and of those only `noLegal` declares `SUPPORT_VR_PLAYER`, so full headset immersion ships in `noLegal` alone.
-- **Wear OS companion**: `standard`, `noLegal`, and `legacy`; excluded from `lite`, `photos`, and `vr`.
+- **Wear OS companion**: `standard` and `noLegal`; excluded from `lite`, `photos`, `legacy`, and `vr`. `legacy` left the list in S1951 - it carries `applicationIdSuffix = ".legacy"`, and Play Services routes the Wear Data Layer by the phone's applicationId, so a legacy phone could never reach the watch app it claimed to pair with.
 
 See [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) for the generated per-flavor grid and [ALL_FEATURES.jsonl](ALL_FEATURES.jsonl) for the full feature inventory.
 
-## Quick Selection (Interactive)
+## The repository ships no default module
 
-Run this script to interactively select your module:
+`.idea/` is listed in `.gitignore`, so nothing under `.idea/runConfigurations/` travels with a clone. There is no repository-provided run configuration, no default startup module, and no file to edit to change one. Which module Android Studio runs is a per-developer local choice that lives only on your machine, and Android Studio rewrites those files itself.
+
+Practically this means two things:
+
+- A fresh clone has an empty Run Configuration dropdown until Gradle sync populates it from `settings.gradle.kts`.
+- Nothing you do in that dropdown affects anyone else, and nothing anyone else did affects you.
+
+If you want a reproducible build that does not depend on IDE state at all, use the command line instead - see [Building from the command line](#building-from-the-command-line) below. That is the path the project's own tooling and CI use.
+
+## Selecting a module in Android Studio
+
+1. **Sync Gradle first** - `File → Sync Now` (Ctrl+Shift+Y). Until this completes the dropdown may be empty or stale.
+
+2. **Click** the Run Configuration dropdown in the toolbar.
+
+3. **Select** the configuration you want. After a sync Android Studio offers one per module and variant, for example:
+   - `wear` - Wear OS companion
+   - `app_v2` with the `standardDebug`, `liteDebug`, `photosDebug`, `legacyDebug`, `noLegalDebug`, or `vrDebug` variant
+
+4. **Pick the variant** in the Build Variants panel (`View → Tool Windows → Build Variants`) if the flavor you want is not the active one. The dropdown runs whatever variant is active there.
+
+5. **Click Run** (green button, or Shift+F10).
+
+## Building from the command line
+
+This is the reproducible path - it needs no IDE state and changes nothing about your local configuration.
+
+### Fast checks
+
+Use the `a.ps1` launcher from the repository root. Note that the phone and watch checks are separate: `fk`/`fkn`/`fr`/`fc`/`fu` all check `app_v2` only and will pass without compiling a single watch file.
 
 ```powershell
-.\scripts\select-wear-module.ps1
+# app_v2
+.\a.ps1 fk    # Kotlin compile check, standard flavor
+.\a.ps1 fkn   # Kotlin compile check, noLegal flavor
+.\a.ps1 fr    # Resources / manifest check
+.\a.ps1 fc    # Code + resources
+.\a.ps1 fu    # Full unit suite
+
+# wear
+.\a.ps1 fw    # Kotlin compile check, wear module
+.\a.ps1 fwr   # Resources / manifest check, wear module
+.\a.ps1 fwu   # Unit suite, wear module
 ```
-
-This will:
-
-1. Show available modules
-2. Guide you through selection
-3. Provide next steps with the selected module
-
-## Default Configuration: Wear OS
-
-By default, **Wear OS (Debug)** is set as the startup module. This means:
-
-- When you click the **Run** button in Android Studio, it builds and deploys to a Wear OS device
-- The run configuration dropdown shows `wear [Debug]` pre-selected
-
-### Why Wear OS is Default?
-
-- ✅ Faster build times (smaller APK)
-- ✅ Simpler configuration (single build variant)
-- ✅ Ideal for Wear OS MVP testing
-
-## Changing Default Module
-
-### Option 1: Interactive Script (Recommended)
-
-```powershell
-.\scripts\select-wear-module.ps1
-```
-
-### Option 2: Manual Selection in Android Studio
-
-1. **Click** the Run Configuration dropdown in the toolbar
-   - It shows the module name (currently `wear [Debug]`)
-
-2. **Select** your desired configuration:
-   - `wear [Debug]` - Wear OS debug build
-   - `wear [Release]` - Wear OS release build
-   - `app [standardDebug]` - Main app (Standard flavor)
-   - Other app variants
-
-3. **Click Run** (green button or Shift+F10)
-
-### Option 3: Edit XML Configuration
-
-Edit `.idea/runConfigurations.xml`:
-
-```xml
-<!-- To set Wear Debug as default: -->
-<component name="RunManager" selected="Android App.wear [Debug]">
-
-<!-- To set Main App Standard as default: -->
-<component name="RunManager" selected="Android App.app [standardDebug]">
-```
-
-Then sync: `File → Sync Now` (Ctrl+Shift+Y)
-
-## Available Run Configurations
-
-### Wear OS Configurations
-
-| Config | File | Type |
-|--------|------|------|
-| `wear [Debug]` | `.idea/runConfigurations/wear__Debug_.xml` | Android App |
-| `wear [Release]` | `.idea/runConfigurations/wear__Release_.xml` | Android App |
-
-### Main App Configurations
-
-All in `.idea/runConfigurations/`:
-
-| Flavor | Debug | Release |
-|--------|-------|---------|
-| standard | `app__standardDebug_` | `app__standardRelease_` |
-| lite | `app__liteDebug_` | `app__liteRelease_` |
-| photos | `app__photosDebug_` | `app__photosRelease_` |
-| legacy | `app__legacyDebug_` | `app__legacyRelease_` |
-| noLegal | `app__noLegalDebug_` | `app__noLegalRelease_` |
-
-## Building Without Changing Default
 
 ### Build Wear OS
 
 ```powershell
-# Use build scripts (doesn't change default config)
+# Build scripts
 .\scripts\builders\build-wear-debug.PS1
 .\scripts\builders\build-wear-release.PS1
 
-# Or use Gradle directly
+# Or Gradle directly
 .\gradlew.bat :wear:assembleDebug
 .\gradlew.bat :wear:assembleRelease
 ```
 
-### Build Main App
+### Build the main app
 
 ```powershell
-# Use build scripts
+# Build scripts
 .\scripts\builders\build-standard-debug.ps1
 .\scripts\builders\build-lite-debug.ps1
 .\scripts\builders\build-photos-debug.ps1
+.\scripts\builders\build-legacy-debug.ps1
 .\scripts\builders\build-nolegal-debug.ps1
 
-# Or use Gradle
+# Or Gradle directly
 .\gradlew.bat :app_v2:assembleStandardDebug
 .\gradlew.bat :app_v2:assembleLiteDebug
 .\gradlew.bat :app_v2:assemblePhotosDebug
+.\gradlew.bat :app_v2:assembleLegacyDebug
 .\gradlew.bat :app_v2:assembleNoLegalDebug
 ```
 
-## Syncing After Configuration Changes
+### Everything else
 
-After changing the default module configuration:
-
+```powershell
+.\gradlew.bat tasks   # List all available tasks
 ```
-File → Sync Now
-```
-
-Or press: **Ctrl+Shift+Y**
-
-This reloads the project and applies the configuration changes.
 
 ## Troubleshooting
 
-### "Run configuration not available"
+### The Run Configuration dropdown is empty
 
-1. Sync Gradle: `File → Sync Now`
-2. Close and reopen Android Studio
-3. Check if all files exist in `.idea/runConfigurations/`
+Gradle has not synced yet, or the sync failed.
 
-### "Wrong module selected when I click Run"
+1. `File → Sync Now` (Ctrl+Shift+Y)
+2. Check the Build output for a sync error
+3. Close and reopen Android Studio
 
-1. Check `.idea/runConfigurations.xml` - verify the `selected` attribute
-2. Look at the run configuration dropdown - it should show the active config
-3. Manually select the correct config before clicking Run
+### The wrong module runs when I click Run
 
-### "I built the main app but need to switch to Wear"
+The dropdown and the Build Variants panel disagree, or you selected a different configuration earlier in the session. Check the dropdown, then check `View → Tool Windows → Build Variants` for the active variant.
 
-```powershell
-# Use the selection script
-.\scripts\select-wear-module.ps1
+### "Module not found" after switching branches
 
-# Or manually select from dropdown in Android Studio
-```
+`File → Sync Now`. The module set comes from `settings.gradle.kts` and needs a resync when it changes.
 
-## Command Reference
+### I want to build without touching my IDE configuration
 
-```powershell
-# Interactive module selection
-.\scripts\select-wear-module.ps1
-
-# Build Wear OS
-.\scripts\builders\build-wear-debug.PS1      # Debug
-.\scripts\builders\build-wear-release.PS1    # Release
-
-# Build Main App (all flavors)
-.\scripts\builders\build-standard-debug.ps1  # Standard Debug
-.\scripts\builders\build-lite-debug.ps1      # Lite Debug
-.\scripts\builders\build-photos-debug.ps1    # Photos Debug
-.\scripts\builders\build-legacy-debug.ps1    # Legacy Debug
-.\scripts\builders\build-nolegal-debug.ps1   # noLegal / XR Debug
-
-# Gradle direct builds (without changing default)
-.\gradlew.bat :wear:assembleDebug
-.\gradlew.bat :app_v2:assembleStandardDebug
-
-# View all available tasks
-.\gradlew.bat tasks
-```
-
-## Configuration Files
-
-| File | Purpose |
-|------|---------|
-| `.idea/runConfigurations.xml` | Specifies default run config (wear [Debug]) |
-| `.idea/runConfigurations/wear__Debug_.xml` | Wear OS Debug config |
-| `.idea/runConfigurations/wear__Release_.xml` | Wear OS Release config |
-| `.idea/runConfigurations/app__standardDebug_.xml` | Main App Standard Debug |
-| (more app configs..) | Other app flavor configs |
-
-## Best Practices
-
-1. ✅ Use `select-wear-module.ps1` for interactive selection
-2. ✅ Use build scripts (`.\scripts\build-*.ps1`) to avoid changing default
-3. ✅ Sync Gradle (`Ctrl+Shift+Y`) after manual configuration changes
-4. ✅ Check the run config dropdown before clicking Run
-5. ✅ Keep Wear OS as default if you're primarily testing the companion app
+Use the command line - see [Building from the command line](#building-from-the-command-line). None of those commands read or write `.idea/`.
 
 ## FAQ
 
-**Q: Can I have both Wear and Main app running?**
-A: No, only one configuration is active at a time. But you can switch quickly between them using the dropdown.
+**Q: Can I have both Wear and the main app running?**
+A: One run configuration is active at a time, but you can switch between them from the dropdown, and you can build both from the command line in any order.
 
-**Q: Does changing the default affect version numbers?**
-A: No. Version numbering is independent of which module you run.
+**Q: Does changing what I run affect version numbers?**
+A: No. Version numbering is independent of which module you run. A release stamps `app_v2` and `wear` together from one timestamp - see [WEAR_OS_BUILD_CONFIG.md](WEAR_OS_BUILD_CONFIG.md).
 
-**Q: How do I know which module is currently default?**
-A: Look at the run configuration dropdown in the toolbar - it shows the active module.
+**Q: How do I know which module is currently selected?**
+A: The Run Configuration dropdown in the toolbar shows it, and the Build Variants panel shows the active variant.
+
+**Q: Why is my dropdown different from a teammate's?**
+A: Because `.idea/` is gitignored, so run configurations are local to each machine by design.
 
 **Q: Can I create a custom run configuration?**
-A: Yes - Run → Edit Configurations → + → Select module → Configure → OK
-
-**Q: Why is Wear OS the default?**
-A: Faster iteration cycle for the companion app MVP. You can change this anytime.
+A: Yes - `Run → Edit Configurations → +` → select the module → configure → OK. It stays on your machine.
 
 ---
 

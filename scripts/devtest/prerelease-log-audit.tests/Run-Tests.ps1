@@ -1,7 +1,7 @@
 #requires -Version 7.0
 <#
 .SYNOPSIS
-    S1859 regression suite for the pre-release log audit's process attribution.
+    S1859 / S1969 regression suite for the pre-release log audit's classification rules.
 
 .DESCRIPTION
     Hermetic: drives scripts/devtest/prerelease-log-audit.ps1 against two recorded threadtime
@@ -16,6 +16,11 @@
     `heuristic` and does NOT hide the foreign cluster. That is the documented weakness of the
     fallback, not a defect: a capture that never saw the app start cannot attribute a line, and
     an audit that silently claimed otherwise is what this ticket fixed.
+
+    The last pair covers S1969's software-render guard from both sides: the same in-process
+    E/FrameEvents line is benign in a capture that carries EGL_emulation and stays actionable in
+    one that does not. Suppressing the tag outright is what the pair exists to catch - on a
+    physical device a missed frame release can be a real defect.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/devtest/prerelease-log-audit.tests/Run-Tests.ps1
@@ -90,6 +95,25 @@ Assert-Equal 'pid' $timeFormat.attribution 'attribution is pid in -v time captur
 Assert-Equal 1 $timeFormat.appPidCount '-v time: app process id recovered'
 Assert-Equal $true ($timeTags -contains 'ResourceScanUseCase') '-v time: app-pid error stays actionable'
 Assert-Equal $false ($timeTags -contains 'A') '-v time: foreign-pid E/A cluster is not actionable'
+
+# Case 4 - S1969: emulator capture. EGL_emulation proves the run was software-rendered, so the
+# in-process libgui frame-release miss is benign and the audit exits clean.
+$emulatorGpu = Invoke-Audit 'logcat_emulator_frameevents_sample.txt'
+
+Assert-Equal $true $emulatorGpu.softwareRendered 'S1969: EGL_emulation marks the capture software-rendered'
+Assert-Equal 0 $emulatorGpu.actionableCount 'S1969: FrameEvents is not actionable on a software-rendered capture'
+Assert-Equal 1 $emulatorGpu.benignCount 'S1969: the FrameEvents cluster is kept and reported as benign'
+Assert-Equal 0 $emulatorGpu.exitCode 'S1969: an otherwise clean emulator run exits 0'
+
+# Case 5 - the same line without the marker. A physical-device capture carries no EGL_emulation, so
+# the miss keeps its defect meaning and still fails the step. This is the half a tag-only allowlist
+# would silently lose.
+$deviceGpu = Invoke-Audit 'logcat_device_frameevents_sample.txt'
+$deviceTags = Get-ActionableTags $deviceGpu
+
+Assert-Equal $false $deviceGpu.softwareRendered 'S1969: no EGL_emulation means the capture is not software-rendered'
+Assert-Equal $true ($deviceTags -contains 'FrameEvents') 'S1969: FrameEvents stays actionable without the marker'
+Assert-Equal 1 $deviceGpu.exitCode 'S1969: an unguarded frame-release miss still exits 1'
 
 Write-Host ''
 Write-Host ("passed: {0} | failed: {1}" -f $script:passed, $script:failed)

@@ -82,5 +82,8 @@ class ScanDispatcher @Inject constructor(
         ResourceType.CLOUD,
         ResourceType.HTTP_STREAM,
         ResourceType.RTSP_STREAM    -> cloudSemaphore
+        // S1861: parallelism is not applicable to the watch - the Data Layer carries one channel at a
+        // time, so the tightest configured permit is the only setting that matches the transport.
+        ResourceType.WEAR_WATCH     -> cloudSemaphore
     }
 }

@@ -72,6 +72,7 @@ class ResolveResourceIconUseCase @Inject constructor() {
         ResourceType.FTP    -> SET_OTHER
         ResourceType.CLOUD  -> SET_OTHER
         ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> SET_OTHER
+        ResourceType.WEAR_WATCH -> SET_OTHER
     }
 
     /** Resolves a new icon id when the user changes profile/type in the editor session. */

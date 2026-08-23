@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.service
 
 import android.content.SharedPreferences
+import com.google.android.gms.wearable.ChannelClient
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
@@ -8,10 +9,13 @@ import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Wearable
 import com.google.android.gms.wearable.WearableListenerService
 import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
 import com.sza.fastmediasorter.core.di.ApplicationScope
+import com.sza.fastmediasorter.data.wear.WearIncomingFileRegistry
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.domain.model.WearEventEnvelopeCodec
 import com.sza.fastmediasorter.domain.model.WearFavoritesDeltaPayload
+import com.sza.fastmediasorter.domain.model.WearFileTransferMetadata
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceItem
 import com.sza.fastmediasorter.domain.model.WearPhoneResourcePage
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceRequest
@@ -25,6 +29,7 @@ import com.sza.fastmediasorter.domain.usecase.ImportWatchSourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.ListPhoneResourcePageUseCase
 import com.sza.fastmediasorter.domain.usecase.OpenPhoneResourceChannelUseCase
 import com.sza.fastmediasorter.domain.usecase.PhoneResourceChannel
+import com.sza.fastmediasorter.domain.usecase.ReceiveWatchFileUseCase
 import com.sza.fastmediasorter.domain.usecase.SendResourcesToWatchUseCase
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
@@ -40,6 +45,9 @@ private const val PATH_REQUEST = "/fms/network_sources/request"
 private const val PATH_ACK     = "/fms/network_sources/ack"
 private const val PREFS_NAME   = "wear_sync_prefs"
 private const val KEY_LAST_SYNC = "last_sync_timestamp"
+
+/** Used when the watch opened the channel without a trailing name segment. */
+private const val DEFAULT_INCOMING_FILE_NAME = "watch_file"
 
 @AndroidEntryPoint
 class PhoneWearListenerService : WearableListenerService() {
@@ -57,6 +65,10 @@ class PhoneWearListenerService : WearableListenerService() {
     @Inject lateinit var wearableDataLayerRepository: WearableDataLayerRepository
 
     @Inject lateinit var wearLogReportReceiver: WearLogReportReceiver
+
+    @Inject lateinit var receiveWatchFileUseCase: ReceiveWatchFileUseCase
+
+    @Inject lateinit var wearIncomingFileRegistry: WearIncomingFileRegistry
 
     @Inject lateinit var gson: Gson
 
@@ -77,6 +89,60 @@ class PhoneWearListenerService : WearableListenerService() {
             WearDataLayerPaths.LOG_REPORT_REQUEST ->
                 handleLogReport(event.sourceNodeId, event.data)
             WearDataLayerPaths.STREAM_TRANSFER_ACK -> handleStreamTransferAck(event.data)
+            WearDataLayerPaths.FILE_TRANSFER_META -> handleFileTransferMeta(event.data)
+        }
+    }
+
+    /**
+     * The watch announcing a file before it opens the channel. Parsed on the caller's thread: it is a
+     * few dozen bytes of JSON, and the declaration must be recorded before the channel event, which
+     * GMS may deliver immediately afterwards.
+     */
+    private fun handleFileTransferMeta(data: ByteArray) {
+        val metadata = try {
+            gson.fromJson(data.decodeToString(), WearFileTransferMetadata::class.java)
+        } catch (e: JsonSyntaxException) {
+            // Without a name there is nothing to correlate, so the channel arrives undeclared and is
+            // capped at the ceiling rather than at the declared size.
+            Timber.w(e, "Failed to parse an incoming watch file declaration")
+            null
+        }
+        if (metadata != null) {
+            wearIncomingFileRegistry.declare(metadata)
+        }
+    }
+
+    /**
+     * S1861: the reverse direction - the watch is the initiator and the phone drains the channel.
+     *
+     * The stream is opened here rather than inside the use case so the GMS types never leave this
+     * source set; the use case decides where the bytes land and enforces the ceiling.
+     */
+    @Suppress("TooGenericExceptionCaught")
+    override fun onChannelOpened(channel: ChannelClient.Channel) {
+        if (!channel.path.startsWith(WearDataLayerPaths.FILE_TRANSFER)) {
+            return
+        }
+        val fileName = channel.path.substringAfterLast('/', DEFAULT_INCOMING_FILE_NAME)
+        val declaredBytes = wearIncomingFileRegistry.takeDeclaredSize(fileName)
+        applicationScope.launch {
+            val channelClient = Wearable.getChannelClient(applicationContext)
+            try {
+                val result = channelClient.getInputStream(channel).await().use { input ->
+                    receiveWatchFileUseCase(fileName, declaredBytes, input)
+                }
+                Timber.i("Incoming watch file %s ended as %s", fileName, result.outcome)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // Expected when the watch leaves range before the stream is handed over.
+                Timber.w(e, "Failed to open the incoming watch file channel")
+            } finally {
+                withContext(NonCancellable) {
+                    runCatching { channelClient.close(channel).await() }
+                        .onFailure { Timber.w(it, "Failed to close the incoming watch file channel") }
+                }
+            }
         }
     }
 

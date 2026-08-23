@@ -412,8 +412,16 @@ android {
             // armeabi-v7a and x86 are excluded - 32-bit ARMv7 devices (pre-2017) and x86
             // emulators are not supported for the Python runtime. noLegal is a sideload-only
             // flavor targeting modern devices (arm64) and Quest headsets (arm64).
+            //
+            // x86_64 dropped 2026-08-23 (owner ruling): it existed only to run noLegal on an
+            // emulator, and nothing does - the pre-release sweep installs STANDARD debug, which
+            // keeps its own x86_64 slice. Since S1060 added libVLC (43.95 MB per ABI) the unused
+            // slice cost 93.8 MB of a 256.7 MB APK; arm64-only makes it 162.8 MB. Restoring
+            // emulator support belongs to the ABI-split ticket, not to widening this list again -
+            // AGP merges flavor and buildType abiFilters by UNION, so "x86_64 for debug only"
+            // cannot be expressed here and would leak the slice back into every noLegal build.
             ndk {
-                abiFilters += listOf("arm64-v8a", "x86_64")
+                abiFilters += listOf("arm64-v8a")
             }
             if (isXrNativeBuildRequested) {
                 externalNativeBuild {
@@ -555,7 +563,13 @@ android {
             buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "true")
             buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
-            buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "true")
+            // S1951: legacy carries applicationIdSuffix ".legacy", so the phone installs as
+            // com.sza.fastmediasorter.legacy while the watch app is com.sza.fastmediasorter.
+            // Play Services routes the Data Layer by (package name, signing certificate), so the
+            // pair can never talk - the companion was declared on a route that cannot exist. The
+            // suffix is a frozen anchor of a store-published flavor (see the applicationId policy
+            // above), so the claim goes instead of the identity. Owner ruling 2026-08-22, variant A.
+            buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")
             // AAR rebuilt with NDK r27c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
             buildConfigField("boolean", "SUPPORT_CAST", "true")
             buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "false") // S1433: no diagnostic program in legacy
@@ -766,8 +780,9 @@ android {
             kotlin.directories.add("src/cloudEnabled/java")
             // S0403: Google Cast SDK seam impl (CastMediaManagerImpl); foss mounts castDisabled.
             kotlin.directories.add("src/castEnabled/java")
-            // S0403: GMS-backed Wear Data Layer bridge; foss / non-Wear flavors mount wearStub.
-            kotlin.directories.add("src/wearGms/java")
+            // S1951: no Wear companion in this flavor - the applicationIdSuffix makes the Data Layer
+            // route impossible, so mount the no-op contract instead of the GMS bridge.
+            kotlin.directories.add("src/wearStub/java")
             kotlin.directories.add("src/ocrEnabled/java")
             kotlin.directories.add("src/translationEnabled/java")
             kotlin.directories.add("src/translationMlKit/java")
@@ -1266,7 +1281,9 @@ androidComponents {
         // <service> overlay for every Wear-capable flavor. addStaticManifestFile is additive, so it
         // coexists with noLegal's manifest.srcFile(src/vr) override. foss / non-Wear flavors mount
         // wearStub (no manifest), so they never register the service.
-        val wearFlavors = setOf("standard", "noLegal", "legacy")
+        // S1951: legacy is off this list - it mounts wearStub, so registering the GMS listener
+        // service would declare a receiver for an impl the flavor does not ship.
+        val wearFlavors = setOf("standard", "noLegal")
         if (flavorName in wearFlavors) {
             variant.sources.manifests.addStaticManifestFile("src/wearGms/AndroidManifest.xml")
         }
@@ -1671,7 +1688,8 @@ dependencies {
     // the wearGms sourceSets mounts above.
     "standardImplementation"("com.google.android.gms:play-services-wearable:18.1.0")
     "noLegalImplementation"("com.google.android.gms:play-services-wearable:18.1.0")
-    "legacyImplementation"("com.google.android.gms:play-services-wearable:18.1.0")
+    // S1951: legacy dropped - it mounts wearStub, so the SDK was weight with no reachable route,
+    // on the one flavor whose whole purpose is old and weak devices (minSdk 23).
 
     // Cloud Storage - Google Drive (REST API + Google Sign-In)
     implementation("com.google.android.gms:play-services-auth:21.0.0")

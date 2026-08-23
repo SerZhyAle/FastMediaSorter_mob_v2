@@ -521,6 +521,14 @@
   },
   {
     "surface": "program-nav",
+    "key": "WEAR_WATCH",
+    "feature": "WEAR_WATCH",
+    "drawable": "ic_watch",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "accessibility",
     "feature": "app_launch_panel_os_accessibility",
     "drawable": "ic_accessibility",

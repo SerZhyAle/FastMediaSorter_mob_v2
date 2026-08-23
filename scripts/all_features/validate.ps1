@@ -155,8 +155,8 @@ if (Test-Path $dataFile) {
                 }
             }
         }
-        # gate (S1929) - NOTE: the record's `gate` field is unrelated to this script's -Gate switch,
-        # which only silences success output.
+        # gate (S1929, conjunction added by S1982) - NOTE: the record's `gate` field is unrelated to
+        # this script's -Gate switch, which only silences success output.
         #
         # A record may name the BuildConfig flag its capability lives behind. When it does, its
         # flavors must equal that flag's row in the generated matrix: the field is what makes the
@@ -164,22 +164,49 @@ if (Test-Path $dataFile) {
         # which flag. When it does not, nothing is claimed and nothing is checked - that silence is
         # an assertion ("behind no flag"), which is why documentation-only records keep their own
         # sets instead of being swept to a runtime flag's.
+        #
+        # Flags joined by '+' are a conjunction: the capability needs all of them at once, so the
+        # expected set is the intersection of their rows. Live-stream casting is the shape it exists
+        # for - SUPPORT_STREAMS holds in vr where SUPPORT_CAST does not, SUPPORT_CAST holds in lite
+        # and photos where SUPPORT_STREAMS does not, and only the intersection is true of the record.
+        # Naming the conjunction is deliberately stricter than recognising its shape: three inventory
+        # records happen to carry a set equal to some intersection while having nothing to do with
+        # that pairing, so a set alone never says which flags produced it (S1982).
         if ($obj.PSObject.Properties.Name -contains 'gate' -and
             -not [string]::IsNullOrWhiteSpace("$($obj.gate)")) {
-            $gateName = "$($obj.gate)".Trim()
+            $gateRaw = "$($obj.gate)".Trim()
+            $gateTerms = @($gateRaw -split '\+' | ForEach-Object { $_.Trim() })
+            $unknownTerms = @($gateTerms | Where-Object { $_ -and -not $matrixFlags.ContainsKey($_) })
             if ($matrixFlags.Count -eq 0) {
-                $errors.Add("L${lineNo}: record names gate '$gateName' but the flavor matrix could not be read")
+                $errors.Add("L${lineNo}: record names gate '$gateRaw' but the flavor matrix could not be read")
             }
-            elseif (-not $matrixFlags.ContainsKey($gateName)) {
+            elseif ($gateRaw -cnotmatch '^[A-Z][A-Z0-9_]*(?:\+[A-Z][A-Z0-9_]*)*$') {
+                # Case-sensitively, because the matrix lookup below is a PowerShell hashtable and so
+                # is not: 'support_cast' would find SUPPORT_CAST's row and pass a check the schema's
+                # own pattern rejects, which is the silent switch-off this field exists to prevent.
+                $errors.Add("L${lineNo}: gate '$gateRaw' is not a flag name, or flag names joined by '+' (see docs/ALL_FEATURES.schema.json)")
+            }
+            elseif (@($gateTerms | Sort-Object -Unique).Count -ne $gateTerms.Count) {
+                # A repeated term narrows nothing, so it is never what the author meant - it hides a
+                # second flag that was mistyped into a copy of the first.
+                $errors.Add("L${lineNo}: gate '$gateRaw' repeats a flag; each term must name a different flag")
+            }
+            elseif ($unknownTerms.Count -gt 0) {
                 # An unknown name is an error rather than a skip: a typo would otherwise turn the
                 # check off for that record and look exactly like a record that passed.
-                $errors.Add("L${lineNo}: gate '$gateName' is not a flag in docs/FLAVOR_MATRIX.md")
+                $errors.Add("L${lineNo}: gate '$gateRaw' names [$($unknownTerms -join ', ')], not a flag in docs/FLAVOR_MATRIX.md")
             }
             else {
-                $expected = @($matrixFlags[$gateName] | Sort-Object)
+                $expectedSet = @($matrixFlags[$gateTerms[0]])
+                foreach ($term in $gateTerms) {
+                    $row = $matrixFlags[$term]
+                    $expectedSet = @($expectedSet | Where-Object { $row -contains $_ })
+                }
+                $expected = @($expectedSet | Sort-Object)
                 $actual = @($obj.flavors | Sort-Object)
                 if (($expected -join ',') -ne ($actual -join ',')) {
-                    $errors.Add("L${lineNo}: flavors disagree with gate '$gateName' - expected [$($expected -join ', ')], recorded [$($actual -join ', ')]")
+                    $shape = if ($gateTerms.Count -gt 1) { " (intersection of the named rows)" } else { "" }
+                    $errors.Add("L${lineNo}: flavors disagree with gate '$gateRaw'$shape - expected [$($expected -join ', ')], recorded [$($actual -join ', ')]")
                 }
             }
         }

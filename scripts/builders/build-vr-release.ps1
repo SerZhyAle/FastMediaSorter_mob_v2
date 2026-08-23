@@ -121,6 +121,32 @@ $logEntry = "$timestamp | vr-release | $destName | $versionName"
 Add-Content -Path $journalPath -Value $logEntry
 Write-Host "Build logged to journal" -ForegroundColor Gray
 
+# Zip with password and copy to Google Drive.
+# This builder was the only one of the 24 that never mirrored (found 2026-08-23): every sibling
+# carried the block below, so the Drive copy of vr-release silently stayed at the April build while
+# DOWNLOADS advanced to June. A mirror that is stale rather than absent is the worse failure - it
+# looks like a delivered artifact.
+$gdDir = "c:\GD\WORK\FastMediaSorter"
+if (!(Test-Path -Path $gdDir)) {
+    New-Item -ItemType Directory -Path $gdDir | Out-Null
+}
+
+# Copy raw APK to Google Drive (in addition to password-protected ZIP below).
+# Recipients with security policies that block APK downloads use the .zip copy;
+# the raw .apk lets fast paths skip the unzip step.
+Copy-Item -Path $destPath -Destination "$gdDir\$destName" -Force
+Write-Host "APK copied to $gdDir\$destName" -ForegroundColor Green
+
+$zipName = [System.IO.Path]::ChangeExtension($destName, ".zip")
+$zipPath = "$gdDir\$zipName"
+
+# Use 7-Zip to create password-protected archive
+$7zipPath = "C:\Program Files\7-Zip\7z.exe"
+if (Test-Path -Path $7zipPath) {
+    & $7zipPath a -tzip -p1 "$zipPath" $destPath | Out-Null
+    Write-Host "APK zipped with password and copied to Google Drive: $zipPath" -ForegroundColor Cyan
+}
+
 exit 0
 
 }

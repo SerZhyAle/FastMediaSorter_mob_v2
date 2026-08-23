@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.wear.ui.apps
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,14 +12,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,8 +26,6 @@ import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
-import androidx.wear.compose.material.Button
-import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
@@ -40,13 +35,15 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearApp
 import com.sza.fastmediasorter.wear.domain.model.WearAppId
+import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
+import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
+import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 
 private const val SINGLE_COLUMN = 1
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
-private val CELL_BUTTON_SIZE = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
 private val CELL_ICON_SIZE = 24.dp
 private val TITLE_VERTICAL_PADDING = 16.dp
 
@@ -70,7 +67,8 @@ fun AppsScreen(
             ScalingLazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = listState,
-                contentPadding = wearScreenInsets()
+                contentPadding = wearScreenInsets(),
+                scalingParams = WearGridScalingParams
             ) {
                 item {
                     Text(
@@ -163,30 +161,16 @@ private fun AppCell(
     onClick: () -> Unit
 ) {
     val label = stringResource(app.labelRes)
-    Column(
-        modifier = modifier.semantics { contentDescription = label },
-        horizontalAlignment = Alignment.CenterHorizontally
+    ThumbnailCell(
+        thumbnail = WearThumbnail.Unavailable,
+        caption = label,
+        onClick = onClick,
+        modifier = modifier
     ) {
-        Button(
-            onClick = onClick,
-            // CELL_BUTTON_SIZE is the interactive minimum itself, so a grid cell keeps a reachable
-            // target no matter which view mode produced it.
-            modifier = Modifier.size(CELL_BUTTON_SIZE),
-            colors = ButtonDefaults.primaryButtonColors()
-        ) {
-            Icon(
-                painter = painterResource(iconFor(app.id)),
-                contentDescription = label,
-                modifier = Modifier.size(CELL_ICON_SIZE)
-            )
-        }
-        Text(
-            text = label,
-            style = MaterialTheme.typography.caption3,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
+        Icon(
+            painter = painterResource(iconFor(app.id)),
+            contentDescription = null,
+            modifier = Modifier.size(CELL_ICON_SIZE)
         )
     }
 }

@@ -7,9 +7,15 @@ import com.sza.fastmediasorter.data.network.FtpFileOperationHandler
 import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
 import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
 import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
+import com.sza.fastmediasorter.domain.model.WearFileTransferItem
+import com.sza.fastmediasorter.domain.model.WearFileTransferOutcome
+import com.sza.fastmediasorter.domain.model.WearFileTransferState
+import com.sza.fastmediasorter.domain.repository.WearFileTransferRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -33,6 +39,13 @@ class FileOperationUseCaseTest {
     private val cloudHandler = mockk<CloudFileOperationHandler>()
     private val localStrategy = mockk<LocalOperationStrategy>(relaxed = true)
     private val reachabilityChecker = mockk<HostReachabilityChecker>()
+
+    // S1861: a real StateFlow rather than a relaxed mock - the watch branch suspends on the queue
+    // snapshot, so a mock returning null there would hang the test instead of failing it.
+    private val wearTransfers = MutableStateFlow(WearFileTransferState())
+    private val wearTransferRepository = mockk<WearFileTransferRepository>(relaxed = true).also {
+        every { it.transfers } returns wearTransfers
+    }
     private lateinit var useCase: FileOperationUseCase
 
     @Before
@@ -41,7 +54,7 @@ class FileOperationUseCaseTest {
         coEvery { reachabilityChecker.isReachable(any(), any(), any()) } returns true
         useCase = FileOperationUseCase(
             context, smbHandler, sftpHandler, ftpHandler, cloudHandler, localStrategy,
-            mockk(relaxed = true), reachabilityChecker, mockk(relaxed = true),
+            mockk(relaxed = true), reachabilityChecker, mockk(relaxed = true), wearTransferRepository,
         )
     }
 
@@ -181,5 +194,58 @@ class FileOperationUseCaseTest {
         useCase.execute(FileOperation.Delete(listOf(netFile("smb://h/s/a.jpg"))))
 
         coVerify(exactly = 0) { reachabilityChecker.isReachable(any(), any(), any()) }
+    }
+
+    @Test
+    fun `S1861 wear destination routes to the watch queue instead of the local branch`() = runTest {
+        every { wearTransferRepository.enqueue(any(), any()) } answers {
+            wearTransfers.value = WearFileTransferState(
+                listOf(
+                    WearFileTransferItem(
+                        id = "t1",
+                        sourcePath = "/sd/a.jpg",
+                        displayName = "a.jpg",
+                        outcome = WearFileTransferOutcome.SUCCEEDED
+                    )
+                )
+            )
+            "t1"
+        }
+
+        val result = useCase.execute(copyOp("/sd/a.jpg", "wear://watch"))
+
+        assertTrue(result is FileOperationResult.Success)
+        coVerify(exactly = 0) { smbHandler.executeCopy(any(), any()) }
+        coVerify(exactly = 0) { cloudHandler.executeCopy(any(), any()) }
+    }
+
+    @Test
+    fun `S1861 a refused watch transfer is reported as a failure, not a silent success`() = runTest {
+        every { wearTransferRepository.enqueue(any(), any()) } answers {
+            wearTransfers.value = WearFileTransferState(
+                listOf(
+                    WearFileTransferItem(
+                        id = "t2",
+                        sourcePath = "/sd/big.mp4",
+                        displayName = "big.mp4",
+                        outcome = WearFileTransferOutcome.TOO_LARGE
+                    )
+                )
+            )
+            "t2"
+        }
+
+        val result = useCase.execute(copyOp("/sd/big.mp4", "wear://watch"))
+
+        assertTrue(result is FileOperationResult.Failure)
+    }
+
+    @Test
+    fun `S1861 renaming on the watch is refused rather than routed to local rename`() = runTest {
+        val result = useCase.execute(
+            FileOperation.Rename(netFile("wear://watch/a.jpg"), "b.jpg")
+        )
+
+        assertTrue(result is FileOperationResult.Failure)
     }
 }

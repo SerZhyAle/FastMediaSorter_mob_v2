@@ -37,12 +37,19 @@ names in the set, or just grep the registry for the doc's directory. Read the ma
 requires it anyway), check the sibling `paths` the change did NOT touch for the same edit, then close
 once with the ack. Acknowledging is a claim you read them - never pass `all` to silence the step.
 
-**If you already missed it (2026-08-12, S1595): do NOT re-run to clear the advisory.** The dev-log row
-is already written and `dev/CHANGELOG.md` may not be hand-edited, so the re-run buys a cosmetic PASS at
-the price of a permanent duplicate entry - strictly worse. Discharge the real obligation instead: read
-the named records, check every untouched sibling for the same edit, and write what you found and why no
-sibling needed changing into the phase file or the audit block. `PASS WITH ADVISORIES` with the
-reasoning recorded beats a bare `PASS` bought with a corrupted changelog.
+**A third pair that bites documentation tickets (2026-08-23, S1980):** touching `README.md` trips
+`site-landing`, and touching any of `docs/README.md` / `_RU` / `_UK` trips `user-guides` - so a change
+that edits both, which is the normal shape of a docs-link edit, needs
+`-RegistryAck "site-landing,user-guides"`.
+
+**If you already missed it: re-running is safe now, but ONLY with a byte-identical description.**
+The old advice here was never re-run (2026-08-12, S1595, before the S1622 guard existed). Measured
+again 2026-08-23 on S1980: the first call ended `PASS WITH ADVISORIES (1)`, the second call with the
+same `-Description` and the same file set printed `[DEV_LOG] SKIP duplicate (identical to a recent
+entry)` and `post-change: PASS`, leaving exactly one row in `dev/CHANGELOG.md`. So the re-run buys a
+clean verdict for free - provided you change nothing but adding `-RegistryAck`. Re-run only after
+actually discharging the obligation: read the named records, check every untouched sibling for the
+same edit (`grep -l` across the sibling globs is the evidence), and record what you found.
 
 **The S1622 guard does NOT cover a re-run whose description changed (measured 2026-08-13, S1589).** Its
 dedup deliberately treats a materially different description as a different change - goal 2 of S1622

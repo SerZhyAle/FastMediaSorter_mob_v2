@@ -154,6 +154,7 @@ class ResourceEditorFragment : Fragment() {
             ResourceType.FTP -> getString(R.string.resource_type_ftp)
             ResourceType.CLOUD -> getString(R.string.resource_type_cloud)
             ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> getString(R.string.resource_type_stream)
+            ResourceType.WEAR_WATCH -> getString(R.string.resource_type_wear_watch)
         }
         binding.toolbar.title = "$toolbarBaseTitle · $typeLabel"
     }

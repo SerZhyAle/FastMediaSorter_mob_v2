@@ -2266,6 +2266,7 @@ class IntegrationTestRunner @Inject constructor(
                 ResourceType.CLOUD -> "cloud://google_drive/policy_sample.txt"
                 ResourceType.HTTP_STREAM -> "http://integration-server/policy_sample.m3u8"
                 ResourceType.RTSP_STREAM -> "rtsp://integration-server/policy_sample"
+                ResourceType.WEAR_WATCH -> "wear://watch/policy_sample.txt"
             }
 
             val expected = resourceType == ResourceType.LOCAL
@@ -2426,6 +2427,8 @@ class IntegrationTestRunner @Inject constructor(
                 }
             }
             ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> null
+            // No watch is paired to the integration host, so the suite has no watch path to build.
+            ResourceType.WEAR_WATCH -> null
         }
     }
     
