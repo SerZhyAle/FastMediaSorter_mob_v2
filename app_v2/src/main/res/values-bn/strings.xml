@@ -2977,4 +2977,16 @@
     <string name="calculator_hint_share">শেয়ার করুন</string>
     <string name="calculator_hint_round">রাউন্ড করুন</string>
     <string name="calculator_hint_save">সংরক্ষণ করুন</string>
+    <string name="resource_type_wear_watch">ঘড়ি</string>
+    <string name="paired_watch">যুক্ত ঘড়ি</string>
+    <string name="paired_watch_description">ঘড়িতে ফাইল পাঠান আর সেটি যা রেকর্ড করে তা নিয়ে আসুন</string>
+    <string name="paired_watch_name_dialog_title">ঘড়ি রিসোর্সের নাম</string>
+    <string name="paired_watch_already_added">যুক্ত ঘড়িটি ইতিমধ্যেই আপনার রিসোর্সে আছে</string>
+    <string name="paired_watch_not_connected">ঘড়ি সংযুক্ত নয়</string>
+    <string name="paired_watch_resource_added">ঘড়ি রিসোর্স \"%1$s\" যোগ করা হয়েছে</string>
+    <string name="wear_watch_operation_unsupported">ঘড়ির ফাইলের নাম বদলানো বা মোছা ফোন থেকে এখনও সম্ভব নয়।</string>
+    <string name="wear_watch_transfer_too_large">%1$s ঘড়ির জন্য অনেক বড় (সীমা 32 MB)।</string>
+    <string name="wear_watch_transfer_unreachable">ঘড়ি সংযুক্ত নয়, তাই %1$s পাঠানো হয়নি।</string>
+    <string name="wear_watch_transfer_cancelled">ঘড়িতে %1$s পাঠানো বাতিল করা হয়েছে।</string>
+    <string name="wear_watch_transfer_failed_file">%1$s ঘড়িতে পৌঁছায়নি।</string>
 </resources>

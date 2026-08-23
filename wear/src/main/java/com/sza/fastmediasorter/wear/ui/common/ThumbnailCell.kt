@@ -1,15 +1,15 @@
 package com.sza.fastmediasorter.wear.ui.common
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,7 +28,7 @@ import com.sza.fastmediasorter.wear.util.GridColumnFit
 
 private const val SQUARE_RATIO = 1f
 private val CELL_MIN_TARGET = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
-private val PICTURE_CORNER = 8.dp
+private val OUTLINE_WIDTH = 1.dp
 
 /**
  * One file cell, drawn identically by both watch file lists.
@@ -36,29 +36,41 @@ private val PICTURE_CORNER = 8.dp
  * The caption sits inside the click target rather than beside it: the file name is shown in every
  * view mode including the densest one, so the reachable area is the whole cell and the interactive
  * minimum has to be measured over picture plus caption, not over the picture alone.
+ *
+ * A caller that wants a long press passes [onLongClick] instead of stacking its own gesture detector
+ * on the modifier: the caller's modifier is applied outside this cell's own click handler, so the
+ * inner handler wins the down and the outer detector never fires at all (S1953).
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ThumbnailCell(
     thumbnail: WearThumbnail,
     caption: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    onLongClick: (() -> Unit)? = null,
     fallback: @Composable () -> Unit
 ) {
     Column(
         modifier = modifier
             .defaultMinSize(minWidth = CELL_MIN_TARGET, minHeight = CELL_MIN_TARGET)
-            .clickable(onClick = onClick)
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
             // A cell announces the file by its own name, so the reading never degrades to a position.
             .semantics { contentDescription = caption },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Without the plate an empty cell has no visible edge, so only that case draws its own.
+        val pictureFrame = if (thumbnail is WearThumbnail.Ready) {
+            Modifier
+        } else {
+            Modifier.border(OUTLINE_WIDTH, MaterialTheme.colors.onSurfaceVariant, WearCellShape)
+        }
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(SQUARE_RATIO)
-                .clip(RoundedCornerShape(PICTURE_CORNER))
-                .background(MaterialTheme.colors.surface),
+                .clip(WearCellShape)
+                .then(pictureFrame),
             contentAlignment = Alignment.Center
         ) {
             CellPicture(thumbnail = thumbnail, fallback = fallback)

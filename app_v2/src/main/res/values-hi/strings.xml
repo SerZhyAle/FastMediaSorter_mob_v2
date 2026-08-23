@@ -2975,4 +2975,16 @@
     <string name="calculator_hint_share">शेयर करें</string>
     <string name="calculator_hint_round">राउंड करें</string>
     <string name="calculator_hint_save">सहेजें</string>
+    <string name="resource_type_wear_watch">घड़ी</string>
+    <string name="paired_watch">युग्मित घड़ी</string>
+    <string name="paired_watch_description">घड़ी पर फ़ाइलें भेजें और वह जो रिकॉर्ड करती है उसे लाएँ</string>
+    <string name="paired_watch_name_dialog_title">घड़ी संसाधन का नाम</string>
+    <string name="paired_watch_already_added">युग्मित घड़ी पहले से आपके संसाधनों में है</string>
+    <string name="paired_watch_not_connected">घड़ी कनेक्ट नहीं है</string>
+    <string name="paired_watch_resource_added">घड़ी संसाधन \"%1$s\" जोड़ा गया</string>
+    <string name="wear_watch_operation_unsupported">घड़ी की फ़ाइलों का नाम बदलना या उन्हें हटाना फ़ोन से अभी संभव नहीं है।</string>
+    <string name="wear_watch_transfer_too_large">%1$s घड़ी के लिए बहुत बड़ी है (सीमा 32 MB)।</string>
+    <string name="wear_watch_transfer_unreachable">घड़ी कनेक्ट नहीं है, इसलिए %1$s नहीं भेजी गई।</string>
+    <string name="wear_watch_transfer_cancelled">घड़ी पर %1$s भेजना रद्द कर दिया गया।</string>
+    <string name="wear_watch_transfer_failed_file">%1$s घड़ी तक नहीं पहुँची।</string>
 </resources>

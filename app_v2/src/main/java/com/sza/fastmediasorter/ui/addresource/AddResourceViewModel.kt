@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.domain.model.StorageVolumeInfo
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.scanner.WearWatchMediaScanner
 import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.DiscoverNetworkResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetStorageVolumesUseCase
@@ -112,7 +113,10 @@ class AddResourceViewModel @Inject constructor(
     // here so the UI layer never holds a use case of its own (CLAUDE.md Rule 3 and the layering).
     private val getStorageVolumesUseCase: GetStorageVolumesUseCase,
     @param:ApplicationScope private val applicationScope: CoroutineScope,
-    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    // S1861: reached from here rather than from the Activity - Rule 3 keeps domain collaborators out
+    // of the host, and Rule 14 keeps the flavor question out of `src/main` altogether.
+    private val wearWatchMediaScanner: WearWatchMediaScanner
 ) : BaseViewModel<AddResourceState, AddResourceEvent>() {
 
     override fun getInitialState() = AddResourceState()
@@ -158,6 +162,24 @@ class AddResourceViewModel @Inject constructor(
         ),
         bridge
     )
+
+    private val watchCoordinator = AddResourceWatchCoordinator(
+        context,
+        addResourceUseCase,
+        resourceRepository,
+        settingsRepository,
+        bridge
+    )
+
+    /**
+     * S1861: whether this build can talk to a watch at all, which is what decides the visibility of
+     * the paired-watch entry point. Deliberately not reachability - see [WearWatchMediaScanner].
+     */
+    val isPairedWatchAvailable: Boolean
+        get() = wearWatchMediaScanner.isCompanionAvailable
+
+    /** S1861: adds the paired watch as a resource under [name]. */
+    fun addPairedWatchResource(name: String) = watchCoordinator.addPairedWatch(name)
 
     /** S0421: one-action import of a Windows-companion `.fmscfg` config. */
     fun importCompanionConfig(uri: Uri) = companionCoordinator.importFromUri(uri)

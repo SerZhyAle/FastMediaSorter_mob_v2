@@ -167,6 +167,12 @@ class CloudDownloadUseCase @Inject constructor(
                 Timber.e("downloadFromCloudTo: Cannot download cloud to cloud, use copyCloudToCloud")
                 false
             }
+            ResourceType.WEAR_WATCH -> {
+                // S1861: a cloud file reaches the watch by landing on the phone first and then going
+                // over the transfer queue, so there is no cloud -> watch destination to write to here.
+                Timber.e("downloadFromCloudTo: the watch is not a download destination, transfer it instead")
+                false
+            }
             ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM ->
                 throw IllegalArgumentException("Cannot download to an internet stream destination: $destType")
         }

@@ -1,0 +1,82 @@
+# Known-bad document -> script references, judged by assert-script-references.ps1 -Docs (S1979).
+# One line per (document, token) pair, so a new phantom cannot hide behind a fixed one.
+#
+# Three classes live here, and only the first is a defect to repair:
+#   - VR build instructions naming five builders and three a.ps1 aliases that do not exist.
+#     Owned by S1983 - remove the line here when that ticket repairs the document.
+#   - Hooks shipped by the sza plugin (guard-*.ps1, smoke-hooks.ps1, check-compliance.ps1).
+#     They are real files outside this repository; the line is correct as written.
+#   - Records and templates: retired scripts named in dev/*_audit.md, and placeholder names
+#     (foo.ps1, device.ps1 from build-<flavor>-device.ps1) that were never a real path.
+#
+# A NEW entry is never added here to make a run green. Fix the reference, or mark its line
+# 'External:' (lives outside this repository) or 'Historical:' (retired).
+
+.claude/commands/skill-fix.md :: device.ps1
+.claude/commands/spec-sweep.md :: device.ps1
+.claude/commands/spec-test-device.md :: device.ps1
+.claude/commands/verify.md :: device.ps1
+AGENTS.md :: foo.ps1
+AGENTS.md :: guard-bash.ps1
+CLAUDE.md :: foo.ps1
+CLAUDE.md :: guard-bash.ps1
+CLAUDE.md :: guard-fire-and-forget.ps1
+dev/AGENT_PROCESS_AUDIT_2026-07-31.md :: guard-find-command.ps1
+dev/AGENT_PROCESS_AUDIT_2026-07-31.md :: guard-ps1-in-bash.ps1
+dev/claude_audit.md :: agent_bootstrap.ps1
+dev/claude_audit.md :: build-log-tail.ps1
+dev/claude_audit.md :: foo.ps1
+dev/claude_audit.md :: post_change.ps1
+dev/codex_audit.md :: agent_bootstrap.ps1
+dev/codex_audit.md :: agent_request_digest.ps1
+dev/codex_audit.md :: agent_validate.ps1
+dev/codex_audit.md :: find-class.ps1
+dev/codex_audit.md :: log-ai-request.ps1
+dev/development_audit.md :: agent_bootstrap.ps1
+dev/development_audit.md :: agent_request_digest.ps1
+dev/development_audit.md :: agent_validate.ps1
+dev/development_audit.md :: log-ai-request.ps1
+dev/development_audit.md :: resume-context.ps1
+dev/gemini_audit.md :: agent_bootstrap.ps1
+dev/gemini_audit.md :: agent_validate.ps1
+dev/gpt_audit.md :: agent_bootstrap.ps1
+dev/gpt_audit.md :: agent_validate.ps1
+dev/gpt_audit.md :: resume-context.ps1
+dev/handoff/streams-source-spec/08_build_publish_pipeline.md :: .Tests.ps1
+dev/TASK_S0588_replenish_streams_catalog_definition.md :: check-liveness.ps1
+dev/TASK_S0588_replenish_streams_catalog_design.md :: check-liveness.ps1
+docs/AGENT_COST_PLAYBOOK.md :: guard-uncapped-read.ps1
+docs/AGENT_HOOKS.md :: guard-bash-slash-arg.ps1
+docs/AGENT_HOOKS.md :: guard-bash-unavailable-command.ps1
+docs/AGENT_HOOKS.md :: guard-bash.ps1
+docs/AGENT_HOOKS.md :: guard-find-command.ps1
+docs/AGENT_HOOKS.md :: guard-fire-and-forget.ps1
+docs/AGENT_HOOKS.md :: guard-ps1-in-bash.ps1
+docs/AGENT_HOOKS.md :: guard-uncapped-read.ps1
+docs/AGENT_HOOKS.md :: on-user-prompt.ps1
+docs/AGENT_HOOKS.md :: warn-context-size.ps1
+docs/BUILD_TEST_FAST_PATH.md :: guard-fire-and-forget.ps1
+docs/BUILD_TEST_FAST_PATH.md :: smoke-hooks.ps1
+docs/DEV_OPS.md :: build-vr-aab.ps1
+docs/DEV_OPS.md :: build-vr-debug.ps1
+docs/DEV_OPS.md :: build-vr-device.ps1
+docs/DEV_OPS.md :: install-vr-debug-to-device.ps1
+docs/DEV_OPS.md :: install-vr-release-to-device.ps1
+docs/DEV_OPS.md :: other.ps1
+docs/README.md :: install.ps1
+docs/VR_EDITION_RU.md :: build-vr-aab.ps1
+docs/VR_EDITION_RU.md :: build-vr-debug.ps1
+docs/VR_EDITION_RU.md :: build-vr-device.ps1
+docs/VR_EDITION_UK.md :: build-vr-aab.ps1
+docs/VR_EDITION_UK.md :: build-vr-debug.ps1
+docs/VR_EDITION_UK.md :: build-vr-device.ps1
+docs/VR_EDITION.md :: build-vr-aab.ps1
+docs/VR_EDITION.md :: build-vr-debug.ps1
+docs/VR_EDITION.md :: build-vr-device.ps1
+docs/VR_SIDELOAD_RU.md :: build-vr-debug.ps1
+docs/VR_SIDELOAD_RU.md :: build-vr-device.ps1
+docs/VR_SIDELOAD_UK.md :: build-vr-debug.ps1
+docs/VR_SIDELOAD_UK.md :: build-vr-device.ps1
+docs/VR_SIDELOAD.md :: build-vr-debug.ps1
+docs/VR_SIDELOAD.md :: build-vr-device.ps1
+README.md :: install.ps1

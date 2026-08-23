@@ -46,18 +46,17 @@ Run the build scripts from the project root:
 ### Via Android Studio
 
 1. Open the project in Android Studio
-2. Select **wear [Debug]** or **wear [Release]** from the Run Configuration dropdown
-3. Click the **Run** button (green play icon)
-4. Select your target device/emulator
+2. Sync Gradle (`File` -> `Sync Now`) - the Run Configuration dropdown is empty until this completes
+3. Select **wear** from the Run Configuration dropdown
+4. Click the **Run** button (green play icon)
+5. Select your target device/emulator
 
 ## Run Configurations
 
-Pre-configured run configurations are available:
-
-- **wear [Debug]**: Debug build for testing
-- **wear [Release]**: Release build for production
-
-These are defined in `.idea/runConfigurations/` and should appear in Android Studio's configuration dropdown.
+The repository ships none. `.idea/` is gitignored, so no run configuration, default module, or
+startup setting travels with a clone - Android Studio generates the entries in the dropdown from
+`settings.gradle.kts` after a sync, and whatever you pick stays on your machine. See
+[MODULE_SELECTION.md](MODULE_SELECTION.md).
 
 ## Setting Up a Wear OS Emulator
 

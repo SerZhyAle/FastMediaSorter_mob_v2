@@ -45,6 +45,11 @@ class ComputeFileHashUseCase @Inject constructor(
                 ResourceType.SFTP -> sftpFileHasher
                 ResourceType.FTP -> ftpFileHasher
                 ResourceType.CLOUD -> cloudFileHasher
+                // S1861: hashing a watch file means pulling every byte of it across the Data Layer
+                // bridge just to compare it, which spends a whole transfer to answer a duplicate
+                // question - the caller treats the throw as "no hash" and skips the file.
+                ResourceType.WEAR_WATCH ->
+                    throw IllegalArgumentException("Paired-watch files are not hashed: ${resource.type}")
                 ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM ->
                     throw IllegalArgumentException("Internet streams cannot be hashed: ${resource.type}")
             }

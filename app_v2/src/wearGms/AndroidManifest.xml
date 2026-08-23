@@ -2,10 +2,12 @@
 <!--
   Wear Data Layer service overlay (S0403).
 
-  Mounted into every Wear-capable flavor (standard, noLegal, legacy) via build.gradle.kts
+  Mounted into every Wear-capable flavor (standard, noLegal) via build.gradle.kts
   addStaticManifestFile. Declares the GMS WearableListenerService that receives sync requests and
-  acks from the watch companion. Flavors that mount wearStub (lite, photos, vr, and FOSS) never
-  declare this, so no Google Play Services Wearable reference reaches their merged manifest.
+  acks from the watch companion. Flavors that mount wearStub (lite, photos, legacy, vr, and FOSS)
+  never declare this, so no Google Play Services Wearable reference reaches their merged manifest.
+
+  S1951: legacy left this list - its applicationIdSuffix makes the Data Layer route unreachable.
 
   addStaticManifestFile is used instead of a flavor sourceSet manifest.srcFile because noLegal
   already maps its manifest to src/vr/AndroidManifest.xml (a set, not merge); addStaticManifestFile
@@ -24,6 +26,11 @@
                      in code while the filter matched only /fms/network_sources, so GMS started it for
                      the sync request alone and silently dropped the rest. -->
                 <data android:host="*" android:pathPrefix="/fms/watch" android:scheme="wear" />
+                <!-- S1861: without CHANNEL_EVENT and the /fms/transfer_file prefix GMS never starts
+                     this service for a watch -> phone file channel, so onChannelOpened is dead. The
+                     same prefix also covers the announcing /fms/transfer_file_meta message. -->
+                <action android:name="com.google.android.gms.wearable.CHANNEL_EVENT" />
+                <data android:host="*" android:pathPrefix="/fms/transfer_file" android:scheme="wear" />
             </intent-filter>
         </service>
     </application>

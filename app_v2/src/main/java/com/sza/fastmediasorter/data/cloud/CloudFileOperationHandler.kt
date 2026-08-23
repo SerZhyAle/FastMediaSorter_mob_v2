@@ -661,6 +661,10 @@ class CloudFileOperationHandler @Inject constructor(
                     tempFile?.delete()
                     return null
                 }
+                ResourceType.WEAR_WATCH ->
+                    // S1861: the bytes are on the watch, so a cloud upload has to pull them across the
+                    // bridge first; that half lands with the receiving side, not here.
+                    throw IllegalArgumentException("Cannot upload from a paired watch source: $sourceType")
                 ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM ->
                     throw IllegalArgumentException("Cannot upload from an internet stream source: $sourceType")
             }

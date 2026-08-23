@@ -29,6 +29,7 @@ Over budget? Split a section into `INDEX_*.md` - never cut a hook short: [how](f
 
 ## Build, flavors, gates
 - Second-level index: [build, flavors, packaging, gradle locks, kapt, test sets](INDEX_build_flavors.md) - open when the task builds, packages or changes a flavor.
+- [A local build never proves a file is committed](feedback_release_worktree_first_catches_untracked_source.md) - the release worktree is what catches an ignored source
 
 ## detekt / lint / gates / logging
 - **OPEN BEFORE WRITING ANY KOTLIN:** [detekt-clean first time](feedback_write_detekt_clean_first_time.md) - ReturnCount>2, MagicNumber, 120-char lines, brace-less if/else.
@@ -38,6 +39,7 @@ Over budget? Split a section into `INDEX_*.md` - never cut a hook short: [how](f
 - [Unwired != ungated](feedback_a_gate_can_exist_and_never_be_wired.md) - check the umbrella's dimensions both ways · [Debt premise decays](feedback_detekt_debt_ticket_premise_decays.md) · [lint needs FQN](project_lint_test_modes_enforce_resolution.md) · [lint baseline fuzzy](project_lint_baseline_matching_and_runner.md)
 - [Stale test XML](feedback_stale_test_results_xml.md) - a `-Tests` run's report dir varies by module; read the path the runner prints · [fu OOMs mid-run](project_unit_suite_oom_truncation.md)
 - [FAIL may mean never ran](feedback_gate_fail_may_mean_never_ran.md) - read the XML before believing it
+- [A piped gate reports tail's exit code](feedback_piping_a_gate_through_tail_masks_its_exit_code.md) - a red suite arrives as "exit 0"; redirect, don't pipe
 - [Ask what state a green check read](feedback_ask_what_state_a_green_check_read.md) - a check that observed nothing passes like one that observed success
 - [A PASS that observed nothing](feedback_a_pass_that_observed_nothing.md) - verify the preconditions existed before believing a green acceptance line
 - [No Sxxxx in permanent logs](reference_ticket_log_gate.md) · [Timber.e for real errors](feedback_log_levels.md)
@@ -48,6 +50,7 @@ Over budget? Split a section into `INDEX_*.md` - never cut a hook short: [how](f
 - [Settings docs Rule 22](feedback_settings_manifest_regen.md) · [Kotlin skips doc-pin](feedback_post_change_kotlin_skips_doc_pin_gate.md)
 - [-Files: whole set](feedback_post_change_dev_log_first_file_only.md) · [Gate cost](reference_gate_cost_mining.md) - detekt dominates; three runners since Rule 33; read the journal, not transcripts
 - [-RegistryAck up front](feedback_registry_ack_up_front.md) - `.claude/**` needs it on the FIRST call
+- [Never reword -Description on a re-run](feedback_changing_description_between_post_change_reruns_duplicates_the_row.md) - dedup keys on it; two permanent rows
 - [Discount shrinks the imbalance, not the add](feedback_discount_must_shrink_not_subtract.md)
 - [Never probe with the closure facade](feedback_never_probe_with_the_closure_facade.md) - a dummy -Description writes a permanent changelog row
 
@@ -64,7 +67,7 @@ Over budget? Split a section into `INDEX_*.md` - never cut a hook short: [how](f
 - Second-level index: [wear build/launch traps, rotation, Data Layer ids, locked watch, Play](INDEX_wear.md) - open when the task touches the watch.
 
 ## OCR
-- [Wear ALL_FEATURES record needs the companion gate](project_all_features_wear_record_needs_companion_gate.md) - ["standard"] trips the S1934 ratchet
+- [Wear ALL_FEATURES record: gate or full six](project_all_features_wear_record_needs_companion_gate.md) - phone-bridge vs watch-standalone; never hardcode the row
 - [Overlay accuracy exchange](reference_ocr_overlay_exchange.md) - three-sided; the constants live in two other repos
 
 ## Brand

@@ -71,6 +71,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     private lateinit var scanManager: AddResourceScanManager
     private lateinit var formManager: AddResourceFormManager
     private lateinit var helper: AddResourceHelper
+    private lateinit var watchPromptManager: AddResourceWatchPromptManager
 
     private lateinit var resourceToAddAdapter: com.sza.fastmediasorter.ui.addresource.ResourceToAddAdapter
     private lateinit var smbResourceToAddAdapter: com.sza.fastmediasorter.ui.addresource.ResourceToAddAdapter
@@ -199,6 +200,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             binding.cardNetworkFolder,
             binding.cardSftpFolder,
             binding.cardCloudStorage,
+            binding.cardPairedWatch,
         ).firstOrNull(isShown) ?: binding.btnAddToResources
     }
 
@@ -212,6 +214,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         )
         scanManager = AddResourceScanManager(this, viewModel, folderPickerLauncher, mediaCapabilities)
         helper = AddResourceHelper(this)
+        watchPromptManager = AddResourceWatchPromptManager(this, viewModel)
 
         binding.toolbar.setNavigationOnClickListener { finish() }
 
@@ -253,6 +256,10 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         binding.cardCloudStorage.setOnClickListener {
             com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("CloudStorageCard", "AddResource")
             showCloudStorageOptions()
+        }
+        binding.cardPairedWatch.setOnClickListener {
+            com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("PairedWatchCard", "AddResource")
+            watchPromptManager.promptForName()
         }
 
         // S0991: import entry points next to the resource-type cards, sharing the same action source.

@@ -71,6 +71,11 @@ class NetworkSpeedTestUseCase @Inject constructor(
                 ResourceType.SFTP -> testSftpSpeed(resource)
                 ResourceType.FTP -> testFtpSpeed(resource)
                 ResourceType.CLOUD -> testCloudSpeed(resource)
+                // S1861: the bridge's throughput is fixed by the pairing transport and is not a
+                // property the user can act on, so measuring it would spend a full transfer to
+                // produce a number that changes no decision.
+                ResourceType.WEAR_WATCH ->
+                    throw IllegalArgumentException("Speed test does not apply to the paired watch: ${resource.type}")
                 ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM ->
                     throw IllegalArgumentException("Speed test does not apply to internet streams: ${resource.type}")
             }

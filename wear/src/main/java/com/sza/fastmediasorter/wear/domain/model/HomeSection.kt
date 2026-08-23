@@ -30,10 +30,10 @@ data class HomeSection(
  * Everything the catalog needs to decide visibility, reduced to plain values so the catalog stays
  * free of repository dependencies and can be reasoned about without a coroutine in sight.
  *
- * S1836: a null [lastUsedResource] is the whole of "there is no shortcut" - a boolean and a caption
- * held apart could disagree, and the row needs the identifier to address anything at all.
+ * S1974: the last-used shortcuts are deliberately absent. They are no longer catalog members, because
+ * a conditional member of the chunked list is exactly what used to shift every predefined section by
+ * one cell.
  */
 data class HomeSectionVisibility(
-    val lastUsedResource: LastUsedResource?,
     val streamsEnabled: Boolean
 )

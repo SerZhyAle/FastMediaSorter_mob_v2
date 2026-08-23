@@ -39,7 +39,7 @@ Regenerate with `pwsh -NoProfile -File scripts/docs/generate-flavor-matrix.ps1`.
 | `ENABLE_PERSISTENT_AUDIO_PLAYBACK` | [+] | [+] | [-] | [-] | [+] | [+] |
 | `SUPPORTS_DEFAULT_PLAYER` | [+] | [+] | [-] | [+] | [+] | [+] |
 | `SUPPORT_VR_PLAYER` | [-] | [+] | [-] | [-] | [-] | [-] |
-| `SUPPORT_WEAR_COMPANION` | [+] | [+] | [-] | [-] | [+] | [-] |
+| `SUPPORT_WEAR_COMPANION` | [+] | [+] | [-] | [-] | [-] | [-] |
 | `SUPPORT_CAST` | [+] | [+] | [+] | [+] | [+] | [-] |
 | `SUPPORT_NETWORK_MONITOR` | [+] | [+] | [-] | [-] | [-] | [-] |
 | `VR_UI_COMPOSITION_LAYER_ENABLED` | n/a | [+] | n/a | n/a | n/a | [-] |

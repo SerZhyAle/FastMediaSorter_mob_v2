@@ -20,6 +20,7 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Поток RTSP |
 | <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | Сервер SFTP |
 | <img src="icons/svg/ic_resource_smb.svg" alt="ic_resource_smb" width="24" height="24"> | Сетевой ресурс SMB |
+| <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Сопряжённые часы Wear OS |
 | <img src="icons/svg/ic_accessibility.svg" alt="ic_accessibility" width="24" height="24"> | Специальные возможности |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | О приложении |
 | <img src="icons/svg/ic_view_grid.svg" alt="ic_view_grid" width="24" height="24"> | Панель быстрого доступа |

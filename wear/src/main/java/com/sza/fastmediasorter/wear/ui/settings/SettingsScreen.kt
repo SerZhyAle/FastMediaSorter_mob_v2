@@ -35,7 +35,6 @@ import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
-import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.Icon
@@ -43,6 +42,8 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.ui.common.RectangularButton
+import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.util.GridColumnFit
@@ -81,7 +82,8 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxSize(),
                 state = listState,
                 contentPadding = wearScreenInsets(),
-                verticalArrangement = Arrangement.spacedBy(GRID_GAP)
+                verticalArrangement = Arrangement.spacedBy(GRID_GAP),
+                scalingParams = WearGridScalingParams
             ) {
                 item {
                     Text(
@@ -125,7 +127,7 @@ private fun ScalingLazyListScope.settingsItems(
                     modifier = Modifier.weight(1f).semantics { contentDescription = label },
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Button(
+                    RectangularButton(
                         onClick = { onClick(route) },
                         modifier = Modifier.size(CELL_BUTTON_SIZE),
                         colors = ButtonDefaults.primaryButtonColors()

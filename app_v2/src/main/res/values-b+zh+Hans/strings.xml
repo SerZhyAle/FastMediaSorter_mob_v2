@@ -2974,4 +2974,16 @@
     <string name="calculator_hint_share">分享</string>
     <string name="calculator_hint_round">取整</string>
     <string name="calculator_hint_save">保存</string>
+    <string name="resource_type_wear_watch">手表</string>
+    <string name="paired_watch">已配对的手表</string>
+    <string name="paired_watch_description">向手表发送文件，并取回它录制的内容</string>
+    <string name="paired_watch_name_dialog_title">手表资源名称</string>
+    <string name="paired_watch_already_added">已配对的手表已在你的资源中</string>
+    <string name="paired_watch_not_connected">手表未连接</string>
+    <string name="paired_watch_resource_added">已添加手表资源“%1$s”</string>
+    <string name="wear_watch_operation_unsupported">手表上的文件暂时无法从手机重命名或删除。</string>
+    <string name="wear_watch_transfer_too_large">%1$s 对手表来说太大（上限 32 MB）。</string>
+    <string name="wear_watch_transfer_unreachable">手表未连接，因此未发送 %1$s。</string>
+    <string name="wear_watch_transfer_cancelled">已取消向手表发送 %1$s。</string>
+    <string name="wear_watch_transfer_failed_file">%1$s 未送达手表。</string>
 </resources>

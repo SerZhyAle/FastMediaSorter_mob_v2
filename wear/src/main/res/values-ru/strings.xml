@@ -243,9 +243,6 @@
     <string name="wear_streams_sort_kind">По типу медиа</string>
     <string name="wear_streams_search_hint">Поиск</string>
     <string name="wear_streams_clear_search">Сбросить поиск</string>
-    <string name="wear_watch_resource_name"></string>
-    <string name="wear_watch_transfer_success"></string>
-    <string name="wear_watch_transfer_failed"></string>
     <string name="wear_stream_channel_narrow">Связь слишком медленная для этой трансляции. Подойдите ближе к Wi-Fi и повторите.</string>
     <string name="wear_stream_channel_offline">Часы не в сети. Восстановите связь и повторите.</string>
     <string name="wear_stream_channel_unverified">Связь ещё не проверена. Воспроизведение может прерваться - тогда повторите.</string>

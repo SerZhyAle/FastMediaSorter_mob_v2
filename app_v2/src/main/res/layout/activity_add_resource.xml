@@ -87,6 +87,26 @@
 
         </com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>
 
+        <!-- S1861: the paired watch is a resource like any other. Hidden in flavors with no Wear
+             companion; the visibility is decided by the injected scanner, never by a BuildConfig flag. -->
+        <com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView android:id="@+id/cardPairedWatch" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" android:layout_columnWeight="1" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" android:clickable="true" android:focusable="true" android:visibility="gone">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="@dimen/padding_large" android:gravity="center_vertical">
+
+                <ImageView android:layout_width="@dimen/resource_card_icon_size" android:layout_height="@dimen/resource_card_icon_size" android:layout_marginEnd="@dimen/resource_card_icon_margin_end" android:src="@drawable/ic_watch" android:contentDescription="@string/paired_watch" />
+
+                <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/paired_watch" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" />
+
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/paired_watch_description" android:textSize="@dimen/resource_card_desc_text_size" android:textColor="?android:textColorSecondary" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>
+
         <!-- S0991: import entry points appended inside the type grid so they auto-hide with it when a type/section opens. -->
         <TextView android:id="@+id/tvImportSectionTitle" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_columnWeight="1" android:layout_marginTop="@dimen/resource_section_margin_top" android:text="@string/resource_import_section_title" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" />
 

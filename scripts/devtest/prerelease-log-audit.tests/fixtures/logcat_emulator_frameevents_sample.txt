@@ -1,0 +1,5 @@
+08-22 22:33:59.001  1600  1600 I ActivityManager: Start proc 11774:com.sza.fastmediasorter.debug/u0a263 for next-top-activity {com.sza.fastmediasorter.debug/com.sza.fastmediasorter.ui.main.MainActivity}
+08-22 22:34:00.980 11774 11774 D MainActivity: onResume
+08-22 22:34:01.136 11774 11814 D EGL_emulation: app_time_stats: avg=154.08ms min=25.38ms max=532.75ms count=5
+08-22 22:34:01.137 11774 11836 E FrameEvents: addRelease: Did not find frame.
+08-22 22:34:01.512   453   453 E SurfaceFlinger: Out of order buffers detected for RequestedLayerState{com.sza.fastmediasorter.debug/MainActivity}

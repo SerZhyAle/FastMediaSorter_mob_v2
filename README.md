@@ -309,7 +309,6 @@ Detailed guides are available in multiple languages:
 - [Program Limitations](docs/LIMITATIONS.md)
 - [Downloads Guide](docs/DOWNLOADS_EN.md)
 - [Complete Feature List](docs/FEATURES.md)
-- [Module Selection Guide](docs/MODULE_SELECTION.md)
 
 **🇷🇺 Русский:**
 
@@ -355,6 +354,8 @@ Wear OS docs:
 - [Wear OS section in Features](docs/FEATURES.md#20-wear-os-companion-app)
 
 ## Build Instructions
+
+Which module and which flavor you build, and how to switch between them: [Module Selection Guide](docs/MODULE_SELECTION.md).
 
 ### Requirements
 

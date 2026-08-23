@@ -120,6 +120,16 @@ class CameraCaptureSaver @Inject constructor(
                                     localOk
                                 }
                             }
+                            ResourceType.WEAR_WATCH -> {
+                                // S1861: a capture is written here and handed to the transfer queue as
+                                // a separate step - the camera path must not block on a bridge that may
+                                // be down. Unlike the stream branch this cannot throw: a watch target
+                                // is writable, so the branch is reachable and a throw would be a crash.
+                                fallbackReason = SaveFallbackReason.ResourceUnavailable
+                                val localOk = saveToLocalFallback(tempFile, name)
+                                if (localOk) savedPath = localFallbackPath(name)
+                                localOk
+                            }
                             ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM ->
                                 throw IllegalArgumentException("Cannot save a capture to an internet stream target: ${target.type}")
                         }

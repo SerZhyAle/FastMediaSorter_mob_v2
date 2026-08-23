@@ -21,7 +21,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
-import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
@@ -29,6 +28,7 @@ import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.ToggleChip
 import androidx.wear.compose.material.ToggleChipDefaults
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 
@@ -114,7 +114,7 @@ private fun SlideshowIntervalStepper(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Button(
+        RectangularButton(
             onClick = { if (currentIndex > 0) onIntervalChanged(SLIDESHOW_INTERVALS[currentIndex - 1]) },
             enabled = currentIndex > 0,
             modifier = Modifier.size(36.dp).semantics { contentDescription = decreaseDescription },
@@ -127,7 +127,7 @@ private fun SlideshowIntervalStepper(
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.caption1
         )
-        Button(
+        RectangularButton(
             onClick = {
                 if (currentIndex < SLIDESHOW_INTERVALS.lastIndex) {
                     onIntervalChanged(SLIDESHOW_INTERVALS[currentIndex + 1])

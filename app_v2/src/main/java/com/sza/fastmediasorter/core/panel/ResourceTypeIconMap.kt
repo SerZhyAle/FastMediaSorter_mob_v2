@@ -23,6 +23,8 @@ object ResourceTypeIconMap {
         // Live streams share the cast glyph (both HTTP and RTSP), as in the original when-branch.
         ResourceType.HTTP_STREAM to R.drawable.ic_cast,
         ResourceType.RTSP_STREAM to R.drawable.ic_cast,
+        // S1861: the paired watch.
+        ResourceType.WEAR_WATCH to R.drawable.ic_watch,
     )
 
     @DrawableRes
@@ -32,7 +34,12 @@ object ResourceTypeIconMap {
      * S1124: whether [iconFor] returns a monochrome glyph that needs a theme tint to stay legible on a
      * light tile, vs a colored source badge that must keep its own color. Only the shared cast glyph
      * (streams) is monochrome white; every `ic_resource_*` badge is a distinct full color.
+     *
+     * S1861: `ic_watch` joins the monochrome set - it is a single-tone glyph, not a colored source
+     * badge, and without the theme tint it is lost on a light tile.
      */
     fun isMonochrome(type: ResourceType): Boolean =
-        type == ResourceType.HTTP_STREAM || type == ResourceType.RTSP_STREAM
+        type == ResourceType.HTTP_STREAM ||
+            type == ResourceType.RTSP_STREAM ||
+            type == ResourceType.WEAR_WATCH
 }

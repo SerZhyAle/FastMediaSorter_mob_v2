@@ -47,6 +47,7 @@ class WearPreferencesRepositoryImpl(
         val KEEP_SCREEN_AWAKE = booleanPreferencesKey("wear_keep_screen_awake")
         val LAST_USED_RESOURCE = stringPreferencesKey("wear_last_used_resource")
         val LAST_USED_RESOURCE_ID = stringPreferencesKey("wear_last_used_resource_id")
+        val LAST_USED_RESOURCES = stringPreferencesKey("wear_last_used_resources")
         val STREAMS_SECTION_ENABLED = booleanPreferencesKey("wear_streams_section_enabled")
 
         val CALCULATOR_HISTORY = stringPreferencesKey("wear_calculator_history")
@@ -165,23 +166,36 @@ class WearPreferencesRepositoryImpl(
     }
 
     // Home section state
-    // S1836: emitted only when both halves are stored. An install upgraded from a build that kept
-    // the name alone holds no identifier, and a caption that addresses nothing is not a shortcut.
-    override val lastUsedResource: Flow<LastUsedResource?> = context.dataStore.data.map { prefs ->
+    // S1836: an entry is emitted only when both halves are stored. An install upgraded from a build
+    // that kept the name alone holds no identifier, and a caption that addresses nothing is not a
+    // shortcut. S1974: the single stored pair became a history, and the two legacy keys are read as
+    // its seed so an upgraded install keeps the shortcut it already had.
+    override val lastUsedResources: Flow<List<LastUsedResource>> = context.dataStore.data.map { prefs ->
+        val stored = prefs[PreferencesKeys.LAST_USED_RESOURCES]
+        if (stored == null) legacyLastUsedResource(prefs) else LastUsedResourceHistory.decode(stored)
+    }
+
+    private fun legacyLastUsedResource(prefs: Preferences): List<LastUsedResource> {
         val id = prefs[PreferencesKeys.LAST_USED_RESOURCE_ID]
         val name = prefs[PreferencesKeys.LAST_USED_RESOURCE]
-        if (id == null || name == null) null else LastUsedResource(id, name)
+        return if (id == null || name == null) emptyList() else listOf(LastUsedResource(id, name))
     }
 
     override suspend fun setLastUsedResource(id: String, name: String) {
         context.dataStore.edit { prefs ->
-            prefs[PreferencesKeys.LAST_USED_RESOURCE_ID] = id
-            prefs[PreferencesKeys.LAST_USED_RESOURCE] = name
+            val current = prefs[PreferencesKeys.LAST_USED_RESOURCES]
+                ?.let { LastUsedResourceHistory.decode(it) }
+                ?: legacyLastUsedResource(prefs)
+            val pushed = LastUsedResourceHistory.push(current, LastUsedResource(id, name))
+            prefs[PreferencesKeys.LAST_USED_RESOURCES] = LastUsedResourceHistory.encode(pushed)
         }
     }
 
     override suspend fun clearLastUsedResource() {
         context.dataStore.edit { prefs ->
+            prefs.remove(PreferencesKeys.LAST_USED_RESOURCES)
+            // The legacy pair is removed too: it is the fallback the reader falls back to, so leaving
+            // it behind would resurrect the shortcut the caller just cleared.
             prefs.remove(PreferencesKeys.LAST_USED_RESOURCE_ID)
             prefs.remove(PreferencesKeys.LAST_USED_RESOURCE)
         }

@@ -88,9 +88,16 @@
                      playback command and onDataChanged the settings push, but neither action nor path
                      was declared, so GMS delivered only the network-sources data item. -->
                 <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <!-- S1861: without CHANNEL_EVENT and the /fms/transfer_file prefix GMS never starts
+                     this service for an incoming file channel, so onChannelOpened was dead code. -->
+                <action android:name="com.google.android.gms.wearable.CHANNEL_EVENT" />
                 <data
                     android:host="*"
                     android:pathPrefix="/fms/network_sources"
+                    android:scheme="wear" />
+                <data
+                    android:host="*"
+                    android:pathPrefix="/fms/transfer_file"
                     android:scheme="wear" />
                 <data
                     android:host="*"

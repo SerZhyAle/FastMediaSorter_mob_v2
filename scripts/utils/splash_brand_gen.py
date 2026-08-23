@@ -40,8 +40,14 @@ WORDMARK_TRANSLATE_Y = -14.0
 # Arrows-only composition (the watch). Measured on a Galaxy Watch 7 (480x480 at 320 dpi): the
 # phone's wordmark rendered 10 px tall and the slogan 12 px, about 5-7 dp against Wear OS's 12 sp
 # floor, so both are dropped rather than shipped unreadable. With the text gone the arrows are
-# re-centred and grown to the largest square that still fits the 192-unit mask circle.
-ARROWS_ONLY_SCALE = 5.4
+# re-centred and grown to fill the 192-unit mask circle.
+#
+# S1973: the fit is driven by the glyph's own extent, not by its 24-unit box. The four arrows form
+# a diamond whose only extremes are the four tips, 11 units from the centre - the box corners are
+# empty. Fitting it as if it were a solid square cost the diagonal: the arrows reached 62% of the
+# mask radius and rendered 78 px on a 480 px watch, a third of what the slot allows.
+ARROWS_ONLY_RADIUS = 11.0
+ARROWS_ONLY_SCALE = round(CIRCLE_R * FIT_MARGIN / ARROWS_ONLY_RADIUS, 4)
 ARROWS_ONLY_T = (VIEWPORT - 24.0 * ARROWS_ONLY_SCALE) / 2.0
 
 STRING_KEY = "splash_slogan"

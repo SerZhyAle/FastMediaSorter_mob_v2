@@ -809,6 +809,20 @@ class VideoPlayerManager(
                     ResourceType.FTP -> playFtpVideo(path, credentialsId, playWhenReady)
                     ResourceType.LOCAL -> playLocalVideoInternal(path, playWhenReady)
                     ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> playStreamVideo(path, playWhenReady)
+                    ResourceType.WEAR_WATCH -> {
+                        // S1861: nothing on the watch is playable in place - ExoPlayer has no reader for
+                        // a Data Layer channel, so the bytes have to land on this device first and are
+                        // then played as an ordinary local file.
+                        Timber.w(
+                            "VideoPlayerManager: playback refused - transfer watch media first, path=%s",
+                            path
+                        )
+                        playerCallback.onPlaybackError(
+                            IllegalStateException("watch media is not playable in place"),
+                            context.getString(R.string.error_resource_unavailable, path.substringAfterLast('/')),
+                        )
+                        return@launch
+                    }
                 }
 
                 activeSourceIsStream = resourceType == ResourceType.HTTP_STREAM ||

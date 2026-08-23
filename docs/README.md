@@ -261,7 +261,6 @@ Detailed guides are available in multiple languages:
 - [Program Limitations](LIMITATIONS.md)
 - [Downloads Guide](DOWNLOADS_EN.md)
 - [Complete Feature List](FEATURES.md)
-- [Module Selection Guide](MODULE_SELECTION.md)
 
 **🇷🇺 Русский:**
 

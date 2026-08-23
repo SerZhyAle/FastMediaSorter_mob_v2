@@ -20,6 +20,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | RTSP stream |
 | <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | SFTP server |
 | <img src="icons/svg/ic_resource_smb.svg" alt="ic_resource_smb" width="24" height="24"> | SMB network share |
+| <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Paired Wear OS watch |
 | <img src="icons/svg/ic_accessibility.svg" alt="ic_accessibility" width="24" height="24"> | Accessibility |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | App info |
 | <img src="icons/svg/ic_view_grid.svg" alt="ic_view_grid" width="24" height="24"> | Quick-access panel |

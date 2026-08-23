@@ -602,6 +602,7 @@ class ResourceAdapter(
                     ResourceType.FTP -> root.context.getString(R.string.resource_type_ftp)
                     ResourceType.CLOUD -> root.context.getString(R.string.resource_type_cloud)
                     ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> root.context.getString(R.string.resource_type_stream)
+                    ResourceType.WEAR_WATCH -> root.context.getString(R.string.resource_type_wear_watch)
                 }
 
                 val chipColorRes = when (resource.type) {
@@ -611,6 +612,7 @@ class ResourceAdapter(
                     ResourceType.FTP -> R.color.chip_ftp_bg
                     ResourceType.CLOUD -> R.color.chip_cloud_bg
                     ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> R.color.chip_cloud_bg
+                    ResourceType.WEAR_WATCH -> R.color.chip_wear_watch_bg
                 }
                 val chipColor = ContextCompat.getColor(root.context, chipColorRes)
                 tvResourceType.backgroundTintList = ColorStateList.valueOf(chipColor)
@@ -742,14 +744,29 @@ class ResourceAdapter(
                 val driveNeedsSignIn = resource.type == ResourceType.CLOUD &&
                     resource.cloudProvider == com.sza.fastmediasorter.data.cloud.CloudProvider.GOOGLE_DRIVE &&
                     resource.needsSignIn
-                if (driveNeedsSignIn) {
-                    tvAvailabilityIndicator.visibility = android.view.View.VISIBLE
-                    tvAvailabilityIndicator.text = root.context.getString(R.string.s0200_resource_needs_sign_in_label)
-                } else {
-                    tvAvailabilityIndicator.visibility = if (resource.isAvailable) {
-                        android.view.View.GONE
-                    } else {
-                        android.view.View.VISIBLE
+                // S1861: an unreachable watch is named in words rather than left as an empty folder
+                // and a tinted row - the state must read without relying on colour (strategic 3.2).
+                val watchOffline = resource.type == ResourceType.WEAR_WATCH && !resource.isAvailable
+                when {
+                    driveNeedsSignIn -> {
+                        tvAvailabilityIndicator.visibility = android.view.View.VISIBLE
+                        tvAvailabilityIndicator.text =
+                            root.context.getString(R.string.s0200_resource_needs_sign_in_label)
+                    }
+                    watchOffline -> {
+                        tvAvailabilityIndicator.visibility = android.view.View.VISIBLE
+                        tvAvailabilityIndicator.text =
+                            root.context.getString(R.string.paired_watch_not_connected)
+                    }
+                    else -> {
+                        // Restored explicitly: the two branches above overwrite the text, and a
+                        // recycled row would otherwise keep their wording for an unrelated resource.
+                        tvAvailabilityIndicator.setText(R.string.item_resource_tvAvailabilityIndicator_text)
+                        tvAvailabilityIndicator.visibility = if (resource.isAvailable) {
+                            android.view.View.GONE
+                        } else {
+                            android.view.View.VISIBLE
+                        }
                     }
                 }
 

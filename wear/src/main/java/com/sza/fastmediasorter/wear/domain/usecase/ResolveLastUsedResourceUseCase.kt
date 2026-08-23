@@ -9,23 +9,26 @@ import timber.log.Timber
 import javax.inject.Inject
 
 /**
- * S1836: the home shortcut may only point at a source that is still there.
+ * S1836: a home shortcut may only point at a source that is still there.
  *
  * A remembered source can be deleted on the watch or stop arriving from the phone, and an entry written
- * by a build that stored only the name carries no identifier at all. Both surface here as null, so the
- * home screen has one value to render instead of a second rule to keep in step with the first.
+ * by a build that stored only the name carries no identifier at all. Both are dropped here, so the home
+ * screen has one list to render instead of a second rule to keep in step with the first.
+ *
+ * S1974: a list rather than a single value, and the stored order - newest first - is preserved, because
+ * the screen fills its first row left to right with as many of these as it has columns.
  */
 class ResolveLastUsedResourceUseCase @Inject constructor(
     private val preferencesRepository: WearPreferencesRepository,
     private val networkSourceRepository: NetworkSourceRepository
 ) {
 
-    operator fun invoke(): Flow<LastUsedResource?> = combine(
-        preferencesRepository.lastUsedResource,
+    operator fun invoke(): Flow<List<LastUsedResource>> = combine(
+        preferencesRepository.lastUsedResources,
         networkSourceRepository.observeSources()
     ) { remembered, sources ->
-        val resolved = remembered?.takeIf { target -> sources.any { it.id == target.id } }
-        Timber.d("S1836: home shortcut resolves to ${resolved?.name}")
+        val resolved = remembered.filter { target -> sources.any { it.id == target.id } }
+        Timber.d("S1836: home shortcuts resolve to ${resolved.map { it.name }}")
         resolved
     }
 }

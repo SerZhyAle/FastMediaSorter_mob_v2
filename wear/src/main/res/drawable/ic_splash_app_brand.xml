@@ -16,10 +16,10 @@
             android:pivotX="144.0"
             android:pivotY="144.0">
             <group
-                android:scaleX="5.4"
-                android:scaleY="5.4"
-                android:translateX="79.19999999999999"
-                android:translateY="79.19999999999999">
+                android:scaleX="8.3782"
+                android:scaleY="8.3782"
+                android:translateX="43.461600000000004"
+                android:translateY="43.461600000000004">
                 <path
                     android:name="arrowsPath"
                     android:fillAlpha="1"

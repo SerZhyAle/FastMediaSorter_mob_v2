@@ -753,6 +753,8 @@ Three checks keep the repository's ~370 PowerShell scripts findable, described a
 - A Pester suite beside a `Run-Tests.ps1` is reached by discovery, not by name, and is excused automatically.
 - Escape hatch for a script you run by hand: put a line in its comment-based help reading `Manual tool: <why it exists and who runs it>`. An empty reason does not count.
 - `-Memory` mode checks the other direction: every `.ps1` path written in `.claude/agent-memory/**` must resolve, or carry a `Historical:` / `External:` marker on its line or the line above.
+- `-Docs` mode asks that same reverse question of the live documents, and is the one of the three that runs on every closure (`post-change.ps1`, step `doc-script-references`): a document naming a `.ps1` that does not exist hands its reader a command that cannot run. S1978 found one such line by hand and a sweep found thirteen more in three registered documents (S1979). Corpus: `docs/`, `dev/` minus its archive and changelog, `.claude/` minus `agent-memory`, and `CLAUDE.md` / `AGENTS.md` / `GEMINI.md` / `README.md`. Resolution is tree-wide - `maestro/*.ps1` and `.claude/hooks/*.ps1` are real scripts even though the orphan check above never judges them.
+- The `-Docs` baseline is a **list**, not a count: `scripts/quality/doc-script-reference-baseline.txt` holds one `path :: token` line per known-bad reference, so a new phantom cannot hide behind a fixed one. Never add a line there to go green - fix the reference, or say on its line that the script is `External:` (ships outside this repository, like the `sza` plugin's hooks) or `Historical:` (retired). Under `-ScopeToFile` the closure judges only the documents it changed; a `.ps1` in the changed set widens it back to the whole corpus, because renaming or deleting a script is what breaks the documents naming it.
 - Baseline: `scripts/quality/script-reference-baseline.txt`. Exit 0 at or below it, 1 above, 2 when a root is missing.
 
 **`scripts/quality/assert-script-described.ps1`** - a script says what it does and which codes it returns.
@@ -818,7 +820,7 @@ Three checks keep the repository's ~370 PowerShell scripts findable, described a
 | `ENABLE_TRANSLATION`               | [+] | [-] | [-] | [+] | [+] | [+] |
 | `ENABLE_PERSISTENT_AUDIO_PLAYBACK` | [+] | [-] | [-] | [+] | [+] | [+] |
 | `SUPPORTS_DEFAULT_PLAYER`          | [+] | [-] | [+] | [+] | [+] | [+] |
-| `SUPPORT_WEAR_COMPANION`           | [+] | [-] | [-] | [+] | [-] | [+] |
+| `SUPPORT_WEAR_COMPANION`           | [+] | [-] | [-] | [-] | [-] | [+] |
 | `SUPPORT_CAST`                     | [+] | [+] | [+] | [+] | [-] | [+] |
 | `SUPPORT_VR_PLAYER`                | [-] | [-] | [-] | [-] | [-] | [+] |
 | `VR_UI_COMPOSITION_LAYER_ENABLED`  | n/a | n/a | n/a | n/a | [-] | [+] |
@@ -828,7 +830,7 @@ Three checks keep the repository's ~370 PowerShell scripts findable, described a
 
 `SUPPORT_VR_PLAYER` is true in `noLegal` only. The `vr` flavor declares it `false`: it ships the `src/vr` source set and its OpenXR runtime hooks, but immersive rendering is not wired to the player there yet (epic S0773), so `vr` is the Store-clean shell and `noLegal` is the sideload build where immersive playback works today. Reading the flavor name as the capability is what made this row read as enabled for `vr` until S1392.
 
-Cast is disabled in `vr` (Horizon OS lacks the Google Play Services Cast module); `noLegal` keeps it because it also targets phones/tablets. `SUPPORT_WEAR_COMPANION = true` in `noLegal` is harmless on Quest (no paired watch exists) and meaningful on phones/tablets - runtime decides. VR feature surface in `noLegal` is gated at runtime by `XrDetectionFacade` - VR controls show disabled on devices without an OpenXR runtime. S0250 (2026-05-19) archived the former `vrUnlicensed` flavor; `noLegal` now covers both phone-sideload and Quest-sideload through one APK.
+Cast is disabled in `vr` (Horizon OS lacks the Google Play Services Cast module); `noLegal` keeps it because it also targets phones/tablets. `SUPPORT_WEAR_COMPANION = true` in `noLegal` is harmless on Quest (no paired watch exists) and meaningful on phones/tablets - runtime decides. `legacy` declares it `false` since S1951: that flavor carries `applicationIdSuffix = ".legacy"`, so the phone installs under an identity the watch app can never match, and Play Services routes the Data Layer by exactly that identity - the companion was declared on a route that cannot exist. The suffix is the frozen store identity of a published flavor, so the claim was dropped rather than the identity. VR feature surface in `noLegal` is gated at runtime by `XrDetectionFacade` - VR controls show disabled on devices without an OpenXR runtime. S0250 (2026-05-19) archived the former `vrUnlicensed` flavor; `noLegal` now covers both phone-sideload and Quest-sideload through one APK.
 
 ### Build-type flags (all flavors)
 

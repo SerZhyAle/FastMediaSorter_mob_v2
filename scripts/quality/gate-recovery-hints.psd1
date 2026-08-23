@@ -33,6 +33,11 @@
         Fix   = 'A version pin quoted in the docs no longer matches the build files - update the doc line to the value the report names, never the other way round.'
     }
 
+    'doc-script-references' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-script-references.ps1 -Docs'
+        Fix   = 'A document names a .ps1 that does not exist. Correct the path, or say so on its line: External: for a script shipped outside this repository, Historical: for a retired one. Adding the line to doc-script-reference-baseline.txt is not a fix.'
+    }
+
     'settings-doc-sync-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-settings-doc-sync.ps1'
         Fix   = 'A settings surface changed without regenerating its docs (CLAUDE.md Rule 22) - regenerate docs/settings/settings-manifest.json and docs/SETTINGS_REFERENCE*.md, and annotate the new key.'

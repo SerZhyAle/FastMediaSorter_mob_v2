@@ -1,42 +1,32 @@
 package com.sza.fastmediasorter.wear.ui.network
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.material.Button
-import androidx.wear.compose.material.ButtonDefaults
-import androidx.wear.compose.material.Chip
-import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
+import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
+import com.sza.fastmediasorter.wear.ui.common.LongPressChip
+import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
-private val CELL_BUTTON_SIZE = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
 private val CELL_ICON_SIZE = 24.dp
 
 /**
@@ -74,11 +64,21 @@ private fun SourceChip(
     source: SourceItem,
     actions: NetworkSourcesActions
 ) {
-    Chip(
-        onClick = { actions.onSourceClick(source.id, source.name) },
+    // A library Chip owns its clickable and applies the caller's modifier outside it, so no detector
+    // passed in from here can ever see the press - the row has to carry both gestures itself (S1953).
+    LongPressChip(
+        onClick = {
+            Timber.d("S1953: source chip tap id=${source.id}")
+            actions.onSourceClick(source.id, source.name)
+        },
+        onLongClick = {
+            Timber.d("S1953: source chip long press id=${source.id}")
+            actions.onSourceLongPress(source)
+        },
         label = {
             Text(text = "${source.name}\n${source.server}")
         },
+        modifier = Modifier.fillMaxWidth(),
         icon = {
             Icon(
                 painter = painterResource(id = iconFor(source.type)),
@@ -92,21 +92,7 @@ private fun SourceChip(
                 text = stringResource(R.string.hold_to_delete),
                 style = MaterialTheme.typography.caption2
             )
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            // detectTapGestures consumes the down unconditionally, so the chip's own clickable never
-            // sees the press - the tap has to be served from this detector too, or it is lost (S1953).
-            .pointerInput(source.id) {
-                detectTapGestures(
-                    onTap = {
-                        Timber.d("S1953: source chip tap id=${source.id}")
-                        actions.onSourceClick(source.id, source.name)
-                    },
-                    onLongPress = { actions.onSourceLongPress(source) }
-                )
-            },
-        colors = ChipDefaults.primaryChipColors()
+        }
     )
 }
 
@@ -140,43 +126,26 @@ private fun SourceCell(
     modifier: Modifier,
     actions: NetworkSourcesActions
 ) {
-    Column(
-        // A cell announces the resource by its own name, so the reading never degrades to a position.
-        modifier = modifier.semantics { contentDescription = source.name },
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Button(
-            onClick = { actions.onSourceClick(source.id, source.name) },
-            // CELL_BUTTON_SIZE is the interactive minimum itself, so a grid cell keeps a reachable
-            // target no matter which view mode produced it.
-            modifier = Modifier
-                .size(CELL_BUTTON_SIZE)
-                // Same consumption rule as the chip: the tap is served here or not at all (S1953).
-                .pointerInput(source.id) {
-                    detectTapGestures(
-                        onTap = {
-                            Timber.d("S1953: source cell tap id=${source.id}")
-                            actions.onSourceClick(source.id, source.name)
-                        },
-                        onLongPress = { actions.onSourceLongPress(source) }
-                    )
-                },
-            colors = ButtonDefaults.primaryButtonColors()
-        ) {
-            Icon(
-                painter = painterResource(id = iconFor(source.type)),
-                contentDescription = null,
-                modifier = Modifier.size(CELL_ICON_SIZE),
-                tint = Color.Unspecified
-            )
+    ThumbnailCell(
+        thumbnail = WearThumbnail.Unavailable,
+        caption = source.name,
+        onClick = {
+            Timber.d("S1953: source cell tap id=${source.id}")
+            actions.onSourceClick(source.id, source.name)
+        },
+        modifier = modifier,
+        // The cell's own handler serves both gestures; a detector layered on `modifier` would sit
+        // outside it and never fire, which is how the reshape in S1970 lost the long press (S1953).
+        onLongClick = {
+            Timber.d("S1953: source cell long press id=${source.id}")
+            actions.onSourceLongPress(source)
         }
-        Text(
-            text = source.name,
-            style = MaterialTheme.typography.caption3,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
+    ) {
+        Icon(
+            painter = painterResource(id = iconFor(source.type)),
+            contentDescription = null,
+            modifier = Modifier.size(CELL_ICON_SIZE),
+            tint = Color.Unspecified
         )
     }
 }

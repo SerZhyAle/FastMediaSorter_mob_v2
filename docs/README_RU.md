@@ -318,7 +318,6 @@ FastMediaSorter v2 поддерживает широкий спектр форм
 - [Program Limitations](LIMITATIONS.md)
 - [Downloads Guide](DOWNLOADS_EN.md)
 - [Complete Feature List](FEATURES.md)
-- [Module Selection Guide](MODULE_SELECTION.md)
 
 **🇺🇦 Українська:**
 

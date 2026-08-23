@@ -27,3 +27,4 @@
 - [Author style: .. and Ё](user_author_style.md) - use `..` not `...`; always use `ё`/`Ё` in Russian where grammatically correct
 - [pwsh 7 path](feedback_pwsh_path.md) - PS7 is at /c/Program Files/PowerShell/7/pwsh.exe and is NOT on Bash PATH; use the full quoted path
 - [Bash Windows-backslash + $VAR trap](feedback_bash_windows_backslash_dollar_trap.md) - `\${TS}` in a Windows-style path eats the backslash and skips expansion, silently, exit 0; use forward slashes
+- [Mixed line endings when patching](feedback_mixed_line_endings_when_patching.md) - CRLF and LF coexist in wear/; normalise on read, restore on write, or the anchor misses

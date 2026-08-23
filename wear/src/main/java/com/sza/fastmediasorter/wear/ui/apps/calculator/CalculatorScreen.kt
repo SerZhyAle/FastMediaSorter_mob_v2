@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.wear.ui.apps.calculator
 
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -18,7 +17,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -31,13 +29,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
-import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.calculator.WearCalculatorEngine
+import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
@@ -232,7 +230,7 @@ private fun OperationElement(operation: WearCalculatorEngine.Operator, onOperati
         R.string.wear_calc_current_operation,
         stringResource(operationDescriptionRes(operation))
     )
-    Button(
+    RectangularButton(
         onClick = {
             Timber.d("S1942: operation element tap ${operation.symbol}")
             onOperation(operation.symbol)
@@ -271,15 +269,13 @@ private fun CalculatorKeyRow(
         keys.forEach { key ->
             val label = labelFor(key)
             val description = descriptionFor(key)
-            Button(
-                // Kept even for the two keys that carry a long press: this is the click TalkBack
-                // activates, and it must reach the same place a finger tap does.
+            RectangularButton(
                 onClick = { onKey(key) },
                 modifier = Modifier
                     .weight(1f)
                     .height(KEY_HEIGHT)
-                    .semantics { contentDescription = description }
-                    .then(longPressModifier(key, onKey, onLongKey)),
+                    .semantics { contentDescription = description },
+                onLongClick = longPressHandler(key, onLongKey),
                 shape = RoundedCornerShape(4.dp),
                 colors = if (key is CalculatorKey.Digit) {
                     ButtonDefaults.secondaryButtonColors()
@@ -298,24 +294,20 @@ private fun CalculatorKeyRow(
 }
 
 /**
- * S1719: the long-press detector for the two keys that carry one, and nothing for the rest.
+ * S1719: the long press for the two keys that carry one, and nothing for the rest.
  *
- * `onTap` is supplied alongside `onLongPress` deliberately: `detectTapGestures` consumes the press
- * unconditionally, so a key that declared only the long press would stop reacting to an ordinary tap
- * entirely. This repository has already paid for that once on the watch resources list (S1953).
+ * It is handed to the key itself rather than added to its modifier as a gesture detector. The key is
+ * a [RectangularButton], which serves the tap and the long press from a single `combinedClickable`,
+ * and a detector layered beside that handler is exactly the two-handlers-on-one-node arrangement
+ * S1953 was opened for: one of the two gestures always loses the down, and the tap loses its ripple
+ * and its `Role.Button` semantics along with it.
  */
-private fun longPressModifier(
+private fun longPressHandler(
     key: CalculatorKey,
-    onKey: (CalculatorKey) -> Unit,
     onLongKey: (CalculatorKey) -> Unit,
-): Modifier {
-    if (!hasLongPress(key)) return Modifier
-    return Modifier.pointerInput(key) {
-        detectTapGestures(
-            onTap = { onKey(key) },
-            onLongPress = { onLongKey(key) },
-        )
-    }
+): (() -> Unit)? {
+    if (!hasLongPress(key)) return null
+    return { onLongKey(key) }
 }
 
 /** S1719: the watch keypad stays arithmetic-only (owner, 2026-08-19) - exactly two keys carry more. */
@@ -328,6 +320,7 @@ private fun dispatchLongPress(
     viewModel: CalculatorViewModel,
     onLeave: () -> Unit,
 ) {
+    Timber.d("S1970: calculator long press key=$key")
     when {
         key == CalculatorKey.Menu -> onLeave()
         key is CalculatorKey.Digit && key.value == 0 -> repeat(TRIPLE_ZERO_COUNT) { viewModel.onDigit(0) }

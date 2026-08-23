@@ -11,13 +11,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
  * S1836: a remembered source can be deleted on the watch or stop arriving from the phone, and an entry
  * stored by an older build carries no identifier at all. Neither is reachable on a device without
- * deleting a source by hand, so the rule that hides the row is pinned here instead.
+ * deleting a source by hand, so the rule that hides the cell is pinned here instead.
  */
 class ResolveLastUsedResourceUseCaseTest {
 
@@ -25,27 +25,45 @@ class ResolveLastUsedResourceUseCaseTest {
     private val sources: NetworkSourceRepository = mockk()
 
     @Test
-    fun `a remembered source that is still listed resolves to itself`() = runTest {
-        every { preferences.lastUsedResource } returns flowOf(LastUsedResource(SOURCE_ID, SOURCE_NAME))
-        every { sources.observeSources() } returns flowOf(listOf(source(SOURCE_ID), source(OTHER_ID)))
+    fun `a remembered source that is still listed resolves to itself`() {
+        runTest {
+            every { preferences.lastUsedResources } returns flowOf(listOf(LastUsedResource(SOURCE_ID, SOURCE_NAME)))
+            every { sources.observeSources() } returns flowOf(listOf(source(SOURCE_ID), source(OTHER_ID)))
 
-        assertEquals(LastUsedResource(SOURCE_ID, SOURCE_NAME), useCase().first())
+            assertEquals(listOf(LastUsedResource(SOURCE_ID, SOURCE_NAME)), useCase().first())
+        }
     }
 
     @Test
-    fun `a remembered source that is gone resolves to nothing`() = runTest {
-        every { preferences.lastUsedResource } returns flowOf(LastUsedResource(SOURCE_ID, SOURCE_NAME))
-        every { sources.observeSources() } returns flowOf(listOf(source(OTHER_ID)))
+    fun `a gone source is dropped while the rest of the history stays`() {
+        runTest {
+            val remembered = listOf(LastUsedResource(OTHER_ID, OTHER_NAME), LastUsedResource(SOURCE_ID, SOURCE_NAME))
+            every { preferences.lastUsedResources } returns flowOf(remembered)
+            every { sources.observeSources() } returns flowOf(listOf(source(SOURCE_ID)))
 
-        assertNull(useCase().first())
+            assertEquals(listOf(LastUsedResource(SOURCE_ID, SOURCE_NAME)), useCase().first())
+        }
     }
 
     @Test
-    fun `nothing remembered resolves to nothing`() = runTest {
-        every { preferences.lastUsedResource } returns flowOf(null)
-        every { sources.observeSources() } returns flowOf(listOf(source(SOURCE_ID)))
+    fun `the stored order survives the filter`() {
+        runTest {
+            val remembered = listOf(LastUsedResource(OTHER_ID, OTHER_NAME), LastUsedResource(SOURCE_ID, SOURCE_NAME))
+            every { preferences.lastUsedResources } returns flowOf(remembered)
+            every { sources.observeSources() } returns flowOf(listOf(source(SOURCE_ID), source(OTHER_ID)))
 
-        assertNull(useCase().first())
+            assertEquals(remembered, useCase().first())
+        }
+    }
+
+    @Test
+    fun `nothing remembered resolves to nothing`() {
+        runTest {
+            every { preferences.lastUsedResources } returns flowOf(emptyList())
+            every { sources.observeSources() } returns flowOf(listOf(source(SOURCE_ID)))
+
+            assertTrue(useCase().first().isEmpty())
+        }
     }
 
     // A property, not a function: `useCase()` has to reach the use case's own invoke operator.
@@ -64,5 +82,6 @@ class ResolveLastUsedResourceUseCaseTest {
         const val SOURCE_ID = "src-7"
         const val OTHER_ID = "src-9"
         const val SOURCE_NAME = "MyNAS"
+        const val OTHER_NAME = "Studio"
     }
 }

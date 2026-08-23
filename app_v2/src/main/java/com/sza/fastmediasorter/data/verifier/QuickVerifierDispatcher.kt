@@ -80,6 +80,12 @@ class QuickVerifierDispatcher @Inject constructor(
                 return emptyList()
             }
             ResourceType.CLOUD -> cloud
+            ResourceType.WEAR_WATCH -> {
+                // S1861: probing would wake the bridge and cost a channel round trip per resource, on a
+                // background pass the user never asked for. The watch is verified when it is opened.
+                Timber.d("QuickVerifierDispatcher: resource=%d type=WEAR_WATCH - the watch is not probed", resourceId)
+                return emptyList()
+            }
             ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> {
                 Timber.d("QuickVerifierDispatcher: resource=%d type=%s - streams are not probed", resourceId, resource.type)
                 return emptyList()

@@ -68,6 +68,10 @@ internal class BrowseShareOperationsHelper(
                         ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP, ResourceType.CLOUD -> {
                             downloadNetworkFileToCacheWithProgress(mediaFile, resource)
                         }
+                        // S1861: sharing needs the bytes on this device, and pulling them from the
+                        // watch is the receiving half of the bridge - null keeps the item out of the
+                        // share intent instead of handing FileProvider a path that is not here.
+                        ResourceType.WEAR_WATCH -> null
                         ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> null
                     }
 

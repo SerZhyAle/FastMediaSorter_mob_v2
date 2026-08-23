@@ -164,7 +164,7 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     var viewModeValue = WearViewMode.LIST
     var keepScreenAwakeValue = false
     var fileListViewModeValue = WearViewMode.LIST
-    var lastUsedResourceValue: LastUsedResource? = null
+    var lastUsedResourcesValue: List<LastUsedResource> = emptyList()
     var streamsSectionEnabledValue = true
     var calculatorHistoryValue: List<String> = emptyList()
     var calculatorMemoryValue: String? = null
@@ -182,7 +182,7 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     override val viewMode: Flow<WearViewMode> = MutableStateFlow(viewModeValue)
     override val fileListViewMode: Flow<WearViewMode> = MutableStateFlow(fileListViewModeValue)
     override val keepScreenAwakeOutsidePlayers: Flow<Boolean> = MutableStateFlow(keepScreenAwakeValue)
-    override val lastUsedResource: Flow<LastUsedResource?> = MutableStateFlow(lastUsedResourceValue)
+    override val lastUsedResources: Flow<List<LastUsedResource>> = MutableStateFlow(lastUsedResourcesValue)
     override val streamsSectionEnabled: Flow<Boolean> = MutableStateFlow(streamsSectionEnabledValue)
     override val calculatorHistory: Flow<List<String>> = MutableStateFlow(calculatorHistoryValue)
     override val calculatorMemory: Flow<String?> = MutableStateFlow(calculatorMemoryValue)
@@ -235,11 +235,12 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     }
 
     override suspend fun setLastUsedResource(id: String, name: String) {
-        lastUsedResourceValue = LastUsedResource(id, name)
+        lastUsedResourcesValue = listOf(LastUsedResource(id, name)) +
+            lastUsedResourcesValue.filterNot { it.id == id }
     }
 
     override suspend fun clearLastUsedResource() {
-        lastUsedResourceValue = null
+        lastUsedResourcesValue = emptyList()
     }
 
     override suspend fun setStreamsSectionEnabled(enabled: Boolean) {

@@ -2978,4 +2978,16 @@
     <string name="calculator_hint_share">Teilen</string>
     <string name="calculator_hint_round">Runden</string>
     <string name="calculator_hint_save">Speichern</string>
+    <string name="resource_type_wear_watch">Uhr</string>
+    <string name="paired_watch">Gekoppelte Uhr</string>
+    <string name="paired_watch_description">Dateien an die Uhr senden und abholen, was sie aufnimmt</string>
+    <string name="paired_watch_name_dialog_title">Name der Uhr-Ressource</string>
+    <string name="paired_watch_already_added">Die gekoppelte Uhr ist bereits in deinen Ressourcen</string>
+    <string name="paired_watch_not_connected">Uhr nicht verbunden</string>
+    <string name="paired_watch_resource_added">Uhr-Ressource \"%1$s\" hinzugefügt</string>
+    <string name="wear_watch_operation_unsupported">Dateien auf der Uhr können vom Telefon aus noch nicht umbenannt oder gelöscht werden.</string>
+    <string name="wear_watch_transfer_too_large">%1$s ist zu groß für die Uhr (Grenze 32 MB).</string>
+    <string name="wear_watch_transfer_unreachable">Die Uhr ist nicht verbunden, daher wurde %1$s nicht gesendet.</string>
+    <string name="wear_watch_transfer_cancelled">Das Senden von %1$s an die Uhr wurde abgebrochen.</string>
+    <string name="wear_watch_transfer_failed_file">%1$s hat die Uhr nicht erreicht.</string>
 </resources>

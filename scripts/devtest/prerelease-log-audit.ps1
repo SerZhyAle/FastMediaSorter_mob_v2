@@ -119,6 +119,21 @@ $thumbnailChainHandled = @(
     Select-String -Path $LogFile -Pattern 'NetworkVideoFrameDecoder.*(Extraction TIMEOUT|getFrameAtTime returned null)' -List -ErrorAction SilentlyContinue
 ).Count -gt 0
 
+# S1969: the emulator's software renderer misses a frame release during a window transition and
+# libgui logs E/FrameEvents from INSIDE the app process, so pid attribution keeps it and that one
+# line failed an otherwise clean sweep (v033 2026-08-22: 22/22 Maestro, 0 toasts, 0 crashes, 0 ANRs).
+# Guarded like the thumbnail chain above instead of joining $benignPatterns, because on a physical
+# device a missed frame release can be a real defect. EGL_emulation is written only by the emulator's
+# GLES translator, so its presence anywhere in the capture proves the whole run was software-rendered;
+# on a device it appears in no line at all. A time window around the FrameEvents line would cost a
+# timestamp parse per line of a 105 MB capture and add nothing, since the marker is absent everywhere
+# rather than merely far away.
+$softwareRenderedCapture = @(
+    Select-String -Path $LogFile -Pattern 'EGL_emulation' -List -ErrorAction SilentlyContinue
+).Count -gt 0
+$guardedEmulatorGpuNoiseTag = '^FrameEvents$'
+$guardedEmulatorGpuNoise    = 'addRelease: Did not find frame'
+
 # Foreign / other-process tags dropped entirely (same treatment as $systemTagHint): recurrent
 # emulator/system/GMS/Maestro-harness noise that is never our app process, so a match can never
 # hide an app defect. Non-anchored substring match on the parsed tag token (S0976). Keep each
@@ -229,7 +244,9 @@ foreach ($raw in [System.IO.File]::ReadLines((Resolve-Path $LogFile))) {
     }
 
     $isBenign = (("$tag $msg") -match $benignPatterns) -or (Test-BenignPair $tag $msg) -or
-                ($thumbnailChainHandled -and $msg -match $guardedThumbnailChain)
+                ($thumbnailChainHandled -and $msg -match $guardedThumbnailChain) -or
+                ($softwareRenderedCapture -and $tag -match $guardedEmulatorGpuNoiseTag -and
+                 $msg -match $guardedEmulatorGpuNoise)
 
     # Normalize the message head: drop volatile path/number tails so identical errors cluster.
     $head = ($msg -replace '\d+', '#') -replace '\s+', ' '
@@ -262,6 +279,7 @@ if ($Json) {
         exitCode       = $exit
         attribution    = $attribution
         appPidCount    = $appPidSet.Count
+        softwareRendered= [bool]$softwareRenderedCapture
         actionableCount= $actionable.Count
         benignCount    = $benign.Count
         toastCount     = $toastUnique.Count

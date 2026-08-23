@@ -3407,4 +3407,16 @@
     <string name="calculator_hint_share">Отправить</string>
     <string name="calculator_hint_round">Округлить</string>
     <string name="calculator_hint_save">Сохранить</string>
+    <string name="resource_type_wear_watch">Часы</string>
+    <string name="paired_watch">Спаренные часы</string>
+    <string name="paired_watch_description">Отправляйте файлы на часы и забирайте записанное на них</string>
+    <string name="paired_watch_name_dialog_title">Имя ресурса часов</string>
+    <string name="paired_watch_already_added">Ресурс спаренных часов уже добавлен</string>
+    <string name="paired_watch_not_connected">Часы не на связи</string>
+    <string name="paired_watch_resource_added">Ресурс часов «%1$s» добавлен</string>
+    <string name="wear_watch_operation_unsupported">Файлы на часах пока нельзя переименовать или удалить с телефона.</string>
+    <string name="wear_watch_transfer_too_large">«%1$s» слишком велик для часов (предел 32 МБ).</string>
+    <string name="wear_watch_transfer_unreachable">Часы не на связи, поэтому «%1$s» не отправлен.</string>
+    <string name="wear_watch_transfer_cancelled">Отправка «%1$s» на часы отменена.</string>
+    <string name="wear_watch_transfer_failed_file">«%1$s» не дошёл до часов.</string>
 </resources>

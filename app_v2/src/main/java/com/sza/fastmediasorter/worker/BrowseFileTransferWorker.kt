@@ -674,6 +674,8 @@ class BrowseFileTransferWorker @AssistedInject constructor(
         private const val RESULT_ID_MODULO = 100
         private const val REQUEST_CODE_MODULO = 10_000
         private val REMOTE_OR_CONTENT_PREFIXES =
-            listOf("smb://", "sftp://", "ftp://", "cloud://", "content://")
+            // S1861: wear:// joins the list so the paired-watch destination reaches the transport
+            // branch with its scheme intact instead of being resolved as a relative directory.
+            listOf("smb://", "sftp://", "ftp://", "cloud://", "content://", "wear://")
     }
 }

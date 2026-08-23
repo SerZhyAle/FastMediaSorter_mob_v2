@@ -14,12 +14,16 @@ package com.sza.fastmediasorter.domain.model
  * - LOCAL / CLOUD: gated by the probed [MediaResource.isWritable], which is an accurate
  *   filesystem / provider writability check for those types.
  * - streams (HTTP / RTSP): never writable.
+ * - the paired watch (S1861): writable whenever the bridge is up. Like the network types, the probe
+ *   behind [MediaResource.isWritable] is a reachability check and not a per-folder permission check,
+ *   so it cannot pre-decide writability; the send itself reports what actually happened.
  */
 fun MediaResource.allowsWriteOperations(): Boolean {
     if (isReadOnly) return false
     return when (type) {
         ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP -> true
         ResourceType.LOCAL, ResourceType.CLOUD -> isWritable
+        ResourceType.WEAR_WATCH -> true
         ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> false
     }
 }

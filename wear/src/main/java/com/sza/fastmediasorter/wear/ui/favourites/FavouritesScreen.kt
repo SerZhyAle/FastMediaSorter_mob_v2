@@ -39,6 +39,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
+import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
@@ -141,7 +142,8 @@ private fun FavouritesList(
         ScalingLazyColumn(
             modifier = Modifier.fillMaxSize(),
             state = listState,
-            contentPadding = wearScreenInsets()
+            contentPadding = wearScreenInsets(),
+            scalingParams = WearGridScalingParams
         ) {
             item {
                 Text(

@@ -2,43 +2,34 @@ package com.sza.fastmediasorter.wear.ui.home
 
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionId
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionVisibility
-import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
 /**
- * S1836: the row named after a resource used to declare the same route as the Resources row, so two
- * neighbouring rows did the same thing and differed only by caption. These cases pin the destination.
+ * S1940: favourites has to stay at the end whatever else the catalog decides to emit.
+ *
+ * S1974: the catalog no longer emits the last-used shortcut at all. That absence is asserted rather
+ * than assumed, because a conditional first member is exactly what used to shift every predefined
+ * section by one cell whenever a resource was opened or deleted.
  */
 class HomeSectionCatalogTest {
 
     @Test
-    fun `the last used row addresses the remembered source`() {
-        val sections = HomeSectionCatalog.sectionsFor(visibility(LastUsedResource(SOURCE_ID, SOURCE_NAME)))
-
-        val lastUsed = sections.first { it.id == HomeSectionId.LAST_USED_RESOURCE }
-        assertEquals(WearRoutes.sourceMediaType(SOURCE_ID, SOURCE_NAME), lastUsed.route)
-        assertEquals(SOURCE_NAME, lastUsed.dynamicLabel)
-    }
-
-    @Test
-    fun `the last used row does not repeat the resources list`() {
-        val sections = HomeSectionCatalog.sectionsFor(visibility(LastUsedResource(SOURCE_ID, SOURCE_NAME)))
-
-        val lastUsed = sections.first { it.id == HomeSectionId.LAST_USED_RESOURCE }
-        val resources = sections.first { it.id == HomeSectionId.RESOURCES }
-        assertNotEquals(resources.route, lastUsed.route)
-        assertEquals(WearRoutes.NETWORK_SOURCES, resources.route)
-    }
-
-    @Test
-    fun `a gone source leaves no row behind`() {
-        val sections = HomeSectionCatalog.sectionsFor(visibility(lastUsedResource = null))
+    fun `the catalog emits no shortcut row of its own`() {
+        val sections = HomeSectionCatalog.sectionsFor(visibility(streamsEnabled = true))
 
         assertNull(sections.firstOrNull { it.id == HomeSectionId.LAST_USED_RESOURCE })
+    }
+
+    @Test
+    fun `resources is the first section whatever else is enabled`() {
+        assertEquals(HomeSectionId.RESOURCES, HomeSectionCatalog.sectionsFor(visibility()).first().id)
+        assertEquals(
+            HomeSectionId.RESOURCES,
+            HomeSectionCatalog.sectionsFor(visibility(streamsEnabled = true)).first().id
+        )
     }
 
     @Test
@@ -58,23 +49,12 @@ class HomeSectionCatalogTest {
 
     @Test
     fun `a conditional section cannot displace favourites from the end`() {
-        val sections = HomeSectionCatalog.sectionsFor(
-            visibility(LastUsedResource(SOURCE_ID, SOURCE_NAME), streamsEnabled = true)
-        )
+        val sections = HomeSectionCatalog.sectionsFor(visibility(streamsEnabled = true))
 
         assertEquals(HomeSectionId.FAVOURITES, sections.last().id)
     }
 
-    private fun visibility(
-        lastUsedResource: LastUsedResource? = null,
-        streamsEnabled: Boolean = false
-    ) = HomeSectionVisibility(
-        lastUsedResource = lastUsedResource,
+    private fun visibility(streamsEnabled: Boolean = false) = HomeSectionVisibility(
         streamsEnabled = streamsEnabled
     )
-
-    private companion object {
-        const val SOURCE_ID = "src-7"
-        const val SOURCE_NAME = "MyNAS"
-    }
 }

@@ -219,6 +219,10 @@ class MainResumePlaybackHelper(
                 resourceRepository.testConnection(resource).isSuccess
             }
             ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> true
+            // S1861: confirming a watch-side file means waking the bridge, and resume runs on a cold
+            // start where that would stall the first screen. Reporting it unavailable only skips the
+            // resume prompt; the resource itself still opens normally afterwards.
+            ResourceType.WEAR_WATCH -> false
         }
     }
 

@@ -142,6 +142,8 @@ An emulator-only benign cluster recurring every sweep is a candidate for audit's
 
 A framework error the app already handled is suppressed **conditionally**, never by tag alone (S1700): the thumbnail chain `FrameDecoder err -1004` / `StagefrightMetadataRetriever` / `MetadataRetrieverClient` / `MediaMetadataRetrieverJNI` counts as benign in both the verdict and the audit only while the same capture carries the app's own `NetworkVideoFrameDecoder` timeout marker. The JNI shim runs inside the app process, so `-AppOnly` attributes it to us; without the paired marker the same chain means local decoding broke and still fails the gate.
 
+The same shape covers the emulator's graphics stack (S1969): `E/FrameEvents: addRelease: Did not find frame` is benign in both the verdict and the audit only while the same capture carries `EGL_emulation`. `libgui` emits it from inside the app process during a window transition, so pid attribution keeps it, and one such line ended the v033 sweep at `pass=false` with 22/22 Maestro, no toast, no crash and no ANR. The marker decides because only the emulator's GLES translator writes it - on a physical device it appears in no line at all, and there a missed frame release stays a real defect. Both directions are pinned by fixtures in `scripts/devtest/prerelease-log-audit.tests/`.
+
 ## Final report segments
 
 Appended to the one-line verdict, verbatim shapes:

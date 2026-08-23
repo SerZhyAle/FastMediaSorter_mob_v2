@@ -55,7 +55,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
-import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
@@ -66,6 +65,7 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.StreamChannelReason
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
+import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
@@ -318,7 +318,7 @@ private fun PlayPauseButton(
     description: String,
     onClick: () -> Unit
 ) {
-    Button(
+    RectangularButton(
         onClick = onClick,
         modifier = Modifier.size(56.dp),
         colors = ButtonDefaults.primaryButtonColors()
@@ -350,7 +350,7 @@ private fun VideoActionButtons(
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (hasSet) {
-            Button(
+            RectangularButton(
                 onClick = onSkipPrevious,
                 modifier = Modifier.size(48.dp),
                 colors = ButtonDefaults.secondaryButtonColors()
@@ -370,7 +370,7 @@ private fun VideoActionButtons(
         )
 
         if (hasSet) {
-            Button(
+            RectangularButton(
                 onClick = onSkipNext,
                 modifier = Modifier.size(48.dp),
                 colors = ButtonDefaults.secondaryButtonColors()
@@ -383,7 +383,7 @@ private fun VideoActionButtons(
             }
         }
 
-        Button(
+        RectangularButton(
             onClick = onToggleScaleMode,
             modifier = Modifier.size(48.dp),
             colors = ButtonDefaults.secondaryButtonColors()

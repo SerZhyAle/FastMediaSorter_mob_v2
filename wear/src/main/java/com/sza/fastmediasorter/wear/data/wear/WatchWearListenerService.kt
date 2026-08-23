@@ -13,15 +13,17 @@ import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Wearable
 import com.google.android.gms.wearable.WearableListenerService
 import com.google.gson.Gson
-import com.sza.fastmediasorter.wear.data.repository.WearFileReceiverManager
+import com.google.gson.JsonSyntaxException
 import com.sza.fastmediasorter.wear.domain.model.ImportResult
 import com.sza.fastmediasorter.wear.domain.model.WearEventEnvelopeCodec
+import com.sza.fastmediasorter.wear.domain.model.WearFileTransferMetadata
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.wear.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearStreamTransferAck
 import com.sza.fastmediasorter.wear.domain.model.WearStreamTransferPayload
 import com.sza.fastmediasorter.wear.domain.model.WearSyncPayload
+import com.sza.fastmediasorter.wear.domain.repository.WearFileReceiverRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ApplyWearSettingsUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ImportNetworkSourcesUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.StoreTransferredStreamUseCase
@@ -43,6 +45,9 @@ import javax.inject.Inject
 private const val PATH_PUSH = "/fms/network_sources/push"
 private const val PATH_ACK  = "/fms/network_sources/ack"
 
+/** Used when the phone opened the channel without a trailing name segment. */
+private const val DEFAULT_INCOMING_FILE_NAME = "transferred_media"
+
 @AndroidEntryPoint
 class WatchWearListenerService : WearableListenerService() {
 
@@ -52,7 +57,7 @@ class WatchWearListenerService : WearableListenerService() {
 
     @Inject lateinit var applyWearSettingsUseCase: ApplyWearSettingsUseCase
 
-    @Inject lateinit var wearFileReceiverManager: WearFileReceiverManager
+    @Inject lateinit var wearFileReceiverRepository: WearFileReceiverRepository
 
     @Inject lateinit var storeTransferredStreamUseCase: StoreTransferredStreamUseCase
 
@@ -61,10 +66,11 @@ class WatchWearListenerService : WearableListenerService() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onChannelOpened(channel: ChannelClient.Channel) {
-        if (channel.path.startsWith("/fms/transfer_file")) {
-            val fileName = channel.path.substringAfterLast('/', "transferred_media")
+        if (channel.path.startsWith(WearDataLayerPaths.FILE_TRANSFER)) {
+            val fileName = channel.path.substringAfterLast('/', DEFAULT_INCOMING_FILE_NAME)
             serviceScope.launch {
-                wearFileReceiverManager.receiveFile(channel, fileName)
+                val outcome = wearFileReceiverRepository.receiveFile(channel, fileName)
+                Timber.i("Incoming file %s ended as %s", fileName, outcome)
             }
         }
     }
@@ -92,7 +98,27 @@ class WatchWearListenerService : WearableListenerService() {
             WearDataLayerPaths.PLAYBACK_CMD -> handlePlaybackCommand(event.data)
             WearDataLayerPaths.STREAM_TRANSFER ->
                 handleStreamTransfer(event.sourceNodeId, event.data)
+            WearDataLayerPaths.FILE_TRANSFER_META -> handleFileTransferMeta(event.data)
             else -> Timber.d("WatchWearListenerService: unhandled message path ${event.path}")
+        }
+    }
+
+    /**
+     * The phone announcing a file before it opens the channel. Parsed on the caller's thread because
+     * it is a few dozen bytes of JSON and the declaration must be in place before the channel event,
+     * which GMS may deliver immediately afterwards.
+     */
+    private fun handleFileTransferMeta(data: ByteArray) {
+        val metadata = try {
+            gson.fromJson(data.decodeToString(), WearFileTransferMetadata::class.java)
+        } catch (e: JsonSyntaxException) {
+            // Nothing to correlate without a name, so the channel simply arrives undeclared and is
+            // capped at the ceiling instead of at the declared size.
+            Timber.w(e, "Failed to parse an incoming file declaration")
+            null
+        }
+        if (metadata != null) {
+            wearFileReceiverRepository.declare(metadata)
         }
     }
 

@@ -91,6 +91,15 @@ $guardedThumbnailFallbacks = @(
     'failed to get video frame \(err -\d+\)'
 ) -join '|'
 
+# S1969: libgui logs E/FrameEvents from inside the app process when the emulator's software renderer
+# misses a frame release during a window transition, so `-AppOnly` attributes it to us and that single
+# line ended the v033 sweep at pass=false with 22/22 Maestro, no toast, no crash and no ANR. Guarded,
+# not unconditional: on a physical device a missed frame release can be a real defect, and EGL_emulation
+# is written only by the emulator's GLES translator, so its presence anywhere in the capture proves the
+# whole run was software-rendered. Mirrors the same guard in prerelease-log-audit.ps1.
+$softwareRenderMarker = 'EGL_emulation'
+$guardedEmulatorGpuFallbacks = 'addRelease: Did not find frame'
+
 function Invoke-SearchLog {
     param([string[]]$ExtraArgs)
     $a = @('-NoProfile', '-File', $SearchLog, '-LogFile', $LogFile)
@@ -112,7 +121,10 @@ function Get-Count {
 # Grep the file directly for the S1700 guard marker instead of spawning another search-log pass -
 # the log is ~300k lines and each pass costs minutes; the count is never loaded into agent context.
 $thumbnailHandled = @(Select-String -Path $LogFile -Pattern $handledThumbnailTimeoutPattern -List -ErrorAction SilentlyContinue).Count -gt 0
-$expectedPattern  = if ($thumbnailHandled) { "$expectedFallbacks|$guardedThumbnailFallbacks" } else { $expectedFallbacks }
+$softwareRendered = @(Select-String -Path $LogFile -Pattern $softwareRenderMarker -List -ErrorAction SilentlyContinue).Count -gt 0
+$expectedPattern  = $expectedFallbacks
+if ($thumbnailHandled) { $expectedPattern = "$expectedPattern|$guardedThumbnailFallbacks" }
+if ($softwareRendered) { $expectedPattern = "$expectedPattern|$guardedEmulatorGpuFallbacks" }
 
 $allErrors      = Get-Count -ExtraArgs @('-Errors', '-AppOnly', '-Unique')
 $expectedErrors = Get-Count -ExtraArgs @('-Errors', '-AppOnly', '-Unique', '-Pattern', $expectedPattern)
@@ -146,7 +158,7 @@ $crashBlocks = ($crashCount -gt 0)
 $priorCrash = (Get-Count -ExtraArgs @('-AppOnly', '-Pattern', 'PREVIOUS SESSION ENDED WITH A CRASH')) -gt 0
 
 $logPass = ($netErrors -eq 0) -and (-not $crashBlocks) -and (-not $priorCrash)
-$logBreakdown = [ordered]@{ pass = [bool]$logPass; actionableErrors = $netErrors; crashBlocks = [bool]$crashBlocks; priorCrash = [bool]$priorCrash; thumbnailTimeoutHandled = [bool]$thumbnailHandled }
+$logBreakdown = [ordered]@{ pass = [bool]$logPass; actionableErrors = $netErrors; crashBlocks = [bool]$crashBlocks; priorCrash = [bool]$priorCrash; thumbnailTimeoutHandled = [bool]$thumbnailHandled; softwareRenderedCapture = [bool]$softwareRendered }
 
 # ---------- perf + maestro + screenshot signals (step 04.2) ----------
 # perf: every measure record in MetricsFile must have pass=true. Missing file = no perf data

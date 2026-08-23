@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.StorageVolumeRepository
+import com.sza.fastmediasorter.domain.scanner.WearWatchMediaScanner
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import com.sza.fastmediasorter.utils.FtpPathUtils
 import com.sza.fastmediasorter.utils.SftpPathUtils
@@ -31,7 +32,10 @@ class ResourceRepositoryImpl @Inject constructor(
     private val resourceDao: ResourceDao,
     private val credentialsRepository: NetworkCredentialsRepository,
     private val smbOperationsUseCase: SmbOperationsUseCase,
-    private val storageVolumeRepository: StorageVolumeRepository
+    private val storageVolumeRepository: StorageVolumeRepository,
+    // S1861: the interface, so this class in src/main stays free of a build-variant check - the
+    // flavors with no Wear companion bind the inert wearStub twin instead.
+    private val wearWatchMediaScanner: WearWatchMediaScanner
 ) : ResourceRepository {
 
     override fun getAllResources(): Flow<List<MediaResource>> {
@@ -386,6 +390,15 @@ class ResourceRepositoryImpl @Inject constructor(
             }
             ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> {
                 Result.success("Stream resource - no connection test needed")
+            }
+            ResourceType.WEAR_WATCH -> {
+                // S1861: the answer the user needs is whether the bridge has a watch on the far end;
+                // a watch that is off the wrist is unreachable no matter what the phone's network says.
+                if (wearWatchMediaScanner.isWatchReachable()) {
+                    Result.success("Paired watch connected")
+                } else {
+                    Result.failure(IllegalStateException("No paired watch is currently connected"))
+                }
             }
         }
     }

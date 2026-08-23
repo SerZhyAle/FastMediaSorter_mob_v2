@@ -12,16 +12,20 @@ class UnusedCredentialPolicyTest {
 
     private val now = 100_000_000_000L
 
+    // S1649: the policy measures the grace period from orphanedSince, so that is what a case must
+    // set. createdAt is kept only to prove it no longer participates in the decision.
     private fun entry(
         status: CredentialStatus,
-        createdAt: Long,
-        id: String = "id"
+        orphanedSince: Long?,
+        id: String = "id",
+        createdAt: Long = 1L
     ) = CredentialAuditEntry(
         credentialId = id,
         credentialType = "SMB",
         label = "host:445 (user)",
         status = status,
-        createdAt = createdAt
+        createdAt = createdAt,
+        orphanedSince = orphanedSince
     )
 
     @Test
@@ -46,9 +50,30 @@ class UnusedCredentialPolicyTest {
     }
 
     @Test
-    fun `non-positive createdAt is never eligible`() {
+    fun `non-positive orphanedSince is never eligible`() {
         val policy = UnusedCredentialPolicy()
         assertFalse(policy.isEligibleForCleanup(entry(CredentialStatus.ORPHANED, 0L), now))
+    }
+
+    // Every row carries null until the background worker stamps it, which is also the state right
+    // after the schema 51 migration - a missing clock must not read as an expired one.
+    @Test
+    fun `unknown orphan moment is never eligible`() {
+        val policy = UnusedCredentialPolicy()
+        assertFalse(policy.isEligibleForCleanup(entry(CredentialStatus.ORPHANED, null), now))
+    }
+
+    // The credential was stored long before the grace period, but only just became orphaned: the
+    // guarantee S1649 restored is that storage age grants no head start.
+    @Test
+    fun `long-stored credential orphaned just now is not eligible`() {
+        val policy = UnusedCredentialPolicy()
+        val entry = entry(
+            status = CredentialStatus.ORPHANED,
+            orphanedSince = now - 1L,
+            createdAt = now - UnusedCredentialPolicy.DEFAULT_GRACE_PERIOD_MS * 12
+        )
+        assertFalse(policy.isEligibleForCleanup(entry, now))
     }
 
     @Test

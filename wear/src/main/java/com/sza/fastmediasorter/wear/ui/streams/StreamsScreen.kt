@@ -47,7 +47,6 @@ import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
-import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
@@ -59,6 +58,10 @@ import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.dialog.Dialog
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
+import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
+import com.sza.fastmediasorter.wear.ui.common.RectangularButton
+import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
+import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
@@ -73,7 +76,6 @@ private const val KEY_SEARCH_QUERY = "search_query"
 // touch-target question with one number instead of two. VideoActionButtons already sits at 48 dp.
 private val TOOLBAR_BUTTON_SIZE = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
-private val CELL_BUTTON_SIZE = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
 private val CELL_ICON_SIZE = 24.dp
 private val TITLE_VERTICAL_PADDING = 8.dp
 
@@ -232,7 +234,8 @@ private fun StreamsMainContent(
         ScalingLazyColumn(
             modifier = Modifier.fillMaxSize(),
             state = listState,
-            contentPadding = wearScreenInsets()
+            contentPadding = wearScreenInsets(),
+            scalingParams = WearGridScalingParams
         ) {
             item {
                 Text(
@@ -427,9 +430,8 @@ private fun StreamsControlHeader(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Button(
+        RectangularButton(
             onClick = {
-                Timber.d("S1962: streams toolbar button size=$TOOLBAR_BUTTON_SIZE")
                 onSearchClick()
             },
             modifier = Modifier.size(TOOLBAR_BUTTON_SIZE),
@@ -446,7 +448,7 @@ private fun StreamsControlHeader(
             )
         }
 
-        Button(
+        RectangularButton(
             onClick = onFilterClick,
             modifier = Modifier.size(TOOLBAR_BUTTON_SIZE),
             colors = if (filterKind != StreamFilterKind.ALL) {
@@ -462,7 +464,7 @@ private fun StreamsControlHeader(
             )
         }
 
-        Button(
+        RectangularButton(
             onClick = onSortClick,
             modifier = Modifier.size(TOOLBAR_BUTTON_SIZE),
             colors = if (sortOrder != StreamSortOrder.DEFAULT) {
@@ -808,37 +810,19 @@ private fun StreamCell(
         value = getFaviconTile(channel.faviconIndex)
     }
 
-    Column(
-        modifier = modifier.semantics { contentDescription = channel.name },
-        horizontalAlignment = Alignment.CenterHorizontally
+    val bmp = faviconBitmap
+    val thumbnail = if (bmp != null) WearThumbnail.Ready(bmp) else WearThumbnail.Unavailable
+
+    ThumbnailCell(
+        thumbnail = thumbnail,
+        caption = channel.name,
+        onClick = onClick,
+        modifier = modifier
     ) {
-        Button(
-            onClick = onClick,
-            modifier = Modifier.size(CELL_BUTTON_SIZE),
-            colors = ButtonDefaults.primaryButtonColors()
-        ) {
-            val bmp = faviconBitmap
-            if (bmp != null) {
-                Image(
-                    bitmap = bmp.asImageBitmap(),
-                    contentDescription = channel.name,
-                    modifier = Modifier.size(CELL_ICON_SIZE)
-                )
-            } else {
-                Icon(
-                    painter = painterResource(R.drawable.ic_cast),
-                    contentDescription = channel.name,
-                    modifier = Modifier.size(CELL_ICON_SIZE)
-                )
-            }
-        }
-        Text(
-            text = channel.name,
-            style = MaterialTheme.typography.caption3,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
+        Icon(
+            painter = painterResource(R.drawable.ic_cast),
+            contentDescription = null,
+            modifier = Modifier.size(CELL_ICON_SIZE)
         )
     }
 }

@@ -2979,4 +2979,16 @@
     <string name="calculator_hint_share">Partager</string>
     <string name="calculator_hint_round">Arrondir</string>
     <string name="calculator_hint_save">Enregistrer</string>
+    <string name="resource_type_wear_watch">Montre</string>
+    <string name="paired_watch">Montre associée</string>
+    <string name="paired_watch_description">Envoyez des fichiers à la montre et récupérez ce qu\'elle enregistre</string>
+    <string name="paired_watch_name_dialog_title">Nom de la ressource montre</string>
+    <string name="paired_watch_already_added">La montre associée est déjà dans vos ressources</string>
+    <string name="paired_watch_not_connected">Montre non connectée</string>
+    <string name="paired_watch_resource_added">Ressource montre \"%1$s\" ajoutée</string>
+    <string name="wear_watch_operation_unsupported">Les fichiers de la montre ne peuvent pas encore être renommés ni supprimés depuis le téléphone.</string>
+    <string name="wear_watch_transfer_too_large">%1$s est trop volumineux pour la montre (limite 32 Mo).</string>
+    <string name="wear_watch_transfer_unreachable">La montre n\'est pas connectée, %1$s n\'a donc pas été envoyé.</string>
+    <string name="wear_watch_transfer_cancelled">L\'envoi de %1$s à la montre a été annulé.</string>
+    <string name="wear_watch_transfer_failed_file">%1$s n\'est pas parvenu à la montre.</string>
 </resources>

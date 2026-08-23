@@ -36,6 +36,9 @@ enum class RemoteSourceId {
             ResourceType.SFTP -> SFTP
             ResourceType.FTP -> FTP
             ResourceType.LOCAL, ResourceType.CLOUD, ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> null
+            // S1861: the watch is reached over the Data Layer bridge, so it has no remote source id
+            // and must not be picked up by the per-source enable/disable gate keyed off these ids.
+            ResourceType.WEAR_WATCH -> null
         }
     }
 }

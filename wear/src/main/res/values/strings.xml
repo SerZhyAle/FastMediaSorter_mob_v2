@@ -243,9 +243,6 @@
     <string name="wear_streams_sort_kind">By media type</string>
     <string name="wear_streams_search_hint">Search</string>
     <string name="wear_streams_clear_search">Clear search</string>
-    <string name="wear_watch_resource_name"></string>
-    <string name="wear_watch_transfer_success"></string>
-    <string name="wear_watch_transfer_failed"></string>
     <string name="wear_stream_channel_narrow">Connection too slow for this stream. Move closer to Wi-Fi and try again.</string>
     <string name="wear_stream_channel_offline">Watch is offline. Reconnect, then try again.</string>
     <string name="wear_stream_channel_unverified">Connection not verified yet. Playback may stop - try again if it does.</string>
