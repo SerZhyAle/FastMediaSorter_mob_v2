@@ -57,6 +57,8 @@ This document is the curated showcase of standout user-facing features. The comp
 
 - **Your phone's media on the watch** `[Wear OS]`: Browse the paired phone's folders and favourites as a grid with thumbnails, filter by media type, and open a file straight on the wrist.
 - **A real player on the watch** `[Wear OS]`: Audio and video play on the watch with shuffle, bezel volume, a draggable position bar, paging controls, and a screen-off mode that keeps the sound going.
+- **The watch as a place to put files** `[Wear OS]`: Add the paired watch as a resource beside local and cloud ones, copy or move files onto it from any phone screen, and receive what the watch sends back into a destination you choose, up to 32 MB per file.
+- **Rectangular tiles on the watch** `[Wear OS]`: Every grid on the watch draws rectangular cells - a thumbnail fills its cell with no plate underneath, and an item without one shows its type glyph in a thin frame.
 ## 6. Replace OCR, translation, and note extraction tools
 - **Offline OCR and offline translation** `[Standard / VR]`: Extract text from images and PDFs, then translate it locally without sending content to a cloud OCR service.
 - **Photo-to-text and screenshot-to-translation flow** `[Standard / VR]`: Capture, crop, recognize, translate, and save the result as editable text in one flow.

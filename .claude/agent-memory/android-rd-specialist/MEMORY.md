@@ -39,7 +39,7 @@ Over budget? Split a section into `INDEX_*.md` - never cut a hook short: [how](f
 - [Unwired != ungated](feedback_a_gate_can_exist_and_never_be_wired.md) - check the umbrella's dimensions both ways · [Debt premise decays](feedback_detekt_debt_ticket_premise_decays.md) · [lint needs FQN](project_lint_test_modes_enforce_resolution.md) · [lint baseline fuzzy](project_lint_baseline_matching_and_runner.md)
 - [Stale test XML](feedback_stale_test_results_xml.md) - a `-Tests` run's report dir varies by module; read the path the runner prints · [fu OOMs mid-run](project_unit_suite_oom_truncation.md)
 - [FAIL may mean never ran](feedback_gate_fail_may_mean_never_ran.md) - read the XML before believing it
-- [A piped gate reports tail's exit code](feedback_piping_a_gate_through_tail_masks_its_exit_code.md) - a red suite arrives as "exit 0"; redirect, don't pipe
+- [Last command on the line owns the exit code](feedback_piping_a_gate_through_tail_masks_its_exit_code.md) - a pipe OR a trailing echo turns a failure into "exit 0"; read the body
 - [Ask what state a green check read](feedback_ask_what_state_a_green_check_read.md) - a check that observed nothing passes like one that observed success
 - [A PASS that observed nothing](feedback_a_pass_that_observed_nothing.md) - verify the preconditions existed before believing a green acceptance line
 - [No Sxxxx in permanent logs](reference_ticket_log_gate.md) · [Timber.e for real errors](feedback_log_levels.md)
@@ -82,6 +82,7 @@ Over budget? Split a section into `INDEX_*.md` - never cut a hook short: [how](f
 
 ## PowerShell / shell traps
 - Second-level index: [PowerShell, shell scripting, CLI tools & traps](INDEX_pwsh_traps.md) - open when writing scripts or debugging pwsh.
+- [`pwsh -File` keeps a comma list as one string](feedback_pwsh_file_does_not_split_a_comma_list_into_an_array.md) - `-Flavors standard,wear` binds one element; use `-Command` + `@(..)`
 
 ## Parallel sessions
 - [Re-claim the lease every phase](feedback_reclaim_ticket_lease_every_phase.md) - it expires mid-run; re-claim every phase
