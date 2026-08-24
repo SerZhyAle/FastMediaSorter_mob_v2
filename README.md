@@ -58,13 +58,10 @@ FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. O
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.60.8232.251 (August 2026)
-
-**New:**
-The paired watch is a resource you can copy media into, rectangular watch tiles that use the full screen instead of round ones.
+## What's New in v2.60.8241.708 (August 2026) - Fix Release
 
 **Fixed:**
-Resource rows on the watch respond to taps again, recent resources no longer fill the whole first row of the watch home grid, the watch startup splash shows the watch branding rather than the phone one, the legacy edition's watch companion matches the watch app identity.
+Granting All files access no longer leaves the Permissions required dialog on screen.
 
 [Full release notes →](docs/WHATS_NEW.md)
 

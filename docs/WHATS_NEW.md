@@ -6,7 +6,19 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.8232.251** (August 2026)
+**Current release: 2.60.8241.708** (August 2026) - Fix Release
+
+> Fix: granting All files access no longer leaves the permission dialog on screen
+
+---
+
+## What's Fixed
+
+- Granting All files access no longer leaves the **Permissions required** dialog on screen (S1992).
+
+---
+
+## Previous Release: 2.60.8232.251 (August 2026)
 
 > Changes since version 2.60.8222.348
 
