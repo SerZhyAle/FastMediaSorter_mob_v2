@@ -18,6 +18,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.debug.CameraTestHooksBridge
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.ui.SelfManagedScreenOrientation
 import com.sza.fastmediasorter.core.util.PermissionHelper
@@ -29,6 +30,7 @@ import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraCaptureHelperFacto
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraCaptureResultManager
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraCaptureSaveDestinationLabelManager
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraCaptureSessionManager
+import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLensSwitchManager
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLocationProvider
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraOrientationManager
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraOverlayRotationManager
@@ -121,8 +123,15 @@ class CameraCaptureActivity :
     private lateinit var gestureManager: CameraCaptureGestureManager
     private lateinit var recordingTimer: RecordingElapsedTimer
     private lateinit var orientationManager: CameraOrientationManager
+
+    /** S1986: token of the debug-only rotation-override receiver; always null in a release build. */
+    private var rotationOverrideToken: Any? = null
+
+    /** S1988: token of the debug-only lens-pinning receiver; always null in a release build. */
+    private var pinningOverrideToken: Any? = null
     private lateinit var rotationManager: CameraOverlayRotationManager
     private lateinit var zoomControlsManager: CameraZoomControlsManager
+    private lateinit var lensSwitchManager: CameraLensSwitchManager
     private lateinit var resultManager: CameraCaptureResultManager
     private lateinit var saveDestinationLabelManager: CameraCaptureSaveDestinationLabelManager
     private lateinit var gestureCallbackHandler: CameraCaptureGestureCallbackHandler
@@ -266,6 +275,12 @@ class CameraCaptureActivity :
                 syncZoomSelection()
             },
         )
+        lensSwitchManager = CameraLensSwitchManager(
+            switchButton = binding.btnCameraLensSwitch,
+            lensLabel = binding.cameraLensLabel,
+            onSwitch = { flowManager.onLensSwitch() },
+            onRestoreLabel = { zoomControlsManager.renderLensLabel(flowManager.currentCapabilities) },
+        )
         resultManager = helperFactory.createResultManager(
             activity = this,
             lifecycleScope = lifecycleScope,
@@ -304,12 +319,28 @@ class CameraCaptureActivity :
     // crashed on the uninitialised manager.
     override fun onResumeWithViews() {
         orientationManager.enable()
+        // S1986: debug builds only - the class behind this bridge lives in src/debug, so a release
+        // build finds nothing and the call is a no-op. It lets a host-side sweep pin the rotation
+        // bucket, which no adb command can do on a retail phone.
+        rotationOverrideToken = CameraTestHooksBridge.installRotationOverride(this) { rotation ->
+            orientationManager.forceRotation(rotation)
+        }
+        // S1988: same debug-only mechanism, for the sub-lens pin. The rebind is what makes the switch
+        // observable at all - the pin is read while the use cases are built, so a flag flipped after
+        // the bind would leave the sweep photographing the session it meant to change.
+        pinningOverrideToken = CameraTestHooksBridge.installLensPinningOverride(this) {
+            if (::sessionManager.isInitialized) sessionManager.rebindForDiagnostics()
+        }
     }
 
     override fun onPause() {
         // S0801: an early pause (before the deferred setupViews() ran) leaves orientationManager
         // uninitialised; its symmetric enable() never fired either, so the disable is a safe skip.
         if (::orientationManager.isInitialized) orientationManager.disable()
+        CameraTestHooksBridge.remove(this, rotationOverrideToken)
+        rotationOverrideToken = null
+        CameraTestHooksBridge.remove(this, pinningOverrideToken)
+        pinningOverrideToken = null
         cancelCountdown()
         // S1181: the camera is bound to this activity's lifecycle, so CameraX unbinds VideoCapture on
         // ON_STOP and the recording finalizes with NO_VALID_DATA - the footage is lost. Stop it here,
@@ -507,7 +538,7 @@ class CameraCaptureActivity :
             )
         }
         binding.btnCameraProfile.setOnClickListener { showProfileMenu() }
-        binding.btnCameraLensSwitch.setOnClickListener { flowManager.onLensSwitch() }
+        binding.btnCameraLensSwitch.setOnClickListener { lensSwitchManager.onRequested() }
         binding.btnCameraPauseResume.setOnClickListener { onPauseResumeClicked() }
         binding.btnGalleryThumbnail.setOnClickListener { resultManager.openLastCapture() }
         binding.toggleCameraMicrophone.setOnClickListener {
@@ -526,6 +557,7 @@ class CameraCaptureActivity :
             focusRingOverlay = binding.focusRingOverlay,
             zoomControlsManager = zoomControlsManager,
             selectMode = ::selectMode,
+            requestLensSwitch = lensSwitchManager::onRequested,
         )
         gestureManager = CameraCaptureGestureManager(
             touchSurface = binding.root,

@@ -48,7 +48,7 @@ LIMITS = {'title.txt': 30, 'short_description.txt': 80, 'full_description.txt': 
 SINGLE_IMAGES = {'featureGraphic': 'featureGraphic.png', 'icon': 'icon.png'}
 # Each is its own Play slot with its own live set. A type whose local folder is absent or empty is
 # left untouched, so publishing a phone-only refresh never wipes the tablet screenshots already live.
-SCREENSHOT_TYPES = ('phoneScreenshots', 'sevenInchScreenshots', 'tenInchScreenshots')
+SCREENSHOT_TYPES = ('phoneScreenshots', 'sevenInchScreenshots', 'tenInchScreenshots', 'wearScreenshots')
 
 IMAGE_MIME = {'.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg'}
 
@@ -120,6 +120,29 @@ def upload_images(service, edit_id, folder, language):
     return uploaded
 
 
+def _execute_or_hold(request_factory):
+    """Run an edits() call, retrying once with changesNotSentForReview when Play demands it.
+
+    Which of the two modes Play accepts is a property of the app's current state, not of this
+    script: normally an edit is sent for review automatically and passing the flag is rejected
+    with HTTP 400, but while the app is under a policy enforcement the opposite holds and the
+    call is rejected without it. Both refusals name the parameter in the message, so the mode is
+    discovered rather than guessed - a hardcoded choice is wrong half the time, and it was
+    hardcoded to the wrong half on 2026-08-24 (S1989).
+
+    Returns True when the changes were committed but held for a manual send from the Console.
+    """
+    try:
+        request_factory().execute()
+        return False
+    except Exception as exc:  # noqa: BLE001 - the API surfaces this as a generic HttpError
+        if 'changesNotSentForReview' not in str(exc):
+            raise
+        print("\nPlay refuses automatic review for this app - retrying with the changes held.")
+        request_factory(changesNotSentForReview=True).execute()
+        return True
+
+
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else 'validate'
     if mode not in ('validate', 'commit'):
@@ -166,12 +189,33 @@ def main():
             print(f"  {folder} -> {language}: listing updated (title='{title}'), images uploaded: {imgs}")
 
         if mode == 'validate':
-            service.edits().validate(packageName=PACKAGE_NAME, editId=edit_id).execute()
+            # validate() has no changesNotSentForReview parameter - only commit() does. So while
+            # the app is under enforcement there is no way to validate at all, and saying so is
+            # the honest answer: exit 2 means "could not verify", not "found a problem" (S1989).
+            try:
+                service.edits().validate(packageName=PACKAGE_NAME, editId=edit_id).execute()
+            except Exception as exc:  # noqa: BLE001 - the API surfaces this as a generic HttpError
+                if 'changesNotSentForReview' not in str(exc):
+                    raise
+                print("\nCANNOT VALIDATE: Play refuses automatic review while the app is under")
+                print("enforcement, and validate() cannot hold changes the way commit() can.")
+                print("The local checks above all passed. Use 'commit' to push, then send the")
+                print("changes for review from Publishing overview in the Console.")
+                sys.exit(2)
             print("\nSUCCESS: edit validated. NOT committed (validate mode).")
             print("Run with 'commit' to publish the listing live.")
         else:
-            service.edits().commit(packageName=PACKAGE_NAME, editId=edit_id).execute()
-            print("\nSUCCESS: edit committed. Listing is now published (Play may route via review).")
+            held = _execute_or_hold(
+                lambda **kw: service.edits().commit(
+                    packageName=PACKAGE_NAME, editId=edit_id, **kw
+                )
+            )
+            if held:
+                print("\nSUCCESS: edit committed, but HELD - not sent for review.")
+                print("Play refuses automatic review while the app is under enforcement.")
+                print("Send it from the Console: Publishing overview -> Send changes for review.")
+            else:
+                print("\nSUCCESS: edit committed. Listing is now published (Play may route via review).")
 
     except Exception as e:  # noqa: BLE001 - surface the API error and fail non-zero
         print(f"\nERROR: {e}")

@@ -23,9 +23,24 @@ determined by the data, and a number printed anyway would read exactly like a me
 The crop fractions are searched on BOTH sides, because the defect can point either way: a
 photo narrower than the viewfinder, or a viewfinder narrower than the photo.
 
+Rotation is measured, not repaired. S1986: the tool used to rotate the photo a quarter turn
+whenever its long axis disagreed with the region's, which corrected a wrongly rotated file before
+measuring it and reported a confident field-of-view number with no mention of the turn - one of the
+two reasons a sweep could report PASS on every cell while the owner was looking at a wrong photo.
+Every quarter turn is now scored, the winner is reported as `rotation_deg`, and 180 degrees is among
+the candidates because an upside-down frame has the identical shape and no long-axis rule can see it.
+
+The two sides are matched as a uniform scale, never as a stretch (S1986). Two rectangular crops of
+one sensor image differ by a scale and a shift, so only the height fraction is searched and the width
+follows from the shape. The old free per-axis search is still reported, as `free_keep_*`, because it
+is a useful hint that something is wrong - but it must not decide, since a stretch can absorb a shape
+error and name a plausible number for it.
+
 Known limitation - the verdict may be read as a verdict, the per-axis split may not. When the
 photo's SHAPE differs from the viewfinder's, --content-from-photo derives the compared band from
-the photo itself, which is the very quantity under test. The pair is still refused - a crop
+the photo itself, which is the very quantity under test: a file cropped top and bottom then defines
+its own expectation and agrees with it. Pass --content-from-aspect instead, which derives the band
+from the shape the UI was set to. With the circular option the pair is still refused - a crop
 injected on one axis alone was correctly reported FAIL - but the axis attribution was wrong,
 naming 0.740 on both axes for a crop applied only vertically. Read such a result as "these two
 disagree", never as "the file lost this much height".
@@ -47,13 +62,18 @@ RASTER = 128
 MIN_FRACTION = 0.30
 MAX_FRACTION = 1.00
 FRACTION_STEP = 0.02
+EXIF_TAG_ORIENTATION = 274
+QUARTER_TURNS = (0, 90, 180, 270)
+# Coarse grid used only to pick the quarter turn. Fine enough to rank four rotations apart, cheap
+# enough that trying all four costs a fraction of one fine search.
+COARSE_FRACTIONS = (0.5, 0.7, 0.85, 1.0)
 # Below this standard deviation the scene carries no structure to match (lens cap, blank
 # wall, pitch dark) and any correlation score is noise.
 MIN_CONTRAST = 0.02
 
 
 def load_oriented(path):
-    """Load an image and apply its EXIF rotation."""
+    """Load an image as a viewer shows it - EXIF rotation applied."""
     try:
         img = Image.open(path)
     except Exception as exc:  # noqa: BLE001 - surfaced to the caller as exit 2
@@ -61,17 +81,27 @@ def load_oriented(path):
     return ImageOps.exif_transpose(img).convert("L")
 
 
-def match_orientation(img, reference):
-    """Rotate `img` a quarter turn when its long axis disagrees with `reference`'s.
+def exif_orientation_of(path):
+    """The raw TAG_ORIENTATION of a JPEG, or None when it carries none.
 
-    The sensor JPEG is stored landscape while the viewfinder region is portrait (or the other
-    way round on a rotated host). Comparing across that mismatch measures nothing.
+    Reported beside the measured rotation because the two answer different questions: the tag says
+    what the file ASKS a viewer to do, the measurement says what the pixels actually show once the
+    viewer obeyed. A capture pipeline can be wrong in either half alone.
     """
-    img_portrait = img.size[1] >= img.size[0]
-    ref_portrait = reference.size[1] >= reference.size[0]
-    if img_portrait != ref_portrait:
-        return img.rotate(-90, expand=True)
-    return img
+    try:
+        with Image.open(path) as img:
+            exif = img.getexif()
+        return int(exif.get(EXIF_TAG_ORIENTATION)) if exif and EXIF_TAG_ORIENTATION in exif else None
+    except Exception:  # noqa: BLE001 - a missing tag is data, not a failure
+        return None
+
+
+def rotated(img, degrees):
+    """Rotate clockwise by a multiple of 90, expanding the canvas."""
+    if degrees % 360 == 0:
+        return img
+    # PIL rotates counter-clockwise, so a clockwise request is its negation.
+    return img.rotate(-(degrees % 360), expand=True)
 
 
 def central_band(img, fraction):
@@ -101,6 +131,30 @@ def content_rect_from_photo(view_size, photo_size):
         pw, ph = ph, pw
     scale = min(vw / pw, vh / ph)
     drawn_h = ph * scale
+    top = int(round((vh - drawn_h) / 2))
+    return (top, int(round(top + drawn_h)))
+
+
+def content_rect_from_aspect(view_size, stream_long_over_short):
+    """Where a fitCenter preview of a stream of `stream_long_over_short` sits inside the view.
+
+    The non-circular sibling of `content_rect_from_photo`. The band is derived from the shape the
+    UI was SET to, which is an input to the capture, instead of from the shape the file came out
+    with, which is the quantity under test. Deriving it from the photo makes a file cropped top and
+    bottom define its own expectation and agree with it - the very reading that let a sweep report
+    PASS on every cell while the owner was looking at a cropped frame.
+
+    A stream at least as wide as the view leaves no letterbox at all (the full-screen selection
+    fills the view by cropping the stream), so the band is the whole region.
+    """
+    vw, vh = view_size
+    if vw <= 0 or vh <= 0 or stream_long_over_short <= 0:
+        return (0, vh)
+    # Inside a portrait view the stream's short edge is the width, so the drawn height is the width
+    # times the ratio; inside a landscape view the letterbox falls on the sides and never on rows.
+    drawn_h = vw * stream_long_over_short if vh >= vw else vh
+    if drawn_h >= vh:
+        return (0, vh)
     top = int(round((vh - drawn_h) / 2))
     return (top, int(round(top + drawn_h)))
 
@@ -153,6 +207,39 @@ def contrast_of(img):
     return float(arr.std())
 
 
+def search_similar(container, contained_size, fixed_vec, fractions):
+    """Best sub-rectangle of `container` whose SHAPE is that of `contained_size`.
+
+    S1986: the honest model. Two rectangular crops of the same sensor image are related by a uniform
+    scale and a shift - never by a stretch, because the pixels are square in both. Searching the two
+    axes independently, as `search` does, grants a stretch the physics does not, and the winner is
+    then whichever squash happens to line the scene up: measured on one pair as (1.0, 0.8) where the
+    truth was a uniform 0.8, and on another as (1.0, 0.56) for a photo whose shape had been turned.
+    Here one free parameter is searched - the height fraction - and the width follows from the shape,
+    so a reported pair can be read as "this much of the viewfinder survived".
+
+    Returns (score, fx, fy). A shape that cannot fit at any fraction returns a score of -2.
+    """
+    cw, ch = container.size
+    pw, ph = contained_size
+    if cw <= 0 or ch <= 0 or pw <= 0 or ph <= 0:
+        return (-2.0, 1.0, 1.0)
+    best = (-2.0, 1.0, 1.0)
+    for fy in fractions:
+        rect_h = ch * fy
+        rect_w = rect_h * (pw / ph)
+        if rect_w > cw:
+            continue
+        fx = rect_w / cw
+        vec = raster(crop_fraction(container, fx, fy))
+        if vec is None:
+            continue
+        score = float(np.dot(vec, fixed_vec))
+        if score > best[0]:
+            best = (score, float(fx), float(fy))
+    return best
+
+
 def search(moving, fixed_vec, fractions):
     """Find the (fx, fy) centre-crop of `moving` best matching `fixed_vec`."""
     best = (-2.0, 1.0, 1.0)
@@ -167,13 +254,49 @@ def search(moving, fixed_vec, fractions):
     return best
 
 
+def best_score_at(photo_band, shot_band, fractions):
+    """Best correlation between the two bands over both crop directions."""
+    photo_vec = raster(photo_band)
+    shot_vec = raster(shot_band)
+    if photo_vec is None or shot_vec is None:
+        return -2.0
+    a_score, _, _ = search_similar(shot_band, photo_band.size, photo_vec, fractions)
+    b_score, _, _ = search_similar(photo_band, shot_band.size, shot_vec, fractions)
+    return max(a_score, b_score)
+
+
+def best_quarter_turn(photo, shot_band, band):
+    """Which clockwise quarter turn of `photo` lines up with what the viewfinder showed.
+
+    Measured, never assumed. The old code rotated the photo whenever its long axis disagreed with
+    the region's, which silently repaired exactly the defect the owner reports - a file saved at the
+    wrong rotation arrived at the comparator already corrected, and no field of the result mentioned
+    that a turn had been applied. Here the turn is the answer, and 180 degrees - invisible to any
+    long-axis rule, because an upside-down frame has the identical shape - is one of the candidates.
+    """
+    best = (-2.0, 0)
+    for turn in QUARTER_TURNS:
+        candidate = central_band(rotated(photo, turn), band)
+        score = best_score_at(candidate, shot_band, COARSE_FRACTIONS)
+        if score > best[0]:
+            best = (score, turn)
+    return best[1], best[0]
+
+
 def main():
     ap = argparse.ArgumentParser(description="Measure viewfinder-vs-photo field-of-view agreement.")
     ap.add_argument("--screenshot", required=True, help="Full-screen PNG captured while the viewfinder was live.")
     ap.add_argument("--photo", required=True, help="The JPEG the shutter produced.")
     ap.add_argument("--region", help="PreviewView CONTENT bounds inside the screenshot: left,top,right,bottom.")
     ap.add_argument("--content-from-photo", action="store_true",
-                    help="Derive the letterboxed preview band inside --region from the photo's aspect (preferred).")
+                    help="Derive the letterboxed preview band inside --region from the photo's aspect "
+                         "(circular - the photo's shape is under test; prefer --content-from-aspect).")
+    ap.add_argument("--content-from-aspect", type=float, metavar="LONG_OVER_SHORT",
+                    help="Derive the preview band from the stream aspect the UI was SET to "
+                         "(e.g. 1.7778 for 16:9, 1.3333 for 4:3, 0 for a view-filling selection).")
+    ap.add_argument("--expect-rotation", type=int, choices=list(QUARTER_TURNS),
+                    help="Clockwise turn the photo must need to line up with the viewfinder. "
+                         "Any other measured turn is a FAIL.")
     ap.add_argument("--detect-content", action="store_true",
                     help="Find the preview band by looking for texture; fails on a flat subject.")
     ap.add_argument("--band", type=float, default=0.6,
@@ -198,7 +321,10 @@ def main():
         shot = shot.crop((left, top, right, bottom))
 
     detected = None
-    if args.content_from_photo:
+    if args.content_from_aspect is not None:
+        detected = content_rect_from_aspect(shot.size, args.content_from_aspect)
+        shot = shot.crop((0, detected[0], shot.size[0], detected[1]))
+    elif args.content_from_photo:
         detected = content_rect_from_photo(shot.size, photo.size)
         shot = shot.crop((0, detected[0], shot.size[0], detected[1]))
     elif args.detect_content:
@@ -208,9 +334,9 @@ def main():
             return 2
         shot = shot.crop((0, detected[0], shot.size[0], detected[1]))
 
-    photo = match_orientation(photo, shot)
-
     shot_band = central_band(shot, args.band)
+    turn, turn_score = best_quarter_turn(photo, shot_band, args.band)
+    photo = rotated(photo, turn)
     photo_band = central_band(photo, args.band)
 
     if contrast_of(shot_band) < MIN_CONTRAST or contrast_of(photo_band) < MIN_CONTRAST:
@@ -226,9 +352,13 @@ def main():
         return 2
 
     # Direction A: the photo kept only part of what the viewfinder showed.
-    a_score, a_fx, a_fy = search(shot_band, photo_vec, fractions)
+    a_score, a_fx, a_fy = search_similar(shot_band, photo_band.size, photo_vec, fractions)
     # Direction B: the viewfinder showed only part of what the photo kept.
-    b_score, b_fx, b_fy = search(photo_band, shot_vec, fractions)
+    b_score, b_fx, b_fy = search_similar(photo_band, shot_band.size, shot_vec, fractions)
+    # The unconstrained search, reported but never used for the verdict. It is what an eye does when
+    # it stretches one picture onto another, and it scores higher on a pair that genuinely disagrees -
+    # which is exactly why it must not decide: it can hide a shape error inside a stretch.
+    free_score, free_fx, free_fy = search(shot_band, photo_vec, fractions)
 
     if a_score >= b_score:
         direction, score, fx, fy = "photo-inside-viewfinder", a_score, a_fx, a_fy
@@ -246,10 +376,16 @@ def main():
     result = {
         "label": args.label,
         "direction": direction,
+        "rotation_deg": turn,
+        "rotation_correlation": round(turn_score, 4),
+        "exif_orientation": exif_orientation_of(args.photo),
         "keep_fx": round(fx, 3),
         "keep_fy": round(fy, 3),
         "correlation": round(score, 4),
         "band": args.band,
+        "free_keep_fx": round(free_fx, 3),
+        "free_keep_fy": round(free_fy, 3),
+        "free_correlation": round(free_score, 4),
         "screenshot": args.screenshot,
         "photo": args.photo,
     }
@@ -257,6 +393,11 @@ def main():
         result["detected_content_rows"] = [int(detected[0]), int(detected[1])]
 
     status = 0
+    failures = []
+    if args.expect_rotation is not None:
+        result["expect_rotation"] = args.expect_rotation
+        if turn != args.expect_rotation:
+            failures.append(f"rotation {turn} != expected {args.expect_rotation}")
     if args.expect_fx is not None and args.expect_fy is not None:
         dx = abs(fx - args.expect_fx)
         dy = abs(fy - args.expect_fy)
@@ -264,15 +405,19 @@ def main():
         result["expect_fy"] = args.expect_fy
         result["delta_fx"] = round(dx, 3)
         result["delta_fy"] = round(dy, 3)
-        within = dx <= args.tolerance and dy <= args.tolerance
-        result["verdict"] = "PASS" if within else "FAIL"
-        status = 0 if within else 1
+        if dx > args.tolerance or dy > args.tolerance:
+            failures.append(f"keep ({fx:.2f},{fy:.2f}) != expected ({args.expect_fx},{args.expect_fy})")
+    if args.expect_rotation is not None or args.expect_fx is not None:
+        result["verdict"] = "PASS" if not failures else "FAIL"
+        if failures:
+            result["failures"] = failures
+        status = 0 if not failures else 1
 
     if args.json:
         print(json.dumps(result))
     else:
         print(
-            f"{args.label or 'compare'}: direction={direction} "
+            f"{args.label or 'compare'}: direction={direction} rotation={turn} "
             f"keep_fx={fx:.3f} keep_fy={fy:.3f} correlation={score:.4f}"
             + (f" verdict={result['verdict']}" if "verdict" in result else "")
         )

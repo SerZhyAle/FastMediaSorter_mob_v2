@@ -150,19 +150,31 @@ try {
         -Ok ($survivors.Count -eq 1) `
         -Detail "(survivors=$($survivors.Count), ticket age=${staleByTranscript}m vs SessionStaleMinutes=$($timings.SessionStaleMinutes))"
 
-    # 4 - The absolute ceiling is NOT extendable by a heartbeat (strategic §11.4, ADR-3). Without
-    #     this the fix would merely reverse the starvation: an abandoned head would hold forever.
+    # 4 - A live waiter survives beyond the former ceiling. Its waiting time is controlled by the
+    #     current holder, so treating that age as abandonment reverses the queue's fairness.
     Reset-Sandbox
     $pastCeiling = $timings.TicketCeilingMinutes + 5
-    [void](New-SyntheticTicket -Seq 1 -SessionId 'sandbox-session-abandoned' -AgeMinutes $pastCeiling `
+    [void](New-SyntheticTicket -Seq 1 -SessionId 'sandbox-session-long-wait' -AgeMinutes $pastCeiling `
             -HeartbeatAgeMinutes 0 -TranscriptPath 'Z:\no-such-transcript\missing.jsonl')
     $env:CLAUDE_CODE_SESSION_ID = $sessionA
     $afterCeiling = @(Get-AgentLockQueue -Name Code)
-    Write-Verdict -Label 'ceiling eviction: a fresh heartbeat does not rescue a ticket past TicketCeilingMinutes' `
-        -Ok ($afterCeiling.Count -eq 0) `
+    Write-Verdict -Label 'live long-wait survival: a fresh heartbeat preserves a ticket past TicketCeilingMinutes' `
+        -Ok ($afterCeiling.Count -eq 1) `
         -Detail "(survivors=$($afterCeiling.Count), ticket age=${pastCeiling}m vs ceiling=$($timings.TicketCeilingMinutes))"
 
-    # 5 - A ticket written before this change still reads, orders and survives (strategic §11.9,
+    # 5 - Stale ownership, not elapsed queue age, remains the eviction criterion. A dead session
+    #     must still stop blocking the queue even if its ticket was created recently.
+    Reset-Sandbox
+    $staleHeartbeat = $timings.SessionStaleMinutes + 2
+    [void](New-SyntheticTicket -Seq 1 -SessionId 'sandbox-session-abandoned' -AgeMinutes 1 `
+            -HeartbeatAgeMinutes $staleHeartbeat -TranscriptPath 'Z:\no-such-transcript\missing.jsonl')
+    $env:CLAUDE_CODE_SESSION_ID = $sessionA
+    $afterStaleOwner = @(Get-AgentLockQueue -Name Code)
+    Write-Verdict -Label 'stale-owner eviction: an expired heartbeat removes a ticket before it blocks the queue' `
+        -Ok ($afterStaleOwner.Count -eq 0) `
+        -Detail "(survivors=$($afterStaleOwner.Count), heartbeat age=${staleHeartbeat}m vs SessionStaleMinutes=$($timings.SessionStaleMinutes))"
+
+    # 6 - A ticket written before this change still reads, orders and survives (strategic §11.9,
     #     ADR-5). The fix lands in a tree where sibling sessions already hold old-shape tickets.
     Reset-Sandbox
     [void](New-SyntheticTicket -Seq 1 -SessionId 'sandbox-session-legacy' -AgeMinutes 1 -OldShape)
@@ -175,7 +187,7 @@ try {
         -Ok $legacyKept `
         -Detail "(tickets=$($mixed.Count), head seq=$(if ($mixed.Count) { $mixed[0].seq } else { 'n/a' }))"
 
-    # 6 - S1462. Reading an absent property is only an error under Set-StrictMode, and the callers
+    # 7 - S1462. Reading an absent property is only an error under Set-StrictMode, and the callers
     #     that wait on this queue (post-change.ps1 and the gates it drives) all set it. So the guard
     #     that lets a pre-S1448 head be stamped can regress without any un-strict test noticing:
     #     assertion 5 above passes either way. The strict scope here is the whole point of the case -

@@ -15,6 +15,7 @@ class CameraCaptureGestureCallbackHandler(
     private val focusRingOverlay: FocusRingOverlayView,
     private val zoomControlsManager: CameraZoomControlsManager,
     private val selectMode: (CameraCaptureMode) -> Unit,
+    private val requestLensSwitch: () -> Unit,
 ) : CameraCaptureGestureManager.Callbacks {
 
     override fun onTapToFocus(x: Float, y: Float) {
@@ -32,7 +33,9 @@ class CameraCaptureGestureCallbackHandler(
     }
 
     override fun onSwipeLensSwitch() {
-        flowManager.onLensSwitch()
+        // S1987: through the same gate as the button, so a swipe made during a rebind is refused and
+        // shown as busy rather than queued behind it.
+        requestLensSwitch()
     }
 
     override fun onSwipeModeSwitch(toNext: Boolean) {

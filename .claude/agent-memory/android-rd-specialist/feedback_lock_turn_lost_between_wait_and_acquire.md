@@ -45,3 +45,18 @@ output ends in "Meanwhile do lock-free work", you did NOT get the lock - backgro
 `wait-for-lock-turn.ps1` chained with `enter-code-lock.ps1` in ONE pwsh process, wait for the
 notification, and edit after it. Treat "I already wrote the file" as a reason to tell the operator,
 not as a reason to continue.
+
+## A single wait also loses the turn to the ticket's own age (2026-08-24, S1993)
+
+The loop above is not belt-and-braces - it is load-bearing on its own. A queue ticket is evicted once it
+is older than `TicketCeilingMinutes` (20 for Code), and that half of the condition in `agent-lock.ps1`
+never asks whether the waiting session is alive. So a holder who keeps the lock longer than 20 minutes
+guarantees that every waiter is dropped before its turn, longest-waiting first. Measured: waited 1179 s,
+then `temp/CODE.TURN-<session>.json` read `{"outcome":"evicted","detail":"ticket no longer in queue"}` -
+while the holder was demonstrably working (its `BUILD.LOCK` showed a running gradle build).
+
+**How to apply:** never arm a bare `wait ; enter` pair for a lock you might wait more than ~15 minutes
+for - use the retry loop, which re-queues on eviction and cost 311 s on the next attempt. Read the turn
+marker, not the background task's exit code: eviction and defeat both surface as exit 1. And do not read
+a dead PID in `lock-status` as a stale lock - for Code the PID is a transient pwsh process by design, and
+liveness comes from session activity (S1448).

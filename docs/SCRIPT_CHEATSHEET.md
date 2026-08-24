@@ -630,7 +630,11 @@ scripts/builders/build-wear-debug.PS1
 
 ```
 scripts/builders/build-wear-release.PS1
-  (no param block)
+  Params:
+    -Artifact            [String] = 'Apk'  {Apk|Aab|Both}
+    -VersionName         [String]
+    -VersionCode         [Int32]
+  Exit: 0 - requested artifacts built and copied; 1 - artifact missing after a successful Gradle run, or an argument is unusable
 ```
 
 ### check-lint-rules.ps1
@@ -655,6 +659,7 @@ scripts/builders/check-standard-fast.ps1
     -Mode                   [String] = "CodeAndResources"  {Code|Resources|CodeAndResources|Unit|AndroidTest|Assemble}
     -Flavor                 [String] = "Standard"  {Standard|NoLegal|Lite|Photos|Legacy|Vr}
     -Module                 [String] = "app_v2"  {app_v2|wear}
+    -BuildType              [String] = "Debug"  {Debug|Release}
     -Tests                  [String]
     -SystemProperty         [String[]]
     -Quiet                  [SwitchParameter]
@@ -707,7 +712,8 @@ scripts/builders/install-nolegal-debug-to-device.ps1
 ```
 scripts/builders/install-standard-debug-to-device.ps1
   Params:
-    -ApkPath         [String] = $null
+    -ApkPath          [String] = $null
+    -DeviceId         [String] = $env:ANDROID_SERIAL
 ```
 
 ### publish-ffmpeg-dts-aar.ps1
@@ -791,20 +797,25 @@ scripts/devtest/camera-wysiwyg-selftest.ps1
 ```
 
 ### camera-wysiwyg-sweep.ps1
-S1920: sweep the in-app camera and check that each saved photo shows what the viewfinder showed. .DESCRIPTION Drives an ALREADY-OPEN camera screen on a connected device. For every zoom preset (and, with -SweepLenses, every lens) it screenshots the live viewfinder, presses the shutter, waits for the produced JPEG, pulls it, and measures the field-of-view agreement between the two with scripts/devtest/camera_fov_compare.py. The camera screen is NOT opened by this script, because every camera Activity in this app is android:exported="false" and `am start` refuses a non-exported component. Open it by hand, or through the exported MainActivity action: adb shell am start -a com.sza.fastmediasorter.action.CAMERA_OCR_TRANSLATE -n com.sza.fastmediasorter.debug/com.sza.fastmediasorter.ui.main.MainActivity The expected keep-fractions are derived from the measured PreviewView bounds and the requested stream aspect, NOT hardcoded: with scaleType=fitCenter the stream is letterboxed inside the view, so a correct capture matches the letterboxed content, not the whole view. Point the camera at a textured scene. A blank wall carries no structure to correlate and the comparator refuses it rather than reporting a confident number derived from noise. .PARAMETER DeviceId Target device serial. Required when more than one device is online. .PARAMETER Zooms Zoom preset labels to visit, as printed on the zoom row (e.g. 1,3,5). Default: 1. .PARAMETER Shapes Frame shapes to visit, in order: 4:3, 16:9, full. Default: all three, 16:9 first because it is the app default and therefore the shape the owner most likely shot on. A shape the device does not offer is reported and skipped, never silently replaced by the one already selected. .PARAMETER SweepLenses Also cycle btnCameraLensSwitch once per zoom pass. .PARAMETER StreamAspect Requested stream long/short ratio used to predict the letterbox. Default 1.7778 (16:9). .PARAMETER Tolerance Allowed absolute deviation of each keep-fraction before a row counts FAIL. Default 0.05. .PARAMETER OutDir Where screenshots, pulled photos and the report land. Default temp/S1920/sweep. .PARAMETER KeepArtifacts Keep the pulled photos. Without it they are deleted locally after comparison; the device copy is always removed, because this runs on the owner's working phone. .EXITCODES 0 - every measured combination agreed with its prediction 1 - at least one combination disagreed (the defect reproduced) 2 - could not measure (no device, camera screen not open, no photo produced, scene too flat)
+S1920: sweep the in-app camera and check that each saved photo shows what the viewfinder showed.
 
 ```
 scripts/devtest/camera-wysiwyg-sweep.ps1
-  S1920: sweep the in-app camera and check that each saved photo shows what the viewfinder showed. .DESCRIPTION Drives an ALREADY-OPEN camera screen on a connected device. For every zoom preset (and, with -SweepLenses, every lens) it screenshots the live viewfinder, presses the shutter, waits for the produced JPEG, pulls it, and measures the field-of-view agreement between the two with scripts/devtest/camera_fov_compare.py. The camera screen is NOT opened by this script, because every camera Activity in this app is android:exported="false" and `am start` refuses a non-exported component. Open it by hand, or through the exported MainActivity action: adb shell am start -a com.sza.fastmediasorter.action.CAMERA_OCR_TRANSLATE -n com.sza.fastmediasorter.debug/com.sza.fastmediasorter.ui.main.MainActivity The expected keep-fractions are derived from the measured PreviewView bounds and the requested stream aspect, NOT hardcoded: with scaleType=fitCenter the stream is letterboxed inside the view, so a correct capture matches the letterboxed content, not the whole view. Point the camera at a textured scene. A blank wall carries no structure to correlate and the comparator refuses it rather than reporting a confident number derived from noise. .PARAMETER DeviceId Target device serial. Required when more than one device is online. .PARAMETER Zooms Zoom preset labels to visit, as printed on the zoom row (e.g. 1,3,5). Default: 1. .PARAMETER Shapes Frame shapes to visit, in order: 4:3, 16:9, full. Default: all three, 16:9 first because it is the app default and therefore the shape the owner most likely shot on. A shape the device does not offer is reported and skipped, never silently replaced by the one already selected. .PARAMETER SweepLenses Also cycle btnCameraLensSwitch once per zoom pass. .PARAMETER StreamAspect Requested stream long/short ratio used to predict the letterbox. Default 1.7778 (16:9). .PARAMETER Tolerance Allowed absolute deviation of each keep-fraction before a row counts FAIL. Default 0.05. .PARAMETER OutDir Where screenshots, pulled photos and the report land. Default temp/S1920/sweep. .PARAMETER KeepArtifacts Keep the pulled photos. Without it they are deleted locally after comparison; the device copy is always removed, because this runs on the owner's working phone. .EXITCODES 0 - every measured combination agreed with its prediction 1 - at least one combination disagreed (the defect reproduced) 2 - could not measure (no device, camera screen not open, no photo produced, scene too flat)
+  S1920: sweep the in-app camera and check that each saved photo shows what the viewfinder showed.
   Params:
-    -DeviceId              [String]
-    -Zooms                 [String[]] = @('1')
-    -Shapes                [String[]] = @('16:9', '4:3', 'full')  {4:3|16:9|full}
-    -SweepLenses           [SwitchParameter]
-    -StreamAspect          [Double] = 1.7778
-    -Tolerance             [Double] = 0.05
-    -OutDir                [String] = 'temp/S1920/sweep'
-    -KeepArtifacts         [SwitchParameter]
+    -DeviceId                  [String]
+    -Zooms                     [String[]] = @('1')
+    -Shapes                    [String[]] = @('16:9', '4:3', 'full')
+    -SweepLenses               [SwitchParameter]
+    -Lenses                    [String[]] = @()
+    -StreamAspect              [Double] = 1.7778
+    -Tolerance                 [Double] = 0.05
+    -OutDir                    [String] = 'temp/S1920/sweep'
+    -KeepArtifacts             [SwitchParameter]
+    -Rotations                 [String[]] = @()
+    -DiscoverRotation          [SwitchParameter]
+    -NoPhysicalLensPin         [SwitchParameter]
+    -Route                     [String] = 'ocr'  {ocr|camera|video}
   Exit: 0 - every measured combination agreed with its prediction; 1 - at least one combination disagreed (the defect reproduced); 2 - could not measure (no device, camera screen not open, no photo produced, scene too flat)
 ```
 
@@ -1813,16 +1824,16 @@ scripts/quality/assert-fgs-notifications.ps1
 ```
 
 ### assert-file-line-ceiling.ps1
-Gate: a source file must not exceed the 1500-line ceiling of CLAUDE.md Rule 2 (S1270).
+Gate: a source file must not exceed the 2000-line ceiling of CLAUDE.md Rule 2 (S1270).
 
 ```
 scripts/quality/assert-file-line-ceiling.ps1
-  Gate: a source file must not exceed the 1500-line ceiling of CLAUDE.md Rule 2 (S1270).
+  Gate: a source file must not exceed the 2000-line ceiling of CLAUDE.md Rule 2 (S1270).
   Params:
     -Gate             [SwitchParameter]
     -Report           [SwitchParameter]
     -Quiet            [SwitchParameter]
-    -Ceiling          [Int32] = 1500  {range 100..100000}
+    -Ceiling          [Int32] = 2000  {range 100..100000}
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
   Exit: 0 - at or below the baseline, or -Report was given; 1 - above the baseline: a file crossed the ceiling that did not before; 2 - cannot verify: a source root or the baseline file is missing or unreadable
 ```
@@ -3088,8 +3099,11 @@ Publish a FastMediaSorter standard AAB release to Google Play Console.
 scripts/release/publish-play-release.ps1
   Publish a FastMediaSorter standard AAB release to Google Play Console.
   Params:
-    -Track          [String] = "production"
-    -Status         [String] = "completed"
+    -Track                    [String] = "production"
+    -Status                   [String] = "completed"
+    -Aab                      [String]
+    -VersionCode              [Int32]
+    -NotesVersionCode         [Int32]
 ```
 
 ### retain-deobfuscation.ps1
@@ -3975,6 +3989,21 @@ scripts/utils/convert-log.ps1
     -InputFile   (req)  [String]
     -OutputFile         [String] = ""
     -AppId              [String] = "com.sza.fastmediasorter"
+```
+
+### copy-to-drive.ps1
+Mirror one built artifact to the Google Drive share, raw and as a password ZIP.
+
+```
+scripts/utils/copy-to-drive.ps1
+  Mirror one built artifact to the Google Drive share, raw and as a password ZIP.
+  Params:
+    -Path         (req)  [String]
+    -Name                [String]
+    -DriveDir            [String] = 'c:\GD\WORK\FastMediaSorter'
+    -ZipPassword         [String] = '1'
+    -NoZip               [SwitchParameter]
+  Exit: 0 - the raw copy landed (the ZIP may have been skipped, and says so); 1 - -Path does not exist, or the raw copy itself failed
 ```
 
 ### create-release-candidate.ps1

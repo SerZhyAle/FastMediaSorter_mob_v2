@@ -95,7 +95,9 @@ class CameraCaptureResultManager(
         galleryThumbnail.visibility = View.VISIBLE
         // S1317: path is app-produced today (camera output), so this is defence in depth rather than an
         // observed failure - keeps the surface safe if the source of this path ever widens.
-        Glide.with(activity).load(File(path)).centerCrop().dontAnimate().into(galleryThumbnail)
+        // fitCenter, not centerCrop: the square thumbnail must show the whole captured frame inscribed
+        // in it, so the user recognises what was shot rather than its cropped middle.
+        Glide.with(activity).load(File(path)).fitCenter().dontAnimate().into(galleryThumbnail)
     }
 
     /**

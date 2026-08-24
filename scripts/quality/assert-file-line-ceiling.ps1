@@ -1,10 +1,10 @@
 #requires -Version 7.0
 <#
 .SYNOPSIS
-    Gate: a source file must not exceed the 1500-line ceiling of CLAUDE.md Rule 2 (S1270).
+    Gate: a source file must not exceed the 2000-line ceiling of CLAUDE.md Rule 2 (S1270).
 
 .DESCRIPTION
-    Rule 2 has stated a 1500-line ceiling for a long time and nothing has ever measured it. Verified
+    Rule 2 states the ceiling and nothing had ever measured it until this gate. Verified
     2026-08-21: no script under scripts/quality checks file length, and detekt's config carries
     LongMethod but no FileLength or LargeClass rule - so the ceiling was advice, not a limit. detekt
     would not have covered C++ in any case: it never sees a .cpp file.
@@ -18,9 +18,13 @@
     Not statements, not tokens - the same number `wc -l` gives, so a disagreement with the gate is
     always resolvable by hand.
 
+    THE CEILING IS 2000, RAISED FROM 1500 BY THE OWNER ON 2026-08-24. The baseline was re-measured
+    against the new ceiling in the same change (4 -> 2); raising the ceiling without re-measuring
+    would have left the ratchet slack enough to admit two new offenders unnoticed.
+
     RATCHETED. The count of files above the ceiling is compared with a baseline that may fall and
-    never rise. The four files above it today are pre-existing; the point of the gate is that a
-    fifth cannot appear unnoticed, and that a split which brings one below the line lowers the
+    never rise. The two files above it today are pre-existing; the point of the gate is that a
+    third cannot appear unnoticed, and that a split which brings one below the line lowers the
     ceiling for good.
 
     WHY A COUNT AND NOT A LIST. A list would pin the offenders by name, and renaming a file would
@@ -37,7 +41,7 @@
     Print the verdict line only.
 
 .PARAMETER Ceiling
-    Line ceiling. Defaults to Rule 2's 1500.
+    Line ceiling. Defaults to Rule 2's 2000.
 
 .PARAMETER RepoRoot
     Repository root. Defaults to the directory two levels above this script.
@@ -53,7 +57,7 @@ param(
     [switch] $Gate,
     [switch] $Report,
     [switch] $Quiet,
-    [ValidateRange(100, 100000)] [int] $Ceiling = 1500,
+    [ValidateRange(100, 100000)] [int] $Ceiling = 2000,
     [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 )
 

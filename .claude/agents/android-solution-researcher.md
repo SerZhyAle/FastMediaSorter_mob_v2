@@ -35,7 +35,7 @@ Step 2 - Targeted Grep for gaps: call sites of key class/method; existing `Build
 
 Step 3 - API levels: per platform API touched - `minSdk` per flavor (26 standard/lite/photos, 23 legacy); API postdating `minSdk` (needs `@RequiresApi`/compat); scoped storage / MediaStore batch / photo picker / predictive back.
 
-Step 4 - Risks: files near 1500-line limit that get touched; modified classes with no test coverage; existing circular deps / architecture violations; Coroutine dispatcher + any main-thread disk/network I/O; FTP/SMB/cloud timeout gaps if network.
+Step 4 - Risks: files near 2000-line limit that get touched; modified classes with no test coverage; existing circular deps / architecture violations; Coroutine dispatcher + any main-thread disk/network I/O; FTP/SMB/cloud timeout gaps if network.
 
 ## Output Format
 

@@ -155,8 +155,8 @@ try {
 
                 $fileWarnings = @()
 
-                if ($lineCount -gt 1500) {
-                    $fileWarnings += "File exceeds 1500 lines ($lineCount)"
+                if ($lineCount -gt 2000) {
+                    $fileWarnings += "File exceeds 2000 lines ($lineCount)"
                 }
 
                 $lineNumber = 0

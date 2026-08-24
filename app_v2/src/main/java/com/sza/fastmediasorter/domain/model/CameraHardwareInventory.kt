@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.model
 
+import android.graphics.Rect
 import android.util.Range
 import android.util.Size
 import android.util.SizeF
@@ -28,6 +29,8 @@ data class CameraHardwareEntry(
     val lensFacing: Int? = null,
     val focalLengthsMm: List<Float> = emptyList(),
     val sensorSizeMm: SizeF? = null,
+    /** The sensor's active pixel rectangle, the frame every crop calculation is expressed against. */
+    val activeArrayPx: Rect? = null,
     val zoomRange: Range<Float>? = null,
     val minFocusDistanceDiopters: Float? = null,
     val focusDistanceCalibration: Int? = null,

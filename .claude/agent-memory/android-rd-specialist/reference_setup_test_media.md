@@ -21,3 +21,20 @@ Key non-obvious facts:
 - Creates `.lrc` lyrics + `.txt` inline on device, and triggers a MediaStore scan at the end.
 - `/sdcard/Android/media/...` push fails on Android 11+ (restriction) - the script warns and
   suggests using a real Telegram/WhatsApp folder for Block 1.8.
+
+## Never put this corpus in front of an outside audience (2026-08-24, S1991)
+
+`c:\Common\test_media` is **real personal material**, not fixtures. Its PDFs include a signed
+consent form naming a real person with a visible signature; the EPUB is a commercial book whose
+title is not something to show a reviewer. Renaming a file does not help - the app renders the
+contents, and the EPUB reader shows the internal title, not the filename.
+
+**Why:** while recording the Play evidence video for the All files access declaration, a fixture
+built by copying from this folder put that signed consent form full-screen in the take. It was
+caught only because a screenshot was read before the recording, not after.
+
+**How to apply:** for anything an outsider will see - a Play evidence video, store screenshots, a
+demo, a bug report attachment - generate synthetic files instead. A minimal one-page PDF and a valid
+EPUB can both be written by hand from Python with no libraries; the generators used for that take are
+in `temp/S1991/fixture/`. Keep this corpus for local functional testing, where nobody but the owner
+looks at it.

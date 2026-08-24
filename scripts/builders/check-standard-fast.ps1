@@ -7,7 +7,8 @@
     Exit 0 - the check passed.
     Exit 1 - the check found a defect (compile error, red test, truncated suite).
     Exit 2 - the check could not run to a verdict (S1463: the unit-test worker JVM died, twice;
-             or -Flavor was combined with -Module wear, which declares no flavors).
+             -Flavor was combined with -Module wear, which declares no flavors; or
+             -BuildType Release was combined with -Mode Assemble, which is refused - see below).
 #>
 param(
     [ValidateSet("Code", "Resources", "CodeAndResources", "Unit", "AndroidTest", "Assemble")]
@@ -25,6 +26,13 @@ param(
     # -Flavor does not apply to it.
     [ValidateSet("app_v2", "wear")]
     [string]$Module = "app_v2",
+    # S1988: which build type the check compiles. Debug is the working default and the only one any
+    # caller used before, but it compiles src/debug ALONGSIDE src/main, so it cannot answer the one
+    # question a debug-only test seam raises: does src/main still build when the debug class is gone?
+    # `.\a.ps1 nl` looks like that proof and is not - release targets delegate to the git worktree at
+    # ../FastMediaSorter_release and build main, so they never see the working tree's changes.
+    [ValidateSet("Debug", "Release")]
+    [string]$BuildType = "Debug",
     [string]$Tests,
     # S1735: system properties forwarded to the gradle JVM, "name=value" each.
     #
@@ -52,19 +60,28 @@ if ($Module -eq 'wear' -and $Flavor -ne 'Standard') {
     exit 2
 }
 
+# S1988/S1873: -Mode Assemble is the only mode that packages an installable artifact, and its version
+# stamp below is written for a debug build. A release APK produced here would be unsigned and stamped
+# wrong while looking exactly like the real thing, which is the failure S1873 records. Release
+# packaging belongs to the release worktree; this script only ever compiles a release variant.
+if ($BuildType -eq 'Release' -and $Mode -eq 'Assemble') {
+    Write-Error "check-standard-fast: -BuildType Release is refused with -Mode Assemble - use the release worktree (.\a.ps1 r / nl / vr) to package." -ErrorAction Continue
+    exit 2
+}
+
 # The wear module declares no product flavors, so its task names carry no flavor segment.
 $variant = if ($Module -eq 'wear') { '' } else { $Flavor }
 
 function Get-GradleTaskList {
     switch ($Mode) {
-        "Code" { return @(":${Module}:compile${variant}DebugKotlin") }
-        "Resources" { return @(":${Module}:process${variant}DebugResources") }
-        "CodeAndResources" { return @(":${Module}:compile${variant}DebugKotlin", ":${Module}:process${variant}DebugResources") }
-        "Unit" { return @(":${Module}:test${variant}DebugUnitTest") }
+        "Code" { return @(":${Module}:compile${variant}${BuildType}Kotlin") }
+        "Resources" { return @(":${Module}:process${variant}${BuildType}Resources") }
+        "CodeAndResources" { return @(":${Module}:compile${variant}${BuildType}Kotlin", ":${Module}:process${variant}${BuildType}Resources") }
+        "Unit" { return @(":${Module}:test${variant}${BuildType}UnitTest") }
         # S1832: nothing compiled the instrumented source set, which is how
         # AppDatabaseMigration50To51Test shipped referencing an undeclared constant. Compile only -
         # running these needs a device, but a test that cannot build is never going to run anywhere.
-        "AndroidTest" { return @(":${Module}:compile${variant}DebugAndroidTestKotlin") }
+        "AndroidTest" { return @(":${Module}:compile${variant}${BuildType}AndroidTestKotlin") }
         "Assemble" { return @(":${Module}:assemble${variant}Debug") }
         default { throw "Unsupported mode: $Mode" }
     }
@@ -123,6 +140,7 @@ if ($Tests) {
 $checkLabel = if ($Module -eq 'wear') { 'wear' } else { "app_v2/$Flavor" }
 Write-Host "Fast $checkLabel check.." -ForegroundColor Cyan
 Write-Host "Mode: $Mode" -ForegroundColor Yellow
+Write-Host "Build type: $BuildType" -ForegroundColor Yellow
 if ($Tests) {
     Write-Host "Tests filter: $Tests" -ForegroundColor Yellow
 }

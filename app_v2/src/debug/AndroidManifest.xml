@@ -12,6 +12,16 @@
             android:name=".ui.debug.DebugActivity"
             android:exported="false"
             android:theme="@style/Theme.FastMediaSorter" />
+        <!-- S1986: opens the camera host in a named mode for the host-side WYSIWYG sweep. Exported
+             on purpose - the sender is `adb shell am broadcast`, which is another uid. Debug only. -->
+        <receiver
+            android:name=".core.debug.CameraTestOpenReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.sza.fastmediasorter.debug.CAMERA_TEST_OPEN" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

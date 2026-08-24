@@ -1,16 +1,56 @@
 # Release build script for Wear OS
-# Note: this build carries the version constants checked into wear/build.gradle.kts as-is.
+# Note: this build carries the version constants checked into wear/build.gradle.kts as-is,
+# unless -VersionName/-VersionCode pin one explicitly.
 # Nothing here is generated from the clock - a release version is stamped into BOTH modules
 # by scripts/release/build-release-spectrum.ps1, so the watch and the phone stay one version.
+#
+# Exit codes:
+#   0 - requested artifacts built and copied
+#   1 - artifact missing after a successful Gradle run, or an argument is unusable
+#   <gradle exit> - the Gradle build itself failed
+[CmdletBinding()]
+param(
+    # Apk  - sideload asset for GitHub releases (the historic behaviour, still the default).
+    # Aab  - the only artifact the Play Wear OS track accepts; Play refuses an APK (S1707).
+    # Both - one Gradle invocation produces the pair, so the store artifact and the sideload
+    #        asset are provably the same build rather than two runs minutes apart.
+    [ValidateSet('Apk', 'Aab', 'Both')]
+    [string] $Artifact = 'Apk',
+
+    # Pin the published version instead of whatever is checked in. Both must be given together:
+    # a name without a code, or a code without a name, produces an artifact that disagrees with
+    # the release it claims to be.
+    [string] $VersionName,
+    [int] $VersionCode
+)
+
+if ([string]::IsNullOrWhiteSpace($VersionName) -xor ($VersionCode -le 0)) {
+    Write-Host "Error: -VersionName and -VersionCode must be supplied together." -ForegroundColor Red
+    exit 1
+}
+
+$versionArgs = @()
+if (-not [string]::IsNullOrWhiteSpace($VersionName)) {
+    $versionArgs += "-Pfms.versionName=$VersionName"
+    $versionArgs += "-Pfms.versionCode=$VersionCode"
+}
+
+$buildApk = $Artifact -in @('Apk', 'Both')
+$buildAab = $Artifact -in @('Aab', 'Both')
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
 Enter-BuildLockOrExit -Reason "build-wear-release.PS1"
 try {
 
-Write-Host "Building Wear OS release APK (version as checked into wear/build.gradle.kts).." -ForegroundColor Cyan
+$gradleTasks = @()
+if ($buildApk) { $gradleTasks += ':wear:assembleRelease' }
+if ($buildAab) { $gradleTasks += ':wear:bundleRelease' }
+
+$versionLabel = if ($versionArgs.Count -gt 0) { "$VersionName ($VersionCode)" } else { 'version as checked into wear/build.gradle.kts' }
+Write-Host "Building Wear OS release [$($gradleTasks -join ', ')] - $versionLabel.." -ForegroundColor Cyan
 
 # Start the Gradle build process
-& "$PSScriptRoot\..\..\gradlew.bat" :wear:assembleRelease --configuration-cache
+& "$PSScriptRoot\..\..\gradlew.bat" @gradleTasks @versionArgs --configuration-cache
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nBuild Failed! Exiting..." -ForegroundColor Red
@@ -22,6 +62,26 @@ Write-Host "`nBuild Successful!" -ForegroundColor Green
 # Copy to DOWNLOADS folder
 $projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
 $downloadsDir = "$projectRoot\DOWNLOADS"
+if (!(Test-Path -Path $downloadsDir)) {
+    New-Item -ItemType Directory -Path $downloadsDir | Out-Null
+}
+
+if ($buildAab) {
+    # The Play Wear OS track accepts a bundle only. Kept next to the phone AAB under the same
+    # naming scheme so publish-play-release.ps1 can address either by path alone.
+    $aabDir = Join-Path $projectRoot "wear\build\outputs\bundle\release"
+    $aab = Get-ChildItem -Path $aabDir -Filter *.aab -ErrorAction SilentlyContinue |
+        Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    if (-not $aab) {
+        Write-Host "Error: AAB not found in $aabDir" -ForegroundColor Red
+        exit 1
+    }
+    $aabDest = Join-Path $downloadsDir "FastMediaSorter_wear_release.aab"
+    Copy-Item -Path $aab.FullName -Destination $aabDest -Force
+    Write-Host "AAB copied to $aabDest ($([math]::Round($aab.Length / 1MB, 2)) MB)" -ForegroundColor Green
+}
+
+if ($buildApk) {
 
 # Resolve actual APK path from AGP output metadata (fallback to newest .apk)
 $apkDir = Join-Path $projectRoot "wear\build\outputs\apk\release"
@@ -54,9 +114,6 @@ if (-not $apkPath -or -not (Test-Path -Path $apkPath)) {
 
 Write-Host "APK location: $apkPath" -ForegroundColor Cyan
 
-if (!(Test-Path -Path $downloadsDir)) {
-    New-Item -ItemType Directory -Path $downloadsDir | Out-Null
-}
 $destName = "FastMediaSorter_wear_release.apk"
 Copy-Item -Path $apkPath -Destination "$downloadsDir\$destName" -Force
 Write-Host "APK copied to $downloadsDir\$destName" -ForegroundColor Green
@@ -68,32 +125,11 @@ $logEntry = "$timestamp | wear-release | $destName"
 Add-Content -Path $journalPath -Value $logEntry
 Write-Host "Build logged to journal" -ForegroundColor Gray
 
-# Zip with password and copy to Google Drive
-$gdDir = "c:\GD\WORK\FastMediaSorter"
-if (!(Test-Path -Path $gdDir)) {
-    New-Item -ItemType Directory -Path $gdDir | Out-Null
-}
+# Mirror to Google Drive - raw file plus password ZIP. The pair used to be written out
+# here; it now lives in one place so the release path can call the same thing.
+& "$PSScriptRoot\..\utils\copy-to-drive.ps1" -Path "$downloadsDir\$destName" -Name $destName
 
-# Copy raw APK to Google Drive (in addition to password-protected ZIP below).
-# Recipients with security policies that block APK downloads use the .zip copy;
-# the raw .apk lets fast paths skip the unzip step.
-Copy-Item -Path "$downloadsDir\$destName" -Destination "$gdDir\$destName" -Force
-Write-Host "APK copied to $gdDir\$destName" -ForegroundColor Green
-
-$zipName = [System.IO.Path]::ChangeExtension($destName, ".zip")
-$zipPath = "$gdDir\$zipName"
-
-# Use 7-Zip to create password-protected archive
-$7zipPath = "C:\Program Files\7-Zip\7z.exe"
-if (Test-Path -Path $7zipPath) {
-    & $7zipPath a -tzip -p1 "$zipPath" "$downloadsDir\$destName" | Out-Null
-    Write-Host "APK zipped with password and copied to Google Drive: $zipPath" -ForegroundColor Cyan
-   #  Write-Host "Password: 1" -ForegroundColor Yellow
-}
-else {
-    Write-Host "Warning: 7-Zip not found. APK not copied to Google Drive." -ForegroundColor Yellow
-    Write-Host "Install 7-Zip from https://www.7-zip.org/ to enable Google Drive upload." -ForegroundColor Yellow
-}
+}   # end if ($buildApk)
 
 }
 finally {

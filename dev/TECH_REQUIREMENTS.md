@@ -276,7 +276,7 @@
 | 16 KB page alignment                    | Mandatory for Google Play since Nov 1, 2025 (Android 15+)  |
 | `Log.d()` prohibited                    | Use `Timber` exclusively                                   |
 | Activity business logic prohibited      | Delegate to Manager/Helper classes                         |
-| File size limit                         | Max 1500ines per file; extract to `helpers/`             |
+| File size limit                         | Max 2000 lines per file; extract to `helpers/`             |
 | Room DB migration                       | Must increment version on any schema change                |
 | Native lib packaging                    | `useLegacyPackaging = false` for 16KB alignment            |
 

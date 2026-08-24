@@ -37,7 +37,7 @@ Recently changed files unless asked otherwise:
 1. Layer discipline: `UI -> ViewModel -> UseCase -> Repository -> DataSource`.
 2. UI zero business logic - delegate to `ui/<feature>/helpers/*Manager.kt`.
 3. Naming: `VerbNounUseCase`, `NounRepository`, `NounViewModel`, `NounVerbManager`.
-4. Files >1500 LOC -> extract helper managers.
+4. Files >2000 LOC -> extract helper managers.
 5. No Activity logic - delegate.
 6. Resolve lint warnings in touched files.
 7. Existing comments/KDoc are requirements - don't override silently.

@@ -144,7 +144,7 @@ $gates = [ordered]@{
     # neither hides behind the other: no synopsis, and exits without a documented contract.
     # Baselines in script-described-baseline.txt; no gradle daemon.
     'assert-script-described.ps1'               = @('-Quiet')
-    # S1270: Rule 2's 1500-line ceiling had no mechanical check of any kind - detekt carries
+    # S1270: Rule 2's 2000-line ceiling had no mechanical check of any kind - detekt carries
     # LongMethod but no FileLength, and it never sees a .cpp at all. xr_session.cpp grew 2101 ->
     # 2154 lines while a ticket about its size sat open. Ratcheted count over .kt/.java/.cpp/.h;
     # no gradle daemon.

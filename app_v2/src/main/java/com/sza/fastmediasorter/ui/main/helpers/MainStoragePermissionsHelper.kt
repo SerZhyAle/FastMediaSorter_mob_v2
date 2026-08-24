@@ -44,10 +44,18 @@ class MainStoragePermissionsHelper(
             Timber.d("MainStoragePermissionsHelper: skipping MANAGE_EXTERNAL_STORAGE on Chrome OS")
             return
         }
+        // S1992: the live permission state is read BEFORE the once-per-session gate. The user grants
+        // on a system screen that runs while this Activity is stopped, so a resume is the only
+        // moment the app can observe it - and the gate used to return first, leaving the rationale
+        // on screen for good over a permission that was already granted.
+        if (hasFullLocalPermissions()) {
+            permissionCheckDoneThisSession = true
+            dismissPendingDialog()
+            return
+        }
+
         if (permissionCheckDoneThisSession) return
         permissionCheckDoneThisSession = true
-
-        if (hasFullLocalPermissions()) return
 
         if (!wasStoragePermissionRequested()) {
             markStoragePermissionRequested()
@@ -68,8 +76,8 @@ class MainStoragePermissionsHelper(
 
     private fun showStoragePermissionRequestDialog() {
         if (activity.isFinishing || activity.isDestroyed) return
-        // onSettingsResult() re-runs the startup check, which would otherwise stack a second
-        // rationale on top of the one already on screen.
+        // Every resume re-runs the startup check, which would otherwise stack a second rationale on
+        // top of the one already on screen.
         if (rationaleDialog?.isShowing == true) return
         // S1436: which permission is being explained follows the one storage rule, and the words come
         // from that permission's registry row - this dialog no longer owns either decision.
@@ -107,20 +115,10 @@ class MainStoragePermissionsHelper(
             } catch (_: Exception) {
                 Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
             }
-            SettingsIntentLauncher.launch(activity, intent, PermissionHelper.REQUEST_CODE_MANAGE_STORAGE)
+            SettingsIntentLauncher.launch(activity, intent)
         } else {
             storagePermissionLauncher.launch(PermissionHelper.getStoragePermissionsArray())
         }
-    }
-
-    /**
-     * Must be called from the host activity's `onActivityResult` for
-     * `PermissionHelper.REQUEST_CODE_MANAGE_STORAGE`. Resets the once-per-session flag and
-     * re-runs the startup check so the user is re-evaluated after returning from Settings.
-     */
-    fun onSettingsResult() {
-        permissionCheckDoneThisSession = false
-        checkLocalPermissionsOnStartup()
     }
 
     companion object {

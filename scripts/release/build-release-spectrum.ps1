@@ -231,6 +231,27 @@ if ($missing.Count -gt 0) {
 }
 
 # ----------------------------------------------------------------------
+# Mirror the watch APK to Google Drive.
+#
+# The watch is the one edition whose only distribution channel today is a hand-installed
+# APK - it is in no store, so nothing updates it for anyone. Release 2.60.8232.251 shipped
+# the watch to GitHub while the Drive copy stayed at the 15 August build: still named
+# FastMediaSorter_wear_release.apk, still looking current, a month out of date. That is
+# worse than an absent copy, because nobody checks a file that is already there (S1707).
+#
+# The phone editions are deliberately not mirrored here: `a.ps1 r` already puts standard on
+# Drive, and the remaining flavors are handed out from the GitHub release instead.
+# ----------------------------------------------------------------------
+if ($buildWear) {
+    $wearApk = Get-ChildItem -Path (Join-Path $projectRoot $apkRoots['wear']) -Filter *.apk -ErrorAction SilentlyContinue |
+        Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    if ($wearApk) {
+        & (Join-Path $PSScriptRoot '..\utils\copy-to-drive.ps1') `
+            -Path $wearApk.FullName -Name 'FastMediaSorter_wear_release.apk'
+    }
+}
+
+# ----------------------------------------------------------------------
 # Retain the deobfuscation payload for every variant this run published (S1695).
 # Scope follows $selected rather than a hardcoded list, so the set of channels
 # can change without editing this code.

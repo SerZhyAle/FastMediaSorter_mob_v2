@@ -49,17 +49,24 @@ object SettingsIntentLauncher {
      *
      * The new-task flag is required for `setLaunchBounds` to take effect and is added
      * unconditionally.
+     *
+     * S1992: this launcher never returns an activity result and must not be asked for one. A new
+     * task cannot carry a result back - the platform drops it at launch time and says so
+     * ("Activity is launching as a new task, so cancelling activity result"), which delivered
+     * `RESULT_CANCELED` before the Settings screen had even drawn. Read the outcome when the host
+     * resumes instead: the user grants on a screen that runs while this app is stopped, so a resume
+     * is the only moment the app can observe the new state.
      */
-    fun launch(activity: Activity, intent: Intent, requestCode: Int) {
-        Timber.i("SettingsIntentLauncher: launch action=${intent.action} requestCode=$requestCode")
+    fun launch(activity: Activity, intent: Intent) {
+        Timber.i("SettingsIntentLauncher: launch action=${intent.action}")
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             val opts = computeCenteredLaunchBounds(activity)?.let {
                 ActivityOptions.makeBasic().setLaunchBounds(it).toBundle()
             }
-            activity.startActivityForResult(intent, requestCode, opts)
+            activity.startActivity(intent, opts)
         } else {
-            activity.startActivityForResult(intent, requestCode)
+            activity.startActivity(intent)
         }
     }
 }

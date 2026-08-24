@@ -42,7 +42,7 @@ WHY. Every step carries `**Why:**` between `**Prompt for developer:**` and `**Ve
 | `app_v2/src/main/java/com/sza/fastmediasorter/<path>/<File>.kt` | New | ≤ 250 |
 | `app_v2/src/main/java/com/sza/fastmediasorter/<path>/<Existing>.kt` | Modified | ≤ 500 |
 
-> Backup / split thresholds: see Constraints (>500 LOC → backup step, >1500 LOC → split via Manager pattern).
+> Backup / split thresholds: see Constraints (>500 LOC → backup step, >2000 LOC → split via Manager pattern).
 >
 > **Flavor placement.** Flavor-only classes (vr / vrUnlicensed / noLegal / lite / photos / legacy) MUST be listed under `app_v2/src/<flavor>/java/...` - not under `src/main/java/`. Shared contract interface and No-Op fallback stay in `src/main/java/`. Hilt binding modules for real impl go under `src/<flavor>/java/.../di/`. See `dev/FLAVOR_DEVELOPMENT_RULES.md`.
 

@@ -10,7 +10,11 @@
 #   .\a.ps1 id
 
 param(
-    [string]$ApkPath = $null
+    [string]$ApkPath = $null,
+    # S1986: this repo routinely has a phone, a watch and an emulator online at once, and bare
+    # `adb install` then fails with "more than one device/emulator" after the APK was already built.
+    # Falls back to ANDROID_SERIAL so an exported serial keeps working without repeating it per call.
+    [string]$DeviceId = $env:ANDROID_SERIAL
 )
 
 $ErrorActionPreference = 'Stop'
@@ -71,14 +75,19 @@ if ($connected.Count -eq 0) {
     Write-Host "Connect a phone/tablet via USB (Developer Mode + USB debugging)." -ForegroundColor Gray
     exit 1
 }
-if ($connected.Count -gt 1) {
-    Write-Host "Warning: multiple devices connected - ADB will pick the first one or fail." -ForegroundColor Yellow
-    Write-Host "Use ANDROID_SERIAL env var or -s flag in adb to disambiguate." -ForegroundColor Gray
+if ($connected.Count -gt 1 -and -not $DeviceId) {
+    Write-Host "Error: $($connected.Count) devices connected and no -DeviceId given." -ForegroundColor Red
+    Write-Host "Pass -DeviceId <serial> (or export ANDROID_SERIAL); `adb devices` lists them." -ForegroundColor Gray
+    exit 1
 }
 
 # -r: replace existing, -d: downgrade allowed (handy for debug iterations).
-Write-Host "`nInstalling..." -ForegroundColor Cyan
-& $adb install -r -d $ApkPath
+$target = if ($DeviceId) { "device $DeviceId" } else { 'the only connected device' }
+Write-Host "`nInstalling to $target.." -ForegroundColor Cyan
+$adbArgs = @()
+if ($DeviceId) { $adbArgs += @('-s', $DeviceId) }
+$adbArgs += @('install', '-r', '-d', $ApkPath)
+& $adb @adbArgs
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Install failed (exit $LASTEXITCODE)." -ForegroundColor Red
     exit $LASTEXITCODE

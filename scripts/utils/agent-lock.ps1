@@ -354,7 +354,7 @@ function Get-AgentTicketLiveness {
 function Remove-StaleAgentLockTickets {
     <#
     .SYNOPSIS
-        Drop tickets whose owner is gone or whose wall-clock ceiling passed. Returns the count.
+        Drop tickets whose owner is no longer live. Returns the count.
     .DESCRIPTION
         Without this, one closed session parks itself at the head of the queue and every other
         agent waits forever - a worse failure than the contention the queue exists to fix.
@@ -383,13 +383,8 @@ function Remove-StaleAgentLockTickets {
             continue
         }
 
-        $ageMinutes = if ($ticket.enqueuedAt) {
-            ([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() - [int64]$ticket.enqueuedAt) / 60000.0
-        }
-        else { 0 }
-
         $liveness = Get-AgentTicketLiveness -Ticket $ticket -StaleMinutes $timings.SessionStaleMinutes
-        if ($liveness -eq 'foreign-stale' -or $ageMinutes -gt $timings.TicketCeilingMinutes) {
+        if ($liveness -eq 'foreign-stale') {
             Remove-Item -LiteralPath $file.FullName -Force -ErrorAction SilentlyContinue
             $removed++
         }

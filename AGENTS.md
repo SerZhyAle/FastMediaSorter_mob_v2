@@ -16,7 +16,7 @@
 - Stack: Android, Kotlin 2.2.10, Java 17, Hilt, Room, Media3, Timber. The authoritative pins are the generated block in `CLAUDE.md` section 8 - do not restate a version here that the generator owns.
 - Directories: `app_v2/`, `wear/`, `dev/`, `docs/`, `scripts/`, `temp/` (scratch/logs). Read-only zones, no exceptions (CLAUDE.md Rule 4): `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
 - Temp layout (CLAUDE.md Rule 1): ticket-bound scratch/artifacts -> `temp/Sxxxx/` (per-ticket subdir; replaces flat `temp/Sxxxx_*`); no active ticket -> `temp/scratch/`. Fixed infra stays at `temp/` root, never nested: `temp/BUILD.LOCK`, `temp/CODE.LOCK`, `temp/spec-all-queue.lock`, `temp/spec-next-skip-cache.json`, raw logcat sinks `temp/current.log` + `temp/fastmediasorter_*.log`, stream-catalog files.
-- File size ceiling 1500 LOC (CLAUDE.md Rule 2): extract logic to `helpers/*Manager.kt` rather than growing a file past it.
+- File size ceiling 2000 LOC (CLAUDE.md Rule 2): extract logic to `helpers/*Manager.kt` rather than growing a file past it.
 - No Activity logic (CLAUDE.md Rule 3): delegate to `helpers/*Manager.kt`.
 - Backup before a big edit (CLAUDE.md Rule 5): a file over 500 LOC gets a timestamped copy under `temp/Sxxxx/` (or `temp/scratch/`) first.
 - Naming (CLAUDE.md Rule 6): `VerbNounUseCase`, `NounRepository`, `NounViewModel`, `NounVerbManager`.

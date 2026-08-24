@@ -73,6 +73,7 @@ class CameraHardwareDataSource @Inject constructor(
                 ?.toList()
                 .orEmpty(),
             sensorSizeMm = read(characteristics, CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE),
+            activeArrayPx = read(characteristics, CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE),
             zoomRange = zoomRangeOf(characteristics),
             minFocusDistanceDiopters = read(
                 characteristics,

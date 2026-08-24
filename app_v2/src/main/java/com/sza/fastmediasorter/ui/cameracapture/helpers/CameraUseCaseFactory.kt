@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.cameracapture.helpers
 
 import android.util.Rational
 import android.util.Size
+import android.view.Surface
 import androidx.camera.camera2.interop.Camera2Interop
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraInfo
@@ -18,8 +19,10 @@ import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.video.Recorder
 import androidx.camera.video.VideoCapture
 import androidx.camera.view.PreviewView
+import com.sza.fastmediasorter.core.debug.CameraTestHooksBridge
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraAspectSelection
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraLensEntry
+import timber.log.Timber
 
 /** Builds the CameraX use-case group while keeping output geometry in one place. */
 internal class CameraUseCaseFactory(
@@ -59,7 +62,7 @@ internal class CameraUseCaseFactory(
             null
         }
         val captureUseCase: UseCase = imageCapture ?: requireNotNull(videoCapture)
-        val viewPort = ViewPort.Builder(effectiveAspectRational(), targetRotation)
+        val viewPort = ViewPort.Builder(viewPortRational(previewView), viewPortRotation(previewView))
             .setScaleType(ViewPort.FILL_CENTER)
             .build()
         val group = UseCaseGroup.Builder()
@@ -89,11 +92,20 @@ internal class CameraUseCaseFactory(
     /**
      * S1189: no-op unless a physical lens was chosen and the pipeline can carry it, so a device
      * without sub-lens support builds exactly the use cases it built before.
+     *
+     * S1988: a debug sweep can ask for the pin to be skipped, which is the only way to run strategic
+     * §2.4's experiment - the same scene measured with and without `setPhysicalCameraId`. The skip is
+     * logged rather than silent, because a cell that reads as "not pinned" when the switch never
+     * arrived would answer the question with the wrong measurement.
      */
     private fun <T, B : ExtendableBuilder<T>> B.applyPhysicalCameraId(): B {
         val id = physicalCameraId
         if (id == null || videoMode) return this
-        Camera2Interop.Extender(this).setPhysicalCameraId(id)
+        if (CameraTestHooksBridge.isPhysicalLensPinningDisabled()) {
+            Timber.i("CameraUseCaseFactory: lens pinning override active, not pinning %s", id)
+        } else {
+            Camera2Interop.Extender(this).setPhysicalCameraId(id)
+        }
         return this
     }
 
@@ -117,8 +129,28 @@ internal class CameraUseCaseFactory(
     private fun effectiveAspectRatioInt(): Int =
         (selection ?: CameraAspectSelection.DEFAULT).forMode(videoMode).cameraXAspectRatio
 
-    private fun effectiveAspectRational(): Rational =
-        if (effectiveAspectRatioInt() == AspectRatio.RATIO_16_9) RATIONAL_16_9 else RATIONAL_4_3
+    /**
+     * S1986: the crop shape handed to `ViewPort`, taken from the SELECTION rather than from the live
+     * view - see [CameraViewPortGeometry] for the two measured defects that rules out.
+     */
+    private fun viewPortRational(previewView: PreviewView): Rational {
+        val metrics = previewView.resources.displayMetrics
+        val (width, height) = CameraViewPortGeometry.rationalFor(
+            sixteenNine = effectiveAspectRatioInt() == AspectRatio.RATIO_16_9,
+            cropsToScreen = (selection ?: CameraAspectSelection.DEFAULT).forMode(videoMode).cropsToScreen,
+            screenWidth = metrics.widthPixels,
+            screenHeight = metrics.heightPixels,
+        )
+        return Rational(width, height)
+    }
+
+    /**
+     * The rotation [viewPortRational] is expressed in - the display the viewfinder is drawn on, never
+     * the device pose. The pose still reaches the use cases through `targetRotation`, which is what
+     * orients the saved file; conflating the two is the defect above.
+     */
+    private fun viewPortRotation(previewView: PreviewView): Int =
+        previewView.display?.rotation ?: Surface.ROTATION_0
 
     companion object {
 
@@ -149,8 +181,6 @@ internal class CameraUseCaseFactory(
          */
         fun selectorFor(entry: CameraLensEntry): CameraSelector = selectorFor(entry.cameraInfo)
 
-        private val RATIONAL_4_3 = Rational(4, 3)
-        private val RATIONAL_16_9 = Rational(16, 9)
         private const val FOUR_THREE = 4f / 3f
         private const val SIXTEEN_NINE = 16f / 9f
         private const val ASPECT_MATCH_EPSILON = 0.02f

@@ -14,11 +14,16 @@
 **Key Message**: Critical bug fixes for file visibility and delete operations + stability improvements
 
 ### 2. Store Descriptions
-**Location**: `store_assets/play_store_description_*.txt`
+**Location**: `play/listing/<locale>/` - `en-US`, `ru-RU`, `uk-UA`
 
-- ✅ **English** - Title, Short (80 chars), Full description (4000 chars)
-- ✅ **Russian** - Complete localization
-- ✅ **Ukrainian** - Complete localization
+- ✅ **title.txt** - under 30 chars
+- ✅ **short_description.txt** - under 80 chars
+- ✅ **full_description.txt** - under 4000 chars
+
+Published by `scripts/release/publish-play-listing.ps1`; the contract is `play/listing/README.md`.
+The former `store_assets/play_store_description_*.txt` set was retired in S1989 - it had drifted into
+a second, media-player-sounding description, and an operator pasting it from here is how the Play
+listing stopped reading as a file organizer.
 
 ### 3. Assets
 **Location**: `store_assets/`

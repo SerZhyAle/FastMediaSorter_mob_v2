@@ -328,7 +328,7 @@ Not pinned there, so recorded here: Java 17.
 ### Quality Rules
 
 - Build artifacts a build leaves behind (APK copies, backups, digests) are scratch: per CLAUDE.md Rule 1 (scratch artifacts under temp/) - obey it as written.
-- Per CLAUDE.md Rule 2 (1500 LOC file size limit) - obey it as written.
+- Per CLAUDE.md Rule 2 (2000 LOC file size limit) - obey it as written.
 - Per CLAUDE.md Rule 5 (backup before editing >500 LOC) - obey it as written.
 - Per CLAUDE.md section 8 "Project Structure & Tech Stack" on logging - obey it as written.
 - Per CLAUDE.md Rule 3 (no Activity logic) - obey it as written.

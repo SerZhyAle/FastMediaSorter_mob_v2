@@ -3459,4 +3459,6 @@
     <string name="wear_watch_transfer_unreachable">The watch is not connected, so %1$s was not sent.</string>
     <string name="wear_watch_transfer_cancelled">Sending %1$s to the watch was cancelled.</string>
     <string name="wear_watch_transfer_failed_file">%1$s did not reach the watch.</string>
+    <string name="camera_lens_switching">Switching..</string>
+    <string name="sysinfo_field_camera_active_array">Active sensor area</string>
 </resources>

@@ -242,16 +242,16 @@ class CameraCaptureSessionManager(
      */
     @SuppressLint("MissingPermission")
     fun switchCamera(targetEquivalentFloor: Float? = null) {
-        val provider = cameraProvider
-        val preview = previewView
-        if (provider == null || preview == null || availableLenses.size < 2) return
+        if (cameraProvider == null || previewView == null || availableLenses.size < 2) return
         val target = targetEquivalentFloor?.let { lensReaching(availableLenses, it) }
         if (targetEquivalentFloor != null && target == null) return
         val targetIndex = target?.let { t -> availableLenses.indexOfFirst { it.id == t.id } }
         val nativeRatio = targetEquivalentFloor?.let { floor ->
             target?.takeIf { it.equivalentMultiplier > 0f }?.let { floor / it.equivalentMultiplier }
         }
-        bindLens(provider, preview, targetIndex ?: ((activeCameraIndex + 1) % availableLenses.size))
+        val cycleIndex = availableLenses.nextCycleIndex(activeCameraIndex, videoMode)
+        Timber.d("S1987: lens cycle $activeCameraIndex -> $cycleIndex, video=$videoMode")
+        bindLens(targetIndex ?: cycleIndex)
         // Already on the reaching lens: no rebind flicker, just land the zoom.
         nativeRatio?.let(::setZoomRatio)
     }
@@ -298,16 +298,14 @@ class CameraCaptureSessionManager(
      */
     @SuppressLint("MissingPermission")
     fun switchToFacing(facing: Int, restoreSaved: Boolean = true) {
-        val provider = cameraProvider
-        val preview = previewView
-        if (provider == null || preview == null) return
+        if (cameraProvider == null || previewView == null) return
         val targetIndex = if (facing == CameraSelector.LENS_FACING_BACK) {
             lensEnumeration.initialLensIndex(availableLenses)
         } else {
             availableLenses.indexOfFirst { it.lensFacing == facing }
         }
         if (availableLenses.getOrNull(targetIndex)?.lensFacing != facing) return
-        bindLens(provider, preview, targetIndex, restoreSaved)
+        bindLens(targetIndex, restoreSaved)
     }
 
     /**
@@ -320,12 +318,7 @@ class CameraCaptureSessionManager(
      * [restoreSaved] is false because a profile - not the user - asked for this switch.
      */
     @SuppressLint("MissingPermission")
-    private fun bindLens(
-        provider: ProcessCameraProvider,
-        preview: PreviewView,
-        targetIndex: Int,
-        restoreSaved: Boolean = true,
-    ) {
+    private fun bindLens(targetIndex: Int, restoreSaved: Boolean = true) {
         // S1479: resolved here as well as in the bind itself, so cycling onto a sub-lens the video
         // pipeline cannot carry is a no-op instead of a rebind that drops every per-lens intent.
         val resolvedIndex = availableLenses.bindableIndex(targetIndex, videoMode)
@@ -342,8 +335,7 @@ class CameraCaptureSessionManager(
         manualShutterNs = null
         exposureCompensationIndex = 0
         if (restoreSaved) availableLenses.getOrNull(resolvedIndex)?.id?.let { onLensEntering?.invoke(it) }
-        runCatching { bindToLifecycle(provider, preview) }
-            .onFailure { Timber.e(it, "CameraCaptureSessionManager: lens switch failed") }
+        rebind("lens switch")
     }
 
     /**
@@ -380,12 +372,9 @@ class CameraCaptureSessionManager(
             bokehEnabled = false
             sportEnabled = false
         }
-        val provider = cameraProvider
-        val preview = previewView
-        if (provider == null || preview == null) return
+        if (cameraProvider == null || previewView == null) return
         if (isRecording()) stopRecording()
-        runCatching { bindToLifecycle(provider, preview) }
-            .onFailure { Timber.e(it, "CameraCaptureSessionManager: mode switch failed") }
+        rebind("mode switch")
     }
 
     /**
@@ -399,11 +388,7 @@ class CameraCaptureSessionManager(
         if (enabled) hdrEnabled = false
         nightMode = enabled
         if (nightExtensionAvailable) {
-            val provider = cameraProvider
-            val preview = previewView
-            if (provider == null || preview == null) return
-            runCatching { bindToLifecycle(provider, preview) }
-                .onFailure { Timber.e(it, "CameraCaptureSessionManager: night mode switch failed") }
+            rebind("night mode switch")
         } else {
             applyExposureCompensationForNight()
         }
@@ -414,11 +399,7 @@ class CameraCaptureSessionManager(
         if (videoMode || hdrEnabled == enabled) return
         if (enabled) nightMode = false
         hdrEnabled = enabled
-        val provider = cameraProvider
-        val preview = previewView
-        if (provider == null || preview == null) return
-        runCatching { bindToLifecycle(provider, preview) }
-            .onFailure { Timber.e(it, "CameraCaptureSessionManager: HDR switch failed") }
+        rebind("HDR switch")
     }
 
     /**
@@ -435,14 +416,9 @@ class CameraCaptureSessionManager(
         val bokehChanged = bokehEnabled != wantBokeh
         bokehEnabled = wantBokeh
         sportEnabled = wantSport
-        val provider = cameraProvider
-        val preview = previewView
-        if (!bokehChanged || provider == null || preview == null) {
-            applyCamera2Options()
-            return
-        }
-        runCatching { bindToLifecycle(provider, preview) }
-            .onFailure { Timber.e(it, "CameraCaptureSessionManager: bokeh switch failed") }
+        // Sport is Camera2 capture options only, so anything that did not rebind still has to apply them.
+        val rebound = bokehChanged && rebind("bokeh switch")
+        if (!rebound) applyCamera2Options()
     }
 
     private fun applyExposureCompensationForNight() {
@@ -461,8 +437,6 @@ class CameraCaptureSessionManager(
     @SuppressLint("MissingPermission")
     fun applyMacro(enabled: Boolean) {
         macroEnabled = enabled
-        val provider = cameraProvider
-        val preview = previewView
         val activeFacing = availableLenses.getOrNull(activeCameraIndex)?.lensFacing
             ?: CameraSelector.LENS_FACING_BACK
         val macroIndex = if (enabled) {
@@ -474,7 +448,7 @@ class CameraCaptureSessionManager(
         val restoreIndex = lensBeforeMacro
             ?.let { lens -> availableLenses.indexOfFirst { it.id == lens.id } } ?: -1
         val target = when {
-            provider == null || preview == null -> NO_LENS_CHANGE
+            cameraProvider == null || previewView == null -> NO_LENS_CHANGE
             enabled && macroIndex >= 0 && macroIndex != activeCameraIndex -> {
                 lensBeforeMacro = availableLenses.getOrNull(activeCameraIndex)
                 macroIndex
@@ -487,13 +461,12 @@ class CameraCaptureSessionManager(
 
             else -> NO_LENS_CHANGE
         }
-        if (provider == null || preview == null || target == NO_LENS_CHANGE) {
+        if (target == NO_LENS_CHANGE) {
             applyCamera2Options()
             return
         }
         activeCameraIndex = target
-        runCatching { bindToLifecycle(provider, preview) }
-            .onFailure { Timber.w(it, "CameraCaptureSessionManager: macro lens change failed") }
+        rebind("macro lens change")
     }
 
     fun setExposureCompensation(index: Int) {
@@ -534,11 +507,7 @@ class CameraCaptureSessionManager(
         selectedAspect = selection
         selectedResolution = resolution
         if (!changed) return
-        val provider = cameraProvider
-        val preview = previewView
-        if (provider == null || preview == null) return
-        runCatching { bindToLifecycle(provider, preview) }
-            .onFailure { Timber.e(it, "CameraCaptureSessionManager: output format switch failed") }
+        rebind("output format switch")
     }
 
     // Read-only mirrors of the private setting state. Properties rather than getters on purpose:
@@ -799,6 +768,38 @@ class CameraCaptureSessionManager(
             .onFailure { Timber.w(it, "CameraCaptureSessionManager: resume failed") }
     }
 
+    /**
+     * S1988: rebinds so a debug-only override of how the use cases are built takes effect.
+     *
+     * `CameraUseCaseFactory.applyPhysicalCameraId` is consulted while the use cases are being built, so
+     * a switch flipped after the bind describes a session that no longer exists - the sweep would then
+     * photograph the previous state and label it the new one.
+     */
+    fun rebindForDiagnostics() {
+        rebind("diagnostics rebind")
+    }
+
+    /**
+     * Rebinds the session after a setting changed, or reports that there is nothing bound to rebind.
+     *
+     * Extracted from the seven callers that each repeated the same provider/preview pair, the same null
+     * check and the same `runCatching`. The extraction is what buys the room: this class sits under
+     * detekt's size ceiling with no headroom, so a new primitive here has to remove more lines than it
+     * adds. [reason] names the caller in the log only; one level serves all seven, because a bind that
+     * throws leaves the preview dark whichever setting asked for it.
+     *
+     * @return false when nothing is bound yet, so a caller with a non-rebinding fallback can take it.
+     */
+    private fun rebind(reason: String): Boolean {
+        Timber.d("S1988: rebind reason=$reason lens=$lastBoundLensId")
+        val provider = cameraProvider
+        val preview = previewView
+        if (provider == null || preview == null) return false
+        runCatching { bindToLifecycle(provider, preview) }
+            .onFailure { Timber.e(it, "CameraCaptureSessionManager: %s failed", reason) }
+        return true
+    }
+
     private fun bindToLifecycle(provider: ProcessCameraProvider, previewView: PreviewView) {
         activeCameraIndex = availableLenses.bindableIndex(activeCameraIndex, videoMode)
         val activeLens = availableLenses.getOrNull(activeCameraIndex) ?: run {
@@ -1010,6 +1011,24 @@ internal fun List<CameraLensEntry>.bindableIndex(index: Int, videoMode: Boolean)
     val parent = indexOfFirst { it.logicalCameraId == subLens.logicalCameraId && !it.isPhysicalSubLens }
     return if (parent >= 0) parent else index
 }
+
+/**
+ * S1987: the next index the switch cycle can actually land on, walking forward from [activeIndex].
+ *
+ * Plain +1 stalls for good in video mode: [bindableIndex] resolves a sub-lens of the bound logical
+ * camera back to that camera, `bindLens` sees the index it is already on and returns having changed
+ * nothing, so the next press computes the same candidate and gets the same silent no-op. Skipping to
+ * the first candidate that resolves elsewhere means a visible button always has somewhere to go.
+ *
+ * Falls back to [activeIndex] when no lens qualifies, which is the state where the switch button is
+ * hidden anyway. Lives beside [bindableIndex] and for the same reason: it is a pure question about a
+ * list, and the session class sits on detekt's LargeClass and TooManyFunctions ceilings.
+ */
+internal fun List<CameraLensEntry>.nextCycleIndex(activeIndex: Int, videoMode: Boolean): Int =
+    (1..size).asSequence()
+        .map { step -> (activeIndex + step) % size }
+        .firstOrNull { candidate -> bindableIndex(candidate, videoMode) != activeIndex }
+        ?: activeIndex
 
 /**
  * S1189: true when [lens] is the widest of several lenses facing the same way. A device with a

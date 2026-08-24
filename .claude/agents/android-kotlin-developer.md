@@ -36,7 +36,7 @@ Flow: `UI -> ViewModel -> UseCase -> Repository -> DataSource`
 ## Coding Rules
 
 1. Logging: `Timber` only. `Log.d()` banned.
-2. File size: max 1500 LOC -> extract to `helpers/*Manager.kt`.
+2. File size: max 2000 LOC -> extract to `helpers/*Manager.kt`.
 3. No Activity logic - delegate to `NounVerbManager.kt`.
 4. Naming: `VerbNounUseCase`, `NounRepository`, `NounViewModel`, `NounVerbManager`.
 5. Coroutines: `Dispatchers.IO` for I/O. Never block main thread.

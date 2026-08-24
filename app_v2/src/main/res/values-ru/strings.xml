@@ -3419,4 +3419,6 @@
     <string name="wear_watch_transfer_unreachable">Часы не на связи, поэтому «%1$s» не отправлен.</string>
     <string name="wear_watch_transfer_cancelled">Отправка «%1$s» на часы отменена.</string>
     <string name="wear_watch_transfer_failed_file">«%1$s» не дошёл до часов.</string>
+    <string name="camera_lens_switching">Переключение..</string>
+    <string name="sysinfo_field_camera_active_array">Активная область сенсора</string>
 </resources>

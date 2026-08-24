@@ -128,6 +128,11 @@ photo = Image.open(photo_path)
 w, h = photo.size
 cw, ch = int(w * keep), int(h * keep)
 photo.crop(((w - cw) // 2, (h - ch) // 2, (w - cw) // 2 + cw, (h - ch) // 2 + ch)).save(negative_path, quality=95)
+
+# S1986: the two rotation negatives. PIL rotates counter-clockwise, so -90 is a clockwise quarter
+# turn. 180 is the case no long-axis rule can ever catch - the frame keeps its exact shape.
+photo.rotate(-90, expand=True).save(negative_path.replace('negative_photo', 'rot90_photo'), quality=95)
+photo.rotate(180, expand=True).save(negative_path.replace('negative_photo', 'rot180_photo'), quality=95)
 "@
 
 $synth = if ($Screenshot) { 'no' } else { 'yes' }
@@ -138,18 +143,26 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 function Invoke-Comparator {
-    param([string]$PhotoPath, [string]$Label)
+    param([string]$PhotoPath, [string]$Label, [int]$ExpectRotation = -1)
     $comparatorArgs = @(
         $comparator,
         '--screenshot', $shotPath,
         '--photo', $PhotoPath,
-        '--content-from-photo',
         '--expect-fx', '1.0',
         '--expect-fy', '1.0',
         '--tolerance', '0.05',
         '--label', $Label,
         '--json'
     )
+    # The synthetic scene's shape is known here - it is this script that drew it - so the band comes
+    # from that shape rather than from the photo. A named real pair carries no declared shape, so it
+    # keeps the circular derivation, which is what the sweep used to do for every cell.
+    if ($synth -eq 'yes') {
+        $comparatorArgs += @('--content-from-aspect', '1.3333')
+    } else {
+        $comparatorArgs += '--content-from-photo'
+    }
+    if ($ExpectRotation -ge 0) { $comparatorArgs += @('--expect-rotation', "$ExpectRotation") }
     if ($region) { $comparatorArgs += @('--region', $region) }
     $out = & $python @comparatorArgs 2>&1 | Out-String
     return @{ code = $LASTEXITCODE; text = $out.Trim() }
@@ -157,7 +170,11 @@ function Invoke-Comparator {
 
 $failures = @()
 
-$positive = Invoke-Comparator -PhotoPath $photoPath -Label 'selftest-positive'
+# The sensor frame is stored landscape while the viewfinder band is portrait, so the matching pair
+# genuinely needs one clockwise quarter turn. Stating that expectation here means the positive case
+# also proves the rotation channel answers, instead of only the field-of-view one.
+$ExpectedTurn = if ($synth -eq 'yes') { 90 } else { -1 }
+$positive = Invoke-Comparator -PhotoPath $photoPath -Label 'selftest-positive' -ExpectRotation $ExpectedTurn
 if ($positive.code -ne 0) {
     $failures += "positive case: expected exit 0 (PASS), got $($positive.code) - $($positive.text)"
     Write-Host "  positive - UNEXPECTED exit $($positive.code): $($positive.text)"
@@ -180,6 +197,33 @@ if ($negative.code -ne 1) {
         Write-Host "  negative - FAIL reported, but recovered $recovered instead of $InjectedKeep"
     } else {
         Write-Host "  negative - FAIL as expected, and recovered the injected crop: $recovered"
+    }
+}
+
+# S1986: the two rotation negatives. Without them a PASS says only "same field of view", which is
+# exactly how a sweep reported PASS on every cell while the owner was holding a wrongly rotated photo.
+if ($synth -eq 'yes') {
+    $rotationCases = @(
+        @{ file = 'rot90_photo.jpg'; injected = 90; expect = 0 },
+        @{ file = 'rot180_photo.jpg'; injected = 180; expect = 270 }
+    )
+    foreach ($case in $rotationCases) {
+        $path = Join-Path $OutDir $case.file
+        $label = "selftest-rot$($case.injected)"
+        # The pair still shows the same scene, so only the rotation expectation may fail it - which is
+        # the point: a tool that fails this case on the field of view would be failing for the wrong reason.
+        $res = Invoke-Comparator -PhotoPath $path -Label $label -ExpectRotation $ExpectedTurn
+        $measured = $null
+        try { $measured = ($res.text | ConvertFrom-Json).rotation_deg } catch { $measured = $null }
+        if ($res.code -ne 1) {
+            $failures += "rotation $($case.injected): expected exit 1 (FAIL), got $($res.code) - $($res.text)"
+            Write-Host "  rot$($case.injected) - UNEXPECTED exit $($res.code): $($res.text)"
+        } elseif ($measured -ne $case.expect) {
+            $failures += "rotation $($case.injected): expected the comparator to measure $($case.expect), it measured $measured."
+            Write-Host "  rot$($case.injected) - FAIL reported, but measured $measured instead of $($case.expect)"
+        } else {
+            Write-Host "  rot$($case.injected) - FAIL as expected, and named the turn: $measured"
+        }
     }
 }
 

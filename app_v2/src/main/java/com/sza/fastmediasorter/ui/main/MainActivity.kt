@@ -31,7 +31,6 @@ import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.ui.UiState
 import com.sza.fastmediasorter.core.util.LocaleHelper
-import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
@@ -213,7 +212,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
-    // S0043: settings-permission launcher removed - Manage Storage intent is now launched via SettingsIntentLauncher (which carries setLaunchBounds for XR / freeform / foldable). Result is delivered through onActivityResult below and forwarded to permissionsHelper.
+    // S0043: settings-permission launcher removed - the Manage Storage intent is launched via
+    // SettingsIntentLauncher (which carries setLaunchBounds for XR / freeform / foldable). S1992: it
+    // returns no result, so the grant is observed by onResumeWithViews re-running the startup check.
 
     @Inject
     lateinit var mainHelperFactory: MainHelperFactory
@@ -655,16 +656,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         super.onPause()
         isReturningFromAnotherActivity = true
         if (::voiceCaptureManager.isInitialized) voiceCaptureManager.release()
-    }
-
-    // S0043: Manage Storage intent is launched via SettingsIntentLauncher (which carries setLaunchBounds for XR / freeform / foldable). Result arrives here and is forwarded to permissionsHelper for re-evaluation.
-    @Deprecated("Required for Settings panel bounds - see S0043")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        @Suppress("DEPRECATION")
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == PermissionHelper.REQUEST_CODE_MANAGE_STORAGE) {
-            permissionsHelper.onSettingsResult()
-        }
     }
 
     override fun onDestroy() {

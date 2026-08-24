@@ -112,7 +112,7 @@ Check these first:
 Class-size methodology - rank by responsibility, not by raw line count:
 
 - run `scripts/quality/measure-hotspots.ps1`; it scores each `src/main` Kotlin file by `publicApi + collaborators + callbackSites + 3*extractMarkers`, with LOC reported only for context
-- a high score means too many responsibilities, which is the real refactor signal; the 1500 LOC rule is only a coarse backstop
+- a high score means too many responsibilities, which is the real refactor signal; the 2000 LOC rule is only a coarse backstop
 - prefer extracting a real responsibility into a `helpers/*Manager.kt` over cosmetic line-count splitting
 
 Readability checks:
@@ -332,6 +332,8 @@ Check:
 Rule:
 
 - a P0/P1 change that affects reflection, DI, or manifests is not done until it is proven on a minified build, not only on debug
+
+How to run the compile half of that proof (S1988). `.\a.ps1 r`, `nl` and `vr` delegate to the git worktree at `../FastMediaSorter_release` and build `main` there, so their BUILD SUCCESSFUL describes committed code and not your working tree - it is not evidence about an uncommitted change, and it has been quoted as if it were. Compile the working tree instead with `pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Code -BuildType Release` (~3 min, background it). That covers "does `src/main` still build once the debug-only source set is gone", which a debug compile cannot answer because it puts `src/debug` on the same classpath. Packaging and the minify log still come from the release worktree; see `docs/BUILD_TEST_FAST_PATH.md`.
 
 ## Layer 8 - Mechanical gates
 

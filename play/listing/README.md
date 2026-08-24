@@ -4,6 +4,12 @@ This tree is the **Google Play** store-listing source. It is consumed by
 `scripts/release/publish-play-listing.py` (via `publish-play-listing.ps1`) and is intentionally
 **separate** from `fastlane/metadata/android/`.
 
+The store description is also half of the All files access argument. Google reviews the Permissions
+Declaration Form against the description, so a full description that stops leading with file
+organizing invalidates the declaration - that pair is what an update was rejected on, 2026-08-24
+(S1989). The declaration's own text lives in `store_assets/PLAY_PERMISSIONS_DECLARATION.md`; edit the
+two together.
+
 ## Why separate from fastlane
 
 `fastlane/metadata/android/` is the publication source for **IzzyOnDroid / GitHub-store**
@@ -26,6 +32,7 @@ play/listing/
       phoneScreenshots/<NN>.png        # composed by scripts/release/compose-play-screenshots.py
       sevenInchScreenshots/<NN>.png    # optional, own Play slot
       tenInchScreenshots/<NN>.png      # optional, own Play slot
+      wearScreenshots/<NN>.png         # Wear OS listing; square, 384-3840 px, no device frame (S1707)
       featureGraphic.png               # optional
   captions.json                    # localized screenshot caption strings
   README.md

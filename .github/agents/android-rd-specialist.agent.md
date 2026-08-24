@@ -43,7 +43,7 @@ Review focuses on uncommitted changes (`git status`) and diff vs `origin/main`, 
 1. Clean+MVVM layer discipline: `UI → ViewModel → UseCase → Repository → DataSource`; never import `data` from `ui`.
 2. UI layer zero business logic - delegate to `ui/<feature>/helpers/*Manager.kt`.
 3. Naming: `VerbNounUseCase`, `NounRepository`, `NounViewModel`, `NounVerbManager`.
-4. Editing a Kotlin file in `app_v2/`/`wear/` >1500 LOC: propose extraction to helper managers as part of the change. Untouched files >1500 LOC: only flag in review, don't refactor proactively.
+4. Editing a Kotlin file in `app_v2/`/`wear/` >2000 LOC: propose extraction to helper managers as part of the change. Untouched files >2000 LOC: only flag in review, don't refactor proactively.
 5. Activity logic prohibited - must delegate.
 6. Resolve lint warnings in touched files.
 7. Treat existing inline comments/KDoc as requirements; don't override silently. Comment discipline: EN-only, WHY not WHAT - write one only for non-obvious business logic, handled edge-case, workaround, or an invariant code can't express; never restate the adjacent line; remove stale comments.

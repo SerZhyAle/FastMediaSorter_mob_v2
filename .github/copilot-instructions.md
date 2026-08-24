@@ -28,7 +28,7 @@
 
 ## 5. Strict Constraints
 1. No root writes (CLAUDE.md Rule 1); use `temp/`, organized by ticket: ticket-bound work -> `temp/Sxxxx/`, no active ticket -> `temp/scratch/`. Fixed infra stays at `temp/` root (`BUILD.LOCK`, `CODE.LOCK`, `spec-all-queue.lock`, `done/`, `spec-next-skip-cache.json`, `current.log` + `fastmediasorter_*.log`, stream-catalog files).
-2. File size limit 1500 LOC (CLAUDE.md Rule 2). Extract logic to `helpers/*Manager.kt`.
+2. File size limit 2000 LOC (CLAUDE.md Rule 2). Extract logic to `helpers/*Manager.kt`.
 3. No Activity logic (CLAUDE.md Rule 3). Delegate to Manager/Helper classes.
 4. Timber only (no `Log.d()`). No `Sxxxx` ticket in permanent logs.
 5. Safety backup (CLAUDE.md Rule 5): timestamped copy under `temp/Sxxxx/` (or `temp/scratch/` when no ticket) before editing file >500 LOC.

@@ -597,10 +597,12 @@
         <item name="customPlayerControlsLayout">@layout/custom_player_controls_large</item>
     </style>
 
-    <!-- S0566: fully-circular clip for the in-app camera gallery thumbnail (ShapeableImageView). -->
-    <style name="ShapeAppearanceOverlay.FastMediaSorter.Circle" parent="">
+    <!-- S0566: square clip with a soft corner for the in-app camera gallery thumbnail
+         (ShapeableImageView). Deliberately not a circle: captures are rectangular, and a circular mask
+         cropped away the sides of the very frame the thumbnail exists to preview. -->
+    <style name="ShapeAppearanceOverlay.FastMediaSorter.ThumbnailSquare" parent="">
         <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">50%</item>
+        <item name="cornerSize">4dp</item>
     </style>
 
     <!-- S0619: wide, finger-friendly slider for the playback control dialog. Opt-in via style= on each

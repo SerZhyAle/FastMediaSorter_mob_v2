@@ -99,6 +99,7 @@ Use these commands as the standard local toolbox:
 .\a.ps1 fu
 pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Unit -Tests "com.sza.fastmediasorter.SomeClassTest"
 pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Assemble
+pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Code -BuildType Release
 .\a.ps1 d
 .\a.ps1 db
 .\a.ps1 dq
@@ -111,6 +112,29 @@ pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Assemble
 .\a.ps1 adb log -Tail 400 -Grep "FATAL|ANR|Sxxxx"
 pwsh -NoProfile -File scripts/utils/recover-kapt-stall.ps1 -Task ":app_v2:testStandardDebugUnitTest"
 ```
+
+### Proving a release variant compiles - and why `nl` is not that proof (S1988)
+
+Every fast target above compiles a **debug** variant, which puts `src/debug` on the classpath beside
+`src/main`. That is the wrong instrument for one specific question: does `src/main` still build once a
+debug-only class is gone? A test seam reached reflectively (`CameraTestHooksBridge` -> `CameraTestHooks`)
+raises exactly that question, and a debug compile answers it "yes" whether it is true or not.
+
+`.\a.ps1 nl` looks like the missing proof and is not. `r`, `nl` and `vr` all delegate to the git worktree
+at `../FastMediaSorter_release`, pull `main`, and build **there** - so a BUILD SUCCESSFUL from any of them
+describes committed `main`, not the working tree, and says nothing about uncommitted work. This was
+quoted as evidence once before it was caught.
+
+Use `-BuildType Release` instead. It compiles the working tree:
+
+```powershell
+pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Code -BuildType Release
+```
+
+Measured 3m 4s cold on `app_v2/Standard`, so background it per the 120 s rule above. It is refused with
+`-Mode Assemble` (exit 2): packaging a release artifact needs the signing config and the release version
+stamp, both of which belong to the release worktree, and an unsigned artifact stamped like a real one is
+the S1873 failure.
 
 ## Fast-path routing
 

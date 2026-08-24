@@ -100,7 +100,7 @@ Every skill's own `description` is injected fresh each turn (see the "Available 
 
 ## 10. Strict Rules
 1. No root writes; all scratch/artifacts under `temp/`, organized by ticket. **Ticket-bound work -> `temp/Sxxxx/`** (per-ticket subdir; replaces the old flat `temp/Sxxxx_*` prefix). **No active ticket -> `temp/scratch/`**. Fixed infrastructure stays at `temp/` root, never nested: `temp/BUILD.LOCK`, `temp/CODE.LOCK`, `temp/spec-all-queue.lock`, `temp/spec-next-skip-cache.json`, raw logcat sinks `temp/current.log` + `temp/fastmediasorter_*.log`, stream-catalog files (`temp/stream-catalog-liveness.csv`, `temp/stream-catalog.zip`).
-2. File size limit: 1500 LOC. Extract logic to `helpers/*Manager.kt`.
+2. File size limit: 2000 LOC. Extract logic to `helpers/*Manager.kt`.
 3. No Activity logic. Delegate to Manager/Helper classes.
 4. Read-only zones: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
 5. Backups: Timestamped copy under `temp/Sxxxx/` (or `temp/scratch/` when no ticket) before editing file >500 LOC.

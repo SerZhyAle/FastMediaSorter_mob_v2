@@ -39,6 +39,11 @@ internal class AddResourceScanManager(
     // S0535: folder-picker sections go through the unified orchestrator + consolidated store.
     private val sectionsManager by lazy { CollapsibleSectionsManager(activity) }
 
+    // S1992: the all-files-access screen runs in its own task and returns no activity result, so the
+    // outcome of a grant is read on the next resume. Without this flag a resume could not tell "the
+    // user just came back from granting" from any other return to the screen.
+    private var awaitingAllFilesAccessGrant = false
+
     fun loadSshKeyFromFile(uri: Uri) {
         try {
             activity.contentResolver.openInputStream(uri)?.use { inputStream ->
@@ -386,6 +391,7 @@ internal class AddResourceScanManager(
                 )
             )
             .setPositiveButton(R.string.grant_permission) { _, _ ->
+                awaitingAllFilesAccessGrant = true
                 PermissionHelper.requestAllFilesAccessPermission(activity)
             }
             .setNeutralButton(R.string.continue_limited) { _, _ ->
@@ -395,5 +401,22 @@ internal class AddResourceScanManager(
             .setNegativeButton(android.R.string.cancel, null)
             .setCancelable(true)
             .showBoundToHost(activity)
+    }
+
+    /**
+     * Must be called from the host activity's resume. S1992: the all-files-access screen returns no
+     * activity result, so this is where a grant made on that screen is observed - the branch used to
+     * live in `onActivityResult`, where it ran the moment the user was sent to Settings and reported
+     * the denial they were on their way to fix.
+     */
+    fun onHostResumed() {
+        if (!awaitingAllFilesAccessGrant) return
+        awaitingAllFilesAccessGrant = false
+        if (PermissionHelper.hasAllFilesAccessPermission(activity)) {
+            Toast.makeText(activity, R.string.storage_permission_granted_continue, Toast.LENGTH_SHORT).show()
+            folderPickerLauncher.launch(null)
+        } else {
+            Toast.makeText(activity, R.string.folder_selection_limitations, Toast.LENGTH_LONG).show()
+        }
     }
 }

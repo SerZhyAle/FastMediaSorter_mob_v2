@@ -178,7 +178,7 @@ Both skeletons live in `.claude/templates/` - one template, many referrers. Read
 - Every step Verification must be static (Glob/Grep/value equality) - no "works correctly".
 - No step references a read-only zone: per CLAUDE.md Rule 4 (read-only zones) - obey it as written.
 - Per CLAUDE.md Rule 5 (backup before editing >500 LOC) - obey it as written; a step crossing that line carries an explicit backup sub-step.
-- Per CLAUDE.md Rule 2 (1500 LOC file size limit) - obey it as written; a step that would cross it is refused at planning time, not at impl time.
+- Per CLAUDE.md Rule 2 (2000 LOC file size limit) - obey it as written; a step that would cross it is refused at planning time, not at impl time.
 - Per CLAUDE.md Rule 6 (class naming suffixes) - obey it as written.
 - Room schema change: bump `@Database(version)`, add `Migration`, never rename prior migrations. One phase per schema change.
 - Hilt bindings: every new `@Inject`/`@Provides` names the `@Module` file in step body.

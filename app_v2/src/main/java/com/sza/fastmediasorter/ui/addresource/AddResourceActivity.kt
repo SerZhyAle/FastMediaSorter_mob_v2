@@ -481,6 +481,9 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
     override fun onResumeWithViews() {
         connectionManager.handleResume()
+        // S1992: the all-files-access screen returns no activity result, so a grant made there is
+        // read here instead. lateinit, so guard - an early finish() can resume before setupViews().
+        if (::scanManager.isInitialized) scanManager.onHostResumed()
     }
 
     // ========== Section Navigation ==========
@@ -528,26 +531,6 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         forms.sftpOrNull?.root?.isVisible = false
         forms.cloud.root.isVisible = true
         connectionManager.updateCloudStorageStatus()
-    }
-
-    // ========== Activity Result ==========
-
-    @Deprecated("Deprecated in Java")
-    @Suppress("DEPRECATION") // super.onActivityResult parent API is deprecated; we keep the override for the legacy permissions branch.
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        when (requestCode) {
-            com.sza.fastmediasorter.core.util.PermissionHelper.REQUEST_CODE_ALL_FILES_ACCESS -> {
-                if (com.sza.fastmediasorter.core.util.PermissionHelper.hasAllFilesAccessPermission(this)) {
-                    Toast.makeText(this, getString(R.string.storage_permission_granted_continue), Toast.LENGTH_SHORT).show()
-                    folderPickerLauncher.launch(null)
-                } else {
-                    Toast.makeText(this, getString(R.string.folder_selection_limitations), Toast.LENGTH_LONG).show()
-                }
-            }
-            // S0200 Phase 04c: legacy Google Sign-In activity-result branch removed - Credential
-            // Manager owns the handshake (no Intent round-trip).
-        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {

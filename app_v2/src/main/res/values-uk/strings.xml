@@ -3404,4 +3404,6 @@
     <string name="wear_watch_transfer_unreachable">Годинник не на зв\'язку, тому «%1$s» не надіслано.</string>
     <string name="wear_watch_transfer_cancelled">Надсилання «%1$s» на годинник скасовано.</string>
     <string name="wear_watch_transfer_failed_file">«%1$s» не дійшов до годинника.</string>
+    <string name="camera_lens_switching">Перемикання..</string>
+    <string name="sysinfo_field_camera_active_array">Активна область сенсора</string>
 </resources>

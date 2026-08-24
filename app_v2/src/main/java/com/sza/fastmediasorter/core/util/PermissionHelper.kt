@@ -19,11 +19,11 @@ import timber.log.Timber
  */
 object PermissionHelper {
 
+    // S1992: only the two codes handed to ActivityCompat.requestPermissions survive. The codes for
+    // the system-settings routes are gone - SettingsIntentLauncher launches into a new task, which
+    // the platform refuses to return a result across, so those codes named a callback that could
+    // never fire.
     const val REQUEST_CODE_STORAGE = 100
-    const val REQUEST_CODE_INTERNET = 101
-    const val REQUEST_CODE_MANAGE_STORAGE = 102
-    const val REQUEST_CODE_MANAGE_MEDIA = 103
-    const val REQUEST_CODE_ALL_FILES_ACCESS = 104
 
     // String literal used intentionally: Manifest.permission.ACCESS_LOCAL_NETWORK first ships in
     // SDK 37 and the project compiles against 36, so the constant does not resolve here. Replace
@@ -116,10 +116,10 @@ object PermissionHelper {
             val intent = Intent(Settings.ACTION_REQUEST_MANAGE_MEDIA).apply {
                 data = Uri.parse("package:${activity.packageName}")
             }
-            SettingsIntentLauncher.launch(activity, intent, REQUEST_CODE_MANAGE_MEDIA)
+            SettingsIntentLauncher.launch(activity, intent)
         } catch (e: ActivityNotFoundException) {
             Timber.w(e, "No MANAGE_MEDIA screen on this device, falling back to app details")
-            launchAppDetailsSettings(activity, REQUEST_CODE_MANAGE_MEDIA)
+            launchAppDetailsSettings(activity)
         }
     }
 
@@ -144,7 +144,7 @@ object PermissionHelper {
      */
     fun requestAllFilesAccessPermission(activity: Activity) {
         if (StoragePermissionRule.requiresAllFilesAccess()) {
-            launchAllFilesAccessSettings(activity, REQUEST_CODE_ALL_FILES_ACCESS)
+            launchAllFilesAccessSettings(activity)
         }
     }
 
@@ -153,32 +153,31 @@ object PermissionHelper {
      * then app details. [SettingsIntentLauncher] lets `ActivityNotFoundException` through, so each
      * step is a reachable fallback rather than decoration.
      */
-    private fun launchAllFilesAccessSettings(activity: Activity, requestCode: Int) {
+    private fun launchAllFilesAccessSettings(activity: Activity) {
         try {
             val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
                 data = Uri.parse("package:${activity.packageName}")
             }
-            SettingsIntentLauncher.launch(activity, intent, requestCode)
+            SettingsIntentLauncher.launch(activity, intent)
         } catch (e: ActivityNotFoundException) {
             Timber.w(e, "No package-scoped all files access screen, trying the global list")
             try {
                 SettingsIntentLauncher.launch(
                     activity,
                     Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION),
-                    requestCode,
                 )
             } catch (e2: ActivityNotFoundException) {
                 Timber.e(e2, "No all files access screen at all, falling back to app details")
-                launchAppDetailsSettings(activity, requestCode)
+                launchAppDetailsSettings(activity)
             }
         }
     }
 
-    private fun launchAppDetailsSettings(activity: Activity, requestCode: Int) {
+    private fun launchAppDetailsSettings(activity: Activity) {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
             data = Uri.fromParts("package", activity.packageName, null)
         }
-        SettingsIntentLauncher.launch(activity, intent, requestCode)
+        SettingsIntentLauncher.launch(activity, intent)
     }
 
     /**
@@ -207,11 +206,11 @@ object PermissionHelper {
     fun routeToStorageSettings(activity: Activity) {
         if (StoragePermissionRule.requiresAllFilesAccess()) {
             Timber.i("PermissionHelper: routing to all files access (API ${Build.VERSION.SDK_INT})")
-            launchAllFilesAccessSettings(activity, REQUEST_CODE_MANAGE_STORAGE)
+            launchAllFilesAccessSettings(activity)
             return
         }
         Timber.i("PermissionHelper: routing to app settings (API ${Build.VERSION.SDK_INT})")
-        launchAppDetailsSettings(activity, REQUEST_CODE_STORAGE)
+        launchAppDetailsSettings(activity)
     }
 
     const val REQUEST_CODE_LOCAL_NETWORK = 105
@@ -248,7 +247,7 @@ object PermissionHelper {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
             data = Uri.fromParts("package", activity.packageName, null)
         }
-        SettingsIntentLauncher.launch(activity, intent, REQUEST_CODE_LOCAL_NETWORK)
+        SettingsIntentLauncher.launch(activity, intent)
     }
 
     /**

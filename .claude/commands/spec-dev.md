@@ -65,7 +65,7 @@ For each step in plan order:
 5. **Pre-edit guards:**
    - Read-only zone → abort. Per CLAUDE.md Rule 4 (read-only zones) - obey it as written.
    - Per CLAUDE.md Rule 5 (backup before editing >500 LOC) - obey it as written; put the timestamped copy under `temp/<Sxxxx>/`.
-   - Per CLAUDE.md Rule 2 (1500 LOC file size limit) - obey it as written; a projected post-edit size that crosses it → abort: "line budget violation, split via Manager pattern."
+   - Per CLAUDE.md Rule 2 (2000 LOC file size limit) - obey it as written; a projected post-edit size that crosses it → abort: "line budget violation, split via Manager pattern."
    - File in `res/layout/` → per CLAUDE.md Rule 11 (layout-land parity) - obey it as written. If the landscape variant exists and is NOT listed in this step's `Files Touched` → abort: "landscape counterpart `res/layout-land/<file>.xml` not covered in step - update `Files Touched` and prompt before proceeding."
    - **Flavor isolation guard:** see Hard Stops #14 - abort on a `src/main/java/**` flavor guard; do not silently rewrite, push back through `/spec-update`.
 6. **Flip step to `[~] in progress`** with `pwsh -NoProfile -File scripts/spec_catalog/plan-tick.ps1 -Id <Sxxxx> -Phase <NN> -Steps <M> -State InProgress`. Never hand-edit the marker: the tool keeps the phase file, its `**Steps done:**` header and the INDEX row in step, and it refuses when those already disagree.
@@ -124,7 +124,7 @@ Stop immediately and report - never guess or recover, never assume missing/ambig
 1. **Ambiguous prompt** - placeholder text, missing class/method name, unspecified Hilt scope, unspecified dispatcher. Set status `BlockQuestions` with `-StatusNote '<which placeholder/field is missing and where>'`.
 2. **Verification FAIL** after edit - step left `[~]`. User investigates.
 3. **Read-only zone touch.**
-4. **Line budget violation** - per CLAUDE.md Rule 2 (1500 LOC file size limit), obey it as written.
+4. **Line budget violation** - per CLAUDE.md Rule 2 (2000 LOC file size limit), obey it as written.
 5. **Build FAIL** - `.\a.ps1 dq` returned non-zero after auto-run for Phase Done Criteria. Stop with error excerpt. If the excerpt is a `BUILD.LOCK held` refusal (another agent session mid-build, CLAUDE.md Rule 23), this is not a code regression - note it distinctly, wait/retry once the holder finishes rather than debugging the source.
 6. **Room schema change** - prompt mentions bumping `@Database(version)` or adding `Migration`. Stop only if step does **not** specify new version number and migration class name explicitly. If both named → proceed automatically, note in chat.
 7. **Hilt module graph change** - adds `@Module`, `@Provides`, or modifies Hilt graph beyond a single `@Inject constructor`. Stop only if scope/qualifier not explicit in prompt. If scope named → proceed automatically, note in chat.

@@ -7,6 +7,7 @@ import android.util.Size
 import android.util.SizeF
 import androidx.annotation.StringRes
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.systeminfo.CameraActiveArrayText
 import com.sza.fastmediasorter.core.systeminfo.SystemInfoSection
 import com.sza.fastmediasorter.data.capture.CameraHardwareDataSource
 import com.sza.fastmediasorter.domain.model.CameraHardwareEntry
@@ -43,6 +44,13 @@ class GatherCameraDiagnosticsUseCase @Inject constructor(
         // Sensor size feeds the FOV-normalized equivalent multiplier (S1261); an unknown here means
         // the calculator's FOV path is unavailable on this device, which the report must show.
         fields += label(id, R.string.sysinfo_field_camera_sensor) to sensorText(entry.sensorSizeMm)
+        // S1988: the frame CameraX computes its crop against. A sub-lens reporting a different active
+        // array than its logical parent is what separates a wrong crop from a HAL that simply shows
+        // one field and saves another.
+        entry.activeArrayPx?.let {
+            fields += label(id, R.string.sysinfo_field_camera_active_array) to
+                CameraActiveArrayText.format(it.left, it.top, it.right, it.bottom)
+        }
         fields += label(id, R.string.sysinfo_field_camera_zoom_range) to zoomText(entry.zoomRange)
         fields += label(id, R.string.sysinfo_field_camera_focus_distance) to
             focusText(entry.minFocusDistanceDiopters)

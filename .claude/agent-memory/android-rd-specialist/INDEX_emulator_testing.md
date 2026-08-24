@@ -12,6 +12,7 @@ Split out of `MEMORY.md` (S1731, 2026-08-17): memories specific to emulator setu
 - [Capture](reference_emulator_capture_family_testing.md) - reshape, never rotate + [MediaProjection](reference_emulator_mediaprojection_capture.md)
 - [AVD quirks](feedback_avd_device_sweep_gotchas.md) + [media](feedback_avd_mediastore_not_indexed.md) + [taps](feedback_bottomsheet_menu_untappable_emulator.md)
 - [Stylus overlay eats typed text](feedback_stylus_overlay_eats_typed_text.md) - tree lies
+- [Typing and adb path traps](feedback_device_text_entry_and_adb_path_traps.md) - Gboard rewrites `input text`; raw adb mangles `/sdcard`
 - [Maestro needs ru app locale](feedback_maestro_suite_needs_ru_app_locale.md) - log mojibake is display-only + [flow traps](feedback_maestro_flow_authoring_traps.md) - ASCII-only inputText
 - [Acceptance ceiling](feedback_emulator_acceptance_ceiling.md) · [False negatives](feedback_avd_evidence_traps_width_and_logs.md)
 - [Settings shots are black](feedback_settings_screenshots_black_flag_secure.md) - FLAG_SECURE; verify on an AVD, not the owner's phone

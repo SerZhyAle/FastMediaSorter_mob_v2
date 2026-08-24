@@ -152,6 +152,33 @@ Run `.\a.ps1 adb` (no verb) for the full verb list. Direct form:
 layer; `mobile-mcp` drives agent UI walks, Maestro runs repeatable flows
 (`scripts/devtest/maestro/`), `device-ready.ps1` is the test-skill pre-flight.
 
+### Camera WYSIWYG sweep, and the lens-pin switch (S1988)
+
+`scripts/devtest/camera-wysiwyg-sweep.ps1` drives the in-app camera and asks, per cell, whether the
+saved photo shows what the viewfinder showed. It refuses to answer on a dark or featureless scene
+rather than returning a confident number derived from noise, so shoot a lit textured one.
+
+`-NoPhysicalLensPin` measures with `Camera2Interop.setPhysicalCameraId` skipped, leaving the sub-lens
+to the logical camera. **A run with it means nothing on its own.** It exists to separate strategic
+S1988 §2.4's two surviving causes, and both of them fit every measurement taken so far equally well:
+either CameraX computes the crop against the logical camera's sensor rectangle while both streams come
+off the sub-sensor, or the device's HAL simply previews one field and saves another. Only the same
+scene shot twice - once with the switch, once without - tells them apart, so plan a paired run.
+
+Two properties of the switch are worth knowing before reading a report:
+
+- **Debug builds only.** The receiver lives in `src/debug` (`CameraTestHooks.ACTION_LENS_PINNING`), so
+  a release build has no such class and `CameraTestHooksBridge` turns every call into a no-op. The
+  sweep checks for the receiver's distinctive ack code and reports `SKIP` for a cell nobody answered,
+  because an unacknowledged cell is an ordinary pinned shot and reading it as the experiment would
+  answer §2.4 with the wrong run.
+- **Sent per cell, not once per run.** The sweep force-stops the app between shots, and the receiver
+  is registered by the resumed activity, so the flag dies with the process. Each row records
+  `lens_pinned` and `photo_file` for exactly that reason - a saved report cannot be mistaken later for
+  the other half of the pair, and the photo's pixel size is the only observable that says whether the
+  high-resolution mode was in play (the app derives that flag from the selected photo size, so nothing
+  can read it back out).
+
 ## TEST & VERIFY
 
 ```powershell
@@ -768,7 +795,7 @@ Three checks keep the repository's ~370 PowerShell scripts findable, described a
 - `GetHelpContent()` returns **nothing** when a `#requires` statement sits above the help block, and this repository puts `#requires -Version 7.0` on line 1 by convention. Every conforming script was therefore invisible to the generator: the cheatsheet carried a synopsis for **0 of 373** entries, which read as "nobody writes synopses" when in fact many do and none could be read. The helper tries the parser first, then reads the leading comment block literally. Repairing the reader beat moving `#requires` in 370 files.
 - Because the gate and `help.ps1` share this reader, the inventory and the gate can never disagree about whether a script is described.
 
-**`scripts/quality/assert-file-line-ceiling.ps1`** - Rule 2's 1500-line ceiling, measured for the first time (S1270).
+**`scripts/quality/assert-file-line-ceiling.ps1`** - Rule 2's 2000-line ceiling, measured for the first time (S1270).
 
 - Counts physical lines of `.kt`, `.java`, `.cpp` and `.h` under `app_v2/src` and `wear/src` - the same number `wc -l` gives, so a disagreement with the gate is always resolvable by hand.
 - Ratcheted on the **count** of files above the ceiling, not on a list of names: a list would pin offenders by name and then a rename would read as a new violation.
