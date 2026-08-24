@@ -14,7 +14,7 @@ permalink: /docs/WHATS_NEW_UK.html
 
 ## Що виправлено
 
-- Надання All files access більше не залишає на екрані діалог **Permissions required** (S1992).
+- Надання All files access більше не залишає на екрані діалог **Permissions required**.
 
 ---
 

@@ -1,0 +1,1 @@
+• Надання All files access більше не залишає на екрані діалог Permissions required.

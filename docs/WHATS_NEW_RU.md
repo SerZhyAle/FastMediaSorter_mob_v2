@@ -14,7 +14,7 @@ permalink: /docs/WHATS_NEW_RU.html
 
 ## Что исправлено
 
-- Выдача All files access больше не оставляет на экране диалог **Permissions required** (S1992).
+- Выдача All files access больше не оставляет на экране диалог **Permissions required**.
 
 ---
 

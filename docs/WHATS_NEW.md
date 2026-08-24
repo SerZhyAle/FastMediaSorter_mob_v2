@@ -14,7 +14,7 @@ permalink: /docs/WHATS_NEW.html
 
 ## What's Fixed
 
-- Granting All files access no longer leaves the **Permissions required** dialog on screen (S1992).
+- Granting All files access no longer leaves the **Permissions required** dialog on screen.
 
 ---
 
