@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.provider.Settings
 import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AlertDialog
@@ -81,10 +80,14 @@ class MainStoragePermissionsHelper(
         if (rationaleDialog?.isShowing == true) return
         // S1436: which permission is being explained follows the one storage rule, and the words come
         // from that permission's registry row - this dialog no longer owns either decision.
-        val permission = if (StoragePermissionRule.requiresAllFilesAccess()) {
+        // S2012: where all-files access is not declared the runtime permissions ARE the storage
+        // question, so the explanation names the first one about to be requested rather than a
+        // permission this build can neither hold nor ask for.
+        val permission = if (StoragePermissionRule.requiresAllFilesAccess(activity)) {
             Manifest.permission.MANAGE_EXTERNAL_STORAGE
         } else {
-            Manifest.permission.READ_EXTERNAL_STORAGE
+            StoragePermissionRule.requiredPermissions().firstOrNull()
+                ?: Manifest.permission.READ_EXTERNAL_STORAGE
         }
         val message = activity.permissionRationale(permission)
         rationaleDialog = MaterialAlertDialogBuilder(activity)
@@ -106,8 +109,10 @@ class MainStoragePermissionsHelper(
         rationaleDialog = null
     }
 
+    // S2012: the system all-files screen is offered only where the merged manifest declares the
+    // permission. Everywhere else the runtime launcher is the whole flow, exactly as below API 30.
     private fun launchStoragePermissionFlow() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        if (StoragePermissionRule.requiresAllFilesAccess(activity)) {
             val intent = try {
                 Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
                     data = Uri.parse("package:${activity.packageName}")

@@ -96,7 +96,7 @@ object PermissionHelper {
      * permissions [StoragePermissionRule] names otherwise.
      */
     fun requestStoragePermission(activity: Activity) {
-        if (StoragePermissionRule.requiresAllFilesAccess()) {
+        if (StoragePermissionRule.requiresAllFilesAccess(activity)) {
             routeToStorageSettings(activity)
             return
         }
@@ -141,9 +141,13 @@ object PermissionHelper {
      * Request MANAGE_EXTERNAL_STORAGE permission (Android 11+).
      * Opens system settings where user must manually grant "All files access" permission.
      * Required to select system folders like Pictures, Downloads, DCIM.
+     *
+     * S2012: a build that does not declare the permission never reaches that screen - the system
+     * page for a package with no such declaration behaves undefined, and the request could not be
+     * satisfied anyway.
      */
     fun requestAllFilesAccessPermission(activity: Activity) {
-        if (StoragePermissionRule.requiresAllFilesAccess()) {
+        if (StoragePermissionRule.requiresAllFilesAccess(activity)) {
             launchAllFilesAccessSettings(activity)
         }
     }
@@ -204,7 +208,7 @@ object PermissionHelper {
      * @param activity Active Activity to start settings intent
      */
     fun routeToStorageSettings(activity: Activity) {
-        if (StoragePermissionRule.requiresAllFilesAccess()) {
+        if (StoragePermissionRule.requiresAllFilesAccess(activity)) {
             Timber.i("PermissionHelper: routing to all files access (API ${Build.VERSION.SDK_INT})")
             launchAllFilesAccessSettings(activity)
             return

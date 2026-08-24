@@ -12,6 +12,10 @@ import org.junit.Test
  * 23..28, `read_media_*` from 33, `manage_external_storage` from 30. The rule takes `sdkInt` as a
  * parameter for exactly this reason - a window that drifts from its row fails here rather than on a
  * device nobody has.
+ *
+ * S2012: the all-files rules take the manifest declaration as a second parameter for the same
+ * reason, so the four-cell matrix is pinned without a package manager and without a flavor-specific
+ * expectation that would only hold on the variant the suite happens to run under.
  */
 class StoragePermissionRuleTest {
 
@@ -67,7 +71,35 @@ class StoragePermissionRuleTest {
 
     @Test
     fun `all files access starts at the manage external storage registry minSdk of 30`() {
-        assertFalse(StoragePermissionRule.requiresAllFilesAccess(29))
-        assertTrue(StoragePermissionRule.requiresAllFilesAccess(30))
+        assertFalse(StoragePermissionRule.requiresAllFilesAccess(29, declaresAllFilesAccess = true))
+        assertTrue(StoragePermissionRule.requiresAllFilesAccess(30, declaresAllFilesAccess = true))
+    }
+
+    /**
+     * S2012: the SDK window alone used to be the whole rule, which made every store flavor - none of
+     * which declares MANAGE_EXTERNAL_STORAGE any more - ask forever for a grant it structurally could
+     * not receive. A build that does not declare the permission is answered by the runtime
+     * permissions, at every API level.
+     */
+    @Test
+    fun `a build that does not declare the permission never requires all files access`() {
+        for (sdk in 29..36) {
+            assertFalse(
+                "API $sdk must not require all-files access when the manifest does not declare it",
+                StoragePermissionRule.requiresAllFilesAccess(sdk, declaresAllFilesAccess = false),
+            )
+        }
+    }
+
+    /**
+     * The two rules are complements only from API 30 up. Below it the direct `java.io.File` route is
+     * still opened by the runtime read permission, so withdrawing the path browser there would take
+     * away a route that works.
+     */
+    @Test
+    fun `the direct file route is unobtainable only above API 29 and only without the declaration`() {
+        assertTrue(StoragePermissionRule.isDirectFileAccessUnobtainable(30, declaresAllFilesAccess = false))
+        assertFalse(StoragePermissionRule.isDirectFileAccessUnobtainable(29, declaresAllFilesAccess = false))
+        assertFalse(StoragePermissionRule.isDirectFileAccessUnobtainable(30, declaresAllFilesAccess = true))
     }
 }

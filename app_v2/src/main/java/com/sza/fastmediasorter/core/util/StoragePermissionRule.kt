@@ -49,18 +49,51 @@ object StoragePermissionRule {
     /**
      * True when full storage access on this device is answered by all-files access on a system
      * screen rather than by the runtime permissions [requiredPermissions] returns.
+     *
+     * S2012: the SDK window alone is no longer the answer. A build whose merged manifest lacks
+     * `MANAGE_EXTERNAL_STORAGE` cannot obtain the grant however new the platform is, so treating the
+     * window as sufficient made every store flavor ask forever for something it structurally could
+     * not get.
      */
-    fun requiresAllFilesAccess(sdkInt: Int = Build.VERSION.SDK_INT): Boolean =
-        sdkInt >= Build.VERSION_CODES.R
+    fun requiresAllFilesAccess(context: Context, sdkInt: Int = Build.VERSION.SDK_INT): Boolean =
+        requiresAllFilesAccess(sdkInt, AllFilesAccessDeclaration.isDeclared(context))
+
+    /**
+     * The rule itself, with both inputs supplied. Kept separate from the [Context] overload so the
+     * whole matrix - two SDK windows against two manifests - is pinned by a test that needs no
+     * device and no package manager, which is why [requiredPermissions] takes `sdkInt` too.
+     */
+    fun requiresAllFilesAccess(sdkInt: Int, declaresAllFilesAccess: Boolean): Boolean =
+        sdkInt >= Build.VERSION_CODES.R && declaresAllFilesAccess
+
+    /**
+     * True when the direct `java.io.File` route to shared storage is out of reach for good: from
+     * API 30 the platform opens it only through all-files access, and a build that never declares
+     * the permission has no way to ask. Below API 30 the runtime read permission still opens it, so
+     * the direct route stays - which is why this is not simply the negation of
+     * [requiresAllFilesAccess].
+     */
+    fun isDirectFileAccessUnobtainable(context: Context, sdkInt: Int = Build.VERSION.SDK_INT): Boolean =
+        isDirectFileAccessUnobtainable(sdkInt, AllFilesAccessDeclaration.isDeclared(context))
+
+    /** The rule itself, with both inputs supplied - see [requiresAllFilesAccess]. */
+    fun isDirectFileAccessUnobtainable(sdkInt: Int, declaresAllFilesAccess: Boolean): Boolean =
+        sdkInt >= Build.VERSION_CODES.R && !declaresAllFilesAccess
 
     /**
      * Whether every storage permission this SDK level needs is currently held. The platform check
      * is written against `Build.VERSION_CODES.R` rather than [requiresAllFilesAccess] because
      * `Environment.isExternalStorageManager()` is an API 30 call lint resolves only through the
-     * literal comparison; the two express the same window.
+     * literal comparison.
+     *
+     * S2012: the all-files reading answers only for a build that declares the permission. Where it
+     * is not declared the runtime permissions are the whole of the storage question, and asking
+     * `Environment` would report "never granted" for the life of the install.
      */
     fun isGranted(context: Context): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) return Environment.isExternalStorageManager()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && AllFilesAccessDeclaration.isDeclared(context)) {
+            return Environment.isExternalStorageManager()
+        }
         return requiredPermissions().all { permission ->
             ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
         }
