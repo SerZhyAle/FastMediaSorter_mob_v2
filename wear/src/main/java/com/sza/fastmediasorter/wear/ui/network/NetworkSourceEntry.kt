@@ -12,12 +12,10 @@ package com.sza.fastmediasorter.wear.ui.network
  * read inside a composable is the same answer in every test run, and the direction that must never regress
  * is the one a debug test cannot otherwise reach.
  */
-import timber.log.Timber
 
 object NetworkSourceEntry {
 
     fun isOffered(isDebugBuild: Boolean): Boolean {
-        Timber.d("S1707: NetworkSourceEntry.isOffered=$isDebugBuild")
         return isDebugBuild
     }
 }

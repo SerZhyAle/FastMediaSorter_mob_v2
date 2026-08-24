@@ -41,7 +41,6 @@ class WearLogReportClient @Inject constructor(
      */
     suspend fun send(): WearLogReportOutcome = withContext(Dispatchers.IO) {
         val requestId = UUID.randomUUID().toString()
-        Timber.d("S1802: watch send entry, requestId=$requestId")
         val nodes = connectedNodes()
         if (nodes.isEmpty()) {
             return@withContext WearLogReportOutcome.NoConnectedPhone

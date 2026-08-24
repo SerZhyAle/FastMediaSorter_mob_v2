@@ -43,6 +43,7 @@ Over budget? Split a section into `INDEX_*.md` - never cut a hook short: [how](f
 - [Last command on the line owns the exit code](feedback_piping_a_gate_through_tail_masks_its_exit_code.md) - a pipe OR a trailing echo turns a failure into "exit 0"; read the body
 - [Ask what state a green check read](feedback_ask_what_state_a_green_check_read.md) - a check that observed nothing passes like one that observed success
 - [A PASS that observed nothing](feedback_a_pass_that_observed_nothing.md) - verify the preconditions existed before believing a green acceptance line
+- [ffmpeg is missing from Bash](feedback_ffmpeg_absent_from_bash_path.md) - piped through grep it reports a clean PASS it never ran
 - [No Sxxxx in permanent logs](reference_ticket_log_gate.md) · [Timber.e for real errors](feedback_log_levels.md)
 - [ticket-log audit stale after a status flip](feedback_ticket_log_audit_stale_right_after_status_flip.md) - re-run it; don't add a second probe
 - [Probe must be one line](feedback_debug_probe_must_be_one_line.md) - a wrapped Timber.d( hides it from the removal grep

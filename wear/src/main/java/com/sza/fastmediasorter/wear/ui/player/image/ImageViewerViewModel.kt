@@ -92,7 +92,6 @@ class ImageViewerViewModel @Inject constructor(
      * broke every other source.
      */
     private fun loadNetworkImage(selected: SelectedMedia) {
-        Timber.d("S1687: network image entry sourceId=${selected.sourceId} uri=${selected.streamUri}")
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 

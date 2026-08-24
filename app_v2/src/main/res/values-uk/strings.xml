@@ -60,25 +60,21 @@
 
     <!-- Copy Dialog -->
     <string name="copying_files">Копіюємо..</string>
-    <string name="copying_n_files_from_folder">Копіюємо %1$d файлів з %2$s..</string>
     <string name="copied_n_files">Скопіювали %1$d файлів.</string>
     <string name="copied_n_of_m_files">Скопіювали %1$d з %2$d файлів.</string>
     <string name="copy_failed">Не вдалося скопіювати файли.</string>
     <string name="no_destinations_available">Ресурси-отримувачі не налаштовано</string>
 
     <!-- Archive destination picker (reused copy/move dialog in ARCHIVE mode) -->
-    <string name="archiving_n_files_from_folder">Архівування %1$d файлів з %2$s</string>
 
     <!-- Move Dialog -->
     <string name="moving_files">Переміщуємо..</string>
-    <string name="moving_n_files_from_folder">Переміщуємо %1$d файлів з %2$s..</string>
     <string name="moved_n_files">Перемістили %1$d файлів.</string>
     <string name="moved_n_of_m_files">Перемістили %1$d з %2$d файлів.</string>
     <string name="move_failed">Не вдалося перемістити файли.</string>
 
     <!-- Rename Dialog -->
     <string name="renaming_files">Перейменовуємо..</string>
-    <string name="renaming_n_files_from_folder">Перейменовуємо %1$d файлів з %2$s..</string>
     <string name="renamed_n_files">Перейменували %1$d файлів.</string>
     <string name="rename_failed_generic">Не вдалося перейменувати файл.</string>
     <string name="rename_file_name_empty">Ім’я файлу не може бути порожнім.</string>

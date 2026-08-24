@@ -60,7 +60,6 @@ class FrontFlashlightActivity : BaseActivity<ActivityFrontFlashlightBinding>() {
     }
 
     override fun setupViews() {
-        Timber.d("S1796: flashlight entry - colour=%08X, restored brightness=%s", currentGlowColor(), brightness)
         Timber.d("flashlight opened, brightness=$brightness")
         applyControlInsets()
         gestureDetector = GestureDetector(this, FlashlightGestures())

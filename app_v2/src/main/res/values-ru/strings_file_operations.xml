@@ -98,7 +98,6 @@
     <string name="file_already_exists_skip">%1$s (пропущен - файл уже существует)</string>
     <string name="file_cloud_id_label">Cloud ID: %1$s</string>
     <string name="file_count">Количество файлов</string>
-    <string name="file_count_format">%d файлов</string>
     <string name="file_count_over_1000">>1000 файлов</string>
     <string name="file_date_label">Дата: %1$s</string>
     <string name="file_deleted">«%1$s» удалён</string>

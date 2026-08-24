@@ -8,7 +8,6 @@ import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.ui.systeminfo.helpers.SystemInfoDialogManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -32,7 +31,6 @@ class SystemInfoActivity : AppCompatActivity() {
         // Only on a fresh start: a rotation would otherwise re-read the whole report and raise a second
         // dialog over the first.
         if (savedInstanceState != null) return
-        Timber.d("S1733: system info activity started")
         lifecycleScope.launch {
             val report = systemInfoDialogManager.gather(this@SystemInfoActivity)
             if (isFinishing || isDestroyed) return@launch

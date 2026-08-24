@@ -250,7 +250,6 @@ class CameraCaptureSessionManager(
             target?.takeIf { it.equivalentMultiplier > 0f }?.let { floor / it.equivalentMultiplier }
         }
         val cycleIndex = availableLenses.nextCycleIndex(activeCameraIndex, videoMode)
-        Timber.d("S1987: lens cycle $activeCameraIndex -> $cycleIndex, video=$videoMode")
         bindLens(targetIndex ?: cycleIndex)
         // Already on the reaching lens: no rebind flicker, just land the zoom.
         nativeRatio?.let(::setZoomRatio)
@@ -791,7 +790,6 @@ class CameraCaptureSessionManager(
      * @return false when nothing is bound yet, so a caller with a non-rebinding fallback can take it.
      */
     private fun rebind(reason: String): Boolean {
-        Timber.d("S1988: rebind reason=$reason lens=$lastBoundLensId")
         val provider = cameraProvider
         val preview = previewView
         if (provider == null || preview == null) return false

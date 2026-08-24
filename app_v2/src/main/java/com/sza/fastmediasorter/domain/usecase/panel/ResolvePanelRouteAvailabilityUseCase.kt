@@ -12,7 +12,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -76,7 +75,6 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
             // the same shape the embedded game and the flashlight use. Hardcoding true here is what let a
             // disabled calculator keep opening from a panel tile and a desktop cell.
             InternalRouteCatalog.KEY_CALCULATOR -> {
-                Timber.d("S1856: calculator route toggle=%s", settings.enableCalculator)
                 Availability(availableInBuild = true, enabledAtRuntime = settings.enableCalculator)
             }
             InternalRouteCatalog.KEY_NETWORK_MONITOR ->

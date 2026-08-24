@@ -56,7 +56,6 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -157,7 +156,6 @@ class StreamsViewModel @Inject constructor(
      * the user pressed.
      */
     fun sendStreamToWatch(source: StreamSourceEntity, openNow: Boolean = false) {
-        Timber.d("S1799: send to watch requested for ${source.url}, openNow=$openNow")
         viewModelScope.launch {
             val outcome = sendStreamToWatchUseCase.get()(
                 source.title,

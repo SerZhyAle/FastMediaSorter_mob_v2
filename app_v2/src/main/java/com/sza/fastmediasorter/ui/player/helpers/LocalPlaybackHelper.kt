@@ -95,7 +95,6 @@ internal suspend fun VideoPlayerManager.playLocalVideoInternal(path: String, pla
             // mediaSourceFactory override instead of being built by hand.
             val playerView = currentPlayerView
             if (playerView != null) {
-                Timber.d("S1776: local BD-TS playback via DefaultDataSource.Factory")
                 val localFactory: DataSource.Factory = DefaultDataSource.Factory(context)
                 createPlayer(
                     playerView,

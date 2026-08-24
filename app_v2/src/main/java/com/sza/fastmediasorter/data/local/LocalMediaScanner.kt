@@ -427,7 +427,6 @@ class LocalMediaScanner @Inject constructor(
 
         // Virtual resources delegate to scanFolder to produce their file list
         if (VirtualPathUtils.isVirtualPath(path)) {
-            Timber.d("S1860: listDirectoryContents virtual path='$path'")
             return@withContext scanFolder(
                 path = path,
                 supportedTypes = supportedTypes,

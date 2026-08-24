@@ -57,12 +57,14 @@ reviewer refutes in a minute.
 - [ ] `Usage` = `Core functionality` only; the other five options unchecked
 - [ ] Field 1 and field 2 pasted verbatim from `PLAY_PERMISSIONS_DECLARATION.md`, both under 500 chars
 - [ ] Evidence video shows a non-media file moved between two user-chosen folders, and nothing else
-      - recorded and uploaded, do not re-shoot: **https://youtube.com/shorts/vgFAqm0ggGQ**
-        (2:26, shot on the release build carrying the S1992 fix; source file
-        `temp/S1991/allfiles_evidence_2026-08-24.mp4`). What is in it, and the one caveat about the
-        scheduled run, are in `PLAY_PERMISSIONS_DECLARATION.md`, section `The take of 2026-08-24`
-      - the link that was attached to the **rejected** submission was
-        `https://youtube.com/shorts/hxMUsW3354g` - do not paste that one again
+      - recorded and uploaded, do not re-shoot: **https://youtube.com/shorts/FstAoyHtCXI**
+        (1:10, shot on the release build carrying the S1992 fix; source file
+        `store_assets/allfiles_evidence.mp4`). What is in it, and the one caveat about the scheduled
+        run, are in `PLAY_PERMISSIONS_DECLARATION.md`, section `The take of 2026-08-24`
+      - two superseded links must never be pasted again:
+        `https://youtube.com/shorts/hxMUsW3354g` went with the **rejected** submission, and
+        `https://youtube.com/shorts/vgFAqm0ggGQ` is the first cut of the current footage - 89% of it
+        is a still frame, with 29 motionless seconds right after the grant that read as a freeze
 - [ ] Store listing already reads as a file organizer (section A) - the two are reviewed as a pair
 - [ ] Under a policy enforcement, Play refuses automatic review: send the held edit from
       `Publishing overview -> Send changes for review` together with the declaration

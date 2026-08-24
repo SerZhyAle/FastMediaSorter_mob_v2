@@ -218,7 +218,6 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             if (isUpdatingFromSettings) return@setOnItemSelectedListener
             val options = AppSettings.LAUNCHER_TASKBAR_PLACEMENT_OPTIONS
             val placement = options.getOrElse(index) { AppSettings.LAUNCHER_TASKBAR_PLACEMENT_BOTTOM }
-            Timber.d("S1643: taskbar placement chosen in settings, value=$placement")
             viewModel.updateSettings(viewModel.settings.value.copy(launcherTaskbarPlacement = placement))
         }
     }

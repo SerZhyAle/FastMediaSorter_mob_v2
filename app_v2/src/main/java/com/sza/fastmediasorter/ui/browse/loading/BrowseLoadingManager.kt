@@ -86,7 +86,6 @@ class BrowseLoadingManager(
      * @param callbacks Callbacks for communication with ViewModel
      */
     suspend fun loadFilesStandard(request: StandardScanRequest, callbacks: LoadingCallbacks) {
-        Timber.d("S1311: standard scan via StandardScanRequest - restructured path entered")
         val resource = request.resource
         Timber.d(
             "BrowseLoadingManager: START loading - resource='${resource.name}' (id=${resource.id}), " +

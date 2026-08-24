@@ -55,7 +55,6 @@ class BlackScreenOverlayManager(
         overlayView = view
         isVisible = true
         setButtonBacklight(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF)
-        Timber.d("S1903: black screen shown, button backlight off")
         Timber.d("BlackScreenOverlayManager: overlay shown (fullscreen=true, wasFullscreen=$wasFullscreenBeforeOverlay)")
     }
 

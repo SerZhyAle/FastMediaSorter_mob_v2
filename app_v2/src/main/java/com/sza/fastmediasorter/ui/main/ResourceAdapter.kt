@@ -663,7 +663,11 @@ class ResourceAdapter(
                 tvFileCount.text = when {
                     resource.id == -100L -> "" // Don't show count for now, or show "Favorites"
                     resource.fileCount >= 1000 -> root.context.getString(R.string.file_count_over_1000)
-                    else -> root.context.getString(R.string.file_count_format, resource.fileCount)
+                    else -> root.resources.getQuantityString(
+                        R.plurals.file_count_format_plural,
+                        resource.fileCount,
+                        resource.fileCount
+                    )
                 }
                 
                 if (useCompactElements) {

@@ -28160,3 +28160,76 @@ Format: | datetime | file | target | description |
 | 2026-08-24 15:50:39 | `PLAN/S1991_resubmit-all-files-access-declaration/research/01__all-files-access-policy.md` | `spec-all` | Add policy research for S1991 [branch: DEBUG-v035] |
 | 2026-08-24 15:50:55 | `PLAN/S1991_resubmit-all-files-access-declaration.md` | `spec-all` | Park S1991 for required Play Console submission [branch: DEBUG-v035] |
 | 2026-08-24 16:40:14 | `store_assets/PLAY_PERMISSIONS_DECLARATION.md` | `store_assets` | Record the uploaded evidence video link for the All files access declaration [set of 3: store_assets/PLAY_CONSOLE_CHECKLIST.md, PLAN/S1991_resubmit-all-files-access-declaration.md] [branch: DEBUG-v035] |
+| 2026-08-24 16:56:43 | `PLAN/S1996_camera-shooting-modes.md` | `spec` | Scaffold strategic spec skeleton S1996 [branch: DEBUG-v035] |
+| 2026-08-24 16:57:54 | `PLAN/S1997_camera-active-selector-icon.md` | `spec` | Scaffold strategic spec skeleton S1997 [branch: DEBUG-v035] |
+| 2026-08-24 17:01:09 | `PLAN/S1998_camera-tap-to-focus.md` | `spec` | Scaffold strategic spec skeleton S1998 [branch: DEBUG-v035] |
+| 2026-08-24 17:07:08 | `PLAN/S1999_wear-testing-feedback-inbox.md` | `spec` | Scaffold strategic spec skeleton S1999 [branch: DEBUG-v035] |
+| 2026-08-24 17:13:14 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Fix-release v2.60.8241.708 for S1992: all-files-rationale-redisplays-after-grant [branch: DEBUG-v035] |
+| 2026-08-24 17:51:44 | `PLAN/S1999_wear-testing-feedback-inbox.md` | `spec-update` | Capture Wear OS testing observations for S1999 [branch: DEBUG-v035] |
+| 2026-08-24 17:53:52 | `store_assets/allfiles_evidence.mp4` | `store_assets` | Recut the All files access evidence video to 1:10 and move it into store_assets [set of 3: store_assets/PLAY_PERMISSIONS_DECLARATION.md, store_assets/PLAY_CONSOLE_CHECKLIST.md] [branch: DEBUG-v035] |
+| 2026-08-24 17:59:13 | `PLAN/S1999_wear-testing-feedback-inbox.md` | `spec-update` | Capture additional Wear OS testing observations for S1999 [branch: DEBUG-v035] |
+| 2026-08-24 18:02:05 | `PLAN/S1999_wear-testing-feedback-inbox.md` | `spec-update` | Capture media resource navigation observations for S1999 [branch: DEBUG-v035] |
+| 2026-08-24 18:15:09 | `PLAN/S1999_wear-testing-feedback-inbox.md` | `spec-update` | Capture navigation, media and player observations for S1999 [branch: DEBUG-v035] |
+| 2026-08-24 18:23:07 | `PLAN/S1999_wear-testing-feedback-inbox.md` | `spec-update` | Capture image player and Wear OS visual observations for S1999 [branch: DEBUG-v035] |
+| 2026-08-24 18:30:29 | `PLAN/S1999_wear-testing-feedback-inbox.md` | `spec-update` | Capture Wear OS file mode and cleanup observations for S1999 [branch: DEBUG-v035] |
+| 2026-08-24 18:32:08 | `PLAN/S1999_wear-testing-feedback-inbox.md` | `spec-update` | Capture Wear OS language and local files observations for S1999 [branch: DEBUG-v035] |
+| 2026-08-24 18:37:35 | `PLAN/S1999_wear-testing-feedback-inbox.md` | `spec-update` | Capture Wear OS calculator observations for S1999 [branch: DEBUG-v035] |
+| 2026-08-24 18:46:29 | `store_assets/PLAY_PERMISSIONS_DECLARATION.md` | `store_assets` | Record the recut evidence video link FstAoyHtCXI and retire the two superseded links [set of 3: store_assets/PLAY_CONSOLE_CHECKLIST.md, PLAN/S1991_resubmit-all-files-access-declaration.md] [branch: DEBUG-v035] |
+| 2026-08-24 18:53:42 | `PLAN/S2000_wear-companion-settings.md` | `spec` | Scaffold strategic spec skeleton S2000 [branch: DEBUG-v035] |
+| 2026-08-24 18:58:07 | `PLAN/S1999_wear-testing-feedback-inbox.md` | `spec-update` | Capture Wear OS player control observations for S1999 [branch: DEBUG-v035] |
+| 2026-08-24 19:50:07 | `PLAN/S1999_wear-testing-feedback-inbox.md` | `spec-update` | Capture Wear OS monitor, game and system information observations for S1999 [branch: DEBUG-v035] |
+| 2026-08-24 19:53:41 | `PLAN/S1999_wear-testing-feedback-inbox.md` | `spec-update` | Capture Wear OS stream search and voice input observation for S1999 [branch: DEBUG-v035] |
+| 2026-08-24 19:56:32 | `PLAN/S2001_wear-web-portal.md` | `spec` | Scaffold strategic spec skeleton S2001 [branch: DEBUG-v035] |
+| 2026-08-24 19:57:32 | `PLAN/S2002_launcher-web-portal.md` | `spec` | Scaffold strategic spec skeleton S2002 [branch: DEBUG-v035] |
+| 2026-08-24 19:59:51 | `PLAN/S2003_wear-home-navigation-visual-system.md` | `spec` | Decompose S1999: home navigation and visual system [branch: DEBUG-v035] |
+| 2026-08-24 19:59:52 | `PLAN/S2004_wear-resource-browser-and-file-actions.md` | `spec` | Decompose S1999: resource browser and file actions [branch: DEBUG-v035] |
+| 2026-08-24 19:59:53 | `PLAN/S2005_wear-media-library-item-layout.md` | `spec` | Decompose S1999: media library item layout [branch: DEBUG-v035] |
+| 2026-08-24 19:59:53 | `PLAN/S2006_wear-player-controls-and-playback.md` | `spec` | Decompose S1999: player controls and playback [branch: DEBUG-v035] |
+| 2026-08-24 19:59:54 | `PLAN/S2007_wear-calculator-and-utility-apps.md` | `spec` | Decompose S1999: calculator and utility apps [branch: DEBUG-v035] |
+| 2026-08-24 19:59:55 | `PLAN/S2008_wear-system-tools-and-game.md` | `spec` | Decompose S1999: system tools and game [branch: DEBUG-v035] |
+| 2026-08-24 19:59:56 | `PLAN/S2009_wear-stream-search-voice-input.md` | `spec` | Decompose S1999: stream search and voice input [branch: DEBUG-v035] |
+| 2026-08-24 19:59:56 | `PLAN/S1999_wear-testing-feedback-inbox.md` | `spec` | Archive decomposed Wear OS feedback inbox S1999 [branch: DEBUG-v035] |
+| 2026-08-24 20:02:31 | `PLAN/S2010_bugfix-stream-logo-atlas-recycled-decoder.md` | `spec` | Scaffold strategic spec skeleton S2010 [branch: DEBUG-v035] |
+| 2026-08-24 20:08:17 | `PLAN/RELEASE_QUEUE.md` | `release queue` | Restructure release 35 around launcher, main app, and Wear OS [branch: DEBUG-v035] |
+| 2026-08-24 20:42:57 | `PLAN/S1930_gadget-bridge-skips-per-instance-widgets.md` | `spec-quiz` | S1930: BlockQuestions -> In Progress via quiz (0 questions) [branch: DEBUG-v035] |
+| 2026-08-24 21:18:32 | `PLAN/S1958_headless-capture-crops-to-display-not-view.md` | `spec-quiz` | S1958: BlockQuestions -> Approved via quiz (1 question) [branch: DEBUG-v035] |
+| 2026-08-24 21:33:52 | `PLAN/archive/S1990_wear-icon-colors-no-outline.md` | `wear-ticket-consolidation` | Archive S1990 after its grid fallback icon scope and research moved to S2003 [branch: DEBUG-v035] |
+| 2026-08-24 21:34:04 | `PLAN/archive/S1900_wear-calculator-last-operation-quick-button.md` | `wear-ticket-consolidation` | Archive S1900 after S1942 implementation and transfer its remaining persistence decision to S2007 [branch: DEBUG-v035] |
+| 2026-08-24 21:37:38 | `PLAN/S2011_archived-ticket-probe-cleanup.md` | `spec` | Scaffold strategic spec skeleton S2011 for archived ticket probe cleanup [branch: DEBUG-v035] |
+| 2026-08-24 21:37:58 | `PLAN/archive/S1060_nolegal-libvlc-universal-codec-iso.md` | `spec` | Archive 128 released BlockNeedUserTest tickets [branch: DEBUG-v035] |
+| 2026-08-24 21:39:54 | `PLAN/RELEASE_QUEUE.md` | `wear-ticket-consolidation` | Consolidated S1990 into S2003 and S1900 into S2007, released S1884 from its completed dependency, and reordered active Wear work [branch: DEBUG-v035] |
+| 2026-08-24 21:45:21 | `PLAN/S2011_archived-ticket-probe-cleanup.md` | `spec-all` | Strategic spec S2011: archived ticket probe cleanup [branch: DEBUG-v035] |
+| 2026-08-24 21:45:22 | `PLAN/S2011_archived-ticket-probe-cleanup/research/01__stale-probe-inventory.md` | `spec-all` | Record S2011 stale probe inventory [branch: DEBUG-v035] |
+| 2026-08-24 21:46:53 | `PLAN/S2011_archived-ticket-probe-cleanup/INDEX.md` | `spec-tech` | Create tactical plan for S2011 [branch: DEBUG-v035] |
+| 2026-08-24 21:46:54 | `PLAN/S2011_archived-ticket-probe-cleanup/PHASE_01__probe-cleanup-tool.md` | `spec-tech` | Phase 01: probe-cleanup-tool [branch: DEBUG-v035] |
+| 2026-08-24 21:46:55 | `PLAN/S2011_archived-ticket-probe-cleanup/PHASE_02__release-probe-removal.md` | `spec-tech` | Phase 02: release-probe-removal [branch: DEBUG-v035] |
+| 2026-08-24 21:46:56 | `PLAN/S2011_archived-ticket-probe-cleanup/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup [branch: DEBUG-v035] |
+| 2026-08-24 21:46:57 | `PLAN/S2011_archived-ticket-probe-cleanup.md` | `spec-tech` | Status to Tactical for S2011 [branch: DEBUG-v035] |
+| 2026-08-24 21:48:56 | `scripts/quality/remove-ticket-probes.ps1` | `spec-all` | Add S2011 constrained archived ticket probe cleanup tool [set of 2: scripts/quality/remove-ticket-probes.tests/Run-Tests.ps1] [branch: DEBUG-v035] |
+| 2026-08-24 22:03:40 | `PLAN/S1985_bugfix-spectrum-deobfuscation-retention-arg-binding.md` | `spec-code` | Complete compact spec S1985 [branch: DEBUG-v035] |
+| 2026-08-24 22:05:51 | `scripts/release/build-release-spectrum.ps1` | `spec-code` | Fix named retention argument binding [branch: DEBUG-v035] |
+| 2026-08-24 22:06:48 | `PLAN/S1995_bugfix-stale-resource-count-after-operation.md` | `spec-all` | Strategic spec: S1995 [branch: DEBUG-v035] |
+| 2026-08-24 22:06:56 | `PLAN/S1985_bugfix-spectrum-deobfuscation-retention-arg-binding.md` | `spec-code` | Audit S1985 -> Verified; PASS/WARN/FAIL 6/0/0 [branch: DEBUG-v035] |
+| 2026-08-24 22:07:09 | `PLAN/S1994_bugfix-file-count-plural-forms.md` | `spec-code` | Expand and approve compact spec S1994 [branch: DEBUG-v035] |
+| 2026-08-24 22:11:15 | `PLAN/S1995_bugfix-stale-resource-count-after-operation/INDEX.md` | `spec-tech` | Create tactical plan for S1995 [branch: DEBUG-v035] |
+| 2026-08-24 22:11:16 | `PLAN/S1995_bugfix-stale-resource-count-after-operation/PHASE_01__refresh-resource-counts.md` | `spec-tech` | Phase 01: refresh-resource-counts [branch: DEBUG-v035] |
+| 2026-08-24 22:11:17 | `PLAN/S1995_bugfix-stale-resource-count-after-operation/PHASE_02__wire-operation-completion.md` | `spec-tech` | Phase 02: wire-operation-completion [branch: DEBUG-v035] |
+| 2026-08-24 22:11:17 | `PLAN/S1995_bugfix-stale-resource-count-after-operation/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup [branch: DEBUG-v035] |
+| 2026-08-24 22:11:18 | `PLAN/S1995_bugfix-stale-resource-count-after-operation.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v035] |
+| 2026-08-24 22:11:21 | `PLAN/S2010_bugfix-stream-logo-atlas-recycled-decoder.md` | `spec-code` | Compact spec: S2010 - investigated logo-atlas recycled-decoder IllegalStateException, confirmed benign self-healing race (S1220 pattern), no code change [branch: DEBUG-v035] |
+| 2026-08-24 22:12:12 | `PLAN/S2010_bugfix-stream-logo-atlas-recycled-decoder.md` | `spec-check` | Audit S2010 -> Verified; PASS/WARN/FAIL 7/0/0, no code change (benign self-healing race, S1220 pattern) [branch: DEBUG-v035] |
+| 2026-08-24 22:16:50 | `PLAN/S1994_bugfix-file-count-plural-forms.md` | `S1994` | Use plural resources for shared file counts [set of 47: PLAN/S1994_bugfix-file-count-plural-forms/research/01__plural-template-coverage.md, app_v2\src\main\res\values\plurals_file_count.xml, app_v2\src\main\res\values-ar\plurals_file_count.xml, app_v2\src\main\res\values-b+zh+Hans\plurals_file_count.xml, app_v2\src\main\res\values-bn\plurals_file_count.xml, app_v2\src\main\res\values-de\plurals_file_count.xml, +40 more] [branch: DEBUG-v035] |
+| 2026-08-24 22:22:01 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/RefreshResourceFileCountsUseCase.kt` | `spec-dev` | S1995 add targeted resource count refresh use case [branch: DEBUG-v035] |
+| 2026-08-24 22:24:47 | `app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/gadget/AudioNowPlayingGadget.kt` | `S2011` | Remove archived ticket probes and pin Wear transfer JSON fields [set of 110: app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/gadget/AudioWindowGadget.kt, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/gadget/DocumentWindowGadget.kt, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/gadget/ImageWindowGadget.kt, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/gadget/NetworkIndicatorGadget.kt, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/gadget/TranslatorGadget.kt, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/gadget/VideoWindowGadget.kt, +103 more] [branch: DEBUG-v035] |
+| 2026-08-24 22:29:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/ResourceScanCoordinator.kt` | `app_v2` | S1995 delegate home resource count refresh [branch: DEBUG-v035] |
+| 2026-08-24 22:32:17 | `PLAN/S1995_bugfix-stale-resource-count-after-operation/PHASE_01__refresh-resource-counts.md` | `spec-dev` | S1995 include MainViewModel wiring in phase 01 [branch: DEBUG-v035] |
+| 2026-08-24 22:40:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainViewModel.kt` | `app_v2` | S1995 wire shared resource count refresh [branch: DEBUG-v035] |
+| 2026-08-24 22:42:41 | `wear/src/main/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpConnectionTest.kt` | `S2011` | Remove archived ticket probes and pin Wear transfer JSON fields [set of 47: wear/src/main/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpDataSource.kt, wear/src/main/java/com/sza/fastmediasorter/wear/data/network/sftp/SftpConnectionTest.kt, wear/src/main/java/com/sza/fastmediasorter/wear/data/network/StreamNetworkHoldManager.kt, wear/src/main/java/com/sza/fastmediasorter/wear/data/preferences/NetworkSourceRepositoryImpl.kt, wear/src/main/java/com/sza/fastmediasorter/wear/data/preferences/WearPreferencesRepositoryImpl.kt, wear/src/main/java/com/sza/fastmediasorter/wear/data/thumbnail/EmbeddedPreviewReader.kt, +40 more] [branch: DEBUG-v035] |
+| 2026-08-24 22:42:58 | `scripts/quality/remove-ticket-probes.ps1` | `S2011` | Add archived ticket probe cleanup tooling and generated script reference [set of 3: scripts/quality/remove-ticket-probes.tests/Run-Tests.ps1, docs/SCRIPT_CHEATSHEET.md] [branch: DEBUG-v035] |
+| 2026-08-24 22:44:08 | `PLAN/S2011_archived-ticket-probe-cleanup.md` | `spec-check` | Audit S2011 -> Verified; PASS/WARN/FAIL 11/0/0 [branch: DEBUG-v035] |
+| 2026-08-24 22:44:09 | `PLAN/S2011_archived-ticket-probe-cleanup/INDEX.md` | `spec-check` | Mark S2011 tactical plan complete [branch: DEBUG-v035] |
+| 2026-08-24 22:44:10 | `PLAN/S2011_archived-ticket-probe-cleanup/PHASE_01__probe-cleanup-tool.md` | `spec-check` | Record completed probe cleanup tooling phase [branch: DEBUG-v035] |
+| 2026-08-24 22:44:11 | `PLAN/S2011_archived-ticket-probe-cleanup/PHASE_02__release-probe-removal.md` | `spec-check` | Record completed archive probe removal phase [branch: DEBUG-v035] |
+| 2026-08-24 22:44:12 | `PLAN/S2011_archived-ticket-probe-cleanup/PHASE_03__docs-catalog-cleanup.md` | `spec-check` | Record completed validation and catalog phase [branch: DEBUG-v035] |
+| 2026-08-24 22:47:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/transfer/BrowseFileTransferModels.kt` | `app_v2` | S1995 persist transfer destination resource id [set of 2: app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseFileOperationsManager.kt] [branch: DEBUG-v035] |
+| 2026-08-24 22:47:54 | `.gitignore` | `repository` | Stop tracking the local PLAN workspace and archives [branch: DEBUG-v035] |

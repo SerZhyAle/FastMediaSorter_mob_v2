@@ -224,11 +224,6 @@ private class AudioNowPlayingGadgetView(
             return
         }
         shownArtwork = key
-        Timber.d(
-            "S1177: now-playing artwork changed - bitmap=%b source=%s",
-            state.artwork != null,
-            state.sourcePackage,
-        )
         val artwork = state.artwork
         if (artwork != null) {
             binding.nowPlayingArtwork.setImageBitmap(artwork)

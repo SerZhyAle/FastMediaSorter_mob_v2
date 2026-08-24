@@ -65,7 +65,6 @@ class NetworkMonitorWidgetProvider : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
-        Timber.d("S1440: widget onUpdate, ids=%d", appWidgetIds.size)
         // Rendering collects a cold flow, so it cannot run inline on the receiver's main thread.
         // goAsync keeps the broadcast alive while the IO coroutine draws every instance.
         val pendingResult = goAsync()

@@ -54,7 +54,6 @@ class WearableDataLayerRepositoryImpl @Inject constructor(
 
     override suspend fun putEnvelopeDataItem(path: String, envelope: WearEventEnvelope) {
         val bytes = envelopeCodec.encode(envelope)
-        Timber.d("S1893: envelope encoded path=%s wireBytes=%d payloadBytes=%d", path, bytes.size, envelope.data.size)
         putDataItem(path, bytes)
     }
 }

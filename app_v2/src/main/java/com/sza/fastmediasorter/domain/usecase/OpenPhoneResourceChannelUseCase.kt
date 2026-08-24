@@ -26,7 +26,6 @@ class OpenPhoneResourceChannelUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke(request: WearPhoneResourceRequest): PhoneResourceChannel {
-        Timber.d("S1697: phone open request itemToken=%s", request.itemToken)
         val item = request.itemToken?.let { PhoneResourceToken.parse(it) }
             ?: return PhoneResourceChannel.Rejected(WearPhoneResourceResponseStatus.NOT_FOUND)
 
@@ -92,7 +91,6 @@ class OpenPhoneResourceChannelUseCase @Inject constructor(
      */
     private suspend fun resolveById(resource: MediaResource, mediaStoreId: Long): File? {
         val file = mediaStoreRepository.getFileByMediaStoreId(mediaStoreId)?.let { File(it.path) }
-        Timber.d("S1897: resolveById id=$mediaStoreId found=${file != null}")
         return when {
             file == null -> null
             VirtualPathUtils.isVirtualPath(resource.path) -> file

@@ -6,7 +6,6 @@ import com.sza.fastmediasorter.wear.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
-import timber.log.Timber
 import javax.inject.Inject
 
 class ApplyWearSettingsUseCase @Inject constructor(
@@ -14,7 +13,6 @@ class ApplyWearSettingsUseCase @Inject constructor(
     private val preferencesRepository: WearPreferencesRepository
 ) {
     suspend operator fun invoke(payload: WearSettingsPayload) {
-        Timber.d("S1839: applying wear settings payload, wait-for-finish field removed")
         preferencesRepository.setAudioEnabled(payload.audioEnabled)
         preferencesRepository.setVideoEnabled(payload.videoEnabled)
         preferencesRepository.setImagesEnabled(payload.imagesEnabled)
@@ -32,7 +30,6 @@ class ApplyWearSettingsUseCase @Inject constructor(
         }
         // S1814: apply language received from phone companion if supported by the watch.
         payload.appLanguage?.let { rawLanguage ->
-            Timber.d("S1814: apply wear language payload: %s", rawLanguage)
             WearLocaleManager.resolveSupportedTag(rawLanguage)?.let { resolvedTag ->
                 preferencesRepository.setAppLanguage(resolvedTag)
                 WearLocaleManager.applyLocale(context, resolvedTag)

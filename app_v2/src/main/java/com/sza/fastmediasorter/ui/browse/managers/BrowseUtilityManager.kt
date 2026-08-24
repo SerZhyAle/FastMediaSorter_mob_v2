@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.FileFilter
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.ui.browse.BrowseState
+import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -40,9 +41,17 @@ class BrowseUtilityManager(
         }
         
         // Add file count if available
+        val totalFileCount = state.totalFileCount
         val fileCount = when {
             state.loadingProgress > 0 -> " (${state.loadingProgress}...)" // Show progress during scan
-            state.totalFileCount != null -> " (${state.totalFileCount} files)"
+            totalFileCount != null -> {
+                Timber.d("S1994: resource file count=$totalFileCount")
+                " (" + context.resources.getQuantityString(
+                    R.plurals.file_count_format_plural,
+                    totalFileCount,
+                    totalFileCount
+                ) + ")"
+            }
             else -> " (${context.getString(R.string.counting)})"
         }
         

@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -26,10 +25,6 @@ class NetworkMonitorViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val sections = sectionsFor(repository.capabilities())
-
-    init {
-        Timber.d("S1710: network monitor opened with ${sections.size} section(s)")
-    }
 
     /** Session-only, newest last. Written by the single collector below and by nothing else. */
     private val history = mutableListOf<WearNetworkSnapshot>()

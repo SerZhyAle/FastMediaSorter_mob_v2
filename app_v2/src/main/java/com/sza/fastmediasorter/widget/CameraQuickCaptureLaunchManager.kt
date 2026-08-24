@@ -138,7 +138,6 @@ class CameraQuickCaptureLaunchManager(
         val extension = if (isVideoMode) ".mp4" else ".jpg"
         val kind = if (isVideoMode) CaptureFileNamer.CaptureKind.VIDEO else CaptureFileNamer.CaptureKind.PHOTO
         val fileName = CaptureFileNamer.shared.allocate(kind, extension)
-        Timber.d("S1882: quick camera output $fileName")
         val tempFile = createTemp(fileName) ?: run {
             toastAndFinish(R.string.camera_capture_error_temp_file)
             return

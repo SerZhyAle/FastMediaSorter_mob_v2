@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.domain.model
 
+import com.google.gson.annotations.SerializedName
+
 /**
  * S1861: how one queued phone -> watch transfer ended, or that it has not ended yet.
  *
@@ -64,8 +66,11 @@ const val WEAR_FILE_TRANSFER_MAX_BYTES = 32L * 1024L * 1024L
  * writes them verbatim on both sides, so renaming one here breaks the other module silently.
  */
 data class WearFileTransferMetadata(
+    @SerializedName("name")
     val name: String = "",
+    @SerializedName("size")
     val size: Long = 0L,
+    @SerializedName("mimeType")
     val mimeType: String? = null
 )
 

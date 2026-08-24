@@ -311,19 +311,21 @@ if (Test-Path -LiteralPath $retainScript) {
         # wear carries the 8-digit yyMMddHH code by design; app_v2 carries 9 digits.
         $codeForFlavor = if ($flavor -eq 'wear') { $wearVersionCode } else { $appVersionCode }
 
-        $retainArgs = @(
-            '-Variant', $flavor
-            '-VersionCode', $codeForFlavor
-            '-VersionName', $versionName
-            '-Mapping', $mappingPath
-        )
+        # An array passed through `&` is positional, even when its items look like
+        # parameter names. Keep this named so VersionCode cannot receive -Variant.
+        $retainArgs = @{
+            Variant     = $flavor
+            VersionCode = $codeForFlavor
+            VersionName = $versionName
+            Mapping     = $mappingPath
+        }
 
         # wear declares no ndk block, so it ships no native code and needs no symbols.
         if ($flavor -ne 'wear') {
             $variantName = "$($flavor)Release"
             $symbolsDir = Resolve-NativeSymbolsDir -Variant $variantName
             if ($symbolsDir) {
-                $retainArgs += @('-NativeSymbols', $symbolsDir)
+                $retainArgs.NativeSymbols = $symbolsDir
             } else {
                 Write-Host "  $flavor : no native symbols under intermediates\native_debug_metadata\$variantName - mapping retained without them" -ForegroundColor Yellow
             }

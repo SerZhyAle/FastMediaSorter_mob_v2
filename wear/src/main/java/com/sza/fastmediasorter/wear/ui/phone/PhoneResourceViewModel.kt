@@ -208,7 +208,6 @@ class PhoneResourceViewModel @Inject constructor(
      * and delete.
      */
     fun openFile(entry: WearPhoneResourceItem) {
-        Timber.d("S1697: watch file tap token=%s", entry.token)
         _openOutcome.value = PhoneFileOpenOutcome.Opening
         val openedFrom = loadGeneration
         viewModelScope.launch {
@@ -255,7 +254,6 @@ class PhoneResourceViewModel @Inject constructor(
         // S1898: a refusal belongs to the list it was raised on. The line is anchored to the screen
         // now instead of scrolling away with the list, so without this it would follow the user into
         // the next folder and name a file that folder does not contain.
-        Timber.d("S1898: clearing open outcome on reload parentToken=$parentToken")
         loadGeneration++
         _openOutcome.value = null
         _uiState.value = PhoneResourceUiState.Loading
@@ -264,7 +262,6 @@ class PhoneResourceViewModel @Inject constructor(
         _thumbnails.value = emptyMap()
         val isFlat = mediaType != null && mediaType != MEDIA_TYPE_ALL
         viewModelScope.launch {
-            Timber.d("S1869: PhoneResourceViewModel loaded flat list for mediaType: $mediaType")
             val outcome = phoneResourceClient.browse(parentToken, mediaType = mediaType, isFlat = isFlat)
             _uiState.value = when (outcome) {
                 is PhoneResourceOutcome.Page -> {
@@ -299,7 +296,6 @@ class PhoneResourceViewModel @Inject constructor(
      */
     private fun currentTitle(): ScreenTitle {
         val level = trail.lastOrNull()
-        Timber.d("S1877: header depth=${trail.size} level=${level?.name}")
         return if (level == null) {
             ScreenTitle.Resource(titleResFor(mediaType))
         } else {

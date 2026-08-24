@@ -81,7 +81,6 @@ class ArtworkManifestClient @Inject constructor(
         } catch (e: CancellationException) {
             // Cancellation is the caller giving up, not the manifest answering - reporting it as
             // "no update" would hide a torn-down fetch behind a legitimate-looking result (S1889).
-            Timber.d("S1889: artwork manifest fetch cancelled - rethrowing instead of reporting no update")
             throw e
         } catch (e: IllegalStateException) {
             // OkHttp raises this for a call reused or closed out of order; still just "no answer".

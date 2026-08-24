@@ -28,7 +28,6 @@ internal class AddResourceWatchCoordinator(
 ) {
 
     fun addPairedWatch(name: String) {
-        Timber.d("S1861: add paired watch resource requested")
         bridge.vmScope.launch(bridge.ioDispatcher + bridge.exHandler) {
             bridge.markLoading(true)
             try {

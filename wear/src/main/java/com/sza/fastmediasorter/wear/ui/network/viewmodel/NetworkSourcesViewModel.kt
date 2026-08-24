@@ -102,7 +102,6 @@ class NetworkSourcesViewModel @Inject constructor(
                                 type = source.type
                             )
                         }
-                        Timber.d("S1952: observed types " + sourceItems.map { it.type })
                         Timber.d("Observed ${sourceItems.size} network sources")
                         NetworkSourcesUiState.Success(sourceItems)
                     }
@@ -177,7 +176,6 @@ class NetworkSourcesViewModel @Inject constructor(
                         )
                     }
                     _uiState.value = NetworkSourcesUiState.Success(sourceItems)
-                    Timber.d("S1952: loaded types " + sourceItems.map { it.type })
                     Timber.d("Loaded ${sourceItems.size} network sources")
                 }
             } catch (e: Exception) {
@@ -195,7 +193,6 @@ class NetworkSourcesViewModel @Inject constructor(
      * rather than merely captioning it.
      */
     fun rememberLastUsedResource(id: String, name: String) {
-        Timber.d("S1836: remembering resource $name ($id)")
         viewModelScope.launch {
             preferencesRepository.setLastUsedResource(id, name)
         }
@@ -220,7 +217,6 @@ class NetworkSourcesViewModel @Inject constructor(
                 )
                 return@launch
             }
-            Timber.d("S1833: testing saved source $name (${source.type})")
             val result = networkSourceRepository.testConnection(source)
             val succeeded = result.isSuccess && result.getOrDefault(false)
             _connectionTestState.value = ConnectionTestState.Finished(

@@ -10,7 +10,6 @@ import com.sza.fastmediasorter.ui.cameracapture.model.PhotoProfile
 import com.sza.fastmediasorter.util.CaptureFileNamer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.io.File
 
 /**
@@ -243,7 +242,6 @@ class CameraCaptureFlowManager(
             CaptureFileNamer.CaptureKind.PHOTO
         }
         val fileName = CaptureFileNamer.shared.allocate(kind, extensionFor(mode))
-        Timber.d("S1882: camera session output $fileName")
         return File(dir, fileName)
     }
 

@@ -22,7 +22,6 @@ import androidx.wear.compose.material.LocalContentAlpha
 import androidx.wear.compose.material.LocalContentColor
 import androidx.wear.compose.material.LocalTextStyle
 import androidx.wear.compose.material.MaterialTheme
-import timber.log.Timber
 
 /** The one cell radius of the watch module. Anything rectangular here asks for it instead of writing 8.dp again. */
 internal val WearCellCorner: Dp = 8.dp
@@ -67,7 +66,6 @@ internal fun RectangularButton(
                 role = Role.Button,
                 onLongClick = onLongClick,
                 onClick = {
-                    Timber.d("S1970: rect button click, longPress=${onLongClick != null}")
                     onClick()
                 }
             )

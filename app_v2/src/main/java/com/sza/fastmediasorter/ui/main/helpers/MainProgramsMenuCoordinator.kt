@@ -11,7 +11,6 @@ import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorActivity
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
 import com.sza.fastmediasorter.ui.systeminfo.SystemInfoActivity
 import com.sza.fastmediasorter.ui.wear.WearCompanionActivity
-import timber.log.Timber
 
 /**
  * S0774: single home for the main-window programs menu - item registration, count, click dispatch,
@@ -182,7 +181,6 @@ class MainProgramsMenuCoordinator(
                 true
             }
             MENU_ITEM_SYSTEM_INFO -> {
-                Timber.d("S1733: programs menu opens system info")
                 activity.startActivity(SystemInfoActivity.createIntent(activity))
                 true
             }

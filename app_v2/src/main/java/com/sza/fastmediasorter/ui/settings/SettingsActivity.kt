@@ -192,7 +192,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Timber.d("S1549: SettingsActivity onCreate - recreation applies the orientation layout")
         // Measure actionBarSize and register insets listener before the first frame
         // to prevent toolbarContainer height from jumping on activity open.
         val tv = TypedValue()

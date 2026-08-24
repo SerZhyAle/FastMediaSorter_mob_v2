@@ -8,7 +8,6 @@ import com.sza.fastmediasorter.wear.domain.model.WearSystemInfoValue
 import com.sza.fastmediasorter.wear.domain.repository.WearSystemInfoDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.util.Locale
 import javax.inject.Inject
 
@@ -28,7 +27,6 @@ class GatherWearSystemInfoUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke(): List<WearSystemInfoSection> = withContext(Dispatchers.IO) {
-        Timber.d("S1733: wear system info gathered")
         listOfNotNull(
             section(R.string.system_info_section_device, deviceFields()),
             section(R.string.system_info_section_app, appFields()),

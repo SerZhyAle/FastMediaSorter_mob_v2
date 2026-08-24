@@ -161,7 +161,6 @@ class BrowseManagerInitializer(
     private lateinit var buttonCallbacks: BrowseButtonSetupHelper.ButtonCallbacks
 
     fun initialize() {
-        Timber.d("S1269: browse composition root built from dependency bundles")
         dialogHelper = BrowseDialogHelper(
             activity = activity,
             callbacks = BrowseDialogCallbacksImpl(

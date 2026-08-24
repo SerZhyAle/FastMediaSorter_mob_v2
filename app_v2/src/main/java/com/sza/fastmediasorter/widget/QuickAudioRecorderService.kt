@@ -108,7 +108,6 @@ class QuickAudioRecorderService : Service() {
 
         val dir = (getExternalFilesDir(Environment.DIRECTORY_MUSIC) ?: filesDir).apply { mkdirs() }
         val fileName = CaptureFileNamer.shared.allocate(CaptureFileNamer.CaptureKind.AUDIO, ".m4a")
-        Timber.d("S1882: widget audio output $fileName")
         val file = File(dir, fileName)
         outputFile = file
 

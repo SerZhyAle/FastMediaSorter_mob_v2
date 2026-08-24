@@ -61,25 +61,21 @@
 
     <!-- Copy Dialog -->
     <string name="copying_files">Копируем..</string>
-    <string name="copying_n_files_from_folder">Копируем %1$d файлов из %2$s..</string>
     <string name="copied_n_files">Скопировали %1$d файлов.</string>
     <string name="copied_n_of_m_files">Скопировали %1$d из %2$d файлов.</string>
     <string name="copy_failed">Не получилось скопировать файлы.</string>
     <string name="no_destinations_available">Ресурсы-получатели не настроены</string>
 
     <!-- Archive destination picker (reused copy/move dialog in ARCHIVE mode) -->
-    <string name="archiving_n_files_from_folder">Архивирование %1$d файлов из %2$s</string>
 
     <!-- Move Dialog -->
     <string name="moving_files">Перемещаем..</string>
-    <string name="moving_n_files_from_folder">Перемещаем %1$d файлов из %2$s..</string>
     <string name="moved_n_files">Переместили %1$d файлов.</string>
     <string name="moved_n_of_m_files">Переместили %1$d из %2$d файлов.</string>
     <string name="move_failed">Не получилось переместить файлы.</string>
 
     <!-- Rename Dialog -->
     <string name="renaming_files">Переименовываем..</string>
-    <string name="renaming_n_files_from_folder">Переименовываем %1$d файлов из %2$s..</string>
     <string name="renamed_n_files">Переименовали %1$d файлов.</string>
     <string name="rename_failed_generic">Не получилось переименовать файл.</string>
     <string name="rename_file_name_empty">Имя файла не может быть пустым.</string>

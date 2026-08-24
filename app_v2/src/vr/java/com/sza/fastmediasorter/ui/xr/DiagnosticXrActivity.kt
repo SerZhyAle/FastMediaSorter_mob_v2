@@ -787,7 +787,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
      * geometry.
      */
     private fun restoreStripAfterSettings() {
-        Timber.d("S1271: settings panel dismissed - strip restored at scale $stripQuadScale")
         applyStripQuadGeometry()
         hudVisible = true
         renderPanelHud()
@@ -811,7 +810,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
      */
     private fun toggleSettingsPanel() {
         val controller = settingsController ?: return
-        Timber.d("S1271: menu toggle - settings panel ${if (controller.isVisible) "closing" else "opening"}")
         if (controller.dismiss()) return
         seekTicker.stop()
         refreshSettingsPanelModel()
@@ -941,9 +939,9 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         // S1223: the legend borrows this same texture channel. Uploading the strip while it is up
         // would stretch a 2560x360 texture across the legend's quad - one guard at the only queueHud
         // call site covers every repaint trigger (ticker, track change, slider drag) at once.
-        if (isFinishing || isDestroyed || legendController?.isVisible == true ||
-            settingsController?.isVisible == true
-        ) {
+        val isFinishingOrDestroyed = isFinishing || isDestroyed
+        val isOverlayVisible = legendController?.isVisible == true || settingsController?.isVisible == true
+        if (isFinishingOrDestroyed || isOverlayVisible) {
             return
         }
         val bitmap = hudBitmap
@@ -1464,10 +1462,16 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
         // S1271: cycle rings for the override rows; null = Auto (per-file detection).
         private val LAYOUT_RING = listOf(
-            null, StereoLayout.MONO, StereoLayout.SIDE_BY_SIDE, StereoLayout.TOP_BOTTOM
+            null,
+            StereoLayout.MONO,
+            StereoLayout.SIDE_BY_SIDE,
+            StereoLayout.TOP_BOTTOM,
         )
         private val PROJECTION_RING = listOf(
-            null, ProjectionType.FLAT, ProjectionType.HEMISPHERE_180, ProjectionType.SPHERE_360
+            null,
+            ProjectionType.FLAT,
+            ProjectionType.HEMISPHERE_180,
+            ProjectionType.SPHERE_360,
         )
 
         // S1240: one thumbstick deflection = one 10 s step. The number is not invented - it is what

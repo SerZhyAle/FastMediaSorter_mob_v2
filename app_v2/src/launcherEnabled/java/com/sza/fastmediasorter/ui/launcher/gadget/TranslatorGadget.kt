@@ -190,7 +190,6 @@ private class TranslatorGadgetView(
                 binding.gadgetTranslatorResult.text = translated
             }
             val state = decideTranslatorState(text, translated, modelMissing, failed)
-            Timber.d("S1177: translator cell %s to %s, state=%s", source, target, state)
             renderState(state)
         }
     }

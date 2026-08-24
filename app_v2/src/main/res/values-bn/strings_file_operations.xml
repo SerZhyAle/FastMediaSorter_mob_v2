@@ -95,7 +95,6 @@
     <string name="file_already_exists_skip">%1$s (বাদ দেওয়া হয়েছে - ফাইলটি আগে থেকেই বিদ্যমান)</string>
     <string name="file_cloud_id_label">ক্লাউড আইডি: %1$s</string>
     <string name="file_count">ফাইলের সংখ্যা</string>
-    <string name="file_count_format">%d টি ফাইল</string>
     <string name="file_count_over_1000">১০০০টিরও বেশি ফাইল</string>
     <string name="file_date_label">তারিখ: %1$s</string>
     <string name="file_deleted">\"%1$s\" মুছে ফেলা হয়েছে</string>

@@ -12,7 +12,6 @@ import com.sza.fastmediasorter.domain.model.weather.WeatherLocation
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetHost
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherCellViewBinder
-import timber.log.Timber
 
 /**
  * S1541: builds the view for a gadget cell - registry lookup, the gadget's own view, and the
@@ -34,7 +33,6 @@ class LauncherGadgetRenderManager(
      * so the shortcut's unavailable path cannot double as this one.
      */
     fun bindGadget(cellUi: LauncherCellUi, container: FrameLayout) {
-        Timber.d("S1541: gadget render manager binding a gadget cell")
         val decoded = gadgetRegistry.decodeTarget(cellUi.cell.target)
         val gadget = decoded?.first?.let { gadgetRegistry.byKey(it) }
         if (gadget == null) {

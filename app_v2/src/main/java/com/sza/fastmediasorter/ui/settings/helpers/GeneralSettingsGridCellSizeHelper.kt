@@ -34,7 +34,6 @@ class GeneralSettingsGridCellSizeHelper(
             if (isUpdatingSpinner) return@setOnItemSelectedListener
             val selected = ResourceGridCellSize.values()[position]
             Timber.d("GeneralSettingsGridCellSizeHelper: resourceGridCellSize -> %s", selected)
-            Timber.d("S1285: cell size chosen in settings -> %s", selected)
             saveSettings { it.copy(resourceGridCellSize = selected) }
         }
     }

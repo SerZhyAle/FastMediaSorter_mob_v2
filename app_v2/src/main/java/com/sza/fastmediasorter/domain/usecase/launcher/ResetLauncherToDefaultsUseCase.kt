@@ -60,7 +60,6 @@ class ResetLauncherToDefaultsUseCase @Inject constructor(
 
     /** Returns whether the reset completed, so the caller can tell the user it did not happen. */
     suspend operator fun invoke(densityFactor: Float): Boolean = withContext(Dispatchers.IO) {
-        Timber.d("S1886: launcher reset requested at density %s", densityFactor)
         runCatching {
             desktop.clearAll()
             pins.clearPins()

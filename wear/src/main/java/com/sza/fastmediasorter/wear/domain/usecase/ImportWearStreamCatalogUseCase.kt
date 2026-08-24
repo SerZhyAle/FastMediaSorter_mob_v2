@@ -34,7 +34,6 @@ class ImportWearStreamCatalogUseCase @Inject constructor(
     // which is the opposite of what a catalog refresh should do.
     @Suppress("TooGenericExceptionCaught")
     suspend operator fun invoke(): CatalogImportResult = withContext(Dispatchers.IO) {
-        Timber.d("S1708: wear stream catalog import starting")
         Timber.i("Wear stream catalog import: starting")
         val payload = try {
             downloadCatalog()

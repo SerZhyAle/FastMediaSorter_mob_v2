@@ -66,14 +66,6 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         if (blocked) {
             pushTailDown(candidate)
         }
-        Timber.d(
-            "S1772: seating %dx%d at %d,%d - pushed=%b",
-            candidate.spanW,
-            candidate.spanH,
-            candidate.rowIndex,
-            candidate.colIndex,
-            blocked,
-        )
         return LauncherCellPlacement.Placed(cellDao.upsert(candidate.toEntity()))
     }
 

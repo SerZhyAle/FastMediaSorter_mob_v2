@@ -95,20 +95,24 @@ class FileOperationDestinationDialog(
 
     private fun setupUI() {
         binding.apply {
+            Timber.d("S1994: destination file count=${sourceFiles.size}")
             // Set message based on operation type
             val fileCountText = when (operationType) {
-                FileOperationType.COPY -> context.getString(
-                    R.string.copying_n_files_from_folder,
+                FileOperationType.COPY -> context.resources.getQuantityString(
+                    R.plurals.copying_n_files_from_folder_plural,
+                    sourceFiles.size,
                     sourceFiles.size,
                     sourceFolderName
                 )
-                FileOperationType.MOVE -> context.getString(
-                    R.string.moving_n_files_from_folder,
+                FileOperationType.MOVE -> context.resources.getQuantityString(
+                    R.plurals.moving_n_files_from_folder_plural,
+                    sourceFiles.size,
                     sourceFiles.size,
                     sourceFolderName
                 )
-                FileOperationType.ARCHIVE -> context.getString(
-                    R.string.archiving_n_files_from_folder,
+                FileOperationType.ARCHIVE -> context.resources.getQuantityString(
+                    R.plurals.archiving_n_files_from_folder_plural,
+                    sourceFiles.size,
                     sourceFiles.size,
                     sourceFolderName
                 )

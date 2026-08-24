@@ -94,7 +94,6 @@
     <string name="file_already_exists_skip">%1$s（已跳过 - 文件已存在）</string>
     <string name="file_cloud_id_label">云 ID：%1$s</string>
     <string name="file_count">文件数量</string>
-    <string name="file_count_format">%d 个文件</string>
     <string name="file_count_over_1000">超过1000个文件</string>
     <string name="file_date_label">日期：%1$s</string>
     <string name="file_deleted">已删除“%1$s”</string>

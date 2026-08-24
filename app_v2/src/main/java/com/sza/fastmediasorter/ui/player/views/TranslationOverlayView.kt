@@ -398,7 +398,6 @@ class TranslationOverlayView @JvmOverloads constructor(
 
         try {
             val (x, y) = ocrPointToSource(boundingBox.left, boundingBox.top, bitmap)
-            Timber.d("S1704: ocr(${boundingBox.left},${boundingBox.top}) -> source($x,$y)")
             val pixelColor = bitmap.getPixel(x, y)
 
             // Add slight opacity for better blending
@@ -514,7 +513,6 @@ class TranslationOverlayView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         
-        Timber.d("S1713: drawing translation plates, opaque backing and downward growth")
         // Clear and rebuild scaled rects for hit testing
         scaledRects.clear()
         

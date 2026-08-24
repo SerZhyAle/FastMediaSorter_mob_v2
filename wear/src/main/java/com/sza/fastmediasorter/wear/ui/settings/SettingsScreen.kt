@@ -47,7 +47,6 @@ import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.util.GridColumnFit
-import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
@@ -61,8 +60,6 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    Timber.d("S1724: grouped settings root displayed")
-    Timber.d("S1868: settings root applies the shared screen view")
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,

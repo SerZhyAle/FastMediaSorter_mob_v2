@@ -38,7 +38,6 @@ import com.sza.fastmediasorter.wear.domain.calculator.WearCalculatorEngine
 import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.util.GridColumnFit
-import timber.log.Timber
 
 // S1965: was 26.dp - about half the interactive minimum, while the KDoc below and
 // docs/WEAR_OS_STATUS.md both said 48. That KDoc names the target size as the FIXED side of the
@@ -84,7 +83,6 @@ fun CalculatorScreen(
     onLeave: () -> Unit = {},
     viewModel: CalculatorViewModel = hiltViewModel()
 ) {
-    Timber.d("S1965: calculator key height=$KEY_HEIGHT")
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberScalingLazyListState()
     var menuOpen by remember { mutableStateOf(false) }
@@ -232,7 +230,6 @@ private fun OperationElement(operation: WearCalculatorEngine.Operator, onOperati
     )
     RectangularButton(
         onClick = {
-            Timber.d("S1942: operation element tap ${operation.symbol}")
             onOperation(operation.symbol)
         },
         modifier = Modifier
@@ -320,7 +317,6 @@ private fun dispatchLongPress(
     viewModel: CalculatorViewModel,
     onLeave: () -> Unit,
 ) {
-    Timber.d("S1970: calculator long press key=$key")
     when {
         key == CalculatorKey.Menu -> onLeave()
         key is CalculatorKey.Digit && key.value == 0 -> repeat(TRIPLE_ZERO_COUNT) { viewModel.onDigit(0) }

@@ -73,7 +73,6 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
         installLauncher = activity.registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
-            Timber.d("S1686: APK install result received, resultCode=${result.resultCode}")
             val act = activityRef.get() ?: return@registerForActivityResult
             val msgRes = when (result.resultCode) {
                 Activity.RESULT_OK -> R.string.s0183_apk_install_success

@@ -96,7 +96,6 @@
     <string name="file_already_exists_skip">%1$s (ignoré - le fichier existe déjà)</string>
     <string name="file_cloud_id_label">ID du cloud : %1$s</string>
     <string name="file_count">Nombre de fichiers</string>
-    <string name="file_count_format">%d fichiers</string>
     <string name="file_count_over_1000">&gt;1000 fichiers</string>
     <string name="file_date_label">Date : %1$s</string>
     <string name="file_deleted">\"%1$s\" supprimé</string>

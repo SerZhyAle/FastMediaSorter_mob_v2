@@ -78,7 +78,6 @@ class TesseractManager(private val context: Context) : OfflineOcrEngine {
                         // S1715 pillar 1: read the mode we have been recognising in before anything sets it.
                         // The native default is not statically readable from the 4.8.0 artefact, so this is
                         // the only way to learn it. Two init paths exist and neither is guaranteed to match.
-                        Timber.d("S1715: page-seg mode after init (best model): ${tessApi?.pageSegMode}")
                         Timber.d("Tesseract initialized successfully using high-quality model for $language")
                         return@withContext true
                     } else {
@@ -120,7 +119,6 @@ class TesseractManager(private val context: Context) : OfflineOcrEngine {
                     isInitialized = true
                     currentLanguage = language
                     // S1715 pillar 1: same reading on the fallback path - see the note above.
-                    Timber.d("S1715: page-seg mode after init (fast model): ${tessApi?.pageSegMode}")
                     Timber.d("Tesseract initialized successfully with standard fast model for $language")
                 } else {
                     Timber.e("Tesseract initialization failed for $language")
@@ -299,7 +297,6 @@ class TesseractManager(private val context: Context) : OfflineOcrEngine {
      * are already computed inside the result this walk reads.
      */
     private fun collectLinesWithWords(iterator: ResultIterator): List<OcrTextBlock> {
-        Timber.d("S1711: Tesseract word-level line collection entered")
         val blocks = mutableListOf<OcrTextBlock>()
         val words = mutableListOf<OcrWord>()
         iterator.begin()

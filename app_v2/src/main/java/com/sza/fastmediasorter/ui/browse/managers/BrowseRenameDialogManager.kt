@@ -97,8 +97,9 @@ internal class BrowseRenameDialogManager(
 
         val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(
-                activity.getString(
-                    R.string.renaming_n_files_from_folder,
+                activity.resources.getQuantityString(
+                    R.plurals.renaming_n_files_from_folder_plural,
+                    files.size,
                     files.size,
                     callbacks.getResourceName() ?: ""
                 )

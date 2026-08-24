@@ -64,7 +64,6 @@ import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.BeamAnimationDialog
 import com.sza.fastmediasorter.ui.wearresources.WearResourceSelectionActivity
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -108,7 +107,6 @@ class WearSyncSettingsFragment : BottomSheetDialogFragment() {
         val behavior = (dialog as? BottomSheetDialog)?.behavior ?: return
         behavior.skipCollapsed = true
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        Timber.d("S1691: wear companion sheet opened expanded")
     }
 
     private fun launchBeamDialog() {

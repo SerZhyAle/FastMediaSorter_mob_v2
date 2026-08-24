@@ -282,7 +282,6 @@ class BrowseFileObserverManager(
                     // S1891: Android hides a file while IS_PENDING is set, so a '.pending-' source name
                     // can never be in the visible list - this is a publication, not a rename, and the
                     // immediate fallback below would rescan the folder once per published file.
-                    Timber.d("S1891: pending publication debounced oldName=%s", oldName)
                     Timber.i("FileObserver.handleFileRename: pending file published - scheduling debounced reload")
                     scheduleReload()
                     return@launch

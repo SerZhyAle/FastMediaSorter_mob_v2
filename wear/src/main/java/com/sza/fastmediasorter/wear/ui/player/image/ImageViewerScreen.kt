@@ -121,10 +121,6 @@ private fun ImageViewerContent(
                             dragOffset += overSlop
                         }
                     }
-                    Timber.d(
-                        "S1705: image drag start x=${down.position.x} band=$startedInDismissBand " +
-                            "leaveToPlatform=$leaveToPlatform"
-                    )
                     if (slop != null && !leaveToPlatform) {
                         horizontalDrag(slop.id) { change ->
                             dragOffset += change.positionChange().x

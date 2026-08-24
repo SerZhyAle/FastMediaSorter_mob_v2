@@ -64,8 +64,9 @@ class RenameDialog(
 
     private fun setupUI() {
         binding.apply {
-            tvFileCount.text = context.getString(
-                R.string.renaming_n_files_from_folder,
+            tvFileCount.text = context.resources.getQuantityString(
+                R.plurals.renaming_n_files_from_folder_plural,
+                files.size,
                 files.size,
                 sourceFolderName
             )

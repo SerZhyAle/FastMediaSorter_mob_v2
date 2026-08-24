@@ -27,7 +27,6 @@ import com.sza.fastmediasorter.ui.launcher.picker.LauncherSectionNameDialogFragm
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherStreamPickerDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherWeatherLocationDialogFragment
 import com.sza.fastmediasorter.widget.networkmonitor.NetworkMonitorIndicator
-import timber.log.Timber
 
 /**
  * S1541: the whole "put something on the desktop" chain - result-key registration, the category
@@ -64,7 +63,6 @@ class LauncherAddFlowManager(
      * the placement (and the ADR-10 rememberFileList write) is [LauncherHomeViewModel]'s job (Rule 3).
      */
     fun registerAddFlowListeners() {
-        Timber.d("S1541: add-flow manager registering result listeners")
         fragmentManager.setFragmentResultListener(
             LauncherCellContentPickerDialogFragment.RESULT_KEY,
             lifecycleOwner,

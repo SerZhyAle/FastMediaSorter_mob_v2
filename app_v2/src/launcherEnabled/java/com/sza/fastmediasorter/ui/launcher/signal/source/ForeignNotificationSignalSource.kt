@@ -44,7 +44,6 @@ class ForeignNotificationSignalSource @Inject constructor(
      * the last place that may touch disk on the main thread.
      */
     override fun observe(): Flow<List<LauncherSignal>> = counts.counts.map { byPackage ->
-        Timber.d("S1465: foreign notification signals rebuilt, apps=${byPackage.size}")
         if (byPackage.isEmpty() || !NotificationAccessState.isEnabled(context)) {
             emptyList()
         } else {

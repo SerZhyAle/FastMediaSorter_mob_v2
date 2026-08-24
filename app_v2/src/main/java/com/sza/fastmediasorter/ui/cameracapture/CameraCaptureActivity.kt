@@ -857,7 +857,6 @@ class CameraCaptureActivity :
             params.dimensionRatio = ratio
             binding.previewClipBox.layoutParams = params
         }
-        Timber.d("S1920: preview clip box ratio=${ratio ?: "full-screen"}")
     }
 
     /** S1658: after the settings dialog applies a shape, re-scale the preview and remember the choice. */

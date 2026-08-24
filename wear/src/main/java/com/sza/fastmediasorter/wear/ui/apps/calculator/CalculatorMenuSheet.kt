@@ -26,7 +26,6 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.calculator.WearCalculatorFunction
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.util.GridColumnFit
-import timber.log.Timber
 
 private val TITLE_VERTICAL_PADDING = 12.dp
 private val LIST_SIDE_PADDING = 8.dp
@@ -74,8 +73,6 @@ fun CalculatorMenuSheet(
         // 2026-08-22). Three columns are requested and the shared fit rule drops to fewer on a narrow
         // watch rather than shrinking a cell under the interactive minimum.
         val columns = GridColumnFit.columnsFor(WearViewMode.GRID_3, maxWidth.value.toInt())
-        Timber.d("S1942: menu grid columns=$columns width=${maxWidth.value}")
-
         ScalingLazyColumn(
             modifier = Modifier.fillMaxSize(),
             state = listState,

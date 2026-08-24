@@ -96,7 +96,6 @@
     <string name="file_already_exists_skip">%1$s (چھوڑ دیا گیا - فائل پہلے سے موجود ہے)</string>
     <string name="file_cloud_id_label">کلاؤڈ ID: %1$s</string>
     <string name="file_count">فائل کاؤنٹ</string>
-    <string name="file_count_format">%d فائلیں۔</string>
     <string name="file_count_over_1000">&gt;1000 فائلیں۔</string>
     <string name="file_date_label">تاریخ: %1$s</string>
     <string name="file_deleted">\"%1$s\" کو حذف کر دیا گیا۔</string>

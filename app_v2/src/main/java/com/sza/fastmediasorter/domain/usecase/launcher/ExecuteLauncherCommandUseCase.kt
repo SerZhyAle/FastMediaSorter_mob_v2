@@ -87,7 +87,6 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
      * declines rather than opening something the caller did not ask for.
      */
     private suspend fun launchFeatureSection(command: LauncherCellCommand.FeatureSection): Boolean {
-        Timber.d("S1440: tile opens monitor section=%s", command.sectionKey)
         val availability = resolveRouteAvailability(command.routeKey)
         val isMonitor = command.routeKey == InternalRouteCatalog.KEY_NETWORK_MONITOR
         return when {
@@ -143,9 +142,6 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
         if (target == null) {
             Timber.i("Launcher: system screen %s is unknown to this build or absent here", targetKey)
             return false
-        }
-        if (screenOnly) {
-            Timber.d("S1767: status indicator opens system screen %s", targetKey)
         }
         // S1441: a radio target tries to switch itself first; only a refusal reaches a system screen.
         // Written as one expression rather than an early return: a third return crosses detekt's limit.

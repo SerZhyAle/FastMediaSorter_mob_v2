@@ -13,7 +13,6 @@ import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import timber.log.Timber
 
 // Record separator of the joined history. A control character, so no expression can contain it.
 private const val HISTORY_RECORD_SEPARATOR = "\u001E"
@@ -149,7 +148,6 @@ class WearPreferencesRepositoryImpl(
     }
 
     override suspend fun setFileListViewMode(mode: WearViewMode) {
-        Timber.d("S1730: file list view stored as $mode")
         context.dataStore.edit { prefs ->
             prefs[PreferencesKeys.FILE_LIST_VIEW_MODE] = mode.name
         }
@@ -261,7 +259,6 @@ class WearPreferencesRepositoryImpl(
     }
 
     override suspend fun setAutoRotationEnabled(enabled: Boolean) {
-        Timber.d("S1718: setAutoRotationEnabled=$enabled")
         context.dataStore.edit { prefs ->
             prefs[PreferencesKeys.AUTO_ROTATION_ENABLED] = enabled
         }

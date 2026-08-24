@@ -120,7 +120,6 @@ class VideoPlayerViewModel @Inject constructor(
                     // S0902 removed below.
                     val setSize = playbackSetManager.currentSet.value?.files?.size ?: 0
                     if (isSlideshowEnabled && setSize > 1) {
-                        Timber.d("S1838: video ended, advancing within the set of $setSize")
                         skipToNext()
                     } else {
                         streamPlaybackSession.stop()
@@ -309,7 +308,6 @@ class VideoPlayerViewModel @Inject constructor(
      */
     private suspend fun loadNetworkVideo(selected: SelectedMedia) {
         if (selected.isDirectStream) {
-            Timber.d("S1708: direct video stream playback uri=${selected.streamUri}")
             val mediaKind = ClassifyWearStreamMediaKindUseCase.VIDEO
             if (!streamPlaybackSession.prepare(mediaKind)) {
                 _uiState.update { it.copy(isLoading = false) }
@@ -325,7 +323,6 @@ class VideoPlayerViewModel @Inject constructor(
             }
             return
         }
-        Timber.d("S1687: network video entry sourceId=${selected.sourceId} uri=${selected.streamUri}")
         _uiState.update { it.copy(isLoading = true) }
 
         downloadNetworkFile(selected, DownloadNetworkFileUseCase.Kind.VIDEO).fold(

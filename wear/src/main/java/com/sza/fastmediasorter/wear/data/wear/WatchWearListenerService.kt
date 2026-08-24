@@ -123,7 +123,6 @@ class WatchWearListenerService : WearableListenerService() {
     }
 
     private fun handleStreamTransfer(nodeId: String, data: ByteArray) {
-        Timber.d("S1799: stream transfer message received from $nodeId")
         serviceScope.launch {
             val payload = try {
                 val envelope = envelopeCodec.decode(data)
@@ -171,7 +170,6 @@ class WatchWearListenerService : WearableListenerService() {
         } else {
             WearStreamTransferAck.OUTCOME_NOT_FOREGROUND
         }
-        Timber.d("S1944: open on watch -> $outcome for ${channel.url}")
         return WearStreamTransferAck(requestId = requestId, outcome = outcome)
     }
 

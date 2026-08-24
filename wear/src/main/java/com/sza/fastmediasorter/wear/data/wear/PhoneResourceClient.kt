@@ -85,7 +85,6 @@ class PhoneResourceClient @Inject constructor(
         // Waiting for the channel is therefore armed before the request leaves, so the open cannot
         // fall into the gap and leave the watch waiting out the whole transfer timeout.
         val channelClient = Wearable.getChannelClient(context)
-        Timber.d("S1950: channel wait armed before open request")
         val transfer = async { awaitChannel(channelClient) }
         val approval = request(request, WearDataLayerPaths.PHONE_RESOURCE_OPEN_REQUEST)
         if (approval is PhoneResourceOutcome.Page) {
@@ -161,7 +160,6 @@ class PhoneResourceClient @Inject constructor(
 
     private fun decodePage(payload: ByteArray): WearPhoneResourcePage? = runCatching {
         val envelope = envelopeCodec.decode(payload)
-        Timber.d("S1893: page envelope decoded wireBytes=%d payloadBytes=%d", payload.size, envelope.data.size)
         gson.fromJson(envelope.data.decodeToString(), WearPhoneResourcePage::class.java)
     }.onFailure { Timber.w(it, "Unreadable phone resource page") }.getOrNull()
 
@@ -173,7 +171,6 @@ class PhoneResourceClient @Inject constructor(
         transfer: Deferred<ChannelClient.Channel>,
         destination: File
     ): PhoneResourceOutcome {
-        Timber.d("S1860: receiveTransfer for ${destination.name}")
         // The budget is spent from the approval on, not from the request: the wait was armed
         // earlier only so an early channel is not missed, never to shorten what the phone gets.
         val channel = withTimeoutOrNull(TRANSFER_TIMEOUT_MS) { transfer.await() }

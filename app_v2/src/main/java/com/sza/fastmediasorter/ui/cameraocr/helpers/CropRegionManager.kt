@@ -49,7 +49,6 @@ class CropRegionManager {
         val options = BitmapFactory.Options().apply {
             inSampleSize = sampleSizeFor(maxOf(bounds.outWidth, bounds.outHeight))
         }
-        Timber.d("S1923: decode ${bounds.outWidth}x${bounds.outHeight} sample=${options.inSampleSize}")
         return try {
             BitmapFactory.decodeFile(path, options)
         } catch (e: OutOfMemoryError) {

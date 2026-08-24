@@ -31,7 +31,6 @@ internal class WearWatchFileOperation(
         operation: FileOperation,
         progressCallback: ByteProgressCallback? = null
     ): FileOperationResult {
-        Timber.d("S1861: watch transport branch entered for ${operation.javaClass.simpleName}")
         return dispatch(operation, progressCallback)
     }
 

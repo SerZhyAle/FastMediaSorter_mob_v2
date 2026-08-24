@@ -33,7 +33,6 @@ import com.sza.fastmediasorter.ui.settings.LauncherSettingsDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -71,7 +70,6 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
      * allows.
      */
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        Timber.d("S1643: start menu opening, taskbarAtTop=${viewModel.taskbarAtTop.value}")
         if (!viewModel.taskbarAtTop.value) {
             return super.onCreateDialog(savedInstanceState)
         }
@@ -146,7 +144,6 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
         val powerMenuAvailable = accessibilityServiceControl.isServiceActive()
         binding.rowReboot.isVisible = powerMenuAvailable
         binding.rowShutdown.isVisible = powerMenuAvailable
-        Timber.d("S1887: start menu power rows available=%s", powerMenuAvailable)
         binding.rowReboot.setOnClickListener { confirmReboot() }
         binding.rowShutdown.setOnClickListener { confirmShutdown() }
         binding.rowExitMode.setOnClickListener { confirmExit() }
@@ -269,7 +266,6 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
      */
     private fun openSystemPowerMenu() {
         val dispatched = accessibilityServiceControl.openPowerDialog()
-        Timber.d("S1887: system power menu dispatch dispatched=%s", dispatched)
         if (dispatched) {
             dismiss()
             return

@@ -161,7 +161,6 @@ class ListPhoneResourcePageUseCase @Inject constructor(
                 // S1911: an abandoned request is not a failed scan. `runCatching` caught this too and
                 // answered the watch SOURCE_UNAVAILABLE, which nothing could deliver anyway - the same
                 // cancelled scope publishes the page - so it only mislabelled the log and the status.
-                Timber.d("S1911: phone resource listing cancelled, propagating instead of reporting")
                 throw e
             } catch (e: Exception) {
                 Timber.w(e, "Phone resource listing failed")
@@ -255,8 +254,6 @@ class ListPhoneResourcePageUseCase @Inject constructor(
             affordable
         }
         val window = source.drop(offset).take(PAGE_SIZE).map { toItem(it, gate) }
-        val spentMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedAtNanos)
-        Timber.d("S1860: page of ${window.size} built in ${spentMs}ms")
         val nextOffset = offset + window.size
         // EMPTY describes the folder, not the window: a page past the last item is still a valid OK
         // answer about a folder that does have content.

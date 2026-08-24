@@ -26,6 +26,7 @@ import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationProgress
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
+import com.sza.fastmediasorter.domain.usecase.RefreshResourceFileCountsUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.browse.helpers.refusalMessage
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
@@ -58,6 +59,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
     private val requestStore: BrowseFileTransferRequestStore,
     private val coordinator: BrowseFileTransferCoordinator,
     private val transferProgressReporter: TransferProgressReporter,
+    private val refreshResourceFileCountsUseCase: RefreshResourceFileCountsUseCase,
 ) : CoroutineWorker(context, workerParams) {
 
     /** S1325: last folder-walk outcome of this run, read when the result notification is built. */
@@ -215,6 +217,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
             fileResult = terminalResult ?: FileOperationResult.Failure("Unknown result"),
         )
         persistAndPublish(event)
+        refreshResourceCounts(request, event)
         postResultNotification(request, event)
         return when (event) {
             is BrowseFileTransferTerminalEvent.Success,
@@ -229,6 +232,22 @@ class BrowseFileTransferWorker @AssistedInject constructor(
             is BrowseFileTransferTerminalEvent.Cancelled -> {
                 Result.failure(BrowseFileTransferProgressCodec.encodeTerminalFallback(event))
             }
+        }
+    }
+
+    private suspend fun refreshResourceCounts(
+        request: BrowseFileTransferRequest,
+        event: BrowseFileTransferTerminalEvent,
+    ) {
+        val processedCount = when (event) {
+            is BrowseFileTransferTerminalEvent.Success -> event.processedCount
+            is BrowseFileTransferTerminalEvent.PartialSuccess -> event.processedCount
+            else -> return
+        }
+        if (processedCount > 0) {
+            refreshResourceFileCountsUseCase(
+                listOfNotNull(request.sourceResourceId, request.destinationResourceId),
+            )
         }
     }
 

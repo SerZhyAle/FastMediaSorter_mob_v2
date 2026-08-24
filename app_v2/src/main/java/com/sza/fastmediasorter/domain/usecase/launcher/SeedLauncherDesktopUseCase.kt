@@ -108,10 +108,6 @@ class SeedLauncherDesktopUseCase @Inject constructor(
                 GmsAvailabilityChecker.Status.UPDATE_REQUIRED -> true
                 GmsAvailabilityChecker.Status.UNAVAILABLE -> false
             }
-            Timber.d(
-                "S1644: seeding desktop, googleServices=$googleServicesAvailable " +
-                    "installedGoogleApps=${LauncherStarterSets.GOOGLE_APP_PACKAGES.count { it in installedPackages }}"
-            )
             // S1613: behind the same early exit, so a desktop that will not be seeded never pays for it.
             val importedShortcuts = appShortcuts.allPinned().map { shortcut ->
                 LauncherStarterSets.StarterItem(

@@ -21,7 +21,6 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
-import timber.log.Timber
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.hypot
@@ -129,7 +128,6 @@ fun WaveParticleBackground(
         LaunchedEffect(session, running) {
             if (!running) return@LaunchedEffect
             session.reroll()
-            Timber.d("S1683: brand animation started ${bufferWidth}x$bufferHeight")
             var lastFrameNanos = 0L
             while (true) {
                 withFrameNanos { frameNanos ->

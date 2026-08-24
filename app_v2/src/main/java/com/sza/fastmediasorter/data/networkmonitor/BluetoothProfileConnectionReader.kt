@@ -49,7 +49,6 @@ class BluetoothProfileConnectionReader @Inject constructor(
         for (profile in supportedProfiles()) {
             addresses += profileAddresses(adapter, profile)
         }
-        Timber.d("S1853: bluetooth connected read, gatt=%d total=%d", gatt.size, addresses.size)
         return addresses
     }
 

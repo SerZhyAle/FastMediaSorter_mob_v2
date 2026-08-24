@@ -4,7 +4,6 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
-import timber.log.Timber
 
 /**
  * S0404: desktop grid sizing. The column count is derived from the screen at render time and the
@@ -21,6 +20,21 @@ object LauncherGridGeometry {
 
     const val MIN_COLUMNS = 3
     const val MAX_COLUMNS = 12
+
+    private const val NOMINAL_SHORTCUT_CELL_SIZE_DP = 88f
+    private const val MIN_SHORTCUT_CELL_SIZE_DP = 0f
+    private const val MIN_SHORTCUT_SCALE = 0.55f
+    private const val MAX_SHORTCUT_SCALE = 1.0f
+    private const val DEFAULT_SHORTCUT_ICON_SIZE_DP = 44f
+    private const val DEFAULT_SHORTCUT_MONOGRAM_TEXT_SIZE_SP = 16f
+    private const val DEFAULT_SHORTCUT_MODE_BADGE_SIZE_DP = 18f
+    private const val DEFAULT_SHORTCUT_CONTENT_PADDING_VERTICAL_DP = 4f
+    private const val DEFAULT_SHORTCUT_LABEL_MARGIN_TOP_DP = 3f
+    private const val MIN_SHORTCUT_ICON_SIZE_DP = 26f
+    private const val MIN_SHORTCUT_MONOGRAM_TEXT_SIZE_SP = 10f
+    private const val MIN_SHORTCUT_MODE_BADGE_SIZE_DP = 12f
+    private const val MIN_SHORTCUT_CONTENT_PADDING_VERTICAL_DP = 1f
+    private const val MIN_SHORTCUT_LABEL_MARGIN_TOP_DP = 1f
 
     /** Higher [densityFactor] shrinks cells, so more of them fit across. */
     fun columns(availableWidthDp: Float, densityFactor: Float): Int {
@@ -48,22 +62,40 @@ object LauncherGridGeometry {
     )
 
     fun shortcutLayoutSpec(cellSizeDp: Float): ShortcutCellLayoutSpec {
-        if (cellSizeDp >= 88f || cellSizeDp <= 0f) {
+        if (cellSizeDp >= NOMINAL_SHORTCUT_CELL_SIZE_DP || cellSizeDp <= MIN_SHORTCUT_CELL_SIZE_DP) {
             return ShortcutCellLayoutSpec(
-                iconSizeDp = 44f,
-                monogramTextSizeSp = 16f,
-                modeBadgeSizeDp = 18f,
-                contentPaddingVerticalDp = 4f,
-                labelMarginTopDp = 3f,
+                iconSizeDp = DEFAULT_SHORTCUT_ICON_SIZE_DP,
+                monogramTextSizeSp = DEFAULT_SHORTCUT_MONOGRAM_TEXT_SIZE_SP,
+                modeBadgeSizeDp = DEFAULT_SHORTCUT_MODE_BADGE_SIZE_DP,
+                contentPaddingVerticalDp = DEFAULT_SHORTCUT_CONTENT_PADDING_VERTICAL_DP,
+                labelMarginTopDp = DEFAULT_SHORTCUT_LABEL_MARGIN_TOP_DP,
             )
         }
-        val scale = (cellSizeDp / 88f).coerceIn(0.55f, 1.0f)
+        val scale = (cellSizeDp / NOMINAL_SHORTCUT_CELL_SIZE_DP).coerceIn(
+            MIN_SHORTCUT_SCALE,
+            MAX_SHORTCUT_SCALE,
+        )
         return ShortcutCellLayoutSpec(
-            iconSizeDp = (44f * scale).coerceIn(26f, 44f),
-            monogramTextSizeSp = (16f * scale).coerceIn(10f, 16f),
-            modeBadgeSizeDp = (18f * scale).coerceIn(12f, 18f),
-            contentPaddingVerticalDp = (4f * scale).coerceIn(1f, 4f),
-            labelMarginTopDp = (3f * scale).coerceIn(1f, 3f),
+            iconSizeDp = (DEFAULT_SHORTCUT_ICON_SIZE_DP * scale).coerceIn(
+                MIN_SHORTCUT_ICON_SIZE_DP,
+                DEFAULT_SHORTCUT_ICON_SIZE_DP,
+            ),
+            monogramTextSizeSp = (DEFAULT_SHORTCUT_MONOGRAM_TEXT_SIZE_SP * scale).coerceIn(
+                MIN_SHORTCUT_MONOGRAM_TEXT_SIZE_SP,
+                DEFAULT_SHORTCUT_MONOGRAM_TEXT_SIZE_SP,
+            ),
+            modeBadgeSizeDp = (DEFAULT_SHORTCUT_MODE_BADGE_SIZE_DP * scale).coerceIn(
+                MIN_SHORTCUT_MODE_BADGE_SIZE_DP,
+                DEFAULT_SHORTCUT_MODE_BADGE_SIZE_DP,
+            ),
+            contentPaddingVerticalDp = (DEFAULT_SHORTCUT_CONTENT_PADDING_VERTICAL_DP * scale).coerceIn(
+                MIN_SHORTCUT_CONTENT_PADDING_VERTICAL_DP,
+                DEFAULT_SHORTCUT_CONTENT_PADDING_VERTICAL_DP,
+            ),
+            labelMarginTopDp = (DEFAULT_SHORTCUT_LABEL_MARGIN_TOP_DP * scale).coerceIn(
+                MIN_SHORTCUT_LABEL_MARGIN_TOP_DP,
+                DEFAULT_SHORTCUT_LABEL_MARGIN_TOP_DP,
+            ),
         )
     }
 
@@ -191,7 +223,6 @@ object LauncherGridGeometry {
             columns = columns,
             renderRowOf = drawnRowOf,
         )
-        Timber.d("S1645: render plan packed ${packed.size} collapsed header(s) across $columns columns")
         return cells.mapNotNull { item ->
             val drawnRow = drawnRowOf(item.cell) ?: return@mapNotNull null
             val packedPosition = packed[item.cell.target]

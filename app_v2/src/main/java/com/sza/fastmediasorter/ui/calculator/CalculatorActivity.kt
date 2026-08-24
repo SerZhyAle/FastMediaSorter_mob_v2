@@ -17,7 +17,6 @@ import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorInputManager
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 @AndroidEntryPoint
 class CalculatorActivity : BaseActivity<ActivityCalculatorBinding>() {
@@ -48,7 +47,6 @@ class CalculatorActivity : BaseActivity<ActivityCalculatorBinding>() {
     override fun keepScreenAwakeFor(settings: AppSettings): Boolean = false
 
     override fun setupViews() {
-        Timber.d("S1549: CalculatorActivity setupViews - recreation applies the orientation layout")
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finishWithResult() }

@@ -86,7 +86,6 @@ class ChannelPreviewAtlasSlicer(
         } catch (e: CancellationException) {
             // A cancelled read is not a recycled decoder: answering null here caches "no tile" for
             // an index that was never actually read (S1889).
-            Timber.d("S1889: channel-preview tile read cancelled - rethrowing instead of caching no tile")
             throw e
         } catch (e: IllegalStateException) {
             // A decoder recycled mid-read (post-invalidate race) yields no tile rather than a crash.

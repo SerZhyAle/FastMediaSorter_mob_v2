@@ -413,7 +413,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     // cohesive wiring blocks below; order matters - sections need adapters, placement needs the
     // media-kind trigger, and the entry actions run only after every manager is constructed.
     override fun setupViews() {
-        Timber.d("S1198: setupViews split - running six wiring blocks")
         setupInlineAudio()
         setupStreamSections()
         setupToolbarCommands()
@@ -1323,7 +1322,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * orientation by the time this runs, so re-reading them here produces what the dead layout described.
      */
     private fun applyOrientationDimensions() {
-        Timber.d("S1549: StreamsActivity applyOrientationDimensions - qualified dimensions re-read on rotation")
         val sidePadding = resources.getDimensionPixelSize(R.dimen.streams_list_side_padding)
         listOf(binding.rvStreams, binding.rvStreamsPinned).forEach { list ->
             list.setPaddingRelative(sidePadding, list.paddingTop, sidePadding, list.paddingBottom)

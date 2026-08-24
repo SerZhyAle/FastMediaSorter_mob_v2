@@ -21,7 +21,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -76,7 +75,6 @@ class Media3SegmentDownloader @Inject constructor(
         // most-recently-used-account behaviour.
         val cookieList =
             if (host.isNotBlank()) cookieStore.loadForHostAccountOrBest(host, accountId) else emptyList()
-        Timber.d("S1776: streaming cookies host=$host account=${accountId ?: "best"} count=${cookieList.size}")
         val cookieHeader = cookieList.joinToString("; ") { "${it.name}=${it.value}" }
 
         val httpFactory = DefaultHttpDataSource.Factory()

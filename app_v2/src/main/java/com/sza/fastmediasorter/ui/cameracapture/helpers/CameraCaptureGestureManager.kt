@@ -5,7 +5,6 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
-import timber.log.Timber
 import kotlin.math.abs
 
 /**
@@ -78,7 +77,6 @@ class CameraCaptureGestureManager(
                 val y = (e.rawY - origin[1]) / scaleY
                 val inside = x >= 0f && y >= 0f && x <= previewView.width && y <= previewView.height
                 if (inside) {
-                    Timber.d("S1957: tap-to-focus x=$x y=$y scale=$scaleX")
                     callbacks.onTapToFocus(x, y)
                 }
                 return true

@@ -70,7 +70,6 @@ class SaveVideoFrameManager(
                     CaptureFileNamer.CaptureKind.VIDEO_FRAME,
                     extension,
                 )
-                Timber.d("S1882: video frame output $fileName")
                 val tempFile = writeTempFile(bitmap, fileName, useJpeg)
 
                 val resourceId = settings.videoSnapshotResourceId

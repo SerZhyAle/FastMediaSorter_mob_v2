@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.wear.domain.model
 
+import com.google.gson.annotations.SerializedName
+
 /**
  * S1861: the ceiling both directions of the bridge refuse above, in bytes.
  *
@@ -16,8 +18,11 @@ const val WEAR_FILE_TRANSFER_MAX_BYTES = 32L * 1024L * 1024L
  * first read rather than at parse time.
  */
 data class WearFileTransferMetadata(
+    @SerializedName("name")
     val name: String = "",
+    @SerializedName("size")
     val size: Long = 0L,
+    @SerializedName("mimeType")
     val mimeType: String? = null
 )
 

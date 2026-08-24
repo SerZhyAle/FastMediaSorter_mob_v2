@@ -69,7 +69,6 @@ class DownloadNetworkFileUseCase @Inject constructor(
     }
 
     private suspend fun openStream(source: NetworkSource, streamUri: String): Result<InputStream> {
-        Timber.d("S1687: routing ${source.type} read for $streamUri")
         return when (source.type) {
             NetworkSourceType.SMB -> openSmbStream(source, streamUri)
             NetworkSourceType.FTP -> ftpDataSource.getFileStream(source, NetworkUriParser.remotePathOf(streamUri))
@@ -96,8 +95,6 @@ class DownloadNetworkFileUseCase @Inject constructor(
         }
         return connected.mapCatching { smbDataSource.getFileStream(streamUri).getOrThrow() }
     }
-
-
 
     private fun cacheStream(stream: InputStream, selected: SelectedMedia, kind: Kind): File {
         purgeLegacyCacheDirs()

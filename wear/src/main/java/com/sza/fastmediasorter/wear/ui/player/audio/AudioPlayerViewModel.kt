@@ -109,7 +109,6 @@ class AudioPlayerViewModel @Inject constructor(
             val title = mediaMetadata.title?.toString()?.takeIf { it.isNotBlank() }
             val artist = mediaMetadata.artist?.toString()?.takeIf { it.isNotBlank() }
             if (title != null || artist != null) {
-                Timber.d("S1866: metadata updated title=%s artist=%s", title, artist)
                 _uiState.update { state ->
                     state.copy(
                         trackTitle = title ?: state.trackTitle,
@@ -139,7 +138,6 @@ class AudioPlayerViewModel @Inject constructor(
                     // restarting the only track is exactly the endless loop S0902 removed below.
                     val setSize = playbackSetManager.currentSet.value?.files?.size ?: 0
                     if (setSize > 1) {
-                        Timber.d("S1837: track ended, advancing within the set of $setSize")
                         skipToNext()
                     } else {
                         streamPlaybackSession.stop()
@@ -237,7 +235,6 @@ class AudioPlayerViewModel @Inject constructor(
      * drifting apart.
      */
     private fun playFile(file: WearMediaFile) {
-        Timber.d("S1683: paging to ${file.name} art=${file.albumArt != null}")
         streamPlaybackSession.clear()
         exoPlayer.stop()
         exoPlayer.clearMediaItems()
@@ -278,7 +275,6 @@ class AudioPlayerViewModel @Inject constructor(
         viewModelScope.launch {
             val url = resolveAlbumArt(file)
             if (url != null) {
-                Timber.d("S1689: remote cover found for ${file.artist} - ${file.album}")
                 _uiState.update { state ->
                     // The track may have paged on while the lookup was in flight; a late answer
                     // must not paint the previous track's cover over the current one. Until it
@@ -340,7 +336,6 @@ class AudioPlayerViewModel @Inject constructor(
      */
     private suspend fun loadNetworkAudio(selected: SelectedMedia) {
         if (selected.isDirectStream) {
-            Timber.d("S1708: direct audio stream playback uri=${selected.streamUri}")
             val mediaKind = ClassifyWearStreamMediaKindUseCase.AUDIO
             if (!streamPlaybackSession.prepare(mediaKind)) {
                 _uiState.update { it.copy(isLoading = false) }
@@ -354,7 +349,6 @@ class AudioPlayerViewModel @Inject constructor(
             exoPlayer.playWhenReady = true
             return
         }
-        Timber.d("S1687: network audio entry sourceId=${selected.sourceId} uri=${selected.streamUri}")
         _uiState.update { it.copy(isLoading = true) }
 
         downloadNetworkFile(selected, DownloadNetworkFileUseCase.Kind.AUDIO).fold(
@@ -389,7 +383,6 @@ class AudioPlayerViewModel @Inject constructor(
      * screen never holds a copy that a failed write could leave stale.
      */
     fun toggleShuffle() {
-        Timber.d("S1701: shuffle toggled")
         val enabled = !_uiState.value.isShuffleEnabled
         viewModelScope.launch { preferencesRepository.setShuffleEnabled(enabled) }
     }
@@ -404,7 +397,6 @@ class AudioPlayerViewModel @Inject constructor(
         // Stopping it was tried and measured on the watch: 679 ticks per ten seconds against 672 with
         // it running, so the recomposition it drives is not what the dark screen costs, and the extra
         // stop/restart/refresh path bought nothing. What the screen does cost is tracked in S1709.
-        Timber.d("S1683: screen-off toggled to ${!_uiState.value.isDimmed}")
         _uiState.update { it.copy(isDimmed = !it.isDimmed) }
     }
 
@@ -427,7 +419,6 @@ class AudioPlayerViewModel @Inject constructor(
      * reflected the next time the bezel moves rather than fighting a private counter.
      */
     fun onVolumeStep(up: Boolean) {
-        Timber.d("S1701: bezel volume step up=%b", up)
         val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return
         audioManager.adjustStreamVolume(
             AudioManager.STREAM_MUSIC,
@@ -459,7 +450,6 @@ class AudioPlayerViewModel @Inject constructor(
     }
 
     fun seekTo(positionMs: Long) {
-        Timber.d("S1701: position bar seek to %d ms", positionMs)
         exoPlayer.seekTo(positionMs)
         _uiState.update { it.copy(currentPositionMs = positionMs) }
     }

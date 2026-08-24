@@ -38,7 +38,6 @@ class GameViewModel @Inject constructor(
     val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
 
     init {
-        Timber.d("S1710: game screen opened on the watch")
         viewModelScope.launch { restoreOrStart() }
     }
 

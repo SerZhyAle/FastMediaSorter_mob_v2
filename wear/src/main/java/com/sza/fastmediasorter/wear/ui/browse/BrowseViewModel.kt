@@ -201,9 +201,6 @@ class BrowseViewModel @Inject constructor(
                     NetworkSourceType.SFTP -> sftpDataSource.listDirectory(source, currentPath)
                     NetworkSourceType.GOOGLE_DRIVE -> error("Google Drive not supported on Wear")
                 }.filter { matchesMediaType(it.mimeType, mediaType) }
-                Timber.d("S1690: network kept ${mediaFiles.size} $mediaType file(s)")
-                Timber.d("S1556: listed $currentPath on ${source.type}")
-
                 Timber.d("Loaded ${mediaFiles.size} media files from ${source.type}")
                 withContext(Dispatchers.Main) {
                     _uiState.value = if (mediaFiles.isEmpty()) {
@@ -265,7 +262,6 @@ class BrowseViewModel @Inject constructor(
         // carry a path relative to the share, FTP and SFTP files carry a full ftp:// / sftp:// URI.
         // S1687: the source id travels with them, because it is the only way the player can reach
         // the protocol and the credentials this file actually needs.
-        Timber.d("S1687: selection handover sourceId=$_sourceId network=$isNetworkSource")
         selectedMediaManager.selectFile(
             file = file,
             isNetworkSource = isNetworkSource,

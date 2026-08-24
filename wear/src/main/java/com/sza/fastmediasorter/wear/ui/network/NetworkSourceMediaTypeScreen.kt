@@ -34,7 +34,6 @@ import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.settings.SettingsViewModel
-import timber.log.Timber
 
 private data class SourceMediaCategory(
     val labelRes: Int,
@@ -82,7 +81,6 @@ fun NetworkSourceMediaTypeScreen(
     // back stack, so Back returns to the source list rather than to a step that decided nothing.
     LaunchedEffect(categories, sourceId) {
         val only = categories.singleOrNull() ?: return@LaunchedEffect
-        Timber.d("S1829: only '%s' enabled, skipping the step for '%s'", only.mediaType, sourceName)
         navController.navigate(WearRoutes.browseSource(only.mediaType, sourceId, sourceName)) {
             popUpTo(WearRoutes.SOURCE_MEDIA_TYPE_PATTERN) { inclusive = true }
         }
@@ -112,7 +110,6 @@ fun NetworkSourceMediaTypeScreen(
             items(categories) { category ->
                 Chip(
                     onClick = {
-                        Timber.d("S1829: opening '%s' as '%s'", sourceName, category.mediaType)
                         navController.navigate(
                             WearRoutes.browseSource(category.mediaType, sourceId, sourceName)
                         )

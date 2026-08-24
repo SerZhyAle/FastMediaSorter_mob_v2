@@ -52,11 +52,9 @@ class AltEngineFallbackManager @Inject constructor(
         val targetStub = stubOverride ?: viewStub
         val engine = findEngineFor(file)
         if (engine == null) {
-            Timber.d("S1060: no alt engine available for %s", file.name)
             return false
         }
 
-        Timber.d("S1060: tryFallback starting for file %s", file.name)
         return performFallback(engine, uri, startPositionMs, targetStub, onSuccess, onError)
     }
 

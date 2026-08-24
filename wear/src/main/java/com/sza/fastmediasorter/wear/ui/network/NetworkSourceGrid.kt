@@ -23,7 +23,6 @@ import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.ui.common.LongPressChip
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.util.GridColumnFit
-import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
@@ -68,11 +67,9 @@ private fun SourceChip(
     // passed in from here can ever see the press - the row has to carry both gestures itself (S1953).
     LongPressChip(
         onClick = {
-            Timber.d("S1953: source chip tap id=${source.id}")
             actions.onSourceClick(source.id, source.name)
         },
         onLongClick = {
-            Timber.d("S1953: source chip long press id=${source.id}")
             actions.onSourceLongPress(source)
         },
         label = {
@@ -130,14 +127,12 @@ private fun SourceCell(
         thumbnail = WearThumbnail.Unavailable,
         caption = source.name,
         onClick = {
-            Timber.d("S1953: source cell tap id=${source.id}")
             actions.onSourceClick(source.id, source.name)
         },
         modifier = modifier,
         // The cell's own handler serves both gestures; a detector layered on `modifier` would sit
         // outside it and never fire, which is how the reshape in S1970 lost the long press (S1953).
         onLongClick = {
-            Timber.d("S1953: source cell long press id=${source.id}")
             actions.onSourceLongPress(source)
         }
     ) {

@@ -137,7 +137,6 @@ class AddNetworkSourceViewModel @Inject constructor(
                 val source = buildSource(currentState)
                 networkSourceRepository.addSource(source)
                 Timber.d("Saved network source: ${source.name} (${source.type})")
-                Timber.d("S1833: saved source carries basePath '${source.basePath}'")
                 _uiState.value = currentState.copy(
                     isLoading = false,
                     statusMessage = context.getString(R.string.connection_saved),

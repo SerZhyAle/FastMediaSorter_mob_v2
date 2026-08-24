@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="file_count_format_plural"><item quantity="one">%1$d টি ফাইল</item><item quantity="other">%1$d টি ফাইল</item></plurals>
+    <plurals name="copying_n_files_from_folder_plural"><item quantity="one">%2$s থেকে %1$d ফাইল কপি করা হচ্ছে..</item><item quantity="other">%2$s থেকে %1$d ফাইল কপি করা হচ্ছে..</item></plurals>
+    <plurals name="archiving_n_files_from_folder_plural"><item quantity="one">%2$s থেকে %1$d ফাইল আর্কাইভ করা হচ্ছে</item><item quantity="other">%2$s থেকে %1$d ফাইল আর্কাইভ করা হচ্ছে</item></plurals>
+    <plurals name="moving_n_files_from_folder_plural"><item quantity="one">%2$s থেকে %1$d ফাইল সরানো হচ্ছে..</item><item quantity="other">%2$s থেকে %1$d ফাইল সরানো হচ্ছে..</item></plurals>
+    <plurals name="renaming_n_files_from_folder_plural"><item quantity="one">%2$s থেকে %1$d ফাইলের নাম পরিবর্তন করা হচ্ছে..</item><item quantity="other">%2$s থেকে %1$d ফাইলের নাম পরিবর্তন করা হচ্ছে..</item></plurals>
+</resources>

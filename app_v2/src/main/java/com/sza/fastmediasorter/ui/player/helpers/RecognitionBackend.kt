@@ -135,7 +135,9 @@ class RecognitionBackend(
         } catch (e: DeliveredPayloadCorruptException) {
             if (e.reason.contains("payload file missing")) {
                 // S1703: partial payload = incomplete Tesseract member set; proceed as above.
-                Timber.i("OCR engines payload partially missing; proceeding with the loaded engine for block recognition")
+                Timber.i(
+                    "OCR engines payload partially missing; proceeding with the loaded engine for block recognition"
+                )
             } else {
                 Timber.e(e, "Failed to load OCR engines native libraries")
                 callback.showError(context.getString(R.string.ocr_engines_damaged))
@@ -166,7 +168,6 @@ class RecognitionBackend(
                 verdict == OcrBlockFilter.Verdict.ACCEPTED
             }
 
-            Timber.d("S1711: applying word-level line geometry to the recognised blocks")
             val translatedBlocks = mutableListOf<TranslationManager.TranslatedTextBlock>()
             for (block in filteredBlocks) {
                 val translatedText = translation.translate(block.text, sourceLang, targetLang)

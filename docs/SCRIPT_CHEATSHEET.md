@@ -2679,6 +2679,19 @@ scripts/quality/reindex-settings.ps1
   Exit: 0 - already fresh: nothing regenerated, verify gate green. Shippable.; 2 - drift regenerated: manifest/reference changed and are now fresh, but the
 ```
 
+### remove-ticket-probes.ps1
+Remove exact temporary Timber probes for supplied archived ticket ids.
+
+```
+scripts/quality/remove-ticket-probes.ps1
+  Remove exact temporary Timber probes for supplied archived ticket ids.
+  Params:
+    -Id                      [String] = ''
+    -Archived                [SwitchParameter]
+    -BackupDirectory         [String] = 'temp/scratch'
+    -WhatIf                  [SwitchParameter]
+```
+
 ### sector-gate-pilot.ps1
 S1344 pilot instrument: benchmarks the sector map against full -Search, classifies gate refusals, and computes the adopt/reject verdict.
 
@@ -2968,6 +2981,15 @@ Shared extraction and comparison helpers for ticket acceptance probes.
 ```
 scripts/quality/lib/ticket-acceptance-probes.ps1
   Shared extraction and comparison helpers for ticket acceptance probes.
+  (no param block)
+```
+
+## scripts\quality\remove-ticket-probes.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/remove-ticket-probes.tests/Run-Tests.ps1
   (no param block)
 ```
 

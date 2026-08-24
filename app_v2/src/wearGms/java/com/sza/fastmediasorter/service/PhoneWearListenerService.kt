@@ -77,7 +77,6 @@ class PhoneWearListenerService : WearableListenerService() {
     lateinit var applicationScope: CoroutineScope
 
     override fun onMessageReceived(event: MessageEvent) {
-        Timber.d("S1860: PhoneWearListenerService message received ${event.path}")
         when (event.path) {
             PATH_REQUEST                       -> handleSyncRequest()
             PATH_ACK                           -> handleAck(event.data)
@@ -147,7 +146,6 @@ class PhoneWearListenerService : WearableListenerService() {
     }
 
     private fun handleStreamTransferAck(data: ByteArray) {
-        Timber.d("S1799: stream transfer ack received from watch")
         applicationScope.launch {
             try {
                 val ack = gson.fromJson(data.decodeToString(), WearStreamTransferAck::class.java)
@@ -327,7 +325,6 @@ class PhoneWearListenerService : WearableListenerService() {
         } catch (e: CancellationException) {
             // S1911: this scope going away is why the page cannot be published - not a publish that
             // failed. Logging it at E made a routine teardown read as an app error.
-            Timber.d("S1911: phone resource page publish cancelled, propagating instead of reporting")
             throw e
         } catch (e: Exception) {
             Timber.e(e, "Failed to publish phone resource page")
@@ -356,9 +353,6 @@ class PhoneWearListenerService : WearableListenerService() {
         val withPictures = encodePage(page)
         if (withPictures.size <= MAX_DATA_ITEM_BYTES) return withPictures
 
-        Timber.d(
-            "S1860: page about ${withPictures.size}B over the wire limit, dropping its pictures"
-        )
         return encodePage(page.copy(items = page.items.map { it.withoutThumbnail() }))
     }
 

@@ -300,7 +300,6 @@ class ScreenVideoRecordingService : Service() {
     private fun createTempFile(): File? = try {
         val dir = getExternalFilesDir(Environment.DIRECTORY_MOVIES) ?: filesDir
         val fileName = CaptureFileNamer.shared.allocate(CaptureFileNamer.CaptureKind.SCREEN_VIDEO, ".mp4")
-        Timber.d("S1882: screen video output $fileName")
         File(dir, fileName)
             .also { it.createNewFile() }
     } catch (e: IOException) {

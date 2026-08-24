@@ -1243,7 +1243,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             val wearCompanionNowEnabled =
                 settings.enableWearCompanion && mediaCapabilities.supportsWearCompanion
             val wearCompanionEnabledChanged = isWearCompanionEnabled != wearCompanionNowEnabled
-            Timber.d("S1735: companion gate=%s", wearCompanionNowEnabled)
             val embeddedGameEnabledChanged = isEmbeddedGameEnabled != settings.embeddedGameEnabled
             val cameraOcrEnabledChanged = isCameraOcrEnabled != settings.cameraOcrTranslationEnabled
             // S0523: the quick-capture menu entries reuse the existing capture toggles - no separate
@@ -1325,7 +1324,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     /** Recalculates grid layout, toolbar labels and tabs after screen rotation. */
     override fun onLayoutConfigurationChanged(newConfig: Configuration) {
-        Timber.d("S1549: MainActivity onLayoutConfigurationChanged - command bar and tab anchor re-applied on rotation")
         layoutChrome.updateToolbarButtonLabels(newConfig)
         layoutChrome.updateLayoutManagerForScreenSize()
 

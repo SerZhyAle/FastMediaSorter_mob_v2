@@ -38,7 +38,6 @@ class StreamsViewModel @Inject constructor(
     private val faviconSlicer = WearFaviconAtlasSlicer { faviconAtlasStore.atlasFile() }
 
     init {
-        Timber.d("S1708: streams view model initialized")
         viewModelScope.launch {
             preferencesRepository.viewMode.collect { mode ->
                 _uiState.update { it.copy(viewMode = mode) }
@@ -64,7 +63,6 @@ class StreamsViewModel @Inject constructor(
     }
 
     fun setSearchQuery(query: String) {
-        Timber.d("S1946: streams search query reached the state, length=${query.length}")
         _uiState.update { state ->
             val display = computeDisplayChannels(state.channels, query, state.filterKind, state.sortOrder)
             state.copy(

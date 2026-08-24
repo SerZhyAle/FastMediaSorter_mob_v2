@@ -9,7 +9,6 @@ import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherCellViewBinder
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherDesktopLayout
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
-import timber.log.Timber
 
 /**
  * S1541: the desktop's geometry answers - column count, viewport rows, current orientation - plus the
@@ -35,7 +34,6 @@ class LauncherDesktopGeometryManager(
      * the trap the RecyclerView renderer had, where requestLayout() never re-ran a bind (ADR-9).
      */
     fun applyGridGeometry() {
-        Timber.d("S1541: geometry manager applying grid")
         val orientation = currentOrientation()
         val columns = currentColumns()
         viewModel.setOrientation(orientation)

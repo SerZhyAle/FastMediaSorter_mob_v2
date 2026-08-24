@@ -96,15 +96,11 @@ fun VideoPlayerScreen(
     viewModel: VideoPlayerViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    Timber.d("S1870: video scale mode crop pan rendered")
-
     // S0902: pause playback when the host activity stops (screen off / app backgrounded) -
     // onDispose only fires on navigation away, so without this the player kept running.
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
         viewModel.onHostStopped()
     }
-
-    Timber.d("S1867: VideoPlayerScreen linear progress composed, isPlaying: ${uiState.isPlaying}")
 
     KeepScreenOnEffect(enabled = uiState.isPlaying)
 

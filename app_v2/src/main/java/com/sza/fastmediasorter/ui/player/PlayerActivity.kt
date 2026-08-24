@@ -683,7 +683,6 @@ class PlayerActivity :
      * strategic §6 item 5, variant A) and re-wires the listeners that died with the old tree.
      */
     private fun rebindLayoutForOrientation() {
-        Timber.d("S1549: PlayerActivity rebindLayoutForOrientation - layout re-inflated without a recreate")
         rebindContentView()
         invalidateSafeViews()
         playerLayoutRebindManager.rebindDocumentViewers(
@@ -1192,7 +1191,6 @@ class PlayerActivity :
         val ready = ::altEngineFallbackManager.isInitialized && altEngineFallbackManager.canFallback(file)
         if (!ready) return false
 
-        timber.log.Timber.d("S1060: PlayerActivity: attempting alt engine fallback for file=%s", file.name)
         stopExoPlayerForAltEngineFallback()
         binding.playerView.visibility = android.view.View.GONE
 

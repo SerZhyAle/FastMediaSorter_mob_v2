@@ -28,7 +28,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.net.Inet4Address
 import java.net.Inet6Address
 import javax.inject.Inject
@@ -216,7 +215,7 @@ class ConnectivitySnapshotDataSource @Inject constructor(
         !hasFineLocation() -> SectionAvailability.NoPermission(Manifest.permission.ACCESS_FINE_LOCATION)
         !isLocationServiceOn() -> SectionAvailability.NoLocationService
         else -> SectionAvailability.NoNetwork
-    }.also { Timber.d("S1853: wifi name withheld, reason=%s", it) }
+    }
 
     private fun hasFineLocation(): Boolean =
         ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==

@@ -191,7 +191,6 @@ class SettingsViewModel @Inject constructor(
         if (_logReportState.value is WearLogReportState.Sending) {
             return
         }
-        Timber.d("S1802: About row pressed, sending the watch log")
         _logReportState.value = WearLogReportState.Sending
         viewModelScope.launch {
             _logReportState.value = WearLogReportState.Finished(logReportClient.send())

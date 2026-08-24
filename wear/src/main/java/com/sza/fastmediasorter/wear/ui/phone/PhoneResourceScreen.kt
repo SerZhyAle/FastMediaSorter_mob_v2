@@ -55,7 +55,6 @@ import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
-import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
@@ -81,7 +80,6 @@ fun PhoneResourceScreen(
     val openOutcome by viewModel.openOutcome.collectAsStateWithLifecycle()
     LaunchedEffect(openOutcome) {
         val outcome = openOutcome
-        Timber.d("S1898: pinned open status outcome=$outcome")
         if (outcome is PhoneFileOpenOutcome.Ready) {
             navController.navigate(playerRouteFor(outcome.fileId, outcome.mimeType))
             viewModel.consumeOpenOutcome()
@@ -172,7 +170,6 @@ private fun PhoneResourceList(
     // the geometry question exactly as the general file list does.
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val columns = GridColumnFit.columnsFor(viewMode, maxWidth.value.toInt())
-        Timber.d("S1730: phone folder grid mode=$viewMode columns=$columns")
         ScalingLazyColumn(
             modifier = Modifier.fillMaxSize(),
             state = listState,

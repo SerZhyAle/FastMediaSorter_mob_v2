@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="file_count_format_plural">
+        <item quantity="zero">%1$d ملفات</item>
+        <item quantity="one">%1$d ملف</item>
+        <item quantity="two">%1$d ملفين</item>
+        <item quantity="few">%1$d ملفات</item>
+        <item quantity="many">%1$d ملفًا</item>
+        <item quantity="other">%1$d ملف</item>
+    </plurals>
+    <plurals name="copying_n_files_from_folder_plural">
+        <item quantity="zero">جارٍ نسخ %1$d ملفات من %2$s..</item>
+        <item quantity="one">جارٍ نسخ %1$d ملف من %2$s..</item>
+        <item quantity="two">جارٍ نسخ %1$d ملفين من %2$s..</item>
+        <item quantity="few">جارٍ نسخ %1$d ملفات من %2$s..</item>
+        <item quantity="many">جارٍ نسخ %1$d ملفًا من %2$s..</item>
+        <item quantity="other">جارٍ نسخ %1$d ملف من %2$s..</item>
+    </plurals>
+    <plurals name="archiving_n_files_from_folder_plural">
+        <item quantity="zero">جارٍ أرشفة %1$d ملفات من %2$s</item>
+        <item quantity="one">جارٍ أرشفة %1$d ملف من %2$s</item>
+        <item quantity="two">جارٍ أرشفة %1$d ملفين من %2$s</item>
+        <item quantity="few">جارٍ أرشفة %1$d ملفات من %2$s</item>
+        <item quantity="many">جارٍ أرشفة %1$d ملفًا من %2$s</item>
+        <item quantity="other">جارٍ أرشفة %1$d ملف من %2$s</item>
+    </plurals>
+    <plurals name="moving_n_files_from_folder_plural">
+        <item quantity="zero">جارٍ نقل %1$d ملفات من %2$s..</item>
+        <item quantity="one">جارٍ نقل %1$d ملف من %2$s..</item>
+        <item quantity="two">جارٍ نقل %1$d ملفين من %2$s..</item>
+        <item quantity="few">جارٍ نقل %1$d ملفات من %2$s..</item>
+        <item quantity="many">جارٍ نقل %1$d ملفًا من %2$s..</item>
+        <item quantity="other">جارٍ نقل %1$d ملف من %2$s..</item>
+    </plurals>
+    <plurals name="renaming_n_files_from_folder_plural">
+        <item quantity="zero">جارٍ إعادة تسمية %1$d ملفات من %2$s..</item>
+        <item quantity="one">جارٍ إعادة تسمية %1$d ملف من %2$s..</item>
+        <item quantity="two">جارٍ إعادة تسمية %1$d ملفين من %2$s..</item>
+        <item quantity="few">جارٍ إعادة تسمية %1$d ملفات من %2$s..</item>
+        <item quantity="many">جارٍ إعادة تسمية %1$d ملفًا من %2$s..</item>
+        <item quantity="other">جارٍ إعادة تسمية %1$d ملف من %2$s..</item>
+    </plurals>
+</resources>

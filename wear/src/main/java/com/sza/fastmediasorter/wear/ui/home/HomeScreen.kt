@@ -68,8 +68,6 @@ fun HomeScreen(
         // name - a narrow round watch cannot give three columns a 48 dp target (strategic ADR-2).
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val columns = GridColumnFit.columnsFor(uiState.viewMode, maxWidth.value.toInt())
-            Timber.d("S1970: home grid columns=$columns, cells shrink toward the round edge")
-            Timber.d("S1974: home columns=$columns, shortcuts=${uiState.lastUsedResources.size}")
             ScalingLazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = listState,

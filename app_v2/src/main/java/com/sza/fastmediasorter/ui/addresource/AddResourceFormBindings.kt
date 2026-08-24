@@ -5,7 +5,6 @@ import com.sza.fastmediasorter.databinding.ViewAddResourceCloudBinding
 import com.sza.fastmediasorter.databinding.ViewAddResourceLocalBinding
 import com.sza.fastmediasorter.databinding.ViewAddResourceSftpBinding
 import com.sza.fastmediasorter.databinding.ViewAddResourceSmbBinding
-import timber.log.Timber
 
 /**
  * S1519: lazy ViewStub-backed access to the four resource-type forms. The screen used to inflate all
@@ -28,28 +27,24 @@ internal class AddResourceFormBindings(private val binding: ActivityAddResourceB
         get() = localBinding
             ?: ViewAddResourceLocalBinding.bind(binding.stubLocalFolder.inflate()).also {
                 localBinding = it
-                Timber.d("S1519: local form inflated on first access")
             }
 
     val smb: ViewAddResourceSmbBinding
         get() = smbBinding
             ?: ViewAddResourceSmbBinding.bind(binding.stubSmbFolder.inflate()).also {
                 smbBinding = it
-                Timber.d("S1519: smb form inflated on first access")
             }
 
     val sftp: ViewAddResourceSftpBinding
         get() = sftpBinding
             ?: ViewAddResourceSftpBinding.bind(binding.stubSftpFolder.inflate()).also {
                 sftpBinding = it
-                Timber.d("S1519: sftp form inflated on first access")
             }
 
     val cloud: ViewAddResourceCloudBinding
         get() = cloudBinding
             ?: ViewAddResourceCloudBinding.bind(binding.stubCloudStorage.inflate()).also {
                 cloudBinding = it
-                Timber.d("S1519: cloud form inflated on first access")
             }
 
     val localOrNull: ViewAddResourceLocalBinding? get() = localBinding

@@ -5,7 +5,6 @@ import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -28,7 +27,6 @@ class ResolveLastUsedResourceUseCase @Inject constructor(
         networkSourceRepository.observeSources()
     ) { remembered, sources ->
         val resolved = remembered.filter { target -> sources.any { it.id == target.id } }
-        Timber.d("S1836: home shortcuts resolve to ${resolved.map { it.name }}")
         resolved
     }
 }

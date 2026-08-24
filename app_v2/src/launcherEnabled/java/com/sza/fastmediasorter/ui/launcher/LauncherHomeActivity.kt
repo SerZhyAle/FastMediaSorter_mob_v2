@@ -61,7 +61,6 @@ import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 
@@ -412,7 +411,6 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // S1904: the backdrop is part of what a cell looks like, so a new opacity is a re-render - the
         // binder's render key carries it and skips the rebuild when the value did not actually change.
         collectOnLifecycle(viewModel.widgetBackdropAlpha) {
-            Timber.d("S1904: gadget backdrop alpha applied to desktop render")
             geometryManager.renderDesktop()
         }
         // The density factor changes the column count, so re-derive the grid when it lands.
@@ -674,7 +672,6 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     private fun statusBarController() = WindowCompat.getInsetsController(window, binding.launcherRoot)
 
     override fun onLayoutConfigurationChanged(newConfig: Configuration) {
-        Timber.d("S1549: LauncherHomeActivity onLayoutConfigurationChanged - grid padding re-read on rotation")
         // S1549: this screen absorbs the configuration change to keep an unfinished widget placement, so the
         // grid padding has to be re-read by hand - resources already resolve to the new orientation here.
         val gridPadding = resources.getDimensionPixelSize(R.dimen.launcher_grid_side_padding)

@@ -51,11 +51,6 @@ class MotionReadingSource @Inject constructor(
             // the other callbacks and throws at run time (same reason as CameraLocationProvider).
             val listener = object : LocationListener {
                 override fun onLocationChanged(location: Location) {
-                    Timber.d(
-                        "S1753: location fix received hasMslAltitude=%b hasAltitude=%b",
-                        LocationCompat.hasMslAltitude(location),
-                        location.hasAltitude(),
-                    )
                     val delta = distanceSince(previous, location)
                     previous = location
                     val altitude = when {

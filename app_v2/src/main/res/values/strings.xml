@@ -80,25 +80,21 @@
 
     <!-- Copy Dialog -->
     <string name="copying_files">Copying..</string>
-    <string name="copying_n_files_from_folder">Copying %1$d files from %2$s..</string>
     <string name="copied_n_files">Copied %1$d files.</string>
     <string name="copied_n_of_m_files">Copied %1$d of %2$d files.</string>
     <string name="copy_failed">Could not copy the files.</string>
     <string name="no_destinations_available">No destination resources configured</string>
 
     <!-- Archive destination picker (reused copy/move dialog in ARCHIVE mode) -->
-    <string name="archiving_n_files_from_folder">Archiving %1$d files from %2$s</string>
 
     <!-- Move Dialog -->
     <string name="moving_files">Moving..</string>
-    <string name="moving_n_files_from_folder">Moving %1$d files from %2$s..</string>
     <string name="moved_n_files">Moved %1$d files.</string>
     <string name="moved_n_of_m_files">Moved %1$d of %2$d files.</string>
     <string name="move_failed">Could not move the files.</string>
 
     <!-- Rename Dialog -->
     <string name="renaming_files">Renaming..</string>
-    <string name="renaming_n_files_from_folder">Renaming %1$d files from %2$s..</string>
     <string name="renamed_n_files">Renamed %1$d files.</string>
     <string name="rename_failed_generic">Could not rename that file.</string>
     <string name="rename_file_name_empty">File name cannot be empty.</string>

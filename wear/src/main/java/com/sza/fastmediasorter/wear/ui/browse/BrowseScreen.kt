@@ -165,7 +165,6 @@ private fun MediaListContent(
     // the same rule the Resources page applies, so the two lists cannot drift apart.
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val columns = GridColumnFit.columnsFor(viewMode, maxWidth.value.toInt())
-        Timber.d("S1730: browse grid mode=$viewMode columns=$columns")
         ScalingLazyColumn(
             modifier = Modifier.fillMaxSize(),
             state = listState,
@@ -224,7 +223,6 @@ private fun ErrorContent(
     message: String,
     onRetry: () -> Unit
 ) {
-    Timber.d("S1854: browse error retry chip shown")
     Box(
         modifier = Modifier
             .fillMaxSize()

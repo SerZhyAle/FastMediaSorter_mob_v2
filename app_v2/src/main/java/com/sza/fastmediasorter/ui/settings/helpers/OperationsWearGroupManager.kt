@@ -75,7 +75,6 @@ class OperationsWearGroupManager(
         if (!isAvailableInBuild) {
             return
         }
-        Timber.d("S1883: wear group render enabled=%s", settings.enableWearCompanion)
         if (binding.rowEnableWearCompanion.isChecked != settings.enableWearCompanion) {
             binding.rowEnableWearCompanion.setCheckedSilently(settings.enableWearCompanion)
         }
@@ -100,7 +99,6 @@ class OperationsWearGroupManager(
         if (!isAvailableInBuild) {
             return
         }
-        Timber.d("S1885: paired watch row -> %s", status)
         binding.textWearPairedWatch.text = when (status) {
             is PairedWatchStatus.Unknown ->
                 fragment.getString(R.string.settings_wear_paired_watch_checking)
@@ -113,7 +111,6 @@ class OperationsWearGroupManager(
 
     private fun openInstallGuide() {
         val url = SupportIntentFactory.wearInstallGuideUrl(fragment.requireContext())
-        Timber.d("S1883: install guide opened")
         try {
             fragment.startActivity(SupportIntentFactory.openUrl(url))
         } catch (e: ActivityNotFoundException) {

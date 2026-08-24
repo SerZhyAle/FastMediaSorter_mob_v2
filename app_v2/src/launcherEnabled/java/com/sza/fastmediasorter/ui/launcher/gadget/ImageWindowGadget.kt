@@ -17,7 +17,6 @@ import com.sza.fastmediasorter.domain.usecase.launcher.LoadLauncherGadgetFilesUs
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -65,7 +64,6 @@ private class ImageWindowGadgetView(
         val loaded = resourceId?.let {
             loadFiles(it, limit = MediaWindow.SCAN_LIMIT, sortMode = SortMode.DATE_DESC)
         } as? LoadLauncherGadgetFilesUseCase.Result.Files
-        Timber.d("S1754: image window bound to resource %s", resourceId)
         val frames = loaded?.files
             ?.filter { it.type == MediaType.IMAGE || it.type == MediaType.GIF }
             ?.mapNotNull(MediaWindow::localModel)

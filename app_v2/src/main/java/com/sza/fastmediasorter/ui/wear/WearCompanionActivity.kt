@@ -7,7 +7,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.commit
 import com.sza.fastmediasorter.ui.settings.fragments.WearSyncSettingsFragment
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 /**
  * S1735: the window the Wear companion opens in, so it can be a sub-program like the calculator.
@@ -33,7 +32,6 @@ class WearCompanionActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Timber.d("S1735: companion window opened, restored=%s", savedInstanceState != null)
         if (savedInstanceState == null) {
             showCompanionSheet()
         }

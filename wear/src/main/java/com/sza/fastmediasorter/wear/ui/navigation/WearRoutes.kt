@@ -1,7 +1,5 @@
 package com.sza.fastmediasorter.wear.ui.navigation
 
-import timber.log.Timber
-
 /**
  * Every navigation address of the watch app, declared once.
  *
@@ -83,13 +81,11 @@ object WearRoutes {
 
     fun browseSource(mediaType: String, sourceId: String, sourceName: String): String {
         val route = "browse/$mediaType?$ARG_SOURCE_ID=${encodeArg(sourceId)}&$ARG_SOURCE_NAME=${encodeArg(sourceName)}"
-        Timber.d("S1848: browseSource route=%s", route)
         return route
     }
 
     fun sourceMediaType(sourceId: String, sourceName: String): String {
         val route = "source_media_type?$ARG_SOURCE_ID=${encodeArg(sourceId)}&$ARG_SOURCE_NAME=${encodeArg(sourceName)}"
-        Timber.d("S1848: sourceMediaType route=%s", route)
         return route
     }
 

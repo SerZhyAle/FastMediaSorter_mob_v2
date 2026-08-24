@@ -8,7 +8,6 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
-import timber.log.Timber
 
 /**
  * S0404: profile -> starter desktop, as pure data + a pure row-major packer (strategic §5.3: adding a
@@ -273,7 +272,6 @@ object LauncherStarterSets {
             addAll(profileGadgets(profile, resources, streamsAvailable))
             if (profile in LOCATION_TILE_PROFILES) {
                 add(gadget(GADGET_COMPASS))
-                Timber.d("S1747: seeded the compass for %s, altitude and satellites left out", profile)
             }
             if (profile == DeviceProfileType.CAR_HEAD_UNIT) {
                 add(gadget(GADGET_SPEED))
@@ -283,7 +281,6 @@ object LauncherStarterSets {
             }
             mediaWindowOrNull(profile, resources)?.let(::add)
         }
-        Timber.d("S1886: widgets group for %s seeded with %d tile(s)", profile, widgets.size)
         if (widgets.isNotEmpty()) {
             items += section(LauncherCellCommand.SECTION_WIDGETS)
             items += widgets

@@ -16,7 +16,6 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.material.scrollAway
-import timber.log.Timber
 
 /**
  * Share of the shorter screen edge kept clear of controls on a round display. A chord near the top
@@ -54,9 +53,6 @@ fun WearScreenScaffold(
     contentPadding: PaddingValues = wearScreenInsets(),
     content: @Composable BoxScope.() -> Unit
 ) {
-    if (scrollState != null) {
-        Timber.d("S1678: TimeText scrolls away with the list")
-    }
     Scaffold(
         modifier = modifier.fillMaxSize(),
         positionIndicator = positionIndicator,

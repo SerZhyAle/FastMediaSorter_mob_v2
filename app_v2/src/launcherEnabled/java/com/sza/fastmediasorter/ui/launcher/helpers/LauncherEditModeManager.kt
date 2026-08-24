@@ -15,7 +15,6 @@ import com.sza.fastmediasorter.ui.launcher.grid.LauncherDesktopLayout
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import kotlin.math.roundToInt
 
 /**
@@ -53,7 +52,6 @@ class LauncherEditModeManager(
         desktop.setOnLongClickListener {
             val locked = viewModel.desktopLocked.value
             val editing = viewModel.editMode.value
-            Timber.d("S1466: desktop long press - locked=$locked editing=$editing")
             if (locked || editing) return@setOnLongClickListener false
             showQuickMenu()
             true

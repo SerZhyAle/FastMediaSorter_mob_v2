@@ -205,7 +205,6 @@ class CalculatorInputManager(
 
     /** S1719: one long-press action, expressed as the call the menu already makes. */
     private fun perform(action: CalculatorLongPressMap.Action) {
-        Timber.d("S1719: long press action=${action::class.simpleName}")
         when (action) {
             is CalculatorLongPressMap.Action.Function -> handleMenuItem(action.itemId)
             is CalculatorLongPressMap.Action.MenuCommand -> handleMenuItem(action.itemId)

@@ -81,7 +81,6 @@ class BuildWatchThumbnailUseCase @Inject constructor(
      * picture at all - indistinguishable from a phone that has none.
      */
     private fun readStream(file: MediaFile): InputStream? = try {
-        Timber.d("S1950: thumbnail stream byUri=%s", file.contentUri != null)
         file.contentUri?.let { context.contentResolver.openInputStream(Uri.parse(it)) }
             ?: File(file.path).takeIf { it.canRead() }?.inputStream()
     } catch (e: IOException) {

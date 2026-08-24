@@ -6,7 +6,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import timber.log.Timber
 import javax.inject.Singleton
 
 /**
@@ -33,5 +32,5 @@ object MediaCapabilitiesModule {
         supportsMicRecording = BuildConfig.SUPPORT_MIC_RECORDING,
         supportsVrPlayer = BuildConfig.SUPPORT_VR_PLAYER,
         supportsWearCompanion = BuildConfig.SUPPORT_WEAR_COMPANION,
-    ).also { Timber.d("S1951: legacy caps wearCompanion=${it.supportsWearCompanion}") }
+    )
 }

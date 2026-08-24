@@ -63,14 +63,24 @@ listing read as a media player in the first place.
 
 ### The take of 2026-08-24
 
-**This is the link to paste into the form:** https://youtube.com/shorts/vgFAqm0ggGQ
+**This is the link to paste into the form:** https://youtube.com/shorts/FstAoyHtCXI
 
 Uploaded 2026-08-24 as `allfiles evidence` on the owner's channel. Verified reachable without signing
 in - YouTube's oEmbed endpoint answers `200` for it, which it does for public and unlisted videos and
 refuses for private ones. If that ever starts failing, the reviewer cannot open the video either, and
 the submission dies quietly.
 
-- File: `temp/S1991/allfiles_evidence_2026-08-24.mp4`. 2 min 26 s, 1080x2424, no audio, 3.4 MB.
+- File: `store_assets/allfiles_evidence.mp4`. 1 min 10 s, 1080x2424, no audio, 2.2 MB.
+
+Two earlier links exist and neither may be pasted again. `hxMUsW3354g` went with the **rejected**
+submission. `vgFAqm0ggGQ` is the first cut of this same footage: 129 of its 146 seconds are a still
+frame, including 29 unbroken seconds of a motionless PDF immediately after the grant - long enough
+that the owner read it as the recording having frozen, and a reviewer would have too.
+
+The recut drops only dead air; every screen and transition survives. Find the dead air mechanically
+rather than by eye - `ffmpeg -i <video> -vf "freezedetect=n=-45dB:d=2" -f null -` lists every hold
+with its timestamp. Run it from the PowerShell tool: `ffmpeg` is not on the Bash tool's PATH, and
+piping a missing binary through `grep` prints nothing, which looks exactly like a clean result.
 - Build: `standard release` **2.60.8241.413**, which carries the S1992 fix. This matters: on the
   build that was reviewed, granting the permission left the `Permissions required` dialog on screen,
   so the reviewer's own path ended with the app saying the permission did not work.

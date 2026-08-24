@@ -575,7 +575,6 @@ private fun ScreenOffButton(onToggleDimmed: () -> Unit) {
 
     RectangularButton(
         onClick = {
-            Timber.d("S1865: screen-off action tapped from secondary controls")
             onToggleDimmed()
         },
         modifier = Modifier.size(CONTROL_BUTTON_SIZE),

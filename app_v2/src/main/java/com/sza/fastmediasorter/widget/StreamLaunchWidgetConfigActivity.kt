@@ -56,8 +56,6 @@ class StreamLaunchWidgetConfigActivity : AppCompatActivity() {
             return
         }
 
-        Timber.d("S1916: config open id=%d", appWidgetId)
-
         supportFragmentManager.setFragmentResultListener(
             LauncherStreamPickerDialogFragment.RESULT_KEY,
             this,
@@ -114,7 +112,6 @@ class StreamLaunchWidgetConfigActivity : AppCompatActivity() {
             AppWidgetManager.getInstance(this),
             appWidgetId,
         )
-        Timber.d("S1916: tile saved id=%d kind=%s", appWidgetId, resolved.source.mediaKind)
         setResult(RESULT_OK, resultIntent())
         finish()
     }

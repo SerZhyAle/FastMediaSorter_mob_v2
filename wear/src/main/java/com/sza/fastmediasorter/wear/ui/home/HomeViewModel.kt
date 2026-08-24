@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import timber.log.Timber
 import javax.inject.Inject
 
 private const val SUBSCRIPTION_TIMEOUT_MS = 5_000L
@@ -41,7 +40,6 @@ class HomeViewModel @Inject constructor(
     ) { lastUsedResources, streamsEnabled, viewMode ->
         HomeSources(lastUsedResources, streamsEnabled, viewMode)
     }.map { sources ->
-        Timber.d("S1940: home sections rebuilt, favourites always last")
         HomeUiState(
             lastUsedResources = sources.lastUsedResources.map(::shortcutSection),
             sections = HomeSectionCatalog.sectionsFor(
