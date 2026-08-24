@@ -303,7 +303,10 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         forms.local.btnAddManually.setOnClickListener {
             com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("AddLocalManually", "AddResource")
             Timber.w("FOLDER_PICKER: Android SDK=${android.os.Build.VERSION.SDK_INT}, hasAllFilesAccess=${com.sza.fastmediasorter.core.util.PermissionHelper.hasAllFilesAccessPermission(this)}")
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R &&
+            // S2012: gated on the merged manifest, not on the SDK level. Where all-files access is not
+            // declared there is nothing to ask for, so the folder choices open directly and every
+            // path-based entry inside them is already withdrawn.
+            if (com.sza.fastmediasorter.core.util.StoragePermissionRule.requiresAllFilesAccess(this) &&
                 !com.sza.fastmediasorter.core.util.PermissionHelper.hasAllFilesAccessPermission(this)) {
                 scanManager.showAllFilesAccessPermissionDialog()
             } else {

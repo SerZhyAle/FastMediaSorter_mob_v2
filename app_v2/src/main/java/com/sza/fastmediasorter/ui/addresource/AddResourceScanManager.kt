@@ -13,8 +13,10 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.compat.ChromeOsCompat
 import com.sza.fastmediasorter.core.util.PermissionHelper
+import com.sza.fastmediasorter.core.util.StoragePermissionRule
 import com.sza.fastmediasorter.core.util.formatFileSize
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
+import com.sza.fastmediasorter.databinding.DialogFolderSelectionBinding
 import com.sza.fastmediasorter.domain.model.PermissionTask
 import com.sza.fastmediasorter.domain.model.StorageVolumeInfo
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
@@ -88,7 +90,11 @@ internal class AddResourceScanManager(
             .setNegativeButton(android.R.string.cancel, null)
             .create()
 
-        val etManualPath = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etManualPath)
+        // S1693: the path-entry group is read through the generated binding rather than by id - S2012
+        // has to toggle the whole group's visibility, and every new findViewById in src/main counts
+        // against the gate. The rest of this dialog keeps its by-id reads until a ticket reaches them.
+        val folderBinding = DialogFolderSelectionBinding.bind(dialogView)
+        val etManualPath = folderBinding.etManualPath
 
         val virtualButtons = listOf(
             R.id.btnVirtualRecent to LocalMediaScanner.VIRTUAL_PATH_RECENT,
@@ -140,22 +146,31 @@ internal class AddResourceScanManager(
         )
 
         val useSafOnly = ChromeOsCompat.needsSafFolderPicker(activity)
+        // S2012: `useSafOnly` is a state - the grant may still arrive - while this is a property of the
+        // build. Where all-files access is not declared no typed path will ever resolve, so the path
+        // browser and the manual-path field are withdrawn rather than shown and refused on every tap.
+        val canBrowsePaths = !StoragePermissionRule.isDirectFileAccessUnobtainable(activity)
 
         quickFolders.forEach { (buttonId, path) ->
             dialogView.findViewById<com.google.android.material.button.MaterialButton>(buttonId)?.setOnClickListener {
                 Timber.i("Quick select: $path")
-                if (buttonId == R.id.btnRoot) {
-                    dialog.dismiss()
-                    showFolderBrowserDialog(path)
-                } else {
-                    if (useSafOnly) folderPickerLauncher.launch(null)
-                    else selectFolderByPath(path, dialog)
+                when {
+                    buttonId == R.id.btnRoot && canBrowsePaths -> {
+                        dialog.dismiss()
+                        showFolderBrowserDialog(path)
+                    }
+                    useSafOnly -> folderPickerLauncher.launch(null)
+                    else -> selectFolderByPath(path, dialog)
                 }
             }
         }
 
-        dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnValidatePath)?.setOnClickListener {
-            selectFolderByPath(etManualPath?.text?.toString()?.trim() ?: "", dialog)
+        folderBinding.tilManualPath.isVisible = canBrowsePaths
+        folderBinding.btnValidatePath.apply {
+            isVisible = canBrowsePaths
+            setOnClickListener {
+                selectFolderByPath(etManualPath.text?.toString()?.trim() ?: "", dialog)
+            }
         }
 
         dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnBrowseWithSAF)?.setOnClickListener {
@@ -380,6 +395,13 @@ internal class AddResourceScanManager(
     // ========== Permission Dialog ==========
 
     fun showAllFilesAccessPermissionDialog() {
+        // S2012: the single choke point for this dialog. A build that declares no all-files access has
+        // nothing to explain and nothing to grant, so the system tree picker is the whole flow and
+        // opens straight away - no caller can reintroduce a request for the unobtainable.
+        if (StoragePermissionRule.isDirectFileAccessUnobtainable(activity)) {
+            folderPickerLauncher.launch(null)
+            return
+        }
         // S1436: the shell is unchanged - the wording is the registry's, with the folder-picking
         // addendum appended, and this file no longer keeps a copy of either.
         MaterialAlertDialogBuilder(activity)

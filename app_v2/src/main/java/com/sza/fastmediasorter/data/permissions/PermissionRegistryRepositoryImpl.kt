@@ -80,6 +80,13 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             optional = false,
             minSdk = 33,
         ),
+        // S2012: same shape as the activity_recognition gate below - the gate names the declaration
+        // site, and MANAGE_EXTERNAL_STORAGE is declared only by src/noLegal/AndroidManifest.xml since
+        // Google Play refused two updates over it as `Not a core feature`. Without the gate the store
+        // flavors would list a row whose only action opens a system screen their merged manifest
+        // gives them no standing on. IS_NO_LEGAL_FLAVOR rather than a new DECLARES_* field because the
+        // runtime half of this ticket reads the merged manifest directly, so the registry table is the
+        // gate's only consumer and it mirrors that one file exactly.
         PermissionEntry(
             id = "manage_external_storage",
             manifestName = Manifest.permission.MANAGE_EXTERNAL_STORAGE,
@@ -88,6 +95,7 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             group = PermissionGroup.STORAGE,
             optional = false,
             minSdk = 30,
+            buildGates = setOf("IS_NO_LEGAL_FLAVOR"),
             grantKind = PermissionGrantKind.SYSTEM_SCREEN,
             // S1436: one text where six stood - the row keeps its short label, the paragraph carries the
             // meaning all six carried between them, and what is specific to picking a folder is the

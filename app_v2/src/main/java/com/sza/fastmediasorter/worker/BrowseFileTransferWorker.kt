@@ -210,10 +210,17 @@ class BrowseFileTransferWorker @AssistedInject constructor(
             )
         }
 
-        val event = buildTerminalEvent(
+        return completeTransfer(
             request = request,
             fileResult = terminalResult ?: FileOperationResult.Failure("Unknown result"),
         )
+    }
+
+    private suspend fun completeTransfer(
+        request: BrowseFileTransferRequest,
+        fileResult: FileOperationResult,
+    ): Result {
+        val event = buildTerminalEvent(request, fileResult)
         persistAndPublish(event)
         postResultNotification(request, event)
         return when (event) {

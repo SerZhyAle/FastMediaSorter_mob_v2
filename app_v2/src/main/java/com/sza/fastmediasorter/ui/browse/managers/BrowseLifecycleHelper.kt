@@ -2,12 +2,12 @@ package com.sza.fastmediasorter.ui.browse.managers
 
 import android.Manifest
 import android.app.Activity
-import android.os.Build
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.StoragePermissionRule
 import com.sza.fastmediasorter.domain.model.PermissionTask
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.ui.browse.BrowseState
@@ -73,6 +73,10 @@ class BrowseLifecycleHelper(
      * Check if MANAGE_EXTERNAL_STORAGE is granted for local resources on Android 11+.
      * Shows an explanation dialog once per session.
      *
+     * S2012: gated on the merged manifest, not on the SDK level. A store build declares no
+     * all-files access, so entering Browse must not open a dialog whose only action leads to a
+     * grant that build can never hold - its local resources are read through SAF instead.
+     *
      * @return true if permission was just re-granted and files should reload
      */
     fun checkAndRequestStoragePermission(
@@ -81,7 +85,7 @@ class BrowseLifecycleHelper(
     ) {
         if (resource == null) return
         if (resource.type != ResourceType.LOCAL) return
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
+        if (!StoragePermissionRule.requiresAllFilesAccess(activity)) return
 
         val hasPermission = com.sza.fastmediasorter.core.util.PermissionHelper.hasAllFilesAccessPermission(activity)
 

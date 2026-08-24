@@ -9,9 +9,15 @@
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
 
-    <!-- All Files Access for file management (Android 11+) -->
-    <!-- Required to select system folders like Pictures, Downloads, DCIM via folder picker -->
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" tools:ignore="ScopedStorage" />
+    <!--
+      S2012: all-files access is declared only in src/noLegal/AndroidManifest.xml. Google Play refused
+      two updates over that permission as `Not a core feature`, and this file is shared by every
+      store-distributed flavor, so it cannot live here. The SAF tree picker is the whole folder-adding
+      flow wherever the merged manifest lacks it; StoragePermissionRule reads the merged manifest so
+      the app never asks for what the build does not declare. The permission is deliberately not named
+      literally in this comment - the merger copies comments into the merged manifest, where the bare
+      name would read as a declaration to anyone grepping it.
+    -->
 
     <!-- MANAGE_MEDIA permission for direct file deletion without dialogs (Android 12+) -->
     <uses-permission android:name="android.permission.MANAGE_MEDIA" />

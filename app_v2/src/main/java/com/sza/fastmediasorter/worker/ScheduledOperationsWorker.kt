@@ -18,6 +18,7 @@ import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.notification.NotificationIcons
 import com.sza.fastmediasorter.core.notification.NotificationIds
+import com.sza.fastmediasorter.core.util.StoragePermissionRule
 import com.sza.fastmediasorter.domain.model.MIN_SCHEDULED_INTERVAL_MS
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
@@ -132,8 +133,11 @@ class ScheduledOperationsWorker @AssistedInject constructor(
         nm.notify(PERMISSION_NOTIFICATION_ID, notification)
     }
 
+    // S2012: no content intent where the merged manifest declares no all-files access - the
+    // notification still reports the operation could not finish, but it must not send the user to a
+    // system screen that would leave them exactly where they started.
     private fun buildAllFilesAccessIntent(): PendingIntent? {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return null
+        if (!StoragePermissionRule.requiresAllFilesAccess(context)) return null
         return try {
             val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
                 data = Uri.parse("package:${context.packageName}")

@@ -93,6 +93,24 @@ class PermissionRegistryRepositoryImplTest {
     }
 
     @Test
+    fun `S2012 the all-files row is offered only where the flavor declares the permission`() {
+        val allFiles = repo.getEntries().firstOrNull { it.id == "manage_external_storage" }
+        // Google Play refused two updates over MANAGE_EXTERNAL_STORAGE, so it survives only in
+        // src/noLegal. Asserted from both sides like read_contacts above: a row offering a system
+        // screen the merged manifest gives the build no standing on is the defect this gate removes.
+        if (!BuildConfig.IS_NO_LEGAL_FLAVOR) {
+            assertTrue(
+                "manage_external_storage must not be offered where the manifest does not declare it",
+                allFiles == null,
+            )
+            return
+        }
+        assertNotNull("manage_external_storage must be registered on noLegal", allFiles)
+        assertEquals(PermissionGroup.STORAGE, allFiles!!.group)
+        assertTrue("manage_external_storage" in repo.getWelcomeEntries().map { it.id })
+    }
+
+    @Test
     fun `S1436 onboarding is a superset of settings and differs only on welcome-only entries`() {
         val settings = repo.getEntries().map { it.id }.toSet()
         val welcome = repo.getWelcomeEntries()

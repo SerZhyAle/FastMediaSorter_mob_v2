@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import com.sza.fastmediasorter.core.util.StoragePermissionRule
 import com.sza.fastmediasorter.domain.model.PermissionEntry
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
@@ -31,8 +32,11 @@ class PermissionGrantIntentFactory @Inject constructor(
      */
     fun grantIntent(entry: PermissionEntry): Intent {
         val dedicated = when (entry.manifestName) {
+            // S2012: the SDK window is not enough - the all-files screen is offered only where the
+            // merged manifest declares the permission. The row is gated off in such a build, so this
+            // is the second line of defence rather than the only one.
             Manifest.permission.MANAGE_EXTERNAL_STORAGE ->
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                if (StoragePermissionRule.requiresAllFilesAccess(context)) {
                     // No try/catch here: building an Intent cannot fail. The route that can fail is the
                     // launch, and the caller already catches ActivityNotFoundException around it.
                     packageScopedIntent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
