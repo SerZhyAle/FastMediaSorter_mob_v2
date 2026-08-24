@@ -1,0 +1,8 @@
+• Send files to the watch - the paired watch is a resource you can copy media into.
+• Rectangular watch tiles - grid cells use the full screen instead of round ones.
+
+
+• Resource rows on the watch respond to taps again.
+• Recent resources no longer fill the whole first row of the watch home grid.
+• The watch startup splash shows the watch branding, not the phone one.
+• The legacy edition's watch companion now matches the watch app identity.
