@@ -265,7 +265,6 @@
     <string name="wear_netmon_field_operator">Operator</string>
     <string name="wear_netmon_field_bluetooth_state">Adapter</string>
     <string name="wear_netmon_field_location_provider">Provider</string>
-    <string name="wear_netmon_field_location_fix_age">Last fix</string>
     <string name="wear_netmon_field_internet_state">Reachable</string>
     <string name="wear_netmon_unavailable">Not measured on this watch</string>
     <string name="wear_netmon_permission_missing">Some readings need permission. Grant it in the watch settings.</string>
@@ -274,7 +273,6 @@
     <string name="wear_netmon_history_empty">No readings in this session yet</string>
     <string name="wear_netmon_value_dbm">%1$d dBm</string>
     <string name="wear_netmon_value_mbps">%1$d Mbps</string>
-    <string name="wear_netmon_value_seconds_ago">%1$d s ago</string>
     <string name="wear_game_score">Score</string>
     <string name="wear_game_turns">Turns</string>
     <string name="wear_game_level_completed">Level done</string>

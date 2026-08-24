@@ -265,7 +265,6 @@
     <string name="wear_netmon_field_operator">Оператор</string>
     <string name="wear_netmon_field_bluetooth_state">Адаптер</string>
     <string name="wear_netmon_field_location_provider">Источник</string>
-    <string name="wear_netmon_field_location_fix_age">Последнее определение</string>
     <string name="wear_netmon_field_internet_state">Доступен</string>
     <string name="wear_netmon_unavailable">Часы это не измеряют</string>
     <string name="wear_netmon_permission_missing">Часть измерений требует разрешения. Выдайте его в настройках часов.</string>
@@ -274,7 +273,6 @@
     <string name="wear_netmon_history_empty">В этом сеансе измерений пока нет</string>
     <string name="wear_netmon_value_dbm">%1$d дБм</string>
     <string name="wear_netmon_value_mbps">%1$d Мбит/с</string>
-    <string name="wear_netmon_value_seconds_ago">%1$d с назад</string>
     <string name="wear_game_score">Счёт</string>
     <string name="wear_game_turns">Ходы</string>
     <string name="wear_game_level_completed">Уровень пройден</string>

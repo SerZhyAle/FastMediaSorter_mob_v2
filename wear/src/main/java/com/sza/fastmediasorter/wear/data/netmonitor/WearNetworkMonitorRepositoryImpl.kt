@@ -11,7 +11,6 @@ import android.net.NetworkCapabilities
 import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
 import android.os.Build
-import android.os.SystemClock
 import android.telephony.TelephonyManager
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkCapabilities
@@ -59,7 +58,7 @@ class WearNetworkMonitorRepositoryImpl @Inject constructor(
             !isGranted(Manifest.permission.BLUETOOTH_CONNECT)
         val nearbyPending = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             !isGranted(Manifest.permission.NEARBY_WIFI_DEVICES)
-        return isGranted(Manifest.permission.ACCESS_FINE_LOCATION) && !bluetoothPending && !nearbyPending
+        return !bluetoothPending && !nearbyPending
     }
 
     override fun snapshots(): Flow<WearNetworkSnapshot> = callbackFlow {
@@ -107,7 +106,6 @@ class WearNetworkMonitorRepositoryImpl @Inject constructor(
             mobileOperator = telephonyManager?.networkOperatorName?.takeIf { it.isNotBlank() },
             isBluetoothEnabled = bluetoothEnabled(),
             hasLocationProvider = locationManager?.allProviders?.isNotEmpty(),
-            lastLocationFixAgeMillis = lastLocationFixAge(),
             hasInternet = networkCapabilities?.hasCapability(
                 NetworkCapabilities.NET_CAPABILITY_VALIDATED
             )
@@ -150,9 +148,11 @@ class WearNetworkMonitorRepositoryImpl @Inject constructor(
 
     @Suppress("DEPRECATION")
     private fun visibleWifiNetworks(): List<String>? {
-        val nearbyDenied = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            !isGranted(Manifest.permission.NEARBY_WIFI_DEVICES)
-        if (!isGranted(Manifest.permission.ACCESS_FINE_LOCATION) || nearbyDenied) {
+        // S2013: below API 33 a scan list is only readable with ACCESS_FINE_LOCATION, which this
+        // app no longer declares, so the list is simply absent there rather than empty.
+        val scannable = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            isGranted(Manifest.permission.NEARBY_WIFI_DEVICES)
+        if (!scannable) {
             return null
         }
         return wifiManager?.scanResults
@@ -170,22 +170,11 @@ class WearNetworkMonitorRepositoryImpl @Inject constructor(
         return if (connectDenied) null else bluetoothManager?.adapter?.isEnabled
     }
 
-    private fun lastLocationFixAge(): Long? {
-        if (!isGranted(Manifest.permission.ACCESS_FINE_LOCATION)) {
-            return null
-        }
-        val fix = locationManager?.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-        return fix?.let {
-            (SystemClock.elapsedRealtimeNanos() - it.elapsedRealtimeNanos) / NANOS_PER_MILLI
-        }
-    }
-
     private fun isGranted(permission: String): Boolean =
         ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
 
     private companion object {
         /** Slow enough that a watch screen costs little, fast enough that a signal bar still moves. */
         const val POLL_INTERVAL_MS = 5_000L
-        const val NANOS_PER_MILLI = 1_000_000L
     }
 }

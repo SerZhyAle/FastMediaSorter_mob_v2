@@ -19,7 +19,6 @@ import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkSection
 import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkSnapshot
 
 private val ROW_SPACING = 4.dp
-private const val MILLIS_PER_SECOND = 1000L
 
 /** Dispatches to the page that owns the section. Each page reads only its own fields. */
 @Composable
@@ -118,12 +117,6 @@ private fun BluetoothFields(snapshot: WearNetworkSnapshot?) {
 @Composable
 private fun GnssFields(snapshot: WearNetworkSnapshot?) {
     LabelValue(R.string.wear_netmon_field_location_provider, snapshot?.hasLocationProvider.asYesNo())
-    LabelValue(
-        R.string.wear_netmon_field_location_fix_age,
-        snapshot?.lastLocationFixAgeMillis?.let {
-            stringResource(R.string.wear_netmon_value_seconds_ago, (it / MILLIS_PER_SECOND).toInt())
-        }
-    )
 }
 
 @Composable

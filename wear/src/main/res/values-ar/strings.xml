@@ -243,7 +243,6 @@
     <string name="wear_netmon_field_operator">المشغل</string>
     <string name="wear_netmon_field_bluetooth_state">المحول</string>
     <string name="wear_netmon_field_location_provider">المصدر</string>
-    <string name="wear_netmon_field_location_fix_age">آخر تحديد للموقع</string>
     <string name="wear_netmon_field_internet_state">يمكن الوصول إليه</string>
     <string name="wear_netmon_unavailable">هذه الساعة لا تقيس ذلك</string>
     <string name="wear_netmon_permission_missing">بعض القراءات تحتاج إلى إذن. امنحه في إعدادات الساعة.</string>
@@ -251,7 +250,6 @@
     <string name="wear_netmon_history_empty">لا توجد قراءات في هذه الجلسة بعد</string>
     <string name="wear_netmon_value_dbm">%1$d dBm</string>
     <string name="wear_netmon_value_mbps">%1$d Mbps</string>
-    <string name="wear_netmon_value_seconds_ago">قبل %1$d ثانية</string>
     <string name="wear_game_score">النتيجة</string>
     <string name="wear_game_turns">الحركات</string>
     <string name="wear_game_level_completed">اكتمل المستوى</string>

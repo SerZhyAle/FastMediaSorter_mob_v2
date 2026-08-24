@@ -243,7 +243,6 @@
     <string name="wear_netmon_field_operator">Netzbetreiber</string>
     <string name="wear_netmon_field_bluetooth_state">Adapter</string>
     <string name="wear_netmon_field_location_provider">Quelle</string>
-    <string name="wear_netmon_field_location_fix_age">Letzte Ortung</string>
     <string name="wear_netmon_field_internet_state">Erreichbar</string>
     <string name="wear_netmon_unavailable">Wird von dieser Uhr nicht gemessen</string>
     <string name="wear_netmon_permission_missing">Einige Messwerte benötigen eine Berechtigung. Erteilen Sie sie in den Uhreneinstellungen.</string>
@@ -251,7 +250,6 @@
     <string name="wear_netmon_history_empty">In dieser Sitzung noch keine Messwerte</string>
     <string name="wear_netmon_value_dbm">%1$d dBm</string>
     <string name="wear_netmon_value_mbps">%1$d Mbit/s</string>
-    <string name="wear_netmon_value_seconds_ago">vor %1$d s</string>
     <string name="wear_game_score">Punkte</string>
     <string name="wear_game_turns">Züge</string>
     <string name="wear_game_level_completed">Level geschafft</string>

@@ -243,7 +243,6 @@
     <string name="wear_netmon_field_operator">运营商</string>
     <string name="wear_netmon_field_bluetooth_state">适配器</string>
     <string name="wear_netmon_field_location_provider">来源</string>
-    <string name="wear_netmon_field_location_fix_age">上次定位</string>
     <string name="wear_netmon_field_internet_state">可访问</string>
     <string name="wear_netmon_unavailable">此手表不测量该项</string>
     <string name="wear_netmon_permission_missing">部分读数需要权限。请在手表设置中授予。</string>
@@ -251,7 +250,6 @@
     <string name="wear_netmon_history_empty">本次会话尚无读数</string>
     <string name="wear_netmon_value_dbm">%1$d dBm</string>
     <string name="wear_netmon_value_mbps">%1$d Mbps</string>
-    <string name="wear_netmon_value_seconds_ago">%1$d 秒前</string>
     <string name="wear_game_score">得分</string>
     <string name="wear_game_turns">步数</string>
     <string name="wear_game_level_completed">关卡完成</string>
