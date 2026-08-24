@@ -20,13 +20,15 @@
     -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
-    <!-- Wi-Fi section: the visible-network list on API 33+. -->
+    <!--
+        Wi-Fi section: the visible-network list on API 33+. `neverForLocation` is what lets the scan
+        run without ACCESS_FINE_LOCATION, which S2013 removed - Play reviews location against the
+        store description, and a radio monitor is not what this app is listed as.
+    -->
     <uses-permission
         android:name="android.permission.NEARBY_WIFI_DEVICES"
+        android:usesPermissionFlags="neverForLocation"
         android:minSdkVersion="33" />
-
-    <!-- Wi-Fi scan results and the last location fix age below API 33; the GNSS section's own reading. -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <!-- Bluetooth section on API 30 and below; API 31+ routes through BLUETOOTH_CONNECT instead. -->
     <uses-permission

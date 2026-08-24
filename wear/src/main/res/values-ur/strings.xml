@@ -243,7 +243,6 @@
     <string name="wear_netmon_field_operator">آپریٹر</string>
     <string name="wear_netmon_field_bluetooth_state">اڈاپٹر</string>
     <string name="wear_netmon_field_location_provider">ماخذ</string>
-    <string name="wear_netmon_field_location_fix_age">آخری مقام</string>
     <string name="wear_netmon_field_internet_state">قابل رسائی</string>
     <string name="wear_netmon_unavailable">یہ گھڑی اسے نہیں ماپتی</string>
     <string name="wear_netmon_permission_missing">کچھ ریڈنگز کے لیے اجازت درکار ہے۔ اسے گھڑی کی ترتیبات میں دیں۔</string>
@@ -251,7 +250,6 @@
     <string name="wear_netmon_history_empty">اس سیشن میں ابھی کوئی ریڈنگ نہیں</string>
     <string name="wear_netmon_value_dbm">%1$d dBm</string>
     <string name="wear_netmon_value_mbps">%1$d Mbps</string>
-    <string name="wear_netmon_value_seconds_ago">%1$d سیکنڈ پہلے</string>
     <string name="wear_game_score">اسکور</string>
     <string name="wear_game_turns">چالیں</string>
     <string name="wear_game_level_completed">لیول مکمل</string>

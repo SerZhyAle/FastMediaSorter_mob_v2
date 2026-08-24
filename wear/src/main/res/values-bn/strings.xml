@@ -243,7 +243,6 @@
     <string name="wear_netmon_field_operator">অপারেটর</string>
     <string name="wear_netmon_field_bluetooth_state">অ্যাডাপ্টার</string>
     <string name="wear_netmon_field_location_provider">উৎস</string>
-    <string name="wear_netmon_field_location_fix_age">সর্বশেষ অবস্থান</string>
     <string name="wear_netmon_field_internet_state">পৌঁছানো যায়</string>
     <string name="wear_netmon_unavailable">এই ঘড়ি এটি মাপে না</string>
     <string name="wear_netmon_permission_missing">কিছু রিডিংয়ের জন্য অনুমতি প্রয়োজন। ঘড়ির সেটিংসে সেটি দিন।</string>
@@ -251,7 +250,6 @@
     <string name="wear_netmon_history_empty">এই সেশনে এখনও কোনও রিডিং নেই</string>
     <string name="wear_netmon_value_dbm">%1$d dBm</string>
     <string name="wear_netmon_value_mbps">%1$d Mbps</string>
-    <string name="wear_netmon_value_seconds_ago">%1$d সেকেন্ড আগে</string>
     <string name="wear_game_score">স্কোর</string>
     <string name="wear_game_turns">চাল</string>
     <string name="wear_game_level_completed">লেভেল সম্পন্ন</string>

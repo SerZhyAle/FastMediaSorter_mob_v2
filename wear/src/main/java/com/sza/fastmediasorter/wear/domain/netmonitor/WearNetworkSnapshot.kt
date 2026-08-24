@@ -10,7 +10,6 @@ data class WearNetworkSnapshot(
     val mobileOperator: String?,
     val isBluetoothEnabled: Boolean?,
     val hasLocationProvider: Boolean?,
-    val lastLocationFixAgeMillis: Long?,
     val hasInternet: Boolean?,
 )
 
