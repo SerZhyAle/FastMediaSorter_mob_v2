@@ -1,3 +1,0 @@
-has_marker=False
-has_literal_escape=True
-has_real_char=True

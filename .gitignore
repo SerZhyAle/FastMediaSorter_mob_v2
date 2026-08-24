@@ -68,6 +68,7 @@ render.experimental.xml
 
 # AI Agent configurations
 .agent/
+.claude/
 
 # Eclipse
 .classpath
