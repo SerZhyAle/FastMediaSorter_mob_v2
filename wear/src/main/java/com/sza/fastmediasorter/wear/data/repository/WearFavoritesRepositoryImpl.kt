@@ -6,11 +6,13 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.sza.fastmediasorter.wear.domain.model.WearComplicationKind
 import com.sza.fastmediasorter.wear.domain.model.WearFavoriteDeltaItem
 import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
 import com.sza.fastmediasorter.wear.domain.model.favoriteIdentityKey
 import com.sza.fastmediasorter.wear.domain.model.mergeFavorites
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
+import com.sza.fastmediasorter.wear.domain.usecase.RequestWearComplicationRefreshUseCase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -19,7 +21,8 @@ import javax.inject.Inject
 
 class WearFavoritesRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val gson: Gson
+    private val gson: Gson,
+    private val requestWearComplicationRefreshUseCase: RequestWearComplicationRefreshUseCase
 ) : WearFavoritesRepository {
 
     private val prefs: SharedPreferences by lazy {
@@ -55,6 +58,7 @@ class WearFavoritesRepositoryImpl @Inject constructor(
         if (favorites.none { legacyIdentityOf(it) == key } && favorites.add("$sourceId:$filePath")) {
             saveFavorites(favorites)
             appendDelta(WearFavoriteDeltaItem(sourceId, filePath, true, System.currentTimeMillis()))
+            requestWearComplicationRefreshUseCase(WearComplicationKind.FAVOURITES_COUNT)
         }
     }
 
@@ -66,6 +70,7 @@ class WearFavoritesRepositoryImpl @Inject constructor(
             appendDelta(
                 WearFavoriteDeltaItem(record.sourceId, record.filePath, true, System.currentTimeMillis())
             )
+            requestWearComplicationRefreshUseCase(WearComplicationKind.FAVOURITES_COUNT)
         }
     }
 
@@ -96,6 +101,7 @@ class WearFavoritesRepositoryImpl @Inject constructor(
         Timber.d("S2039: remove $key legacy=$removedLegacy records=${records.size - kept.size}")
         if (removedLegacy || kept.size != records.size) {
             appendDelta(WearFavoriteDeltaItem(sourceId, filePath, false, System.currentTimeMillis()))
+            requestWearComplicationRefreshUseCase(WearComplicationKind.FAVOURITES_COUNT)
         }
     }
 

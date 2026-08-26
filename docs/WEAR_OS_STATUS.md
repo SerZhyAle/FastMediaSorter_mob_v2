@@ -331,6 +331,60 @@ already-shipped halves rather than adding a transport: S1861 moved the bytes, S1
 
 ---
 
+## 📡 Open on the Phone - the twelfth path (S2004)
+
+The reverse of S1884: a file the watch fetched **from** the phone can be handed back to the phone to be
+opened there. Nothing is transferred - the phone still holds the original - so this is a message pair
+and no channel.
+
+- Paths: watch → phone `OPEN_ON_PHONE_REQUEST` = `/fms/watch/open_on_phone` carrying
+  `WearOpenOnPhoneRequest {token, displayName}`, phone → watch `OPEN_ON_PHONE_ACK` =
+  `/fms/phone/open_on_phone_ack` carrying `WearOpenOnPhoneAck {token, outcome}`. Correlated by the
+  token, because a token addresses one file and the watch has at most one open outstanding for it.
+- The token is the address the phone's **own** browse protocol issued. The watch never invents one, so
+  `OpenPhoneResourceChannelUseCase` - the same use case that listed the item - resolves it, and no
+  second addressing scheme exists to drift.
+- Four outcomes, kept apart on purpose: `SHOWN` (the phone app was in front and opened it),
+  `NOTIFIED` (it was not, so a notification was posted), `REFUSED_NO_NOTIFICATION` (the phone answered
+  and can show nothing - its notifications are off) and `NOT_FOUND`. A phone that never answers is not
+  an outcome at all; the watch reads the silence itself and says the phone is unreachable.
+- `REFUSED_NO_NOTIFICATION` and silence must not be merged: one is fixed on the phone's settings
+  screen, the other by bringing the phone closer.
+- Phone side: the dispatcher branch and `OpenOnPhoneNotifier` live in `src/wearGms`, beside the eleven
+  existing handlers, because the four flavors that mount `src/wearStub` must gain no GMS reference. The
+  path constants and the payload models sit in `src/main` with the other eleven - a `const val` and a
+  `data class` name no GMS type.
+- Foreground is read from `ProcessLifecycleOwner`, never from a task query, and a refused direct launch
+  falls through to the same notification the background case posts.
+- Watch side: the phone-browse list offers the action for every file row it drew, fetched or not
+  (S2092). The request carries the browse token and moves no bytes, so gating it on a local copy meant
+  the one action that can succeed was reachable only after a transfer - and for a document, only after
+  a transfer that was then refused. Every other surface still follows the `PHONE_COPY` storage class,
+  and the favourites list subtracts the offer outright because a favourite carries no token.
+- A row the watch cannot render opens that menu on a plain tap rather than on a long press (S2092):
+  the phone nulls the type of everything outside image, video and audio, so the refusal arrives with
+  the list and the transfer never starts.
+- Both modules hand-mirror the path and payload files, and both copies pin their wire names with
+  `@SerializedName`: the two share no code, so the wire name is the whole contract and a minified
+  release must not rename it.
+
+### The copies those opens leave behind (S2004)
+
+A phone file opened on the watch lands in `cacheDir/phone-files/`, and that directory is what makes the
+open-on-phone action possible at all - `WearFileCapabilityPolicy` recognises it as the `PHONE_COPY`
+storage class, meaning "the phone still holds the original of this".
+
+- Capped at 128 MB, trimmed by the shipped `MediaCacheEvictor` at the moment the next copy is written.
+  No worker, no startup sweep, no expiry: the directory grows only on arrival, so that is the only
+  moment a check changes anything (S2004 ADR-6).
+- The file that has just arrived is passed as `keep`, so it is never the one evicted. That, and not the
+  cap's size, is what keeps a large file from disappearing between landing and being read.
+- The cap's floor is `WEAR_FILE_TRANSFER_MAX_BYTES` (32 MB), the largest single file the bridge carries.
+- Not to be confused with `getExternalFilesDir(DOWNLOADS)`, where sorting transfers land. Those are
+  files the user asked for and nothing evicts them.
+
+---
+
 ## 🎮 Apps: the mini-programs section (S1710)
 
 The watch home screen carries an **Apps** section holding five self-contained programs, each usable
@@ -375,6 +429,17 @@ The `:wear` module exposes five external components to the Wear OS platform:
 4. `WearResourceTileService`, `WearStreamTileService`, `WearFavouritesTileService` (Tile Providers)
 
 `MainActivity` is an addressable entry point using a launch-target contract (`WearLaunchTarget`) shared with S1944, S1884, and S1961. Tiles construct ProtoLayout `AndroidActivity` launch intents with `WearLaunchTarget` key-value extras to open assigned resources, streams, or the favourites list directly upon user tap.
+
+---
+
+## ⌚ Wear OS Complications (S2047)
+
+The `:wear` module exposes three complication data sources to watch face slots:
+1. `WearLastResourceComplicationService` (Last Used Resource - `SHORT_TEXT`, `LONG_TEXT`)
+2. `WearFavouritesComplicationService` (Favourites Count - `SHORT_TEXT`, `MONOCHROMATIC_IMAGE`)
+3. `WearNowPlayingComplicationService` (Now Playing / Last Played track - `SHORT_TEXT`, `LONG_TEXT`)
+
+All complication services inherit from `BaseWearComplicationService` and load data locally via `LoadWearComplicationContentUseCase`. Tapping a complication launches `MainActivity` with a `WearLaunchTarget` intent. User-driven complication sources (`LAST_RESOURCE`, `FAVOURITES_COUNT`) receive event-driven update requests via `RequestWearComplicationRefreshUseCase`, while `NOW_PLAYING` uses platform polling (300s period).
 
 ---
 

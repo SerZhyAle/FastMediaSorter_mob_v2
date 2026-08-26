@@ -130,7 +130,6 @@
     <string name="wear_phone_audio">অডিও</string>
     <string name="wear_phone_images">ছবি</string>
     <string name="wear_phone_documents">ডকুমেন্ট</string>
-    <string name="wear_phone_all_files">সব ফাইল</string>
     <string name="screen_settings_title">স্ক্রিন</string>
     <string name="screen_settings_view_mode">স্ক্রিন ভিউ</string>
     <string name="wear_streams_section_enabled">স্ট্রিম দেখান</string>
@@ -209,7 +208,7 @@
     <string name="wear_favourites_unopenable">ওয়াচ কীভাবে এটি খুলতে হয় তা মনে রাখা শুরু করার আগে এটি সংরক্ষণ করা হয়েছিল।</string>
     <string name="phone_resource_source_unavailable">এই রিসোর্স সাড়া দিচ্ছে না। ফোন সংযুক্ত আছে - রিসোর্স দেখে নিয়ে আবার চেষ্টা করুন।</string>
     <string name="wear_phone_recents">সাম্প্রতিক</string>
-    <string name="wear_video_scale_mode">অ্যাসপেক্ট রেশিও / জুম মোড</string>
+    <string name="wear_scale_mode">অ্যাসপেক্ট রেশিও / জুম মোড</string>
     <string name="wear_streams_search">স্ট্রিম খুঁজুন</string>
     <string name="wear_streams_filter">স্ট্রিম ফিল্টার করুন</string>
     <string name="wear_streams_sort">স্ট্রিম সাজান</string>

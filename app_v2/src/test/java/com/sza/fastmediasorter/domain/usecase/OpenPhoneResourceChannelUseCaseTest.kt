@@ -154,13 +154,13 @@ class OpenPhoneResourceChannelUseCaseTest {
     }
 
     @Test
-    fun `the approved stream is opened by the caller and yields the file bytes`() = runTest {
+    fun `the approved file is opened by the caller and yields the file bytes`() = runTest {
         writeFile("photo.jpg", "watch-bound bytes")
         stubResource(resource())
 
         val approved = useCase(request("1:photo.jpg")) as PhoneResourceChannel.Approved
 
-        val read = approved.openStream().use { it.readBytes().decodeToString() }
+        val read = approved.file.inputStream().use { it.readBytes().decodeToString() }
         assertEquals("watch-bound bytes", read)
     }
 

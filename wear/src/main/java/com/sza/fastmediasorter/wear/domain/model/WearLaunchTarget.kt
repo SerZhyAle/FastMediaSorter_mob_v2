@@ -19,6 +19,9 @@ sealed interface WearLaunchTarget {
     /** Open the target the tile was assigned. */
     data class Open(val ref: WearTileTargetRef) : WearLaunchTarget
 
+    /** Open a file the phone has just delivered to this watch. */
+    data class File(val path: String, val mimeType: String) : WearLaunchTarget
+
     /** Open the app where a target for [kind] is chosen, because the tile has none yet. */
     data class Pick(val kind: WearTileKind) : WearLaunchTarget
 }
@@ -35,6 +38,11 @@ fun WearLaunchTarget.writeTo(intent: Intent) {
             intent.putExtra(EXTRA_KIND, ref.kind().name)
             ref.writeInto(intent)
         }
+        is WearLaunchTarget.File -> {
+            intent.putExtra(EXTRA_MODE, MODE_FILE)
+            intent.putExtra(EXTRA_FILE_PATH, path)
+            intent.putExtra(EXTRA_FILE_MIME_TYPE, mimeType)
+        }
     }
 }
 
@@ -47,13 +55,26 @@ fun WearLaunchTarget.writeTo(intent: Intent) {
  */
 fun readWearLaunchTarget(intent: Intent): WearLaunchTarget? {
     val mode = intent.getStringExtra(EXTRA_MODE)
-    val kind = intent.getStringExtra(EXTRA_KIND)?.let(::tileKindOrNull)
     return when {
-        mode == null || kind == null -> null
-        mode == MODE_PICK -> WearLaunchTarget.Pick(kind)
-        mode == MODE_OPEN -> intent.readRef(kind)?.let(WearLaunchTarget::Open)
+        mode == MODE_FILE -> intent.readFileTarget()
+        mode == null -> null
+        else -> readTileTarget(mode, intent)
+    }
+}
+
+private fun readTileTarget(mode: String, intent: Intent): WearLaunchTarget? {
+    val kind = intent.getStringExtra(EXTRA_KIND)?.let(::tileKindOrNull) ?: return null
+    return when (mode) {
+        MODE_PICK -> WearLaunchTarget.Pick(kind)
+        MODE_OPEN -> intent.readRef(kind)?.let(WearLaunchTarget::Open)
         else -> null
     }
+}
+
+private fun Intent.readFileTarget(): WearLaunchTarget.File? {
+    val path = getStringExtra(EXTRA_FILE_PATH)
+    val mimeType = getStringExtra(EXTRA_FILE_MIME_TYPE)
+    return if (path.isNullOrBlank() || mimeType.isNullOrBlank()) null else WearLaunchTarget.File(path, mimeType)
 }
 
 private fun WearTileTargetRef.kind(): WearTileKind = when (this) {
@@ -115,6 +136,8 @@ private const val PREFIX = "com.sza.fastmediasorter.wear.launch."
 private const val EXTRA_MODE = PREFIX + "mode"
 private const val EXTRA_KIND = PREFIX + "kind"
 private const val EXTRA_STREAM_URL = PREFIX + "stream_url"
+private const val EXTRA_FILE_PATH = PREFIX + "file_path"
+private const val EXTRA_FILE_MIME_TYPE = PREFIX + "file_mime_type"
 private const val EXTRA_RESOURCE_ID = PREFIX + "resource_id"
 private const val EXTRA_RESOURCE_TYPE = PREFIX + "resource_type"
 private const val EXTRA_RESOURCE_SERVER = PREFIX + "resource_server"
@@ -124,6 +147,7 @@ private const val EXTRA_RESOURCE_BASE_PATH = PREFIX + "resource_base_path"
 
 private const val MODE_OPEN = "open"
 private const val MODE_PICK = "pick"
+private const val MODE_FILE = "file"
 
 /** No port is valid, so this stands for "the extra was never written". */
 private const val PORT_ABSENT = -1

@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.domain.usecase
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.WEAR_FILE_TRANSFER_MAX_BYTES
 import com.sza.fastmediasorter.domain.model.WearFileTransferAck
+import com.sza.fastmediasorter.domain.model.WearFileTransferOutcome
 import com.sza.fastmediasorter.domain.repository.WearFileTransferRepository
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
 import com.sza.fastmediasorter.service.WearSyncEvents
@@ -11,7 +12,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
-import timber.log.Timber
 import java.io.File
 import java.util.UUID
 import javax.inject.Inject
@@ -39,29 +39,51 @@ class SendFileToWatchUseCase @Inject constructor(
         displayName: String,
         mediaType: MediaType
     ): Outcome {
-        Timber.d("S1884: send-to-watch requested name=$displayName type=$mediaType")
         return when {
             mediaType !in RENDERABLE_ON_WATCH -> Outcome.UnsupportedType
             File(path).length() > WEAR_FILE_TRANSFER_MAX_BYTES -> Outcome.TooLarge
             wearableRepository.getConnectedNodes().isEmpty() -> Outcome.WatchUnavailable
-            else -> sendAndAwait(path, displayName)
+            else -> sendAndAwait(path, displayName, mediaType)
         }
     }
 
     private suspend fun sendAndAwait(
         path: String,
-        displayName: String
+        displayName: String,
+        mediaType: MediaType
     ): Outcome {
         val requestId = UUID.randomUUID().toString()
         return coroutineScope {
             // Subscribe first so a fast watch acknowledgement cannot be missed between send and collect.
             val acknowledgement = async(start = CoroutineStart.UNDISPATCHED) {
-                withTimeoutOrNull(ackTimeoutMs) {
-                    WearSyncEvents.fileTransferAckFlow.first { it.requestId == requestId }
+                WearSyncEvents.fileTransferAckFlow.first { it.requestId == requestId }
+            }
+            fileTransferRepository.enqueue(
+                sourcePath = path,
+                displayName = displayName,
+                openNow = true,
+                requestId = requestId,
+                mediaType = mediaType
+            )
+            val transferOutcome = fileTransferRepository.awaitTransfer(requestId)
+            when (transferOutcome) {
+                WearFileTransferOutcome.TOO_LARGE -> {
+                    acknowledgement.cancel()
+                    Outcome.TooLarge
+                }
+                WearFileTransferOutcome.WATCH_UNREACHABLE -> {
+                    acknowledgement.cancel()
+                    Outcome.WatchUnavailable
+                }
+                WearFileTransferOutcome.SUCCEEDED -> {
+                    val ack = withTimeoutOrNull(ackTimeoutMs) { acknowledgement.await() }
+                    mapAck(ack)
+                }
+                else -> {
+                    acknowledgement.cancel()
+                    Outcome.Error(transferOutcome.name)
                 }
             }
-            fileTransferRepository.enqueue(path, displayName, openNow = true, requestId = requestId)
-            mapAck(acknowledgement.await())
         }
     }
 

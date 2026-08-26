@@ -105,6 +105,7 @@ private fun labelOf(kind: WearFileOperationKind): Int = when (kind) {
     WearFileOperationKind.MOVE_TO_PHONE -> R.string.wear_file_op_move_to_phone
     WearFileOperationKind.DELETE -> R.string.delete
     WearFileOperationKind.RENAME -> R.string.wear_file_op_rename
+    WearFileOperationKind.OPEN_ON_PHONE -> R.string.wear_file_op_open_on_phone
 }
 
 private val TITLE_GAP = 8.dp
@@ -113,10 +114,14 @@ private val TITLE_GAP = 8.dp
  * Destructive last, the order and the reason `ui/browse/FileActionsDialog.kt` already recorded: on a
  * round screen the outer rows are the easiest to hit by accident, so the one answer that cannot be
  * taken back sits furthest from a mis-tap.
+ *
+ * Opening on the phone sits with the two actions above it because it leaves the watch as they do, and
+ * ahead of renaming because renaming keeps the user here (strategic 3.4 item 8).
  */
 private val ACTION_ORDER = listOf(
     WearFileOperationKind.SEND_TO_PHONE,
     WearFileOperationKind.MOVE_TO_PHONE,
+    WearFileOperationKind.OPEN_ON_PHONE,
     WearFileOperationKind.RENAME,
     WearFileOperationKind.DELETE
 )

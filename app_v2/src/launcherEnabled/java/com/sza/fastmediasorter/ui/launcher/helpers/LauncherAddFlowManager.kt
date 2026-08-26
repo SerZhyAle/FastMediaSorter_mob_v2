@@ -38,9 +38,12 @@ import timber.log.Timber
  * S1541: the whole "put something on the desktop" chain - result-key registration, the category
  * dispatch, every picker launch, and the single write that places the chosen item.
  *
- * The target square lives here because it is written when a picker opens and read when its result
- * comes back: splitting the two halves across classes is what would let a returning picker land on
- * the wrong cell.
+ * S2060: the target square itself lives in [LauncherHomeViewModel.pendingSlot], not on this class -
+ * this manager is recreated by the Activity's `by lazy` on every process restart, so a field here
+ * would lose the pointed-at square whenever the OS killed the process mid-flow (a system contact/app/
+ * resource picker running between the write and the read). The chain-routing state below this KDoc
+ * (which gadget, which indicator, which world-clock cell) still lives here on purpose - see §1
+ * Non-goal in S2060 for why that risk is not this ticket's scope.
  */
 class LauncherAddFlowManager(
     // S1906: the shared searchable picker takes its title as a String, so whoever opens it supplies the
@@ -58,8 +61,9 @@ class LauncherAddFlowManager(
 
     // S1209: [NO_SLOT] in either coordinate means the flow started from the taskbar "+", where the user
     // pointed at no square and the repository picks the position.
-    private var pendingRow: Int = 0
-    private var pendingCol: Int = 0
+    // S2060: the coordinate pair itself lives in viewModel.pendingSlot, not here - this manager is
+    // recreated by the Activity's `by lazy` on every process restart, so a plain field here would lose
+    // the pointed-at square exactly like it used to.
     private var pendingGadgetKey: String? = null
 
     // S1440: held only while the resource picker is up - reachability is the one indicator whose param
@@ -81,8 +85,9 @@ class LauncherAddFlowManager(
             LauncherCellContentPickerDialogFragment.RESULT_KEY,
             lifecycleOwner,
         ) { _, bundle ->
-            pendingRow = bundle.getInt(LauncherCellContentPickerDialogFragment.RESULT_ROW)
-            pendingCol = bundle.getInt(LauncherCellContentPickerDialogFragment.RESULT_COL)
+            viewModel.pendingSlot = bundle.getInt(LauncherCellContentPickerDialogFragment.RESULT_ROW) to
+                bundle.getInt(LauncherCellContentPickerDialogFragment.RESULT_COL)
+            Timber.d("S2060: wrote pendingSlot=${viewModel.pendingSlot} to SavedStateHandle")
             openPickerForCategory(bundle)
         }
         fragmentManager.setFragmentResultListener(REQ_APP, lifecycleOwner) { _, bundle ->
@@ -175,7 +180,7 @@ class LauncherAddFlowManager(
                 LauncherScheduledOpPickerDialogFragment.TAG,
             )
             // The manager owns the pick-contact / choose-channel chain; the cell it lands on is
-            // still pendingRow/pendingCol, like every other kind.
+            // still viewModel.pendingSlot, like every other kind.
             LauncherCellContentPickerDialogFragment.CATEGORY_CONTACT_PROFILE ->
                 contactPickManager.start(LauncherContactAction.PROFILE)
             LauncherCellContentPickerDialogFragment.CATEGORY_CONTACT_DIAL ->
@@ -255,8 +260,9 @@ class LauncherAddFlowManager(
      */
     private fun onLauncherActionChosen(actionKey: String?) {
         if (actionKey == null) {
+            val (row, col) = viewModel.pendingSlot
             openPicker(
-                LauncherCellContentPickerDialogFragment.newActionInstance(pendingRow, pendingCol),
+                LauncherCellContentPickerDialogFragment.newActionInstance(row, col),
                 LauncherCellContentPickerDialogFragment.TAG_ACTION,
             )
             return
@@ -304,8 +310,9 @@ class LauncherAddFlowManager(
 
     private fun onSectionChosen(sectionKey: String?) {
         if (sectionKey == null) {
+            val (row, col) = viewModel.pendingSlot
             openPicker(
-                LauncherCellContentPickerDialogFragment.newSectionInstance(pendingRow, pendingCol),
+                LauncherCellContentPickerDialogFragment.newSectionInstance(row, col),
                 LauncherCellContentPickerDialogFragment.TAG_SECTION,
             )
             return
@@ -325,8 +332,9 @@ class LauncherAddFlowManager(
      */
     private fun onGadgetChosen(gadgetKey: String?) {
         if (gadgetKey == null) {
+            val (row, col) = viewModel.pendingSlot
             openPicker(
-                LauncherCellContentPickerDialogFragment.newGadgetInstance(pendingRow, pendingCol),
+                LauncherCellContentPickerDialogFragment.newGadgetInstance(row, col),
                 LauncherCellContentPickerDialogFragment.TAG_GADGET,
             )
             return
@@ -425,7 +433,9 @@ class LauncherAddFlowManager(
         rememberFileListResourceId: Long? = null,
         labelOverride: String? = null,
     ) {
-        if (pendingRow == NO_SLOT) {
+        val (row, col) = viewModel.pendingSlot
+        Timber.d("S2060: placing at pendingSlot row=$row col=$col (survives process death via SavedStateHandle)")
+        if (row == NO_SLOT) {
             viewModel.addCellInFirstFreeSlot(
                 columns = currentColumns(),
                 kind = kind,
@@ -437,8 +447,8 @@ class LauncherAddFlowManager(
             )
         } else {
             viewModel.addCell(
-                rowIndex = pendingRow,
-                colIndex = pendingCol,
+                rowIndex = row,
+                colIndex = col,
                 draft = LauncherCellDraft(
                     kind = kind,
                     target = target,

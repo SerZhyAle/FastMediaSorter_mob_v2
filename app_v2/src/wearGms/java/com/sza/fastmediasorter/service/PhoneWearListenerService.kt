@@ -1,5 +1,10 @@
 package com.sza.fastmediasorter.service
 
+import android.content.Intent
+import android.net.Uri
+import androidx.core.content.FileProvider
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ProcessLifecycleOwner
 import com.google.android.gms.wearable.ChannelClient
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
@@ -11,15 +16,20 @@ import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore
+import com.sza.fastmediasorter.data.wear.OpenOnPhoneNotifier
 import com.sza.fastmediasorter.data.wear.WearIncomingFileRegistry
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.domain.model.WearEventEnvelopeCodec
 import com.sza.fastmediasorter.domain.model.WearFavoritesDeltaPayload
 import com.sza.fastmediasorter.domain.model.WearFileTransferAck
 import com.sza.fastmediasorter.domain.model.WearFileTransferMetadata
+import com.sza.fastmediasorter.domain.model.WearOpenOnPhoneAck
+import com.sza.fastmediasorter.domain.model.WearOpenOnPhoneOutcome
+import com.sza.fastmediasorter.domain.model.WearOpenOnPhoneRequest
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceItem
 import com.sza.fastmediasorter.domain.model.WearPhoneResourcePage
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceRequest
+import com.sza.fastmediasorter.domain.model.WearPhoneResourceRequestKind
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceResponseStatus
 import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
 import com.sza.fastmediasorter.domain.model.WearSourcesExportPayload
@@ -32,6 +42,7 @@ import com.sza.fastmediasorter.domain.usecase.OpenPhoneResourceChannelUseCase
 import com.sza.fastmediasorter.domain.usecase.PhoneResourceChannel
 import com.sza.fastmediasorter.domain.usecase.ReceiveWatchFileUseCase
 import com.sza.fastmediasorter.domain.usecase.SendResourcesToWatchUseCase
+import com.sza.fastmediasorter.ui.player.dispatch.StandalonePlayerDispatcherActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -40,6 +51,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.File
 import javax.inject.Inject
 
 private const val PATH_REQUEST = "/fms/network_sources/request"
@@ -67,6 +79,8 @@ class PhoneWearListenerService : WearableListenerService() {
 
     @Inject lateinit var wearLogReportReceiver: WearLogReportReceiver
 
+    @Inject lateinit var openOnPhoneNotifier: OpenOnPhoneNotifier
+
     @Inject lateinit var receiveWatchFileUseCase: ReceiveWatchFileUseCase
 
     @Inject lateinit var wearIncomingFileRegistry: WearIncomingFileRegistry
@@ -88,6 +102,8 @@ class PhoneWearListenerService : WearableListenerService() {
             WearDataLayerPaths.PHONE_RESOURCE_BROWSE_REQUEST -> handlePhoneResourceBrowse(event.data)
             WearDataLayerPaths.PHONE_RESOURCE_OPEN_REQUEST ->
                 handlePhoneResourceOpen(event.sourceNodeId, event.data)
+            WearDataLayerPaths.OPEN_ON_PHONE_REQUEST ->
+                handleOpenOnPhone(event.sourceNodeId, event.data)
             WearDataLayerPaths.LOG_REPORT_REQUEST ->
                 handleLogReport(event.sourceNodeId, event.data)
             WearDataLayerPaths.STREAM_TRANSFER_ACK -> handleStreamTransferAck(event.data)
@@ -299,7 +315,7 @@ class PhoneWearListenerService : WearableListenerService() {
 
         try {
             channelClient.getOutputStream(channel).await().use { output ->
-                approved.openStream().use { input -> input.copyTo(output) }
+                approved.file.inputStream().use { input -> input.copyTo(output) }
             }
         } catch (e: CancellationException) {
             // S1927: matches sendPhoneResourcePage below - a scope going away is not a transfer that
@@ -318,6 +334,111 @@ class PhoneWearListenerService : WearableListenerService() {
                     .onFailure { Timber.w(it, "Failed to close phone resource channel") }
             }
         }
+    }
+
+    /**
+     * S2004: the twelfth path - the watch asks this phone to show one of the phone's own files.
+     *
+     * The item is resolved by the very use case that listed it for the watch, so the two sides cannot
+     * disagree about what a token names, and only a file that use case already approved can reach
+     * here at all - the watch offers the action for its downloaded copies alone.
+     */
+    private fun handleOpenOnPhone(nodeId: String, data: ByteArray) {
+        applicationScope.launch {
+            val request = parseOpenOnPhoneRequest(data) ?: return@launch
+            Timber.d("S2004: phone received an open request for %s", request.displayName)
+            val approved = openPhoneResourceChannelUseCase(openRequestFor(request.token))
+            val outcome = if (approved is PhoneResourceChannel.Approved) {
+                showOrAnnounce(request, approved)
+            } else {
+                WearOpenOnPhoneOutcome.NOT_FOUND
+            }
+            answerOpenOnPhone(nodeId, request.token, outcome)
+        }
+    }
+
+    /**
+     * Foreground goes straight to the viewer, background goes to a notification.
+     *
+     * ADR-3: a `WearableListenerService` is a background process, and a background process has not
+     * been allowed to start an activity since Android 10 - so the direct launch is guarded by the
+     * app's own lifecycle state rather than attempted and left to fail silently.
+     */
+    private fun showOrAnnounce(
+        request: WearOpenOnPhoneRequest,
+        approved: PhoneResourceChannel.Approved
+    ): WearOpenOnPhoneOutcome {
+        val target = contentUriFor(approved.file) ?: return WearOpenOnPhoneOutcome.NOT_FOUND
+        return when {
+            isAppInForeground() && startViewer(target) -> WearOpenOnPhoneOutcome.SHOWN
+            // Not in front, or in front and the launch was refused anyway - one answer either way.
+            else -> announce(request.token, approved.name, target)
+        }
+    }
+
+    private fun announce(token: String, displayName: String, target: Uri): WearOpenOnPhoneOutcome =
+        if (openOnPhoneNotifier.notifyPendingOpen(token, displayName, target)) {
+            WearOpenOnPhoneOutcome.NOTIFIED
+        } else {
+            WearOpenOnPhoneOutcome.REFUSED_NO_NOTIFICATION
+        }
+
+    /**
+     * Read off the process's own lifecycle rather than by asking the system what is running: the task
+     * queries were deprecated for exactly this use and answer about other apps as well as this one.
+     */
+    private fun isAppInForeground(): Boolean =
+        ProcessLifecycleOwner.get().lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
+
+    @Suppress("TooGenericExceptionCaught")
+    private fun startViewer(target: Uri): Boolean = try {
+        val view = Intent(applicationContext, StandalonePlayerDispatcherActivity::class.java).apply {
+            action = Intent.ACTION_VIEW
+            data = target
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        applicationContext.startActivity(view)
+        true
+    } catch (e: Exception) {
+        // Every way this can fail - a background-start refusal, a disabled component - means the same
+        // thing to the caller: the file is not on screen, so announce it instead.
+        Timber.w(e, "Open on phone: direct launch refused, falling back to a notification")
+        false
+    }
+
+    /**
+     * A provider URI, never a `file://` one: the receiving activity is addressed through an intent
+     * that leaves this process, and a raw file URI is refused there since Android 7.
+     */
+    private fun contentUriFor(file: File): Uri? = runCatching {
+        FileProvider.getUriForFile(applicationContext, "${applicationContext.packageName}.fileprovider", file)
+    }.onFailure { Timber.w(it, "Open on phone: %s is outside every shared provider path", file.name) }
+        .getOrNull()
+
+    /** The item request the browse protocol speaks, built for a token the watch already holds. */
+    private fun openRequestFor(token: String) = WearPhoneResourceRequest(
+        requestId = token,
+        kind = WearPhoneResourceRequestKind.OPEN,
+        itemToken = token
+    )
+
+    private fun parseOpenOnPhoneRequest(data: ByteArray): WearOpenOnPhoneRequest? = try {
+        gson.fromJson(data.decodeToString(), WearOpenOnPhoneRequest::class.java)
+    } catch (e: JsonSyntaxException) {
+        // Without a token there is nothing to resolve and nothing to correlate an answer with.
+        Timber.e(e, "Failed to deserialize an open-on-phone request")
+        null
+    }
+
+    private suspend fun answerOpenOnPhone(nodeId: String, token: String, outcome: WearOpenOnPhoneOutcome) {
+        val ack = WearOpenOnPhoneAck(token = token, outcome = outcome)
+        runCatching {
+            wearableDataLayerRepository.sendMessage(
+                nodeId,
+                WearDataLayerPaths.OPEN_ON_PHONE_ACK,
+                gson.toJson(ack).toByteArray(Charsets.UTF_8)
+            )
+        }.onFailure { Timber.w(it, "Open on phone: acknowledgement could not be sent") }
     }
 
     private fun parsePhoneResourceRequest(data: ByteArray): WearPhoneResourceRequest? = try {

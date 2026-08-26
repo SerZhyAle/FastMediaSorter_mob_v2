@@ -201,6 +201,9 @@ dependencies {
     implementation("androidx.wear.protolayout:protolayout:1.4.2")
     implementation("androidx.wear.protolayout:protolayout-material:1.4.2")
     implementation("androidx.wear.protolayout:protolayout-expression:1.4.2")
+
+    // S2047: watch face complication data sources. watch-face APIs are deprecated at 1.3.0 while complication APIs are not.
+    implementation("androidx.wear.watchface:watchface-complications-data-source-ktx:1.3.0")
     
     // Accompanist Permissions (for runtime permission handling)
     implementation("com.google.accompanist:accompanist-permissions:0.34.0")

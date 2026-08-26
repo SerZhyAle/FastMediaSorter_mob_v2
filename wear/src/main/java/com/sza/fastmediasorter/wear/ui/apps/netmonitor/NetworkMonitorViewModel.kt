@@ -39,7 +39,11 @@ class NetworkMonitorViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), initialState)
 
     private fun record(snapshot: WearNetworkSnapshot): NetworkMonitorUiState {
-        history.add(snapshot)
+        // Only a transport change is a transition worth a row - a session on one network must not
+        // spend its history budget on repeats of the same reading (S2055).
+        if (history.isEmpty() || history.last().activeTransport != snapshot.activeTransport) {
+            history.add(snapshot)
+        }
         if (history.size > HISTORY_LIMIT) {
             history.removeAt(0)
         }

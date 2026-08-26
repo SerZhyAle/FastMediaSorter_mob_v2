@@ -32,6 +32,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
@@ -165,11 +166,17 @@ private fun BeamDialogBody(
             Spacer(Modifier.height(8.dp))
             Text(state.message, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
             Spacer(Modifier.height(12.dp))
-            Button(onClick = { viewModel.startPush() }) {
+            Button(
+                onClick = { viewModel.startPush() },
+                modifier = Modifier.testTag("beam_retry_button")
+            ) {
                 Text(stringResource(R.string.retry))
             }
             Spacer(Modifier.height(8.dp))
-            TextButton(onClick = { viewModel.reset(); onDismiss() }) {
+            TextButton(
+                onClick = { viewModel.reset(); onDismiss() },
+                modifier = Modifier.testTag("beam_cancel_button")
+            ) {
                 Text(stringResource(R.string.cancel))
             }
         }
@@ -180,7 +187,10 @@ private fun BeamDialogBody(
                 textAlign = TextAlign.Center
             )
             Spacer(Modifier.height(12.dp))
-            TextButton(onClick = { viewModel.reset(); onDismiss() }) {
+            TextButton(
+                onClick = { viewModel.reset(); onDismiss() },
+                modifier = Modifier.testTag("beam_close_button")
+            ) {
                 Text(stringResource(R.string.close))
             }
         }

@@ -193,5 +193,59 @@
                 android:name="androidx.wear.tiles.PREVIEW"
                 android:resource="@drawable/tile_preview_favourites" />
         </service>
+
+        <!-- S2047: Wear OS Complication Provider for Last Used Resource -->
+        <service
+            android:name=".complication.WearLastResourceComplicationService"
+            android:exported="true"
+            android:icon="@drawable/ic_complication_last_resource"
+            android:label="@string/wear_complication_last_resource_label"
+            android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
+            <intent-filter>
+                <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST" />
+            </intent-filter>
+            <meta-data
+                android:name="android.support.wearable.complications.SUPPORTED_TYPES"
+                android:value="SHORT_TEXT,LONG_TEXT" />
+            <meta-data
+                android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
+                android:value="0" />
+        </service>
+
+        <!-- S2047: Wear OS Complication Provider for Favourites Count -->
+        <service
+            android:name=".complication.WearFavouritesComplicationService"
+            android:exported="true"
+            android:icon="@drawable/ic_complication_favourites"
+            android:label="@string/wear_complication_favourites_label"
+            android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
+            <intent-filter>
+                <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST" />
+            </intent-filter>
+            <meta-data
+                android:name="android.support.wearable.complications.SUPPORTED_TYPES"
+                android:value="SHORT_TEXT,MONOCHROMATIC_IMAGE" />
+            <meta-data
+                android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
+                android:value="0" />
+        </service>
+
+        <!-- S2047: Wear OS Complication Provider for Now Playing -->
+        <service
+            android:name=".complication.WearNowPlayingComplicationService"
+            android:exported="true"
+            android:icon="@drawable/ic_complication_now_playing"
+            android:label="@string/wear_complication_now_playing_label"
+            android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
+            <intent-filter>
+                <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST" />
+            </intent-filter>
+            <meta-data
+                android:name="android.support.wearable.complications.SUPPORTED_TYPES"
+                android:value="SHORT_TEXT,LONG_TEXT" />
+            <meta-data
+                android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
+                android:value="300" />
+        </service>
     </application>
 </manifest>

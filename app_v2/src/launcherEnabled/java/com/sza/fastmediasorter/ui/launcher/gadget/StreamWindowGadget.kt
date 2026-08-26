@@ -53,6 +53,9 @@ class StreamWindowGadget @Inject constructor(
     override val defaultSpanH: Int = StreamWindow.AUDIO_SPAN
     override val labelRes: Int = R.string.launcher_gadget_stream_window
     override val iconRes: Int = R.drawable.ic_cast
+
+    // S2062: ic_cast fills white and is invisible on the picker's light surface without a tint.
+    override val iconTintable: Boolean = true
     override val requiresResourceParam: Boolean = false
 
     /**

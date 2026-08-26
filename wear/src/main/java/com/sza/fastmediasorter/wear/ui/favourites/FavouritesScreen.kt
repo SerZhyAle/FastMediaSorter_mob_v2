@@ -138,29 +138,14 @@ fun FavouritesScreen(
     }
 
     actionRecord?.let { record ->
-        WearFileActionsDialog(
-            file = viewModel.actionTargetFor(record),
-            allowed = viewModel.allowedOperationsFor(record),
-            onPick = { kind ->
-                actionRecord = null
-                when (kind) {
-                    WearFileOperationKind.DELETE -> deleteRecord = record
-                    WearFileOperationKind.RENAME -> {
-                        renameRecord.value = record
-                        requestRename()
-                    }
-                    WearFileOperationKind.SEND_TO_PHONE ->
-                        viewModel.runOperation(record, WearFileOperation.SendToPhone)
-                    WearFileOperationKind.MOVE_TO_PHONE ->
-                        viewModel.runOperation(record, WearFileOperation.MoveToPhone)
-                }
-            },
-            onDismiss = { actionRecord = null },
-            // The grid cell has no room for the second chip the single-column layout carries, so in
-            // grid mode this menu is the only way to unmark - it is offered on both, not just there.
-            onUnmark = {
-                actionRecord = null
-                viewModel.unmark(record)
+        FavouriteActionsMenu(
+            record = record,
+            viewModel = viewModel,
+            onClose = { actionRecord = null },
+            onDelete = { deleteRecord = record },
+            onRename = {
+                renameRecord.value = record
+                requestRename()
             }
         )
     }
@@ -175,6 +160,47 @@ fun FavouritesScreen(
             onDismiss = { deleteRecord = null }
         )
     }
+}
+
+/**
+ * The long-press menu for one favourite row.
+ *
+ * Unmarking rides here rather than only in the row: the grid cell has no room for the second chip the
+ * single-column layout carries, so in grid mode this menu is the only way to unmark.
+ */
+@Composable
+private fun FavouriteActionsMenu(
+    record: WearFavoriteRecord,
+    viewModel: FavouritesViewModel,
+    onClose: () -> Unit,
+    onDelete: () -> Unit,
+    onRename: () -> Unit
+) {
+    // Classifying a path canonicalises it, which touches the filesystem - asked once per pressed row
+    // rather than on every recomposition the open dialog causes.
+    val target = remember(record.identity) { viewModel.actionTargetFor(record) }
+    val allowed = remember(record.identity) { viewModel.allowedOperationsFor(record) }
+    WearFileActionsDialog(
+        file = target,
+        allowed = allowed,
+        onPick = { kind ->
+            onClose()
+            when (kind) {
+                WearFileOperationKind.DELETE -> onDelete()
+                WearFileOperationKind.RENAME -> onRename()
+                WearFileOperationKind.SEND_TO_PHONE ->
+                    viewModel.runOperation(record, WearFileOperation.SendToPhone)
+                WearFileOperationKind.MOVE_TO_PHONE ->
+                    viewModel.runOperation(record, WearFileOperation.MoveToPhone)
+                WearFileOperationKind.OPEN_ON_PHONE -> viewModel.reportOpenOnPhoneUnavailable()
+            }
+        },
+        onDismiss = onClose,
+        onUnmark = {
+            onClose()
+            viewModel.unmark(record)
+        }
+    )
 }
 
 @Composable

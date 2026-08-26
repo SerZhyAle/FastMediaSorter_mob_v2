@@ -41,10 +41,38 @@ class WearFileCapabilityPolicyTest {
     }
 
     @Test
-    fun `app owned files are offered every operation`() {
+    fun `app owned files are offered every local operation`() {
+        assertEquals(
+            setOf(
+                WearFileOperationKind.SEND_TO_PHONE,
+                WearFileOperationKind.MOVE_TO_PHONE,
+                WearFileOperationKind.DELETE,
+                WearFileOperationKind.RENAME
+            ),
+            policy.allowedOperations(WearFileStorageClass.APP_OWNED)
+        )
+    }
+
+    /**
+     * S2004: the phone still holds the original this copy was fetched from, so this class alone may
+     * be asked to open it there - and it keeps everything a watch-owned file allows besides.
+     */
+    @Test
+    fun `a paired phone copy is offered opening on the phone as well`() {
         assertEquals(
             WearFileOperationKind.entries.toSet(),
-            policy.allowedOperations(WearFileStorageClass.APP_OWNED)
+            policy.allowedOperations(WearFileStorageClass.PHONE_COPY)
+        )
+    }
+
+    @Test
+    fun `a file in the paired phone cache directory is a phone copy`() {
+        val dirs = appDirs()
+        val fetched = File(File(dirs.cache, WEAR_PHONE_FILE_CACHE_DIR), "clip.mp4")
+
+        assertEquals(
+            WearFileStorageClass.PHONE_COPY,
+            policyFor(dirs).classify(mediaFile(fetched), isNetworkSource = false)
         )
     }
 

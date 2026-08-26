@@ -3518,4 +3518,12 @@
     <string name="perm_title_location_extended">Geotag, gadgets and network monitor</string>
     <string name="perm_desc_location_extended">Geotag your captures, run the desktop gadgets and the network monitor</string>
     <string name="perm_rationale_location_extended">Location is used inside the app only - to write coordinates into the photos and videos you shoot, to draw the compass, speed, altitude and map gadgets on the desktop, and to fill the GNSS and Wi-Fi sections of the network monitor. Nothing is sent anywhere.</string>
+    <string name="wear_received_upload_notif_channel">Files from the watch</string>
+    <string name="wear_received_upload_notif_progress">Saving %1$s to %2$s</string>
+    <string name="wear_received_upload_notif_success">%1$s saved to %2$s</string>
+    <string name="wear_received_upload_notif_unreachable">Cannot reach %2$s. %1$s is waiting on your phone - try again when the resource is available.</string>
+    <string name="wear_received_upload_notif_failed">Could not save %1$s to %2$s. The file is waiting on your phone - check the resource and try again.</string>
+    <string name="open_on_phone_notification_title">Open from your watch</string>
+    <string name="open_on_phone_notification_text">Tap to open %1$s</string>
+    <string name="open_on_phone_channel_name">Open from watch</string>
 </resources>

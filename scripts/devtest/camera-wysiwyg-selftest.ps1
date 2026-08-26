@@ -176,7 +176,7 @@ $failures = @()
 $ExpectedTurn = if ($synth -eq 'yes') { 90 } else { -1 }
 $positive = Invoke-Comparator -PhotoPath $photoPath -Label 'selftest-positive' -ExpectRotation $ExpectedTurn
 if ($positive.code -ne 0) {
-    $failures += "positive case: expected exit 0 (PASS), got $($positive.code) - $($positive.text)"
+    $failures += "positive case: expected PASS (code 0), got $($positive.code) - $($positive.text)"
     Write-Host "  positive - UNEXPECTED exit $($positive.code): $($positive.text)"
 } else {
     Write-Host "  positive - PASS as expected: $($positive.text)"
@@ -184,7 +184,10 @@ if ($positive.code -ne 0) {
 
 $negative = Invoke-Comparator -PhotoPath $negativePath -Label 'selftest-negative'
 if ($negative.code -ne 1) {
-    $failures += "negative case: expected exit 1 (FAIL), got $($negative.code) - $($negative.text)"
+    # S2075: worded "expected FAIL (code 1)" rather than "expected exit 1" - the exit-contract gate's
+    # line-based scan (assert-exit-contract.ps1 Rule C) reads "exit <digit>" anywhere on the line,
+    # including inside a string literal, as an unreachable script exit and flagged this message text.
+    $failures += "negative case: expected FAIL (code 1), got $($negative.code) - $($negative.text)"
     Write-Host "  negative - UNEXPECTED exit $($negative.code): $($negative.text)"
 } else {
     $recovered = $null
@@ -216,7 +219,7 @@ if ($synth -eq 'yes') {
         $measured = $null
         try { $measured = ($res.text | ConvertFrom-Json).rotation_deg } catch { $measured = $null }
         if ($res.code -ne 1) {
-            $failures += "rotation $($case.injected): expected exit 1 (FAIL), got $($res.code) - $($res.text)"
+            $failures += "rotation $($case.injected): expected FAIL (code 1), got $($res.code) - $($res.text)"
             Write-Host "  rot$($case.injected) - UNEXPECTED exit $($res.code): $($res.text)"
         } elseif ($measured -ne $case.expect) {
             $failures += "rotation $($case.injected): expected the comparator to measure $($case.expect), it measured $measured."

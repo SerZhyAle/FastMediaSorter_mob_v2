@@ -130,7 +130,6 @@
     <string name="wear_phone_audio">آڈیو</string>
     <string name="wear_phone_images">تصاویر</string>
     <string name="wear_phone_documents">دستاویزات</string>
-    <string name="wear_phone_all_files">تمام فائلیں</string>
     <string name="screen_settings_title">اسکرین</string>
     <string name="screen_settings_view_mode">اسکرینز کا منظر</string>
     <string name="wear_streams_section_enabled">اسٹریمز دکھائیں</string>
@@ -209,7 +208,7 @@
     <string name="wear_favourites_unopenable">یہ اس سے پہلے محفوظ کی گئی تھی جب واچ نے یہ یاد رکھنا شروع کیا کہ اسے کیسے کھولنا ہے۔</string>
     <string name="phone_resource_source_unavailable">یہ وسیلہ جواب نہیں دے رہا۔ فون منسلک ہے - وسیلہ چیک کریں، پھر دوبارہ کوشش کریں۔</string>
     <string name="wear_phone_recents">حالیہ</string>
-    <string name="wear_video_scale_mode">تناسب / زوم موڈ</string>
+    <string name="wear_scale_mode">تناسب / زوم موڈ</string>
     <string name="wear_streams_search">اسٹریمز تلاش کریں</string>
     <string name="wear_streams_filter">اسٹریمز فلٹر کریں</string>
     <string name="wear_streams_sort">اسٹریمز ترتیب دیں</string>

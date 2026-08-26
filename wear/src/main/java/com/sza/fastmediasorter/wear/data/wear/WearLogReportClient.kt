@@ -64,7 +64,7 @@ class WearLogReportClient @Inject constructor(
 
             // A timeout, never an unbounded await: step 02.2 measured a send that neither succeeded
             // nor failed, so waiting on an answer that may never come is a real state here.
-            val answer = withTimeoutOrNull(ACK_TIMEOUT_MS) { ack.await() }
+            val answer = withTimeoutOrNull(WEAR_MESSAGE_ACK_TIMEOUT_MS) { ack.await() }
             when {
                 answer == null -> WearLogReportOutcome.PhoneDidNotAnswer
                 answer.accepted -> WearLogReportOutcome.Delivered
@@ -119,11 +119,6 @@ class WearLogReportClient @Inject constructor(
         if (received != null && received.requestId == requestId) {
             ack.complete(received)
         }
-    }
-
-    private companion object {
-        /** How long the watch waits for the phone's answer before calling it unanswered. */
-        const val ACK_TIMEOUT_MS = 15_000L
     }
 }
 

@@ -6,6 +6,7 @@ import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.di.IoDispatcher
+import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.WEAR_FILE_TRANSFER_MAX_BYTES
 import com.sza.fastmediasorter.domain.model.WearFileTransferItem
 import com.sza.fastmediasorter.domain.model.WearFileTransferMetadata
@@ -24,6 +25,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -67,10 +69,16 @@ class WearFileTransferRepositoryImpl @Inject constructor(
         sourcePath: String,
         displayName: String,
         openNow: Boolean,
-        requestId: String
+        requestId: String,
+        mediaType: MediaType?
     ): String {
         val id = requestId
-        val item = WearFileTransferItem(id = id, sourcePath = sourcePath, displayName = displayName)
+        val item = WearFileTransferItem(
+            id = id,
+            sourcePath = sourcePath,
+            displayName = displayName,
+            mediaType = mediaType
+        )
         transferState.update { state -> state.copy(items = state.items + item) }
 
         val job = applicationScope.launch(ioDispatcher) {
@@ -93,6 +101,13 @@ class WearFileTransferRepositoryImpl @Inject constructor(
         jobs[id] = job
         job.invokeOnCompletion { jobs.remove(id) }
         return id
+    }
+
+    override suspend fun awaitTransfer(transferId: String): WearFileTransferOutcome {
+        val matchingState = transfers.first { state ->
+            state.items.find { it.id == transferId }?.outcome?.isTerminal == true
+        }
+        return matchingState.items.first { it.id == transferId }.outcome
     }
 
     override fun cancel(transferId: String) {
@@ -180,12 +195,14 @@ class WearFileTransferRepositoryImpl @Inject constructor(
      * refused there without a single byte crossing the bridge.
      */
     private suspend fun announce(nodeId: String, item: WearFileTransferItem, openNow: Boolean) {
+        val detectedMime = MimeTypeMap.getSingleton()
+            .getMimeTypeFromExtension(File(item.sourcePath).extension.lowercase())
+        val mimeType = detectedMime ?: mediaTypeToMime(item.mediaType)
         val metadata = WearFileTransferMetadata(
             requestId = item.id,
             name = item.displayName,
             size = item.totalBytes,
-            mimeType = MimeTypeMap.getSingleton()
-                .getMimeTypeFromExtension(File(item.sourcePath).extension.lowercase()),
+            mimeType = mimeType,
             openNow = openNow
         )
         withTimeout(MESSAGE_TIMEOUT_MS) {
@@ -197,6 +214,14 @@ class WearFileTransferRepositoryImpl @Inject constructor(
                 )
                 .await()
         }
+    }
+
+    private fun mediaTypeToMime(mediaType: MediaType?): String? = when (mediaType) {
+        MediaType.IMAGE -> "image/jpeg"
+        MediaType.GIF -> "image/gif"
+        MediaType.VIDEO -> "video/mp4"
+        MediaType.AUDIO -> "audio/mpeg"
+        else -> null
     }
 
     @Suppress("TooGenericExceptionCaught")

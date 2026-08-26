@@ -130,7 +130,6 @@
     <string name="wear_phone_audio">音频</string>
     <string name="wear_phone_images">图片</string>
     <string name="wear_phone_documents">文档</string>
-    <string name="wear_phone_all_files">所有文件</string>
     <string name="screen_settings_title">屏幕</string>
     <string name="screen_settings_view_mode">屏幕视图</string>
     <string name="wear_streams_section_enabled">显示直播源</string>
@@ -209,7 +208,7 @@
     <string name="wear_favourites_unopenable">此项是在手表开始记住如何打开它之前保存的。</string>
     <string name="phone_resource_source_unavailable">该资源没有响应。手机已连接 - 请检查资源后重试。</string>
     <string name="wear_phone_recents">最近</string>
-    <string name="wear_video_scale_mode">宽高比 / 缩放模式</string>
+    <string name="wear_scale_mode">宽高比 / 缩放模式</string>
     <string name="wear_streams_search">搜索流</string>
     <string name="wear_streams_filter">筛选流</string>
     <string name="wear_streams_sort">排序流</string>

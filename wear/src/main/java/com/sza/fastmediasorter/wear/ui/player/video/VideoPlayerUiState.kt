@@ -14,6 +14,7 @@ data class VideoPlayerUiState(
     val currentPositionMs: Long = 0,
     val durationMs: Long = 0,
     val showControls: Boolean = true,
+    val isShuffleEnabled: Boolean = false,
     val showBatteryWarning: Boolean = false,
     val error: String? = null,
     // S1683: position inside the browsed set. Paging wraps around, so without a visible marker an
@@ -46,13 +47,13 @@ data class VideoPlayerUiState(
 
     val progress: Float
         get() = if (durationMs > 0) currentPositionMs.toFloat() / durationMs else 0f
-    
+
     val currentPositionFormatted: String
         get() = formatTime(currentPositionMs)
-    
+
     val durationFormatted: String
         get() = formatTime(durationMs)
-    
+
     private fun formatTime(ms: Long): String {
         val totalSeconds = ms / 1000
         val minutes = totalSeconds / 60

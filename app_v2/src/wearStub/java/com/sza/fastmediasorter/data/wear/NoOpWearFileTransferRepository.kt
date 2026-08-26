@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.data.wear
 
+import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.WearFileTransferOutcome
 import com.sza.fastmediasorter.domain.model.WearFileTransferState
 import com.sza.fastmediasorter.domain.repository.WearFileTransferRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,11 +29,15 @@ class NoOpWearFileTransferRepository @Inject constructor() : WearFileTransferRep
         sourcePath: String,
         displayName: String,
         openNow: Boolean,
-        requestId: String
+        requestId: String,
+        mediaType: MediaType?
     ): String {
         Timber.i("Watch transfer requested in a flavor with no Wear companion, ignoring")
         return ""
     }
+
+    override suspend fun awaitTransfer(transferId: String): WearFileTransferOutcome =
+        WearFileTransferOutcome.WATCH_UNREACHABLE
 
     override fun cancel(transferId: String) = Unit
 

@@ -16,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -175,7 +176,9 @@ fun ResourceSelectionScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = onCancel,
-                        modifier = Modifier.focusRequester(cancelFocusRequester)
+                        modifier = Modifier
+                            .focusRequester(cancelFocusRequester)
+                            .testTag("resource_config_cancel")
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Close,
@@ -238,6 +241,7 @@ fun ResourceItem(
         onClick = onClick,
         modifier = Modifier
             .then(modifier)
+            .testTag("resource_config_item")
             .fillMaxWidth()
             .onFocusChanged { isFocused = it.isFocused }
             .focusable(),

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.launcher
 
+import androidx.lifecycle.SavedStateHandle
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.testing.MainDispatcherRule
@@ -47,6 +48,7 @@ class LauncherHomeViewModelSeedTest {
             settingsRepository = settingsRepository,
             observeStreams = mockk(relaxed = true),
             executeScheduledOperation = mockk(relaxed = true),
+            savedStateHandle = SavedStateHandle(),
         )
     }
 

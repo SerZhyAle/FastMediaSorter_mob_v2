@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -54,9 +55,9 @@ import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceItem
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceResponseStatus
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
+import com.sza.fastmediasorter.wear.ui.browse.FileDeleteConfirmDialog
 import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
-import com.sza.fastmediasorter.wear.ui.browse.FileDeleteConfirmDialog
 import com.sza.fastmediasorter.wear.ui.common.WearFileActionsDialog
 import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
@@ -92,17 +93,7 @@ fun PhoneResourceScreen(
     val fileListViewMode by viewModel.fileListViewMode.collectAsStateWithLifecycle()
     val thumbnails by viewModel.thumbnails.collectAsStateWithLifecycle()
 
-    // S1846: the tap on a file ends here, once. Navigation is a side effect of an outcome, so it runs
-    // in an effect keyed to that outcome and the outcome is consumed straight after - recomposing the
-    // list must not push the player a second time.
     val openOutcome by viewModel.openOutcome.collectAsStateWithLifecycle()
-    LaunchedEffect(openOutcome) {
-        val outcome = openOutcome
-        if (outcome is PhoneFileOpenOutcome.Ready) {
-            navController.navigate(playerRouteFor(outcome.fileId, outcome.mimeType))
-            viewModel.consumeOpenOutcome()
-        }
-    }
 
     // Back walks the folder trail first; only the root hands Back back to navigation.
     BackHandler(enabled = true) {
@@ -116,21 +107,18 @@ fun PhoneResourceScreen(
     // Held by the screen rather than the ViewModel: which menu is open is view state, and a rotation
     // that dropped it costs nothing, while a ViewModel that carried it would replay it.
     var actionEntry by remember { mutableStateOf<WearPhoneResourceItem?>(null) }
-    var deleteEntry by remember { mutableStateOf<WearPhoneResourceItem?>(null) }
     val renameEntry = remember { mutableStateOf<WearPhoneResourceItem?>(null) }
     val requestRename = rememberWearRenameInput { newName ->
         renameEntry.value?.let { viewModel.runOperation(it, WearFileOperation.Rename(newName)) }
     }
     val operationNotice by viewModel.operationNotice.collectAsStateWithLifecycle()
 
-    // The list behind it does not change when an operation lands, so nothing else would ever clear
-    // this line - it would sit over the next folder the user walked into.
-    LaunchedEffect(operationNotice) {
-        if (operationNotice != null) {
-            delay(NOTICE_VISIBLE_MS)
-            viewModel.consumeOperationNotice()
-        }
-    }
+    PhoneResourceEffects(
+        viewModel = viewModel,
+        navController = navController,
+        openOutcome = openOutcome,
+        operationNotice = operationNotice
+    )
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -151,32 +139,21 @@ fun PhoneResourceScreen(
                     thumbnails = thumbnails,
                     title = current.title,
                     onEntryClick = { entry ->
-                        if (entry.isDirectory) {
-                            viewModel.openFolder(entry.token, entry.name)
-                        } else {
-                            viewModel.openFile(entry)
+                        when {
+                            entry.isDirectory -> viewModel.openFolder(entry.token, entry.name)
+                            // S2092: no player on the watch renders this kind, and the row said so
+                            // before the tap. The tap leads to the menu the long press opens, so the
+                            // one action that can succeed - asking the phone to show the original -
+                            // is one tap away instead of behind a transfer bound to be refused.
+                            entry.mimeType == null -> actionEntry = entry
+                            else -> viewModel.openFile(entry)
                         }
                     },
                     // A folder has no file to act on, so it keeps the tap it always had.
                     onEntryLongClick = { entry -> if (!entry.isDirectory) actionEntry = entry }
                 )
 
-                // S1898: the outcome is anchored to the screen, not to the start of the list. Reaching a
-                // file means scrolling to it, so a line drawn as the list's second item reports the result
-                // outside the viewport it was meant for - which is why 30 s of waiting and the refusal that
-                // followed it both read as nothing happening at all.
-                val notice = operationNotice
-                val statusRes = notice?.toStatusRes() ?: openOutcome.toStatusRes()
-                if (statusRes != null) {
-                    PinnedOpenStatus(
-                        statusRes = statusRes,
-                        showProgress = notice == null && openOutcome == PhoneFileOpenOutcome.Opening,
-                        isError = notice == null || notice != WearFileOperationOutcome.SUCCEEDED,
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(wearScreenInsets())
-                    )
-                }
+                PinnedOutcome(notice = operationNotice, openOutcome = openOutcome)
             }
 
             // No retry: the listing that came back empty already succeeded, so repeating it returns
@@ -203,36 +180,40 @@ fun PhoneResourceScreen(
         }
     }
 
-    actionEntry?.let { entry ->
-        val target = viewModel.actionTargetFor(entry)
-        if (target == null) {
-            // Nothing was ever copied here, so there is nothing on the watch to act on. Saying so is
-            // the point of asking first - an empty menu would read as a broken one.
-            LaunchedEffect(entry.token) {
-                viewModel.reportNothingToActOn()
-                actionEntry = null
-            }
-        } else {
-            WearFileActionsDialog(
-                file = target,
-                allowed = viewModel.allowedOperationsFor(entry),
-                onPick = { kind ->
-                    actionEntry = null
-                    when (kind) {
-                        WearFileOperationKind.DELETE -> deleteEntry = entry
-                        WearFileOperationKind.RENAME -> {
-                            renameEntry.value = entry
-                            requestRename()
-                        }
-                        WearFileOperationKind.SEND_TO_PHONE ->
-                            viewModel.runOperation(entry, WearFileOperation.SendToPhone)
-                        WearFileOperationKind.MOVE_TO_PHONE ->
-                            viewModel.runOperation(entry, WearFileOperation.MoveToPhone)
-                    }
-                },
-                onDismiss = { actionEntry = null }
-            )
+    PhoneFileDialogs(
+        viewModel = viewModel,
+        actionEntry = actionEntry,
+        onClose = { actionEntry = null },
+        onRename = { entry ->
+            renameEntry.value = entry
+            requestRename()
         }
+    )
+}
+
+/**
+ * The menu the long press opens and the confirmation a delete leads to.
+ *
+ * Which file the confirmation is about is kept here rather than by the screen: it is answered by the
+ * menu and consumed by the confirmation, and nothing outside these two dialogs reads it.
+ */
+@Composable
+private fun PhoneFileDialogs(
+    viewModel: PhoneResourceViewModel,
+    actionEntry: WearPhoneResourceItem?,
+    onClose: () -> Unit,
+    onRename: (WearPhoneResourceItem) -> Unit
+) {
+    var deleteEntry by remember { mutableStateOf<WearPhoneResourceItem?>(null) }
+
+    actionEntry?.let { entry ->
+        PhoneFileActionsMenu(
+            entry = entry,
+            viewModel = viewModel,
+            onClose = onClose,
+            onDelete = { deleteEntry = entry },
+            onRename = { onRename(entry) }
+        )
     }
 
     deleteEntry?.let { entry ->
@@ -245,6 +226,103 @@ fun PhoneResourceScreen(
             onDismiss = { deleteEntry = null }
         )
     }
+}
+
+/**
+ * The two one-shot reactions the screen owes its ViewModel, kept together and away from the layout.
+ *
+ * S1846: the tap on a file ends here, once. Navigation is a side effect of an outcome, so it runs in an
+ * effect keyed to that outcome and the outcome is consumed straight after - recomposing the list must
+ * not push the player a second time.
+ */
+@Composable
+private fun PhoneResourceEffects(
+    viewModel: PhoneResourceViewModel,
+    navController: NavController,
+    openOutcome: PhoneFileOpenOutcome?,
+    operationNotice: WearFileOperationOutcome?
+) {
+    LaunchedEffect(openOutcome) {
+        if (openOutcome is PhoneFileOpenOutcome.Ready) {
+            navController.navigate(playerRouteFor(openOutcome.fileId, openOutcome.mimeType))
+            viewModel.consumeOpenOutcome()
+        }
+    }
+
+    // The list behind it does not change when an operation lands, so nothing else would ever clear this
+    // line - it would sit over the next folder the user walked into.
+    LaunchedEffect(operationNotice) {
+        if (operationNotice != null) {
+            delay(NOTICE_VISIBLE_MS)
+            viewModel.consumeOperationNotice()
+        }
+    }
+}
+
+/**
+ * S1898: the outcome is anchored to the screen, not to the start of the list. Reaching a file means
+ * scrolling to it, so a line drawn as the list's second item reports the result outside the viewport it
+ * was meant for - which is why 30 s of waiting and the refusal that followed it both read as nothing
+ * happening at all.
+ */
+@Composable
+private fun BoxScope.PinnedOutcome(
+    notice: WearFileOperationOutcome?,
+    openOutcome: PhoneFileOpenOutcome?
+) {
+    val statusRes = notice?.toStatusRes() ?: openOutcome.toStatusRes() ?: return
+    PinnedOpenStatus(
+        statusRes = statusRes,
+        showProgress = notice == null && openOutcome == PhoneFileOpenOutcome.Opening,
+        isError = notice == null || !notice.isSuccess(),
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .padding(wearScreenInsets())
+    )
+}
+
+/**
+ * The action menu for one phone entry, reached by a long press or by tapping a row the watch cannot
+ * render.
+ *
+ * The screen keeps the "which entry is open" state and this decides what may be done with it, so the
+ * two dialogs it can lead to stay owned by the screen that has to close them.
+ *
+ * S2092: the menu is never empty, so it no longer has a "nothing to act on" branch. An entry this
+ * watch never fetched still has the phone's original behind it, and opening that costs no transfer.
+ */
+@Composable
+private fun PhoneFileActionsMenu(
+    entry: WearPhoneResourceItem,
+    viewModel: PhoneResourceViewModel,
+    onClose: () -> Unit,
+    onDelete: () -> Unit,
+    onRename: () -> Unit
+) {
+    // Both answers stat the cache directory, so they are read once per pressed entry rather than on
+    // every recomposition the open dialog causes - disk work does not belong in a composition pass.
+    val target = remember(entry.token) { viewModel.actionTargetFor(entry) }
+    val allowed = remember(entry.token) { viewModel.allowedOperationsFor(entry) }
+    WearFileActionsDialog(
+        file = target,
+        allowed = allowed,
+        onPick = { kind ->
+            onClose()
+            when (kind) {
+                WearFileOperationKind.DELETE -> onDelete()
+                WearFileOperationKind.RENAME -> onRename()
+                WearFileOperationKind.SEND_TO_PHONE ->
+                    viewModel.runOperation(entry, WearFileOperation.SendToPhone)
+                WearFileOperationKind.MOVE_TO_PHONE ->
+                    viewModel.runOperation(entry, WearFileOperation.MoveToPhone)
+                // The only surface that can ask: the token addressing the phone's own original is the
+                // one this list was built from.
+                WearFileOperationKind.OPEN_ON_PHONE ->
+                    viewModel.runOperation(entry, WearFileOperation.OpenOnPhone(entry.token))
+            }
+        },
+        onDismiss = onClose
+    )
 }
 
 @Composable
@@ -469,9 +547,23 @@ private fun WearFileOperationOutcome.toStatusRes(): Int = when (this) {
     WearFileOperationOutcome.REFUSED_UNSUPPORTED -> R.string.wear_file_op_outcome_unsupported
     WearFileOperationOutcome.REFUSED_TOO_LARGE -> R.string.wear_file_op_outcome_too_large
     WearFileOperationOutcome.PHONE_UNREACHABLE -> R.string.wear_file_op_outcome_phone_unreachable
+    WearFileOperationOutcome.OPENED_ON_PHONE -> R.string.wear_open_on_phone_shown
+    WearFileOperationOutcome.NOTIFIED_ON_PHONE -> R.string.wear_open_on_phone_notified
+    WearFileOperationOutcome.REFUSED_PHONE_NOTIFICATIONS_OFF ->
+        R.string.wear_open_on_phone_no_notifications
     WearFileOperationOutcome.FAILED -> R.string.wear_file_op_outcome_failed
     WearFileOperationOutcome.CANCELLED -> R.string.wear_file_op_outcome_cancelled
 }
+
+/**
+ * Whether the line reports something that worked, so the pinned status is not painted as an error.
+ *
+ * Both phone answers count: a notification the user still has to tap is the action succeeding on a
+ * phone that was not in the foreground, not the action failing.
+ */
+private fun WearFileOperationOutcome.isSuccess(): Boolean = this == WearFileOperationOutcome.SUCCEEDED ||
+    this == WearFileOperationOutcome.OPENED_ON_PHONE ||
+    this == WearFileOperationOutcome.NOTIFIED_ON_PHONE
 
 private fun WearPhoneResourceResponseStatus?.toMessageRes(): Int = when (this) {
     WearPhoneResourceResponseStatus.SOURCE_UNAVAILABLE -> R.string.phone_resource_source_unavailable

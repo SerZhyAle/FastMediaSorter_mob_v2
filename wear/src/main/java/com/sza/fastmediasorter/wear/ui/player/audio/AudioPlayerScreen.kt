@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Pause
@@ -26,6 +28,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -36,7 +39,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
@@ -52,7 +54,6 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
-import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
@@ -63,9 +64,9 @@ import coil.compose.rememberAsyncImagePainter
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.StreamChannelReason
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
-import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.WaveParticleBackground
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandButton
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
 import timber.log.Timber
 
@@ -75,17 +76,10 @@ private const val ANIMATION_SCRIM_ALPHA = 0.37f
 /** A cover artwork made 33% more visible per S1866, keeping text readable. */
 private const val COVER_SCRIM_ALPHA = 0.47f
 
-/**
- * Wear OS asks for a 48.dp press target and these buttons were drawn at 36.dp, which is below it.
- * Wear Compose 1.2.1 has no way to enlarge a press target without enlarging the button - the
- * modifier that does it on the phone lives in a Material library this module deliberately does not
- * depend on - so the buttons grow instead, and the row keeps its width by spacing them tighter.
- */
-private val CONTROL_BUTTON_SIZE = 48.dp
 private val CONTROL_ROW_SPACING = 4.dp
 
-/** S1701: the glyph inside the 48.dp press target - the target is the reach, the icon is the read. */
-private val CONTROL_ICON_SIZE = 24.dp
+/** The error glyph is a mark, not a command, so it carries no press target. */
+private val ERROR_GLYPH_SIZE = 48.dp
 
 /**
  * S1701: the bar is drawn thin but grabbed over a taller strip - a 4.dp target on a watch is missed
@@ -514,30 +508,32 @@ private fun PlaybackControls(
         horizontalArrangement = Arrangement.spacedBy(CONTROL_ROW_SPACING),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        ControlButton(
+        PlayerCommandButton(
             onClick = onSkipPrevious,
             icon = Icons.Filled.SkipPrevious,
-            description = previousDesc
+            contentDescription = previousDesc
         )
 
-        ControlButton(
+        PlayerCommandButton(
             onClick = onPlayPause,
             icon = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-            description = playPauseDesc,
-            highlighted = true
+            contentDescription = playPauseDesc,
+            checked = true
         )
 
-        ControlButton(
+        PlayerCommandButton(
             onClick = onSkipNext,
             icon = Icons.Filled.SkipNext,
-            description = nextDesc
+            contentDescription = nextDesc
         )
 
-        ControlButton(
+        PlayerCommandButton(
             onClick = onToggleShuffle,
-            icon = Icons.Filled.Shuffle,
-            description = shuffleDesc,
-            highlighted = isShuffleEnabled
+            // The two orders differ in shape, not only in tint: a state told apart by colour alone is
+            // not told apart on a watch at arm's length.
+            icon = if (isShuffleEnabled) Icons.Filled.Shuffle else Icons.AutoMirrored.Filled.ArrowForward,
+            contentDescription = shuffleDesc,
+            checked = isShuffleEnabled
         )
     }
 }
@@ -562,11 +558,11 @@ private fun SecondaryControls(
         horizontalArrangement = Arrangement.spacedBy(CONTROL_ROW_SPACING),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        ControlButton(
+        PlayerCommandButton(
             onClick = onToggleFavorite,
             icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-            description = favoriteDesc,
-            highlighted = isFavorite
+            contentDescription = favoriteDesc,
+            checked = isFavorite
         )
 
         ScreenOffButton(onToggleDimmed = onToggleDimmed)
@@ -583,43 +579,11 @@ private fun SecondaryControls(
 private fun ScreenOffButton(onToggleDimmed: () -> Unit) {
     val screenOffDesc = stringResource(R.string.wear_screen_off)
 
-    RectangularButton(
-        onClick = {
-            onToggleDimmed()
-        },
-        modifier = Modifier.size(CONTROL_BUTTON_SIZE),
-        colors = ButtonDefaults.secondaryButtonColors()
-    ) {
-        Text(
-            text = "🌙",
-            style = MaterialTheme.typography.body2,
-            modifier = Modifier.semantics { contentDescription = screenOffDesc }
-        )
-    }
-}
-
-@Composable
-private fun ControlButton(
-    onClick: () -> Unit,
-    icon: ImageVector,
-    description: String,
-    highlighted: Boolean = false
-) {
-    RectangularButton(
-        onClick = onClick,
-        modifier = Modifier.size(CONTROL_BUTTON_SIZE),
-        colors = if (highlighted) {
-            ButtonDefaults.primaryButtonColors()
-        } else {
-            ButtonDefaults.secondaryButtonColors()
-        }
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = description,
-            modifier = Modifier.size(CONTROL_ICON_SIZE)
-        )
-    }
+    PlayerCommandButton(
+        onClick = onToggleDimmed,
+        icon = Icons.Filled.DarkMode,
+        contentDescription = screenOffDesc
+    )
 }
 
 @Composable
@@ -627,9 +591,11 @@ private fun ErrorContent(message: String) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "⚠️",
-            style = MaterialTheme.typography.display2
+        Icon(
+            imageVector = Icons.Filled.Warning,
+            contentDescription = message,
+            tint = MaterialTheme.colors.error,
+            modifier = Modifier.size(ERROR_GLYPH_SIZE)
         )
         Text(
             text = message,

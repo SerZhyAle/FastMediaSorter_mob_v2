@@ -122,8 +122,19 @@ class PlayerMediaFilesLoader(
                         else -> resource.showCommandPanel
                     }
 
-                    Timber.d("TOUCH_ZONE_DEBUG: loadSettings - resource.showCommandPanel=${resource?.showCommandPanel}, settings.defaultShowCommandPanel=${settings.defaultShowCommandPanel}, filesLoaded=${stateFlow.value.files.isNotEmpty()}, RESULT showCommandPanel=$showCommandPanel")
-                    Timber.d("PlayerViewModel.loadSettings: enableTranslation=${settings.enableTranslation}, enableOcr=${settings.enableOcr}")
+                    Timber.d(
+                        "TOUCH_ZONE_DEBUG: loadSettings - resource.showCommandPanel=%s, " +
+                            "settings.defaultShowCommandPanel=%s, filesLoaded=%s, RESULT showCommandPanel=%s",
+                        resource?.showCommandPanel,
+                        settings.defaultShowCommandPanel,
+                        stateFlow.value.files.isNotEmpty(),
+                        showCommandPanel
+                    )
+                    Timber.d(
+                        "PlayerViewModel.loadSettings: enableTranslation=%s, enableOcr=%s",
+                        settings.enableTranslation,
+                        settings.enableOcr
+                    )
 
                     updateState {
                         it.copy(
@@ -223,6 +234,10 @@ class PlayerMediaFilesLoader(
                     val stagedType = when (stagedNote.kind) {
                         com.sza.fastmediasorter.data.local.staging.StagedKind.TEXT_NOTE -> MediaType.TEXT
                         com.sza.fastmediasorter.data.local.staging.StagedKind.DRAWING -> MediaType.IMAGE
+                        // S2044: unreachable - this branch is entered only for an entry found in
+                        // LocalStagingRegistry, and a watch-received file is never registered there.
+                        // Its staged copy is addressed by the upload worker's input Data instead.
+                        com.sza.fastmediasorter.data.local.staging.StagedKind.WATCH_RECEIVED -> MediaType.BINARY_OTHER
                     }
                     val stagedFile = MediaFile(
                         name = stagedNote.intendedName,
@@ -314,8 +329,11 @@ class PlayerMediaFilesLoader(
                     } ?: streamPath
                     val targetIndex = catalogFiles.indexOfFirst { it.path == targetUrl }
                     val (streamFiles, streamIndex) =
-                        if (targetIndex >= 0) catalogFiles to targetIndex
-                        else listOf(launchStreamFile) to 0
+                        if (targetIndex >= 0) {
+                            catalogFiles to targetIndex
+                        } else {
+                            listOf(launchStreamFile) to 0
+                        }
                     updateState {
                         it.copy(
                             files = streamFiles,
@@ -581,8 +599,11 @@ class PlayerMediaFilesLoader(
 
                     // Preserve isPaused on reload (user may have manually paused before background);
                     // only use resumeIsPlaying on first load (files list still empty).
-                    val effectiveIsPaused = if (stateFlow.value.files.isNotEmpty()) stateFlow.value.isPaused
-                                            else (resumeIsPlaying == false)
+                    val effectiveIsPaused = if (stateFlow.value.files.isNotEmpty()) {
+                        stateFlow.value.isPaused
+                    } else {
+                        (resumeIsPlaying == false)
+                    }
                     updateState {
                         it.copy(
                             files = finalFiles,
@@ -633,7 +654,8 @@ class PlayerMediaFilesLoader(
      */
     private fun normalizePath(path: String): String {
         if (path.startsWith("content://") || path.startsWith("smb://") ||
-            path.startsWith("sftp://") || path.startsWith("ftp://")) {
+            path.startsWith("sftp://") || path.startsWith("ftp://")
+        ) {
             return path
         }
         return try {

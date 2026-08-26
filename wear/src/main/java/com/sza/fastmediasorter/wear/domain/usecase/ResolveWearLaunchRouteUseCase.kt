@@ -1,11 +1,13 @@
 package com.sza.fastmediasorter.wear.domain.usecase
 
+import com.sza.fastmediasorter.wear.domain.model.WearFileOpenRequest
 import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.model.WearTileTargetRef
 import com.sza.fastmediasorter.wear.domain.model.findByTargetRef
 import com.sza.fastmediasorter.wear.domain.model.normalizeWearStreamUrl
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
+import com.sza.fastmediasorter.wear.ui.common.playerRouteFor
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import javax.inject.Inject
 
@@ -25,11 +27,13 @@ class ResolveWearLaunchRouteUseCase @Inject constructor(
     private val networkSourceRepository: NetworkSourceRepository,
     private val streamChannelRepository: WearStreamChannelRepository,
     private val prepareWearStreamPlayback: PrepareWearStreamPlaybackUseCase,
+    private val prepareWearFilePlayback: PrepareWearFilePlaybackUseCase,
 ) {
 
     suspend operator fun invoke(target: WearLaunchTarget): String? = when (target) {
         is WearLaunchTarget.Pick -> WearRoutes.tileTargetPicker(target.kind.name)
         is WearLaunchTarget.Open -> resolveOpen(target.ref)
+        is WearLaunchTarget.File -> resolveFile(target)
     }
 
     private suspend fun resolveOpen(ref: WearTileTargetRef): String? = when (ref) {
@@ -54,5 +58,10 @@ class ResolveWearLaunchRouteUseCase @Inject constructor(
         } else {
             WearRoutes.audioPlayer(playback.fileId)
         }
+    }
+
+    private fun resolveFile(target: WearLaunchTarget.File): String? {
+        val playback = prepareWearFilePlayback(WearFileOpenRequest(target.path, target.mimeType))
+        return playerRouteFor(playback.fileId, playback.mimeType)
     }
 }

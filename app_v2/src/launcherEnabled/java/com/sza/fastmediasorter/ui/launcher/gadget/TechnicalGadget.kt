@@ -1,17 +1,20 @@
 package com.sza.fastmediasorter.ui.launcher.gadget
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.view.isVisible
+import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.databinding.GadgetLauncherTechnicalBinding
 import com.sza.fastmediasorter.domain.model.devicestatus.DeviceStatusProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import timber.log.Timber
 
 /**
  * S1178: one technical status cell on the desktop - network, battery, storage or resources.
@@ -27,6 +30,9 @@ class TechnicalGadget(
     @StringRes override val labelRes: Int,
     @DrawableRes override val iconRes: Int,
     private val provider: DeviceStatusProvider<Any>,
+    // S2062: only the "Resources" entry's ic_speed is a white glyph invisible without a tint - the
+    // other three (network/battery/storage) already ship a visible icon and must keep the default.
+    override val iconTintable: Boolean = false,
 ) : LauncherGadget {
 
     // Identical spans across the four are what makes them read as one set rather than four cells
@@ -38,7 +44,7 @@ class TechnicalGadget(
     override val requiresResourceParam: Boolean = false
 
     override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View =
-        TechnicalGadgetView(container.context, key, iconRes, provider)
+        TechnicalGadgetView(container.context, key, iconRes, iconTintable, provider)
 }
 
 /**
@@ -50,6 +56,7 @@ private class TechnicalGadgetView(
     context: Context,
     private val key: String,
     @DrawableRes iconRes: Int,
+    iconTintable: Boolean,
     private val provider: DeviceStatusProvider<Any>,
 ) : LauncherGadgetView(context) {
 
@@ -58,6 +65,19 @@ private class TechnicalGadgetView(
     private val formatter = TechnicalGadgetFormatter(context)
 
     init {
+        Timber.d("S2062: technical gadget tile key=$key iconTintable=$iconTintable")
+        // S2062: same tint the picker row applies for the same drawable - this is the live desktop tile,
+        // the one other place besides the picker that draws a gadget's iconRes.
+        binding.gadgetTechnicalIcon.imageTintList = if (iconTintable) {
+            ColorStateList.valueOf(
+                MaterialColors.getColor(
+                    binding.gadgetTechnicalIcon,
+                    com.google.android.material.R.attr.colorOnSurfaceVariant,
+                )
+            )
+        } else {
+            null
+        }
         binding.gadgetTechnicalIcon.setImageResource(iconRes)
     }
 

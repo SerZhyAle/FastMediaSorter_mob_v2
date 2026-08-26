@@ -9,12 +9,16 @@ import com.sza.fastmediasorter.wear.domain.model.WearFileOperationOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationResult
 import com.sza.fastmediasorter.wear.domain.model.WearFileSendOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
+import com.sza.fastmediasorter.wear.domain.model.WearOpenOnPhoneOutcome
+import com.sza.fastmediasorter.wear.domain.model.WearOpenOnPhoneRequest
 import com.sza.fastmediasorter.wear.domain.model.kind
 import com.sza.fastmediasorter.wear.domain.repository.WearFileSenderRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearOpenOnPhoneRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -28,6 +32,7 @@ import javax.inject.Inject
 class PerformWearFileOperationUseCase @Inject constructor(
     private val capabilityPolicy: WearFileCapabilityPolicy,
     private val senderRepository: WearFileSenderRepository,
+    private val openOnPhoneRepository: WearOpenOnPhoneRepository,
     private val stager: WearMediaFileStager
 ) {
 
@@ -55,7 +60,20 @@ class PerformWearFileOperationUseCase @Inject constructor(
             WearFileOperation.MoveToPhone -> sendToPhone(file, deleteSource = true)
             WearFileOperation.Delete -> deleteLocal(file)
             is WearFileOperation.Rename -> renameLocal(file, operation.newName)
+            is WearFileOperation.OpenOnPhone -> openOnPhone(file, operation.token)
         }
+    }
+
+    /**
+     * The one operation that stages nothing: the phone already holds the file this watch copy came
+     * from, so the request carries its address and the answer says what the phone did with it.
+     */
+    private suspend fun openOnPhone(file: WearMediaFile, token: String): WearFileOperationResult {
+        Timber.d("S2004: watch asks the phone to open %s", file.name)
+        val outcome = openOnPhoneRepository.requestOpen(
+            WearOpenOnPhoneRequest(token = token, displayName = file.name)
+        )
+        return WearFileOperationResult(file.name, outcome.toOperationOutcome())
     }
 
     private suspend fun sendToPhone(file: WearMediaFile, deleteSource: Boolean): WearFileOperationResult {
@@ -131,4 +149,22 @@ private fun WearFileSendOutcome.toOperationOutcome(): WearFileOperationOutcome =
     WearFileSendOutcome.TOO_LARGE -> WearFileOperationOutcome.REFUSED_TOO_LARGE
     WearFileSendOutcome.PHONE_UNREACHABLE -> WearFileOperationOutcome.PHONE_UNREACHABLE
     WearFileSendOutcome.FAILED -> WearFileOperationOutcome.FAILED
+}
+
+/**
+ * The three answers the phone can give stay three answers here.
+ *
+ * Collapsing "shown" and "notified" would leave the user looking at a phone that shows nothing after
+ * being told it was opened, and collapsing the refusal into silence is the failure strategic 11
+ * criterion 9 names outright.
+ */
+private fun WearOpenOnPhoneOutcome?.toOperationOutcome(): WearFileOperationOutcome = when (this) {
+    WearOpenOnPhoneOutcome.SHOWN -> WearFileOperationOutcome.OPENED_ON_PHONE
+    WearOpenOnPhoneOutcome.NOTIFIED -> WearFileOperationOutcome.NOTIFIED_ON_PHONE
+    WearOpenOnPhoneOutcome.REFUSED_NO_NOTIFICATION ->
+        WearFileOperationOutcome.REFUSED_PHONE_NOTIFICATIONS_OFF
+    WearOpenOnPhoneOutcome.NOT_FOUND -> WearFileOperationOutcome.FAILED
+    // Nothing answered: the phone is out of range, asleep, or running an older companion that has no
+    // twelfth path at all - all three read to the user as "bring the phone closer and try again".
+    null -> WearFileOperationOutcome.PHONE_UNREACHABLE
 }

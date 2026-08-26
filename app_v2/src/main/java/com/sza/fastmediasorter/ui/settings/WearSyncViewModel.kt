@@ -238,7 +238,6 @@ class WearSyncViewModel @Inject constructor(
         settings.copy(backgroundMode = _backgroundMode.value)
 
     fun updateBackgroundMode(mode: String) {
-        Timber.d("S2000: companion background mode picked=$mode")
         _backgroundMode.value = mode
         _watchSettingsState.value?.let { rememberSettings(it.copy(backgroundMode = mode)) }
     }
@@ -276,7 +275,7 @@ class WearSyncViewModel @Inject constructor(
         val finished = wearFileTransferRepository.transfers
             .mapNotNull { snapshot -> snapshot.items.firstOrNull { it.id == transferId } }
             .first { it.outcome.isTerminal }
-        Timber.d("S2000: background image transfer finished outcome=${finished.outcome}")
+
         _backgroundDelivery.value = deliveryStateOf(finished.outcome)
     }
 

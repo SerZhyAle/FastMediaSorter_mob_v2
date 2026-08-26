@@ -77,6 +77,7 @@ fun PhoneHomeScreen(
     settingsViewModel: SettingsViewModel = hiltViewModel()
 ) {
     Timber.d("S2003: phone categories - columns from the saved view mode, catalog glyphs")
+    Timber.d("S2051: phone chips - unfiltered category is All, folder browser is Browse")
 
     val settings by settingsViewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberScalingLazyListState()
@@ -92,7 +93,7 @@ fun PhoneHomeScreen(
         PhoneCategory(R.string.wear_phone_audio, "music", WearContentType.MUSIC),
         PhoneCategory(R.string.wear_phone_images, "photos", WearContentType.IMAGE),
         PhoneCategory(R.string.wear_phone_documents, "documents", WearContentType.DOCUMENT),
-        PhoneCategory(R.string.wear_phone_all_files, "all", WearContentType.OTHER)
+        PhoneCategory(R.string.wear_phone_all, "all", WearContentType.OTHER)
     )
 
     WearScreenScaffold(
@@ -170,7 +171,7 @@ fun PhoneHomeScreen(
  */
 @Composable
 private fun PhoneFolderChip(onClick: () -> Unit) {
-    val label = stringResource(R.string.phone_resource_title)
+    val label = stringResource(R.string.wear_phone_browse)
     Chip(
         onClick = onClick,
         label = { Text(text = label) },

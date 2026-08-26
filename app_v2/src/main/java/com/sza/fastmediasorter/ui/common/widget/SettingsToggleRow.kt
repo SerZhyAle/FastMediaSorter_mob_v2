@@ -191,6 +191,7 @@ class SettingsToggleRow @JvmOverloads constructor(
     override fun setEnabled(enabled: Boolean) {
         super.setEnabled(enabled)
         switchView.isEnabled = enabled
+        iconView.isEnabled = enabled
         helpIcon.isEnabled = enabled
         titleView.isEnabled = enabled
         subtitleView.isEnabled = enabled

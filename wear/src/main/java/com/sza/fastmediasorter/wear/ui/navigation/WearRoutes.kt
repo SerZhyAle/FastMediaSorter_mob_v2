@@ -63,6 +63,9 @@ object WearRoutes {
      */
     const val SYSTEM_INFO = "system_info"
 
+    /** S2006: where a file the watch cannot play lands, instead of the audio player. */
+    const val UNSUPPORTED_FILE = "unsupported_file"
+
     const val ARG_MEDIA_TYPE = "mediaType"
     const val ARG_SOURCE_ID = "sourceId"
     const val ARG_SOURCE_NAME = "sourceName"

@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.wear.data.network.sftp.SftpConnectionTest
 import com.sza.fastmediasorter.wear.data.network.sftp.SftpDataSource
 import com.sza.fastmediasorter.wear.data.network.smb.SmbDataSource
 import com.sza.fastmediasorter.wear.data.preferences.NetworkSourceRepositoryImpl
+import com.sza.fastmediasorter.wear.data.preferences.WearNowPlayingRepositoryImpl
 import com.sza.fastmediasorter.wear.data.preferences.WearPreferencesRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.AlbumArtRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.VoiceNoteRepositoryImpl
@@ -24,6 +25,7 @@ import com.sza.fastmediasorter.wear.data.repository.WearFavoritesRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearFileReceiverRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearFileSenderRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearMediaRepositoryImpl
+import com.sza.fastmediasorter.wear.data.repository.WearOpenOnPhoneRepositoryImpl
 import com.sza.fastmediasorter.wear.data.wear.AndroidWearSystemInfoDataSource
 import com.sza.fastmediasorter.wear.domain.game.GameBoardGenerator
 import com.sza.fastmediasorter.wear.domain.recorder.VoiceRecordingStateHolder
@@ -36,6 +38,8 @@ import com.sza.fastmediasorter.wear.domain.repository.WearFileReceiverRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFileSenderRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearNetworkChannelMonitor
+import com.sza.fastmediasorter.wear.domain.repository.WearNowPlayingRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearOpenOnPhoneRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearSystemInfoDataSource
 import dagger.Module
@@ -109,9 +113,19 @@ object WearAppModule {
     @Provides
     @Singleton
     fun provideWearPreferencesRepository(
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
+        requestWearComplicationRefreshUseCase:
+        com.sza.fastmediasorter.wear.domain.usecase.RequestWearComplicationRefreshUseCase
     ): WearPreferencesRepository {
-        return WearPreferencesRepositoryImpl(context)
+        return WearPreferencesRepositoryImpl(context, requestWearComplicationRefreshUseCase)
+    }
+
+    @Provides
+    @Singleton
+    fun provideWearNowPlayingRepository(
+        @ApplicationContext context: Context
+    ): WearNowPlayingRepository {
+        return WearNowPlayingRepositoryImpl(context)
     }
 
     // S1710: GameBoardGenerator takes a defaulted attempt budget that Dagger cannot bind, so it
@@ -214,6 +228,12 @@ object WearAppModule {
     fun provideWearFileSenderRepository(
         impl: WearFileSenderRepositoryImpl
     ): WearFileSenderRepository = impl
+
+    @Provides
+    @Singleton
+    fun provideWearOpenOnPhoneRepository(
+        impl: WearOpenOnPhoneRepositoryImpl
+    ): WearOpenOnPhoneRepository = impl
 
     @Provides
     @Singleton

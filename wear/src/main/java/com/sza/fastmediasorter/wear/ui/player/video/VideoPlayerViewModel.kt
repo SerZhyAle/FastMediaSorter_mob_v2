@@ -21,11 +21,13 @@ import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearNowPlayingRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ClassifyWearStreamMediaKindUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.DownloadNetworkFileUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PublishPlaybackStateUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ToggleFavoriteUseCase
+import com.sza.fastmediasorter.wear.ui.player.common.awaitPanelHide
 import com.sza.fastmediasorter.wear.ui.player.helpers.StreamPlaybackSessionFactory
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -65,6 +67,7 @@ class VideoPlayerViewModel @Inject constructor(
     private val publishPlaybackStateUseCase: PublishPlaybackStateUseCase,
     private val streamPlaybackSessionFactory: StreamPlaybackSessionFactory,
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
+    private val nowPlayingRepository: WearNowPlayingRepository,
     savedStateHandle: SavedStateHandle,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -207,20 +210,35 @@ class VideoPlayerViewModel @Inject constructor(
             }
         }
 
+        // S2006: the same collector the audio player has had since S1701. The stored flag is the one
+        // source of truth, so this screen shows it and asks for a change rather than keeping its own.
+        viewModelScope.launch {
+            preferencesRepository.isShuffleEnabled.collect { enabled ->
+                playbackSetManager.shuffleEnabled = enabled
+                _uiState.update { it.copy(isShuffleEnabled = enabled) }
+            }
+        }
+
         // Subscribe to remote playback commands from phone
         viewModelScope.launch {
             WatchPlaybackCommandEvents.commandFlow.collect { command ->
                 when (command) {
                     WearPlaybackCommand.PLAY_PAUSE -> togglePlayPause()
-                    WearPlaybackCommand.NEXT       -> exoPlayer.seekToNextMediaItem()
-                    WearPlaybackCommand.PREVIOUS   -> exoPlayer.seekToPreviousMediaItem()
-                    WearPlaybackCommand.STOP       -> {
+                    WearPlaybackCommand.NEXT -> exoPlayer.seekToNextMediaItem()
+                    WearPlaybackCommand.PREVIOUS -> exoPlayer.seekToPreviousMediaItem()
+                    WearPlaybackCommand.STOP -> {
                         exoPlayer.stop()
                         streamPlaybackSession.stop()
                     }
                 }
             }
         }
+    }
+
+    fun toggleShuffle() {
+        Timber.d("S2006: shuffle toggled on video player, was=${_uiState.value.isShuffleEnabled}")
+        val enabled = !_uiState.value.isShuffleEnabled
+        viewModelScope.launch { preferencesRepository.setShuffleEnabled(enabled) }
     }
 
     private fun loadVideoFile() {
@@ -302,19 +320,21 @@ class VideoPlayerViewModel @Inject constructor(
 
     private fun loadMediaFile() {
         viewModelScope.launch {
-            // First, check if we have a selected file from SelectedMediaManager (network source)
+            // S1884: check if SelectedMediaManager holds the file (network source or phone-delivered file)
             val selectedMedia = selectedMediaManager.getSelectedFileById(fileId)
 
-            if (selectedMedia != null && selectedMedia.isNetworkSource) {
-                // S1684: same omission as the audio player. Beyond the on-screen title, the empty
-                // name also reached the phone - publishPlaybackState below sends
-                // `mediaFile?.name ?: ""`, so the phone's remote-control card was blank too.
+            if (selectedMedia != null) {
                 _uiState.update { it.copy(mediaFile = selectedMedia.file) }
-                // S1683: remembered so paging can re-enter the download path with the same source id.
-                networkSelection = selectedMedia
-                Timber.d("Loading network video: ${selectedMedia.file.name}")
                 refreshFavoriteState()
-                loadNetworkVideo(selectedMedia)
+                if (selectedMedia.isNetworkSource) {
+                    // S1683: remembered so paging can re-enter the download path with the same source id.
+                    networkSelection = selectedMedia
+                    Timber.d("Loading network video: ${selectedMedia.file.name}")
+                    loadNetworkVideo(selectedMedia)
+                } else {
+                    Timber.d("Loading local video from SelectedMediaManager: ${selectedMedia.file.name}")
+                    playLocalFile(selectedMedia.file)
+                }
             } else {
                 // Local file - use MediaStore
                 val file = mediaRepository.getMediaFileById(fileId, MediaType.VIDEO)
@@ -415,8 +435,9 @@ class VideoPlayerViewModel @Inject constructor(
     private fun scheduleHideControls() {
         controlsHideJob?.cancel()
         controlsHideJob = viewModelScope.launch {
-            delay(3000)
-            _uiState.update { it.copy(showControls = false) }
+            if (awaitPanelHide(isActive = exoPlayer.isPlaying)) {
+                _uiState.update { it.copy(showControls = false) }
+            }
         }
     }
 
@@ -497,7 +518,14 @@ class VideoPlayerViewModel @Inject constructor(
             durationMs = state.durationMs,
             mediaType = "VIDEO"
         )
-        viewModelScope.launch { publishPlaybackStateUseCase(payload) }
+        val title = state.mediaFile?.name ?: ""
+        viewModelScope.launch {
+            publishPlaybackStateUseCase(payload)
+            if (title.isNotBlank()) {
+                nowPlayingRepository.setNowPlaying(title, null)
+                nowPlayingRepository.setPlaying(state.isPlaying)
+            }
+        }
     }
 
     fun toggleFavorite() {
@@ -552,6 +580,9 @@ class VideoPlayerViewModel @Inject constructor(
         controlsHideJob?.cancel()
         streamPlaybackSession.clear()
         exoPlayer.removeListener(playerListener)
+        viewModelScope.launch {
+            nowPlayingRepository.clearPlayingFlag()
+        }
         // S0725: this VM owns its ExoPlayer (no longer a process singleton) - release native resources
         // instead of just stop()+clearMediaItems(); pairs with PlayerView.player = null in the screen's
         // onDispose so neither the player nor the disposed PlayerView/Context survives screen exit.

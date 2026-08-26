@@ -41,8 +41,10 @@ import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.util.GridColumnFit
+import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
+private const val APP_LABEL_MAX_LINES = 2
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
 private val CELL_ICON_SIZE = 24.dp
 private val TITLE_VERTICAL_PADDING = 16.dp
@@ -101,6 +103,7 @@ private fun ScalingLazyListScope.appItems(
             AppChip(app = app, onClick = { onAppClick(app) })
         }
     } else {
+        Timber.d("S2082: apps grid, columns=$columns, caption wraps to $APP_LABEL_MAX_LINES lines")
         items(apps.chunked(columns)) { rowApps ->
             AppRow(apps = rowApps, columns = columns, onAppClick = onAppClick)
         }
@@ -165,7 +168,11 @@ private fun AppCell(
         thumbnail = WearThumbnail.Unavailable,
         caption = label,
         onClick = onClick,
-        modifier = modifier
+        modifier = modifier,
+        // Wrap, never ellipsize: strategic S2082, the rule S2042 set for the settings menu. A program
+        // name is a fixed label the user has to read, unlike the arbitrary-length file name the cell
+        // defaults to, so this screen asks for the second line the default deliberately withholds.
+        captionMaxLines = APP_LABEL_MAX_LINES
     ) { glyphModifier ->
         Icon(
             painter = painterResource(iconFor(app.id)),

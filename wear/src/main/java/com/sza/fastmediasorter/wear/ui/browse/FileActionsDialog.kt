@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.ui.browse
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -21,15 +22,22 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 
 /**
+ * Every action this menu can run, in the order it draws them, each beside what it calls.
+ *
  * Destructive last: on a round screen the outer rows are the easiest to hit by accident, so the one
  * answer that cannot be taken back is the one furthest from a mis-tap.
+ *
+ * [WearFileOperationKind.OPEN_ON_PHONE] is absent, and absent by construction rather than filtered
+ * out later: a selection has no single original for the phone to open, so this menu has nothing to
+ * ask on its behalf and never offers it.
  */
-private val ACTION_ORDER = listOf(
-    WearFileOperationKind.SEND_TO_PHONE,
-    WearFileOperationKind.MOVE_TO_PHONE,
-    WearFileOperationKind.RENAME,
-    WearFileOperationKind.DELETE
-)
+private fun batchActions(callbacks: FileActionsCallbacks): List<Pair<WearFileOperationKind, () -> Unit>> =
+    listOf(
+        WearFileOperationKind.SEND_TO_PHONE to callbacks.onSendToPhone,
+        WearFileOperationKind.MOVE_TO_PHONE to callbacks.onMoveToPhone,
+        WearFileOperationKind.RENAME to callbacks.onRenameRequested,
+        WearFileOperationKind.DELETE to callbacks.onDeleteRequested
+    )
 
 /**
  * What the action menu draws.
@@ -69,9 +77,9 @@ internal fun FileActionsDialog(
             )
         }
     ) {
-        ACTION_ORDER.filter { it in state.allowedOperations }.forEach { kind ->
+        batchActions(callbacks).filter { it.first in state.allowedOperations }.forEach { (kind, onClick) ->
             item {
-                ActionChip(kind = kind, callbacks = callbacks)
+                ActionChip(kind = kind, onClick = onClick)
             }
         }
     }
@@ -84,10 +92,10 @@ internal fun FileActionsDialog(
 @Composable
 private fun ActionChip(
     kind: WearFileOperationKind,
-    callbacks: FileActionsCallbacks
+    onClick: () -> Unit
 ) {
     Chip(
-        onClick = kind.actionOf(callbacks),
+        onClick = onClick,
         label = { Text(text = stringResource(kind.labelRes())) },
         icon = {
             Icon(
@@ -140,6 +148,7 @@ private fun WearFileOperationKind.labelRes(): Int = when (this) {
     WearFileOperationKind.MOVE_TO_PHONE -> R.string.wear_file_op_move_to_phone
     WearFileOperationKind.RENAME -> R.string.wear_file_op_rename
     WearFileOperationKind.DELETE -> R.string.delete
+    WearFileOperationKind.OPEN_ON_PHONE -> R.string.wear_file_op_open_on_phone
 }
 
 private fun WearFileOperationKind.icon(): ImageVector = when (this) {
@@ -147,11 +156,5 @@ private fun WearFileOperationKind.icon(): ImageVector = when (this) {
     WearFileOperationKind.MOVE_TO_PHONE -> Icons.Default.PhoneAndroid
     WearFileOperationKind.RENAME -> Icons.Default.Edit
     WearFileOperationKind.DELETE -> Icons.Default.Delete
-}
-
-private fun WearFileOperationKind.actionOf(callbacks: FileActionsCallbacks): () -> Unit = when (this) {
-    WearFileOperationKind.SEND_TO_PHONE -> callbacks.onSendToPhone
-    WearFileOperationKind.MOVE_TO_PHONE -> callbacks.onMoveToPhone
-    WearFileOperationKind.RENAME -> callbacks.onRenameRequested
-    WearFileOperationKind.DELETE -> callbacks.onDeleteRequested
+    WearFileOperationKind.OPEN_ON_PHONE -> Icons.AutoMirrored.Filled.OpenInNew
 }

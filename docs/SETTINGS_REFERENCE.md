@@ -416,7 +416,7 @@ _Reached from Wear OS watch app -> Settings._
 | Enable slideshow | Enables automatic slideshow presentation of media files on Wear OS. |
 | Enable video | Enables playback and browsing of video files on Wear OS. |
 | Files view | Chooses how file lists on the watch are laid out: a list, or a grid of two or three columns with real thumbnails. |
-| Keep screen on | Keeps the watch screen on outside the players; the audio, video and image players hold it on regardless. |
+| Keep screen on | Keeps the watch screen on across every screen outside the players, the startup splash and the permission screen included; the audio, video and image players hold it on regardless. |
 | Slideshow interval | Sets the delay in seconds between slides during slideshow playback on Wear OS. |
 | Screens view | Chooses how the watch navigation screens, including Settings, are laid out: a list, or a grid of two or three columns. |
 | Voice note delivery | Chooses what happens to a voice note recorded on the watch once it is stopped: send it to the phone straight away, or keep it on the watch until it is sent by hand. Either way the note stays on the watch until it is deleted, and a note taken while the phone is out of reach waits and leaves on its own when the link returns. |

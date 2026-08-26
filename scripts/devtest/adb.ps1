@@ -933,7 +933,7 @@ switch ($Verb.ToLowerInvariant()) {
         $shape = Get-DisplayShape $id
         $file  = Join-Path (Get-TempDir) ("uitree_$($id -replace '[^A-Za-z0-9_.-]', '_')_$(Get-Stamp).xml")
         $nodes = @(Get-UiNodes (Get-UiTree $id $file))
-        $findings = New-Object System.Collections.Generic.List[object]
+        $findings = [System.Collections.Generic.List[object]]::new()
         # Labelled only: S1879 widened the tree to nodes named by a resource-id alone, and this
         # classification is calibrated against five recorded dumps. Judging the new nodes would move
         # counts that were measured, not chosen.
@@ -948,7 +948,9 @@ switch ($Verb.ToLowerInvariant()) {
         }
         $offGlass = @($findings | Where-Object { $_.kind -eq 'OFF-GLASS' })
         if ($Json) {
-            $script:result.data = [ordered]@{ id = $id; file = $file; shape = $shape; checked = $judged.Count; findings = @($findings); offGlass = $offGlass.Count }
+            # ToArray(), never @($findings): the array subexpression around a PSObject-wrapped
+            # List[object] throws "Argument types do not match" and killed this -Json path (S2079).
+            $script:result.data = [ordered]@{ id = $id; file = $file; shape = $shape; checked = $judged.Count; findings = $findings.ToArray(); offGlass = $offGlass.Count }
             $script:result.ok = ($offGlass.Count -eq 0)
             $script:result.exitCode = if ($offGlass.Count -eq 0) { 0 } else { 9 }
             if ($offGlass.Count -gt 0) { $script:result.reason = "$($offGlass.Count) node(s) off-glass" }

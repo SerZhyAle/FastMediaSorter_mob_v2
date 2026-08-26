@@ -155,6 +155,9 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var appOrientationManager: com.sza.fastmediasorter.core.orientation.AppOrientationManager
 
+    @Inject
+    lateinit var appKeepScreenAwakeManager: com.sza.fastmediasorter.core.ui.AppKeepScreenAwakeManager
+
     // Application-scoped coroutine for background initialization
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
@@ -234,6 +237,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
 
         // S0439: apply the program-wide screen-rotation policy to every non-self-managed activity.
         registerActivityLifecycleCallbacks(appOrientationManager)
+        registerActivityLifecycleCallbacks(appKeepScreenAwakeManager)
         // S0943: decorate the focused view in-place with the D-pad/TV focus outline on every Activity
         // window (opt-out via FocusDecorationExcluded); one controller per window, hidden in touch mode.
         registerActivityLifecycleCallbacks(

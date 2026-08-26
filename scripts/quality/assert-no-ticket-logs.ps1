@@ -276,5 +276,10 @@ if ($Gate -and $actual -gt 0) { exit 1 }
 # S1912: a missing probe is fatal on a project-wide run - the release path and assert-fast-gates.ps1
 # both take that branch - but exits 3 for a caller that named its changed set, so post-change.ps1 can
 # report it without charging one session for another session's half-finished ticket.
-if ($Gate -and $missingProbe.Count -gt 0) { if ($scoped) { exit 3 } else { exit 1 } }
+if ($Gate -and $missingProbe.Count -gt 0) {
+    # S2075: the listing above is gated on -not $Quiet, so a -Quiet -Gate caller used to hit this exit
+    # with nothing printed at all. This line always fires, independent of -Quiet.
+    Write-Error ("assert-no-ticket-logs: {0} BlockNeedUserTest ticket(s) missing a probe in source - {1}" -f $missingProbe.Count, ($missingProbe -join ', ')) -ErrorAction Continue
+    if ($scoped) { exit 3 } else { exit 1 }
+}
 exit 0

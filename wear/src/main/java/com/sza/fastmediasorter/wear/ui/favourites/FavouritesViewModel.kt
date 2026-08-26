@@ -144,7 +144,12 @@ class FavouritesViewModel @Inject constructor(
      */
     fun allowedOperationsFor(record: WearFavoriteRecord): Set<WearFileOperationKind> {
         val storageClass = capabilityPolicy.classify(record.toMediaFile(), record.isNetwork())
-        return capabilityPolicy.allowedOperations(storageClass)
+        // S2004: the policy answers about the file; this subtracts what the *surface* cannot address.
+        // A favourited copy of a phone file classifies as a phone copy, so the policy rightly offers
+        // opening it there - but the phone resolves an open by the token its browse protocol issued,
+        // and a favourite is addressed by its own record and carries no token. Offering it here would
+        // put a refusal behind a menu row, which is the one thing strategic 11 criterion 7 forbids.
+        return capabilityPolicy.allowedOperations(storageClass) - WearFileOperationKind.OPEN_ON_PHONE
     }
 
     /** The file the action menu acts on - the same one the player is handed. */
@@ -156,6 +161,17 @@ class FavouritesViewModel @Inject constructor(
             performFileOperation(listOf(record.toMediaFile()), operation, record.isNetwork())
                 .collect { result -> _operationNotice.value = result.outcome }
         }
+    }
+
+    /**
+     * Reports that this screen cannot ask the phone to open the pressed favourite.
+     *
+     * [allowedOperationsFor] withholds that action here, so this is the arm that cannot normally be
+     * reached - kept because the menu's `when` must be total over the operation kinds, and because a
+     * silent no-op would be the wrong answer if the withholding above ever stopped happening.
+     */
+    fun reportOpenOnPhoneUnavailable() {
+        _operationNotice.value = WearFileOperationOutcome.REFUSED_UNSUPPORTED
     }
 
     /** Called once the screen has shown the notice, so it does not outlive the action it reports. */

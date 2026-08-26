@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.domain.netmonitor
 
 data class WearNetworkSnapshot(
+    val recordedAtMillis: Long,
     val activeTransport: WearNetworkTransport?,
     val wifiNetworkName: String?,
     val wifiSignalDbm: Int?,

@@ -425,3 +425,10 @@ A wear-related field on the phone belongs to exactly one of two stores, decided 
 - **`AppSettings`/`ProgramsSettingsStore`** - a field belongs here if any other part of the app reads it reactively as a phone-behaviour toggle, the way `KEY_ENABLE_WEAR_COMPANION` is read by `MainActivity`, `SubProgramCatalog`, `ShareTargetAvailabilityResolver` and others outside the companion sheet.
 
 These are not two names for one setting - they answer different questions ("what did we last tell the watch" vs. "is the companion feature on") - so merging them is out of scope; see `PLAN/S2050_wear-settings-two-stores-on-phone.md` §9 for the rejected alternative.
+
+## Wear Shared UI Components (S2004)
+
+The watch module has exactly one component for each of these two jobs. Both live in `wear/ui/common/`, and a screen that needs either asks for it rather than writing its own - S2004 was raised because seven screens had each written their own empty state and three had none at all.
+
+- **`WearStateBlock`** - the empty, unavailable and error states of any browsing screen, carrying up to two chips: a retry where retrying changes something, and a back that is always there. A screen decides which case it is in and whether retry is meaningful; it does not decide how the case looks.
+- **`WearFileActionsDialog`** - the long-press menu over one file, on every surface where a file is visible. It renders the set of `WearFileOperationKind` it is handed and holds no list of its own, because the single answer to "what may this file be asked to do" is `WearFileCapabilityPolicy` (strategic ADR-4 of S2004). The multi-select menu in `ui/browse/FileActionsDialog.kt` is a different question - actions over a selection - and deliberately offers a narrower set.

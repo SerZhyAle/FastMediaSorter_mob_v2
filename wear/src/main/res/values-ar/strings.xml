@@ -130,7 +130,6 @@
     <string name="wear_phone_audio">صوت</string>
     <string name="wear_phone_images">صور</string>
     <string name="wear_phone_documents">مستندات</string>
-    <string name="wear_phone_all_files">كل الملفات</string>
     <string name="screen_settings_title">الشاشة</string>
     <string name="screen_settings_view_mode">عرض الشاشات</string>
     <string name="wear_streams_section_enabled">إظهار البث</string>
@@ -209,7 +208,7 @@
     <string name="wear_favourites_unopenable">تم حفظ هذا الملف قبل أن تبدأ الساعة بتذكّر كيفية فتحه.</string>
     <string name="phone_resource_source_unavailable">هذا المورد لا يستجيب. الهاتف متصل - تحقق من المورد ثم أعد المحاولة.</string>
     <string name="wear_phone_recents">الأخيرة</string>
-    <string name="wear_video_scale_mode">نسبة العرض إلى الارتفاع / وضع التكبير</string>
+    <string name="wear_scale_mode">نسبة العرض إلى الارتفاع / وضع التكبير</string>
     <string name="wear_streams_search">البحث في البث</string>
     <string name="wear_streams_filter">تصفية البث</string>
     <string name="wear_streams_sort">ترتيب البث</string>

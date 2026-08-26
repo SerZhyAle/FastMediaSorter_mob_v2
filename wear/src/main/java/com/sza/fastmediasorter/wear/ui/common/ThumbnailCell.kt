@@ -41,6 +41,9 @@ private val FALLBACK_INSET = 8.dp
  * on the modifier: the caller's modifier is applied outside this cell's own click handler, so the
  * inner handler wins the down and the outer detector never fires at all (S1953).
  *
+ * @param captionMaxLines how many lines the caption may occupy. The default reproduces the previous
+ * single-line behaviour for every caller that does not ask, so a screen showing short category or
+ * source names keeps the cell height it had.
  * @param fallback the placeholder slot, drawn when no picture is available. The [Modifier] handed to
  * it **is** the placeholder contract (S2003): the glyph fills the cell less [FALLBACK_INSET] per
  * side, and a caller applies that modifier rather than sizing its own glyph. The inset is a constant
@@ -56,6 +59,7 @@ fun ThumbnailCell(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     onLongClick: (() -> Unit)? = null,
+    captionMaxLines: Int = 1,
     fallback: @Composable (Modifier) -> Unit
 ) {
     Column(
@@ -80,7 +84,7 @@ fun ThumbnailCell(
         Text(
             text = caption,
             style = MaterialTheme.typography.caption3,
-            maxLines = 1,
+            maxLines = captionMaxLines,
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()

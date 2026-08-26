@@ -31,6 +31,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sza.fastmediasorter.R
@@ -56,6 +57,10 @@ internal val SPACING_SECTION = 16.dp
  * means edits silently never leave the phone (strategic §3.3.4). Each group owns its own expansion
  * state and starts collapsed, so opening the window shows headings rather than one group's contents
  * pushing the rest off the screen (strategic §3.3.3).
+ *
+ * S2091: the root publishes every `testTag` below it as an Android `resource-id`. Compose emits no id
+ * of its own, so without this line the screen dumps as a column of anonymous nodes and both
+ * `adb.ps1 tap-id` and `tap-label` exit 8 - which is why no device pass on this window could start.
  */
 @Composable
 fun WearCompanionScreen(
@@ -86,7 +91,9 @@ fun WearCompanionScreen(
         Button(
             onClick = onPushClick,
             enabled = state !is WearSyncUiState.Sending,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("wearPushToWatch")
         ) {
             Text(stringResource(R.string.wear_push_to_watch))
         }
@@ -95,7 +102,9 @@ fun WearCompanionScreen(
             Spacer(Modifier.height(SPACING_SMALL))
             OutlinedButton(
                 onClick = onSelectResourcesClick,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("wearSelectResources")
             ) {
                 Text(stringResource(R.string.wear_resource_selection_title))
             }
@@ -184,11 +193,21 @@ private fun PendingImportCard(
             )
             Spacer(Modifier.height(SPACING_SMALL))
             Row {
-                Button(onClick = onAccept, modifier = Modifier.weight(1f)) {
+                Button(
+                    onClick = onAccept,
+                    modifier = Modifier
+                        .weight(1f)
+                        .testTag("wearImportAccept")
+                ) {
                     Text(stringResource(R.string.wear_import_accept))
                 }
                 Spacer(Modifier.padding(horizontal = SPACING_TINY))
-                OutlinedButton(onClick = onDismiss, modifier = Modifier.weight(1f)) {
+                OutlinedButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .weight(1f)
+                        .testTag("wearImportDismiss")
+                ) {
                     Text(stringResource(R.string.wear_import_dismiss))
                 }
             }
@@ -222,19 +241,28 @@ private fun NowPlayingCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                IconButton(onClick = { onCommand(WearPlaybackCommand.PREVIOUS) }) {
+                IconButton(
+                    onClick = { onCommand(WearPlaybackCommand.PREVIOUS) },
+                    modifier = Modifier.testTag("wearPlaybackPrevious")
+                ) {
                     Icon(
                         Icons.Default.SkipPrevious,
                         contentDescription = stringResource(R.string.wear_playback_previous)
                     )
                 }
-                IconButton(onClick = { onCommand(WearPlaybackCommand.PLAY_PAUSE) }) {
+                IconButton(
+                    onClick = { onCommand(WearPlaybackCommand.PLAY_PAUSE) },
+                    modifier = Modifier.testTag("wearPlaybackPlayPause")
+                ) {
                     Icon(
                         if (playing.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                         contentDescription = stringResource(R.string.wear_playback_play_pause)
                     )
                 }
-                IconButton(onClick = { onCommand(WearPlaybackCommand.NEXT) }) {
+                IconButton(
+                    onClick = { onCommand(WearPlaybackCommand.NEXT) },
+                    modifier = Modifier.testTag("wearPlaybackNext")
+                ) {
                     Icon(
                         Icons.Default.SkipNext,
                         contentDescription = stringResource(R.string.wear_playback_next)

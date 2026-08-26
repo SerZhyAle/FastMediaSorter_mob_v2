@@ -11,7 +11,9 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceClient
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceOutcome
+import com.sza.fastmediasorter.wear.domain.files.WEAR_PHONE_FILE_CACHE_DIR
 import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
+import com.sza.fastmediasorter.wear.domain.model.WEAR_FILE_TRANSFER_MAX_BYTES
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperation
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationOutcome
@@ -25,6 +27,7 @@ import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.PerformWearFileOperationUseCase
 import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
+import com.sza.fastmediasorter.wear.util.MediaCacheEvictor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -35,6 +38,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -44,8 +48,17 @@ private const val VIEW_MODE_SUBSCRIPTION_MS = 5_000L
 /** S1846: the chip that means "no filter" - the phone reads its absence the same way. */
 private const val MEDIA_TYPE_ALL = "all"
 
-/** S1846: where a phone file lands on the watch - a convenience copy the system may reclaim. */
-private const val PHONE_FILE_CACHE_DIR = "phone-files"
+private const val BYTES_PER_MB = 1024L * 1024L
+
+/**
+ * S2004: how much of the watch the copies fetched from the phone may hold, in megabytes.
+ *
+ * The floor is [WEAR_FILE_TRANSFER_MAX_BYTES], the largest single file the bridge will carry: a cap
+ * below it would let the evictor remove the very file that was just fetched, and opening large files
+ * would break. This is four of those, so a handful of recently opened files survive while the
+ * directory stays bounded - it holds convenience copies, not anything the user asked to keep.
+ */
+private const val PHONE_FILE_CACHE_CAP_BYTES = 128L * BYTES_PER_MB
 
 /** S1846: what came of the last tap on a phone file. */
 sealed interface PhoneFileOpenOutcome {
@@ -133,7 +146,7 @@ class PhoneResourceViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val cacheDir: File = File(context.cacheDir, PHONE_FILE_CACHE_DIR).apply { mkdirs() }
+    private val cacheDir: File = File(context.cacheDir, WEAR_PHONE_FILE_CACHE_DIR).apply { mkdirs() }
 
     /**
      * S1846: the kind of file this screen was opened for, or null when it was opened unfiltered.
@@ -214,17 +227,34 @@ class PhoneResourceViewModel @Inject constructor(
     /**
      * Asks the phone to deliver [entry] and hands the delivered copy to the players.
      *
-     * The transfer lands in the cache directory: a phone file opened on the watch is a convenience
-     * copy, not a download the user manages, so it must not survive as clutter the user has to find
-     * and delete.
+     * The transfer lands in the cache directory, and the directory is trimmed back under
+     * [PHONE_FILE_CACHE_CAP_BYTES] on every arrival: a phone file opened on the watch is a
+     * convenience copy, not a download the user manages, so it must not accumulate as clutter the
+     * user has to find and delete. Trimming happens here rather than on a schedule because this is the
+     * only moment the directory grows - a periodic job would wake the watch for a directory that did
+     * not change (S2004 ADR-6).
+     *
+     * S2092: an entry the watch cannot render is refused before the transfer, not after it. The phone
+     * nulls the type of everything outside the three renderable families, so the answer arrived with
+     * the list - fetching first spent a whole file over Bluetooth and a permanent cache entry to learn
+     * what the row already said. The guard lives here rather than in the caller so no later caller can
+     * reintroduce the wasted round trip.
      */
     fun openFile(entry: WearPhoneResourceItem) {
+        if (entry.mimeType == null) {
+            Timber.d("S2092: no player for %s - refusing before any transfer", entry.name)
+            _openOutcome.value = PhoneFileOpenOutcome.Unsupported
+            return
+        }
         _openOutcome.value = PhoneFileOpenOutcome.Opening
         val openedFrom = loadGeneration
         viewModelScope.launch {
             val destination = File(cacheDir, entry.token.toCacheFileName(entry.name))
             val result = when (val outcome = phoneResourceClient.open(entry.token, destination)) {
-                is PhoneResourceOutcome.Transferred -> handOver(entry, outcome.file)
+                is PhoneResourceOutcome.Transferred -> {
+                    evictOlderCopies(outcome.file)
+                    handOver(entry, outcome.file)
+                }
                 is PhoneResourceOutcome.Rejected -> PhoneFileOpenOutcome.Failed(outcome.status)
                 else -> PhoneFileOpenOutcome.Failed(null)
             }
@@ -232,6 +262,22 @@ class PhoneResourceViewModel @Inject constructor(
                 _openOutcome.value = result
             }
         }
+    }
+
+    /**
+     * Trims the copy directory, sparing the file that has just arrived.
+     *
+     * Off the main thread: the evictor stats and deletes real files. `keep` is what makes the cap safe
+     * at any size - the newest arrival is never the one removed, so a large file cannot be evicted
+     * between landing and being read.
+     */
+    private suspend fun evictOlderCopies(justWritten: File) = withContext(Dispatchers.IO) {
+        Timber.d("S2004: trimming the phone-copy cache, sparing %s", justWritten.name)
+        MediaCacheEvictor.evictOldestUntilUnderCap(
+            cacheDir = cacheDir,
+            keep = justWritten,
+            capBytes = PHONE_FILE_CACHE_CAP_BYTES
+        )
     }
 
     /** The screen calls this once it has acted on the outcome, so a rotation does not open twice. */
@@ -242,13 +288,24 @@ class PhoneResourceViewModel @Inject constructor(
     /**
      * What the watch may do with [entry] right now.
      *
-     * The answer is about the watch's own copy, because that is the only thing on this screen the
-     * watch can act on at all - the entry itself lives on the phone. A file never opened here has no
-     * copy, so the honest answer is that nothing is available rather than a menu that would refuse.
+     * Two answers about two different files, unioned. The copy-based operations are about the watch's
+     * own copy and exist only once one has been fetched. Opening on the phone is about the phone's
+     * original, which the browse token addresses whether or not this watch ever fetched anything -
+     * the request carries the token and the display name and moves no bytes at all (S2092). Gating it
+     * on a copy it never reads is what left the one action that can succeed reachable only after a
+     * transfer that was going to be refused.
      */
     fun allowedOperationsFor(entry: WearPhoneResourceItem): Set<WearFileOperationKind> {
-        val local = cachedCopyOf(entry) ?: return emptySet()
-        return capabilityPolicy.allowedOperations(capabilityPolicy.classify(local, isNetworkSource = false))
+        val destination = destinationFor(entry)
+        Timber.d("S2092: menu for %s, copy present: %s", entry.name, destination.exists())
+        val onTheCopy = if (destination.exists()) {
+            capabilityPolicy.allowedOperations(
+                capabilityPolicy.classify(entry.toWatchFile(destination), isNetworkSource = false)
+            )
+        } else {
+            emptySet()
+        }
+        return onTheCopy + WearFileOperationKind.OPEN_ON_PHONE
     }
 
     /**
@@ -259,7 +316,7 @@ class PhoneResourceViewModel @Inject constructor(
      * a delete indistinguishable from a menu that did nothing.
      */
     fun runOperation(entry: WearPhoneResourceItem, operation: WearFileOperation) {
-        val local = cachedCopyOf(entry) ?: return
+        val local = actionTargetFor(entry)
         viewModelScope.launch {
             performFileOperation(listOf(local), operation, isNetworkSource = false).collect { result ->
                 _operationNotice.value = result.outcome
@@ -267,42 +324,38 @@ class PhoneResourceViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Reports that the pressed entry has no copy on this watch, so there is nothing to act on.
-     *
-     * It rides the same notice channel as a real outcome because it is one: the answer to "what may
-     * this file be asked to do" was "nothing", and the user is owed that in the same place.
-     */
-    fun reportNothingToActOn() {
-        _operationNotice.value = WearFileOperationOutcome.REFUSED_UNSUPPORTED
-    }
-
     /** Called once the screen has shown the notice, so it does not outlive the action it reports. */
     fun consumeOperationNotice() {
         _operationNotice.value = null
     }
 
-    /** The file the action menu acts on, or null when this entry was never opened on this watch. */
-    fun actionTargetFor(entry: WearPhoneResourceItem): WearMediaFile? = cachedCopyOf(entry)
+    /** The file the action menu acts on: the watch's copy of [entry], fetched or not yet. */
+    fun actionTargetFor(entry: WearPhoneResourceItem): WearMediaFile =
+        entry.toWatchFile(destinationFor(entry))
 
     /**
-     * The delivered copy of [entry], or null when the file was never opened on this watch.
+     * Where a copy of [entry] lives, or would live once one arrives.
      *
      * The destination is recomputed exactly as [openFile] computes it, so the two cannot drift apart
      * into a menu acting on a path the transfer never wrote.
      */
-    private fun cachedCopyOf(entry: WearPhoneResourceItem): WearMediaFile? {
-        val destination = File(cacheDir, entry.token.toCacheFileName(entry.name))
-        if (!destination.exists()) return null
-        return WearMediaFile(
-            id = entry.token.hashCode().toLong(),
-            name = entry.name,
-            uri = Uri.fromFile(destination),
-            mimeType = entry.mimeType,
-            size = destination.length(),
-            dateModified = 0L
-        )
-    }
+    private fun destinationFor(entry: WearPhoneResourceItem): File =
+        File(cacheDir, entry.token.toCacheFileName(entry.name))
+
+    /**
+     * The entry as the file the operations address, whether or not [destination] has been written yet.
+     *
+     * Its size is read off the copy and so reads zero until one lands. Only the copy-based operations
+     * consult it, and those are offered only once the copy exists.
+     */
+    private fun WearPhoneResourceItem.toWatchFile(destination: File): WearMediaFile = WearMediaFile(
+        id = token.hashCode().toLong(),
+        name = name,
+        uri = Uri.fromFile(destination),
+        mimeType = mimeType,
+        size = destination.length(),
+        dateModified = 0L
+    )
 
     /**
      * The players address a file by id and read it through [SelectedMediaManager], the same hand-off the

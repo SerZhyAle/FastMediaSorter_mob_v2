@@ -279,9 +279,6 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
         // this is the one caller that re-attaches on every filter change.
         SearchableOptionPickerController.attachViews(
             recyclerOptions = binding.recyclerOptions,
-            searchLayout = null,
-            editOptionSearch = null,
-            tvOptionsEmpty = null,
             options = options,
             selectedId = null,
             resetRow = null,

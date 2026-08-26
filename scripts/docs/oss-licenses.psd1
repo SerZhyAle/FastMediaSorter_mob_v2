@@ -94,6 +94,7 @@
     'androidx.wear.protolayout:protolayout'     = @{ Name = 'AndroidX Wear ProtoLayout';        Spdx = 'Apache-2.0'; LicenseUrl = 'https://www.apache.org/licenses/LICENSE-2.0'; SourceUrl = 'https://android.googlesource.com/platform/frameworks/support/' }
     'androidx.wear.protolayout:protolayout-material'   = @{ Name = 'AndroidX Wear ProtoLayout Material';   Spdx = 'Apache-2.0'; LicenseUrl = 'https://www.apache.org/licenses/LICENSE-2.0'; SourceUrl = 'https://android.googlesource.com/platform/frameworks/support/' }
     'androidx.wear.protolayout:protolayout-expression' = @{ Name = 'AndroidX Wear ProtoLayout Expression'; Spdx = 'Apache-2.0'; LicenseUrl = 'https://www.apache.org/licenses/LICENSE-2.0'; SourceUrl = 'https://android.googlesource.com/platform/frameworks/support/' }
+    'androidx.wear.watchface:watchface-complications-data-source-ktx' = @{ Name = 'AndroidX Wear WatchFace Complication Data Source KTX'; Spdx = 'Apache-2.0'; LicenseUrl = 'https://www.apache.org/licenses/LICENSE-2.0'; SourceUrl = 'https://android.googlesource.com/platform/frameworks/support/' }
     'androidx.work:work-runtime-ktx'            = @{ Name = 'AndroidX WorkManager Runtime KTX'; Spdx = 'Apache-2.0'; LicenseUrl = 'https://www.apache.org/licenses/LICENSE-2.0'; SourceUrl = 'https://android.googlesource.com/platform/frameworks/support/' }
 
     # ── Kotlin, DI, networking ────────────────────────────────────────────────────────────

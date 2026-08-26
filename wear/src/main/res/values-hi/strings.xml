@@ -130,7 +130,6 @@
     <string name="wear_phone_audio">ऑडियो</string>
     <string name="wear_phone_images">छवियां</string>
     <string name="wear_phone_documents">दस्तावेज़</string>
-    <string name="wear_phone_all_files">सभी फ़ाइलें</string>
     <string name="screen_settings_title">स्क्रीन</string>
     <string name="screen_settings_view_mode">स्क्रीन दृश्य</string>
     <string name="wear_streams_section_enabled">स्ट्रीम दिखाएं</string>
@@ -209,7 +208,7 @@
     <string name="wear_favourites_unopenable">यह उस समय से पहले सहेजी गई थी जब वॉच ने यह याद रखना शुरू किया कि इसे कैसे खोलें.</string>
     <string name="phone_resource_source_unavailable">यह संसाधन जवाब नहीं दे रहा। फ़ोन जुड़ा है - संसाधन जाँचें, फिर दोबारा कोशिश करें।</string>
     <string name="wear_phone_recents">हाल के</string>
-    <string name="wear_video_scale_mode">पहलू अनुपात / ज़ूम मोड</string>
+    <string name="wear_scale_mode">पहलू अनुपात / ज़ूम मोड</string>
     <string name="wear_streams_search">स्ट्रीम खोजें</string>
     <string name="wear_streams_filter">स्ट्रीम फ़िल्टर करें</string>
     <string name="wear_streams_sort">स्ट्रीम क्रमबद्ध करें</string>

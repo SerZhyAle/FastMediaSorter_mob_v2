@@ -26,6 +26,20 @@ enum class WearFileOperationOutcome {
     /** The paired phone did not answer, so a move left its source in place. */
     PHONE_UNREACHABLE,
 
+    /** The phone was in the foreground and put the file on screen there and then. */
+    OPENED_ON_PHONE,
+
+    /** The phone was not in the foreground, so it posted a notification the user can tap. */
+    NOTIFIED_ON_PHONE,
+
+    /**
+     * The phone could neither show the file nor announce it - its notifications are off.
+     *
+     * Kept apart from [PHONE_UNREACHABLE]: the phone answered, so telling the user to bring it closer
+     * would send them after the wrong fix (strategic 11 criterion 9).
+     */
+    REFUSED_PHONE_NOTIFICATIONS_OFF,
+
     FAILED,
 
     CANCELLED

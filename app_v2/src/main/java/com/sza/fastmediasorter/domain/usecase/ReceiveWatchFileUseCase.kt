@@ -2,20 +2,30 @@ package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
 import android.os.Environment
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
+import com.sza.fastmediasorter.data.local.staging.StagedKind
+import com.sza.fastmediasorter.data.local.staging.StagingDirectoryProvider
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.data.transfer.local.LocalSink
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.WEAR_FILE_TRANSFER_MAX_BYTES
+import com.sza.fastmediasorter.domain.model.WatchFileDestination
 import com.sza.fastmediasorter.domain.model.WearFileReceiveOutcome
+import com.sza.fastmediasorter.domain.model.WearFileReceiveOutcome.QUEUED_FOR_UPLOAD
 import com.sza.fastmediasorter.domain.model.WearFileReceiveResult
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.util.VirtualPathUtils
+import com.sza.fastmediasorter.worker.WearReceivedFileUploadWorker
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.File
+import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 import javax.inject.Inject
@@ -40,7 +50,9 @@ class ReceiveWatchFileUseCase @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val resourceRepository: ResourceRepository,
     private val destinationClassifier: LocalDestinationClassifier,
-    private val destinationWriter: LocalDestinationWriter
+    private val destinationWriter: LocalDestinationWriter,
+    private val stagingDirectoryProvider: StagingDirectoryProvider,
+    private val workManager: WorkManager
 ) {
 
     suspend operator fun invoke(
@@ -73,13 +85,80 @@ class ReceiveWatchFileUseCase @Inject constructor(
         limitBytes: Long,
         source: InputStream
     ): WearFileReceiveResult {
-        val sink = openSink(fileName)
-        return if (sink == null) {
-            Timber.w("No writable destination for the incoming watch file %s", fileName)
-            WearFileReceiveResult(WearFileReceiveOutcome.NO_DESTINATION)
-        } else {
-            copyInto(sink, fileName, limitBytes, source)
+        return when (val destination = resolveDestination()) {
+            is WatchFileDestination.Local -> {
+                val sink = openSink(destination, fileName)
+                if (sink == null) {
+                    Timber.w("No writable destination for the incoming watch file %s", fileName)
+                    WearFileReceiveResult(WearFileReceiveOutcome.NO_DESTINATION)
+                } else {
+                    copyInto(sink, fileName, limitBytes, source)
+                }
+            }
+            is WatchFileDestination.Remote -> {
+                stageForUpload(destination, fileName, limitBytes, source)
+            }
         }
+    }
+
+    @Suppress("TooGenericExceptionCaught")
+    private suspend fun stageForUpload(
+        destination: WatchFileDestination.Remote,
+        fileName: String,
+        limitBytes: Long,
+        source: InputStream
+    ): WearFileReceiveResult {
+        val stagingDir = stagingDirectoryProvider.directoryFor(StagedKind.WATCH_RECEIVED)
+        val initialFile = File(stagingDir, fileName)
+        val targetFile = if (initialFile.exists()) {
+            File(stagingDir, uniquify(fileName))
+        } else {
+            initialFile
+        }
+
+        return try {
+            val written = FileOutputStream(targetFile).use { output ->
+                pump(source, output, limitBytes)
+            }
+            if (written == null) {
+                Timber.w("Watch file %s outran declared size while staging, discarded", fileName)
+                targetFile.delete()
+                WearFileReceiveResult(WearFileReceiveOutcome.REFUSED_TOO_LARGE)
+            } else {
+                enqueueUploadWorker(
+                    stagedPath = targetFile.absolutePath,
+                    resourceId = destination.resourceId,
+                    parentPath = destination.parentPath,
+                    fileName = fileName
+                )
+                WearFileReceiveResult(QUEUED_FOR_UPLOAD, targetFile.absolutePath)
+            }
+        } catch (e: CancellationException) {
+            targetFile.delete()
+            throw e
+        } catch (e: Exception) {
+            Timber.w(e, "Failed to stage watch file %s for upload", fileName)
+            targetFile.delete()
+            WearFileReceiveResult(WearFileReceiveOutcome.FAILED)
+        }
+    }
+
+    private fun enqueueUploadWorker(
+        stagedPath: String,
+        resourceId: Long,
+        parentPath: String,
+        fileName: String
+    ) {
+        val inputData = workDataOf(
+            WearReceivedFileUploadWorker.KEY_STAGED_PATH to stagedPath,
+            WearReceivedFileUploadWorker.KEY_RESOURCE_ID to resourceId,
+            WearReceivedFileUploadWorker.KEY_PARENT_PATH to parentPath,
+            WearReceivedFileUploadWorker.KEY_FILE_NAME to fileName
+        )
+        val workRequest = OneTimeWorkRequestBuilder<WearReceivedFileUploadWorker>()
+            .setInputData(inputData)
+            .build()
+        workManager.enqueue(workRequest)
     }
 
     // A local sink fails through IOException, SecurityException and MediaStore's own unchecked
@@ -126,8 +205,8 @@ class ReceiveWatchFileUseCase @Inject constructor(
      * Opens the destination, uniquifying the name once if it is taken. Overwriting is never right
      * here: the watch chooses the name and the phone's copy may be an unrelated file of the same one.
      */
-    private suspend fun openSink(fileName: String): LocalSink? {
-        val targetDir = resolveTargetDirectory()
+    private suspend fun openSink(destination: WatchFileDestination.Local, fileName: String): LocalSink? {
+        val targetDir = destination.directoryPath
         val first = destinationWriter.open(
             destinationClassifier.classify("$targetDir/$fileName"),
             overwrite = false
@@ -146,18 +225,32 @@ class ReceiveWatchFileUseCase @Inject constructor(
     }
 
     /**
-     * The user's first writable local destination, or the app's own downloads directory when none is
-     * configured. Network and cloud destinations are skipped: this path writes bytes with a local
-     * sink, and routing a watch file onward to SMB is a transfer of its own, not a save.
+     * The user's first writable destination, or the app's own downloads directory as [WatchFileDestination.Local]
+     * when none is configured.
      */
-    private suspend fun resolveTargetDirectory(): String {
-        val destination = resourceRepository.getAllResourcesSync()
-            .filter { it.isDestination && it.type == ResourceType.LOCAL && it.isWritable }
+    private suspend fun resolveDestination(): WatchFileDestination {
+        val resource = resourceRepository.getAllResourcesSync()
+            .filter { it.isDestination && it.type != ResourceType.WEAR_WATCH && it.isWritable }
             .filterNot { VirtualPathUtils.isVirtualPath(it.path) || it.path.startsWith("content://") }
             .minByOrNull { it.destinationOrder ?: Int.MAX_VALUE }
-        return destination?.path
-            ?: context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)?.absolutePath
-            ?: context.filesDir.absolutePath
+
+        if (resource == null) {
+            val fallbackPath = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)?.absolutePath
+                ?: context.filesDir.absolutePath
+            return WatchFileDestination.Local(fallbackPath)
+        }
+
+        val path = resource.path
+        val isRemote = path.startsWith("smb://") ||
+            path.startsWith("sftp://") ||
+            path.startsWith("ftp://") ||
+            path.startsWith("cloud://")
+
+        return if (isRemote) {
+            WatchFileDestination.Remote(resource.id, path)
+        } else {
+            WatchFileDestination.Local(path)
+        }
     }
 
     /** Returns the byte count written, or null once the budget is exceeded and the copy is abandoned. */

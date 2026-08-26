@@ -32,6 +32,12 @@ object NotificationIds {
     /** S1802: one log report arrived from the paired watch and is ready to send on. */
     const val WATCH_LOG_REPORT = 4204
 
+    /** S2044: upload of one file received from the watch into a network or cloud destination. */
+    const val WEAR_RECEIVED_FILE_UPLOAD = 4205
+
+    /** S2004: the watch asked this phone to show one of its own files while the app was not in front. */
+    const val WEAR_OPEN_ON_PHONE = 4206
+
     /** MediaProjection screenshot capture service. */
     const val SCREEN_CAPTURE = 0x4053
 

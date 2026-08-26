@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.favoriteSourceId
@@ -14,13 +15,16 @@ import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.DownloadNetworkFileUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ToggleFavoriteUseCase
+import com.sza.fastmediasorter.wear.ui.player.common.awaitPanelHide
 import com.sza.fastmediasorter.wear.ui.slideshow.ImageSlideshowController
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -50,6 +54,8 @@ class ImageViewerViewModel @Inject constructor(
 
     private var slideshowController: ImageSlideshowController? = null
 
+    private var controlsHideJob: Job? = null
+
     /**
      * The selection this screen was opened with, kept only when it is a network one. Paging has to
      * re-enter the download path with the same source id, or S1687's routing loses the protocol on
@@ -60,12 +66,53 @@ class ImageViewerViewModel @Inject constructor(
     init {
         Timber.d("ImageViewerViewModel initialized with fileId: $fileId")
 
+        seedScaleMode()
+
+        // S2006: the shuffle flag already governs this screen's paging through the shared set, so the
+        // screen reads it from the same stored value the audio player writes rather than keeping its own.
+        viewModelScope.launch {
+            preferencesRepository.isShuffleEnabled.collect { enabled ->
+                playbackSetManager.shuffleEnabled = enabled
+                _uiState.update { it.copy(isShuffleEnabled = enabled) }
+            }
+        }
+
         // Auto-load if fileId is valid (from SavedStateHandle)
         if (fileId != -1L) {
             // Navigation carries the id alone, so the shared set has to be pointed at it here.
             playbackSetManager.moveTo(fileId)
             loadImageFile()
         }
+    }
+
+    /**
+     * S1948's reason, applied here: read once rather than collected. A subscription would route this
+     * screen's own write back into the state, and the store is what carries the choice to the next file.
+     */
+    private fun seedScaleMode() {
+        viewModelScope.launch {
+            val stored = preferencesRepository.imageScaleMode.first()
+            _uiState.update { it.copy(scaleMode = stored) }
+        }
+    }
+
+    fun toggleScaleMode() {
+        Timber.d("S2006: image fit toggled, was=${_uiState.value.scaleMode}")
+        val next = _uiState.updateAndGet { current ->
+            val mode = if (current.scaleMode == VideoScaleMode.FIT) {
+                VideoScaleMode.CROP_PAN
+            } else {
+                VideoScaleMode.FIT
+            }
+            current.copy(scaleMode = mode)
+        }.scaleMode
+        viewModelScope.launch { preferencesRepository.setImageScaleMode(next) }
+    }
+
+    fun toggleShuffle() {
+        Timber.d("S2006: shuffle toggled on image viewer, was=${_uiState.value.isShuffleEnabled}")
+        val enabled = !_uiState.value.isShuffleEnabled
+        viewModelScope.launch { preferencesRepository.setShuffleEnabled(enabled) }
     }
 
     private fun loadImageFile() {
@@ -166,10 +213,14 @@ class ImageViewerViewModel @Inject constructor(
                 }
             )
 
-            // Auto-start if slideshow is enabled in settings
-            val isSlideshowEnabled = preferencesRepository.isSlideshowEnabled.first()
-            if (isSlideshowEnabled) {
-                startSlideshow()
+            // S2006: collected, not read once. A one-shot read is why turning the setting off used to
+            // leave an open viewer showing, and why the video player and this screen disagreed about
+            // whether a settings change reaches a screen that is already up.
+            preferencesRepository.isSlideshowEnabled.collect { enabled ->
+                when {
+                    enabled && !_uiState.value.isSlideshowActive -> startSlideshow()
+                    !enabled && _uiState.value.isSlideshowActive -> stopSlideshow()
+                }
             }
         }
     }
@@ -178,15 +229,44 @@ class ImageViewerViewModel @Inject constructor(
         Timber.d("Starting slideshow")
         slideshowController?.start()
         _uiState.update { it.copy(isSlideshowActive = true) }
+        scheduleHideControls()
     }
 
     fun stopSlideshow() {
         Timber.d("Stopping slideshow")
         slideshowController?.stop()
         _uiState.update { it.copy(isSlideshowActive = false) }
+        showControls()
+    }
+
+    /** A tap on the picture is the only way back to a hidden panel, so it toggles rather than reveals. */
+    fun onScreenTap() {
+        Timber.d("S2006: image panel toggled, wasVisible=${_uiState.value.showControls}")
+        if (_uiState.value.showControls) {
+            controlsHideJob?.cancel()
+            _uiState.update { it.copy(showControls = false) }
+        } else {
+            showControls()
+            scheduleHideControls()
+        }
+    }
+
+    private fun showControls() {
+        controlsHideJob?.cancel()
+        _uiState.update { it.copy(showControls = true) }
+    }
+
+    private fun scheduleHideControls() {
+        controlsHideJob?.cancel()
+        controlsHideJob = viewModelScope.launch {
+            if (awaitPanelHide(isActive = _uiState.value.isSlideshowActive)) {
+                _uiState.update { it.copy(showControls = false) }
+            }
+        }
     }
 
     fun toggleSlideshow() {
+        Timber.d("S2006: slideshow toggled from viewer, wasActive=${_uiState.value.isSlideshowActive}")
         if (_uiState.value.isSlideshowActive) {
             stopSlideshow()
         } else {
@@ -282,6 +362,7 @@ class ImageViewerViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
+        controlsHideJob?.cancel()
         slideshowController?.stop()
     }
 }

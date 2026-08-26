@@ -501,4 +501,6 @@ private fun WearFileOperation.mutatesList(): Boolean = when (this) {
     WearFileOperation.MoveToPhone -> true
     WearFileOperation.Delete -> true
     is WearFileOperation.Rename -> true
+    // Everything it changes happens on the phone; the watch copy it names is still where it was.
+    is WearFileOperation.OpenOnPhone -> false
 }

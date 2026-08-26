@@ -31,7 +31,8 @@ data class WearFileTransferItem(
     val displayName: String,
     val totalBytes: Long = 0L,
     val transferredBytes: Long = 0L,
-    val outcome: WearFileTransferOutcome = WearFileTransferOutcome.QUEUED
+    val outcome: WearFileTransferOutcome = WearFileTransferOutcome.QUEUED,
+    val mediaType: MediaType? = null
 )
 
 /**
@@ -112,6 +113,15 @@ enum class WearFileReceiveOutcome {
     REFUSED_TOO_LARGE,
 
     NO_DESTINATION,
+
+    /**
+     * S2044: the bytes are on the phone and an upload to a remote destination has been enqueued.
+     *
+     * Not a final outcome, and deliberately not reported as [SAVED]: at the moment the channel
+     * closes the file has not reached the destination the user configured, and only the upload
+     * worker learns whether it ever does.
+     */
+    QUEUED_FOR_UPLOAD,
 
     FAILED
 }

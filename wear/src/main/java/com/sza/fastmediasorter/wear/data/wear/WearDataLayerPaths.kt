@@ -66,6 +66,12 @@ object WearDataLayerPaths {
     /** Message, watch → phone. Carries the correlated outcome of one file transfer. */
     const val FILE_TRANSFER_ACK = "/fms/watch/transfer_file_ack"
 
+    /** Message, watch → phone. Asks the phone to show one of its own files (S2004). */
+    const val OPEN_ON_PHONE_REQUEST = "/fms/watch/open_on_phone"
+
+    /** Message, phone → watch. Answers one open request - shown, notified, or refused. */
+    const val OPEN_ON_PHONE_ACK = "/fms/phone/open_on_phone_ack"
+
     /**
      * Reserved name the watch background frame arrives under (S2000).
      *

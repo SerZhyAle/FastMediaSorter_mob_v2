@@ -12,7 +12,6 @@ import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import timber.log.Timber
 import java.io.File
-import java.io.InputStream
 import javax.inject.Inject
 
 /**
@@ -63,9 +62,7 @@ class OpenPhoneResourceChannelUseCase @Inject constructor(
                 name = file.name,
                 sizeBytes = file.length(),
                 mediaType = mediaType,
-                // A provider rather than an open stream: the bridge decides when the descriptor is
-                // taken, so a request the watch abandons before the channel opens costs nothing.
-                openStream = { file.inputStream() }
+                file = file
             )
         }
     }
@@ -122,14 +119,17 @@ class OpenPhoneResourceChannelUseCase @Inject constructor(
 sealed interface PhoneResourceChannel {
 
     /**
-     * An accepted transfer. [openStream] is opened by the bridge and closed by it; nothing here
-     * holds the file open, so an abandoned request leaks no descriptor.
+     * An accepted request, named by the file it resolved to.
+     *
+     * The file rather than an open stream: nothing here holds a descriptor, so a request the watch
+     * abandons before the channel opens costs nothing - and S2004 needs the same resolved file to
+     * address the phone's own viewer, which a stream cannot be turned back into.
      */
     data class Approved(
         val name: String,
         val sizeBytes: Long,
         val mediaType: MediaType,
-        val openStream: () -> InputStream
+        val file: File
     ) : PhoneResourceChannel
 
     /** A refusal the watch can explain without knowing why the phone said no. */

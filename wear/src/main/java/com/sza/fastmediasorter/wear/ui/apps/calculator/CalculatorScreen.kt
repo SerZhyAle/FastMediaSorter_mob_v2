@@ -43,10 +43,14 @@ import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
 
-// S1965: was 26.dp - about half the interactive minimum, while the KDoc below and
-// docs/WEAR_OS_STATUS.md both said 48. That KDoc names the target size as the FIXED side of the
-// trade and scrolling as its price, so the constant was what stood out of line, not the rule.
-private val KEY_HEIGHT = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
+// S2007, owner ruling 2026-08-26: half the interactive minimum, deliberately. S1965 had raised this
+// to 48.dp because the KDoc and docs/WEAR_OS_STATUS.md both said 48 and the constant alone stood out
+// of line - a rule inferred from two documents agreeing with each other. The owner then pressed the
+// shipped keys on a real watch and priced the trade the other way: fitting all five rows and the
+// value row on the glass at once is worth more than the 48 dp target, which no five-row keypad ever
+// fitted anyway (S2007 section 6 item 3). The cost is a smaller key, stated rather than hidden.
+// GridColumnFit.DEFAULT_MIN_TARGET_DP stays 48 dp for every other watch control.
+private val KEY_HEIGHT = 24.dp
 private val KEY_GAP = 2.dp
 private val KEYPAD_SIDE_PADDING = 6.dp
 
@@ -66,8 +70,10 @@ private const val DESTRUCTIVE_TINT_ALPHA = 0.35f
  * A round screen narrows towards its edges, and the scaling this keypad dropped was quietly paying
  * for that: a full-size row at the end of the viewport has its outer keys off the glass. Measured on
  * a 480 px round emulator at maximum scroll, the clear key's tap centre landed about 15 px outside a
- * circle of radius 240 - the key could not be pressed at all. The answer is space to scroll into,
- * not a smaller key, which is what ADR-1 refuses. This is not the `autoCentering` padding ADR-2
+ * circle of radius 240 - the key could not be pressed at all. The space survives the 2026-08-26
+ * ruling that halved the key: a shorter row is likelier to fit at rest, which makes this cheap
+ * insurance rather than dead weight, and it costs nothing until scrolled to. This is not the
+ * `autoCentering` padding ADR-2
  * rejected: that sat ABOVE the first row and was why the keypad opened on emptiness, while this sits
  * below the last row and costs nothing until the user scrolls down to it.
  */
@@ -93,9 +99,10 @@ private sealed interface CalculatorKey {
  * (owner ruling 2026-08-19).
  *
  * The keypad scrolls rather than filling the screen. A watch display cannot hold twenty keys at the
- * 48 dp interactive minimum and a result line at the same time, and the strategic constraint makes
- * the target size the fixed side of that trade, not the key set - so the rows scroll instead of the
- * keys shrinking.
+ * 48 dp interactive minimum and a result line at the same time, so one side of that trade has to
+ * give. Owner ruling 2026-08-26 made it the target size: [KEY_HEIGHT] is 24 dp, which is what puts
+ * the rows on the glass. The scroll container stays, because nothing guarantees the fit on every
+ * watch size and a keypad that cannot scroll would lose its last row on the smallest of them.
  *
  * S2007: what scrolls them is a plain [Column], not a `ScalingLazyColumn`. The scaling list spent
  * about half its own viewport on auto-centring padding that carried no key, and drew every row away

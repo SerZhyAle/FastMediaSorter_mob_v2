@@ -3478,4 +3478,12 @@
     <string name="perm_title_location_extended">Геометка, гаджеты и монитор сети</string>
     <string name="perm_desc_location_extended">Геометки для съёмки, гаджеты рабочего стола и монитор сети</string>
     <string name="perm_rationale_location_extended">Местоположение используется только внутри приложения - чтобы записать координаты в снятые фото и видео, нарисовать гаджеты компаса, скорости, высоты и карты на рабочем столе и заполнить разделы GNSS и Wi-Fi в мониторе сети. Никуда ничего не отправляется.</string>
+    <string name="wear_received_upload_notif_channel">Файлы с часов</string>
+    <string name="wear_received_upload_notif_progress">Сохраняю %1$s в %2$s</string>
+    <string name="wear_received_upload_notif_success">%1$s сохранён в %2$s</string>
+    <string name="wear_received_upload_notif_unreachable">Не удаётся связаться с %2$s. %1$s ждёт на телефоне - попробуйте, когда ресурс будет доступен.</string>
+    <string name="wear_received_upload_notif_failed">Не удалось сохранить %1$s в %2$s. Файл ждёт на телефоне - проверьте ресурс и попробуйте снова.</string>
+    <string name="open_on_phone_notification_title">Открыть с часов</string>
+    <string name="open_on_phone_notification_text">Нажмите, чтобы открыть %1$s</string>
+    <string name="open_on_phone_channel_name">Открытие с часов</string>
 </resources>

@@ -4,6 +4,7 @@ import android.app.Application
 import android.util.Log
 import com.sza.fastmediasorter.wear.core.logging.WearLogTree
 import com.sza.fastmediasorter.wear.core.util.WearLocaleManager
+import com.sza.fastmediasorter.wear.domain.repository.WearNowPlayingRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.DrainPendingVoiceNotesUseCase
 import dagger.Lazy
@@ -21,6 +22,8 @@ import javax.inject.Inject
 class FastMediaSorterWearApp : Application() {
 
     @Inject lateinit var preferencesRepository: WearPreferencesRepository
+
+    @Inject lateinit var nowPlayingRepository: Lazy<WearNowPlayingRepository>
 
     /**
      * S1862: Lazy, so opening the note database is not part of process start - the drain is the only
@@ -64,6 +67,9 @@ class FastMediaSorterWearApp : Application() {
         // back while the app is closed; this one covers the watch having been restarted since, which
         // leaves no capability change to observe.
         applicationScope.launch { drainPendingVoiceNotesUseCase.get().invoke() }
+
+        // S2047: reset live playback flag on startup so a killed process doesn't leave stale complication state
+        applicationScope.launch { nowPlayingRepository.get().clearPlayingFlag() }
 
         Timber.d("FastMediaSorter Wear OS app started")
     }

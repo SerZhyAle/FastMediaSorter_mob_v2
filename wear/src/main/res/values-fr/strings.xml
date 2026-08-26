@@ -130,7 +130,6 @@
     <string name="wear_phone_audio">Audio</string>
     <string name="wear_phone_images">Images</string>
     <string name="wear_phone_documents">Documents</string>
-    <string name="wear_phone_all_files">Tous les fichiers</string>
     <string name="screen_settings_title">Écran</string>
     <string name="screen_settings_view_mode">Vue des écrans</string>
     <string name="wear_streams_section_enabled">Afficher les flux</string>
@@ -209,7 +208,7 @@
     <string name="wear_favourites_unopenable">Celui-ci a été enregistré avant que la montre ne se souvienne comment l\'ouvrir.</string>
     <string name="phone_resource_source_unavailable">Cette ressource ne répond pas. Le téléphone est connecté - vérifiez la ressource, puis réessayez.</string>
     <string name="wear_phone_recents">Récents</string>
-    <string name="wear_video_scale_mode">Format d\'image / mode de zoom</string>
+    <string name="wear_scale_mode">Format d\'image / mode de zoom</string>
     <string name="wear_streams_search">Rechercher des flux</string>
     <string name="wear_streams_filter">Filtrer les flux</string>
     <string name="wear_streams_sort">Trier les flux</string>

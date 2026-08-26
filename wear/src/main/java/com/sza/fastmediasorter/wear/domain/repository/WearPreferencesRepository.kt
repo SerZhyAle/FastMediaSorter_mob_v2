@@ -53,6 +53,13 @@ interface WearPreferencesRepository {
     suspend fun setVideoScaleMode(mode: VideoScaleMode)
 
     /**
+     * S2006: the image viewer's own fit, over the same vocabulary as the video player's but under its
+     * own key - the two screens are chosen for independently and must not overwrite each other.
+     */
+    val imageScaleMode: Flow<VideoScaleMode>
+    suspend fun setImageScaleMode(mode: VideoScaleMode)
+
+    /**
      * S2000: what is drawn behind the app's screens. Read from here rather than from the last
      * message received, so the watch draws the right background after a restart out of BT range.
      */

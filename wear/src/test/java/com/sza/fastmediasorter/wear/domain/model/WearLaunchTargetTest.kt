@@ -58,7 +58,8 @@ class WearLaunchTargetTest {
             WearLaunchTarget.Pick(WearTileKind.FAVOURITES),
             WearLaunchTarget.Open(WearTileTargetRef.Favourites),
             WearLaunchTarget.Open(streamTargetRef("http://host.example/live")),
-            WearLaunchTarget.Open(resourceRef)
+            WearLaunchTarget.Open(resourceRef),
+            WearLaunchTarget.File("/data/user/0/app/files/arrived.mp4", "video/mp4")
         )
 
         shapes.forEach { shape ->

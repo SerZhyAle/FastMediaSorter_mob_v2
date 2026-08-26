@@ -3,10 +3,12 @@ package com.sza.fastmediasorter.wear.ui.common
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import android.view.Window
 import android.view.WindowManager
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.platform.LocalContext
+import java.util.WeakHashMap
 
 /**
  * Holds the watch screen on while [enabled], and releases it on the way out.
@@ -19,10 +21,36 @@ fun KeepScreenOnEffect(enabled: Boolean) {
     val window = LocalContext.current.findActivity()?.window
     DisposableEffect(window, enabled) {
         if (enabled) {
-            window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            window?.let(KeepScreenOnClaims::acquire)
         }
         onDispose {
-            window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            if (enabled) window?.let(KeepScreenOnClaims::release)
+        }
+    }
+}
+
+/**
+ * Counts the live claims per window, so the flag is set on the first and cleared only on the last.
+ *
+ * Weak keys: a claim outliving its Activity would otherwise pin the destroyed window here forever, and a
+ * recreated Activity brings a new window that starts its own count from zero.
+ */
+private object KeepScreenOnClaims {
+    private val counts = WeakHashMap<Window, Int>()
+
+    fun acquire(window: Window) {
+        val count = counts[window] ?: 0
+        if (count == 0) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        counts[window] = count + 1
+    }
+
+    fun release(window: Window) {
+        val count = counts[window] ?: return
+        if (count == 1) {
+            counts.remove(window)
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        } else {
+            counts[window] = count - 1
         }
     }
 }

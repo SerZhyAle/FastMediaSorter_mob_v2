@@ -28,6 +28,9 @@ class WorldClockGadget @Inject constructor() : LauncherGadget {
     override val labelRes: Int = R.string.launcher_gadget_world_clock
     override val iconRes: Int = R.drawable.ic_world_clock
 
+    // S2062: ic_world_clock fills white and is invisible on the picker's light surface without a tint.
+    override val iconTintable: Boolean = true
+
     // The zone is not a registered resource, so the add flow asks for it with its own picker.
     override val requiresResourceParam: Boolean = false
 

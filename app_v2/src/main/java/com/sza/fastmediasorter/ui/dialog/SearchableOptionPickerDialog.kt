@@ -43,8 +43,17 @@ class SearchableOptionPickerDialog : DialogFragment() {
         /** A ready Drawable (e.g. an installed app icon). */
         data class IconDrawable(val drawable: android.graphics.drawable.Drawable) : LeadingVisual
 
-        /** A drawable resource id (e.g. an internal-feature / OS-shortcut icon). */
-        data class IconRes(@androidx.annotation.DrawableRes val resId: Int) : LeadingVisual
+        /**
+         * A drawable resource id (e.g. an internal-feature / OS-shortcut icon). [tintIcon] opts a flat
+         * single-colour glyph into a themed tint (S2062) - some icon resources in this app are
+         * deliberately filled white/constant, meant to be tinted at their point of use; a branded or
+         * multi-colour icon (a YouTube logo, an `_accent` widget glyph) must keep `false`, the default,
+         * or the tint would flatten it to one colour.
+         */
+        data class IconRes(
+            @androidx.annotation.DrawableRes val resId: Int,
+            val tintIcon: Boolean = false,
+        ) : LeadingVisual
 
         /** A Glide-loadable model (e.g. a resource thumbnail Uri/path). */
         data class Thumbnail(val model: Any) : LeadingVisual

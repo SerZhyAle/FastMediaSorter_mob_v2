@@ -39,6 +39,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -221,7 +222,9 @@ fun CameraTargetSelectionScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = onCancel,
-                        modifier = Modifier.focusRequester(cancelFocusRequester)
+                        modifier = Modifier
+                            .focusRequester(cancelFocusRequester)
+                            .testTag("camera_config_cancel")
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Close,
@@ -289,12 +292,14 @@ fun CaptureModeSelector(
             FilterChip(
                 selected = !isVideo,
                 onClick = { onModeChange(false) },
-                label = { Text(stringResource(R.string.widget_camera_quick_capture_mode_photo)) }
+                label = { Text(stringResource(R.string.widget_camera_quick_capture_mode_photo)) },
+                modifier = Modifier.testTag("camera_config_mode_photo")
             )
             FilterChip(
                 selected = isVideo,
                 onClick = { onModeChange(true) },
-                label = { Text(stringResource(R.string.widget_camera_quick_capture_mode_video)) }
+                label = { Text(stringResource(R.string.widget_camera_quick_capture_mode_video)) },
+                modifier = Modifier.testTag("camera_config_mode_video")
             )
         }
     }
@@ -311,6 +316,7 @@ fun CameraFolderItem(
         onClick = onClick,
         modifier = Modifier
             .then(modifier)
+            .testTag("camera_config_folder_item")
             .fillMaxWidth()
             .onFocusChanged { isFocused = it.isFocused }
             .focusable(),

@@ -54,7 +54,7 @@ class WearOpenOnWatchNotifier @Inject constructor(
      */
     fun notifyPendingOpen(target: WearLaunchTarget, subtitle: String): Boolean {
         if (!canPostNotification()) {
-            Timber.i("POST_NOTIFICATIONS is denied; the pending open stays unannounced")
+            Timber.d("S1961: notifyPendingOpen POST_NOTIFICATIONS is denied")
             return false
         }
         val manager = notificationManager()
@@ -69,7 +69,8 @@ class WearOpenOnWatchNotifier @Inject constructor(
             )
         )
         manager.notify(WearNotificationIds.OPEN_ON_WATCH, build(target, subtitle))
-        Timber.d("S1961: pending-open notification posted for %s", subtitle)
+        Timber.d("S1961: notifyPendingOpen posted notification subtitle=%s", subtitle)
+
         return true
     }
 
@@ -81,6 +82,7 @@ class WearOpenOnWatchNotifier @Inject constructor(
      * shade is worse than never having shown it (strategic §3.2).
      */
     fun cancel() {
+        Timber.d("S1961: cancel notification OPEN_ON_WATCH")
         notificationManager().cancel(WearNotificationIds.OPEN_ON_WATCH)
     }
 

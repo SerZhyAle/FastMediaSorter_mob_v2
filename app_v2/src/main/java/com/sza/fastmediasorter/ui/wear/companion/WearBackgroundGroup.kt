@@ -18,7 +18,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.bumptech.glide.Glide
@@ -73,7 +76,9 @@ fun WearBackgroundGroup(
             Spacer(Modifier.height(SPACING_SMALL))
             OutlinedButton(
                 onClick = { pickImage.launch(PICKED_IMAGE_TYPES) },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("wearBackgroundPickImage")
             ) {
                 Text(stringResource(R.string.wear_background_pick_image))
             }
@@ -93,10 +98,16 @@ private fun BackgroundModeRow(selected: String, onSelect: (String) -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(SPACING_SMALL)
     ) {
         BACKGROUND_MODES.forEach { (value, labelRes) ->
+            val chipLabel = stringResource(labelRes)
             FilterChip(
                 selected = value == selected,
                 onClick = { onSelect(value) },
-                label = { Text(stringResource(labelRes)) }
+                label = { Text(chipLabel) },
+                // S2091: a chip's own label does not reach the accessibility node, so the two options
+                // dump as anonymous checkboxes and the screen reader announces neither.
+                modifier = Modifier
+                    .testTag("wearBackgroundMode_" + value)
+                    .semantics { contentDescription = chipLabel }
             )
         }
     }

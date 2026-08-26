@@ -38,7 +38,8 @@ object WearSyncEvents {
         MutableSharedFlow<WearStreamTransferAck>(extraBufferCapacity = 4)
     val streamTransferAckFlow: SharedFlow<WearStreamTransferAck> = _streamTransferAckFlow.asSharedFlow()
 
-    private val _fileTransferAckFlow = MutableSharedFlow<WearFileTransferAck>(extraBufferCapacity = 4)
+    private val _fileTransferAckFlow =
+        MutableSharedFlow<WearFileTransferAck>(replay = 1, extraBufferCapacity = 4)
     val fileTransferAckFlow: SharedFlow<WearFileTransferAck> = _fileTransferAckFlow.asSharedFlow()
 
     suspend fun emitAck(json: String) = _ackFlow.emit(json)

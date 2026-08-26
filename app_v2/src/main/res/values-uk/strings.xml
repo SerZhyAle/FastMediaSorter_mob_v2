@@ -3463,4 +3463,12 @@
     <string name="perm_title_location_extended">Геомітка, гаджети та монітор мережі</string>
     <string name="perm_desc_location_extended">Геомітки для зйомки, гаджети робочого столу та монітор мережі</string>
     <string name="perm_rationale_location_extended">Місцезнаходження використовується лише всередині застосунку - щоб записати координати у зняті фото та відео, намалювати гаджети компаса, швидкості, висоти та карти на робочому столі й заповнити розділи GNSS і Wi-Fi у моніторі мережі. Нікуди нічого не надсилається.</string>
+    <string name="wear_received_upload_notif_channel">Файли з годинника</string>
+    <string name="wear_received_upload_notif_progress">Зберігаю %1$s у %2$s</string>
+    <string name="wear_received_upload_notif_success">%1$s збережено в %2$s</string>
+    <string name="wear_received_upload_notif_unreachable">Не вдається дістатися до %2$s. %1$s чекає на телефоні - спробуйте, коли ресурс буде доступний.</string>
+    <string name="wear_received_upload_notif_failed">Не вдалося зберегти %1$s у %2$s. Файл чекає на телефоні - перевірте ресурс і спробуйте знову.</string>
+    <string name="open_on_phone_notification_title">Відкрити з годинника</string>
+    <string name="open_on_phone_notification_text">Натисніть, щоб відкрити %1$s</string>
+    <string name="open_on_phone_channel_name">Відкриття з годинника</string>
 </resources>

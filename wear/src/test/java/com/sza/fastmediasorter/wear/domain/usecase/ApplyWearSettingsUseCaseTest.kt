@@ -233,6 +233,7 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     var keepScreenAwakeValue = false
     var fileListViewModeValue = WearViewMode.LIST
     var videoScaleModeValue = VideoScaleMode.FIT
+    var imageScaleModeValue = VideoScaleMode.FIT
     var lastUsedResourcesValue: List<LastUsedResource> = emptyList()
     var streamsSectionEnabledValue = true
     var calculatorHistoryValue: List<String> = emptyList()
@@ -254,6 +255,7 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     override val backgroundMode: Flow<WearBackgroundMode> = MutableStateFlow(backgroundModeValue)
     override val fileListViewMode: Flow<WearViewMode> = MutableStateFlow(fileListViewModeValue)
     override val videoScaleMode: Flow<VideoScaleMode> = MutableStateFlow(videoScaleModeValue)
+    override val imageScaleMode: Flow<VideoScaleMode> = MutableStateFlow(imageScaleModeValue)
     override val keepScreenAwakeOutsidePlayers: Flow<Boolean> = MutableStateFlow(keepScreenAwakeValue)
     override val lastUsedResources: Flow<List<LastUsedResource>> = MutableStateFlow(lastUsedResourcesValue)
     override val streamsSectionEnabled: Flow<Boolean> = MutableStateFlow(streamsSectionEnabledValue)
@@ -320,6 +322,10 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
 
     override suspend fun setVideoScaleMode(mode: VideoScaleMode) {
         videoScaleModeValue = mode
+    }
+
+    override suspend fun setImageScaleMode(mode: VideoScaleMode) {
+        imageScaleModeValue = mode
     }
 
     override suspend fun setKeepScreenAwakeOutsidePlayers(enabled: Boolean) {

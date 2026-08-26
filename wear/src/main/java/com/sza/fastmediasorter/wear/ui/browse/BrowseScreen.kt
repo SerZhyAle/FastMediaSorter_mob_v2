@@ -54,6 +54,7 @@ import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
+import com.sza.fastmediasorter.wear.ui.common.playerRouteFor
 import com.sza.fastmediasorter.wear.ui.common.rememberWearRenameInput
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
@@ -260,6 +261,10 @@ private fun WearFileOperationOutcome.messageRes(): Int = when (this) {
     WearFileOperationOutcome.REFUSED_UNSUPPORTED -> R.string.wear_file_op_outcome_unsupported
     WearFileOperationOutcome.REFUSED_TOO_LARGE -> R.string.wear_file_op_outcome_too_large
     WearFileOperationOutcome.PHONE_UNREACHABLE -> R.string.wear_file_op_outcome_phone_unreachable
+    WearFileOperationOutcome.OPENED_ON_PHONE -> R.string.wear_open_on_phone_shown
+    WearFileOperationOutcome.NOTIFIED_ON_PHONE -> R.string.wear_open_on_phone_notified
+    WearFileOperationOutcome.REFUSED_PHONE_NOTIFICATIONS_OFF ->
+        R.string.wear_open_on_phone_no_notifications
     WearFileOperationOutcome.FAILED -> R.string.wear_file_op_outcome_failed
     WearFileOperationOutcome.CANCELLED -> R.string.wear_file_op_outcome_cancelled
 }
@@ -394,17 +399,9 @@ private fun navigateToPlayer(
     file: WearMediaFile,
     mediaType: MediaType
 ) {
-    // Determine player based on file's actual mimeType, not the screen's mediaType
-    val route = when {
-        file.mimeType?.startsWith("image/") == true -> WearRoutes.imageViewer(file.id)
-        file.mimeType?.startsWith("video/") == true -> WearRoutes.videoPlayer(file.id)
-        file.mimeType?.startsWith("audio/") == true -> WearRoutes.audioPlayer(file.id)
-        else -> when (mediaType) {
-            MediaType.MUSIC -> WearRoutes.audioPlayer(file.id)
-            MediaType.VIDEO -> WearRoutes.videoPlayer(file.id)
-            MediaType.PHOTO -> WearRoutes.imageViewer(file.id)
-        }
-    }
+    // The file's own mime type decides; the screen's media type answers only for an unknown one.
+    val route = playerRouteFor(file.id, file.mimeType, mediaType)
+    Timber.d("S2005: media item tap routes to $route")
     Timber.d("Navigating to: $route for file: ${file.name} (mimeType: ${file.mimeType})")
     navController.navigate(route)
 }

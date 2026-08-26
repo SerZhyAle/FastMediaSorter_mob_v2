@@ -148,7 +148,6 @@
     <string name="wear_phone_audio">Аудио</string>
     <string name="wear_phone_images">Изображения</string>
     <string name="wear_phone_documents">Документы</string>
-    <string name="wear_phone_all_files">Все файлы</string>
     <string name="screen_settings_title">Экран</string>
     <string name="screen_settings_view_mode">Вид экранов</string>
     <string name="wear_streams_section_enabled">Показывать трансляции</string>
@@ -231,7 +230,7 @@
     <string name="wear_favourites_unopenable">Эта отметка сделана до того, как часы научились её открывать.</string>
     <string name="phone_resource_source_unavailable">Этот ресурс не отвечает. Телефон на связи - проверьте ресурс и повторите.</string>
     <string name="wear_phone_recents">Недавние</string>
-    <string name="wear_video_scale_mode">Масштаб / заполнение кадра</string>
+    <string name="wear_scale_mode">Масштаб / заполнение кадра</string>
     <string name="wear_streams_search">Поиск трансляций</string>
     <string name="wear_streams_filter">Фильтр трансляций</string>
     <string name="wear_streams_sort">Сортировка трансляций</string>
@@ -349,4 +348,25 @@
     <string name="wear_file_op_renamed_to">Сохранено как %1$s</string>
     <string name="wear_media_types_all_disabled">Все типы содержимого выключены в настройках. Включите один, чтобы увидеть медиа.</string>
     <string name="wear_file_actions_for">Действия: %1$s</string>
+    <string name="wear_content_type_music">Музыка</string>
+    <string name="wear_content_type_video">Видео</string>
+    <string name="wear_content_type_image">Изображение</string>
+    <string name="wear_content_type_other">Другое</string>
+    <string name="wear_file_op_open_on_phone">Открыть на телефоне</string>
+    <string name="wear_netmon_permission_request">Некоторым показаниям нужно разрешение.</string>
+    <string name="wear_open_on_phone_shown">Показываю на телефоне</string>
+    <string name="wear_open_on_phone_notified">Нажмите уведомление на телефоне</string>
+    <string name="wear_open_on_phone_no_notifications">Телефон не может показать - включите на нём уведомления приложения</string>
+    <string name="wear_slideshow_start">Запустить слайдшоу</string>
+    <string name="wear_slideshow_stop">Остановить слайдшоу</string>
+    <string name="wear_unsupported_file_title">Здесь не открывается</string>
+    <string name="wear_unsupported_file_message">Файл такого типа не открывается на часах. Откройте его на телефоне.</string>
+    <string name="wear_complication_last_resource_label">Последний ресурс</string>
+    <string name="wear_complication_last_resource_description">Ярлык открытия последнего использованного ресурса</string>
+    <string name="wear_complication_favourites_label">Избранное</string>
+    <string name="wear_complication_favourites_description">Показывает количество избранного и открывает список</string>
+    <string name="wear_complication_now_playing_label">Сейчас играет</string>
+    <string name="wear_complication_now_playing_description">Показывает текущий или последний трек</string>
+    <string name="wear_phone_all">Все</string>
+    <string name="wear_phone_browse">Обзор</string>
 </resources>

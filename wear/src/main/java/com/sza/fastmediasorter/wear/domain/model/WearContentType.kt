@@ -20,3 +20,32 @@ enum class WearContentType {
     STREAM,
     OTHER
 }
+
+private const val IMAGE_MIME_PREFIX = "image/"
+private const val VIDEO_MIME_PREFIX = "video/"
+private const val AUDIO_MIME_PREFIX = "audio/"
+
+/**
+ * The content type a mime type names, or null when it names none.
+ *
+ * A miss answers null rather than [WearContentType.OTHER] because the caller falls back to the
+ * screen's own media type: OTHER would claim the file is unclassifiable while the screen still
+ * knows exactly what kind of library it is listing.
+ *
+ * The prefixes keep their trailing slash - a bare "image" also matches a type that merely starts
+ * with those letters.
+ */
+fun contentTypeForMime(mimeType: String?): WearContentType? = when {
+    mimeType == null -> null
+    mimeType.startsWith(IMAGE_MIME_PREFIX) -> WearContentType.IMAGE
+    mimeType.startsWith(VIDEO_MIME_PREFIX) -> WearContentType.VIDEO
+    mimeType.startsWith(AUDIO_MIME_PREFIX) -> WearContentType.MUSIC
+    else -> null
+}
+
+/** What a browse surface stands for when the file's own mime type classifies nothing. */
+fun MediaType.asContentType(): WearContentType = when (this) {
+    MediaType.MUSIC -> WearContentType.MUSIC
+    MediaType.VIDEO -> WearContentType.VIDEO
+    MediaType.PHOTO -> WearContentType.IMAGE
+}

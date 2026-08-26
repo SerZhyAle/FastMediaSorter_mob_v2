@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
 import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccountState
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.util.getPackageInfoCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -47,25 +48,27 @@ class ShareTargetAvailabilityResolver @Inject constructor(
     }
 
     /** @return true when the target's command may be shown on this device. */
-    fun isAvailable(target: ShareTarget): Boolean = when (target.availability) {
+    fun isAvailable(target: ShareTarget, settings: AppSettings? = null): Boolean = when (target.availability) {
         ShareTargetAvailability.ALWAYS -> true
         ShareTargetAvailability.PACKAGE_INSTALLED -> isAnyPackageInstalled(target.packages)
         ShareTargetAvailability.REQUIRES_GOOGLE -> hasGoogle()
         ShareTargetAvailability.REQUIRES_INTERNET -> hasInternet()
-        ShareTargetAvailability.REQUIRES_WATCH -> hasWatch()
+        ShareTargetAvailability.REQUIRES_WATCH -> hasWatch(settings)
     }
 
     /** @return the default on/off value when the user has not explicitly toggled the target. */
-    fun isDefaultEnabled(target: ShareTarget): Boolean = when (target.defaultEnabled) {
+    fun isDefaultEnabled(target: ShareTarget, settings: AppSettings? = null): Boolean = when (target.defaultEnabled) {
         ShareTargetDefault.ALWAYS_ON -> true
         ShareTargetDefault.ALWAYS_OFF -> false
         ShareTargetDefault.ON_IF_GOOGLE -> hasGoogle()
         ShareTargetDefault.ON_IF_INTERNET -> hasInternet()
-        ShareTargetDefault.ON_IF_WATCH -> hasWatch()
+        ShareTargetDefault.ON_IF_WATCH -> hasWatch(settings)
     }
 
-    private fun hasWatch(): Boolean =
-        wearCompanionEnabled.value && mediaCapabilities.supportsWearCompanion
+    private fun hasWatch(settings: AppSettings? = null): Boolean {
+        val enabled = settings?.enableWearCompanion ?: wearCompanionEnabled.value
+        return enabled && mediaCapabilities.supportsWearCompanion
+    }
 
     private fun hasGoogle(): Boolean =
         googleIdentityRepository.state.value is PrimaryGoogleAccountState.Bound

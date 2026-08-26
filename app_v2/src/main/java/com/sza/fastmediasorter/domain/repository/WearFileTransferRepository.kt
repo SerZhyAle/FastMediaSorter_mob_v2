@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.domain.repository
 
+import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.WearFileTransferOutcome
 import com.sza.fastmediasorter.domain.model.WearFileTransferState
 import kotlinx.coroutines.flow.StateFlow
 import java.util.UUID
@@ -28,8 +30,12 @@ interface WearFileTransferRepository {
         sourcePath: String,
         displayName: String,
         openNow: Boolean = false,
-        requestId: String = UUID.randomUUID().toString()
+        requestId: String = UUID.randomUUID().toString(),
+        mediaType: MediaType? = null
     ): String
+
+    /** Awaits completion of byte transfer for [transferId] and returns its terminal outcome. */
+    suspend fun awaitTransfer(transferId: String): WearFileTransferOutcome
 
     /**
      * Stops the queued or running transfer [transferId].

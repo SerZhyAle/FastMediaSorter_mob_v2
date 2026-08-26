@@ -1530,9 +1530,9 @@
     "uk": "Обирає розкладку списків файлів на годиннику: список або сітка з двох чи трьох колонок зі справжніми превʼю."
   },
   "wearKeepScreenAwake": {
-    "en": "Keeps the watch screen on outside the players; the audio, video and image players hold it on regardless.",
-    "ru": "Держит экран часов включённым вне проигрывателей; аудио, видео и просмотр изображений удерживают его в любом случае.",
-    "uk": "Тримає екран годинника увімкненим поза програвачами; аудіо, відео та перегляд зображень утримують його в будь-якому разі."
+    "en": "Keeps the watch screen on across every screen outside the players, the startup splash and the permission screen included; the audio, video and image players hold it on regardless.",
+    "ru": "Держит экран часов включённым на каждом экране вне проигрывателей, включая заставку и экран разрешений; аудио, видео и просмотр изображений удерживают его в любом случае.",
+    "uk": "Тримає екран годинника увімкненим на кожному екрані поза програвачами, включно із заставкою та екраном дозволів; аудіо, відео та перегляд зображень утримують його в будь-якому разі."
   },
   "wearSlideshowInterval": {
     "en": "Sets the delay in seconds between slides during slideshow playback on Wear OS.",

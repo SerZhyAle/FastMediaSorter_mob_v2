@@ -19,6 +19,15 @@ sealed interface WearFileOperation {
 
     /** Rename in place, inside the file's own directory. */
     data class Rename(val newName: String) : WearFileOperation
+
+    /**
+     * Ask the paired phone to show its own original of this file, which the watch only holds a copy of.
+     *
+     * [token] is the address the phone's browse protocol issued for that original. The watch never
+     * invents one, so only a surface that received the token can request the open - which is the same
+     * surface the copy came from.
+     */
+    data class OpenOnPhone(val token: String) : WearFileOperation
 }
 
 /**
@@ -29,7 +38,8 @@ enum class WearFileOperationKind {
     SEND_TO_PHONE,
     MOVE_TO_PHONE,
     DELETE,
-    RENAME
+    RENAME,
+    OPEN_ON_PHONE
 }
 
 /** The kind this request belongs to, so a caller never re-derives the mapping. */
@@ -38,4 +48,5 @@ fun WearFileOperation.kind(): WearFileOperationKind = when (this) {
     WearFileOperation.MoveToPhone -> WearFileOperationKind.MOVE_TO_PHONE
     WearFileOperation.Delete -> WearFileOperationKind.DELETE
     is WearFileOperation.Rename -> WearFileOperationKind.RENAME
+    is WearFileOperation.OpenOnPhone -> WearFileOperationKind.OPEN_ON_PHONE
 }

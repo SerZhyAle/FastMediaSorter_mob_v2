@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.StreamNetworkHold
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearNetworkChannelMonitor
+import com.sza.fastmediasorter.wear.domain.repository.WearNowPlayingRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ClassifyWearStreamMediaKindUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.DownloadNetworkFileUseCase
@@ -73,6 +74,7 @@ class AudioPlayerViewModel @Inject constructor(
     private val evaluateStreamStart: EvaluateStreamStartUseCase,
     private val streamNetworkHold: StreamNetworkHold,
     private val networkChannelMonitor: WearNetworkChannelMonitor,
+    private val nowPlayingRepository: WearNowPlayingRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -307,23 +309,22 @@ class AudioPlayerViewModel @Inject constructor(
 
     private fun loadMediaFile() {
         viewModelScope.launch {
-            // First, check if we have a selected file from SelectedMediaManager (network source)
+            // S1884: check if SelectedMediaManager holds the file (network source or phone-delivered file)
             val selectedMedia = selectedMediaManager.getSelectedFileById(fileId)
 
-            if (selectedMedia != null && selectedMedia.isNetworkSource) {
-                // S1684: publish the file into ui state before downloading. The screen renders
-                // `mediaFile?.name ?: "Unknown"`, and this branch used to pass the name onwards
-                // without ever storing it, so every network track was titled "Unknown" while a
-                // local one showed its name. SelectedMediaManager carries this object precisely
-                // because MediaStore cannot answer for network sources.
+            if (selectedMedia != null) {
                 _uiState.update { it.withMediaFile(selectedMedia.file) }
-                // S1683: remembered so paging can re-enter the download path with the same source id.
-                networkSelection = selectedMedia
-                // S2039: the network branch never re-read the mark, so an already-marked station opened
-                // with an empty star and the first tap re-added it instead of clearing it.
                 checkFavoriteState()
-                Timber.d("Loading network audio: ${selectedMedia.file.name}")
-                loadNetworkAudio(selectedMedia)
+                if (selectedMedia.isNetworkSource) {
+                    // S1683: remembered so paging can re-enter the download path with the same source id.
+                    networkSelection = selectedMedia
+                    Timber.d("Loading network audio: ${selectedMedia.file.name}")
+                    loadNetworkAudio(selectedMedia)
+                } else {
+                    Timber.d("Loading local audio from SelectedMediaManager: ${selectedMedia.file.name}")
+                    fetchRemoteAlbumArt(selectedMedia.file)
+                    playLocalFile(selectedMedia.file)
+                }
             } else {
                 // Local file - use MediaStore
                 val file = mediaRepository.getMediaFileById(fileId, MediaType.MUSIC)
@@ -511,7 +512,15 @@ class AudioPlayerViewModel @Inject constructor(
             durationMs = state.durationMs,
             mediaType = "AUDIO"
         )
-        viewModelScope.launch { publishPlaybackStateUseCase(payload) }
+        val title = state.trackTitle?.takeIf { it.isNotBlank() } ?: state.mediaFile?.name ?: ""
+        val subtitle = state.artistName?.takeIf { it.isNotBlank() }
+        viewModelScope.launch {
+            publishPlaybackStateUseCase(payload)
+            if (title.isNotBlank()) {
+                nowPlayingRepository.setNowPlaying(title, subtitle)
+                nowPlayingRepository.setPlaying(state.isPlaying)
+            }
+        }
     }
 
     fun toggleFavorite() {
@@ -563,6 +572,9 @@ class AudioPlayerViewModel @Inject constructor(
         stopProgressUpdates()
         streamPlaybackSession.clear()
         exoPlayer.removeListener(playerListener)
+        viewModelScope.launch {
+            nowPlayingRepository.clearPlayingFlag()
+        }
         // S0725: this VM owns its ExoPlayer (no longer a process singleton) - release native resources
         // (HandlerThread, AudioTrack/audio-focus, codecs) instead of just stop()+clearMediaItems().
         exoPlayer.release()

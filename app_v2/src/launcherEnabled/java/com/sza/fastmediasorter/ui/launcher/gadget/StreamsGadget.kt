@@ -14,7 +14,6 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase
 import com.sza.fastmediasorter.ui.streams.FaviconAtlasSlicer
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 /**
@@ -30,6 +29,10 @@ class StreamsGadget @Inject constructor(
     override val defaultSpanH: Int = 2
     override val labelRes: Int = R.string.launcher_gadget_streams
     override val iconRes: Int = R.drawable.ic_cast
+
+    // S2062: ic_cast fills white and is invisible on the picker's light surface without a tint - the
+    // same reason the empty-state fallback icon in onActive() below is tinted.
+    override val iconTintable: Boolean = true
     override val requiresResourceParam: Boolean = false
 
     /**

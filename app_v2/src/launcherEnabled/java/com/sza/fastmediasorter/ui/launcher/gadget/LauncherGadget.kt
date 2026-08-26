@@ -42,6 +42,14 @@ interface LauncherGadget {
     @get:DrawableRes
     val iconRes: Int
 
+    /**
+     * True when [iconRes] is a flat single-colour glyph meant to inherit the surrounding theme's colour
+     * (S2062), as opposed to a branded or multi-colour icon (a YouTube logo, an `_accent` widget glyph)
+     * that a tint would flatten to one colour. Defaults to false so every gadget stays untinted unless
+     * its own drawable is confirmed a plain white/constant-filled vector.
+     */
+    val iconTintable: Boolean get() = false
+
     /** True when the gadget is meaningless without a resource picked at add time (Phase 07). */
     val requiresResourceParam: Boolean
 

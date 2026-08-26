@@ -12,10 +12,13 @@ import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
 import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
+import com.sza.fastmediasorter.wear.domain.model.WearComplicationKind
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.domain.usecase.RequestWearComplicationRefreshUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
 // Record separator of the joined history. A control character, so no expression can contain it.
 private const val HISTORY_RECORD_SEPARATOR = "\u001E"
@@ -23,8 +26,9 @@ private const val HISTORY_RECORD_SEPARATOR = "\u001E"
 /**
  * DataStore-based implementation of WearPreferencesRepository.
  */
-class WearPreferencesRepositoryImpl(
-    private val context: Context
+class WearPreferencesRepositoryImpl @Inject constructor(
+    private val context: Context,
+    private val requestWearComplicationRefreshUseCase: RequestWearComplicationRefreshUseCase? = null
 ) : WearPreferencesRepository {
 
     private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "wear_settings")
@@ -48,6 +52,7 @@ class WearPreferencesRepositoryImpl(
         val BACKGROUND_MODE = stringPreferencesKey("wear_background_mode")
         val FILE_LIST_VIEW_MODE = stringPreferencesKey("wear_file_list_view_mode")
         val VIDEO_SCALE_MODE = stringPreferencesKey("wear_video_scale_mode")
+        val IMAGE_SCALE_MODE = stringPreferencesKey("wear_image_scale_mode")
         val KEEP_SCREEN_AWAKE = booleanPreferencesKey("wear_keep_screen_awake")
         val LAST_USED_RESOURCE = stringPreferencesKey("wear_last_used_resource")
         val LAST_USED_RESOURCE_ID = stringPreferencesKey("wear_last_used_resource_id")
@@ -184,6 +189,16 @@ class WearPreferencesRepositoryImpl(
         }
     }
 
+    override val imageScaleMode: Flow<VideoScaleMode> = context.dataStore.data.map { prefs ->
+        VideoScaleMode.fromNameOrDefault(prefs[PreferencesKeys.IMAGE_SCALE_MODE])
+    }
+
+    override suspend fun setImageScaleMode(mode: VideoScaleMode) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.IMAGE_SCALE_MODE] = mode.name
+        }
+    }
+
     override val keepScreenAwakeOutsidePlayers: Flow<Boolean> = context.dataStore.data.map { prefs ->
         prefs[PreferencesKeys.KEEP_SCREEN_AWAKE] ?: false
     }
@@ -218,6 +233,7 @@ class WearPreferencesRepositoryImpl(
             val pushed = LastUsedResourceHistory.push(current, LastUsedResource(id, name))
             prefs[PreferencesKeys.LAST_USED_RESOURCES] = LastUsedResourceHistory.encode(pushed)
         }
+        requestWearComplicationRefreshUseCase?.invoke(WearComplicationKind.LAST_RESOURCE)
     }
 
     override suspend fun clearLastUsedResource() {
@@ -228,6 +244,7 @@ class WearPreferencesRepositoryImpl(
             prefs.remove(PreferencesKeys.LAST_USED_RESOURCE_ID)
             prefs.remove(PreferencesKeys.LAST_USED_RESOURCE)
         }
+        requestWearComplicationRefreshUseCase?.invoke(WearComplicationKind.LAST_RESOURCE)
     }
 
     override val streamsSectionEnabled: Flow<Boolean> = context.dataStore.data.map { prefs ->

@@ -1,11 +1,13 @@
 package com.sza.fastmediasorter.wear.ui.favourites
 
 import android.net.Uri
+import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
 import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.domain.usecase.PerformWearFileOperationUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ToggleFavoriteUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -45,6 +47,8 @@ class FavouritesViewModelTest {
     private val toggleFavorite: ToggleFavoriteUseCase = mockk(relaxed = true)
     private val selectedMedia: SelectedMediaManager = mockk(relaxed = true)
     private val preferences: WearPreferencesRepository = mockk()
+    private val capabilityPolicy: WearFileCapabilityPolicy = mockk(relaxed = true)
+    private val performFileOperation: PerformWearFileOperationUseCase = mockk(relaxed = true)
 
     @Before
     fun setUp() {
@@ -160,7 +164,14 @@ class FavouritesViewModelTest {
         assertEquals(WearViewMode.GRID_2, collected.last())
     }
 
-    private fun build() = FavouritesViewModel(repository, toggleFavorite, selectedMedia, preferences)
+    private fun build() = FavouritesViewModel(
+        repository,
+        toggleFavorite,
+        selectedMedia,
+        capabilityPolicy,
+        performFileOperation,
+        preferences
+    )
 
     private fun record(path: String, mimeType: String?) = WearFavoriteRecord(
         sourceId = "local",

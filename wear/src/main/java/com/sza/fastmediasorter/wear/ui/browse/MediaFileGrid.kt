@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.browse
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,6 +14,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -24,23 +28,24 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.MediaType
+import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
+import com.sza.fastmediasorter.wear.domain.model.asContentType
+import com.sza.fastmediasorter.wear.domain.model.contentTypeForMime
+import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
 import com.sza.fastmediasorter.wear.ui.common.LongPressChip
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import java.util.Locale
 
 private const val SINGLE_COLUMN = 1
+private const val GRID_CAPTION_LINES = 2
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
 
 private const val IMAGE_PREFIX = "image/"
 private const val VIDEO_PREFIX = "video/"
 private const val AUDIO_PREFIX = "audio/"
-
-private const val PHOTO_ICON = "🖼️"
-private const val VIDEO_ICON = "🎬"
-private const val AUDIO_ICON = "🎵"
 
 private const val BYTES_PER_UNIT = 1024.0
 private const val SECONDS_PER_MINUTE = 60
@@ -119,15 +124,20 @@ private fun MediaFileRow(
                     caption = file.name,
                     onClick = { actions.onFileClick(file) },
                     modifier = selectionFrame(selected),
-                    onLongClick = { actions.onFileLongClick(file) }
-                ) { _ ->
-                    // The cell offers the placeholder modifier and this slot cannot use it: the
-                    // marker here is an emoji in a Text, whose glyph scales with font size and not
-                    // with a modifier. Retiring the emoji for the catalog glyph belongs to S2004
-                    // (strategic ADR-5), which is where this slot starts honouring the contract.
-                    Text(
-                        text = typeIcon(file, mediaType),
-                        style = MaterialTheme.typography.title3
+                    onLongClick = { actions.onFileLongClick(file) },
+                    captionMaxLines = GRID_CAPTION_LINES
+                ) { glyphModifier ->
+                    // The inset is the cell's, not the glyph's: ThumbnailCell hands the S2003
+                    // placeholder contract down already sized, so this slot applies it untouched
+                    // instead of choosing a size of its own.
+                    val type = contentTypeForMime(file.mimeType) ?: mediaType.asContentType()
+                    Icon(
+                        painter = painterResource(ContentTypeCatalog.iconFor(type)),
+                        // The cell already announces the file by name; a second description would
+                        // make a screen reader read the same cell twice.
+                        contentDescription = null,
+                        modifier = glyphModifier,
+                        tint = typeTint(type)
                     )
                 }
                 if (selected) {
@@ -174,10 +184,15 @@ private fun MediaFileChip(
         icon = if (selected) {
             { SelectionBadge() }
         } else {
-            null
+            { TypeBadge(file = file, mediaType = mediaType) }
         },
-        secondaryLabel = {
-            Text(text = "${typeIcon(file, mediaType)} $secondaryText")
+        // The glyph used to lead this line, so it was never empty. Now that the type has its own
+        // slot, a file whose mime type classifies nothing has nothing to say here, and an empty
+        // Text would still claim a second line and push the name off the row's centre.
+        secondaryLabel = if (secondaryText.isEmpty()) {
+            null
+        } else {
+            { Text(text = secondaryText) }
         },
         colors = ChipDefaults.secondaryChipColors()
     )
@@ -204,16 +219,49 @@ private fun SelectionBadge(modifier: Modifier = Modifier) {
     )
 }
 
-/** The file's own type decides the glyph; the screen's type answers only for an unknown one. */
-private fun typeIcon(file: WearMediaFile, mediaType: MediaType): String = when {
-    file.mimeType?.startsWith(IMAGE_PREFIX) == true -> PHOTO_ICON
-    file.mimeType?.startsWith(VIDEO_PREFIX) == true -> VIDEO_ICON
-    file.mimeType?.startsWith(AUDIO_PREFIX) == true -> AUDIO_ICON
-    else -> when (mediaType) {
-        MediaType.MUSIC -> AUDIO_ICON
-        MediaType.VIDEO -> VIDEO_ICON
-        MediaType.PHOTO -> PHOTO_ICON
-    }
+/**
+ * The type glyph a row wears while nothing is selected, so its icon slot is never empty.
+ *
+ * It keeps the selection badge's size, so opening a selection swaps one glyph for the other without
+ * shifting the row's height.
+ */
+@Composable
+private fun TypeBadge(file: WearMediaFile, mediaType: MediaType) {
+    val type = contentTypeForMime(file.mimeType) ?: mediaType.asContentType()
+    Icon(
+        painter = painterResource(ContentTypeCatalog.iconFor(type)),
+        contentDescription = stringResource(typeNameRes(type)),
+        modifier = Modifier.size(SELECTION_BADGE_SIZE),
+        tint = typeTint(type)
+    )
+}
+
+/**
+ * The semantic tone for a type glyph, or none when the painter already carries its own colour.
+ *
+ * Same guard as the home screens: an already coloured vector must keep what it has, so the catalog
+ * is asked rather than tinted blindly.
+ */
+@Composable
+private fun typeTint(type: WearContentType): Color = if (ContentTypeCatalog.isMonochrome(type)) {
+    colorResource(ContentTypeCatalog.tintFor(type))
+} else {
+    Color.Unspecified
+}
+
+/** What a screen reader calls the glyph, so the type is announced as an entity of its own. */
+@StringRes
+private fun typeNameRes(type: WearContentType): Int = when (type) {
+    WearContentType.MUSIC -> R.string.wear_content_type_music
+    WearContentType.VIDEO -> R.string.wear_content_type_video
+    WearContentType.IMAGE -> R.string.wear_content_type_image
+    // The resolver feeding this badge yields only the three media kinds. The rest of the catalog's
+    // enum belongs to other surfaces, so the badge names them generically rather than announcing a
+    // kind it could not have derived.
+    WearContentType.DOCUMENT,
+    WearContentType.FOLDER,
+    WearContentType.STREAM,
+    WearContentType.OTHER -> R.string.wear_content_type_other
 }
 
 private fun formatDuration(durationMs: Long): String {

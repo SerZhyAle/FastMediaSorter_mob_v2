@@ -5,6 +5,7 @@ import android.content.Intent
 import android.graphics.Rect
 import android.net.Uri
 import androidx.annotation.StringRes
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
@@ -90,6 +91,7 @@ class LauncherHomeViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val observeStreams: ObserveStreamSourcesUseCase,
     private val executeScheduledOperation: ExecuteScheduledOperationUseCase,
+    private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     // Rotation swaps which layout is observed. The collection itself is never torn down: the
@@ -809,11 +811,32 @@ class LauncherHomeViewModel @Inject constructor(
             _recentsCapacity.value = value.coerceAtLeast(RECENTS_LIMIT)
         }
 
+    /**
+     * S2060: the add-flow's chosen target square, durable across process death via [SavedStateHandle].
+     * [LauncherAddFlowManager] held this as two plain fields and lost them whenever the OS killed the
+     * process mid-flow (a system contact/app/resource picker), landing the next cell at `(0, 0)`
+     * instead of the square the user tapped.
+     *
+     * One property pairing both coordinates rather than two, so a partial write can never pair a
+     * fresh row with a stale column - the manager reads and writes them together for the same reason.
+     * A property rather than a named function, like [recentsCapacity] above: this class sits exactly
+     * at detekt's `TooManyFunctions` ceiling.
+     */
+    var pendingSlot: Pair<Int, Int>
+        get() = (savedStateHandle[KEY_PENDING_ROW] ?: 0) to (savedStateHandle[KEY_PENDING_COL] ?: 0)
+        set(value) {
+            savedStateHandle[KEY_PENDING_ROW] = value.first
+            savedStateHandle[KEY_PENDING_COL] = value.second
+        }
+
     private companion object {
         const val SUBSCRIPTION_TIMEOUT_MS = 5_000L
 
         /** As many recents as fit a phone taskbar beside the Start button and the tray. */
         const val RECENTS_LIMIT = 6
+
+        const val KEY_PENDING_ROW = "launcher_pending_row"
+        const val KEY_PENDING_COL = "launcher_pending_col"
     }
 }
 

@@ -73,6 +73,7 @@ import com.sza.fastmediasorter.wear.ui.permission.PermissionsScreen
 import com.sza.fastmediasorter.wear.ui.phone.PhoneResourceScreen
 import com.sza.fastmediasorter.wear.ui.player.audio.AudioPlayerScreen
 import com.sza.fastmediasorter.wear.ui.player.image.ImageViewerScreen
+import com.sza.fastmediasorter.wear.ui.player.unsupported.UnsupportedFileScreen
 import com.sza.fastmediasorter.wear.ui.player.video.VideoPlayerScreen
 import com.sza.fastmediasorter.wear.ui.settings.AboutSettingsScreen
 import com.sza.fastmediasorter.wear.ui.settings.MediaTypesSettingsScreen
@@ -121,7 +122,7 @@ data class WearLaunchEntry(
     val onHandled: (WearLaunchTarget) -> Unit,
 )
 
-/** The three routes whose players hold the screen unconditionally, so the setting must not reach them. */
+/** The three player routes: each covers the whole window, so the shared background is not drawn behind them. */
 private val PLAYER_ROUTES = setOf(
     WearRoutes.AUDIO_PLAYER_PATTERN,
     WearRoutes.VIDEO_PLAYER_PATTERN,
@@ -214,7 +215,8 @@ class MainActivity : ComponentActivity() {
      */
     override fun onStart() {
         super.onStart()
-        Timber.d("S1961: app foregrounded, clearing any pending-open notification")
+
+        Timber.d("S1961: MainActivity onStart cancelling pending open notification")
         openOnWatchNotifier.cancel()
     }
 
@@ -305,6 +307,8 @@ fun WearApp(
     WearAppTheme {
         AutoLocaleEffect(appLanguage = appLanguage)
         AutoRotationEffect(isAutoRotationEnabled = isAutoRotationEnabled)
+        val keepAwake by keepScreenAwakeOutsidePlayers.collectAsStateWithLifecycle(initialValue = false)
+        KeepScreenOnEffect(enabled = keepAwake)
         var hasPermissions by remember { mutableStateOf(initialHasPermissions) }
         // S1981: scoped to this composable, not `rememberSaveable` or persistent storage - it
         // resets only when `WearApp` itself is recreated (a cold start), never on backgrounding/
@@ -324,7 +328,6 @@ fun WearApp(
         } else {
             // Main app navigation
             MainNavigation(
-                keepScreenAwakeOutsidePlayers = keepScreenAwakeOutsidePlayers,
                 hostUseCases = hostUseCases,
                 launchEntry = launchEntry,
             )
@@ -401,7 +404,7 @@ private fun AskNotificationPermissionEffect(
                     context,
                     Manifest.permission.POST_NOTIFICATIONS
                 ) == PackageManager.PERMISSION_GRANTED
-                Timber.d("S1961: phone command handled in foreground, already granted=%b", granted)
+
                 // Already granted still records the ask: there is nothing left to ask about, and
                 // leaving the flag clear would re-arm this for the next command.
                 if (granted) onAsked() else launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -412,7 +415,6 @@ private fun AskNotificationPermissionEffect(
 
 @Composable
 fun MainNavigation(
-    keepScreenAwakeOutsidePlayers: Flow<Boolean>,
     hostUseCases: WearHostUseCases,
     launchEntry: WearLaunchEntry,
 ) {
@@ -424,11 +426,7 @@ fun MainNavigation(
 
     OpenLaunchTargetEffect(navController = navController, launchEntry = launchEntry)
 
-    // One shared call site rather than the effect on each non-player screen: two composables both
-    // touching FLAG_KEEP_SCREEN_ON on the same window would clear each other's flag on navigation.
-    val keepAwake by keepScreenAwakeOutsidePlayers.collectAsStateWithLifecycle(initialValue = false)
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
-    KeepScreenOnEffect(enabled = keepAwake && currentRoute !in PLAYER_ROUTES)
 
     // S2000: the resolved background, and whether it is allowed to animate. The branded animation
     // costs roughly one and a half cores, a budget accepted for one player screen rather than for a
@@ -607,7 +605,7 @@ private fun OpenFileOnWatchEffect(
     LaunchedEffect(navController) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
             WatchFileOpenEvents.requestFlow.collect { request ->
-                Timber.d("S1884: opening delivered file on watch mime=${request.mimeType}")
+
                 val target = prepareFilePlayback(request)
                 navController.navigate(playerRouteFor(target.fileId, target.mimeType))
                 // Confirm only after navigating, so the phone's "opened" is a report, not a promise.
@@ -703,6 +701,10 @@ private fun NavGraphBuilder.miniAppRoutes(navController: NavHostController) {
     // watch is - so it is a program of this list rather than a settings destination.
     composable(WearRoutes.SYSTEM_INFO) {
         SystemInfoScreen()
+    }
+
+    composable(WearRoutes.UNSUPPORTED_FILE) {
+        UnsupportedFileScreen()
     }
 }
 

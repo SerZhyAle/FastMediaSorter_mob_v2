@@ -68,6 +68,8 @@ object TechnicalGadgetModule {
             labelRes = R.string.launcher_gadget_resources,
             iconRes = R.drawable.ic_speed,
             provider = memory,
+            // S2062: ic_speed fills white and is invisible without a tint, unlike its three siblings.
+            iconTintable = true,
         ),
     )
 }
