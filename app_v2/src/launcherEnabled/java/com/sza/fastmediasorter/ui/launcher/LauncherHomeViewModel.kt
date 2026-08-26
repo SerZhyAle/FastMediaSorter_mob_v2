@@ -384,7 +384,7 @@ class LauncherHomeViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             rememberResourceFileList(rememberFileListResourceId)
-            desktopDependencies.desktopRepository.addCellInFirstFreeSlot(
+            val id = desktopDependencies.desktopRepository.addCellInFirstFreeSlot(
                 LauncherCell(
                     id = 0,
                     orientation = _orientation.value,
@@ -400,6 +400,10 @@ class LauncherHomeViewModel @Inject constructor(
                 ),
                 columns,
             )
+            // S2033: the repository scans row-major and knows nothing about folding (strategic ADR-2), so
+            // the first free square it finds can sit inside a collapsed section - where the render plan
+            // drops the cell and the user is left with an item that was written and cannot be seen.
+            id?.let { sections.revealSectionHolding(it) }
         }
     }
 

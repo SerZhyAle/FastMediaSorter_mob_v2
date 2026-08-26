@@ -41,8 +41,8 @@ import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.playerRouteFor
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
-import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 
 private const val SINGLE_COLUMN = 1
@@ -98,19 +98,6 @@ fun FavouritesScreen(
             )
         }
     }
-}
-
-/**
- * Which player renders a favourite the view model has already handed over.
- *
- * The kind decides, never the row's position - and a record with no kind never reaches here, because the
- * view model answers `Unopenable` for it. Guessing a player would be worse than refusing: a document sent
- * to the audio player fails further from its cause, which is the failure mode this whole ticket is about.
- */
-private fun playerRouteFor(fileId: Long, mimeType: String): String = when {
-    mimeType.startsWith("image") -> WearRoutes.imageViewer(fileId)
-    mimeType.startsWith("video") -> WearRoutes.videoPlayer(fileId)
-    else -> WearRoutes.audioPlayer(fileId)
 }
 
 @Composable

@@ -26,6 +26,12 @@ class LauncherSettingsStoreTest {
         assertEquals(1.0f, values.launcherDensityFactor, 0.0f)
         assertTrue(values.launcherTaskbarShowRecents)
         assertTrue(values.launcherTrayShowBattery)
+        // S2017: the tray clock is the one taskbar exception - off by default, duplicates the top bar clock.
+        assertFalse(values.launcherTrayShowClock)
+        // S2017: system status bar hidden by default.
+        assertTrue(values.launcherReplaceSystemStatusArea)
+        // S2017 ADR-1: default flipped to ON, superseding S1465 ADR-4's off-by-default rationale.
+        assertTrue(values.launcherForeignNotificationsEnabled)
         assertFalse(values.launcherDesktopLocked)
         assertFalse(values.allAppsSortDescending)
         assertEquals("", values.launcherWallpaperImagePath)

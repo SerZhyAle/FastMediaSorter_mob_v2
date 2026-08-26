@@ -2831,7 +2831,7 @@
     <string name="browse_empty_type_gated">%1$d Dateien sind ausgeblendet, weil ihr Medientyp deaktiviert ist.</string>
     <string name="browse_empty_type_gated_hint">Aktiviere diesen Medientyp in den Einstellungen wieder, um sie zu sehen.</string>
     <string name="splash_slogan">..Alles meins, hier!</string>
-    <string name="launcher_section_google">GOOGLE</string>
+    <string name="launcher_section_google">Google</string>
     <string name="launcher_quick_menu_add_item">Ein Element hinzufügen..</string>
     <string name="launcher_quick_menu_edit_desktop">Den Desktop bearbeiten</string>
     <string name="launcher_quick_menu_wallpaper">Hintergrundbild</string>
@@ -2860,7 +2860,7 @@
     <string name="launcher_translator_attribution">Übersetzt von Google</string>
     <string name="launcher_section_widgets">Widgets</string>
     <string name="launcher_section_resources">Ressourcen</string>
-    <string name="launcher_section_android_apps">Android-Apps</string>
+    <string name="launcher_section_android_apps">Apps</string>
     <string name="launcher_settings_widget_backdrop_alpha_title">Deckkraft des Widget-Hintergrunds</string>
     <string name="launcher_settings_widget_backdrop_alpha_0">0 % (Transparent)</string>
     <string name="launcher_settings_widget_backdrop_alpha_85">85 % (Standard)</string>

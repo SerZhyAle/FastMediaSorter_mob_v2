@@ -50,7 +50,7 @@
     0 - done: claimed, released, or reported.
     1 - error: unreadable store, bad argument shape, write failure.
     3 - claim lost: a live foreign session already holds this ticket.
-    4 - release refused: a live foreign session owns this lease.
+    4 - release refused: a live foreign session owns this lease (never returned under -Force).
 #>
 [CmdletBinding()]
 param(
@@ -63,6 +63,13 @@ param(
     [string]$Reason = 'spec-picker',
 
     [switch]$Json,
+
+    # Release only: drop the lease even though its owner still looks live. Liveness here is the write
+    # time of the owner's transcript, which cannot separate "still working" from "exited a minute ago" -
+    # the file stops growing either way. A supervisor that spawned the owning process and watched it
+    # exit knows what that heuristic cannot reach, and only such a caller may pass this. Never pass it
+    # to clear a lease you merely believe is idle: that is what Sweep and the staleness window are for.
+    [switch]$Force,
 
     [int]$StaleMinutes = 0
 )
@@ -312,15 +319,17 @@ switch ($Verb) {
 
         $lease = Read-Lease -Path $path
         $liveness = if ($null -ne $lease) { Get-LeaseLiveness -Lease $lease } else { 'foreign-stale' }
-        if ($liveness -eq 'foreign-live') {
+        if ($liveness -eq 'foreign-live' -and -not $Force) {
             $holderId = [string]$lease.sessionId
             if ($Json) { [pscustomobject]@{ outcome = 'release-refused'; id = $Id; heldBy = $holderId } | ConvertTo-Json -Compress }
             else { Write-Host "ticket-lease: refusing to release $Id - live session $holderId owns it." -ForegroundColor Yellow }
             exit 4
         }
 
+        $forced = ($liveness -eq 'foreign-live')
         Remove-Item -LiteralPath $path -Force
-        if ($Json) { [pscustomobject]@{ outcome = 'released'; id = $Id } | ConvertTo-Json -Compress }
+        if ($Json) { [pscustomobject]@{ outcome = 'released'; id = $Id; forced = $forced } | ConvertTo-Json -Compress }
+        elseif ($forced) { Write-Host "ticket-lease: force-released $Id (owner looked live; caller says its process exited)." -ForegroundColor Yellow }
         else { Write-Host "ticket-lease: released $Id." -ForegroundColor Green }
         exit 0
     }

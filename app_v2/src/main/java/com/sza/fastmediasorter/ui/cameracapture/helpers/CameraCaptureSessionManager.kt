@@ -603,7 +603,10 @@ class CameraCaptureSessionManager(
             return false
         }
         val point = preview.meteringPointFactory.createPoint(x, y)
-        val action = FocusMeteringAction.Builder(point)
+        val action = FocusMeteringAction.Builder(
+            point,
+            FocusMeteringAction.FLAG_AF or FocusMeteringAction.FLAG_AE,
+        )
             .setAutoCancelDuration(FOCUS_AUTO_CANCEL_SECONDS, TimeUnit.SECONDS)
             .build()
         return runCatching {

@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
+import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionStore
 import com.sza.fastmediasorter.ui.common.widget.SharedPreferencesCollapsibleSectionStore
 import kotlinx.coroutines.CoroutineScope
@@ -12,7 +13,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * S1428: which launcher desktop sections are folded shut, and the tap that folds them (strategic §6.8).
@@ -31,7 +34,7 @@ import kotlinx.coroutines.flow.stateIn
 class LauncherSectionCollapseManager(
     context: Context,
     scope: CoroutineScope,
-    cells: StateFlow<List<LauncherCellUi>>,
+    private val cells: StateFlow<List<LauncherCellUi>>,
     private val orientation: StateFlow<LauncherOrientation>,
 ) {
 
@@ -70,6 +73,51 @@ class LauncherSectionCollapseManager(
     }
 
     /**
+     * S2033: opens the section the cell with [cellId] landed in, once the desktop stream carries it.
+     *
+     * Lives here rather than in the ViewModel for two reasons. The desktop stream and the folded state are
+     * both already this class's inputs, so nothing has to be passed back and forth to answer the question;
+     * and the ViewModel sits exactly at detekt's function ceiling, which a reveal written there would push
+     * over - the fix for that is to leave the function where its data is, not to widen the ceiling.
+     *
+     * Bounded rather than an open await: the desktop stream is the only thing that can report the row the
+     * repository chose, and a wait on an emission that never arrives would outlive the gesture that asked
+     * for it.
+     */
+    suspend fun revealSectionHolding(cellId: Long): Boolean {
+        val desktop = withTimeoutOrNull(REVEAL_TIMEOUT_MS) {
+            cells.first { drawn -> drawn.any { it.cell.id == cellId } }
+        }?.map { it.cell }.orEmpty()
+        val placed = desktop.firstOrNull { it.id == cellId }
+        val owner = placed?.let {
+            LauncherSectionMembership.ownerOf(it, LauncherSectionMembership.sectionsInOrder(desktop))
+        }
+        return owner?.let { revealIfCollapsed(it) } ?: false
+    }
+
+    /**
+     * S2033: opens [cell]'s section when it is folded shut, and reports whether it opened one.
+     *
+     * Distinct from [toggle], which would close a section that is already open, and from [clear], whose
+     * contract is "this header no longer exists" rather than "show what is inside this one". Conditional
+     * because the owner ruled that a section is opened as a consequence of a cell being invisible, never
+     * as a habit (strategic §3.1).
+     *
+     * Reads the store rather than [collapsed]: that flow is shared `WhileSubscribed`, so it reports an
+     * empty set whenever nothing is collecting it, and a placement that raced the last collector would
+     * silently decide every section was already open.
+     */
+    private fun revealIfCollapsed(cell: LauncherCell): Boolean {
+        val key = keyFor(orientation.value, cell.target)
+        val hidden = cell.kind == LauncherCellKind.SECTION && !store.isExpanded(key, EXPANDED_BY_DEFAULT)
+        if (hidden) {
+            store.setExpanded(key, true)
+            revision.value += 1
+        }
+        return hidden
+    }
+
+    /**
      * S1742 §04.2: clears collapsed-state entry for [cell] when it is removed.
      */
     fun clear(cell: LauncherCell) {
@@ -95,5 +143,12 @@ class LauncherSectionCollapseManager(
 
         /** Matches the desktop stream this derives from, so both stop and restart together. */
         const val SUBSCRIPTION_TIMEOUT_MS = 5_000L
+
+        /**
+         * S2033: how long a reveal waits for the desktop stream to carry the cell just written. Long
+         * enough for a Room write to come back round the flow, short enough that a stream which never
+         * emits does not leave the wait alive behind a finished gesture.
+         */
+        const val REVEAL_TIMEOUT_MS = 2_000L
     }
 }

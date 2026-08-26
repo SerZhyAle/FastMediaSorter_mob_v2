@@ -362,6 +362,14 @@ private fun PlayerBackground(
     albumArtUrl: String?,
     isPlaying: Boolean
 ) {
+    // S2000: this screen used to sit on the navigation host's black fill, which the app-wide
+    // background layer replaced. It paints its own now, so what follows is unchanged by whatever
+    // the owner chose as the app background.
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+    )
     val painter = albumArtUrl?.let { rememberAsyncImagePainter(model = it) }
     if (painter != null) {
         Image(
@@ -376,6 +384,8 @@ private fun PlayerBackground(
     // screen, because a non-null uri had been read as "there is a cover". So the fallback is the uri
     // failing to produce an image, not the uri being absent.
     val coverShown = painter?.state is AsyncImagePainter.State.Success
+    // S2000: this screen remains the sole drawer of the animation here - WearAppBackground draws it
+    // behind every other screen and is covered by the opaque fill above, so it is never drawn twice.
     if (!coverShown) {
         WaveParticleBackground(
             modifier = Modifier.fillMaxSize(),

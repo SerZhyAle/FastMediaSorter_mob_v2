@@ -1,14 +1,20 @@
 package com.sza.fastmediasorter.wear.ui.streams
 
 import com.sza.fastmediasorter.wear.data.repository.WearFaviconAtlasStore
+import com.sza.fastmediasorter.wear.domain.model.FAVORITE_ITEM_KIND_STREAM
+import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_STREAM
+import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
+import com.sza.fastmediasorter.wear.domain.model.normalizeWearStreamUrl
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
+import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ImportWearStreamCatalogUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearStreamPlaybackUseCase
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -100,13 +106,60 @@ class StreamsViewModelSearchTest {
         assertFalse("a query proves the path answered", viewModel.uiState.value.searchInputUnavailable)
     }
 
-    private fun buildViewModel(): StreamsViewModel {
+    /**
+     * S1954: the acceptance criterion is that a mark survives a catalogue re-import, and an import is
+     * exactly what renumbers the rows. Both spellings below address one channel, so a mark stored from
+     * the first must still be recognised when the catalogue offers the second under a new id.
+     */
+    @Test
+    fun `a marked channel leads the list after a catalog re-import changed its row id`() = runTest {
+        val reimported = listOf(
+            channel(id = "77", name = "Morning Report", kind = "AUDIO", category = "News"),
+            channel(id = "88", name = "Jazz FM", kind = "AUDIO", category = "Music"),
+        ).map { if (it.name == "Jazz FM") it.copy(url = "HTTPS://EXAMPLE.INVALID:443/1/") else it }
+
+        val viewModel = buildViewModel(
+            catalog = reimported,
+            pinnedUrls = listOf("https://example.invalid/1")
+        )
+        advanceUntilIdle()
+
+        val rendered = viewModel.uiState.value.displayChannels.map { it.name }
+        assertEquals(listOf("Jazz FM", "Morning Report"), rendered)
+    }
+
+    @Test
+    fun `name sorting stays deterministic inside the pinned and the unpinned group`() = runTest {
+        val viewModel = buildViewModel(pinnedUrls = listOf("https://example.invalid/3"))
+        advanceUntilIdle()
+
+        viewModel.setSortOrder(StreamSortOrder.NAME_ASC)
+        advanceUntilIdle()
+
+        // City Cam is pinned so it leads; the rest keep the requested name order behind it.
+        val rendered = viewModel.uiState.value.displayChannels.map { it.name }
+        assertEquals(listOf("City Cam", "Jazz FM", "Morning Report"), rendered)
+    }
+
+    private fun buildViewModel(
+        catalog: List<WearStreamChannel> = CATALOG,
+        pinnedUrls: List<String> = emptyList()
+    ): StreamsViewModel {
         val repository = mockk<WearStreamChannelRepository>(relaxed = true)
-        every { repository.observeChannels() } returns flowOf(CATALOG)
+        every { repository.observeChannels() } returns flowOf(catalog)
         val preferences = mockk<WearPreferencesRepository>(relaxed = true)
         every { preferences.viewMode } returns flowOf(WearViewMode.LIST)
         val atlasStore = mockk<WearFaviconAtlasStore>(relaxed = true)
         every { atlasStore.atlasFile() } returns null
+        val favorites = mockk<WearFavoritesRepository>(relaxed = true)
+        coEvery { favorites.getFavorites() } returns pinnedUrls.map { url ->
+            WearFavoriteRecord(
+                sourceId = SOURCE_ID_STREAM,
+                filePath = normalizeWearStreamUrl(url),
+                displayName = url,
+                itemKind = FAVORITE_ITEM_KIND_STREAM
+            )
+        }
         return StreamsViewModel(
             repository = repository,
             importCatalogUseCase = mockk<ImportWearStreamCatalogUseCase>(relaxed = true),
@@ -116,6 +169,7 @@ class StreamsViewModelSearchTest {
                 selectedMediaManager = mockk<SelectedMediaManager>(relaxed = true),
                 playbackSetManager = mockk<PlaybackSetManager>(relaxed = true),
             ),
+            favoritesRepository = favorites,
         )
     }
 

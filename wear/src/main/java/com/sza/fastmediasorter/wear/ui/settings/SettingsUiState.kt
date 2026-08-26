@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.settings
 
+import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 
 /**
@@ -37,6 +38,9 @@ data class SettingsUiState(
 
     /** S1718: true if watch has accelerometer sensor; when false, toggle row is hidden. */
     val hasAutoRotationSensor: Boolean = false,
+
+    /** S1862: who decides that a finished voice note leaves the watch. Ships automatic (§6 item 1). */
+    val voiceNoteSendPolicy: VoiceNoteSendPolicy = VoiceNoteSendPolicy.AUTOMATIC,
     
     // App info
     val appVersion: String = "",

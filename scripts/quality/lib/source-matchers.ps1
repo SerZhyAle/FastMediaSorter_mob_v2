@@ -699,7 +699,13 @@ function Get-SourceRules {
             Name         = 'class-architecture-naming'
             Extensions   = @('.kt')
             Roots        = @('app_v2/src', 'wear/src')
-            PathFilter   = '[\\/](domain[\\/]usecase|data[\\/]repository)[\\/]'
+            # S1863: the S1742 excuse below spares the test CLASS but not the fixtures declared inside
+            # it, so a fake named after the interface it stands in for - `FakeSenderRepository` in a
+            # `domain/usecase` test - still failed the delta. That is the same defect one level down:
+            # a fixture is named after what it fakes, and no architectural suffix fits it. The third
+            # instance of this false positive in one rule (S1742, S1797, this one), so the whole test
+            # source set leaves the rule rather than the exclusion list growing a third time.
+            PathFilter   = '^(?!.*[\\/]src[\\/](?:test|androidTest)[\\/]).*[\\/](domain[\\/]usecase|data[\\/]repository)[\\/]'
             Baseline     = 'class-architecture-naming-baseline.txt'
             ExcludeNames = @()
             CountInText  = {
@@ -713,6 +719,15 @@ function Get-SourceRules {
                 foreach ($line in ($t -split "`n")) {
                     $trimmed = $line.Trim()
                     if ($trimmed.StartsWith('//') -or $trimmed.StartsWith('/*') -or $trimmed.StartsWith('*')) { continue }
+                    # S1884: Rule 6 governs the file's architectural type, not the result holders nested
+                    # inside it. A nested `sealed interface Outcome` is a member of an already correctly
+                    # named *UseCase - the shipped SendStreamToWatchUseCase.Outcome is the convention, and
+                    # it passes only because the baseline absorbed it. Charging the next one is what
+                    # produced `SendFileToWatchOutcomeUseCase.OpenedUseCase`: an architectural suffix
+                    # stamped onto a type the rule was never about. Indentation is the discriminator - a
+                    # top-level declaration starts at column 0. Third instance of this false positive in
+                    # one rule (S1742, S1797, this one), so it is fixed generally rather than excused again.
+                    if ($line -match '^\s') { continue }
                     if ($trimmed -match '^(?:public\s+|internal\s+|private\s+|open\s+|abstract\s+|sealed\s+|data\s+)*(?:class|interface)\s+([A-Za-z0-9_]+)') {
                         $name = $Matches[1]
                         # S1742: a test class is named after the thing it tests, so `FooUseCaseTest` is

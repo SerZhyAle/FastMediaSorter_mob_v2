@@ -63,6 +63,20 @@ so the worst case observed here doubles to roughly 84 s and still clears the 120
 1.9 s row is the one that matters for everyday cost: a closure whose resource set is already linked
 pays almost nothing, and the 41.8 s row is what an actual resource edit costs.
 
+The OCR overlay bench rows were measured on 2026-08-26 (S1782), warm daemon, `app_v2`. Both benches live
+in the test source set, so nothing here ships in an APK:
+
+| Bench | Command | Wall clock | Verdict |
+| --- | --- | ---: | --- |
+| rectangle axes (S1716) | `scripts/ocrbench/run-corpus.ps1` | not measured | foreground |
+| concealment axis (S1782) | `check-standard-fast.ps1 -Mode Unit -Tests "*ConcealmentMetricTest*"` | 24-42 s | foreground |
+
+The 24 s figure is an incremental re-run and the 42 s one includes recompiling the unit test source set;
+a run that also has to recompile `app_v2` itself was measured at 1 m 33 s and still clears the threshold.
+Each concealment run writes `temp/ocrbench/<date>/overlay-concealment-report.md` and records that path in
+`temp/ocrbench/last-concealment-report.txt`. The acceptance bound is **not** in the metric code - it is in
+`app_v2/src/test/resources/ocrbench/concealment-bounds.json`, which names the dated report it came from.
+
 The three `detekt-scoped` rows were measured on 2026-08-12 (S1595). They are the only detekt rows here that do NOT take `BUILD.LOCK`: the scoped runner drives detekt's CLI directly rather than through gradle, so it never queues behind a sibling session's build - which is why its number stays honest under contention while the `assert-detekt` row above does not.
 
 `assert-doc-icons-sync.ps1 -Gate` was measured on 2026-08-14 (S1545) as a completed foreground run with no lock wait. The 0.36 s figure is the gate's own wall-clock duration, not time spent queued for a repository lock.

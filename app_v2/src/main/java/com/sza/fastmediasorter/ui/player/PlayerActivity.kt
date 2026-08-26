@@ -474,6 +474,11 @@ class PlayerActivity :
     internal lateinit var altEngineFallbackManager:
         com.sza.fastmediasorter.ui.player.helpers.AltEngineFallbackManager
 
+    // S1971: offers the download when an alt engine could play the file but its payload is not here yet
+    @Inject
+    internal lateinit var deliveryEnableInterceptor:
+        com.sza.fastmediasorter.ui.delivery.DeliveryEnableInterceptor
+
     @Inject lateinit var mediaFilesCacheManager: MediaFilesCacheManager
 
     @Inject lateinit var gamepadInputManager: GamepadInputManager
@@ -716,6 +721,9 @@ class PlayerActivity :
         // Re-create the binding-bound graph against the fresh tree, then re-point the media
         // loader at the two helpers it drives.
         playerManagerInitializer.constructBindingBoundManagers()
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N && isInPictureInPictureMode) {
+            pipManager?.onPictureInPictureModeChanged(true)
+        }
         mediaLoaderManager.rebind(activityBinding, imageLoadingManager, exoPlayerControlsManager)
         // Re-wire the listeners that were bound to the discarded tree.
         setupGestureDetector()
@@ -1189,7 +1197,10 @@ class PlayerActivity :
         startPositionMs: Long
     ): Boolean {
         val ready = ::altEngineFallbackManager.isInitialized && altEngineFallbackManager.canFallback(file)
-        if (!ready) return false
+        if (!ready) {
+            offerAltEngineDownload(file, uri, startPositionMs)
+            return false
+        }
 
         stopExoPlayerForAltEngineFallback()
         binding.playerView.visibility = android.view.View.GONE
@@ -1204,6 +1215,35 @@ class PlayerActivity :
             },
             onError = { msg ->
                 timber.log.Timber.e("PlayerActivity: alt engine fallback error: %s", msg)
+            }
+        )
+    }
+
+    /**
+     * S1971: the one moment the user can be told the module exists.
+     *
+     * The alt engine has no settings toggle - it is reached only here, after the primary player has
+     * already failed - so a file it would play after a download is otherwise reported as a plain
+     * playback error and the capability stays invisible forever.
+     */
+    private fun offerAltEngineDownload(
+        file: com.sza.fastmediasorter.domain.model.MediaFile,
+        uri: android.net.Uri,
+        startPositionMs: Long
+    ) {
+        if (!::altEngineFallbackManager.isInitialized || !::deliveryEnableInterceptor.isInitialized) return
+        val set = altEngineFallbackManager.pendingInstallSetFor(file) ?: return
+        timber.log.Timber.d("S1971: offering delivery download for alt engine set %s", set)
+        deliveryEnableInterceptor.requireInstalled(
+            activity = this,
+            set = set,
+            // Re-ask the manager instead of calling tryAltEngineFallback unconditionally: that method
+            // routes an unavailable engine straight back here, and a capability that reports installed
+            // while the engine still refuses the file would loop between the two forever.
+            onReady = {
+                if (altEngineFallbackManager.canFallback(file)) {
+                    tryAltEngineFallback(file, uri, startPositionMs)
+                }
             }
         )
     }

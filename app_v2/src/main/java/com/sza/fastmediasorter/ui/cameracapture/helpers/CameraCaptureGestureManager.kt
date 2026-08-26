@@ -30,7 +30,7 @@ class CameraCaptureGestureManager(
 
     /** Host side-effects; the Activity forwards each to the flow/session managers. */
     interface Callbacks {
-        fun onTapToFocus(x: Float, y: Float)
+        fun onTapToFocus(x: Float, y: Float, visualX: Float = x, visualY: Float = y)
         fun onDoubleTapZoom()
         fun onPinchZoom(scaleFactor: Float)
         fun onSwipeLensSwitch()
@@ -73,11 +73,13 @@ class CameraCaptureGestureManager(
                 // fail the test entirely and meter nothing at all.
                 val scaleX = previewView.scaleX.takeIf { it > 0f } ?: 1f
                 val scaleY = previewView.scaleY.takeIf { it > 0f } ?: 1f
-                val x = (e.rawX - origin[0]) / scaleX
-                val y = (e.rawY - origin[1]) / scaleY
+                val visualX = e.rawX - origin[0]
+                val visualY = e.rawY - origin[1]
+                val x = visualX / scaleX
+                val y = visualY / scaleY
                 val inside = x >= 0f && y >= 0f && x <= previewView.width && y <= previewView.height
                 if (inside) {
-                    callbacks.onTapToFocus(x, y)
+                    callbacks.onTapToFocus(x, y, visualX, visualY)
                 }
                 return true
             }

@@ -44,6 +44,15 @@ substitute a payload - a mismatch fails verification and the app falls back to t
   `arm64-v8a-libpaddle_light_api_shared-v1.so`, `arm64-v8a-libpaddle_lite_jni-v1.so`
 - **Set D - FFmpeg DTS decoder** - all 4 ABIs: `<abi>-libffmpegJNI-v1.so`
 - **Set C - audio-player background videos**: `anim_audio_bg_1-v1.mp4` .. `anim_audio_bg_11-v1.mp4` (H.264 Constrained Baseline, 1024x576, 24fps, ~800k cap - tuned for low-power car/cheap audio decoders; S0407)
+- **Set E - libVLC decoder (noLegal, arm64-v8a only)** - `arm64-v8a-libvlc-v1.so` (46,087,168 bytes),
+  `arm64-v8a-libvlcjni-v1.so` (94,440 bytes). Extracted from `org.videolan.android:libvlc-all:3.7.5`
+  and republished by `pwsh -NoProfile -File scripts/builders/publish-libvlc-so.ps1`, which refuses to
+  upload when a measured hash differs from the pin compiled into `DeliverableDescriptorCatalog.kt`.
+  This set is **downloaded, never bundled**: it is the reason S1971 exists, since the two files are
+  27 % of the noLegal APK. Descriptor order matters - `libvlc.so` loads before `libvlcjni.so`, because
+  libVLC's own `loadLibraries()` answers a failed load with `System.exit(1)` rather than an exception.
+  `libc++_shared.so` is **not** part of the set: the APK's copy comes from another dependency and the
+  runtime pairing is left exactly as it is today.
 
 Set A (ML Kit translation) is NOT hosted here: on store it ships via a Play dynamic-feature; on
 sideload/VR it stays bundled in the base (Google `.so` are not re-hosted).

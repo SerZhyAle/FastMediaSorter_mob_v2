@@ -227,6 +227,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     // so neither can be built in a field initialiser without the other existing first.
     private val addFlowManager: LauncherAddFlowManager by lazy {
         LauncherAddFlowManager(
+            context = this,
             fragmentManager = supportFragmentManager,
             lifecycleOwner = this,
             viewModel = viewModel,
@@ -243,6 +244,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             gadgetRegistry = gadgetRegistry,
             gadgetHost = gadgetHost,
             onWeatherReconfigure = { cellId -> addFlowManager.openWeatherLocationPicker(cellId) },
+            onWorldClockReconfigure = { cellId -> addFlowManager.openWorldClockZonePicker(cellId) },
         )
     }
 

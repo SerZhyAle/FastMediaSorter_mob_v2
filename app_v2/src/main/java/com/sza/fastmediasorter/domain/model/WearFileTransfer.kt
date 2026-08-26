@@ -66,13 +66,40 @@ const val WEAR_FILE_TRANSFER_MAX_BYTES = 32L * 1024L * 1024L
  * writes them verbatim on both sides, so renaming one here breaks the other module silently.
  */
 data class WearFileTransferMetadata(
+    @SerializedName("requestId")
+    val requestId: String = "",
     @SerializedName("name")
     val name: String = "",
     @SerializedName("size")
     val size: Long = 0L,
     @SerializedName("mimeType")
-    val mimeType: String? = null
+    val mimeType: String? = null,
+    @SerializedName("openNow")
+    val openNow: Boolean = false
 )
+
+/** Correlated acknowledgement sent by the watch after a phone-initiated file transfer. */
+data class WearFileTransferAck(
+    @SerializedName("requestId")
+    val requestId: String = "",
+    @SerializedName("outcome")
+    val outcome: String = ""
+) {
+    companion object {
+        const val OUTCOME_OPENED = "OPENED"
+        const val OUTCOME_NOT_FOREGROUND = "NOT_FOREGROUND"
+        const val OUTCOME_UNSUPPORTED = "UNSUPPORTED"
+        const val OUTCOME_TOO_LARGE = "TOO_LARGE"
+        const val OUTCOME_SAVED = "SAVED"
+
+        /**
+         * S1884: the watch received a truncated file. Distinct from silence on purpose - without it
+         * this side waits out the whole ack timeout and then reports that the watch never answered,
+         * which is the one thing that did not happen.
+         */
+        const val OUTCOME_FAILED = "FAILED"
+    }
+}
 
 /** S1861: how one watch -> phone file ended on the phone. */
 enum class WearFileReceiveOutcome {

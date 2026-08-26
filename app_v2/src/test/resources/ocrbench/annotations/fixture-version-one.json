@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "sceneId": "fixture-version-one",
+  "widthPx": 800,
+  "heightPx": 600,
+  "textAreas": [
+    { "text": "Hello world", "box": [40, 40, 400, 88] }
+  ],
+  "paintableAreas": [
+    { "box": [40, 40, 400, 88] }
+  ],
+  "readable": true,
+  "provenance": { "author": "S2036 reader fixture", "annotatedOn": "2026-08-26", "draft": false }
+}

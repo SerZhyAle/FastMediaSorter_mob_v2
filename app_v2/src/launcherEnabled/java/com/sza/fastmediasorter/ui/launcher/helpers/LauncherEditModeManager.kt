@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherDesktopLayout
+import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -81,9 +82,15 @@ class LauncherEditModeManager(
      * S1466: built per gesture and dropped on dismiss, so no popup outlives the desktop that anchored it.
      * "Add an item" carries the pressed square; a press the grid cannot name falls back to the first free
      * position, which is exactly what the taskbar "+" does and never leaves the item unplaced.
+     *
+     * S2033: the square is read in drawn coordinates and named in stored ones. This gesture works outside
+     * edit mode, where the desktop is rendered with its sections actually folded, so the row under the
+     * finger is short by the height of every collapsed section above it until it is translated back.
      */
     private fun showQuickMenu() {
-        val slot = desktop.slotAt(desktop.lastPressX, desktop.lastPressY)
+        val slot = desktop.slotAt(desktop.lastPressX, desktop.lastPressY)?.let {
+            LauncherGridGeometry.storedSlotFor(it, viewModel.cells.value, viewModel.sections.collapsed.value)
+        }
         // Each gesture builds a fresh menu, so the popup's own replace-on-show guard never sees the
         // previous instance - closing it here is what keeps two modal windows off the desktop.
         quickMenu?.dismiss()

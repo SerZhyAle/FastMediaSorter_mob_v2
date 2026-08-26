@@ -894,7 +894,15 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.pipManager = PictureInPictureManager(
             activity = activity,
             playerView = activity.activityBinding.playerView,
-            chromeToHide = listOf(activity.activityBinding.toolbar, activity.activityBinding.topCommandPanel),
+            chromeToHide = listOf(
+                activity.activityBinding.toolbar,
+                activity.activityBinding.topCommandPanel,
+                activity.safeViews.copyToPanel,
+                activity.safeViews.moveToPanel,
+                activity.activityBinding.streamWaitLabel,
+                activity.activityBinding.streamProgramLabel,
+                activity.activityBinding.tvFileNameOverlay,
+            ),
             getPlayer = { activity.videoPlayerManager.getPlayer() },
             onPlay = {
                 val isAudio = activity.isMediaLoaderManagerInitialized &&

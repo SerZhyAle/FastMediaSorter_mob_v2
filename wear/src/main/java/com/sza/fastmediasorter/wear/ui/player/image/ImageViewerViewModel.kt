@@ -13,7 +13,6 @@ import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.DownloadNetworkFileUseCase
-import com.sza.fastmediasorter.wear.domain.usecase.SendFavoritesDeltaUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ToggleFavoriteUseCase
 import com.sza.fastmediasorter.wear.ui.slideshow.ImageSlideshowController
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -37,7 +36,6 @@ class ImageViewerViewModel @Inject constructor(
     private val playbackSetManager: PlaybackSetManager,
     private val downloadNetworkFile: DownloadNetworkFileUseCase,
     private val favoritesRepository: WearFavoritesRepository,
-    private val sendFavoritesDeltaUseCase: SendFavoritesDeltaUseCase,
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -264,7 +262,7 @@ class ImageViewerViewModel @Inject constructor(
             _isFavorite.value = if (_isFavorite.value) {
                 toggleFavoriteUseCase.toggle(sourceId, filePath, wasFavorite = true)
             } else {
-                favoritesRepository.addFavorite(
+                toggleFavoriteUseCase.add(
                     WearFavoriteRecord(
                         sourceId = sourceId,
                         filePath = filePath,
@@ -272,8 +270,6 @@ class ImageViewerViewModel @Inject constructor(
                         mimeType = _uiState.value.mediaFile?.mimeType
                     )
                 )
-                sendFavoritesDeltaUseCase()
-                true
             }
         }
     }

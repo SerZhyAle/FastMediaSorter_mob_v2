@@ -1030,9 +1030,9 @@
     "uk": "Задає, скільки піктограм вміщується в рядках і стовпцях сітки робочого столу лаунчера."
   },
   "rowLauncherForeignNotifications": {
-    "en": "Shows one icon per other app that has pending notifications in the launcher top bar, with how many it has. Their title, text and attachments are never read. Off by default and inert until the system grants notification access.",
-    "ru": "Показывает в верхней полосе лаунчера по одному значку на каждое другое приложение с висящими уведомлениями и число этих уведомлений. Заголовок, текст и вложения не читаются. По умолчанию выключено и бездействует, пока системный доступ к уведомлениям не выдан.",
-    "uk": "Показує у верхній смузі лаунчера по одному значку на кожен інший застосунок із висячими сповіщеннями та їхню кількість. Заголовок, текст і вкладення не читаються. Типово вимкнено і не діє, доки системний доступ до сповіщень не надано."
+    "en": "Shows one icon per other app that has pending notifications in the launcher top bar, with how many it has. Their title, text and attachments are never read. On by default and inert until the system grants notification access.",
+    "ru": "Показывает в верхней полосе лаунчера по одному значку на каждое другое приложение с висящими уведомлениями и число этих уведомлений. Заголовок, текст и вложения не читаются. По умолчанию включено и бездействует, пока системный доступ к уведомлениям не выдан.",
+    "uk": "Показує у верхній смузі лаунчера по одному значку на кожен інший застосунок із висячими сповіщеннями та їхню кількість. Заголовок, текст і вкладення не читаються. Типово увімкнено і не діє, доки системний доступ до сповіщень не надано."
   },
   "rowLauncherLockDesktop": {
     "en": "Blocks long-press entry into desktop edit mode; the Start-menu entry stays reachable.",
@@ -1538,5 +1538,10 @@
     "en": "Chooses how the watch navigation screens, including Settings, are laid out: a list, or a grid of two or three columns.",
     "ru": "Выбирает раскладку навигационных экранов часов, включая Настройки: список либо сетка из двух или трёх колонок.",
     "uk": "Обирає розкладку навігаційних екранів годинника, зокрема Налаштування: список або сітка з двох чи трьох колонок."
+  },
+  "wearVoiceNoteSendPolicy": {
+    "en": "Chooses what happens to a voice note recorded on the watch once it is stopped: send it to the phone straight away, or keep it on the watch until it is sent by hand. Either way the note stays on the watch until it is deleted, and a note taken while the phone is out of reach waits and leaves on its own when the link returns.",
+    "ru": "Выбирает, что происходит с голосовой заметкой на часах после остановки записи: отправить её на телефон сразу или держать на часах до отправки вручную. В обоих случаях заметка остаётся на часах до удаления, а снятая при недоступном телефоне ждёт и уходит сама при восстановлении связи.",
+    "uk": "Обирає, що стається з голосовою нотаткою на годиннику після зупинки запису: надіслати її на телефон одразу чи тримати на годиннику до надсилання вручну. В обох випадках нотатка лишається на годиннику до видалення, а знята за недоступного телефона чекає та йде сама щойно зв'язок відновиться."
   }
 }

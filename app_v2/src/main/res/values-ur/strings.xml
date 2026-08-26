@@ -2832,7 +2832,7 @@
     <string name="browse_empty_type_gated">%1$d فائلیں چھپی ہوئی ہیں کیونکہ ان کی میڈیا قسم بند ہے۔</string>
     <string name="browse_empty_type_gated_hint">انہیں دیکھنے کے لیے ترتیبات میں اس میڈیا قسم کو دوبارہ آن کریں۔</string>
     <string name="splash_slogan">..یہ سب میرا ہے، یہاں!</string>
-    <string name="launcher_section_google">GOOGLE</string>
+    <string name="launcher_section_google">Google</string>
     <string name="launcher_quick_menu_add_item">ایک آئٹم شامل کریں..</string>
     <string name="launcher_quick_menu_edit_desktop">ڈیسک ٹاپ میں ترمیم کریں</string>
     <string name="launcher_quick_menu_wallpaper">وال پیپر</string>
@@ -2861,7 +2861,7 @@
     <string name="launcher_translator_attribution">Google کی جانب سے ترجمہ کیا گیا</string>
     <string name="launcher_section_widgets">ویجٹس</string>
     <string name="launcher_section_resources">وسائل</string>
-    <string name="launcher_section_android_apps">Android ایپس</string>
+    <string name="launcher_section_android_apps">ایپس</string>
     <string name="launcher_settings_widget_backdrop_alpha_title">ویجٹ بیک ڈراپ اوپیسٹی</string>
     <string name="launcher_settings_widget_backdrop_alpha_0">0% (شفاف)</string>
     <string name="launcher_settings_widget_backdrop_alpha_85">85% (ڈیفالٹ)</string>

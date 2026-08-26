@@ -454,6 +454,15 @@ class CameraCaptureFlowManager(
             session.applyMacro(enabled)
         }
 
+        override fun setTorch(enabled: Boolean) {
+            flashEnabled = enabled
+            session.setTorchEnabled(enabled)
+        }
+
+        override fun resetZoomTo1x() {
+            onZoomRatioSelected(ZOOM_BASELINE)
+        }
+
         override fun switchToFrontLens() {
             // S1658: profile-driven, so neither end of the move touches the memory - the front lens's
             // own set would otherwise overwrite the SELFIE the user just picked.

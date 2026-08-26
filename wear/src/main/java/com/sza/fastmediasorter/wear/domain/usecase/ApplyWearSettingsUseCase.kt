@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.domain.usecase
 
 import android.content.Context
 import com.sza.fastmediasorter.wear.core.util.WearLocaleManager
+import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
 import com.sza.fastmediasorter.wear.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
@@ -27,6 +28,9 @@ class ApplyWearSettingsUseCase @Inject constructor(
         }
         payload.fileListViewMode?.let {
             preferencesRepository.setFileListViewMode(WearViewMode.fromNameOrDefault(it))
+        }
+        payload.backgroundMode?.let {
+            preferencesRepository.setBackgroundMode(WearBackgroundMode.fromNameOrDefault(it))
         }
         // S1814: apply language received from phone companion if supported by the watch.
         payload.appLanguage?.let { rawLanguage ->

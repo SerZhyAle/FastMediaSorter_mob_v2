@@ -321,7 +321,7 @@
              Declared here rather than in the wearGms overlay, following its neighbour above: only the
              GMS service needs the overlay, because only it references Play Services types that must not
              reach a flavor without them. -->
-        <activity android:name=".ui.wear.WearCompanionActivity" android:exported="false" android:theme="@style/Theme.FMS.TransparentPanelHost" android:excludeFromRecents="true" />
+        <activity android:name=".ui.wear.WearCompanionActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.NoActionBar" android:excludeFromRecents="true" />
 
         <activity android:name=".ui.addresource.AddResourceActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
 

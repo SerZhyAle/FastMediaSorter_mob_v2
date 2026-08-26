@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.settings
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,17 +16,20 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
+import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
-import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
-import androidx.wear.compose.material.ToggleChip
-import androidx.wear.compose.material.ToggleChipDefaults
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.WearSettingsItem
+import com.sza.fastmediasorter.wear.ui.common.WearSettingsRow
+import com.sza.fastmediasorter.wear.ui.common.WearSettingsToggleCell
+import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.util.GridColumnFit
 
 private val TITLE_BOTTOM_PADDING = 8.dp
 private val ROW_SPACING = 4.dp
@@ -36,90 +40,84 @@ fun ScreenSettingsScreen(
     listState: ScalingLazyListState = rememberScalingLazyListState()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val displayModeLabel = stringResource(R.string.screen_settings_view_mode)
+    val fileListLabel = stringResource(R.string.screen_settings_file_list_view)
+
+    // S1949: the three mode chips measure 6-12 characters in their worst locale, so they are narrow
+    // and share a row. Each group is packed on its own, so a run never spans two settings: on a
+    // display narrow enough to drop to two columns, the keep-awake toggle would otherwise pair with
+    // a leftover mode chip and read as part of that group.
+    val displayModeItems = viewModeItems(displayModeLabel, uiState.viewMode, viewModel::setViewMode)
+    val fileListItems =
+        viewModeItems(fileListLabel, uiState.fileListViewMode, viewModel::setFileListViewMode)
+    val keepAwakeLabel = stringResource(R.string.screen_settings_keep_awake)
+    val keepAwakeItems = listOf(
+        WearSettingsItem { narrow ->
+            WearSettingsToggleCell(
+                label = keepAwakeLabel,
+                checked = uiState.keepScreenAwakeOutsidePlayers,
+                narrow = narrow,
+                onToggle = { viewModel.toggleKeepScreenAwakeOutsidePlayers() }
+            )
+        }
+    )
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,
         positionIndicator = { PositionIndicator(listState) }
     ) {
-        ScalingLazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            state = listState,
-            contentPadding = wearScreenInsets(),
-            verticalArrangement = Arrangement.spacedBy(ROW_SPACING)
-        ) {
-            item {
-                Text(
-                    text = stringResource(R.string.screen_settings_title),
-                    style = MaterialTheme.typography.title2,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = TITLE_BOTTOM_PADDING),
-                    textAlign = TextAlign.Center
-                )
-            }
-            item {
-                Text(
-                    text = stringResource(R.string.screen_settings_view_mode),
-                    style = MaterialTheme.typography.caption1,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
-                )
-            }
-            items(WearViewMode.entries.size) { index ->
-                val mode = WearViewMode.entries[index]
-                ViewModeRow(
-                    mode = mode,
-                    groupLabel = stringResource(R.string.screen_settings_view_mode),
-                    selected = uiState.viewMode == mode,
-                    onSelect = { viewModel.setViewMode(mode) }
-                )
-            }
-            item {
-                Text(
-                    text = stringResource(R.string.screen_settings_file_list_view),
-                    style = MaterialTheme.typography.caption1,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
-                )
-            }
-            items(WearViewMode.entries.size) { index ->
-                val mode = WearViewMode.entries[index]
-                ViewModeRow(
-                    mode = mode,
-                    groupLabel = stringResource(R.string.screen_settings_file_list_view),
-                    selected = uiState.fileListViewMode == mode,
-                    onSelect = { viewModel.setFileListViewMode(mode) }
-                )
-            }
-            item {
-                KeepAwakeRow(
-                    checked = uiState.keepScreenAwakeOutsidePlayers,
-                    onToggle = { viewModel.toggleKeepScreenAwakeOutsidePlayers() }
-                )
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val columns = GridColumnFit.columnsFor(WearViewMode.GRID_3, maxWidth.value.toInt())
+            ScalingLazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                state = listState,
+                contentPadding = wearScreenInsets(),
+                verticalArrangement = Arrangement.spacedBy(ROW_SPACING)
+            ) {
+                item {
+                    Text(
+                        text = stringResource(R.string.screen_settings_title),
+                        style = MaterialTheme.typography.title2,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = TITLE_BOTTOM_PADDING),
+                        textAlign = TextAlign.Center
+                    )
+                }
+                item { GroupCaption(text = displayModeLabel) }
+                items(packSettingsRows(displayModeItems, columns)) { row -> WearSettingsRow(row) }
+                item { GroupCaption(text = fileListLabel) }
+                items(packSettingsRows(fileListItems, columns)) { row -> WearSettingsRow(row) }
+                items(packSettingsRows(keepAwakeItems, columns)) { row -> WearSettingsRow(row) }
             }
         }
     }
 }
 
+private fun viewModeItems(
+    groupLabel: String,
+    selectedMode: WearViewMode,
+    onSelect: (WearViewMode) -> Unit
+): List<WearSettingsItem> = WearViewMode.entries.map { mode ->
+    WearSettingsItem { narrow ->
+        ViewModeRow(
+            mode = mode,
+            groupLabel = groupLabel,
+            narrow = narrow,
+            selected = selectedMode == mode,
+            onSelect = { onSelect(mode) }
+        )
+    }
+}
+
 @Composable
-private fun KeepAwakeRow(
-    checked: Boolean,
-    onToggle: () -> Unit
-) {
-    val label = stringResource(R.string.screen_settings_keep_awake)
-    ToggleChip(
-        checked = checked,
-        onCheckedChange = { onToggle() },
-        label = { Text(text = label) },
-        toggleControl = {
-            Icon(
-                imageVector = ToggleChipDefaults.switchIcon(checked),
-                contentDescription = label
-            )
-        },
-        colors = ToggleChipDefaults.toggleChipColors(),
-        modifier = Modifier.fillMaxWidth()
+private fun GroupCaption(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.caption1,
+        modifier = Modifier.fillMaxWidth(),
+        textAlign = TextAlign.Center
     )
 }
 
@@ -127,27 +125,23 @@ private fun KeepAwakeRow(
 private fun ViewModeRow(
     mode: WearViewMode,
     groupLabel: String,
+    narrow: Boolean,
     selected: Boolean,
     onSelect: () -> Unit
 ) {
     val label = stringResource(labelResFor(mode))
-    ToggleChip(
+    WearSettingsToggleCell(
+        label = label,
         checked = selected,
+        narrow = narrow,
         // A radio row reports the choice it makes, so re-tapping the active mode is a no-op rather
         // than a way to end up with no view mode at all.
-        onCheckedChange = { if (!selected) onSelect() },
-        label = { Text(text = label) },
-        toggleControl = {
-            Icon(
-                imageVector = ToggleChipDefaults.radioIcon(selected),
-                // Both groups offer the same three mode names, so the row is read out with the
-                // setting it belongs to - otherwise the two settings are indistinguishable to a
-                // screen reader, which is exactly what strategic §6 item 1 forbids.
-                contentDescription = "$groupLabel: $label"
-            )
-        },
-        colors = ToggleChipDefaults.toggleChipColors(),
-        modifier = Modifier.fillMaxWidth()
+        onToggle = { if (!selected) onSelect() },
+        radio = true,
+        // Both groups offer the same three mode names, so the row is read out with the setting it
+        // belongs to - otherwise the two settings are indistinguishable to a screen reader, which is
+        // exactly what strategic §6 item 1 forbids.
+        accessibilityLabel = "$groupLabel: $label"
     )
 }
 

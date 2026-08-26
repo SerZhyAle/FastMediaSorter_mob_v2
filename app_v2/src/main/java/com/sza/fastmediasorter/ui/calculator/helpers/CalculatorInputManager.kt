@@ -1,7 +1,5 @@
 package com.sza.fastmediasorter.ui.calculator.helpers
 
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.os.Bundle
 import android.os.Handler
@@ -40,6 +38,9 @@ import kotlin.math.roundToInt
 class CalculatorInputManager(
     private val binding: ActivityCalculatorBinding,
     private val context: Context,
+    // S2024: showing a DialogFragment needs the Activity's FragmentManager, which this manager only
+    // holds a Context for - so the host supplies the action instead of the manager reaching for it.
+    private val onSettingsRequested: () -> Unit = {},
 ) {
     private val engine = CalculatorEngine()
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -52,6 +53,11 @@ class CalculatorInputManager(
     private val memoryStore = CalculatorMemoryStore(context)
     private val prankManager = CalculatorAprilFoolsPrankManager(context)
     private var memoryRowExpanded = false
+    private val settingsStore = CalculatorSettingsStore(context)
+    private val displayFormatter = CalculatorDisplayFormatter()
+    private val keypadModeManager = CalculatorKeypadModeManager(binding)
+    private val clipboardBridge = CalculatorClipboardBridge(context)
+    private var settings: CalculatorSettings = CalculatorSettings.DEFAULT
 
     /**
      * S1549: what a rotation must carry across a rebuilt view hierarchy - the engine's calculation plus the
@@ -131,7 +137,14 @@ class CalculatorInputManager(
         binding.btnCalculatorEquals.setOnClickListener { update { inputEquals() } }
         bindMemoryButtons()
         bindLongPressActions()
-        render()
+        // S2024: the result itself is the second way to reach copy and paste. Both gestures call the
+        // handlers the menu rows use, so a gesture and its menu twin cannot drift apart.
+        binding.calculatorDisplay.setOnClickListener { clipboardBridge.copy(engine.display) }
+        binding.calculatorDisplay.setOnLongClickListener {
+            pasteNumber()
+            true
+        }
+        reloadSettings()
         loadPersistedHistory()
         loadPersistedMemory()
     }
@@ -313,13 +326,21 @@ class CalculatorInputManager(
         }
     }
 
+    /** Re-reads the settings written by the calculator settings dialog and redraws with them. */
+    fun reloadSettings() {
+        settings = settingsStore.load()
+        keypadModeManager.applyDisplayTextSize(settings.displayTextSizeSp)
+        keypadModeManager.apply(settings.keypadMode)
+        render()
+    }
+
     fun render() {
         binding.calculatorDisplay.text = when (engine.error) {
             CalculatorEngine.CalculatorError.DIVISION_BY_ZERO ->
                 context.getString(R.string.calculator_error_division_by_zero)
             CalculatorEngine.CalculatorError.MATH_DOMAIN ->
                 context.getString(R.string.calculator_error_math_domain)
-            null -> engine.display
+            null -> displayFormatter.format(engine.display, settings.groupThousands)
         }
         binding.calculatorHistory.text = buildVisibleHistory()
         binding.calculatorHistoryScroll.post {
@@ -363,6 +384,7 @@ class CalculatorInputManager(
             menu.add(0, MENU_SHARE_RESULT, 4, R.string.calculator_action_share_result)
             menu.add(0, MENU_SAVE_HISTORY, 5, R.string.calculator_action_save_history)
             menu.add(0, MENU_CLEAR_HISTORY, 6, R.string.calculator_action_clear_history)
+            menu.add(0, MENU_SETTINGS, 7, R.string.calculator_action_settings)
             setOnMenuItemClickListener { item -> handleMenuItem(item.itemId) }
             show()
         }
@@ -478,13 +500,14 @@ class CalculatorInputManager(
         ).roundToInt()
 
     private fun handleMenuItem(itemId: Int): Boolean = when (itemId) {
-        MENU_COPY -> { copyDisplay(); true }
+        MENU_COPY -> { clipboardBridge.copy(engine.display); true }
         MENU_PASTE -> { pasteNumber(); true }
         MENU_ROUND -> { update { roundDisplay() }; true }
         MENU_FUNCTION -> { showFunctionChooser(); true }
         MENU_SHARE_RESULT -> { shareResult(); true }
         MENU_SAVE_HISTORY -> { saveHistory(); true }
         MENU_CLEAR_HISTORY -> { clearHistory(); true }
+        MENU_SETTINGS -> { onSettingsRequested(); true }
         FN_SIN -> { update { sine() }; true }
         FN_COS -> { update { cosine() }; true }
         FN_TAN -> { update { tangent() }; true }
@@ -503,15 +526,8 @@ class CalculatorInputManager(
         else -> false
     }
 
-    private fun copyDisplay() {
-        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(ClipData.newPlainText(CLIP_LABEL, engine.display))
-        Toast.makeText(context, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show()
-    }
-
     private fun pasteNumber() {
-        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val text = clipboard.primaryClip?.getItemAt(0)?.coerceToText(context)?.toString().orEmpty()
+        val text = clipboardBridge.readText()
         update { inputNumber(text) }
     }
 
@@ -626,7 +642,6 @@ class CalculatorInputManager(
         /** Symbol line plus hint line - never more, so a re-bind cannot stack hints. */
         const val HINT_KEY_MAX_LINES = 2
 
-        const val CLIP_LABEL = "calculator"
         const val HISTORY_FILE_NAME = "calculator_history.txt"
 
         // S1549: instance-state keys for the in-progress calculation.

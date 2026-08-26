@@ -6,6 +6,7 @@ import com.google.android.gms.wearable.ChannelClient
 import com.google.android.gms.wearable.Wearable
 import com.sza.fastmediasorter.wear.domain.model.WEAR_FILE_TRANSFER_MAX_BYTES
 import com.sza.fastmediasorter.wear.domain.model.WearFileReceiveOutcome
+import com.sza.fastmediasorter.wear.domain.model.WearFileReceiveResult
 import com.sza.fastmediasorter.wear.domain.model.WearFileTransferMetadata
 import com.sza.fastmediasorter.wear.domain.repository.WearFileReceiverRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -24,7 +25,19 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * S1861: receives incoming phone -> watch files and saves them under the watch's downloads directory.
+ * S2000: the one definition of where an incoming file lands, so the writer here and the reader in
+ * ResolveWearBackgroundUseCase cannot drift apart about it. A name that arrives twice overwrites:
+ * the destination is built from the name alone and the copy truncates, so there is one slot per
+ * name rather than a growing set of suffixed copies.
+ */
+internal fun incomingFilesDirectory(context: Context): File =
+    context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: context.filesDir
+
+/**
+ * S1861: receives incoming phone -> watch files and saves them where the announced intent says.
+ *
+ * S1884: a file announced with `openNow` is a one-off view, so it lands in a pruned cache directory
+ * rather than in downloads - see [destinationFor].
  *
  * Declarations are keyed by file name because that is the only correlator the channel carries - the
  * name rides as the trailing segment of the channel path, and the Data Layer offers no other handle
@@ -48,7 +61,7 @@ class WearFileReceiverRepositoryImpl @Inject constructor(
     override suspend fun receiveFile(
         channel: ChannelClient.Channel,
         fileName: String
-    ): WearFileReceiveOutcome = withContext(Dispatchers.IO) {
+    ): WearFileReceiveResult = withContext(Dispatchers.IO) {
         val declared = declarations.remove(fileName)
         val limit = allowedBytes(declared)
         if (limit == null) {
@@ -59,10 +72,42 @@ class WearFileReceiverRepositoryImpl @Inject constructor(
                 WEAR_FILE_TRANSFER_MAX_BYTES
             )
             closeChannel(channel)
-            WearFileReceiveOutcome.REFUSED_TOO_LARGE
+            WearFileReceiveResult(WearFileReceiveOutcome.REFUSED_TOO_LARGE, declaration = declared)
         } else {
-            copyFromChannel(channel, fileName, limit)
+            copyFromChannel(channel, fileName, limit, destinationFor(declared, fileName), declared)
         }
+    }
+
+    /**
+     * S1884: where this file is allowed to land.
+     *
+     * An announced `openNow` means the sender wants it looked at once, and strategic 2 Non-goals
+     * forbids that file becoming a stored copy - so it goes to a cache directory that is emptied
+     * before each arrival. Anything else is the shipped sorting transfer and keeps its downloads
+     * destination byte for byte.
+     */
+    private fun destinationFor(declared: WearFileTransferMetadata?, fileName: String): File {
+        val directory = if (declared?.openNow == true) {
+            previewDirectory()
+        } else {
+            incomingFilesDirectory(context)
+        }
+        return File(directory, fileName)
+    }
+
+    /**
+     * The preview directory, emptied first. A watch has little storage and a file sent to be seen
+     * once has no reason to outlive the next one; nothing outside this directory is touched.
+     */
+    private fun previewDirectory(): File {
+        val directory = File(context.cacheDir, PREVIEW_DIR_NAME)
+        directory.mkdirs()
+        directory.listFiles()?.forEach { stale ->
+            if (!stale.delete()) {
+                Timber.w("Could not prune the stale preview file %s", stale.name)
+            }
+        }
+        return directory
     }
 
     /**
@@ -83,10 +128,10 @@ class WearFileReceiverRepositoryImpl @Inject constructor(
     private suspend fun copyFromChannel(
         channel: ChannelClient.Channel,
         fileName: String,
-        limitBytes: Long
-    ): WearFileReceiveOutcome {
-        val targetDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: context.filesDir
-        val targetFile = File(targetDir, fileName)
+        limitBytes: Long,
+        targetFile: File,
+        declared: WearFileTransferMetadata?
+    ): WearFileReceiveResult {
         return try {
             val written = Wearable.getChannelClient(context).getInputStream(channel).await().use { input ->
                 FileOutputStream(targetFile).use { output -> pump(input, output, limitBytes) }
@@ -94,10 +139,10 @@ class WearFileReceiverRepositoryImpl @Inject constructor(
             if (written == null) {
                 Timber.w("Incoming file %s outran its declared size, partial write discarded", fileName)
                 targetFile.delete()
-                WearFileReceiveOutcome.REFUSED_TOO_LARGE
+                WearFileReceiveResult(WearFileReceiveOutcome.REFUSED_TOO_LARGE, declaration = declared)
             } else {
                 Timber.i("Received %s (%d bytes) from the phone", fileName, written)
-                WearFileReceiveOutcome.SAVED
+                WearFileReceiveResult(WearFileReceiveOutcome.SAVED, targetFile.absolutePath, declared)
             }
         } catch (e: CancellationException) {
             throw e
@@ -106,7 +151,7 @@ class WearFileReceiverRepositoryImpl @Inject constructor(
             // the watch never shows a truncated media item as if it had arrived whole.
             Timber.w(e, "Failed to receive %s from the phone", fileName)
             targetFile.delete()
-            WearFileReceiveOutcome.FAILED
+            WearFileReceiveResult(WearFileReceiveOutcome.FAILED, declaration = declared)
         } finally {
             closeChannel(channel)
         }
@@ -138,5 +183,8 @@ class WearFileReceiverRepositoryImpl @Inject constructor(
 
     private companion object {
         const val RECEIVE_BUFFER_BYTES = 64 * 1024
+
+        /** S1884: cache subdirectory holding the one file currently being previewed, and nothing else. */
+        const val PREVIEW_DIR_NAME = "watch_preview"
     }
 }

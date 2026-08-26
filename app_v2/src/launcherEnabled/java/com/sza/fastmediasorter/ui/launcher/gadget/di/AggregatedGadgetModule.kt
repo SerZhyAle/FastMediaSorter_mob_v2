@@ -49,5 +49,9 @@ object AggregatedGadgetModule {
         // it is the second family that cannot be placed without answering a question first, and the
         // picker reads best with the outright-placeable tiles at the top.
         @NetworkGadgets network: List<@JvmSuppressWildcards LauncherGadget>,
-    ): List<LauncherGadget> = homeWidgets + sensors + technical + textTools + mediaWindows + network
+        // S1906: last for the reason the two families above it are late - a world clock cannot be placed
+        // until its zone is picked, and the picker reads best with the outright-placeable tiles at the top.
+        @TimeGadgets time: List<@JvmSuppressWildcards LauncherGadget>,
+    ): List<LauncherGadget> =
+        homeWidgets + sensors + technical + textTools + mediaWindows + network + time
 }

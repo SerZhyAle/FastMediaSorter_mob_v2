@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.wear.domain.model.WearEventEnvelopeCodec
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackStatePayload
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import javax.inject.Inject
@@ -33,6 +34,14 @@ class PublishPlaybackStateUseCase @Inject constructor(
         }
         Wearable.getDataClient(context).putDataItem(request.asPutDataRequest()).await()
     }.onFailure { e ->
+        // S2029: closing the player cancels the scope this publish runs in, and runCatching catches
+        // that CancellationException like any other failure. Two things went wrong at once - the log
+        // claimed a delivery failure that never happened, and swallowing the cancellation left the
+        // coroutine looking completed to its parent. Cancellation is the caller's outcome, not ours.
+        if (e is CancellationException) {
+            Timber.d("S2029: publish playback state cancelled - rethrown, not logged as an error")
+            throw e
+        }
         Timber.e(e, "PublishPlaybackStateUseCase failed - state not published")
     }
 }

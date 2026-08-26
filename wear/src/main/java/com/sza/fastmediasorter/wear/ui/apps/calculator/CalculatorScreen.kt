@@ -9,26 +9,29 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
-import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
+import androidx.wear.compose.material.ButtonColors
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
@@ -38,6 +41,7 @@ import com.sza.fastmediasorter.wear.domain.calculator.WearCalculatorEngine
 import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.util.GridColumnFit
+import timber.log.Timber
 
 // S1965: was 26.dp - about half the interactive minimum, while the KDoc below and
 // docs/WEAR_OS_STATUS.md both said 48. That KDoc names the target size as the FIXED side of the
@@ -52,13 +56,30 @@ private val OPERATION_ELEMENT_SIZE = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
 /** S1719: how many zeros the held zero key enters, mirroring the phone's quick entry. */
 private const val TRIPLE_ZERO_COUNT = 3
 
+/** S2007: how much of the theme's error colour the two destructive keys carry as a plate. */
+private const val DESTRUCTIVE_TINT_ALPHA = 0.35f
+
+/**
+ * S2007: empty space below the last row, so the bottom row can be scrolled to the middle of the
+ * display instead of being parked against the rim.
+ *
+ * A round screen narrows towards its edges, and the scaling this keypad dropped was quietly paying
+ * for that: a full-size row at the end of the viewport has its outer keys off the glass. Measured on
+ * a 480 px round emulator at maximum scroll, the clear key's tap centre landed about 15 px outside a
+ * circle of radius 240 - the key could not be pressed at all. The answer is space to scroll into,
+ * not a smaller key, which is what ADR-1 refuses. This is not the `autoCentering` padding ADR-2
+ * rejected: that sat ABOVE the first row and was why the keypad opened on emptiness, while this sits
+ * below the last row and costs nothing until the user scrolls down to it.
+ */
+private val KEYPAD_TRAILING_SPACE = KEY_HEIGHT * 2
+
 /**
  * What a key does when pressed. The screen holds no arithmetic - every action is one call into the
  * view model, which owns the engine.
  */
 private sealed interface CalculatorKey {
     data class Digit(val value: Int) : CalculatorKey
-    data class Operator(val symbol: String, val descriptionRes: Int) : CalculatorKey
+    data class Operator(val operator: WearCalculatorEngine.Operator) : CalculatorKey
     data object Decimal : CalculatorKey
     data object Sign : CalculatorKey
     data object Equals : CalculatorKey
@@ -75,6 +96,11 @@ private sealed interface CalculatorKey {
  * 48 dp interactive minimum and a result line at the same time, and the strategic constraint makes
  * the target size the fixed side of that trade, not the key set - so the rows scroll instead of the
  * keys shrinking.
+ *
+ * S2007: what scrolls them is a plain [Column], not a `ScalingLazyColumn`. The scaling list spent
+ * about half its own viewport on auto-centring padding that carried no key, and drew every row away
+ * from the centre line smaller than the 48 dp the constant above promises - so the outer keys were
+ * pressed at less than the minimum they claim to honour.
  */
 @Composable
 fun CalculatorScreen(
@@ -84,14 +110,19 @@ fun CalculatorScreen(
     viewModel: CalculatorViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val listState = rememberScalingLazyListState()
+    val keypadScrollState = rememberScrollState()
     var menuOpen by remember { mutableStateOf(false) }
     var historyOpen by remember { mutableStateOf(false) }
 
+    // Keyed on Unit so it marks entry into the screen, not every recomposition the keypad causes.
+    LaunchedEffect(Unit) { Timber.d("S2007: calculator opened - column keypad, red C/backspace, end-aligned value") }
+
+    // S2007: no `scrollState` is handed to the scaffold. That parameter exists only to scroll
+    // `TimeText` away, and the value row is fixed below the clock while the keypad scrolls beneath
+    // the value row - so nothing that moves here ever reaches the clock to obscure it.
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
-        scrollState = listState,
-        positionIndicator = { PositionIndicator(listState) }
+        positionIndicator = { PositionIndicator(keypadScrollState) }
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -103,14 +134,20 @@ fun CalculatorScreen(
                 // repeats an operation, it does not open a second way into the arithmetic.
                 onOperation = { symbol -> viewModel.onOperator(symbol) }
             )
-            ScalingLazyColumn(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f),
-                state = listState,
-                contentPadding = PaddingValues(horizontal = KEYPAD_SIDE_PADDING, vertical = KEY_GAP)
+                    .weight(1f)
+                    .verticalScroll(keypadScrollState)
+                    .padding(
+                        start = KEYPAD_SIDE_PADDING,
+                        top = KEY_GAP,
+                        end = KEYPAD_SIDE_PADDING,
+                        bottom = KEY_GAP + KEYPAD_TRAILING_SPACE
+                    ),
+                verticalArrangement = Arrangement.spacedBy(KEY_GAP)
             ) {
-                items(keypadRows()) { row ->
+                keypadRows().forEach { row ->
                     CalculatorKeyRow(
                         keys = row,
                         onKey = { key -> dispatch(key, viewModel) { menuOpen = true } },
@@ -203,7 +240,15 @@ private fun CalculatorDisplay(uiState: CalculatorUiState, onOperation: (String) 
             style = MaterialTheme.typography.title1,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
+            // S2007: right-aligned and in its own colour, which is where a calculator register puts
+            // its value and what stops it reading as one more key label. The error word keeps the
+            // error colour - an `Error` string drawn in the value colour claims to be a value.
+            textAlign = TextAlign.End,
+            color = if (uiState.isError) {
+                MaterialTheme.colors.error
+            } else {
+                colorResource(R.color.wear_calc_display_value)
+            },
             // The number keeps its own type size and takes whatever the small element leaves;
             // strategic 3.2 fixes legibility, so the element is what stays small, not the value.
             modifier = Modifier
@@ -239,11 +284,27 @@ private fun OperationElement(operation: WearCalculatorEngine.Operator, onOperati
         colors = ButtonDefaults.primaryButtonColors()
     ) {
         Text(
-            text = operation.symbol,
+            text = glyphFor(operation),
             style = MaterialTheme.typography.title3.copy(fontWeight = FontWeight.Bold),
             maxLines = 1
         )
     }
+}
+
+/**
+ * S2007: what an operator is drawn as, which is deliberately not what the engine parses.
+ *
+ * `MINUS` paints U+2212 MINUS SIGN because an ASCII hyphen is drawn at a fraction of the width of
+ * `+`, `×` and `÷` and reads as a stray mark beside them. It stays out of
+ * [WearCalculatorEngine.Operator.symbol], which `Operator.from` parses back and which is written
+ * into the persisted history expressions the user can tap to reuse (ADR-3): a change made for how a
+ * key looks must not travel into what a stored expression contains.
+ */
+private fun glyphFor(operator: WearCalculatorEngine.Operator): String = when (operator) {
+    WearCalculatorEngine.Operator.PLUS -> "+"
+    WearCalculatorEngine.Operator.MINUS -> "−"
+    WearCalculatorEngine.Operator.TIMES -> "×"
+    WearCalculatorEngine.Operator.DIVIDE -> "÷"
 }
 
 private fun operationDescriptionRes(operation: WearCalculatorEngine.Operator): Int = when (operation) {
@@ -274,20 +335,66 @@ private fun CalculatorKeyRow(
                     .semantics { contentDescription = description },
                 onLongClick = longPressHandler(key, onLongKey),
                 shape = RoundedCornerShape(4.dp),
-                colors = if (key is CalculatorKey.Digit) {
-                    ButtonDefaults.secondaryButtonColors()
-                } else {
-                    ButtonDefaults.primaryButtonColors()
-                }
+                colors = keyColorsFor(key)
             ) {
                 Text(
                     text = label,
-                    style = MaterialTheme.typography.title2.copy(fontWeight = FontWeight.Bold),
+                    style = labelStyleFor(key),
                     maxLines = 1
                 )
             }
         }
     }
+}
+
+/**
+ * S2007: one type step larger for the low-ink glyphs.
+ *
+ * Equal type size gives unequal drawn size - a decimal point covers a fraction of the box a digit
+ * fills - so the step is what makes the ink each key puts on the display comparable, rather than
+ * the type size being equal while the keys look nothing alike.
+ */
+@Composable
+private fun labelStyleFor(key: CalculatorKey): TextStyle {
+    val base = when (key) {
+        is CalculatorKey.Operator,
+        CalculatorKey.Decimal,
+        CalculatorKey.Sign,
+        CalculatorKey.Equals,
+        CalculatorKey.Menu -> MaterialTheme.typography.title1
+
+        is CalculatorKey.Digit,
+        CalculatorKey.Clear,
+        CalculatorKey.Backspace -> MaterialTheme.typography.title2
+    }
+    return base.copy(fontWeight = FontWeight.Bold)
+}
+
+/**
+ * S2007: the two destructive keys draw on a red plate so neither is mistaken for the arithmetic
+ * beside it.
+ *
+ * The tint derives from the theme rather than a literal, so if S2003 later replaces the watch
+ * palette these keys follow it instead of standing out of line. The content colour is
+ * `onBackground` and not `onError` (ADR-4): Wear's `onError` is a dark colour meant for a fully
+ * saturated error surface, and over a translucent tint on a black background it would be close to
+ * unreadable.
+ */
+@Composable
+private fun keyColorsFor(key: CalculatorKey): ButtonColors = when (key) {
+    CalculatorKey.Clear,
+    CalculatorKey.Backspace -> ButtonDefaults.buttonColors(
+        backgroundColor = MaterialTheme.colors.error.copy(alpha = DESTRUCTIVE_TINT_ALPHA),
+        contentColor = MaterialTheme.colors.onBackground
+    )
+
+    is CalculatorKey.Digit -> ButtonDefaults.secondaryButtonColors()
+
+    is CalculatorKey.Operator,
+    CalculatorKey.Decimal,
+    CalculatorKey.Sign,
+    CalculatorKey.Equals,
+    CalculatorKey.Menu -> ButtonDefaults.primaryButtonColors()
 }
 
 /**
@@ -327,7 +434,7 @@ private fun dispatchLongPress(
 private fun dispatch(key: CalculatorKey, viewModel: CalculatorViewModel, openMenu: () -> Unit) {
     when (key) {
         is CalculatorKey.Digit -> viewModel.onDigit(key.value)
-        is CalculatorKey.Operator -> viewModel.onOperator(key.symbol)
+        is CalculatorKey.Operator -> viewModel.onOperator(key.operator.symbol)
         CalculatorKey.Decimal -> viewModel.onDecimal()
         CalculatorKey.Sign -> viewModel.onSign()
         CalculatorKey.Equals -> viewModel.onEquals()
@@ -345,25 +452,25 @@ private fun keypadRows(): List<List<CalculatorKey>> = listOf(
         CalculatorKey.Digit(7),
         CalculatorKey.Digit(8),
         CalculatorKey.Digit(9),
-        CalculatorKey.Operator("÷", R.string.wear_calc_divide)
+        CalculatorKey.Operator(WearCalculatorEngine.Operator.DIVIDE)
     ),
     listOf(
         CalculatorKey.Digit(4),
         CalculatorKey.Digit(5),
         CalculatorKey.Digit(6),
-        CalculatorKey.Operator("×", R.string.wear_calc_times)
+        CalculatorKey.Operator(WearCalculatorEngine.Operator.TIMES)
     ),
     listOf(
         CalculatorKey.Digit(1),
         CalculatorKey.Digit(2),
         CalculatorKey.Digit(3),
-        CalculatorKey.Operator("-", R.string.wear_calc_minus)
+        CalculatorKey.Operator(WearCalculatorEngine.Operator.MINUS)
     ),
     listOf(
         CalculatorKey.Decimal,
         CalculatorKey.Digit(0),
         CalculatorKey.Sign,
-        CalculatorKey.Operator("+", R.string.wear_calc_plus)
+        CalculatorKey.Operator(WearCalculatorEngine.Operator.PLUS)
     ),
     listOf(
         CalculatorKey.Clear,
@@ -375,7 +482,7 @@ private fun keypadRows(): List<List<CalculatorKey>> = listOf(
 
 private fun labelFor(key: CalculatorKey): String = when (key) {
     is CalculatorKey.Digit -> key.value.toString()
-    is CalculatorKey.Operator -> key.symbol
+    is CalculatorKey.Operator -> glyphFor(key.operator)
     CalculatorKey.Decimal -> "."
     CalculatorKey.Sign -> "±"
     CalculatorKey.Equals -> "="
@@ -387,7 +494,7 @@ private fun labelFor(key: CalculatorKey): String = when (key) {
 @Composable
 private fun descriptionFor(key: CalculatorKey): String = when (key) {
     is CalculatorKey.Digit -> key.value.toString()
-    is CalculatorKey.Operator -> stringResource(key.descriptionRes)
+    is CalculatorKey.Operator -> stringResource(operationDescriptionRes(key.operator))
     CalculatorKey.Decimal -> stringResource(R.string.wear_calc_decimal)
     CalculatorKey.Sign -> stringResource(R.string.wear_calc_sign)
     CalculatorKey.Equals -> stringResource(R.string.wear_calc_equals)

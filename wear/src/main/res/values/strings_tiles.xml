@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wear_tile_resource_label">Resource Tile</string>
+    <string name="wear_tile_stream_label">Stream Tile</string>
+    <string name="wear_tile_favourites_label">Favourites Tile</string>
+    <string name="wear_tile_unassigned_resource">No resource assigned</string>
+    <string name="wear_tile_unassigned_stream">No stream assigned</string>
+    <string name="wear_tile_pick_action">Select Target</string>
+    <string name="wear_tile_target_missing">Target no longer exists</string>
+    <string name="wear_tile_favourites_empty">No favourites marked</string>
+    <string name="wear_tile_picker_title_resource">Select Resource</string>
+    <string name="wear_tile_picker_title_stream">Select Stream</string>
+    <string name="wear_tile_picker_empty_resource">No resources found. Add a network resource on watch or sync from phone.</string>
+    <string name="wear_tile_picker_empty_stream">No streams found. Add a stream or sync catalog from phone.</string>
+</resources>

@@ -57,25 +57,11 @@ Write-Host "`nBuild Successful!" -ForegroundColor Green
 
 # Resolve actual APK path from AGP output metadata
 $apkDir = Join-Path $projectRoot "app_v2\build\outputs\apk\lite\debug"
-$metadataPath = Join-Path $apkDir "output-metadata.json"
-$apkPath = $null
-
-if (Test-Path -Path $metadataPath) {
-    try {
-        $meta = Get-Content -Path $metadataPath -Raw | ConvertFrom-Json
-        if ($meta.elements -and $meta.elements.Count -gt 0 -and $meta.elements[0].outputFile) {
-            $apkPath = Join-Path $apkDir $meta.elements[0].outputFile
-        }
-    }
-    catch {
-        Write-Host "Warning: Failed to parse output-metadata.json" -ForegroundColor Yellow
-    }
-}
-
-if (-not $apkPath -or -not (Test-Path -Path $apkPath)) {
-    $latestApk = Get-ChildItem -Path $apkDir -Filter *.apk -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-    if ($latestApk) { $apkPath = $latestApk.FullName }
-}
+# S1972: one resolver for every builder - it selects by ABI from output-metadata.json
+# and refuses to guess, where this block used to take element 0 and then the newest file.
+. "$PSScriptRoot\..\utils\find-build-artifact.ps1"
+$resolvedArtifact = Find-BuildArtifact -Dir $apkDir
+$apkPath = if ($resolvedArtifact) { $resolvedArtifact.FullName } else { $null }
 
 if (-not $apkPath -or -not (Test-Path -Path $apkPath)) {
     Write-Host "Error: APK not found in $apkDir" -ForegroundColor Red

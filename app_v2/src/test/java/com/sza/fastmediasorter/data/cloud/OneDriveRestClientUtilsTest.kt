@@ -20,7 +20,7 @@ import org.robolectric.annotation.Config
  * nested thumbnail extraction). Robolectric supplies real org.json; IAccount is mocked.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34]) // Robolectric 4.11.1 maxSdkVersion=34; targetSdk 35 needs the explicit pin.
+@Config(sdk = [34]) // Robolectric 4.16.1 maxSdkVersion=34; targetSdk 35 needs the explicit pin.
 class OneDriveRestClientUtilsTest {
 
     @Test

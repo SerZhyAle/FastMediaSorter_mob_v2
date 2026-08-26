@@ -1,12 +1,8 @@
 package com.sza.fastmediasorter.wear.ui.player.video
 
 import com.sza.fastmediasorter.wear.domain.model.StreamChannelReason
+import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
-
-enum class VideoScaleMode {
-    FIT,
-    CROP_PAN
-}
 
 /**
  * UI state for the video player screen.
@@ -27,6 +23,11 @@ data class VideoPlayerUiState(
     val scaleMode: VideoScaleMode = VideoScaleMode.FIT,
     val panOffsetX: Float = 0f,
     val panOffsetY: Float = 0f,
+    /**
+     * S1954: whether the open item carries the shared favourite mark - for a stream this is what
+     * "pinned" means, because the list orders by the same mark rather than by a second store.
+     */
+    val isFavorite: Boolean = false,
     /**
      * S1728: why the network channel affected this stream, or null for "say nothing".
      *

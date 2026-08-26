@@ -69,6 +69,14 @@ object SettingsDocScopeCatalog {
             SettingsSearchDestination.OPERATIONS,
             ""
         ),
+        // S2024: opened only from the calculator's own popup menu, never from a settings screen - no
+        // settings-screen control leads here, so hostKey stays empty.
+        DocScopeSurface(
+            R.layout.dialog_calculator_settings,
+            "calculator",
+            SettingsSearchDestination.OPERATIONS,
+            ""
+        ),
         // Opened only from the camera-OCR capture flow (CameraOcrTranslateActivity), same reason.
         DocScopeSurface(
             R.layout.dialog_camera_ocr_settings,
@@ -192,6 +200,17 @@ object SettingsDocScopeCatalog {
             titleEn = "Files view",
             titleRu = "Вид файлов",
             titleUk = "Вигляд файлів"
+        ),
+        // S1862: a radio group rather than a toggle, because the setting picks between two named
+        // models and section 6 item 1 requires it to be able to stop the automatic send - an "off"
+        // caption would not say that the note is then kept on the watch until sent by hand.
+        WearDocEntry(
+            key = "wearVoiceNoteSendPolicy",
+            layout = "wear_other_settings",
+            kind = "RADIO_GROUP",
+            titleEn = "Voice note delivery",
+            titleRu = "Доставка голосовых заметок",
+            titleUk = "Доставка голосових нотаток"
         )
     )
 }

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1906: the world-clock gadget. TextClock takes an explicit time zone and keeps itself ticking, so
+     this gadget has no lifecycle wiring and no receiver to keep symmetric - the same reason the local
+     clock gadget next door has none. Seeded at 2x1, far shorter than that clock's 4x2, so both lines
+     autosize inside a declared share of the height instead of measuring at a fixed size.
+     tools:ignore - autosize needs a free layout_height, which is what 0dp plus a weight gives it; the
+     lint check does not model the weighted parent.
+     The 12-hour pattern carries the meridiem where the local clock's does not: on a device set to
+     12-hour, Tokyo's 14:39 rendered as a bare "2:39", which inverts day and night - the one thing a
+     remote clock exists to tell. Locally the user already knows which half of the day it is. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="@dimen/margin_small">
+
+        <TextClock
+            android:id="@+id/gadgetWorldClockTime"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="3"
+            android:autoSizeMaxTextSize="64sp"
+            android:autoSizeMinTextSize="14sp"
+            android:autoSizeTextType="uniform"
+            android:ellipsize="end"
+            android:format12Hour="h:mm a"
+            android:format24Hour="H:mm"
+            android:gravity="center"
+            android:maxLines="1"
+            android:textColor="?attr/colorOnSurface"
+            android:textStyle="bold"
+            tools:ignore="UnusedAttribute"
+            tools:text="09:45" />
+
+        <TextView
+            android:id="@+id/gadgetWorldClockPlace"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="2"
+            android:autoSizeMaxTextSize="14sp"
+            android:autoSizeMinTextSize="8sp"
+            android:autoSizeTextType="uniform"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="2"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            tools:ignore="UnusedAttribute"
+            tools:text="Kyiv +2 h" />
+
+    </LinearLayout>
+
+</merge>

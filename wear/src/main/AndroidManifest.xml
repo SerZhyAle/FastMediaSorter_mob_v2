@@ -50,7 +50,30 @@
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    
+
+    <!--
+        S1862: the voice recorder. The microphone session belongs to a foreground service rather than
+        to the screen (ADR-4) - a watch screen goes dark when the wrist drops, and a screen-bound
+        session would end exactly while the user is speaking. FOREGROUND_SERVICE_MICROPHONE is the
+        API 34 split of FOREGROUND_SERVICE and is requested only there; below 34 the untyped
+        permission alone is what the platform checks.
+    -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE"
+        android:minSdkVersion="34" />
+    <!--
+        S1862: on API 33+ a foreground service notification is NOT exempt from POST_NOTIFICATIONS -
+        without it the recording notification is silently never shown, so the watch listens with
+        nothing on screen to say so. The service keeps running when it is denied, which is why the
+        recorder screen asks for it beside RECORD_AUDIO but never gates recording on the answer.
+    -->
+    <uses-permission
+        android:name="android.permission.POST_NOTIFICATIONS"
+        android:minSdkVersion="33" />
+
+
    <application
         android:name=".FastMediaSorterWearApp"
         android:allowBackup="true"
@@ -73,6 +96,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
             android:theme="@style/Theme.FastMediaSorterWear">
             <intent-filter>
@@ -110,6 +134,64 @@
                     android:pathPrefix="/fms/wear"
                     android:scheme="wear" />
             </intent-filter>
+            <!-- S1862: a filter of its own rather than one more action on the block above - an intent
+                 filter matches the union of its actions against the union of its data, and the
+                 capability path is not a /fms/ path. The name must equal PHONE_COMPANION_CAPABILITY
+                 in WatchWearListenerService.kt and the capability the phone declares for itself. -->
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.CAPABILITY_CHANGED" />
+                <data
+                    android:host="*"
+                    android:path="/fms_phone_companion"
+                    android:scheme="wear" />
+            </intent-filter>
+        </service>
+        <!-- S1862: owner of the microphone session; started by the recorder screen, never bound to it. -->
+        <service
+            android:name=".service.VoiceRecordingService"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
+
+        <!-- S1955: Wear OS Tile Service for Network Resource tile -->
+        <service
+            android:name=".tile.WearResourceTileService"
+            android:exported="true"
+            android:label="@string/wear_tile_resource_label"
+            android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER">
+            <intent-filter>
+                <action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER" />
+            </intent-filter>
+            <meta-data
+                android:name="androidx.wear.tiles.PREVIEW"
+                android:resource="@drawable/tile_preview_resource" />
+        </service>
+
+        <!-- S1955: Wear OS Tile Service for Stream tile -->
+        <service
+            android:name=".tile.WearStreamTileService"
+            android:exported="true"
+            android:label="@string/wear_tile_stream_label"
+            android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER">
+            <intent-filter>
+                <action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER" />
+            </intent-filter>
+            <meta-data
+                android:name="androidx.wear.tiles.PREVIEW"
+                android:resource="@drawable/tile_preview_stream" />
+        </service>
+
+        <!-- S1955: Wear OS Tile Service for Favourites tile -->
+        <service
+            android:name=".tile.WearFavouritesTileService"
+            android:exported="true"
+            android:label="@string/wear_tile_favourites_label"
+            android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER">
+            <intent-filter>
+                <action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER" />
+            </intent-filter>
+            <meta-data
+                android:name="androidx.wear.tiles.PREVIEW"
+                android:resource="@drawable/tile_preview_favourites" />
         </service>
     </application>
 </manifest>

@@ -349,6 +349,60 @@ class LauncherGridGeometryTest {
         assertTrue(spec.labelMarginTopDp < 3f)
     }
 
+    @Test
+    fun `storedSlotFor pushes a press below a folded section back down by its height`() {
+        // Header at 0 owning rows 1..4, header at 5 below it. Folding the first takes four rows out.
+        val cells = listOf(
+            ui(cell(row = 0, col = 0, kind = LauncherCellKind.SECTION, target = "top")),
+            ui(cell(row = 1, col = 0)),
+            ui(cell(row = 5, col = 0, kind = LauncherCellKind.SECTION, target = "bottom")),
+            ui(cell(row = 6, col = 2)),
+        )
+
+        val stored = LauncherGridGeometry.storedSlotFor(
+            slot = LauncherGridGeometry.Slot(row = 2, col = 3),
+            cells = cells,
+            collapsedSections = setOf("top"),
+        )
+
+        assertEquals(6, stored.row)
+        assertEquals(3, stored.col)
+    }
+
+    @Test
+    fun `storedSlotFor leaves a press unchanged when nothing is folded`() {
+        val cells = listOf(
+            ui(cell(row = 0, col = 0, kind = LauncherCellKind.SECTION, target = "top")),
+            ui(cell(row = 5, col = 0, kind = LauncherCellKind.SECTION, target = "bottom")),
+        )
+
+        val stored = LauncherGridGeometry.storedSlotFor(
+            slot = LauncherGridGeometry.Slot(row = 6, col = 1),
+            cells = cells,
+            collapsedSections = emptySet(),
+        )
+
+        assertEquals(6, stored.row)
+        assertEquals(1, stored.col)
+    }
+
+    @Test
+    fun `storedSlotFor leaves a press above every folded section alone`() {
+        val cells = listOf(
+            ui(cell(row = 2, col = 0, kind = LauncherCellKind.SECTION, target = "mid")),
+            ui(cell(row = 6, col = 0, kind = LauncherCellKind.SECTION, target = "low")),
+        )
+
+        val stored = LauncherGridGeometry.storedSlotFor(
+            slot = LauncherGridGeometry.Slot(row = 1, col = 2),
+            cells = cells,
+            collapsedSections = setOf("mid"),
+        )
+
+        assertEquals(1, stored.row)
+        assertEquals(2, stored.col)
+    }
+
     // --- fixtures -----------------------------------------------------------------------------
 
     private fun cell(

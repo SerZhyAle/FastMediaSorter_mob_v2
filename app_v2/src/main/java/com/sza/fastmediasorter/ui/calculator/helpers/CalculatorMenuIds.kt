@@ -24,6 +24,9 @@ internal const val MENU_CLEAR_HISTORY = 6
 
 internal const val MENU_FUNCTION = 7
 
+/** S2024: opens the calculator's own settings window. Last row, so the six older rows keep their places. */
+internal const val MENU_SETTINGS = 8
+
 internal const val FN_SIN = 100
 internal const val FN_COS = 101
 internal const val FN_TAN = 102

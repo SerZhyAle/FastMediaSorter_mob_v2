@@ -25,6 +25,7 @@ object LauncherSectionCatalog {
         Section(LauncherCellCommand.SECTION_ANDROID_APPS, R.string.launcher_section_android_apps),
         Section(LauncherCellCommand.SECTION_MAIN, R.string.launcher_section_main),
         Section(LauncherCellCommand.SECTION_GOOGLE, R.string.launcher_section_google),
+        Section(LauncherCellCommand.SECTION_DESKTOP, R.string.launcher_section_desktop),
     )
 
     fun byKey(key: String): Section? = all.firstOrNull { it.key == key }

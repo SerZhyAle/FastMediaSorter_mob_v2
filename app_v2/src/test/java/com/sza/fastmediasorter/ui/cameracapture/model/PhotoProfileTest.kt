@@ -28,7 +28,8 @@ class PhotoProfileTest {
         val bare = CameraRuntimeCapabilities()
 
         assertTrue(PhotoProfile.NORMAL.isAvailable(bare))
-        assertEquals(listOf(PhotoProfile.NORMAL), PhotoProfile.available(bare))
+        assertTrue(PhotoProfile.DOCUMENT.isAvailable(bare))
+        assertEquals(listOf(PhotoProfile.NORMAL, PhotoProfile.DOCUMENT), PhotoProfile.available(bare))
     }
 
     @Test

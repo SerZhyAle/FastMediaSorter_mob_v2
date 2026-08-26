@@ -98,8 +98,10 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
     }
 
     fun showError(message: String, throwable: Throwable? = null) {
-        if (activity.isFinishing || activity.isDestroyed) {
-            Timber.w("showError: Activity is finishing/destroyed, skipping error dialog")
+        val isInPip = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N &&
+            activity.isInPictureInPictureMode
+        if (activity.isFinishing || activity.isDestroyed || isInPip) {
+            Timber.w("showError: Activity is finishing/destroyed/in PiP, skipping error dialog")
             return
         }
 
@@ -171,6 +173,13 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
         source: com.sza.fastmediasorter.data.local.db.StreamSourceEntity,
         offline: Boolean
     ) {
+        val isInPip = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N &&
+            activity.isInPictureInPictureMode
+        if (isInPip) {
+            Timber.w("showStreamUnavailable: in PiP mode - suppressing dialog, pausing player")
+            activity._videoPlayerManager?.pause()
+            return
+        }
         activeDialog?.dismiss()
         activeDialog = StreamUnavailableDialog.show(
             activity = activity,

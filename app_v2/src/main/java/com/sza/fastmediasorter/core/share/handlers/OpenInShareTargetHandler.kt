@@ -6,7 +6,9 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.share.ShareTargetHandler
+import com.sza.fastmediasorter.core.share.ShareTargetOutcome
 import com.sza.fastmediasorter.core.share.ShareableContent
+import com.sza.fastmediasorter.core.share.asLaunchOutcome
 import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
 import timber.log.Timber
 import javax.inject.Inject
@@ -19,26 +21,40 @@ class OpenInShareTargetHandler @Inject constructor() : ShareTargetHandler {
 
     override val targetId: String = ID
 
-    override fun send(activity: Activity, content: ShareableContent): Boolean {
+    override suspend fun send(activity: Activity, content: ShareableContent): ShareTargetOutcome =
+        open(activity, content).asLaunchOutcome()
+
+    /**
+     * The chooser launch itself, kept non-suspending because it only starts an Activity (S1884).
+     *
+     * Two callers reach this receiver outside the «Send to..» registry - the browse binary-file sheet
+     * and the file-info one-tap open - and both are synchronous. They call this directly rather than
+     * being turned into coroutines for a path that never waits on anything.
+     *
+     * @return true when a viewer was launched.
+     */
+    fun open(activity: Activity, content: ShareableContent): Boolean {
         val uri = content.uris.firstOrNull() ?: return false
         val view = Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(uri, content.mime)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
-        if (activity.packageManager.queryIntentActivitiesCompat(
-                view,
-                PackageManager.MATCH_DEFAULT_ONLY,
-            ).isEmpty()
-        ) {
-            Timber.w("OpenInShareTargetHandler: no viewer for %s", content.mime)
-            return false
-        }
-        return try {
-            activity.startActivity(Intent.createChooser(view, activity.getString(R.string.open_with)))
-            true
-        } catch (e: ActivityNotFoundException) {
-            Timber.w(e, "OpenInShareTargetHandler: no external viewer for %s", content.mime)
-            false
+        val hasViewer = activity.packageManager.queryIntentActivitiesCompat(
+            view,
+            PackageManager.MATCH_DEFAULT_ONLY,
+        ).isNotEmpty()
+        return when {
+            !hasViewer -> {
+                Timber.w("OpenInShareTargetHandler: no viewer for %s", content.mime)
+                false
+            }
+            else -> try {
+                activity.startActivity(Intent.createChooser(view, activity.getString(R.string.open_with)))
+                true
+            } catch (e: ActivityNotFoundException) {
+                Timber.w(e, "OpenInShareTargetHandler: no external viewer for %s", content.mime)
+                false
+            }
         }
     }
 

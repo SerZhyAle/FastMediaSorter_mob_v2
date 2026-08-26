@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.launcher.gadget
 import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
-import android.provider.AlarmClock
 import android.provider.CalendarContract
 import android.text.format.DateFormat
 import android.view.LayoutInflater
@@ -24,6 +23,7 @@ import javax.inject.Inject
 class ClockGadget @Inject constructor() : LauncherGadget {
 
     override val key: String = LauncherGadgetRegistry.KEY_CLOCK
+
     // S1094: big by default (seeds 4x2) but resizes down to 2x1 - the seed size and the resize floor
     // are decoupled here, so the clock reads as a main element yet still shrinks.
     override val defaultSpanW: Int = 4
@@ -60,20 +60,6 @@ private class ClockGadgetView(context: Context) : LauncherGadgetView(context) {
             openCalendar(context)
             true
         }
-    }
-
-    /**
-     * Tapping a clock should open the clock app, but there is no guarantee one exists - a bare
-     * startActivity would crash the home screen on a device without it.
-     */
-    private fun openSystemClock(context: Context) {
-        val intent = Intent(AlarmClock.ACTION_SHOW_ALARMS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        if (context.packageManager.resolveActivityCompat(intent) == null) {
-            Timber.i("Launcher clock gadget: no system alarm app to open")
-            return
-        }
-        runCatching { context.startActivity(intent) }
-            .onFailure { Timber.w(it, "Launcher clock gadget: system alarm app refused to open") }
     }
 
     /** Long press opens the calendar at now; like the alarm intent, a missing app is a silent no-op. */

@@ -104,6 +104,8 @@ class NetworkMonitorSectionNavigator(
         NetworkMonitorSection.Gnss -> GnssSectionFragment()
         NetworkMonitorSection.Internet -> InternetSectionFragment()
         NetworkMonitorSection.History -> NetworkHistoryFragment()
+        NetworkMonitorSection.Tools -> com.sza.fastmediasorter.ui.networkmonitor.sections.ToolsSectionFragment()
+        NetworkMonitorSection.Speed -> com.sza.fastmediasorter.ui.networkmonitor.sections.ResourceSpeedSectionFragment()
     }
 
     private fun sectionOfTag(tag: String?): NetworkMonitorSection = NetworkMonitorSection.fromKey(tag)

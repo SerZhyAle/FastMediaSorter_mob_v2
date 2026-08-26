@@ -53,6 +53,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 . (Join-Path $repoRoot 'scripts/utils/build-version-stamp.ps1')
+. (Join-Path $repoRoot 'scripts/utils/find-build-artifact.ps1')
 
 function Write-Verdict {
     param([string] $Text, [string] $Color = 'Green')
@@ -85,9 +86,40 @@ catch {
     exit 2
 }
 
-$element = @($metadata.elements)[0]
-if (-not $element) {
+$elements = @($metadata.elements)
+if ($elements.Count -eq 0) {
     Write-Host "assert-artifact-version-fresh: cannot verify - output-metadata.json declares no elements." -ForegroundColor Yellow
+    Write-Host "  file: $metadataPath"
+    exit 2
+}
+
+# The version fields would be safe to take from any element - S1972 §6.2 established that AGP gives
+# every ABI slice of one build the same versionCode and versionName - but the freshness check below
+# reads a write time off a real file, so the element has to describe the file this gate was pointed
+# at. That is what index 0 could not promise once a variant emits more than one output.
+$element = $null
+if (-not $item.PSIsContainer) {
+    $element = $elements | Where-Object { $_.outputFile -eq $item.Name } | Select-Object -First 1
+}
+if (-not $element) {
+    try {
+        $found = Find-BuildArtifact -Dir $searchDir
+    }
+    catch {
+        Write-Host "assert-artifact-version-fresh: cannot verify - $($_.Exception.Message)" -ForegroundColor Yellow
+        exit 2
+    }
+    if ($found) {
+        $element = $elements | Where-Object { $_.outputFile -eq $found.Name } | Select-Object -First 1
+    }
+    elseif ($elements.Count -eq 1) {
+        # Metadata names a file that is no longer on disk. One element still answers unambiguously,
+        # and the write-time fallback further down already covers a missing artifact.
+        $element = $elements[0]
+    }
+}
+if (-not $element) {
+    Write-Host "assert-artifact-version-fresh: cannot verify - no element of output-metadata.json describes the artifact." -ForegroundColor Yellow
     Write-Host "  file: $metadataPath"
     exit 2
 }

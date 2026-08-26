@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.playback
 
 import android.net.Uri
 import android.view.ViewGroup
+import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.model.MediaFile
 
 /**
@@ -23,6 +24,26 @@ interface AltPlaybackEngine {
 
     /** Whether this engine can decode [file]. Judged on the item itself, not on a codec name. */
     fun canPlay(file: MediaFile): Boolean
+
+    /**
+     * The deliverable set this engine's native code arrives in, or null when it ships inside the APK.
+     *
+     * S1971: an engine delivered on demand is unusable until its set is installed, and there is no
+     * settings toggle where the user could have asked for it earlier - the engine is reached only
+     * after the primary player has already failed on a file. Naming the set here is what lets a caller
+     * offer the download at that moment instead of reporting a plain playback error.
+     */
+    val requiredDeliverableSet: DeliverableSet?
+        get() = null
+
+    /**
+     * Whether this engine would decode [file] once [requiredDeliverableSet] is installed.
+     *
+     * Identical to [canPlay] for an engine that ships in the APK. An on-demand engine answers this on
+     * the media item alone and narrows [canPlay] by whether its payload is present, so the two
+     * questions - "can you play this now" and "would you play this at all" - stay separable.
+     */
+    fun couldPlay(file: MediaFile): Boolean = canPlay(file)
 
     /**
      * Attach the engine's render output to [container]. The engine adds and owns its own view;

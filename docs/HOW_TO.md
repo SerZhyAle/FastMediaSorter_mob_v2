@@ -1162,7 +1162,7 @@ On a brand-new install there is a shortcut: tick **Use as home screen** on the f
 - Prefer it along the top? **Settings → General → System launcher settings → Taskbar → Taskbar position** switches between **Bottom** and **Top**. The Start menu follows the bar and drops down from above when the bar is up there.
 - The Start button opens the menu: open FastMediaSorter, your resources, add a resource, Android settings, app settings, launcher settings, edit desktop contents, and at the end restart, power off and **Exit launcher mode**. Restart and power off only work if your device lets an ordinary app do that - on most phones they will simply do nothing.
 
-**Your apps:** the app grid groups apps into sections, each with a small header. Tap a header to collapse a section you rarely open; collapsed headers tuck in next to each other, so the desktop gets shorter instead of leaving gaps. A fresh desktop also gets a **GOOGLE** section holding the Google apps you already have installed. Long-press any app in the list for **Put on desktop** and **Pin to taskbar**.
+**Your apps:** the app grid groups apps into sections, each with a small header. Tap a header to collapse a section you rarely open; collapsed headers tuck in next to each other, so the desktop gets shorter instead of leaving gaps. A fresh desktop splits the apps it seeds in two: a **Google** section for the Google apps you already have installed, and an **Apps** section for your own - messengers, games and whatever else you put on the device. No app lands in both. Long-press any app in the list for **Put on desktop** and **Pin to taskbar**.
 
 **Rearranging it:**
 

@@ -37,6 +37,9 @@ class SyncEnabledToolShortcutsUseCaseTest {
             return 1L
         }
 
+        override suspend fun addCellInSection(cell: LauncherCell, columns: Int, sectionKey: String): Long? =
+            addCellInFirstFreeSlot(cell, columns)
+
         override suspend fun removeCell(id: Long) = Unit
         override suspend fun normalizeSectionSpans() = Unit
         override suspend fun moveCell(id: Long, rowIndex: Int, colIndex: Int): Boolean = true

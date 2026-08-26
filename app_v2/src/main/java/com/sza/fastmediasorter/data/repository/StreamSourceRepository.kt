@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.repository
 
 import androidx.room.withTransaction
+import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.StreamQualityMemoryDao
 import com.sza.fastmediasorter.data.local.db.StreamQualityMemoryEntity
@@ -8,8 +9,12 @@ import com.sza.fastmediasorter.data.local.db.StreamSourceDao
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.local.db.StreamUserStateDao
 import com.sza.fastmediasorter.data.util.StreamChannelIdentity
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -23,10 +28,31 @@ class StreamSourceRepository @Inject constructor(
     private val db: AppDatabase,
     private val dao: StreamSourceDao,
     private val streamQualityMemoryDao: StreamQualityMemoryDao,
-    private val streamUserStateDao: StreamUserStateDao
+    private val streamUserStateDao: StreamUserStateDao,
+    @ApplicationScope appScope: CoroutineScope,
 ) {
 
     fun observeSources(): Flow<List<StreamSourceEntity>> = dao.observeAll()
+
+    /**
+     * S2021: one shared read of the whole catalog for the screens that pick a channel out of it.
+     *
+     * The launcher shortcut picker and the stream-launch widget configuration open a fresh dialog per
+     * pick and each took its own first value off [observeSources], so adding five shortcuts in a row
+     * paid five full table reads. [SharingStarted.WhileSubscribed] with [CATALOG_SNAPSHOT_TAIL_MS] is
+     * what keeps "shared" from becoming "held for the life of the process": the read survives the gap
+     * between two picks and is dropped once the user stops picking. The upstream stays collected while
+     * anyone is subscribed, so Room invalidation refreshes it and no staleness window opens.
+     *
+     * `null` means the first read is still in flight, and is deliberately distinct from an empty list:
+     * showing a loading label for a genuinely empty catalog is the defect this ticket exists for.
+     */
+    val catalogSnapshot: StateFlow<List<StreamSourceEntity>?> = dao.observeAll()
+        .stateIn(
+            scope = appScope,
+            started = SharingStarted.WhileSubscribed(CATALOG_SNAPSHOT_TAIL_MS),
+            initialValue = null,
+        )
 
     /**
      * S1502: play outcomes as a side channel keyed by channel id. Observed separately from
@@ -314,6 +340,9 @@ class StreamSourceRepository @Inject constructor(
         // SQLite caps host parameters per statement (999 on the API levels we still ship to);
         // keep delete batches under it. Mirrors FavoritesRepositoryImpl's chunking.
         const val SQLITE_IN_CLAUSE_LIMIT = 900
+
+        /** How long the shared catalog read outlives its last subscriber - enough to span two picks. */
+        const val CATALOG_SNAPSHOT_TAIL_MS = 60_000L
 
         // S1832: how long an unpinned channel's play outcome is worth keeping once the channel itself is
         // gone from the bank. Half a year - long enough that a channel dropped for a season comes back

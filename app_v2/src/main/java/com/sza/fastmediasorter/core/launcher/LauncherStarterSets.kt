@@ -250,7 +250,20 @@ object LauncherStarterSets {
      * target the starter set had already placed, which was the only target-uniqueness check anywhere in
      * the seed; the owner ruled that uniqueness belongs to the grid rectangle alone, so one application
      * may hold as many cells as it has free positions. [place] is what still keeps two cells apart.
+     *
+     * S2015: that allowance is for the *user's* hand and for an imported shortcut, not for the seed's own
+     * two app sections. The Google section resolves first and owns every package it takes; the
+     * Android-apps section is then built from candidates with that set subtracted, so a fresh desktop
+     * never shows one icon twice in two adjacent sections (strategic ADR-1). Subtracting the actually
+     * seeded set rather than the whole catalogue is what keeps Chrome, YouTube and Maps on a device with
+     * no Play Services, where the Google section is not seeded at all.
+     *
+     * S2015: [thirdPartyApps] are the device's own installed applications, resolved by the caller
+     * (`QueryThirdPartyAppsUseCase`) because this table has no Context and must stay pure data. They
+     * close the Android-apps section, which otherwise holds only Wi-Fi, Bluetooth and a dialer once the
+     * Google catalogue is subtracted out of it.
      */
+    @Suppress("LongParameterList") // one data table, and every argument is a distinct seed input
     fun itemsFor(
         profile: DeviceProfileType,
         resources: StarterResources,
@@ -258,6 +271,7 @@ object LauncherStarterSets {
         installedPackages: Set<String>,
         googleServicesAvailable: Boolean = false,
         importedShortcuts: List<StarterItem> = emptyList(),
+        thirdPartyApps: List<String> = emptyList(),
     ): List<StarterItem> {
         val streamsAvailable = routeAvailableInBuild[InternalRouteCatalog.KEY_STREAMS] == true
         val items = mutableListOf<StarterItem>()
@@ -307,13 +321,38 @@ object LauncherStarterSets {
             items += appFuncs
         }
 
-        // 5. Android apps section
-        val androidApps = buildList {
+        // 5. Android apps section. S2015: the Google membership is resolved before this section is built,
+        // never after, because the section subtracts it (see the KDoc and strategic ADR-1).
+        val googleOwned = googleSectionPackages(googleServicesAvailable, installedPackages)
+        val androidApps = androidAppsSection(profile, installedPackages, googleOwned, thirdPartyApps)
+        if (androidApps.isNotEmpty()) {
+            items += section(LauncherCellCommand.SECTION_ANDROID_APPS)
+            items += androidApps
+        }
+
+        // 6. Google section (conditional)
+        items += googleSection(googleOwned)
+
+        return items
+    }
+
+    /**
+     * S2015: the Android-apps section, with every package the Google section already owns filtered out.
+     * [thirdPartyApps] close it, minus anything the fixed rules above already placed - the caller's list
+     * is resolved against the whole device and the starter table's own candidates may appear in it.
+     */
+    private fun androidAppsSection(
+        profile: DeviceProfileType,
+        installedPackages: Set<String>,
+        googleOwned: Set<String>,
+        thirdPartyApps: List<String>,
+    ): List<StarterItem> {
+        val fixed = buildList {
             if (profile == DeviceProfileType.CAR_HEAD_UNIT) {
-                appIfInstalled(PACKAGE_MAPS, installedPackages)?.let(::add)
+                appIfInstalled(PACKAGE_MAPS, installedPackages, googleOwned)?.let(::add)
                 firstInstalled(FM_RADIO_CANDIDATES, installedPackages)?.let(::add)
             } else if (profile in MAPS_PROFILES) {
-                appIfInstalled(PACKAGE_MAPS, installedPackages)?.let(::add)
+                appIfInstalled(PACKAGE_MAPS, installedPackages, googleOwned)?.let(::add)
             }
             if (profile in WIFI_PROFILES) {
                 add(shortcut(LauncherCellCommand.OsShortcut(OsShortcutCatalog.KEY_WIFI)))
@@ -321,17 +360,33 @@ object LauncherStarterSets {
             if (profile in BLUETOOTH_PROFILES) {
                 add(shortcut(LauncherCellCommand.OsShortcut(OsShortcutCatalog.KEY_BLUETOOTH)))
             }
-            addAll(commonThirdPartyApps(installedPackages))
+            addAll(commonThirdPartyApps(installedPackages, googleOwned))
         }
-        if (androidApps.isNotEmpty()) {
-            items += section(LauncherCellCommand.SECTION_ANDROID_APPS)
-            items += androidApps
-        }
+        val alreadyPlaced = fixed.mapNotNullTo(mutableSetOf()) { appPackageOrNull(it.target) }
+        return fixed + thirdPartyApps
+            .filterNot { it in alreadyPlaced || it in googleOwned }
+            .map { shortcut(LauncherCellCommand.App(it)) }
+    }
 
-        // 6. Google section (conditional)
-        items += googleSection(googleServicesAvailable, installedPackages)
+    /** The package inside an `app:` target, or null for any other cell kind. */
+    private fun appPackageOrNull(target: String): String? =
+        target.takeIf { it.startsWith(LauncherCellCommand.PREFIX_APP) }
+            ?.removePrefix(LauncherCellCommand.PREFIX_APP)
 
-        return items
+    /**
+     * S2015: which packages the Google section will actually seed - the catalogue narrowed to what is
+     * installed, and empty when the device has no Play Services. This is the set the Android-apps section
+     * subtracts, and it is deliberately the *seeded* set rather than [GOOGLE_APP_PACKAGES]: on a device
+     * without services the section is not emitted, so subtracting the catalogue there would strip Chrome,
+     * YouTube and Maps off the desktop entirely instead of moving them (strategic ADR-1).
+     */
+    private fun googleSectionPackages(
+        googleServicesAvailable: Boolean,
+        installedPackages: Set<String>,
+    ): Set<String> = if (googleServicesAvailable) {
+        GOOGLE_APP_PACKAGES.filterTo(linkedSetOf()) { it in installedPackages }
+    } else {
+        emptySet()
     }
 
     /**
@@ -341,33 +396,42 @@ object LauncherStarterSets {
      * positional (see [LauncherSectionMembership]), so an empty section is not merely ugly, it swallows
      * the section that follows. Every installed candidate is seeded - strategic §6.4 rules there is no
      * cap and the desktop scrolls instead.
+     *
+     * S2015: membership moved out to [googleSectionPackages] so the Android-apps section can subtract it;
+     * this now only turns that ordered set into a header plus its cells.
      */
-    private fun googleSection(
-        googleServicesAvailable: Boolean,
-        installedPackages: Set<String>,
-    ): List<StarterItem> {
-        val apps = if (googleServicesAvailable) {
-            GOOGLE_APP_PACKAGES.mapNotNull { appIfInstalled(it, installedPackages) }
-        } else {
-            emptyList()
-        }
-        return if (apps.isEmpty()) {
+    private fun googleSection(googleOwned: Set<String>): List<StarterItem> =
+        if (googleOwned.isEmpty()) {
             emptyList()
         } else {
-            listOf(section(LauncherCellCommand.SECTION_GOOGLE)) + apps
+            listOf(section(LauncherCellCommand.SECTION_GOOGLE)) +
+                googleOwned.map { shortcut(LauncherCellCommand.App(it)) }
         }
-    }
 
-    /** The third party apps assigned to profiles, conditional on being installed. */
-    private fun commonThirdPartyApps(installedPackages: Set<String>): List<StarterItem> = buildList {
-        appIfInstalled(PACKAGE_YOUTUBE, installedPackages)?.let(::add)
-        appIfInstalled(PACKAGE_YOUTUBE_MUSIC, installedPackages)?.let(::add)
-        appIfInstalled(PACKAGE_CHROME, installedPackages)?.let(::add)
+    /**
+     * The third party apps assigned to profiles, conditional on being installed. S2015: [excluded] names
+     * the packages the Google section already took, so the same icon is never seeded into both sections.
+     * When that section is not seeded the set is empty and every candidate here lands as it always did.
+     */
+    private fun commonThirdPartyApps(
+        installedPackages: Set<String>,
+        excluded: Set<String>,
+    ): List<StarterItem> = buildList {
+        appIfInstalled(PACKAGE_YOUTUBE, installedPackages, excluded)?.let(::add)
+        appIfInstalled(PACKAGE_YOUTUBE_MUSIC, installedPackages, excluded)?.let(::add)
+        appIfInstalled(PACKAGE_CHROME, installedPackages, excluded)?.let(::add)
         firstInstalled(DIALER_CANDIDATES, installedPackages)?.let(::add)
     }
 
-    private fun appIfInstalled(packageName: String, installedPackages: Set<String>): StarterItem? =
-        if (packageName in installedPackages) shortcut(LauncherCellCommand.App(packageName)) else null
+    private fun appIfInstalled(
+        packageName: String,
+        installedPackages: Set<String>,
+        excluded: Set<String> = emptySet(),
+    ): StarterItem? = if (packageName in installedPackages && packageName !in excluded) {
+        shortcut(LauncherCellCommand.App(packageName))
+    } else {
+        null
+    }
 
     // The unified resource set every profile opens with (owner decision S1091): one BROWSE shortcut per
     // existing virtual resource that resolved to an id. "All files" is the Recent resource (allFiles=true).
@@ -383,8 +447,11 @@ object LauncherStarterSets {
         }
     }
 
-    // Padding feature shortcuts that fill the desktop toward the 12-15 target. Gated on build presence
-    // only: a compiled-but-runtime-disabled feature keeps its cell, which routes to its own setting.
+    // S2019: every toggleable program the "Programs and scenarios" strip (MainProgramsMenuCoordinator)
+    // also offers, in that strip's order - App Launch Panel (no on/off state) and VR Cinema (no static
+    // InternalRouteCatalog route, needs a resource-picker dialog) are the strip's only two exclusions.
+    // Gated on build presence only: a compiled-but-runtime-disabled feature keeps its cell, which routes
+    // to its own setting.
     private fun commonFeatures(routeAvailableInBuild: Map<String, Boolean>): List<StarterItem> = buildList {
         val paddingKeys = listOf(
             InternalRouteCatalog.KEY_STREAMS,
@@ -393,6 +460,11 @@ object LauncherStarterSets {
             InternalRouteCatalog.KEY_CALCULATOR,
             InternalRouteCatalog.KEY_NETWORK_MONITOR,
             InternalRouteCatalog.KEY_OCR,
+            InternalRouteCatalog.KEY_SCREEN_RECORDING,
+            InternalRouteCatalog.KEY_LINK_DOWNLOAD,
+            InternalRouteCatalog.KEY_GAME,
+            InternalRouteCatalog.KEY_SYSTEM_INFO,
+            InternalRouteCatalog.KEY_WEAR_COMPANION,
         )
         paddingKeys.forEach { key ->
             if (routeAvailableInBuild[key] == true) add(shortcut(LauncherCellCommand.Feature(key)))

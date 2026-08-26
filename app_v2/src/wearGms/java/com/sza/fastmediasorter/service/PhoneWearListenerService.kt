@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.service
 
-import android.content.SharedPreferences
 import com.google.android.gms.wearable.ChannelClient
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
@@ -15,6 +14,7 @@ import com.sza.fastmediasorter.data.wear.WearIncomingFileRegistry
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.domain.model.WearEventEnvelopeCodec
 import com.sza.fastmediasorter.domain.model.WearFavoritesDeltaPayload
+import com.sza.fastmediasorter.domain.model.WearFileTransferAck
 import com.sza.fastmediasorter.domain.model.WearFileTransferMetadata
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceItem
 import com.sza.fastmediasorter.domain.model.WearPhoneResourcePage
@@ -42,8 +42,8 @@ import timber.log.Timber
 import javax.inject.Inject
 
 private const val PATH_REQUEST = "/fms/network_sources/request"
-private const val PATH_ACK     = "/fms/network_sources/ack"
-private const val PREFS_NAME   = "wear_sync_prefs"
+private const val PATH_ACK = "/fms/network_sources/ack"
+private const val PREFS_NAME = "wear_sync_prefs"
 private const val KEY_LAST_SYNC = "last_sync_timestamp"
 
 /** Used when the watch opened the channel without a trailing name segment. */
@@ -55,7 +55,9 @@ class PhoneWearListenerService : WearableListenerService() {
     private val envelopeCodec = WearEventEnvelopeCodec()
 
     @Inject lateinit var sendResourcesToWatchUseCase: SendResourcesToWatchUseCase
+
     @Inject lateinit var importWatchSourcesUseCase: ImportWatchSourcesUseCase
+
     @Inject lateinit var applyWatchFavoritesDeltaUseCase: ApplyWatchFavoritesDeltaUseCase
 
     @Inject lateinit var listPhoneResourcePageUseCase: ListPhoneResourcePageUseCase
@@ -78,9 +80,9 @@ class PhoneWearListenerService : WearableListenerService() {
 
     override fun onMessageReceived(event: MessageEvent) {
         when (event.path) {
-            PATH_REQUEST                       -> handleSyncRequest()
-            PATH_ACK                           -> handleAck(event.data)
-            WearDataLayerPaths.SOURCES_EXPORT  -> handleSourcesExport(event.data)
+            PATH_REQUEST -> handleSyncRequest()
+            PATH_ACK -> handleAck(event.data)
+            WearDataLayerPaths.SOURCES_EXPORT -> handleSourcesExport(event.data)
             WearDataLayerPaths.FAVORITES_DELTA -> handleFavoritesDelta(event.data)
             WearDataLayerPaths.PHONE_RESOURCE_BROWSE_REQUEST -> handlePhoneResourceBrowse(event.data)
             WearDataLayerPaths.PHONE_RESOURCE_OPEN_REQUEST ->
@@ -88,6 +90,7 @@ class PhoneWearListenerService : WearableListenerService() {
             WearDataLayerPaths.LOG_REPORT_REQUEST ->
                 handleLogReport(event.sourceNodeId, event.data)
             WearDataLayerPaths.STREAM_TRANSFER_ACK -> handleStreamTransferAck(event.data)
+            WearDataLayerPaths.FILE_TRANSFER_ACK -> handleFileTransferAck(event.data)
             WearDataLayerPaths.FILE_TRANSFER_META -> handleFileTransferMeta(event.data)
         }
     }
@@ -152,6 +155,17 @@ class PhoneWearListenerService : WearableListenerService() {
                 WearSyncEvents.emitStreamTransferAck(ack)
             } catch (e: Exception) {
                 Timber.e(e, "Failed to deserialize stream transfer ack")
+            }
+        }
+    }
+
+    private fun handleFileTransferAck(data: ByteArray) {
+        applicationScope.launch {
+            try {
+                val ack = gson.fromJson(data.decodeToString(), WearFileTransferAck::class.java)
+                WearSyncEvents.emitFileTransferAck(ack)
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to deserialize file transfer ack")
             }
         }
     }

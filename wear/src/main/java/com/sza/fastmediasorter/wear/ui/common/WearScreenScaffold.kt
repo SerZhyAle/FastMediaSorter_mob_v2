@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.material.MaterialTheme
@@ -26,6 +27,16 @@ private const val ROUND_INSET_FRACTION = 0.10f
 
 /** A square screen clips nothing, so the inset only has to keep content off the bezel. */
 private val SQUARE_INSET = 4.dp
+
+/**
+ * Share of the shorter edge a square may take before its corners leave a round display.
+ *
+ * The largest square inscribed in a circle has a side of the diameter divided by the square root of
+ * two, about 0.707; 0.70 keeps a margin under that. [ROUND_INSET_FRACTION] alone is not enough for a
+ * square: it leaves a content box of 0.8 of the diameter, whose half-diagonal is 0.566 against a
+ * glass radius of 0.5, so every corner is outside the display (S2008).
+ */
+private const val ROUND_SQUARE_FRACTION = 0.70f
 
 /**
  * Common root for every screen in the module: a Wear [Scaffold] that always draws [TimeText].
@@ -89,5 +100,25 @@ fun wearScreenInsets(): PaddingValues {
         PaddingValues(shorterEdge * ROUND_INSET_FRACTION)
     } else {
         PaddingValues(SQUARE_INSET)
+    }
+}
+
+/**
+ * Side of the largest square this display can draw whole.
+ *
+ * The module's second statement about screen shape, kept beside the first so the two are read
+ * together: [wearScreenInsets] insets a rectangle proportionally, which is right for text and rows,
+ * and is not enough for a square, whose corners reach further from the centre than its edges do. A
+ * screen drawing a square - a game board, a grid, a dial - caps it with this rather than inventing a
+ * fraction of its own.
+ */
+@Composable
+fun wearMaxSquareSide(): Dp {
+    val configuration = LocalConfiguration.current
+    val shorterEdge = minOf(configuration.screenWidthDp, configuration.screenHeightDp).dp
+    return if (configuration.isScreenRound) {
+        shorterEdge * ROUND_SQUARE_FRACTION
+    } else {
+        shorterEdge - SQUARE_INSET * 2
     }
 }

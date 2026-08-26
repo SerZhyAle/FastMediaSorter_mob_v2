@@ -122,4 +122,18 @@ class OperationsWearGroupManager(
             ).show()
         }
     }
+
+    private fun openWebPortal() {
+        val url = SupportIntentFactory.wearWebPortalUrl(fragment.requireContext())
+        try {
+            fragment.startActivity(SupportIntentFactory.openUrl(url))
+        } catch (e: ActivityNotFoundException) {
+            Timber.w(e, "No browser to open the Wear web portal")
+            Toast.makeText(
+                fragment.requireContext(),
+                fragment.getString(R.string.settings_no_browser_for_docs),
+                Toast.LENGTH_SHORT,
+            ).show()
+        }
+    }
 }

@@ -1,4 +1,4 @@
-﻿# Master Build and Push Script
+# Master Build and Push Script
 # Builds ALL flavors (Standard, Lite, Photos, Legacy, VR, noLegal) in both Debug and Release modes
 # Also builds Wear OS (Debug + Release)
 # Copies artifacts to DOWNLOADS folder
@@ -129,30 +129,39 @@ if (!(Test-Path -Path $downloadsDir)) {
 $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 $journalPath = "$downloadsDir\builds_versions.lst"
 
-# Find all generated APKs
-$apkFiles = Get-ChildItem -Path "$projectRoot\app_v2\build\outputs\apk" -Filter "*.apk" -Recurse
+# Resolve one artifact per variant this script actually built, rather than walking the whole apk
+# tree. The walk produced a destination name from the two parent directory names, so every output
+# of a split variant mapped to the SAME name and each copy silently overwrote the last, leaving
+# whichever the enumeration happened to reach last (S1972 §2.1).
+. "$PSScriptRoot\..\utils\find-build-artifact.ps1"
 
-foreach ($apk in $apkFiles) {
-    # Determine flavor/variant from path or name (e.g. ...\standard\debug\FastMediaSorter_debug.apk)
-    # Generic unique name generation
-    
-    # We want: FastMediaSorter_standard_debug.apk
-    # Current structure example: ...\standard\debug\FastMediaSorter_debug.apk
-    
-    $parentDir = $apk.Directory.Name # e.g. "debug" or "release"
-    $grandParentDir = $apk.Directory.Parent.Name # e.g. "standard", "lite"
-    
-    $flavor = $grandParentDir
-    $buildType = $parentDir
-    
-    if ($flavor -match "apk") { 
-        # Fallback if structure is different
-        $newName = $apk.Name
+$builtVariants = @(
+    @{ Flavor = 'standard'; BuildType = 'debug' }
+    @{ Flavor = 'standard'; BuildType = 'release' }
+    @{ Flavor = 'lite'; BuildType = 'debug' }
+    @{ Flavor = 'lite'; BuildType = 'release' }
+    @{ Flavor = 'photos'; BuildType = 'debug' }
+    @{ Flavor = 'photos'; BuildType = 'release' }
+    @{ Flavor = 'legacy'; BuildType = 'debug' }
+    @{ Flavor = 'legacy'; BuildType = 'release' }
+    @{ Flavor = 'vr'; BuildType = 'debug' }
+    @{ Flavor = 'vr'; BuildType = 'release' }
+    @{ Flavor = 'noLegal'; BuildType = 'debug' }
+    @{ Flavor = 'noLegal'; BuildType = 'release' }
+)
+
+foreach ($variant in $builtVariants) {
+    $flavor = $variant.Flavor
+    $buildType = $variant.BuildType
+    $variantDir = "$projectRoot\app_v2\build\outputs\apk\$flavor\$buildType"
+
+    $apk = Find-BuildArtifact -Dir $variantDir
+    if (-not $apk) {
+        Write-Host "Skipped: $flavor $buildType - no artifact in $variantDir" -ForegroundColor Yellow
+        continue
     }
-    else {
-        $newName = "FastMediaSorter_${flavor}_${buildType}.apk"
-    }
-    
+
+    $newName = "FastMediaSorter_${flavor}_${buildType}.apk"
     $destPath = "$downloadsDir\$newName"
     Copy-Item -Path $apk.FullName -Destination $destPath -Force
     Write-Host "Copied: $newName" -ForegroundColor Gray
@@ -204,22 +213,11 @@ if (Test-Path $wearApkRoot) {
         $wearApkDir = "$wearApkRoot\$buildType"
         if (-not (Test-Path $wearApkDir)) { continue }
 
-        # Prefer output-metadata.json; fall back to newest .apk
-        $apkPath = $null
-        $metaPath = "$wearApkDir\output-metadata.json"
-        if (Test-Path $metaPath) {
-            try {
-                $meta = Get-Content $metaPath -Raw | ConvertFrom-Json
-                if ($meta.elements -and $meta.elements.Count -gt 0) {
-                    $apkPath = Join-Path $wearApkDir $meta.elements[0].outputFile
-                }
-            } catch { }
-        }
-        if (-not $apkPath -or -not (Test-Path $apkPath)) {
-            $latest = Get-ChildItem $wearApkDir -Filter *.apk -ErrorAction SilentlyContinue |
-                      Sort-Object LastWriteTime -Descending | Select-Object -First 1
-            if ($latest) { $apkPath = $latest.FullName }
-        }
+        # S1972: one resolver for every builder - it selects by ABI from output-metadata.json
+        # and refuses to guess, where this block used to take element 0 and then the newest file.
+        . "$PSScriptRoot\..\utils\find-build-artifact.ps1"
+        $resolvedArtifact = Find-BuildArtifact -Dir $wearApkDir
+        $apkPath = if ($resolvedArtifact) { $resolvedArtifact.FullName } else { $null }
 
         if (-not $apkPath -or -not (Test-Path $apkPath)) {
             Write-Host "  Warning: Wear $buildType APK not found, skipping." -ForegroundColor Yellow

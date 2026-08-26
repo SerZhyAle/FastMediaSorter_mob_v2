@@ -2,8 +2,10 @@ package com.sza.fastmediasorter.core.share.handlers
 
 import android.app.Activity
 import com.sza.fastmediasorter.core.share.ShareTargetHandler
+import com.sza.fastmediasorter.core.share.ShareTargetOutcome
 import com.sza.fastmediasorter.core.share.ShareableContent
 import com.sza.fastmediasorter.core.share.SystemShareInvoker
+import com.sza.fastmediasorter.core.share.asLaunchOutcome
 import com.sza.fastmediasorter.util.GoogleKeepAvailabilityChecker
 import javax.inject.Inject
 
@@ -15,8 +17,9 @@ class KeepDrawingShareTargetHandler @Inject constructor() : ShareTargetHandler {
 
     override val targetId: String = ID
 
-    override fun send(activity: Activity, content: ShareableContent): Boolean {
-        val keepPackage = GoogleKeepAvailabilityChecker(activity).resolveTargetPackage() ?: return false
+    override suspend fun send(activity: Activity, content: ShareableContent): ShareTargetOutcome {
+        val keepPackage = GoogleKeepAvailabilityChecker(activity).resolveTargetPackage()
+            ?: return ShareTargetOutcome.Failed()
         return SystemShareInvoker.invokeFiles(
             context = activity,
             // Honour the surface's declared MIME (PNG/WEBP/BMP images keep their type); fall back to a
@@ -24,7 +27,7 @@ class KeepDrawingShareTargetHandler @Inject constructor() : ShareTargetHandler {
             mime = content.mime.ifBlank { MIME_IMAGE_FALLBACK },
             uris = content.uris,
             preferredPackage = keepPackage,
-        )
+        ).asLaunchOutcome()
     }
 
     companion object {

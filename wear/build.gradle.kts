@@ -193,6 +193,14 @@ dependencies {
     // Wear OS essentials
     implementation("com.google.android.gms:play-services-wearable:18.1.0")
     implementation("androidx.wear:wear:1.3.0")
+    implementation("androidx.wear:wear-input:1.1.0")
+
+    // S1955: tiles for the system carousel. The tile service and its layout library split at 1.2 and are
+    // both maintained; both declare minSdk 23, so neither moves this module's floor of 28.
+    implementation("androidx.wear.tiles:tiles:1.6.2")
+    implementation("androidx.wear.protolayout:protolayout:1.4.2")
+    implementation("androidx.wear.protolayout:protolayout-material:1.4.2")
+    implementation("androidx.wear.protolayout:protolayout-expression:1.4.2")
     
     // Accompanist Permissions (for runtime permission handling)
     implementation("com.google.accompanist:accompanist-permissions:0.34.0")
@@ -211,7 +219,14 @@ dependencies {
     // Hilt Dependency Injection
     implementation("com.google.dagger:hilt-android:2.59")
     ksp("com.google.dagger:hilt-android-compiler:2.59")
-    
+
+    // Room - voice-note store (S1862). Version is deliberately kept equal to app_v2 and pinned in
+    // docs/TECH_STACK.md; check-doc-vs-gradle.ps1 reads that pin. KSP is already applied above, so
+    // this adds a processor, not a plugin.
+    implementation("androidx.room:room-runtime:2.7.0")
+    implementation("androidx.room:room-ktx:2.7.0")
+    ksp("androidx.room:room-compiler:2.7.0")
+
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
@@ -250,4 +265,11 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+}
+
+ksp {
+    // Export the Room schema JSON into a committed dir so a future migration is validatable (S0731
+    // set the same rule for app_v2). Version 1 has no migration; the schema is what a version 2 will
+    // be diffed against.
+    arg("room.schemaLocation", "$projectDir/schemas")
 }

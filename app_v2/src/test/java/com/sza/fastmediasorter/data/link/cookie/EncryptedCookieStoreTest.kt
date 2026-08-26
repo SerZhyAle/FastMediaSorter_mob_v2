@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.data.link.cookie
 
 import android.content.Context
-import org.robolectric.RuntimeEnvironment
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -12,6 +11,7 @@ import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import java.net.HttpCookie
 
@@ -25,7 +25,7 @@ import java.net.HttpCookie
  */
 @Ignore("AndroidKeyStore unavailable in Robolectric JVM - run as instrumented test on device/emulator")
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34]) // Robolectric 4.11.1 maxSdkVersion=34; targetSdkVersion=35 would fail without this.
+@Config(sdk = [34]) // Robolectric 4.16.1 maxSdkVersion=34; targetSdkVersion=35 would fail without this.
 class EncryptedCookieStoreTest {
 
     private lateinit var context: Context
@@ -76,7 +76,9 @@ class EncryptedCookieStoreTest {
         // Persist a cookie whose computed expiresAtEpochMillis is in the past by abusing
         // maxAge = 0 (already expired immediately after save).
         val zeroMaxAge = HttpCookie("zero", "z").apply {
-            domain = "example.com"; path = "/"; maxAge = 0L
+            domain = "example.com"
+            path = "/"
+            maxAge = 0L
         }
         store.saveForAccount("example.com", "acc", "", listOf(expired, zeroMaxAge))
         val loaded = store.loadForAccount("example.com", "acc")

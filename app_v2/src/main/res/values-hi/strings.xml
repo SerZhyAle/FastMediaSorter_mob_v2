@@ -2828,7 +2828,7 @@
     <string name="browse_empty_type_gated">%1$d फ़ाइलें छिपी हैं क्योंकि उनका मीडिया प्रकार बंद है.</string>
     <string name="browse_empty_type_gated_hint">उन्हें देखने के लिए सेटिंग्स में वह मीडिया प्रकार फिर से चालू करें.</string>
     <string name="splash_slogan">..सब मेरा, यहीं!</string>
-    <string name="launcher_section_google">GOOGLE</string>
+    <string name="launcher_section_google">Google</string>
     <string name="launcher_quick_menu_add_item">आइटम जोड़ें..</string>
     <string name="launcher_quick_menu_edit_desktop">डेस्कटॉप संपादित करें</string>
     <string name="launcher_quick_menu_wallpaper">वॉलपेपर</string>
@@ -2857,7 +2857,7 @@
     <string name="launcher_translator_attribution">Google द्वारा अनुवादित</string>
     <string name="launcher_section_widgets">विजेट</string>
     <string name="launcher_section_resources">संसाधन</string>
-    <string name="launcher_section_android_apps">Android ऐप</string>
+    <string name="launcher_section_android_apps">ऐप</string>
     <string name="launcher_settings_widget_backdrop_alpha_title">विजेट बैकड्रॉप अपारदर्शिता</string>
     <string name="launcher_settings_widget_backdrop_alpha_0">0% (पारदर्शी)</string>
     <string name="launcher_settings_widget_backdrop_alpha_85">85% (डिफ़ॉल्ट)</string>

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S2031: one channel of the stream catalog, on the desktop.
+
+     Two faces, one layout: a radio channel uses the icon, the state line and the transport button, and
+     a video channel inflates the player stub over them. The stub stays uninflated for a radio cell, so a
+     desktop full of radio channels holds no video surface and no decoder.
+
+     Orientation-neutral, so no layout-land counterpart: the launcher measures a cell exactly. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <LinearLayout
+        android:id="@+id/streamWindowAudioFace"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="@dimen/margin_small">
+
+        <TextView
+            android:id="@+id/streamWindowTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:minHeight="28dp"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            tools:text="Radio Paradise" />
+
+        <ImageView
+            android:id="@+id/streamWindowIcon"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_cast"
+            app:tint="?attr/colorControlNormal"
+            tools:ignore="MissingPrefix" />
+
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
+            android:id="@+id/streamWindowState"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:gravity="center_horizontal"
+            android:maxLines="1"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="12sp"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
+            tools:text="Stopped" />
+
+        <!-- focus_button_background goes in FOREGROUND, never background: as background it replaces
+             ImageButton's ripple with a selector that has no state_pressed, so taps stop giving
+             feedback. Same reason gadget_launcher_media_audio_window.xml states. -->
+        <ImageButton
+            android:id="@+id/streamWindowPlayPause"
+            android:layout_width="@dimen/launcher_gadget_action_size"
+            android:layout_height="@dimen/launcher_gadget_action_size"
+            android:layout_gravity="center_horizontal"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/play_pause"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:padding="6dp"
+            android:src="@drawable/ic_play"
+            app:tint="?attr/colorControlNormal"
+            tools:ignore="MissingPrefix" />
+
+    </LinearLayout>
+
+    <!-- The stub names no layout here: the video face is assigned in code at inflation time, which is
+         the only place that knows the resolved channel is a video one. -->
+    <ViewStub
+        android:id="@+id/streamWindowPlayerStub"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <TextView
+        android:id="@+id/streamWindowMessage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:maxLines="2"
+        android:padding="@dimen/margin_small"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:textSize="12sp"
+        android:visibility="gone"
+        tools:text="Unavailable"
+        tools:visibility="visible" />
+
+</merge>

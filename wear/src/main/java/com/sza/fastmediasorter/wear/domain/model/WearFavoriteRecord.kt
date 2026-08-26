@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.wear.domain.model
 
 import com.google.gson.annotations.SerializedName
+import java.net.URI
+import java.util.Locale
 
 /**
  * S1846: one favourite, kept as a record rather than as a `sourceId:filePath` string.
@@ -22,7 +24,8 @@ data class WearFavoriteRecord(
     @SerializedName("displayName") val displayName: String,
     // A coarse family such as image, video or audio, or null when this build never learned the kind.
     // Written as a line comment on purpose: the wildcard form of a mime type ends a block comment early.
-    @SerializedName("mimeType") val mimeType: String? = null
+    @SerializedName("mimeType") val mimeType: String? = null,
+    @SerializedName("itemKind") val itemKind: String? = null
 ) {
 
     /** The pair that decides sameness, joined the way the legacy store already joined it. */
@@ -74,6 +77,45 @@ const val SOURCE_ID_LOCAL = "local"
 
 /** A network file whose source id was not recorded - the pre-S1846 spelling, kept so old marks resolve. */
 const val SOURCE_ID_NETWORK = "network"
+
+/** A direct stream keyed by its normalized address instead of a volatile catalog row id. */
+const val SOURCE_ID_STREAM = "stream"
+
+/** A stream is presentation-distinct but shares the existing favourite identity and storage. */
+const val FAVORITE_ITEM_KIND_STREAM = "stream"
+
+/**
+ * Mirrors the phone stream-key rule because a channel address can survive catalog re-import while its row id cannot.
+ */
+fun normalizeWearStreamUrl(url: String): String {
+    val trimmed = url.trim()
+    val parsed = runCatching { URI(trimmed) }.getOrNull()
+    val scheme = parsed?.scheme
+    val host = parsed?.host
+    if (parsed == null || scheme == null || host == null) {
+        return trimmed.removeSuffix("/")
+    }
+    val lowerScheme = scheme.lowercase(Locale.ROOT)
+    val userInfo = parsed.rawUserInfo?.let { "$it@" }.orEmpty()
+    val port = parsed.port
+    val portPart = if (port < 0 || port == defaultPortOf(lowerScheme)) "" else ":$port"
+    val path = parsed.rawPath.orEmpty().removeSuffix("/")
+    val query = parsed.rawQuery?.let { "?$it" }.orEmpty()
+    val fragment = parsed.rawFragment?.let { "#$it" }.orEmpty()
+    return lowerScheme + "://" + userInfo + host.lowercase(Locale.ROOT) + portPart + path + query + fragment
+}
+
+private fun defaultPortOf(scheme: String): Int = when (scheme) {
+    "http" -> HTTP_DEFAULT_PORT
+    "https" -> HTTPS_DEFAULT_PORT
+    "rtsp" -> RTSP_DEFAULT_PORT
+    else -> NO_DEFAULT_PORT
+}
+
+private const val HTTP_DEFAULT_PORT = 80
+private const val HTTPS_DEFAULT_PORT = 443
+private const val RTSP_DEFAULT_PORT = 554
+private const val NO_DEFAULT_PORT = -1
 
 /**
  * S1846: the whole favourites list, from the two shapes the store holds.

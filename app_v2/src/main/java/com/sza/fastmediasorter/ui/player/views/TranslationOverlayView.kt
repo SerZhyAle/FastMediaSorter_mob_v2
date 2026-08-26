@@ -17,6 +17,9 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.domain.ocr.OverlayPlateGeometry
+import com.sza.fastmediasorter.domain.ocr.OverlaySourceBox
+import com.sza.fastmediasorter.domain.ocr.OverlayTranslationExtent
 import timber.log.Timber
 import kotlin.math.abs
 
@@ -569,27 +572,23 @@ class TranslationOverlayView @JvmOverloads constructor(
             val textActualWidth = (0 until staticLayout.lineCount)
                 .maxOfOrNull { staticLayout.getLineWidth(it) } ?: 0f
             
-            // S0451: cover at least the original box width (never shrink below the source text).
-            // S1713: the sideways cap of 270 % is gone with the growth direction it belonged to - a plate
-            // that widens covers the picture beside the line, which the line never occupied.
-            val actualRight = scaledLeft + (textActualWidth + padding * 2).coerceAtLeast(scaledWidth)
+            // S1716: the width expansion, downward growth, source coverage and bottom clamp moved to
+            // OverlayPlateGeometry so the accuracy bench scores this plate rather than its own
+            // re-derivation of it. The view keeps the measuring and the drawing.
+            val plate = OverlayPlateGeometry.plateBounds(
+                source = OverlaySourceBox(scaledLeft, scaledTop, scaledWidth, scaledHeight),
+                translation = OverlayTranslationExtent(textActualWidth, staticLayout.height.toFloat(), padding),
+                viewBottom = height.toFloat()
+            )
 
-            // S0451: cover at least the original box height.
-            // S1713: downward is the direction a plate may grow, and it grows as far as the translation
-            // needs - the old 270 % ceiling cut the text off instead. The view's own bottom is the only
-            // limit, because a plate past it is drawn nowhere.
-            val textHeightWithPadding = staticLayout.height + padding * 2
-            val availableDownwards = (height - scaledTop).coerceAtLeast(scaledHeight)
-            val actualBottom = scaledTop + textHeightWithPadding.coerceIn(scaledHeight, availableDownwards)
-            
-            // Calculate actual final box height (for proper vertical centering)
-            val finalBoxHeight = actualBottom - scaledTop
-            
+            // Vertical centering needs the grown height, not the source one.
+            val finalBoxHeight = plate.height
+
             val backgroundRect = RectF(
-                scaledLeft,
-                scaledTop,
-                actualRight,
-                actualBottom
+                plate.left,
+                plate.top,
+                plate.right,
+                plate.bottom
             )
             
             // Store rect for hit testing

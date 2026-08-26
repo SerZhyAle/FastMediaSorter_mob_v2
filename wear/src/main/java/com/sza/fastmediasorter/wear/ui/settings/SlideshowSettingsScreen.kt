@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.settings
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +21,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
+import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.MaterialTheme
@@ -28,9 +30,14 @@ import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.ToggleChip
 import androidx.wear.compose.material.ToggleChipDefaults
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.WearSettingsItem
+import com.sza.fastmediasorter.wear.ui.common.WearSettingsRow
+import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.util.GridColumnFit
 
 private const val THREE_SECONDS = 3
 private const val FIVE_SECONDS = 5
@@ -56,44 +63,55 @@ fun SlideshowSettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    // S1949: both controls declare full width - `enable_slideshow` measures 35 characters in
+    // Portuguese, past the 32-character threshold, and the stepper carries its value on the same
+    // line as its label, which a half cell would swallow. The screen is single-column by the rule
+    // rather than by omission, and a narrow setting added here joins rows without further work.
+    val items = listOf(
+        WearSettingsItem(fullWidth = true) { _ ->
+            ToggleChip(
+                checked = uiState.isSlideshowEnabled,
+                onCheckedChange = { viewModel.toggleSlideshow() },
+                label = { Text(stringResource(R.string.enable_slideshow)) },
+                toggleControl = {
+                    androidx.wear.compose.material.Icon(
+                        imageVector = ToggleChipDefaults.switchIcon(uiState.isSlideshowEnabled),
+                        contentDescription = null
+                    )
+                },
+                colors = ToggleChipDefaults.toggleChipColors()
+            )
+        },
+        WearSettingsItem(fullWidth = true) { _ ->
+            SlideshowIntervalStepper(
+                currentSeconds = uiState.slideshowIntervalSeconds,
+                onIntervalChanged = viewModel::setSlideshowInterval
+            )
+        }
+    )
+
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,
         positionIndicator = { PositionIndicator(listState) }
     ) {
-        ScalingLazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            state = listState,
-            contentPadding = wearScreenInsets(),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            item {
-                Text(
-                    text = stringResource(R.string.slideshow_settings),
-                    style = MaterialTheme.typography.title2,
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                    textAlign = TextAlign.Center
-                )
-            }
-            item {
-                ToggleChip(
-                    checked = uiState.isSlideshowEnabled,
-                    onCheckedChange = { viewModel.toggleSlideshow() },
-                    label = { Text(stringResource(R.string.enable_slideshow)) },
-                    toggleControl = {
-                        androidx.wear.compose.material.Icon(
-                            imageVector = ToggleChipDefaults.switchIcon(uiState.isSlideshowEnabled),
-                            contentDescription = null
-                        )
-                    },
-                    colors = ToggleChipDefaults.toggleChipColors()
-                )
-            }
-            item {
-                SlideshowIntervalStepper(
-                    currentSeconds = uiState.slideshowIntervalSeconds,
-                    onIntervalChanged = viewModel::setSlideshowInterval
-                )
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val columns = GridColumnFit.columnsFor(WearViewMode.GRID_2, maxWidth.value.toInt())
+            ScalingLazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                state = listState,
+                contentPadding = wearScreenInsets(),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                item {
+                    Text(
+                        text = stringResource(R.string.slideshow_settings),
+                        style = MaterialTheme.typography.title2,
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                        textAlign = TextAlign.Center
+                    )
+                }
+                items(packSettingsRows(items, columns)) { row -> WearSettingsRow(row) }
             }
         }
     }

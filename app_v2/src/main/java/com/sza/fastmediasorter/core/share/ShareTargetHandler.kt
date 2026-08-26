@@ -15,8 +15,15 @@ interface ShareTargetHandler {
     /** Registry key; must equal the [ShareTarget.id] this handler serves. */
     val targetId: String
 
-    /** @return true when an Activity was launched (the receiver app or the system chooser). */
-    fun send(activity: Activity, content: ShareableContent): Boolean
+    /**
+     * Runs this receiver's send action.
+     *
+     * @return what happened to the request. [ShareTargetOutcome.Launched] means an Activity was
+     * started (the receiver app or the system chooser) - not that the user completed anything there.
+     * A receiver that performs the work itself reports [ShareTargetOutcome.Delivered] or
+     * [ShareTargetOutcome.Failed] with its own message (S1884 ADR-4).
+     */
+    suspend fun send(activity: Activity, content: ShareableContent): ShareTargetOutcome
 
     /**
      * Host-capability gate (S0459 ADR-10). The three content gates ([ShareTarget.appliesTo],

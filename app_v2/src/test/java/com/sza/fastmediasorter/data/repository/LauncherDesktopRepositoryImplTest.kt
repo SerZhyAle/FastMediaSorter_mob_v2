@@ -161,6 +161,62 @@ class LauncherDesktopRepositoryImplTest {
     }
 
     @Test
+    fun `a cell addressed to a section lands inside that section`() = runTest {
+        // S2018: the import's whole point - the first free squares are in the widgets section above, and
+        // "first free slot" would have taken one of them.
+        add(section(row = 0).copy(target = "sec:widgets"))
+        add(section(row = 4).copy(target = "sec:desktop"))
+        val id = repository.addCellInSection(
+            cell = cell(row = 0, col = 0, target = "app:com.example"),
+            columns = COLUMNS,
+            sectionKey = "desktop",
+        )
+        assertNotNull(id)
+        val stored = storedCell(id!!)
+        assertEquals(4, stored?.rowIndex)
+        assertEquals(LauncherSectionMembership.HEADER_SPAN_W, stored?.colIndex)
+    }
+
+    @Test
+    fun `a full section grows downward instead of spilling into the next one`() = runTest {
+        // S2018: the dense-grid case the owner hit - with no room left under its own header, the previous
+        // behaviour fell back to a grid-wide scan and settled inside a neighbouring section.
+        val widgets = add(section(row = 0).copy(target = "sec:widgets"))
+        add(section(row = 1).copy(target = "sec:desktop"))
+        val google = add(section(row = 2).copy(target = "sec:google"))
+        // Fill every square the desktop section owns: its header row, past the header itself.
+        for (col in LauncherSectionMembership.HEADER_SPAN_W until COLUMNS) {
+            add(cell(row = 1, col = col, target = "app:filler$col"))
+        }
+
+        val id = repository.addCellInSection(
+            cell = cell(row = 0, col = 0, target = "app:com.example"),
+            columns = COLUMNS,
+            sectionKey = "desktop",
+        )
+
+        assertNotNull(id)
+        val stored = storedCell(id!!)
+        assertEquals("the new row opened at the end of the desktop section", 2, stored?.rowIndex)
+        assertEquals(0, stored?.colIndex)
+        assertEquals("the section below moved down to make room", 3, rowOf(google))
+        assertEquals("the section above was left where it was", 0, rowOf(widgets))
+    }
+
+    @Test
+    fun `a cell addressed to a section the desktop lacks is refused`() = runTest {
+        // Creating the header is the caller's decision, so a missing section is a null rather than a
+        // silent placement somewhere else - which is exactly the fallback S2018 removed.
+        add(section(row = 0).copy(target = "sec:widgets"))
+        val id = repository.addCellInSection(
+            cell = cell(row = 0, col = 0, target = "app:com.example"),
+            columns = COLUMNS,
+            sectionKey = "desktop",
+        )
+        assertNull(id)
+    }
+
+    @Test
     fun `adding onto an occupied square pushes the occupant down`() = runTest {
         // S1772: the anchor is the user's choice of place, so the desktop makes room instead of refusing.
         val occupant = add(cell(row = 0, col = 0))

@@ -204,10 +204,7 @@ object LauncherGridGeometry {
     ): List<RenderedCell> {
         val stored = cells.map { it.cell }
         val headerRows = LauncherSectionMembership.headerRows(stored)
-        val collapsedHeaderRows = stored
-            .filter { it.kind == LauncherCellKind.SECTION && it.target in collapsedSections }
-            .map { it.rowIndex.coerceAtLeast(0) }
-            .toSet()
+        val collapsedHeaderRows = collapsedHeaderRowsOf(stored, collapsedSections)
         val drawnRowOf = { cell: LauncherCell ->
             LauncherSectionMembership.renderRowFor(
                 row = cell.rowIndex,
@@ -287,6 +284,38 @@ object LauncherGridGeometry {
         val row = yPx / cellSize
         return Slot(row = row, col = col).takeIf { col < columns && row < rows }
     }
+
+    /**
+     * S2033: the stored square a press on drawn square [slot] points at.
+     *
+     * The inverse of [renderPlan]'s row projection, reading the header rows and the collapsed header rows
+     * through the same derivation [renderPlan] uses, so the two directions cannot end up disagreeing about
+     * which sections are folded on a desktop the user has just rearranged.
+     *
+     * The column is returned untouched. Folding moves rows only, and the header packing of S1645 moves the
+     * headers themselves rather than the content stored under them, so no press on a content square owes
+     * its column to a fold.
+     */
+    fun storedSlotFor(slot: Slot, cells: List<LauncherCellUi>, collapsedSections: Set<String>): Slot {
+        val stored = cells.map { it.cell }
+        return slot.copy(
+            row = LauncherSectionMembership.storedRowFor(
+                renderRow = slot.row,
+                headerRows = LauncherSectionMembership.headerRows(stored),
+                collapsedHeaderRows = collapsedHeaderRowsOf(stored, collapsedSections),
+            ),
+        )
+    }
+
+    /**
+     * The rows carrying a folded header. One derivation for both directions of the projection - two would
+     * be free to drift, and a fold either side reads differently is exactly a cell landing off its square.
+     */
+    private fun collapsedHeaderRowsOf(cells: List<LauncherCell>, collapsedSections: Set<String>): Set<Int> =
+        cells
+            .filter { it.kind == LauncherCellKind.SECTION && it.target in collapsedSections }
+            .map { it.rowIndex.coerceAtLeast(0) }
+            .toSet()
 
     /** Row and height clamps do not depend on the column count, so [rowsFor] can share them. */
     private fun safeRow(row: Int): Int = row.coerceAtLeast(0)

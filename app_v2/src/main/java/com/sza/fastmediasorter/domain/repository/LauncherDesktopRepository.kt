@@ -48,6 +48,20 @@ interface LauncherDesktopRepository {
      */
     suspend fun addCellInFirstFreeSlot(cell: LauncherCell, columns: Int): Long?
 
+    /**
+     * S2018: places [cell] inside the section keyed [sectionKey] and nowhere else.
+     *
+     * Deliberately without the grid-wide fallback [addCellInFirstFreeSlot] ends in. That fallback is
+     * what made a bulk import land in whichever section still had a gap - on a dense desktop the first
+     * free squares sit inside the widgets and resources sections, so "first free slot" and "the section
+     * the caller asked for" are different places. When the section is full this pushes the rows below it
+     * down and seats the cell in the row that frees up, growing the section instead of leaving it.
+     *
+     * Returns null when the section has no header on this orientation: creating one is a placement
+     * decision of its own, and the caller owns the label it would carry.
+     */
+    suspend fun addCellInSection(cell: LauncherCell, columns: Int, sectionKey: String): Long?
+
     suspend fun removeCell(id: Long)
 
     /**

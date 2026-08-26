@@ -1,5 +1,8 @@
 package com.sza.fastmediasorter.wear.ui.settings
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -27,6 +31,7 @@ import com.sza.fastmediasorter.wear.data.wear.WearLogReportOutcome
 import com.sza.fastmediasorter.wear.data.wear.WearLogReportRefusalReasons
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import timber.log.Timber
 
 @Composable
 fun AboutSettingsScreen(
@@ -35,6 +40,7 @@ fun AboutSettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val logReportState by viewModel.logReportState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -69,6 +75,21 @@ fun AboutSettingsScreen(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 2.dp),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.caption1
+                )
+            }
+            item {
+                Chip(
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/wear/"))
+                        try {
+                            context.startActivity(intent)
+                        } catch (e: ActivityNotFoundException) {
+                            Timber.w(e, "No browser to open Wear web portal")
+                        }
+                    },
+                    label = { Text(text = stringResource(R.string.about_web_portal)) },
+                    colors = ChipDefaults.primaryChipColors(),
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
             item {

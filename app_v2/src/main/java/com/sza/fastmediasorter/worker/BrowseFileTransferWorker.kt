@@ -255,6 +255,10 @@ class BrowseFileTransferWorker @AssistedInject constructor(
             refreshResourceFileCountsUseCase(
                 listOfNotNull(request.sourceResourceId, request.destinationResourceId),
             )
+            Timber.d(
+                "S1995: refreshed resource counts after interactive transfer, processed=%d",
+                processedCount,
+            )
         }
     }
 

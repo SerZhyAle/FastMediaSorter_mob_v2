@@ -17,7 +17,7 @@ import org.robolectric.annotation.Config
  * and parent-path composition. Robolectric supplies the real org.json implementation (S0223 pattern).
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34]) // Robolectric 4.11.1 maxSdkVersion=34; targetSdk 35 needs the explicit pin.
+@Config(sdk = [34]) // Robolectric 4.16.1 maxSdkVersion=34; targetSdk 35 needs the explicit pin.
 class GoogleDriveRestClientUtilsTest {
 
     @Test

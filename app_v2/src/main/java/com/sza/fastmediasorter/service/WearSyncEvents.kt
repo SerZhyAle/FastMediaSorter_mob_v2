@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.service
 
+import com.sza.fastmediasorter.domain.model.WearFileTransferAck
 import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
 import com.sza.fastmediasorter.domain.model.WearSourcesExportPayload
 import com.sza.fastmediasorter.domain.model.WearStreamTransferAck
@@ -37,9 +38,14 @@ object WearSyncEvents {
         MutableSharedFlow<WearStreamTransferAck>(extraBufferCapacity = 4)
     val streamTransferAckFlow: SharedFlow<WearStreamTransferAck> = _streamTransferAckFlow.asSharedFlow()
 
+    private val _fileTransferAckFlow = MutableSharedFlow<WearFileTransferAck>(extraBufferCapacity = 4)
+    val fileTransferAckFlow: SharedFlow<WearFileTransferAck> = _fileTransferAckFlow.asSharedFlow()
+
     suspend fun emitAck(json: String) = _ackFlow.emit(json)
 
     suspend fun emitStreamTransferAck(ack: WearStreamTransferAck) = _streamTransferAckFlow.emit(ack)
+
+    suspend fun emitFileTransferAck(ack: WearFileTransferAck) = _fileTransferAckFlow.emit(ack)
 
     suspend fun emitWatchSources(payload: WearSourcesExportPayload) =
         _watchSourcesReceivedFlow.emit(payload)

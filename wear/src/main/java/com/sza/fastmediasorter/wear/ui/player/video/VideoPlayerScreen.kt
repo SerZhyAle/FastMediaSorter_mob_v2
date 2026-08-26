@@ -25,6 +25,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AspectRatio
 import androidx.compose.material.icons.filled.CropFree
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
@@ -64,12 +66,18 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.StreamChannelReason
+import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
 import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
 import timber.log.Timber
+
+/** Wear's minimum comfortable touch target - the same 48 dp the transport buttons use. */
+private val FAVORITE_BUTTON_SIZE = 48.dp
+private val FAVORITE_ICON_SIZE = 24.dp
+private val SECONDARY_ROW_SPACING = 4.dp
 
 private val PROGRESS_BAR_HEIGHT = 4.dp
 private val PROGRESS_BAR_TOUCH_HEIGHT = 24.dp
@@ -84,7 +92,8 @@ private data class VideoPlayerActions(
     val onSeekTo: (Long) -> Unit,
     val onRotaryStep: (Int) -> Unit,
     val onToggleScaleMode: () -> Unit,
-    val onPanDelta: (Float, Float) -> Unit
+    val onPanDelta: (Float, Float) -> Unit,
+    val onToggleFavorite: () -> Unit
 )
 
 /**
@@ -137,7 +146,8 @@ fun VideoPlayerScreen(
                             }
                         },
                         onToggleScaleMode = viewModel::toggleScaleMode,
-                        onPanDelta = viewModel::onPanDelta
+                        onPanDelta = viewModel::onPanDelta,
+                        onToggleFavorite = viewModel::toggleFavorite
                     )
                 )
             }
@@ -293,7 +303,8 @@ private fun VideoPlayerContent(
                 onSkipNext = actions.onSkipNext,
                 onSkipPrevious = actions.onSkipPrevious,
                 onSeekTo = actions.onSeekTo,
-                onToggleScaleMode = actions.onToggleScaleMode
+                onToggleScaleMode = actions.onToggleScaleMode,
+                onToggleFavorite = actions.onToggleFavorite
             )
         }
     }
@@ -398,6 +409,39 @@ private fun VideoActionButtons(
     }
 }
 
+/**
+ * S1954: the mark lives on its own row rather than beside the transport buttons, because that row is
+ * already four controls wide on a round screen. The audio player made the same split for the same
+ * reason (S1701), so the star sits in the same place in both players.
+ *
+ * The filled and outlined hearts differ in shape, not only in colour, so the state survives a screen
+ * that renders the highlight faintly.
+ */
+@Composable
+private fun FavoriteButton(
+    isFavorite: Boolean,
+    onToggleFavorite: () -> Unit
+) {
+    val description = stringResource(
+        if (isFavorite) R.string.wear_player_favorite_remove else R.string.wear_player_favorite_add
+    )
+    RectangularButton(
+        onClick = onToggleFavorite,
+        modifier = Modifier.size(FAVORITE_BUTTON_SIZE),
+        colors = if (isFavorite) {
+            ButtonDefaults.primaryButtonColors()
+        } else {
+            ButtonDefaults.secondaryButtonColors()
+        }
+    ) {
+        Icon(
+            imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+            contentDescription = description,
+            modifier = Modifier.size(FAVORITE_ICON_SIZE)
+        )
+    }
+}
+
 @Composable
 private fun VideoControls(
     uiState: VideoPlayerUiState,
@@ -405,7 +449,8 @@ private fun VideoControls(
     onSkipNext: () -> Unit,
     onSkipPrevious: () -> Unit,
     onSeekTo: (Long) -> Unit,
-    onToggleScaleMode: () -> Unit
+    onToggleScaleMode: () -> Unit,
+    onToggleFavorite: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -435,6 +480,13 @@ private fun VideoControls(
             onSkipNext = onSkipNext,
             onSkipPrevious = onSkipPrevious,
             onToggleScaleMode = onToggleScaleMode
+        )
+
+        Spacer(modifier = Modifier.height(SECONDARY_ROW_SPACING))
+
+        FavoriteButton(
+            isFavorite = uiState.isFavorite,
+            onToggleFavorite = onToggleFavorite
         )
 
         if (uiState.hasSet) {

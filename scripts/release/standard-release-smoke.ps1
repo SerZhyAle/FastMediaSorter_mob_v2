@@ -134,15 +134,11 @@ if ($ApkPath) {
             Exit-AgentLock -Name Build
         }
     }
-    $meta = Join-Path $apkDir 'output-metadata.json'
-    if (Test-Path $meta) {
-        $m = Get-Content -Raw $meta | ConvertFrom-Json
-        if ($m.elements -and $m.elements[0].outputFile) { $resolvedApk = Join-Path $apkDir $m.elements[0].outputFile }
-    }
-    if (-not $resolvedApk -or -not (Test-Path $resolvedApk)) {
-        $latest = Get-ChildItem -Path $apkDir -Filter *.apk -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-        if ($latest) { $resolvedApk = $latest.FullName }
-    }
+    # S1972: one resolver for every builder - it selects by ABI from output-metadata.json
+    # and refuses to guess, where this block used to take element 0 and then the newest file.
+    . "$PSScriptRoot\..\utils\find-build-artifact.ps1"
+    $resolvedArtifact = Find-BuildArtifact -Dir $apkDir
+    $resolvedApk = if ($resolvedArtifact) { $resolvedArtifact.FullName } else { $null }
 }
 if (-not $resolvedApk -or -not (Test-Path $resolvedApk)) {
     Write-Verdict 'smoke' $false @('no standardRelease APK found - pass -ApkPath or run with -Build (needs release keystore)') 2

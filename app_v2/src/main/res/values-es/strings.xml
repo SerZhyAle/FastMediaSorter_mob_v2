@@ -2831,7 +2831,7 @@
     <string name="browse_empty_type_gated">%1$d archivos están ocultos porque su tipo de medio está desactivado.</string>
     <string name="browse_empty_type_gated_hint">Vuelve a activar ese tipo de medio en Ajustes para verlos.</string>
     <string name="splash_slogan">..¡Todo mío, aquí!</string>
-    <string name="launcher_section_google">GOOGLE</string>
+    <string name="launcher_section_google">Google</string>
     <string name="launcher_quick_menu_add_item">Añadir un elemento..</string>
     <string name="launcher_quick_menu_edit_desktop">Editar el escritorio</string>
     <string name="launcher_quick_menu_wallpaper">Fondo de pantalla</string>
@@ -2860,7 +2860,7 @@
     <string name="launcher_translator_attribution">Traducido por Google</string>
     <string name="launcher_section_widgets">Widgets</string>
     <string name="launcher_section_resources">Recursos</string>
-    <string name="launcher_section_android_apps">Apps de Android</string>
+    <string name="launcher_section_android_apps">Apps</string>
     <string name="launcher_settings_widget_backdrop_alpha_title">Opacidad del fondo del widget</string>
     <string name="launcher_settings_widget_backdrop_alpha_0">0% (Transparente)</string>
     <string name="launcher_settings_widget_backdrop_alpha_85">85% (Predeterminado)</string>

@@ -12,7 +12,14 @@ import androidx.annotation.StringRes
 enum class WearAppId(val canonicalKey: String) {
     CALCULATOR("calculator"),
     NETWORK_MONITOR("network_monitor"),
-    GAME("game")
+    GAME("game"),
+    VOICE_RECORDER("voice_recorder"),
+
+    /**
+     * S2008: the watch's own report, moved here from Settings - it configures nothing, so it belongs
+     * with the programs rather than with the switches.
+     */
+    SYSTEM_INFO("system_info")
 }
 
 /**

@@ -10,9 +10,13 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.wear.data.wear.WatchPlaybackCommandEvents
 import com.sza.fastmediasorter.wear.domain.model.MediaType
+import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_STREAM
+import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackStatePayload
+import com.sza.fastmediasorter.wear.domain.model.favoriteSourceId
+import com.sza.fastmediasorter.wear.domain.model.normalizeWearStreamUrl
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
@@ -21,6 +25,7 @@ import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ClassifyWearStreamMediaKindUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.DownloadNetworkFileUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PublishPlaybackStateUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.ToggleFavoriteUseCase
 import com.sza.fastmediasorter.wear.ui.player.helpers.StreamPlaybackSessionFactory
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -29,7 +34,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -57,6 +64,7 @@ class VideoPlayerViewModel @Inject constructor(
     private val exoPlayer: ExoPlayer,
     private val publishPlaybackStateUseCase: PublishPlaybackStateUseCase,
     private val streamPlaybackSessionFactory: StreamPlaybackSessionFactory,
+    private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
     savedStateHandle: SavedStateHandle,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -80,6 +88,12 @@ class VideoPlayerViewModel @Inject constructor(
      * rather than read at STATE_ENDED, because that branch is a player callback and cannot suspend.
      */
     private var isSlideshowEnabled = false
+
+    /**
+     * S1948: true once the scale button has decided the mode for this screen, which stops the stored
+     * value seeded in [init] from landing on top of a choice the user already made.
+     */
+    private var scaleModeChosen = false
 
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -182,6 +196,17 @@ class VideoPlayerViewModel @Inject constructor(
             }
         }
 
+        // S1948: read once rather than collect. A subscription would route this screen's own write
+        // back into the state and undo the pan reset that toggleScaleMode makes in the same press.
+        viewModelScope.launch {
+            val storedMode = preferencesRepository.videoScaleMode.first()
+            // The controls are on screen before this disk read returns, so a press can beat it. The
+            // seed is the older value by then and would silently undo the choice just made.
+            if (!scaleModeChosen) {
+                _uiState.update { it.copy(scaleMode = storedMode) }
+            }
+        }
+
         // Subscribe to remote playback commands from phone
         viewModelScope.launch {
             WatchPlaybackCommandEvents.commandFlow.collect { command ->
@@ -257,6 +282,7 @@ class VideoPlayerViewModel @Inject constructor(
             playLocalFile(file)
         }
         syncSetPosition()
+        refreshFavoriteState()
     }
 
     /** S1683: keeps the position marker in step with the set on first open and on every page. */
@@ -287,12 +313,14 @@ class VideoPlayerViewModel @Inject constructor(
                 // S1683: remembered so paging can re-enter the download path with the same source id.
                 networkSelection = selectedMedia
                 Timber.d("Loading network video: ${selectedMedia.file.name}")
+                refreshFavoriteState()
                 loadNetworkVideo(selectedMedia)
             } else {
                 // Local file - use MediaStore
                 val file = mediaRepository.getMediaFileById(fileId, MediaType.VIDEO)
                 if (file != null) {
                     _uiState.update { it.copy(mediaFile = file) }
+                    refreshFavoriteState()
                     playLocalFile(file)
                 } else {
                     _uiState.update { it.copy(isLoading = false, error = "File not found") }
@@ -423,9 +451,15 @@ class VideoPlayerViewModel @Inject constructor(
     }
 
     fun toggleScaleMode() {
-        _uiState.update { current ->
-            val nextMode = if (current.scaleMode == VideoScaleMode.FIT) VideoScaleMode.CROP_PAN else VideoScaleMode.FIT
-            current.copy(scaleMode = nextMode, panOffsetX = 0f, panOffsetY = 0f)
+        scaleModeChosen = true
+        val nextMode = _uiState.updateAndGet { current ->
+            val mode = if (current.scaleMode == VideoScaleMode.FIT) VideoScaleMode.CROP_PAN else VideoScaleMode.FIT
+            current.copy(scaleMode = mode, panOffsetX = 0f, panOffsetY = 0f)
+        }.scaleMode
+        // S1948: the state moves first so the frame answers the press at once; the store catches up
+        // after, and is what carries the choice to the next file or stream.
+        viewModelScope.launch {
+            preferencesRepository.setVideoScaleMode(nextMode)
         }
     }
 
@@ -465,6 +499,51 @@ class VideoPlayerViewModel @Inject constructor(
         )
         viewModelScope.launch { publishPlaybackStateUseCase(payload) }
     }
+
+    fun toggleFavorite() {
+        Timber.d("S1954: video player favourite toggled")
+        val identity = currentFavoriteIdentity() ?: return
+        viewModelScope.launch {
+            val marked = toggleFavoriteUseCase.toggle(
+                identity.sourceId,
+                identity.filePath,
+                _uiState.value.isFavorite
+            )
+            _uiState.update { it.copy(isFavorite = marked) }
+        }
+    }
+
+    /** Re-reads the mark for whatever is open now, so paging to another file cannot show a stale star. */
+    private fun refreshFavoriteState() {
+        val identity = currentFavoriteIdentity()
+        if (identity == null) {
+            _uiState.update { it.copy(isFavorite = false) }
+            return
+        }
+        viewModelScope.launch {
+            val marked = toggleFavoriteUseCase.isFavorite(identity.sourceId, identity.filePath)
+            _uiState.update { it.copy(isFavorite = marked) }
+        }
+    }
+
+    /**
+     * S1954: a direct stream is addressed by its normalized url under the reserved stream source id,
+     * because the catalog row it was opened from does not survive a re-import while the address does.
+     * A file keeps the identity the audio player and the image viewer already write, so one file is
+     * not marked twice under two spellings.
+     */
+    private fun currentFavoriteIdentity(): FavoriteIdentity? {
+        val selected = selectedMediaManager.getSelectedFileById(fileId) ?: networkSelection
+        if (selected != null && selected.isDirectStream) {
+            return FavoriteIdentity(SOURCE_ID_STREAM, normalizeWearStreamUrl(selected.streamUri))
+        }
+        val path = selected?.streamUri ?: _uiState.value.mediaFile?.uri?.toString()
+        return path?.let {
+            FavoriteIdentity(favoriteSourceId(selected?.isNetworkSource == true, selected?.sourceId), it)
+        }
+    }
+
+    private data class FavoriteIdentity(val sourceId: String, val filePath: String)
 
     override fun onCleared() {
         super.onCleared()

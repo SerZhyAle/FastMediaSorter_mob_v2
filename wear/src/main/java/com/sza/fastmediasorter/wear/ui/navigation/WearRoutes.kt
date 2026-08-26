@@ -48,12 +48,28 @@ object WearRoutes {
     const val NETWORK_MONITOR = "network_monitor"
     const val GAME = "game"
 
+    /**
+     * S1862: the voice recorder is a mini-program, so [VOICE_RECORDER] carries its `canonicalKey`
+     * like the three above. [VOICE_NOTES] is not one - it is the recorder's own note list, reached
+     * only from the recorder, so it stays out of the Apps catalog and has no key to match.
+     */
+    const val VOICE_RECORDER = "voice_recorder"
+    const val VOICE_NOTES = "voice_notes"
+
+    /**
+     * S2008: the watch's own report, relocated from `settings/system_info`. Its value is the program's
+     * `canonicalKey` like the four above, which is what the Apps catalog's route-equals-key test reads;
+     * the old settings-namespaced address could not satisfy that and is gone.
+     */
+    const val SYSTEM_INFO = "system_info"
+
     const val ARG_MEDIA_TYPE = "mediaType"
     const val ARG_SOURCE_ID = "sourceId"
     const val ARG_SOURCE_NAME = "sourceName"
     const val ARG_ADDED = "added"
     const val ARG_UPDATED = "updated"
     const val ARG_FILE_ID = "fileId"
+    const val ARG_TILE_KIND = "tileKind"
 
     const val BROWSE_PATTERN = "browse/{$ARG_MEDIA_TYPE}"
     const val PHONE_BROWSE_PATTERN = "browse_phone/{$ARG_MEDIA_TYPE}"
@@ -74,6 +90,15 @@ object WearRoutes {
     const val AUDIO_PLAYER_PATTERN = "audio_player/{$ARG_FILE_ID}"
     const val VIDEO_PLAYER_PATTERN = "video_player/{$ARG_FILE_ID}"
     const val IMAGE_VIEWER_PATTERN = "image_viewer/{$ARG_FILE_ID}"
+
+    /**
+     * S1955: where a tile of the given kind is pointed at its target.
+     *
+     * The only address the tiles add. Everything else a tile opens is an existing route reused as it is -
+     * a resource goes to [SOURCE_MEDIA_TYPE_PATTERN], favourites to [FAVOURITES], a channel to the players -
+     * because the assignment is the one action the feature adds and the rest it only shortens.
+     */
+    const val TILE_TARGET_PICKER_PATTERN = "tile_target_picker/{$ARG_TILE_KIND}"
 
     fun browse(mediaType: String): String = "browse/$mediaType"
 
@@ -96,6 +121,8 @@ object WearRoutes {
     fun videoPlayer(fileId: Long): String = "video_player/$fileId"
 
     fun imageViewer(fileId: Long): String = "image_viewer/$fileId"
+
+    fun tileTargetPicker(kind: String): String = "tile_target_picker/${encodeArg(kind)}"
 
     /**
      * S1848: percent-encodes one argument value before it is concatenated into a route.

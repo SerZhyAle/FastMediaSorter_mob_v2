@@ -8,6 +8,7 @@
 - Ellipsis / Dash / Ё (documentation prose & user-visible UI text ONLY): use `..` (never `...`), plain hyphen `-` (never `-`, `–`, `―`), and RU Ё/ё where grammatically correct. Never enforce these typography rules in code, technical specs, commands, logs, or chat.
 - Caveman Mode: trigger `/caveman` / `be brief`. RU chat, EN code, drop filler.
 - Spec Writing: lists over tables (tables only 3+ columns); no pseudographics; no self-evident links; one idea per bullet; no section summaries; Draft specs exempt.
+- No self-cost estimates in any planning output (CLAUDE.md section 1): no time, no effort, no predicted line count, in specs, phase files or chat. Sizes measured off a real file (2000-LOC ceiling, 500-LOC backup threshold) are not estimates and stay.
 
 ## 3. Skill Rules (Mandatory Slash Commands)
 - Each `/name` is the file `.claude/commands/<name>.md` - that file is the whole procedure, so read it in full before the first step. Companions for the six largest pipelines: `.claude/reference/<name>.md`; verbatim skeletons: `.claude/templates/`. `.github/prompts/` was retired (S1787) - the Copilot prompt mirrors had drifted beyond parity and were deleted.

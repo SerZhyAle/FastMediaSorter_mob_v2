@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/speedSectionScroll"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:padding="@dimen/margin_small">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
+            android:drawableStart="@drawable/ic_internet"
+            android:text="@string/network_monitor_section_resource_speed" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.Card">
+
+                    <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.CardContent">
+
+                        <TextView
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
+                            android:layout_marginStart="0dp"
+                            android:layout_marginTop="0dp"
+                            android:text="@string/network_monitor_select_resource_heading"
+                            android:textSize="@dimen/text_size_normal" />
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/speedTargetPickerLayout"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_small"
+                            android:hint="@string/network_monitor_target_label">
+
+                            <AutoCompleteTextView
+                                android:id="@+id/speedTargetPicker"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:focusable="true"
+                                android:inputType="none"
+                                tools:text="Internet" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSpeedStartTest"
+                            style="@style/Widget.FastMediaSorter.Button.Filled"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_small"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:text="@string/network_monitor_action_speed_test" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <LinearLayout
+                    android:id="@+id/speedProgressGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/margin_small"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <TextView
+                        android:id="@+id/speedProgressLabel"
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+                        tools:text="Measuring speed..." />
+
+                    <com.google.android.material.progressindicator.LinearProgressIndicator
+                        android:id="@+id/speedProgress"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        app:trackCornerRadius="@dimen/card_corner_radius" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSpeedCancel"
+                        style="@style/Widget.FastMediaSorter.Button.Outlined"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="@string/network_monitor_action_cancel" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/margin_small"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.Card">
+
+                    <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.CardContent">
+
+                        <TextView
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
+                            android:layout_marginStart="0dp"
+                            android:layout_marginTop="0dp"
+                            android:text="@string/network_monitor_speed_result_heading"
+                            android:textSize="@dimen/text_size_normal" />
+
+                        <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+                            <TextView
+                                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                                android:text="@string/network_monitor_traffic_down_label" />
+
+                            <TextView
+                                android:id="@+id/speedDownValue"
+                                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                                tools:text="12.5 Mbps" />
+                        </LinearLayout>
+
+                        <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+                            <TextView
+                                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                                android:text="@string/network_monitor_traffic_up_label" />
+
+                            <TextView
+                                android:id="@+id/speedUpValue"
+                                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                                tools:text="4.2 Mbps (Read-only resource)" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/speedResultStatus"
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+                            android:layout_marginTop="@dimen/margin_small"
+                            tools:text="Measurement complete" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

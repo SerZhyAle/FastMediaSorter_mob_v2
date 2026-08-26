@@ -218,6 +218,32 @@ object LauncherSectionMembership {
     }
 
     /**
+     * S2033: the stored row a press on drawn row [renderRow] points at - the inverse of [renderRowFor].
+     *
+     * Well defined because a fold hides whole sections rather than thinning them: every stored row still
+     * drawn projects onto a drawn row exactly one past the previous drawn one, so a drawn row has one
+     * visible stored row behind it and never two.
+     *
+     * It exists because a coordinate read off a folded desktop can otherwise only be written back as if
+     * nothing were folded, which lands a new cell short by the height of every collapsed section above
+     * the press - often inside one of them, where [renderRowFor] returns null and nothing is drawn at all.
+     *
+     * A collapsed section running to the bottom of the desktop adds nothing, for the same reason it lifts
+     * nothing in [renderRowFor]: it has no rows below it that a fold could have raised.
+     */
+    fun storedRowFor(renderRow: Int, headerRows: List<Int>, collapsedHeaderRows: Set<Int>): Int {
+        var stored = renderRow.coerceAtLeast(0)
+        for (headerRow in headerRows.filter { it in collapsedHeaderRows }) {
+            val end = sectionEndExclusive(headerRow, headerRows)
+            val firstFolded = headerRow + 1
+            // Each fold is undone in turn, so a lower section is compared against a row the sections
+            // above it have already pushed back down - the same order [renderRowFor] accumulates in.
+            if (end != null && stored >= firstFolded) stored += end - firstFolded
+        }
+        return stored
+    }
+
+    /**
      * Whether a rectangle [spanH] rows tall starting at [row] covers a header row other than a header
      * sitting exactly at [row].
      *

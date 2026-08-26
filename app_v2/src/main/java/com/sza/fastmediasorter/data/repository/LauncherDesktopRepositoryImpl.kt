@@ -145,6 +145,59 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
             }
         }
 
+    override suspend fun addCellInSection(cell: LauncherCell, columns: Int, sectionKey: String): Long? =
+        withContext(Dispatchers.IO) {
+            if (columns < MIN_SPAN) {
+                Timber.w("Launcher desktop: cannot place a cell on a %d-column grid", columns)
+                return@withContext null
+            }
+            val normalized = cell.normalized()
+            val candidate = normalized.copy(spanW = normalized.spanW.coerceAtMost(columns))
+            db.withTransaction {
+                val header = findSectionHeader(candidate.orientation, sectionKey)
+                    ?: return@withTransaction null
+                // The real header rows, not [headerRowsFor]: that one answers the straddle rule and is
+                // empty for anything but a tall gadget, which would make every section look like it runs
+                // to the bottom of the desktop and defeat the bounding this placement is built on.
+                // Harmless for the straddle check itself, which is false for any single-row cell.
+                val headerRows = cellDao.sectionHeaderRows(
+                    orientation = candidate.orientation.name,
+                    kind = LauncherCellKind.SECTION.name,
+                )
+                val scanSpanW = candidate.spanW.coerceAtMost(columns)
+                val lastCol = columns - scanSpanW
+                val anchor = findSectionFreeAnchor(
+                    candidate = candidate,
+                    header = header,
+                    scanSpanW = scanSpanW,
+                    lastCol = lastCol,
+                    headerRows = headerRows,
+                ) ?: growSection(candidate, header, headerRows)
+                cellDao.upsert(candidate.copy(rowIndex = anchor.row, colIndex = anchor.col).toEntity())
+            }
+        }
+
+    /**
+     * S2018: opens a row at the end of [header]'s section by moving everything below it down.
+     *
+     * The alternative - giving up and letting the caller scan the whole grid - is the defect this
+     * exists to remove: an import of a hundred apps then settles into whichever neighbouring section
+     * still had a gap. A contiguous tail push keeps every other cell's section membership intact,
+     * because that membership is positional and a selective shift would re-parent cells.
+     */
+    private suspend fun growSection(
+        candidate: LauncherCell,
+        header: LauncherCell,
+        headerRows: List<Int>,
+    ): GridAnchor {
+        val startRow = header.rowIndex.coerceAtLeast(0)
+        // Null means this section runs to the bottom, so the empty band under the desktop is its end.
+        val insertRow = LauncherSectionMembership.sectionEndExclusive(startRow, headerRows)
+            ?: cellDao.firstRowBelowAll(candidate.orientation.name)
+        cellDao.pushRowsDown(candidate.orientation.name, insertRow, candidate.spanH)
+        return GridAnchor(insertRow, 0)
+    }
+
     /**
      * Row-major scan for the first anchor whose whole footprint is clear (owner decision, strategic §4
      * item 2).
@@ -165,13 +218,16 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         if (candidate.kind == LauncherCellKind.SHORTCUT &&
             candidate.target.startsWith(LauncherCellCommand.PREFIX_RESOURCE)
         ) {
-            val sectionAnchor = findSectionFreeAnchor(
-                candidate = candidate,
-                sectionKey = LauncherCellCommand.SECTION_RESOURCES,
-                scanSpanW = scanSpanW,
-                lastCol = lastCol,
-                headerRows = headerRows,
-            )
+            val header = findSectionHeader(candidate.orientation, LauncherCellCommand.SECTION_RESOURCES)
+            val sectionAnchor = header?.let {
+                findSectionFreeAnchor(
+                    candidate = candidate,
+                    header = it,
+                    scanSpanW = scanSpanW,
+                    lastCol = lastCol,
+                    headerRows = headerRows,
+                )
+            }
             if (sectionAnchor != null) return sectionAnchor
         }
 
@@ -218,26 +274,37 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
     }
 
     /**
-     * S1760: scans for a free slot inside a specific section [sectionKey], starting at the section's
+     * S1760: the header cell of section [sectionKey] on [orientation], or null when it has none.
+     *
+     * Three target shapes are accepted because a section's identity is its encoded target and older
+     * desktops stored it less strictly than the encoder writes it today.
+     */
+    private suspend fun findSectionHeader(
+        orientation: LauncherOrientation,
+        sectionKey: String,
+    ): LauncherCell? {
+        val sectionHeaderTarget = LauncherCellCommand.Section(sectionKey).encode()
+        return cellDao.sectionHeaders(orientation.name, LauncherCellKind.SECTION.name)
+            .mapNotNull { it.toDomainOrNull() }
+            .firstOrNull {
+                it.target == sectionHeaderTarget ||
+                    it.target.endsWith(":$sectionKey") ||
+                    it.target == sectionKey
+            }
+    }
+
+    /**
+     * S1760: scans for a free slot inside the section headed by [header], starting at the section's
      * header row down to the start of the next section.
      */
     private suspend fun findSectionFreeAnchor(
         candidate: LauncherCell,
-        sectionKey: String,
+        header: LauncherCell,
         scanSpanW: Int,
         lastCol: Int,
         headerRows: List<Int>,
     ): GridAnchor? {
-        val sectionHeaderTarget = LauncherCellCommand.Section(sectionKey).encode()
-        val allCells = cellDao.getAllCellsSync()
-            .filter { it.orientation == candidate.orientation.name }
-            .mapNotNull { it.toDomainOrNull() }
-        val sectionHeader = allCells.firstOrNull {
-            it.kind == LauncherCellKind.SECTION &&
-                (it.target == sectionHeaderTarget || it.target.endsWith(":$sectionKey") || it.target == sectionKey)
-        } ?: return null
-
-        val startRow = sectionHeader.rowIndex.coerceAtLeast(0)
+        val startRow = header.rowIndex.coerceAtLeast(0)
         val endRowExclusive = LauncherSectionMembership.sectionEndExclusive(startRow, headerRows)
         val maxRow = (endRowExclusive?.minus(1)) ?: cellDao.firstRowBelowAll(candidate.orientation.name)
 

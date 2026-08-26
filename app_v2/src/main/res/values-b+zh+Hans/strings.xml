@@ -2827,7 +2827,7 @@
     <string name="browse_empty_type_gated">有 %1$d 个文件因媒体类型已关闭而被隐藏。</string>
     <string name="browse_empty_type_gated_hint">在设置中重新开启该媒体类型即可查看它们。</string>
     <string name="splash_slogan">..都在这里，是我的！</string>
-    <string name="launcher_section_google">GOOGLE</string>
+    <string name="launcher_section_google">Google</string>
     <string name="launcher_quick_menu_add_item">添加项目..</string>
     <string name="launcher_quick_menu_edit_desktop">编辑桌面</string>
     <string name="launcher_quick_menu_wallpaper">壁纸</string>
@@ -2856,7 +2856,7 @@
     <string name="launcher_translator_attribution">由 Google 翻译</string>
     <string name="launcher_section_widgets">小组件</string>
     <string name="launcher_section_resources">资源</string>
-    <string name="launcher_section_android_apps">Android 应用</string>
+    <string name="launcher_section_android_apps">应用</string>
     <string name="launcher_settings_widget_backdrop_alpha_title">小组件背景不透明度</string>
     <string name="launcher_settings_widget_backdrop_alpha_0">0%（透明）</string>
     <string name="launcher_settings_widget_backdrop_alpha_85">85%（默认）</string>

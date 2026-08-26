@@ -181,11 +181,14 @@ private fun AppCell(
  *
  * The network monitor reuses the Wi-Fi glyph the home screen already gives to Resources, because on a
  * watch both mean the same thing to look at - the radio - and inventing a second one would tell the
- * user they are different.
+ * user they are different. System information takes the watch glyph for the same reason: a report
+ * about this watch is what that glyph already means, and the module ships no information drawable.
  */
 @DrawableRes
 private fun iconFor(id: WearAppId): Int = when (id) {
     WearAppId.CALCULATOR -> R.drawable.ic_app_calculator
     WearAppId.NETWORK_MONITOR -> R.drawable.ic_wifi
     WearAppId.GAME -> R.drawable.ic_app_game
+    WearAppId.VOICE_RECORDER -> R.drawable.ic_voice_note
+    WearAppId.SYSTEM_INFO -> R.drawable.ic_watch
 }

@@ -35,7 +35,6 @@ import timber.log.Timber
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
-import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -64,8 +63,13 @@ class WearFileTransferRepositoryImpl @Inject constructor(
     private val jobs = ConcurrentHashMap<String, Job>()
     private val sendMutex = Mutex()
 
-    override fun enqueue(sourcePath: String, displayName: String): String {
-        val id = UUID.randomUUID().toString()
+    override fun enqueue(
+        sourcePath: String,
+        displayName: String,
+        openNow: Boolean,
+        requestId: String
+    ): String {
+        val id = requestId
         val item = WearFileTransferItem(id = id, sourcePath = sourcePath, displayName = displayName)
         transferState.update { state -> state.copy(items = state.items + item) }
 
@@ -80,7 +84,7 @@ class WearFileTransferRepositoryImpl @Inject constructor(
                 Timber.i("Refusing %s for the watch: %d bytes over the ceiling", displayName, totalBytes)
                 finish(id, WearFileTransferOutcome.TOO_LARGE)
             } else {
-                sendMutex.withLock { runTransfer(item.copy(totalBytes = totalBytes)) }
+                sendMutex.withLock { runTransfer(item.copy(totalBytes = totalBytes), openNow) }
             }
         }
         // Registered before the completion hook: a transfer that ends inside launch - an unreachable
@@ -104,12 +108,12 @@ class WearFileTransferRepositoryImpl @Inject constructor(
         transferState.update { state -> state.copy(items = state.items.filterNot { it.outcome.isTerminal }) }
     }
 
-    private suspend fun runTransfer(item: WearFileTransferItem) {
+    private suspend fun runTransfer(item: WearFileTransferItem, openNow: Boolean) {
         val nodeId = firstConnectedNodeId()
         val outcome = if (nodeId == null) {
             WearFileTransferOutcome.WATCH_UNREACHABLE
         } else {
-            copyToWatch(item, nodeId)
+            copyToWatch(item, nodeId, openNow)
         }
         finish(item.id, outcome)
     }
@@ -117,13 +121,17 @@ class WearFileTransferRepositoryImpl @Inject constructor(
     // A channel open and a byte copy fail through GMS ApiException, IOException and RemoteException
     // alike, and every one of them ends this transfer the same way; cancellation is rethrown first.
     @Suppress("TooGenericExceptionCaught")
-    private suspend fun copyToWatch(item: WearFileTransferItem, nodeId: String): WearFileTransferOutcome {
+    private suspend fun copyToWatch(
+        item: WearFileTransferItem,
+        nodeId: String,
+        openNow: Boolean
+    ): WearFileTransferOutcome {
         val channelClient = Wearable.getChannelClient(context)
         // The watch names the received file from the trailing path segment; the announcement that
         // precedes it carries the size, which the trailing segment has no room for.
         val path = "${WearDataLayerPaths.FILE_TRANSFER}/${item.displayName}"
         val channel = try {
-            announce(nodeId, item)
+            announce(nodeId, item, openNow)
             withTimeout(CHANNEL_TIMEOUT_MS) { channelClient.openChannel(nodeId, path).await() }
         } catch (e: CancellationException) {
             throw e
@@ -171,12 +179,14 @@ class WearFileTransferRepositoryImpl @Inject constructor(
      * Tells the watch what is coming before the channel opens, so an oversized or unwanted file is
      * refused there without a single byte crossing the bridge.
      */
-    private suspend fun announce(nodeId: String, item: WearFileTransferItem) {
+    private suspend fun announce(nodeId: String, item: WearFileTransferItem, openNow: Boolean) {
         val metadata = WearFileTransferMetadata(
+            requestId = item.id,
             name = item.displayName,
             size = item.totalBytes,
             mimeType = MimeTypeMap.getSingleton()
-                .getMimeTypeFromExtension(File(item.sourcePath).extension.lowercase())
+                .getMimeTypeFromExtension(File(item.sourcePath).extension.lowercase()),
+            openNow = openNow
         )
         withTimeout(MESSAGE_TIMEOUT_MS) {
             Wearable.getMessageClient(context)

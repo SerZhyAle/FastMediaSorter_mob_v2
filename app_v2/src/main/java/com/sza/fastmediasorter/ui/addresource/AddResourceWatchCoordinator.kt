@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.strategy.WearWatchResourceStrategy
 import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -51,7 +52,7 @@ internal class AddResourceWatchCoordinator(
         val resource = MediaResource(
             id = 0,
             name = name.ifBlank { context.getString(R.string.resource_type_wear_watch) },
-            path = WATCH_RESOURCE_PATH,
+            path = WearWatchResourceStrategy.WATCH_RESOURCE_PATH,
             type = ResourceType.WEAR_WATCH,
             supportedMediaTypes = bridge.supportedMediaTypes(),
             createdDate = System.currentTimeMillis(),
@@ -83,13 +84,5 @@ internal class AddResourceWatchCoordinator(
             )
             bridge.emit(AddResourceEvent.ResourcesAdded(listOf(createdId)))
         }
-    }
-
-    private companion object {
-        /**
-         * The watch has no filesystem the phone can address, so the resource carries a scheme the
-         * scanner recognises rather than a path anything could resolve. It never reaches the disk.
-         */
-        const val WATCH_RESOURCE_PATH = "wear://watch"
     }
 }

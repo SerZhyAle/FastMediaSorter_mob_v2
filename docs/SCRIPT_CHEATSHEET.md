@@ -432,6 +432,7 @@ scripts/builders/build-debug-clean.PS1
   Params:
     -SkipZip             [SwitchParameter]
     -AutoVersion         [SwitchParameter] = $true
+    -Abi                 [String] = ''
 ```
 
 ### build-debug-device.ps1
@@ -452,6 +453,7 @@ scripts/builders/build-debug.PS1
     -AutoVersion         [SwitchParameter] = $true
     -Chaquopy            [SwitchParameter]
     -Quiet               [SwitchParameter]
+    -Abi                 [String] = ''
 ```
 
 ### build-failure-digest.contract.ps1
@@ -532,6 +534,7 @@ scripts/builders/build-lite-release.ps1
 scripts/builders/build-nolegal-debug.ps1
   Params:
     -AutoVersion         [SwitchParameter] = $true
+    -Abi                 [String] = ''
 ```
 
 ### build-nolegal-device.ps1
@@ -582,6 +585,7 @@ scripts/builders/build-release.ps1
 scripts/builders/build-standard-debug.ps1
   Params:
     -AutoVersion         [SwitchParameter] = $true
+    -Abi                 [String] = ''
 ```
 
 ### build-standard-device.ps1
@@ -609,11 +613,11 @@ scripts/builders/build-universal.ps1
 ```
 
 ### build-vr-release.ps1
-Build the FastMediaSorter VR release APK using the current release version.
+Build the FastMediaSorter VR release APK using the current release version. .DESCRIPTION This script intentionally does not bump versionCode or versionName. Run it after build-aab-release.ps1 / .\a.ps1 r in the release worktree so the VR GitHub Store asset uses the same version as the standard release. .PARAMETER DryRun Validate paths and print the current version without invoking Gradle.
 
 ```
 scripts/builders/build-vr-release.ps1
-  Build the FastMediaSorter VR release APK using the current release version.
+  Build the FastMediaSorter VR release APK using the current release version. .DESCRIPTION This script intentionally does not bump versionCode or versionName. Run it after build-aab-release.ps1 / .\a.ps1 r in the release worktree so the VR GitHub Store asset uses the same version as the standard release. .PARAMETER DryRun Validate paths and print the current version without invoking Gradle.
   Params:
     -DryRun         [SwitchParameter]
 ```
@@ -725,6 +729,18 @@ scripts/builders/publish-ffmpeg-dts-aar.ps1
     -Tag             [String] = 'delivery-so-v1'
 ```
 
+### publish-libvlc-so.ps1
+
+```
+scripts/builders/publish-libvlc-so.ps1
+  Params:
+    -Version         [String] = '3.7.5'
+    -Abi             [String] = 'arm64-v8a'
+    -Tag             [String] = 'delivery-so-v1'
+    -Rev             [String] = 'v1'
+    -WhatIf          [SwitchParameter]
+```
+
 ### run-standard-macrobenchmark.ps1
 
 ```
@@ -761,6 +777,7 @@ scripts/devtest/adb.ps1
     -Grep               [String]
     -Apk                [String]
     -Flavor             [String] = 'standard'  {standard|lite|photos|legacy|noLegal}
+    -Module             [String] = 'app_v2'  {app_v2|wear}
     -X                  [Int32]
     -Y                  [Int32]
     -X2                 [Int32]
@@ -924,12 +941,14 @@ S0484 pre-release sweep - verdict aggregator (PASS/FAIL).
 scripts/devtest/prerelease-verdict.ps1
   S0484 pre-release sweep - verdict aggregator (PASS/FAIL).
   Params:
-    -LogFile         (req)  [String]
-    -MetricsFile            [String]
-    -ScreensDir             [String]
-    -MaestroResults         [String]
-    -FromTs                 [String]
-    -Json                   [SwitchParameter]
+    -LogFile           (req)  [String]
+    -MetricsFile              [String]
+    -ScreensDir               [String]
+    -MaestroResults           [String]
+    -FromTs                   [String]
+    -ArtifactManifest         [String]
+    -WalkResults              [String]
+    -Json                     [SwitchParameter]
   Exit: 0 - PASS; 1 - content FAIL (log / perf / maestro); 2 - infrastructure abort (LogFile missing / inputs unreadable)
 ```
 
@@ -943,6 +962,37 @@ scripts/devtest/streams-perf-seed.ps1
     -DeviceId         [String]
     -Json             [SwitchParameter]
   Exit: 0 - seeded and verified: the table holds the expected row count; 1 - bad arguments / adb or sqlite3 missing / catalog csv missing / package not installed; 2 - no device reachable; 11 - device reachable but the catalog did not reach the expected size
+```
+
+### wear-prerelease-prepare.ps1
+S1984 - prepare a watch for the pre-release run: qualify the device, build the release artifacts, record which artifact is about to be judged, install it and start it.
+
+```
+scripts/devtest/wear-prerelease-prepare.ps1
+  S1984 - prepare a watch for the pre-release run: qualify the device, build the release artifacts, record which artifact is about to be judged, install it and start it.
+  Params:
+    -DeviceId          [String]
+    -OutDir            [String] = 'temp/scratch/wear-prerelease'
+    -SkipBuild         [SwitchParameter]
+    -Json              [SwitchParameter]
+  Exit: 0 prepared: artifacts recorded, installed and launched on a qualified watch; 1 a step failed: the build, the install or the launch returned non-zero; 2 could not verify: no unambiguous device, the device is not a watch or is below the
+```
+
+### wear-prerelease-walk.ps1
+S1984 - walk the declared watch screens, capture evidence for each, then audit the process log.
+
+```
+scripts/devtest/wear-prerelease-walk.ps1
+  S1984 - walk the declared watch screens, capture evidence for each, then audit the process log.
+  Params:
+    -DeviceId             [String]
+    -OutDir               [String] = 'temp/scratch/wear-prerelease'
+    -ScreenList           [String]
+    -SettleMs             [Int32] = 1200
+    -MaxScrolls           [Int32] = 4
+    -SkipLogAudit         [SwitchParameter]
+    -Json                 [SwitchParameter]
+  Exit: 0 every declared screen was observed, and the log audit found nothing; 1 at least one screen failed, or the log audit reported a finding; 2 could not verify: the screen list is missing or unreadable, no device, or a called script
 ```
 
 ## scripts\devtest\adb-clip-check.tests
@@ -1562,6 +1612,45 @@ scripts/metrics/agent-cost-report.ps1
     -TranscriptRoot         [String]
     -OutputPath             [String]
     -Json                   [SwitchParameter]
+```
+
+## scripts\ocrbench
+
+### fetch-real-scenes.ps1
+S1716: bring the real bench scenes into a local cache, or register a new one into the manifest.
+
+```
+scripts/ocrbench/fetch-real-scenes.ps1
+  S1716: bring the real bench scenes into a local cache, or register a new one into the manifest.
+  Params:
+    -Register          [String]
+    -SceneId           [String]
+    -Manifest          [String]
+    -CacheRoot         [String]
+  Exit: 0 - every manifest scene is cached and verified, or the manifest requests none, or the
+```
+
+### measure-robolectric-upgrade.ps1
+S1782: measure what a Robolectric upgrade costs this project's unit suite, without moving the main checkout off the version it runs today.
+
+```
+scripts/ocrbench/measure-robolectric-upgrade.ps1
+  S1782: measure what a Robolectric upgrade costs this project's unit suite, without moving the main checkout off the version it runs today.
+  Params:
+    -Version              [String] = '4.16.1'
+    -KeepWorktree         [SwitchParameter]
+  Exit: 0 - the suite ran and the report was written. The suite itself may be red; that is the
+```
+
+### run-corpus.ps1
+S1716: the one command - run the overlay accuracy corpus and print the dated report it wrote.
+
+```
+scripts/ocrbench/run-corpus.ps1
+  S1716: the one command - run the overlay accuracy corpus and print the dated report it wrote.
+  Params:
+    -KeepGoing         [SwitchParameter]
+  Exit: 0 - the corpus ran and a report exists at the printed path.; 1 - the run failed, or it completed without leaving a report where one was expected.; 2 - the runner or the report pointer is missing, so nothing was measured and nothing can be
 ```
 
 ## scripts\post-change.tests
@@ -2206,6 +2295,19 @@ scripts/quality/assert-packaging-excludes-parity.ps1
   Exit: 0 - clean, every module carrying a shared library repeats its payload exclusions; 1 - a module is missing an exclusion, or an unknown payload prefix appeared; 2 - cannot verify: a build file is missing, or has no packaging/resources block to read
 ```
 
+### assert-prerelease-content-gates.ps1
+S1984 - every device-independent pre-release gate, for every module, from one place.
+
+```
+scripts/quality/assert-prerelease-content-gates.ps1
+  S1984 - every device-independent pre-release gate, for every module, from one place.
+  Params:
+    -Modules         [String[]] = @('app_v2', 'wear')  {app_v2|wear}
+    -Json            [SwitchParameter]
+    -Quiet           [SwitchParameter]
+  Exit: 0 every gating gate passed for every requested module; an advisory finding still exits 0; 1 at least one gating gate found a defect, and no gate was unable to verify; 2 at least one gate could not verify - its own exit 2, or the gate script is missing
+```
+
 ### assert-qualifier-shadowing.ps1
 S1282: a values-land / values-w600dp resource that no device can ever resolve.
 
@@ -2599,8 +2701,9 @@ scripts/quality/detekt-scoped.ps1
     -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
     -ConfigPath           [String]
     -CacheRoot            [String] = (Join-Path $env:USERPROFILE '.gradle/caches/modules-2/files-2.1')
+    -Fix                  [SwitchParameter]
     -Json                 [SwitchParameter]
-  Exit: 0 - the analyser ran and found nothing new in the named files (or there were none to check).; 1 - the analyser ran and found at least one new finding; each is printed.; 2 - CANNOT VERIFY. java missing, classpath incomplete, config or baseline absent, a named
+  Exit: 0 - the analyser ran and found nothing new in the named files (or there were none to check).; 1 - the analyser ran and found at least one new finding; each is printed. Never returned in
 ```
 
 ### generate-toolchain-pins.ps1
@@ -3091,11 +3194,11 @@ scripts/release/gen_fastlane_changelog.ps1
 ```
 
 ### publish-github-release.ps1
-Publish the full FastMediaSorter release spectrum to GitHub Releases so that GitHub Store (OpenHub-Store/GitHub-Store) and IzzyOnDroid can index it. .DESCRIPTION Spec: S0214 - github-store-publication; extended to the full spectrum by S0394. Operator flow (invoke from the release worktree, FastMediaSorter_release, checked out to main): 1. .\scripts\release\build-release-spectrum.ps1 # build all release flavors + wear at one version 2. .\scripts\release\publish-github-release.ps1 # publish all assets under one tag The script: - Reads versionName from app_v2/build.gradle.kts - Discovers each spectrum release APK (standard, vr, lite, photos, legacy, noLegal, wear) via output-metadata.json (fall back to newest-by-LastWriteTime) - Stages each in a temp dir as FastMediaSorter-<flavor>-<version>.apk (versioned names - IzzyOnDroid globs the pattern) - Verifies signing fingerprint matches the single pinned value (shared key) - Extracts release notes for the version from docs/WHATS_NEW.md - Creates a GitHub Release tag v{version} from main with the notes - Uploads every staged APK as a release asset and verifies all are present Author hooks: -DryRun for safe parsing / discovery, -Force to allow republishing the same version (skips "tag already exists" guard). .PARAMETER DryRun Resolve everything, verify guards, print the publish plan, but skip every credential / git / API mutation. .PARAMETER Force Allow publishing when a release with the same tag already exists. Default: false. .PARAMETER Owner GitHub repo owner. Default: SerZhyAle. .PARAMETER Repo GitHub repo name. Default: FastMediaSorter_mob_v2. .PARAMETER Flavors Subset of the spectrum to publish. Accepts any of: standard, lite, photos, legacy, vr, wear, noLegal plus the alias 'all' (== 'full' == 'spectrum'). Case-insensitive, order-independent, de-duplicated. Omitted / empty => the full spectrum (backward-compatible default). Must match the flavors actually built by build-release-spectrum.ps1; missing APKs abort the publish. The /skill-release flow passes 'standard' by default. .EXAMPLE pwsh -File scripts/release/publish-github-release.ps1 -DryRun .EXAMPLE pwsh -File scripts/release/publish-github-release.ps1 -Flavors standard
+Publish the full FastMediaSorter release spectrum to GitHub Releases so that GitHub Store (OpenHub-Store/GitHub-Store) and IzzyOnDroid can index it. .DESCRIPTION Spec: S0214 - github-store-publication; extended to the full spectrum by S0394. Operator flow (invoke from the release worktree, FastMediaSorter_release, checked out to main): 1. .\scripts\release\build-release-spectrum.ps1 # build all release flavors + wear at one version 2. .\scripts\release\publish-github-release.ps1 # publish all assets under one tag The script: - Reads versionName from app_v2/build.gradle.kts - Resolves each spectrum release APK (standard, vr, lite, photos, legacy, noLegal, wear) through scripts/utils/find-build-artifact.ps1, which refuses to guess rather than picking the newest file (S1972) - Stages each in a temp dir as FastMediaSorter-<flavor>-<version>.apk (versioned names - IzzyOnDroid globs the pattern) - Verifies signing fingerprint matches the single pinned value (shared key) - Extracts release notes for the version from docs/WHATS_NEW.md - Creates a GitHub Release tag v{version} from main with the notes - Uploads every staged APK as a release asset and verifies all are present Author hooks: -DryRun for safe parsing / discovery, -Force to allow republishing the same version (skips "tag already exists" guard). .PARAMETER DryRun Resolve everything, verify guards, print the publish plan, but skip every credential / git / API mutation. .PARAMETER Force Allow publishing when a release with the same tag already exists. Default: false. .PARAMETER Owner GitHub repo owner. Default: SerZhyAle. .PARAMETER Repo GitHub repo name. Default: FastMediaSorter_mob_v2. .PARAMETER Flavors Subset of the spectrum to publish. Accepts any of: standard, lite, photos, legacy, vr, wear, noLegal plus the alias 'all' (== 'full' == 'spectrum'). Case-insensitive, order-independent, de-duplicated. Omitted / empty => the full spectrum (backward-compatible default). Must match the flavors actually built by build-release-spectrum.ps1; missing APKs abort the publish. The /skill-release flow passes 'standard' by default. .EXAMPLE pwsh -File scripts/release/publish-github-release.ps1 -DryRun .EXAMPLE pwsh -File scripts/release/publish-github-release.ps1 -Flavors standard
 
 ```
 scripts/release/publish-github-release.ps1
-  Publish the full FastMediaSorter release spectrum to GitHub Releases so that GitHub Store (OpenHub-Store/GitHub-Store) and IzzyOnDroid can index it. .DESCRIPTION Spec: S0214 - github-store-publication; extended to the full spectrum by S0394. Operator flow (invoke from the release worktree, FastMediaSorter_release, checked out to main): 1. .\scripts\release\build-release-spectrum.ps1 # build all release flavors + wear at one version 2. .\scripts\release\publish-github-release.ps1 # publish all assets under one tag The script: - Reads versionName from app_v2/build.gradle.kts - Discovers each spectrum release APK (standard, vr, lite, photos, legacy, noLegal, wear) via output-metadata.json (fall back to newest-by-LastWriteTime) - Stages each in a temp dir as FastMediaSorter-<flavor>-<version>.apk (versioned names - IzzyOnDroid globs the pattern) - Verifies signing fingerprint matches the single pinned value (shared key) - Extracts release notes for the version from docs/WHATS_NEW.md - Creates a GitHub Release tag v{version} from main with the notes - Uploads every staged APK as a release asset and verifies all are present Author hooks: -DryRun for safe parsing / discovery, -Force to allow republishing the same version (skips "tag already exists" guard). .PARAMETER DryRun Resolve everything, verify guards, print the publish plan, but skip every credential / git / API mutation. .PARAMETER Force Allow publishing when a release with the same tag already exists. Default: false. .PARAMETER Owner GitHub repo owner. Default: SerZhyAle. .PARAMETER Repo GitHub repo name. Default: FastMediaSorter_mob_v2. .PARAMETER Flavors Subset of the spectrum to publish. Accepts any of: standard, lite, photos, legacy, vr, wear, noLegal plus the alias 'all' (== 'full' == 'spectrum'). Case-insensitive, order-independent, de-duplicated. Omitted / empty => the full spectrum (backward-compatible default). Must match the flavors actually built by build-release-spectrum.ps1; missing APKs abort the publish. The /skill-release flow passes 'standard' by default. .EXAMPLE pwsh -File scripts/release/publish-github-release.ps1 -DryRun .EXAMPLE pwsh -File scripts/release/publish-github-release.ps1 -Flavors standard
+  Publish the full FastMediaSorter release spectrum to GitHub Releases so that GitHub Store (OpenHub-Store/GitHub-Store) and IzzyOnDroid can index it. .DESCRIPTION Spec: S0214 - github-store-publication; extended to the full spectrum by S0394. Operator flow (invoke from the release worktree, FastMediaSorter_release, checked out to main): 1. .\scripts\release\build-release-spectrum.ps1 # build all release flavors + wear at one version 2. .\scripts\release\publish-github-release.ps1 # publish all assets under one tag The script: - Reads versionName from app_v2/build.gradle.kts - Resolves each spectrum release APK (standard, vr, lite, photos, legacy, noLegal, wear) through scripts/utils/find-build-artifact.ps1, which refuses to guess rather than picking the newest file (S1972) - Stages each in a temp dir as FastMediaSorter-<flavor>-<version>.apk (versioned names - IzzyOnDroid globs the pattern) - Verifies signing fingerprint matches the single pinned value (shared key) - Extracts release notes for the version from docs/WHATS_NEW.md - Creates a GitHub Release tag v{version} from main with the notes - Uploads every staged APK as a release asset and verifies all are present Author hooks: -DryRun for safe parsing / discovery, -Force to allow republishing the same version (skips "tag already exists" guard). .PARAMETER DryRun Resolve everything, verify guards, print the publish plan, but skip every credential / git / API mutation. .PARAMETER Force Allow publishing when a release with the same tag already exists. Default: false. .PARAMETER Owner GitHub repo owner. Default: SerZhyAle. .PARAMETER Repo GitHub repo name. Default: FastMediaSorter_mob_v2. .PARAMETER Flavors Subset of the spectrum to publish. Accepts any of: standard, lite, photos, legacy, vr, wear, noLegal plus the alias 'all' (== 'full' == 'spectrum'). Case-insensitive, order-independent, de-duplicated. Omitted / empty => the full spectrum (backward-compatible default). Must match the flavors actually built by build-release-spectrum.ps1; missing APKs abort the publish. The /skill-release flow passes 'standard' by default. .EXAMPLE pwsh -File scripts/release/publish-github-release.ps1 -DryRun .EXAMPLE pwsh -File scripts/release/publish-github-release.ps1 -Flavors standard
   Params:
     -DryRun          [SwitchParameter]
     -Force           [SwitchParameter]
@@ -3607,8 +3710,9 @@ scripts/spec_catalog/ticket-lease.ps1
     -Id                   [String]
     -Reason               [String] = 'spec-picker'
     -Json                 [SwitchParameter]
+    -Force                [SwitchParameter]
     -StaleMinutes         [Int32] = 0
-  Exit: 0 - done: claimed, released, or reported.; 1 - error: unreadable store, bad argument shape, write failure.; 3 - claim lost: a live foreign session already holds this ticket.; 4 - release refused: a live foreign session owns this lease.
+  Exit: 0 - done: claimed, released, or reported.; 1 - error: unreadable store, bad argument shape, write failure.; 3 - claim lost: a live foreign session already holds this ticket.; 4 - release refused: a live foreign session owns this lease (never returned under -Force).
 ```
 
 ### unverified-backlog.ps1
@@ -4076,6 +4180,15 @@ scripts/utils/extract-device-logs.ps1
     -PackageName         [String] = "com.sza.fastmediasorter"
 ```
 
+### find-build-artifact.ps1
+Single home of "which built file did the caller mean" - resolves one APK/AAB out of a variant output directory, by ABI when asked, and refuses to guess when it cannot tell.
+
+```
+scripts/utils/find-build-artifact.ps1
+  Single home of "which built file did the caller mean" - resolves one APK/AAB out of a variant output directory, by ABI when asked, and refuses to guess when it cannot tell.
+  (no param block)
+```
+
 ### fix-house-style.ps1
 S1544: applies the house text style to documentation prose and string resource values.
 
@@ -4147,6 +4260,15 @@ scripts/utils/generate-splash-brand.ps1
   Params:
     -Module         [String] = 'app_v2'  {app_v2|wear}
     -Check          [SwitchParameter]
+```
+
+### get-device-abi.ps1
+Reads the primary ABI of a connected device, so an installer can ask for the architecture in front of it instead of for whatever artifact happens to be first.
+
+```
+scripts/utils/get-device-abi.ps1
+  Reads the primary ABI of a connected device, so an installer can ask for the architecture in front of it instead of for whatever artifact happens to be first.
+  (no param block)
 ```
 
 ### help.ps1
@@ -4279,6 +4401,21 @@ scripts/utils/monitor_git.ps1
   (no param block)
 ```
 
+### monitor-spec-queue.ps1
+Show what the unattended queue runners are doing right now.
+
+```
+scripts/utils/monitor-spec-queue.ps1
+  Show what the unattended queue runners are doing right now.
+  Params:
+    -Tail                    [Int32] = 8
+    -Watch                   [SwitchParameter]
+    -IntervalSeconds         [Int32] = 30
+    -RepoRoot                [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Help                    [SwitchParameter]
+  Exit: 2 - the repository layout could not be read (temp/ missing, journals unreadable).
+```
+
 ### process-timeout.ps1
 Run an external process under a wall-clock ceiling (S1338).
 
@@ -4327,6 +4464,33 @@ scripts/utils/run-maestro-stress.ps1
     -Monitor           [SwitchParameter]
     -Report            [SwitchParameter]
     -SkipBuild         [SwitchParameter]
+```
+
+### run-spec-queue.ps1
+Drive the release queue one ticket at a time, each in its own fresh Claude Code process.
+
+```
+scripts/utils/run-spec-queue.ps1
+  Drive the release queue one ticket at a time, each in its own fresh Claude Code process.
+  Params:
+    -Ids                       [String] = ''
+    -MaxTickets                [Int32] = 0
+    -TimeoutMinutes            [Int32] = 90
+    -ModelPolicy               [String] = 'tiered'  {tiered|fixed|default}
+    -Model                     [String] = 'opus'
+    -StrongModel               [String] = 'opus'
+    -CheapModel                [String] = 'sonnet'
+    -Instance                  [String] = 'a'
+    -StartDelaySeconds         [Int32] = 0
+    -PromptTemplate            [String] = '/spec-all {id}'
+    -PermissionMode            [String] = 'bypassPermissions'  {acceptEdits|auto|bypassPermissions|manual|dontAsk|plan}
+    -Quiet                     [SwitchParameter]
+    -DryRun                    [SwitchParameter]
+    -Stop                      [SwitchParameter]
+    -Kill                      [SwitchParameter]
+    -RepoRoot                  [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Help                      [SwitchParameter]
+  Exit: 2 = invalid invocation - the Claude CLI or the preflight script could not be found or
 ```
 
 ### run-stress.ps1

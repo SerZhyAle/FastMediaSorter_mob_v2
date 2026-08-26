@@ -2166,9 +2166,9 @@
       "destination": "GENERAL",
       "layout": "dialog_launcher_settings",
       "kind": "BUTTON",
-      "titleEn": "Import system desktop shortcuts",
-      "titleRu": "Импортировать ярлыки системы",
-      "titleUk": "Імпортувати системні ярлики"
+      "titleEn": "Import all installed apps",
+      "titleRu": "Импортировать все установленные приложения",
+      "titleUk": "Імпортувати всі встановлені застосунки"
     },
     {
       "key": "btnLauncherGrantNotificationAccess",
@@ -3089,6 +3089,16 @@
       "titleEn": "Screens view",
       "titleRu": "Вид экранов",
       "titleUk": "Вигляд екранів"
+    },
+    {
+      "key": "wearVoiceNoteSendPolicy",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_other_settings",
+      "kind": "RADIO_GROUP",
+      "titleEn": "Voice note delivery",
+      "titleRu": "Доставка голосовых заметок",
+      "titleUk": "Доставка голосових нотаток"
     }
   ]
 }

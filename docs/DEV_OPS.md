@@ -611,6 +611,67 @@ Usage:
 ```
 
 
+### Wear pre-release sweep - S1984
+
+The watch has its own sweep, because every device stage of the phone one is written against the phone package, the phone launcher activity and the phone variant set.
+
+```powershell
+pwsh -NoProfile -File scripts/devtest/wear-prerelease-prepare.ps1 -DeviceId <serial>
+pwsh -NoProfile -File scripts/devtest/wear-prerelease-walk.ps1 -DeviceId <serial>
+```
+
+- The procedure that sequences these and branches on their exit codes is `.claude/commands/spec-prerelease-wear.md`; what a watch release must prove is `docs/RELEASE_READINESS_WEAR.md`.
+- **A watch must be attached.** The prepare step reads `ro.build.characteristics` and refuses anything without `watch`, because both modules publish under one application id and a run that landed on the phone would report a confident verdict about the wrong build.
+- Run artifacts land in `temp/scratch/wear-prerelease/`: `artifact.json` (what was built and judged), `walk.json` (per-screen outcome plus the log audit's code), `wear_session.log`, and a screenshot and UI dump per screen.
+- The content gates common to both modules run from `scripts/quality/assert-prerelease-content-gates.ps1`, which the phone sweep calls as well - adding a gate there covers the watch without editing either command file.
+
+## OCR OVERLAY ACCURACY CORPUS (S1716)
+
+A corpus of annotated scenes and a harness that scores the translation overlay's plate against them. It
+lives in the test source set (`app_v2/src/test/java/com/sza/fastmediasorter/ocrbench/`), so it ships with
+nothing and is unreachable from the app.
+
+```powershell
+pwsh -NoProfile -File scripts/ocrbench/run-corpus.ps1        # run the corpus, print the report path
+pwsh -NoProfile -File scripts/ocrbench/fetch-real-scenes.ps1 # bring registered real scenes into the cache
+```
+
+Reports land in `temp/ocrbench/<YYYY-MM-DD>/overlay-rectangle-report.md`, and the newest path is also left
+in `temp/ocrbench/last-report.txt`. Every acceptance bound taken from a run is written into
+`docs/OCR_OVERLAY_ACCURACY.md` naming the report's date and path - a bound with no dated report behind it
+does not exist.
+
+**A report that backs a bound gets copied into its ticket folder** (`PLAN/Sxxxx_<slug>/reports/`) and cited
+from there, not from `temp/`. `temp/` is disposable by Rule 1, so a bound citing it loses its provenance the
+first time the directory is cleaned - and `check-evidence-durable.ps1` refuses to close a spec that does it.
+
+**It scores rectangles, and only rectangles.** Four axes: annotated text found, plate-to-text overlap, plate
+area spilling outside the paintable areas, and duration. Nothing here reads a pixel, so nothing here can say
+how much source ink a plate actually hides - that axis needs a rasterised composition and belongs to
+**S1782**, together with the Robolectric upgrade it costs. An axis the run could not compute is reported
+`Unmeasured` with its reason and counted per axis in the report; it never arrives as a zero.
+
+**Adding a synthetic scene.** Add a builder to `SyntheticScene` and list it in `all()`. Everything must come
+from constants declared in that file - no clock, no randomness, no device metrics - because a scene that
+redraws differently makes every later regression unattributable. Declare its paintable areas explicitly
+rather than deriving them from the text areas: "where the text stands" and "where a plate may paint" are
+different questions, and only the scene's author knows the second one.
+
+**Adding a real scene.** Media never enter the repository; they live in a local folder addressed by the
+`FMS_OCRBENCH_SCENES` environment variable. Register one with
+`fetch-real-scenes.ps1 -Register <path relative to that folder>`, which computes its SHA-256 into the
+committed manifest at `app_v2/src/test/resources/ocrbench/real-scenes.json`. Then annotate it by hand at
+`app_v2/src/test/resources/ocrbench/annotations/<sceneId>.json` - the annotation is committed, because it is
+the most expensive manual work here and the only part that cannot be regenerated. A registered scene missing
+from the cache fails the run rather than shrinking the corpus quietly.
+
+**The one rule that must not be broken: a draft annotation never scores.** An annotation filled from a
+recogniser's own output is marked `draft` in its provenance, and `SceneAnnotation.isScorable()` refuses it,
+as it refuses an unreadable scene and an empty annotation. Scoring a recogniser against its own output
+measures nothing while looking like a perfect result. A human corrects the draft first; only then does it
+count.
+
+
 ## STRING RESOURCE TOOLING
 
 ```powershell
@@ -890,7 +951,20 @@ NDK r27c (`27.2.12479018`) - first NDK release with 16 KB page-size aligned `lib
 ABI strategy is flavor-local, not buildType-local (AGP merges buildType+flavor `abiFilters` as UNION, not intersection - a buildType-level list would leak non-VR ABIs into VR AABs):
 - `standard`, `lite`, `photos`, `legacy`: `arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64`
 - `vr`: `arm64-v8a` only (Meta Quest 2/3/Pro)
-- `noLegal`: `arm64-v8a` + `x86_64` (Chaquopy Python wheels are arm64/x86_64 only; covers Quest + modern phones + emulators)
+- `noLegal`: `arm64-v8a` only since 2026-08-23 - the `x86_64` slice existed solely to run noLegal on an emulator and cost 93.8 MB of a 256.7 MB APK once S1060 added libVLC. It comes back only in a split debug build, as its own file (see below).
+
+### `-Pfms.abiSplits=true` - per-ABI debug APKs (S1972)
+
+An unsliced debug APK carries architectures the target device never executes: standard debug measured 154.3 MB, of which `armeabi-v7a` (18.6) and `x86` (27.1) run on nothing anyone here owns. The phone is arm64-v8a, every emulator is x86_64.
+
+- **Who passes it:** the debug builders that do not need Chaquopy - `build-standard-debug.ps1`, `build-debug.PS1` (behind `a.ps1 d/db/dav/dq`) and `build-debug-clean.PS1`. Nothing else does.
+- **noLegal cannot be split, and this is not an oversight.** AGP refuses `ndk.abiFilters` alongside `splits.abi`; Chaquopy refuses their absence (`Variant 'noLegalDebug': Chaquopy requires ndk.abiFilters`). A flavor carrying the Python runtime can be filtered or split, never both, so noLegal stays one `arm64-v8a` APK - the shape ruled for on 2026-08-23. `build-nolegal-debug.ps1` passes no property, and `build-debug.PS1` withholds it whenever Chaquopy is on.
+- **Who deliberately does not:** every release path. A release still emits one all-architecture APK per flavor, because the GitHub asset is what IzzyOnDroid globs (S0215) and a single-architecture one would shrink the device set the release reaches - canon hard invariant 2.
+- **What it changes:** `splits.abi` turns on with `include("arm64-v8a", "x86_64")`, and every flavor's `ndk.abiFilters` is skipped. Both, not either: AGP refuses the two mechanisms together (`Conflicting configuration: '..' in ndk abiFilters cannot be present when splits abi filters are set`), and it checks **every** variant at configuration time, so one unconditional filter anywhere in `build.gradle.kts` breaks every split build.
+- **vr is excluded by the builders, not by the DSL.** `build-debug.PS1` refuses the flag for a vr task, because an x86_64 vr APK would carry no OpenXR native - the loader AAR ships arm64 only.
+- **Play is untouched.** `android.splits` is ignored when building a bundle, and `bundle.abi.enableSplit` already defaults to true, so the AAB was always per-ABI.
+- **Finding the artifact afterwards:** `scripts/utils/find-build-artifact.ps1`. Every builder, installer and release consumer resolves through it - it selects by ABI from `output-metadata.json` and throws when the request is ambiguous, rather than taking `elements[0]` or the newest file, both of which pick an architecture at random once a build emits more than one output.
+- **Choosing the slice:** the debug builders take `-Abi <name>`; omitted, they read `ro.product.cpu.abi` off the connected device.
 
 ### Prebuilt FFmpeg DTS AAR - the one dependency a clean checkout lacks (S1539)
 

@@ -60,6 +60,19 @@ interface LauncherCellDao {
     suspend fun getAllCellsSync(): List<LauncherCellEntity>
 
     /**
+     * S2018: the section headers of one orientation, in reading order.
+     *
+     * Narrow on purpose. Locating a section used to go through [getAllCellsSync], which a bulk import
+     * calls once per placed cell - so the read grew with the very import that was doing the asking,
+     * while the answer only ever comes from the handful of rows this returns.
+     */
+    @Query(
+        "SELECT * FROM launcher_cells WHERE orientation = :orientation AND kind = :kind " +
+            "ORDER BY rowIndex ASC, colIndex ASC"
+    )
+    suspend fun sectionHeaders(orientation: String, kind: String): List<LauncherCellEntity>
+
+    /**
      * The first row index strictly below every cell in [orientation] - i.e. the top of the empty band
      * under the desktop, and 0 when the desktop is empty. A free-slot scan uses it as its upper bound:
      * that row overlaps nothing by construction, so the search is guaranteed to terminate there.

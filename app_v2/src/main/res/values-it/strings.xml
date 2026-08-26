@@ -2832,7 +2832,7 @@
     <string name="browse_empty_type_gated">%1$d file sono nascosti perché il loro tipo di media è disattivato.</string>
     <string name="browse_empty_type_gated_hint">Riattiva quel tipo di media nelle Impostazioni per vederli.</string>
     <string name="splash_slogan">..Tutto mio, qui!</string>
-    <string name="launcher_section_google">GOOGLE</string>
+    <string name="launcher_section_google">Google</string>
     <string name="launcher_quick_menu_add_item">Aggiungi un elemento..</string>
     <string name="launcher_quick_menu_edit_desktop">Modifica il desktop</string>
     <string name="launcher_quick_menu_wallpaper">Sfondo</string>
@@ -2861,7 +2861,7 @@
     <string name="launcher_translator_attribution">Tradotto da Google</string>
     <string name="launcher_section_widgets">Widget</string>
     <string name="launcher_section_resources">Risorse</string>
-    <string name="launcher_section_android_apps">App Android</string>
+    <string name="launcher_section_android_apps">App</string>
     <string name="launcher_settings_widget_backdrop_alpha_title">Opacità dello sfondo del widget</string>
     <string name="launcher_settings_widget_backdrop_alpha_0">0% (Trasparente)</string>
     <string name="launcher_settings_widget_backdrop_alpha_85">85% (Predefinito)</string>

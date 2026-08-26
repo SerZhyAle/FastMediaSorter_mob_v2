@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.repository
 
 import com.sza.fastmediasorter.domain.model.WearFileTransferState
 import kotlinx.coroutines.flow.StateFlow
+import java.util.UUID
 
 /**
  * S1861: owner of every in-flight phone -> watch file transfer.
@@ -23,7 +24,12 @@ interface WearFileTransferRepository {
      * Queues [sourcePath] for delivery to the paired watch under [displayName] and returns the id
      * the queue entry can later be cancelled by.
      */
-    fun enqueue(sourcePath: String, displayName: String): String
+    fun enqueue(
+        sourcePath: String,
+        displayName: String,
+        openNow: Boolean = false,
+        requestId: String = UUID.randomUUID().toString()
+    ): String
 
     /**
      * Stops the queued or running transfer [transferId].

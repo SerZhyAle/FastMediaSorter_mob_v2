@@ -6,6 +6,8 @@ enum class NetworkMeasurementKind {
     RESOURCE_CHECK,
     EXTERNAL_IP,
     SUBNET_SCAN,
+    PING,
+    TRACEROUTE,
 }
 
 /**

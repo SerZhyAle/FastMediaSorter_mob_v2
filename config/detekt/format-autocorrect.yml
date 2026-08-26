@@ -1,0 +1,14 @@
+# Overlay applied ONLY by scripts/quality/detekt-scoped.ps1 -Fix.
+#
+# The main config keeps `formatting.autoCorrect: false` on purpose: a gate that rewrites the source
+# it is judging cannot be trusted to have judged the source that was written. This overlay flips that
+# one flag for the housekeeping pass that runs BEFORE the gate, so import order, stray blank lines and
+# missing trailing newlines are corrected instead of costing a full closure round-trip to report.
+#
+# It overrides nothing else. detekt merges configs left to right, so it is always passed after the
+# main config and never instead of it - every threshold, exclusion and rule activation still comes
+# from config/detekt/detekt.yml.
+formatting:
+  active: true
+  android: true
+  autoCorrect: true

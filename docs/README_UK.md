@@ -300,6 +300,8 @@ FastMediaSorter v2 підтримує широкий спектр форматі
 
 - [Історія продукту](PRODUCT_HISTORY_UK.md)
 - [Посібники](HOW_TO_UK.md)
+- [Веб-портал Лаунчера](launcher/index-uk.md)
+- [Веб-портал Wear OS](wear/index-uk.md)
 - [Швидкий Старт](QUICK_START_UK.md)
 - [FAQ](FAQ_UK.md)
 - [Вирішення проблем](TROUBLESHOOTING_UK.md)
@@ -337,17 +339,17 @@ FastMediaSorter v2 підтримує широкий спектр форматі
 
 ## Wear OS Companion ⌚
 
-FastMediaSorter має companion-додаток для Wear OS, оптимізований під сценарії використання на смарт-годинниках.
+FastMediaSorter має автономний застосунок та companion для Wear OS, оптимізовані під використання на розумних годинниках.
 
-- Перегляд і відтворення локальних медіа безпосередньо на Wear OS-пристроях
-- UI та поведінка рантайму оптимізовані для компактних екранів круглої форми
-- Окрема документація з інсталяції, збирання та налагодження Wear-сценаріїв
+- Перегляд і відтворення локальних, хмарних та мережевих (SMB/SFTP) медіа безпосередньо на Wear OS пристроях
+- Інтерфейс та поведінка оптимізовані для компактних круглих екранів
+- Окремий веб-портал, покрокові інструкції та документація
 
 Документація Wear OS:
 
-- [Wear OS Quick Start](WEAR_OS_QUICK_START.md)
-- [Wear OS Setup](WEAR_OS_SETUP.md)
-- [Wear OS Status](WEAR_OS_STATUS.md)
+- 🌟 **[Веб-портал Wear OS](wear/index-uk.md)** — Повний огляд функцій, скріншоти та посилання на магазини
+- [Wear OS Quick Start](WEAR_OS_QUICK_START.md) — Посібник із прив'язування та первинного налаштування
+- [Wear OS Setup](WEAR_OS_SETUP.md) — Архітектура модуля та синхронізація з телефоном
 - [Розділ Wear OS у FEATURES](FEATURES.md#16-settings--navigation)
 
 ## Інструкція зі збирання

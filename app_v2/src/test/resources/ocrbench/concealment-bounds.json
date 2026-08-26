@@ -1,0 +1,20 @@
+{
+  "note": "S1782: the acceptance bound for the concealment axis, derived from a dated report and not from a value chosen while writing this file (S1716 ADR-3). Moving it must show up as a difference between two reports.",
+  "axis": "residualInk",
+  "axisMeaning": "share of the source text's own contrast still visible after the overlay drew; 0 is a plate nothing reads through, 1 is no plate at all",
+  "bound": 0.0900,
+  "boundIsAt": "the worst measured value, not above it",
+  "derivedFrom": {
+    "reportId": "concealment-2026-08-26",
+    "reportDate": "2026-08-26",
+    "reportPath": "PLAN/S1782_ocr-bench-pixel-harness/evidence/overlay-concealment-report-2026-08-26.md",
+    "reportPathAtRunTime": "temp/ocrbench/<date>/overlay-concealment-report.md - where each run writes, and disposable by CLAUDE.md Rule 1; the kept copy above is the durable one",
+    "scenesMeasured": 5,
+    "scenesNotMeasured": 0,
+    "worst": 0.0900,
+    "median": 0.0768,
+    "printPrecision": "4 decimal places - the report's own, so the bound carries its rounding and no other slack"
+  },
+  "knownCause": "S2064 - the plate ships at 94 % alpha because sampleBackgroundColor overwrites the opaque default, so this bound records a defect rather than a target. Re-derive it from a fresh report once S2064 lands.",
+  "axesNotBounded": "found, overlap and spill belong to S1716 and are not bounded here"
+}

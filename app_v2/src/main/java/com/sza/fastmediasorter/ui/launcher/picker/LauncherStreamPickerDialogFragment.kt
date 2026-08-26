@@ -14,13 +14,14 @@ import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
 import com.sza.fastmediasorter.databinding.DialogLauncherStreamPickerBinding
-import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamCatalogSnapshotUseCase
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerController
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.LeadingVisual
@@ -29,20 +30,28 @@ import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerWindow
 import com.sza.fastmediasorter.ui.streams.FaviconAtlasSlicer
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
  * S0404 / S1763: lists the user's channel catalog with filtering options (media type: All/Audio/Video,
  * category/topic, and language) combined with text search. S1832: what it hands back is the chosen
  * channel's identity, not the catalog row's id - see [RESULT_STREAM_IDENTITY].
+ *
+ * S2021: rows and thumbnails are two separate readinesses. This dialog used to slice one atlas tile per
+ * catalog row before it drew anything, which on an imported catalog is thousands of mutex-guarded crops
+ * out of a 23 MB sheet - the list never appeared and the loading label looked like a hang. Tiles are now
+ * cut only for the rows about to be shown, the catalog itself comes from a shared snapshot so a burst of
+ * shortcut additions reads it once, and a large catalog asks for a narrowing input before listing
+ * anything (see [RESULT_CAP] and [MIN_QUERY_LENGTH]).
  */
 @AndroidEntryPoint
 class LauncherStreamPickerDialogFragment : DialogFragment() {
 
     @Inject
-    lateinit var observeStreams: ObserveStreamSourcesUseCase
+    lateinit var observeCatalogSnapshot: ObserveStreamCatalogSnapshotUseCase
 
     @Inject
     lateinit var faviconAtlasStore: FaviconAtlasStore
@@ -56,10 +65,16 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
 
     private var allSources: List<StreamSourceEntity> = emptyList()
     private var atlasCoords: Map<String, Int> = emptyMap()
-    private var atlasTiles: Map<String, Bitmap> = emptyMap()
+    private var catalogLoaded = false
+    private var coordsLoaded = false
+    private var dropdownsPopulated = false
     private var selectedMediaKind: String? = null // null = ALL, "AUDIO", "VIDEO"
     private var selectedTopic: String? = null
     private var selectedLanguage: String? = null
+
+    // Only the newest filter pass may attach its result: an older pass whose tiles resolved later would
+    // otherwise overwrite the list with the previous query's rows.
+    private var attachJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -82,28 +97,38 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
 
         setupFilterListeners()
 
-        binding.tvOptionsEmpty.text = getString(R.string.launcher_edit_streams_loading)
-        binding.tvOptionsEmpty.isVisible = true
+        // The search field is how a large catalog is opened at all, so it stays visible unconditionally
+        // rather than being hidden by the shared controller when a short result happens to fit.
+        binding.layoutOptionSearch.isVisible = true
+        showEmptyState(R.string.launcher_edit_streams_loading)
 
-        val streamsWithTiles = flow {
-            val sources = observeStreams().first()
-            val coords = runCatching { faviconAtlasStore.coords() }.getOrDefault(emptyMap())
-            val tiles = sources.mapNotNull { source ->
-                coords[source.url]
-                    ?.let { idx -> faviconSlicer.tileFor(idx) }
-                    ?.let { tile -> source.id to tile }
-            }.toMap()
-            emit(Triple(sources, coords, tiles))
-        }
-        collectOnLifecycle(streamsWithTiles) { (sources, coords, tiles) ->
+        collectOnLifecycle(observeCatalogSnapshot()) { sources ->
+            if (sources == null) return@collectOnLifecycle
+            Timber.d("S2021: stream picker snapshot rows=${sources.size}")
             allSources = sources
-            atlasCoords = coords
-            atlasTiles = tiles
-            binding.tvOptionsEmpty.isVisible = false
-
-            populateFilterDropdowns(sources)
+            catalogLoaded = true
+            if (!dropdownsPopulated) {
+                dropdownsPopulated = true
+                populateFilterDropdowns(sources)
+            }
             applyFiltersAndAttach()
         }
+    }
+
+    /** Shows [messageRes] in place of the list. */
+    private fun showEmptyState(@StringRes messageRes: Int) {
+        binding.tvOptionsEmpty.text = getString(messageRes)
+        binding.tvOptionsEmpty.isVisible = true
+    }
+
+    /**
+     * The "N match, refine" line, or nothing when the result fits. It rides the search field's helper
+     * slot rather than the empty-state view below the list: that view sits after the RecyclerView in a
+     * height-capped column, so a full list would push the very hint explaining the list off-screen.
+     */
+    private fun showCapHint(totalMatches: Int?) {
+        binding.layoutOptionSearch.helperText = totalMatches
+            ?.let { getString(R.string.launcher_edit_streams_too_many, it) }
     }
 
     private fun setupFilterListeners() {
@@ -176,28 +201,72 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
         binding.spinnerLanguage.adapter = langAdapter
     }
 
+    /**
+     * True when the user has told the dialog what to look for. The media-kind toggle is deliberately
+     * not a narrowing input: it splits the catalog roughly in half, which on an imported catalog still
+     * leaves thousands of rows and so answers nothing (strategic ADR-1).
+     */
+    private fun hasNarrowingInput(query: String): Boolean =
+        query.length >= MIN_QUERY_LENGTH || selectedTopic != null || selectedLanguage != null
+
+    private fun matches(source: StreamSourceEntity, query: String): Boolean {
+        val matchesMedia = when (selectedMediaKind) {
+            KIND_AUDIO -> source.mediaKind.equals(KIND_AUDIO, ignoreCase = true)
+            KIND_VIDEO -> source.mediaKind.equals(KIND_VIDEO, ignoreCase = true) ||
+                source.mediaKind.equals(KIND_RTSP, ignoreCase = true)
+            else -> true
+        }
+        val matchesTopic = selectedTopic == null ||
+            (source.topic ?: source.category)?.equals(selectedTopic, ignoreCase = true) == true
+        val matchesLanguage = selectedLanguage == null ||
+            source.language?.split(",")
+                ?.any { it.trim().equals(selectedLanguage, ignoreCase = true) } == true
+        val matchesQuery = query.isEmpty() || source.title.lowercase().contains(query)
+
+        return matchesMedia && matchesTopic && matchesLanguage && matchesQuery
+    }
+
     private fun applyFiltersAndAttach() {
+        if (!catalogLoaded) return
         val query = binding.editOptionSearch.text?.toString().orEmpty().trim().lowercase()
 
-        val filtered = allSources.filter { source ->
-            val matchesMedia = when (selectedMediaKind) {
-                KIND_AUDIO -> source.mediaKind.equals(KIND_AUDIO, ignoreCase = true)
-                KIND_VIDEO -> source.mediaKind.equals(KIND_VIDEO, ignoreCase = true) ||
-                    source.mediaKind.equals(KIND_RTSP, ignoreCase = true)
-                else -> true
-            }
-            val matchesTopic = selectedTopic == null ||
-                (source.topic ?: source.category)?.equals(selectedTopic, ignoreCase = true) == true
-            val matchesLanguage = selectedLanguage == null ||
-                source.language?.split(",")
-                    ?.any { it.trim().equals(selectedLanguage, ignoreCase = true) } == true
-            val matchesQuery = query.isEmpty() || source.title.lowercase().contains(query)
-
-            matchesMedia && matchesTopic && matchesLanguage && matchesQuery
+        // A catalog that fits on screen is listed as it always was; only a catalog past the cap has a
+        // wait worth trading for a keystroke (strategic ADR-1).
+        if (allSources.size > RESULT_CAP && !hasNarrowingInput(query)) {
+            attachJob?.cancel()
+            attachRows(emptyList())
+            showCapHint(null)
+            showEmptyState(R.string.launcher_edit_streams_narrow_prompt)
+            return
         }
 
-        val options = filtered.map { source ->
-            val tile = atlasTiles[source.id]
+        val filtered = allSources.filter { matches(it, query) }
+        val shown = filtered.take(RESULT_CAP)
+
+        showCapHint(filtered.size.takeIf { it > RESULT_CAP })
+        when {
+            filtered.isEmpty() -> showEmptyState(R.string.streams_picker_empty)
+            else -> binding.tvOptionsEmpty.isVisible = false
+        }
+
+        attachJob?.cancel()
+        attachJob = viewLifecycleOwner.lifecycleScope.launch {
+            if (!coordsLoaded) {
+                // The store memoises this against the sidecar file, so only the first pick in a burst
+                // pays the parse. It answers with an empty map on a missing or corrupt sidecar.
+                atlasCoords = faviconAtlasStore.coords()
+                coordsLoaded = true
+            }
+            attachRows(shown.map { source -> source to tileFor(source) })
+        }
+    }
+
+    /** The atlas tile for one row, or null when the catalog carries no icon for it. */
+    private suspend fun tileFor(source: StreamSourceEntity): Bitmap? =
+        atlasCoords[source.url]?.let { index -> faviconSlicer.tileFor(index) }
+
+    private fun attachRows(rows: List<Pair<StreamSourceEntity, Bitmap?>>) {
+        val options = rows.map { (source, tile) ->
             Option(
                 id = source.id,
                 label = source.title,
@@ -205,11 +274,14 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
             )
         }
 
+        // S2021 / ADR-3: the search field, its visibility and the empty-state text stay with this
+        // fragment. Handing them to the controller added one more text listener per keystroke, because
+        // this is the one caller that re-attaches on every filter change.
         SearchableOptionPickerController.attachViews(
             recyclerOptions = binding.recyclerOptions,
-            searchLayout = binding.layoutOptionSearch,
-            editOptionSearch = binding.editOptionSearch,
-            tvOptionsEmpty = binding.tvOptionsEmpty,
+            searchLayout = null,
+            editOptionSearch = null,
+            tvOptionsEmpty = null,
             options = options,
             selectedId = null,
             resetRow = null,
@@ -218,13 +290,26 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
             // for the list; the cell stores the identity, which is not. The entity is right here, so the
             // translation happens at the one point that holds both.
             picked?.let { option ->
-                allSources.firstOrNull { it.id == option.id }?.let { onStreamPicked(it.identityKey) }
+                allSources.firstOrNull { it.id == option.id }?.let { onStreamPicked(it) }
             }
         }
     }
 
-    private fun onStreamPicked(identityKey: String) {
-        setFragmentResult(RESULT_KEY, bundleOf(RESULT_STREAM_IDENTITY to identityKey))
+    /**
+     * S2031: the chosen channel's kind rides back with its identity.
+     *
+     * A caller that sizes a cell by the kind would otherwise re-read the catalog for a value this dialog
+     * is holding at the moment of the tap.
+     */
+    private fun onStreamPicked(source: StreamSourceEntity) {
+        val requestKey = arguments?.getString(ARG_REQUEST_KEY) ?: RESULT_KEY
+        setFragmentResult(
+            requestKey,
+            bundleOf(
+                RESULT_STREAM_IDENTITY to source.identityKey,
+                RESULT_STREAM_MEDIA_KIND to source.mediaKind,
+            ),
+        )
         dismiss()
     }
 
@@ -237,6 +322,8 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        attachJob?.cancel()
+        attachJob = null
         // Detach before dropping the binding: this dialog is reopened per pick, so a listener left on
         // a destroyed view hierarchy accumulates one leaked instance per open.
         _binding?.let { views ->
@@ -258,11 +345,35 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
         /** S1832: what the picked channel is addressed by from here on - its identity, not its row id. */
         const val RESULT_STREAM_IDENTITY = "result_stream_identity"
 
+        /** S2031: the picked channel's `AUDIO` / `VIDEO` / `RTSP` kind, for a caller that sizes by it. */
+        const val RESULT_STREAM_MEDIA_KIND = "result_stream_media_kind"
+
+        /**
+         * How many rows this dialog is willing to render, and the catalog size past which it asks for
+         * a narrowing input first. One number serves both: a catalog it could show in full has nothing
+         * to narrow, and a catalog it could not is exactly the one worth narrowing.
+         */
+        private const val RESULT_CAP = 200
+
+        /** Characters of search text that count as a narrowing input on their own. */
+        private const val MIN_QUERY_LENGTH = 2
+
         // The values stored in StreamSourceEntity.mediaKind that this picker filters on.
         private const val KIND_AUDIO = "AUDIO"
         private const val KIND_VIDEO = "VIDEO"
         private const val KIND_RTSP = "RTSP"
 
-        fun newInstance(): LauncherStreamPickerDialogFragment = LauncherStreamPickerDialogFragment()
+        /**
+         * S2031: the caller names the key its answer comes back on.
+         *
+         * The dialog now answers two questions - which channel a shortcut opens, and which channel a
+         * window cell is bound to - and an answer delivered on one key would complete the other flow.
+         */
+        private const val ARG_REQUEST_KEY = "arg_request_key"
+
+        fun newInstance(requestKey: String = RESULT_KEY): LauncherStreamPickerDialogFragment =
+            LauncherStreamPickerDialogFragment().apply {
+                arguments = bundleOf(ARG_REQUEST_KEY to requestKey)
+            }
     }
 }

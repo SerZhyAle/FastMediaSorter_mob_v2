@@ -816,6 +816,22 @@ $ratchetRunner = if ($ScopeToFile) { 'Invoke-AdvisoryStep' } else { 'Invoke-Gate
 # Only exit 1 is fatal, and the preflight only returns it when the analyser actually ran. If the
 # analyser could not start, the preflight degrades to its lexical scan and exits 0 whatever that
 # scan found - a lexical guess must never abort a closure, and the gate below still judges.
+# Formatting is corrected before it is judged. Measured on this repo: two closures in one session
+# failed on ImportOrdering and MatchingDeclarationName alone - findings a formatter rewrites without
+# a decision - and each failure cost a full second pass over every gate. The housekeeping pass runs
+# the same analyser over the same files with the ktlint ruleset in auto-correct mode, takes ~2 s, and
+# never renders a verdict: it always exits 0, and the preflight below is still what can fail.
+if ($runsDetektPreflight -and $changedFiles.Count -gt 0) {
+    Invoke-Step "detekt-format" {
+        & $pwsh '-NoProfile' '-File' (Join-Path $root "scripts/quality/detekt-scoped.ps1") `
+            '-Fix' '-ChangedFiles' ($changedFiles -join ',')
+        # A housekeeping pass that could not run (no java, cold dependency cache) must not abort a
+        # closure - it formats nothing and the preflight below still judges everything. The child
+        # prints its own reason, so swallowing the code here hides no evidence.
+        $global:LASTEXITCODE = 0
+    }
+}
+
 if ($runsDetektPreflight -and $changedFiles.Count -gt 0) {
     Invoke-Gate "detekt-preflight" {
         & $pwsh '-NoProfile' '-File' (Join-Path $root "scripts/quality/detekt-preflight.ps1") `

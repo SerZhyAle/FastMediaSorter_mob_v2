@@ -124,6 +124,15 @@ class LauncherGadgetRegistry @Inject constructor(
         const val KEY_MEDIA_DOCUMENT_WINDOW = "media_document_window"
         const val KEY_MEDIA_IMAGE_WINDOW = "media_image_window"
 
+        // S2031: one channel of the stream catalog, played inside its own cell. Same contract as every
+        // key above - this is what a cell's `target` column stores, so it is never renamed.
+        const val KEY_STREAM_WINDOW = "stream_window"
+
+        // S1906: one remote time zone, shown beside the local clock. Same contract - the key is the
+        // stored `target`, so it is never renamed. Deliberately not [KEY_CLOCK]: that cell shows the
+        // system zone by contract, and reusing its key would retarget every clock already placed.
+        const val KEY_WORLD_CLOCK = "world_clock"
+
         private const val SEPARATOR = ':'
     }
 }

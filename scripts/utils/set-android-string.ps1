@@ -508,7 +508,9 @@ function Invoke-Set {
     if ($stringEntries.Count -eq 1) {
         $match = $stringEntries[0]
         $oldDecodedValue = ConvertFrom-XmlText $match.Groups['value'].Value
-        if ($expectedOldBound -and $oldDecodedValue -ne $ExpectedOldValue) {
+        # S2015: -cne, not -ne. PowerShell's -ne is case-insensitive, so the guard accepted a value
+        # that differed from the expected one in case alone - exactly the edit this guard exists to catch.
+        if ($expectedOldBound -and $oldDecodedValue -cne $ExpectedOldValue) {
             throw "ExpectedOldValue mismatch for key '$Key' in $filePath.`nExpected: $ExpectedOldValue`nActual:   $oldDecodedValue"
         }
         $tagText = $match.Value
@@ -531,7 +533,10 @@ function Invoke-Set {
         $action = 'create'
     }
 
-    if ($updatedContent -eq $content) {
+    # S2015: -ceq, not -eq. A rewrite that changes case only ("GOOGLE" -> "Google") leaves a string
+    # -eq compares equal, so the tool reported "[no change]", wrote nothing and still exited 0 - a
+    # silent no-op indistinguishable from success to any caller checking the exit code.
+    if ($updatedContent -ceq $content) {
         Write-Host "[no change] ${Locale}:$Key in $filePath already matches the requested value." -ForegroundColor Yellow
         return
     }

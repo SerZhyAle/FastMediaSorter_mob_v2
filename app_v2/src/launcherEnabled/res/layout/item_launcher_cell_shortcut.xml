@@ -26,12 +26,16 @@
     app:strokeWidth="1dp">
 
     <!-- No minHeight: LauncherDesktopLayout measures the cell EXACTLY at cellSize, so the grid is
-         authoritative and a floor here would only fight it. -->
+         authoritative and a floor here would only fight it.
+         S2014: gravity is top, not center - a two-line label is taller than a one-line one, and every
+         cell in a row shares the same fixed height, so centering the icon+label block would put the
+         icon at a different vertical offset in a two-line cell than in its one-line neighbour. Top
+         alignment pins the icon to the same offset regardless of how many lines the label wrapped to. -->
     <LinearLayout
         android:id="@+id/cellContentLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center"
+        android:gravity="top|center_horizontal"
         android:orientation="vertical"
         android:paddingStart="4dp"
         android:paddingTop="@dimen/launcher_cell_content_padding_vertical"

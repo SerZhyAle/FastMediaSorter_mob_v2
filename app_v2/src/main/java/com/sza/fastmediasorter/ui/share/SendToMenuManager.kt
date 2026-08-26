@@ -5,13 +5,18 @@ import android.view.Menu
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.share.ShareTarget
 import com.sza.fastmediasorter.core.share.ShareTargetHandler
 import com.sza.fastmediasorter.core.share.ShareTargetIconResolver
+import com.sza.fastmediasorter.core.share.ShareTargetOutcome
 import com.sza.fastmediasorter.core.share.ShareableContent
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.usecase.BuildSendToReceiverListUseCase
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -134,7 +139,9 @@ class SendToMenuManager @Inject constructor(
         // S0681: append the pinned «Select resource..» action last, after the system-share receiver.
         if (onPickResource != null) {
             val pickItem = subMenu.add(
-                Menu.NONE, Menu.NONE, receivers.size,
+                Menu.NONE,
+                Menu.NONE,
+                receivers.size,
                 activity.getString(R.string.share_to_pick_resource),
             )
             pickItem.setIcon(R.drawable.ic_resource)
@@ -164,15 +171,45 @@ class SendToMenuManager @Inject constructor(
         runReceiver(activity, target, effectiveContent)
     }
 
+    /**
+     * S1884 ADR-4: the send is a coroutine because a receiver may do the work itself and only then
+     * know the outcome - the paired watch waits for the watch's answer before it can say anything.
+     * Scoped to the host's lifecycle, mirroring [ShareMaterializationManager]: a message about a send
+     * belongs to the screen that started it, and a host that is gone must not be shown a toast.
+     */
     private fun runReceiver(activity: Activity, target: ShareTarget, content: ShareableContent) {
-        val launched = try {
-            handlers[target.id]?.send(activity, content) ?: false
-        } catch (e: Exception) {
-            Timber.e(e, "SendToMenuManager: receiver %s failed to send", target.id)
-            false
-        }
-        if (!launched) {
+        val lifecycleOwner = activity as? LifecycleOwner
+        if (lifecycleOwner == null) {
+            Timber.w("SendToMenuManager: host is not a LifecycleOwner, cannot run receiver %s", target.id)
             Toast.makeText(activity, R.string.share_to_send_failed, Toast.LENGTH_SHORT).show()
+            return
+        }
+        lifecycleOwner.lifecycleScope.launch {
+            val outcome = try {
+                handlers[target.id]?.send(activity, content) ?: ShareTargetOutcome.Failed()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "SendToMenuManager: receiver %s failed to send", target.id)
+                ShareTargetOutcome.Failed()
+            }
+            announce(activity, outcome)
+        }
+    }
+
+    /**
+     * Turns the receiver's answer into what the user sees. [ShareTargetOutcome.Launched] stays silent
+     * because another app is now on screen and a toast over it would say nothing new.
+     */
+    private fun announce(activity: Activity, outcome: ShareTargetOutcome) {
+        val message = when (outcome) {
+            is ShareTargetOutcome.Launched, is ShareTargetOutcome.NotAttempted -> null
+            is ShareTargetOutcome.Delivered -> outcome.message
+            is ShareTargetOutcome.Failed ->
+                activity.getString(outcome.messageRes ?: R.string.share_to_send_failed)
+        }
+        if (message != null) {
+            Toast.makeText(activity, message, Toast.LENGTH_SHORT).show()
         }
     }
 

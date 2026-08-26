@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.ProvisionDefaultResourcesUseCase
+import com.sza.fastmediasorter.domain.usecase.apps.QueryThirdPartyAppsUseCase
 import com.sza.fastmediasorter.domain.usecase.apps.ResolveInstalledPackagesUseCase
 import com.sza.fastmediasorter.domain.usecase.panel.ResolvePanelRouteAvailabilityUseCase
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -47,6 +48,7 @@ class SeedLauncherDesktopUseCase @Inject constructor(
     private val routeAvailability: ResolvePanelRouteAvailabilityUseCase,
     private val provisionDefaultResources: ProvisionDefaultResourcesUseCase,
     private val resolveInstalledPackages: ResolveInstalledPackagesUseCase,
+    private val queryThirdPartyApps: QueryThirdPartyAppsUseCase,
     private val appShortcuts: AppShortcutDataSource,
     @ApplicationContext private val context: Context,
 ) {
@@ -120,6 +122,12 @@ class SeedLauncherDesktopUseCase @Inject constructor(
                 )
             }
 
+            // S2015: the user's own applications for the Apps section, behind the same early exit as
+            // every other probe above. The exclusion set is the whole starter table's candidate list,
+            // which already contains GOOGLE_APP_PACKAGES - so whatever the Google section takes, and
+            // whatever the table can place by name, cannot come back a second time through this list.
+            val thirdPartyApps = queryThirdPartyApps(LauncherStarterSets.candidatePackages)
+
             val items = LauncherStarterSets.itemsFor(
                 profile,
                 starterResources,
@@ -127,6 +135,7 @@ class SeedLauncherDesktopUseCase @Inject constructor(
                 installedPackages,
                 googleServicesAvailable = googleServicesAvailable,
                 importedShortcuts = importedShortcuts,
+                thirdPartyApps = thirdPartyApps,
             )
             val ownPackage = context.packageName
             val now = System.currentTimeMillis()

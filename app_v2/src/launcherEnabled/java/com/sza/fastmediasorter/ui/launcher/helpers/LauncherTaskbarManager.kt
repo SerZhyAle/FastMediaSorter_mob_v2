@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.databinding.LauncherTaskbarBinding
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.flow.Flow
+import timber.log.Timber
 
 /**
  * S0404: owns the taskbar's two icon strips and the visibility of its three configurable blocks.
@@ -85,17 +86,45 @@ class LauncherTaskbarManager(
         binding.taskbarRecents.removeOnLayoutChangeListener(recentsLayoutListener)
     }
 
-    /** Edit mode adds an unpin "X" to every pin and a trailing "+"; recents are unaffected. */
+    /**
+     * S2022: the last composition the settings flow delivered, re-applied whenever edit mode flips so the
+     * two triggers never fight over the same views. Seeded to match the `AppSettings` defaults, so a
+     * `setEditMode` call that lands before the first composition emission renders the same state the
+     * first real emission would.
+     */
+    private var composition = LauncherTaskbarComposition(showRecents = true, showPinned = true, showTray = true)
+
+    /** S2022: true while the desktop is being edited - the render step below reads it beside [composition]. */
+    private var editing = false
+
+    /**
+     * S2022: recents and pinned add an unpin "X" / trailing "+" while editing (pinned only - it is the
+     * strip edit mode's affordances live on); recents and the tray's indicator row are hidden outright
+     * instead, because with everything on (indicators, recents, the "Add" and "Apply" buttons) the bar is
+     * wider than the screen and the last two - Add, Apply - are the ones pushed off (owner report,
+     * strategic §0).
+     */
     fun setEditMode(on: Boolean) {
+        Timber.d("S2022: taskbar setEditMode($on) - recents/tray-indicators hidden while true")
         pinnedAdapter.setEditMode(on)
+        editing = on
+        render()
     }
 
-    private fun apply(composition: LauncherTaskbarComposition) {
-        binding.taskbarRecents.isVisible = composition.showRecents
+    private fun apply(newComposition: LauncherTaskbarComposition) {
+        composition = newComposition
+        render()
+    }
+
+    private fun render() {
+        binding.taskbarRecents.isVisible = composition.showRecents && !editing
         binding.taskbarPinned.isVisible = composition.showPinned
         // S1431 ADR-5: the mode subordinates the tray rather than competing with it. The stored switch is
         // never written here, so turning the mode off restores whatever the user last chose.
         binding.trayContainer.isVisible = composition.showTray && !composition.topStatusStripMode
+        // S2022: the clock stays (not named in the owner's report) - only the indicator row is gated on
+        // editing, one level below the container so it can hide without taking the clock with it.
+        binding.trayIndicators.root.isVisible = composition.showTray && !composition.topStatusStripMode && !editing
     }
 
     /**

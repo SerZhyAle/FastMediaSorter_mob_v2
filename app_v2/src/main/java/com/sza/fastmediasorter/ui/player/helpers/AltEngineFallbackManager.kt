@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.net.Uri
 import android.view.ViewGroup
 import android.view.ViewStub
+import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.playback.AltPlaybackEngine
 import timber.log.Timber
@@ -40,6 +41,22 @@ class AltEngineFallbackManager @Inject constructor(
     fun canFallback(file: MediaFile): Boolean {
         return findEngineFor(file) != null
     }
+
+    /**
+     * S1971: the set a user would have to install for [file] to become playable, or null when no engine
+     * is merely waiting on a download.
+     *
+     * Answers the case [canFallback] cannot: an engine that handles this kind of file but whose native
+     * payload is not on the device yet. Without it that engine is indistinguishable from "no engine at
+     * all", and the user meets a plain playback error for a file the app could play after a download.
+     */
+    fun pendingInstallSetFor(file: MediaFile): DeliverableSet? =
+        engines.firstOrNull {
+            it.engineId != NOOP_ENGINE_ID &&
+                it.requiredDeliverableSet != null &&
+                !it.canPlay(file) &&
+                it.couldPlay(file)
+        }?.requiredDeliverableSet
 
     fun tryFallback(
         file: MediaFile,

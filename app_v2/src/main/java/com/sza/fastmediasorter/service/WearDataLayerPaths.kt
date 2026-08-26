@@ -47,7 +47,7 @@ object WearDataLayerPaths {
     const val STREAM_TRANSFER_ACK = "/fms/watch/stream_transfer_ack"
 
     /**
-     * Channel, phone → watch. Carries the bytes of one file sent to the paired watch (S1861).
+     * Channel, either direction. Carries the bytes of one file sent to the paired watch (S1861).
      *
      * The file name rides in the path as a trailing segment ("$FILE_TRANSFER/photo.jpg"): the watch
      * half already names the received file from the last segment, so the channel needs no separate
@@ -63,6 +63,27 @@ object WearDataLayerPaths {
      * service for a message cannot be confused with the one that starts it for a channel.
      */
     const val FILE_TRANSFER_META = "/fms/transfer_file_meta"
+
+    /** Message, watch → phone. Carries the correlated outcome of one file transfer. */
+    const val FILE_TRANSFER_ACK = "/fms/watch/transfer_file_ack"
+
+    /**
+     * Reserved name the watch background frame is transferred under (S2000).
+     *
+     * The name is the whole correlation mechanism: [FILE_TRANSFER] names the received file from the
+     * last path segment and carries no field a purpose could ride in, so the watch recognises the
+     * background frame by this name and by nothing else. Sending anything else under it overwrites
+     * the background.
+     */
+    const val BACKGROUND_IMAGE_FILE_NAME = "wear_background.png"
+
+    /**
+     * Canonical square edge of that frame, in pixels (S2000).
+     *
+     * Declared once rather than written at each use, so retargeting another watch display is one
+     * edit instead of a search. The phone scales to it before sending; the watch never resizes.
+     */
+    const val BACKGROUND_IMAGE_EDGE_PX = 480
 
     // --- WearEventEnvelope.eventType constants ---
 

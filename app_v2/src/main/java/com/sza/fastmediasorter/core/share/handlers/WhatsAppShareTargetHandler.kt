@@ -2,10 +2,12 @@ package com.sza.fastmediasorter.core.share.handlers
 
 import android.app.Activity
 import android.content.pm.PackageManager
-import com.sza.fastmediasorter.util.getPackageInfoCompat
 import com.sza.fastmediasorter.core.share.ShareTargetHandler
+import com.sza.fastmediasorter.core.share.ShareTargetOutcome
 import com.sza.fastmediasorter.core.share.ShareableContent
 import com.sza.fastmediasorter.core.share.SystemShareInvoker
+import com.sza.fastmediasorter.core.share.asLaunchOutcome
+import com.sza.fastmediasorter.util.getPackageInfoCompat
 import javax.inject.Inject
 
 /**
@@ -18,7 +20,7 @@ class WhatsAppShareTargetHandler @Inject constructor() : ShareTargetHandler {
 
     override val targetId: String = ID
 
-    override fun send(activity: Activity, content: ShareableContent): Boolean {
+    override suspend fun send(activity: Activity, content: ShareableContent): ShareTargetOutcome {
         val installed = PACKAGES.firstOrNull { isInstalled(activity, it) }
         return SystemShareInvoker.invokeFiles(
             context = activity,
@@ -26,7 +28,7 @@ class WhatsAppShareTargetHandler @Inject constructor() : ShareTargetHandler {
             mime = content.mime,
             preferredPackage = installed,
             chooserTitle = content.displayName,
-        )
+        ).asLaunchOutcome()
     }
 
     private fun isInstalled(activity: Activity, pkg: String): Boolean = try {
@@ -39,6 +41,7 @@ class WhatsAppShareTargetHandler @Inject constructor() : ShareTargetHandler {
 
     companion object {
         const val ID = "whatsapp"
+
         // Standard client first, then WhatsApp Business; the first installed one wins.
         val PACKAGES = listOf("com.whatsapp", "com.whatsapp.w4b")
     }

@@ -3,7 +3,9 @@ package com.sza.fastmediasorter.core.share.handlers
 import android.app.Activity
 import com.sza.fastmediasorter.core.share.SharePrintHost
 import com.sza.fastmediasorter.core.share.ShareTargetHandler
+import com.sza.fastmediasorter.core.share.ShareTargetOutcome
 import com.sza.fastmediasorter.core.share.ShareableContent
+import com.sza.fastmediasorter.core.share.asLaunchOutcome
 import javax.inject.Inject
 
 /**
@@ -19,10 +21,14 @@ class PrintShareTargetHandler @Inject constructor() : ShareTargetHandler {
     // (otherwise the row would render and silently no-op when send() returns false).
     override fun isSupportedBy(activity: Activity): Boolean = activity is SharePrintHost
 
-    override fun send(activity: Activity, content: ShareableContent): Boolean {
-        val host = activity as? SharePrintHost ?: return false
-        val mediaFile = content.mediaFile ?: return false
-        return host.printMediaFile(mediaFile)
+    override suspend fun send(activity: Activity, content: ShareableContent): ShareTargetOutcome {
+        val host = activity as? SharePrintHost
+        val mediaFile = content.mediaFile
+        return if (host == null || mediaFile == null) {
+            ShareTargetOutcome.Failed()
+        } else {
+            host.printMediaFile(mediaFile).asLaunchOutcome()
+        }
     }
 
     companion object {

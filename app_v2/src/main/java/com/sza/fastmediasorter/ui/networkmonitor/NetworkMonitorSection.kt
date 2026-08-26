@@ -17,6 +17,8 @@ enum class NetworkMonitorSection(val key: String) {
     Gnss("gnss"),
     Internet("internet"),
     History("history"),
+    Tools("tools"),
+    Speed("speed"),
     ;
 
     companion object {

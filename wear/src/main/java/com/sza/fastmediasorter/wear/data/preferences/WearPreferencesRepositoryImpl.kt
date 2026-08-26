@@ -9,6 +9,9 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
+import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
+import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
+import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import kotlinx.coroutines.flow.Flow
@@ -25,7 +28,7 @@ class WearPreferencesRepositoryImpl(
 ) : WearPreferencesRepository {
 
     private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "wear_settings")
-    
+
     // Internal, not private: the one invariant that cannot be read off the code is that the file
     // list and the navigation screens address DIFFERENT keys (S1730 ADR-3), and a test has to see
     // both names to assert it.
@@ -33,16 +36,18 @@ class WearPreferencesRepositoryImpl(
         val AUDIO_ENABLED = booleanPreferencesKey("wear_audio_enabled")
         val VIDEO_ENABLED = booleanPreferencesKey("wear_video_enabled")
         val IMAGES_ENABLED = booleanPreferencesKey("wear_images_enabled")
-        
+
         val SLIDESHOW_ENABLED = booleanPreferencesKey("wear_slideshow_enabled")
         val SLIDESHOW_INTERVAL = intPreferencesKey("wear_slideshow_interval_seconds")
-        
+
         val DOWNLOAD_ALBUM_ART = booleanPreferencesKey("wear_download_album_art")
 
         val SHUFFLE_ENABLED = booleanPreferencesKey("wear_shuffle_enabled")
 
         val VIEW_MODE = stringPreferencesKey("wear_view_mode")
+        val BACKGROUND_MODE = stringPreferencesKey("wear_background_mode")
         val FILE_LIST_VIEW_MODE = stringPreferencesKey("wear_file_list_view_mode")
+        val VIDEO_SCALE_MODE = stringPreferencesKey("wear_video_scale_mode")
         val KEEP_SCREEN_AWAKE = booleanPreferencesKey("wear_keep_screen_awake")
         val LAST_USED_RESOURCE = stringPreferencesKey("wear_last_used_resource")
         val LAST_USED_RESOURCE_ID = stringPreferencesKey("wear_last_used_resource_id")
@@ -54,65 +59,67 @@ class WearPreferencesRepositoryImpl(
         val GAME_STATE = stringPreferencesKey("wear_game_state")
         val AUTO_ROTATION_ENABLED = booleanPreferencesKey("wear_auto_rotation_enabled")
         val APP_LANGUAGE = stringPreferencesKey("wear_app_language")
+        val VOICE_NOTE_SEND_POLICY = stringPreferencesKey("wear_voice_note_send_policy")
+        val NOTIFICATION_PERMISSION_ASKED = booleanPreferencesKey("wear_notification_permission_asked")
     }
-    
+
     // Media type toggles
     override val isAudioEnabled: Flow<Boolean> = context.dataStore.data.map { prefs ->
         prefs[PreferencesKeys.AUDIO_ENABLED] ?: true
     }
-    
+
     override val isVideoEnabled: Flow<Boolean> = context.dataStore.data.map { prefs ->
         prefs[PreferencesKeys.VIDEO_ENABLED] ?: true
     }
-    
+
     override val isImagesEnabled: Flow<Boolean> = context.dataStore.data.map { prefs ->
         prefs[PreferencesKeys.IMAGES_ENABLED] ?: true
     }
-    
+
     override suspend fun setAudioEnabled(enabled: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[PreferencesKeys.AUDIO_ENABLED] = enabled
         }
     }
-    
+
     override suspend fun setVideoEnabled(enabled: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[PreferencesKeys.VIDEO_ENABLED] = enabled
         }
     }
-    
+
     override suspend fun setImagesEnabled(enabled: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[PreferencesKeys.IMAGES_ENABLED] = enabled
         }
     }
-    
+
     // Slideshow settings
     override val isSlideshowEnabled: Flow<Boolean> = context.dataStore.data.map { prefs ->
         prefs[PreferencesKeys.SLIDESHOW_ENABLED] ?: false
     }
-    
+
     override val slideshowIntervalSeconds: Flow<Int> = context.dataStore.data.map { prefs ->
         prefs[PreferencesKeys.SLIDESHOW_INTERVAL] ?: 5
     }
-    
+
     override suspend fun setSlideshowEnabled(enabled: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[PreferencesKeys.SLIDESHOW_ENABLED] = enabled
         }
     }
-    
+
     override suspend fun setSlideshowIntervalSeconds(seconds: Int) {
         context.dataStore.edit { prefs ->
             prefs[PreferencesKeys.SLIDESHOW_INTERVAL] = seconds
         }
     }
-    
+
     // Album art settings
     override val downloadAlbumArt: Flow<Boolean> = context.dataStore.data.map { prefs ->
         prefs[PreferencesKeys.DOWNLOAD_ALBUM_ART] ?: false
     }
-    
+
     override suspend fun setDownloadAlbumArt(enabled: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[PreferencesKeys.DOWNLOAD_ALBUM_ART] = enabled
@@ -150,6 +157,30 @@ class WearPreferencesRepositoryImpl(
     override suspend fun setFileListViewMode(mode: WearViewMode) {
         context.dataStore.edit { prefs ->
             prefs[PreferencesKeys.FILE_LIST_VIEW_MODE] = mode.name
+        }
+    }
+
+    // S2000: an absent value reads as the branded animation - the one background that needs no
+    // delivered file, so a watch that never received a frame still draws something.
+    override val backgroundMode: Flow<WearBackgroundMode> = context.dataStore.data.map { prefs ->
+        WearBackgroundMode.fromNameOrDefault(prefs[PreferencesKeys.BACKGROUND_MODE])
+    }
+
+    override suspend fun setBackgroundMode(mode: WearBackgroundMode) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.BACKGROUND_MODE] = mode.name
+        }
+    }
+
+    // S1948: an absent value has to read as FIT, so a watch that never touched the button keeps
+    // today's first-run behaviour rather than inheriting whatever the enum happens to declare first.
+    override val videoScaleMode: Flow<VideoScaleMode> = context.dataStore.data.map { prefs ->
+        VideoScaleMode.fromNameOrDefault(prefs[PreferencesKeys.VIDEO_SCALE_MODE])
+    }
+
+    override suspend fun setVideoScaleMode(mode: VideoScaleMode) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.VIDEO_SCALE_MODE] = mode.name
         }
     }
 
@@ -275,6 +306,29 @@ class WearPreferencesRepositoryImpl(
             } else {
                 prefs[PreferencesKeys.APP_LANGUAGE] = languageCode
             }
+        }
+    }
+
+    // S1862: stored by name, like every other enum preference in this file - an ordinal would
+    // re-point stored values the day a third policy is inserted between the two.
+    override val voiceNoteSendPolicy: Flow<VoiceNoteSendPolicy> = context.dataStore.data.map { prefs ->
+        VoiceNoteSendPolicy.fromNameOrDefault(prefs[PreferencesKeys.VOICE_NOTE_SEND_POLICY])
+    }
+
+    override suspend fun setVoiceNoteSendPolicy(policy: VoiceNoteSendPolicy) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.VOICE_NOTE_SEND_POLICY] = policy.name
+        }
+    }
+
+    // S1961: absent reads as "not asked yet", which is what an untouched watch is.
+    override val notificationPermissionAsked: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.NOTIFICATION_PERMISSION_ASKED] ?: false
+    }
+
+    override suspend fun setNotificationPermissionAsked(asked: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.NOTIFICATION_PERMISSION_ASKED] = asked
         }
     }
 }

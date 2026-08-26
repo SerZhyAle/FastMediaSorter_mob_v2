@@ -6,4 +6,11 @@
          declares have no consumer here. -->
     <color name="splash_logo_gradient_start">#FF98CFF1</color>
     <color name="splash_logo_gradient_end">#FF0B82EB</color>
+    <color name="tile_preview_bg">#FF202124</color>
+    <color name="tile_preview_accent">#FF0B82EB</color>
+
+    <!-- S2007: the calculator's running value carries its own colour so it reads as a result rather
+         than as one more key label. S2003 may later fold it into a watch palette - it is one entry
+         here, so that decision re-points it in one line. -->
+    <color name="wear_calc_display_value">#FFFFD54F</color>
 </resources>

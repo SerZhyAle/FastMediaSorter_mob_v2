@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "note": "S1716. Media live outside the repository, under the folder named by FMS_OCRBENCH_SCENES. Register a scene with scripts/ocrbench/fetch-real-scenes.ps1 -Register <relative path>; annotate it at ocrbench/annotations/<sceneId>.json. Never add media or credentials here.",
+  "scenes": []
+}

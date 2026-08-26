@@ -5,10 +5,13 @@ import android.util.Log
 import com.sza.fastmediasorter.wear.core.logging.WearLogTree
 import com.sza.fastmediasorter.wear.core.util.WearLocaleManager
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.domain.usecase.DrainPendingVoiceNotesUseCase
+import dagger.Lazy
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -18,6 +21,18 @@ import javax.inject.Inject
 class FastMediaSorterWearApp : Application() {
 
     @Inject lateinit var preferencesRepository: WearPreferencesRepository
+
+    /**
+     * S1862: Lazy, so opening the note database is not part of process start - the drain is the only
+     * thing here that touches it, and it runs off the main thread a moment later.
+     */
+    @Inject lateinit var drainPendingVoiceNotesUseCase: Lazy<DrainPendingVoiceNotesUseCase>
+
+    /**
+     * Outlives every screen by construction: the drain must finish even if the user closes the app
+     * while it is running. Never cancelled - an Application has no end short of the process ending.
+     */
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onCreate() {
         super.onCreate()
@@ -44,6 +59,11 @@ class FastMediaSorterWearApp : Application() {
                 Timber.w(e, "FastMediaSorterWearApp: Failed to initialize app locale")
             }
         }
+
+        // S1862: the second of the two drain triggers. The listener service covers the phone coming
+        // back while the app is closed; this one covers the watch having been restarted since, which
+        // leaves no capability change to observe.
+        applicationScope.launch { drainPendingVoiceNotesUseCase.get().invoke() }
 
         Timber.d("FastMediaSorter Wear OS app started")
     }

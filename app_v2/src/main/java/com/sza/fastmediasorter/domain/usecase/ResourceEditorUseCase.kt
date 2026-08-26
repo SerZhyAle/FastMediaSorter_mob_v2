@@ -1,8 +1,11 @@
 package com.sza.fastmediasorter.domain.usecase
 
-import com.sza.fastmediasorter.core.metrics.OperationMetricsRecorder
+import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.di.IoDispatcher
+import com.sza.fastmediasorter.core.metrics.OperationMetricsRecorder
 import com.sza.fastmediasorter.core.util.DestinationColors
+import com.sza.fastmediasorter.data.local.db.CryptoHelper
+import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceConnectionStatus
@@ -14,10 +17,9 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.ResourceValidationResult
 import com.sza.fastmediasorter.domain.model.ResourceVerificationStatus
 import com.sza.fastmediasorter.domain.model.SortMode
-import com.sza.fastmediasorter.data.local.db.CryptoHelper
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.strategy.CloudResourceStrategy
 import com.sza.fastmediasorter.domain.strategy.FtpResourceStrategy
 import com.sza.fastmediasorter.domain.strategy.LocalResourceStrategy
@@ -25,8 +27,7 @@ import com.sza.fastmediasorter.domain.strategy.ResourceFieldSchema
 import com.sza.fastmediasorter.domain.strategy.ResourceStrategy
 import com.sza.fastmediasorter.domain.strategy.SftpResourceStrategy
 import com.sza.fastmediasorter.domain.strategy.SmbResourceStrategy
-import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
-import com.sza.fastmediasorter.data.repository.CachedFileListRepository
+import com.sza.fastmediasorter.domain.strategy.WearWatchResourceStrategy
 import com.sza.fastmediasorter.utils.FtpPathUtils
 import com.sza.fastmediasorter.utils.SftpPathUtils
 import com.sza.fastmediasorter.utils.SmbPathUtils
@@ -35,9 +36,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.flow.first
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -60,6 +61,8 @@ class ResourceEditorUseCase @Inject constructor(
 
     private val _verificationStatuses = MutableStateFlow<Map<Long, ResourceVerificationStatus>>(emptyMap())
     val verificationStatuses: StateFlow<Map<Long, ResourceVerificationStatus>> = _verificationStatuses.asStateFlow()
+
+    private val wearWatchStrategy = WearWatchResourceStrategy()
 
     private val strategies: Map<ResourceType, ResourceStrategy> = mapOf(
         ResourceType.LOCAL to LocalResourceStrategy(),
@@ -281,7 +284,26 @@ class ResourceEditorUseCase @Inject constructor(
         }
     }
 
-    private fun strategyFor(type: ResourceType): ResourceStrategy = strategies[type] ?: LocalResourceStrategy()
+    /**
+     * S1976: an exhaustive when, not a map lookup with a fallback. The map covers five of the eight
+     * resource types, and the old `?: LocalResourceStrategy()` silenced all three misses - the watch
+     * and both stream types drew a local folder's field schema without anyone being told. A when over
+     * the enum turns the next added type into a compile error here instead of a wrong screen there.
+     */
+    private fun strategyFor(type: ResourceType): ResourceStrategy = when (type) {
+        ResourceType.LOCAL,
+        ResourceType.SMB,
+        ResourceType.SFTP,
+        ResourceType.FTP,
+        ResourceType.CLOUD -> strategies.getValue(type)
+
+        ResourceType.WEAR_WATCH -> wearWatchStrategy
+
+        // S2041 owns the streams' own schema. Until it lands they keep the local schema they have
+        // had since S0565 - unchanged behaviour, but now a named decision rather than a miss.
+        ResourceType.HTTP_STREAM,
+        ResourceType.RTSP_STREAM -> LocalResourceStrategy()
+    }
 
     private fun connectionTestResultFrom(result: Result<*>) = if (result.isSuccess)
         ResourceConnectionTestResult(ResourceConnectionStatus.SUCCESS)

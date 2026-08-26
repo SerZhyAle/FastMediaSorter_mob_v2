@@ -91,6 +91,11 @@
 | `wear-compose-navigation`      | 1.2.1      | Wear OS Compose Navigation         |
 | `play-services-wearable`       | 18.1.0     | Phone↔Watch communication          |
 | `wear`                          | 1.3.0      | Wear OS essentials                 |
+| `wear-input`                    | 1.1.0      | System remote text and voice input |
+| `tiles`                         | 1.6.2      | Tile services for the system carousel |
+| `protolayout`                   | 1.4.2      | Tile layout elements               |
+| `protolayout-material`          | 1.4.2      | Tile Material components           |
+| `protolayout-expression`        | 1.4.2      | Tile dynamic expressions           |
 | `accompanist-permissions`       | 0.34.0     | Runtime permission handling        |
 | `coil-compose`                  | 2.5.0      | Image loading (Compose)            |
 | `hilt-navigation-compose`      | 1.1.0      | Hilt ViewModel in Compose Nav      |
@@ -224,7 +229,7 @@
 | `kotlinx-coroutines-test`      | 1.7.3      | unit     | Coroutine test utilities     |
 | `core-testing`                  | 2.2.0      | unit     | Architecture components test |
 | `mockk`                         | 1.13.9     | unit     | Mocking framework            |
-| `robolectric`                   | 4.11.1     | unit     | Android framework in JVM     |
+| `robolectric`                   | 4.16.1     | unit     | Android framework in JVM     |
 | `espresso-core`                 | 3.5.1      | android  | UI testing                   |
 | `test-ext-junit`               | 1.1.5      | android  | AndroidJUnit runner          |
 | `navigation-testing`           | 2.7.6      | android  | Navigation test utilities    |

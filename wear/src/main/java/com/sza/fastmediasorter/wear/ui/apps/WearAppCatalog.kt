@@ -29,6 +29,16 @@ object WearAppCatalog {
             id = WearAppId.GAME,
             labelRes = R.string.wear_app_game,
             route = WearRoutes.GAME
+        ),
+        WearApp(
+            id = WearAppId.VOICE_RECORDER,
+            labelRes = R.string.wear_voice_note_app,
+            route = WearRoutes.VOICE_RECORDER
+        ),
+        WearApp(
+            id = WearAppId.SYSTEM_INFO,
+            labelRes = R.string.system_info_title,
+            route = WearRoutes.SYSTEM_INFO
         )
     ).filter { it.isAvailable }
 }

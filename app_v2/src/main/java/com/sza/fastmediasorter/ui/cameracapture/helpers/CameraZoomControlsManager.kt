@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.core.view.children
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.slider.Slider
 import com.sza.fastmediasorter.R
@@ -30,6 +31,8 @@ class CameraZoomControlsManager(
     private val onPresetSelected: (Float) -> Unit,
     /** S1261: cross-lens floor pill tap, in equivalent-zoom space (lens switch + zoom, one action). */
     private val onCrossLensFloorSelected: (Float) -> Unit = {},
+    /** S1997: camera lens switch button to update active lens icon dynamically. */
+    private val switchButton: MaterialButton? = null,
 ) {
 
     /** Builds one pill per zoom preset and selects the one nearest the live ratio. */
@@ -156,11 +159,10 @@ class CameraZoomControlsManager(
     }
 
     /**
-     * Active-lens name next to the switch button.
+     * Active-lens name and icon for the switch button.
      *
      * S1189: ranked inside the reachable lens set rather than guessed from a fixed multiplier
-     * threshold - the old thresholds mislabelled any device whose lens spacing did not match them,
-     * and could not name a macro lens at all.
+     * threshold; S1997 updates the switch button icon to match active optics in dark conditions.
      */
     fun renderLensLabel(capabilities: CameraRuntimeCapabilities) {
         lensLabel.text = when {
@@ -170,6 +172,14 @@ class CameraZoomControlsManager(
             capabilities.zoomMultiplier > TELE_MIN_MULTIPLIER -> context.getString(R.string.camera_lens_tele)
             else -> context.getString(R.string.camera_lens_wide)
         }
+        val iconRes = when {
+            capabilities.isFront -> R.drawable.ic_camera_lens_front
+            capabilities.activeLensIsMacro -> R.drawable.ic_camera_lens_macro
+            capabilities.activeLensIsWidest -> R.drawable.ic_camera_lens_ultrawide
+            capabilities.zoomMultiplier > TELE_MIN_MULTIPLIER -> R.drawable.ic_camera_lens_tele
+            else -> R.drawable.ic_camera_lens_wide
+        }
+        switchButton?.setIconResource(iconRes)
     }
 
     private fun formatZoomRatio(ratio: Float): String =

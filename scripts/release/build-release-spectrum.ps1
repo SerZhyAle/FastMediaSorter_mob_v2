@@ -88,6 +88,7 @@ $gradlew     = Join-Path $projectRoot "gradlew.bat"
 $appGradle   = Join-Path $projectRoot "app_v2\build.gradle.kts"
 $wearGradle  = Join-Path $projectRoot "wear\build.gradle.kts"
 . (Join-Path $projectRoot 'scripts/utils/agent-lock.ps1')
+. (Join-Path $projectRoot 'scripts/utils/find-build-artifact.ps1')
 
 # ----------------------------------------------------------------------
 # Stamp one version into a module's build.gradle.kts.
@@ -216,8 +217,9 @@ $missing = @()
 foreach ($flavor in $apkRoots.Keys) {
     if ($flavor -notin $selected) { continue }
     $dir = Join-Path $projectRoot $apkRoots[$flavor]
-    $apk = Get-ChildItem -Path $dir -Filter *.apk -ErrorAction SilentlyContinue |
-        Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    # Named by the resolver, not by write time: this line prints the path a human then treats as
+    # "the release build of this flavor", and picking a slice at random is exactly what S1972 removed.
+    $apk = Find-BuildArtifact -Dir $dir
     if ($apk) {
         Write-Host "  $flavor : $($apk.FullName)" -ForegroundColor Green
     } else {
@@ -243,8 +245,9 @@ if ($missing.Count -gt 0) {
 # Drive, and the remaining flavors are handed out from the GitHub release instead.
 # ----------------------------------------------------------------------
 if ($buildWear) {
-    $wearApk = Get-ChildItem -Path (Join-Path $projectRoot $apkRoots['wear']) -Filter *.apk -ErrorAction SilentlyContinue |
-        Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    # The Drive copy is the watch's only distribution channel, so the file chosen here is what a
+    # person installs - it must be resolved, never guessed by write time (S1972).
+    $wearApk = Find-BuildArtifact -Dir (Join-Path $projectRoot $apkRoots['wear'])
     if ($wearApk) {
         & (Join-Path $PSScriptRoot '..\utils\copy-to-drive.ps1') `
             -Path $wearApk.FullName -Name 'FastMediaSorter_wear_release.apk'

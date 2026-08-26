@@ -426,6 +426,9 @@ which needs the phone to be in range.
 - Routes: `WearRoutes.CALCULATOR`, `WearRoutes.NETWORK_MONITOR`, `WearRoutes.GAME`.
 - The game's rules and levels are a mirror of the phone's, so a score is comparable between devices;
   the network monitor is not a mirror - it reports the watch's radios.
+- **The set has grown since.** S1862 added the voice recorder and S2008 moved system information here
+  out of Settings, so the section holds five programs today. The three above are what S1710 shipped;
+  the current list is `WearAppCatalog.apps()`, described in `docs/WEAR_OS_STATUS.md`.
 
 ---
 

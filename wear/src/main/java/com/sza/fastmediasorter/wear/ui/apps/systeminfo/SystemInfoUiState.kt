@@ -1,4 +1,4 @@
-package com.sza.fastmediasorter.wear.ui.settings
+package com.sza.fastmediasorter.wear.ui.apps.systeminfo
 
 import com.sza.fastmediasorter.wear.domain.model.WearSystemInfoSection
 

@@ -2829,7 +2829,7 @@
     <string name="browse_empty_type_gated">%1$d ملفات مخفية لأن نوع الوسائط الخاص بها معطّل.</string>
     <string name="browse_empty_type_gated_hint">فعّل نوع الوسائط ذلك مجددًا في الإعدادات لرؤيتها.</string>
     <string name="splash_slogan">..كل هذا لي، هنا!</string>
-    <string name="launcher_section_google">GOOGLE</string>
+    <string name="launcher_section_google">Google</string>
     <string name="launcher_quick_menu_add_item">إضافة عنصر..</string>
     <string name="launcher_quick_menu_edit_desktop">تعديل سطح المكتب</string>
     <string name="launcher_quick_menu_wallpaper">الخلفية</string>
@@ -2858,7 +2858,7 @@
     <string name="launcher_translator_attribution">تمت الترجمة بواسطة Google</string>
     <string name="launcher_section_widgets">الأدوات</string>
     <string name="launcher_section_resources">الموارد</string>
-    <string name="launcher_section_android_apps">تطبيقات Android</string>
+    <string name="launcher_section_android_apps">التطبيقات</string>
     <string name="launcher_settings_widget_backdrop_alpha_title">عتامة خلفية الأداة</string>
     <string name="launcher_settings_widget_backdrop_alpha_0">0% (شفاف)</string>
     <string name="launcher_settings_widget_backdrop_alpha_85">85% (افتراضي)</string>

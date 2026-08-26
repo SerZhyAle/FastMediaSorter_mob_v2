@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.domain.model.MediaExtensions
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.WEAR_FILE_TRANSFER_MAX_BYTES
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceRequest
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceResponseStatus
 import com.sza.fastmediasorter.domain.repository.MediaStoreRepository
@@ -56,7 +57,7 @@ class OpenPhoneResourceChannelUseCase @Inject constructor(
             !readable -> PhoneResourceChannel.Rejected(WearPhoneResourceResponseStatus.NOT_FOUND)
             mediaType !in RENDERABLE_ON_WATCH ->
                 PhoneResourceChannel.Rejected(WearPhoneResourceResponseStatus.UNSUPPORTED_MEDIA)
-            file.length() > MAX_TRANSFER_BYTES ->
+            file.length() > WEAR_FILE_TRANSFER_MAX_BYTES ->
                 PhoneResourceChannel.Rejected(WearPhoneResourceResponseStatus.TRANSFER_REJECTED)
             else -> PhoneResourceChannel.Approved(
                 name = file.name,
@@ -112,9 +113,6 @@ class OpenPhoneResourceChannelUseCase @Inject constructor(
         isAvailable && accessPin == null && type == ResourceType.LOCAL
 
     companion object {
-        /** Upper bound of one watch-bound transfer. Beyond it the watch is told the transfer was rejected. */
-        const val MAX_TRANSFER_BYTES: Long = 32L * 1024 * 1024
-
         /** Families the Wear app can actually render once the bytes arrive. */
         private val RENDERABLE_ON_WATCH = setOf(MediaType.IMAGE, MediaType.GIF, MediaType.VIDEO, MediaType.AUDIO)
     }

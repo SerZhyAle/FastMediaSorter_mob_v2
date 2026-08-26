@@ -20,7 +20,7 @@ Practical walkthroughs for real-world use cases. No prior experience needed - ev
 - <img src="../icons/doc/ic_profile_media_player.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I want to watch movies/series from my PC on my phone, without copying anything"_ → [Home Cinema & VR Streaming](scenario-home-cinema.md)
 - <img src="../icons/doc/ic_profile_photo_frame.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I have an old tablet and want to turn it into a photo frame"_ → [Digital Photo Frame](scenario-photo-frame.md)
 - <img src="../icons/doc/ic_profile_car_head_unit.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I have an Android car stereo and want to play my music from a USB or phone"_ → [In-Car Music Player](scenario-car-music.md)
-- <img src="../icons/doc/ic_display.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I want FastMedia on my smartwatch and do not know where to start"_ → [Put FastMedia on Your Watch](wear-install.md)
+- <img src="../icons/doc/ic_display.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I want FastMedia on my smartwatch and do not know where to start"_ → [Put FastMedia on Your Watch](wear-install.md) • [Wear OS Web Portal](../wear/index.md)
 - <img src="../icons/doc/ic_audio.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I want to listen to my music collection or phone tracks on my smartwatch"_ → [Music on Smartwatch](scenario-watch-music.md)
 - <img src="../icons/doc/ic_resource_smb.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I want to connect my smartwatch directly to my PC or NAS network share"_ → [Connect Watch to Network Shares](scenario-watch-network.md)
 - <img src="../icons/doc/ic_cast.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I have an Android car stereo and want to listen to internet radio stations"_ → [Internet Radio & Streams](scenario-internet-radio.md)
@@ -30,7 +30,7 @@ Practical walkthroughs for real-world use cases. No prior experience needed - ev
 - <img src="../icons/doc/ic_vr_headset.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I want to watch SBS 3D movies on my phone, or go fully immersive on a Quest"_ → [OpenXR VR Immersive Cinema](../HOW_TO.md#openxr-vr-immersive-cinema)
 - <img src="../icons/doc/ic_calculator.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I want to quickly extract numbers and calculate math formulas from texts/images"_ → [Quick Math & Text Calculations](../HOW_TO.md#quick-math-and-text-calculations)
 - <img src="../icons/doc/ic_edit_20.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I want to edit Markdown and code notes directly on my cloud or network drive"_ → [Cloud Markdown & Code Notes](../HOW_TO.md#cloud-markdown-and-code-notes)
-- <img src="../icons/doc/ic_launcher_mode.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I want my old tablet to show my folders, clock and weather instead of an app grid"_ → [Use the App as Your Home Screen](scenario-launcher-mode.md)
+- <img src="../icons/doc/ic_launcher_mode.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _"I want my old tablet to show my folders, clock and weather instead of an app grid"_ → [Use the App as Your Home Screen](scenario-launcher-mode.md) • [Launcher Web Portal](../launcher/index.md)
 
 ---
 

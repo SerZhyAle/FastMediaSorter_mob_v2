@@ -4,6 +4,7 @@ Canonical readiness contract for the **standard** Google Play production build (
 
 - **Strategic spec:** `PLAN/S0553_standard-production-release-readiness.md`
 - **Flavor scope:** `standard` only (not vr / noLegal / lite / photos / legacy / wear-only).
+- **Wear-only releases:** covered by `docs/RELEASE_READINESS_WEAR.md`, which is the watch module's own contract (S1984). This document is unchanged by it and continues to describe the phone build alone.
 - **Distribution target:** Google Play production.
 - **Platform baseline:** minSdk 26, targetSdk 35.
 - **Mechanical gate:** `scripts/release/standard-release-gate.ps1` folds the checks below into one PASS/FAIL/WAIVED verdict.

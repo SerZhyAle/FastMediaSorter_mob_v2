@@ -39,6 +39,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.rememberCloseAppAction
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
@@ -58,6 +59,9 @@ fun HomeScreen(
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberScalingLazyListState()
+    // Resolved here rather than inside the item slot: a slot is not the screen's remember scope, so
+    // the action would be rebuilt every time the bar scrolls back into composition.
+    val closeApp = rememberCloseAppAction()
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -99,7 +103,8 @@ fun HomeScreen(
 
                 item {
                     HomeCommandBar(
-                        onSettingsClick = { navController.navigate(WearRoutes.SETTINGS) }
+                        onSettingsClick = { navController.navigate(WearRoutes.SETTINGS) },
+                        onCloseClick = closeApp
                     )
                 }
             }

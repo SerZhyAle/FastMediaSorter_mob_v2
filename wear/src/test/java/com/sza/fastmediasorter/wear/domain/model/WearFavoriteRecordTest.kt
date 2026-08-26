@@ -71,4 +71,26 @@ class WearFavoriteRecordTest {
         assertEquals("network", favoriteSourceId(isNetworkSource = true, networkSourceId = null))
         assertEquals("network", favoriteSourceId(isNetworkSource = true, networkSourceId = " "))
     }
+
+    @Test
+    fun `stream identity normalizes host default port and trailing slash`() {
+        assertEquals(
+            "https://radio.example/Live?quality=HD#Now",
+            normalizeWearStreamUrl(" HTTPS://RADIO.EXAMPLE:443/Live/?quality=HD#Now ")
+        )
+    }
+
+    @Test
+    fun `stream identity preserves path query and fragment case`() {
+        assertEquals(
+            "rtsp://camera.example/Feed/HD?Token=AbC#View",
+            normalizeWearStreamUrl("RTSP://CAMERA.EXAMPLE:554/Feed/HD?Token=AbC#View")
+        )
+    }
+
+    @Test
+    fun `unparseable stream identities remain separate trimmed values`() {
+        assertEquals("bad stream one", normalizeWearStreamUrl(" bad stream one/ "))
+        assertEquals("bad stream two", normalizeWearStreamUrl(" bad stream two "))
+    }
 }

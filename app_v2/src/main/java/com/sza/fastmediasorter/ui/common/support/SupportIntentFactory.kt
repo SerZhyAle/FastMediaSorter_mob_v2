@@ -38,6 +38,18 @@ object SupportIntentFactory {
         "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/howto/wear-install-ru.html"
     private const val WEAR_INSTALL_UK =
         "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/howto/wear-install-uk.html"
+    private const val WEAR_PORTAL_EN =
+        "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/wear/"
+    private const val WEAR_PORTAL_RU =
+        "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/wear/index-ru.html"
+    private const val WEAR_PORTAL_UK =
+        "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/wear/index-uk.html"
+    private const val LAUNCHER_PORTAL_EN =
+        "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/launcher/"
+    private const val LAUNCHER_PORTAL_RU =
+        "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/launcher/index-ru.html"
+    private const val LAUNCHER_PORTAL_UK =
+        "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/launcher/index-uk.html"
 
     /**
      * Resolve a canonical [SupportDestination] into a launchable [Intent].
@@ -74,6 +86,20 @@ object SupportIntentFactory {
         "ru" -> WEAR_INSTALL_RU
         "uk" -> WEAR_INSTALL_UK
         else -> WEAR_INSTALL_EN
+    }
+
+    /** S2001: locale-aware URL for the Wear OS Web Portal. */
+    fun wearWebPortalUrl(context: Context): String = when (LocaleHelper.getLanguage(context)) {
+        "ru" -> WEAR_PORTAL_RU
+        "uk" -> WEAR_PORTAL_UK
+        else -> WEAR_PORTAL_EN
+    }
+
+    /** S2002: locale-aware URL for the Launcher Web Portal. */
+    fun launcherWebPortalUrl(context: Context): String = when (LocaleHelper.getLanguage(context)) {
+        "ru" -> LAUNCHER_PORTAL_RU
+        "uk" -> LAUNCHER_PORTAL_UK
+        else -> LAUNCHER_PORTAL_EN
     }
 
     private fun openHelp(context: Context): Intent =

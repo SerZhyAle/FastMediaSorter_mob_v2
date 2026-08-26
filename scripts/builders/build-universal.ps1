@@ -51,7 +51,7 @@ elseif ($Flavor -eq "legacy") {
     else { $apkPathRelative += ".apk"; $packageName = "com.sza.fastmediasorter.legacy" }
 }
 
-$apkPath = "$projectRoot\$apkPathRelative"
+$apkDir = Split-Path -Parent "$projectRoot\$apkPathRelative"
 
 Write-Host "Features: $features" -ForegroundColor Yellow
 
@@ -69,6 +69,18 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "`nBuild Successful!" -ForegroundColor Green
+
+# Ask the build what it produced instead of assembling a filename from a naming convention: the
+# convention names a file that stops existing the moment a variant emits more than one output, and
+# this script would then print a path to nothing and copy nothing (S1972).
+. "$PSScriptRoot\..\utils\find-build-artifact.ps1"
+$built = Find-BuildArtifact -Dir $apkDir
+if (-not $built) {
+    Write-Host "`nBuild reported success but no APK is present in $apkDir." -ForegroundColor Red
+    exit 1
+}
+$apkPath = $built.FullName
+
 Write-Host "APK location: $apkPath" -ForegroundColor Cyan
 Write-Host "Package name: $packageName" -ForegroundColor Cyan
 

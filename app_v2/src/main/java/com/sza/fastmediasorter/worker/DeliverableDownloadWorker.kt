@@ -65,7 +65,11 @@ class DeliverableDownloadWorker @AssistedInject constructor(
                         workDataOf("status" to "queued")
                     }
                     is DownloadProgress.Running -> {
-                        updateNotification(set, context.getString(R.string.delivery_state_downloading), progress.percent)
+                        updateNotification(
+                            set,
+                            context.getString(R.string.delivery_state_downloading),
+                            progress.percent
+                        )
                         workDataOf(
                             "status" to "running",
                             "percent" to progress.percent,
@@ -181,6 +185,7 @@ class DeliverableDownloadWorker @AssistedInject constructor(
         DeliverableSet.FFMPEG_DTS -> R.string.ext_ffmpeg_dts_title
         DeliverableSet.CHANNEL_PREVIEW_ATLAS -> R.string.ext_channel_preview_atlas_title
         DeliverableSet.STREAM_LOGO_ATLAS -> R.string.ext_stream_logo_atlas_title
+        DeliverableSet.VLC_ENGINE -> R.string.ext_vlc_engine_title
     }
 
     private fun notificationId(set: DeliverableSet): Int = 7300 + set.ordinal

@@ -6,6 +6,8 @@ import com.sza.fastmediasorter.data.util.StreamChannelIdentity
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.testing.InMemoryRoomRule
 import io.mockk.mockk
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -38,6 +40,9 @@ class ResolveLauncherCommandLabelUseCaseStreamTest {
         dbRule.db.streamSourceDao(),
         dbRule.db.streamQualityMemoryDao(),
         dbRule.db.streamUserStateDao(),
+        // The catalog snapshot shares WhileSubscribed, so an unconfined scope with no collector
+        // starts nothing; these cases exercise the label lookup, not the snapshot.
+        CoroutineScope(Dispatchers.Unconfined),
     )
 
     private val useCase get() = ResolveLauncherCommandLabelUseCase(

@@ -148,6 +148,19 @@
   pwsh -NoProfile -File scripts/devtest/adb.ps1 logcat-clear
   Empty the logcat buffer. This is what "clear the log" means - it never touches app data.
 
+.PARAMETER Module
+  Which module's build a call is about: 'app_v2' (default) or 'wear'. Only `install` and `launch`
+  read it - the watch publishes under the phone's application id, so every other verb already
+  addresses a watch correctly once -DeviceId points at one. For `launch` it selects the component,
+  because the watch declares its own activity under its own code namespace; for `install` it
+  selects `wear\build\outputs\apk\release` instead of the phone's flavored debug directory, and it
+  refuses a -Flavor, which the watch module does not have.
+
+.EXAMPLE
+  pwsh -NoProfile -File scripts/devtest/adb.ps1 install -Module wear -DeviceId 192.168.1.166:46551
+  pwsh -NoProfile -File scripts/devtest/adb.ps1 launch -Module wear -DeviceId 192.168.1.166:46551
+  Install the watch release build onto a paired watch and start it by its own component.
+
 .EXAMPLE
   pwsh -NoProfile -File scripts/devtest/adb.ps1 wipe-data -Yes
   Reset the app to a first-run state. One-way: settings, runtime grants and onboarding are gone.
@@ -190,6 +203,13 @@ param(
     [string]$Apk,
     [ValidateSet('standard', 'lite', 'photos', 'legacy', 'noLegal')]
     [string]$Flavor = 'standard',
+    # Which module's build this call is about. Both modules publish under the SAME application id
+    # (S1681 - Play Services routes the Data Layer by it), so this switch never selects a package:
+    # it selects the launch component and the artifact directory, which are the only two things
+    # that actually differ. Read by `install` and `launch` alone; every other verb is already
+    # module-agnostic because the package resolution is.
+    [ValidateSet('app_v2', 'wear')]
+    [string]$Module = 'app_v2',
     [int]$X,
     [int]$Y,
     # swipe: the second point, and how long the gesture takes. A fling and a drag differ only in
@@ -234,6 +254,9 @@ $ErrorActionPreference = 'Stop'
 $BASE_PACKAGE   = 'com.sza.fastmediasorter'
 $DEBUG_PACKAGE  = "$BASE_PACKAGE.debug"
 $MAIN_ACTIVITY  = 'com.sza.fastmediasorter.ui.main.MainActivity'
+# The watch declares `.MainActivity` under its own code namespace while publishing under the phone's
+# application id, so the component differs even though the package does not (S1984).
+$WEAR_MAIN_ACTIVITY = 'com.sza.fastmediasorter.wear.MainActivity'
 
 . (Join-Path $PSScriptRoot 'lib/adb-log-filter.ps1')
 . (Join-Path $PSScriptRoot 'lib/ui-tree.ps1')
@@ -281,6 +304,8 @@ function Fail {
 # share one discovery order instead of hand-rolling their own hardcoded fallback.
 
 . "$PSScriptRoot/lib/find-adb.ps1"
+. "$PSScriptRoot/../utils/find-build-artifact.ps1"
+. "$PSScriptRoot/../utils/get-device-abi.ps1"
 
 $adb = Find-Adb
 if (-not $adb) {
@@ -366,6 +391,11 @@ function Resolve-Package {
         }
     }
     Fail 4 "neither '$primary' nor '$fallback' is installed on $Id (build/install first)"
+}
+
+function Resolve-Activity {
+    if ($Module -eq 'wear') { return $WEAR_MAIN_ACTIVITY }
+    return $MAIN_ACTIVITY
 }
 
 function Get-TempDir {
@@ -554,9 +584,10 @@ switch ($Verb.ToLowerInvariant()) {
         $pkg = Resolve-Package $id
         $script:result.device = $id; $script:result.package = $pkg
         # Explicit component avoids the debug LeakCanary launcher pre-empting the app launcher.
-        Invoke-Adb $id @('shell', 'am', 'start', '-n', "$pkg/$MAIN_ACTIVITY") | Out-Null
-        if ($Json) { Emit-Ok @{ id = $id; package = $pkg; component = "$pkg/$MAIN_ACTIVITY" } }
-        Write-Host "LAUNCHED $pkg/$MAIN_ACTIVITY on $id" -ForegroundColor Green
+        $activity = Resolve-Activity
+        Invoke-Adb $id @('shell', 'am', 'start', '-n', "$pkg/$activity") | Out-Null
+        if ($Json) { Emit-Ok @{ id = $id; package = $pkg; component = "$pkg/$activity" } }
+        Write-Host "LAUNCHED $pkg/$activity on $id" -ForegroundColor Green
         exit 0
     }
 
@@ -605,27 +636,30 @@ switch ($Verb.ToLowerInvariant()) {
     'install' {
         $id = Select-Device
         $script:result.device = $id
+        if ($Module -eq 'wear' -and $PSBoundParameters.ContainsKey('Flavor')) {
+            Fail 1 "-Module wear does not take -Flavor: the watch module declares no product flavors, so '$Flavor' names a variant that does not exist"
+        }
         $apkPath = $Apk
         if (-not $apkPath) {
             $repoRoot = (Resolve-Path -Path (Join-Path $PSScriptRoot '..\..')).Path
-            $apkDir = Join-Path $repoRoot "app_v2\build\outputs\apk\$Flavor\debug"
-            $metaPath = Join-Path $apkDir 'output-metadata.json'
-            if (Test-Path -Path $metaPath -PathType Leaf) {
-                try {
-                    $meta = Get-Content -Path $metaPath -Raw | ConvertFrom-Json
-                    if ($meta.elements -and $meta.elements.Count -gt 0 -and $meta.elements[0].outputFile) {
-                        $apkPath = Join-Path $apkDir $meta.elements[0].outputFile
-                    }
-                } catch { }
+            $apkDir = if ($Module -eq 'wear') {
+                Join-Path $repoRoot 'wear\build\outputs\apk\release'
+            } else {
+                Join-Path $repoRoot "app_v2\build\outputs\apk\$Flavor\debug"
             }
-            if (-not $apkPath -or -not (Test-Path -Path $apkPath)) {
-                $latest = Get-ChildItem -Path $apkDir -Filter *.apk -ErrorAction SilentlyContinue |
-                    Sort-Object LastWriteTime -Descending | Select-Object -First 1
-                if ($latest) { $apkPath = $latest.FullName }
+            # Ask for the architecture of the device this verb already selected, so a split build
+            # installs what the device can run instead of whichever slice was written last (S1972).
+            $deviceAbi = Get-TargetDeviceAbi -Adb $adb -DeviceId $id
+            try {
+                $resolved = Find-BuildArtifact -Dir $apkDir -Abi $deviceAbi
+                if ($resolved) { $apkPath = $resolved.FullName }
+            } catch {
+                Fail 1 $_.Exception.Message
             }
         }
         if (-not $apkPath -or -not (Test-Path -Path $apkPath -PathType Leaf)) {
-            Fail 1 "APK not found (pass -Apk <path>, or build the $Flavor debug variant first)"
+            $buildHint = if ($Module -eq 'wear') { 'build the wear release variant first' } else { "build the $Flavor debug variant first" }
+            Fail 1 "APK not found (pass -Apk <path>, or $buildHint)"
         }
         Invoke-Adb $id @('install', '-r', '-d', $apkPath) | Out-Null
         if ($Json) { Emit-Ok @{ id = $id; apk = $apkPath } }

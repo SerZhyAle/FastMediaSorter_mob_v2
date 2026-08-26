@@ -99,6 +99,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             dismiss()
             return
         }
+        Timber.d("S2017: launcher settings dialog opened")
         binding.btnClose.setOnClickListener { dismiss() }
         setupCollapsibleSections()
         setupRows()

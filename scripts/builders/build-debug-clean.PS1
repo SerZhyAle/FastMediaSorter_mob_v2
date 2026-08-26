@@ -7,7 +7,12 @@ param(
     # by hand - so it carries its own build timestamp by default (S1873). Frozen versions belong
     # to the compile-only fast checks (fk/fc/fr/fw) that produce no APK. Pass -AutoVersion:$false
     # to opt back in when configuration-cache reuse matters more than a truthful version.
-    [switch]$AutoVersion = $true
+    [switch]$AutoVersion = $true,
+
+    # S1972: which slice of the split debug build to report and copy. Empty means "ask the connected
+    # device", which is the right answer whenever exactly one is attached; name it explicitly when
+    # several are, or when building for a device that is not plugged in.
+    [string]$Abi = ''
 )
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
@@ -56,6 +61,7 @@ Write-Host "Starting build (no cache)..." -ForegroundColor Yellow
 # Using --no-build-cache to force recompilation
 $gradleArgs = @(
     "assembleStandardDebug",
+    "-Pfms.abiSplits=true",
     "-Pchaquopy.enabled=false",
     "--no-build-cache",
     "--configuration-cache"
@@ -83,29 +89,24 @@ Write-Host "`nBuild Successful!" -ForegroundColor Green
 # Copy to DOWNLOADS folder
 $downloadsDir = "$projectRoot\DOWNLOADS"
 
-# Resolve actual APK path from AGP output metadata (fallback to newest .apk)
+# Resolve the built APK path from AGP output metadata.
 $apkDir = Join-Path $projectRoot "app_v2\build\outputs\apk\standard\debug"
-$metadataPath = Join-Path $apkDir "output-metadata.json"
-$apkPath = $null
-
-if (Test-Path -Path $metadataPath) {
-    try {
-        $meta = Get-Content -Path $metadataPath -Raw | ConvertFrom-Json
-        if ($meta.elements -and $meta.elements.Count -gt 0 -and $meta.elements[0].outputFile) {
-            $apkPath = Join-Path $apkDir $meta.elements[0].outputFile
-        }
-    }
-    catch {
-        Write-Host "Warning: Failed to parse output-metadata.json, falling back to latest APK." -ForegroundColor Yellow
-    }
+# S1972: one resolver for every builder - it selects by ABI from output-metadata.json
+# and refuses to guess, where this block used to take element 0 and then the newest file.
+. "$PSScriptRoot\..\utils\find-build-artifact.ps1"
+. "$PSScriptRoot\..\utils\get-device-abi.ps1"
+# arm64-v8a is the fallback, not a guess: adb refuses the property read whenever more than one
+# device is online, which is this repo's normal state (phone + watch + emulator, S1986), and the
+# phone is the thing a debug APK is built for. Pass -Abi x86_64 to take the emulator slice.
+$wantedAbi = if ($Abi) { $Abi } else { Get-TargetDeviceAbi -Fallback 'arm64-v8a' }
+try {
+    $resolvedArtifact = Find-BuildArtifact -Dir $apkDir -Abi $wantedAbi
 }
-
-if (-not $apkPath -or -not (Test-Path -Path $apkPath)) {
-    $latestApk = Get-ChildItem -Path $apkDir -Filter *.apk -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-    if ($latestApk) {
-        $apkPath = $latestApk.FullName
-    }
+catch {
+    Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
 }
+$apkPath = if ($resolvedArtifact) { $resolvedArtifact.FullName } else { $null }
 
 if (-not $apkPath -or -not (Test-Path -Path $apkPath)) {
     Write-Host "Error: APK not found in $apkDir" -ForegroundColor Red

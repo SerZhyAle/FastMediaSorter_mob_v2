@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/toolsSectionScroll"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:padding="@dimen/margin_small">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
+            android:drawableStart="@drawable/ic_wifi"
+            android:text="@string/network_monitor_section_tools" />
+
+        <!-- Diagnostic Host Controls Card -->
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.FastMediaSorter.NetworkMonitor.Card">
+
+            <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.CardContent">
+
+                <TextView
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
+                    android:layout_marginStart="0dp"
+                    android:layout_marginTop="0dp"
+                    android:text="@string/network_monitor_host_diagnostics_heading"
+                    android:textSize="@dimen/text_size_normal" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/toolsHostInputLayout"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:hint="@string/network_monitor_host_hint">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/toolsHostInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="true"
+                        android:imeOptions="actionDone"
+                        android:inputType="text" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Recent Targets Chips Container -->
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/toolsTargetChipGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    app:singleLine="true" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnToolsPing"
+                        style="@style/Widget.FastMediaSorter.Button.Filled"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="@string/network_monitor_action_ping" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnToolsTraceroute"
+                        style="@style/Widget.FastMediaSorter.Button.Filled"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/margin_small"
+                        android:layout_weight="1"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="@string/network_monitor_action_traceroute" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Subnet Scan Card -->
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.FastMediaSorter.NetworkMonitor.Card">
+
+            <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.CardContent">
+
+                <TextView
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
+                    android:layout_marginStart="0dp"
+                    android:layout_marginTop="0dp"
+                    android:text="@string/network_monitor_subnet_scan_heading"
+                    android:textSize="@dimen/text_size_normal" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:baselineAligned="false"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="@string/network_monitor_range_first_hint">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/toolsRangeFirst"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:focusable="true"
+                            android:imeOptions="actionNext"
+                            android:inputType="text" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/margin_small"
+                        android:layout_weight="1"
+                        android:hint="@string/network_monitor_range_last_hint">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/toolsRangeLast"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:focusable="true"
+                            android:imeOptions="actionDone"
+                            android:inputType="text" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnToolsScanSubnet"
+                    style="@style/Widget.FastMediaSorter.Button.Filled"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:text="@string/network_monitor_action_scan_subnet" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Progress and Cancellation -->
+        <LinearLayout
+            android:id="@+id/toolsProgressGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/margin_small"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <TextView
+                android:id="@+id/toolsProgressLabel"
+                style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+                tools:text="Running ping..." />
+
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/toolsProgress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_small"
+                app:trackCornerRadius="@dimen/card_corner_radius" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnToolsCancel"
+                style="@style/Widget.FastMediaSorter.Button.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_small"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="@string/network_monitor_action_cancel" />
+        </LinearLayout>
+
+        <!-- Shared Console Output Card -->
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.FastMediaSorter.NetworkMonitor.Card">
+
+            <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.CardContent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
+                        android:layout_width="0dp"
+                        android:layout_marginStart="0dp"
+                        android:layout_marginTop="0dp"
+                        android:layout_weight="1"
+                        android:text="@string/network_monitor_console_heading"
+                        android:textSize="@dimen/text_size_normal" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnToolsCopyConsole"
+                        style="@style/Widget.FastMediaSorter.Button.Outlined"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/network_monitor_action_copy" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnToolsClearConsole"
+                        style="@style/Widget.FastMediaSorter.Button.Outlined"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/margin_small"
+                        android:text="@string/network_monitor_action_clear" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/toolsConsoleOutput"
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:background="@android:color/black"
+                    android:fontFamily="monospace"
+                    android:padding="@dimen/margin_small"
+                    android:textColor="@android:color/white"
+                    android:textSize="12sp"
+                    tools:text="--- Ping 8.8.8.8 ---\nPinging 8.8.8.8...\n[1] Reached 8.8.8.8 (15 ms)" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
+</ScrollView>

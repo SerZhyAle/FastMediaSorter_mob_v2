@@ -208,8 +208,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-val defaultAppVersionCode = 260824141
-val defaultAppVersionName = "2.60.8241.413"
+val defaultAppVersionCode = 260826055
+val defaultAppVersionName = "2.60.8260.551"
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }
@@ -226,6 +226,13 @@ val edgeGestureOverlayStandardEnabled =
 // the strip if Play rejects the specialUse declaration. Standard only.
 val edgeGestureTileStandardEnabled =
     (providers.gradleProperty("fms.edgeGestureTile").orNull ?: "off").lowercase() != "off"
+// S1972: ABI splits, requested per invocation rather than per build type - `splits` is an
+// `android {}`-level block with no per-buildType form, so the debug builders pass
+// -Pfms.abiSplits=true and the release path passes nothing. Read here, at the top with the other
+// property gates, because noLegal's ndk.abiFilters below is conditioned on it as well: `splits` can
+// only slice what was already packaged.
+val abiSplitsRequested =
+    (providers.gradleProperty("fms.abiSplits").orNull ?: "false").equals("true", ignoreCase = true)
 val isXrNativeBuildRequested = providers.gradleProperty("fms.xrNative").orNull?.let { raw ->
     when {
         raw.equals("true", ignoreCase = true) -> true
@@ -353,8 +360,16 @@ android {
             // Covers Android 8+ phones/tablets (arm64-v8a + armeabi-v7a), Chromebooks
             // and emulators (x86/x86_64). AAB per-device delivery keeps user download size
             // unchanged vs single-ABI. See PLAN/spec_ffmpeg-dts-multi-abi.md.
-            ndk {
-                abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+            //
+            // S1972: skipped entirely under -Pfms.abiSplits=true, because AGP refuses the two
+            // mechanisms together - "Conflicting configuration: '..' in ndk abiFilters cannot be
+            // present when splits abi filters are set", measured 2026-08-26. So a split build has
+            // exactly one filter, `splits.abi.include`, and it names the two ABIs anything here
+            // actually runs on. That property is passed only by the debug builders.
+            if (!abiSplitsRequested) {
+                ndk {
+                    abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+                }
             }
         }
 
@@ -413,15 +428,28 @@ android {
             // emulators are not supported for the Python runtime. noLegal is a sideload-only
             // flavor targeting modern devices (arm64) and Quest headsets (arm64).
             //
-            // x86_64 dropped 2026-08-23 (owner ruling): it existed only to run noLegal on an
-            // emulator, and nothing does - the pre-release sweep installs STANDARD debug, which
-            // keeps its own x86_64 slice. Since S1060 added libVLC (43.95 MB per ABI) the unused
-            // slice cost 93.8 MB of a 256.7 MB APK; arm64-only makes it 162.8 MB. Restoring
-            // emulator support belongs to the ABI-split ticket, not to widening this list again -
-            // AGP merges flavor and buildType abiFilters by UNION, so "x86_64 for debug only"
-            // cannot be expressed here and would leak the slice back into every noLegal build.
-            ndk {
-                abiFilters += listOf("arm64-v8a")
+            // x86_64 was dropped 2026-08-23 (owner ruling), and S1972 - the ticket this comment
+            // named as the owner of restoring it - established 2026-08-26 that it cannot come back
+            // while Chaquopy is in the build. Two refusals meet head-on:
+            //
+            //   AGP:      abiFilters cannot be present when splits abi filters are set;
+            //   Chaquopy: "Variant 'noLegalDebug': Chaquopy requires ndk.abiFilters".
+            //
+            // So noLegal can be filtered or split, never both, and it must be filtered. It stays a
+            // single arm64-v8a APK - exactly the shape the owner ruled for, and the reasoning behind
+            // that ruling is untouched: AGP merges flavor and buildType abiFilters by UNION, so
+            // "x86_64 for debug only" is inexpressible here and the slice would ride inside every
+            // noLegal build, costing 93.8 MB of a 256.7 MB APK (libVLC is 43.95 MB per ABI since
+            // S1060). No builder passes -Pfms.abiSplits for this flavor.
+            //
+            // The guard below is still needed, and not for noLegal's own sake: AGP checks the
+            // abiFilters-versus-splits conflict across EVERY variant at configuration time, so an
+            // unconditional filter here would break a split build of standard. Under the property
+            // this flavor is configured filterless and simply never assembled.
+            if (!abiSplitsRequested) {
+                ndk {
+                    abiFilters += listOf("arm64-v8a")
+                }
             }
             if (isXrNativeBuildRequested) {
                 externalNativeBuild {
@@ -585,8 +613,22 @@ android {
             // at that point a dedicated Azure/Google/Dropbox app registration becomes required.
             versionNameSuffix = "-VR"
             // Meta Quest 2/3/Pro use arm64-v8a exclusively; skip 32-bit to halve APK size.
-            ndk {
-                abiFilters += listOf("arm64-v8a")
+            //
+            // S1972: conditional for the same reason as the other flavors, and it has to be. AGP
+            // checks abiFilters against splits across EVERY variant at configuration time, not only
+            // the one being assembled - measured 2026-08-26, a standard debug build with
+            // -Pfms.abiSplits=true failed on `'arm64-v8a' in ndk abiFilters` from this very block.
+            // So a single unconditional filter anywhere in the file breaks every split build.
+            //
+            // The residual case this leaves - a vr APK sliced for x86_64, which would carry no
+            // OpenXR native, since the loader AAR ships arm64 only - is kept out by the builders
+            // instead: build-debug.PS1 refuses to pass the property for a vr task, and no other
+            // caller passes it at all. externalNativeBuild.cmake.abiFilters below stays arm64-only
+            // regardless, so nothing tries to compile the XR runtime for an ABI it has no slice for.
+            if (!abiSplitsRequested) {
+                ndk {
+                    abiFilters += listOf("arm64-v8a")
+                }
             }
             if (isXrNativeBuildRequested) {
                 externalNativeBuild {
@@ -1132,6 +1174,20 @@ android {
             // in each flavor's *BundledDeliverableSetsModule.bundledSets(), so the delivery runtime
             // treats them as installed and never offers a (Play-forbidden) download.
 
+            // S1971: libVLC is the one native set that goes the other way. Its two libraries are 44 MB
+            // of a 162.8 MB noLegal artifact, and the S0971 reason above does not reach them - noLegal
+            // is sideload-only and never enters Play, so no Play policy applies. The dependency stays
+            // `noLegalImplementation`, so classes.jar remains on the compile path and VlcPlaybackEngine
+            // still builds; only the native part leaves the package and is fetched at runtime. No other
+            // flavor declares the dependency, so these two lines are a no-op everywhere else.
+            // `libc++_shared.so` is deliberately NOT excluded: the copy that ships comes from another
+            // dependency via pickFirsts, and this ticket leaves that pairing exactly as it is.
+            excludes += "**/libvlc.so"
+            excludes += "**/libvlcjni.so"
+
+            // Forces 16 KB page alignment for every native library, which Android 15+ devices need
+            // and Google Play rejects the APK without. This comment sat above the `splits` block
+            // until S1972, where it read as an explanation of a setting it has nothing to do with.
             useLegacyPackaging = false
         }
     }
@@ -1140,12 +1196,28 @@ android {
     // res/xml/locales_config.xml; the store channel trims it back through Play language splits, the
     // direct APK and the non-Play editions deliberately carry all of them.
 
-    // Force 16 KB page alignment for all native libraries
-    // This is critical for Android 15+ devices with 16 KB page size
-    // Without this, Google Play will reject the APK
+    // S1972: `splits` is an `android {}`-level block - the DSL offers no per-build-type form of it,
+    // so "slice debug builds, leave the release path universal" cannot be written as a buildType
+    // setting and is gated by a Gradle property instead. The debug builders pass
+    // -Pfms.abiSplits=true; nothing on the release path does, so a release still emits one
+    // all-architecture APK per flavor and the direct-download channel keeps the device set it
+    // reaches (canon hard invariant 2, strategic §3.2).
+    //
+    // Play is untouched either way: `android.splits` is ignored when building a bundle, and
+    // `bundle.abi.enableSplit` already defaults to true, so the AAB was always sliced per ABI.
+    //
+    // isUniversalApk stays at its default (false): with the property off there is one output and a
+    // universal APK would be a duplicate of it; with the property on, a third output nobody asked for.
     splits {
         abi {
-            isEnable = false
+            isEnable = abiSplitsRequested
+            reset()
+            // The two architectures anything in this project actually runs on: the owner's phone and
+            // the Quest are arm64-v8a, every emulator here is x86_64. When splits are on this list
+            // is the ONLY ABI filter in the build - every flavor's ndk.abiFilters is skipped,
+            // because AGP refuses the two together - so it decides what gets packaged outright
+            // rather than narrowing something already chosen.
+            include("arm64-v8a", "x86_64")
         }
     }
 
@@ -1247,11 +1319,27 @@ androidComponents {
         }
 
         variant.outputs.forEach { output ->
+            // S1972: the ABI token is not cosmetic. This name is per-output, and every slice of a
+            // split build reaches this block with the same flavor, build type and version - so
+            // without the token all of them resolve to ONE file name and each packaging step
+            // overwrites the previous slice. Measured 2026-08-26: a split standard debug wrote an
+            // output-metadata.json listing two elements, arm64-v8a and x86_64, both naming the
+            // identical .apk, with exactly one 88 MB file on disk. The resolver could then hand a
+            // caller the arm64 element and the caller would install the x86_64 bytes.
+            //
+            // Empty for a non-split build, where the single output carries no ABI filter - so the
+            // release name and today's debug name are unchanged, byte for byte.
+            val abiToken = (output as? com.android.build.api.variant.VariantOutput)
+                ?.filters
+                ?.firstOrNull { it.filterType == com.android.build.api.variant.FilterConfiguration.FilterType.ABI }
+                ?.identifier
+                ?.let { "_$it" }
+                ?: ""
             output.outputFileName.set(
                 output.versionName.map { vn ->
                     val v = vn ?: "unknown"
-                    if (buildType == "release") "FastMediaSorter_${flavorName}_v${v}.apk"
-                    else "FastMediaSorter_${flavorName}_${buildType}_v${v}.apk"
+                    if (buildType == "release") "FastMediaSorter_${flavorName}${abiToken}_v${v}.apk"
+                    else "FastMediaSorter_${flavorName}_${buildType}${abiToken}_v${v}.apk"
                 }
             )
         }
@@ -1791,7 +1879,7 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     testImplementation("androidx.arch.core:core-testing:2.2.0")
     testImplementation("io.mockk:mockk:1.13.9")
-    testImplementation("org.robolectric:robolectric:4.11.1") // For Android framework in JVM tests
+    testImplementation("org.robolectric:robolectric:4.16.1") // For Android framework in JVM tests
     
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
@@ -1808,7 +1896,7 @@ dependencies {
 // S1496: BouncyCastle is never declared here - it arrives transitively through SMBJ. Assert the
 // version instead of forcing it: a force would silently block the security updates that ride along
 // with an SMBJ bump, while an unasserted transitive edge lets the crypto library move unnoticed.
-// Test configurations are excluded on purpose: Robolectric 4.11.1 requests bcprov-jdk18on:1.76 on
+// Test configurations are excluded on purpose: Robolectric 4.16.1 requests bcprov-jdk18on:1.81 on
 // the unit-test classpath, and nothing on a test classpath reaches the APK, so asserting there
 // would break the suite over a version that never ships.
 //

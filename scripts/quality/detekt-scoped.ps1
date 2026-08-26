@@ -41,7 +41,9 @@
 .NOTES
     Exit codes:
       0 - the analyser ran and found nothing new in the named files (or there were none to check).
-      1 - the analyser ran and found at least one new finding; each is printed.
+      1 - the analyser ran and found at least one new finding; each is printed. Never returned in
+          -Fix mode: formatting is housekeeping, not a verdict, so a fix run always exits 0 and
+          leaves the FAIL to the preflight that runs after it.
       2 - CANNOT VERIFY. java missing, classpath incomplete, config or baseline absent, a named
           file absent, or the analyser produced no readable report. Never reported as 0: "could
           not check" and "checked and found nothing" are different facts, and collapsing them
@@ -53,6 +55,11 @@ param(
     [string]   $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path,
     [string]   $ConfigPath,
     [string]   $CacheRoot = (Join-Path $env:USERPROFILE '.gradle/caches/modules-2/files-2.1'),
+    # S1949-follow-up: rewrite what the formatting ruleset can fix by itself instead of reporting it.
+    # Import order, a blank line before a brace, a missing trailing newline - findings that cost a
+    # full closure round-trip to report and one keystroke to fix. With -Fix this script corrects them
+    # in place and always exits 0: formatting is never a verdict, it is housekeeping done before one.
+    [switch]   $Fix,
     [switch]   $Json
 )
 
@@ -205,6 +212,22 @@ try {
             '--baseline', $baseline
             '--report', "xml:$report"
         )
+        if ($Fix) {
+            # detekt only auto-corrects rules that declare themselves correctable, which in this
+            # configuration is the ktlint formatting ruleset and nothing else. No semantic rule is
+            # rewritten, so a fix run cannot change what the code does.
+            #
+            # The main config pins formatting.autoCorrect to false so the GATE can never rewrite what
+            # it is judging; --auto-correct alone is therefore silently inert. The overlay flips that
+            # single flag and is merged after the main config, so every threshold and exclusion still
+            # comes from detekt.yml.
+            $argv += '--auto-correct'
+            $overlay = Join-Path $RepoRoot 'config/detekt/format-autocorrect.yml'
+            if (Test-Path -LiteralPath $overlay) {
+                $configIndex = [array]::IndexOf($argv, '--config')
+                $argv[$configIndex + 1] = "$ConfigPath,$overlay"
+            }
+        }
         # Keep the analyser's own output. Exit 2 is only actionable if it says what went wrong -
         # a wrong Kotlin version shows up as a stack trace inside detekt's rule-set wiring and
         # nowhere else, so a swallowed message makes "cannot verify" undiagnosable.
@@ -259,12 +282,27 @@ else {
 $scope = (@($byModule.Keys) -join ' + ')
 $fileCount = @($byModule.Values | ForEach-Object { $_ }).Count
 if ($findings.Count -eq 0) {
-    Write-Host ("detekt-scoped: PASS [{0}] - {1} file(s), no new finding under the full configured rule set ({2:N1}s)." -f `
-            $scope, $fileCount, $sw.Elapsed.TotalSeconds) -ForegroundColor Green
+    $verdict = if ($Fix) { 'FIXED' } else { 'PASS' }
+    Write-Host ("detekt-scoped: {0} [{1}] - {2} file(s), no new finding under the full configured rule set ({3:N1}s)." -f `
+            $verdict, $scope, $fileCount, $sw.Elapsed.TotalSeconds) -ForegroundColor Green
     exit 0
 }
 
 $byRule = ($findings | Group-Object RuleId | ForEach-Object { "$($_.Name) $($_.Count)" }) -join ', '
+
+if ($Fix) {
+    # Housekeeping never renders a verdict. Whatever the formatting ruleset could rewrite is already
+    # rewritten on disk; whatever it could not is left for the preflight that runs straight after,
+    # which is the step that owns the FAIL. Returning 1 here would abort a closure over a finding
+    # this run may have just fixed.
+    # The report is written as the analyser runs, so these are the findings as seen BEFORE correction -
+    # the correctable ones among them are already gone from disk. The gate that runs next is what says
+    # which survived; this line must not claim to know that.
+    Write-Host ("detekt-scoped: FIXED [{0}] - {1} file(s) processed; {2} finding(s) seen before correction - {3} ({4:N1}s)." -f `
+            $scope, $fileCount, $findings.Count, $byRule, $sw.Elapsed.TotalSeconds) -ForegroundColor Yellow
+    exit 0
+}
+
 Write-Error ("detekt-scoped: FAIL [{0}] - {1} new finding(s) in {2} changed file(s) - {3}. Fix the lines above." -f `
         $scope, $findings.Count, $fileCount, $byRule) -ErrorAction Continue
 exit 1

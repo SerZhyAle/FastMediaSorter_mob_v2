@@ -16,7 +16,12 @@ param(
     # Quiet mode: suppress UP-TO-DATE / NO-SOURCE / SKIPPED task lines, deprecated-DSL spam,
     # and known-acceptable warnings. Errors, FAIL/SUCCESS verdict, and unknown warnings are
     # always preserved. The full unfiltered output is still captured for retry-detection.
-    [switch]$Quiet
+    [switch]$Quiet,
+
+    # S1972: which slice of the split debug build to report and copy. Empty means "ask the connected
+    # device", which is the right answer whenever exactly one is attached; name it explicitly when
+    # several are, or when building for a device that is not plugged in.
+    [string]$Abi = ''
 )
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
@@ -136,6 +141,18 @@ function Invoke-DebugBuild {
     $enableChaquopy = $script:Chaquopy.IsPresent -or ($script:Task -match '(?i)noLegal')
     $chaquopyFlag = if ($enableChaquopy) { "-Pchaquopy.enabled=true" } else { "-Pchaquopy.enabled=false" }
     $gradleArgs = @($script:Task, $chaquopyFlag)
+    # S1972: debug-only ABI splits - the phone and the emulator each get their own APK. Conditioned
+    # on the task, not on the script, because -Task is settable and this driver would otherwise
+    # slice whatever it was pointed at. Three exclusions, all load-bearing:
+    #   release  - slicing one would shrink the device set it reaches (canon hard invariant 2);
+    #   vr       - an x86_64 vr APK would carry no OpenXR native, the loader AAR being arm64 only;
+    #   Chaquopy - the plugin refuses a build with no ndk.abiFilters, and a split build has none,
+    #              because AGP refuses the two together. Measured 2026-08-26: "Variant
+    #              'noLegalDebug': Chaquopy requires ndk.abiFilters". noLegal therefore stays a
+    #              single arm64 APK, which is the shape the owner ruled for on 2026-08-23.
+    if ($script:Task -match '(?i)debug' -and $script:Task -notmatch '(?i)vr' -and -not $enableChaquopy) {
+        $gradleArgs += "-Pfms.abiSplits=true"
+    }
     if ($enableChaquopy) {
         # S0276 follow-up: repo default is CC-off for direct noLegal/IDE safety, and any
         # noLegal/Chaquopy task graph must stay opted out until the plugin becomes
@@ -247,29 +264,24 @@ Write-Host "`nBuild Successful!" -ForegroundColor Green
 # Copy to DOWNLOADS folder
 $downloadsDir = "$projectRoot\DOWNLOADS"
 
-# Resolve actual APK path from AGP output metadata (fallback to newest .apk)
+# Resolve the built APK path from AGP output metadata.
 $apkDir = Join-Path $projectRoot "app_v2\build\outputs\apk\standard\debug"
-$metadataPath = Join-Path $apkDir "output-metadata.json"
-$apkPath = $null
-
-if (Test-Path -Path $metadataPath) {
-    try {
-        $meta = Get-Content -Path $metadataPath -Raw | ConvertFrom-Json
-        if ($meta.elements -and $meta.elements.Count -gt 0 -and $meta.elements[0].outputFile) {
-            $apkPath = Join-Path $apkDir $meta.elements[0].outputFile
-        }
-    }
-    catch {
-        Write-Host "Warning: Failed to parse output-metadata.json, falling back to latest APK." -ForegroundColor Yellow
-    }
+# S1972: one resolver for every builder - it selects by ABI from output-metadata.json
+# and refuses to guess, where this block used to take element 0 and then the newest file.
+. "$PSScriptRoot\..\utils\find-build-artifact.ps1"
+. "$PSScriptRoot\..\utils\get-device-abi.ps1"
+# arm64-v8a is the fallback, not a guess: adb refuses the property read whenever more than one
+# device is online, which is this repo's normal state (phone + watch + emulator, S1986), and the
+# phone is the thing a debug APK is built for. Pass -Abi x86_64 to take the emulator slice.
+$wantedAbi = if ($Abi) { $Abi } else { Get-TargetDeviceAbi -Fallback 'arm64-v8a' }
+try {
+    $resolvedArtifact = Find-BuildArtifact -Dir $apkDir -Abi $wantedAbi
 }
-
-if (-not $apkPath -or -not (Test-Path -Path $apkPath)) {
-    $latestApk = Get-ChildItem -Path $apkDir -Filter *.apk -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-    if ($latestApk) {
-        $apkPath = $latestApk.FullName
-    }
+catch {
+    Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
 }
+$apkPath = if ($resolvedArtifact) { $resolvedArtifact.FullName } else { $null }
 
 if (-not $apkPath -or -not (Test-Path -Path $apkPath)) {
     Write-Host "Error: APK not found in $apkDir" -ForegroundColor Red
@@ -287,7 +299,7 @@ $destName = "FastMediaSorter_standard_debug.apk"
 # version inside it belongs to an older build (S1873). Checked before the copy, because the
 # copy is what puts it in DOWNLOADS and on Google Drive.
 if ($script:AutoVersion) {
-    & (Join-Path $PSScriptRoot "..\quality\assert-artifact-version-fresh.ps1") -Path $apkDir
+    & (Join-Path $PSScriptRoot "..\quality\assert-artifact-version-fresh.ps1") -Path $apkPath
     if ($LASTEXITCODE -eq 1) {
         Write-Host "Refusing to distribute an artifact whose version is not its own." -ForegroundColor Red
         exit 1

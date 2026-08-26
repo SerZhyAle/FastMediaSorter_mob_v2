@@ -60,7 +60,7 @@ data class AppSettings(
     val networkParallelism: Int = 4, // Parallel threads for network operations (1, 2, 4, 8, 12, 24)
     val cacheSizeMb: Int = 2048, // Glide disk cache size in MB (512, 1024, 2048, 4096, 8192, 16384) - Default: 2GB after installation
     val isCacheSizeUserModified: Boolean = false, // Flag indicating if user manually changed cache size
-    
+
     // Network sync settings
     val enableBackgroundSync: Boolean = false,
     val backgroundSyncIntervalHours: Int = 4, // hours (1-24)
@@ -78,7 +78,7 @@ data class AppSettings(
     val allFiles: Boolean = false, // Show all file types (not just media). When ON: auto-enables all media types.
     val showHiddenFiles: Boolean = false, // Show hidden files and folders (those starting with a dot). Depends on allFiles being ON.
     val showSubfoldersAsItems: Boolean = false, // Show subfolders as separate browsable items instead of flat file list
-    
+
     // Media Files settings
     val supportImages: Boolean = true,
     val imageSizeMin: Long = 1024L, // 1KB
@@ -103,7 +103,7 @@ data class AppSettings(
     val backgroundAudioExitBehavior: BackgroundAudioExitBehavior = BackgroundAudioExitBehavior.ASK, // What to do when leaving player while background audio is active
     val showNowPlayingPanel: Boolean = false, // Show mini now-playing bar when browsing non-audio/video files while background audio is active
     val audioEmptyStateMode: String = "CANVAS_WAVES", // Animation mode when no cover art: NONE, AVD_PULSE, CANVAS_BARS, CANVAS_WAVES, VISUALIZATION (GIF_LOOP=legacy alias)
-    
+
     val supportText: Boolean = true, // Optional support for text files
     val supportPdf: Boolean = true, // Optional support for PDF files
     val supportEpub: Boolean = true, // Optional support for EPUB files
@@ -153,7 +153,7 @@ data class AppSettings(
     val ocrDefaultFontFamily: String = "DEFAULT", // Default font family for OCR results (DEFAULT, SERIF, MONOSPACE)
     val ocrEngineType: String = "TESSERACT",
     val paddleOcrModel: String = "CYRILLIC",
-    
+
     // Playback and Sorting settings
     val defaultSortMode: SortMode = SortMode.NAME_ASC,
     val slideshowInterval: Int = 10, // seconds (default 10, range 1-3600)
@@ -183,10 +183,10 @@ data class AppSettings(
     val showVideoThumbnails: Boolean = true, // Extract and show first frame for video thumbnails (may be slow for network files)
     val enablePlayerWarmup: Boolean = false, // Optional Browse-side player infrastructure warm-up (no media preload)
     val rendererMigrationEnabled: Boolean = false, // Migration boundary flag for the static image renderer pipeline
-    
+
     // Safe Mode settings (Phase 2.1) - Master toggle for confirmations
     val enableSafeMode: Boolean = true, // When ON: show confirmDelete/confirmMove dialogs. When OFF: skip confirmations
-    
+
     // Scheduled operations
     val enableScheduledOperations: Boolean = true,
     val scheduledOperationsPaused: Boolean = false, // S0353: durable Pause All state for scheduled operations
@@ -200,7 +200,7 @@ data class AppSettings(
     val enableUndo: Boolean = true,
     val maxRecipients: Int = 10, // Maximum number of destination buttons (1-10)
     val enableFavorites: Boolean = true, // Enable "Favorites" feature (enabled by default)
-    val disableCameraCapture: Boolean = false,   // Hide camera-capture button in Browse globally
+    val disableCameraCapture: Boolean = false, // Hide camera-capture button in Browse globally
     val skipCameraFilenameDialog: Boolean = false, // Skip rename dialog after capture; use timestamp name
     val cameraCaptureOpenForEditing: Boolean = false, // Open the captured photo in the drawing editor after saving
     val cameraCaptureCopyToClipboard: Boolean = false, // Also place a captured photo on the system clipboard (S0469)
@@ -214,13 +214,13 @@ data class AppSettings(
     // S0371: video recording to resource. disableVideoCapture mirrors disableCameraCapture's inverted
     // persistence (master toggle stored as a negative flag); videoCaptureOpenInPlayer is opt-in
     // (default OFF) - after a recording is saved it optionally opens in the player, never the editor.
-    val disableVideoCapture: Boolean = false,    // Hide video-capture command in Browse globally
+    val disableVideoCapture: Boolean = false, // Hide video-capture command in Browse globally
     val videoCaptureOpenInPlayer: Boolean = false, // Open the recorded video in the player after saving
     // S0375: default destination for video recordings when the current resource is not a usable
     // target; null = fallback to the public Movies folder.
     val videoRecordingDestinationResourceId: String? = null,
-    val micRecordingEnabled: Boolean = false,      // S0100: Show mic record button in Browse
-    val micRecordingAskFilename: Boolean = true,   // S0100: Show rename dialog before saving recording
+    val micRecordingEnabled: Boolean = false, // S0100: Show mic record button in Browse
+    val micRecordingAskFilename: Boolean = true, // S0100: Show rename dialog before saving recording
     // S0367: default destination for microphone recordings; null = fallback to public Downloads.
     // Resolved by CaptureDestinationPolicy.resolveMicDestination.
     val micRecordingDestinationResourceId: String? = null,
@@ -253,13 +253,13 @@ data class AppSettings(
     // S0808: main-window streams panel collapsed into its labelled strip (mirror of programsPanelCollapsed).
     val streamsPanelCollapsed: Boolean = false,
     val enablePictureInPicture: Boolean = true,
-    
+
     // Last used resource for quick slideshow
     val lastUsedResourceId: Long = -1L,
-    
+
     // File list caching
     val defaultRememberFileList: Boolean = false,
-    
+
     // Dynamic Background Effect
     val dynamicBackgroundExtension: Boolean = false,
 
@@ -271,8 +271,8 @@ data class AppSettings(
     val acceptSharedFiles: Boolean = true,
 
     // X.11: Background thumbnail pre-generation
-    val enableThumbnailPreload: Boolean = false,       // Background thumbnail pre-generation (opt-in, consumes network bandwidth)
-    val thumbnailPreloadWifiOnly: Boolean = true,       // Restrict preload to unmetered (Wi-Fi) connections
+    val enableThumbnailPreload: Boolean = false, // Background thumbnail pre-generation (opt-in, consumes network bandwidth)
+    val thumbnailPreloadWifiOnly: Boolean = true, // Restrict preload to unmetered (Wi-Fi) connections
 
     // Last selected folder for folder picker persistence (FR-8).
     // Stores the content:// URI string from OpenDocumentTree.
@@ -313,8 +313,8 @@ data class AppSettings(
     val linkDownloadLoginWallHeuristicEnabled: Boolean = true,
 
     // VR settings (spec §5.7/§8 - visible only when SUPPORT_VR_PLAYER == true).
-    val vrRenderingMode: String = "CINEMA",         // Cinema (flat screen in VR) / FULL_SBS / FULL_OU
-    val vrAutoImmersive: Boolean = true,             // Auto-enter immersive on stereo content; off → stay in Cinema/2D, manual entry only
+    val vrRenderingMode: String = "CINEMA", // Cinema (flat screen in VR) / FULL_SBS / FULL_OU
+    val vrAutoImmersive: Boolean = true, // Auto-enter immersive on stereo content; off → stay in Cinema/2D, manual entry only
     val vrPlayerEntryPromptDismissed: Boolean = false, // One-time player prompt for XR-capable devices with master toggle OFF
     // Global VR kill-switch: when true, bypasses all 3D/VR classification; all content plays as plain 2D
     val disable3dVr: Boolean = false,
@@ -322,21 +322,21 @@ data class AppSettings(
     // Immersive VR rendering overrides this flag at runtime via VideoPlayerManager.vrImmersiveActive,
     // so a true default is safe on VR builds (no double crop while immersive).
     val panelStereoSingleEye: Boolean = true,
-    val vrShowFps: Boolean = false,                  // Display diagnostic FPS counter in immersive HUD
-    val playerShowFps: Boolean = false,              // S0021: Display diagnostic FPS counter over the flat (non-immersive) player
+    val vrShowFps: Boolean = false, // Display diagnostic FPS counter in immersive HUD
+    val playerShowFps: Boolean = false, // S0021: Display diagnostic FPS counter over the flat (non-immersive) player
 
     // S0326: Global 3D/VR default settings (Settings → Media → 3D/VR).
     // Detection-source flags below are flavor-independent (flat stereo exists on every flavor);
     // they configure StereoDetector and feed the global-default fallback slot in
     // PlayerStereoModeCoordinator. Per-file override and a positive detection always win over these.
-    val stereoAutoDetectEnabled: Boolean = true,     // Master switch for automatic 3D/VR format recognition
-    val stereoTrustFilename: Boolean = true,         // Trust filename markers (_SBS, _TB, 180, 360, ..)
-    val stereoTrustMetadata: Boolean = true,         // Trust embedded metadata (MP4 st3d/sv3d, Matroska StereoMode, GPano/PhotoSphere XMP)
-    val stereoTrustAspectRatio: Boolean = false,     // Aspect-ratio heuristic - off by default (the false-positive source)
-    val stereoAmbiguityBestGuess: Boolean = false,   // On ambiguity: false → open as 2D, true → apply best guess
+    val stereoAutoDetectEnabled: Boolean = true, // Master switch for automatic 3D/VR format recognition
+    val stereoTrustFilename: Boolean = true, // Trust filename markers (_SBS, _TB, 180, 360, ..)
+    val stereoTrustMetadata: Boolean = true, // Trust embedded metadata (MP4 st3d/sv3d, Matroska StereoMode, GPano/PhotoSphere XMP)
+    val stereoTrustAspectRatio: Boolean = false, // Aspect-ratio heuristic - off by default (the false-positive source)
+    val stereoAmbiguityBestGuess: Boolean = false, // On ambiguity: false → open as 2D, true → apply best guess
     // Global default applied by the coordinator ONLY when detection returned UNKNOWN; MONO == plain 2D.
-    val stereoDefaultLayout: StereoMode = StereoMode.MONO,      // Flat-stereo default: MONO / SBS_FULL / OU
-    val stereoDefaultProjection: StereoMode = StereoMode.MONO,  // Projection default: MONO (flat) / EQUIRECT_180_MONO / EQUIRECT_360_MONO / CYLINDER_180
+    val stereoDefaultLayout: StereoMode = StereoMode.MONO, // Flat-stereo default: MONO / SBS_FULL / OU
+    val stereoDefaultProjection: StereoMode = StereoMode.MONO, // Projection default: MONO (flat) / EQUIRECT_180_MONO / EQUIRECT_360_MONO / CYLINDER_180
 
     // Playback resume on next launch: if true, app reopens last played file on cold start
     val resumeOnNextLaunch: Boolean = true,
@@ -344,7 +344,7 @@ data class AppSettings(
     // Adaptive pre-cache strategy (spec §5)
     val prefetchCacheMultiplier: PrefetchCacheMultiplier = PrefetchCacheMultiplier.AUTO,
     val streamingCacheCleanupMode: StreamingCacheCleanupMode = StreamingCacheCleanupMode.ASK,
-    val streamingCacheTtlDays: Int = 7,          // 0 = off, 1, 3, 7, 30
+    val streamingCacheTtlDays: Int = 7, // 0 = off, 1, 3, 7, 30
 
     // S0050: Black Screen mode - show/hide the black-screen toolbar button in audio/video players
     val showBlackScreenButton: Boolean = false,
@@ -387,21 +387,25 @@ data class AppSettings(
     val launcherTaskbarShowRecents: Boolean = true,
     val launcherTaskbarShowPinned: Boolean = true,
     val launcherTaskbarShowTray: Boolean = true,
-    val launcherReplaceSystemStatusArea: Boolean = false,
+    // S2017: hides the system status bar by default so a fresh install looks like the requested
+    // "Hide system status bar" state without a manual toggle.
+    val launcherReplaceSystemStatusArea: Boolean = true,
     // S1431: moves the clock and the indicator set off the taskbar tray and onto the freed top band,
     // which frees the Start panel for a longer recents list. Meaningful only while
     // [launcherReplaceSystemStatusArea] is on, since without it there is no freed band to draw in.
     val launcherTopStatusStripMode: Boolean = false,
-    // S1465 ADR-4: whether the top strip also shows other applications' pending notifications as an icon
-    // and a count. Defaults OFF and stays OFF on upgrade: the system notification access may already have
-    // been granted for the "now playing" gadget, and silently widening a consent the user gave for one
-    // purpose to a second one is what gets an app pulled from publication.
-    val launcherForeignNotificationsEnabled: Boolean = false,
+    // S1465 ADR-4 default OFF was superseded by S2017 ADR-1 (explicit owner instruction, 2026-08-25):
+    // whether the top strip also shows other applications' pending notifications as an icon and a count.
+    // The store-policy risk ADR-4 raised - reusing a notification-listener grant given for an unrelated
+    // purpose - is real but narrow (only a pre-existing install that never touched this row and already
+    // holds that grant); S2017 records it as an accepted risk rather than blocking the default flip.
+    val launcherForeignNotificationsEnabled: Boolean = true,
     // S1415: composition of the tray itself, one switch per indicator, in the tray's left-to-right order.
     // [launcherTaskbarShowTray] above stays the master switch for the whole block; these only decide what
     // the block contains once it is shown. All default ON so an upgrade looks exactly like the old tray
-    // plus the indicators the device can actually report.
-    val launcherTrayShowClock: Boolean = true,
+    // plus the indicators the device can actually report - except the clock (S2017: duplicates the top
+    // bar's own clock once [launcherReplaceSystemStatusArea] is on by default).
+    val launcherTrayShowClock: Boolean = false,
     val launcherTrayShowBluetooth: Boolean = true,
     val launcherTrayShowSim1: Boolean = true,
     val launcherTrayShowSim2: Boolean = true,
@@ -483,7 +487,7 @@ data class AppSettings(
         if (allFiles) {
             return MediaType.entries.toSet()
         }
-        
+
         // Otherwise, return individually enabled types
         val types = mutableSetOf<MediaType>()
         if (supportImages) types.add(MediaType.IMAGE)

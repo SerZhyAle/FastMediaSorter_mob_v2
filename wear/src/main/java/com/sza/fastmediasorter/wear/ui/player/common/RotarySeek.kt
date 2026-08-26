@@ -1,14 +1,19 @@
 package com.sza.fastmediasorter.wear.ui.player.common
 
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.rotary.onRotaryScrollEvent
+import androidx.wear.compose.foundation.lazy.ScalingLazyListState
+import kotlinx.coroutines.launch
+import timber.log.Timber
 
 /**
  * S1683: the bezel's action arrives as a lambda and this file never learns what it does. The owner
@@ -54,6 +59,22 @@ fun Modifier.rotaryActionSteps(onStep: (Int) -> Unit): Modifier {
     val accumulator = remember { RotaryStepAccumulator() }
     return this.rotaryAction(focusRequester) { delta ->
         accumulator.add(delta, onStep)
+    }
+}
+
+/**
+ * S2049: this pinned Wear Compose Foundation build wires no rotary input into `ScalingLazyColumn` at
+ * all - its sources carry no rotary reference anywhere in the module - so a scrollable screen needs the
+ * same explicit focus request the stepped and seek variants above already use, applied to a plain scroll
+ * instead of a stepped or single-consumer action.
+ */
+@Composable
+fun Modifier.rotaryActionScroll(listState: ScalingLazyListState): Modifier {
+    val focusRequester = rememberRotaryFocus()
+    val coroutineScope = rememberCoroutineScope()
+    return this.rotaryAction(focusRequester) { delta ->
+        Timber.d("S2049: rotary scroll delta=$delta")
+        coroutineScope.launch { listState.scrollBy(delta) }
     }
 }
 

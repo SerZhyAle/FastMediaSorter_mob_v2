@@ -30,6 +30,11 @@ class LauncherStarterSetsTest {
         InternalRouteCatalog.KEY_CALCULATOR to true,
         InternalRouteCatalog.KEY_NETWORK_MONITOR to true,
         InternalRouteCatalog.KEY_OCR to true,
+        InternalRouteCatalog.KEY_SCREEN_RECORDING to true,
+        InternalRouteCatalog.KEY_LINK_DOWNLOAD to true,
+        InternalRouteCatalog.KEY_GAME to true,
+        InternalRouteCatalog.KEY_SYSTEM_INFO to true,
+        InternalRouteCatalog.KEY_WEAR_COMPANION to true,
     )
 
     /** The utilities every profile closes with, below the second header. */
@@ -155,11 +160,13 @@ class LauncherStarterSetsTest {
                 "res:4:BROWSE", "res:5:BROWSE", "res:6:BROWSE",
                 // S1913: listed rather than folded into sectionTail(), which has no padding cells by
                 // construction. This assertion is named "and padding set" and is called with
-                // allPaddingAvailable, so commonFeatures emits all six - the helper silently dropped
+                // allPaddingAvailable, so commonFeatures emits every key - the helper silently dropped
                 // them when the flat tail was refactored away, which is what made this test red.
                 "sec:app_functions",
                 "fn:streams", "fn:quick_camera", "fn:quick_voice",
                 "fn:calculator", "fn:network_monitor", "fn:ocr",
+                // S2019: the five programs the seed used to leave out of the App-functions section.
+                "fn:screen_recording", "fn:link_download", "fn:game", "fn:system_info", "fn:wear_companion",
             ) + actionTargets(DeviceProfileType.PERSONAL_SMARTPHONE) + commonTail,
             items.map { it.target },
         )
@@ -472,21 +479,89 @@ class LauncherStarterSetsTest {
         val installed = LauncherStarterSets.GOOGLE_APP_PACKAGES.toSet()
         val targets = googleItems(googleServicesAvailable = false, installed = installed).map { it.target }
         assertFalse(targets.contains(sectionTarget(LauncherCellCommand.SECTION_GOOGLE)))
-        // S1913: these four reach the desktop through paths the Google gating does not control -
-        // YouTube, YouTube Music and Chrome from commonThirdPartyApps, Maps from the MAPS_PROFILES
-        // rule - so seeing them here says nothing about whether the Google section was suppressed.
+        // S2015: these four are exactly the packages that must survive the deduplication on a device
+        // with no Play Services. The Google section is not seeded here, so it owns nothing, and the
+        // Apps section subtracts an empty set - YouTube, YouTube Music and Chrome still arrive through
+        // commonThirdPartyApps, Maps through the MAPS_PROFILES rule. Subtracting the whole catalogue
+        // instead of the seeded set would strip them off the desktop altogether (strategic ADR-1).
         // Chrome's literal rather than the constant because PACKAGE_CHROME is private, as with
-        // FM_RADIO_PACKAGE elsewhere in this file. Holding a cell in two sections is allowed: S1644
-        // ruled that a repeated target is not what makes a cell a duplicate.
+        // FM_RADIO_PACKAGE elsewhere in this file.
         val seededOutsideGoogleSection = setOf(
             LauncherStarterSets.PACKAGE_YOUTUBE,
             LauncherStarterSets.PACKAGE_YOUTUBE_MUSIC,
             LauncherStarterSets.PACKAGE_MAPS,
             "com.android.chrome",
         )
+        seededOutsideGoogleSection.forEach {
+            assertTrue("lost without services: $it", targets.contains("app:$it"))
+        }
         LauncherStarterSets.GOOGLE_APP_PACKAGES
             .filterNot { it in seededOutsideGoogleSection }
             .forEach { assertFalse("seeded without services: $it", targets.contains("app:$it")) }
+    }
+
+    // ── S2015: one section owns a package, and the Apps section holds the user's own ────────
+
+    @Test
+    fun `with google services those four sit in the google section and nowhere else`() {
+        // S1913 asserted the opposite: that YouTube, YouTube Music, Maps and Chrome legitimately stood
+        // outside the Google section while it also held them. That is the duplication S2015 removes.
+        val installed = LauncherStarterSets.GOOGLE_APP_PACKAGES.toSet()
+        val targets = googleItems(googleServicesAvailable = true, installed = installed).map { it.target }
+        val headerIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_GOOGLE))
+        assertTrue("google header absent", headerIndex >= 0)
+        LauncherStarterSets.GOOGLE_APP_PACKAGES.forEach { packageName ->
+            val target = "app:$packageName"
+            assertEquals("$packageName seeded twice", 1, targets.count { it == target })
+            assertTrue("$packageName sits outside the google section", targets.indexOf(target) > headerIndex)
+        }
+    }
+
+    @Test
+    fun `no app target repeats on a device carrying the whole google catalogue`() {
+        val installed = LauncherStarterSets.candidatePackages
+        val targets = googleItems(googleServicesAvailable = true, installed = installed).map { it.target }
+        val repeated = targets.filter { it.startsWith("app:") }
+            .groupingBy { it }.eachCount()
+            .filterValues { it > 1 }
+        assertEquals("a fresh desktop shows the same icon twice: $repeated", emptyMap<String, Int>(), repeated)
+    }
+
+    @Test
+    fun `supplied third-party apps are seeded under the android-apps header, never above it`() {
+        val thirdParty = listOf("com.whatsapp", "org.telegram.messenger")
+        val targets = LauncherStarterSets.itemsFor(
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            StarterResources(recentId = 1),
+            allPaddingAvailable,
+            LauncherStarterSets.candidatePackages,
+            googleServicesAvailable = true,
+            thirdPartyApps = thirdParty,
+        ).map { it.target }
+        val appsHeaderIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_ANDROID_APPS))
+        val googleHeaderIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_GOOGLE))
+        assertTrue("android-apps header absent", appsHeaderIndex >= 0)
+        thirdParty.forEach { packageName ->
+            val index = targets.indexOf("app:$packageName")
+            assertTrue("$packageName absent", index >= 0)
+            assertTrue("$packageName landed above its header", index > appsHeaderIndex)
+            assertTrue("$packageName fell into the google section", index < googleHeaderIndex)
+        }
+    }
+
+    @Test
+    fun `a supplied third-party app the section already placed is not seeded twice`() {
+        // The caller resolves its list against the whole device, so the starter table's own candidates
+        // can appear in it; the section drops them rather than placing a second cell.
+        val targets = LauncherStarterSets.itemsFor(
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            StarterResources(recentId = 1),
+            allPaddingAvailable,
+            setOf(LauncherStarterSets.PACKAGE_YOUTUBE),
+            thirdPartyApps = listOf(LauncherStarterSets.PACKAGE_YOUTUBE, "com.whatsapp"),
+        ).map { it.target }
+        assertEquals(1, targets.count { it == "app:${LauncherStarterSets.PACKAGE_YOUTUBE}" })
+        assertEquals(1, targets.count { it == "app:com.whatsapp" })
     }
 
     @Test

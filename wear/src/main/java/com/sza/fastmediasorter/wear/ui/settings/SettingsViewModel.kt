@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.wear.BuildConfig
 import com.sza.fastmediasorter.wear.data.wear.WatchSyncEvents
 import com.sza.fastmediasorter.wear.data.wear.WearLogReportClient
 import com.sza.fastmediasorter.wear.data.wear.WearLogReportOutcome
+import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,6 +35,7 @@ private const val INDEX_STREAMS_SECTION = 7
 private const val INDEX_KEEP_AWAKE = 8
 private const val INDEX_FILE_LIST_VIEW_MODE = 9
 private const val INDEX_AUTO_ROTATION = 10
+private const val INDEX_VOICE_NOTE_POLICY = 11
 
 /**
  * ViewModel for Settings screen.
@@ -90,7 +92,8 @@ class SettingsViewModel @Inject constructor(
                     preferencesRepository.streamsSectionEnabled,
                     preferencesRepository.keepScreenAwakeOutsidePlayers,
                     preferencesRepository.fileListViewMode,
-                    preferencesRepository.isAutoRotationEnabled
+                    preferencesRepository.isAutoRotationEnabled,
+                    preferencesRepository.voiceNoteSendPolicy
                 )
             ) { values ->
                 val audio = values[INDEX_AUDIO] as Boolean
@@ -104,6 +107,7 @@ class SettingsViewModel @Inject constructor(
                 val keepAwake = values[INDEX_KEEP_AWAKE] as Boolean
                 val fileListView = values[INDEX_FILE_LIST_VIEW_MODE] as WearViewMode
                 val autoRotation = values[INDEX_AUTO_ROTATION] as Boolean
+                val sendPolicy = values[INDEX_VOICE_NOTE_POLICY] as VoiceNoteSendPolicy
                 _uiState.value.copy(
                     isAudioEnabled = audio,
                     isVideoEnabled = video,
@@ -117,6 +121,7 @@ class SettingsViewModel @Inject constructor(
                     fileListViewMode = fileListView,
                     isAutoRotationEnabled = autoRotation,
                     hasAutoRotationSensor = hasAccelerometer,
+                    voiceNoteSendPolicy = sendPolicy,
                     isLoading = false
                 )
             }.collect { combinedState ->
@@ -206,6 +211,17 @@ class SettingsViewModel @Inject constructor(
     fun toggleAutoRotation() {
         viewModelScope.launch {
             preferencesRepository.setAutoRotationEnabled(!_uiState.value.isAutoRotationEnabled)
+        }
+    }
+
+    /**
+     * S1862: a setter rather than a toggle. The setting is a choice between two named models, and a
+     * `toggle` would have to invent which one "off" means - the very confusion section 6 item 1
+     * refused when it asked for a setting that can actually stop the automatic path.
+     */
+    fun setVoiceNoteSendPolicy(policy: VoiceNoteSendPolicy) {
+        viewModelScope.launch {
+            preferencesRepository.setVoiceNoteSendPolicy(policy)
         }
     }
 }

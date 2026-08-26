@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.PermMedia
 import androidx.compose.material.icons.filled.Settings
@@ -72,8 +71,7 @@ fun SettingsScreen(
                 SettingsRoutes.SLIDESHOW to stringResource(R.string.slideshow_settings),
                 SettingsRoutes.SCREEN to stringResource(R.string.screen_settings_title),
                 SettingsRoutes.OTHER to stringResource(R.string.settings_group_other),
-                SettingsRoutes.ABOUT to stringResource(R.string.about),
-                SettingsRoutes.SYSTEM_INFO to stringResource(R.string.system_info_title)
+                SettingsRoutes.ABOUT to stringResource(R.string.about)
             )
             ScalingLazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -156,6 +154,5 @@ private fun iconFor(route: String) = when (route) {
     SettingsRoutes.SCREEN -> Icons.Filled.Settings
     SettingsRoutes.OTHER -> Icons.Filled.MoreHoriz
     SettingsRoutes.ABOUT -> Icons.Filled.Info
-    SettingsRoutes.SYSTEM_INFO -> Icons.Filled.Memory
     else -> Icons.Filled.Settings
 }

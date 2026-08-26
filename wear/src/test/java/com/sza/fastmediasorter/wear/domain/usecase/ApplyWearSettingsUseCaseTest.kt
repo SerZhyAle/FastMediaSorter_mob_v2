@@ -2,6 +2,9 @@ package com.sza.fastmediasorter.wear.domain.usecase
 
 import android.content.Context
 import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
+import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
+import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
+import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
 import com.sza.fastmediasorter.wear.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
@@ -143,6 +146,36 @@ class ApplyWearSettingsUseCaseTest {
         assertEquals("uk", repository.appLanguageValue)
     }
 
+    @Test
+    fun `a payload carrying the background mode applies it`() = runTest {
+        val repository = FakeWearPreferencesRepository()
+        val useCase = ApplyWearSettingsUseCase(context, repository)
+
+        useCase(payloadWithoutNewFields().copy(backgroundMode = WearBackgroundMode.IMAGE.name))
+
+        assertEquals(WearBackgroundMode.IMAGE, repository.backgroundModeValue)
+    }
+
+    @Test
+    fun `a payload omitting the background mode leaves the watch value alone`() = runTest {
+        val repository = FakeWearPreferencesRepository().apply {
+            backgroundModeValue = WearBackgroundMode.IMAGE
+        }
+        val useCase = ApplyWearSettingsUseCase(context, repository)
+
+        useCase(payloadWithoutNewFields())
+
+        assertEquals(WearBackgroundMode.IMAGE, repository.backgroundModeValue)
+    }
+
+    @Test
+    fun `an unknown background mode name falls back to the branded animation`() {
+        assertEquals(
+            WearBackgroundMode.BRANDED_ANIMATION,
+            WearBackgroundMode.fromNameOrDefault("nonsense")
+        )
+    }
+
     private fun payloadWithoutNewFields() = WearSettingsPayload(
         audioEnabled = true,
         videoEnabled = true,
@@ -162,8 +195,10 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     var downloadAlbumArtValue = false
     var shuffleEnabledValue = false
     var viewModeValue = WearViewMode.LIST
+    var backgroundModeValue = WearBackgroundMode.BRANDED_ANIMATION
     var keepScreenAwakeValue = false
     var fileListViewModeValue = WearViewMode.LIST
+    var videoScaleModeValue = VideoScaleMode.FIT
     var lastUsedResourcesValue: List<LastUsedResource> = emptyList()
     var streamsSectionEnabledValue = true
     var calculatorHistoryValue: List<String> = emptyList()
@@ -171,6 +206,8 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     var autoRotationEnabledValue = false
     var appLanguageValue: String? = null
     var gameStateValue: String? = null
+    var voiceNoteSendPolicyValue = VoiceNoteSendPolicy.AUTOMATIC
+    var notificationPermissionAskedValue = false
 
     override val isAudioEnabled: Flow<Boolean> = MutableStateFlow(audioEnabled)
     override val isVideoEnabled: Flow<Boolean> = MutableStateFlow(videoEnabled)
@@ -180,7 +217,9 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     override val downloadAlbumArt: Flow<Boolean> = MutableStateFlow(downloadAlbumArtValue)
     override val isShuffleEnabled: Flow<Boolean> = MutableStateFlow(shuffleEnabledValue)
     override val viewMode: Flow<WearViewMode> = MutableStateFlow(viewModeValue)
+    override val backgroundMode: Flow<WearBackgroundMode> = MutableStateFlow(backgroundModeValue)
     override val fileListViewMode: Flow<WearViewMode> = MutableStateFlow(fileListViewModeValue)
+    override val videoScaleMode: Flow<VideoScaleMode> = MutableStateFlow(videoScaleModeValue)
     override val keepScreenAwakeOutsidePlayers: Flow<Boolean> = MutableStateFlow(keepScreenAwakeValue)
     override val lastUsedResources: Flow<List<LastUsedResource>> = MutableStateFlow(lastUsedResourcesValue)
     override val streamsSectionEnabled: Flow<Boolean> = MutableStateFlow(streamsSectionEnabledValue)
@@ -189,9 +228,20 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     override val isAutoRotationEnabled: Flow<Boolean> = MutableStateFlow(autoRotationEnabledValue)
     override val appLanguage: Flow<String?> = MutableStateFlow(appLanguageValue)
     override val gameState: Flow<String?> = MutableStateFlow(gameStateValue)
+    override val voiceNoteSendPolicy: Flow<VoiceNoteSendPolicy> = MutableStateFlow(voiceNoteSendPolicyValue)
+    override val notificationPermissionAsked: Flow<Boolean> =
+        MutableStateFlow(notificationPermissionAskedValue)
+
+    override suspend fun setNotificationPermissionAsked(asked: Boolean) {
+        notificationPermissionAskedValue = asked
+    }
 
     override suspend fun setGameState(value: String?) {
         gameStateValue = value
+    }
+
+    override suspend fun setVoiceNoteSendPolicy(policy: VoiceNoteSendPolicy) {
+        voiceNoteSendPolicyValue = policy
     }
 
     override suspend fun setAudioEnabled(enabled: Boolean) {
@@ -214,6 +264,10 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
         slideshowIntervalSecondsValue = seconds
     }
 
+    override suspend fun setBackgroundMode(mode: WearBackgroundMode) {
+        backgroundModeValue = mode
+    }
+
     override suspend fun setDownloadAlbumArt(enabled: Boolean) {
         downloadAlbumArtValue = enabled
     }
@@ -228,6 +282,10 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
 
     override suspend fun setFileListViewMode(mode: WearViewMode) {
         fileListViewModeValue = mode
+    }
+
+    override suspend fun setVideoScaleMode(mode: VideoScaleMode) {
+        videoScaleModeValue = mode
     }
 
     override suspend fun setKeepScreenAwakeOutsidePlayers(enabled: Boolean) {

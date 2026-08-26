@@ -2,9 +2,12 @@ package com.sza.fastmediasorter.wear.di
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.room.Room
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.google.gson.Gson
+import com.sza.fastmediasorter.wear.data.db.VoiceNoteDao
+import com.sza.fastmediasorter.wear.data.db.WearVoiceNoteDatabase
 import com.sza.fastmediasorter.wear.data.network.StreamNetworkHoldManager
 import com.sza.fastmediasorter.wear.data.network.WearNetworkChannelMonitorImpl
 import com.sza.fastmediasorter.wear.data.network.ftp.FtpConnectionTest
@@ -16,15 +19,18 @@ import com.sza.fastmediasorter.wear.data.network.smb.SmbDataSource
 import com.sza.fastmediasorter.wear.data.preferences.NetworkSourceRepositoryImpl
 import com.sza.fastmediasorter.wear.data.preferences.WearPreferencesRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.AlbumArtRepositoryImpl
+import com.sza.fastmediasorter.wear.data.repository.VoiceNoteRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearFavoritesRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearFileReceiverRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearFileSenderRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearMediaRepositoryImpl
 import com.sza.fastmediasorter.wear.data.wear.AndroidWearSystemInfoDataSource
 import com.sza.fastmediasorter.wear.domain.game.GameBoardGenerator
+import com.sza.fastmediasorter.wear.domain.recorder.VoiceRecordingStateHolder
 import com.sza.fastmediasorter.wear.domain.repository.AlbumArtRepository
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.StreamNetworkHold
+import com.sza.fastmediasorter.wear.domain.repository.VoiceNoteRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFileReceiverRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFileSenderRepository
@@ -59,7 +65,7 @@ annotation class EncryptedPrefs
 @Module
 @InstallIn(SingletonComponent::class)
 object WearAppModule {
-    
+
     @Provides
     @Singleton
     fun provideContentResolver(
@@ -67,7 +73,7 @@ object WearAppModule {
     ): android.content.ContentResolver {
         return context.contentResolver
     }
-    
+
     /**
      * S0725: NOT @Singleton. Audio and video player VMs each own a private ExoPlayer so each can
      * release() it in onCleared without killing the other's instance. A process-lived singleton was
@@ -91,7 +97,7 @@ object WearAppModule {
             .setHandleAudioBecomingNoisy(true)
             .build()
     }
-    
+
     @Provides
     @Singleton
     fun provideWearMediaRepository(
@@ -99,7 +105,7 @@ object WearAppModule {
     ): WearMediaRepository {
         return WearMediaRepositoryImpl(contentResolver)
     }
-    
+
     @Provides
     @Singleton
     fun provideWearPreferencesRepository(
@@ -107,7 +113,7 @@ object WearAppModule {
     ): WearPreferencesRepository {
         return WearPreferencesRepositoryImpl(context)
     }
-    
+
     // S1710: GameBoardGenerator takes a defaulted attempt budget that Dagger cannot bind, so it
     // is constructed here rather than injected. Stateless, hence shared.
     @Provides
@@ -126,13 +132,13 @@ object WearAppModule {
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
     }
-    
+
     @Provides
     @Singleton
     fun provideITunesApiService(retrofit: Retrofit): ITunesApiService {
         return retrofit.create(ITunesApiService::class.java)
     }
-    
+
     @Provides
     @Singleton
     fun provideAlbumArtRepository(
@@ -140,7 +146,7 @@ object WearAppModule {
     ): AlbumArtRepository {
         return AlbumArtRepositoryImpl(iTunesApiService)
     }
-    
+
     @Provides
     @Singleton
     @EncryptedPrefs
@@ -150,7 +156,7 @@ object WearAppModule {
         val masterKey = MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
-        
+
         return EncryptedSharedPreferences.create(
             context,
             "network_sources_encrypted",
@@ -159,13 +165,13 @@ object WearAppModule {
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
     }
-    
+
     @Provides
     @Singleton
     fun provideSmbDataSource(): SmbDataSource {
         return SmbDataSource()
     }
-    
+
     @Provides
     @Singleton
     fun provideFtpConnectionTest(): FtpConnectionTest = FtpConnectionTest()
@@ -240,4 +246,33 @@ object WearAppModule {
     @Provides
     @Singleton
     fun provideStreamNetworkHold(impl: StreamNetworkHoldManager): StreamNetworkHold = impl
+
+    // S1862: the voice-note store. Room, version 1 - no installed watch database predates this
+    // build, so no migration branch exists to fall back to.
+    @Provides
+    @Singleton
+    fun provideWearVoiceNoteDatabase(
+        @ApplicationContext context: Context
+    ): WearVoiceNoteDatabase = Room.databaseBuilder(
+        context,
+        WearVoiceNoteDatabase::class.java,
+        WearVoiceNoteDatabase.DATABASE_NAME
+    ).build()
+
+    @Provides
+    @Singleton
+    fun provideVoiceNoteDao(database: WearVoiceNoteDatabase): VoiceNoteDao = database.voiceNoteDao()
+
+    @Provides
+    @Singleton
+    fun provideVoiceNoteRepository(impl: VoiceNoteRepositoryImpl): VoiceNoteRepository = impl
+
+    /**
+     * Application-scoped by construction: the recording service writes here and the recorder screen
+     * reads, and the two must survive each other. A holder scoped to either would drop the state at
+     * exactly the moment ADR-4 says the session has to keep going.
+     */
+    @Provides
+    @Singleton
+    fun provideVoiceRecordingStateHolder(): VoiceRecordingStateHolder = VoiceRecordingStateHolder()
 }

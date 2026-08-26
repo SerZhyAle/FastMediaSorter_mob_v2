@@ -70,21 +70,25 @@ object LauncherSettingsStore {
         val launcherScreenBlackoutTimeoutSeconds: Int,
     )
 
-    // S0404: absent keys resolve to auto density + full taskbar.
+    // S0404: absent keys resolve to auto density + full taskbar (S2017: except the tray clock, off by
+    // default), hidden system status bar and foreign-notification badges on (S2017 ADR-1).
     fun read(preferences: Preferences): Values = Values(
         launcherDensityFactor = preferences.getOrDefault(KEY_LAUNCHER_DENSITY_FACTOR, 1.0f),
         launcherTaskbarShowRecents = preferences.getOrDefault(KEY_LAUNCHER_TASKBAR_SHOW_RECENTS, true),
         launcherTaskbarShowPinned = preferences.getOrDefault(KEY_LAUNCHER_TASKBAR_SHOW_PINNED, true),
         launcherTaskbarShowTray = preferences.getOrDefault(KEY_LAUNCHER_TASKBAR_SHOW_TRAY, true),
-        launcherTrayShowClock = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_CLOCK, true),
+        // S2017: the one taskbar exception - duplicates the top bar's own clock once the status area is replaced.
+        launcherTrayShowClock = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_CLOCK, false),
         launcherTrayShowBluetooth = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_BLUETOOTH, true),
         launcherTrayShowSim1 = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_SIM1, true),
         launcherTrayShowSim2 = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_SIM2, true),
         launcherTrayShowNetwork = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_NETWORK, true),
         launcherTrayShowBattery = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_BATTERY, true),
-        launcherReplaceSystemStatusArea = preferences.getOrDefault(KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA, false),
+        // S2017: hide the system status bar by default.
+        launcherReplaceSystemStatusArea = preferences.getOrDefault(KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA, true),
         launcherTopStatusStripMode = preferences.getOrDefault(KEY_LAUNCHER_TOP_STATUS_STRIP_MODE, false),
-        launcherForeignNotificationsEnabled = preferences.getOrDefault(KEY_LAUNCHER_FOREIGN_NOTIFICATIONS, false),
+        // S2017 ADR-1: default flipped to ON, superseding S1465 ADR-4's off-by-default rationale.
+        launcherForeignNotificationsEnabled = preferences.getOrDefault(KEY_LAUNCHER_FOREIGN_NOTIFICATIONS, true),
         // S1643: an unknown token (older/newer build, corrupted value) degrades to the bottom edge.
         launcherTaskbarPlacement = preferences[KEY_LAUNCHER_TASKBAR_PLACEMENT]
             ?.takeIf { it in AppSettings.LAUNCHER_TASKBAR_PLACEMENT_OPTIONS }

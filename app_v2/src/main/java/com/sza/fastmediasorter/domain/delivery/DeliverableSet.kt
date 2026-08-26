@@ -10,6 +10,8 @@ package com.sza.fastmediasorter.domain.delivery
  * - [CHANNEL_PREVIEW_ATLAS]: on-demand stream channel-preview sprite sheet + url->index sidecar (S1154).
  * - [STREAM_LOGO_ATLAS]: on-demand stream logo sprite sheet + url->index sidecar (S1201). Covers what
  *   the preview atlas structurally cannot - a station with no video track has no frame to capture.
+ * - [VLC_ENGINE]: libVLC decoder (Set E, S1971). noLegal + arm64-v8a only, and the only set that is
+ *   never bundled anywhere - its 44 MB is what the ticket removes from the sideload artifact.
  */
 enum class DeliverableSet {
     TRANSLATION,
@@ -17,5 +19,6 @@ enum class DeliverableSet {
     AUDIO_VISUALIZATIONS,
     FFMPEG_DTS,
     CHANNEL_PREVIEW_ATLAS,
-    STREAM_LOGO_ATLAS
+    STREAM_LOGO_ATLAS,
+    VLC_ENGINE
 }

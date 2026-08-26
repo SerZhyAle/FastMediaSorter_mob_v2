@@ -11,20 +11,22 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.weather.WeatherLocation
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetHost
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
+import com.sza.fastmediasorter.ui.launcher.gadget.LauncherTimeZoneCatalog
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherCellViewBinder
 
 /**
  * S1541: builds the view for a gadget cell - registry lookup, the gadget's own view, and the
  * fallback shown for a key the registry does not know - extracted from the activity.
  *
- * Re-pointing a weather cell is a picker, which belongs to the add-flow, so it arrives as
- * [onWeatherReconfigure] rather than as a dependency on that role: rendering must not need the
- * picker chain to exist.
+ * Re-pointing a cell is a picker, which belongs to the add-flow, so it arrives as
+ * [onWeatherReconfigure] / [onWorldClockReconfigure] rather than as a dependency on that role:
+ * rendering must not need the picker chain to exist.
  */
 class LauncherGadgetRenderManager(
     private val gadgetRegistry: LauncherGadgetRegistry,
     private val gadgetHost: LauncherGadgetHost,
     private val onWeatherReconfigure: (cellId: Long) -> Unit,
+    private val onWorldClockReconfigure: (cellId: Long) -> Unit,
 ) {
 
     /**
@@ -40,21 +42,38 @@ class LauncherGadgetRenderManager(
             return
         }
         val view = gadget.createView(container, gadgetHost, decoded.second)
-        if (decoded.first == LauncherGadgetRegistry.KEY_WEATHER) {
-            // The cell id lives here, not inside the gadget, so re-pointing a weather cell is wired at
-            // the host rather than by handing every gadget its row in the database.
-            view.setOnLongClickListener {
-                onWeatherReconfigure(cellUi.cell.id)
-                true
-            }
-            // S1560: a seeded weather cell carries no place, and its own tap opens a weather app - which
-            // leaves the "no location" message with no visible way out. Only the unconfigured case is
-            // redirected; a cell that already has a place keeps the gadget's own behaviour.
-            if (WeatherLocation.decode(decoded.second) == null) {
-                view.setOnClickListener { onWeatherReconfigure(cellUi.cell.id) }
-            }
-        }
+        wireReconfigure(decoded.first, decoded.second, cellUi.cell.id, view)
         container.addView(view)
+    }
+
+    /**
+     * The cell id lives here, not inside the gadget, so re-pointing a cell is wired at the host rather
+     * than by handing every gadget its row in the database.
+     *
+     * S1560: a cell that was seeded or placed without its param has a tap of its own that opens an
+     * external app, which leaves its "not configured yet" message with no visible way out. Only that
+     * case is redirected; a configured cell keeps the gadget's own behaviour.
+     */
+    private fun wireReconfigure(key: String, param: String?, cellId: Long, view: View) {
+        // Both halves decided in one branch: reading "is it configured" in a second `when` would need
+        // an `else` covering keys this function has already returned for, which reads as a rule about
+        // every other gadget when it can only ever be this one.
+        val (reconfigure, configured) = when (key) {
+            LauncherGadgetRegistry.KEY_WEATHER ->
+                onWeatherReconfigure to (WeatherLocation.decode(param) != null)
+            // S1906: the world clock repoints the same way, and for the same reason - its zone is a
+            // param the renderer cannot ask for on its own.
+            LauncherGadgetRegistry.KEY_WORLD_CLOCK ->
+                onWorldClockReconfigure to (LauncherTimeZoneCatalog.zoneOrNull(param) != null)
+            else -> return
+        }
+        view.setOnLongClickListener {
+            reconfigure(cellId)
+            true
+        }
+        if (!configured) {
+            view.setOnClickListener { reconfigure(cellId) }
+        }
     }
 
     /**

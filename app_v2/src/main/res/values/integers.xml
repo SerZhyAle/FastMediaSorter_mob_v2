@@ -50,4 +50,7 @@
     <integer name="scroll_threshold_dp">10</integer>
     <integer name="default_player_quality">720</integer>
     <integer name="min_player_quality">480</integer>
+    <!-- S2024: history collapses to this many lines in the large-keypad mode so the six button rows
+         get the rest of the height. -->
+    <integer name="calculator_history_lines_large">3</integer>
 </resources>

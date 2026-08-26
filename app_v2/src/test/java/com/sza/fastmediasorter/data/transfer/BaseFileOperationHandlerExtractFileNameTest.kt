@@ -15,7 +15,7 @@ import org.robolectric.annotation.Config
  * Robolectric: the content-URI branch calls Uri.decode, which returns null on the plain JVM.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34]) // Robolectric 4.11.1 maxSdkVersion=34; targetSdk 35 needs the explicit pin.
+@Config(sdk = [34]) // Robolectric 4.16.1 maxSdkVersion=34; targetSdk 35 needs the explicit pin.
 class BaseFileOperationHandlerExtractFileNameTest {
 
     private val context: Context = mockk(relaxed = true)

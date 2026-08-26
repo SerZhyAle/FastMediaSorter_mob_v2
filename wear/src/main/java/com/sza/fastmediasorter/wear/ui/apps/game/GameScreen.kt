@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -27,10 +28,20 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.game.GameDirection
 import com.sza.fastmediasorter.wear.domain.game.GameStatus
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.wearMaxSquareSide
 import kotlin.math.abs
 
 private val SCREEN_PADDING = 6.dp
 private val HEADER_SPACING = 2.dp
+
+/** Shown while the first board is still being generated, so the header never reads a level of zero. */
+private const val FIRST_LEVEL_DISPLAYED = 1
+
+/**
+ * Punctuation, not a translatable phrase: the level and the turn count share one header line because
+ * a third line would take its height from the board, which S2008 caps rather than grows.
+ */
+private const val HEADER_SEPARATOR = " · "
 
 /** Below this the gesture was a tap or a tremor, not a swipe, and no move is made. */
 private val MIN_SWIPE_TRAVEL = 16.dp
@@ -51,6 +62,7 @@ fun GameScreen(
     viewModel: GameViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val maxBoardSide = wearMaxSquareSide()
 
     WearScreenScaffold {
         Column(
@@ -61,11 +73,16 @@ fun GameScreen(
             GameHeader(uiState)
             val level = uiState.level
             if (level != null) {
+                // Two caps, both of them shrinking. The board used to take the full content width and
+                // derive its height from it: on a round watch that put all four corners outside the
+                // glass, and it left the column's total height unbounded, so the outcome chip was
+                // pushed past the content box the moment a level ended (S2008).
                 GameBoardCanvas(
                     level = level,
                     contentDescription = stringResource(R.string.wear_game_board_description),
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .weight(1f, fill = false)
+                        .sizeIn(maxWidth = maxBoardSide, maxHeight = maxBoardSide)
                         .aspectRatio(1f)
                         .swipeToMove { direction -> viewModel.move(direction) }
                 )
@@ -85,8 +102,11 @@ private fun GameHeader(uiState: GameUiState) {
         color = MaterialTheme.colors.onBackground,
         textAlign = TextAlign.Center
     )
+    val level = uiState.level?.config?.levelNumber ?: FIRST_LEVEL_DISPLAYED
+    val levelLabel = stringResource(R.string.wear_game_level)
+    val turnsLabel = stringResource(R.string.wear_game_turns)
     Text(
-        text = "${stringResource(R.string.wear_game_turns)} ${uiState.stats.turns}",
+        text = "$levelLabel $level$HEADER_SEPARATOR$turnsLabel ${uiState.stats.turns}",
         style = MaterialTheme.typography.caption2,
         color = MaterialTheme.colors.onSurfaceVariant,
         textAlign = TextAlign.Center

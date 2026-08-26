@@ -49,6 +49,9 @@ class ExecuteScheduledOperationUseCaseTest {
             // do not use (they point at a real temp folder), so a relaxed mock is enough.
             mockk(relaxed = true),
             mockk(relaxed = true),
+            // statsSink: these tests assert the operation's file outcome, not the counters it feeds,
+            // so a relaxed mock records the events and asserts nothing about them.
+            mockk(relaxed = true),
         )
     }
 

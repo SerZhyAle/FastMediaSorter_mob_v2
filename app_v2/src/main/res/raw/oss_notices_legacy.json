@@ -1118,7 +1118,8 @@
   {
     "coordinate": "androidx.room:room-ktx",
     "modules": [
-      "app_v2"
+      "app_v2",
+      "wear"
     ],
     "name": "AndroidX Room KTX",
     "spdx": "Apache-2.0",
@@ -1142,7 +1143,8 @@
   {
     "coordinate": "androidx.room:room-runtime",
     "modules": [
-      "app_v2"
+      "app_v2",
+      "wear"
     ],
     "name": "AndroidX Room Runtime",
     "spdx": "Apache-2.0",

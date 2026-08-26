@@ -24,6 +24,11 @@
     <dimen name="calculator_history_text_size">12sp</dimen>
     <dimen name="calculator_display_min_height">88dp</dimen>
     <dimen name="calculator_button_height">64dp</dimen>
+    <!-- S2024: compact keypad mode. 48dp is the Rule 16 accessibility floor for a touch target, not a
+         free choice - the captured request asked for 24dp, which no finger-sized control may use. -->
+    <dimen name="calculator_button_height_compact">48dp</dimen>
+    <dimen name="calculator_button_width_compact">48dp</dimen>
+    <dimen name="calculator_display_text_size_large">56sp</dimen>
 
     <!-- Toggler Font Sizes -->
     <dimen name="toggler_title_text_size">14sp</dimen>

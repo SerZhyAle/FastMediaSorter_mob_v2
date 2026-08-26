@@ -23,7 +23,12 @@ class NoOpWearFileTransferRepository @Inject constructor() : WearFileTransferRep
     private val emptyState = MutableStateFlow(WearFileTransferState())
     override val transfers: StateFlow<WearFileTransferState> = emptyState.asStateFlow()
 
-    override fun enqueue(sourcePath: String, displayName: String): String {
+    override fun enqueue(
+        sourcePath: String,
+        displayName: String,
+        openNow: Boolean,
+        requestId: String
+    ): String {
         Timber.i("Watch transfer requested in a flavor with no Wear companion, ignoring")
         return ""
     }

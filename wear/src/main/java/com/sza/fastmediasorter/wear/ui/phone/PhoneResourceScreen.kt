@@ -52,8 +52,8 @@ import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.playerRouteFor
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
-import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 
 private const val SINGLE_COLUMN = 1
@@ -384,19 +384,6 @@ private fun PhoneFileOpenOutcome?.toStatusRes(): Int? = when (this) {
     PhoneFileOpenOutcome.Unsupported -> R.string.phone_resource_open_unsupported
     is PhoneFileOpenOutcome.Failed -> reason.toMessageRes()
     else -> null
-}
-
-/**
- * S1846: which player renders a delivered phone file.
- *
- * Decided from the file's own mime type rather than from the chip that listed it: a folder reached under
- * the `all` entrance mixes kinds, and the general browser already picks its player the same way. The three
- * routes are the watch's existing player entrances - a fourth would duplicate them.
- */
-private fun playerRouteFor(fileId: Long, mimeType: String): String = when {
-    mimeType.startsWith("image/") -> WearRoutes.imageViewer(fileId)
-    mimeType.startsWith("video/") -> WearRoutes.videoPlayer(fileId)
-    else -> WearRoutes.audioPlayer(fileId)
 }
 
 private fun WearPhoneResourceResponseStatus?.toMessageRes(): Int = when (this) {

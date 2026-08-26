@@ -12,6 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.wear.compose.material.Chip
+import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
@@ -25,17 +27,14 @@ private val ROW_SPACING = 4.dp
 fun NetworkMonitorSectionPage(
     section: WearNetworkSection,
     state: NetworkMonitorUiState,
+    canRequestPermissions: Boolean,
+    onRequestPermissions: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val snapshot = state.snapshot
     SectionColumn(titleRes = section.titleRes(), modifier = modifier) {
         if (state.permissionsMissing) {
-            Text(
-                text = stringResource(R.string.wear_netmon_permission_missing),
-                style = MaterialTheme.typography.caption2,
-                color = MaterialTheme.colors.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
+            PermissionNotice(canRequest = canRequestPermissions, onRequest = onRequestPermissions)
         }
         when (section) {
             WearNetworkSection.Summary -> SummaryFields(snapshot)
@@ -57,6 +56,40 @@ private fun WearNetworkSection.titleRes(): Int = when (this) {
     WearNetworkSection.Gnss -> R.string.wear_netmon_gnss
     WearNetworkSection.Internet -> R.string.wear_netmon_internet
     WearNetworkSection.History -> R.string.wear_netmon_history
+}
+
+/**
+ * The notice is the control wherever the platform can still raise the dialog.
+ *
+ * A caption that names a missing permission and cannot ask for it leaves the program unrecoverable
+ * from inside itself, which is what every page read before S2008. Where the API level offers nothing
+ * to request, the plain caption stays: a tap that raises no dialog is worse than a sentence.
+ */
+@Composable
+private fun PermissionNotice(canRequest: Boolean, onRequest: () -> Unit) {
+    val notice = stringResource(R.string.wear_netmon_permission_missing)
+    if (!canRequest) {
+        Text(
+            text = notice,
+            style = MaterialTheme.typography.caption2,
+            color = MaterialTheme.colors.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+        return
+    }
+    Chip(
+        onClick = onRequest,
+        colors = ChipDefaults.secondaryChipColors(),
+        label = {
+            Text(
+                text = notice,
+                style = MaterialTheme.typography.caption2,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        modifier = Modifier.fillMaxWidth()
+    )
 }
 
 @Composable

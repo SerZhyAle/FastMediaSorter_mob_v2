@@ -15,7 +15,7 @@ import org.robolectric.annotation.Config
  * returns the clean generic "VR %d", never the old raw "VR[type]" fallback that the screen used to show.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34]) // Robolectric 4.11.1 maxSdkVersion=34; targetSdkVersion=35 needs an explicit SDK pin.
+@Config(sdk = [34]) // Robolectric 4.16.1 maxSdkVersion=34; targetSdkVersion=35 needs an explicit SDK pin.
 class KeybindingRowLabelFormatterTest {
 
     private val formatter = KeybindingRowLabelFormatter(RuntimeEnvironment.getApplication())

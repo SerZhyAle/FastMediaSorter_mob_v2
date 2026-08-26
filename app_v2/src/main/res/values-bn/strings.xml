@@ -2830,7 +2830,7 @@
     <string name="browse_empty_type_gated">%1$d ফাইল লুকানো আছে কারণ তাদের মিডিয়া টাইপ বন্ধ করা আছে।</string>
     <string name="browse_empty_type_gated_hint">সেগুলি দেখতে সেটিংসে সেই মিডিয়া টাইপ আবার চালু করুন।</string>
     <string name="splash_slogan">..সব আমার, এখানে!</string>
-    <string name="launcher_section_google">GOOGLE</string>
+    <string name="launcher_section_google">Google</string>
     <string name="launcher_quick_menu_add_item">একটি আইটেম যোগ করুন..</string>
     <string name="launcher_quick_menu_edit_desktop">ডেস্কটপ সম্পাদনা করুন</string>
     <string name="launcher_quick_menu_wallpaper">ওয়ালপেপার</string>
@@ -2859,7 +2859,7 @@
     <string name="launcher_translator_attribution">Google দ্বারা অনূদিত</string>
     <string name="launcher_section_widgets">উইজেট</string>
     <string name="launcher_section_resources">রিসোর্স</string>
-    <string name="launcher_section_android_apps">Android অ্যাপ</string>
+    <string name="launcher_section_android_apps">অ্যাপ</string>
     <string name="launcher_settings_widget_backdrop_alpha_title">উইজেট ব্যাকড্রপ অস্বচ্ছতা</string>
     <string name="launcher_settings_widget_backdrop_alpha_0">0% (স্বচ্ছ)</string>
     <string name="launcher_settings_widget_backdrop_alpha_85">85% (ডিফল্ট)</string>

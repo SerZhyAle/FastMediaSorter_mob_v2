@@ -100,6 +100,55 @@ class LauncherSectionMembershipTest {
         assertFalse(LauncherSectionMembership.coversHeaderRow(row = 0, spanH = 9, headerRows = emptyList()))
     }
 
+    @Test
+    fun `an unfolded desktop draws every row where it is stored`() {
+        assertRoundTrip(headerRows = listOf(0, 5), collapsed = emptySet(), rows = 12)
+    }
+
+    @Test
+    fun `a folded section lifts the rows below it by its own height`() {
+        val headers = listOf(0, 5)
+
+        // Section 0 owns rows 1..4, so folding it takes four rows out and row 6 is drawn at row 2.
+        assertEquals(2, LauncherSectionMembership.renderRowFor(6, false, headers, setOf(0)))
+        assertEquals(6, LauncherSectionMembership.storedRowFor(2, headers, setOf(0)))
+        assertRoundTrip(headerRows = headers, collapsed = setOf(0), rows = 12)
+    }
+
+    @Test
+    fun `two folded sections in a row stack their lifts`() {
+        assertRoundTrip(headerRows = listOf(0, 4, 9), collapsed = setOf(0, 4), rows = 16)
+    }
+
+    @Test
+    fun `a folded section running to the bottom lifts nothing above it`() {
+        val headers = listOf(0, 5)
+
+        assertEquals(3, LauncherSectionMembership.storedRowFor(3, headers, setOf(5)))
+        assertRoundTrip(headerRows = headers, collapsed = setOf(5), rows = 12)
+    }
+
+    @Test
+    fun `a press below every section on an empty desktop points at itself`() {
+        assertEquals(7, LauncherSectionMembership.storedRowFor(7, emptyList(), emptySet()))
+    }
+
+    /**
+     * S2033 §7: the round trip is what has to hold, not any single hand-computed number - a wrong inverse
+     * moves the cell the other way and reads to the user as the very defect this ticket fixes.
+     */
+    private fun assertRoundTrip(headerRows: List<Int>, collapsed: Set<Int>, rows: Int) {
+        for (stored in 0 until rows) {
+            val drawn = LauncherSectionMembership.renderRowFor(
+                row = stored,
+                isHeader = false,
+                headerRows = headerRows,
+                collapsedHeaderRows = collapsed,
+            ) ?: continue
+            assertEquals(stored, LauncherSectionMembership.storedRowFor(drawn, headerRows, collapsed))
+        }
+    }
+
     private fun cell(row: Int, kind: LauncherCellKind): LauncherCell = LauncherCell(
         id = 0,
         orientation = LauncherOrientation.PORTRAIT,

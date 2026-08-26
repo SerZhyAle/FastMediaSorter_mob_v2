@@ -19,7 +19,8 @@ import javax.inject.Singleton
 
 /**
  * S0426: Open-Meteo, keyless and free for non-commercial use. Attribution ("Weather data by
- * Open-Meteo.com", CC-BY 4.0) is an obligation of that licence and is rendered by the gadget.
+ * Open-Meteo.com", CC-BY 4.0) is an obligation of that licence; S2020 moved its rendering off the
+ * persistent gadget card to the weather location-picker dialog and `docs/FAQ.md`.
  */
 @Singleton
 class OpenMeteoWeatherProvider @Inject constructor(

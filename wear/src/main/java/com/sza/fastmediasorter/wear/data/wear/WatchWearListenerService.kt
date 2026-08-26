@@ -5,6 +5,7 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 import androidx.core.content.getSystemService
+import com.google.android.gms.wearable.CapabilityInfo
 import com.google.android.gms.wearable.ChannelClient
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
@@ -14,20 +15,29 @@ import com.google.android.gms.wearable.Wearable
 import com.google.android.gms.wearable.WearableListenerService
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
+import com.sza.fastmediasorter.wear.core.notification.WearOpenOnWatchNotifier
 import com.sza.fastmediasorter.wear.domain.model.ImportResult
 import com.sza.fastmediasorter.wear.domain.model.WearEventEnvelopeCodec
+import com.sza.fastmediasorter.wear.domain.model.WearFileOpenRequest
+import com.sza.fastmediasorter.wear.domain.model.WearFileReceiveOutcome
+import com.sza.fastmediasorter.wear.domain.model.WearFileReceiveResult
+import com.sza.fastmediasorter.wear.domain.model.WearFileTransferAck
 import com.sza.fastmediasorter.wear.domain.model.WearFileTransferMetadata
+import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.wear.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearStreamTransferAck
 import com.sza.fastmediasorter.wear.domain.model.WearStreamTransferPayload
 import com.sza.fastmediasorter.wear.domain.model.WearSyncPayload
+import com.sza.fastmediasorter.wear.domain.model.streamTargetRef
 import com.sza.fastmediasorter.wear.domain.repository.WearFileReceiverRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ApplyWearSettingsUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.DrainPendingVoiceNotesUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ImportNetworkSourcesUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.StoreTransferredStreamUseCase
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -43,10 +53,18 @@ import timber.log.Timber
 import javax.inject.Inject
 
 private const val PATH_PUSH = "/fms/network_sources/push"
-private const val PATH_ACK  = "/fms/network_sources/ack"
+private const val PATH_ACK = "/fms/network_sources/ack"
 
 /** Used when the phone opened the channel without a trailing name segment. */
 private const val DEFAULT_INCOMING_FILE_NAME = "transferred_media"
+
+/**
+ * S1862: the capability the phone companion advertises, and the only thing this service watches to
+ * learn that the phone is back. Repeated as a literal in the CAPABILITY_CHANGED filter of
+ * `wear/src/main/AndroidManifest.xml`, because a manifest cannot reference a Kotlin constant, and it
+ * must equal the name the phone declares in its own `res/values/wear.xml`.
+ */
+private const val PHONE_COMPANION_CAPABILITY = "fms_phone_companion"
 
 @AndroidEntryPoint
 class WatchWearListenerService : WearableListenerService() {
@@ -61,17 +79,107 @@ class WatchWearListenerService : WearableListenerService() {
 
     @Inject lateinit var storeTransferredStreamUseCase: StoreTransferredStreamUseCase
 
+    @Inject lateinit var drainPendingVoiceNotesUseCase: DrainPendingVoiceNotesUseCase
+
+    // S1961: this service may not raise the app itself, so when nobody answers the open request it
+    // posts the notification whose tap can.
+    @Inject lateinit var openOnWatchNotifier: WearOpenOnWatchNotifier
+
     @Inject lateinit var gson: Gson
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /**
+     * S1862: the phone coming back into reach is what releases the notes taken while it was gone.
+     *
+     * This service is the alarm clock rather than a screen because the platform starts it by itself:
+     * a drain wired to the recorder screen would only run while the user is already looking at the
+     * list, which is exactly when the note is not forgotten. An empty node set is the phone leaving,
+     * and there is nothing to do then - the notes are already pending.
+     */
+    override fun onCapabilityChanged(capabilityInfo: CapabilityInfo) {
+        val phoneIsBack = capabilityInfo.name == PHONE_COMPANION_CAPABILITY &&
+            capabilityInfo.nodes.isNotEmpty()
+        if (phoneIsBack) {
+            serviceScope.launch { drainPendingVoiceNotesUseCase() }
+        }
+    }
 
     override fun onChannelOpened(channel: ChannelClient.Channel) {
         if (channel.path.startsWith(WearDataLayerPaths.FILE_TRANSFER)) {
             val fileName = channel.path.substringAfterLast('/', DEFAULT_INCOMING_FILE_NAME)
             serviceScope.launch {
-                val outcome = wearFileReceiverRepository.receiveFile(channel, fileName)
-                Timber.i("Incoming file %s ended as %s", fileName, outcome)
+                val result = wearFileReceiverRepository.receiveFile(channel, fileName)
+                Timber.i("Incoming file %s ended as %s", fileName, result.outcome)
+                answerFileTransfer(channel.nodeId, result)
             }
+        }
+    }
+
+    /**
+     * S1884: tells the phone what became of the file it sent, when it asked to be told.
+     *
+     * A blank request id is the shipped S1861 sorting transfer, which was written before this path
+     * existed and waits for nothing - answering it would put a message on the wire that no one reads.
+     */
+    private suspend fun answerFileTransfer(nodeId: String, result: WearFileReceiveResult) {
+        val declaration = result.declaration ?: return
+        if (declaration.requestId.isBlank()) return
+        Timber.d("S1884: watch answering transfer openNow=${declaration.openNow} got=${result.outcome}")
+        val outcome = fileTransferOutcome(result, declaration)
+        sendFileTransferAck(nodeId, WearFileTransferAck(declaration.requestId, outcome))
+    }
+
+    private suspend fun fileTransferOutcome(
+        result: WearFileReceiveResult,
+        declaration: WearFileTransferMetadata
+    ): String = when {
+        result.outcome == WearFileReceiveOutcome.REFUSED_TOO_LARGE -> WearFileTransferAck.OUTCOME_TOO_LARGE
+        result.outcome != WearFileReceiveOutcome.SAVED -> WearFileTransferAck.OUTCOME_FAILED
+        !declaration.openNow -> WearFileTransferAck.OUTCOME_SAVED
+        else -> openFileOnWatch(result.savedPath, declaration.mimeType)
+    }
+
+    /**
+     * S1884: asks whatever screen is on to show the arrived file, and answers with what happened.
+     *
+     * The same shape as [openOnWatch] for streams and for the same reason (ADR-6): this service may
+     * not raise the app from the background, so nobody listening means the honest answer is
+     * NOT_FOREGROUND rather than a claim the user is looking at their photo.
+     */
+    private suspend fun openFileOnWatch(savedPath: String?, mimeType: String?): String {
+        if (savedPath == null || mimeType.isNullOrBlank()) {
+            return WearFileTransferAck.OUTCOME_UNSUPPORTED
+        }
+        val request = WearFileOpenRequest(path = savedPath, mimeType = mimeType)
+        val handled = withTimeoutOrNull(OPEN_CONFIRM_TIMEOUT_MS) {
+            val confirmation = async(start = CoroutineStart.UNDISPATCHED) {
+                WatchFileOpenEvents.openedFlow.first { it == savedPath }
+            }
+            WatchFileOpenEvents.requestFlow.emit(request)
+            confirmation.await()
+        }
+        return if (handled != null) {
+            WearFileTransferAck.OUTCOME_OPENED
+        } else {
+            WearFileTransferAck.OUTCOME_NOT_FOREGROUND
+        }
+    }
+
+    private suspend fun sendFileTransferAck(nodeId: String, ack: WearFileTransferAck) {
+        if (nodeId.isBlank()) return
+        try {
+            Wearable.getMessageClient(this)
+                .sendMessage(
+                    nodeId,
+                    WearDataLayerPaths.FILE_TRANSFER_ACK,
+                    gson.toJson(ack).toByteArray(Charsets.UTF_8)
+                )
+                .await()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to send file transfer ack")
         }
     }
 
@@ -168,6 +276,14 @@ class WatchWearListenerService : WearableListenerService() {
         val outcome = if (handled != null) {
             WearStreamTransferAck.OUTCOME_OPENED
         } else {
+            // S1961: the wait expiring IS the scenario - the watch is dark and nothing was going to
+            // happen. The ack is deliberately unchanged: "saved on the watch, open the watch app" is
+            // still true, and the notification only adds a shorter way to do it.
+            Timber.d("S1961: no foreground host answered, falling back to a notification")
+            openOnWatchNotifier.notifyPendingOpen(
+                target = WearLaunchTarget.Open(streamTargetRef(channel.url)),
+                subtitle = channel.name
+            )
             WearStreamTransferAck.OUTCOME_NOT_FOREGROUND
         }
         return WearStreamTransferAck(requestId = requestId, outcome = outcome)
@@ -261,8 +377,8 @@ class WatchWearListenerService : WearableListenerService() {
 
 /** Process-wide event bus for sync results on the watch. */
 object WatchSyncEvents {
-    val importResultFlow  = MutableSharedFlow<ImportResult>(extraBufferCapacity = 1)
-    val importErrorFlow   = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val importResultFlow = MutableSharedFlow<ImportResult>(extraBufferCapacity = 1)
+    val importErrorFlow = MutableSharedFlow<String>(extraBufferCapacity = 1)
     val settingsErrorFlow = MutableSharedFlow<String>(extraBufferCapacity = 1)
 }
 
@@ -280,6 +396,19 @@ object WatchPlaybackCommandEvents {
  */
 object WatchStreamOpenEvents {
     val requestFlow = MutableSharedFlow<WearStreamChannel>(extraBufferCapacity = 4)
+    val openedFlow = MutableSharedFlow<String>(extraBufferCapacity = 4)
+}
+
+/**
+ * S1884: the phone asking the watch to show a file it just delivered, and the host saying it did.
+ *
+ * Deliberately the same pair as [WatchStreamOpenEvents] rather than a generalisation of it: the two
+ * requests carry different payloads, and merging them would mean a screen collecting one kind of
+ * open request also waking for the other. The echo is the landed path, which is unique per arrival
+ * because the preview directory holds one file at a time.
+ */
+object WatchFileOpenEvents {
+    val requestFlow = MutableSharedFlow<WearFileOpenRequest>(extraBufferCapacity = 4)
     val openedFlow = MutableSharedFlow<String>(extraBufferCapacity = 4)
 }
 

@@ -63,6 +63,27 @@ object WearDataLayerPaths {
      */
     const val FILE_TRANSFER_META = "/fms/transfer_file_meta"
 
+    /** Message, watch → phone. Carries the correlated outcome of one file transfer. */
+    const val FILE_TRANSFER_ACK = "/fms/watch/transfer_file_ack"
+
+    /**
+     * Reserved name the watch background frame arrives under (S2000).
+     *
+     * The name is the whole correlation mechanism: [FILE_TRANSFER] names the received file from the
+     * last path segment and carries no field a purpose could ride in, so the background frame is
+     * recognised by this name and by nothing else. Mirrored verbatim in the phone module's copy of
+     * this object - the two must not drift.
+     */
+    const val BACKGROUND_IMAGE_FILE_NAME = "wear_background.png"
+
+    /**
+     * Canonical square edge of that frame, in pixels (S2000).
+     *
+     * The phone scales to it before sending, so the watch never resizes what it receives. Declared
+     * once rather than written at each use, so retargeting another display is one edit.
+     */
+    const val BACKGROUND_IMAGE_EDGE_PX = 480
+
     // --- WearEventEnvelope.eventType constants ---
 
     /** eventType value for SETTINGS_PUSH envelopes. */

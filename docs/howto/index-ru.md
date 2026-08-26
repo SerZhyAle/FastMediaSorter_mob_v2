@@ -20,7 +20,7 @@ permalink: /docs/howto/index-ru.html
 - <img src="../icons/doc/ic_profile_media_player.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу смотреть фильмы/сериалы с ПК на телефоне, без копирования файлов»_ → [Домашний кинотеатр и VR](scenario-home-cinema-ru.md)
 - <img src="../icons/doc/ic_profile_photo_frame.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Есть старый планшет - хочу сделать из него фоторамку»_ → [Цифровая фоторамка](scenario-photo-frame-ru.md)
 - <img src="../icons/doc/ic_profile_car_head_unit.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«У меня Android-магнитола в машине, хочу слушать свою музыку»_ → [Музыка в автомобиле](scenario-car-music-ru.md)
-- <img src="../icons/doc/ic_display.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу FastMedia на смарт-часах и не знаю, с чего начать»_ → [Поставить FastMedia на часы](wear-install-ru.md)
+- <img src="../icons/doc/ic_display.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу FastMedia на смарт-часах и не знаю, с чего начать»_ → [Поставить FastMedia на часы](wear-install-ru.md) • [Веб-портал Wear OS](../wear/index-ru.md)
 - <img src="../icons/doc/ic_audio.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу слушать свою музыку или треки с телефона на смарт-часах»_ → [Музыка на смарт-часах](scenario-watch-music-ru.md)
 - <img src="../icons/doc/ic_resource_smb.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу подключить смарт-часы напрямую к общей папке ПК или NAS»_ → [Подключение часов к сетевым ресурсам](scenario-watch-network-ru.md)
 - <img src="../icons/doc/ic_cast.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу слушать интернет-радио на Android-магнитоле или плеере»_ → [Интернет-радио и Трансляции](scenario-internet-radio-ru.md)
@@ -30,7 +30,7 @@ permalink: /docs/howto/index-ru.html
 - <img src="../icons/doc/ic_vr_headset.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу смотреть SBS 3D-фильмы на телефоне или полностью погрузиться на Quest»_ → [Иммерсивный кинотеатр OpenXR VR](../HOW_TO_RU.md#иммерсивный-кинотеатр-openxr-vr)
 - <img src="../icons/doc/ic_calculator.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу быстро вычислять математические формулы прямо из текста документов или фото»_ → [Быстрые вычисления из текста и OCR](../HOW_TO_RU.md#быстрые-вычисления-из-текста-и-ocr)
 - <img src="../icons/doc/ic_edit_20.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу создавать и редактировать заметки Markdown прямо на облаке или сетевом диске»_ → [Облачные заметки Markdown и код](../HOW_TO_RU.md#облачные-заметки-markdown-и-код)
-- <img src="../icons/doc/ic_launcher_mode.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу, чтобы старый планшет показывал мои папки, часы и погоду вместо сетки иконок»_ → [Приложение вместо домашнего экрана](scenario-launcher-mode-ru.md)
+- <img src="../icons/doc/ic_launcher_mode.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу, чтобы старый планшет показывал мои папки, часы и погоду вместо сетки иконок»_ → [Приложение вместо домашнего экрана](scenario-launcher-mode-ru.md) • [Веб-портал Лаунчера](../launcher/index-ru.md)
 
 ---
 

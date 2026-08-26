@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.core.share.handlers.OpenInShareTargetHandler
 import com.sza.fastmediasorter.core.share.handlers.PrintShareTargetHandler
 import com.sza.fastmediasorter.core.share.handlers.SystemShareTargetHandler
 import com.sza.fastmediasorter.core.share.handlers.TelegramShareTargetHandler
+import com.sza.fastmediasorter.core.share.handlers.WatchShareTargetHandler
 import com.sza.fastmediasorter.core.share.handlers.WhatsAppShareTargetHandler
 import dagger.Binds
 import dagger.Module
@@ -78,6 +79,11 @@ abstract class ShareTargetHandlerModule {
     @IntoMap
     @StringKey("instagram")
     abstract fun bindInstagram(handler: InstagramShareTargetHandler): ShareTargetHandler
+
+    @Binds
+    @IntoMap
+    @StringKey("watch")
+    abstract fun bindWatch(handler: WatchShareTargetHandler): ShareTargetHandler
 
     companion object {
         @Provides

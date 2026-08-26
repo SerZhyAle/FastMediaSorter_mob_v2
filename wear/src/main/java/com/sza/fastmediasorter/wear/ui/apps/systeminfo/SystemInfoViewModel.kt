@@ -1,4 +1,4 @@
-package com.sza.fastmediasorter.wear.ui.settings
+package com.sza.fastmediasorter.wear.ui.apps.systeminfo
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -27,7 +28,9 @@ class SystemInfoViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            state.value = SystemInfoUiState(loading = false, sections = gatherWearSystemInfo())
+            val sections = gatherWearSystemInfo()
+            Timber.d("S2008: system info opened from Apps, ${sections.size} section(s)")
+            state.value = SystemInfoUiState(loading = false, sections = sections)
         }
     }
 }

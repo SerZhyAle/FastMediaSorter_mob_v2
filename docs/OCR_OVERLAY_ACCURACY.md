@@ -392,3 +392,164 @@ Deliberately not ticketed, with the reason, so it is not looked for later: the g
 rung is reachable through `setVariable` and the PSM enum, and it is the single largest recall win they
 measured - but four passes instead of one is a phone-battery decision taken on a number, and that number
 does not exist yet. It waits for S1716.
+
+## 12. Round 2 (2026-08-25): S1717 Derived vs Inherited Thresholds & Translatability Filtering
+
+The second round of the accuracy exchange reviews the four OCR discard thresholds in `OcrBlockFilter` (`MIN_CONFIDENCE = 30f`, `MIN_TEXT_LENGTH = 3`, `MAX_SPECIAL_TO_LETTER_RATIO = 0.5f`, `MIN_BOX_WIDTH = 20`, `MIN_BOX_HEIGHT = 10`) and reformulates the translatability filter.
+
+### 12.1 Threshold derivation status
+
+1. **`MIN_CONFIDENCE = 30f`**: **[INHERITED]**. Remains inherited from the legacy pipeline. Derivation on empirical material is deferred until the S1716 accuracy corpus and harness are operational.
+2. **`MIN_TEXT_LENGTH = 3`**: **[INHERITED / REFORMULATED]**. Inherited for alphabetic text fragments. Reformulated for CJK/Ideographic text (Hanzi, Kanji, Kana, Hangul), allowing single and double character fragments (e.g. "出口", "止") since short CJK signs are valid words.
+3. **`MAX_SPECIAL_TO_LETTER_RATIO = 0.5f`**: **[INHERITED / REFORMULATED]**. Integrated into the text-property translatability check `isTranslatableText`.
+4. **`MIN_BOX_WIDTH = 20`, `MIN_BOX_HEIGHT = 10`**: **[INHERITED - measured, not derivable yet]**. Absolute pixel bounds remain inherited. S2036 built the measurement and ran it: `PLAN/S2036_ocr-line-height-relation-from-corpus/reports/2026-08-26__height-relation-report.md`. On every scene the corpus holds, the thresholds are 0.4167 and 0.2083 of the median annotated line height - and the spread of that fraction across scenes, which is the only thing that could decide ADR-3, is reported as not measured because all six scenes are 800x600. An absolute pixel bound is only wrong in that it fails to scale, so one resolution cannot show it failing. See ADR-3 below.
+5. **`DEFAULT_MAX_HEIGHT_RATIO = 2.0f`** (in `OcrLineGeometry`, the artifact-rejection multiplier): **[INHERITED - lower bound measured]**. Same report. On the one scene annotated at word level the tallest real word reaches **1.43x** its line's median word height, so 2.0 does not currently drop real text on our material. That is a floor, not a derivation: rejection fires only on tokens carrying no letter or digit, and annotated ground truth holds real text by construction, so nothing in this corpus says how far **below** 2.0 the multiplier could go before it stops catching an artifact. Deriving the upper bound needs annotated artifacts, which the annotation format does not carry.
+
+**ADR-3 (line-height relative box thresholds) - base fixed, verdict not yet reachable (S2036, 2026-08-26).**
+No longer waiting on the S1716 corpus: those measurements exist and are cited above. Two of the three parts
+are settled and the third is blocked on material, not on tooling.
+
+- **The base is decided, and it came from the code rather than from the report.** If the thresholds become
+  relative, they are relative to the **median annotated line height of the scene**. Not to the checked box's
+  own height, which would compare a value with itself; and not to the type size, because the type size is
+  the median of word heights produced by `OcrLineGeometry` *after* `OcrBlockFilter` has already run. Making
+  the filter read the type size would mean swapping the two, which is a pipeline change and belongs to its
+  own ticket, not to a threshold edit.
+- **The verdict is not reachable on the corpus as it stands.** Every scene it holds is 800x600, so the
+  fraction is identical on all six and its spread is zero by construction. The harness now refuses to print
+  that zero, because "the fraction is stable, so relativity buys nothing" is exactly the conclusion a reader
+  would take from it, and no one measured it.
+- **What would settle it:** two or more registered real scenes at genuinely different resolutions. Then the
+  spread is a finding either way - a stable fraction rejects ADR-3 with a number, a spreading one accepts it
+  with the same number. `Carrier: S2065` - the corpus run is now a repeatable command, so settling this is
+  registering material and re-running, not building anything further.
+
+### 12.2 Text Translatability Reformulation
+
+The translatability check is rewritten from a crude non-alphanumeric ratio to explicit text property analysis:
+- **CJK / Ideographic bypass**: Scripts containing ideographs, Hiragana, Katakana, or Hangul bypass both the vowel requirement and the minimum length requirement.
+- **Abjad script exemption**: Scripts that do not write vowels (Arabic, Hebrew) bypass the vowel check.
+- **Vowel requirement for alphabetic scripts**: Text fragments in Latin, Cyrillic, or Greek with length >= 3 require at least one vowel character; vowel-less letter sequences (e.g., "bcdfgh", "бвгджз") fail translatability and report `Verdict.TOO_MANY_SPECIAL_CHARS`.
+
+
+## 13. Round 3 (2026-08-25): S1716 rectangle corpus - the first bounds, and what they are not
+
+The accuracy corpus S1716 promised is operational. It scores four axes on five deterministic synthetic
+scenes without rasterising anything, because on this host nothing can be rasterised: Robolectric's legacy
+graphics records draw calls instead of executing them, and its native graphics runtime ships no Windows
+binary before 4.16.1. The pixel axis therefore did not get weaker - it left, to S1782, with the upgrade it
+really costs.
+
+Everything below comes from one report and names it. No number in this section exists outside it.
+
+### 13.1 First acceptance bounds
+
+Source report: `PLAN/S1716_ocr-accuracy-corpus-and-harness/reports/2026-08-25__overlay-rectangle-report.md`, build 2.60.8241.413-DEBUG
+(standard debug), five synthetic scenes, zero real scenes registered.
+
+1. **Plate-to-text overlap - floor 1.0000.** Measured 1.0000 worst and 1.0000 median over 5 of 5 scenes.
+   A plate that does not fully cover its own annotated line is a regression, and today none does.
+2. **Plate spill outside paintable area - ceiling 0.5433.** Measured 0.5433 worst (`uniform-multiline-text`)
+   and 0.5037 median over 5 of 5 scenes. This is a **record of today's behaviour, not a target**: at a 1.6x
+   translation more than half the plate area lands where the annotation forbids painting. It is the ceiling
+   a later change must not exceed, and the number the plate-growth work should be judged against.
+3. **Run duration - ceiling 2.0 ms per scene, from the median 4400 ns.** Worst measured 1094200 ns on the
+   first scene of the run and 2300-6000 ns on the other four, so the worst figure is JVM warm-up rather than
+   geometry. A bound taken from that worst value would measure the JIT; the median is what the arithmetic
+   costs.
+4. **Annotated text found - not established.** No recogniser is in this loop, so the corpus cannot measure
+   recall at all. It is reported Unmeasured on all 5 scenes rather than as the 100 % that feeding a scene its
+   own annotation would arithmetically produce.
+5. **Source-ink concealment at any opacity - not established, and not establishable here.** It needs a
+   rasterised composition of plate over source. Owned by **S1782**. The 94 %-alpha question this document
+   raised in §10 stays open there; it is not a zero and not a pass.
+
+### 13.2 The two rectangle research questions this corpus was asked to answer
+
+**Band width around a line on a dense screenshot (S1714, carried as S1716 §6.4) - answered.** On the
+`uniform-multiline-text` scene, four lines of 380x48 at a 64 px step:
+
+- The free vertical band between lines is **16 px**. A colour-sampling ring taller than that reads the
+  neighbouring line's ink rather than paper, which is the failure S1714 was opened for.
+- The band a plate is **allowed** to paint is **0 px**: the annotation declares paintable exactly the line
+  box. Sampling and painting are different permissions on the same pixels, and only the annotation's
+  separation of "where text is" from "where a plate may paint" makes that difference expressible.
+- 340 px of untouched paper remain to the right of the line. It is legitimate to sample colour there and
+  illegitimate to paint there.
+- Today's growth consumes the whole gap: at 1.6x the plate extends 244 px right and 16 px down, exactly the
+  inter-line distance.
+
+**Relation of heights on our material (S1711, carried as S1716 §6.5) - not answered, and stated as such.**
+This corpus scores plate rectangles. The translated extent it feeds the geometry uses the source box's own
+height by construction, so plate height never grows past the source and no height relation can come out of
+the report - overlap is 1.0 everywhere and spill is driven entirely by width. The annotation format also
+carries line boxes only, while the inherited number is the median of **word** heights, so there is nothing to
+compare against. Answering it means extending the harness, not re-reading this report. Carried by **S2036**,
+which also owns ADR-3 of §12.1 - whether `MIN_BOX_WIDTH` and `MIN_BOX_HEIGHT` should become line-height
+relative.
+
+### 13.3 How to reproduce
+
+`pwsh -NoProfile -File scripts/ocrbench/run-corpus.ps1` - runs the corpus and prints the path of the dated
+report it wrote. Real scenes are registered through `scripts/ocrbench/fetch-real-scenes.ps1`; their media
+never enter this repository, their annotation always does.
+
+
+## 14. Round 4 (2026-08-26): S2036 word-level geometry - two relations, and one number that refused to exist
+
+Round 3 closed with the height relation unanswered and named the reason: the annotation carried line boxes
+only, while the inherited multiplier is defined against the median of **word** heights. S2036 extended the
+ground truth to the word, added the measurement, and ran it.
+
+Report: `PLAN/S2036_ocr-line-height-relation-from-corpus/reports/2026-08-26__height-relation-report.md`
+(6 scenes, 0 of them real, build 2.60.8260.551-DEBUG standard debug).
+
+### 14.1 There are two relations, not one
+
+This is the round's main contribution, and it is a correction rather than a measurement. Both this document
+and S1716 called two different quantities "the inherited height ratio". They are:
+
+- **line-to-word** - the line box height over the median word height of that line. It says how much taller a
+  line box is than its own letters. This is the quantity an absolute pixel threshold has to be expressed
+  against before it can be called relative, and it is what §13.2's open question was really asking about.
+- **word-to-median** - the tallest word of a line over that line's median word. This is the empirical floor
+  under `DEFAULT_MAX_HEIGHT_RATIO`: set the multiplier below what real text reaches and real text is dropped.
+
+They are derived from different quantities and consumed at different points of the pipeline, so the corpus
+reports them as two separate axes and aggregates them differently on purpose - line-to-word by the median
+across lines, because it describes typical material; word-to-median by the **maximum**, because a floor is
+set by the worst line and taking its median would understate exactly the case the multiplier must survive.
+
+### 14.2 What the numbers are
+
+On the one scene annotated at word level: line-to-word **1.71**, word-to-median **1.43**. Five scenes report
+both axes unmeasured with the reason "no text area carries word-level geometry" - the version-1 annotations
+predate word geometry and are deliberately not backfilled, because the cheap way to backfill is a
+recogniser's own output and scoring a recogniser against itself measures nothing.
+
+The thresholds of §12.1 come out as 0.4167 (`MIN_BOX_WIDTH`) and 0.2083 (`MIN_BOX_HEIGHT`) of the median line
+height, identically on all six scenes, because all six are 800x600.
+
+### 14.3 The number that refused to exist, and why that is the finding
+
+The spread of that fraction across scenes is the only thing that can decide ADR-3, and the harness reports it
+as **not measured** rather than as 0. An absolute pixel bound is wrong only in that it fails to scale, so one
+resolution cannot show it failing; a printed zero would have been read as "the fraction is stable, so
+relativity buys nothing", which is a conclusion nobody measured. The refusal is in code, not in a caveat
+sentence: the spread is gated on two distinct resolutions, not on two scenes.
+
+What this costs to fix is material, not tooling - see `Carrier: S2065`.
+
+### 14.4 What this corpus still cannot say
+
+Only a **lower** bound on `DEFAULT_MAX_HEIGHT_RATIO`. Rejection fires on tokens carrying no letter or digit,
+and annotated ground truth holds real text by construction, so the corpus can say the multiplier must stay
+above 1.43 on our material and can say nothing about how far below 2.0 it could go while still catching an
+artifact. That needs annotated artifacts - a "this box is not text" mark the format does not carry. The word
+level was left open to it, and no ticket claims it yet.
+
+### 14.5 How to reproduce
+
+Unchanged from §13.3 - the same one command. It now also prints both new axes and the fraction spread; it
+used to filter its echo through a hardcoded list of four axis names, which would have shown neither of the
+axes this round added while still exiting 0.

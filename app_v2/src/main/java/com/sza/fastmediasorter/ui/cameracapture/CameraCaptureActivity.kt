@@ -9,7 +9,7 @@ import android.graphics.Typeface
 import android.net.Uri
 import android.view.KeyEvent
 import android.view.View
-import android.widget.PopupMenu
+import androidx.appcompat.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -274,6 +274,7 @@ class CameraCaptureActivity :
                 flowManager.onCrossLensFloorSelected(equivalent)
                 syncZoomSelection()
             },
+            switchButton = binding.btnCameraLensSwitch,
         )
         lensSwitchManager = CameraLensSwitchManager(
             switchButton = binding.btnCameraLensSwitch,
@@ -503,8 +504,10 @@ class CameraCaptureActivity :
     private fun showProfileMenu() {
         val profiles = flowManager.availableProfiles()
         val popup = PopupMenu(this, binding.btnCameraProfile)
+        popup.setForceShowIcon(true)
         profiles.forEachIndexed { index, profile ->
-            popup.menu.add(PROFILE_MENU_GROUP, index, index, CameraProfilePresentation.labelRes(profile))
+            val item = popup.menu.add(PROFILE_MENU_GROUP, index, index, CameraProfilePresentation.labelRes(profile))
+            item.setIcon(CameraProfilePresentation.iconRes(profile))
         }
         popup.menu.setGroupCheckable(PROFILE_MENU_GROUP, true, true)
         profiles.indexOf(flowManager.activeProfile)
