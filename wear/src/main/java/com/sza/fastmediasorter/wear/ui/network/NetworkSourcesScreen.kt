@@ -35,6 +35,9 @@ import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
+import com.sza.fastmediasorter.wear.ui.common.WearStateExtraAction
+import com.sza.fastmediasorter.wear.ui.common.WearStateKind
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.ConnectionTestState
@@ -128,19 +131,26 @@ fun NetworkSourcesScreen(
                 )
             }
             is NetworkSourcesUiState.Empty -> {
-                EmptyContent(
-                    syncState = syncState,
-                    onAddClick = {
-                        navController.navigate(WearRoutes.ADD_NETWORK_SOURCE)
-                    },
-                    onSyncClick = {
-                        viewModel.requestSyncFromPhone()
-                    }
+                // A failed sync is reported as the state's own message rather than stacked under the
+                // hint: the two never describe the same situation, and the hint explains an emptiness
+                // the failure has already superseded.
+                val syncFailure = (syncState as? SyncState.Error)?.message
+                WearStateBlock(
+                    kind = if (syncFailure != null) WearStateKind.ERROR else WearStateKind.EMPTY,
+                    message = syncFailure ?: stringResource(R.string.wear_resources_empty_hint),
+                    onBack = { navController.popBackStack() },
+                    extraActions = emptyResourceActions(
+                        syncState = syncState,
+                        onSyncClick = { viewModel.requestSyncFromPhone() },
+                        onAddClick = { navController.navigate(WearRoutes.ADD_NETWORK_SOURCE) }
+                    )
                 )
             }
             is NetworkSourcesUiState.Error -> {
-                ErrorContent(
+                WearStateBlock(
+                    kind = WearStateKind.ERROR,
                     message = state.message,
+                    onBack = { navController.popBackStack() },
                     onRetry = {
                         Timber.d("Retrying network sources load")
                         viewModel.retryLoad()
@@ -408,66 +418,36 @@ private fun SourcesListContent(
     }
 }
 
+/**
+ * The two ways out of an empty Resources list, in the order they are worth trying.
+ *
+ * Pulling the phone's sources over is the answer for almost everyone and stays first. Typing a
+ * source in by hand is offered only where [NetworkSourceEntry.isOffered] allows it, which today is
+ * debug builds - so a release build shows one offer and Back, and the extra chip is a debug-only
+ * shape rather than the one that ships.
+ */
 @Composable
-private fun EmptyContent(
+private fun emptyResourceActions(
     syncState: SyncState,
-    onAddClick: () -> Unit,
-    onSyncClick: () -> Unit
-) {
-    ScalingLazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = wearScreenInsets()
-    ) {
-        item {
-            Text(
-                text = stringResource(R.string.network_storage),
-                style = MaterialTheme.typography.title2,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                textAlign = TextAlign.Center
+    onSyncClick: () -> Unit,
+    onAddClick: () -> Unit
+): List<WearStateExtraAction> = buildList {
+    add(
+        WearStateExtraAction(
+            label = stringResource(R.string.wear_sync_from_phone),
+            onClick = onSyncClick,
+            // A second tap while the phone is answering would queue a duplicate sync, which is the
+            // one thing the pending state exists to prevent.
+            enabled = syncState !is SyncState.Pending
+        )
+    )
+    if (NetworkSourceEntry.isOffered(BuildConfig.DEBUG)) {
+        add(
+            WearStateExtraAction(
+                label = stringResource(R.string.add_network_source),
+                onClick = onAddClick
             )
-        }
-
-        item {
-            Text(
-                text = stringResource(R.string.wear_resources_empty_hint),
-                style = MaterialTheme.typography.body2,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                textAlign = TextAlign.Center
-            )
-        }
-
-        item {
-            SyncFromPhoneChip(syncState = syncState, onClick = onSyncClick)
-        }
-
-        if (NetworkSourceEntry.isOffered(BuildConfig.DEBUG)) {
-            item {
-                Chip(
-                    onClick = onAddClick,
-                    label = {
-                        Text(text = stringResource(R.string.add_network_source))
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ChipDefaults.secondaryChipColors()
-                )
-            }
-        }
-
-        if (syncState is SyncState.Error) {
-            item {
-                Text(
-                    text = syncState.message,
-                    style = MaterialTheme.typography.caption2,
-                    color = MaterialTheme.colors.error,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
-                )
-            }
-        }
+        )
     }
 }
 
@@ -509,51 +489,6 @@ private fun ExportToPhoneChip(
         modifier = Modifier.fillMaxWidth(),
         colors = ChipDefaults.secondaryChipColors()
     )
-}
-
-@Composable
-private fun ErrorContent(
-    message: String,
-    onRetry: () -> Unit
-) {
-    ScalingLazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = wearScreenInsets()
-    ) {
-        item {
-            Text(
-                text = stringResource(R.string.error),
-                style = MaterialTheme.typography.title2,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                textAlign = TextAlign.Center
-            )
-        }
-        
-        item {
-            Text(
-                text = message,
-                style = MaterialTheme.typography.body2,
-                color = MaterialTheme.colors.error,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                textAlign = TextAlign.Center
-            )
-        }
-        
-        item {
-            Chip(
-                onClick = onRetry,
-                label = {
-                    Text(text = stringResource(R.string.retry))
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ChipDefaults.secondaryChipColors()
-            )
-        }
-    }
 }
 
 data class SourceItem(

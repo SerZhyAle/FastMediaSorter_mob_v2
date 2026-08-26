@@ -3,13 +3,18 @@ package com.sza.fastmediasorter.wear.ui.favourites
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
 import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_LOCAL
 import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
+import com.sza.fastmediasorter.wear.domain.model.WearFileOperation
+import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
+import com.sza.fastmediasorter.wear.domain.model.WearFileOperationOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.domain.usecase.PerformWearFileOperationUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ToggleFavoriteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -55,6 +60,8 @@ class FavouritesViewModel @Inject constructor(
     private val favoritesRepository: WearFavoritesRepository,
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
     private val selectedMediaManager: SelectedMediaManager,
+    private val capabilityPolicy: WearFileCapabilityPolicy,
+    private val performFileOperation: PerformWearFileOperationUseCase,
     preferencesRepository: WearPreferencesRepository
 ) : ViewModel() {
 
@@ -69,6 +76,10 @@ class FavouritesViewModel @Inject constructor(
      */
     private val _openRequest = MutableStateFlow<FavouriteOpenRequest?>(null)
     val openRequest: StateFlow<FavouriteOpenRequest?> = _openRequest.asStateFlow()
+
+    /** What the last file operation came to, or null when there is nothing to report. */
+    private val _operationNotice = MutableStateFlow<WearFileOperationOutcome?>(null)
+    val operationNotice: StateFlow<WearFileOperationOutcome?> = _operationNotice.asStateFlow()
 
     /**
      * The file-list view, not the resource-list view.
@@ -126,6 +137,33 @@ class FavouritesViewModel @Inject constructor(
     }
 
     /**
+     * What may be done with the file [record] points at.
+     *
+     * A network favourite is asked about as a network entry, so the policy answers with the empty set
+     * the source really permits rather than with the four operations a local path would allow.
+     */
+    fun allowedOperationsFor(record: WearFavoriteRecord): Set<WearFileOperationKind> {
+        val storageClass = capabilityPolicy.classify(record.toMediaFile(), record.isNetwork())
+        return capabilityPolicy.allowedOperations(storageClass)
+    }
+
+    /** The file the action menu acts on - the same one the player is handed. */
+    fun actionTargetFor(record: WearFavoriteRecord): WearMediaFile = record.toMediaFile()
+
+    /** Runs [operation] over [record]'s file and reports what came of it. */
+    fun runOperation(record: WearFavoriteRecord, operation: WearFileOperation) {
+        viewModelScope.launch {
+            performFileOperation(listOf(record.toMediaFile()), operation, record.isNetwork())
+                .collect { result -> _operationNotice.value = result.outcome }
+        }
+    }
+
+    /** Called once the screen has shown the notice, so it does not outlive the action it reports. */
+    fun consumeOperationNotice() {
+        _operationNotice.value = null
+    }
+
+    /**
      * Unmarks [record] and drops it from the list at once.
      *
      * The row leaves immediately rather than after a reload: the user asked for it to go, and re-reading an
@@ -143,6 +181,18 @@ class FavouritesViewModel @Inject constructor(
             toggleFavoriteUseCase.toggle(record.sourceId, record.filePath, wasFavorite = true)
         }
     }
+
+    private fun WearFavoriteRecord.isNetwork(): Boolean = sourceId != SOURCE_ID_LOCAL
+
+    /** The same file the player is handed, so the menu and the player never disagree about identity. */
+    private fun WearFavoriteRecord.toMediaFile(): WearMediaFile = WearMediaFile(
+        id = identity.hashCode().toLong(),
+        name = displayName,
+        uri = Uri.parse(filePath),
+        mimeType = mimeType,
+        size = 0L,
+        dateModified = 0L
+    )
 
     private fun load() {
         _uiState.value = FavouritesUiState.Loading

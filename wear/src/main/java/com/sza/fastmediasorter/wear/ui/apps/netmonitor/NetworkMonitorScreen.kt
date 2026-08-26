@@ -6,7 +6,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -59,7 +58,13 @@ fun NetworkMonitorScreen(
     val permissionsState = rememberMultiplePermissionsState(permissions = requestable)
     val canRequestPermissions = requestable.isNotEmpty() && !permissionsState.allPermissionsGranted
 
-    WearScreenScaffold {
+    WearScreenScaffold(
+        pageIndicator = if (pageCount > 1) {
+            { HorizontalPageIndicator(pageIndicatorState = indicatorState) }
+        } else {
+            null
+        }
+    ) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -76,7 +81,7 @@ fun NetworkMonitorScreen(
             }
             HorizontalPager(
                 state = pagerState,
-                modifier = Modifier.fillMaxWidth().weight(1f)
+                modifier = Modifier.fillMaxSize()
             ) { page ->
                 NetworkMonitorSectionPage(
                     section = state.sections[page],
@@ -88,9 +93,6 @@ fun NetworkMonitorScreen(
                     },
                     modifier = Modifier.fillMaxSize().padding(PAGE_PADDING)
                 )
-            }
-            if (pageCount > 1) {
-                HorizontalPageIndicator(pageIndicatorState = indicatorState)
             }
         }
     }

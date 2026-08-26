@@ -3001,6 +3001,16 @@
       "titleUk": "Зберігати кадри відео в буфер обміну"
     },
     {
+      "key": "wearBackgroundMode",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_companion_background_group",
+      "kind": "RADIO_GROUP",
+      "titleEn": "Watch Background",
+      "titleRu": "Фон на часах",
+      "titleUk": "Фон на годиннику"
+    },
+    {
       "key": "wearDownloadAlbumArt",
       "sectionId": "wear",
       "destination": "MEDIA",

@@ -47,6 +47,7 @@
     bfd  - Build failure digest (structured JSON + verdict)
     nl   - Build noLegal Release
     nd   - Build noLegal Debug
+    wd   - Build Wear OS Debug and distribute APK
     r1   - Run the release queue unattended, instance A (one fresh claude process per ticket)
     r2   - Same, instance B - the second parallel stream, staggered so it does not race A
            Order comes from PLAN/RELEASE_QUEUE.md; the model is picked per ticket (Opus where a
@@ -56,6 +57,13 @@
            `.\a.ps1 rs -Instance b` stops one; `.\a.ps1 rs -Kill` also kills the children.
     rm   - Monitor: running children, claimed tickets, locks, and what each instance finished.
            `.\a.ps1 rm -Watch` refreshes until Ctrl+C.
+    ub   - Unlock build: clear temp/BUILD.LOCK and its queue when the holder is stale or dead.
+    uc   - Unlock code: the same for temp/CODE.LOCK.
+           Both REFUSE a lock whose holder is still live and print who holds it; add -Force
+           once the holder is confirmed gone - that also drops the whole queue.
+    ul   - Unlock leases: drop the ticket leases a killed flow left behind, keeping every one a
+           running child or a held lock still vouches for. Prints why each went or stayed.
+           `.\a.ps1 ul -Force` drops the lot without asking anything.
     adb  - adb swiss-army passthrough (scripts\devtest\adb.ps1); verb + options ride in via $Rest
     adb-devices / adb-shot / adb-log / adb-current / adb-launch / adb-logcat-clear - fixed-verb shortcuts
 .EXAMPLE
@@ -137,6 +145,7 @@ $scripts = @{
     'bfd'       = @{ Path = 'scripts\builders\build-failure-digest.ps1'; Args = @{} }
     'nl'        = @{ Path = 'scripts\builders\build-nolegal-release.ps1'; Args = @{} }
     'nd'        = @{ Path = 'scripts\builders\build-nolegal-debug.ps1'; Args = @{} }
+    'wd'        = @{ Path = 'scripts\builders\build-wear-debug.PS1'; Args = @{} }
     # Unattended queue runners. Each ticket gets its own claude process, so the context resets
     # between tickets instead of growing all session. r1 and r2 are the two parallel instances -
     # r2 staggers its first ranking so the pair does not rank on the same instant and race for
@@ -145,6 +154,15 @@ $scripts = @{
     'r2'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Instance = 'b'; StartDelaySeconds = 20 } }
     'rs'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Stop = $true } }
     'rm'        = @{ Path = 'scripts\utils\monitor-spec-queue.ps1'; Args = @{} }
+    # Lock releasers. Conservative by design: a lock whose owner is still alive is REFUSED and its
+    # holder printed, so the shortcut cannot silently drop a sibling's turn mid-edit. `-Force` rides
+    # through $Rest for the case the operator has confirmed the holder is gone.
+    'ub'        = @{ Path = 'scripts\utils\clear-agent-lock.ps1'; Args = @{ Name = 'Build' } }
+    'uc'        = @{ Path = 'scripts\utils\clear-agent-lock.ps1'; Args = @{ Name = 'Code' } }
+    # Ticket leases are the third thing a killed flow leaves behind, and the one the built-in sweep
+    # will not touch for 45 minutes: its window is sized for a working session that writes nothing,
+    # not for a dead one. Clean judges on live evidence instead - see the verb's own docs.
+    'ul'        = @{ Path = 'scripts\spec_catalog\ticket-lease.ps1'; Args = @{ Verb = 'Clean' } }
     # adb swiss-army (scripts/devtest/adb.ps1). `adb` is the full passthrough - the verb
     # and any options ride in via $Rest, e.g. `.\a.ps1 adb log -Tail 400 -Grep S0035`.
     # The rest are fixed-verb shortcuts; extra options still forward through $Rest.
@@ -206,10 +224,14 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  bfd  - Build failure digest (structured JSON + verdict)" -ForegroundColor Cyan
     Write-Host "  nl   - Build noLegal Release" -ForegroundColor Cyan
     Write-Host "  nd   - Build noLegal Debug" -ForegroundColor Cyan
+    Write-Host "  wd   - Build Wear OS Debug and distribute APK" -ForegroundColor Cyan
     Write-Host "  r1   - Run the release queue unattended, instance A (fresh process per ticket)" -ForegroundColor Cyan
     Write-Host "  r2   - Same, instance B - the second parallel stream" -ForegroundColor Cyan
     Write-Host "  rs   - Stop the runners after the ticket each is on (-Kill to terminate now)" -ForegroundColor Cyan
     Write-Host "  rm   - Monitor the runners (-Watch to refresh)" -ForegroundColor Cyan
+    Write-Host "  ub   - Unlock build: clear a stale/dead temp/BUILD.LOCK (-Force to override)" -ForegroundColor Cyan
+    Write-Host "  uc   - Unlock code: clear a stale/dead temp/CODE.LOCK (-Force to override)" -ForegroundColor Cyan
+    Write-Host "  ul   - Unlock leases: drop ticket leases a killed flow left behind (-Force = all)" -ForegroundColor Cyan
     Write-Host "  adb  - adb swiss-army passthrough, e.g. 'adb log -Tail 400 -Grep S0035'" -ForegroundColor Cyan
     Write-Host "  adb-devices / adb-shot / adb-log / adb-current / adb-launch / adb-logcat-clear" -ForegroundColor Cyan
     Write-Host ""

@@ -11,6 +11,10 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceClient
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceOutcome
+import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
+import com.sza.fastmediasorter.wear.domain.model.WearFileOperation
+import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
+import com.sza.fastmediasorter.wear.domain.model.WearFileOperationOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceItem
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceResponseStatus
@@ -18,6 +22,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.domain.usecase.PerformWearFileOperationUseCase
 import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -121,6 +126,8 @@ sealed interface PhoneResourceUiState {
 class PhoneResourceViewModel @Inject constructor(
     private val phoneResourceClient: PhoneResourceClient,
     private val selectedMediaManager: SelectedMediaManager,
+    private val capabilityPolicy: WearFileCapabilityPolicy,
+    private val performFileOperation: PerformWearFileOperationUseCase,
     @ApplicationContext context: Context,
     preferencesRepository: WearPreferencesRepository,
     savedStateHandle: SavedStateHandle
@@ -158,6 +165,10 @@ class PhoneResourceViewModel @Inject constructor(
      */
     private val _openOutcome = MutableStateFlow<PhoneFileOpenOutcome?>(null)
     val openOutcome: StateFlow<PhoneFileOpenOutcome?> = _openOutcome.asStateFlow()
+
+    /** What the last file operation came to, or null when there is nothing to report. */
+    private val _operationNotice = MutableStateFlow<WearFileOperationOutcome?>(null)
+    val operationNotice: StateFlow<WearFileOperationOutcome?> = _operationNotice.asStateFlow()
 
     private val _thumbnails = MutableStateFlow<Map<String, WearThumbnail>>(emptyMap())
     val thumbnails: StateFlow<Map<String, WearThumbnail>> = _thumbnails.asStateFlow()
@@ -226,6 +237,71 @@ class PhoneResourceViewModel @Inject constructor(
     /** The screen calls this once it has acted on the outcome, so a rotation does not open twice. */
     fun consumeOpenOutcome() {
         _openOutcome.value = null
+    }
+
+    /**
+     * What the watch may do with [entry] right now.
+     *
+     * The answer is about the watch's own copy, because that is the only thing on this screen the
+     * watch can act on at all - the entry itself lives on the phone. A file never opened here has no
+     * copy, so the honest answer is that nothing is available rather than a menu that would refuse.
+     */
+    fun allowedOperationsFor(entry: WearPhoneResourceItem): Set<WearFileOperationKind> {
+        val local = cachedCopyOf(entry) ?: return emptySet()
+        return capabilityPolicy.allowedOperations(capabilityPolicy.classify(local, isNetworkSource = false))
+    }
+
+    /**
+     * Runs [operation] over the watch's copy of [entry] and reports what came of it.
+     *
+     * The list itself never changes: it shows what the phone holds, and this acts on the watch's copy
+     * of one entry. So the outcome line is the only feedback there is, and staying silent would leave
+     * a delete indistinguishable from a menu that did nothing.
+     */
+    fun runOperation(entry: WearPhoneResourceItem, operation: WearFileOperation) {
+        val local = cachedCopyOf(entry) ?: return
+        viewModelScope.launch {
+            performFileOperation(listOf(local), operation, isNetworkSource = false).collect { result ->
+                _operationNotice.value = result.outcome
+            }
+        }
+    }
+
+    /**
+     * Reports that the pressed entry has no copy on this watch, so there is nothing to act on.
+     *
+     * It rides the same notice channel as a real outcome because it is one: the answer to "what may
+     * this file be asked to do" was "nothing", and the user is owed that in the same place.
+     */
+    fun reportNothingToActOn() {
+        _operationNotice.value = WearFileOperationOutcome.REFUSED_UNSUPPORTED
+    }
+
+    /** Called once the screen has shown the notice, so it does not outlive the action it reports. */
+    fun consumeOperationNotice() {
+        _operationNotice.value = null
+    }
+
+    /** The file the action menu acts on, or null when this entry was never opened on this watch. */
+    fun actionTargetFor(entry: WearPhoneResourceItem): WearMediaFile? = cachedCopyOf(entry)
+
+    /**
+     * The delivered copy of [entry], or null when the file was never opened on this watch.
+     *
+     * The destination is recomputed exactly as [openFile] computes it, so the two cannot drift apart
+     * into a menu acting on a path the transfer never wrote.
+     */
+    private fun cachedCopyOf(entry: WearPhoneResourceItem): WearMediaFile? {
+        val destination = File(cacheDir, entry.token.toCacheFileName(entry.name))
+        if (!destination.exists()) return null
+        return WearMediaFile(
+            id = entry.token.hashCode().toLong(),
+            name = entry.name,
+            uri = Uri.fromFile(destination),
+            mimeType = entry.mimeType,
+            size = destination.length(),
+            dateModified = 0L
+        )
     }
 
     /**

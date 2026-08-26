@@ -347,4 +347,6 @@
     <string name="wear_file_op_outcome_failed">Не получилось - попробуйте снова</string>
     <string name="wear_file_op_outcome_cancelled">Отменено</string>
     <string name="wear_file_op_renamed_to">Сохранено как %1$s</string>
+    <string name="wear_media_types_all_disabled">Все типы содержимого выключены в настройках. Включите один, чтобы увидеть медиа.</string>
+    <string name="wear_file_actions_for">Действия: %1$s</string>
 </resources>

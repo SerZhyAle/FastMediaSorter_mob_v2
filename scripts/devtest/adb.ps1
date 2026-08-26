@@ -154,7 +154,10 @@
   addresses a watch correctly once -DeviceId points at one. For `launch` it selects the component,
   because the watch declares its own activity under its own code namespace; for `install` it
   selects `wear\build\outputs\apk\release` instead of the phone's flavored debug directory, and it
-  refuses a -Flavor, which the watch module does not have.
+  refuses a -Flavor, which the watch module does not have. `install` also refuses when -Module
+  disagrees with the selected device's `ro.build.characteristics` (watch vs not) - both modules
+  share one applicationId (S1681), so the wrong -Module would otherwise silently replace whichever
+  app is already on that device and still report success (S2043).
 
 .EXAMPLE
   pwsh -NoProfile -File scripts/devtest/adb.ps1 install -Module wear -DeviceId 192.168.1.166:46551
@@ -398,6 +401,15 @@ function Resolve-Activity {
     return $MAIN_ACTIVITY
 }
 
+# Form-factor signal shared by the round/rectangle fallback in Get-DisplayShape and the
+# install-time module/device guard (S2043): both modules publish under one applicationId
+# (S1681), so nothing else on the device can tell a phone install from a watch install apart.
+function Test-WatchDevice {
+    param([string]$Id)
+    $chars = (Invoke-Adb $Id @('shell', 'getprop', 'ro.build.characteristics') -AllowFail) -join ''
+    return $chars -match 'watch'
+}
+
 function Get-TempDir {
     # Ad-hoc CLI outputs are no-ticket scratch by nature (CLAUDE.md Rule 10.1) -> temp/scratch/.
     # -OutDir overrides that for work that IS ticket-bound, where Rule 10.1 asks for temp/Sxxxx/.
@@ -478,8 +490,7 @@ function Get-DisplayShape {
         }
     }
     if ($radius -le 0) {
-        $chars = (Invoke-Adb $Id @('shell', 'getprop', 'ro.build.characteristics') -AllowFail) -join ''
-        if ($chars -match 'watch' -and $w -eq $h) {
+        if ((Test-WatchDevice $Id) -and $w -eq $h) {
             $radius = [int]($w / 2)
             $shapeSource = 'watch characteristic + square display - assumed round'
         }
@@ -636,6 +647,16 @@ switch ($Verb.ToLowerInvariant()) {
     'install' {
         $id = Select-Device
         $script:result.device = $id
+        # Both modules publish under one applicationId (S1681), so nothing in the OS stops a
+        # phone-module install from silently replacing the app running on a paired watch, or the
+        # reverse - the wrong artifact lands and this verb still reports success (S2043).
+        $isWatchDevice = Test-WatchDevice $id
+        if ($isWatchDevice -and $Module -ne 'wear') {
+            Fail 1 "device $id reports watch characteristics (ro.build.characteristics) but -Module is '$Module' - installing the phone build here would silently replace the watch app, since both modules share one applicationId (S1681). Pass -Module wear, or point -DeviceId at a phone."
+        }
+        if (-not $isWatchDevice -and $Module -eq 'wear') {
+            Fail 1 "device $id does not report watch characteristics but -Module wear was requested - installing the wear build onto a non-watch device is almost certainly a mistake. Point -DeviceId at the paired watch, or drop -Module wear."
+        }
         if ($Module -eq 'wear' -and $PSBoundParameters.ContainsKey('Flavor')) {
             Fail 1 "-Module wear does not take -Flavor: the watch module declares no product flavors, so '$Flavor' names a variant that does not exist"
         }
@@ -658,7 +679,9 @@ switch ($Verb.ToLowerInvariant()) {
             }
         }
         if (-not $apkPath -or -not (Test-Path -Path $apkPath -PathType Leaf)) {
-            $buildHint = if ($Module -eq 'wear') { 'build the wear release variant first' } else { "build the $Flavor debug variant first" }
+            # -Module wear only ever looks in the release directory - a debug watch build is never
+            # auto-resolved and always needs an explicit -Apk (S2043).
+            $buildHint = if ($Module -eq 'wear') { 'only the release wear artifact is auto-resolved - pass -Apk <path> for a debug watch build, or build the wear release variant first' } else { "build the $Flavor debug variant first" }
             Fail 1 "APK not found (pass -Apk <path>, or $buildHint)"
         }
         Invoke-Adb $id @('install', '-r', '-d', $apkPath) | Out-Null

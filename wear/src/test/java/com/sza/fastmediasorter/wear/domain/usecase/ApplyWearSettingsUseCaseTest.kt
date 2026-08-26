@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.domain.usecase
 
 import android.content.Context
+import com.sza.fastmediasorter.wear.core.util.WearLanguageCatalog
 import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
@@ -12,12 +13,31 @@ import io.mockk.mockk
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Test
 
 class ApplyWearSettingsUseCaseTest {
 
     private val context: Context = mockk(relaxed = true)
+
+    /**
+     * S2054: the language branch reads the declaration through WearLanguageCatalog, and a relaxed mock of
+     * Context returns an XmlResourceParser that never terminates. Seeding the declared set keeps this test
+     * about the use case's persistence contract instead of about resource parsing.
+     */
+    @Before
+    fun seedDeclaration() {
+        WearLanguageCatalog.overrideDeclarationForTest(
+            listOf("en", "zh-Hans", "hi", "es", "fr", "ar", "bn", "pt", "ru", "ur", "uk", "de", "it"),
+        )
+    }
+
+    @After
+    fun clearDeclaration() {
+        WearLanguageCatalog.overrideDeclarationForTest(null)
+    }
 
     @Test
     fun `invoke persists every payload field`() = runTest {
@@ -123,15 +143,29 @@ class ApplyWearSettingsUseCaseTest {
     }
 
     @Test
-    fun `unsupported appLanguage is ignored and leaves watch value untouched`() = runTest {
+    fun `undeclared appLanguage is ignored and leaves watch value untouched`() = runTest {
         val repository = FakeWearPreferencesRepository().apply {
             appLanguageValue = "uk"
         }
         val useCase = ApplyWearSettingsUseCase(context, repository)
 
-        useCase(payloadWithoutNewFields().copy(appLanguage = "de"))
+        // S1814 ADR-2: a tag the watch does not declare is dropped silently, never reset to a default.
+        useCase(payloadWithoutNewFields().copy(appLanguage = "ja"))
 
         assertEquals("uk", repository.appLanguageValue)
+    }
+
+    @Test
+    fun `a language declared only since S2054 is applied instead of refused`() = runTest {
+        val repository = FakeWearPreferencesRepository().apply {
+            appLanguageValue = "uk"
+        }
+        val useCase = ApplyWearSettingsUseCase(context, repository)
+
+        // German is the defect this ticket fixes: translated strings shipped, declaration refused them.
+        useCase(payloadWithoutNewFields().copy(appLanguage = "de-DE"))
+
+        assertEquals("de", repository.appLanguageValue)
     }
 
     @Test

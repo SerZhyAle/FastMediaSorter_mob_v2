@@ -65,6 +65,9 @@ import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
+import com.sza.fastmediasorter.wear.ui.common.WearStateExtraAction
+import com.sza.fastmediasorter.wear.ui.common.WearStateKind
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionScroll
@@ -92,7 +95,8 @@ private data class StreamsActions(
     val onSearchClick: () -> Unit,
     val onFilterClick: () -> Unit,
     val onSortClick: () -> Unit,
-    val onClearSearch: () -> Unit
+    val onClearSearch: () -> Unit,
+    val onBack: () -> Unit
 )
 
 private data class StreamsControlState(
@@ -177,7 +181,8 @@ fun StreamsScreen(
         onSearchClick = { viewModel.setShowSearchDialog(true) },
         onFilterClick = { viewModel.setShowFilterDialog(true) },
         onSortClick = { viewModel.setShowSortDialog(true) },
-        onClearSearch = { viewModel.setSearchQuery("") }
+        onClearSearch = { viewModel.setSearchQuery("") },
+        onBack = { navController.popBackStack() }
     )
 
     WearScreenScaffold(
@@ -269,44 +274,59 @@ private fun StreamsMainContent(
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val columns = GridColumnFit.columnsFor(uiState.viewMode, maxWidth.value.toInt())
         val screenInsets = wearScreenInsets()
-        ScalingLazyColumn(
-            // S2049: the only list-like screen in the module with no rotary hookup - the crown already
-            // scrolls the player and steps the calculator, so its silence here read as a real gap, not
-            // a deliberate one. Plain scroll, not a stepped action: nothing here consumes discrete steps.
-            modifier = Modifier
-                .fillMaxSize()
-                .rotaryActionScroll(listState),
-            state = listState,
-            contentPadding = PaddingValues(
-                start = screenInsets.calculateLeftPadding(LayoutDirection.Ltr),
-                top = screenInsets.calculateTopPadding() + TOOLBAR_BUTTON_SIZE,
-                end = screenInsets.calculateRightPadding(LayoutDirection.Ltr),
-                bottom = screenInsets.calculateBottomPadding()
-            ),
-            // S1945: matching autoCentering's itemIndex to the state's initialCenterItemIndex (both 0)
-            // measured no change at all - centering targets a scaled viewport position, not a plain
-            // top offset, so it keeps fighting contentPadding.top regardless of which item it targets.
-            // Disabling it outright is the library's own documented alternative for a developer-picked
-            // position (ScalingLazyColumn.kt:237-239): with it off, contentPadding is what places items.
-            autoCentering = null,
-            scalingParams = WearGridScalingParams
-        ) {
-            streamsSearchState(uiState = uiState, onClearSearch = actions.onClearSearch)
+        val stillArriving = uiState.isLoading && uiState.channels.isEmpty()
 
-            if (uiState.displayChannels.isEmpty()) {
-                streamsEmptyOrLoading(uiState = uiState, onRefresh = actions.onRefresh)
-            } else {
-                streamItems(
-                    channels = uiState.displayChannels,
-                    columns = columns,
-                    getFaviconTile = getFaviconTile,
-                    onChannelClick = actions.onChannelClick
-                )
-                item {
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-                item {
-                    RefreshFooterChip(isRefreshing = uiState.isRefreshing, onRefresh = actions.onRefresh)
+        // The empty and failed cases take the whole screen rather than a row inside the list, which
+        // is what every other browse screen does and what the shared block is shaped for. The control
+        // header below stays composed on top either way, so search, filter and sort remain reachable
+        // when a narrowing query is what emptied the list.
+        if (uiState.displayChannels.isEmpty() && !stillArriving) {
+            StreamsStateBlock(uiState = uiState, actions = actions)
+        } else {
+            ScalingLazyColumn(
+                // S2049: the only list-like screen in the module with no rotary hookup - the crown
+                // already scrolls the player and steps the calculator, so its silence here read as a
+                // real gap, not a deliberate one. Plain scroll, not a stepped action: nothing here
+                // consumes discrete steps.
+                modifier = Modifier
+                    .fillMaxSize()
+                    .rotaryActionScroll(listState),
+                state = listState,
+                contentPadding = PaddingValues(
+                    start = screenInsets.calculateLeftPadding(LayoutDirection.Ltr),
+                    top = screenInsets.calculateTopPadding() + TOOLBAR_BUTTON_SIZE,
+                    end = screenInsets.calculateRightPadding(LayoutDirection.Ltr),
+                    bottom = screenInsets.calculateBottomPadding()
+                ),
+                // S1945: matching autoCentering's itemIndex to the state's initialCenterItemIndex
+                // (both 0) measured no change at all - centering targets a scaled viewport position,
+                // not a plain top offset, so it keeps fighting contentPadding.top regardless of which
+                // item it targets. Disabling it outright is the library's own documented alternative
+                // for a developer-picked position (ScalingLazyColumn.kt:237-239): with it off,
+                // contentPadding is what places items.
+                autoCentering = null,
+                scalingParams = WearGridScalingParams
+            ) {
+                streamsSearchState(uiState = uiState, onClearSearch = actions.onClearSearch)
+
+                if (stillArriving) {
+                    streamsLoading()
+                } else {
+                    streamItems(
+                        channels = uiState.displayChannels,
+                        columns = columns,
+                        getFaviconTile = getFaviconTile,
+                        onChannelClick = actions.onChannelClick
+                    )
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                    item {
+                        RefreshFooterChip(
+                            isRefreshing = uiState.isRefreshing,
+                            onRefresh = actions.onRefresh
+                        )
+                    }
                 }
             }
         }
@@ -331,8 +351,8 @@ private fun StreamsMainContent(
 
 /**
  * S1946: what the list says about the search itself - the refusal of the input path, and the query
- * that is currently narrowing the list. Its own scope function for the reason
- * [streamsEmptyOrLoading] is one: the screen body is at detekt's length ceiling.
+ * that is currently narrowing the list. Its own scope function for the reason [streamsLoading] is
+ * one: the screen body is at detekt's length ceiling.
  */
 private fun ScalingLazyListScope.streamsSearchState(
     uiState: StreamsUiState,
@@ -378,58 +398,59 @@ private fun ScalingLazyListScope.streamsSearchState(
     }
 }
 
-private fun ScalingLazyListScope.streamsEmptyOrLoading(
+/**
+ * What the screen says when the list is empty, and why refresh is not always a Retry.
+ *
+ * A failed update is an error whose retry is exactly the call that failed, so it takes the Retry
+ * slot. An empty catalogue is not a failure - the fetch succeeded and returned nothing - so per the
+ * block's own rule it carries no Retry, and the refresh is offered as the screen's own action
+ * instead. Both keep a visible way back.
+ */
+@Composable
+private fun StreamsStateBlock(
     uiState: StreamsUiState,
-    onRefresh: () -> Unit
+    actions: StreamsActions
 ) {
-    if (uiState.isLoading && uiState.channels.isEmpty()) {
-        item {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                CircularProgressIndicator(modifier = Modifier.size(32.dp))
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = stringResource(R.string.wear_streams_updating),
-                    style = MaterialTheme.typography.caption2,
-                    textAlign = TextAlign.Center
-                )
-            }
+    val failed = uiState.error != null
+    val refreshLabel = stringResource(R.string.wear_streams_refresh)
+    WearStateBlock(
+        kind = if (failed) WearStateKind.ERROR else WearStateKind.EMPTY,
+        message = if (failed) {
+            stringResource(R.string.wear_streams_update_failed)
+        } else {
+            stringResource(R.string.wear_streams_empty)
+        },
+        onBack = actions.onBack,
+        onRetry = if (failed) actions.onRefresh else null,
+        extraActions = if (failed) {
+            emptyList()
+        } else {
+            listOf(WearStateExtraAction(label = refreshLabel, onClick = actions.onRefresh))
         }
-    } else {
-        item {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = if (uiState.error != null) {
-                        stringResource(R.string.wear_streams_update_failed)
-                    } else {
-                        stringResource(R.string.wear_streams_empty)
-                    },
-                    style = MaterialTheme.typography.body2,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Chip(
-                    onClick = onRefresh,
-                    label = { Text(stringResource(R.string.wear_streams_refresh)) },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Filled.Refresh,
-                            contentDescription = stringResource(R.string.wear_streams_refresh),
-                            modifier = Modifier.size(CELL_ICON_SIZE)
-                        )
-                    },
-                    colors = ChipDefaults.primaryChipColors()
-                )
-            }
+    )
+}
+
+/**
+ * The spinner shown while the first list is still arriving.
+ *
+ * Stays a list item, unlike the empty and failed cases: loading is not one of the state block's
+ * three kinds, and it offers nothing to act on because the answer is already on its way.
+ */
+private fun ScalingLazyListScope.streamsLoading() {
+    item {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            CircularProgressIndicator(modifier = Modifier.size(32.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.wear_streams_updating),
+                style = MaterialTheme.typography.caption2,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
@@ -940,11 +961,11 @@ private fun StreamCell(
         caption = channel.name,
         onClick = onClick,
         modifier = modifier
-    ) {
+    ) { glyphModifier ->
         Icon(
             painter = painterResource(R.drawable.ic_cast),
             contentDescription = null,
-            modifier = Modifier.size(CELL_ICON_SIZE)
+            modifier = glyphModifier
         )
     }
 }

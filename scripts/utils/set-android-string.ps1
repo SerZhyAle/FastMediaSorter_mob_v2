@@ -180,7 +180,7 @@ if (-not (Test-Path $resDir)) {
 #                      deleted key leaves no orphan behind.
 . (Join-Path $PSScriptRoot 'locale-set.ps1')
 
-$declaredLocaleTags = Get-SupportedLocales
+$declaredLocaleTags = Get-SupportedLocales -Module $Module
 $strictValueByTag = @{ en = $En; ru = $Ru; uk = $Uk }
 
 $locales = @(

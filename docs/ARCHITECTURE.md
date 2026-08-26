@@ -416,3 +416,12 @@ New screens with collapsible/expandable sections MUST use the unified pattern (S
 - **Default expansion:** dense config screens (settings, source editors) and list groupings collapsed; short dialogs (folder picker) expanded; player overlay panels collapsed until activated.
 - **Accessibility:** state announced via `ViewCompat.setStateDescription` (API 30+) with a `contentDescription` fallback below; chevron tinted via theme attribute (`?attr/colorOnSurfaceVariant`, override per-context with `csh_chevronTint`); no hardcoded colors.
 - **List consumers** (RecyclerView section headers, e.g. Statistics/Keybinding) build the `CollapsibleSectionHeader` programmatically and bind it via `setTitle`/`setExpanded`/`setOnExpandedChangeListener`.
+
+## Wear Settings Persistence (S2050)
+
+A wear-related field on the phone belongs to exactly one of two stores, decided by who reads it:
+
+- **`WearSettingsMirrorStore`** (`data/repository/wear/`) - a field belongs here only if nothing outside the companion sheet's own restore path ever reads it, and it exists solely to remember what was last told to the watch. Backed by the `wear_sync_prefs` `SharedPreferences` file, Gson-serialized. The two actual writers are `WearSyncViewModel` (settings the sheet pushed) and `PhoneWearListenerService.markSynced` (the watch's ack timestamp) - neither touches `SharedPreferences` directly, both inject the store.
+- **`AppSettings`/`ProgramsSettingsStore`** - a field belongs here if any other part of the app reads it reactively as a phone-behaviour toggle, the way `KEY_ENABLE_WEAR_COMPANION` is read by `MainActivity`, `SubProgramCatalog`, `ShareTargetAvailabilityResolver` and others outside the companion sheet.
+
+These are not two names for one setting - they answer different questions ("what did we last tell the watch" vs. "is the companion feature on") - so merging them is out of scope; see `PLAN/S2050_wear-settings-two-stores-on-phone.md` §9 for the rejected alternative.

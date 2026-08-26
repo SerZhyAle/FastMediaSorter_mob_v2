@@ -10,7 +10,6 @@ import com.sza.fastmediasorter.databinding.LauncherTaskbarBinding
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.flow.Flow
-import timber.log.Timber
 
 /**
  * S0404: owns the taskbar's two icon strips and the visibility of its three configurable blocks.
@@ -105,7 +104,6 @@ class LauncherTaskbarManager(
      * strategic §0).
      */
     fun setEditMode(on: Boolean) {
-        Timber.d("S2022: taskbar setEditMode($on) - recents/tray-indicators hidden while true")
         pinnedAdapter.setEditMode(on)
         editing = on
         render()

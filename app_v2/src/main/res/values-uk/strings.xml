@@ -3451,4 +3451,16 @@
     <string name="calculator_keypad_mode_normal">Звичайна</string>
     <string name="calculator_keypad_mode_large">Великі кнопки</string>
     <string name="calculator_keypad_mode_compact">Компактна, справа внизу</string>
+    <string name="wear_background_section_title">Фон на годиннику</string>
+    <string name="wear_background_mode_animation">Фірмова анімація</string>
+    <string name="wear_background_mode_image">Власне зображення</string>
+    <string name="wear_background_pick_image">Вибрати зображення</string>
+    <string name="wear_background_preview">Попередній перегляд фону на годиннику</string>
+    <string name="wear_background_sending">Надсилаємо зображення на годинник..</string>
+    <string name="wear_background_sent">Зображення на годиннику.</string>
+    <string name="wear_background_failed">Не вдалося надіслати зображення - виберіть інше або надішліть ще раз.</string>
+    <string name="wear_background_watch_unreachable">Годинник недоступний - піднесіть його ближче та надішліть ще раз.</string>
+    <string name="perm_title_location_extended">Геомітка, гаджети та монітор мережі</string>
+    <string name="perm_desc_location_extended">Геомітки для зйомки, гаджети робочого столу та монітор мережі</string>
+    <string name="perm_rationale_location_extended">Місцезнаходження використовується лише всередині застосунку - щоб записати координати у зняті фото та відео, намалювати гаджети компаса, швидкості, висоти та карти на робочому столі й заповнити розділи GNSS і Wi-Fi у моніторі мережі. Нікуди нічого не надсилається.</string>
 </resources>

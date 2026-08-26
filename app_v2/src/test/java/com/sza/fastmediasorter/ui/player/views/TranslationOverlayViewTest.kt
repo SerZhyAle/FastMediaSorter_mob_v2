@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.player.views
 
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.Rect
 import android.graphics.RectF
 import org.junit.Assert.assertEquals
@@ -99,6 +100,24 @@ class TranslationOverlayViewTest {
         val withoutWords = block(boxHeight = 90, typeSizePx = null)
 
         assertEquals(90f, view.autoTextSizeSourcePx(withoutWords, scaledBoxHeightPx = 90f), 0.01f)
+    }
+
+    /**
+     * S2064: `sampleBackgroundColor` is the only path `setTranslatedBlocks` uses to populate
+     * `backgroundColor`, so a reduced alpha there defeats the opaque default regardless of it -
+     * this was the actual defect, not the sampled colour itself.
+     */
+    @Test
+    fun `sampled background stays fully opaque regardless of the source pixel`() {
+        val view = newView()
+        val source = bitmap(10, 10)
+        source.setPixel(0, 0, Color.argb(120, 10, 20, 30))
+        view.setSourceBitmap(source)
+
+        val translatedBlock = block(boxHeight = 10, typeSizePx = null)
+        view.setTranslatedBlocks(listOf(translatedBlock))
+
+        assertEquals(255, Color.alpha(translatedBlock.backgroundColor))
     }
 
     private fun block(boxHeight: Int, typeSizePx: Int?): TranslationOverlayView.TranslatedBlock =

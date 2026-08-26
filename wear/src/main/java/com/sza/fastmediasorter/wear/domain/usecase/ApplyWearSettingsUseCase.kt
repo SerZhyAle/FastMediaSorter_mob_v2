@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import timber.log.Timber
 import javax.inject.Inject
 
 class ApplyWearSettingsUseCase @Inject constructor(
@@ -30,11 +31,12 @@ class ApplyWearSettingsUseCase @Inject constructor(
             preferencesRepository.setFileListViewMode(WearViewMode.fromNameOrDefault(it))
         }
         payload.backgroundMode?.let {
+            Timber.d("S2000: watch received background mode=$it from the phone")
             preferencesRepository.setBackgroundMode(WearBackgroundMode.fromNameOrDefault(it))
         }
         // S1814: apply language received from phone companion if supported by the watch.
         payload.appLanguage?.let { rawLanguage ->
-            WearLocaleManager.resolveSupportedTag(rawLanguage)?.let { resolvedTag ->
+            WearLocaleManager.resolveSupportedTag(context, rawLanguage)?.let { resolvedTag ->
                 preferencesRepository.setAppLanguage(resolvedTag)
                 WearLocaleManager.applyLocale(context, resolvedTag)
             }

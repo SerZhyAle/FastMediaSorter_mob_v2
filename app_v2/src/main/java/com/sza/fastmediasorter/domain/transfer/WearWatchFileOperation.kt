@@ -40,8 +40,10 @@ internal class WearWatchFileOperation(
     ): FileOperationResult = when (operation) {
         is FileOperation.Copy -> send(operation.sources, operation, deleteSources = false, progressCallback)
         is FileOperation.Move -> send(operation.sources, operation, deleteSources = true, progressCallback)
-        // Editing what already sits on the watch is a declared non-goal of this ticket and belongs
-        // to S1863; refusing in words beats a silent no-op the user reads as success.
+        // A file already on the watch is edited on the watch, by its owner. What is missing here is
+        // a remote verb: the transfer channel moves bytes towards a destination and carries no
+        // delete or rename the phone could send, so there is nothing to dispatch to. Refusing in
+        // words beats a silent no-op the user reads as success.
         is FileOperation.Delete, is FileOperation.Rename -> FileOperationResult.Failure(
             error = context.getString(R.string.wear_watch_operation_unsupported),
             errorRes = R.string.wear_watch_operation_unsupported

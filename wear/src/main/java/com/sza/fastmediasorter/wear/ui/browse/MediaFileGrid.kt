@@ -120,7 +120,11 @@ private fun MediaFileRow(
                     onClick = { actions.onFileClick(file) },
                     modifier = selectionFrame(selected),
                     onLongClick = { actions.onFileLongClick(file) }
-                ) {
+                ) { _ ->
+                    // The cell offers the placeholder modifier and this slot cannot use it: the
+                    // marker here is an emoji in a Text, whose glyph scales with font size and not
+                    // with a modifier. Retiring the emoji for the catalog glyph belongs to S2004
+                    // (strategic ADR-5), which is where this slot starts honouring the contract.
                     Text(
                         text = typeIcon(file, mediaType),
                         style = MaterialTheme.typography.title3

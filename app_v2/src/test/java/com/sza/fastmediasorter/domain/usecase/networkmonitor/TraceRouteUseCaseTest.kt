@@ -7,9 +7,11 @@ import com.sza.fastmediasorter.domain.repository.NetworkMeasurementHistoryReposi
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -100,9 +102,15 @@ class TraceRouteUseCaseTest {
     }
 
     @Test
-    fun `cancelled run terminates early`() = runTest(testDispatcher) {
+    fun `cancelled run stops the hop ladder before the cap`() = runTest(testDispatcher) {
+        var probeCalls = 0
         val fakeProbe = object : HostProbe {
             override suspend fun probe(host: String, timeoutMillis: Long, ttl: Int?): HostProbeResult {
+                probeCalls++
+                // The probe must really suspend: without it UnconfinedTestDispatcher walks the whole
+                // ladder to Finished inside launch, so cancelAndJoin() would cancel a finished coroutine
+                // and the test would pass even if the use case ignored cancellation entirely (S2038).
+                delay(HOP_DELAY_MS)
                 return HostProbeResult.HopAnswered("10.0.0.$ttl", 5.0)
             }
         }
@@ -110,12 +118,24 @@ class TraceRouteUseCaseTest {
         val collected = mutableListOf<TraceRouteState>()
 
         val job = launch {
-            useCase("8.8.8.8", "Wi-Fi", maxHops = 30).collect { state ->
+            useCase("8.8.8.8", "Wi-Fi", maxHops = TRACE_ROUTE_CAP).collect { state ->
                 collected.add(state)
             }
         }
+        advanceTimeBy(HOP_DELAY_MS * HOPS_BEFORE_CANCEL + 1)
         job.cancelAndJoin()
 
-        assertTrue(collected.size < 30)
+        assertEquals(HOPS_BEFORE_CANCEL, collected.filterIsInstance<TraceRouteState.Hop>().size)
+        assertFalse(collected.any { it is TraceRouteState.Finished })
+        assertTrue(probeCalls <= MAX_PROBE_CALLS_BEFORE_CANCEL)
+    }
+
+    private companion object {
+        const val HOP_DELAY_MS = 10L
+        const val HOPS_BEFORE_CANCEL = 3
+
+        /** Hop 4 has started probing when the cancel lands, so one extra call is expected, no more. */
+        const val MAX_PROBE_CALLS_BEFORE_CANCEL = 4
+        const val TRACE_ROUTE_CAP = 30
     }
 }

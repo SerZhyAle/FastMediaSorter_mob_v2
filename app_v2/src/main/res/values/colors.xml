@@ -200,11 +200,10 @@
          Must be semi-transparent so they layer over selected/alternating row backgrounds without hiding content. -->
     <color name="item_overlay_pressed">#22000000</color>
     <color name="item_overlay_hovered">#11000000</color>
-    <!-- Thumbnail backgrounds -->
-    <color name="thumbnail_doc_bg">#B0BEC5</color>    <!-- Blue Grey 200 -->
-    <color name="thumbnail_video_bg">#F48FB1</color>    <!-- Pink 200 -->
-    <color name="thumbnail_audio_bg">#A5D6A7</color>    <!-- Green 200 -->
-    <color name="thumbnail_image_bg">#90CAF9</color>    <!-- Blue 200 -->
+    <!-- S2046: the four per-media-type thumbnail backgrounds used to live here. They were painted
+         behind an opaque extension tile under a centerCrop ImageView, so they never reached the
+         screen except where no drawable was set; the surround is now one neutral theme attribute and
+         no longer claims a content type. -->
 
     <!-- Action button background (semitransparent for both themes) -->
     <color name="action_button_bg">#20000000</color>
@@ -404,16 +403,14 @@
     <color name="camera_capture_zoom_step">#FFFFFFFF</color>
     <color name="camera_capture_zoom_native_bound">#FFFFC107</color>
 
-    <!-- S0473: statistics type-distribution chart swatches. Fixed accent colors (not theme attrs)
-         so the five media-type segments stay visually distinct; legend always shows value text,
-         so color is decorative, never the only differentiator (strategic §3.2). -->
-    <color name="stats_type_image">#FF42A5F5</color>
-    <color name="stats_type_video">#FFAB47BC</color>
-    <color name="stats_type_audio">#FF26A69A</color>
-    <color name="stats_type_document">#FFFFA726</color>
-    <color name="stats_type_other">#FF8D9499</color>
+    <!-- S2046: the statistics chart swatches used to live here as their own five keys. They now read
+         the canonical color_media_* palette below, which carries the same hue family with a night
+         variant, so one media type shows one colour on every surface that colours it. -->
 
-    <!-- Resource media type colors (light theme) -->
+    <!-- Resource media type colors (light theme) - the canonical media-type palette.
+         S2046: the single source of truth, resolved through ui/common/MediaTypeColorCatalog.
+         Key names are frozen: wear/src/main/res/values/colors.xml repeats them so one entity wears
+         one colour across both apps (S2003 ADR-3). -->
     <color name="color_media_music">#FF00796B</color>     <!-- Teal 700 -->
     <color name="color_media_video">#FF7B1FA2</color>     <!-- Purple 700 -->
     <color name="color_media_image">#FF1976D2</color>     <!-- Blue 700 -->

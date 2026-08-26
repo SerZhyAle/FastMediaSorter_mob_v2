@@ -29,6 +29,52 @@ FastMedia Wear is the watch half of FastMediaSorter. Once it is on your wrist yo
 
 > Watches vary in how much they let you type. If searching on the wrist is awkward, open the Play Store on your phone, find FastMedia Wear, and choose your watch as the install target - the watch downloads it by itself.
 
+### No Play Store? Install an APK through ADB
+
+Use this route when your watch has no Play Store access. You need a computer with the Android
+SDK Platform-Tools (`adb`) and a local Wi-Fi network shared by the computer and watch. It does not
+work through the internet alone.
+
+1. Download one APK from the [Direct APK Release](../DOWNLOADS_EN.md) page:
+   - `FastMediaSorter_wear_debug.apk` is the debug build for testing. It installs as
+     `com.sza.fastmediasorter.debug`.
+   - `FastMediaSorter_wear_release.apk` is the signed non-debug build. It installs as
+     `com.sza.fastmediasorter`.
+   - The two builds have different package names, so they can stay installed side by side. Do not
+     try to install a Play Store `.aab` file with ADB.
+2. On the watch, enable developer mode: **Settings** → **About watch** → tap **Build number** seven
+   times. In **Developer options**, enable **ADB debugging** and **Wireless debugging**.
+3. In **Wireless debugging**, choose **Pair new device**. On the computer, enter the pairing address
+   and code shown by the watch, then connect with the separate connection port from the main
+   Wireless debugging screen:
+
+   ```powershell
+   adb pair <watch-ip>:<pairing-port> <six-digit-code>
+   adb connect <watch-ip>:<connection-port>
+   adb devices
+   ```
+
+   Accept the debugging prompt on the watch. The pairing and connection ports are different.
+4. Install or update the APK. Use the command matching the file you downloaded:
+
+   ```powershell
+   adb -s <watch-ip>:<connection-port> install -r ".\FastMediaSorter_wear_debug.apk"
+   adb -s <watch-ip>:<connection-port> install -r ".\FastMediaSorter_wear_release.apk"
+   ```
+
+   `-r` updates the same package while keeping its app data. It does not convert a debug build into
+   a release build, because these are separate apps.
+5. Open **FastMedia Wear** from the watch app list. If needed, start it from ADB:
+
+   ```powershell
+   adb -s <watch-ip>:<connection-port> shell am start -n com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.MainActivity
+   adb -s <watch-ip>:<connection-port> shell am start -n com.sza.fastmediasorter/com.sza.fastmediasorter.wear.MainActivity
+   ```
+
+> This method requires a Wear OS watch. Galaxy Watch 3, Galaxy Watch Active and Active 2 run Tizen
+> and cannot install Wear OS APKs. When finished, turn off Wireless debugging unless you need it for
+> another update.
+
 ---
 
 ## Step 2 - Turn On the Wear Companion on the Phone

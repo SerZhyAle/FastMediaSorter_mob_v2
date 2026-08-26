@@ -27,7 +27,8 @@ Owner policy, inherited from the phone standard and narrowed here:
 
 ## What this gate deliberately does not cover
 
-- **Publication.** Producing an uploadable bundle is proven here; uploading it belongs to the release campaign.
+- **Publication.** Producing an uploadable bundle is proven here; uploading it belongs to the release campaign. The run also **distributes nothing** - it builds with `-NoDistribute`, leaving `DOWNLOADS`, the build journal and the Google Drive mirror untouched, because a sweep that judges a build must not simultaneously hand that build to anyone. The artifact it judged stays in `wear/build/outputs`; shipping one is a separate, deliberate call.
+- **The release campaign's own build.** This gate judges the pair `scripts/builders/build-wear-release.PS1 -Artifact Both` produced. When a release includes the watch, `scripts/release/build-release-spectrum.ps1` produces its own pair from `:wear:assembleRelease` and `:wear:bundleRelease` in one gradle invocation at the version it stamped into both modules (S2040) - the same shape, a different run. Passing here is not a statement about that artifact, and the release path proves the two watch artifacts match each other by building them together, not by comparing them afterwards.
 - **Maestro flows.** The watch has no flow tree; the declared screen list is the scenario.
 - **Performance budgets.** The phone sweep measures per-checkpoint timings; the watch run has no equivalent measurement and claims none.
 - **The phone companion surface.** Whether the phone can reach the watch is the companion feature's own concern, gated on the phone side.

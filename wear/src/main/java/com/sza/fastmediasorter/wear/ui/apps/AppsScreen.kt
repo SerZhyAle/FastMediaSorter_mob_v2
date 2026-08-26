@@ -166,11 +166,11 @@ private fun AppCell(
         caption = label,
         onClick = onClick,
         modifier = modifier
-    ) {
+    ) { glyphModifier ->
         Icon(
             painter = painterResource(iconFor(app.id)),
             contentDescription = null,
-            modifier = Modifier.size(CELL_ICON_SIZE)
+            modifier = glyphModifier
         )
     }
 }

@@ -3506,4 +3506,16 @@
     <string name="calculator_keypad_mode_normal">Normal</string>
     <string name="calculator_keypad_mode_large">Large keys</string>
     <string name="calculator_keypad_mode_compact">Compact, bottom right</string>
+    <string name="wear_background_section_title">Watch Background</string>
+    <string name="wear_background_mode_animation">Branded animation</string>
+    <string name="wear_background_mode_image">Your image</string>
+    <string name="wear_background_pick_image">Choose image</string>
+    <string name="wear_background_preview">Preview of the watch background</string>
+    <string name="wear_background_sending">Sending the image to the watch..</string>
+    <string name="wear_background_sent">Image is on the watch.</string>
+    <string name="wear_background_failed">Couldn\'t send the image - pick another one or send again.</string>
+    <string name="wear_background_watch_unreachable">Can\'t reach the watch - bring it closer and send again.</string>
+    <string name="perm_title_location_extended">Geotag, gadgets and network monitor</string>
+    <string name="perm_desc_location_extended">Geotag your captures, run the desktop gadgets and the network monitor</string>
+    <string name="perm_rationale_location_extended">Location is used inside the app only - to write coordinates into the photos and videos you shoot, to draw the compass, speed, altitude and map gadgets on the desktop, and to fill the GNSS and Wi-Fi sections of the network monitor. Nothing is sent anywhere.</string>
 </resources>

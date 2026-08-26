@@ -60,7 +60,7 @@ Optimized builds with ProGuard (requires keystore):
 ## Wear OS
 
 ```powershell
-.\scripts\builders\build-wear-debug.PS1         # Wear debug
+.\scripts\builders\build-wear-debug.PS1         # Wear debug (or: .\a.ps1 wd)
 .\scripts\builders\build-wear-release.PS1       # Wear release
 ```
 

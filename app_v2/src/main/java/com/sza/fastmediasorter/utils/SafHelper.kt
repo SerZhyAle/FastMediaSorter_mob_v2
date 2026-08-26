@@ -116,12 +116,43 @@ object SafHelper {
                 Timber.e("$tag: All deletion methods failed for URI: $contentUri")
             } else {
                 Timber.i("$tag: Successfully deleted URI: $contentUri")
+                notifyMediaScannerAfterDelete(context, contentUri, tag)
             }
 
             deleted
         } catch (e: Exception) {
             Timber.e(e, "$tag: Failed to delete SAF URI: $contentUri")
             false
+        }
+    }
+
+    /**
+     * Unindex deleted file from MediaStore so it doesn't linger in queries.
+     */
+    private fun notifyMediaScannerAfterDelete(context: Context, contentUri: String, tag: String) {
+        try {
+            var filePath: String? = if (!contentUri.startsWith("content://")) contentUri else null
+            if (filePath == null) {
+                val uri = Uri.parse(contentUri)
+                val docId = try { DocumentsContract.getDocumentId(uri) } catch (_: Exception) { null }
+                if (docId != null && docId.contains(":")) {
+                    val relativePath = docId.substringAfter(":")
+                    filePath = "/storage/emulated/0/$relativePath"
+                }
+            }
+
+            if (filePath != null && filePath.startsWith("/")) {
+                context.contentResolver.delete(
+                    android.provider.MediaStore.Files.getContentUri("external"),
+                    "${android.provider.MediaStore.MediaColumns.DATA} = ?",
+                    arrayOf(filePath)
+                )
+                android.media.MediaScannerConnection.scanFile(context, arrayOf(filePath), null, null)
+                Timber.d("S2074: SafHelper unindexed deleted file from MediaStore: $filePath")
+                Timber.d("$tag: Unindexed deleted file from MediaStore: $filePath")
+            }
+        } catch (e: Exception) {
+            Timber.w(e, "$tag: Failed to unindex file from MediaStore after delete")
         }
     }
 

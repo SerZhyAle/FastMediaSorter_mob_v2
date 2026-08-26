@@ -12,10 +12,12 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.wear.data.wear.WatchPlaybackCommandEvents
 import com.sza.fastmediasorter.wear.domain.model.MediaType
+import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_STREAM
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackStatePayload
 import com.sza.fastmediasorter.wear.domain.model.favoriteSourceId
+import com.sza.fastmediasorter.wear.domain.model.normalizeWearStreamUrl
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
@@ -198,9 +200,9 @@ class AudioPlayerViewModel @Inject constructor(
             WatchPlaybackCommandEvents.commandFlow.collect { command ->
                 when (command) {
                     WearPlaybackCommand.PLAY_PAUSE -> togglePlayPause()
-                    WearPlaybackCommand.NEXT       -> exoPlayer.seekToNextMediaItem()
-                    WearPlaybackCommand.PREVIOUS   -> exoPlayer.seekToPreviousMediaItem()
-                    WearPlaybackCommand.STOP       -> {
+                    WearPlaybackCommand.NEXT -> exoPlayer.seekToNextMediaItem()
+                    WearPlaybackCommand.PREVIOUS -> exoPlayer.seekToPreviousMediaItem()
+                    WearPlaybackCommand.STOP -> {
                         exoPlayer.stop()
                         streamPlaybackSession.stop()
                     }
@@ -244,10 +246,15 @@ class AudioPlayerViewModel @Inject constructor(
         fetchRemoteAlbumArt(file)
         val selection = networkSelection
         if (selection != null) {
-            viewModelScope.launch {
-                loadNetworkAudio(selection.copy(file = file, streamUri = file.uri.toString()))
-            }
+            // S2039: the paged-to file becomes the remembered selection, not just the argument of one
+            // call. The mark is resolved from that selection, so leaving it on the previous file showed
+            // the previous station's star over the current one.
+            val paged = selection.copy(file = file, streamUri = file.uri.toString())
+            networkSelection = paged
+            checkFavoriteState()
+            viewModelScope.launch { loadNetworkAudio(paged) }
         } else {
+            checkFavoriteState()
             playLocalFile(file)
         }
         syncSetPosition()
@@ -312,6 +319,9 @@ class AudioPlayerViewModel @Inject constructor(
                 _uiState.update { it.withMediaFile(selectedMedia.file) }
                 // S1683: remembered so paging can re-enter the download path with the same source id.
                 networkSelection = selectedMedia
+                // S2039: the network branch never re-read the mark, so an already-marked station opened
+                // with an empty star and the first tap re-added it instead of clearing it.
+                checkFavoriteState()
                 Timber.d("Loading network audio: ${selectedMedia.file.name}")
                 loadNetworkAudio(selectedMedia)
             } else {
@@ -320,7 +330,7 @@ class AudioPlayerViewModel @Inject constructor(
                 if (file != null) {
                     _uiState.update { it.withMediaFile(file) }
                     fetchRemoteAlbumArt(file)
-                    checkFavoriteState(sourceId = "local", filePath = file.uri.toString())
+                    checkFavoriteState()
                     playLocalFile(file)
                 } else {
                     _uiState.update { it.copy(isLoading = false, error = "File not found") }
@@ -505,21 +515,47 @@ class AudioPlayerViewModel @Inject constructor(
     }
 
     fun toggleFavorite() {
-        val selected = selectedMediaManager.getSelectedFileById(fileId)
-        // S1846: one rule for the source id, shared with the image viewer - the host name this used to
-        // write was not resolvable back to a source, so a favourite could not be reopened from it.
-        val sourceId = favoriteSourceId(selected?.isNetworkSource == true, selected?.sourceId)
-        val filePath = selected?.streamUri ?: _uiState.value.mediaFile?.uri?.toString() ?: return
+        val identity = currentFavoriteIdentity() ?: return
+        Timber.d("S2039: audio favourite toggle ${identity.sourceId} ${identity.filePath}")
         viewModelScope.launch {
-            _isFavorite.value = toggleFavoriteUseCase.toggle(sourceId, filePath, _isFavorite.value)
+            _isFavorite.value =
+                toggleFavoriteUseCase.toggle(identity.sourceId, identity.filePath, _isFavorite.value)
         }
     }
 
-    private fun checkFavoriteState(sourceId: String, filePath: String) {
+    /** Re-reads the mark for whatever is open now, so paging to another track cannot show a stale star. */
+    private fun checkFavoriteState() {
+        val identity = currentFavoriteIdentity()
+        if (identity == null) {
+            _isFavorite.value = false
+            return
+        }
         viewModelScope.launch {
-            _isFavorite.value = toggleFavoriteUseCase.isFavorite(sourceId, filePath)
+            _isFavorite.value = toggleFavoriteUseCase.isFavorite(identity.sourceId, identity.filePath)
         }
     }
+
+    /**
+     * S2039: a direct stream is addressed by its NORMALIZED url under the reserved stream source id -
+     * the same identity the video player writes, so a channel reached through either player is one
+     * favourite and the streams list, which compares by that form, actually finds it.
+     *
+     * S1846: everything else keeps the shared source-id rule and the path it already used.
+     */
+    private fun currentFavoriteIdentity(): FavoriteIdentity? {
+        // The remembered selection wins: it tracks paging, while the manager still answers with whatever
+        // file this screen was opened on.
+        val selected = networkSelection ?: selectedMediaManager.getSelectedFileById(fileId)
+        if (selected != null && selected.isDirectStream) {
+            return FavoriteIdentity(SOURCE_ID_STREAM, normalizeWearStreamUrl(selected.streamUri))
+        }
+        val path = selected?.streamUri ?: _uiState.value.mediaFile?.uri?.toString()
+        return path?.let {
+            FavoriteIdentity(favoriteSourceId(selected?.isNetworkSource == true, selected?.sourceId), it)
+        }
+    }
+
+    private data class FavoriteIdentity(val sourceId: String, val filePath: String)
 
     override fun onCleared() {
         super.onCleared()

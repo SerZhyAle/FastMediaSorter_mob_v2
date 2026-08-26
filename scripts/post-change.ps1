@@ -508,7 +508,13 @@ $runsBaselineAbsorptionGate = @($changedFiles | Where-Object {
 $runsFgsGate = $isCodeChange -or $isResourceChange
 # S0507 focus-highlight ratchet gate. Layout-only concern: interactive views without a visible
 # focus indication (Rule 16) must never grow. Covers Xml + Mixed (layout edits). Baseline ratchets DOWN.
-$runsFocusHighlightGate = $isResourceChange
+# S2069: keyed on WHERE the change is, not only on what type it is. The gate can read nothing but
+# app_v2 - its layout glob and its MaterialCardView scan both root at app_v2/src - so a wear-only
+# resource set used to fire an app_v2-only gate and be failed by another session's in-flight app_v2
+# edit (Rule 33's class). The pattern is app_v2/src/**.xml rather than the layout dirs alone because
+# the MaterialCardView half reads every XML under app_v2/src, and narrowing to layouts would switch
+# it off for a change it is meant to see.
+$runsFocusHighlightGate = $isResourceChange -and (Test-AnyChangedFile '^app_v2/src/.*\.xml$')
 # S0489 ALL_FEATURES inventory drift gate. Fires only when the touched file is the
 # inventory data, its schema, or the noLegal variant - validates the JSONL and blocks
 # a silent record-count drop below the committed baseline. Narrow trigger by path.
@@ -554,14 +560,17 @@ $runsListenerSymmetryGate = $isCodeChange
 # S0918 orientation-implied-feature gate. Fires only when a manifest is touched - an
 # activity that pins screenOrientation implies a required screen.* hardware feature,
 # which shrinks Google Play device reach unless src/main declares it not-required.
-$runsOrientationFeatureGate = Test-AnyChangedFile 'AndroidManifest\.xml$'
+# S2069: anchored to app_v2 for the same reason as the focus-highlight gate above - the gate roots
+# at app_v2/src and reads nothing else, while wear/src/main/AndroidManifest.xml would otherwise fire it.
+$runsOrientationFeatureGate = Test-AnyChangedFile '^app_v2/.*AndroidManifest\.xml$'
 # S1598 orientation layout-pairing gate. The defect needs BOTH halves - an activity that absorbs
 # orientation in configChanges AND a landscape layout it therefore never re-inflates - so either a
 # touched manifest or a touched landscape layout can create it, and neither half sees the other
 # alone. The recovery hint for this label already shipped in gate-recovery-hints.psd1; without the
 # call site it described a gate the facade never ran.
-$runsOrientationLayoutPairingGate = (Test-AnyChangedFile 'AndroidManifest\.xml$') -or
-    (Test-AnyChangedFile 'res/layout[^/]*-land[^/]*/.*\.xml$')
+# S2069: both halves anchored to app_v2, which is the only module this gate roots in.
+$runsOrientationLayoutPairingGate = (Test-AnyChangedFile '^app_v2/.*AndroidManifest\.xml$') -or
+    (Test-AnyChangedFile '^app_v2/.*res/layout[^/]*-land[^/]*/.*\.xml$')
 # S1639 Gson persistence contract gate. Fires on a Kotlin source or an obfuscation rules file, the two
 # halves of the invariant: a model whose JSON outlives the process must have its field names pinned, and
 # either half can break it alone - a new model, or a keep rule that stopped covering an old one. The
@@ -895,7 +904,7 @@ if ($runsOrientationFeatureGate) {
     }
 }
 else {
-    Skip-Step "orientation-implied-feature-gate" "not applicable - no changed file is an AndroidManifest.xml"
+    Skip-Step "orientation-implied-feature-gate" "not applicable - no changed file is an app_v2 AndroidManifest.xml"
 }
 
 if ($runsOrientationLayoutPairingGate) {
@@ -904,7 +913,7 @@ if ($runsOrientationLayoutPairingGate) {
     }
 }
 else {
-    Skip-Step "orientation-layout-pairing-gate" "not applicable - no changed file is a manifest or a landscape layout"
+    Skip-Step "orientation-layout-pairing-gate" "not applicable - no changed file is an app_v2 manifest or landscape layout"
 }
 
 if ($runsFgsGate) {
@@ -917,12 +926,17 @@ else {
 }
 
 if ($runsFocusHighlightGate) {
+    # S2069: under -ScopeToFile the gate judges per-file gap growth vs HEAD and stays FATAL - a
+    # changed layout that adds an unfocusable control fails, a pre-existing gap elsewhere in the
+    # tree does not. Unscoped (release, CI) keeps the strict project-wide count vs baseline.
     Invoke-Gate "focus-highlight-gate" {
-        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-focus-highlight.ps1") -Gate
+        $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-focus-highlight.ps1"), '-Gate')
+        if ($ScopeToFile) { $a += @('-ChangedFiles', ($changedFiles -join ',')) }
+        & $pwsh @a
     }
 }
 else {
-    Skip-Step "focus-highlight-gate" "not applicable for ChangeType $resolvedChangeType"
+    Skip-Step "focus-highlight-gate" "not applicable - no changed file is an app_v2 XML resource"
 }
 
 if ($runsDialogCancelGate) {

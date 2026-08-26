@@ -205,4 +205,5 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_send_plane.svg" alt="ic_send_plane" width="24" height="24"> | Надіслати в застосунок |
 | <img src="icons/svg/ic_send_music_note.svg" alt="ic_send_music_note" width="24" height="24"> | Надіслати в застосунок |
 | <img src="icons/svg/ic_send_phone_chat.svg" alt="ic_send_phone_chat" width="24" height="24"> | Надіслати в застосунок |
+| <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Годинник |
 | <img src="icons/svg/ic_send_chat.svg" alt="ic_send_chat" width="24" height="24"> | Надіслати в застосунок |

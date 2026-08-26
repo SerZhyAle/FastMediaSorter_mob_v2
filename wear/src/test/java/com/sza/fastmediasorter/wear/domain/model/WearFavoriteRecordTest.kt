@@ -93,4 +93,55 @@ class WearFavoriteRecordTest {
         assertEquals("bad stream one", normalizeWearStreamUrl(" bad stream one/ "))
         assertEquals("bad stream two", normalizeWearStreamUrl(" bad stream two "))
     }
+
+    /**
+     * S2039: the raw spelling is what an older build stored, the normalized one is what this build writes.
+     * If the two produced different keys, the mark the user already made would stop being found.
+     */
+    @Test
+    fun `two spellings of one stream address are one favourite`() {
+        val raw = WearFavoriteRecord(SOURCE_ID_STREAM, "HTTP://Radio.Example:80/live/", "Radio")
+        val normalized = WearFavoriteRecord(SOURCE_ID_STREAM, "http://radio.example/live", "Radio")
+
+        assertEquals(normalized.identity, raw.identity)
+        assertEquals("stream:http://radio.example/live", raw.identity)
+    }
+
+    @Test
+    fun `a stream identity is keyed under the reserved stream source id`() {
+        assertEquals(
+            "stream:http://radio.example/live",
+            favoriteIdentityKey(SOURCE_ID_STREAM, "HTTP://RADIO.EXAMPLE:80/live/")
+        )
+    }
+
+    /**
+     * S2039 §7: a url rule put through a file path would rewrite the path and lose the file, so the
+     * normalization must reach the stream source id and nothing else.
+     */
+    @Test
+    fun `a non-stream path is compared exactly even when it looks like a url`() {
+        assertEquals(
+            "local:HTTP://Host:80/A/",
+            favoriteIdentityKey(SOURCE_ID_LOCAL, "HTTP://Host:80/A/")
+        )
+        assertEquals(
+            "nas-1:smb://Host/Share/Album/",
+            favoriteIdentityKey("nas-1", "smb://Host/Share/Album/")
+        )
+        assertEquals(
+            "network:HTTP://Host:80/A/",
+            favoriteIdentityKey(SOURCE_ID_NETWORK, "HTTP://Host:80/A/")
+        )
+    }
+
+    @Test
+    fun `a legacy stream key and a record for the same channel are not listed twice`() {
+        val record = WearFavoriteRecord(SOURCE_ID_STREAM, "http://radio.example/live", "Radio")
+
+        val merged = mergeFavorites(listOf(record), setOf("stream:HTTP://Radio.Example:80/live/"))
+
+        assertEquals(1, merged.size)
+        assertEquals("Radio", merged.single().displayName)
+    }
 }

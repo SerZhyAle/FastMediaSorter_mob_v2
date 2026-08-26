@@ -37,6 +37,7 @@ FastMedia Wear turns your smartwatch into a full-featured standalone media hub a
 - **Selective Resource Transfer:** Choose specific NAS/cloud resources on your phone to make available on your watch.
 - **Remote Log Diagnostics:** Send watch diagnostic logs to the developer via the paired phone app.
 - **Open on the Watch from the Phone:** Pick your watch in the phone's "Send to.." menu and the photo, GIF, video or track you have open there opens on the watch. A file kept on a network or cloud source is fetched first, with progress you can cancel. The watch app has to be open at the time - if it is closed, the phone says so instead of leaving you guessing. The phone also tells you apart the watch being unreachable, the watch staying silent, a type the watch cannot show, and a file above the 32 MB limit. Documents, text and EPUB do not offer the watch at all.
+- **File Actions on the Watch:** Long press a file to start selecting, tap other files to add them, or use Select all. The selection can then be sent to your paired phone, moved there, deleted, or renamed. Deleting and renaming apply to files the app itself keeps on the watch - anything you browse over SMB, FTP or SFTP is read-only, and the phone decides where a sent file lands.
 
 ### 🧮 Mini-Programs Suite
 - **Watch Calculator:** Grid-based math calculator with on-screen operation history.

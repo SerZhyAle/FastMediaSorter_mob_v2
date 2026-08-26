@@ -103,7 +103,7 @@ if ($records.Count -eq 0) {
     exit 1
 }
 
-$bestEffort = @(Get-SupportedLocales | Where-Object { -not (Test-StrictLocale -Tag $_) })
+$bestEffort = @(Get-SupportedLocales -Module $Module | Where-Object { -not (Test-StrictLocale -Tag $_) })
 $keyRx = [regex]'<(?:string|plurals|string-array)\s+name="([^"]+)"'
 $presentCache = @{}
 

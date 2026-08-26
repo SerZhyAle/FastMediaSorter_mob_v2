@@ -8,16 +8,16 @@ import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import com.sza.fastmediasorter.ui.player.SlideshowController
+import com.sza.fastmediasorter.ui.player.SlideshowSettingsDialogFragment
+import com.sza.fastmediasorter.utils.UserActionLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import com.sza.fastmediasorter.utils.UserActionLogger
-import com.sza.fastmediasorter.ui.player.SlideshowSettingsDialogFragment
 
 /**
  * Manages setup of all controls in PlayerActivity.
- * 
+ *
  * Consolidates button click listeners and delegates to appropriate managers:
  * - Navigation controls (previous/next)
  * - Playback controls (play/pause, volume)
@@ -26,7 +26,7 @@ import com.sza.fastmediasorter.ui.player.SlideshowSettingsDialogFragment
  * - Translation controls
  * - Text viewer controls
  * - Search controls
- * 
+ *
  * Extracted from PlayerActivity to reduce size and improve organization.
  */
 class PlayerControlsSetupManager(
@@ -47,7 +47,7 @@ class PlayerControlsSetupManager(
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
     private val bigButtonsModeManager = PlayerBigButtonsModeManager(activity)
-    
+
     /**
      * Setup all controls in the activity.
      * Called once from onCreate.
@@ -97,7 +97,7 @@ class PlayerControlsSetupManager(
             activity.navigationManager.navigateNextFromButton()
         }
     }
-    
+
     /**
      * Setup playback controls (Play/Pause, Volume).
      */
@@ -122,13 +122,13 @@ class PlayerControlsSetupManager(
             }
 
             viewModel.togglePause()
-            
+
             if (viewModel.state.value.isPaused) {
                 slideshowController.pauseSlideshow()
             } else {
                 slideshowController.resumeSlideshow()
             }
-            
+
             activity.updatePlayPauseButton()
             activity.scheduleHideControls()
         }
@@ -146,7 +146,7 @@ class PlayerControlsSetupManager(
             activity.scheduleHideControls()
         }
     }
-    
+
     /**
      * Setup slideshow controls.
      */
@@ -155,7 +155,7 @@ class PlayerControlsSetupManager(
             UserActionLogger.logButtonClick("SlideShow", "PlayerActivity")
             val wasActive = viewModel.state.value.isSlideShowActive
             viewModel.toggleSlideShow()
-            
+
             // Show popup when enabling slideshow
             if (!wasActive && viewModel.state.value.isSlideShowActive) {
                 val intervalSeconds = (viewModel.state.value.slideShowInterval / 1000).toInt()
@@ -164,11 +164,11 @@ class PlayerControlsSetupManager(
             } else if (wasActive && !viewModel.state.value.isSlideShowActive) {
                 slideshowController.stopSlideshow()
             }
-            
+
             activity.dialogAndUiStateManager.updateSlideShowButton()
             activity.scheduleHideControls()
         }
-        
+
         binding.btnSlideShow.setOnLongClickListener {
             UserActionLogger.logButtonClick("SlideShowLong", "PlayerActivity")
             val dialog = SlideshowSettingsDialogFragment()
@@ -177,7 +177,7 @@ class PlayerControlsSetupManager(
             true
         }
     }
-    
+
     /**
      * Setup command panel buttons (Info, Lyrics, Favorite, Delete).
      */
@@ -200,7 +200,9 @@ class PlayerControlsSetupManager(
             activity.scheduleHideControls()
         }
 
-        binding.root.findViewById<android.widget.ImageButton>(com.sza.fastmediasorter.R.id.btnCastCmd)?.setOnClickListener {
+        binding.root.findViewById<android.widget.ImageButton>(
+            com.sza.fastmediasorter.R.id.btnCastCmd
+        )?.setOnClickListener {
             UserActionLogger.logButtonClick("CastCmd", "PlayerActivity")
             activity.castCurrentMedia()
             activity.scheduleHideControls()
@@ -223,7 +225,7 @@ class PlayerControlsSetupManager(
             blackScreenOverlayManager.show()
         }
     }
-    
+
     /**
      * Setup PDF viewer controls (page navigation, zoom).
      */
@@ -233,13 +235,13 @@ class PlayerControlsSetupManager(
             pdfViewerManagerProvider().showPreviousPage()
             activity.scheduleHideControls()
         }
-        
+
         binding.btnPdfHome.setOnClickListener {
             UserActionLogger.logButtonClick("PdfHome", "PlayerActivity")
             pdfViewerManagerProvider().showFirstPage()
             activity.scheduleHideControls()
         }
-        
+
         binding.btnPdfNextPage.setOnClickListener {
             UserActionLogger.logButtonClick("PdfNextPage", "PlayerActivity")
             pdfViewerManagerProvider().showNextPage()
@@ -255,7 +257,7 @@ class PlayerControlsSetupManager(
                 binding.photoView.setScale(newScale, true)
             }
         }
-        
+
         binding.btnPdfZoomOut.setOnClickListener {
             UserActionLogger.logButtonClick("PdfZoomOut", "PlayerActivity")
             val currentScale = binding.photoView.scale
@@ -265,7 +267,7 @@ class PlayerControlsSetupManager(
                 binding.photoView.setScale(newScale, true)
             }
         }
-        
+
         // PDF Translation Button (in command panel)
         binding.btnTranslatePdfCmd.setOnClickListener {
             UserActionLogger.logButtonClick("TranslatePdfCmd", "PlayerActivity")
@@ -278,7 +280,7 @@ class PlayerControlsSetupManager(
             true
         }
     }
-    
+
     /**
      * Setup EPUB viewer controls (chapter navigation, TOC, font size).
      */
@@ -288,44 +290,44 @@ class PlayerControlsSetupManager(
             epubViewerManagerProvider().showPreviousChapter()
             activity.scheduleHideControls()
         }
-        
+
         binding.btnEpubHome.setOnClickListener {
             UserActionLogger.logButtonClick("EpubHome", "PlayerActivity")
             epubViewerManagerProvider().showFirstChapter()
             activity.scheduleHideControls()
         }
-        
+
         binding.btnEpubNextChapter.setOnClickListener {
             UserActionLogger.logButtonClick("EpubNextChapter", "PlayerActivity")
             epubViewerManagerProvider().showNextChapter()
             activity.scheduleHideControls()
         }
-        
+
         binding.btnEpubToc.setOnClickListener {
             UserActionLogger.logButtonClick("EpubToc", "PlayerActivity")
             epubViewerManagerProvider().showTableOfContents()
             activity.scheduleHideControls()
         }
-        
+
         binding.btnEpubFontSizeDecrease.setOnClickListener {
             UserActionLogger.logButtonClick("EpubFontSizeDecrease", "PlayerActivity")
             epubViewerManagerProvider().decreaseFontSize()
             activity.scheduleHideControls()
         }
-        
+
         binding.btnEpubFontSizeIncrease.setOnClickListener {
             UserActionLogger.logButtonClick("EpubFontSizeIncrease", "PlayerActivity")
             epubViewerManagerProvider().increaseFontSize()
             activity.scheduleHideControls()
         }
-        
+
         // EPUB Exit Fullscreen Button
         binding.btnExitEpubFullscreen.setOnClickListener {
             UserActionLogger.logButtonClick("ExitEpubFullscreen", "PlayerActivity")
             epubViewerManagerProvider().exitFullscreenMode()
         }
     }
-    
+
     /**
      * Setup translation controls (image, PDF, EPUB, text translation buttons).
      */
@@ -341,7 +343,7 @@ class PlayerControlsSetupManager(
             translationButtonManager.showTranslationSettingsDialog()
             true
         }
-        
+
         // Image Translation Button (command panel)
         binding.btnTranslateImageCmd.setOnClickListener {
             UserActionLogger.logButtonClick("TranslateImageCmd", "PlayerActivity")
@@ -353,7 +355,7 @@ class PlayerControlsSetupManager(
             translationButtonManager.showTranslationSettingsDialog()
             true
         }
-        
+
         // Text Settings Buttons (all types) - show translation/OCR settings dialog
         binding.btnTextSettingsCmd.setOnClickListener {
             UserActionLogger.logButtonClick("TextSettingsCmd", "PlayerActivity")
@@ -376,21 +378,21 @@ class PlayerControlsSetupManager(
             UserActionLogger.logButtonClick("ImageTextSettingsCmd", "PlayerActivity")
             translationButtonManager.showTranslationSettingsDialog()
         }
-        
+
         // Translation Font Size Controls
         binding.btnTranslationFontDecrease?.setOnClickListener {
             UserActionLogger.logButtonClick("TranslationFontDecrease", "PlayerActivity")
             binding.translationLensOverlay.decreaseFontSize()
             activity.scheduleHideControls()
         }
-        
+
         binding.btnTranslationFontIncrease?.setOnClickListener {
             UserActionLogger.logButtonClick("TranslationFontIncrease", "PlayerActivity")
             binding.translationLensOverlay.increaseFontSize()
             activity.scheduleHideControls()
         }
     }
-    
+
     /**
      * Setup lyrics viewer controls.
      */
@@ -440,14 +442,17 @@ class PlayerControlsSetupManager(
             val statusBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
             val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
             view.setPadding(navBar.left, statusBar.top, navBar.right, navBar.bottom)
-            Timber.d("LyricsContainer: Applied insets top=${statusBar.top} left=${navBar.left} right=${navBar.right} bottom=${navBar.bottom}")
+            Timber.d(
+                "LyricsContainer: Applied insets top=${statusBar.top} left=${navBar.left} " +
+                    "right=${navBar.right} bottom=${navBar.bottom}"
+            )
             insets
         }
         safeViews.lyricsViewerContainer.post {
             safeViews.lyricsViewerContainer.requestApplyInsets()
         }
     }
-    
+
     /**
      * Setup text viewer controls.
      * Delegates to TextViewerManager.
@@ -455,7 +460,7 @@ class PlayerControlsSetupManager(
     private fun setupTextViewerControls() {
         textViewerManagerProvider().setupControls()
     }
-    
+
     /**
      * Setup search controls.
      * Delegates to SearchControlsManager.
@@ -463,7 +468,7 @@ class PlayerControlsSetupManager(
     private fun setupSearchControls() {
         searchControlsManager.setupSearchControls()
     }
-    
+
     /**
      * Setup ExoPlayer custom navigation buttons.
      * Delegates to ExoPlayerControlsManager.
@@ -471,7 +476,7 @@ class PlayerControlsSetupManager(
     private fun setupExoPlayerControls() {
         exoPlayerControlsManager.setupExoPlayerNavigationButtons()
     }
-    
+
     /**
      * Setup fullscreen exit button.
      * S1115: this always-visible overlay button is shown in fullscreen mode for PDF/EPUB/TXT and
@@ -490,8 +495,14 @@ class PlayerControlsSetupManager(
      * Update fullscreen exit button visibility.
      * S1115: shown in fullscreen mode for PDF/EPUB/TXT and VIDEO (video fullscreen otherwise offers
      * no visible way back to the command panel).
+     * S2026: never in PiP - the small window has the system's own expand/close controls, and this
+     * updater runs on every state change, so without the gate it re-shows what the PiP manager hid.
      */
     fun updateDocumentFullscreenExitButtonVisibility() {
+        if (activity.pipManager?.isInPipMode == true) {
+            safeViews.btnDocumentFullscreenExit.visibility = android.view.View.GONE
+            return
+        }
         val currentFile = viewModel.state.value.currentFile
         val isFullscreen = !viewModel.state.value.showCommandPanel
         val isFullscreenExitEligible =
@@ -546,7 +557,7 @@ class PlayerControlsSetupManager(
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.topCommandPanel) { view, insets ->
             val topInsets = insets.getInsets(
                 androidx.core.view.WindowInsetsCompat.Type.statusBars() or
-                androidx.core.view.WindowInsetsCompat.Type.captionBar()
+                    androidx.core.view.WindowInsetsCompat.Type.captionBar()
             )
             val navBarInsets = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
             view.setPadding(
@@ -555,7 +566,10 @@ class PlayerControlsSetupManager(
                 navBarInsets.right,
                 view.paddingBottom
             )
-            Timber.d("TopCommandPanel: Applied insets - top=${topInsets.top}, navBar.left=${navBarInsets.left}, navBar.right=${navBarInsets.right}")
+            Timber.d(
+                "TopCommandPanel: Applied insets - top=${topInsets.top}, " +
+                    "navBar.left=${navBarInsets.left}, navBar.right=${navBarInsets.right}"
+            )
             insets
         }
 
@@ -575,7 +589,11 @@ class PlayerControlsSetupManager(
                     systemBarsInsets.right,
                     systemBarsInsets.bottom
                 )
-                Timber.d("BottomPanelsContainer: Applied system bar insets - left=${systemBarsInsets.left}, right=${systemBarsInsets.right}, bottom=${systemBarsInsets.bottom}")
+                Timber.d(
+                    "BottomPanelsContainer: Applied system bar insets - " +
+                        "left=${systemBarsInsets.left}, right=${systemBarsInsets.right}, " +
+                        "bottom=${systemBarsInsets.bottom}"
+                )
                 insets
             }
         }

@@ -179,4 +179,98 @@ Assert-FlavorSelection -Case 'repeated flavor source set' -TargetModule 'app_v2'
 Assert-FlavorSelection -Case 'wear module' -TargetModule 'wear' -Expected @('Standard') `
     -ChangedSet @('wear/src/main/res/values/strings.xml', 'app_v2/src/vr/res/values/strings.xml')
 
+# S2069: an app_v2-only gate must be decided by WHERE the change is, not only by its ChangeType.
+# A wear-only set used to fire the focus-highlight gate, which can read nothing but app_v2, and the
+# closure was failed by another session's in-flight app_v2 edit. The trigger expressions are lifted
+# out of the facade text rather than restated, so rewording one of them fails here instead of
+# quietly widening the gate back to every module.
+$triggerHarnessPrelude = @'
+param([string[]] $Set, [bool] $IsResourceChange)
+$normChangedFiles = @($Set | ForEach-Object { ($_ -replace '\\', '/') -replace '^\./', '' })
+$isResourceChange = $IsResourceChange
+function Test-AnyChangedFile([string]$Pattern) {
+    foreach ($candidate in $normChangedFiles) {
+        if ($candidate -match $Pattern) { return $true }
+    }
+    return $false
+}
+'@
+
+function Get-TriggerHarness {
+    param([string] $VariableName)
+    # The assignment may wrap onto continuation lines; take everything up to the next comment or
+    # top-level assignment.
+    $match = [regex]::Match(
+        $facade,
+        '(?m)^\$' + [regex]::Escape($VariableName) + '\s*=(?<body>(?:.*)(?:\r?\n[ \t]+.*)*)')
+    if (-not $match.Success) {
+        throw "Trigger '$VariableName' is not assigned at the top level of the facade."
+    }
+    $expression = '$' + $VariableName + ' =' + $match.Groups['body'].Value
+    return [scriptblock]::Create($triggerHarnessPrelude + "`n" + $expression + "`n" + '[bool]$' + $VariableName)
+}
+
+function Assert-Trigger {
+    param(
+        [string] $VariableName,
+        [string] $Case,
+        [string[]] $ChangedSet,
+        [bool] $IsResourceChange = $true,
+        [bool] $Expected
+    )
+    $harness = Get-TriggerHarness -VariableName $VariableName
+    $actual = [bool](& $harness $ChangedSet $IsResourceChange)
+    if ($actual -ne $Expected) {
+        throw "Trigger $VariableName [$Case]: expected $Expected, got $actual."
+    }
+}
+
+# The nine-file wear set from the S2069 repro: five drawables, a colors.xml, two Kotlin files and a
+# test. Not one of them is readable by an app_v2-rooted gate.
+$wearOnlySet = @(
+    'wear/src/main/res/drawable/ic_a.xml',
+    'wear/src/main/res/drawable/ic_b.xml',
+    'wear/src/main/res/values/colors.xml',
+    'wear/src/main/java/com/sza/fastmediasorter/wear/ui/Screen.kt',
+    'wear/src/test/java/com/sza/fastmediasorter/wear/ScreenTest.kt')
+
+Assert-Trigger -VariableName 'runsFocusHighlightGate' -Case 'wear-only resource set' `
+    -Expected $false -ChangedSet $wearOnlySet
+Assert-Trigger -VariableName 'runsFocusHighlightGate' -Case 'app_v2 layout' `
+    -Expected $true -ChangedSet @('app_v2/src/main/res/layout/activity_main.xml')
+# The MaterialCardView half of the gate reads every XML under app_v2/src, so a non-layout app_v2
+# resource must still fire it - narrowing to layout dirs alone would switch that half off.
+Assert-Trigger -VariableName 'runsFocusHighlightGate' -Case 'app_v2 non-layout resource' `
+    -Expected $true -ChangedSet @('app_v2/src/main/res/values/colors.xml')
+Assert-Trigger -VariableName 'runsFocusHighlightGate' -Case 'mixed wear and app_v2' `
+    -Expected $true -ChangedSet ($wearOnlySet + 'app_v2/src/main/res/layout/activity_main.xml')
+Assert-Trigger -VariableName 'runsFocusHighlightGate' -Case 'app_v2 layout under a non-resource ChangeType' `
+    -Expected $false -IsResourceChange $false -ChangedSet @('app_v2/src/main/res/layout/activity_main.xml')
+
+# Same asymmetry, found by the S2069 sweep and reachable today: the watch module has a manifest.
+Assert-Trigger -VariableName 'runsOrientationFeatureGate' -Case 'wear manifest' `
+    -Expected $false -ChangedSet @('wear/src/main/AndroidManifest.xml')
+Assert-Trigger -VariableName 'runsOrientationFeatureGate' -Case 'app_v2 manifest' `
+    -Expected $true -ChangedSet @('app_v2/src/main/AndroidManifest.xml')
+Assert-Trigger -VariableName 'runsOrientationFeatureGate' -Case 'app_v2 flavor manifest' `
+    -Expected $true -ChangedSet @('app_v2/src/vr/AndroidManifest.xml')
+Assert-Trigger -VariableName 'runsOrientationLayoutPairingGate' -Case 'wear manifest' `
+    -Expected $false -ChangedSet @('wear/src/main/AndroidManifest.xml')
+Assert-Trigger -VariableName 'runsOrientationLayoutPairingGate' -Case 'app_v2 manifest' `
+    -Expected $true -ChangedSet @('app_v2/src/main/AndroidManifest.xml')
+Assert-Trigger -VariableName 'runsOrientationLayoutPairingGate' -Case 'app_v2 landscape layout' `
+    -Expected $true -ChangedSet @('app_v2/src/main/res/layout-land/activity_main.xml')
+
+# The gate has to RECEIVE the changed set, not merely be reached: without -ChangedFiles it re-counts
+# the whole app_v2 tree and -ScopeToFile means nothing to it.
+$focusGateBlock = [regex]::Match(
+    $facade,
+    '(?s)Invoke-Gate "focus-highlight-gate" \{.*?\r?\n    \}\r?\n').Value
+if ([string]::IsNullOrWhiteSpace($focusGateBlock)) {
+    throw 'Could not extract the focus-highlight gate block - the assertions below would pass vacuously.'
+}
+if ($focusGateBlock -notmatch 'if \(\$ScopeToFile\).*-ChangedFiles') {
+    throw 'focus-highlight gate does not forward the changed set under -ScopeToFile.'
+}
+
 Write-Output "post-change tests: PASS ($($labels.Count) routed labels with hints)"

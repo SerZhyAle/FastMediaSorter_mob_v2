@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperation
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationOutcome
+import com.sza.fastmediasorter.wear.domain.model.WearFileOperationResult
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
@@ -371,12 +372,13 @@ class BrowseViewModel @Inject constructor(
         operationJob = viewModelScope.launch {
             Timber.d("S1863: start $operation over ${targets.size} file(s)")
             _operationRun.value = WearFileOperationRunState(running = true, total = targets.size)
-            performFileOperation(targets, operation, isNetworkSource).collect { result ->
-                _operationRun.update { current ->
-                    current.copy(completed = current.completed + 1, results = current.results + result)
-                }
+            try {
+                collectRun(targets, operation)
+            } finally {
+                // Also on cancellation: without this the progress dialog would keep the screen with
+                // running = true forever, and the files never reached would have no answer at all.
+                finishRun(targets)
             }
-            _operationRun.update { it.copy(running = false) }
             _selectedFileIds.value = emptySet()
             // Only a run that actually changed the directory invalidates the list on screen; a send
             // that left every file where it was would reload for nothing.
@@ -386,6 +388,49 @@ class BrowseViewModel @Inject constructor(
                 loadMediaFiles()
             }
         }
+    }
+
+    /**
+     * A failure upstream ends the batch, not the process.
+     *
+     * The stager reads a MediaStore row through the content resolver, which throws past the
+     * [java.io.IOException] it handles when a provider or a grant has gone; unhandled, that killed the
+     * app mid-batch and left the progress dialog owning the screen.
+     */
+    private suspend fun collectRun(targets: List<WearMediaFile>, operation: WearFileOperation) {
+        performFileOperation(targets, operation, isNetworkSource)
+            .catch { throwable ->
+                Timber.e(throwable, "Wear file operation failed mid-batch")
+                val answered = _operationRun.value.results.map { it.fileName }.toSet()
+                targets.filterNot { it.name in answered }.forEach { pending ->
+                    emit(WearFileOperationResult(pending.name, WearFileOperationOutcome.FAILED))
+                }
+            }
+            .collect { result ->
+                _operationRun.update { current ->
+                    current.copy(completed = current.completed + 1, results = current.results + result)
+                }
+            }
+    }
+
+    /**
+     * Closes the run, giving every file the batch never reached an explicit CANCELLED line.
+     *
+     * Silence would otherwise be indistinguishable from success on a screen the user reads once.
+     */
+    private fun finishRun(targets: List<WearMediaFile>) {
+        _operationRun.update { current ->
+            val answered = current.results.map { it.fileName }.toSet()
+            val cancelled = targets
+                .filterNot { it.name in answered }
+                .map { WearFileOperationResult(it.name, WearFileOperationOutcome.CANCELLED) }
+            current.copy(running = false, results = current.results + cancelled)
+        }
+    }
+
+    /** Stops a run in flight; [finishRun] then records what it never reached. */
+    fun cancelOperation() {
+        operationJob?.cancel()
     }
 
     /** The results stay until the user dismisses them, outliving the reload a run may have caused. */

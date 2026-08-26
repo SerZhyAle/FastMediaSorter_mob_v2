@@ -24,7 +24,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -46,8 +45,10 @@ import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.util.GridColumnFit
+import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
+private const val MENU_LABEL_MAX_LINES = 2
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
 private val CELL_BUTTON_SIZE = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
 private val CELL_ICON_SIZE = 24.dp
@@ -112,6 +113,7 @@ private fun ScalingLazyListScope.settingsItems(
         return
     }
 
+    Timber.d("S2042: settings menu grid, columns=$columns, wrap not ellipsis")
     items(destinations.chunked(columns)) { rowDestinations ->
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -134,10 +136,11 @@ private fun ScalingLazyListScope.settingsItems(
                         )
                     }
                     Text(
+                        // Wrap, never ellipsize: strategic S2042, same rule S1949 already applied
+                        // to the settings screens themselves via WearSettingsToggleCell.
                         text = label,
                         style = MaterialTheme.typography.caption3,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        maxLines = MENU_LABEL_MAX_LINES,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )

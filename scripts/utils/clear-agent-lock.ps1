@@ -51,7 +51,16 @@ if (-not $Force -and -not $status.Stale) {
     else {
         Write-Host "$Name.LOCK is fresh - refusing to clear it without -Force." -ForegroundColor Red
     }
-    Write-Host "  pid: $($status.Pid)  age: $([int]$status.AgeSeconds)s  reason: '$($status.Reason)'  host: $($status.Host)" -ForegroundColor Yellow
+    # Minutes first: "1811s" is the number the file carries, "30 min" is the number the operator is
+    # comparing against the monitor's held-time column. The session id matters more than the pid on
+    # the Code lock - that pid can be recycled by Windows and then names an unrelated process.
+    $ageText = "{0:N0} min ({1}s)" -f (($status.AgeSeconds) / 60), [int]$status.AgeSeconds
+    Write-Host "  pid: $($status.Pid)  age: $ageText  reason: '$($status.Reason)'  host: $($status.Host)" -ForegroundColor Yellow
+    if ($status.SessionId) {
+        Write-Host "  session: $($status.SessionId)" -ForegroundColor Yellow
+    }
+    $shortcut = if ($Name -eq 'Build') { 'ub' } else { 'uc' }
+    Write-Host "  Override once the holder is confirmed gone:  .\a.ps1 $shortcut -Force" -ForegroundColor Gray
     exit 1
 }
 

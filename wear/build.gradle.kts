@@ -18,8 +18,8 @@ plugins {
 //     codes MUST differ: both modules publish under the same applicationId (S1681), and Play refuses
 //     a release whose artifacts repeat a versionCode. Wear = app_v2 code without its last digit.
 // Gate: scripts/quality/assert-module-version-parity.ps1.
-val defaultAppVersionCode = 26081516
-val defaultAppVersionName = "2.60.8151.612"
+val defaultAppVersionCode = 26082605
+val defaultAppVersionName = "2.60.8260.551"
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }

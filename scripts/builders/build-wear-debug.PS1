@@ -123,6 +123,14 @@ else {
     Write-Host "Install 7-Zip from https://www.7-zip.org/ to enable Google Drive upload." -ForegroundColor Yellow
 }
 
+# Copy APK to the same secondary delivery folder used by the phone debug builders.
+$tcDir = "c:\GD\tc\SZA\_APP"
+if (!(Test-Path -Path $tcDir)) {
+    New-Item -ItemType Directory -Path $tcDir | Out-Null
+}
+Copy-Item -Path "$downloadsDir\$destName" -Destination "$tcDir\$destName" -Force
+Write-Host "APK copied to $tcDir\$destName" -ForegroundColor Green
+
 }
 finally {
     Exit-AgentLock -Name Build

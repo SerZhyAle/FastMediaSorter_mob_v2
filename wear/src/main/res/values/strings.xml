@@ -347,4 +347,6 @@
     <string name="wear_file_op_outcome_failed">Did not work - try again</string>
     <string name="wear_file_op_outcome_cancelled">Cancelled</string>
     <string name="wear_file_op_renamed_to">Saved as %1$s</string>
+    <string name="wear_media_types_all_disabled">All content types are off in settings. Turn one on to see media here.</string>
+    <string name="wear_file_actions_for">Actions for %1$s</string>
 </resources>

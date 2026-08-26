@@ -135,11 +135,11 @@ private fun SourceCell(
         onLongClick = {
             actions.onSourceLongPress(source)
         }
-    ) {
+    ) { glyphModifier ->
         Icon(
             painter = painterResource(id = iconFor(source.type)),
             contentDescription = null,
-            modifier = Modifier.size(CELL_ICON_SIZE),
+            modifier = glyphModifier,
             tint = Color.Unspecified
         )
     }

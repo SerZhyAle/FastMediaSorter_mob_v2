@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
-import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -17,8 +16,9 @@ import com.sza.fastmediasorter.databinding.ItemStatsDistributionLegendBinding
 import com.sza.fastmediasorter.databinding.ItemStatsMetricRowBinding
 import com.sza.fastmediasorter.databinding.ItemStatsPrivacyNoteBinding
 import com.sza.fastmediasorter.databinding.ViewStatsEmptyBinding
-import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.domain.stats.StatsMediaType
+import com.sza.fastmediasorter.ui.common.MediaTypeColorCatalog
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 
 /**
  * Multi-view-type list renderer for the statistics dashboard (S0473 Phase 04).
@@ -131,8 +131,7 @@ class StatisticsAdapter(
             binding.barContainer.removeAllViews()
             binding.legendContainer.removeAllViews()
             for (slice in item.slices) {
-                val colorRes = colorFor(slice.type)
-                val color = ContextCompat.getColor(context, colorRes)
+                val color = ContextCompat.getColor(context, MediaTypeColorCatalog.colorFor(slice.type))
 
                 val segment = View(context).apply {
                     layoutParams = LinearLayout.LayoutParams(
@@ -155,15 +154,6 @@ class StatisticsAdapter(
                 )
                 binding.legendContainer.addView(legend.root)
             }
-        }
-
-        @ColorRes
-        private fun colorFor(type: StatsMediaType): Int = when (type) {
-            StatsMediaType.IMAGE -> R.color.stats_type_image
-            StatsMediaType.VIDEO -> R.color.stats_type_video
-            StatsMediaType.AUDIO -> R.color.stats_type_audio
-            StatsMediaType.DOCUMENT -> R.color.stats_type_document
-            StatsMediaType.OTHER -> R.color.stats_type_other
         }
 
         private fun labelFor(type: StatsMediaType): Int = when (type) {

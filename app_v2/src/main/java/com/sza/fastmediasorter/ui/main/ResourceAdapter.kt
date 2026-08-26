@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.main
 
 import android.content.res.ColorStateList
+import android.content.res.Configuration
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.text.Spanned
@@ -20,14 +21,14 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.menu.MenuActionSurface
 import com.sza.fastmediasorter.core.menu.ResourceActionCatalog
 import com.sza.fastmediasorter.core.menu.ResourceMenuAction
-import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.databinding.ItemResourceBinding
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.isAllFilesPredefined
-import com.sza.fastmediasorter.ui.common.MediaGroupPalette
+import com.sza.fastmediasorter.ui.common.MediaColorCategory
+import com.sza.fastmediasorter.ui.common.MediaTypeColorCatalog
 import com.sza.fastmediasorter.ui.icon.ResourceIconComposer
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
@@ -137,31 +138,60 @@ class ResourceAdapter(
         private val DOCUMENT_TYPES = setOf(MediaType.TEXT, MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT)
         private val IMAGE_TYPES = setOf(MediaType.IMAGE, MediaType.GIF)
 
+        // Badge order is the on-screen order of the letters; the letter carries the sub-type, which is
+        // why sub-types of one family may share that family's colour (S2046).
+        private val BADGE_LETTERS = listOf(
+            MediaType.IMAGE to "I",
+            MediaType.VIDEO to "V",
+            MediaType.AUDIO to "A",
+            MediaType.GIF to "G",
+            MediaType.TEXT to "T",
+            MediaType.PDF to "P",
+            MediaType.EPUB to "E",
+            MediaType.OFFICE_DOCUMENT to "O",
+        )
+
+        private fun categoryColor(context: android.content.Context, category: MediaColorCategory): Int =
+            ContextCompat.getColor(context, MediaTypeColorCatalog.colorFor(category))
+
         private const val MEDIA_TYPE_CACHE_INITIAL = 64
         private const val MEDIA_TYPE_CACHE_LOAD = 0.75f
         private const val MEDIA_TYPE_CACHE_MAX = 128
 
         // Bounded main-thread memo for formatMediaTypes; the built SpannableString is immutable after
         // build, so the same instance is safely shared across TextViews for identical type-sets.
+        // S2046: the third key component is the night-mode bit. The colours baked into the spannable
+        // now come from theme-dependent resources, and this cache is companion-scoped, so it outlives
+        // Activity recreation - without the bit a spannable built in light theme would keep serving
+        // light-theme colours after the user switches to dark.
         private val mediaTypeFormatCache =
-            object : LinkedHashMap<Pair<Set<MediaType>, Boolean>, CharSequence>(
+            object : LinkedHashMap<MediaTypeFormatKey, CharSequence>(
                 MEDIA_TYPE_CACHE_INITIAL,
                 MEDIA_TYPE_CACHE_LOAD,
                 true,
             ) {
                 override fun removeEldestEntry(
-                    eldest: MutableMap.MutableEntry<Pair<Set<MediaType>, Boolean>, CharSequence>?
+                    eldest: MutableMap.MutableEntry<MediaTypeFormatKey, CharSequence>?
                 ): Boolean = size > MEDIA_TYPE_CACHE_MAX
             }
+
+        private fun nightModeOf(context: android.content.Context): Int =
+            context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+
+        private data class MediaTypeFormatKey(
+            val types: Set<MediaType>,
+            val allFiles: Boolean,
+            val nightMode: Int,
+        )
 
         private data class SingleCategoryIndicator(
             val iconRes: Int,
             val color: Int
         )
-        
+
         /** Formats supported media types as colored IVAGTPE string, or "ALL" for allFiles mode. */
         fun formatMediaTypes(context: android.content.Context, types: Set<MediaType>, allFiles: Boolean): CharSequence {
-            val key = types to allFiles
+            val key = MediaTypeFormatKey(types, allFiles, nightModeOf(context))
             mediaTypeFormatCache[key]?.let { return it }
 
             if (allFiles) {
@@ -172,19 +202,19 @@ class ResourceAdapter(
             val indicator = when {
                 types == setOf(MediaType.AUDIO) -> SingleCategoryIndicator(
                     iconRes = R.drawable.ic_music_note,
-                    color = MediaGroupPalette.AUDIO_PRIMARY
+                    color = categoryColor(context, MediaColorCategory.MUSIC)
                 )
                 types.isNotEmpty() && types.all { it in DOCUMENT_TYPES } -> SingleCategoryIndicator(
                     iconRes = R.drawable.ic_book,
-                    color = MediaGroupPalette.DOCUMENT_PRIMARY
+                    color = categoryColor(context, MediaColorCategory.DOCUMENT)
                 )
                 types == setOf(MediaType.VIDEO) -> SingleCategoryIndicator(
                     iconRes = R.drawable.ic_video,
-                    color = MediaGroupPalette.VIDEO_PRIMARY
+                    color = categoryColor(context, MediaColorCategory.VIDEO)
                 )
                 types.isNotEmpty() && types.all { it in IMAGE_TYPES } -> SingleCategoryIndicator(
                     iconRes = R.drawable.ic_image,
-                    color = MediaGroupPalette.IMAGE_PRIMARY
+                    color = categoryColor(context, MediaColorCategory.IMAGE)
                 )
                 else -> null
             }
@@ -193,52 +223,20 @@ class ResourceAdapter(
                 return createIconSpan(context, indicator.iconRes, indicator.color)
             }
 
-            val text = buildString {
-                if (MediaType.IMAGE in types) append("I")
-                if (MediaType.VIDEO in types) append("V")
-                if (MediaType.AUDIO in types) append("A")
-                if (MediaType.GIF in types) append("G")
-                if (MediaType.TEXT in types) append("T")
-                if (MediaType.PDF in types) append("P")
-                if (MediaType.EPUB in types) append("E")
-                if (MediaType.OFFICE_DOCUMENT in types) append("O")
-            }
-            
-            if (text.isEmpty()) return ""
-            
-            val spannable = SpannableString(text)
-            var position = 0
-            
-            if (MediaType.IMAGE in types) {
-                spannable.setSpan(ForegroundColorSpan(MediaGroupPalette.colorForType(MediaType.IMAGE)), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                position++
-            }
-            if (MediaType.VIDEO in types) {
-                spannable.setSpan(ForegroundColorSpan(MediaGroupPalette.colorForType(MediaType.VIDEO)), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                position++
-            }
-            if (MediaType.AUDIO in types) {
-                spannable.setSpan(ForegroundColorSpan(MediaGroupPalette.colorForType(MediaType.AUDIO)), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                position++
-            }
-            if (MediaType.GIF in types) {
-                spannable.setSpan(ForegroundColorSpan(MediaGroupPalette.colorForType(MediaType.GIF)), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                position++
-            }
-            if (MediaType.TEXT in types) {
-                spannable.setSpan(ForegroundColorSpan(MediaGroupPalette.colorForType(MediaType.TEXT)), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                position++
-            }
-            if (MediaType.PDF in types) {
-                spannable.setSpan(ForegroundColorSpan(MediaGroupPalette.colorForType(MediaType.PDF)), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                position++
-            }
-            if (MediaType.EPUB in types) {
-                spannable.setSpan(ForegroundColorSpan(MediaGroupPalette.colorForType(MediaType.EPUB)), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                position++
-            }
-            if (MediaType.OFFICE_DOCUMENT in types) {
-                spannable.setSpan(ForegroundColorSpan(MediaGroupPalette.colorForType(MediaType.OFFICE_DOCUMENT)), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            val present = BADGE_LETTERS.filter { it.first in types }
+            if (present.isEmpty()) return ""
+
+            val spannable = SpannableString(present.joinToString(separator = "") { it.second })
+            val colorByCategory = HashMap<MediaColorCategory, Int>()
+            present.forEachIndexed { position, (type, _) ->
+                val category = MediaTypeColorCatalog.categoryOf(type)
+                val color = colorByCategory.getOrPut(category) { categoryColor(context, category) }
+                spannable.setSpan(
+                    ForegroundColorSpan(color),
+                    position,
+                    position + 1,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+                )
             }
 
             mediaTypeFormatCache[key] = spannable
@@ -247,8 +245,8 @@ class ResourceAdapter(
 
         fun isQuickSlideshowEligible(resource: MediaResource): Boolean =
             resource.profile == ResourceProfile.AUDIO_LIBRARY ||
-            resource.profile == ResourceProfile.VIDEO_LIBRARY ||
-            resource.profile == ResourceProfile.PHOTO_STORAGE
+                resource.profile == ResourceProfile.VIDEO_LIBRARY ||
+                resource.profile == ResourceProfile.PHOTO_STORAGE
 
         private fun createIconSpan(context: android.content.Context, iconRes: Int, tintColor: Int): CharSequence {
             val drawable = ContextCompat.getDrawable(context, iconRes)?.mutate()
@@ -411,7 +409,7 @@ class ResourceAdapter(
                     ivResourceTypeIcon.layoutParams.height = iconSize
                     tvMediaTypes.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
                 }
-                
+
                 // Set icon using S0034 composer (falls back to legacy type-based icon when no custom icon)
                 val iconDrawable = ResourceIconComposer.compose(root.context, resource)
                 ivResourceTypeIcon.setImageDrawable(iconDrawable)
@@ -459,7 +457,7 @@ class ResourceAdapter(
                 } else {
                     viewDestinationBorder.visibility = android.view.View.GONE
                 }
-                
+
                 this@GridViewHolder.applySelectionVisual(resource, selectedId)
 
                 // Writable/Lock indicator - not shown for virtual aggregate paths
@@ -484,7 +482,8 @@ class ResourceAdapter(
                 // Mouse right-click support (triggers long click action)
                 root.setOnGenericMotionListener { _, event ->
                     if (event.action == android.view.MotionEvent.ACTION_BUTTON_PRESS &&
-                        event.buttonState == android.view.MotionEvent.BUTTON_SECONDARY) {
+                        event.buttonState == android.view.MotionEvent.BUTTON_SECONDARY
+                    ) {
                         if (resource.id != -100L) {
                             onItemLongClick(resource)
                         }
@@ -587,7 +586,7 @@ class ResourceAdapter(
                 } else {
                     resource.path
                 }
-                
+
                 if (!resource.comment.isNullOrBlank()) {
                     tvResourceComment.text = resource.comment
                     tvResourceComment.visibility = android.view.View.VISIBLE
@@ -669,17 +668,17 @@ class ResourceAdapter(
                         resource.fileCount
                     )
                 }
-                
+
                 if (useCompactElements) {
                     tvFileCount.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 10f)
                     tvMediaTypes.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 10f)
                     tvLastSync.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 10f)
                     tvResourceType.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 10f)
-                    
+
                     val p4 = (4 * root.resources.displayMetrics.density).toInt()
                     val p8 = (8 * root.resources.displayMetrics.density).toInt()
                     rootLayout.setPadding(p8, p4, p8, p4)
-                    
+
                     val iconSize = (24 * root.resources.displayMetrics.density).toInt()
                     ivResourceTypeIcon.layoutParams.width = iconSize
                     ivResourceTypeIcon.layoutParams.height = iconSize
@@ -688,18 +687,18 @@ class ResourceAdapter(
                     tvMediaTypes.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
                     tvLastSync.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
                     tvResourceType.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
-                    
+
                     val p12 = (12 * root.resources.displayMetrics.density).toInt()
                     val p16 = (16 * root.resources.displayMetrics.density).toInt()
                     rootLayout.setPadding(p16, p12, p16, p12)
-                    
+
                     val iconSize = (48 * root.resources.displayMetrics.density).toInt()
                     ivResourceTypeIcon.layoutParams.width = iconSize
                     ivResourceTypeIcon.layoutParams.height = iconSize
                 }
-                
+
                 tvMediaTypes.text = if (resource.id == -100L) "" else formatMediaTypes(root.context, resource.supportedMediaTypes, resource.allFiles)
-                
+
                 tvDestinationMark.text = if (resource.isDestination) "→" else ""
 
                 // Destination badge and border
@@ -719,7 +718,7 @@ class ResourceAdapter(
                     if (resource.destinationOrder != null) {
                         binding.tvDestinationBadge.visibility = android.view.View.VISIBLE
                         binding.tvDestinationBadge.text = (resource.destinationOrder + 1).toString()
-                        
+
                         val badgeDrawable = ContextCompat.getDrawable(
                             binding.root.context,
                             R.drawable.badge_destination_background
@@ -733,7 +732,7 @@ class ResourceAdapter(
                     binding.tvDestinationBadge.visibility = android.view.View.GONE
                     binding.viewDestinationBorder.visibility = android.view.View.GONE
                 }
-                
+
                 // Show lock icon only for non-destination, non-virtual resources without write access
                 // Destinations are expected to be writable; virtual paths are aggregate views, not folders
                 val isVirtualRes = resource.path.startsWith("virtual://")
@@ -742,7 +741,7 @@ class ResourceAdapter(
                 } else {
                     android.view.View.GONE
                 }
-                
+
                 // S0200 Phase 06: needs-sign-in indicator for Drive resources whose primary account
                 // is unbound or stale. Takes priority over the generic isAvailable indicator.
                 val driveNeedsSignIn = resource.type == ResourceType.CLOUD &&
@@ -792,13 +791,13 @@ class ResourceAdapter(
                     }
                     rootLayout.setBackgroundColor(bgColor)
                 }
-                
+
                 // Show last sync time for network resources (SMB, SFTP, FTP)
-                val isNetworkResource = resource.type == ResourceType.SMB || 
-                                        resource.type == ResourceType.SFTP || 
-                                        resource.type == ResourceType.FTP ||
-                                        resource.type == ResourceType.CLOUD
-                
+                val isNetworkResource = resource.type == ResourceType.SMB ||
+                    resource.type == ResourceType.SFTP ||
+                    resource.type == ResourceType.FTP ||
+                    resource.type == ResourceType.CLOUD
+
                 if (isNetworkResource && resource.lastSyncDate != null) {
                     val syncTimeAgo = DateUtils.getRelativeTimeSpanString(
                         resource.lastSyncDate,
@@ -828,11 +827,12 @@ class ResourceAdapter(
                         false
                     }
                 }
-                
+
                 // Mouse right-click support (triggers long click action)
                 root.setOnGenericMotionListener { _, event ->
                     if (event.action == android.view.MotionEvent.ACTION_BUTTON_PRESS &&
-                        event.buttonState == android.view.MotionEvent.BUTTON_SECONDARY) {
+                        event.buttonState == android.view.MotionEvent.BUTTON_SECONDARY
+                    ) {
                         if (resource.id != -100L) {
                             onItemLongClick(resource)
                         }
@@ -841,7 +841,7 @@ class ResourceAdapter(
                         false
                     }
                 }
-                
+
                 root.isFocusable = true
                 root.isFocusableInTouchMode = false
 
@@ -864,7 +864,6 @@ class ResourceAdapter(
                         btnMoveUp.setOnClickListenerDebounced { onMoveUpClick(resource) }
                         btnMoveDown.setOnClickListenerDebounced { onMoveDownClick(resource) }
                         btnDelete.setOnClickListenerDebounced { onDeleteClick(resource) }
-                        
                     } else {
                         btnMoreActions.visibility = android.view.View.VISIBLE
                         layoutInlineActions.visibility = android.view.View.GONE
@@ -895,7 +894,6 @@ class ResourceAdapter(
                         false
                     }
                 }
-
             }
         }
 

@@ -780,7 +780,12 @@ function Enter-AgentLock {
 
     # Child processes inherit this, which is how a nested gradle-invoking script recognises that
     # its own ancestor already holds the lock (see the re-entrancy guard in Enter-BuildLockOrExit).
-    if ($Name -eq 'Build') { $env:FMS_BUILD_LOCK_HELD_BY = $PID }
+    # S2058: carries the acquirer's process-start ticks alongside its PID, not the PID alone - a
+    # bare PID match let a process that merely INHERITED this variable from a long-dead ancestor
+    # mistake an unrelated, later, coincidentally-same-PID holder for itself and `return` as if it
+    # already held BUILD.LOCK, without queueing or building anything - the same PID-reuse hazard
+    # Get-AgentLockStatus already guards against for the lock file's own liveness check below.
+    if ($Name -eq 'Build') { $env:FMS_BUILD_LOCK_HELD_BY = "$PID`:$($proc.StartTime.Ticks)" }
 
     return [pscustomobject]@{ Acquired = $true; Status = (Get-AgentLockStatus -Name $Name) }
 }
@@ -835,7 +840,12 @@ function Exit-AgentLock {
         $raw = Get-Content -LiteralPath $path -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
         if ([int]$raw.pid -eq $PID) {
             Remove-Item -LiteralPath $path -Force -ErrorAction SilentlyContinue
-            if ($env:FMS_BUILD_LOCK_HELD_BY -eq "$PID") { $env:FMS_BUILD_LOCK_HELD_BY = $null }
+            # S2058: match the "pid:startTicks" shape Enter-AgentLock now writes - a bare "$PID"
+            # comparison here would never match it, leaving the variable set after release and
+            # available for a later, unrelated process to inherit and misread as still-live.
+            if ($env:FMS_BUILD_LOCK_HELD_BY -match '^(\d+):') {
+                if ([int]$Matches[1] -eq $PID) { $env:FMS_BUILD_LOCK_HELD_BY = $null }
+            }
         }
     }
     catch {
@@ -1038,11 +1048,38 @@ function Enter-BuildLockOrExit {
     # BUILD.LOCK, and `& other.ps1` runs in the SAME process - so the nested acquire would now
     # wait for a lock this very run owns and deadlock. Before waiting became the default this
     # was a fast, visible refusal; it must not silently become a hang.
+    #
+    # S2058: the inherited half of this check is PID plus process-start ticks, not PID alone. A
+    # spawned child process inherits FMS_BUILD_LOCK_HELD_BY from whatever ancestor last acquired
+    # the lock in-process; a bare PID match against the CURRENT lock file's holder is therefore
+    # only safe as long as PIDs are never reused. Windows reuses them quickly, and a long-lived
+    # ancestor spawning many short-lived children makes the collision realistic - when it lands,
+    # the child mistook an unrelated, later holder for itself and returned as though it already
+    # held BUILD.LOCK, without queueing or actually holding it (observed exit 0 on a refusal that
+    # should have queued or failed fast). Start ticks are what Get-AgentLockStatus already uses
+    # to defend the SAME lock file against PID reuse a few lines below - this mirrors it rather
+    # than inventing a second defense.
     $selfCheck = Get-AgentLockStatus -Name Build
     if ($selfCheck.Exists -and -not $selfCheck.Stale) {
         $holderPid = [int]$selfCheck.Pid
-        $inheritedOwner = if ($env:FMS_BUILD_LOCK_HELD_BY) { [int]$env:FMS_BUILD_LOCK_HELD_BY } else { 0 }
-        if ($holderPid -eq $PID -or ($inheritedOwner -ne 0 -and $inheritedOwner -eq $holderPid)) {
+        $holderStartTicks = 0
+        try {
+            $rawLock = Get-Content -LiteralPath $selfCheck.Path -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+            if ($rawLock.PSObject.Properties['procStart']) { $holderStartTicks = [int64]$rawLock.procStart }
+        }
+        catch {
+            # Torn/mid-write lock file - $holderStartTicks stays 0, which never matches a real
+            # inherited value below, so the guard falls through to the normal queue/refuse path.
+        }
+        $inheritedPid = 0
+        $inheritedStartTicks = 0
+        if ($env:FMS_BUILD_LOCK_HELD_BY -match '^(\d+):(\d+)$') {
+            $inheritedPid = [int]$Matches[1]
+            $inheritedStartTicks = [int64]$Matches[2]
+        }
+        $inheritedMatchesHolder = ($inheritedPid -ne 0) -and ($inheritedPid -eq $holderPid) -and
+            ($holderStartTicks -ne 0) -and ($inheritedStartTicks -eq $holderStartTicks)
+        if ($holderPid -eq $PID -or $inheritedMatchesHolder) {
             Write-Host "BUILD.LOCK already held by this run (pid $holderPid) - reusing it instead of queueing behind ourselves." -ForegroundColor DarkGray
             return
         }

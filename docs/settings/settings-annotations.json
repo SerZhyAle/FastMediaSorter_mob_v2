@@ -1494,6 +1494,11 @@
     "ru": "Показывает результат перевода непрозрачными блоками поверх исходного текста, в стиле Google Lens.",
     "uk": "Показує результат перекладу непрозорими блоками поверх вихідного тексту, у стилі Google Lens."
   },
+  "wearBackgroundMode": {
+    "en": "Chooses what the watch draws behind the app screens: the branded waves-and-particles animation, or an image picked on the phone. The picked image is cropped and scaled to the watch frame on the phone and travels the file channel, so the watch receives a ready frame and never resizes anything. When the image is missing or has not arrived, the watch draws the animation instead. A constant dim sits between the background and the content so text stays readable over a light picture, and the background is not drawn while the app is away from the foreground or in ambient mode.",
+    "ru": "Выбирает, что часы рисуют за экранами приложения: фирменную анимацию волн и частиц или изображение, выбранное на телефоне. Выбранная картинка кадрируется и масштабируется под экран часов на телефоне и едет отдельным файловым каналом, так что часы получают готовый кадр и ничего не пересчитывают. Если изображения нет или оно не доехало, часы рисуют анимацию. Между фоном и содержимым лежит постоянное затемнение, чтобы текст читался и на светлой картинке, а сам фон не рисуется, пока приложение не на переднем плане и в ambient-режиме.",
+    "uk": "Обирає, що годинник малює за екранами застосунку: фірмову анімацію хвиль і частинок або зображення, вибране на телефоні. Вибрана картинка кадрується та масштабується під екран годинника на телефоні й їде окремим файловим каналом, тож годинник отримує готовий кадр і нічого не перераховує. Якщо зображення немає або воно не доїхало, годинник малює анімацію. Між фоном і вмістом лежить постійне затемнення, щоб текст читався і на світлій картинці, а сам фон не малюється, поки застосунок не на передньому плані та в ambient-режимі."
+  },
   "wearDownloadAlbumArt": {
     "en": "Downloads and displays cover art for audio tracks on Wear OS.",
     "ru": "Загружает и отображает обложки для аудиофайлов на Wear OS.",

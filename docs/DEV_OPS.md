@@ -111,6 +111,16 @@ called `clear` is gone - it was twice read as "clear the log" and wiped app data
 .\a.ps1 adb shell -Cmd "getprop ro.product.cpu.abi"
 ```
 
+### `install` refuses a module/device mismatch (S2043)
+
+`install` reads the selected device's `ro.build.characteristics` and refuses (exit 1, nothing
+installed) when `-Module` disagrees with what it finds - a phone-flavored `-Module app_v2`
+install against a device reporting `watch`, or `-Module wear` against one that does not. Both
+modules publish under one `applicationId` (S1681), so before this guard the wrong `-Module`
+silently replaced whichever app was already on that device and `install` still reported success.
+`-Module wear` also only ever auto-resolves the RELEASE apk directory - a debug watch build
+needs an explicit `-Apk`.
+
 ### Tapping by label, and what clip-check calls a defect (S1847)
 
 `tap -X -Y` needs a coordinate, and a coordinate goes stale the moment the list under it scrolls -
@@ -296,6 +306,8 @@ Two independent locks under `temp/`, both driven through `scripts/utils/agent-lo
 - **`temp/BUILD.LOCK`** - acquired by `Enter-BuildLockOrExit` before any direct `gradlew`/`gradlew.bat` invocation, released by `Exit-AgentLock` after (success or failure). Since S1432 a busy lock **queues** the caller instead of refusing: it takes a ticket, reports its position and starts when its turn comes. Pass `-NoWait` (or set `FMS_LOCK_NO_WAIT=1`) where an immediate answer matters more than a turn.
 - **`temp/CODE.LOCK`** - acquired via `scripts/utils/enter-code-lock.ps1 -Reason "<ticket/skill>"` before a multi-file source edit (Kotlin/XML/build-file). Since S1432 a busy lock queues the caller and **exits 4** ("queued, not yet your turn") rather than waving the edit through. Auto-releases from `post-change.ps1`'s closure - and that release is owner-checked, so it never removes a lock belonging to another live session; a skill that skips the facade (`/skill-fix`) must call `scripts/utils/exit-code-lock.ps1` itself when the edit is done.
 
+**Releasing a wedged lock:** `..ps1 ub` (build) and `..ps1 uc` (code) are the launcher shortcuts for `scripts/utils/clear-agent-lock.ps1`. Both are conservative - a lock whose holder is still live is refused, and the holder's pid, age, reason and session id are printed instead, because clearing it would hand the turn to the next agent mid-edit. `..ps1 uc -Force` overrides once the holder is confirmed gone (check the session's transcript mtime, not the pid - a Code-lock pid can be recycled), and drops the whole queue with it, including any ticket your own background waiter is holding.
+
 #### Device leases - S1926
 
 The third contended resource, and the last one to get an arbiter. `adb devices` reports an emulator as online whether or not somebody is mid-run on it, so before this a session discovered the conflict by breaking something: installing its APK, or switching HOME, out from under a running scenario (observed 2026-08-21 in S1895).
@@ -364,6 +376,8 @@ A third shared file follows the same family but keys ownership differently (S139
 
 - **Round state is per session** - `temp/spec-next-session.<sessionId>.json`, one file each. The old single file's `-Verb Init` refusal (exit 4) is gone; that code is retired and not reused. A pre-S1437 `temp/spec-next-session.json` is adopted into the per-session path on the first `Resume`.
 - **A ticket lease stops two sessions working the same ticket** - `scripts/spec_catalog/ticket-lease.ps1`, one file per lease under `temp/SPEC-TICKET.LEASES/`. A claim is an atomic `CreateNew`, so of two sessions racing for one ticket exactly one wins; the loser gets **exit 3**, which is a normal outcome - it re-ranks with that id excluded and takes the next ticket, it does not wait. Release is owner-checked (**exit 4** refuses to free a live sibling's lease). Expiry follows the owning session's liveness with an independent 480-minute ceiling, and a stale lease is swept by whoever reads next - no watchdog, same as the queue. **S1448 widened what counts as alive**, because a preflight once offered S1436 as unleased while the owning session was demonstrably working it: a lease now carries its own `lastSeenAt`, refreshed on every verb its owner runs, and a session holding `CODE.LOCK` or `BUILD.LOCK` with a reason naming the ticket id counts as live on that evidence alone. The 480-minute ceiling still judges `claimedAt` and neither signal extends it. `spec-next-preflight.ps1` consumes the lease set as an extra exclusion source and leaves its five sort keys alone, so the owner's release-plan order still decides who gets what.
+- **A killed flow leaves its leases behind, and the sweep will not take them for 45 minutes** - deliberately, because that window is sized for a working session that writes nothing while it thinks. `.\a.ps1 ul` (`ticket-lease.ps1 -Verb Clean`) judges on live evidence instead: a lease survives only while a running headless child names its ticket, its owner holds `CODE.LOCK`/`BUILD.LOCK` naming it, this session owns it, or its owner's transcript moved within `-QuietMinutes` (2). Everything else is litter and goes, with the reason printed per lease. `-Force` drops the lot. Use it after `.\a.ps1 rs -Kill`, never as a way to take a ticket a sibling is working.
+
 - **Catalog journal writes are serialized** - `Enter-CatalogLock` / `Exit-CatalogLock` (and the `Invoke-CatalogTransaction` wrapper) in `scripts/spec_catalog/_lib.ps1` hold a named system mutex across **read -> mutate -> write** in every mutator, id allocation included. The write was already atomic by temp-file rename; the failure it fixes is the lost update, where two processes hold the same snapshot and the later write silently drops the earlier change. A mutex rather than a lock file because a journal rewrite is milliseconds, and it dies with its process so a crashed holder cannot wedge the catalog.
 
 ```powershell

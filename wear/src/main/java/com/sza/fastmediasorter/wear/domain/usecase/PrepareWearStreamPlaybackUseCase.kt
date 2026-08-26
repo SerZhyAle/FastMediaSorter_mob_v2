@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.domain.usecase
 
 import android.net.Uri
+import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_STREAM
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearStreamPlaybackTarget
@@ -40,7 +41,9 @@ class PrepareWearStreamPlaybackUseCase @Inject constructor(
             file = mediaFile,
             isNetworkSource = true,
             streamUri = channel.url,
-            sourceId = SOURCE_ID,
+            // S2039: the domain constant, not a private copy - the two agreed by value but not by
+            // definition, so a change to one would not have reached the other.
+            sourceId = SOURCE_ID_STREAM,
             isDirectStream = true,
         )
 
@@ -63,7 +66,6 @@ class PrepareWearStreamPlaybackUseCase @Inject constructor(
     )
 
     private companion object {
-        const val SOURCE_ID = "stream"
         const val MIME_VIDEO = "video/*"
         const val MIME_AUDIO = "audio/*"
     }

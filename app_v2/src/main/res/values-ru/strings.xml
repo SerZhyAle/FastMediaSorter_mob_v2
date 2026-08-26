@@ -3466,4 +3466,16 @@
     <string name="calculator_keypad_mode_normal">Обычная</string>
     <string name="calculator_keypad_mode_large">Крупные кнопки</string>
     <string name="calculator_keypad_mode_compact">Компактная, справа внизу</string>
+    <string name="wear_background_section_title">Фон на часах</string>
+    <string name="wear_background_mode_animation">Фирменная анимация</string>
+    <string name="wear_background_mode_image">Своё изображение</string>
+    <string name="wear_background_pick_image">Выбрать изображение</string>
+    <string name="wear_background_preview">Предпросмотр фона на часах</string>
+    <string name="wear_background_sending">Отправляем изображение на часы..</string>
+    <string name="wear_background_sent">Изображение на часах.</string>
+    <string name="wear_background_failed">Не получилось отправить изображение - выберите другое или отправьте ещё раз.</string>
+    <string name="wear_background_watch_unreachable">Часы недоступны - поднесите их ближе и отправьте ещё раз.</string>
+    <string name="perm_title_location_extended">Геометка, гаджеты и монитор сети</string>
+    <string name="perm_desc_location_extended">Геометки для съёмки, гаджеты рабочего стола и монитор сети</string>
+    <string name="perm_rationale_location_extended">Местоположение используется только внутри приложения - чтобы записать координаты в снятые фото и видео, нарисовать гаджеты компаса, скорости, высоты и карты на рабочем столе и заполнить разделы GNSS и Wi-Fi в мониторе сети. Никуда ничего не отправляется.</string>
 </resources>

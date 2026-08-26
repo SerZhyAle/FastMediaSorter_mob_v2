@@ -1,8 +1,14 @@
 package com.sza.fastmediasorter.util
 
 import android.graphics.Color
-import com.sza.fastmediasorter.domain.model.MediaType
 
+/**
+ * Colours keyed on the file EXTENSION, for the generated no-thumbnail tiles.
+ *
+ * S2046: deliberately not a media-type palette and not part of the canonical one. The key space is
+ * finer than a content type and the only consumers are the two thumbnail generators; the media-type
+ * colour that used to live here had no callers at all and was removed.
+ */
 object ThumbnailColorMapper {
 
     private val extensionColorMap: Map<String, Int> = mapOf(
@@ -58,19 +64,6 @@ object ThumbnailColorMapper {
     fun getColorForFile(fileName: String): Int {
         val extension = fileName.substringAfterLast('.', "")
         return getColorForExtension(extension)
-    }
-
-    fun getColorForMediaType(mediaType: MediaType): Int {
-        return when (mediaType) {
-            MediaType.IMAGE, MediaType.GIF -> 0xFF81C784.toInt()
-            MediaType.VIDEO -> 0xFF9575CD.toInt()
-            MediaType.TEXT, MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT -> 0xFF42A5F5.toInt()
-            MediaType.AUDIO -> 0xFFFFA726.toInt()
-            MediaType.BINARY_ARCHIVE,
-            MediaType.BINARY_DISK,
-            MediaType.BINARY_EXECUTABLE,
-            MediaType.BINARY_OTHER -> 0xFFBDBDBD.toInt()
-        }
     }
 
     fun getContrastingTextColor(backgroundColor: Int): Int {

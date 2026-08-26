@@ -35,12 +35,32 @@ internal enum class WearStateAction {
 }
 
 /**
+ * A screen-specific offer a state carries between Retry and Back.
+ *
+ * Exists for one screen: the Resources list is empty before the first source is registered, and its
+ * two ways out - pull the phone's sources over, or type one in by hand - are offers no other screen
+ * has. Dropping them would have left that screen a dead end, and keeping them would have left it the
+ * one screen still drawing its own emptiness. In a release build only the first is offered, so the
+ * shape the owner fixed - message, one action, Back - is what actually ships; the second appears in
+ * debug builds only. A third screen wanting extras is a signal to re-read this decision.
+ */
+data class WearStateExtraAction(
+    val label: String,
+    val onClick: () -> Unit,
+    val enabled: Boolean = true
+)
+
+/**
  * Decides which actions a state shows.
  *
  * A retry is offered only where retrying can change the answer: an empty list was produced by a call
  * that already succeeded, so repeating it would return the same emptiness and read as a broken button.
  * Back is offered always - on a screen with no content the platform dismiss gesture is at its least
  * discoverable, which is the case the owner named when asking for Retry and Back together.
+ *
+ * Screen-specific extras are placed by the composable rather than named here: they act on the screen
+ * while Back leaves it, so they sit before it, and this rule stays about the two actions every state
+ * has.
  */
 internal fun stateActionsFor(kind: WearStateKind, hasRetry: Boolean): List<WearStateAction> {
     val retryApplies = hasRetry && kind != WearStateKind.EMPTY
@@ -68,11 +88,13 @@ fun WearStateBlock(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     message: String? = null,
-    onRetry: (() -> Unit)? = null
+    onRetry: (() -> Unit)? = null,
+    extraActions: List<WearStateExtraAction> = emptyList()
 ) {
     val text = message ?: defaultMessageFor(kind)
     val retryLabel = stringResource(R.string.retry)
     val backLabel = stringResource(R.string.wear_state_back)
+    val actions = stateActionsFor(kind, onRetry != null)
 
     Box(
         modifier = modifier
@@ -89,20 +111,26 @@ fun WearStateBlock(
                     .padding(MESSAGE_PADDING)
                     .semantics { contentDescription = text }
             )
-            stateActionsFor(kind, onRetry != null).forEach { action ->
-                when (action) {
-                    WearStateAction.RETRY -> StateChip(
-                        label = retryLabel,
-                        onClick = { onRetry?.invoke() },
-                        primary = true
-                    )
-                    WearStateAction.BACK -> StateChip(
-                        label = backLabel,
-                        onClick = onBack,
-                        primary = false
-                    )
-                }
+            if (actions.contains(WearStateAction.RETRY)) {
+                StateChip(
+                    label = retryLabel,
+                    onClick = { onRetry?.invoke() },
+                    primary = true
+                )
             }
+            extraActions.forEach { extra ->
+                StateChip(
+                    label = extra.label,
+                    onClick = extra.onClick,
+                    primary = extraActions.first() === extra && !actions.contains(WearStateAction.RETRY),
+                    enabled = extra.enabled
+                )
+            }
+            StateChip(
+                label = backLabel,
+                onClick = onBack,
+                primary = false
+            )
         }
     }
 }
@@ -123,13 +151,15 @@ private fun defaultMessageFor(kind: WearStateKind): String = when (kind) {
 private fun StateChip(
     label: String,
     onClick: () -> Unit,
-    primary: Boolean
+    primary: Boolean,
+    enabled: Boolean = true
 ) {
     val colors = if (primary) ChipDefaults.primaryChipColors() else ChipDefaults.secondaryChipColors()
     Chip(
         onClick = onClick,
         label = { Text(text = label) },
         colors = colors,
+        enabled = enabled,
         modifier = Modifier
             .padding(top = ACTION_SPACING)
             .semantics { contentDescription = label }

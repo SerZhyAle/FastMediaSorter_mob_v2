@@ -183,21 +183,23 @@ class SettingsRepositoryImplTest {
         )
     }
 
+    // S2017 ADR-1: default flipped to true (hide the system status area on a fresh install),
+    // superseding the S1465 ADR-4 off-by-default this test used to assert.
     @Test
-    fun `launcherReplaceSystemStatusArea defaults false and round-trips true through DataStore`() = runTest {
+    fun `launcherReplaceSystemStatusArea defaults true and round-trips false through DataStore`() = runTest {
         val realStore = realDataStore("s1087_settings.preferences_pb")
         val realRepo = SettingsRepositoryImpl(RuntimeEnvironment.getApplication(), realStore)
 
-        assertFalse(
-            "unset key must keep the Android system status area",
+        assertTrue(
+            "unset key must hide the Android system status area by default (S2017 ADR-1)",
             realRepo.getSettings().first().launcherReplaceSystemStatusArea
         )
 
         val current = realRepo.getSettings().first()
-        realRepo.updateSettings(current.copy(launcherReplaceSystemStatusArea = true))
+        realRepo.updateSettings(current.copy(launcherReplaceSystemStatusArea = false))
 
-        assertTrue(
-            "saved true must load back as true",
+        assertFalse(
+            "saved false must load back as false",
             realRepo.getSettings().first().launcherReplaceSystemStatusArea
         )
     }

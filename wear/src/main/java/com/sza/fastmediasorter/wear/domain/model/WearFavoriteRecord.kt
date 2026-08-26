@@ -15,6 +15,10 @@ import java.util.Locale
  * keys off, what `isFavorite` answers by, and what the legacy string form encoded - so a record and an old
  * string describing the same file are the same favourite, and the reader must not list both.
  *
+ * S2039: a stream's address is compared in its NORMALIZED form, so two spellings of one channel - an
+ * uppercase host, a trailing slash, an explicit default port - are one favourite rather than two. The stored
+ * bytes keep whatever spelling was written; only what counts as equal changed.
+ *
  * [mediaType] and [displayName] are presentation, not identity: a legacy entry has neither and is still a
  * valid favourite, drawn by the last segment of its path.
  */
@@ -29,11 +33,9 @@ data class WearFavoriteRecord(
 ) {
 
     /** The pair that decides sameness, joined the way the legacy store already joined it. */
-    val identity: String get() = "$sourceId$IDENTITY_SEPARATOR$filePath"
+    val identity: String get() = favoriteIdentityKey(sourceId, filePath)
 
     companion object {
-
-        private const val IDENTITY_SEPARATOR = ":"
 
         /**
          * Reads a favourite written before this ticket.
@@ -42,6 +44,7 @@ data class WearFavoriteRecord(
          * splitting on all of them would rewrite the path and lose the file.
          */
         fun fromLegacyKey(key: String): WearFavoriteRecord? {
+            // Splits the stored string as written; normalization belongs to comparison, not to parsing.
             val separator = key.indexOf(IDENTITY_SEPARATOR)
             if (separator <= 0 || separator == key.lastIndex) {
                 return null
@@ -70,6 +73,31 @@ data class WearFavoriteRecord(
 fun favoriteSourceId(isNetworkSource: Boolean, networkSourceId: String?): String = when {
     !isNetworkSource -> SOURCE_ID_LOCAL
     else -> networkSourceId?.takeIf { it.isNotBlank() } ?: SOURCE_ID_NETWORK
+}
+
+/** The separator the legacy store joined a favourite's two halves with, kept as the one spelling of it. */
+private const val IDENTITY_SEPARATOR = ":"
+
+/**
+ * S2039: the one rule for when two favourites are the same one, cited by every writer, reader and comparison.
+ *
+ * A direct stream is addressed by a url the catalogue spells however its source spelled it, so the same
+ * station reached twice can arrive as two strings that differ in host case, a trailing slash or an explicit
+ * default port. Before this, each caller decided for itself whether to normalize - the streams list and the
+ * video player did, the audio player did not - so a station marked from the audio player was stored under one
+ * spelling and looked up under another and silently never pinned.
+ *
+ * **This is a COMPARISON form and is never written back to storage.** The favourites store deliberately
+ * refuses to migrate on read (see its `keyRecords` note): a read that writes turns listing the favourites
+ * into a way to lose them if the process dies mid-write. Normalizing at comparison time gets the same result
+ * without that risk, and a mark written by an older build keeps working with no migration step at all.
+ *
+ * Only [SOURCE_ID_STREAM] normalizes. A local or ordinary network favourite carries a file path, and putting
+ * a url rule through it would rewrite the path and lose the file.
+ */
+fun favoriteIdentityKey(sourceId: String, filePath: String): String {
+    val comparable = if (sourceId == SOURCE_ID_STREAM) normalizeWearStreamUrl(filePath) else filePath
+    return "$sourceId$IDENTITY_SEPARATOR$comparable"
 }
 
 /** A file the watch itself holds. */

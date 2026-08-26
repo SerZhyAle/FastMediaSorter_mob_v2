@@ -104,7 +104,7 @@ if (-not (Test-Path -LiteralPath $IndexPath)) {
 if (-not $Locale) {
     $stem = [System.IO.Path]::GetFileNameWithoutExtension($TextPath)
     if ($stem -match '^all_texts[_.](.+)$') {
-        $declared = Get-SupportedLocales
+        $declared = Get-SupportedLocales -Module $Module
         foreach ($candidate in ($Matches[1] -split '[._]')) {
             $match = $declared | Where-Object { $_ -ieq $candidate } | Select-Object -First 1
             if ($match -and $match -ine 'en') { $Locale = $match }

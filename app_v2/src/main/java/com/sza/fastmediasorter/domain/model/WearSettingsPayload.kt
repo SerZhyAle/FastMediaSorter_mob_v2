@@ -29,4 +29,16 @@ data class WearSettingsPayload(
     // serialize as an array of numbers, pushing the data item past the size where it is dropped in
     // silence and reads on the watch as "phone out of reach".
     @SerializedName("backgroundMode") val backgroundMode: String? = null
-)
+) {
+    /**
+     * S2000: the watch's `WearBackgroundMode` entries, mirrored as strings.
+     *
+     * This module cannot see the wear module's enum - the two compile separately with no shared
+     * artifact - and the contract carries the name rather than an ordinal, so the names are pinned
+     * once on each side and an unknown one resolves back to the animation on the watch.
+     */
+    companion object {
+        const val BACKGROUND_MODE_BRANDED_ANIMATION = "BRANDED_ANIMATION"
+        const val BACKGROUND_MODE_IMAGE = "IMAGE"
+    }
+}

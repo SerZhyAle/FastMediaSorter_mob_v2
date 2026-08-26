@@ -98,7 +98,10 @@ private const val PRINT_TEMP_PNG_QUALITY = 100
 @SuppressLint("UnsafeIntentLaunch")
 @AndroidEntryPoint
 class PhotoVideoStandaloneActivity :
-    BaseActivity<ActivityStandalonePhotoVideoBinding>(), PlayerHostCapabilities, PlayerActionHost, SelfManagedScreenOrientation,
+    BaseActivity<ActivityStandalonePhotoVideoBinding>(),
+    PlayerHostCapabilities,
+    PlayerActionHost,
+    SelfManagedScreenOrientation,
     com.sza.fastmediasorter.core.share.SharePrintHost {
 
     private val viewModel: StandalonePlayerViewModel by viewModels()
@@ -137,21 +140,35 @@ class PhotoVideoStandaloneActivity :
     // Standalone opens local/content URIs far more often than network paths, so these heavy
     // collaborators stay behind dagger.Lazy until a network-only flow actually needs them.
     @Inject lateinit var smbClient: Lazy<SmbClient>
+
     @Inject lateinit var sftpClient: Lazy<SftpClient>
+
     @Inject lateinit var ftpClient: Lazy<FtpClient>
+
     @Inject lateinit var googleDriveClient: Lazy<GoogleDriveRestClient>
+
     @Inject lateinit var dropboxClient: Lazy<DropboxClient>
+
     @Inject lateinit var oneDriveClient: Lazy<OneDriveRestClient>
+
     @Inject lateinit var smbFileOperationHandler: Lazy<SmbFileOperationHandler>
+
     @Inject lateinit var sftpFileOperationHandler: Lazy<SftpFileOperationHandler>
+
     @Inject lateinit var ftpFileOperationHandler: Lazy<FtpFileOperationHandler>
+
     @Inject lateinit var cloudFileOperationHandler: Lazy<CloudFileOperationHandler>
+
     @Inject lateinit var unifiedCache: Lazy<UnifiedFileCache>
+
     @Inject lateinit var imageClipboardWriter: com.sza.fastmediasorter.core.clipboard.ImageClipboardWriter
+
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
 
     // S1114: standalone VR entry (this host has no VR badge; the transport-row button uses this).
-    @Inject lateinit var vrCinemaLaunchManager: com.sza.fastmediasorter.ui.player.helpers.StandaloneVrCinemaLaunchManager
+    @Inject lateinit var vrCinemaLaunchManager:
+        com.sza.fastmediasorter.ui.player.helpers.StandaloneVrCinemaLaunchManager
+
     @Inject lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
 
     @Inject lateinit var imageEditFactory: com.sza.fastmediasorter.ui.player.ImageEditFactory
@@ -159,6 +176,7 @@ class PhotoVideoStandaloneActivity :
     @Inject lateinit var standaloneHostFactory: StandaloneHostFactory
 
     @Inject lateinit var capabilityAvailability: CapabilityAvailability
+
     // S0410: draw overlay collaborators (shared with the in-app player).
     @Inject lateinit var drawKeepExportHelper: com.sza.fastmediasorter.ui.player.helpers.DrawKeepExportHelper
 
@@ -253,6 +271,7 @@ class PhotoVideoStandaloneActivity :
     private val btnFullscreenExit: ImageButton by lazy {
         binding.root.findViewById(R.id.btnDocumentFullscreenExit)
     }
+
     // S0393 U1: Picture-in-Picture, ported from legacy StandalonePlayerActivity.
     private var pipManager: com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager? = null
 
@@ -272,8 +291,15 @@ class PhotoVideoStandaloneActivity :
                 override fun showError(message: String) = runOnUiThread {
                     Toast.makeText(this@PhotoVideoStandaloneActivity, message, Toast.LENGTH_SHORT).show()
                 }
-                override fun showModelDownloadPrompt(languageName: String, onConfirm: () -> Unit, onCancel: () -> Unit) {
-                    if (isFinishing || isDestroyed) { onCancel(); return }
+                override fun showModelDownloadPrompt(
+                    languageName: String,
+                    onConfirm: () -> Unit,
+                    onCancel: () -> Unit
+                ) {
+                    if (isFinishing || isDestroyed) {
+                        onCancel()
+                        return
+                    }
                     com.google.android.material.dialog.MaterialAlertDialogBuilder(this@PhotoVideoStandaloneActivity)
                         .setTitle(R.string.download_translation_model_title)
                         .setMessage(getString(R.string.download_translation_model_message, languageName))
@@ -315,7 +341,8 @@ class PhotoVideoStandaloneActivity :
     private fun translateCurrentImage() {
         if (!capabilityAvailability.isTranslationAvailable()) return
         val bitmap = binding.photoView.drawable?.toBitmap() ?: run {
-            Toast.makeText(this, R.string.ocr_extract_image_failed, Toast.LENGTH_SHORT).show(); return
+            Toast.makeText(this, R.string.ocr_extract_image_failed, Toast.LENGTH_SHORT).show()
+            return
         }
         lifecycleScope.launch {
             val settings = standaloneHostFactory.settingsRepository.getSettings().first()
@@ -385,13 +412,17 @@ class PhotoVideoStandaloneActivity :
     // S0393 wave-C: capture the current video frame from the TextureView and save it to Pictures.
     private fun saveCurrentFrame() {
         val texture = findTextureView(binding.playerView) ?: run {
-            Toast.makeText(this, R.string.error_unknown, Toast.LENGTH_SHORT).show(); return
+            Toast.makeText(this, R.string.error_unknown, Toast.LENGTH_SHORT).show()
+            return
         }
         val bitmap = runCatching { texture.bitmap }.getOrNull() ?: run {
-            Toast.makeText(this, R.string.error_unknown, Toast.LENGTH_SHORT).show(); return
+            Toast.makeText(this, R.string.error_unknown, Toast.LENGTH_SHORT).show()
+            return
         }
         lifecycleScope.launch(Dispatchers.IO) {
-            val name = "frame_${(viewModel.state.value.mediaFile?.name ?: "video").substringBeforeLast('.')}_${System.nanoTime()}.jpg"
+            val name = "frame_${(viewModel.state.value.mediaFile?.name ?: "video").substringBeforeLast(
+                '.'
+            )}_${System.nanoTime()}.jpg"
             val values = android.content.ContentValues().apply {
                 put(android.provider.MediaStore.Images.Media.DISPLAY_NAME, name)
                 put(android.provider.MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
@@ -400,7 +431,9 @@ class PhotoVideoStandaloneActivity :
             val ok = runCatching {
                 val uri = contentResolver.insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
                     ?: return@runCatching false
-                contentResolver.openOutputStream(uri)?.use { bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 95, it) }
+                contentResolver.openOutputStream(
+                    uri
+                )?.use { bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 95, it) }
                 true
             }.getOrDefault(false)
             // S0470: when enabled, also place the extracted frame on the system clipboard. This host has
@@ -408,13 +441,21 @@ class PhotoVideoStandaloneActivity :
             val settings = standaloneHostFactory.settingsRepository.getSettings().first()
             val copiedToClipboard = if (settings.videoFrameCopyToClipboard) {
                 imageClipboardWriter.copyBitmap(bitmap)
-            } else false
+            } else {
+                false
+            }
             withContext(Dispatchers.Main) {
-                Toast.makeText(this@PhotoVideoStandaloneActivity,
-                    if (ok) R.string.save_frame_saved_to_downloads else R.string.error_unknown, Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this@PhotoVideoStandaloneActivity,
+                    if (ok) R.string.save_frame_saved_to_downloads else R.string.error_unknown,
+                    Toast.LENGTH_SHORT
+                ).show()
                 if (copiedToClipboard) {
-                    Toast.makeText(this@PhotoVideoStandaloneActivity,
-                        R.string.video_frame_copied_to_clipboard, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@PhotoVideoStandaloneActivity,
+                        R.string.video_frame_copied_to_clipboard,
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         }
@@ -512,7 +553,9 @@ class PhotoVideoStandaloneActivity :
             callback = object : com.sza.fastmediasorter.ui.player.DestinationButtonsManager.DestinationButtonsCallback {
                 override fun onCopyClicked(destination: MediaResource) = fileOperations.copyCurrentFileTo(destination)
                 override fun onMoveClicked(destination: MediaResource) = fileOperations.moveCurrentFileTo(destination)
-                override fun onCustomPathPickerRequested(operationType: com.sza.fastmediasorter.domain.model.FileOperationType) {
+                override fun onCustomPathPickerRequested(
+                    operationType: com.sza.fastmediasorter.domain.model.FileOperationType
+                ) {
                     pendingCustomPathOp = operationType
                     customPathPickerLauncher.launch(null)
                 }
@@ -585,20 +628,25 @@ class PhotoVideoStandaloneActivity :
     // S1115: the overlay fullscreen-exit button is the only visible way back to the command panel while
     // a video plays fullscreen (panel hidden). Show it only for video with the panel hidden; images/gifs
     // and the commands-visible state keep it gone. Call after every command-panel visibility change.
+    // S2026: never in PiP - the small window carries the system's own expand/close controls, and this
+    // updater runs on every panel change, so without the gate it re-shows what the PiP manager hid.
     private fun updateFullscreenExitButtonVisibility() {
         val isVideoFullscreen = !binding.topCommandPanel.isVisible &&
             viewModel.state.value.mediaType == MediaType.VIDEO
-        btnFullscreenExit.isVisible = isVideoFullscreen
+        btnFullscreenExit.isVisible = isVideoFullscreen && pipManager?.isInPipMode != true
     }
 
     private fun setupBackPressHandler() {
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                // S0410: back cancels an active draw session before leaving the viewer.
-                if (drawSaveHelper?.handleBackPress() == true) return
-                finish()
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    // S0410: back cancels an active draw session before leaving the viewer.
+                    if (drawSaveHelper?.handleBackPress() == true) return
+                    finish()
+                }
             }
-        })
+        )
     }
 
     private fun setupFileOperationButtons() {
@@ -671,7 +719,8 @@ class PhotoVideoStandaloneActivity :
                 rotateItem.isVisible = rotatable
                 // S0995: a11y description distinct from the visible title (direction/magnitude).
                 androidx.core.view.MenuItemCompat.setContentDescription(
-                    rotateItem, getString(R.string.rotate_content_90_desc)
+                    rotateItem,
+                    getString(R.string.rotate_content_90_desc)
                 )
             }
             // S1364: the counter-clockwise twin follows the same rule as its forward partner.
@@ -701,7 +750,10 @@ class PhotoVideoStandaloneActivity :
             popup.menu.findItem(R.id.menu_playback_speed).isVisible = false // audio host (video uses the control dialog)
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
-                    R.id.menu_open_in_fms -> { fileOperations.openInFms(); true }
+                    R.id.menu_open_in_fms -> {
+                        fileOperations.openInFms()
+                        true
+                    }
                     R.id.menu_edit_crop_to_file -> {
                         // S0410: materialize a non-local source to a cache file first, then crop.
                         lifecycleScope.launch {
@@ -725,15 +777,34 @@ class PhotoVideoStandaloneActivity :
                         )
                         true
                     }
-                    R.id.menu_edit_image -> { openImageEditDialog(); true }
-                    R.id.menu_draw_overlay -> {
-                        ensureDrawHelper().enterDrawMode(); true
+                    R.id.menu_edit_image -> {
+                        openImageEditDialog()
+                        true
                     }
-                    R.id.menu_ocr_image -> { ocrCurrentImage(); true }
-                    R.id.menu_translate_image -> { translateCurrentImage(); true }
-                    R.id.menu_save_frame -> { saveCurrentFrame(); true }
-                    R.id.menu_sleep_timer -> { showSleepTimerDialog(); true }
-                    R.id.menu_black_screen -> { blackScreenManager.show(); true }
+                    R.id.menu_draw_overlay -> {
+                        ensureDrawHelper().enterDrawMode()
+                        true
+                    }
+                    R.id.menu_ocr_image -> {
+                        ocrCurrentImage()
+                        true
+                    }
+                    R.id.menu_translate_image -> {
+                        translateCurrentImage()
+                        true
+                    }
+                    R.id.menu_save_frame -> {
+                        saveCurrentFrame()
+                        true
+                    }
+                    R.id.menu_sleep_timer -> {
+                        showSleepTimerDialog()
+                        true
+                    }
+                    R.id.menu_black_screen -> {
+                        blackScreenManager.show()
+                        true
+                    }
                     R.id.menu_rotate_content_standalone -> {
                         viewModel.rotateSession90()
                         val newAngle = viewModel.state.value.sessionRotationAngle
@@ -799,13 +870,19 @@ class PhotoVideoStandaloneActivity :
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (::keyboardHandler.isInitialized &&
-            keyboardHandler.handleKeyDown(keyCode, event)) return true
+            keyboardHandler.handleKeyDown(keyCode, event)
+        ) {
+            return true
+        }
         return super.onKeyDown(keyCode, event)
     }
 
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
         if (::keyboardHandler.isInitialized &&
-            keyboardHandler.handlePointerEvent(window.decorView, event)) return true
+            keyboardHandler.handlePointerEvent(window.decorView, event)
+        ) {
+            return true
+        }
         return super.dispatchGenericMotionEvent(event)
     }
 
@@ -960,8 +1037,11 @@ class PhotoVideoStandaloneActivity :
                 if (enabled) R.drawable.ic_rotation_unlocked else R.drawable.ic_rotation_locked
             )
             binding.btnEditRotate.contentDescription = getString(
-                if (enabled) R.string.rotation_toggle_sensor_on_desc
-                else R.string.rotation_toggle_sensor_off_desc
+                if (enabled) {
+                    R.string.rotation_toggle_sensor_on_desc
+                } else {
+                    R.string.rotation_toggle_sensor_off_desc
+                }
             )
         }
         // S0763: keep the 3D/VR master-toggle snapshot current for the playback control dialog.
@@ -1009,7 +1089,8 @@ class PhotoVideoStandaloneActivity :
         val manager = com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager(
             activity = this,
             playerView = pv,
-            chromeToHide = listOf(binding.topCommandPanel),
+            // S2026: btnFullscreenExit joins the panel - see updateFullscreenExitButtonVisibility.
+            chromeToHide = listOf(binding.topCommandPanel, btnFullscreenExit),
             getPlayer = { viewManager.getExoPlayer() },
             onPlay = { viewManager.getExoPlayer()?.play() },
             onPause = { viewManager.getExoPlayer()?.pause() },
@@ -1048,6 +1129,7 @@ class PhotoVideoStandaloneActivity :
                 // S0393 U2: ported from legacy StandalonePlayerActivity - the dialog reads this host
                 // via PlayerHostCapabilities + videoPlayerHandle (both already implemented).
                 override fun showPlaybackControlDialog() = this@PhotoVideoStandaloneActivity.showPlaybackControlDialog()
+
                 // S1114: standalone VR entry from the transport row (host has no VR badge of its own).
                 override fun onVrLaunchClicked() {
                     viewModel.state.value.mediaFile?.let { vrCinemaLaunchManager.launch(it) }
@@ -1192,9 +1274,11 @@ class PhotoVideoStandaloneActivity :
     override val actionCurrentResource: MediaResource? get() = null
     override val overlayMountTarget: ViewGroup get() = binding.mediaContentArea
     override val imagePinchTarget: View get() = binding.photoView
+
     // Null when photoView has no drawable; an empty rect makes the crop delegate fall back to the
     // legacy full-view mapping instead of dividing by a zero-size rect.
     override fun imageDisplayRect(): RectF = binding.photoView.displayRect ?: RectF()
+
     // S0410: the draw overlay merges its strokes onto this base bitmap.
     override val displayedBitmap: Bitmap? get() = binding.photoView.drawable?.toBitmap()
 
@@ -1219,6 +1303,7 @@ class PhotoVideoStandaloneActivity :
     // ── PlayerHostCapabilities ──────────────────────────────────────────────────
 
     override val supportsListNavigation: Boolean = false
+
     // Slideshow auto-advance runs over the enumerated folder list, so it tracks folder paging.
     override val supportsSlideshow: Boolean get() = folderPagingEnabled
     override val supportsPersistentAudio: Boolean = false

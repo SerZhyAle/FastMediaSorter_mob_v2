@@ -205,4 +205,5 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_send_plane.svg" alt="ic_send_plane" width="24" height="24"> | Send to app |
 | <img src="icons/svg/ic_send_music_note.svg" alt="ic_send_music_note" width="24" height="24"> | Send to app |
 | <img src="icons/svg/ic_send_phone_chat.svg" alt="ic_send_phone_chat" width="24" height="24"> | Send to app |
+| <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Watch |
 | <img src="icons/svg/ic_send_chat.svg" alt="ic_send_chat" width="24" height="24"> | Send to app |

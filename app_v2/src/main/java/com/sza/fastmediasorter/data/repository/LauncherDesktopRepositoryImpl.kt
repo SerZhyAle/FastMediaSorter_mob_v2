@@ -218,14 +218,22 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         if (candidate.kind == LauncherCellKind.SHORTCUT &&
             candidate.target.startsWith(LauncherCellCommand.PREFIX_RESOURCE)
         ) {
+            Timber.d("S2057: resource shortcut section-bounded scan entered")
             val header = findSectionHeader(candidate.orientation, LauncherCellCommand.SECTION_RESOURCES)
             val sectionAnchor = header?.let {
+                // S2057: headerRowsFor answers the straddle rule and is empty for non-gadgets,
+                // which would make sectionEndExclusive return null and the scan unbounded.
+                // Use the real section header rows, as addCellInSection does.
+                val sectionHeaders = cellDao.sectionHeaderRows(
+                    orientation = candidate.orientation.name,
+                    kind = LauncherCellKind.SECTION.name,
+                )
                 findSectionFreeAnchor(
                     candidate = candidate,
                     header = it,
                     scanSpanW = scanSpanW,
                     lastCol = lastCol,
-                    headerRows = headerRows,
+                    headerRows = sectionHeaders,
                 )
             }
             if (sectionAnchor != null) return sectionAnchor

@@ -1,11 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.browse
 
-import android.app.RemoteInput
-import android.content.ActivityNotFoundException
-import android.content.Intent
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -45,10 +40,10 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.dialog.Alert
-import androidx.wear.input.RemoteInputIntentHelper
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.MediaType
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperation
+import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationResult
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
@@ -57,13 +52,13 @@ import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
 import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
+import com.sza.fastmediasorter.wear.ui.common.WearStateKind
+import com.sza.fastmediasorter.wear.ui.common.rememberWearRenameInput
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
-
-/** The key the rename input returns its text under. */
-private const val KEY_NEW_NAME = "wear_file_op_new_name"
 
 /**
  * Browse screen for displaying media files.
@@ -105,160 +100,74 @@ fun BrowseScreen(
 
     var showActions by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
-    val renameHint = stringResource(R.string.wear_file_op_rename_hint)
-    val renameLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        val newName = result.data?.let(::newNameFrom)
-        if (!newName.isNullOrBlank()) {
-            viewModel.runOperation(WearFileOperation.Rename(newName))
-        }
+    val requestRename = rememberWearRenameInput { newName ->
+        viewModel.runOperation(WearFileOperation.Rename(newName))
     }
 
-    Timber.d("BrowseScreen composing with state: $uiState")
+    // S2070: log the state kind and, for Success, the file count only - never interpolate
+    // $uiState directly. BrowseUiState.Success wraps a data class list, so a full toString()
+    // walks every WearMediaFile in it on every recomposition, and the string is built by this
+    // call site before any planted Timber.Tree gets to filter it by priority.
+    val uiStateSnapshot = uiState
+    val uiStateSummary = when (uiStateSnapshot) {
+        is BrowseUiState.Success -> "Success(files=${uiStateSnapshot.files.size})"
+        else -> uiStateSnapshot.javaClass.simpleName
+    }
+    Timber.d("BrowseScreen composing with state: $uiStateSummary")
 
     // Selection mode owns back first: leaving the screen with a selection still armed would strand
     // the user's choice on a list they can no longer see.
     BackHandler(enabled = selectedIds.isNotEmpty()) {
+        showActions = false
+        showDeleteConfirm = false
         viewModel.clearFileSelection()
     }
 
     val listState = rememberScalingLazyListState()
 
-    WearScreenScaffold(
-        contentPadding = PaddingValues(0.dp),
-        scrollState = listState,
-        // Only the list branch scrolls, so only it has a position to indicate.
-        positionIndicator = if (uiState is BrowseUiState.Success) {
-            { PositionIndicator(listState) }
-        } else {
-            null
-        }
-    ) {
-        when (val state = uiState) {
-            is BrowseUiState.Loading -> {
-                LoadingContent()
-            }
-            is BrowseUiState.Success -> {
-                MediaListContent(
-                    title = title,
-                    data = MediaListData(
-                        files = state.files,
-                        thumbnails = thumbnails,
-                        mediaType = mediaType
-                    ),
-                    listState = listState,
-                    viewMode = fileListViewMode,
-                    selection = MediaSelectionState(
-                        selectedIds = selectedIds,
-                        onSelectAll = viewModel::selectAll,
-                        onActionsClick = { showActions = true }
-                    ),
-                    actions = MediaFileActions(
-                        // A run in flight owns the list: letting a tap re-select or open a player
-                        // while files are being moved would act on rows that are already gone.
-                        onFileClick = { file ->
-                            if (operationRun.running) {
-                                Timber.d("Browse: tap ignored while a file operation is running")
-                            } else if (selectedIds.isEmpty()) {
-                                viewModel.selectFile(file)
-                                navigateToPlayer(navController, file, mediaType)
-                            } else {
-                                viewModel.toggleSelection(file)
-                            }
-                        },
-                        onFileLongClick = { file ->
-                            if (!operationRun.running) {
-                                viewModel.enterSelection(file)
-                            }
-                        },
-                        onThumbnailNeeded = viewModel::thumbnailFor
-                    )
-                )
-            }
-            is BrowseUiState.Empty -> {
-                EmptyContent(message = state.message.resolveText())
-            }
-            is BrowseUiState.Error -> {
-                ErrorContent(
-                    message = state.message.resolveText(),
-                    onRetry = { viewModel.loadMediaFiles() }
-                )
-            }
-        }
-    }
-
-    if (showActions) {
-        FileActionsDialog(
-            state = FileActionsDialogState(
-                selectedCount = selectedIds.size,
-                allowedOperations = allowedOperations
-            ),
-            callbacks = FileActionsCallbacks(
-                onSendToPhone = {
-                    showActions = false
-                    viewModel.runOperation(WearFileOperation.SendToPhone)
-                },
-                onMoveToPhone = {
-                    showActions = false
-                    viewModel.runOperation(WearFileOperation.MoveToPhone)
-                },
-                onRenameRequested = {
-                    showActions = false
-                    launchRenameInput(renameHint) { renameLauncher.launch(it) }
-                },
-                onDeleteRequested = {
-                    showActions = false
-                    showDeleteConfirm = true
-                }
-            )
+    BrowseScaffold(
+        uiState = uiState,
+        listState = listState,
+        presentation = BrowseListPresentation(
+            title = title,
+            thumbnails = thumbnails,
+            mediaType = mediaType,
+            viewMode = fileListViewMode
+        ),
+        selection = MediaSelectionState(
+            selectedIds = selectedIds,
+            onSelectAll = viewModel::selectAll,
+            onActionsClick = { showActions = true }
+        ),
+        actions = browseFileActions(
+            viewModel = viewModel,
+            navController = navController,
+            mediaType = mediaType,
+            selectedIds = selectedIds,
+            running = operationRun.running
+        ),
+        stateActions = BrowseStateActions(
+            onRetry = viewModel::loadMediaFiles,
+            onBack = { navController.popBackStack() }
         )
-    }
+    )
 
-    if (showDeleteConfirm) {
-        FileDeleteConfirmDialog(
+    BrowseDialogsHost(
+        state = BrowseDialogsState(
+            // Keyed to the selection they act on, following the precedent's
+            // `pendingActionSource?.let {}`: back can empty the selection underneath a dialog, and a
+            // menu left standing over nothing offers no actions and no way out.
+            showActions = showActions && selectedIds.isNotEmpty(),
+            showDeleteConfirm = showDeleteConfirm && selectedIds.isNotEmpty(),
             selectedCount = selectedIds.size,
-            onConfirm = {
-                showDeleteConfirm = false
-                viewModel.runOperation(WearFileOperation.Delete)
-            },
-            onDismiss = { showDeleteConfirm = false }
-        )
-    }
-
-    if (!operationRun.isIdle) {
-        OperationRunDialog(
-            run = operationRun,
-            onDismiss = viewModel::dismissOperationResults
-        )
-    }
-}
-
-/**
- * The typed name, keyed answer first.
- *
- * S1946 recorded the failure this order avoids: a watch that returns the text under a key of its own
- * choosing used to read as "the user entered nothing", which here would silently drop a rename.
- */
-private fun newNameFrom(data: Intent): String? {
-    val results = RemoteInput.getResultsFromIntent(data) ?: return null
-    return results.getCharSequence(KEY_NEW_NAME)?.toString()
-        ?: results.keySet().firstNotNullOfOrNull { key ->
-            results.getCharSequence(key)?.toString()?.takeIf { it.isNotBlank() }
-        }
-}
-
-private fun launchRenameInput(hint: String, launch: (Intent) -> Unit) {
-    val remoteInput = RemoteInput.Builder(KEY_NEW_NAME)
-        .setLabel(hint)
-        .build()
-    val intent = RemoteInputIntentHelper.createActionRemoteInputIntent()
-    RemoteInputIntentHelper.putRemoteInputsExtra(intent, listOf(remoteInput))
-    try {
-        launch(intent)
-    } catch (_: ActivityNotFoundException) {
-        Timber.w("Wear remote input is unavailable; rename cannot be entered on this watch")
-    }
+            allowedOperations = allowedOperations,
+            run = operationRun
+        ),
+        viewModel = viewModel,
+        onActionsVisibilityChange = { showActions = it },
+        onDeleteVisibilityChange = { showDeleteConfirm = it },
+        onRequestRename = requestRename
+    )
 }
 
 /**
@@ -268,6 +177,7 @@ private fun launchRenameInput(hint: String, launch: (Intent) -> Unit) {
 @Composable
 private fun OperationRunDialog(
     run: WearFileOperationRunState,
+    onCancel: () -> Unit,
     onDismiss: () -> Unit
 ) {
     if (run.running) {
@@ -282,6 +192,16 @@ private fun OperationRunDialog(
         ) {
             item {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+            }
+            // Strategic 3.2 requires the copy to be cancellable, and a batch waiting on an absent
+            // phone blocks for ten seconds per file - long enough to own the watch outright.
+            item {
+                Chip(
+                    onClick = onCancel,
+                    label = { Text(text = stringResource(R.string.cancel)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ChipDefaults.secondaryChipColors()
+                )
             }
         }
     } else {
@@ -469,64 +389,6 @@ private fun MediaListContent(
     }
 }
 
-@Composable
-private fun EmptyContent(message: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(wearScreenInsets()),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "📂",
-                style = MaterialTheme.typography.display2
-            )
-            Text(
-                text = message,
-                style = MaterialTheme.typography.body1,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(16.dp)
-            )
-        }
-    }
-}
-
-@Composable
-private fun ErrorContent(
-    message: String,
-    onRetry: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(wearScreenInsets()),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "⚠️",
-                style = MaterialTheme.typography.display2
-            )
-            Text(
-                text = message,
-                style = MaterialTheme.typography.body1,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(16.dp)
-            )
-            Chip(
-                onClick = onRetry,
-                label = { Text(text = stringResource(R.string.retry)) },
-                colors = ChipDefaults.primaryChipColors()
-            )
-        }
-    }
-}
-
 private fun navigateToPlayer(
     navController: NavController,
     file: WearMediaFile,
@@ -545,4 +407,177 @@ private fun navigateToPlayer(
     }
     Timber.d("Navigating to: $route for file: ${file.name} (mimeType: ${file.mimeType})")
     navController.navigate(route)
+}
+
+/** What the browse dialogs draw. */
+private data class BrowseDialogsState(
+    val showActions: Boolean,
+    val showDeleteConfirm: Boolean,
+    val selectedCount: Int,
+    val allowedOperations: Set<WearFileOperationKind>,
+    val run: WearFileOperationRunState
+)
+
+/**
+ * Every dialog the browse screen can raise, kept together so the screen itself stays readable.
+ *
+ * Follows `StreamsDialogsHost`: the host owns which dialog is up and what each answer does, and the
+ * screen passes only the state and the two visibility setters it holds.
+ */
+@Composable
+private fun BrowseDialogsHost(
+    state: BrowseDialogsState,
+    viewModel: BrowseViewModel,
+    onActionsVisibilityChange: (Boolean) -> Unit,
+    onDeleteVisibilityChange: (Boolean) -> Unit,
+    onRequestRename: () -> Unit
+) {
+    if (state.showActions) {
+        FileActionsDialog(
+            state = FileActionsDialogState(
+                selectedCount = state.selectedCount,
+                allowedOperations = state.allowedOperations
+            ),
+            callbacks = FileActionsCallbacks(
+                onSendToPhone = {
+                    onActionsVisibilityChange(false)
+                    viewModel.runOperation(WearFileOperation.SendToPhone)
+                },
+                onMoveToPhone = {
+                    onActionsVisibilityChange(false)
+                    viewModel.runOperation(WearFileOperation.MoveToPhone)
+                },
+                onRenameRequested = {
+                    onActionsVisibilityChange(false)
+                    onRequestRename()
+                },
+                onDeleteRequested = {
+                    onActionsVisibilityChange(false)
+                    onDeleteVisibilityChange(true)
+                }
+            )
+        )
+    }
+
+    if (state.showDeleteConfirm) {
+        FileDeleteConfirmDialog(
+            selectedCount = state.selectedCount,
+            onConfirm = {
+                onDeleteVisibilityChange(false)
+                viewModel.runOperation(WearFileOperation.Delete)
+            },
+            onDismiss = { onDeleteVisibilityChange(false) }
+        )
+    }
+
+    if (!state.run.isIdle) {
+        OperationRunDialog(
+            run = state.run,
+            onCancel = viewModel::cancelOperation,
+            onDismiss = viewModel::dismissOperationResults
+        )
+    }
+}
+
+/**
+ * What a tap on a file means, which depends on whether a batch is running and whether a selection
+ * is already open.
+ */
+private fun browseFileActions(
+    viewModel: BrowseViewModel,
+    navController: NavController,
+    mediaType: MediaType,
+    selectedIds: Set<Long>,
+    running: Boolean
+): MediaFileActions = MediaFileActions(
+    // A run in flight owns the list: letting a tap re-select or open a player while files are being
+    // moved would act on rows that are already gone.
+    onFileClick = { file ->
+        if (running) {
+            Timber.d("Browse: tap ignored while a file operation is running")
+        } else if (selectedIds.isEmpty()) {
+            viewModel.selectFile(file)
+            navigateToPlayer(navController, file, mediaType)
+        } else {
+            viewModel.toggleSelection(file)
+        }
+    },
+    onFileLongClick = { file ->
+        if (!running) {
+            viewModel.enterSelection(file)
+        }
+    },
+    onThumbnailNeeded = viewModel::thumbnailFor
+)
+
+/** The parts of the list's appearance that do not depend on which files the state carries. */
+private data class BrowseListPresentation(
+    val title: String,
+    val thumbnails: Map<Long, WearThumbnail>,
+    val mediaType: MediaType,
+    val viewMode: WearViewMode
+)
+
+/** What a stateless branch offers: repeat the load that failed, or leave the screen. */
+private data class BrowseStateActions(
+    val onRetry: () -> Unit,
+    val onBack: () -> Unit
+)
+
+/** Picks the branch for the current state and gives only the list branch a position indicator. */
+@Composable
+private fun BrowseScaffold(
+    uiState: BrowseUiState,
+    listState: ScalingLazyListState,
+    presentation: BrowseListPresentation,
+    selection: MediaSelectionState,
+    actions: MediaFileActions,
+    stateActions: BrowseStateActions
+) {
+    WearScreenScaffold(
+        contentPadding = PaddingValues(0.dp),
+        scrollState = listState,
+        // Only the list branch scrolls, so only it has a position to indicate.
+        positionIndicator = if (uiState is BrowseUiState.Success) {
+            { PositionIndicator(listState) }
+        } else {
+            null
+        }
+    ) {
+        when (val state = uiState) {
+            is BrowseUiState.Loading -> {
+                LoadingContent()
+            }
+            is BrowseUiState.Success -> {
+                MediaListContent(
+                    title = presentation.title,
+                    data = MediaListData(
+                        files = state.files,
+                        thumbnails = presentation.thumbnails,
+                        mediaType = presentation.mediaType
+                    ),
+                    listState = listState,
+                    viewMode = presentation.viewMode,
+                    selection = selection,
+                    actions = actions
+                )
+            }
+            is BrowseUiState.Empty -> {
+                // No retry: the load that produced this emptiness already succeeded.
+                WearStateBlock(
+                    kind = WearStateKind.EMPTY,
+                    message = state.message.resolveText(),
+                    onBack = stateActions.onBack
+                )
+            }
+            is BrowseUiState.Error -> {
+                WearStateBlock(
+                    kind = WearStateKind.ERROR,
+                    message = state.message.resolveText(),
+                    onRetry = stateActions.onRetry,
+                    onBack = stateActions.onBack
+                )
+            }
+        }
+    }
 }

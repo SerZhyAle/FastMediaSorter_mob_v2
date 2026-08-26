@@ -22,7 +22,15 @@
     <!-- MANAGE_MEDIA permission for direct file deletion without dialogs (Android 12+) -->
     <uses-permission android:name="android.permission.MANAGE_MEDIA" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <!-- S0766: optional GPS geotagging of in-app camera photos (opt-in, default off). -->
+    <!--
+      Location has three consumer families, not one. S0766 optional GPS geotagging of in-app camera
+      photos (opt-in, default off) is the only one on lite/photos/legacy/vr. On standard/noLegal the
+      launcher's compass, speed, altitude and map gadgets (S1179/S1175) and the Network Monitor's GNSS
+      and Wi-Fi sections (S1433) read the same grant. S2013: the declaration stays here because every
+      flavor really uses it, but the user-facing wording is picked per build in the permission registry
+      - it claimed "only geotag" on the two flavors where that was untrue, and Play reviews a location
+      declaration against what the app tells the user.
+    -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />

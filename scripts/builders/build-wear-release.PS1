@@ -10,6 +10,15 @@
 #   <gradle exit> - the Gradle build itself failed
 [CmdletBinding()]
 param(
+    # Build the artifacts but publish none of them: no DOWNLOADS copy, no journal line, no Google
+    # Drive mirror. For a caller that needs the artifact in wear/build/outputs and nothing else -
+    # the pre-release run (S1984), whose job is to judge a build, not to hand it to anyone. Without
+    # this the verification run overwrites the Drive copy and the AAB publish-play-release.ps1
+    # addresses by path with an unstamped ad-hoc build, which is why that run's build branch had
+    # never once been executed. The phone sweep avoids the same trap by refusing its own
+    # distributing builder outright (scripts/devtest/prerelease-prepare.ps1, stage 2).
+    [switch] $NoDistribute,
+
     # Apk  - sideload asset for GitHub releases (the historic behaviour, still the default).
     # Aab  - the only artifact the Play Wear OS track accepts; Play refuses an APK (S1707).
     # Both - one Gradle invocation produces the pair, so the store artifact and the sideload
@@ -62,7 +71,7 @@ Write-Host "`nBuild Successful!" -ForegroundColor Green
 # Copy to DOWNLOADS folder
 $projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
 $downloadsDir = "$projectRoot\DOWNLOADS"
-if (!(Test-Path -Path $downloadsDir)) {
+if (-not $NoDistribute -and !(Test-Path -Path $downloadsDir)) {
     New-Item -ItemType Directory -Path $downloadsDir | Out-Null
 }
 
@@ -76,9 +85,14 @@ if ($buildAab) {
         Write-Host "Error: AAB not found in $aabDir" -ForegroundColor Red
         exit 1
     }
-    $aabDest = Join-Path $downloadsDir "FastMediaSorter_wear_release.aab"
-    Copy-Item -Path $aab.FullName -Destination $aabDest -Force
-    Write-Host "AAB copied to $aabDest ($([math]::Round($aab.Length / 1MB, 2)) MB)" -ForegroundColor Green
+    if ($NoDistribute) {
+        Write-Host "AAB built at $($aab.FullName) - not copied (-NoDistribute)" -ForegroundColor Yellow
+    }
+    else {
+        $aabDest = Join-Path $downloadsDir "FastMediaSorter_wear_release.aab"
+        Copy-Item -Path $aab.FullName -Destination $aabDest -Force
+        Write-Host "AAB copied to $aabDest ($([math]::Round($aab.Length / 1MB, 2)) MB)" -ForegroundColor Green
+    }
 }
 
 if ($buildApk) {
@@ -98,6 +112,11 @@ if (-not $apkPath -or -not (Test-Path -Path $apkPath)) {
 
 Write-Host "APK location: $apkPath" -ForegroundColor Cyan
 
+if ($NoDistribute) {
+    Write-Host "APK built - not copied, not journalled, not mirrored (-NoDistribute)" -ForegroundColor Yellow
+}
+else {
+
 $destName = "FastMediaSorter_wear_release.apk"
 Copy-Item -Path $apkPath -Destination "$downloadsDir\$destName" -Force
 Write-Host "APK copied to $downloadsDir\$destName" -ForegroundColor Green
@@ -112,6 +131,8 @@ Write-Host "Build logged to journal" -ForegroundColor Gray
 # Mirror to Google Drive - raw file plus password ZIP. The pair used to be written out
 # here; it now lives in one place so the release path can call the same thing.
 & "$PSScriptRoot\..\utils\copy-to-drive.ps1" -Path "$downloadsDir\$destName" -Name $destName
+
+}   # end if (-not $NoDistribute)
 
 }   # end if ($buildApk)
 

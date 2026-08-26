@@ -47,6 +47,20 @@ abstract class ResourceEditorContractTestBase {
         supportedMediaTypes = setOf(MediaType.IMAGE)
     )
 
+    protected fun streamForm(
+        type: ResourceType = ResourceType.HTTP_STREAM,
+        name: String = "My Stream",
+        path: String = "http://example.com/live.m3u8",
+        mediaTypes: Set<MediaType> = setOf(MediaType.VIDEO),
+        allFiles: Boolean = false
+    ) = ResourceFormData(
+        type = type,
+        name = name,
+        path = path,
+        supportedMediaTypes = mediaTypes,
+        allFiles = allFiles
+    )
+
     protected fun cloudForm(
         name: String = "My Cloud",
         cloudProvider: CloudProvider? = CloudProvider.GOOGLE_DRIVE,
@@ -75,6 +89,13 @@ abstract class ResourceEditorContractTestBase {
         val field = schema.find { it.key == key }
         assertNotNull("Field $key must be present in schema", field)
         assertFalse("Field $key must be optional (not required)", field!!.required)
+    }
+
+    /** Present in the schema (so validation still guards it) but never rendered by the editor. */
+    protected fun assertPresentButHidden(schema: List<ResourceFieldSchema>, key: ResourceFieldKey) {
+        val field = schema.find { it.key == key }
+        assertNotNull("Field $key must be present in schema", field)
+        assertFalse("Field $key must not be visible to the editor", field!!.visible)
     }
 
     protected fun assertFieldAbsent(schema: List<ResourceFieldSchema>, key: ResourceFieldKey) {

@@ -17,14 +17,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onLongClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -44,19 +47,34 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.domain.model.WearFileOperation
+import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
+import com.sza.fastmediasorter.wear.domain.model.WearFileOperationOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceItem
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceResponseStatus
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
+import com.sza.fastmediasorter.wear.ui.browse.FileDeleteConfirmDialog
+import com.sza.fastmediasorter.wear.ui.common.WearFileActionsDialog
 import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
+import com.sza.fastmediasorter.wear.ui.common.WearStateKind
 import com.sza.fastmediasorter.wear.ui.common.playerRouteFor
+import com.sza.fastmediasorter.wear.ui.common.rememberWearRenameInput
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.util.GridColumnFit
+import kotlinx.coroutines.delay
 
 private const val SINGLE_COLUMN = 1
+
+/** Long enough to read one short line on a watch, short enough not to outstay the action. */
+private const val NOTICE_VISIBLE_MS = 4_000L
+
+/** The action menu acts on the pressed file alone; the confirmation reuses the selection wording. */
+private const val SINGLE_FILE = 1
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
 private val ENTRY_ICON_SIZE = 24.dp
 private val STATUS_CORNER_RADIUS = 12.dp
@@ -95,6 +113,25 @@ fun PhoneResourceScreen(
 
     val listState = rememberScalingLazyListState()
 
+    // Held by the screen rather than the ViewModel: which menu is open is view state, and a rotation
+    // that dropped it costs nothing, while a ViewModel that carried it would replay it.
+    var actionEntry by remember { mutableStateOf<WearPhoneResourceItem?>(null) }
+    var deleteEntry by remember { mutableStateOf<WearPhoneResourceItem?>(null) }
+    val renameEntry = remember { mutableStateOf<WearPhoneResourceItem?>(null) }
+    val requestRename = rememberWearRenameInput { newName ->
+        renameEntry.value?.let { viewModel.runOperation(it, WearFileOperation.Rename(newName)) }
+    }
+    val operationNotice by viewModel.operationNotice.collectAsStateWithLifecycle()
+
+    // The list behind it does not change when an operation lands, so nothing else would ever clear
+    // this line - it would sit over the next folder the user walked into.
+    LaunchedEffect(operationNotice) {
+        if (operationNotice != null) {
+            delay(NOTICE_VISIBLE_MS)
+            viewModel.consumeOperationNotice()
+        }
+    }
+
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,
@@ -119,18 +156,22 @@ fun PhoneResourceScreen(
                         } else {
                             viewModel.openFile(entry)
                         }
-                    }
+                    },
+                    // A folder has no file to act on, so it keeps the tap it always had.
+                    onEntryLongClick = { entry -> if (!entry.isDirectory) actionEntry = entry }
                 )
 
                 // S1898: the outcome is anchored to the screen, not to the start of the list. Reaching a
                 // file means scrolling to it, so a line drawn as the list's second item reports the result
                 // outside the viewport it was meant for - which is why 30 s of waiting and the refusal that
                 // followed it both read as nothing happening at all.
-                val statusRes = openOutcome.toStatusRes()
+                val notice = operationNotice
+                val statusRes = notice?.toStatusRes() ?: openOutcome.toStatusRes()
                 if (statusRes != null) {
                     PinnedOpenStatus(
                         statusRes = statusRes,
-                        showProgress = openOutcome == PhoneFileOpenOutcome.Opening,
+                        showProgress = notice == null && openOutcome == PhoneFileOpenOutcome.Opening,
+                        isError = notice == null || notice != WearFileOperationOutcome.SUCCEEDED,
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
                             .padding(wearScreenInsets())
@@ -138,22 +179,71 @@ fun PhoneResourceScreen(
                 }
             }
 
-            is PhoneResourceUiState.Empty -> RetryMessage(
+            // No retry: the listing that came back empty already succeeded, so repeating it returns
+            // the same empty folder. Until now both cases shared one helper and this screen offered
+            // a retry that could not change the answer.
+            is PhoneResourceUiState.Empty -> WearStateBlock(
+                kind = WearStateKind.EMPTY,
                 // A filtered list that says "your phone has nothing to show" would blame the phone for
                 // a filter the user chose one screen earlier (S1846).
-                text = if (viewModel.mediaType == null) {
+                message = if (viewModel.mediaType == null) {
                     stringResource(R.string.phone_resource_empty)
                 } else {
                     stringResource(R.string.phone_resource_empty_filtered)
                 },
-                onRetry = viewModel::retry
+                onBack = { navController.popBackStack() }
             )
 
-            is PhoneResourceUiState.Unavailable -> RetryMessage(
-                text = stringResource(current.reason.toMessageRes()),
-                onRetry = viewModel::retry
+            is PhoneResourceUiState.Unavailable -> WearStateBlock(
+                kind = WearStateKind.UNAVAILABLE,
+                message = stringResource(current.reason.toMessageRes()),
+                onRetry = viewModel::retry,
+                onBack = { navController.popBackStack() }
             )
         }
+    }
+
+    actionEntry?.let { entry ->
+        val target = viewModel.actionTargetFor(entry)
+        if (target == null) {
+            // Nothing was ever copied here, so there is nothing on the watch to act on. Saying so is
+            // the point of asking first - an empty menu would read as a broken one.
+            LaunchedEffect(entry.token) {
+                viewModel.reportNothingToActOn()
+                actionEntry = null
+            }
+        } else {
+            WearFileActionsDialog(
+                file = target,
+                allowed = viewModel.allowedOperationsFor(entry),
+                onPick = { kind ->
+                    actionEntry = null
+                    when (kind) {
+                        WearFileOperationKind.DELETE -> deleteEntry = entry
+                        WearFileOperationKind.RENAME -> {
+                            renameEntry.value = entry
+                            requestRename()
+                        }
+                        WearFileOperationKind.SEND_TO_PHONE ->
+                            viewModel.runOperation(entry, WearFileOperation.SendToPhone)
+                        WearFileOperationKind.MOVE_TO_PHONE ->
+                            viewModel.runOperation(entry, WearFileOperation.MoveToPhone)
+                    }
+                },
+                onDismiss = { actionEntry = null }
+            )
+        }
+    }
+
+    deleteEntry?.let { entry ->
+        FileDeleteConfirmDialog(
+            selectedCount = SINGLE_FILE,
+            onConfirm = {
+                deleteEntry = null
+                viewModel.runOperation(entry, WearFileOperation.Delete)
+            },
+            onDismiss = { deleteEntry = null }
+        )
     }
 }
 
@@ -164,7 +254,8 @@ private fun PhoneResourceList(
     viewMode: WearViewMode,
     thumbnails: Map<String, WearThumbnail>,
     title: ScreenTitle,
-    onEntryClick: (WearPhoneResourceItem) -> Unit
+    onEntryClick: (WearPhoneResourceItem) -> Unit,
+    onEntryLongClick: (WearPhoneResourceItem) -> Unit
 ) {
     // The column count comes from the width this composable actually gets, so this browser answers
     // the geometry question exactly as the general file list does.
@@ -195,7 +286,8 @@ private fun PhoneResourceList(
                 items = items,
                 columns = columns,
                 thumbnails = thumbnails,
-                onEntryClick = onEntryClick
+                onEntryClick = onEntryClick,
+                onEntryLongClick = onEntryLongClick
             )
         }
     }
@@ -212,7 +304,8 @@ private fun PhoneResourceList(
 private fun PinnedOpenStatus(
     @StringRes statusRes: Int,
     showProgress: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isError: Boolean = true
 ) {
     Row(
         modifier = modifier
@@ -228,8 +321,13 @@ private fun PinnedOpenStatus(
         Text(
             text = stringResource(statusRes),
             style = MaterialTheme.typography.caption2,
-            // Waiting is not a failure: the error colour belongs to the outcomes that are one.
-            color = if (showProgress) MaterialTheme.colors.onSurface else MaterialTheme.colors.error,
+            // Waiting is not a failure, and neither is a finished operation: the error colour belongs
+            // to the outcomes that are one.
+            color = if (showProgress || !isError) {
+                MaterialTheme.colors.onSurface
+            } else {
+                MaterialTheme.colors.error
+            },
             textAlign = TextAlign.Center
         )
     }
@@ -240,7 +338,8 @@ private fun ScalingLazyListScope.entryItems(
     items: List<WearPhoneResourceItem>,
     columns: Int,
     thumbnails: Map<String, WearThumbnail>,
-    onEntryClick: (WearPhoneResourceItem) -> Unit
+    onEntryClick: (WearPhoneResourceItem) -> Unit,
+    onEntryLongClick: (WearPhoneResourceItem) -> Unit
 ) {
     if (columns == SINGLE_COLUMN) {
         items(items) { entry ->
@@ -252,7 +351,8 @@ private fun ScalingLazyListScope.entryItems(
                 entries = rowEntries,
                 columns = columns,
                 thumbnails = thumbnails,
-                onEntryClick = onEntryClick
+                onEntryClick = onEntryClick,
+                onEntryLongClick = onEntryLongClick
             )
         }
     }
@@ -264,8 +364,10 @@ private fun EntryRow(
     entries: List<WearPhoneResourceItem>,
     columns: Int,
     thumbnails: Map<String, WearThumbnail>,
-    onEntryClick: (WearPhoneResourceItem) -> Unit
+    onEntryClick: (WearPhoneResourceItem) -> Unit,
+    onEntryLongClick: (WearPhoneResourceItem) -> Unit
 ) {
+    val longPressLabel = stringResource(R.string.wear_file_op_actions)
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(GRID_GAP)
@@ -275,9 +377,14 @@ private fun EntryRow(
                 thumbnail = thumbnails[entry.token] ?: WearThumbnail.Unavailable,
                 caption = entry.name,
                 onClick = { onEntryClick(entry) },
-                modifier = Modifier.weight(1f)
-            ) {
-                EntryIcon(entry = entry)
+                // This screen has no multi-select mode to reach the menu a second way, so the gesture
+                // is announced instead: without the label TalkBack never offers it at all.
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics { onLongClick(label = longPressLabel, action = null) },
+                onLongClick = { onEntryLongClick(entry) }
+            ) { glyphModifier ->
+                EntryIcon(entry = entry, modifier = glyphModifier)
             }
         }
         repeat(columns - entries.size) {
@@ -302,8 +409,12 @@ private fun EntryChip(
     )
 }
 
+/**
+ * The chip path keeps the fixed 24 dp it always had; the cell path is handed the placeholder
+ * modifier instead, so the same glyph is a chip icon in one place and a full-cell glyph in the other.
+ */
 @Composable
-private fun EntryIcon(entry: WearPhoneResourceItem) {
+private fun EntryIcon(entry: WearPhoneResourceItem, modifier: Modifier = Modifier.size(ENTRY_ICON_SIZE)) {
     Icon(
         imageVector = if (entry.isDirectory) {
             Icons.Filled.Folder
@@ -311,7 +422,7 @@ private fun EntryIcon(entry: WearPhoneResourceItem) {
             Icons.AutoMirrored.Filled.InsertDriveFile
         },
         contentDescription = null,
-        modifier = Modifier.size(ENTRY_ICON_SIZE)
+        modifier = modifier
     )
 }
 
@@ -335,44 +446,6 @@ private fun CenteredMessage(text: String, showProgress: Boolean) {
     }
 }
 
-@Composable
-private fun RetryMessage(text: String, onRetry: () -> Unit) {
-    ScalingLazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = wearScreenInsets()
-    ) {
-        item {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.body2,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp),
-                textAlign = TextAlign.Center
-            )
-        }
-        item {
-            Chip(
-                onClick = onRetry,
-                label = { Text(text = stringResource(R.string.phone_resource_retry)) },
-                icon = {
-                    Icon(
-                        imageVector = Icons.Filled.Refresh,
-                        contentDescription = stringResource(R.string.phone_resource_retry),
-                        modifier = Modifier.size(24.dp)
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ChipDefaults.secondaryChipColors()
-            )
-        }
-    }
-}
-
-/**
- * A protocol status never reaches the user: each one is answered with the next step the person can
- * actually take, per `docs/COMMUNICATION_POLICY.md`.
- */
 /**
  * S1846: the line shown after a tap that did not reach a player, or null when there is nothing to say.
  * `Ready` shows nothing because the screen is already leaving for the player. S1898 moved where it is
@@ -384,6 +457,20 @@ private fun PhoneFileOpenOutcome?.toStatusRes(): Int? = when (this) {
     PhoneFileOpenOutcome.Unsupported -> R.string.phone_resource_open_unsupported
     is PhoneFileOpenOutcome.Failed -> reason.toMessageRes()
     else -> null
+}
+
+/**
+ * What a finished file operation says. The wording is the general browser's - one operation reported
+ * in two vocabularies would read as two different features.
+ */
+@StringRes
+private fun WearFileOperationOutcome.toStatusRes(): Int = when (this) {
+    WearFileOperationOutcome.SUCCEEDED -> R.string.wear_file_op_outcome_succeeded
+    WearFileOperationOutcome.REFUSED_UNSUPPORTED -> R.string.wear_file_op_outcome_unsupported
+    WearFileOperationOutcome.REFUSED_TOO_LARGE -> R.string.wear_file_op_outcome_too_large
+    WearFileOperationOutcome.PHONE_UNREACHABLE -> R.string.wear_file_op_outcome_phone_unreachable
+    WearFileOperationOutcome.FAILED -> R.string.wear_file_op_outcome_failed
+    WearFileOperationOutcome.CANCELLED -> R.string.wear_file_op_outcome_cancelled
 }
 
 private fun WearPhoneResourceResponseStatus?.toMessageRes(): Int = when (this) {

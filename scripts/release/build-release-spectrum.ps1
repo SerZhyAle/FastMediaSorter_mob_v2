@@ -11,7 +11,7 @@
 
     Flavors built (release only):
       standard, lite, photos, legacy, vr   (pass 1, Chaquopy disabled)
-      wear (:wear:assembleRelease)          (pass 1)
+      wear (:wear:assembleRelease + :wear:bundleRelease)  (pass 1)
       noLegal                               (pass 2, Chaquopy enabled)
 
     Out of scope (kept in the existing per-flavor builders / build-and-push-all):
@@ -174,7 +174,13 @@ try {
         # standard -> assembleStandardRelease, vr -> assembleVrRelease, etc.
         $pass1Tasks += "assemble$((Get-Culture).TextInfo.ToTitleCase($f))Release"
     }
-    if ($buildWear) { $pass1Tasks += ':wear:assembleRelease' }
+    # Both watch artifacts come out of this single invocation. The sideload APK and the Play bundle
+    # used to be produced by two gradle calls at different times - this script and
+    # scripts/builders/build-wear-release.PS1 - with nothing establishing that they were built from
+    # one tree state or one version, so a divergence between what a user sideloads and what the store
+    # serves would have been caught by no gate (S2040). Kept as a list rather than two literals so a
+    # third watch artifact costs one entry instead of a rewrite of this block.
+    if ($buildWear) { $pass1Tasks += @(':wear:assembleRelease', ':wear:bundleRelease') }
 
     if ($pass1Tasks.Count -gt 0) {
         Write-Host "Pass 1: $($pass1Tasks -join ', ') (Chaquopy disabled).." -ForegroundColor Cyan
@@ -228,8 +234,31 @@ foreach ($flavor in $apkRoots.Keys) {
     }
 }
 
+# The watch bundle is the artifact the Play Wear track accepts, and it shares this run's gradle
+# invocation with the APK reported above. It is checked here rather than trusted because a task that
+# produced no output must stop the release the same way a missing APK does - before S2040 the bundle
+# was built by a different script entirely, so this report had never had a reason to look for it.
+#
+# Find-BuildArtifact is deliberately not used: it selects by ABI from output-metadata.json, and AGP
+# writes no such file for a bundle. The release directory holds exactly one .aab, so enumeration is
+# exact. More than one means something this script does not model, and it refuses rather than picking
+# by write time - guessing when the choice is real is what S1972 removed from the builders.
+if ($buildWear) {
+    $bundleDir = Join-Path $projectRoot 'wear\build\outputs\bundle\release'
+    $wearAabs  = @(Get-ChildItem -Path $bundleDir -Filter *.aab -File -ErrorAction SilentlyContinue)
+    if ($wearAabs.Count -eq 1) {
+        Write-Host "  wear (aab) : $($wearAabs[0].FullName)" -ForegroundColor Green
+    } elseif ($wearAabs.Count -eq 0) {
+        Write-Host "  wear (aab) : MISSING ($bundleDir)" -ForegroundColor Red
+        $missing += 'wear (aab)'
+    } else {
+        Write-Host "  wear (aab) : AMBIGUOUS - $($wearAabs.Count) bundles in $bundleDir" -ForegroundColor Red
+        $missing += 'wear (aab)'
+    }
+}
+
 if ($missing.Count -gt 0) {
-    throw "Release spectrum incomplete - missing APK for: $($missing -join ', ')"
+    throw "Release spectrum incomplete - missing artifact for: $($missing -join ', ')"
 }
 
 # ----------------------------------------------------------------------

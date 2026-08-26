@@ -46,6 +46,11 @@ private const val ROUND_SQUARE_FRACTION = 0.70f
  *
  * @param positionIndicator scroll indicator for a scrolling screen, omitted by the ones whose
  * content is full-bleed and does not scroll.
+ * @param pageIndicator page dots for a paged screen, usually a `HorizontalPageIndicator`. It belongs
+ * here and never among the content: both of its styles measure the whole frame - the linear one is a
+ * `fillMaxSize` row, the curved one an arc at the rim - so as an unweighted child of a column it takes
+ * the full height and leaves a weighted pager beside it exactly zero, which draws nothing at all
+ * (S2056).
  * @param scrollState the scrolling list state when content can move beneath the clock. The clock
  * scrolls away with the list so stationary content is never obscured after a scroll.
  * @param showTimeText false only for the screen-off mode of S1683, where a lit clock would be the one
@@ -59,6 +64,7 @@ private const val ROUND_SQUARE_FRACTION = 0.70f
 fun WearScreenScaffold(
     modifier: Modifier = Modifier,
     positionIndicator: (@Composable () -> Unit)? = null,
+    pageIndicator: (@Composable () -> Unit)? = null,
     scrollState: ScalingLazyListState? = null,
     showTimeText: Boolean = true,
     contentPadding: PaddingValues = wearScreenInsets(),
@@ -67,6 +73,7 @@ fun WearScreenScaffold(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         positionIndicator = positionIndicator,
+        pageIndicator = pageIndicator,
         timeText = if (showTimeText) {
             { TimeText(modifier = if (scrollState == null) Modifier else Modifier.scrollAway(scrollState)) }
         } else {

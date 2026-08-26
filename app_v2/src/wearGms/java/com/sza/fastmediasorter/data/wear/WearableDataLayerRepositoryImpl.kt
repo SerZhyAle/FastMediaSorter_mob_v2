@@ -17,7 +17,8 @@ import javax.inject.Singleton
 /**
  * GMS-backed Wear Data Layer bridge (S0403 `wearGms` source set).
  *
- * Mounted only into Wear-capable flavors (standard, noLegal, legacy). Maps the GMS [Node] type to
+ * Mounted only into the flavors whose `sourceSets` block adds `src/wearGms/java` - standard and
+ * noLegal, and only those two since S1951 narrowed the list. Maps the GMS [Node] type to
  * the domain [WearNode] at this boundary so the `WearableDataLayerRepository` interface in
  * `src/main` stays free of `com.google.android.gms`. FOSS / non-Wear flavors bind the no-op in
  * `src/wearStub` instead.

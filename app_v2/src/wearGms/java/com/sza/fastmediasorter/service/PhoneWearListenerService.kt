@@ -10,6 +10,7 @@ import com.google.android.gms.wearable.WearableListenerService
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import com.sza.fastmediasorter.core.di.ApplicationScope
+import com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore
 import com.sza.fastmediasorter.data.wear.WearIncomingFileRegistry
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.domain.model.WearEventEnvelopeCodec
@@ -43,8 +44,6 @@ import javax.inject.Inject
 
 private const val PATH_REQUEST = "/fms/network_sources/request"
 private const val PATH_ACK = "/fms/network_sources/ack"
-private const val PREFS_NAME = "wear_sync_prefs"
-private const val KEY_LAST_SYNC = "last_sync_timestamp"
 
 /** Used when the watch opened the channel without a trailing name segment. */
 private const val DEFAULT_INCOMING_FILE_NAME = "watch_file"
@@ -73,6 +72,8 @@ class PhoneWearListenerService : WearableListenerService() {
     @Inject lateinit var wearIncomingFileRegistry: WearIncomingFileRegistry
 
     @Inject lateinit var gson: Gson
+
+    @Inject lateinit var wearSettingsMirrorStore: SharedPreferencesWearSettingsMirrorStore
 
     @Inject
     @ApplicationScope
@@ -385,10 +386,7 @@ class PhoneWearListenerService : WearableListenerService() {
     private fun handleAck(data: ByteArray) {
         val json = data.decodeToString()
         Timber.i("Watch ack received: $json")
-        getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-            .edit()
-            .putLong(KEY_LAST_SYNC, System.currentTimeMillis())
-            .apply()
+        wearSettingsMirrorStore.markSynced(System.currentTimeMillis())
         // Broadcast result to any active WearSyncViewModel via the companion object flow
         applicationScope.launch {
             WearSyncEvents.emitAck(json)
@@ -396,9 +394,6 @@ class PhoneWearListenerService : WearableListenerService() {
     }
 
     companion object {
-        const val PREFS = PREFS_NAME
-        const val LAST_SYNC = KEY_LAST_SYNC
-
         /** S1860: what GMS accepts in one data item; anything larger comes back DATA_ITEM_TOO_LARGE. */
         private const val MAX_DATA_ITEM_BYTES = 100 * 1024
     }

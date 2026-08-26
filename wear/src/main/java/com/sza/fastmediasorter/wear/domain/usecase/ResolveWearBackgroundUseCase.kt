@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -30,11 +31,14 @@ class ResolveWearBackgroundUseCase @Inject constructor(
     operator fun invoke(): Flow<WearBackground> = preferencesRepository.backgroundMode
         .map { mode -> resolve(mode) }
 
-    private suspend fun resolve(mode: WearBackgroundMode): WearBackground =
-        when (mode) {
+    private suspend fun resolve(mode: WearBackgroundMode): WearBackground {
+        val resolved = when (mode) {
             WearBackgroundMode.BRANDED_ANIMATION -> WearBackground.BrandedAnimation
             WearBackgroundMode.IMAGE -> deliveredFrame() ?: WearBackground.BrandedAnimation
         }
+        Timber.d("S2000: watch background mode=$mode resolved=${resolved::class.simpleName}")
+        return resolved
+    }
 
     /**
      * A zero-byte file counts as absent: an interrupted delivery leaves the name in place, and

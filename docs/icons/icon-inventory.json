@@ -945,6 +945,14 @@
   },
   {
     "surface": "send-to",
+    "key": "watch",
+    "feature": "share_target_title_watch",
+    "drawable": "ic_watch",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "send-to",
     "key": "whatsapp",
     "feature": "share_target_title_app",
     "drawable": "ic_send_chat",

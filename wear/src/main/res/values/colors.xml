@@ -13,4 +13,27 @@
          than as one more key label. S2003 may later fold it into a watch palette - it is one entry
          here, so that decision re-points it in one line. -->
     <color name="wear_calc_display_value">#FFFFD54F</color>
+
+    <!-- S2003 ADR-3: the semantic tone of a content type, mirrored from the phone's icon-tinting
+         scheme so one entity wears one colour across both apps. Names match the phone's on purpose -
+         the lineage stays greppable from either module when S2046 folds its four schemes into one.
+
+         S2003 ADR-6: these are the night members of the phone's day/night pairs, and there is no
+         values-night here. Wear Compose ships a single palette - androidx.wear.compose.material
+         .Colors declares no isLight and defaults background to black - so the watch has one surface
+         and a split would resolve a choice that does not exist, at the risk of handing the watch the
+         dark member of each pair against a black background. -->
+    <color name="color_media_music">#FF80CBC4</color>
+    <color name="color_media_video">#FFCE93D8</color>
+    <color name="color_media_image">#FF90CAF9</color>
+    <color name="color_media_docs">#FFFFCC80</color>
+    <color name="color_media_other">#FFB0BEC5</color>
+
+    <!-- S2003 ADR-4: the only two tones in this set with no phone-side source - neither folder nor
+         stream is a content type in any of the phone's four schemes. They are defined here, not
+         inherited, and are marked so a later consolidation reads them as original rather than as
+         drift. Green and red were chosen for being unoccupied and furthest from the five above;
+         grey and teal were rejected because "other" and music already hold them. -->
+    <color name="color_media_folder">#FFA5D6A7</color>
+    <color name="color_media_stream">#FFEF9A9A</color>
 </resources>

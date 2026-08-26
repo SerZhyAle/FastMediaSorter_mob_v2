@@ -211,6 +211,18 @@ object SettingsDocScopeCatalog {
             titleEn = "Voice note delivery",
             titleRu = "Доставка голосовых заметок",
             titleUk = "Доставка голосових нотаток"
+        ),
+        // S2000: the one watch setting that is not offered on the watch. It is chosen in the phone
+        // companion's own group, because the picture it selects is prepared and sent from the phone
+        // and the watch has no picker to choose it with. A radio group like the entry above: it
+        // names two models rather than switching one thing off.
+        WearDocEntry(
+            key = "wearBackgroundMode",
+            layout = "wear_companion_background_group",
+            kind = "RADIO_GROUP",
+            titleEn = "Watch Background",
+            titleRu = "Фон на часах",
+            titleUk = "Фон на годиннику"
         )
     )
 }

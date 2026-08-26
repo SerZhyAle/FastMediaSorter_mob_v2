@@ -26,18 +26,26 @@ class WearFileCapabilityPolicy @Inject constructor(
     /**
      * A network listing is decided by the caller because the entry itself cannot be told apart - its
      * id is a list position and its URI a share-relative path.
+     *
+     * [WearFileStorageClass.APP_OWNED] covers both internal and external app storage: the internal
+     * cache and files directories as well as the external sandbox.
      */
     fun classify(file: WearMediaFile, isNetworkSource: Boolean): WearFileStorageClass {
         if (isNetworkSource) return WearFileStorageClass.NETWORK
-        val sandboxRoot = context.getExternalFilesDir(null)?.parentFile?.absolutePath
-            ?: return WearFileStorageClass.MEDIA_STORE
         val path = localPathOf(file.uri) ?: return WearFileStorageClass.MEDIA_STORE
-        return if (path.startsWith(sandboxRoot)) {
-            WearFileStorageClass.APP_OWNED
-        } else {
-            WearFileStorageClass.MEDIA_STORE
-        }
+        val owned = appOwnedRoots().any { path.startsWith(it) }
+        return if (owned) WearFileStorageClass.APP_OWNED else WearFileStorageClass.MEDIA_STORE
     }
+
+    /**
+     * Both temporary copy directories live in the internal cache, so an external-only comparison
+     * called a file the app itself wrote foreign and left the user unable to remove it.
+     */
+    private fun appOwnedRoots(): List<String> = listOfNotNull(
+        context.cacheDir,
+        context.filesDir,
+        context.getExternalFilesDir(null)?.parentFile
+    ).mapNotNull { canonicalPathOf(it) }
 
     /**
      * One expression on purpose: adding the MediaStore consent flow later moves one line rather than
@@ -58,11 +66,13 @@ class WearFileCapabilityPolicy @Inject constructor(
         val scheme = uri.scheme
         if (scheme != null && scheme != ContentResolver.SCHEME_FILE) return null
         val rawPath = uri.path ?: return null
-        return try {
-            File(rawPath).canonicalPath
-        } catch (e: IOException) {
-            Timber.w(e, "Could not canonicalise %s; treating it as MediaStore", rawPath)
-            null
-        }
+        return canonicalPathOf(File(rawPath))
+    }
+
+    private fun canonicalPathOf(file: File): String? = try {
+        file.canonicalPath
+    } catch (e: IOException) {
+        Timber.w(e, "Could not canonicalise %s; treating it as MediaStore", file.path)
+        null
     }
 }

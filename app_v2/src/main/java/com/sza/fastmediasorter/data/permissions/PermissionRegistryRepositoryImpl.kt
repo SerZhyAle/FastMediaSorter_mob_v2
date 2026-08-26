@@ -6,19 +6,50 @@ import androidx.annotation.VisibleForTesting
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.PermissionHelper
+import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.PermissionEntry
 import com.sza.fastmediasorter.domain.model.PermissionGrantKind
 import com.sza.fastmediasorter.domain.model.PermissionGroup
 import com.sza.fastmediasorter.domain.model.PermissionGroupHeader
 import com.sza.fastmediasorter.domain.model.PermissionRationale
 import com.sza.fastmediasorter.domain.model.PermissionTask
+import com.sza.fastmediasorter.domain.networkmonitor.NetworkMonitorContract
 import com.sza.fastmediasorter.domain.repository.PermissionRegistryRepository
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistryRepository {
+class PermissionRegistryRepositoryImpl @Inject constructor(
+    launcherMode: LauncherModeContract,
+    networkMonitor: NetworkMonitorContract,
+) : PermissionRegistryRepository {
+
+    /**
+     * S2013: location is a geotag-only permission on lite/photos/legacy/vr and not on standard/noLegal,
+     * where the launcher's compass, speed, altitude and map gadgets and the Network Monitor's GNSS and
+     * Wi-Fi sections read the same grant. The disclosure has to name what THIS build does with the
+     * permission: Play judges a location declaration against what the app tells the user, and a row
+     * promising "only geotag" on a build that also drives four gadgets is the inaccurate half.
+     *
+     * Read through the two capability seams rather than their BuildConfig flags - Rule 14. The direct
+     * reads further down this file are the gate NAME-to-value table, which is a different thing (S1379).
+     */
+    private val locationServesMoreThanGeotag: Boolean =
+        launcherMode.isAvailableInBuild || networkMonitor.isAvailableInBuild
+
+    private val locationTitleRes =
+        if (locationServesMoreThanGeotag) R.string.perm_title_location_extended else R.string.perm_title_location
+
+    private val locationDescRes =
+        if (locationServesMoreThanGeotag) R.string.perm_desc_location_extended else R.string.perm_desc_location
+
+    private val locationRationaleRes =
+        if (locationServesMoreThanGeotag) {
+            R.string.perm_rationale_location_extended
+        } else {
+            R.string.perm_rationale_location
+        }
 
     private val allEntries = listOf(
         // STORAGE
@@ -165,17 +196,19 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
         // so the user can grant/deny it from onboarding and Settings, not only via system settings; when
         // ungranted the capture simply carries no coordinates. Fine location drives an accurate geotag;
         // the capture path accepts coarse too, so a coarse-only grant still works.
+        // S2013: the row keeps no build gate - the permission is declared and really used on all six
+        // flavors. Only the wording varies, because only the set of consumers does.
         PermissionEntry(
             id = "access_fine_location",
             manifestName = Manifest.permission.ACCESS_FINE_LOCATION,
-            titleRes = R.string.perm_title_location,
-            descriptionRes = R.string.perm_desc_location,
+            titleRes = locationTitleRes,
+            descriptionRes = locationDescRes,
             group = PermissionGroup.LOCATION,
             optional = true,
             minSdk = 23,
             // S1436: the geotag toggle used to request this with nothing said at all - the paragraph the
             // request now shows is this one, so the list and the request answer the question alike.
-            rationaleRes = R.string.perm_rationale_location,
+            rationaleRes = locationRationaleRes,
         ),
         // S1436: the coarse permission is declared beside the fine one and must be requested with it -
         // from API 31 the platform ignores a fine-only request. Its own row also stops the list from
@@ -356,8 +389,8 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
     override fun getEntries(): List<PermissionEntry> =
         allEntries.filter { entry ->
             entry.minSdk <= Build.VERSION.SDK_INT &&
-            entry.maxSdk >= Build.VERSION.SDK_INT &&
-            evaluateBuildGates(entry.buildGates)
+                entry.maxSdk >= Build.VERSION.SDK_INT &&
+                evaluateBuildGates(entry.buildGates)
         }
 
     override fun getWelcomeEntries(): List<PermissionEntry> =
@@ -366,8 +399,8 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
         // The SDK window binds every entry; the build gates bind only those not declared welcome-only.
         allEntries.filter { entry ->
             entry.minSdk <= Build.VERSION.SDK_INT &&
-            entry.maxSdk >= Build.VERSION.SDK_INT &&
-            (entry.shownInWelcomeDespiteGates || evaluateBuildGates(entry.buildGates))
+                entry.maxSdk >= Build.VERSION.SDK_INT &&
+                (entry.shownInWelcomeDespiteGates || evaluateBuildGates(entry.buildGates))
         }
 
     override fun getRationale(manifestName: String, task: PermissionTask?): PermissionRationale? {

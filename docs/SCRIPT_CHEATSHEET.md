@@ -635,9 +635,10 @@ scripts/builders/build-wear-debug.PS1
 ```
 scripts/builders/build-wear-release.PS1
   Params:
-    -Artifact            [String] = 'Apk'  {Apk|Aab|Both}
-    -VersionName         [String]
-    -VersionCode         [Int32]
+    -NoDistribute         [SwitchParameter]
+    -Artifact             [String] = 'Apk'  {Apk|Aab|Both}
+    -VersionName          [String]
+    -VersionCode          [Int32]
   Exit: 0 - requested artifacts built and copied; 1 - artifact missing after a successful Gradle run, or an argument is unusable
 ```
 
@@ -1964,6 +1965,8 @@ scripts/quality/assert-focus-highlight.ps1
     -Gate                   [SwitchParameter]
     -UpdateBaseline         [SwitchParameter]
     -List                   [SwitchParameter]
+    -ChangedFiles           [String[]]
+  Exit: 0 - pass: at or below baseline, no growth in the named files, or a non-gate mode.; 1 - fail: the count rose above the baseline, a named file introduced a gap, or a
 ```
 
 ### assert-gate-hints-sync.ps1
@@ -3122,11 +3125,11 @@ scripts/release/apply-github-store-metadata.ps1
 ```
 
 ### build-release-spectrum.ps1
-Build the full release spectrum at ONE uniform version for GitHub Release publication (S0394). .DESCRIPTION Stamps a single version into BOTH app_v2 and wear, then builds every release flavor + the wear release in the established two-pass (Chaquopy) order, so all artifacts share one version and the publisher can upload them under one tag. Flavors built (release only): standard, lite, photos, legacy, vr (pass 1, Chaquopy disabled) wear (:wear:assembleRelease) (pass 1) noLegal (pass 2, Chaquopy enabled) Out of scope (kept in the existing per-flavor builders / build-and-push-all): debug variants, git operations, Google Drive + tc-folder mirrors. Run from the release worktree on main so the follow-up publisher (scripts/release/publish-github-release.ps1) passes its branch guard. .PARAMETER SkipBuild Stamp the uniform version into app_v2 + wear build.gradle.kts and exit without building. Useful to inspect the version reconciliation in isolation. .PARAMETER ReuseVersion Do NOT compute a fresh version. Reuse the version already stamped in app_v2/build.gradle.kts (e.g. by a prior `a.ps1 r`) and align wear to it. This keeps the GitHub Release APKs aligned with the Google Play AAB produced by `a.ps1 r` in the same release window - used by the /skill-release flow. .PARAMETER Flavors Subset of the spectrum to build. Accepts any of: standard, lite, photos, legacy, vr, wear, noLegal plus the alias 'all' (== 'full' == 'spectrum') for every flavor. Case-insensitive; order-independent; de-duplicated. Omitted / empty => the full spectrum (backward-compatible default for direct invocation). The /skill-release flow passes 'standard' by default so a plateau release builds only the standard edition unless extra flavors are requested.
+Build the full release spectrum at ONE uniform version for GitHub Release publication (S0394). .DESCRIPTION Stamps a single version into BOTH app_v2 and wear, then builds every release flavor + the wear release in the established two-pass (Chaquopy) order, so all artifacts share one version and the publisher can upload them under one tag. Flavors built (release only): standard, lite, photos, legacy, vr (pass 1, Chaquopy disabled) wear (:wear:assembleRelease + :wear:bundleRelease) (pass 1) noLegal (pass 2, Chaquopy enabled) Out of scope (kept in the existing per-flavor builders / build-and-push-all): debug variants, git operations, Google Drive + tc-folder mirrors. Run from the release worktree on main so the follow-up publisher (scripts/release/publish-github-release.ps1) passes its branch guard. .PARAMETER SkipBuild Stamp the uniform version into app_v2 + wear build.gradle.kts and exit without building. Useful to inspect the version reconciliation in isolation. .PARAMETER ReuseVersion Do NOT compute a fresh version. Reuse the version already stamped in app_v2/build.gradle.kts (e.g. by a prior `a.ps1 r`) and align wear to it. This keeps the GitHub Release APKs aligned with the Google Play AAB produced by `a.ps1 r` in the same release window - used by the /skill-release flow. .PARAMETER Flavors Subset of the spectrum to build. Accepts any of: standard, lite, photos, legacy, vr, wear, noLegal plus the alias 'all' (== 'full' == 'spectrum') for every flavor. Case-insensitive; order-independent; de-duplicated. Omitted / empty => the full spectrum (backward-compatible default for direct invocation). The /skill-release flow passes 'standard' by default so a plateau release builds only the standard edition unless extra flavors are requested.
 
 ```
 scripts/release/build-release-spectrum.ps1
-  Build the full release spectrum at ONE uniform version for GitHub Release publication (S0394). .DESCRIPTION Stamps a single version into BOTH app_v2 and wear, then builds every release flavor + the wear release in the established two-pass (Chaquopy) order, so all artifacts share one version and the publisher can upload them under one tag. Flavors built (release only): standard, lite, photos, legacy, vr (pass 1, Chaquopy disabled) wear (:wear:assembleRelease) (pass 1) noLegal (pass 2, Chaquopy enabled) Out of scope (kept in the existing per-flavor builders / build-and-push-all): debug variants, git operations, Google Drive + tc-folder mirrors. Run from the release worktree on main so the follow-up publisher (scripts/release/publish-github-release.ps1) passes its branch guard. .PARAMETER SkipBuild Stamp the uniform version into app_v2 + wear build.gradle.kts and exit without building. Useful to inspect the version reconciliation in isolation. .PARAMETER ReuseVersion Do NOT compute a fresh version. Reuse the version already stamped in app_v2/build.gradle.kts (e.g. by a prior `a.ps1 r`) and align wear to it. This keeps the GitHub Release APKs aligned with the Google Play AAB produced by `a.ps1 r` in the same release window - used by the /skill-release flow. .PARAMETER Flavors Subset of the spectrum to build. Accepts any of: standard, lite, photos, legacy, vr, wear, noLegal plus the alias 'all' (== 'full' == 'spectrum') for every flavor. Case-insensitive; order-independent; de-duplicated. Omitted / empty => the full spectrum (backward-compatible default for direct invocation). The /skill-release flow passes 'standard' by default so a plateau release builds only the standard edition unless extra flavors are requested.
+  Build the full release spectrum at ONE uniform version for GitHub Release publication (S0394). .DESCRIPTION Stamps a single version into BOTH app_v2 and wear, then builds every release flavor + the wear release in the established two-pass (Chaquopy) order, so all artifacts share one version and the publisher can upload them under one tag. Flavors built (release only): standard, lite, photos, legacy, vr (pass 1, Chaquopy disabled) wear (:wear:assembleRelease + :wear:bundleRelease) (pass 1) noLegal (pass 2, Chaquopy enabled) Out of scope (kept in the existing per-flavor builders / build-and-push-all): debug variants, git operations, Google Drive + tc-folder mirrors. Run from the release worktree on main so the follow-up publisher (scripts/release/publish-github-release.ps1) passes its branch guard. .PARAMETER SkipBuild Stamp the uniform version into app_v2 + wear build.gradle.kts and exit without building. Useful to inspect the version reconciliation in isolation. .PARAMETER ReuseVersion Do NOT compute a fresh version. Reuse the version already stamped in app_v2/build.gradle.kts (e.g. by a prior `a.ps1 r`) and align wear to it. This keeps the GitHub Release APKs aligned with the Google Play AAB produced by `a.ps1 r` in the same release window - used by the /skill-release flow. .PARAMETER Flavors Subset of the spectrum to build. Accepts any of: standard, lite, photos, legacy, vr, wear, noLegal plus the alias 'all' (== 'full' == 'spectrum') for every flavor. Case-insensitive; order-independent; de-duplicated. Omitted / empty => the full spectrum (backward-compatible default for direct invocation). The /skill-release flow passes 'standard' by default so a plateau release builds only the standard edition unless extra flavors are requested.
   Params:
     -SkipBuild            [SwitchParameter]
     -ReuseVersion         [SwitchParameter]
@@ -3706,12 +3709,13 @@ Ticket leases for parallel /spec-next and /spec-do sessions (S1437).
 scripts/spec_catalog/ticket-lease.ps1
   Ticket leases for parallel /spec-next and /spec-do sessions (S1437).
   Params:
-    -Verb          (req)  [String]  {Claim|Release|List|Status|Sweep}
+    -Verb          (req)  [String]  {Claim|Release|List|Status|Sweep|Clean}
     -Id                   [String]
     -Reason               [String] = 'spec-picker'
     -Json                 [SwitchParameter]
     -Force                [SwitchParameter]
     -StaleMinutes         [Int32] = 0
+    -QuietMinutes         [Int32] = 2
   Exit: 0 - done: claimed, released, or reported.; 1 - error: unreadable store, bad argument shape, write failure.; 3 - claim lost: a live foreign session already holds this ticket.; 4 - release refused: a live foreign session owns this lease (never returned under -Force).
 ```
 
@@ -4368,11 +4372,11 @@ scripts/utils/locale-bulk-import.ps1
 ```
 
 ### locale-set.ps1
-S1190: single reader for the app's declared interface locales.
+S1190: single reader for a module's declared interface locales.
 
 ```
 scripts/utils/locale-set.ps1
-  S1190: single reader for the app's declared interface locales.
+  S1190: single reader for a module's declared interface locales.
   (no param block)
   Exit: 0 - not used; the script defines functions and returns.; 3 - locales_config.xml missing or declaring no locale.
 ```
@@ -4408,7 +4412,7 @@ Show what the unattended queue runners are doing right now.
 scripts/utils/monitor-spec-queue.ps1
   Show what the unattended queue runners are doing right now.
   Params:
-    -Tail                    [Int32] = 8
+    -Tail                    [Int32] = 1
     -Watch                   [SwitchParameter]
     -IntervalSeconds         [Int32] = 30
     -RepoRoot                [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
@@ -4708,11 +4712,11 @@ scripts/utils/wait-for-ticket-work.ps1
 ## scripts\utils\agent-lock.tests
 
 ### Run-Tests.ps1
-Regression tests for the stale-JAVA_HOME snapshot repair (S1928).
+Regression tests for agent-lock.ps1: the stale-JAVA_HOME snapshot repair (S1928) and the BUILD.LOCK fail-fast refusal's exit code (S2058).
 
 ```
 scripts/utils/agent-lock.tests/Run-Tests.ps1
-  Regression tests for the stale-JAVA_HOME snapshot repair (S1928).
+  Regression tests for agent-lock.ps1: the stale-JAVA_HOME snapshot repair (S1928) and the BUILD.LOCK fail-fast refusal's exit code (S2058).
   (no param block)
   Exit: 0 - every case passed.; 1 - a case failed.
 ```

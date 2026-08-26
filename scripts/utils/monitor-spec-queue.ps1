@@ -37,8 +37,9 @@
 #>
 [CmdletBinding()]
 param(
-    # How many finished tickets to list per instance.
-    [int] $Tail = 8,
+    # How many finished tickets to list per instance. One by default: the operator's question between
+    # refreshes is "what changed since I last looked", and the full history is in the journal file.
+    [int] $Tail = 1,
 
     # Refresh until interrupted instead of printing one snapshot.
     [switch] $Watch,
@@ -111,69 +112,45 @@ function Get-TicketLastWrite {
     }
 }
 
+function Format-LockAge {
+    param($AcquiredAt)
+
+    if ($null -eq $AcquiredAt) { return 'for an unknown time' }
+    try {
+        $when = [DateTimeOffset]::FromUnixTimeMilliseconds([int64]$AcquiredAt).LocalDateTime
+    } catch {
+        return ("since {0}" -f $AcquiredAt)
+    }
+    $minutes = ((Get-Date) - $when).TotalMinutes
+    if ($minutes -lt 1) {
+        return ("{0,3:N0} sec   (since {1:HH:mm:ss})" -f ($minutes * 60), $when)
+    }
+    return ("{0,3:N0} min   (since {1:HH:mm:ss})" -f $minutes, $when)
+}
+
 function Show-Snapshot {
 
     Write-Host ''
     Write-Host ("spec-queue monitor   {0}" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')) -ForegroundColor Cyan
 
-    # --- running children ---------------------------------------------------------------------
-    Write-Section 'running'
+    # The child list is gathered first because the stop-flag section below needs it, but it is
+    # PRINTED last: it is the block the operator reads on every refresh, so it belongs where the
+    # cursor already is instead of scrolled off the top by the journals.
     $children = @(Get-CimInstance Win32_Process -Filter "Name = 'claude.exe'" -ErrorAction SilentlyContinue |
             Where-Object { $_.CommandLine -and $_.CommandLine -match '\s-p\s' })
-    if ($children.Count -eq 0) {
-        Write-Host '  no headless claude child is running.' -ForegroundColor DarkYellow
-    } else {
-        foreach ($c in $children) {
-            $started = $null
-            try { $started = $c.CreationDate } catch { $started = $null }
-            $ageMinutes = if ($started) { ((Get-Date) - $started).TotalMinutes } else { $null }
-            $age = if ($null -ne $ageMinutes) { '{0,4:N0} min' -f $ageMinutes } else { '   ? min' }
-            # The ticket id is in the prompt the parent handed it, which is the whole point of showing
-            # the command line rather than just the pid.
-            $ticket = if ($c.CommandLine -match '(S\d{4})') { $Matches[1] } else { '?' }
-            $model = if ($c.CommandLine -match '--model\s+(\S+)') { $Matches[1] } else { 'default' }
-            Write-Host ("  pid {0,-7} {1}  ticket {2}  model {3}" -f $c.ProcessId, $age, $ticket, $model) -ForegroundColor Green
-
-            $write = Get-TicketLastWrite -Id $ticket
-
-            # Judge the silence against this run's own age, never against the file's absolute date. A
-            # ticket whose spec was last edited four days ago is not a stalled run, it is a run that has
-            # not written anything yet - and a five-minute-old child cannot have been quiet for longer
-            # than five minutes. Without this cap the first minutes of every run reported days of silence.
-            $quietMinutes = if ($null -eq $write) { $ageMinutes }
-                elseif ($null -eq $ageMinutes) { $write.Minutes }
-                else { [math]::Min($write.Minutes, $ageMinutes) }
-            $writeColour = if ($null -eq $quietMinutes) { 'DarkGray' }
-                elseif ($quietMinutes -lt 5) { 'Green' }
-                elseif ($quietMinutes -lt 15) { 'Yellow' }
-                else { 'Red' }
-
-            if ($null -eq $write) {
-                Write-Host '        last write   nothing on disk for this ticket yet' -ForegroundColor $writeColour
-            } elseif ($null -ne $ageMinutes -and $write.Minutes -gt ($ageMinutes + 1)) {
-                Write-Host ("        last write   nothing since this run started; newest is {0}" -f $write.Path) -ForegroundColor $writeColour
-            } else {
-                Write-Host ("        last write {0,4:N0} min ago   {1}" -f $write.Minutes, $write.Path) -ForegroundColor $writeColour
-            }
-
-            if ($null -ne $quietMinutes -and $quietMinutes -ge 15) {
-                # Silence this long is worth explaining rather than alarming: the two quiet stretches of
-                # a pipeline are a gradle build (see the locks section) and a single long model turn, and
-                # neither writes anything until it ends.
-                Write-Host '        quiet for a while - check the locks below; a queued or running build writes nothing.' -ForegroundColor DarkGray
-            }
-        }
-    }
 
     # --- leases: what is being worked on right now ----------------------------------------------
     Write-Section 'ticket leases (what is claimed now)'
     $leaseScript = Join-Path $RepoRoot 'scripts\spec_catalog\ticket-lease.ps1'
     if (Test-Path -LiteralPath $leaseScript) {
         $leaseOut = & pwsh -NoProfile -File $leaseScript -Verb List 2>&1 | Out-String
-        if ([string]::IsNullOrWhiteSpace($leaseOut)) {
+        # One id per line costs a screen-height per five tickets and says nothing a comma cannot. The
+        # list is short by construction - it is bounded by the number of parallel instances.
+        $leaseIds = @($leaseOut -split "`r?`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ -match '^S\d{4}$' })
+        if ($leaseIds.Count -eq 0) {
             Write-Host '  nothing leased.' -ForegroundColor DarkYellow
         } else {
-            $leaseOut.TrimEnd().Split("`n") | ForEach-Object { Write-Host ("  " + $_.TrimEnd()) }
+            Write-Host ("  " + ($leaseIds -join ', '))
         }
     } else {
         Write-Host '  ticket-lease.ps1 not found.' -ForegroundColor DarkYellow
@@ -190,7 +167,9 @@ function Show-Snapshot {
         $held = '(unreadable)'
         try {
             $body = Get-Content -LiteralPath $path -Raw -ErrorAction Stop | ConvertFrom-Json
-            $held = "{0}  since {1}" -f $body.Reason, $body.AcquiredAt
+            # The file stores epoch milliseconds. Printed raw it answers nothing an operator asks: the
+            # question is "how long has this been held", not "at which millisecond did it start".
+            $held = "{0}  held {1}" -f $body.Reason, (Format-LockAge $body.AcquiredAt)
         } catch {
             $held = (Get-Content -LiteralPath $path -Raw -ErrorAction SilentlyContinue).Trim()
         }
@@ -235,12 +214,59 @@ function Show-Snapshot {
             Write-Host ("  {0}  requested {1} min ago" -f $f.Name, $pending) -ForegroundColor Yellow
         }
         # The pending age is the whole point of this section. A stop is read only between tickets, so
-        # one that has been pending for half an hour is waiting on the run listed above, not failing.
+        # one that has been pending for half an hour is waiting on the run listed below, not failing.
         if ($children.Count -gt 0) {
             Write-Host '  waiting for the ticket(s) listed under "running" to end.' -ForegroundColor DarkGray
             Write-Host '  To stop without waiting:  .\a.ps1 rs -Kill' -ForegroundColor DarkGray
         } else {
             Write-Host '  nothing is running - the next start clears the flag and proceeds.' -ForegroundColor DarkGray
+        }
+    }
+
+    # --- running children (last on purpose - see the gathering note above) ----------------------
+    Write-Section 'running'
+    if ($children.Count -eq 0) {
+        Write-Host '  no headless claude child is running.' -ForegroundColor DarkYellow
+    } else {
+        foreach ($c in $children) {
+            $started = $null
+            try { $started = $c.CreationDate } catch { $started = $null }
+            $ageMinutes = if ($started) { ((Get-Date) - $started).TotalMinutes } else { $null }
+            $age = if ($null -ne $ageMinutes) { '{0,4:N0} min' -f $ageMinutes } else { '   ? min' }
+            # The ticket id is in the prompt the parent handed it, which is the whole point of showing
+            # the command line rather than just the pid.
+            $ticket = if ($c.CommandLine -match '(S\d{4})') { $Matches[1] } else { '?' }
+            $model = if ($c.CommandLine -match '--model\s+(\S+)') { $Matches[1] } else { 'default' }
+            Write-Host ("  pid {0,-7} {1}  ticket {2}  model {3}" -f $c.ProcessId, $age, $ticket, $model) -ForegroundColor Green
+
+            $write = Get-TicketLastWrite -Id $ticket
+
+            # Judge the silence against this run's own age, never against the file's absolute date. A
+            # ticket whose spec was last edited four days ago is not a stalled run, it is a run that has
+            # not written anything yet - and a five-minute-old child cannot have been quiet for longer
+            # than five minutes. Without this cap the first minutes of every run reported days of silence.
+            $quietMinutes = if ($null -eq $write) { $ageMinutes }
+                elseif ($null -eq $ageMinutes) { $write.Minutes }
+                else { [math]::Min($write.Minutes, $ageMinutes) }
+            $writeColour = if ($null -eq $quietMinutes) { 'DarkGray' }
+                elseif ($quietMinutes -lt 5) { 'Green' }
+                elseif ($quietMinutes -lt 15) { 'Yellow' }
+                else { 'Red' }
+
+            if ($null -eq $write) {
+                Write-Host '        last write   nothing on disk for this ticket yet' -ForegroundColor $writeColour
+            } elseif ($null -ne $ageMinutes -and $write.Minutes -gt ($ageMinutes + 1)) {
+                Write-Host ("        last write   nothing since this run started; newest is {0}" -f $write.Path) -ForegroundColor $writeColour
+            } else {
+                Write-Host ("        last write {0,4:N0} min ago   {1}" -f $write.Minutes, $write.Path) -ForegroundColor $writeColour
+            }
+
+            if ($null -ne $quietMinutes -and $quietMinutes -ge 15) {
+                # Silence this long is worth explaining rather than alarming: the two quiet stretches of
+                # a pipeline are a gradle build (see the locks section) and a single long model turn, and
+                # neither writes anything until it ends.
+                Write-Host '        quiet for a while - check the locks above; a queued or running build writes nothing.' -ForegroundColor DarkGray
+            }
         }
     }
 

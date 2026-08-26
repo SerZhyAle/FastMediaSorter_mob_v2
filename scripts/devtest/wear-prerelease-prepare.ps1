@@ -143,7 +143,15 @@ if (-not $Json) { Write-Host "wear-prerelease-prepare: device $id qualified (cha
 if (-not $SkipBuild) {
     # No build lock is taken here: the builder takes it itself, and a second acquisition from the
     # same call chain would wait on a lock this chain already holds.
-    & pwsh -NoProfile -File $wearBuilder -Artifact Both
+    #
+    # -NoDistribute is what makes this branch runnable at all. The builder's default tail hands the
+    # artifact out - DOWNLOADS, the build journal, the Google Drive mirror - so a run whose only job
+    # is to judge a build would overwrite the Drive copy people install from and the AAB
+    # publish-play-release.ps1 addresses by path, with an unstamped ad-hoc build. The phone sweep
+    # sidesteps the same tail by refusing its own interactive builder outright. The artifact this
+    # run judges is read from wear/build/outputs, which -NoDistribute does not touch, so ADR-3
+    # still holds: the build comes from the recorded path, inside the run.
+    & pwsh -NoProfile -File $wearBuilder -Artifact Both -NoDistribute
     if ($LASTEXITCODE -ne 0) { Stop-Run 1 "build-wear-release.PS1 exited $LASTEXITCODE" }
 }
 elseif (-not $Json) {

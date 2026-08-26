@@ -1,6 +1,10 @@
 package com.sza.fastmediasorter.wear.ui.network
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -21,6 +25,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
+import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
@@ -30,10 +35,21 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
+import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
+import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
+import com.sza.fastmediasorter.wear.ui.common.WearStateKind
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.wear.util.GridColumnFit
+
+private const val SINGLE_COLUMN = 1
+private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
+private val CELL_ICON_SIZE = 24.dp
+private val TITLE_VERTICAL_PADDING = 12.dp
 
 private data class SourceMediaCategory(
     val labelRes: Int,
@@ -91,42 +107,134 @@ fun NetworkSourceMediaTypeScreen(
         scrollState = listState,
         positionIndicator = { PositionIndicator(listState) }
     ) {
-        ScalingLazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            state = listState,
-            contentPadding = wearScreenInsets()
-        ) {
-            item {
-                Text(
-                    text = sourceName,
-                    style = MaterialTheme.typography.title3,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 12.dp),
-                    textAlign = TextAlign.Center
-                )
-            }
+        if (categories.isEmpty()) {
+            // No retry: the list is empty because a settings read succeeded and returned three
+            // disabled types, so repeating that read would return the same answer.
+            WearStateBlock(
+                kind = WearStateKind.EMPTY,
+                message = stringResource(R.string.wear_media_types_all_disabled),
+                onBack = { navController.popBackStack() }
+            )
+            return@WearScreenScaffold
+        }
 
-            items(categories) { category ->
-                Chip(
-                    onClick = {
+        // The column count comes from the width this composable actually gets, never from the mode
+        // name - the same rule the other browse screens apply, so this step cannot drift from them.
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val columns = GridColumnFit.columnsFor(settings.viewMode, maxWidth.value.toInt())
+            ScalingLazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                state = listState,
+                contentPadding = wearScreenInsets(),
+                scalingParams = WearGridScalingParams
+            ) {
+                item {
+                    Text(
+                        text = sourceName,
+                        style = MaterialTheme.typography.title3,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = TITLE_VERTICAL_PADDING),
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                categoryItems(
+                    categories = categories,
+                    columns = columns,
+                    onCategoryClick = { category ->
                         navController.navigate(
                             WearRoutes.browseSource(category.mediaType, sourceId, sourceName)
                         )
-                    },
-                    label = { Text(text = stringResource(category.labelRes)) },
-                    icon = {
-                        Icon(
-                            imageVector = category.icon,
-                            contentDescription = null,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ChipDefaults.primaryChipColors()
+                    }
                 )
             }
         }
+    }
+}
+
+private fun ScalingLazyListScope.categoryItems(
+    categories: List<SourceMediaCategory>,
+    columns: Int,
+    onCategoryClick: (SourceMediaCategory) -> Unit
+) {
+    if (columns == SINGLE_COLUMN) {
+        items(categories) { category ->
+            CategoryChip(category = category, onClick = { onCategoryClick(category) })
+        }
+    } else {
+        items(categories.chunked(columns)) { rowCategories ->
+            CategoryRow(
+                categories = rowCategories,
+                columns = columns,
+                onCategoryClick = onCategoryClick
+            )
+        }
+    }
+}
+
+@Composable
+private fun CategoryChip(
+    category: SourceMediaCategory,
+    onClick: () -> Unit
+) {
+    Chip(
+        onClick = onClick,
+        label = { Text(text = stringResource(category.labelRes)) },
+        icon = {
+            Icon(
+                imageVector = category.icon,
+                contentDescription = null,
+                modifier = Modifier.size(CELL_ICON_SIZE)
+            )
+        },
+        modifier = Modifier.fillMaxWidth(),
+        colors = ChipDefaults.primaryChipColors()
+    )
+}
+
+/** A short row is padded with empty weights so its cells keep the width of a full row's cells. */
+@Composable
+private fun CategoryRow(
+    categories: List<SourceMediaCategory>,
+    columns: Int,
+    onCategoryClick: (SourceMediaCategory) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(GRID_GAP)
+    ) {
+        categories.forEach { category ->
+            CategoryCell(
+                category = category,
+                modifier = Modifier.weight(1f),
+                onClick = { onCategoryClick(category) }
+            )
+        }
+        repeat(columns - categories.size) {
+            Spacer(modifier = Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
+private fun CategoryCell(
+    category: SourceMediaCategory,
+    modifier: Modifier,
+    onClick: () -> Unit
+) {
+    val label = stringResource(category.labelRes)
+    ThumbnailCell(
+        thumbnail = WearThumbnail.Unavailable,
+        caption = label,
+        onClick = onClick,
+        modifier = modifier
+    ) { glyphModifier ->
+        Icon(
+            imageVector = category.icon,
+            contentDescription = null,
+            modifier = glyphModifier
+        )
     }
 }
 

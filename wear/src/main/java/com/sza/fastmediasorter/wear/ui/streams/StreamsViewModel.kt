@@ -270,11 +270,16 @@ class StreamsViewModel @Inject constructor(
      *
      * Only stream favourites are taken: the same store holds file marks, whose `filePath` is a path
      * and would never match an address anyway, but filtering by source id says so on purpose.
+     *
+     * S2039: the stored path is normalized on the way out, because it is stored in whatever spelling
+     * the writer used - an earlier build wrote the raw catalogue address. Comparing the raw form here
+     * is what made a marked station silently never pin.
      */
     private suspend fun loadPinnedStreamIds(): Set<String> =
         favoritesRepository.getFavorites()
             .filter { it.sourceId == SOURCE_ID_STREAM }
-            .mapTo(mutableSetOf()) { it.filePath }
+            .mapTo(mutableSetOf()) { normalizeWearStreamUrl(it.filePath) }
+            .also { Timber.d("S2039: streams list pinned identities $it") }
 }
 
 private fun computeDisplayChannels(

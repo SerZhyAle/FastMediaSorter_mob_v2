@@ -67,6 +67,11 @@ From PowerShell in project root:
 
 ### Manual APK Installation
 
+For repeatable updates away from a workstation, use the [Play test-track route in
+WEAR_OS_SETUP.md](WEAR_OS_SETUP.md#away-from-workstation-updates). A local APK sent from the phone
+to the watch is only an unverified, device-specific fallback; it is not a replacement for the
+watch's own installer confirmation.
+
 ```powershell
 # Install debug APK to device
 adb install .\wear\build\outputs\apk\debug\wear-debug.apk

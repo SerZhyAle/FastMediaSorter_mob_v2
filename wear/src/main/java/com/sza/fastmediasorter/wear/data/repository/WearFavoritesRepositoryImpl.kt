@@ -8,6 +8,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.sza.fastmediasorter.wear.domain.model.WearFavoriteDeltaItem
 import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
+import com.sza.fastmediasorter.wear.domain.model.favoriteIdentityKey
 import com.sza.fastmediasorter.wear.domain.model.mergeFavorites
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -47,9 +48,11 @@ class WearFavoritesRepositoryImpl @Inject constructor(
     private val keyRecords = "wear_favorites_records"
 
     override suspend fun addFavorite(sourceId: String, filePath: String) = withContext(Dispatchers.IO) {
-        val key = "$sourceId:$filePath"
+        val key = favoriteIdentityKey(sourceId, filePath)
         val favorites = readFavorites().toMutableSet()
-        if (favorites.add(key)) {
+        // S2039: presence is judged by the canonical key, so re-marking a stream already stored under
+        // another spelling of its address does not append a second entry for the same station.
+        if (favorites.none { legacyIdentityOf(it) == key } && favorites.add("$sourceId:$filePath")) {
             saveFavorites(favorites)
             appendDelta(WearFavoriteDeltaItem(sourceId, filePath, true, System.currentTimeMillis()))
         }
@@ -73,28 +76,42 @@ class WearFavoritesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun removeFavorite(sourceId: String, filePath: String) = withContext(Dispatchers.IO) {
-        val key = "$sourceId:$filePath"
+        val key = favoriteIdentityKey(sourceId, filePath)
         // Unmarking has to reach BOTH stores: a file marked before this ticket and unmarked after it would
         // otherwise come straight back on the next read.
-        val favorites = readFavorites().toMutableSet()
-        val removedLegacy = favorites.remove(key)
+        // S2039: and it has to clear EVERY entry matching the key, not the first. A station marked by an
+        // older build under a raw address and again by this one under the normalized address leaves two
+        // entries, and a single unmark that dropped one would let the star come back on the next read.
+        val favorites = readFavorites()
+        val keptFavorites = favorites.filterNot { legacyIdentityOf(it) == key }.toSet()
+        val removedLegacy = keptFavorites.size != favorites.size
         if (removedLegacy) {
-            saveFavorites(favorites)
+            saveFavorites(keptFavorites)
         }
         val records = readRecords()
         val kept = records.filterNot { it.identity == key }
         if (kept.size != records.size) {
             saveRecords(kept)
         }
+        Timber.d("S2039: remove $key legacy=$removedLegacy records=${records.size - kept.size}")
         if (removedLegacy || kept.size != records.size) {
             appendDelta(WearFavoriteDeltaItem(sourceId, filePath, false, System.currentTimeMillis()))
         }
     }
 
     override suspend fun isFavorite(sourceId: String, filePath: String): Boolean = withContext(Dispatchers.IO) {
-        val key = "$sourceId:$filePath"
-        readFavorites().contains(key) || readRecords().any { it.identity == key }
+        val key = favoriteIdentityKey(sourceId, filePath)
+        readFavorites().any { legacyIdentityOf(it) == key } || readRecords().any { it.identity == key }
     }
+
+    /**
+     * S2039: the canonical key of a legacy entry, which is a raw `sourceId:filePath` string on disk.
+     *
+     * Parsing it back into a record is what applies the stream-address rule to it, so an entry written
+     * before that rule existed is still recognised as the favourite it is.
+     */
+    private fun legacyIdentityOf(storedKey: String): String? =
+        WearFavoriteRecord.fromLegacyKey(storedKey)?.identity
 
     override suspend fun getPendingDelta(): List<WearFavoriteDeltaItem> = withContext(Dispatchers.IO) {
         readDelta()

@@ -143,6 +143,43 @@ $swipe = @{
 }
 $result.screenSize = "${screenW}x${screenH}"
 
+# The reverse swipe. A list keeps its scroll position while the walk is away inside one of its rows,
+# so an entry that had to scroll down to be reached leaves every entry ABOVE it out of view for good -
+# and the hunt below only ever scrolled downwards. That is not a flaky tap: it is one direction of
+# travel on a list with two, and it turned one unrecognised screen into six unreachable ones on the
+# 2026-08-26 run (S1984).
+$swipeUp = @{
+    X1 = [int]($screenW / 2)
+    Y1 = [int]($screenH * 0.35)
+    X2 = [int]($screenW / 2)
+    Y2 = [int]($screenH * 0.75)
+}
+
+function Read-UiNodes {
+    # One tree read, flattened to the text the walk matches against. Returns $null when the dump
+    # could not be read at all, which the caller must tell apart from "read fine, token absent".
+    $dump = Invoke-AdbVerb -Arguments @('uidump', '-Json')
+    if ($dump.Exit -ne 0) { return $null }
+    $tree = $null
+    try { $tree = $dump.Output | ConvertFrom-Json } catch { return $null }
+    if (-not $tree) { return $null }
+    # The wrapper puts a verb's payload under `data`, not at the top level.
+    $nodes = @(if ($null -ne $tree.data -and $null -ne $tree.data.nodes) { $tree.data.nodes } else { $tree.nodes })
+    if ($nodes.Count -eq 0) { return $null }
+    return @($nodes | ForEach-Object { "$($_.label) $($_.resId)" }) -join "`n"
+}
+
+function Reset-ListToTop {
+    # Put the list back where the previous entry found it. Every entry then starts from one known
+    # position instead of from wherever its predecessor happened to stop, which is what makes two runs
+    # of this walk comparable at all - the whole point of a declared screen list.
+    param([int]$Times, [int]$SettleFor)
+    for ($u = 0; $u -lt $Times; $u++) {
+        Invoke-AdbVerb -Arguments @('swipe', '-X', $swipeUp.X1, '-Y', $swipeUp.Y1, '-X2', $swipeUp.X2, '-Y2', $swipeUp.Y2, '-Duration', '400') | Out-Null
+    }
+    if ($Times -gt 0) { Start-Sleep -Milliseconds $SettleFor }
+}
+
 $rows = @()
 
 foreach ($screen in $screens) {
@@ -152,6 +189,7 @@ foreach ($screen in $screens) {
         outcome  = 'manual'
         detail   = $null
         shot     = $null
+        rehomed  = $false
     }
 
     # Settle before reaching for the control too: the previous entry's BACK is still animating when
@@ -159,6 +197,18 @@ foreach ($screen in $screens) {
     # that is on its way out.
     $entrySettleMs = if ($null -ne $screen.settleMs) { [int]$screen.settleMs } else { $SettleMs }
     Start-Sleep -Milliseconds $entrySettleMs
+
+    # Is the app still in front? One BACK too many leaves it, and everything after that is measured
+    # against the watch launcher while still being reported as this app's screens - nine failures in a
+    # row on 2026-08-26, of which one was real. Re-entering costs a launch; not re-entering costs the
+    # rest of the run, so the walk re-homes and says it did rather than carrying on blind.
+    $current = Invoke-AdbVerb -Arguments @('current')
+    if ($current.Exit -eq 0 -and $current.Output -notmatch [regex]::Escape($APP_PACKAGE)) {
+        $relaunch = Invoke-AdbVerb -Arguments @('launch', '-Module', 'wear', '-Release')
+        Start-Sleep -Milliseconds $entrySettleMs
+        $row.rehomed = $true
+        if (-not $Json) { Write-Host "walk: $($screen.id) - app was not in front, relaunched (exit $($relaunch.Exit))" -ForegroundColor Yellow }
+    }
 
     # Reach the control, scrolling when it is not on screen yet. A watch list shows three or four
     # entries at a time, so most of a section's chips start below the fold - and a tap verb only sees
@@ -172,6 +222,11 @@ foreach ($screen in $screens) {
                elseif ($screen.optional) { 0 }
                else { $MaxScrolls }
     if ($screen.resourceId -or $screen.label) {
+        # Start from the top of whatever list this is. The hunt below travels one way only, so without
+        # this an entry sitting above the previous entry's stopping point is unreachable no matter how
+        # many times it scrolls - and which entries those are depends on where the last one stopped,
+        # which is precisely the run-to-run divergence this list exists to remove.
+        Reset-ListToTop -Times $scrolls -SettleFor $entrySettleMs
         for ($try = 0; $try -le $scrolls; $try++) {
             $tap = if ($screen.resourceId) {
                 Invoke-AdbVerb -Arguments @('tap-id', '-ResourceId', $screen.resourceId)
@@ -210,28 +265,45 @@ foreach ($screen in $screens) {
     # a working screen gets recorded as a failure, which is what the first live run of this script did
     # to sixteen screens out of eighteen.
     $settleMs = if ($null -ne $screen.settleMs) { [int]$screen.settleMs } else { $SettleMs }
-    $dump = $null
+    # $tree holds the flattened text of the last readable dump. It stays $null when no dump could be
+    # read at all, which is the `manual` case below - told apart from "read fine, token absent".
     $tree = $null
     $present = $false
 
     for ($attempt = 1; $attempt -le 2; $attempt++) {
         Start-Sleep -Milliseconds $settleMs
-        $dump = Invoke-AdbVerb -Arguments @('uidump', '-Json')
-        if ($dump.Exit -ne 0) { continue }
-        $tree = $null
-        try { $tree = $dump.Output | ConvertFrom-Json } catch { }
-        if (-not $tree) { continue }
-        # The wrapper puts a verb's payload under `data`, not at the top level. Reading $tree.nodes
-        # yields nothing and every screen then looks like a screen whose token was absent - which is
-        # how the first live run reported sixteen failures against an app that was working (S1984).
-        $nodes = @(if ($null -ne $tree.data -and $null -ne $tree.data.nodes) { $tree.data.nodes } else { $tree.nodes })
-        if ($nodes.Count -eq 0) { continue }
-        $haystack = @($nodes | ForEach-Object { "$($_.label) $($_.resId)" }) -join "`n"
+        $haystack = Read-UiNodes
+        if ($null -eq $haystack) { continue }
+        $tree = $haystack
         if ($haystack -match [regex]::Escape([string]$screen.expect)) { $present = $true; break }
     }
 
+    # Still not found: hunt for it the same way the tap above hunts for a control, instead of judging
+    # the screen by the slice of it that happens to be in view. A marker is chosen because it belongs
+    # to the destination, not because it fits on 480 px - `Clear` is the calculator's C key at the
+    # bottom of a scrolling keypad, `FastMedia Wear` is the home list's header ABOVE its resting
+    # position, and both were reported missing from screens that were plainly showing (S1984).
+    # Downwards first, because that is where most of a list is; then back to the top for a marker the
+    # list had already scrolled past.
+    if (-not $present -and $null -ne $tree) {
+        for ($hunt = 0; $hunt -lt $MaxScrolls; $hunt++) {
+            Invoke-AdbVerb -Arguments @('swipe', '-X', $swipe.X1, '-Y', $swipe.Y1, '-X2', $swipe.X2, '-Y2', $swipe.Y2, '-Duration', '400') | Out-Null
+            Start-Sleep -Milliseconds $settleMs
+            $haystack = Read-UiNodes
+            if ($null -ne $haystack -and $haystack -match [regex]::Escape([string]$screen.expect)) { $present = $true; break }
+        }
+    }
+    if (-not $present -and $null -ne $tree) {
+        for ($hunt = 0; $hunt -lt ($MaxScrolls * 2); $hunt++) {
+            Invoke-AdbVerb -Arguments @('swipe', '-X', $swipeUp.X1, '-Y', $swipeUp.Y1, '-X2', $swipeUp.X2, '-Y2', $swipeUp.Y2, '-Duration', '400') | Out-Null
+            Start-Sleep -Milliseconds $settleMs
+            $haystack = Read-UiNodes
+            if ($null -ne $haystack -and $haystack -match [regex]::Escape([string]$screen.expect)) { $present = $true; break }
+        }
+    }
+
     if (-not $tree) {
-        $row.detail = if ($dump -and $dump.Exit -ne 0) { "could not read the UI tree: $($dump.Output)" } else { 'the UI tree could not be parsed' }
+        $row.detail = 'the UI tree could not be read or carried no node on any attempt'
         $rows += [pscustomobject]$row
         if (-not $Json) { Write-Host "walk: $($screen.id) -> manual (no usable dump)" -ForegroundColor Yellow }
         continue

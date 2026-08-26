@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.domain.model.ResourceEditorMode
+import com.sza.fastmediasorter.domain.model.ResourceFieldKey
 import com.sza.fastmediasorter.domain.model.ResourceFormData
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
@@ -48,6 +49,44 @@ class ResourceEditorUseCaseTest {
             addResourceUseCase, updateResourceUseCase, smbOperationsUseCase,
             credentialsRepository, resolveResourceIconUseCase, UnconfinedTestDispatcher(),
         )
+    }
+
+    // S2041: strategyFor is private, so fieldSchema(type) is the only proof from the outside that
+    // both stream types reach StreamResourceStrategy rather than the folder schema they once had.
+    @Test
+    fun `fieldSchema renders only name, comment and pin for an http stream`() {
+        val visibleKeys = useCase.fieldSchema(ResourceType.HTTP_STREAM)
+            .filter { it.visible }
+            .map { it.key }
+            .toSet()
+
+        assertEquals(
+            setOf(ResourceFieldKey.NAME, ResourceFieldKey.COMMENT, ResourceFieldKey.ACCESS_PIN),
+            visibleKeys
+        )
+    }
+
+    @Test
+    fun `fieldSchema renders only name, comment and pin for an rtsp stream`() {
+        val visibleKeys = useCase.fieldSchema(ResourceType.RTSP_STREAM)
+            .filter { it.visible }
+            .map { it.key }
+            .toSet()
+
+        assertEquals(
+            setOf(ResourceFieldKey.NAME, ResourceFieldKey.COMMENT, ResourceFieldKey.ACCESS_PIN),
+            visibleKeys
+        )
+    }
+
+    @Test
+    fun `fieldSchema omits folder scanning and media types for both stream types`() {
+        listOf(ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM).forEach { type ->
+            val keys = useCase.fieldSchema(type).map { it.key }
+            assertFalse("$type must not offer subfolder scanning", keys.contains(ResourceFieldKey.SCAN_SUBDIRECTORIES))
+            assertFalse("$type must not offer a media-type filter", keys.contains(ResourceFieldKey.MEDIA_TYPES))
+            assertFalse("$type must not offer a destination flag", keys.contains(ResourceFieldKey.IS_DESTINATION))
+        }
     }
 
     @Test

@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.graphics.drawable.Icon
 import android.os.Build
 import android.util.Rational
@@ -41,11 +42,21 @@ class PictureInPictureManager(
     private var pipReceiver: BroadcastReceiver? = null
     private val savedVisibilities = mutableMapOf<android.view.View, Int>()
 
-    /** Whether PiP is supported on this device (API 26+) */
-    val isSupported: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+    /** Whether PiP is supported on this device (API 26+ and system feature present) */
+    val isSupported: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+        activity.packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
 
     /** Current enabled state - updated by [setupPipButton]. */
     var isEnabled: Boolean = false
+        private set
+
+    /**
+     * S2026: whether the host is currently in PiP. Read by the hosts' own overlay-visibility
+     * updaters, which run on state changes and would otherwise re-show chrome this manager hid.
+     * Not derived from `Activity.isInPictureInPictureMode` because that is API 24+ and the legacy
+     * flavor ships minSdk 23.
+     */
+    var isInPipMode: Boolean = false
         private set
 
     companion object {
@@ -102,6 +113,7 @@ class PictureInPictureManager(
     fun onPictureInPictureModeChanged(isInPipMode: Boolean) {
         Timber.d("S2026: PiP mode changed, isInPip=$isInPipMode")
         Timber.d("PiPManager: mode changed, isInPip=$isInPipMode")
+        this.isInPipMode = isInPipMode
 
         if (isInPipMode) {
             savedVisibilities.clear()
