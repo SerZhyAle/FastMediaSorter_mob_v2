@@ -1,4 +1,4 @@
-package com.sza.fastmediasorter.ui.common.widget
+package com.sza.fastmediasorter.data.local.preferences
 
 import android.content.Context
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
@@ -6,7 +6,8 @@ import com.sza.fastmediasorter.core.debug.StrictModeHelper
 /**
  * Single source of truth for collapsible-section expanded state.
  *
- * Keys are caller-supplied `<screen>__<section>` strings (see [CollapsibleSectionsManager]).
+ * Keys are caller-supplied `<screen>__<section>` strings
+ * (see [com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager]).
  * The abstraction hides the storage medium so it can be swapped later without touching screens.
  */
 interface CollapsibleSectionStore {

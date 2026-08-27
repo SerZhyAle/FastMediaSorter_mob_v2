@@ -3486,4 +3486,13 @@
     <string name="open_on_phone_notification_title">Открыть с часов</string>
     <string name="open_on_phone_notification_text">Нажмите, чтобы открыть %1$s</string>
     <string name="open_on_phone_channel_name">Открытие с часов</string>
+    <string name="wear_companion_enable_description">Включить настройку на часах</string>
+    <string name="wear_settings_audio_desc">Воспроизведение и синхронизация аудио на часах</string>
+    <string name="wear_settings_video_desc">Воспроизведение и синхронизация видео на часах</string>
+    <string name="wear_settings_images_desc">Просмотр и синхронизация изображений на часах</string>
+    <string name="wear_settings_slideshow_desc">Автоматически перелистывать слайд-шоу на часах</string>
+    <string name="wear_settings_album_art_desc">Загружать обложки медиафайлов на часы</string>
+    <string name="wear_settings_keep_awake_desc">Предотвращать засыпание экрана часов вне плееров</string>
+    <string name="launcher_settings_wallpaper_camera">Камера</string>
+    <string name="launcher_settings_wallpaper_camera_lens_title">Выберите камеру</string>
 </resources>

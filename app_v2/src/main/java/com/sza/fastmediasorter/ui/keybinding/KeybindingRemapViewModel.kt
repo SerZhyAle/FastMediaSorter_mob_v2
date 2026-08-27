@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.core.xr.VrMediaSectionContract
 import com.sza.fastmediasorter.data.input.InputBindingRepository
+import com.sza.fastmediasorter.data.local.preferences.CollapsibleSectionStore
+import com.sza.fastmediasorter.data.local.preferences.SharedPreferencesCollapsibleSectionStore
 import com.sza.fastmediasorter.domain.input.BindingSource
 import com.sza.fastmediasorter.domain.input.CommandGroup
 import com.sza.fastmediasorter.domain.input.InputBinding
@@ -14,8 +16,6 @@ import com.sza.fastmediasorter.domain.input.usecase.ResetAllUseCase
 import com.sza.fastmediasorter.domain.input.usecase.ResetBindingUseCase
 import com.sza.fastmediasorter.domain.input.usecase.ResetGroupUseCase
 import com.sza.fastmediasorter.domain.input.usecase.SetBindingUseCase
-import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionStore
-import com.sza.fastmediasorter.ui.common.widget.SharedPreferencesCollapsibleSectionStore
 import com.sza.fastmediasorter.ui.keybinding.helpers.KeybindingRowLabelFormatter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -45,8 +45,8 @@ data class RemapUiState(
 data class KeybindingRow(
     val commandId: String,
     val group: CommandGroup,
-    val labelKey: String,      // pre-resolved localised label
-    val bindings: Map<String, List<InputTrigger>>,  // device → triggers
+    val labelKey: String, // pre-resolved localised label
+    val bindings: Map<String, List<InputTrigger>>, // device → triggers
     val hasOverride: Boolean,
     val conflictWith: List<String> = emptyList()
 )
@@ -106,7 +106,12 @@ class KeybindingRemapViewModel @Inject constructor(
 
     fun onCaptureCompleted(trigger: InputTrigger) {
         val capture = _state.value.pendingCapture ?: return
-        Timber.d("Capture completed: commandId=%s device=%s trigger=%s", capture.commandId, capture.device, trigger.serialize())
+        Timber.d(
+            "Capture completed: commandId=%s device=%s trigger=%s",
+            capture.commandId,
+            capture.device,
+            trigger.serialize()
+        )
         viewModelScope.launch {
             setBinding(capture.commandId, capture.device, capture.slot, trigger)
             _state.update { it.copy(pendingCapture = null) }

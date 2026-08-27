@@ -8,7 +8,6 @@ import android.view.KeyEvent
 import android.view.View
 import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isVisible
-import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityCalculatorBinding
 import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorHistoryScaleManager
@@ -131,6 +130,12 @@ class CalculatorActivity :
             } else {
                 setResult(Activity.RESULT_OK, Intent().putExtra(EXTRA_RESULT, result))
             }
+        }
+        if (isTaskRoot) {
+            startActivity(
+                Intent(this, com.sza.fastmediasorter.ui.main.MainActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            )
         }
         finish()
     }

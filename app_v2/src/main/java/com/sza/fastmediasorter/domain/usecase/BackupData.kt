@@ -1,13 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase
 
-import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.domain.model.AppSettings
-import com.sza.fastmediasorter.domain.model.DisplayMode
-import com.sza.fastmediasorter.domain.model.MediaType
-import com.sza.fastmediasorter.domain.model.ResourceType
-import com.sza.fastmediasorter.domain.model.ScheduledOpType
-import com.sza.fastmediasorter.domain.model.SortMode
-import com.sza.fastmediasorter.domain.model.TimeFilter
 
 /**
  * Backup payload serialized to/from JSON for Google Drive backup.
@@ -216,6 +209,7 @@ data class BackupSettings(
     val launcherDesktopLocked: Boolean = false,
     val launcherWallpaperMode: String = "BRANDED",
     val launcherWallpaperImagePath: String = "",
+    val launcherWallpaperCameraId: String = "",
     val allAppsSortOrder: String = "LABEL",
     val allAppsSortDescending: Boolean = false,
     val launcherScreenBlackoutTimeoutSeconds: Int = 0

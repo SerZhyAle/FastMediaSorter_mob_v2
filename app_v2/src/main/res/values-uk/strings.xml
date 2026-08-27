@@ -3471,4 +3471,13 @@
     <string name="open_on_phone_notification_title">Відкрити з годинника</string>
     <string name="open_on_phone_notification_text">Натисніть, щоб відкрити %1$s</string>
     <string name="open_on_phone_channel_name">Відкриття з годинника</string>
+    <string name="wear_companion_enable_description">Увімкнути налаштування на годиннику</string>
+    <string name="wear_settings_audio_desc">Відтворення та синхронізація аудіо на годиннику</string>
+    <string name="wear_settings_video_desc">Відтворення та синхронізація відео на годиннику</string>
+    <string name="wear_settings_images_desc">Перегляд та синхронізація зображень на годиннику</string>
+    <string name="wear_settings_slideshow_desc">Автоматично перегортати слайд-шоу на годиннику</string>
+    <string name="wear_settings_album_art_desc">Завантажувати обкладинки медіафайлів на годинник</string>
+    <string name="wear_settings_keep_awake_desc">Запобігати згасанню екрана годинника поза плеєрами</string>
+    <string name="launcher_settings_wallpaper_camera">Камера</string>
+    <string name="launcher_settings_wallpaper_camera_lens_title">Виберіть камеру</string>
 </resources>

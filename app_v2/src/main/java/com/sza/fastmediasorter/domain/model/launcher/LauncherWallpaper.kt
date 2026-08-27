@@ -19,4 +19,13 @@ sealed interface LauncherWallpaper {
 
     /** User image (still or GIF) copied into app-private storage. */
     data class Image(val absolutePath: String) : LauncherWallpaper
+
+    /**
+     * S2076: live frame from a device camera.
+     *
+     * [cameraId] is the `CameraLensEntry.id` form - the logical camera id, optionally followed by `/` and a
+     * physical sub-lens id. An instance is proof the camera was reachable when the mode was resolved, the
+     * same way an [Image] instance is proof of a present path.
+     */
+    data class LiveCamera(val cameraId: String) : LauncherWallpaper
 }

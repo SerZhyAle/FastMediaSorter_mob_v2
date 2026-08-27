@@ -128,55 +128,90 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     }
 
     @Inject lateinit var googleDriveClient: Lazy<GoogleDriveRestClient>
+
     @Inject lateinit var resourceOpsMenuManager: com.sza.fastmediasorter.ui.browse.managers.ResourceOpsMenuManager
-    @Inject lateinit var browseFileOverflowMenuManager: com.sza.fastmediasorter.ui.browse.helpers.BrowseFileOverflowMenuManager
+
+    @Inject lateinit var browseFileOverflowMenuManager:
+        com.sza.fastmediasorter.ui.browse.helpers.BrowseFileOverflowMenuManager
+
     @Inject lateinit var dropboxClient: Lazy<com.sza.fastmediasorter.data.cloud.DropboxClient>
+
     @Inject lateinit var oneDriveClient: Lazy<com.sza.fastmediasorter.data.cloud.OneDriveRestClient>
 
     @Inject lateinit var browseHostFactory: BrowseHostFactory
+
     @Inject lateinit var smbClient: Lazy<SmbClient>
+
     @Inject lateinit var sftpClient: Lazy<SftpClient>
+
     @Inject lateinit var ftpClient: Lazy<FtpClient>
+
     @Inject lateinit var unifiedFileOperationHandler: com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
+
     @Inject lateinit var audioMetadataLoader: com.sza.fastmediasorter.core.util.AudioMetadataLoader
+
     @Inject lateinit var unifiedFileCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache
+
     @Inject lateinit var gamepadInputManager: GamepadInputManager
+
     @Inject lateinit var keyBindingManager: KeyBindingManager
+
     @Inject lateinit var localToFtpStrategy: LocalToFtpStrategy
+
     @Inject lateinit var localToSmbStrategy: LocalToSmbStrategy
+
     @Inject lateinit var localToSftpStrategy: LocalToSftpStrategy
+
     @Inject lateinit var cameraCaptureSaver: com.sza.fastmediasorter.data.capture.CameraCaptureSaver
+
     @Inject lateinit var passthroughCaptureProvider: java.util.Optional<BrowsePassthroughCaptureProvider>
+
     // Flavor multibinding keeps flavor-only Browse actions out of market APKs.
     @Inject lateinit var binaryFileMenuActions: Set<@JvmSuppressWildcards BrowseBinaryFileMenuAction>
+
     @Inject lateinit var browseApkTileBadgeBinder: BrowseApkTileBadgeBinder
+
     @Inject lateinit var reviewRequestManager: com.sza.fastmediasorter.ui.browse.helpers.ReviewRequestManager
 
     @Inject lateinit var browseTransferCoordinator: BrowseFileTransferCoordinator
+
     @Inject lateinit var restrictedTreeTargetPolicy: RestrictedTreeTargetPolicy
+
     @Inject lateinit var mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities
+
     @Inject lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
+
     @Inject lateinit var openInShareTargetHandler: com.sza.fastmediasorter.core.share.handlers.OpenInShareTargetHandler
 
     // S0783: favicon sprite-atlas sidecar (shared with the streams catalog) so the Favorites list can
     // paint a live channel's logo on its STREAM rows, mirroring StreamsActivity.
     @Inject lateinit var faviconAtlasStore: com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
+
     // S0242 Phase 03: sole consumer of the MutationJournal on the Browse side.
     @Inject lateinit var browseReconcilerManager: com.sza.fastmediasorter.ui.browse.managers.BrowseReconcilerManager
 
     // S0207 Phase 01: BROWSE_OPENED memory checkpoint emitter.
     @Inject lateinit var memoryProbe: MemoryProbe
+
     @Inject lateinit var memoryProfileCoordinator: MemoryProfileCoordinator
+
     // S0189: staging infra for text notes (and S0191 drawings) created in network/cloud directories
     @Inject lateinit var stagingDirectoryProvider: com.sza.fastmediasorter.data.local.staging.StagingDirectoryProvider
+
     @Inject lateinit var localStagingRegistry: com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
+
     // S0231: scoped-storage-aware writer injected for ad-hoc CloudOperationStrategy construction.
     @Inject lateinit var destinationClassifier: com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
+
     @Inject lateinit var destinationWriter: com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
+
     // S0473: usage-statistics sink, threaded into BrowseMicRecordingManager for voice-note capture.
     @Inject lateinit var statsSink: com.sza.fastmediasorter.domain.stats.StatsSink
+
     @Inject lateinit var networkStateMonitor: com.sza.fastmediasorter.core.network.NetworkStateMonitor
+
     @Inject lateinit var saveFallbackNotifier: com.sza.fastmediasorter.core.save.SaveFallbackNotifier
+
     @Inject lateinit var micRecordingSaver: com.sza.fastmediasorter.data.capture.MicRecordingSaver
 
     // S0901: application-lifetime scope so a mic recording save survives BrowseActivity teardown.
@@ -199,8 +234,10 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     private var showPdfThumbnails = false
     private var isFirstResume = true
     private var lastSubmittedSortMode: com.sza.fastmediasorter.domain.model.SortMode? = null
+
     // S0028: per-window resume state isolation
     private var windowId: String = ResumeStateRepository.WINDOW_ID_MAIN
+
     // S0196 Phase 04 measurement hook: one-shot tag emitted on the first non-empty list bind so
     // perf traces can mark "primary content rendered" for the browse surface.
     private var firstListBoundLogged = false
@@ -230,35 +267,38 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         windowId = savedInstanceState?.getString(EXTRA_WINDOW_ID)
             ?: intent.getStringExtra(EXTRA_WINDOW_ID)
             ?: ResumeStateRepository.WINDOW_ID_MAIN
-        launcherManager = BrowseLauncherManager(this, object : BrowseLauncherCallbacks {
-            override fun onPlayerActivityReturned() {
-                // S0242 Phase 02: Player no longer ships a modified-paths payload. The Browse
-                // Reconciler (Phase 03) reads the MutationJournal on onResume and applies the
-                // structural diff against the cached file list. The note save-and-close flow
-                // (PlayerViewerFactory.finishActivity) is the remaining producer of RESULT_OK.
-                Timber.d("BrowseActivity: PlayerActivity returned RESULT_OK; Reconciler will run on next onResume")
-            }
-            override fun onEditResourceReturned() {
-                Timber.i("Resource updated, reloading files")
-                viewModel.reloadFiles(clearList = true)
-            }
-            override fun onDeletePermissionGranted() {
-                viewModel.onDeletePermissionGranted()
-            }
-            override fun onPermissionDenied() {
-                android.widget.Toast.makeText(this@BrowseActivity, R.string.permission_denied, android.widget.Toast.LENGTH_SHORT).show()
-            }
-            override fun clearPendingMoveOperation() {
-                if (::initializer.isInitialized) {
-                    initializer.fileOperationsManager.clearPendingMoveOperation()
+        launcherManager = BrowseLauncherManager(
+            this,
+            object : BrowseLauncherCallbacks {
+                override fun onPlayerActivityReturned() {
+                    // S0242 Phase 02: Player no longer ships a modified-paths payload. The Browse
+                    // Reconciler (Phase 03) reads the MutationJournal on onResume and applies the
+                    // structural diff against the cached file list. The note save-and-close flow
+                    // (PlayerViewerFactory.finishActivity) is the remaining producer of RESULT_OK.
+                    Timber.d("BrowseActivity: PlayerActivity returned RESULT_OK; Reconciler will run on next onResume")
+                }
+                override fun onEditResourceReturned() {
+                    Timber.i("Resource updated, reloading files")
+                    viewModel.reloadFiles(clearList = true)
+                }
+                override fun onDeletePermissionGranted() {
+                    viewModel.onDeletePermissionGranted()
+                }
+                override fun onPermissionDenied() {
+                    android.widget.Toast.makeText(this@BrowseActivity, R.string.permission_denied, android.widget.Toast.LENGTH_SHORT).show()
+                }
+                override fun clearPendingMoveOperation() {
+                    if (::initializer.isInitialized) {
+                        initializer.fileOperationsManager.clearPendingMoveOperation()
+                    }
+                }
+                override fun onFolderPicked(uri: Uri?) {
+                    if (::initializer.isInitialized) {
+                        initializer.folderPickerHandler.onFolderPicked(uri)
+                    }
                 }
             }
-            override fun onFolderPicked(uri: Uri?) {
-                if (::initializer.isInitialized) {
-                    initializer.folderPickerHandler.onFolderPicked(uri)
-                }
-            }
-        })
+        )
         // S0367: the capture-destination override resolves a configured resource id to a MediaResource;
         // BrowseHostFactory owns that lookup now.
         cameraCaptureManager = browseHostFactory.createCameraCaptureManager(
@@ -302,7 +342,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             onRecordingStateChanged = { isRecording ->
                 val tint = if (isRecording) {
                     ColorStateList.valueOf(getColor(R.color.recording_active_tint))
-                } else null
+                } else {
+                    null
+                }
                 binding.btnMicRecord?.iconTint = tint
             },
             onUploadFile = { tempFile, name, resource ->
@@ -438,20 +480,33 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         initializer.initialize()
         loadFaviconCoords()
 
-        onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                if (viewModel.canNavigateUp()) {
-                    if (viewModel.state.value.resource?.isAudioOnly() != true) viewModel.inlineStop()
-                    if (viewModel.navigateUp()) {
-                        Timber.d("Navigated back to parent folder")
-                        return
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : androidx.activity.OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    if (viewModel.canNavigateUp()) {
+                        if (viewModel.state.value.resource?.isAudioOnly() != true) viewModel.inlineStop()
+                        if (viewModel.navigateUp()) {
+                            Timber.d("Navigated back to parent folder")
+                            return
+                        }
+                    }
+                    viewModel.clearResumeState()
+                    // S2097: If back stack is empty (e.g. opened directly via shortcut or process restore),
+                    // navigate up to MainActivity explicitly to stop at home screen.
+                    if (isTaskRoot) {
+                        startActivity(
+                            Intent(this@BrowseActivity, com.sza.fastmediasorter.ui.main.MainActivity::class.java)
+                                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                        )
+                        finish()
+                    } else {
+                        isEnabled = false
+                        onBackPressedDispatcher.onBackPressed()
                     }
                 }
-                viewModel.clearResumeState()
-                isEnabled = false
-                onBackPressedDispatcher.onBackPressed()
             }
-        })
+        )
 
         binding.btnBack.setOnClickListener {
             UserActionLogger.logButtonClick("Back", "BrowseActivity")
@@ -460,6 +515,12 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 if (viewModel.navigateUp()) return@setOnClickListener
             }
             viewModel.clearResumeState()
+            if (isTaskRoot) {
+                startActivity(
+                    Intent(this, com.sza.fastmediasorter.ui.main.MainActivity::class.java)
+                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                )
+            }
             finish()
             @Suppress("DEPRECATION")
             overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
@@ -492,9 +553,13 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         collectOnLifecycle(viewModel.state) { state ->
             val previousMediaFiles = viewModel.lastEmittedMediaFiles
             val sortChanged = state.sortMode != lastSubmittedSortMode
-            val shouldSubmit = if (previousMediaFiles == null) true
-            else if (sortChanged) true
-            else state.mediaFiles !== previousMediaFiles
+            val shouldSubmit = if (previousMediaFiles == null) {
+                true
+            } else if (sortChanged) {
+                true
+            } else {
+                state.mediaFiles !== previousMediaFiles
+            }
 
             if (shouldSubmit) {
                 viewModel.markListAsSubmitted(state.mediaFiles)
@@ -564,7 +629,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         return if (::initializer.isInitialized) {
             initializer.keyboardNavigationManager.handleKeyDown(keyCode, event) || super.onKeyDown(keyCode, event)
-        } else super.onKeyDown(keyCode, event)
+        } else {
+            super.onKeyDown(keyCode, event)
+        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -827,6 +894,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         const val EXTRA_INITIAL_FILE_PATH = "initialFilePath"
         const val EXTRA_REATTACH_TRANSFER = "reattachTransfer"
         const val EXTRA_RESUME_IS_PLAYING = "resumeIsPlaying"
+
         // S0028: multi-window - window identity and tear-off state
         const val EXTRA_WINDOW_ID = "extra_window_id"
         const val EXTRA_SCROLL_POSITION = "extra_scroll_position"

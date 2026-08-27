@@ -16,13 +16,14 @@
     A second session is simulated by swapping CLAUDE_CODE_SESSION_ID around each call; the caller's
     own value is restored in a finally, since every other lock-aware script in the tree reads it.
 
-.EXIT CODES
-    0 - every assertion passed; the sandbox is deleted.
-    1 - at least one assertion failed; the sandbox is kept for inspection and its path is printed.
-    2 - the sandbox could not be prepared, so nothing was checked.
-
 .EXAMPLE
     pwsh -NoProfile -File scripts/utils/test-agent-lock-queue.ps1
+
+.NOTES
+    Exit codes:
+      0 - every assertion passed; the sandbox is deleted.
+      1 - at least one assertion failed; the sandbox is kept for inspection and its path is printed.
+      2 - the sandbox could not be prepared, so nothing was checked.
 #>
 
 $ErrorActionPreference = 'Stop'
@@ -212,6 +213,49 @@ try {
     Write-Verdict -Label 'strict mode: a pre-S1448 queue head is stamped without a property-probe error' `
         -Ok ([string]::IsNullOrEmpty($strictError)) `
         -Detail $(if ($strictError) { "(threw: $strictError)" } else { '(no error under Set-StrictMode -Version Latest)' })
+
+    # 8 - S2098. Withdrawing drops the caller's own ticket and promotes whoever was behind it. The
+    #     removal runs through the library function rather than the CLI because the sandbox is a
+    #     $Script:AgentLockRepoRoot override, which a separate pwsh process would not inherit - it
+    #     would read the repository's real queue and delete a sibling session's ticket.
+    Reset-Sandbox
+    $env:CLAUDE_CODE_SESSION_ID = $sessionA
+    [void](New-AgentLockTicket -Name Code -Reason 'A, intent later abandoned')
+    $env:CLAUDE_CODE_SESSION_ID = $sessionB
+    [void](New-AgentLockTicket -Name Code -Reason 'B, waiting behind A')
+    $env:CLAUDE_CODE_SESSION_ID = $sessionA
+    $withdrawn = Remove-AgentSessionTickets -Name Code -SessionId $sessionA
+    $afterWithdraw = @(Get-AgentLockQueue -Name Code)
+    $promoted = ($afterWithdraw.Count -eq 1) -and ([string]$afterWithdraw[0].sessionId -eq $sessionB)
+    Write-Verdict -Label 'withdraw: dropping an abandoned intent removes only the caller ticket and promotes the waiter' `
+        -Ok (($withdrawn -eq 1) -and $promoted) `
+        -Detail "(withdrawn=$withdrawn, left=$($afterWithdraw.Count), head=$(if ($afterWithdraw.Count) { $afterWithdraw[0].sessionId } else { 'n/a' }))"
+
+    # 9 - The same call must be inert against another session's place. This is the boundary that
+    #     separates withdraw from clear-agent-lock.ps1 -Force, which drops the whole queue.
+    Reset-Sandbox
+    $env:CLAUDE_CODE_SESSION_ID = $sessionB
+    [void](New-AgentLockTicket -Name Code -Reason 'B, working normally')
+    $env:CLAUDE_CODE_SESSION_ID = $sessionA
+    $foreignWithdrawn = Remove-AgentSessionTickets -Name Code -SessionId $sessionA
+    $foreignSurvivors = @(Get-AgentLockQueue -Name Code)
+    Write-Verdict -Label 'withdraw boundary: a session with no ticket removes nothing and leaves the other session queued' `
+        -Ok (($foreignWithdrawn -eq 0) -and ($foreignSurvivors.Count -eq 1)) `
+        -Detail "(withdrawn=$foreignWithdrawn, survivors=$($foreignSurvivors.Count))"
+
+    # 10 - Withdraw is an operation on the QUEUE, never on the lock. A held lock - here another
+    #      session's - must still be there afterwards, which is what makes the call safe to run at
+    #      any moment during someone else's edit.
+    Reset-Sandbox
+    $env:CLAUDE_CODE_SESSION_ID = $sessionB
+    [void](Enter-AgentLock -Name Code -Reason 'B is mid-edit')
+    $env:CLAUDE_CODE_SESSION_ID = $sessionA
+    [void](New-AgentLockTicket -Name Code -Reason 'A, queued then abandoned')
+    [void](Remove-AgentSessionTickets -Name Code -SessionId $sessionA)
+    $lockAfter = Get-AgentLockStatus -Name Code
+    Write-Verdict -Label 'withdraw safety: another session lock survives a withdraw untouched' `
+        -Ok ($lockAfter.Exists -and ([string]$lockAfter.SessionId -eq $sessionB)) `
+        -Detail "(lock exists=$($lockAfter.Exists), owner=$($lockAfter.SessionId))"
 }
 finally {
     if ($null -eq $callerSessionId) { Remove-Item Env:\CLAUDE_CODE_SESSION_ID -ErrorAction SilentlyContinue }

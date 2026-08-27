@@ -86,8 +86,11 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
     // S1329: the repositories, use cases and network collaborators this host used to field-inject now live
     // behind the factory, which builds each manager itself (Rule 3).
     @Inject lateinit var standaloneHostFactory: StandaloneHostFactory
+
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
+
     @Inject lateinit var capabilityAvailability: CapabilityAvailability
+
     @Inject lateinit var mediaCapabilities: MediaCapabilities
 
     // S0393 wave-C: enables in-place text editing (save) for writable local text files.
@@ -126,7 +129,9 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
             callback = object : com.sza.fastmediasorter.ui.player.DestinationButtonsManager.DestinationButtonsCallback {
                 override fun onCopyClicked(destination: MediaResource) = fileOperations.copyCurrentFileTo(destination)
                 override fun onMoveClicked(destination: MediaResource) = fileOperations.moveCurrentFileTo(destination)
-                override fun onCustomPathPickerRequested(operationType: com.sza.fastmediasorter.domain.model.FileOperationType) {
+                override fun onCustomPathPickerRequested(
+                    operationType: com.sza.fastmediasorter.domain.model.FileOperationType
+                ) {
                     pendingCustomPathOp = operationType
                     customPathPickerLauncher.launch(null)
                 }
@@ -155,13 +160,17 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
             context = this,
             callback = object : TranslationManager.TranslationCallback {
                 override fun showError(message: String) = showToastError(message)
+
                 // S0393 wave-C: real download prompt so first-use translation doesn't silently no-op.
                 override fun showModelDownloadPrompt(
                     languageName: String,
                     onConfirm: () -> Unit,
                     onCancel: () -> Unit
                 ) {
-                    if (isFinishing || isDestroyed) { onCancel(); return }
+                    if (isFinishing || isDestroyed) {
+                        onCancel()
+                        return
+                    }
                     com.google.android.material.dialog.MaterialAlertDialogBuilder(this@TextStandaloneActivity)
                         .setTitle(R.string.download_translation_model_title)
                         .setMessage(getString(R.string.download_translation_model_message, languageName))
@@ -218,6 +227,7 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
 
     override val printHostActivity: AppCompatActivity get() = this
     override val printNetworkFileManager: NetworkFileManager get() = networkFileManager
+
     // No Office viewer in the text host - only TEXT reaches it, so there is no internal Office print path.
     override fun printOfficeDocument(): Boolean = false
     override fun showPrintMessage(message: String) {
@@ -310,13 +320,19 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
 
     override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent?): Boolean {
         if (::keyboardHandler.isInitialized &&
-            keyboardHandler.handleKeyDown(keyCode, event)) return true
+            keyboardHandler.handleKeyDown(keyCode, event)
+        ) {
+            return true
+        }
         return super.onKeyDown(keyCode, event)
     }
 
     override fun dispatchGenericMotionEvent(event: android.view.MotionEvent): Boolean {
         if (::keyboardHandler.isInitialized &&
-            keyboardHandler.handlePointerEvent(window.decorView, event)) return true
+            keyboardHandler.handlePointerEvent(window.decorView, event)
+        ) {
+            return true
+        }
         return super.dispatchGenericMotionEvent(event)
     }
 
@@ -362,9 +378,23 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
     }
 
     private fun setupBackPressHandler() {
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() { finish() }
-        })
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    if (isTaskRoot) {
+                        val intent = Intent(
+                            this@TextStandaloneActivity,
+                            com.sza.fastmediasorter.ui.main.MainActivity::class.java
+                        ).apply {
+                            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                        }
+                        startActivity(intent)
+                    }
+                    finish()
+                }
+            }
+        )
     }
 
     private fun setupFileOperationButtons() {
@@ -392,15 +422,20 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
             // S1364: hiding menu_edit_section_standalone removes its children with it, so the editing
             // ids are no longer listed individually. That also retires menu_rotate_content_standalone
             // on this host, which rendered but had no branch in the when below - a dead tap.
-            listOf(R.id.menu_edit_section_standalone,
+            listOf(
+                R.id.menu_edit_section_standalone,
                 R.id.menu_rename_standalone, R.id.menu_autorotate_standalone,
                 R.id.menu_black_screen, R.id.menu_google_lens, R.id.menu_youtube_music, R.id.menu_ocr_image,
                 R.id.menu_translate_image, R.id.menu_print, R.id.menu_save_frame,
-                R.id.menu_sleep_timer, R.id.menu_lyrics, R.id.menu_playback_speed)
+                R.id.menu_sleep_timer, R.id.menu_lyrics, R.id.menu_playback_speed
+            )
                 .forEach { popup.menu.findItem(it)?.isVisible = false }
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
-                    R.id.menu_open_in_fms -> { fileOperations.openInFms(); true }
+                    R.id.menu_open_in_fms -> {
+                        fileOperations.openInFms()
+                        true
+                    }
                     else -> false
                 }
             }

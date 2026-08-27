@@ -102,7 +102,43 @@ data class WearFileReceiveResult(
 /** S1861: how one outgoing file ended when this side started the transfer. */
 enum class WearFileSendOutcome {
     SENT,
+    QUEUED_ON_PHONE,
+    NO_DESTINATION,
+    UNCONFIRMED,
     TOO_LARGE,
     PHONE_UNREACHABLE,
     FAILED
 }
+
+/** Immediate outcome acknowledgement sent by phone to watch after receiving a file. */
+data class WearFileReceiveAck(
+    @SerializedName("fileName")
+    val fileName: String = "",
+    @SerializedName("outcome")
+    val outcome: String = "",
+    @SerializedName("destination")
+    val destination: String = ""
+) {
+    companion object {
+        const val OUTCOME_SAVED = "SAVED"
+        const val OUTCOME_QUEUED = "QUEUED"
+        const val OUTCOME_NO_DESTINATION = "NO_DESTINATION"
+        const val OUTCOME_TOO_LARGE = "TOO_LARGE"
+        const val OUTCOME_FAILED = "FAILED"
+    }
+}
+
+/**
+ * Deferred upload outcome published as a Data Item by phone to watch.
+ * [completedAtMillis] ensures Data Layer publishes an update even for duplicate outcomes.
+ */
+data class WearFileUploadOutcome(
+    @SerializedName("fileName")
+    val fileName: String = "",
+    @SerializedName("succeeded")
+    val succeeded: Boolean = false,
+    @SerializedName("destination")
+    val destination: String = "",
+    @SerializedName("completedAtMillis")
+    val completedAtMillis: Long = 0L
+)

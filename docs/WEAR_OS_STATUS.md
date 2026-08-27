@@ -331,6 +331,13 @@ already-shipped halves rather than adding a transport: S1861 moved the bytes, S1
 
 ---
 
+## 📡 Receive File Outcome Ack & Deferred Outcome (S2087)
+
+- Path `FILE_RECEIVE_ACK` (`/fms/phone/receive_file_ack`), phone → watch, message carrying `WearFileReceiveAck { fileName, outcome, destination }`. Tells the watch immediately after transfer whether the file landed in a local folder or was queued for remote upload.
+- Path `FILE_UPLOAD_OUTCOME` (`/fms/phone/receive_file_upload_outcome`), phone → watch, Data Item carrying `WearFileUploadOutcome { fileName, succeeded, destination, completedAtMillis }`. Published by the phone upload worker upon completion and consumed by `WatchWearListenerService`. If `succeeded == false`, the watch raises a failure notification (`WearUploadOutcomeNotifier`) and deletes the Data Item.
+
+---
+
 ## 📡 Open on the Phone - the twelfth path (S2004)
 
 The reverse of S1884: a file the watch fetched **from** the phone can be handed back to the phone to be

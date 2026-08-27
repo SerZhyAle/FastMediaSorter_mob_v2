@@ -97,6 +97,7 @@ class AudioStandaloneActivity :
     // `dagger.Lazy`, so a local/content URI still pays for none of them. The lyrics lookup was the one field
     // this host actually called, so it moved to the ViewModel instead.
     @Inject lateinit var standaloneHostFactory: StandaloneHostFactory
+
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
 
     // S0393 U4/U5: keyboard / D-pad layer (audio transport + paging), ported from legacy host.
@@ -156,7 +157,9 @@ class AudioStandaloneActivity :
             callback = object : com.sza.fastmediasorter.ui.player.DestinationButtonsManager.DestinationButtonsCallback {
                 override fun onCopyClicked(destination: MediaResource) = fileOperations.copyCurrentFileTo(destination)
                 override fun onMoveClicked(destination: MediaResource) = fileOperations.moveCurrentFileTo(destination)
-                override fun onCustomPathPickerRequested(operationType: com.sza.fastmediasorter.domain.model.FileOperationType) {
+                override fun onCustomPathPickerRequested(
+                    operationType: com.sza.fastmediasorter.domain.model.FileOperationType
+                ) {
                     pendingCustomPathOp = operationType
                     customPathPickerLauncher.launch(null)
                 }
@@ -232,7 +235,10 @@ class AudioStandaloneActivity :
             val text = viewModel.findLyricsFor(file).getOrNull()
             if (!text.isNullOrBlank()) {
                 com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog.show(
-                    this@AudioStandaloneActivity, title = getString(R.string.lyrics), message = text)
+                    this@AudioStandaloneActivity,
+                    title = getString(R.string.lyrics),
+                    message = text
+                )
             } else {
                 Toast.makeText(this@AudioStandaloneActivity, R.string.lyrics_not_found, Toast.LENGTH_SHORT).show()
             }
@@ -266,8 +272,11 @@ class AudioStandaloneActivity :
         val uri = Uri.parse("https://music.youtube.com/search?q=" + Uri.encode(query))
         try {
             val app = Intent(Intent.ACTION_VIEW, uri).setPackage("com.google.android.apps.youtube.music")
-            if (app.resolveActivity(packageManager) != null) startActivity(app)
-            else startActivity(Intent(Intent.ACTION_VIEW, uri))
+            if (app.resolveActivity(packageManager) != null) {
+                startActivity(app)
+            } else {
+                startActivity(Intent(Intent.ACTION_VIEW, uri))
+            }
         } catch (e: Exception) {
             Timber.e(e, "AudioStandalone: YouTube Music search failed")
             Toast.makeText(this, R.string.search_in_youtube_music_no_app, Toast.LENGTH_SHORT).show()
@@ -301,13 +310,19 @@ class AudioStandaloneActivity :
 
     override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent?): Boolean {
         if (::keyboardHandler.isInitialized &&
-            keyboardHandler.handleKeyDown(keyCode, event)) return true
+            keyboardHandler.handleKeyDown(keyCode, event)
+        ) {
+            return true
+        }
         return super.onKeyDown(keyCode, event)
     }
 
     override fun dispatchGenericMotionEvent(event: android.view.MotionEvent): Boolean {
         if (::keyboardHandler.isInitialized &&
-            keyboardHandler.handlePointerEvent(window.decorView, event)) return true
+            keyboardHandler.handlePointerEvent(window.decorView, event)
+        ) {
+            return true
+        }
         return super.dispatchGenericMotionEvent(event)
     }
 
@@ -355,9 +370,23 @@ class AudioStandaloneActivity :
     }
 
     private fun setupBackPressHandler() {
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() { finish() }
-        })
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    if (isTaskRoot) {
+                        val intent = Intent(
+                            this@AudioStandaloneActivity,
+                            com.sza.fastmediasorter.ui.main.MainActivity::class.java
+                        ).apply {
+                            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                        }
+                        startActivity(intent)
+                    }
+                    finish()
+                }
+            }
+        )
     }
 
     private fun setupFileOperationButtons() {
@@ -385,18 +414,35 @@ class AudioStandaloneActivity :
             // ids are no longer listed individually. That also retires menu_rotate_content_standalone
             // on this host, which rendered but had no branch in the when below - a dead tap, and
             // meaningless for audio, which has no frame to rotate.
-            listOf(R.id.menu_edit_section_standalone,
+            listOf(
+                R.id.menu_edit_section_standalone,
                 R.id.menu_rename_standalone, R.id.menu_autorotate_standalone,
                 R.id.menu_black_screen, R.id.menu_google_lens, R.id.menu_ocr_image,
-                R.id.menu_translate_image, R.id.menu_print, R.id.menu_save_frame)
+                R.id.menu_translate_image, R.id.menu_print, R.id.menu_save_frame
+            )
                 .forEach { popup.menu.findItem(it)?.isVisible = false }
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
-                    R.id.menu_open_in_fms -> { fileOperations.openInFms(); true }
-                    R.id.menu_youtube_music -> { searchInYouTubeMusic(); true }
-                    R.id.menu_lyrics -> { showLyrics(); true }
-                    R.id.menu_sleep_timer -> { showSleepTimerDialog(); true }
-                    R.id.menu_playback_speed -> { showPlaybackSpeedDialog(); true }
+                    R.id.menu_open_in_fms -> {
+                        fileOperations.openInFms()
+                        true
+                    }
+                    R.id.menu_youtube_music -> {
+                        searchInYouTubeMusic()
+                        true
+                    }
+                    R.id.menu_lyrics -> {
+                        showLyrics()
+                        true
+                    }
+                    R.id.menu_sleep_timer -> {
+                        showSleepTimerDialog()
+                        true
+                    }
+                    R.id.menu_playback_speed -> {
+                        showPlaybackSpeedDialog()
+                        true
+                    }
                     else -> false
                 }
             }
@@ -515,6 +561,7 @@ class AudioStandaloneActivity :
     // ── PlayerHostCapabilities ──────────────────────────────────────────────────
 
     override val supportsListNavigation: Boolean = false
+
     // Slideshow auto-advance steps through the enumerated folder list, so it tracks folder paging.
     override val supportsSlideshow: Boolean get() = folderPagingEnabled
     override val supportsPersistentAudio: Boolean = false

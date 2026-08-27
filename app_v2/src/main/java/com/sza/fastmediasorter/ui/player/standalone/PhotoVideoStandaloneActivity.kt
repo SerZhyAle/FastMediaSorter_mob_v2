@@ -643,6 +643,15 @@ class PhotoVideoStandaloneActivity :
                 override fun handleOnBackPressed() {
                     // S0410: back cancels an active draw session before leaving the viewer.
                     if (drawSaveHelper?.handleBackPress() == true) return
+                    if (isTaskRoot) {
+                        val intent = Intent(
+                            this@PhotoVideoStandaloneActivity,
+                            com.sza.fastmediasorter.ui.main.MainActivity::class.java
+                        ).apply {
+                            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                        }
+                        startActivity(intent)
+                    }
                     finish()
                 }
             }

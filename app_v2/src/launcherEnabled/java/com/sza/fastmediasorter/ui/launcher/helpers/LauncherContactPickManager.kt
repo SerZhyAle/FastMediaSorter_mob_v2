@@ -4,13 +4,11 @@ import android.Manifest
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -42,23 +40,26 @@ import timber.log.Timber
  * them through its ViewModel instead of injecting a domain type (CLAUDE.md Rule 3). They stay lazy for
  * the original reason: this manager is built in an Activity field initialiser - the only point early
  * enough to register an activity-result contract - so nothing may be dereferenced at construction.
+ *
+ * S2099: which action the in-flight pick is for lives in `LauncherHomeViewModel.pendingContactAction`,
+ * not on this class - that field initialiser rebuilds this manager on every process restart, so a
+ * field here lost the action whenever the OS killed the process with the system picker in front, and
+ * the restored result aborted on a toast instead of placing the cell. It arrives as a read/write pair
+ * rather than as the ViewModel, keeping the separation the paragraph above sets up.
  */
 class LauncherContactPickManager(
     private val activity: FragmentActivity,
     private val pickIntent: (LauncherContactAction) -> Intent,
     private val resolvePick: suspend (LauncherContactAction, Uri) -> PickContactShortcutUseCase.Outcome,
     private val onTargetPicked: (LauncherContactTarget) -> Unit,
+    private val readPendingAction: () -> LauncherContactAction?,
+    private val writePendingAction: (LauncherContactAction?) -> Unit,
 ) {
 
     /**
-     * Which action the in-flight pick is for. Held in memory like the add-flow's target square next to
-     * it: one flow runs at a time and every step is modal, so there is nothing to reconcile.
-     */
-    private var pendingAction: LauncherContactAction? = null
-
-    /**
-     * S1206: the pick waiting on the contacts answer. Held like [pendingAction] above and
+     * S1206: the pick waiting on the contacts answer. Held in memory like
      * `LauncherSensorPermissionManager.pendingPlacement`, for the same reason - one modal flow at a time.
+     * S2102 owns making this one survive a process restart; S2099 covers only the action above it.
      */
     private var pendingPick: (() -> Unit)? = null
 
@@ -82,8 +83,7 @@ class LauncherContactPickManager(
      * refusal simply leaves it working from the snapshot, which is what it has always done.
      */
     fun start(action: LauncherContactAction) {
-        val granted = ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_CONTACTS) ==
-            PackageManager.PERMISSION_GRANTED
+        // Already-granted is folded into canRequestPermission, so a second check here decided nothing.
         val askable = activity.canRequestPermission(Manifest.permission.READ_CONTACTS)
         if (askable) {
             explainThenAsk(action)
@@ -166,27 +166,28 @@ class LauncherContactPickManager(
     }
 
     private fun launchSystemPicker(action: LauncherContactAction) {
-        pendingAction = action
+        writePendingAction(action)
+        Timber.d("S2099: stored pending contact action ${action.name}")
         try {
             systemPicker.launch(pickIntent(action))
         } catch (error: ActivityNotFoundException) {
             // A device with no contacts app at all: nothing to recover, so say so and drop the flow.
             Timber.i(error, "Launcher contacts: no picker for action %s", action.name)
-            pendingAction = null
+            writePendingAction(null)
             toast(R.string.launcher_contact_no_app)
         }
     }
 
     private fun onPickResult(result: ActivityResult) {
-        val action = pendingAction
-        pendingAction = null
+        val action = readPendingAction()
+        Timber.d("S2099: pick result restored action ${action?.name}")
+        writePendingAction(null)
         val picked = result.data?.data
         if (result.resultCode != Activity.RESULT_OK || picked == null) return
         if (action == null) {
-            // The process was killed while the system picker was in front. The result registry restores
-            // the result, but nothing restores which action it was for - nor which cell was tapped, since
-            // the host's pending square died with it. Say the pick was lost rather than silently placing
-            // a cell in the wrong square or doing nothing at all.
+            // S2099 made the action outlive a process kill, so reaching here means no pick was ever in
+            // flight - a result delivered to a registry key nothing claimed. Say it was lost rather than
+            // silently placing a cell in a square nobody pointed at.
             Timber.i("Launcher contacts: pick result arrived with no in-flight action")
             toast(R.string.launcher_contact_read_failed)
             return

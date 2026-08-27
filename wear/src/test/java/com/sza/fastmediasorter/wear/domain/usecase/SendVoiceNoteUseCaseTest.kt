@@ -27,9 +27,9 @@ class SendVoiceNoteUseCaseTest {
 
     private class FakeFileSender(private val outcome: WearFileSendOutcome) : WearFileSenderRepository {
         var sentFiles: MutableList<File> = mutableListOf()
-        override suspend fun sendFile(file: File): WearFileSendOutcome {
+        override suspend fun sendFile(file: File): com.sza.fastmediasorter.wear.domain.repository.WearFileSendResult {
             sentFiles += file
-            return outcome
+            return com.sza.fastmediasorter.wear.domain.repository.WearFileSendResult(outcome)
         }
     }
 

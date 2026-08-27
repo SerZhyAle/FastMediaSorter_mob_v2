@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.ui.launcher
 
-import android.content.Context
 import android.content.Intent
 import android.graphics.Rect
 import android.net.Uri
@@ -23,11 +22,13 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.model.launcher.LauncherWallpaper
+import com.sza.fastmediasorter.domain.repository.LauncherSectionVisibilityRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.ExecuteScheduledOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.ExportResourcesToFileUseCase
 import com.sza.fastmediasorter.domain.usecase.companion.ExportCompanionConfigUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.ExecuteLauncherCommandUseCase
+import com.sza.fastmediasorter.domain.usecase.launcher.IsCameraWallpaperAvailableUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.PickContactShortcutUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
@@ -37,7 +38,6 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarIcon
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayComposition
 import com.sza.fastmediasorter.ui.main.helpers.ResourceScanCoordinator
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -79,9 +79,10 @@ sealed interface LauncherHomeEvent {
     data class PerformLauncherAction(val actionKey: String) : LauncherHomeEvent
 }
 
+@Suppress("LongParameterList")
 @HiltViewModel
 class LauncherHomeViewModel @Inject constructor(
-    @ApplicationContext appContext: Context,
+    private val visibility: LauncherSectionVisibilityRepository,
     private val desktopDependencies: LauncherDesktopDependencies,
     private val taskbarDependencies: LauncherTaskbarDependencies,
     private val shortcutDependencies: LauncherShortcutDependencies,
@@ -91,6 +92,8 @@ class LauncherHomeViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val observeStreams: ObserveStreamSourcesUseCase,
     private val executeScheduledOperation: ExecuteScheduledOperationUseCase,
+    // S2076: the camera wallpaper's own precondition - hardware plus a live CAMERA grant.
+    private val isCameraWallpaperAvailable: IsCameraWallpaperAvailableUseCase,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -104,7 +107,7 @@ class LauncherHomeViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS), emptyList())
 
     /** S1428: folded sections and the tap that folds them - see [LauncherSectionCollapseManager]. */
-    val sections = LauncherSectionCollapseManager(appContext, viewModelScope, cells, _orientation)
+    val sections = LauncherSectionCollapseManager(visibility, viewModelScope, cells, _orientation)
 
     /**
      * S1680: the seed every settings-derived flow below starts from, so a seed and the model's default
@@ -208,10 +211,16 @@ class LauncherHomeViewModel @Inject constructor(
         .map { settings ->
             val imageAvailable = settings.launcherWallpaperMode == AppSettings.LAUNCHER_WALLPAPER_IMAGE &&
                 settings.launcherWallpaperImagePath.isNotBlank() && File(settings.launcherWallpaperImagePath).isFile
+            // S2076: re-read on every emission, not once - the CAMERA grant can be revoked while the
+            // desktop is on screen, and the probe short-circuits on the token like the image one does.
+            val cameraAvailable = settings.launcherWallpaperMode == AppSettings.LAUNCHER_WALLPAPER_CAMERA &&
+                isCameraWallpaperAvailable()
             resolveLauncherWallpaper(
                 mode = settings.launcherWallpaperMode,
                 imagePath = settings.launcherWallpaperImagePath,
                 imageAvailable = imageAvailable,
+                cameraId = settings.launcherWallpaperCameraId,
+                cameraAvailable = cameraAvailable,
             )
         }
         .distinctUntilChanged()
@@ -220,11 +229,14 @@ class LauncherHomeViewModel @Inject constructor(
             viewModelScope,
             SharingStarted.Eagerly,
             // imageAvailable is false because a seed must not probe the disk on the main thread; the
-            // default mode is not IMAGE, so the probe would decide nothing anyway.
+            // default mode is not IMAGE, so the probe would decide nothing anyway. cameraAvailable is
+            // false for the same reason (S2076): the default mode is not CAMERA either.
             resolveLauncherWallpaper(
                 mode = settingsDefaults.launcherWallpaperMode,
                 imagePath = settingsDefaults.launcherWallpaperImagePath,
                 imageAvailable = false,
+                cameraId = settingsDefaults.launcherWallpaperCameraId,
+                cameraAvailable = false,
             ),
         )
 
@@ -829,6 +841,27 @@ class LauncherHomeViewModel @Inject constructor(
             savedStateHandle[KEY_PENDING_COL] = value.second
         }
 
+    /**
+     * S2099: which contact action the in-flight pick is for, durable across process death via
+     * [SavedStateHandle] for the same reason as [pendingSlot] above. `LauncherContactPickManager` held
+     * this as a plain field, but that manager is rebuilt by the Activity's field initialiser on every
+     * process restart - so a kill while the system contact or number picker was in front lost the
+     * action, and the restored result aborted on a toast instead of placing the cell.
+     *
+     * Stored by enum name and read back by matching the entries, so a value this build no longer knows
+     * reads as "no pick in flight" rather than throwing on a restored state bundle. A property rather
+     * than a named function, like [pendingSlot] and [recentsCapacity]: this class sits exactly at
+     * detekt's `TooManyFunctions` ceiling.
+     */
+    var pendingContactAction: LauncherContactAction?
+        get() {
+            val stored = savedStateHandle.get<String>(KEY_PENDING_CONTACT_ACTION)
+            return LauncherContactAction.entries.firstOrNull { it.name == stored }
+        }
+        set(value) {
+            savedStateHandle[KEY_PENDING_CONTACT_ACTION] = value?.name
+        }
+
     private companion object {
         const val SUBSCRIPTION_TIMEOUT_MS = 5_000L
 
@@ -837,19 +870,32 @@ class LauncherHomeViewModel @Inject constructor(
 
         const val KEY_PENDING_ROW = "launcher_pending_row"
         const val KEY_PENDING_COL = "launcher_pending_col"
+        const val KEY_PENDING_CONTACT_ACTION = "launcher_pending_contact_action"
     }
 }
 
-/** Pure setting-to-render-model mapping; image availability is supplied because the file probe is I/O. */
+/**
+ * Pure setting-to-render-model mapping; image and camera availability are supplied because probing either
+ * one is I/O - a disk stat for the image, a package-manager and permission read for the camera.
+ */
 internal fun resolveLauncherWallpaper(
     mode: String,
     imagePath: String,
     imageAvailable: Boolean,
+    cameraId: String,
+    cameraAvailable: Boolean,
 ): LauncherWallpaper = when (mode) {
     AppSettings.LAUNCHER_WALLPAPER_NONE -> LauncherWallpaper.None
     AppSettings.LAUNCHER_WALLPAPER_STATIC_STRIPES -> LauncherWallpaper.StaticStripes
     AppSettings.LAUNCHER_WALLPAPER_IMAGE ->
         imagePath.takeIf { imageAvailable }?.let { LauncherWallpaper.Image(it) } ?: LauncherWallpaper.Branded
+
+    // S2076: a revoked grant, a camera-less device or a lens that vanished all land here, and all degrade
+    // to the branded backdrop rather than to a black layer nobody can explain.
+    AppSettings.LAUNCHER_WALLPAPER_CAMERA ->
+        cameraId.takeIf { cameraAvailable && it.isNotBlank() }
+            ?.let { LauncherWallpaper.LiveCamera(it) }
+            ?: LauncherWallpaper.Branded
 
     else -> LauncherWallpaper.Branded
 }

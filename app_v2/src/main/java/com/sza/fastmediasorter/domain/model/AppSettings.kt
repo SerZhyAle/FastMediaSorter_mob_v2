@@ -423,6 +423,9 @@ data class AppSettings(
     // S1101: absolute path of the user image copied into app-private storage; empty unless
     // [launcherWallpaperMode] is [LAUNCHER_WALLPAPER_IMAGE].
     val launcherWallpaperImagePath: String = "",
+    // S2076: chosen camera lens id in [CameraLensEntry.id] form; empty unless [launcherWallpaperMode]
+    // is [LAUNCHER_WALLPAPER_CAMERA].
+    val launcherWallpaperCameraId: String = "",
     // S1401: the all-apps screen's chosen order, stored as an [InstalledAppSortOrder] name rather than
     // an ordinal so reordering the enum later cannot silently repoint a saved preference.
     val allAppsSortOrder: String = InstalledAppSortOrder.LABEL.name,
@@ -469,12 +472,16 @@ data class AppSettings(
         /** S1101: user-picked still image or GIF, copied into app-private storage. */
         const val LAUNCHER_WALLPAPER_IMAGE = "IMAGE"
 
+        /** S2076: live frame from a device camera, lens named by [launcherWallpaperCameraId]. */
+        const val LAUNCHER_WALLPAPER_CAMERA = "CAMERA"
+
         /** S1101: wallpaper tokens in the order the settings row offers them. */
         val LAUNCHER_WALLPAPER_MODES = listOf(
             LAUNCHER_WALLPAPER_BRANDED,
             LAUNCHER_WALLPAPER_STATIC_STRIPES,
             LAUNCHER_WALLPAPER_NONE,
             LAUNCHER_WALLPAPER_IMAGE,
+            LAUNCHER_WALLPAPER_CAMERA,
         )
     }
 

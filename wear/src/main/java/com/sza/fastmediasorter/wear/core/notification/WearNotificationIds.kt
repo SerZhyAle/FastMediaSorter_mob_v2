@@ -19,4 +19,7 @@ object WearNotificationIds {
 
     /** S1961: the phone asked this watch to open something while the app was not on screen. */
     const val OPEN_ON_WATCH = 4202
+
+    /** S2087: a deferred file upload from watch to phone remote destination failed. */
+    const val UPLOAD_OUTCOME = 4203
 }

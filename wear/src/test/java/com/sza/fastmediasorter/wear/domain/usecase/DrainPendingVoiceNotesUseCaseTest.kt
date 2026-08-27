@@ -33,11 +33,11 @@ class DrainPendingVoiceNotesUseCaseTest {
 
         val sentFiles: MutableList<File> = mutableListOf()
 
-        override suspend fun sendFile(file: File): WearFileSendOutcome {
+        override suspend fun sendFile(file: File): com.sza.fastmediasorter.wear.domain.repository.WearFileSendResult {
             val index = sentFiles.size
             sentFiles += file
             delay(SEND_DELAY_MILLIS)
-            return outcomes.getOrElse(index) { fallback }
+            return com.sza.fastmediasorter.wear.domain.repository.WearFileSendResult(outcomes.getOrElse(index) { fallback })
         }
 
         private companion object {

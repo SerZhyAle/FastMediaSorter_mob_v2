@@ -87,7 +87,6 @@ class LauncherAddFlowManager(
         ) { _, bundle ->
             viewModel.pendingSlot = bundle.getInt(LauncherCellContentPickerDialogFragment.RESULT_ROW) to
                 bundle.getInt(LauncherCellContentPickerDialogFragment.RESULT_COL)
-            Timber.d("S2060: wrote pendingSlot=${viewModel.pendingSlot} to SavedStateHandle")
             openPickerForCategory(bundle)
         }
         fragmentManager.setFragmentResultListener(REQ_APP, lifecycleOwner) { _, bundle ->
@@ -434,7 +433,6 @@ class LauncherAddFlowManager(
         labelOverride: String? = null,
     ) {
         val (row, col) = viewModel.pendingSlot
-        Timber.d("S2060: placing at pendingSlot row=$row col=$col (survives process death via SavedStateHandle)")
         if (row == NO_SLOT) {
             viewModel.addCellInFirstFreeSlot(
                 columns = currentColumns(),

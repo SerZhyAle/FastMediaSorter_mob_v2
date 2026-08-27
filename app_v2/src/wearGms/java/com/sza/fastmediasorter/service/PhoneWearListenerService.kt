@@ -21,6 +21,7 @@ import com.sza.fastmediasorter.data.wear.WearIncomingFileRegistry
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.domain.model.WearEventEnvelopeCodec
 import com.sza.fastmediasorter.domain.model.WearFavoritesDeltaPayload
+import com.sza.fastmediasorter.domain.model.WearFileReceiveAck
 import com.sza.fastmediasorter.domain.model.WearFileTransferAck
 import com.sza.fastmediasorter.domain.model.WearFileTransferMetadata
 import com.sza.fastmediasorter.domain.model.WearOpenOnPhoneAck
@@ -151,11 +152,46 @@ class PhoneWearListenerService : WearableListenerService() {
                     receiveWatchFileUseCase(fileName, declaredBytes, input)
                 }
                 Timber.i("Incoming watch file %s ended as %s", fileName, result.outcome)
+                val ack = WearFileReceiveAck(
+                    fileName = fileName,
+                    outcome = when (result.outcome) {
+                        com.sza.fastmediasorter.domain.model.WearFileReceiveOutcome.SAVED ->
+                            WearFileReceiveAck.OUTCOME_SAVED
+                        com.sza.fastmediasorter.domain.model.WearFileReceiveOutcome.QUEUED_FOR_UPLOAD ->
+                            WearFileReceiveAck.OUTCOME_QUEUED
+                        com.sza.fastmediasorter.domain.model.WearFileReceiveOutcome.NO_DESTINATION ->
+                            WearFileReceiveAck.OUTCOME_NO_DESTINATION
+                        com.sza.fastmediasorter.domain.model.WearFileReceiveOutcome.REFUSED_TOO_LARGE ->
+                            WearFileReceiveAck.OUTCOME_TOO_LARGE
+                        com.sza.fastmediasorter.domain.model.WearFileReceiveOutcome.FAILED ->
+                            WearFileReceiveAck.OUTCOME_FAILED
+                    },
+                    destination = result.destinationName.orEmpty()
+                )
+                runCatching {
+                    wearableDataLayerRepository.sendMessage(
+                        channel.nodeId,
+                        WearDataLayerPaths.FILE_RECEIVE_ACK,
+                        gson.toJson(ack).toByteArray(Charsets.UTF_8)
+                    )
+                }.onFailure { Timber.w(it, "Failed to send FILE_RECEIVE_ACK to watch") }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 // Expected when the watch leaves range before the stream is handed over.
                 Timber.w(e, "Failed to open the incoming watch file channel")
+                val failureAck = WearFileReceiveAck(
+                    fileName = fileName,
+                    outcome = WearFileReceiveAck.OUTCOME_FAILED,
+                    destination = ""
+                )
+                runCatching {
+                    wearableDataLayerRepository.sendMessage(
+                        channel.nodeId,
+                        WearDataLayerPaths.FILE_RECEIVE_ACK,
+                        gson.toJson(failureAck).toByteArray(Charsets.UTF_8)
+                    )
+                }.onFailure { Timber.w(it, "Failed to send FILE_RECEIVE_ACK to watch") }
             } finally {
                 withContext(NonCancellable) {
                     runCatching { channelClient.close(channel).await() }

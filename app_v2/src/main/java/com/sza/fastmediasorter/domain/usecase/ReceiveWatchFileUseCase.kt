@@ -92,7 +92,7 @@ class ReceiveWatchFileUseCase @Inject constructor(
                     Timber.w("No writable destination for the incoming watch file %s", fileName)
                     WearFileReceiveResult(WearFileReceiveOutcome.NO_DESTINATION)
                 } else {
-                    copyInto(sink, fileName, limitBytes, source)
+                    copyInto(sink, fileName, limitBytes, source, destination.name)
                 }
             }
             is WatchFileDestination.Remote -> {
@@ -129,9 +129,10 @@ class ReceiveWatchFileUseCase @Inject constructor(
                     stagedPath = targetFile.absolutePath,
                     resourceId = destination.resourceId,
                     parentPath = destination.parentPath,
-                    fileName = fileName
+                    fileName = fileName,
+                    destinationName = destination.name
                 )
-                WearFileReceiveResult(QUEUED_FOR_UPLOAD, targetFile.absolutePath)
+                WearFileReceiveResult(QUEUED_FOR_UPLOAD, targetFile.absolutePath, destination.name)
             }
         } catch (e: CancellationException) {
             targetFile.delete()
@@ -147,13 +148,15 @@ class ReceiveWatchFileUseCase @Inject constructor(
         stagedPath: String,
         resourceId: Long,
         parentPath: String,
-        fileName: String
+        fileName: String,
+        destinationName: String
     ) {
         val inputData = workDataOf(
             WearReceivedFileUploadWorker.KEY_STAGED_PATH to stagedPath,
             WearReceivedFileUploadWorker.KEY_RESOURCE_ID to resourceId,
             WearReceivedFileUploadWorker.KEY_PARENT_PATH to parentPath,
-            WearReceivedFileUploadWorker.KEY_FILE_NAME to fileName
+            WearReceivedFileUploadWorker.KEY_FILE_NAME to fileName,
+            WearReceivedFileUploadWorker.KEY_DESTINATION_NAME to destinationName
         )
         val workRequest = OneTimeWorkRequestBuilder<WearReceivedFileUploadWorker>()
             .setInputData(inputData)
@@ -168,7 +171,8 @@ class ReceiveWatchFileUseCase @Inject constructor(
         sink: LocalSink,
         fileName: String,
         limitBytes: Long,
-        source: InputStream
+        source: InputStream,
+        destinationName: String
     ): WearFileReceiveResult = try {
         val written = pump(source, sink.outputStream, limitBytes)
         if (written == null) {
@@ -176,7 +180,7 @@ class ReceiveWatchFileUseCase @Inject constructor(
             sink.abort()
             WearFileReceiveResult(WearFileReceiveOutcome.REFUSED_TOO_LARGE)
         } else {
-            commit(sink, fileName, written)
+            commit(sink, fileName, written, destinationName)
         }
     } catch (e: CancellationException) {
         sink.abort()
@@ -189,11 +193,16 @@ class ReceiveWatchFileUseCase @Inject constructor(
         WearFileReceiveResult(WearFileReceiveOutcome.FAILED)
     }
 
-    private suspend fun commit(sink: LocalSink, fileName: String, written: Long): WearFileReceiveResult =
+    private suspend fun commit(
+        sink: LocalSink,
+        fileName: String,
+        written: Long,
+        destinationName: String
+    ): WearFileReceiveResult =
         sink.commit().fold(
             onSuccess = { path ->
                 Timber.i("Received %s (%d bytes) from the watch into %s", fileName, written, path)
-                WearFileReceiveResult(WearFileReceiveOutcome.SAVED, path)
+                WearFileReceiveResult(WearFileReceiveOutcome.SAVED, path, destinationName)
             },
             onFailure = { error ->
                 Timber.w(error, "Failed to publish the received watch file %s", fileName)
@@ -237,19 +246,21 @@ class ReceiveWatchFileUseCase @Inject constructor(
         if (resource == null) {
             val fallbackPath = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)?.absolutePath
                 ?: context.filesDir.absolutePath
-            return WatchFileDestination.Local(fallbackPath)
+            val fallbackName = fallbackPath.substringAfterLast('/', fallbackPath)
+            return WatchFileDestination.Local(fallbackPath, fallbackName)
         }
 
         val path = resource.path
+        val name = resource.name
         val isRemote = path.startsWith("smb://") ||
             path.startsWith("sftp://") ||
             path.startsWith("ftp://") ||
             path.startsWith("cloud://")
 
         return if (isRemote) {
-            WatchFileDestination.Remote(resource.id, path)
+            WatchFileDestination.Remote(resource.id, path, name)
         } else {
-            WatchFileDestination.Local(path)
+            WatchFileDestination.Local(path, name)
         }
     }
 

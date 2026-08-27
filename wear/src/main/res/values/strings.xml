@@ -369,4 +369,11 @@
     <string name="wear_complication_now_playing_description">Shows currently playing or last played track</string>
     <string name="wear_phone_all">All</string>
     <string name="wear_phone_browse">Browse</string>
+    <string name="wear_file_op_outcome_saved_to">Saved to %1$s</string>
+    <string name="wear_file_op_outcome_queued_on_phone">Queued for upload to %1$s</string>
+    <string name="wear_file_op_outcome_no_destination">No destination configured</string>
+    <string name="wear_file_op_outcome_unconfirmed">Phone didn\'t confirm (file kept)</string>
+    <string name="wear_upload_outcome_channel_name">Upload Notifications</string>
+    <string name="wear_upload_outcome_failed_title">Upload failed</string>
+    <string name="wear_upload_outcome_failed_text">Failed to upload %1$s to %2$s</string>
 </resources>

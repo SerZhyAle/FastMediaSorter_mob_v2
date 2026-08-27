@@ -240,8 +240,15 @@ private fun OperationResultRow(result: WearFileOperationResult) {
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
+        val outcomeText = when {
+            result.destination != null && result.outcome == WearFileOperationOutcome.SUCCEEDED ->
+                stringResource(R.string.wear_file_op_outcome_saved_to, result.destination)
+            result.destination != null && result.outcome == WearFileOperationOutcome.QUEUED_ON_PHONE ->
+                stringResource(R.string.wear_file_op_outcome_queued_on_phone, result.destination)
+            else -> stringResource(result.outcome.messageRes())
+        }
         Text(
-            text = stringResource(result.outcome.messageRes()),
+            text = outcomeText,
             style = MaterialTheme.typography.caption2,
             color = MaterialTheme.colors.onSurfaceVariant
         )
@@ -258,6 +265,9 @@ private fun OperationResultRow(result: WearFileOperationResult) {
 
 private fun WearFileOperationOutcome.messageRes(): Int = when (this) {
     WearFileOperationOutcome.SUCCEEDED -> R.string.wear_file_op_outcome_succeeded
+    WearFileOperationOutcome.QUEUED_ON_PHONE -> R.string.wear_file_op_outcome_succeeded
+    WearFileOperationOutcome.NO_DESTINATION -> R.string.wear_file_op_outcome_no_destination
+    WearFileOperationOutcome.UNCONFIRMED -> R.string.wear_file_op_outcome_unconfirmed
     WearFileOperationOutcome.REFUSED_UNSUPPORTED -> R.string.wear_file_op_outcome_unsupported
     WearFileOperationOutcome.REFUSED_TOO_LARGE -> R.string.wear_file_op_outcome_too_large
     WearFileOperationOutcome.PHONE_UNREACHABLE -> R.string.wear_file_op_outcome_phone_unreachable

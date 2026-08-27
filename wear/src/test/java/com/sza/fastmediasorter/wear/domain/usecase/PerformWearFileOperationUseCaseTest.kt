@@ -194,9 +194,10 @@ class PerformWearFileOperationUseCaseTest {
         var outcomesByName: Map<String, WearFileSendOutcome> = emptyMap()
         var calls: Int = 0
 
-        override suspend fun sendFile(file: File): WearFileSendOutcome {
+        override suspend fun sendFile(file: File): com.sza.fastmediasorter.wear.domain.repository.WearFileSendResult {
             calls++
-            return outcomesByName[file.name] ?: outcome
+            val resOutcome = outcomesByName[file.name] ?: outcome
+            return com.sza.fastmediasorter.wear.domain.repository.WearFileSendResult(resOutcome)
         }
     }
 

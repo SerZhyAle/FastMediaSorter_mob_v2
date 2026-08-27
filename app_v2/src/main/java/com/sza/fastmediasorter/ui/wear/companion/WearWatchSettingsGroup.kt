@@ -2,11 +2,13 @@ package com.sza.fastmediasorter.ui.wear.companion
 
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
@@ -160,6 +162,7 @@ private fun WatchContentSwitches(state: WatchSettingsState, onChanged: () -> Uni
     SwitchRow(
         tag = "wearSwitchAudio",
         label = stringResource(R.string.wear_settings_audio),
+        description = stringResource(R.string.wear_settings_audio_desc),
         checked = state.audioEnabled
     ) {
         state.audioEnabled = it
@@ -168,6 +171,7 @@ private fun WatchContentSwitches(state: WatchSettingsState, onChanged: () -> Uni
     SwitchRow(
         tag = "wearSwitchVideo",
         label = stringResource(R.string.wear_settings_video),
+        description = stringResource(R.string.wear_settings_video_desc),
         checked = state.videoEnabled
     ) {
         state.videoEnabled = it
@@ -176,6 +180,7 @@ private fun WatchContentSwitches(state: WatchSettingsState, onChanged: () -> Uni
     SwitchRow(
         tag = "wearSwitchImages",
         label = stringResource(R.string.wear_settings_images),
+        description = stringResource(R.string.wear_settings_images_desc),
         checked = state.imagesEnabled
     ) {
         state.imagesEnabled = it
@@ -184,6 +189,7 @@ private fun WatchContentSwitches(state: WatchSettingsState, onChanged: () -> Uni
     SwitchRow(
         tag = "wearSwitchSlideshow",
         label = stringResource(R.string.wear_settings_slideshow),
+        description = stringResource(R.string.wear_settings_slideshow_desc),
         checked = state.slideshowEnabled
     ) {
         state.slideshowEnabled = it
@@ -192,6 +198,7 @@ private fun WatchContentSwitches(state: WatchSettingsState, onChanged: () -> Uni
     SwitchRow(
         tag = "wearSwitchAlbumArt",
         label = stringResource(R.string.wear_settings_album_art),
+        description = stringResource(R.string.wear_settings_album_art_desc),
         checked = state.albumArtEnabled
     ) {
         state.albumArtEnabled = it
@@ -200,6 +207,7 @@ private fun WatchContentSwitches(state: WatchSettingsState, onChanged: () -> Uni
     SwitchRow(
         tag = "wearSwitchKeepAwake",
         label = stringResource(R.string.wear_settings_keep_awake),
+        description = stringResource(R.string.wear_settings_keep_awake_desc),
         checked = state.keepScreenAwake
     ) {
         state.keepScreenAwake = it
@@ -274,20 +282,36 @@ private fun ViewModeRow(
 }
 
 /**
- * The whole row is the switch, not the `Switch` inside it: the label is drawn as a sibling, so a toggle
- * left on the control announces a state with no name and TalkBack reads six identical "switch, on".
+ * S2094: Wear Companion toggle row canonical pattern (switch left, title & description middle).
+ * The whole row is toggleable so clicking text or switch toggles the state.
  */
 @Composable
-private fun SwitchRow(tag: String, label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+private fun SwitchRow(
+    tag: String,
+    label: String,
+    checked: Boolean,
+    description: String? = null,
+    onCheckedChange: (Boolean) -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange)
             .testTag(tag)
-            .padding(vertical = SPACING_TINY),
+            .padding(vertical = SPACING_SMALL),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = label, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
         Switch(checked = checked, onCheckedChange = null)
+        Spacer(Modifier.width(SPACING_SMALL))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = label, style = MaterialTheme.typography.bodyMedium)
+            if (!description.isNullOrEmpty()) {
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }

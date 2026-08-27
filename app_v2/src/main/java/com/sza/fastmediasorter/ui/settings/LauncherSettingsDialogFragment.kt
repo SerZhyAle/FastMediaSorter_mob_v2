@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.ui.settings
 
+import android.Manifest
 import android.app.Dialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
 import android.view.LayoutInflater
@@ -10,7 +12,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.Window
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
@@ -24,12 +28,18 @@ import com.sza.fastmediasorter.databinding.DialogLauncherResetConfirmBinding
 import com.sza.fastmediasorter.databinding.DialogLauncherSettingsBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.usecase.launcher.IsCameraWallpaperAvailableUseCase
+import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLensEnumerationManager
+import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLensLabelFormatter
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -59,6 +69,12 @@ class LauncherSettingsDialogFragment : DialogFragment() {
     @Inject
     lateinit var launcherRoleManager: LauncherRoleManager
 
+    // S2076: whether this device has a camera at all. Injected here rather than into the shared settings
+    // ViewModel, whose constructor is already at its parameter ceiling - and the question is a UI one:
+    // it decides which entries the wallpaper dropdown offers, not what gets written.
+    @Inject
+    lateinit var isCameraWallpaperAvailable: IsCameraWallpaperAvailableUseCase
+
     // S1422: the shared orchestrator already owns restore, animation and persistence of section state,
     // so this dialog only declares which rows belong together.
     private val sectionsManager by lazy { CollapsibleSectionsManager(requireContext()) }
@@ -78,6 +94,15 @@ class LauncherSettingsDialogFragment : DialogFragment() {
                 return@registerForActivityResult
             }
             viewModel.applyLauncherWallpaperImage(uri)
+        }
+
+    /**
+     * S2076: the CAMERA grant for the live wallpaper. A refusal is not an error worth a message - the row
+     * simply returns to the stored mode, exactly as a cancelled image pick does.
+     */
+    private val requestCameraForWallpaper =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) showCameraLensPicker() else renderWallpaperRow(viewModel.settings.value)
         }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -243,24 +268,88 @@ class LauncherSettingsDialogFragment : DialogFragment() {
     }
 
     /** S1748: widget backdrop opacity presets selector. */
+    /**
+     * S2076: the offered modes, not all of them. A device with no camera never gets the camera entry,
+     * because the launcher also ships to car head units and TV boxes where that row would be dead
+     * forever rather than merely unavailable. The set is therefore variable, which is why every mapping
+     * below goes through this list by value and never through a fixed index.
+     */
+    private val offeredWallpaperModes: List<String> by lazy {
+        AppSettings.LAUNCHER_WALLPAPER_MODES.filter { mode ->
+            mode != AppSettings.LAUNCHER_WALLPAPER_CAMERA || isCameraWallpaperAvailable.hasHardware()
+        }
+    }
+
     private fun setupWallpaperRow() {
-        binding.rowLauncherWallpaper.setEntries(
-            listOf(
-                getText(R.string.launcher_settings_wallpaper_branded),
-                getText(R.string.launcher_settings_wallpaper_static_stripes),
-                getText(R.string.launcher_settings_wallpaper_none),
-                getText(R.string.launcher_settings_wallpaper_image),
-            )
-        )
+        binding.rowLauncherWallpaper.setEntries(offeredWallpaperModes.map { getText(labelOf(it)) })
         binding.rowLauncherWallpaper.setOnItemSelectedListener { index ->
             if (isUpdatingFromSettings) return@setOnItemSelectedListener
-            val modes = AppSettings.LAUNCHER_WALLPAPER_MODES
-            when (val mode = modes.getOrElse(index) { AppSettings.LAUNCHER_WALLPAPER_BRANDED }) {
+            val fallback = AppSettings.LAUNCHER_WALLPAPER_BRANDED
+            when (val mode = offeredWallpaperModes.getOrElse(index) { fallback }) {
                 // Image mode only becomes real once a file is actually picked and copied, so the write
                 // happens in the picker callback, not here.
                 AppSettings.LAUNCHER_WALLPAPER_IMAGE -> pickWallpaperImage.launch(WALLPAPER_MIME_TYPES)
+                // S2076: same shape - the camera mode is real only once a lens has been chosen.
+                AppSettings.LAUNCHER_WALLPAPER_CAMERA -> beginCameraWallpaperSelection()
                 else -> viewModel.applyLauncherWallpaperMode(mode)
             }
+        }
+    }
+
+    private fun labelOf(mode: String): Int = when (mode) {
+        AppSettings.LAUNCHER_WALLPAPER_STATIC_STRIPES -> R.string.launcher_settings_wallpaper_static_stripes
+        AppSettings.LAUNCHER_WALLPAPER_NONE -> R.string.launcher_settings_wallpaper_none
+        AppSettings.LAUNCHER_WALLPAPER_IMAGE -> R.string.launcher_settings_wallpaper_image
+        AppSettings.LAUNCHER_WALLPAPER_CAMERA -> R.string.launcher_settings_wallpaper_camera
+        else -> R.string.launcher_settings_wallpaper_branded
+    }
+
+    /** S2076: ask for the grant first when it is missing; the lens list needs an open camera to exist. */
+    private fun beginCameraWallpaperSelection() {
+        val granted = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) ==
+            PackageManager.PERMISSION_GRANTED
+        if (granted) showCameraLensPicker() else requestCameraForWallpaper.launch(Manifest.permission.CAMERA)
+    }
+
+    /**
+     * S2076: offers the lenses CameraX actually admits to, preselecting the one the capture screen would
+     * open on. Cancelling, refusing, or finding no lens all put the row back on the stored mode - the
+     * behaviour a cancelled image pick already has.
+     */
+    private fun showCameraLensPicker() {
+        val context = requireContext()
+        viewLifecycleOwner.lifecycleScope.launch {
+            // Enumerating lenses starts CameraX and reads Camera2 characteristics, which is disk and
+            // binder work - never on the thread that is drawing the settings dialog.
+            val entries = withContext(Dispatchers.IO) {
+                runCatching {
+                    val provider = ProcessCameraProvider.getInstance(context).get()
+                    val enumeration = CameraLensEnumerationManager()
+                    enumeration.select(enumeration.expand(provider))
+                }.getOrElse { error ->
+                    if (error is CancellationException) throw error
+                    Timber.e(error, "Launcher wallpaper: camera lenses could not be listed")
+                    emptyList()
+                }
+            }
+            if (entries.isEmpty()) {
+                renderWallpaperRow(viewModel.settings.value)
+                return@launch
+            }
+            val formatter = CameraLensLabelFormatter()
+            val labels = entries.map { formatter.label(context, it, entries) }.toTypedArray()
+            val preselected = CameraLensEnumerationManager().initialLensIndex(entries)
+            var chosen = preselected
+            MaterialAlertDialogBuilder(context)
+                .setTitle(R.string.launcher_settings_wallpaper_camera_lens_title)
+                .setSingleChoiceItems(labels, preselected) { _, which -> chosen = which }
+                .setPositiveButton(R.string.ok) { _, _ ->
+                    entries.getOrNull(chosen)?.let { viewModel.applyLauncherWallpaperCamera(it.id) }
+                }
+                .setNegativeButton(R.string.cancel) { _, _ -> renderWallpaperRow(viewModel.settings.value) }
+                .setOnCancelListener { renderWallpaperRow(viewModel.settings.value) }
+                .create()
+                .showBoundTo(viewLifecycleOwner)
         }
     }
 
@@ -473,7 +562,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
     private fun renderWallpaperRow(settings: AppSettings) {
         val wasUpdating = isUpdatingFromSettings
         isUpdatingFromSettings = true
-        val index = AppSettings.LAUNCHER_WALLPAPER_MODES.indexOf(settings.launcherWallpaperMode)
+        val index = offeredWallpaperModes.indexOf(settings.launcherWallpaperMode)
         binding.rowLauncherWallpaper.setSelection(if (index >= 0) index else 0)
         isUpdatingFromSettings = wasUpdating
     }

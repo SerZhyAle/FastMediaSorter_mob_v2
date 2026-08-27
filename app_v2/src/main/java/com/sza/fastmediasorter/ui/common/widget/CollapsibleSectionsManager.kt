@@ -6,6 +6,8 @@ import android.transition.TransitionManager
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
+import com.sza.fastmediasorter.data.local.preferences.CollapsibleSectionStore
+import com.sza.fastmediasorter.data.local.preferences.SharedPreferencesCollapsibleSectionStore
 
 /**
  * Single orchestrator for collapsible groups across the app.

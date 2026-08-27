@@ -20,7 +20,7 @@ import org.junit.Test
  * exactly what is worth testing here. Pure Kotlin, no Android imports (not launcher UI, so in scope
  * despite the iteration-1 no-UI-tests boundary - same reasoning as the Phase 07 repository tests).
  */
-@Suppress("FunctionNaming") // backtick test names, project convention (cf. LauncherGridGeometryTest)
+@Suppress("FunctionNaming", "LargeClass") // backtick test names, project convention (cf. LauncherGridGeometryTest)
 class LauncherStarterSetsTest {
 
     private val allPaddingAvailable = mapOf(
@@ -757,17 +757,6 @@ class LauncherStarterSetsTest {
         allPaddingAvailable,
         setOf(LauncherStarterSets.PACKAGE_YOUTUBE, LauncherStarterSets.PACKAGE_MAPS),
     )
-
-    /** S1587: the launcher's own actions close the set, under the second header, above the common tail. */
-    private fun sectionTail(profile: DeviceProfileType): List<String> = buildList {
-        add("sec:app_functions")
-        addAll(
-            LauncherActionCatalog.all
-                .filter { it.key != LauncherActionCatalog.KEY_BLACK_SCREEN || profile in BLACK_SCREEN_PROFILES }
-                .map { "act:${it.key}" },
-        )
-        addAll(commonTail)
-    }
 
     /** S1613: pinned-shortcut items shaped exactly as the seed encodes what the platform hands back. */
     private fun importedPins(): List<LauncherStarterSets.StarterItem> =

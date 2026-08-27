@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.data.capture
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.ImageFormat
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
@@ -8,6 +10,7 @@ import android.hardware.camera2.params.StreamConfigurationMap
 import android.os.Build
 import android.util.Range
 import android.util.Size
+import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.domain.model.CameraHardwareEntry
 import com.sza.fastmediasorter.domain.model.CameraHardwareInventory
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -24,6 +27,15 @@ import javax.inject.Inject
 class CameraHardwareDataSource @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
+
+    /** S2076: the device declares at least one camera, front, back or external. */
+    fun hasAnyCamera(): Boolean =
+        context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
+
+    /** S2076: the runtime CAMERA grant, which a user can revoke at any time after it was given. */
+    fun isCameraPermissionGranted(): Boolean =
+        ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+            PackageManager.PERMISSION_GRANTED
 
     fun read(): CameraHardwareInventory {
         val manager = context.getSystemService(Context.CAMERA_SERVICE) as? CameraManager

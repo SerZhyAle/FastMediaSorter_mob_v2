@@ -45,7 +45,6 @@ import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.networkmonitor.NetworkMonitorContract
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
-import com.sza.fastmediasorter.ui.addresource.AddResourceActivity
 import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorAprilFoolsPrankManager
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.InputHelpFirstRunHint
@@ -360,10 +359,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         binding.root.post { InputHelpFirstRunHint.showIfNeeded(this) }
 
         // If AudioPlaybackService is already running when MainActivity is freshly created (Android 8.x OEM ROMs can clear the activity back stack while keeping the foreground service alive), restore the user to the player that is currently playing. FLAG_ACTIVITY_REORDER_TO_FRONT: brings an existing PlayerActivity to the top of the stack without creating a duplicate instance; creates a new one if not present.
-        if (!returnToSettingsRequested
-            && intent?.action == Intent.ACTION_MAIN
-            && AudioPlaybackService.isRunning
-            && AudioPlaybackService.currentResourceId > 0L) {
+        if (!returnToSettingsRequested &&
+            intent?.action == Intent.ACTION_MAIN &&
+            AudioPlaybackService.isRunning &&
+            AudioPlaybackService.currentResourceId > 0L
+        ) {
             binding.root.post {
                 // Audio playback is inherently a 2D surface. createPanelIntent is kept here as an explicit "open the flat 2D player" semantics marker - every flavor now routes to PlayerActivity directly (immersive VR removed in S0241).
                 val playerIntent = PlayerActivity.createPanelIntent(
@@ -442,7 +442,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             lifecycleScope.launch {
                 val enabled = appSettings.first().cameraOcrTranslationEnabled
                 if (enabled) {
-                    startActivity(com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity.createIntent(this@MainActivity))
+                    startActivity(
+                        com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity.createIntent(this@MainActivity)
+                    )
                 } else if (isTaskRoot) {
                     finish()
                 }
@@ -515,6 +517,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             layoutInflater = layoutInflater
         )
 
+        // S2097 - Back press at the main home screen minimizes the task to the system launcher
+        // instead of finishing the activity and overshooting into developer options or settings.
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : androidx.activity.OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    moveTaskToBack(true)
+                }
+            }
+        )
+
         // The dialog outlives this Activity instance when the screen rotates while it is open, so
         // the filter arrives as a FragmentResult and the listener belongs to the Activity, not to
         // the tap that opened the dialog. An enum name unresolvable after an app update is dropped.
@@ -560,7 +573,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             lifecycleScope.launch {
                 val enabled = appSettings.first().cameraOcrTranslationEnabled
                 if (enabled) {
-                    startActivity(com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity.createIntent(this@MainActivity))
+                    startActivity(
+                        com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity.createIntent(this@MainActivity)
+                    )
                 } else if (isTaskRoot) {
                     finish()
                 }
@@ -1133,7 +1148,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
                 if (lastSeenVersionName != null && lastSeenVersionName != versionName) {
                     kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                        Toast.makeText(this@MainActivity, getString(R.string.app_updated_to, versionName), Toast.LENGTH_LONG).show()
+                        Toast.makeText(
+                            this@MainActivity,
+                            getString(R.string.app_updated_to, versionName),
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
                 }
 
@@ -1147,7 +1166,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     override fun observeData() {
-
         collectOnLifecycle(viewModel.state) { state ->
             resourceAdapter.submitList(state.resources)
             resourceAdapter.setSelectedResource(state.selectedResource?.id)
@@ -1366,10 +1384,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         // Gamepad buttons first. D-pad / left stick focus moves are left to Android's
         // default focus search (super), which already works with focusable="true" items.
-        val action = gamepadInputManager.handleKeyEvent(event, com.sza.fastmediasorter.domain.input.InputSurface.BROWSER)
+        val action = gamepadInputManager.handleKeyEvent(
+            event,
+            com.sza.fastmediasorter.domain.input.InputSurface.BROWSER
+        )
         if (action is GamepadAction.BrowserAction && routeBrowserGamepadAction(action)) return true
         if (event.action == KeyEvent.ACTION_DOWN) {
-            val commandId = keyBindingManager.resolveKeyAction(event.keyCode, event.metaState, com.sza.fastmediasorter.domain.input.InputSurface.BROWSER)
+            val commandId = keyBindingManager.resolveKeyAction(
+                event.keyCode,
+                event.metaState,
+                com.sza.fastmediasorter.domain.input.InputSurface.BROWSER
+            )
             if (commandId != null && routeMainCommandId(commandId)) return true
         }
         return super.dispatchKeyEvent(event)
@@ -1378,7 +1403,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun routeMainCommandId(commandId: String): Boolean {
         return if (::keyboardNavigationHandler.isInitialized) {
             keyboardNavigationHandler.dispatchCommandId(commandId)
-        } else false
+        } else {
+            false
+        }
     }
 
     private fun routeBrowserGamepadAction(action: GamepadAction.BrowserAction): Boolean {
@@ -1468,6 +1495,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         const val ACTION_CAMERA_OCR_TRANSLATE = "com.sza.fastmediasorter.action.CAMERA_OCR_TRANSLATE"
         const val ACTION_OPEN_FAVORITES = "com.sza.fastmediasorter.ACTION_OPEN_FAVORITES"
         const val ACTION_BROWSE_RESOURCE = "com.sza.fastmediasorter.ACTION_BROWSE_RESOURCE"
+
         /** Sent by AudioPlaybackService notification contentIntent (tapping the notification body).
          *  Routes the user back to PlayerActivity for the currently playing audio resource. */
         const val ACTION_RESUME_PLAYER = "com.sza.fastmediasorter.ACTION_RESUME_PLAYER"

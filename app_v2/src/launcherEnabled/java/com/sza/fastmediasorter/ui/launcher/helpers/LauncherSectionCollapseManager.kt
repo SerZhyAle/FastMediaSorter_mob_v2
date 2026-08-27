@@ -1,13 +1,11 @@
 package com.sza.fastmediasorter.ui.launcher.helpers
 
-import android.content.Context
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
-import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionStore
-import com.sza.fastmediasorter.ui.common.widget.SharedPreferencesCollapsibleSectionStore
+import com.sza.fastmediasorter.domain.repository.LauncherSectionVisibilityRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -32,15 +30,11 @@ import kotlinx.coroutines.withTimeoutOrNull
  * self-contained concern with its own persistence.
  */
 class LauncherSectionCollapseManager(
-    context: Context,
+    private val visibility: LauncherSectionVisibilityRepository,
     scope: CoroutineScope,
     private val cells: StateFlow<List<LauncherCellUi>>,
     private val orientation: StateFlow<LauncherOrientation>,
 ) {
-
-    // The consolidated namespace every other collapsible section in the app persists to, so this adds
-    // no column and therefore no schema migration (strategic §3.2, data compatibility).
-    private val store: CollapsibleSectionStore = SharedPreferencesCollapsibleSectionStore(context)
 
     /** Bumped by [toggle]: the store is a plain preferences file and emits nothing on its own. */
     private val revision = MutableStateFlow(0)
@@ -56,7 +50,7 @@ class LauncherSectionCollapseManager(
             desktop.map { it.cell }
                 .filter { it.kind == LauncherCellKind.SECTION }
                 .map { it.target }
-                .filterNot { store.isExpanded(keyFor(currentOrientation, it), EXPANDED_BY_DEFAULT) }
+                .filter { visibility.isCollapsed(currentOrientation, it) }
                 .toSet()
         }.stateIn(scope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS), emptySet())
 
@@ -66,9 +60,9 @@ class LauncherSectionCollapseManager(
      */
     fun toggle(cell: LauncherCell) {
         if (cell.kind != LauncherCellKind.SECTION) return
-        val key = keyFor(orientation.value, cell.target)
-        val nowExpanded = !store.isExpanded(key, EXPANDED_BY_DEFAULT)
-        store.setExpanded(key, nowExpanded)
+        val currentOrientation = orientation.value
+        val nowExpanded = visibility.isCollapsed(currentOrientation, cell.target)
+        visibility.setExpanded(currentOrientation, cell.target, nowExpanded)
         revision.value += 1
     }
 
@@ -103,15 +97,15 @@ class LauncherSectionCollapseManager(
      * because the owner ruled that a section is opened as a consequence of a cell being invisible, never
      * as a habit (strategic §3.1).
      *
-     * Reads the store rather than [collapsed]: that flow is shared `WhileSubscribed`, so it reports an
+     * Reads the repository rather than [collapsed]: that flow is shared `WhileSubscribed`, so it reports an
      * empty set whenever nothing is collecting it, and a placement that raced the last collector would
      * silently decide every section was already open.
      */
     private fun revealIfCollapsed(cell: LauncherCell): Boolean {
-        val key = keyFor(orientation.value, cell.target)
-        val hidden = cell.kind == LauncherCellKind.SECTION && !store.isExpanded(key, EXPANDED_BY_DEFAULT)
+        val currentOrientation = orientation.value
+        val hidden = cell.kind == LauncherCellKind.SECTION && visibility.isCollapsed(currentOrientation, cell.target)
         if (hidden) {
-            store.setExpanded(key, true)
+            visibility.reveal(currentOrientation, cell.target)
             revision.value += 1
         }
         return hidden
@@ -119,28 +113,16 @@ class LauncherSectionCollapseManager(
 
     /**
      * S1742 §04.2: clears collapsed-state entry for [cell] when it is removed.
+     *
+     * Restores default (expanded) state, expressed as a reveal.
      */
     fun clear(cell: LauncherCell) {
         if (cell.kind != LauncherCellKind.SECTION) return
-        val key = keyFor(orientation.value, cell.target)
-        store.setExpanded(key, EXPANDED_BY_DEFAULT)
+        visibility.reveal(orientation.value, cell.target)
         revision.value += 1
     }
 
-    /**
-     * Portrait and landscape are two independent layouts (strategic §6.3), so the orientation is part of
-     * the key: a section folded in one says nothing about the same section in the other.
-     */
-    private fun keyFor(orientation: LauncherOrientation, target: String): String =
-        "$KEY_SCREEN${orientation.name}__$target"
-
     private companion object {
-        /** `<screen>__<section>` is the store's own key shape; the orientation joins the screen half. */
-        const val KEY_SCREEN = "launcher_desktop__"
-
-        /** Strategic §6.8: a section is open until the user folds it, so "visible without a tap" holds. */
-        const val EXPANDED_BY_DEFAULT = true
-
         /** Matches the desktop stream this derives from, so both stop and restart together. */
         const val SUBSCRIPTION_TIMEOUT_MS = 5_000L
 

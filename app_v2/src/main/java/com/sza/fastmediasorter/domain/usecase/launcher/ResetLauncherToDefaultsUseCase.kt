@@ -101,6 +101,7 @@ class ResetLauncherToDefaultsUseCase @Inject constructor(
                 launcherDesktopLocked = defaults.launcherDesktopLocked,
                 launcherWallpaperMode = defaults.launcherWallpaperMode,
                 launcherWallpaperImagePath = defaults.launcherWallpaperImagePath,
+                launcherWallpaperCameraId = defaults.launcherWallpaperCameraId,
                 launcherScreenBlackoutTimeoutSeconds = defaults.launcherScreenBlackoutTimeoutSeconds,
                 launcherWidgetBackdropAlpha = defaults.launcherWidgetBackdropAlpha,
             )

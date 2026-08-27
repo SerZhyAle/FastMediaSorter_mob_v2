@@ -66,6 +66,12 @@ object WearDataLayerPaths {
     /** Message, watch → phone. Carries the correlated outcome of one file transfer. */
     const val FILE_TRANSFER_ACK = "/fms/watch/transfer_file_ack"
 
+    /** Message, phone → watch. Immediate outcome acknowledgement of one received file. */
+    const val FILE_RECEIVE_ACK = "/fms/phone/receive_file_ack"
+
+    /** Data Item, phone → watch. Deferred upload outcome of one received file. */
+    const val FILE_UPLOAD_OUTCOME = "/fms/phone/receive_file_upload_outcome"
+
     /** Message, watch → phone. Asks the phone to show one of its own files (S2004). */
     const val OPEN_ON_PHONE_REQUEST = "/fms/watch/open_on_phone"
 

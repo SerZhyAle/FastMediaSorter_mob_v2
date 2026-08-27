@@ -218,7 +218,7 @@ class SettingsViewModel @Inject constructor(
         if (!persistedSettingsLoaded.isCompleted) return
 
         val prev = this.settings.value
-        _settingsOverride.value = settings  // Optimistic update: makes settings.value current immediately
+        _settingsOverride.value = settings // Optimistic update: makes settings.value current immediately
         viewModelScope.launch {
             try {
                 settingsRepository.updateSettings(settings)
@@ -290,7 +290,33 @@ class SettingsViewModel @Inject constructor(
     fun applyLauncherWallpaperMode(mode: String) {
         val current = settings.value
         if (current.launcherWallpaperMode == mode) return
-        updateSettings(current.copy(launcherWallpaperMode = mode, launcherWallpaperImagePath = ""))
+        // S2076: the camera id is dropped alongside the image copy, so a mode the user left behind cannot
+        // reappear pointing at a lens they no longer chose.
+        updateSettings(
+            current.copy(
+                launcherWallpaperMode = mode,
+                launcherWallpaperImagePath = "",
+                launcherWallpaperCameraId = "",
+            )
+        )
+        viewModelScope.launch { storeLauncherWallpaperUseCase.clear() }
+    }
+
+    /**
+     * S2076: switches the desktop to the live camera backdrop and records which lens it opens.
+     *
+     * Token and lens id are one write: written separately, the desktop would briefly read camera mode
+     * against the previous lens (strategic §5.2).
+     */
+    fun applyLauncherWallpaperCamera(cameraId: String) {
+        val current = settings.value
+        updateSettings(
+            current.copy(
+                launcherWallpaperMode = AppSettings.LAUNCHER_WALLPAPER_CAMERA,
+                launcherWallpaperImagePath = "",
+                launcherWallpaperCameraId = cameraId,
+            )
+        )
         viewModelScope.launch { storeLauncherWallpaperUseCase.clear() }
     }
 
@@ -619,17 +645,21 @@ class SettingsViewModel @Inject constructor(
                 resources.value
                     .filter { it.type == ResourceType.LOCAL }
                     .sumOf { resource ->
-                    try {
-                        // Manual clear must reuse the same contract + legacy migration path as the worker.
-                        cleanupTrashFoldersUseCase.cleanup(java.io.File(resource.path), maxAgeMs = 0L)
-                    } catch (e: Exception) {
-                        e.rethrowIfCancellation()
-                        Timber.w(e, "SettingsViewModel: Failed to clear trash for ${resource.path}")
-                        0
-                    }
+                        try {
+                            // Manual clear must reuse the same contract + legacy migration path as the worker.
+                            cleanupTrashFoldersUseCase.cleanup(java.io.File(resource.path), maxAgeMs = 0L)
+                        } catch (e: Exception) {
+                            e.rethrowIfCancellation()
+                            Timber.w(e, "SettingsViewModel: Failed to clear trash for ${resource.path}")
+                            0
+                        }
                     }
             }
-            android.widget.Toast.makeText(context, context.getString(R.string.trash_cleared, cleanedCount), android.widget.Toast.LENGTH_SHORT).show()
+            android.widget.Toast.makeText(
+                context,
+                context.getString(R.string.trash_cleared, cleanedCount),
+                android.widget.Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
@@ -639,24 +669,31 @@ class SettingsViewModel @Inject constructor(
                 val allDestinations = destinations.value
                 val currentIndex = allDestinations.indexOfFirst { it.id == resource.id }
                 if (currentIndex == -1) return@launch
-                
+
                 val targetIndex = currentIndex + direction
                 if (targetIndex < 0 || targetIndex >= allDestinations.size) return@launch
-                
+
                 val targetResource = allDestinations[targetIndex]
-                
+
                 // Swap destination orders
                 val currentOrder = resource.destinationOrder ?: return@launch
                 val targetOrder = targetResource.destinationOrder ?: return@launch
-                
+
                 // Wait for both updates to complete before continuing
                 val result1 = updateResourceUseCase(resource.copy(destinationOrder = targetOrder))
                 val result2 = updateResourceUseCase(targetResource.copy(destinationOrder = currentOrder))
-                
+
                 if (result1.isSuccess && result2.isSuccess) {
-                    Timber.d("Destination moved successfully: ${resource.name} order $currentOrder→$targetOrder, ${targetResource.name} order $targetOrder→$currentOrder")
+                    Timber.d(
+                        "Destination moved: %s %d->%d, %s %d->%d",
+                        resource.name, currentOrder, targetOrder,
+                        targetResource.name, targetOrder, currentOrder,
+                    )
                 } else {
-                    Timber.e("Error moving destination: result1=${result1.exceptionOrNull()}, result2=${result2.exceptionOrNull()}")
+                    Timber.e(
+                        "Error moving destination: result1=%s, result2=%s",
+                        result1.exceptionOrNull(), result2.exceptionOrNull(),
+                    )
                 }
             } catch (e: Exception) {
                 e.rethrowIfCancellation()
@@ -668,10 +705,12 @@ class SettingsViewModel @Inject constructor(
     fun removeDestination(resource: MediaResource) {
         viewModelScope.launch {
             try {
-                updateResourceUseCase(resource.copy(
-                    isDestination = false,
-                    destinationOrder = null
-                ))
+                updateResourceUseCase(
+                    resource.copy(
+                        isDestination = false,
+                        destinationOrder = null
+                    )
+                )
                 Timber.d("Destination removed successfully")
             } catch (e: Exception) {
                 e.rethrowIfCancellation()
@@ -724,19 +763,21 @@ class SettingsViewModel @Inject constructor(
                     Timber.w("Cannot add non-writable resource as destination: ${resource.name}")
                     return@launch
                 }
-                
+
                 val nextOrder = getDestinationsUseCase.getNextAvailableOrder()
                 if (nextOrder == -1) {
                     Timber.w("Cannot add destination: all 10 slots are full")
                     return@launch
                 }
-                
+
                 val color = DestinationColors.getColorForDestination(nextOrder)
-                updateResourceUseCase(resource.copy(
-                    isDestination = true,
-                    destinationOrder = nextOrder,
-                    destinationColor = color
-                ))
+                updateResourceUseCase(
+                    resource.copy(
+                        isDestination = true,
+                        destinationOrder = nextOrder,
+                        destinationColor = color
+                    )
+                )
                 Timber.d("Destination added successfully with order $nextOrder and color $color")
             } catch (e: Exception) {
                 e.rethrowIfCancellation()

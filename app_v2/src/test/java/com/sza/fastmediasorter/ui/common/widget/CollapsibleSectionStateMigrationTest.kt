@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.common.widget
 
 import android.content.Context
+import com.sza.fastmediasorter.data.local.preferences.CollapsibleSectionStore
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test

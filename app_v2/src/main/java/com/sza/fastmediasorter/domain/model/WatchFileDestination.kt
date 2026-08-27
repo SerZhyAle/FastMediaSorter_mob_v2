@@ -12,12 +12,12 @@ package com.sza.fastmediasorter.domain.model
 sealed interface WatchFileDestination {
 
     /** A directory on this device; [directoryPath] is a plain filesystem path. */
-    data class Local(val directoryPath: String) : WatchFileDestination
+    data class Local(val directoryPath: String, val name: String) : WatchFileDestination
 
     /**
      * A network or cloud resource. [parentPath] keeps its scheme prefix (`smb://`, `sftp://`,
      * `ftp://`, `cloud://`) because that prefix is what routes the later operation to a handler,
      * and [resourceId] identifies the resource whose credentials that handler needs.
      */
-    data class Remote(val resourceId: Long, val parentPath: String) : WatchFileDestination
+    data class Remote(val resourceId: Long, val parentPath: String, val name: String) : WatchFileDestination
 }

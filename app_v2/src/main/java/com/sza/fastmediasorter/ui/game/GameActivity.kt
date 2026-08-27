@@ -109,6 +109,12 @@ class GameActivity : BaseActivity<ActivityGameBinding>() {
             this,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
+                    if (isTaskRoot) {
+                        startActivity(
+                            Intent(this@GameActivity, com.sza.fastmediasorter.ui.main.MainActivity::class.java)
+                                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                        )
+                    }
                     finish()
                 }
             }

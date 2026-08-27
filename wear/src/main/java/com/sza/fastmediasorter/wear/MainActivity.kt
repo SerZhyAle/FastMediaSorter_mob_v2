@@ -9,6 +9,7 @@ import android.os.BadParcelableException
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -427,6 +428,12 @@ fun MainNavigation(
     OpenLaunchTargetEffect(navController = navController, launchEntry = launchEntry)
 
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+
+    // S2097 - When on WearRoutes.HOME (root destination), intercept Back press to call moveTaskToBack(true)
+    // instead of finishing the Activity and overshooting into developer options or settings.
+    BackHandler(enabled = currentRoute == WearRoutes.HOME) {
+        (navController.context as? android.app.Activity)?.moveTaskToBack(true)
+    }
 
     // S2000: the resolved background, and whether it is allowed to animate. The branded animation
     // costs roughly one and a half cores, a budget accepted for one player screen rather than for a

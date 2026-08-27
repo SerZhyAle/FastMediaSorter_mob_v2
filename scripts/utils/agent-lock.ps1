@@ -113,6 +113,16 @@ function Get-AgentLockPath {
 # runs 10-25+ minutes, and a session waiting on one writes nothing to its transcript meanwhile.
 # Code is deliberately shorter - an edit is a short burst of writes, not a long-running process,
 # so a code ticket that has sat for 20 minutes is far more likely abandoned than working.
+#
+# S2098: TicketCeilingMinutes is declared for Build and Code below but read by NO queue consumer -
+# only ticket-lease.ps1 and device-lease.ps1 apply the field. Queue eviction
+# (Remove-StaleAgentLockTickets) judges the OWNER, never the ticket's age. That is deliberate, not
+# an oversight: a legitimate wait behind one long build, or behind several queued builds, outlasts
+# both numbers, so applying them would evict a session waiting exactly as the contract demands.
+# The remedy for a ticket whose owner is alive but whose intent was dropped is therefore explicit,
+# not a timer - scripts/utils/withdraw-lock-ticket.ps1. Do not wire these two values into the
+# queue sweep without redoing that reasoning; an unannounced non-application reads as a working
+# safety net, which is how the 2026-08-27 stall went unlooked-for.
 $Script:AgentLockTimings = @{
     Build = [pscustomobject]@{
         LockStaleMinutes    = 60
@@ -494,9 +504,10 @@ function Set-AgentTicketHeartbeat {
         that waits quietly writes nothing, looks dead at SessionStaleMinutes, and gets evicted
         from a place it earned. The poll loop is proof the waiter is alive, so it records that
         proof here. Unlike Set-AgentTicketTurnGranted this rewrites on every call - it is a
-        heartbeat, not a one-shot fact. The absolute TicketCeilingMinutes is judged against
-        enqueuedAt and is deliberately NOT extended by this stamp (S1448 ADR-3), so an abandoned
-        head still ages out.
+        heartbeat, not a one-shot fact. This stamp deliberately does not extend TicketCeilingMinutes
+        (S1448 ADR-3) - but that is moot for a queue, because S2098 found no queue consumer reads
+        that field at all: an abandoned head does NOT age out, and the remedy is the owning session
+        calling withdraw-lock-ticket.ps1. See the timings table for why applying it would be worse.
     #>
     param([Parameter(Mandatory)]$Ticket)
 

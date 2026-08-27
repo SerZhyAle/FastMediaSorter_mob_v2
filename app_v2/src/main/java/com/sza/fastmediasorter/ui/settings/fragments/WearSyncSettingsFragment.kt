@@ -4,17 +4,23 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.common.compose.FastMediaSorterComposeTheme
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
+import com.sza.fastmediasorter.ui.settings.WearWatchResourceEvent
 import com.sza.fastmediasorter.ui.settings.helpers.BeamAnimationDialog
 import com.sza.fastmediasorter.ui.wear.companion.WearCompanionScreen
 import com.sza.fastmediasorter.ui.wearresources.WearResourceSelectionActivity
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -41,6 +47,7 @@ class WearSyncSettingsFragment : Fragment() {
     // resolve different surfaces.
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
         ComposeView(inflater.context).apply {
+            Timber.d("S2091: wear companion island composed - testTags publish as resource-ids")
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 FastMediaSorterComposeTheme {
@@ -48,11 +55,34 @@ class WearSyncSettingsFragment : Fragment() {
                         viewModel = viewModel,
                         onPushClick = { launchBeamDialog() },
                         showResourceSelection = mediaCapabilities.supportsWearCompanion,
-                        onSelectResourcesClick = { WearResourceSelectionActivity.start(requireContext()) }
+                        onSelectResourcesClick = { WearResourceSelectionActivity.start(requireContext()) },
+                        onWatchResourceClick = {
+                            viewModel.addOrOpenWatchResource(getString(R.string.resource_type_wear_watch))
+                        }
                     )
                 }
             }
         }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        // The browser is started from here rather than from the island: an Activity launch is the
+        // host's business, and the island must stay a pure function of the view model's state.
+        collectOnLifecycle(viewModel.watchResourceEvents) { event ->
+            when (event) {
+                is WearWatchResourceEvent.Created -> toast(
+                    getString(R.string.paired_watch_resource_added, event.name)
+                )
+                is WearWatchResourceEvent.Open ->
+                    startActivity(BrowseActivity.createIntent(requireContext(), event.resourceId))
+                WearWatchResourceEvent.Failed -> toast(getString(R.string.friendly_copy_error_generic))
+            }
+        }
+    }
+
+    private fun toast(message: String) {
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+    }
 
     private fun launchBeamDialog() {
         viewModel.startPush()

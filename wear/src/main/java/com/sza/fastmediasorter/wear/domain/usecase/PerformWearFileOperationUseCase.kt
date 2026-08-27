@@ -89,20 +89,27 @@ class PerformWearFileOperationUseCase @Inject constructor(
     }
 
     /**
-     * The source is removed only against a confirmed [WearFileSendOutcome.SENT]; every other answer
-     * leaves it where it is. Reporting a move that deleted a file the phone never received is the
-     * one failure strategic §7 rates as losing data outright.
+     * The source is removed only against a confirmed [WearFileSendOutcome.SENT] or
+     * [WearFileSendOutcome.QUEUED_ON_PHONE]; every other answer leaves it where it is.
+     * Reporting a move that deleted a file the phone never received is the one failure strategic §7
+     * rates as losing data outright.
      */
     private suspend fun deliver(
         file: WearMediaFile,
         staged: File,
         deleteSource: Boolean
     ): WearFileOperationResult = try {
-        val outcome = senderRepository.sendFile(staged)
-        if (deleteSource && outcome == WearFileSendOutcome.SENT) {
+        val result = senderRepository.sendFile(staged)
+        val confirmedHandOff = result.outcome == WearFileSendOutcome.SENT ||
+            result.outcome == WearFileSendOutcome.QUEUED_ON_PHONE
+        if (deleteSource && confirmedHandOff) {
             stager.localFileOf(file)?.delete()
         }
-        WearFileOperationResult(file.name, outcome.toOperationOutcome())
+        WearFileOperationResult(
+            fileName = file.name,
+            outcome = result.outcome.toOperationOutcome(),
+            destination = result.destination
+        )
     } finally {
         // Also on cancellation: an abandoned run must not leave the copy behind in the cache.
         stager.discard(staged, file)
@@ -146,6 +153,9 @@ class PerformWearFileOperationUseCase @Inject constructor(
 
 private fun WearFileSendOutcome.toOperationOutcome(): WearFileOperationOutcome = when (this) {
     WearFileSendOutcome.SENT -> WearFileOperationOutcome.SUCCEEDED
+    WearFileSendOutcome.QUEUED_ON_PHONE -> WearFileOperationOutcome.QUEUED_ON_PHONE
+    WearFileSendOutcome.NO_DESTINATION -> WearFileOperationOutcome.NO_DESTINATION
+    WearFileSendOutcome.UNCONFIRMED -> WearFileOperationOutcome.UNCONFIRMED
     WearFileSendOutcome.TOO_LARGE -> WearFileOperationOutcome.REFUSED_TOO_LARGE
     WearFileSendOutcome.PHONE_UNREACHABLE -> WearFileOperationOutcome.PHONE_UNREACHABLE
     WearFileSendOutcome.FAILED -> WearFileOperationOutcome.FAILED

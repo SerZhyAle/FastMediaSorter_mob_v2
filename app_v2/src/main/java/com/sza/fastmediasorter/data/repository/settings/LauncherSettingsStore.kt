@@ -40,6 +40,7 @@ object LauncherSettingsStore {
     private val KEY_LAUNCHER_DESKTOP_LOCKED = booleanPreferencesKey("launcher_desktop_locked")
     private val KEY_LAUNCHER_WALLPAPER_MODE = stringPreferencesKey("launcher_wallpaper_mode")
     private val KEY_LAUNCHER_WALLPAPER_IMAGE_PATH = stringPreferencesKey("launcher_wallpaper_image_path")
+    private val KEY_LAUNCHER_WALLPAPER_CAMERA_ID = stringPreferencesKey("launcher_wallpaper_camera_id")
     private val KEY_ALL_APPS_SORT_ORDER = stringPreferencesKey("all_apps_sort_order")
     private val KEY_ALL_APPS_SORT_DESCENDING = booleanPreferencesKey("all_apps_sort_descending")
     private val KEY_LAUNCHER_SCREEN_BLACKOUT_TIMEOUT_SECONDS =
@@ -65,6 +66,7 @@ object LauncherSettingsStore {
         val launcherDesktopLocked: Boolean,
         val launcherWallpaperMode: String,
         val launcherWallpaperImagePath: String,
+        val launcherWallpaperCameraId: String,
         val allAppsSortOrder: String,
         val allAppsSortDescending: Boolean,
         val launcherScreenBlackoutTimeoutSeconds: Int,
@@ -100,6 +102,7 @@ object LauncherSettingsStore {
             ?.takeIf { it in AppSettings.LAUNCHER_WALLPAPER_MODES }
             ?: AppSettings.LAUNCHER_WALLPAPER_BRANDED,
         launcherWallpaperImagePath = preferences.getOrDefault(KEY_LAUNCHER_WALLPAPER_IMAGE_PATH, ""),
+        launcherWallpaperCameraId = preferences.getOrDefault(KEY_LAUNCHER_WALLPAPER_CAMERA_ID, ""),
         // S1401: stored as an enum name; an unknown one degrades to the default order.
         allAppsSortOrder = InstalledAppSortOrder
             .fromNameOrDefault(preferences[KEY_ALL_APPS_SORT_ORDER]).name,
@@ -129,6 +132,7 @@ object LauncherSettingsStore {
         preferences[KEY_LAUNCHER_DESKTOP_LOCKED] = settings.launcherDesktopLocked
         preferences[KEY_LAUNCHER_WALLPAPER_MODE] = settings.launcherWallpaperMode
         preferences[KEY_LAUNCHER_WALLPAPER_IMAGE_PATH] = settings.launcherWallpaperImagePath
+        preferences[KEY_LAUNCHER_WALLPAPER_CAMERA_ID] = settings.launcherWallpaperCameraId
         preferences[KEY_ALL_APPS_SORT_ORDER] = settings.allAppsSortOrder
         preferences[KEY_ALL_APPS_SORT_DESCENDING] = settings.allAppsSortDescending
         preferences[KEY_LAUNCHER_SCREEN_BLACKOUT_TIMEOUT_SECONDS] =

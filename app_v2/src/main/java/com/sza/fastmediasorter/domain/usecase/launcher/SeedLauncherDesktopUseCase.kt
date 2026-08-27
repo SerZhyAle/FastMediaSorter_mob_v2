@@ -40,6 +40,7 @@ import javax.inject.Inject
  * dependency read (e.g. a Room exception) degrades to an empty desktop the user can fill, never a crash
  * loop on the device's own home surface (audit 2026-07-17, P1).
  */
+@Suppress("LongParameterList")
 class SeedLauncherDesktopUseCase @Inject constructor(
     private val desktop: LauncherDesktopRepository,
     private val profiles: DeviceProfileRepository,
@@ -110,6 +111,7 @@ class SeedLauncherDesktopUseCase @Inject constructor(
                 GmsAvailabilityChecker.Status.UPDATE_REQUIRED -> true
                 GmsAvailabilityChecker.Status.UNAVAILABLE -> false
             }
+            Timber.d("S2015: Seed desktop profile=%s googleServices=%b", profile, googleServicesAvailable)
             // S1613: behind the same early exit, so a desktop that will not be seeded never pays for it.
             val importedShortcuts = appShortcuts.allPinned().map { shortcut ->
                 LauncherStarterSets.StarterItem(

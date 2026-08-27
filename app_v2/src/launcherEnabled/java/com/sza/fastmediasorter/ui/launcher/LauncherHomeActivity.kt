@@ -125,6 +125,11 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         pickIntent = { action -> viewModel.contactPickIntent(action) },
         resolvePick = { action, picked -> viewModel.resolveContactPick(action, picked) },
         onTargetPicked = { target -> addFlowManager.addShortcut(LauncherCellCommand.Contact(target)) },
+        // S2099: the in-flight action lives in saved state next to the target square, so both halves of
+        // an unfinished add survive a process kill together. Lambdas for the same reason as the four
+        // above - viewModel must not be touched while this initialiser runs.
+        readPendingAction = { viewModel.pendingContactAction },
+        writePendingAction = { action -> viewModel.pendingContactAction = action },
     )
 
     private val cellBinder = LauncherCellViewBinder(
@@ -322,6 +327,8 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             lifecycleOwner = this,
             imageLayer = binding.launcherWallpaperImage,
             wavesLayer = binding.launcherWallpaperWaves,
+            cameraLayer = binding.launcherWallpaperCamera,
+            cameraScrim = binding.launcherWallpaperCameraScrim,
             viewModel = viewModel,
         )
         wallpaperManager.attach()

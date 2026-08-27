@@ -369,4 +369,11 @@
     <string name="wear_complication_now_playing_description">Показує поточний або останній трек</string>
     <string name="wear_phone_all">Усі</string>
     <string name="wear_phone_browse">Огляд</string>
+    <string name="wear_file_op_outcome_saved_to">Збережено в %1$s</string>
+    <string name="wear_file_op_outcome_queued_on_phone">У черзі на відправку в %1$s</string>
+    <string name="wear_file_op_outcome_no_destination">Призначення не налаштовано</string>
+    <string name="wear_file_op_outcome_unconfirmed">Телефон не підтвердив (файл збережено)</string>
+    <string name="wear_upload_outcome_channel_name">Сповіщення про завантаження</string>
+    <string name="wear_upload_outcome_failed_title">Помилка завантаження</string>
+    <string name="wear_upload_outcome_failed_text">Не вдалося завантажити %1$s в %2$s</string>
 </resources>

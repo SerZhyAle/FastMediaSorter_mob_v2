@@ -41,8 +41,11 @@ enum class VoiceNoteSendFailureReason {
  * of the bridge refuse above.
  */
 fun WearFileSendOutcome.toVoiceNoteSendResult(): VoiceNoteSendResult = when (this) {
-    WearFileSendOutcome.SENT -> VoiceNoteSendResult.Sent
+    WearFileSendOutcome.SENT,
+    WearFileSendOutcome.QUEUED_ON_PHONE -> VoiceNoteSendResult.Sent
+    WearFileSendOutcome.UNCONFIRMED,
     WearFileSendOutcome.PHONE_UNREACHABLE -> VoiceNoteSendResult.PhoneUnreachable
     WearFileSendOutcome.TOO_LARGE -> VoiceNoteSendResult.TooLarge
+    WearFileSendOutcome.NO_DESTINATION,
     WearFileSendOutcome.FAILED -> VoiceNoteSendResult.Failed(VoiceNoteSendFailureReason.TRANSPORT_FAILED)
 }

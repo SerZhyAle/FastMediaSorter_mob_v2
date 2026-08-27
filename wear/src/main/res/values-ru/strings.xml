@@ -369,4 +369,11 @@
     <string name="wear_complication_now_playing_description">Показывает текущий или последний трек</string>
     <string name="wear_phone_all">Все</string>
     <string name="wear_phone_browse">Обзор</string>
+    <string name="wear_file_op_outcome_saved_to">Сохранено в %1$s</string>
+    <string name="wear_file_op_outcome_queued_on_phone">В очереди на отправку в %1$s</string>
+    <string name="wear_file_op_outcome_no_destination">Назначение не настроено</string>
+    <string name="wear_file_op_outcome_unconfirmed">Телефон не подтвердил (файл сохранен)</string>
+    <string name="wear_upload_outcome_channel_name">Уведомления о загрузке</string>
+    <string name="wear_upload_outcome_failed_title">Ошибка загрузки</string>
+    <string name="wear_upload_outcome_failed_text">Не удалось загрузить %1$s в %2$s</string>
 </resources>

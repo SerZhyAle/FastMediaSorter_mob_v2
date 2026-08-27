@@ -5,6 +5,7 @@ import android.view.ContextThemeWrapper
 import android.view.View
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.local.preferences.CollapsibleSectionStore
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before

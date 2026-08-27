@@ -13,11 +13,9 @@ import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.domain.model.WearSourcesExportPayload
 import com.sza.fastmediasorter.domain.repository.WearFileTransferRepository
+import com.sza.fastmediasorter.domain.usecase.EnsureWatchResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.GetPairedWatchStatusUseCase
 import com.sza.fastmediasorter.domain.usecase.ImportWatchSourcesUseCase
-import com.sza.fastmediasorter.domain.usecase.PushWearSettingsUseCase
-import com.sza.fastmediasorter.domain.usecase.SendPlaybackCommandUseCase
-import com.sza.fastmediasorter.domain.usecase.SendResourcesToWatchUseCase
 import com.sza.fastmediasorter.domain.usecase.SendWearBackgroundImageUseCase
 import com.sza.fastmediasorter.service.WearDataLayerPaths
 import com.sza.fastmediasorter.service.WearSyncEvents
@@ -25,8 +23,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
@@ -70,14 +71,27 @@ sealed class WearBackgroundDeliveryState {
  */
 data class WearBackgroundPreview(val path: String, val stamp: Long)
 
+/**
+ * S2034: what the add-or-open button did, told once rather than held as state.
+ *
+ * The two outcomes are separate because they need different answers from the host: a row that was
+ * just created is announced and left alone, while an existing one is opened. Collapsing them into
+ * "open it either way" would drop the reader into an empty browser, since a freshly created watch
+ * resource has never been scanned.
+ */
+sealed class WearWatchResourceEvent {
+    data class Created(val name: String) : WearWatchResourceEvent()
+    data class Open(val resourceId: Long) : WearWatchResourceEvent()
+    data object Failed : WearWatchResourceEvent()
+}
+
 @HiltViewModel
 class WearSyncViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val sendResourcesToWatchUseCase: SendResourcesToWatchUseCase,
-    private val pushWearSettingsUseCase: PushWearSettingsUseCase,
+    private val outbound: WearOutboundUseCases,
     private val importWatchSourcesUseCase: ImportWatchSourcesUseCase,
-    private val sendPlaybackCommandUseCase: SendPlaybackCommandUseCase,
     private val getPairedWatchStatusUseCase: GetPairedWatchStatusUseCase,
+    private val ensureWatchResourceUseCase: EnsureWatchResourceUseCase,
     private val sendWearBackgroundImageUseCase: SendWearBackgroundImageUseCase,
     private val wearFileTransferRepository: WearFileTransferRepository,
     private val wearSettingsMirrorStore: SharedPreferencesWearSettingsMirrorStore
@@ -162,11 +176,39 @@ class WearSyncViewModel @Inject constructor(
         }
     }
 
+    // S2034: one-shot, so rotating the window does not re-open the browser or repeat the toast.
+    private val _watchResourceEvents = MutableSharedFlow<WearWatchResourceEvent>(extraBufferCapacity = 1)
+    val watchResourceEvents: SharedFlow<WearWatchResourceEvent> = _watchResourceEvents.asSharedFlow()
+
+    /**
+     * S2034: the companion window's add-or-open button - strategic 2 goals 1-3.
+     *
+     * @param defaultName used only when the row has to be created; the host supplies it because the
+     *   name is a resource string and this view model must not reach for one on the domain's behalf.
+     */
+    fun addOrOpenWatchResource(defaultName: String) {
+        viewModelScope.launch {
+            Timber.d("S2034: companion add-or-open watch resource tapped")
+            val outcome = ensureWatchResourceUseCase(defaultName).getOrElse { e ->
+                Timber.e(e, "Could not ensure the watch resource")
+                _watchResourceEvents.emit(WearWatchResourceEvent.Failed)
+                return@launch
+            }
+            _watchResourceEvents.emit(
+                if (outcome.created) {
+                    WearWatchResourceEvent.Created(defaultName)
+                } else {
+                    WearWatchResourceEvent.Open(outcome.resourceId)
+                }
+            )
+        }
+    }
+
     fun startPush() {
         ackTimeoutJob?.cancel()
         _uiState.value = WearSyncUiState.Sending
         viewModelScope.launch {
-            sendResourcesToWatchUseCase()
+            outbound.sendResources()
                 .onSuccess { result ->
                     if (result.sent == 0) {
                         // S1781: nothing left the phone, so no ack can ever arrive - waiting out the
@@ -209,7 +251,7 @@ class WearSyncViewModel @Inject constructor(
         rememberSettings(merged)
         _uiState.value = WearSyncUiState.Sending
         viewModelScope.launch {
-            pushWearSettingsUseCase(merged)
+            outbound.pushSettings(merged)
                 .onSuccess {
                     _uiState.value = WearSyncUiState.SettingsPushed
                 }
@@ -320,7 +362,7 @@ class WearSyncViewModel @Inject constructor(
 
     fun sendPlaybackCommand(command: WearPlaybackCommand) {
         viewModelScope.launch {
-            sendPlaybackCommandUseCase(command).onFailure { e ->
+            outbound.sendPlaybackCommand(command).onFailure { e ->
                 Timber.e(e, "Failed to send playback command $command")
             }
         }

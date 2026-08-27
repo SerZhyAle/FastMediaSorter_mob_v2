@@ -61,6 +61,9 @@
     uc   - Unlock code: the same for temp/CODE.LOCK.
            Both REFUSE a lock whose holder is still live and print who holds it; add -Force
            once the holder is confirmed gone - that also drops the whole queue.
+    uqb  - Withdraw this session's own place in the BUILD queue; the lock itself is untouched.
+    uqc  - The same for the CODE queue. Use after abandoning a queued intent: the eviction
+           sweep will not clear it, since it judges the owning session and that session is alive.
     ul   - Unlock leases: drop the ticket leases a killed flow left behind, keeping every one a
            running child or a held lock still vouches for. Prints why each went or stayed.
            `.\a.ps1 ul -Force` drops the lot without asking anything.
@@ -159,6 +162,12 @@ $scripts = @{
     # through $Rest for the case the operator has confirmed the holder is gone.
     'ub'        = @{ Path = 'scripts\utils\clear-agent-lock.ps1'; Args = @{ Name = 'Build' } }
     'uc'        = @{ Path = 'scripts\utils\clear-agent-lock.ps1'; Args = @{ Name = 'Code' } }
+    # Queue withdrawers (S2098), a different operation from the two above: ub/uc clear a LOCK, while
+    # uqb/uqc drop this session's own place in a QUEUE and never touch a lock file. Reach for these
+    # when a queued intent was abandoned - the eviction sweep will not, since it judges the owning
+    # session, and that session is alive; it is the intent that was dropped.
+    'uqb'       = @{ Path = 'scripts\utils\withdraw-lock-ticket.ps1'; Args = @{ Name = 'Build' } }
+    'uqc'       = @{ Path = 'scripts\utils\withdraw-lock-ticket.ps1'; Args = @{ Name = 'Code' } }
     # Ticket leases are the third thing a killed flow leaves behind, and the one the built-in sweep
     # will not touch for 45 minutes: its window is sized for a working session that writes nothing,
     # not for a dead one. Clean judges on live evidence instead - see the verb's own docs.
@@ -231,6 +240,8 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  rm   - Monitor the runners (-Watch to refresh)" -ForegroundColor Cyan
     Write-Host "  ub   - Unlock build: clear a stale/dead temp/BUILD.LOCK (-Force to override)" -ForegroundColor Cyan
     Write-Host "  uc   - Unlock code: clear a stale/dead temp/CODE.LOCK (-Force to override)" -ForegroundColor Cyan
+    Write-Host "  uqb  - Withdraw this session's own place in the BUILD queue (lock untouched)" -ForegroundColor Cyan
+    Write-Host "  uqc  - Withdraw this session's own place in the CODE queue (lock untouched)" -ForegroundColor Cyan
     Write-Host "  ul   - Unlock leases: drop ticket leases a killed flow left behind (-Force = all)" -ForegroundColor Cyan
     Write-Host "  adb  - adb swiss-army passthrough, e.g. 'adb log -Tail 400 -Grep S0035'" -ForegroundColor Cyan
     Write-Host "  adb-devices / adb-shot / adb-log / adb-current / adb-launch / adb-logcat-clear" -ForegroundColor Cyan

@@ -30,7 +30,7 @@ class SendVoiceNoteUseCase @Inject constructor(
             Timber.w("No voice note with id %d to send", noteId)
             return VoiceNoteSendResult.Failed(VoiceNoteSendFailureReason.NOTE_MISSING)
         }
-        val result = fileSenderRepository.sendFile(File(note.absolutePath)).toVoiceNoteSendResult()
+        val result = fileSenderRepository.sendFile(File(note.absolutePath)).outcome.toVoiceNoteSendResult()
         noteRepository.updateState(noteId, result.toDeliveryState())
         return result
     }

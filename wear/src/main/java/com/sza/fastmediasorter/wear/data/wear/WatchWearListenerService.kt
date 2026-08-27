@@ -85,6 +85,8 @@ class WatchWearListenerService : WearableListenerService() {
     // posts the notification whose tap can.
     @Inject lateinit var openOnWatchNotifier: WearOpenOnWatchNotifier
 
+    @Inject lateinit var uploadOutcomeNotifier: com.sza.fastmediasorter.wear.core.notification.WearUploadOutcomeNotifier
+
     @Inject lateinit var gson: Gson
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -208,9 +210,42 @@ class WatchWearListenerService : WearableListenerService() {
                     val payloadBytes = dataMap.getByteArray("payload") ?: continue
                     handleSettingsPush(payloadBytes)
                 }
+                WearDataLayerPaths.FILE_UPLOAD_OUTCOME -> {
+                    val payloadBytes = dataMap.getByteArray("payload") ?: continue
+                    handleFileUploadOutcome(payloadBytes, event.dataItem.uri)
+                }
             }
         }
         events.release()
+    }
+
+    @Suppress("TooGenericExceptionCaught")
+    private fun handleFileUploadOutcome(payloadBytes: ByteArray, uri: android.net.Uri) {
+        serviceScope.launch {
+            try {
+                val outcome = gson.fromJson(
+                    payloadBytes.decodeToString(),
+                    com.sza.fastmediasorter.wear.domain.model.WearFileUploadOutcome::class.java
+                )
+                Timber.i(
+                    "WearFileUploadOutcome received: %s, succeeded=%b, dest=%s",
+                    outcome.fileName,
+                    outcome.succeeded,
+                    outcome.destination
+                )
+                if (!outcome.succeeded) {
+                    uploadOutcomeNotifier.notifyUploadFailed(outcome.fileName, outcome.destination)
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.w(e, "Failed to process WearFileUploadOutcome")
+            } finally {
+                runCatching {
+                    Wearable.getDataClient(this@WatchWearListenerService).deleteDataItems(uri).await()
+                }.onFailure { Timber.w(it, "Failed to delete consumed WearFileUploadOutcome data item") }
+            }
+        }
     }
 
     override fun onMessageReceived(event: MessageEvent) {

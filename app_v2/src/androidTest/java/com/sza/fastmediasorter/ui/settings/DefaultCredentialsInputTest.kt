@@ -12,15 +12,15 @@ import androidx.test.espresso.action.ViewActions.pressImeActionButton
 import androidx.test.espresso.action.ViewActions.scrollTo
 import androidx.test.espresso.action.ViewActions.typeText
 import androidx.test.espresso.assertion.ViewAssertions.matches
-import androidx.test.espresso.matcher.ViewMatchers.hasFocus
 import androidx.test.espresso.matcher.ViewMatchers.Visibility
+import androidx.test.espresso.matcher.ViewMatchers.hasFocus
 import androidx.test.espresso.matcher.ViewMatchers.withEffectiveVisibility
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.TestFixtures
-import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionStore
+import com.sza.fastmediasorter.data.local.preferences.CollapsibleSectionStore
 import org.junit.After
 import org.junit.Before
 import org.junit.Test

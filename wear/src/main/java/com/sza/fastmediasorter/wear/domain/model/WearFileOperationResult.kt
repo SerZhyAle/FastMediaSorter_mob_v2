@@ -10,12 +10,17 @@ data class WearFileOperationResult(
     val fileName: String,
     val outcome: WearFileOperationOutcome,
     /** The name the file ended up with when a conflict forced a suffix; null when nothing renamed it. */
-    val finalName: String? = null
+    val finalName: String? = null,
+    /** The destination on the phone where the file landed or was queued; null when local or unconfirmed. */
+    val destination: String? = null
 )
 
 /** Why one file of a batch ended the way it did. */
 enum class WearFileOperationOutcome {
     SUCCEEDED,
+    QUEUED_ON_PHONE,
+    NO_DESTINATION,
+    UNCONFIRMED,
 
     /** The file's storage class does not allow this operation - it was never touched. */
     REFUSED_UNSUPPORTED,

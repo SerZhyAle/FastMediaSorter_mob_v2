@@ -4398,6 +4398,18 @@ scripts/utils/lock-status.ps1
   Exit: 2 = could not determine (lock file unreadable), or -Wait ran out of time.; 1 = held, ONLY under -StrictExit.
 ```
 
+### measure-concurrent-build.ps1
+Measure whether one Gradle root tolerates two concurrent invocations (S2109).
+
+```
+scripts/utils/measure-concurrent-build.ps1
+  Measure whether one Gradle root tolerates two concurrent invocations (S2109).
+  Params:
+    -Rounds         [Int32] = 3
+    -OutDir         [String] = "temp/S2109"
+  Exit: 0 - measurement completed; read the CSV and the summary line for the result, which may
+```
+
 ### monitor_git.ps1
 
 ```
@@ -4707,6 +4719,17 @@ scripts/utils/wait-for-ticket-work.ps1
     -Reason               [String] = ''
     -MarkerPath           [String] = ''
   Exit: 0 - work is available now; the marker names the kind (impl / device-drain) and the ticket.; 3 - required preflight script is missing.; 4 - usage error.
+```
+
+### withdraw-lock-ticket.ps1
+Withdraw this session's own place in a lock queue: temp/BUILD.QUEUE or temp/CODE.QUEUE.
+
+```
+scripts/utils/withdraw-lock-ticket.ps1
+  Withdraw this session's own place in a lock queue: temp/BUILD.QUEUE or temp/CODE.QUEUE.
+  Params:
+    -Name  (req)  [String]  {Build|Code}
+  Exit: 0 - withdrawal judged: this session's tickets, if any, are gone. Zero removed is a normal; 2 - ownership could not be established (no CLAUDE_CODE_SESSION_ID / CODEX_SESSION_ID in the
 ```
 
 ## scripts\utils\agent-lock.tests

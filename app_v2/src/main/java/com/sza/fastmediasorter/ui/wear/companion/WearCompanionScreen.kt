@@ -58,16 +58,17 @@ internal val SPACING_SECTION = 16.dp
  * state and starts collapsed, so opening the window shows headings rather than one group's contents
  * pushing the rest off the screen (strategic §3.3.3).
  *
- * S2091: the root publishes every `testTag` below it as an Android `resource-id`. Compose emits no id
- * of its own, so without this line the screen dumps as a column of anonymous nodes and both
- * `adb.ps1 tap-id` and `tap-label` exit 8 - which is why no device pass on this window could start.
+ * S2091: every control below carries a `testTag`, which reaches `uiautomator` as a `resource-id` only
+ * because `FastMediaSorterComposeTheme` sets `testTagsAsResourceId` for every island (S2096). Do not
+ * repeat that flag here - one owner keeps a removal visible instead of silently sparing this screen.
  */
 @Composable
 fun WearCompanionScreen(
     viewModel: WearSyncViewModel,
     onPushClick: () -> Unit,
     showResourceSelection: Boolean,
-    onSelectResourcesClick: () -> Unit
+    onSelectResourcesClick: () -> Unit,
+    onWatchResourceClick: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
     val watchSettings by viewModel.watchSettingsState.collectAsState()
@@ -107,6 +108,18 @@ fun WearCompanionScreen(
                     .testTag("wearSelectResources")
             ) {
                 Text(stringResource(R.string.wear_resource_selection_title))
+            }
+
+            // S2034: the watch's own storage as a resource, added on the first tap and opened on
+            // every later one - the label says both because the button is one entry point, not two.
+            Spacer(Modifier.height(SPACING_SMALL))
+            OutlinedButton(
+                onClick = onWatchResourceClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("wearWatchResource")
+            ) {
+                Text(stringResource(R.string.wear_companion_add_open_resource))
             }
         }
 

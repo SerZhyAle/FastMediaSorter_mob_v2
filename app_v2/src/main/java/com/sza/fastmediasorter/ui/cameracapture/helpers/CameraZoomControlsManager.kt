@@ -169,14 +169,16 @@ class CameraZoomControlsManager(
             capabilities.isFront -> context.getString(R.string.camera_lens_front)
             capabilities.activeLensIsMacro -> context.getString(R.string.camera_lens_macro)
             capabilities.activeLensIsWidest -> context.getString(R.string.camera_lens_ultrawide)
-            capabilities.zoomMultiplier > TELE_MIN_MULTIPLIER -> context.getString(R.string.camera_lens_tele)
+            capabilities.zoomMultiplier > CameraRuntimeCapabilities.TELE_MIN_MULTIPLIER ->
+                context.getString(R.string.camera_lens_tele)
             else -> context.getString(R.string.camera_lens_wide)
         }
         val iconRes = when {
             capabilities.isFront -> R.drawable.ic_camera_lens_front
             capabilities.activeLensIsMacro -> R.drawable.ic_camera_lens_macro
             capabilities.activeLensIsWidest -> R.drawable.ic_camera_lens_ultrawide
-            capabilities.zoomMultiplier > TELE_MIN_MULTIPLIER -> R.drawable.ic_camera_lens_tele
+            capabilities.zoomMultiplier > CameraRuntimeCapabilities.TELE_MIN_MULTIPLIER ->
+                R.drawable.ic_camera_lens_tele
             else -> R.drawable.ic_camera_lens_wide
         }
         switchButton?.setIconResource(iconRes)
@@ -195,7 +197,6 @@ class CameraZoomControlsManager(
         const val CHIP_VERT_PADDING_DP = 4f
         const val CHIP_SPACING_DP = 6f
         const val CHIP_TEXT_SP = 11f
-        const val TELE_MIN_MULTIPLIER = 1.5f
 
         /**
          * S1261: non-Float tag so [syncSelection]'s native-ratio matching skips the cross-lens pill

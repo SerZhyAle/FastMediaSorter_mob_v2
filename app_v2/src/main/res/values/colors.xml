@@ -432,6 +432,9 @@
     <!-- S0701: translucent dark disc behind grid-tile overlays (status dot + overflow) so they stay
          legible on top of an arbitrary captured video frame or favicon. -->
     <color name="stream_grid_overlay_scrim">#99000000</color>
+    <!-- S2076: darkens the launcher desktop's live camera backdrop so icon labels stay legible over an
+         arbitrary scene. Same value as the grid-tile scrim above, which solves the same problem. -->
+    <color name="launcher_camera_scrim">#99000000</color>
     <!-- S1062: red pill behind the grid-tile "Pinned" badge (top-left indicator). Deliberately a full
          red so the pinned state reads at a glance; a separate element from the bottom-left play-status dot. -->
     <color name="stream_pin_badge_bg">#FFC62828</color>

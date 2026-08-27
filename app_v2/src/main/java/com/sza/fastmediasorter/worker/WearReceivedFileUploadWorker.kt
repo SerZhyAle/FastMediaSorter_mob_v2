@@ -10,14 +10,19 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
+import com.google.gson.Gson
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.notification.NotificationIcons
 import com.sza.fastmediasorter.core.notification.NotificationIds
+import com.sza.fastmediasorter.domain.model.WearFileUploadOutcome
+import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
+import com.sza.fastmediasorter.service.WearDataLayerPaths
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 import java.io.File
 
@@ -31,7 +36,9 @@ import java.io.File
 class WearReceivedFileUploadWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
-    private val fileOperationUseCase: FileOperationUseCase
+    private val fileOperationUseCase: FileOperationUseCase,
+    private val wearableDataLayerRepository: WearableDataLayerRepository,
+    private val gson: Gson
 ) : CoroutineWorker(context, params) {
 
     @Suppress("ReturnCount")
@@ -57,7 +64,35 @@ class WearReceivedFileUploadWorker @AssistedInject constructor(
         )
 
         val result = fileOperationUseCase.execute(operation)
-        return handleOperationResult(result, fileName, parentPath)
+        val workResult = handleOperationResult(result, fileName, parentPath)
+        publishWatchOutcome(result, fileName, parentPath)
+        return workResult
+    }
+
+    @Suppress("TooGenericExceptionCaught")
+    private suspend fun publishWatchOutcome(
+        result: FileOperationResult,
+        fileName: String,
+        parentPath: String
+    ) {
+        try {
+            val destinationName = inputData.getString(KEY_DESTINATION_NAME)
+                ?: parentPath.substringAfterLast('/', parentPath)
+            val outcome = WearFileUploadOutcome(
+                fileName = fileName,
+                succeeded = result is FileOperationResult.Success,
+                destination = destinationName,
+                completedAtMillis = System.currentTimeMillis()
+            )
+            wearableDataLayerRepository.putDataItem(
+                WearDataLayerPaths.FILE_UPLOAD_OUTCOME,
+                gson.toJson(outcome).toByteArray(Charsets.UTF_8)
+            )
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.w(e, "Failed to publish WearFileUploadOutcome for %s", fileName)
+        }
     }
 
     private fun handleOperationResult(
@@ -186,5 +221,6 @@ class WearReceivedFileUploadWorker @AssistedInject constructor(
         const val KEY_RESOURCE_ID = "resource_id"
         const val KEY_PARENT_PATH = "parent_path"
         const val KEY_FILE_NAME = "file_name"
+        const val KEY_DESTINATION_NAME = "destination_name"
     }
 }

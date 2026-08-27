@@ -544,6 +544,9 @@ private fun PhoneFileOpenOutcome?.toStatusRes(): Int? = when (this) {
 @StringRes
 private fun WearFileOperationOutcome.toStatusRes(): Int = when (this) {
     WearFileOperationOutcome.SUCCEEDED -> R.string.wear_file_op_outcome_succeeded
+    WearFileOperationOutcome.QUEUED_ON_PHONE -> R.string.wear_file_op_outcome_succeeded
+    WearFileOperationOutcome.NO_DESTINATION -> R.string.wear_file_op_outcome_no_destination
+    WearFileOperationOutcome.UNCONFIRMED -> R.string.wear_file_op_outcome_unconfirmed
     WearFileOperationOutcome.REFUSED_UNSUPPORTED -> R.string.wear_file_op_outcome_unsupported
     WearFileOperationOutcome.REFUSED_TOO_LARGE -> R.string.wear_file_op_outcome_too_large
     WearFileOperationOutcome.PHONE_UNREACHABLE -> R.string.wear_file_op_outcome_phone_unreachable
@@ -562,6 +565,7 @@ private fun WearFileOperationOutcome.toStatusRes(): Int = when (this) {
  * phone that was not in the foreground, not the action failing.
  */
 private fun WearFileOperationOutcome.isSuccess(): Boolean = this == WearFileOperationOutcome.SUCCEEDED ||
+    this == WearFileOperationOutcome.QUEUED_ON_PHONE ||
     this == WearFileOperationOutcome.OPENED_ON_PHONE ||
     this == WearFileOperationOutcome.NOTIFIED_ON_PHONE
 

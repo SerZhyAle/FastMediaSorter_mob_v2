@@ -109,7 +109,9 @@ object BackupMapper {
             resourcesByPath.values.firstOrNull {
                 it.path == backup.targetResourcePath && it.type.name == backup.targetResourceType
             }
-        } else null
+        } else {
+            null
+        }
 
         if (opType != ScheduledOpType.DELETE && dst == null) return null
 
@@ -286,6 +288,7 @@ object BackupMapper {
             launcherDesktopLocked = settings.launcherDesktopLocked,
             launcherWallpaperMode = settings.launcherWallpaperMode,
             launcherWallpaperImagePath = settings.launcherWallpaperImagePath,
+            launcherWallpaperCameraId = settings.launcherWallpaperCameraId,
             allAppsSortOrder = settings.allAppsSortOrder,
             allAppsSortDescending = settings.allAppsSortDescending,
             launcherScreenBlackoutTimeoutSeconds = settings.launcherScreenBlackoutTimeoutSeconds,
@@ -499,6 +502,7 @@ object BackupMapper {
             launcherDesktopLocked = backup.launcherDesktopLocked,
             launcherWallpaperMode = backup.launcherWallpaperMode.gsonSafe(current.launcherWallpaperMode),
             launcherWallpaperImagePath = backup.launcherWallpaperImagePath.gsonSafe(current.launcherWallpaperImagePath),
+            launcherWallpaperCameraId = backup.launcherWallpaperCameraId.gsonSafe(current.launcherWallpaperCameraId),
             allAppsSortOrder = backup.allAppsSortOrder.gsonSafe(current.allAppsSortOrder),
             allAppsSortDescending = backup.allAppsSortDescending,
             launcherScreenBlackoutTimeoutSeconds = backup.launcherScreenBlackoutTimeoutSeconds,
@@ -528,7 +532,9 @@ object BackupMapper {
             allFiles = backup.allFiles,
             showHiddenFiles = backup.showHiddenFiles,
             showSubfoldersAsItems = backup.showSubfoldersAsItems,
-            supportedMediaTypes = backup.supportedMediaTypes.gsonSafeList().mapNotNull { safeParseMediaType(it) }.toSet(),
+            supportedMediaTypes = backup.supportedMediaTypes.gsonSafeList()
+                .mapNotNull { safeParseMediaType(it) }
+                .toSet(),
             profile = safeParseResourceProfile(backup.profile.gsonSafe("NONE")),
             accessPin = backup.accessPin,
             readSpeedMbps = backup.readSpeedMbps,
@@ -549,28 +555,32 @@ object BackupMapper {
 
     // Safe enum parsers - fall back to defaults for forward compatibility
     private fun safeParseSortMode(value: String): com.sza.fastmediasorter.domain.model.SortMode {
-        return try { com.sza.fastmediasorter.domain.model.SortMode.valueOf(value) }
-        catch (_: Exception) { com.sza.fastmediasorter.domain.model.SortMode.NAME_ASC }
+        return try {
+            com.sza.fastmediasorter.domain.model.SortMode.valueOf(value)
+        } catch (_: Exception) { com.sza.fastmediasorter.domain.model.SortMode.NAME_ASC }
     }
     private fun safeParseResourceType(value: String): com.sza.fastmediasorter.domain.model.ResourceType {
-        return try { com.sza.fastmediasorter.domain.model.ResourceType.valueOf(value) }
-        catch (_: Exception) { com.sza.fastmediasorter.domain.model.ResourceType.LOCAL }
+        return try {
+            com.sza.fastmediasorter.domain.model.ResourceType.valueOf(value)
+        } catch (_: Exception) { com.sza.fastmediasorter.domain.model.ResourceType.LOCAL }
     }
     private fun safeParseCloudProvider(value: String): com.sza.fastmediasorter.data.cloud.CloudProvider {
-        return try { com.sza.fastmediasorter.data.cloud.CloudProvider.valueOf(value) }
-        catch (_: Exception) { com.sza.fastmediasorter.data.cloud.CloudProvider.GOOGLE_DRIVE }
+        return try {
+            com.sza.fastmediasorter.data.cloud.CloudProvider.valueOf(value)
+        } catch (_: Exception) { com.sza.fastmediasorter.data.cloud.CloudProvider.GOOGLE_DRIVE }
     }
     private fun safeParseDisplayMode(value: String): com.sza.fastmediasorter.domain.model.DisplayMode {
-        return try { com.sza.fastmediasorter.domain.model.DisplayMode.valueOf(value) }
-        catch (_: Exception) { com.sza.fastmediasorter.domain.model.DisplayMode.LIST }
+        return try {
+            com.sza.fastmediasorter.domain.model.DisplayMode.valueOf(value)
+        } catch (_: Exception) { com.sza.fastmediasorter.domain.model.DisplayMode.LIST }
     }
     private fun safeParseMediaType(value: String): MediaType? {
-        return try { MediaType.valueOf(value) }
-        catch (_: Exception) { null }
+        return try { MediaType.valueOf(value) } catch (_: Exception) { null }
     }
     private fun safeParseResourceProfile(value: String): com.sza.fastmediasorter.domain.model.ResourceProfile {
-        return try { com.sza.fastmediasorter.domain.model.ResourceProfile.valueOf(value) }
-        catch (_: Exception) { com.sza.fastmediasorter.domain.model.ResourceProfile.NONE }
+        return try {
+            com.sza.fastmediasorter.domain.model.ResourceProfile.valueOf(value)
+        } catch (_: Exception) { com.sza.fastmediasorter.domain.model.ResourceProfile.NONE }
     }
 
     // S0406: network credential mapping. Export reads the decrypted password/SSH key;
