@@ -67,6 +67,9 @@
     <dimen name="outline_text_stroke_width">2dp</dimen>
 
     <!-- UI Elements -->
+    <!-- Material's minimum touch target. A row whose own height is wrap_content (switch, radio,
+         checkbox) reaches it only through minHeight, so the value is named rather than repeated. -->
+    <dimen name="touch_target_min_height">48dp</dimen>
     <dimen name="button_height">48dp</dimen>
     <dimen name="button_height_small">36dp</dimen>
     <dimen name="game_control_button_size">72dp</dimen>
@@ -456,6 +459,9 @@
     <!-- S1433: the compact band strategic 3.1.2 asks for - always visible, never collapsible, and short
          enough that the numbers under it stay on screen with the chart in landscape. -->
     <dimen name="network_monitor_chart_height">96dp</dimen>
+    <!-- Monospace console output of the tools tab. Smaller than body text on purpose: a ping or
+         traceroute line must not wrap, and both orientations must pick the same size. -->
+    <dimen name="network_monitor_console_text_size">12sp</dimen>
 
     <!-- ============================================================ -->
     <!-- LAYOUT-SPECIFIC BASE DIMENSIONS (from layout extraction) -->

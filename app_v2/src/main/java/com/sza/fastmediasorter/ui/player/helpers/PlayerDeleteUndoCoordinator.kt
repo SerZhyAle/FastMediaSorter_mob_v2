@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.content.Context
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.model.UndoOperation
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -166,7 +167,7 @@ class PlayerDeleteUndoCoordinator(
                     }
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Error deleting file: ${currentFile.path}")
+                e.errorUnlessCancellation("Error deleting file: ${currentFile.path}")
                 sendEvent(PlayerViewModel.PlayerEvent.ShowError(context.getString(R.string.error_delete_failed)))
             }
         }
@@ -191,7 +192,7 @@ class PlayerDeleteUndoCoordinator(
                 updateState { it.copy(files = files, currentIndex = newIndex) }
                 Timber.d("Files reloaded after rename, total: ${files.size}")
             } catch (e: Exception) {
-                Timber.e(e, "Failed to reload files after rename")
+                e.errorUnlessCancellation("Failed to reload files after rename")
                 sendEvent(PlayerViewModel.PlayerEvent.ShowError(context.getString(R.string.reload_files_failed)))
             }
         }
@@ -253,7 +254,7 @@ class PlayerDeleteUndoCoordinator(
                     sendEvent(PlayerViewModel.PlayerEvent.ShowError(context.getString(R.string.failed_to_restore_files)))
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Undo operation failed")
+                e.errorUnlessCancellation("Undo operation failed")
                 sendEvent(PlayerViewModel.PlayerEvent.ShowError(context.getString(R.string.undo_failed)))
             }
         }
@@ -301,7 +302,7 @@ class PlayerDeleteUndoCoordinator(
                 }
                 restored
             } catch (e: Exception) {
-                Timber.e(e, "Undo: Exception restoring local file")
+                e.errorUnlessCancellation("Undo: Exception restoring local file")
                 false
             }
         }
@@ -345,7 +346,7 @@ class PlayerDeleteUndoCoordinator(
                 }
             }
         } catch (e: Exception) {
-            Timber.e(e, "Undo: Exception restoring network file")
+            e.errorUnlessCancellation("Undo: Exception restoring network file")
             false
         }
     }

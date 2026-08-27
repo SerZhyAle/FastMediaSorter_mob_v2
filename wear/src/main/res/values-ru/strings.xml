@@ -376,4 +376,11 @@
     <string name="wear_upload_outcome_channel_name">Уведомления о загрузке</string>
     <string name="wear_upload_outcome_failed_title">Ошибка загрузки</string>
     <string name="wear_upload_outcome_failed_text">Не удалось загрузить %1$s в %2$s</string>
+    <string name="wear_settings_sync_button">Синхронизировать настройки</string>
+    <string name="wear_settings_last_synced">Синхронизировано: %1$s</string>
+    <string name="wear_settings_sync_never">Ещё не синхронизировано</string>
+    <string name="wear_setting_streams_section">Показывать трансляции</string>
+    <string name="wear_setting_background_mode">Фон на часах</string>
+    <string name="wear_background_mode_animation">Фирменная анимация</string>
+    <string name="wear_background_mode_image">Своё изображение</string>
 </resources>

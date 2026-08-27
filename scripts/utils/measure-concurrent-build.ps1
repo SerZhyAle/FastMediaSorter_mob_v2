@@ -36,7 +36,8 @@
 .PARAMETER OutDir
     Where the CSV and the raw gradle output go. Default temp/S2109.
 
-.EXIT CODES
+.NOTES
+    Exit codes:
     0 - measurement completed; read the CSV and the summary line for the result, which may
         well be "concurrency failed" - a red measurement is a completed measurement.
     1 - the probe itself failed (gradle wrapper missing, output directory unusable).

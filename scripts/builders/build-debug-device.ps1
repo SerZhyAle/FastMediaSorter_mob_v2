@@ -10,7 +10,7 @@ param(
 )
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
-Enter-BuildLockOrExit -Reason "build-debug-device.ps1"
+Enter-BuildLockOrExit -Reason "build-debug-device.ps1" -Domain Build.Phone
 try {
 
 # ADB path
@@ -150,5 +150,5 @@ Write-Host "To stop: Stop-Process -Id $($logcatProcess.Id)" -ForegroundColor Cya
 
 }
 finally {
-    Exit-AgentLock -Name Build
+    Exit-AgentLock -Name 'Build' -Domains @('Build.Phone')
 }

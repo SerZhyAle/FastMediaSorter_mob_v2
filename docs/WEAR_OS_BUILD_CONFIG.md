@@ -69,7 +69,7 @@ BUILD SUCCESSFUL in 11s
 40 actionable tasks: 14 executed, 26 up-to-date
 ```
 
-**APK Generated**: `wear/build/outputs/apk/debug/wear-debug.apk`
+**APK Generated**: `wear/build/outputs/apk/standard/debug/wear-standard-debug.apk` (S2090 added the `standard`/`noLegal` flavor dimension; pass `-Flavor noLegal` to the builder for the sideload variant)
 
 Size, measured 2026-08-15 (S1679). Compare a new build against the **release** number - the debug one is not minified and is misleading by a factor of seven:
 

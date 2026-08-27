@@ -30,7 +30,9 @@ param(
 $ErrorActionPreference = "Stop"
 trap { Write-Error $_; exit 1 }
 
-$validFlavors = @("standard", "lite", "photos", "legacy", "vr", "noLegal")
+# S2090: the wear module's own dimension. Deliberately a separate list from the phone's - the watch
+# declares two of those six names and nothing says the two sets must move together.
+$validWearFlavors = @("standard", "noLegal")
 $validStatus = @("active", "removed")
 $required = @("id", "area", "name", "description", "flavors")
 
@@ -110,6 +112,12 @@ $count = 0
 # Read once for the whole file rather than per record - the matrix does not change mid-run.
 $matrixFlags = Get-FlavorMatrixFlags -MatrixPath (Join-Path (Join-Path $repoRoot "docs") "FLAVOR_MATRIX.md")
 
+. (Join-Path $scriptDir "_lib.ps1")
+# The matrix header is the live list; the literal below is only the fallback for a checkout where
+# docs/FLAVOR_MATRIX.md is missing, and it is what went stale when `foss` was declared (S2093).
+$validFlavors = @(Get-FlavorMatrixColumns -RepoRoot $repoRoot)
+if ($validFlavors.Count -eq 0) { $validFlavors = @("standard", "lite", "photos", "legacy", "vr", "noLegal") }
+
 if (Test-Path $dataFile) {
     $lineNo = 0
     foreach ($raw in (Get-Content -LiteralPath $dataFile -Encoding UTF8)) {
@@ -152,6 +160,28 @@ if (Test-Path $dataFile) {
                     if ($validFlavors -notcontains $f) {
                         $errors.Add("L${lineNo}: invalid flavor '$f'")
                     }
+                }
+            }
+        }
+        # wearFlavors (S2090) - which WATCH build a capability exists in. A separate axis rather than a
+        # reinterpretation of `flavors`: that field means "which phone flavor gates this", and the S1934
+        # ratchet below counts a set as explained only when it equals the full six or some flag's row.
+        # A capability living only in the watch's noLegal build is gated by no phone flavor at all, so
+        # under `flavors` alone it would be forced to declare the full six and assert availability
+        # everywhere. Absent means "every watch build", so naming both variants is rejected - it claims
+        # exactly what absence already claims, and two spellings of one fact drift apart.
+        if ($obj.PSObject.Properties.Name -contains 'wearFlavors') {
+            $wf = $obj.wearFlavors
+            if ($wf -isnot [array] -or $wf.Count -eq 0) {
+                $errors.Add("L${lineNo}: wearFlavors must be a non-empty array when present - omit the key to mean every watch build")
+            } else {
+                foreach ($f in $wf) {
+                    if ($validWearFlavors -notcontains $f) {
+                        $errors.Add("L${lineNo}: invalid wear flavor '$f' - the wear module declares $($validWearFlavors -join ', ')")
+                    }
+                }
+                if (@($wf | Sort-Object -Unique).Count -eq $validWearFlavors.Count) {
+                    $errors.Add("L${lineNo}: wearFlavors names every watch build - omit the key instead, which already means that")
                 }
             }
         }

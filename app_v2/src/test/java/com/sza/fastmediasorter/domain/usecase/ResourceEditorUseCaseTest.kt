@@ -5,7 +5,6 @@ import com.sza.fastmediasorter.domain.model.ResourceEditorMode
 import com.sza.fastmediasorter.domain.model.ResourceFieldKey
 import com.sza.fastmediasorter.domain.model.ResourceFormData
 import com.sza.fastmediasorter.domain.model.ResourceType
-import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.testing.createAppSettings
@@ -37,7 +36,7 @@ class ResourceEditorUseCaseTest {
     private val addResourceUseCase = mockk<AddResourceUseCase>()
     private val updateResourceUseCase = mockk<UpdateResourceUseCase>()
     private val smbOperationsUseCase = mockk<SmbOperationsUseCase>(relaxed = true)
-    private val credentialsRepository = mockk<NetworkCredentialsRepository>(relaxed = true)
+    private val persistResourceCredentialsUseCase = mockk<PersistResourceCredentialsUseCase>(relaxed = true)
     private val resolveResourceIconUseCase = mockk<ResolveResourceIconUseCase>(relaxed = true)
     private lateinit var useCase: ResourceEditorUseCase
 
@@ -47,7 +46,7 @@ class ResourceEditorUseCaseTest {
         useCase = ResourceEditorUseCase(
             resourceRepository, settingsRepository, cachedFileListRepository,
             addResourceUseCase, updateResourceUseCase, smbOperationsUseCase,
-            credentialsRepository, resolveResourceIconUseCase, UnconfinedTestDispatcher(),
+            persistResourceCredentialsUseCase, resolveResourceIconUseCase, UnconfinedTestDispatcher(),
         )
     }
 

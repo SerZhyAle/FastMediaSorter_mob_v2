@@ -1408,7 +1408,6 @@
     <string name="wear_settings_slideshow">स्लाइडशो</string>
     <string name="wear_settings_album_art">एल्बम आर्ट</string>
     <string name="wear_settings_slideshow_interval">स्लाइडशो अंतराल (सेकंड)</string>
-    <string name="wear_push_settings">घड़ी की सेटिंग्स भेजें</string>
     <string name="wear_push_settings_failed">घड़ी की सेटिंग्स नहीं भेजी जा सकीं. फिर से कोशिश करें.</string>
     <string name="wear_import_pending_title">घड़ी से स्रोत प्राप्त हुए</string>
     <string name="wear_import_pending_desc">%2$s से %1$d स्रोत</string>

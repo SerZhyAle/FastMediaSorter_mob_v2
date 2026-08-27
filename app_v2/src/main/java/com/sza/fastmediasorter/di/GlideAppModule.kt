@@ -15,6 +15,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.Resource
 import com.bumptech.glide.load.engine.cache.InternalCacheDiskCacheFactory
 import com.bumptech.glide.load.engine.cache.LruResourceCache
+import com.bumptech.glide.load.engine.cache.MemorySizeCalculator
 import com.bumptech.glide.module.AppGlideModule
 import com.bumptech.glide.request.RequestOptions
 import com.sza.fastmediasorter.core.memory.MemoryProfileCoordinator
@@ -52,7 +53,7 @@ import java.nio.ByteBuffer
  */
 @GlideModule
 class GlideAppModule : AppGlideModule() {
-    
+
     override fun applyOptions(context: Context, builder: GlideBuilder) {
         // Set log level to ERROR to suppress verbose "Load failed for" messages
         builder.setLogLevel(android.util.Log.ERROR)
@@ -93,13 +94,15 @@ class GlideAppModule : AppGlideModule() {
         }
 
         builder.setDiskCache(InternalCacheDiskCacheFactory(context, "image_cache", diskCacheSize))
-        
+
         builder.setDefaultRequestOptions(buildDefaultRequestOptions(startupProfile.useRgb565))
 
         Timber.i(
             "GlideAppModule: startup memory cache configured from coordinator - %dMB",
             memoryCacheSize / BYTES_PER_MB,
         )
+
+        logDefaultPoolSizes(context)
         Timber.i(
             "GlideAppModule: *** CACHE CONFIGURED *** Memory=%dMB, Disk=%dMB, tier=%s, rgb565=%s",
             memoryCacheSize / BYTES_PER_MB,
@@ -108,14 +111,14 @@ class GlideAppModule : AppGlideModule() {
             startupProfile.useRgb565,
         )
     }
-    
+
     override fun registerComponents(context: Context, glide: Glide, registry: Registry) {
         // Get dependencies from Hilt for video decoder
         val entryPoint = EntryPointAccessors.fromApplication(
             context,
             NetworkFileModelLoaderEntryPoint::class.java
         )
-        
+
         // Register custom ModelLoader for NetworkFileData
         // This handles SMB/SFTP/FTP image loading with buffering to prevent thread interrupt issues
         registry.prepend(
@@ -131,7 +134,7 @@ class GlideAppModule : AppGlideModule() {
             NetworkFileData::class.java,
             com.sza.fastmediasorter.data.network.glide.NetworkFileDataPassthroughModelLoader.Factory()
         )
-        
+
         // Register video frame decoder for network videos
         registry.prepend(
             NetworkFileData::class.java,
@@ -145,35 +148,35 @@ class GlideAppModule : AppGlideModule() {
                 bitmapPool = glide.bitmapPool
             )
         )
-        
+
         // Register Google Drive thumbnail loader with authentication (legacy)
         registry.prepend(
             GoogleDriveThumbnailData::class.java,
             InputStream::class.java,
             GoogleDriveThumbnailModelLoader.Factory(context)
         )
-        
+
         // Register universal cloud thumbnail loader (Google Drive, OneDrive, Dropbox)
         registry.prepend(
             CloudThumbnailData::class.java,
             InputStream::class.java,
             CloudThumbnailModelLoader.Factory(context)
         )
-        
+
         // Register PDF page decoder for local PDF thumbnail generation
         registry.prepend(
             File::class.java,
             Bitmap::class.java,
             PdfPageDecoder()
         )
-        
+
         // Register EPUB cover decoder for local EPUB e-book covers
         registry.prepend(
             File::class.java,
             Bitmap::class.java,
             EpubCoverDecoder()
         )
-        
+
         // Register network PDF thumbnail loader for SMB/SFTP/FTP PDFs
         registry.prepend(
             NetworkFileData::class.java,
@@ -187,7 +190,7 @@ class GlideAppModule : AppGlideModule() {
                 unifiedCache = entryPoint.unifiedCache()
             )
         )
-        
+
         // Register network EPUB cover loader for SMB/SFTP/FTP EPUBs
         registry.prepend(
             NetworkFileData::class.java,
@@ -200,7 +203,7 @@ class GlideAppModule : AppGlideModule() {
                 credentialsRepository = entryPoint.credentialsRepository()
             )
         )
-        
+
         // Animated WebP / APNG -> AnimatedImageDrawable (API 28+). Prepended so it wins over Glide's
         // downsampler for animated files only; its header sniff returns false for everything else
         // (static WebP/PNG, JPG, GIF), leaving the built-in decoders in charge. Below API 28 the
@@ -229,9 +232,33 @@ class GlideAppModule : AppGlideModule() {
             )
         }
 
-        Timber.d("GlideAppModule: Registered NetworkFileModelLoaderFactory, NetworkVideoFrameDecoder, GoogleDriveThumbnailModelLoader, PdfPageDecoder, EpubCoverDecoder, NetworkPdfThumbnailLoader, and NetworkEpubCoverLoader")
+        Timber.d(
+            "GlideAppModule: Registered NetworkFileModelLoaderFactory, NetworkVideoFrameDecoder, " +
+                "GoogleDriveThumbnailModelLoader, PdfPageDecoder, EpubCoverDecoder, " +
+                "NetworkPdfThumbnailLoader, and NetworkEpubCoverLoader"
+        )
     }
-    
+
+    /**
+     * Only the LRU memory cache above is sized by this project; the bitmap pool and the array pool
+     * keep Glide's screen-derived defaults, so their sizes existed nowhere in the tree. That matters
+     * because Google Play starts judging bitmap memory in background and cached states from
+     * February 2027 at 200 MB, and the pool is the only bitmap-holding structure here large enough
+     * to approach it - the configured cache tops out at 24 MB.
+     *
+     * Fields are space-separated and stable so the pre-release measurement script can grep them out
+     * of logcat rather than parsing prose.
+     */
+    private fun logDefaultPoolSizes(context: Context) {
+        val calculator = MemorySizeCalculator.Builder(context).build()
+        Timber.i(
+            "GlideAppModule: defaultSizes memoryCacheMb=%d bitmapPoolMb=%d arrayPoolMb=%d",
+            calculator.memoryCacheSize / BYTES_PER_MB,
+            calculator.bitmapPoolSize / BYTES_PER_MB,
+            calculator.arrayPoolSizeInBytes / BYTES_PER_MB,
+        )
+    }
+
     override fun isManifestParsingEnabled(): Boolean {
         // Disable manifest parsing for faster initialization
         return false

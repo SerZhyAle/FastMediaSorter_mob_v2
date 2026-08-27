@@ -5,7 +5,6 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.sza.fastmediasorter.core.serialization.InstantTypeAdapter
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
-import java.time.Instant
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -13,6 +12,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import java.time.Instant
 
 /**
  * S2050: pins the exact on-disk shape (`wear_sync_prefs`, `watch_settings_payload`,

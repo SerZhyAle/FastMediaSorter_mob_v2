@@ -71,6 +71,10 @@ if ($MyInvocation.InvocationName -ne '.') {
     exit 2
 }
 
+# S2109: the domain table. A resource name is now a pair - type plus domain - and every accepted
+# name, its canonical rank and the "bare name means every domain of that type" rule live there.
+. "$PSScriptRoot\agent-lock-domains.ps1"
+
 function Resolve-AgentLockRepoRoot {
     # Prefer git's common-dir parent so every linked worktree shares ONE temp/BUILD.LOCK and
     # temp/CODE.LOCK. Fallback to the current checkout root when git is unavailable.
@@ -93,6 +97,10 @@ function Resolve-AgentLockRepoRoot {
 # functions, where $PSScriptRoot would otherwise be ambiguous across a dot-sourcing boundary.
 $Script:AgentLockRepoRoot = Resolve-AgentLockRepoRoot
 
+# S2109: pre-split lock files already honoured in this process, so the notice is printed once per
+# file rather than on every status read - a poll loop would otherwise bury its own output.
+$Script:AgentLockLegacyNoticed = [System.Collections.Generic.HashSet[string]]::new()
+
 # Codex exposes the same stable turn identity under a different environment name. Normalise it
 # once for existing lock and spec scripts, whose child processes inherit this environment.
 if ([string]::IsNullOrWhiteSpace($env:CLAUDE_CODE_SESSION_ID) -and
@@ -101,7 +109,18 @@ if ([string]::IsNullOrWhiteSpace($env:CLAUDE_CODE_SESSION_ID) -and
 }
 
 function Get-AgentLockPath {
-    param([Parameter(Mandatory)][ValidateSet('Build', 'Code')][string]$Name)
+    <#
+    .SYNOPSIS
+        Lock file for a coordination resource: temp/<NAME>.LOCK, upper-cased.
+    .DESCRIPTION
+        S2109: the name is a concrete domain (Code.Wear -> temp/CODE.WEAR.LOCK) or a bare type,
+        which keeps pointing at today's temp/BUILD.LOCK and temp/CODE.LOCK. Research artifact 05
+        established this function and Get-AgentLockQueueDir as the single point of truth for
+        every coordination path on disk, which is why the domain dimension reaches the whole
+        file set from here and nowhere else.
+    #>
+    param([Parameter(Mandatory)][string]$Name)
+    Assert-AgentLockDomainName -Name $Name | Out-Null
     $tempDir = Join-Path $Script:AgentLockRepoRoot 'temp'
     if (-not (Test-Path -LiteralPath $tempDir)) {
         New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
@@ -123,6 +142,11 @@ function Get-AgentLockPath {
 # not a timer - scripts/utils/withdraw-lock-ticket.ps1. Do not wire these two values into the
 # queue sweep without redoing that reasoning; an unannounced non-application reads as a working
 # safety net, which is how the 2026-08-27 stall went unlooked-for.
+#
+# S2109: each concrete domain carries its own record, inheriting the values of its bare type
+# unchanged - strategic section 5.1 pillar A makes ownership, eviction and head-of-queue
+# reservation properties of the mechanism, not of the domain, and every one of those rules is
+# read out of this table alone. A domain with different numbers would be a second policy.
 $Script:AgentLockTimings = @{
     Build = [pscustomobject]@{
         LockStaleMinutes    = 60
@@ -130,7 +154,37 @@ $Script:AgentLockTimings = @{
         ReservationMinutes   = 5
         SessionStaleMinutes  = 45
     }
+    'Build.Phone' = [pscustomobject]@{
+        LockStaleMinutes    = 60
+        TicketCeilingMinutes = 60
+        ReservationMinutes   = 5
+        SessionStaleMinutes  = 45
+    }
+    'Build.Wear' = [pscustomobject]@{
+        LockStaleMinutes    = 60
+        TicketCeilingMinutes = 60
+        ReservationMinutes   = 5
+        SessionStaleMinutes  = 45
+    }
     Code  = [pscustomobject]@{
+        LockStaleMinutes    = 10
+        TicketCeilingMinutes = 20
+        ReservationMinutes   = 3
+        SessionStaleMinutes  = 15
+    }
+    'Code.Phone' = [pscustomobject]@{
+        LockStaleMinutes    = 10
+        TicketCeilingMinutes = 20
+        ReservationMinutes   = 3
+        SessionStaleMinutes  = 15
+    }
+    'Code.Wear' = [pscustomobject]@{
+        LockStaleMinutes    = 10
+        TicketCeilingMinutes = 20
+        ReservationMinutes   = 3
+        SessionStaleMinutes  = 15
+    }
+    'Code.Scripts' = [pscustomobject]@{
         LockStaleMinutes    = 10
         TicketCeilingMinutes = 20
         ReservationMinutes   = 3
@@ -169,8 +223,15 @@ function Get-AgentLockTimings {
     <#
     .SYNOPSIS
         Timings for one lock. Single source for every minute value in this file.
+    .DESCRIPTION
+        S2109: accepts a concrete domain alongside the bare types; the two lease names, which
+        have no lock file and no queue, keep their own records.
     #>
-    param([Parameter(Mandatory)][ValidateSet('Build', 'Code', 'SpecTicket', 'Device')][string]$Name)
+    param([Parameter(Mandatory)][string]$Name)
+    if (-not $Script:AgentLockTimings.ContainsKey($Name)) {
+        $accepted = ($Script:AgentLockTimings.Keys | Sort-Object) -join ', '
+        throw "Unknown coordination resource name '$Name'. Accepted values: $accepted."
+    }
     return $Script:AgentLockTimings[$Name]
 }
 
@@ -179,8 +240,12 @@ function Get-AgentLockQueueDir {
     .SYNOPSIS
         Queue directory for a lock, created on demand. Shares the repo root with the lock file
         itself, so every linked worktree orders itself through ONE queue.
+
+        S2109: keyed off the concrete domain, so Code.Wear queues in temp/CODE.WEAR.QUEUE while
+        a bare Code still names today's temp/CODE.QUEUE.
     #>
-    param([Parameter(Mandatory)][ValidateSet('Build', 'Code')][string]$Name)
+    param([Parameter(Mandatory)][string]$Name)
+    Assert-AgentLockDomainName -Name $Name | Out-Null
     $queueDir = Join-Path (Join-Path $Script:AgentLockRepoRoot 'temp') "$($Name.ToUpper()).QUEUE"
     if (-not (Test-Path -LiteralPath $queueDir)) {
         New-Item -ItemType Directory -Path $queueDir -Force | Out-Null
@@ -236,7 +301,7 @@ function New-AgentLockTicket {
         holding the same number. Losing the race is not an error: recompute and retry.
     #>
     param(
-        [Parameter(Mandatory)][ValidateSet('Build', 'Code')][string]$Name,
+        [Parameter(Mandatory)][string]$Name,
         [Parameter(Mandatory)][string]$Reason,
         # Take a second place in the same queue anyway. Only a test harness simulating several
         # independent agents from one session needs this.
@@ -370,7 +435,7 @@ function Remove-StaleAgentLockTickets {
         agent waits forever - a worse failure than the contention the queue exists to fix.
         A malformed ticket file is deleted, mirroring how a torn lock file is already treated.
     #>
-    param([Parameter(Mandatory)][ValidateSet('Build', 'Code')][string]$Name)
+    param([Parameter(Mandatory)][string]$Name)
 
     $timings = Get-AgentLockTimings -Name $Name
     $queueDir = Get-AgentLockQueueDir -Name $Name
@@ -416,7 +481,7 @@ function Remove-AgentSessionTickets {
         where the eviction sweep's extra work buys nothing.
     #>
     param(
-        [Parameter(Mandatory)][ValidateSet('Build', 'Code')][string]$Name,
+        [Parameter(Mandatory)][string]$Name,
         [Parameter(Mandatory)][string]$SessionId
     )
 
@@ -442,17 +507,28 @@ function Get-AgentLockQueue {
         Surviving tickets for a lock, ordered by sequence number. Evicts first, so every reader
         sees a self-cleaning queue.
     #>
-    param([Parameter(Mandatory)][ValidateSet('Build', 'Code')][string]$Name)
+    param([Parameter(Mandatory)][string]$Name)
 
     [void](Remove-StaleAgentLockTickets -Name $Name)
-    $queueDir = Get-AgentLockQueueDir -Name $Name
-    $tickets = @()
+    $queueDirs = @(Get-AgentLockQueueDir -Name $Name)
 
-    foreach ($file in @(Get-ChildItem -LiteralPath $queueDir -Filter '*.json' -ErrorAction SilentlyContinue)) {
-        try { $ticket = Get-Content -LiteralPath $file.FullName -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop }
-        catch { continue }
-        $ticket | Add-Member -NotePropertyName 'path' -NotePropertyValue $file.FullName -Force
-        $tickets += $ticket
+    # S2109 transition: a ticket written before the split names no domain, so it is a place in the
+    # queue of every domain of its type. Ordering stays by sequence number, which is what makes a
+    # legacy waiter keep the position it earned instead of being overtaken by the split.
+    $legacyName = Get-AgentLockLegacyName -Name $Name
+    if ($legacyName) {
+        $legacyDir = Join-Path (Join-Path $Script:AgentLockRepoRoot 'temp') "$($legacyName.ToUpper()).QUEUE"
+        if (Test-Path -LiteralPath $legacyDir) { $queueDirs += $legacyDir }
+    }
+
+    $tickets = @()
+    foreach ($queueDir in $queueDirs) {
+        foreach ($file in @(Get-ChildItem -LiteralPath $queueDir -Filter '*.json' -ErrorAction SilentlyContinue)) {
+            try { $ticket = Get-Content -LiteralPath $file.FullName -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop }
+            catch { continue }
+            $ticket | Add-Member -NotePropertyName 'path' -NotePropertyValue $file.FullName -Force
+            $tickets += $ticket
+        }
     }
 
     return @($tickets | Sort-Object { [int]$_.seq })
@@ -543,7 +619,7 @@ function Test-AgentLockTurn {
         from the lock and the head's reservation, never from a session-id match against the head.
     #>
     param(
-        [Parameter(Mandatory)][ValidateSet('Build', 'Code')][string]$Name,
+        [Parameter(Mandatory)][string]$Name,
         $Ticket
     )
 
@@ -593,6 +669,94 @@ function Test-AgentLockTurn {
     return [pscustomobject]@{ IsMyTurn = $false; Position = $position; HeadSessionId = $head.sessionId; Reason = 'reserved for queue head' }
 }
 
+function New-AgentLockTicketSet {
+    <#
+    .SYNOPSIS
+        Take one place per domain of a set. Returns a hashtable keyed by domain name.
+    .DESCRIPTION
+        S2109. A multi-domain waiter needs a place in every queue it will eventually take, or the
+        domains it is not queued for can be handed to somebody who arrived later. Tickets are
+        taken in canonical order for the same reason acquisition is: it is the order that makes
+        two overlapping sets resolve rather than block.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$Name,
+        [Parameter(Mandatory)][string]$Reason,
+        [string[]]$Domains,
+        [switch]$ForceNew
+    )
+
+    $resolved = @(if ($Domains) { Sort-AgentLockDomains -Domain $Domains }
+
+                else { Resolve-AgentLockDomains -Name $Name })
+    $tickets = @{}
+    foreach ($domain in $resolved) {
+        $tickets[$domain] = New-AgentLockTicket -Name $domain -Reason $Reason -ForceNew:$ForceNew
+    }
+    return $tickets
+}
+
+function Test-AgentLockTurnSet {
+    <#
+    .SYNOPSIS
+        Is it this caller's turn in EVERY domain of a set. Returns IsMyTurn / Position /
+        BlockingDomain / Reason.
+    .DESCRIPTION
+        S2109. Granted only when the caller's ticket is the head everywhere. Being head in one
+        domain and second in another is not a partial success - it is the state that livelocks
+        two overlapping sets, because each waiter holds the head the other one needs. Reporting
+        it as "not yet, blocked on <domain>" is what keeps the wait honest, and Position is the
+        worst position across the set rather than the best.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$Name,
+        [hashtable]$Tickets,
+        [string[]]$Domains
+    )
+
+    $resolved = @(if ($Domains) { Sort-AgentLockDomains -Domain $Domains }
+
+                else { Resolve-AgentLockDomains -Name $Name })
+    $worstPosition = 0
+    foreach ($domain in $resolved) {
+        $ticket = if ($Tickets -and $Tickets.ContainsKey($domain)) { $Tickets[$domain] } else { $null }
+        $turn = Test-AgentLockTurn -Name $domain -Ticket $ticket
+        if ($turn.Position -gt $worstPosition) { $worstPosition = $turn.Position }
+        if (-not $turn.IsMyTurn) {
+            return [pscustomobject]@{
+                IsMyTurn = $false; Position = $turn.Position; BlockingDomain = $domain
+                HeadSessionId = $turn.HeadSessionId; Reason = "$domain - $($turn.Reason)"
+            }
+        }
+    }
+
+    return [pscustomobject]@{
+        IsMyTurn = $true; Position = $worstPosition; BlockingDomain = $null
+        HeadSessionId = $null; Reason = 'head of queue in every domain'
+    }
+}
+
+function Remove-AgentSessionTicketSet {
+    <#
+    .SYNOPSIS
+        Drop this session's tickets across every domain of a set. Returns the count removed.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$Name,
+        [Parameter(Mandatory)][string]$SessionId,
+        [string[]]$Domains
+    )
+
+    $resolved = @(if ($Domains) { Sort-AgentLockDomains -Domain $Domains }
+
+                else { Resolve-AgentLockDomains -Name $Name })
+    $removed = 0
+    foreach ($domain in $resolved) {
+        $removed += Remove-AgentSessionTickets -Name $domain -SessionId $SessionId
+    }
+    return $removed
+}
+
 function Get-AgentLockStatus {
     <#
     .SYNOPSIS
@@ -600,7 +764,7 @@ function Get-AgentLockStatus {
         Enter-AgentLock, at the moment a caller actually wants the lock.
     #>
     param(
-        [Parameter(Mandatory)][ValidateSet('Build', 'Code')][string]$Name,
+        [Parameter(Mandatory)][string]$Name,
         # 0 = use the per-resource default from $Script:AgentLockTimings.
         [int]$StaleMinutes = 0
     )
@@ -609,9 +773,11 @@ function Get-AgentLockStatus {
     }
 
     $path = Get-AgentLockPath -Name $Name
+    $tempDirForLock = Split-Path -Parent $path
     $result = [ordered]@{
         Name          = $Name
         Path          = $path
+        Legacy        = $false
         Exists        = $false
         AgeSeconds    = $null
         Pid           = $null
@@ -624,7 +790,21 @@ function Get-AgentLockStatus {
     }
 
     if (-not (Test-Path -LiteralPath $path)) {
-        return [pscustomobject]$result
+        # S2109 transition: no file for this domain, but a pre-split lock of the same type still
+        # holds every domain it covers. Honour it until its owner releases it or today's rules
+        # judge it stale - a live sibling that took the old file must not become invisible here.
+        $legacyName = Get-AgentLockLegacyName -Name $Name
+        $legacyPath = if ($legacyName) { Join-Path $tempDirForLock "$($legacyName.ToUpper()).LOCK" } else { $null }
+        if (-not $legacyPath -or -not (Test-Path -LiteralPath $legacyPath)) {
+            return [pscustomobject]$result
+        }
+        if (-not $Script:AgentLockLegacyNoticed.Contains($legacyPath)) {
+            [void]$Script:AgentLockLegacyNoticed.Add($legacyPath)
+            Write-Host "Honouring pre-split $legacyPath as holding every $legacyName domain." -ForegroundColor DarkGray
+        }
+        $path = $legacyPath
+        $result.Path = $legacyPath
+        $result.Legacy = $true
     }
     $result.Exists = $true
 
@@ -646,7 +826,9 @@ function Get-AgentLockStatus {
     $result.Host = [string]$raw.host
     $result.AcquiredAtIso = [DateTimeOffset]::FromUnixTimeMilliseconds([int64]$raw.acquiredAt).ToLocalTime().ToString('yyyy-MM-ddTHH:mm:ss')
 
-    if ($Name -eq 'Build') {
+    # S2109: staleness model follows the resource TYPE - every build domain is judged by PID
+    # liveness, every code domain by its owning session, exactly as the two bare names were.
+    if ($Name -like 'Build*') {
         $proc = Get-Process -Id ([int]$raw.pid) -ErrorAction SilentlyContinue
         $alive = $false
         if ($proc) {
@@ -696,45 +878,40 @@ function Get-AgentLockStatus {
     return [pscustomobject]$result
 }
 
-function Enter-AgentLock {
+function Enter-AgentLockDomain {
     <#
     .SYNOPSIS
-        Reclaim-if-stale, then atomically acquire. Returns @{ Acquired; Status }.
+        Acquire ONE concrete domain: reclaim-if-stale, then atomically create. Returns
+        @{ Acquired; Status }.
+    .DESCRIPTION
+        S2109 split this out of Enter-AgentLock unchanged. Enter-AgentLock is now the set-level
+        operation and calls this once per domain; every rule here - reservation, staleness,
+        ticket retirement, the FMS_BUILD_LOCK_HELD_BY stamp - is per domain, which is what
+        strategic section 5.1 pillar A means by "inherited unchanged".
+
+        Single-shot on purpose: the set-level caller owns the waiting, because a domain held
+        across a sleep is half a set, and half a set is the deadlock this ticket exists to
+        avoid.
     #>
     param(
-        [Parameter(Mandatory)][ValidateSet('Build', 'Code')][string]$Name,
+        [Parameter(Mandatory)][string]$Name,
         [Parameter(Mandatory)][string]$Reason,
-        # S1338: block until the holder releases instead of refusing. 793 lock-status polls and
-        # 48 hand-rolled `until` loops existed only because this function had no way to wait.
-        # Default stays single-shot: a caller that cannot afford to block must still fail fast.
-        [switch]$Wait,
-        [int]$WaitTimeoutSeconds = 900,
-        [int]$PollSeconds = 2,
         # S1432: the caller's queue ticket, when it took one. Supplying it makes this acquire
         # obey the queue order; omitting it keeps the historical behaviour for an empty queue.
         $Ticket
     )
 
-    $deadline = (Get-Date).AddSeconds($WaitTimeoutSeconds)
-    while ($true) {
-        $status = Get-AgentLockStatus -Name $Name
-        $lockBusy = ($status.Exists -and -not $status.Stale)
-        # A free lock is not enough: a live queue head that has not yet spent its reservation
-        # window still owns the turn (S1432). With an empty queue this is always true, so a
-        # caller that never enqueues behaves exactly as it did before.
-        $turn = Test-AgentLockTurn -Name $Name -Ticket $Ticket
-        if (-not $lockBusy -and $turn.IsMyTurn) { break }
-        # Staleness is re-judged every iteration, and Get-AgentLockStatus judges Build by PID
-        # liveness - so a holder that dies mid-wait is reclaimed on the next poll rather than
-        # waited out to the timeout.
+    $status = Get-AgentLockStatus -Name $Name
+    $lockBusy = ($status.Exists -and -not $status.Stale)
+    # A free lock is not enough: a live queue head that has not yet spent its reservation
+    # window still owns the turn (S1432). With an empty queue this is always true, so a
+    # caller that never enqueues behaves exactly as it did before.
+    $turn = Test-AgentLockTurn -Name $Name -Ticket $Ticket
+    if ($lockBusy -or -not $turn.IsMyTurn) {
         $blockedBy = if ($lockBusy) { 'lock' } else { 'queue-head' }
-        if (-not $Wait) {
-            return [pscustomobject]@{ Acquired = $false; Status = $status; BlockedBy = $blockedBy; Turn = $turn }
+        return [pscustomobject]@{
+            Acquired = $false; Status = $status; BlockedBy = $blockedBy; Turn = $turn; Domain = $Name
         }
-        if ((Get-Date) -ge $deadline) {
-            return [pscustomobject]@{ Acquired = $false; Status = $status; WaitTimedOut = $true; BlockedBy = $blockedBy; Turn = $turn }
-        }
-        Start-Sleep -Seconds $PollSeconds
     }
     if ($status.Exists -and $status.Stale) {
         # Best-effort reclaim of a dead/expired lock before attempting to acquire.
@@ -750,7 +927,9 @@ function Enter-AgentLock {
     }
     catch [System.IO.IOException] {
         # Lost the race to another process between the staleness check above and this create.
-        return [pscustomobject]@{ Acquired = $false; Status = (Get-AgentLockStatus -Name $Name) }
+        return [pscustomobject]@{
+            Acquired = $false; Status = (Get-AgentLockStatus -Name $Name); BlockedBy = 'lock'; Domain = $Name
+        }
     }
 
     try {
@@ -796,16 +975,143 @@ function Enter-AgentLock {
     # mistake an unrelated, later, coincidentally-same-PID holder for itself and `return` as if it
     # already held BUILD.LOCK, without queueing or building anything - the same PID-reuse hazard
     # Get-AgentLockStatus already guards against for the lock file's own liveness check below.
-    if ($Name -eq 'Build') { $env:FMS_BUILD_LOCK_HELD_BY = "$PID`:$($proc.StartTime.Ticks)" }
+    # S2109: any build domain, not the bare name alone - a nested gradle script under a
+    # Build.Phone holder must recognise its ancestor exactly as it did under a bare Build one.
+    if ($Name -like 'Build*') { $env:FMS_BUILD_LOCK_HELD_BY = "$PID`:$($proc.StartTime.Ticks)" }
 
-    return [pscustomobject]@{ Acquired = $true; Status = (Get-AgentLockStatus -Name $Name) }
+    return [pscustomobject]@{
+        Acquired = $true; Status = (Get-AgentLockStatus -Name $Name); Domain = $Name
+    }
+}
+
+function Enter-AgentLock {
+    <#
+    .SYNOPSIS
+        Acquire every domain a name resolves to, all or nothing. Returns @{ Acquired; Status }.
+    .DESCRIPTION
+        S2109. The name resolves through Resolve-AgentLockDomains into a set, and the set is
+        taken in that table's canonical order. Two properties make this safe, and neither is
+        optional (strategic section 5.1 pillar D):
+
+          - Canonical order. Two sessions whose sets overlap take the shared domains in the same
+            sequence, so one of them always gets the first contested domain and the other always
+            queues. Letting callers choose the order is what produces a mutual block with no
+            timeout to break it.
+          - All or nothing. A domain that cannot be taken releases every domain already taken in
+            THIS call before returning, so a refusal never leaves half a set held. A caller that
+            waits therefore sleeps holding nothing.
+
+        The returned Status is the blocking domain's on a refusal and the last acquired domain's
+        on success; Domains carries the whole set either way.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$Name,
+        [Parameter(Mandatory)][string]$Reason,
+        # S2109: an explicit subset, for a caller whose set was DERIVED and so has no single name
+        # ("phone and wear but not scripts"). Ordered canonically here, never by the caller.
+        [string[]]$Domains,
+        # S1338: block until the holder releases instead of refusing. 793 lock-status polls and
+        # 48 hand-rolled `until` loops existed only because this function had no way to wait.
+        # Default stays single-shot: a caller that cannot afford to block must still fail fast.
+        [switch]$Wait,
+        [int]$WaitTimeoutSeconds = 900,
+        [int]$PollSeconds = 2,
+        $Ticket,
+        # Set-level waiters hand back one ticket per domain, keyed by domain name.
+        [hashtable]$Tickets
+    )
+
+    $domains = @(if ($Domains) { Sort-AgentLockDomains -Domain $Domains }
+
+                else { Resolve-AgentLockDomains -Name $Name })
+    $deadline = (Get-Date).AddSeconds($WaitTimeoutSeconds)
+
+    while ($true) {
+        $taken = @()
+        $failure = $null
+
+        foreach ($domain in $domains) {
+            $domainTicket = if ($Tickets -and $Tickets.ContainsKey($domain)) { $Tickets[$domain] }
+                            elseif ($domains.Count -eq 1) { $Ticket }
+                            else { $null }
+            $attempt = Enter-AgentLockDomain -Name $domain -Reason $Reason -Ticket $domainTicket
+            if ($attempt.Acquired) { $taken += $domain; continue }
+            $failure = $attempt
+            break
+        }
+
+        if ($null -eq $failure) {
+            return [pscustomobject]@{
+                Acquired = $true
+                Status   = (Get-AgentLockStatus -Name $domains[-1])
+                Domains  = $domains
+            }
+        }
+
+        # Rollback. Releasing what this call took is the whole of "all or nothing": a caller left
+        # holding the domains it managed to get would block every session whose set overlaps
+        # them, for as long as it waits for the one it could not.
+        foreach ($domain in $taken) { Exit-AgentLockDomain -Name $domain }
+
+        if (-not $Wait) {
+            return [pscustomobject]@{
+                Acquired = $false; Status = $failure.Status; BlockedBy = $failure.BlockedBy
+                Turn = $failure.Turn; Domain = $failure.Domain; Domains = $domains
+            }
+        }
+        if ((Get-Date) -ge $deadline) {
+            return [pscustomobject]@{
+                Acquired = $false; Status = $failure.Status; WaitTimedOut = $true
+                BlockedBy = $failure.BlockedBy; Turn = $failure.Turn; Domain = $failure.Domain
+                Domains = $domains
+            }
+        }
+        Start-Sleep -Seconds $PollSeconds
+    }
 }
 
 function Exit-AgentLock {
     <#
     .SYNOPSIS
-        Best-effort release. Safe to call unconditionally from a `finally` block, even if the
-        lock was never acquired in this process (no-op).
+        Release every domain the name resolves to. Safe to call unconditionally from a `finally`.
+    .DESCRIPTION
+        S2109. Releases exactly the domains its own -Name resolves to, each owner-checked on its
+        own. Research artifact 04 makes this the closure facade's contract too: a facade that
+        took two domains must give back those two, never the whole code lock, or it hands away a
+        third domain some other session is holding.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$Name,
+        [string[]]$Domains
+    )
+
+    $resolved = @(if ($Domains) { Sort-AgentLockDomains -Domain $Domains }
+
+                else { Resolve-AgentLockDomains -Name $Name })
+    foreach ($domain in $resolved) {
+        Exit-AgentLockDomain -Name $domain
+    }
+
+    # S2109 transition, second half. Adoption alone makes a pre-split lock BLOCK without making it
+    # RELEASABLE: a session that took temp/CODE.LOCK before the split releases through this
+    # function afterwards, the three domain files it names are absent, and the file it actually
+    # holds is never touched - so its own lock outlives it and everyone queued behind it waits for
+    # the staleness window instead of for the work. Only a BARE name does this, because the legacy
+    # file covers every domain of its type and a caller releasing one domain must not hand away
+    # the other two. Ownership is checked by Exit-AgentLockDomain exactly as for any other file.
+    # -Domains is a PARTIAL set by construction, so it must never drop the pre-split file either:
+    # that file covers every domain of its type, including the ones this caller did not take.
+    if (-not $Domains -and $null -eq (Get-AgentLockLegacyName -Name $Name)) {
+        $legacyPath = Join-Path (Join-Path $Script:AgentLockRepoRoot 'temp') "$($Name.ToUpper()).LOCK"
+        if (Test-Path -LiteralPath $legacyPath) { Exit-AgentLockDomain -Name $Name }
+    }
+}
+
+function Exit-AgentLockDomain {
+    <#
+    .SYNOPSIS
+        Best-effort release of ONE concrete domain. Safe to call unconditionally from a `finally`
+        block, even if the lock was never acquired in this process (no-op).
 
     .DESCRIPTION
         Build and Code have different ownership models, so release differs:
@@ -822,17 +1128,19 @@ function Exit-AgentLock {
             already Tier-2/advisory (see agent-lock.ps1 header), so the small risk of racing an
             unrelated concurrent release is an acceptable soft failure mode.
     #>
-    param([Parameter(Mandatory)][ValidateSet('Build', 'Code')][string]$Name)
+    param([Parameter(Mandatory)][string]$Name)
 
     $path = Get-AgentLockPath -Name $Name
     if (-not (Test-Path -LiteralPath $path)) { return }
 
-    if ($Name -eq 'Code') {
+    # S2109: the ownership model belongs to the resource TYPE, so every code domain releases the
+    # way the bare Code lock does and every build domain the way Build does.
+    if ($Name -like 'Code*') {
         # S1432: release only what this session owns. With a queue behind the lock, an
         # unconditional delete would hand the turn to the wrong session - not merely drop an
         # advisory hint, as it did before. A schema-1 file (no session id) and a lock whose
         # owner is already stale are still removed, so nothing can get permanently stuck.
-        $status = Get-AgentLockStatus -Name Code
+        $status = Get-AgentLockStatus -Name $Name
         if (-not $status.Exists) { return }
         $mySessionId = $env:CLAUDE_CODE_SESSION_ID
         $ownerSessionId = [string]$status.SessionId
@@ -840,7 +1148,7 @@ function Exit-AgentLock {
                   ($mySessionId -and $ownerSessionId -eq $mySessionId) -or
                   $status.Stale
         if (-not $isMine) {
-            Write-Host "CODE.LOCK belongs to session $ownerSessionId (reason: '$($status.Reason)') - leaving it in place." -ForegroundColor Yellow
+            Write-Host "$($Name.ToUpper()).LOCK belongs to session $ownerSessionId (reason: '$($status.Reason)') - leaving it in place." -ForegroundColor Yellow
             return
         }
         Remove-Item -LiteralPath $path -Force -ErrorAction SilentlyContinue
@@ -1050,7 +1358,14 @@ function Enter-BuildLockOrExit {
         # S1432: opt out of the queue for a caller that must answer immediately. The environment
         # variable FMS_LOCK_NO_WAIT=1 does the same globally, for unattended runs.
         [switch]$NoWait,
-        [int]$WaitTimeoutSeconds = 3600
+        [int]$WaitTimeoutSeconds = 3600,
+        # S2109: which build domain this run needs. Defaults to the bare name, which is BOTH build
+        # domains - so a caller that has not been taught its module keeps serialising against every
+        # build exactly as it did before the split (ADR-2: the untouched caller must stay safe, not
+        # silently become unprotected).
+        [string]$Name = 'Build',
+        # An explicit list, for a caller that spans some but not all build domains.
+        [string[]]$Domain
     )
 
     Assert-GradleToolchainOrExit
@@ -1070,7 +1385,17 @@ function Enter-BuildLockOrExit {
     # should have queued or failed fast). Start ticks are what Get-AgentLockStatus already uses
     # to defend the SAME lock file against PID reuse a few lines below - this mirrors it rather
     # than inventing a second defense.
-    $selfCheck = Get-AgentLockStatus -Name Build
+    # S2109: the guard has to look at the domains this call will actually take. Asking the bare
+    # name would read a file nothing writes any more, so the guard would never fire and a nested
+    # gradle script would queue behind its own ancestor - a hang, not a refusal.
+    $buildDomains = @(if ($Domain) { Sort-AgentLockDomains -Domain $Domain }
+                      else { Resolve-AgentLockDomains -Name $Name })
+    $selfCheck = $null
+    foreach ($buildDomainItem in $buildDomains) {
+        $candidate = Get-AgentLockStatus -Name $buildDomainItem
+        if ($candidate.Exists -and -not $candidate.Stale) { $selfCheck = $candidate; break }
+    }
+    if ($null -eq $selfCheck) { $selfCheck = Get-AgentLockStatus -Name $buildDomains[0] }
     if ($selfCheck.Exists -and -not $selfCheck.Stale) {
         $holderPid = [int]$selfCheck.Pid
         $holderStartTicks = 0
@@ -1091,33 +1416,40 @@ function Enter-BuildLockOrExit {
         $inheritedMatchesHolder = ($inheritedPid -ne 0) -and ($inheritedPid -eq $holderPid) -and
             ($holderStartTicks -ne 0) -and ($inheritedStartTicks -eq $holderStartTicks)
         if ($holderPid -eq $PID -or $inheritedMatchesHolder) {
-            Write-Host "BUILD.LOCK already held by this run (pid $holderPid) - reusing it instead of queueing behind ourselves." -ForegroundColor DarkGray
+            Write-Host "$($selfCheck.Name.ToUpper()).LOCK already held by this run (pid $holderPid) - reusing it instead of queueing behind ourselves." -ForegroundColor DarkGray
             return
         }
     }
 
-    $codeStatus = Get-AgentLockStatus -Name Code
-    if ($codeStatus.Exists -and -not $codeStatus.Stale) {
-        Write-Host "Warning: CODE.LOCK present (age $([int]$codeStatus.AgeSeconds)s, reason: '$($codeStatus.Reason)') - a code edit may be in progress elsewhere. This build may reflect a half-written state." -ForegroundColor Yellow
+    # A code edit in ANY domain can leave a half-written tree under this build, so the warning
+    # asks about the whole code side rather than one domain of it.
+    foreach ($codeDomain in @(Resolve-AgentLockDomains -Name 'Code')) {
+        $codeStatus = Get-AgentLockStatus -Name $codeDomain
+        if ($codeStatus.Exists -and -not $codeStatus.Stale) {
+            Write-Host "Warning: $($codeDomain.ToUpper()).LOCK present (age $([int]$codeStatus.AgeSeconds)s, reason: '$($codeStatus.Reason)') - a code edit may be in progress elsewhere. This build may reflect a half-written state." -ForegroundColor Yellow
+        }
     }
 
     $failFast = $NoWait -or ($env:FMS_LOCK_NO_WAIT -eq '1')
-    $enterArgs = @{ Name = 'Build'; Reason = $Reason }
+    $enterArgs = @{ Name = $Name; Reason = $Reason; Domains = $buildDomains }
     $ticket = $null
+    $ticketSet = $null
 
     if (-not $failFast) {
         # Take a place in the queue BEFORE looking at the lock: ordering is what turns "whoever
-        # polls first" into "whoever asked first" (S1432).
-        $ticket = New-AgentLockTicket -Name Build -Reason $Reason
+        # polls first" into "whoever asked first" (S1432). S2109: one place per domain this call
+        # will take - a ticket in a queue the acquire never consults orders nothing.
+        $ticketSet = New-AgentLockTicketSet -Name $Name -Reason $Reason -Domains $buildDomains
+        $ticket = $ticketSet[$buildDomains[0]]
         $enterArgs.Wait = $true
         $enterArgs.WaitTimeoutSeconds = $WaitTimeoutSeconds
-        $enterArgs.Ticket = $ticket
+        $enterArgs.Tickets = $ticketSet
 
-        $turn = Test-AgentLockTurn -Name Build -Ticket $ticket
-        $lockNow = Get-AgentLockStatus -Name Build
+        $turn = Test-AgentLockTurnSet -Name $Name -Tickets $ticketSet -Domains $buildDomains
+        $lockNow = $selfCheck
         if (-not $turn.IsMyTurn -or ($lockNow.Exists -and -not $lockNow.Stale)) {
             $holder = if ($lockNow.Exists) { "holder pid $($lockNow.Pid), age $([int]$lockNow.AgeSeconds)s, reason '$($lockNow.Reason)'" } else { $turn.Reason }
-            Write-Host "BUILD.LOCK busy - queued at position $($turn.Position) (ticket #$($ticket.seq)). Waiting up to ${WaitTimeoutSeconds}s. $holder" -ForegroundColor DarkGray
+            Write-Host "BUILD.LOCK busy - queued at position $($turn.Position) (ticket #$($ticket.seq)) in the Build domain. Waiting up to ${WaitTimeoutSeconds}s. $holder" -ForegroundColor DarkGray
         }
     }
 
@@ -1126,23 +1458,44 @@ function Enter-BuildLockOrExit {
     if (-not $result.Acquired) {
         $s = $result.Status
         $waitTimedOut = ($result.PSObject.Properties.Name -contains 'WaitTimedOut' -and $result.WaitTimedOut)
-        if ($ticket -and $ticket.path) { Remove-Item -LiteralPath $ticket.path -Force -ErrorAction SilentlyContinue }
+        # S2109: name the domain that actually blocked. Without it a refusal about Build.Wear reads
+        # as a refusal about the phone build, which is the misreading strategic 5.1 pillar F exists
+        # to stop - already made twice on the two modules' fast checks.
+        $blockedDomain = if ($result.PSObject.Properties['Domain'] -and $result.Domain) { $result.Domain } else { $buildDomains[0] }
+        if ($ticketSet) {
+            foreach ($buildDomainItem in $buildDomains) {
+                if ($ticketSet[$buildDomainItem] -and $ticketSet[$buildDomainItem].path) {
+                    Remove-Item -LiteralPath $ticketSet[$buildDomainItem].path -Force -ErrorAction SilentlyContinue
+                }
+            }
+        }
         if ($waitTimedOut) {
-            Write-Host "BUILD.LOCK still not ours after ${WaitTimeoutSeconds}s - giving up without building." -ForegroundColor Red
+            Write-Host "$($blockedDomain.ToUpper()).LOCK still not ours after ${WaitTimeoutSeconds}s - giving up without building." -ForegroundColor Red
         }
         else {
-            Write-Host "BUILD.LOCK held - refusing to start a second gradle build (fail-fast requested)." -ForegroundColor Red
+            Write-Host "$($blockedDomain.ToUpper()).LOCK held - refusing to start a second gradle build (fail-fast requested)." -ForegroundColor Red
         }
-        Write-Host "  Holder PID: $($s.Pid)  age: $([int]$s.AgeSeconds)s  reason: '$($s.Reason)'  host: $($s.Host)" -ForegroundColor Red
-        Write-Host "  Never run two gradle builds concurrently (daemon OOM / cache corruption - see CLAUDE.md)." -ForegroundColor Gray
-        Write-Host "  Check status: pwsh -NoProfile -File scripts/utils/lock-status.ps1 -Name Build" -ForegroundColor Gray
+        # S1448: a Holder line for an absent lock file names a pid nobody holds. When the lock is
+        # free and a foreign ticket owns the head, the head is the thing that is actually blocking,
+        # so report that instead - it is what the waiter needs in order to judge its own wait.
+        if ($s.Exists) {
+            Write-Host "  Holder PID: $($s.Pid)  age: $([int]$s.AgeSeconds)s  reason: '$($s.Reason)'  host: $($s.Host)" -ForegroundColor Red
+        }
+        elseif ($result.PSObject.Properties['Turn'] -and $result.Turn) {
+            $t = $result.Turn
+            Write-Host "  $blockedDomain lock is free; the turn belongs to session $($t.HeadSessionId) ($($t.Reason))." -ForegroundColor Red
+            Write-Host "  Head reservation window: $((Get-AgentLockTimings -Name $blockedDomain).ReservationMinutes) min." -ForegroundColor Gray
+        }
+        Write-Host "  Never run two gradle builds concurrently in one domain (daemon OOM / cache corruption - see CLAUDE.md)." -ForegroundColor Gray
+        Write-Host "  Check status: pwsh -NoProfile -File scripts/utils/lock-status.ps1 -Name $blockedDomain" -ForegroundColor Gray
         # A wait that ran out of time inspected nothing - exit 2 "cannot verify", not 1 "failed".
         if ($waitTimedOut) { exit 2 }
         exit 1
     }
 
     $waitedSeconds = [int]((Get-Date) - $waitStartedAt).TotalSeconds
-    if ($waitedSeconds -ge 3) {
-        Write-Host "BUILD.LOCK acquired after ${waitedSeconds}s in the queue - starting." -ForegroundColor DarkGray
-    }
+    # Name the domains every time, not only after a wait: the acquisition line is where an operator
+    # reads which half of the tree this run serialises against (strategic 5.1 pillar F).
+    $queueSuffix = if ($waitedSeconds -ge 3) { " after ${waitedSeconds}s in the queue" } else { '' }
+    Write-Host "Build domains acquired: $($buildDomains -join ', ')$queueSuffix - starting." -ForegroundColor DarkGray
 }

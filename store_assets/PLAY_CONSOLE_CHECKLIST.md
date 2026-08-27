@@ -90,4 +90,19 @@ reviewer refutes in a minute.
 - [ ] Monitor organic installs vs. pre-publish baseline
 - [ ] If conversion drops >20% from baseline: prepare rollback copy set
 
+## G. Technical quality thresholds - February 2027 (S2100)
+
+Play enforces memory, bitmap and DEX thresholds from February 2027; exceeding one costs Play
+visibility and restricts publishing. All four surfaces below read **only after a bundle upload** -
+no local check substitutes for them, which is why they are an operator step and not a build gate.
+
+- [ ] Android vitals → **Dynamic memory metrics** - record the percentiles per RAM bucket
+- [ ] Crashes and ANRs → **out-of-memory filter** - record OS kills for low memory
+- [ ] Bundle upload → **DEX code optimization insights** - record the achieved optimization %
+- [ ] **Proactive alerts** - note which fired, if any: unoptimized bitmaps, weak DEX optimization,
+      limited split-bundle usage
+- [ ] Copy every figure above into `dev/PLAY_QUALITY_THRESHOLDS_2027.md` section 3, with the date
+      and the release it came from. Numbers left in the console are numbers the next ticket
+      re-gathers from zero - and S1157 is blocked waiting on the DEX percentage specifically.
+
 ## Checklist completed by: ___________________  Date: ___________

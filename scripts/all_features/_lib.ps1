@@ -34,6 +34,34 @@ function Resolve-FeatureRepoRoot {
     return $root
 }
 
+function Get-FlavorMatrixColumns {
+    <#
+    .SYNOPSIS
+        The phone flavor names, read from the generated flavor matrix header (S1392).
+    .DESCRIPTION
+        The three CLIs here each carried the same six names as a literal, so a seventh flavor
+        declared in productFlavors was rejected by every one of them while validate.ps1's own gate
+        check - which reads docs/FLAVOR_MATRIX.md - was already demanding it. The matrix is
+        generated from that same productFlavors block, so its header is the one list that cannot
+        go stale silently.
+
+        Returns an empty array when the matrix cannot be read or carries no header, so the caller
+        keeps its own fallback instead of having one guessed here.
+    #>
+    param([Parameter(Mandatory)][string]$RepoRoot)
+
+    $path = Join-Path (Join-Path $RepoRoot 'docs') 'FLAVOR_MATRIX.md'
+    if (-not (Test-Path -LiteralPath $path)) { return @() }
+
+    foreach ($line in (Get-Content -LiteralPath $path -Encoding UTF8)) {
+        if ($line -notmatch '^\s*\|') { continue }
+        $cells = @($line.Trim().Trim('|').Split('|') | ForEach-Object { $_.Trim() })
+        if ($cells.Count -lt 2 -or $cells[0] -ne 'Flag') { continue }
+        return @($cells[1..($cells.Count - 1)] | Where-Object { $_ })
+    }
+    return @()
+}
+
 function Get-FeatureInventoryPath {
     <#
     .SYNOPSIS

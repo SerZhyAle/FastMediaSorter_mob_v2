@@ -30,7 +30,12 @@ param(
     # a name without a code, or a code without a name, produces an artifact that disagrees with
     # the release it claims to be.
     [string] $VersionName,
-    [int] $VersionCode
+    [int] $VersionCode,
+
+    # S2090: which watch variant to build. 'standard' is what Play accepts and stays the default;
+    # 'noLegal' is the sideload variant, built on request rather than on every release (ADR-6).
+    [ValidateSet('standard', 'noLegal')]
+    [string] $Flavor = 'standard'
 )
 
 if ([string]::IsNullOrWhiteSpace($VersionName) -xor ($VersionCode -le 0)) {
@@ -48,15 +53,18 @@ $buildApk = $Artifact -in @('Apk', 'Both')
 $buildAab = $Artifact -in @('Aab', 'Both')
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
-Enter-BuildLockOrExit -Reason "build-wear-release.PS1"
+Enter-BuildLockOrExit -Reason "build-wear-release.PS1" -Domain Build.Wear
 try {
 
+# AGP capitalises the flavor inside a task name and lower-cases it inside an output path.
+$taskFlavor = $Flavor.Substring(0, 1).ToUpperInvariant() + $Flavor.Substring(1)
+
 $gradleTasks = @()
-if ($buildApk) { $gradleTasks += ':wear:assembleRelease' }
-if ($buildAab) { $gradleTasks += ':wear:bundleRelease' }
+if ($buildApk) { $gradleTasks += ":wear:assemble${taskFlavor}Release" }
+if ($buildAab) { $gradleTasks += ":wear:bundle${taskFlavor}Release" }
 
 $versionLabel = if ($versionArgs.Count -gt 0) { "$VersionName ($VersionCode)" } else { 'version as checked into wear/build.gradle.kts' }
-Write-Host "Building Wear OS release [$($gradleTasks -join ', ')] - $versionLabel.." -ForegroundColor Cyan
+Write-Host "Building Wear OS release [$Flavor] [$($gradleTasks -join ', ')] - $versionLabel.." -ForegroundColor Cyan
 
 # Start the Gradle build process
 & "$PSScriptRoot\..\..\gradlew.bat" @gradleTasks @versionArgs --configuration-cache
@@ -78,7 +86,7 @@ if (-not $NoDistribute -and !(Test-Path -Path $downloadsDir)) {
 if ($buildAab) {
     # The Play Wear OS track accepts a bundle only. Kept next to the phone AAB under the same
     # naming scheme so publish-play-release.ps1 can address either by path alone.
-    $aabDir = Join-Path $projectRoot "wear\build\outputs\bundle\release"
+    $aabDir = Join-Path $projectRoot "wear\build\outputs\bundle\$Flavor\release"
     $aab = Get-ChildItem -Path $aabDir -Filter *.aab -ErrorAction SilentlyContinue |
         Sort-Object LastWriteTime -Descending | Select-Object -First 1
     if (-not $aab) {
@@ -98,7 +106,7 @@ if ($buildAab) {
 if ($buildApk) {
 
 # Resolve the built APK path from AGP output metadata.
-$apkDir = Join-Path $projectRoot "wear\build\outputs\apk\release"
+$apkDir = Join-Path $projectRoot "wear\build\outputs\apk\$Flavor\release"
 # S1972: one resolver for every builder - it selects by ABI from output-metadata.json
 # and refuses to guess, where this block used to take element 0 and then the newest file.
 . "$PSScriptRoot\..\utils\find-build-artifact.ps1"
@@ -138,5 +146,5 @@ Write-Host "Build logged to journal" -ForegroundColor Gray
 
 }
 finally {
-    Exit-AgentLock -Name Build
+    Exit-AgentLock -Name 'Build' -Domains @('Build.Wear')
 }

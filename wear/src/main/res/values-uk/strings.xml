@@ -376,4 +376,11 @@
     <string name="wear_upload_outcome_channel_name">Сповіщення про завантаження</string>
     <string name="wear_upload_outcome_failed_title">Помилка завантаження</string>
     <string name="wear_upload_outcome_failed_text">Не вдалося завантажити %1$s в %2$s</string>
+    <string name="wear_settings_sync_button">Синхронізувати налаштування</string>
+    <string name="wear_settings_last_synced">Синхронізовано: %1$s</string>
+    <string name="wear_settings_sync_never">Ще не синхронізовано</string>
+    <string name="wear_setting_streams_section">Показувати трансляції</string>
+    <string name="wear_setting_background_mode">Фон на годиннику</string>
+    <string name="wear_background_mode_animation">Фірмова анімація</string>
+    <string name="wear_background_mode_image">Власне зображення</string>
 </resources>

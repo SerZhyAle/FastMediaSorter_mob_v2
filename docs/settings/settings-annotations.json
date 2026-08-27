@@ -559,6 +559,11 @@
     "ru": "Управляет загружаемыми компонентами OCR и перевода.",
     "uk": "Керує завантажуваними компонентами OCR та перекладу."
   },
+  "row_saved_authorizations": {
+    "en": "Opens the list of saved sign-ins to remote sources so you can review or remove them.",
+    "ru": "Открывает список сохранённых входов в удалённые источники для просмотра или удаления.",
+    "uk": "Відкриває список збережених входів до віддалених джерел для перегляду або видалення."
+  },
   "rowAcceptSharedFiles": {
     "en": "Allows the app to receive files shared from other apps.",
     "ru": "Разрешает приложению получать файлы, переданные через меню «Поделиться» из других приложений.",
@@ -1120,9 +1125,9 @@
     "uk": "Показує рівень сигналу другої SIM у треї лаунчера. Потрібен дозвіл на читання стану телефона; без нього або на пристрої з однією SIM індикатора немає."
   },
   "rowLauncherWallpaper": {
-    "en": "Chooses the launcher desktop's wallpaper: branded animation, a static striped frame refreshed when you return to the launcher, an empty surface, or your own image.",
-    "ru": "Выбирает заставку рабочего стола лаунчера: фирменную анимацию, застывший кадр в стиле полос, который обновляется при возвращении в лаунчер, пустой фон или своё изображение.",
-    "uk": "Вибирає заставку робочого стола лаунчера: фірмову анімацію, застиглий кадр у стилі смуг, що оновлюється після повернення до лаунчера, порожній фон або власне зображення."
+    "en": "Chooses the launcher desktop's wallpaper: branded animation, a static striped frame refreshed when you return to the launcher, an empty surface, your own image, or a live frame from a device camera. The camera entry appears only on devices that have a camera; choosing it asks for the camera permission and then for a lens, and the stream stops whenever the desktop leaves the screen.",
+    "ru": "Выбирает заставку рабочего стола лаунчера: фирменную анимацию, застывший кадр в стиле полос, который обновляется при возвращении в лаунчер, пустой фон, своё изображение или живой кадр с камеры устройства. Пункт камеры виден только на устройствах с камерой; при выборе запрашивается разрешение на камеру, затем предлагается выбрать объектив, а поток останавливается, как только рабочий стол уходит с экрана.",
+    "uk": "Вибирає заставку робочого стола лаунчера: фірмову анімацію, застиглий кадр у стилі смуг, що оновлюється після повернення до лаунчера, порожній фон, власне зображення або живий кадр з камери пристрою. Пункт камери видно лише на пристроях із камерою; під час вибору запитується дозвіл на камеру, потім пропонується обрати об'єктив, а потік зупиняється, щойно робочий стіл зникає з екрана."
   },
   "rowLauncherWidgetBackdropAlpha": {
     "en": "Controls the opacity of widget background cards on the launcher desktop (0% transparent to 100% opaque; 85% default).",
@@ -1189,15 +1194,15 @@
     "ru": "Отображает 3D-контент (side-by-side) с перспективой одного глаза для обычного просмотра без VR.",
     "uk": "Відображає 3D-контент (side-by-side) з перспективою одного ока для звичайного перегляду без VR."
   },
-  "rowPlayToEnd": {
-    "en": "Waits for video or audio to finish playing before advancing to the next slide in a slideshow.",
-    "ru": "Ждёт окончания воспроизведения видео или аудио перед переходом к следующему слайду в слайдшоу.",
-    "uk": "Чекає завершення відтворення відео або аудіо перед переходом до наступного слайду в слайдшоу."
-  },
   "rowPlayerShowFps": {
     "en": "Displays the current frames-per-second counter over the video while it is playing.",
     "ru": "Показывает счётчик кадров в секунду поверх видео во время воспроизведения.",
     "uk": "Показує лічильник кадрів на секунду поверх відео під час відтворення."
+  },
+  "rowPlayToEnd": {
+    "en": "Waits for video or audio to finish playing before advancing to the next slide in a slideshow.",
+    "ru": "Ждёт окончания воспроизведения видео или аудио перед переходом к следующему слайду в слайдшоу.",
+    "uk": "Чекає завершення відтворення відео або аудіо перед переходом до наступного слайду в слайдшоу."
   },
   "rowPreventSleep": {
     "en": "Keeps the device awake while the app is in the foreground, preventing automatic sleep.",
@@ -1454,11 +1459,6 @@
     "ru": "Показывает полупрозрачную направляющую полосу жеста для зоны у правого края (верхняя полоса).",
     "uk": "Показує напівпрозору напрямну смугу жесту для зони біля правого краю (верхня смуга)."
   },
-  "row_saved_authorizations": {
-    "en": "Opens the list of saved sign-ins to remote sources so you can review or remove them.",
-    "ru": "Открывает список сохранённых входов в удалённые источники для просмотра или удаления.",
-    "uk": "Відкриває список збережених входів до віддалених джерел для перегляду або видалення."
-  },
   "spinnerColorTheme": {
     "en": "Selects the color theme applied across the app interface.",
     "ru": "Выбирает цветовую тему интерфейса приложения.",
@@ -1493,6 +1493,11 @@
     "en": "Shows the translation result as opaque blocks over the original text, matching Google Lens style.",
     "ru": "Показывает результат перевода непрозрачными блоками поверх исходного текста, в стиле Google Lens.",
     "uk": "Показує результат перекладу непрозорими блоками поверх вихідного тексту, у стилі Google Lens."
+  },
+  "wearAutoRotation": {
+    "en": "Lets the watch screen follow the wrist. Watch-only: the row is absent on a watch with no rotation sensor.",
+    "ru": "Разрешает экрану часов поворачиваться за рукой. Только на часах: на модели без датчика поворота строки нет.",
+    "uk": "Дозволяє екрану годинника повертатися за рукою. Лише на годиннику: на моделі без датчика повороту рядка немає."
   },
   "wearBackgroundMode": {
     "en": "Chooses what the watch draws behind the app screens: the branded waves-and-particles animation, or an image picked on the phone. The picked image is cropped and scaled to the watch frame on the phone and travels the file channel, so the watch receives a ready frame and never resizes anything. When the image is missing or has not arrived, the watch draws the animation instead. A constant dim sits between the background and the content so text stays readable over a light picture, and the background is not drawn while the app is away from the foreground or in ambient mode.",
@@ -1538,6 +1543,11 @@
     "en": "Sets the delay in seconds between slides during slideshow playback on Wear OS.",
     "ru": "Задаёт задержку в секундах между слайдами при воспроизведении слайд-шоу на Wear OS.",
     "uk": "Задає затримку в секундах між слайдами під час відтворення слайд-шоу на Wear OS."
+  },
+  "wearStreamsSection": {
+    "en": "Shows or hides the Streams section on the watch home screen. Off leaves the other media sections untouched.",
+    "ru": "Показывает или скрывает раздел трансляций на главном экране часов. Выключение не трогает остальные разделы.",
+    "uk": "Показує або приховує розділ трансляцій на головному екрані годинника. Вимкнення не чіпає інші розділи."
   },
   "wearViewMode": {
     "en": "Chooses how the watch navigation screens, including Settings, are laid out: a list, or a grid of two or three columns.",

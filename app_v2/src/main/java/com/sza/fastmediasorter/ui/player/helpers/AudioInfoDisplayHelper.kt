@@ -4,13 +4,13 @@ import android.view.View
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.core.util.formatFileSize
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 /** Manages the audio info overlay: metadata line, file-info line, and format info from ExoPlayer. */
 class AudioInfoDisplayHelper(
@@ -31,7 +31,7 @@ class AudioInfoDisplayHelper(
 
     /**
      * Populates the audio info overlay with metadata and async-loaded size/duration.
-     * Top line (audioMetadata): Artist – Album – Title, or directory/filename fallback.
+     * Top line (audioMetadata): Artist - Album - Title, or directory/filename fallback.
      * Bottom line (audioFileInfo): Size • Duration (format added later by updateAudioFormatInfo).
      */
     fun showAudioFileInfo(file: MediaFile?) {
@@ -51,7 +51,7 @@ class AudioInfoDisplayHelper(
             effectiveTitle
         )
         val metadataLine = if (metadataParts.isNotEmpty()) {
-            metadataParts.joinToString(" – ")
+            metadataParts.joinToString(" - ")
         } else {
             val fileNameNoExt = file.name.substringBeforeLast('.')
             val dirName = file.path.substringBeforeLast('/').substringAfterLast('/')
@@ -72,7 +72,7 @@ class AudioInfoDisplayHelper(
                 audioDurationStr = file.duration?.let { if (it > 0) formatDuration(it) else "" } ?: ""
                 withContext(Dispatchers.Main) { safeViews.audioFileInfo.text = buildAudioInfoLine(null) }
             } catch (e: Exception) {
-                Timber.e(e, "Failed to get audio file info")
+                e.errorUnlessCancellation("Failed to get audio file info")
                 withContext(Dispatchers.Main) {
                     safeViews.audioFileInfo.text = callback.getString(R.string.file_info_unavailable)
                 }

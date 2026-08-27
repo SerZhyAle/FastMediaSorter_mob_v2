@@ -311,6 +311,84 @@ class Foo {
 Assert-That 'U18 supertype arm opening with rethrowIfCancellation() -> 0' `
     ((Measure-SwallowedCancellationText $supertypeCuredByHelper) -eq 0) "expected 0, got $(Measure-SwallowedCancellationText $supertypeCuredByHelper)"
 
+# S2104: the cure is a FAMILY, not one name. `<verb>UnlessCancellation` members re-throw and then log
+# at their own level, so the matcher recognises them by name shape - U19 fails the moment someone
+# narrows the pattern back to a literal enumeration, which is what left two cured sites counted.
+$curedByWarnHelper = @'
+class Foo {
+    suspend fun load() {
+        try {
+            fetch()
+        } catch (e: Exception) {
+            e.warnUnlessCancellation("failed")
+        }
+    }
+}
+'@
+Assert-That 'U19 block opening with warnUnlessCancellation() -> 0' `
+    ((Measure-SwallowedCancellationText $curedByWarnHelper) -eq 0) "expected 0, got $(Measure-SwallowedCancellationText $curedByWarnHelper)"
+
+# Widening the pattern must not widen the position rule with it: a family member reached only after
+# a log line has already run error-path work on a cancellation, which is the defect, not the cure.
+$warnHelperTooLate = @'
+class Foo {
+    suspend fun load() {
+        try {
+            fetch()
+        } catch (e: Exception) {
+            Timber.w(e, "failed")
+            e.warnUnlessCancellation("failed")
+        }
+    }
+}
+'@
+Assert-That 'U20 family member called after a statement -> 1' `
+    ((Measure-SwallowedCancellationText $warnHelperTooLate) -eq 1) "expected 1, got $(Measure-SwallowedCancellationText $warnHelperTooLate)"
+
+# S2104: a one-line block keeps its first statement on the catch line, and the first-statement scan
+# used to start at the NEXT line - so it read the closing brace and called a cured site a violation.
+# Fitting the guard on one line is the reason the helper family exists, so this is the common shape,
+# not an exotic one: U21 is the case that survived a whole subsystem drain uncounted.
+$curedOnOneLine = @'
+class Foo {
+    suspend fun load() {
+        try {
+            fetch()
+        } catch (e: Exception) { e.warnUnlessCancellation("failed") }
+    }
+}
+'@
+Assert-That 'U21 one-line block cured on the catch line -> 0' `
+    ((Measure-SwallowedCancellationText $curedOnOneLine) -eq 0) "expected 0, got $(Measure-SwallowedCancellationText $curedOnOneLine)"
+
+# The inline seed must not swallow the uncured one-liner with it: U10 already pins the plain-log
+# shape, and this pins the annotated arm, whose own parentheses are why the brace is found by
+# paren-depth rather than by the first `{` on the line.
+$annotatedOneLine = @'
+class Foo {
+    suspend fun load() {
+        try {
+            fetch()
+        } catch (@Suppress("TooGenericExceptionCaught") t: Throwable) { t.rethrowIfCancellation() }
+    }
+}
+'@
+Assert-That 'U22 annotated one-line arm cured on the catch line -> 0' `
+    ((Measure-SwallowedCancellationText $annotatedOneLine) -eq 0) "expected 0, got $(Measure-SwallowedCancellationText $annotatedOneLine)"
+
+# An empty one-line block is still a violation - the inline seed reads `}`, which is no cure.
+$emptyOneLine = @'
+class Foo {
+    suspend fun load() {
+        try {
+            fetch()
+        } catch (e: Exception) { }
+    }
+}
+'@
+Assert-That 'U23 empty one-line block -> 1' `
+    ((Measure-SwallowedCancellationText $emptyOneLine) -eq 1) "expected 1, got $(Measure-SwallowedCancellationText $emptyOneLine)"
+
 Write-Host ''
 Write-Host 'Live regression: the real tree stays at or under the committed baseline' -ForegroundColor Yellow
 

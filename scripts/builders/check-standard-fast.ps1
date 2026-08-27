@@ -1,14 +1,18 @@
 <#
 .SYNOPSIS
-    Fast per-flavor Gradle check - compile, resources, unit tests or assemble. Defaults to app_v2;
-    -Module wear checks the Wear OS module, which has no product flavors.
+    Fast per-module, per-flavor Gradle check - compile, resources, unit tests or assemble. Defaults
+    to app_v2. Every module in scripts/utils/gradle-modules.ps1 is accepted, including one with no
+    flavor dimension, whose task names carry no variant segment (:watchface:processDebugResources).
 
 .OUTPUTS
     Exit 0 - the check passed.
     Exit 1 - the check found a defect (compile error, red test, truncated suite).
     Exit 2 - the check could not run to a verdict (S1463: the unit-test worker JVM died, twice;
-             -Flavor was combined with -Module wear, which declares no flavors; or
-             -BuildType Release was combined with -Mode Assemble, which is refused - see below).
+             -Module named a project the registry does not know; -Flavor named one the module does
+             not declare, or was passed to a module that declares none; -BuildType named a build type
+             the module does not declare, or the module declares none at all (S2123 - lint-rules has
+             no Android plugin); or -BuildType Release was combined with -Mode Assemble, which is
+             refused - see below).
 #>
 param(
     [ValidateSet("Code", "Resources", "CodeAndResources", "Unit", "AndroidTest", "Assemble")]
@@ -19,20 +23,28 @@ param(
     # so a seam change needs a fast check on one of them too.
     # S0989: Vr compiles the src/vr source set (OpenXR immersive host) - needed when a change
     # lives only under src/vr, which the Standard/NoLegal checks never compile.
-    [ValidateSet("Standard", "NoLegal", "Lite", "Photos", "Legacy", "Vr")]
-    [string]$Flavor = "Standard",
+    # S2121: no ValidateSet. The accepted values differ per module - watchface declares none at all -
+    # so the check is a registry lookup below, and left unbound this resolves to the module's own
+    # first flavor rather than to a literal "Standard" a flavorless module cannot name.
+    [string]$Flavor,
     # S1496: wear is an active Gradle module with no fast check of its own, which is how its jsch
-    # pin drifted nine minor versions behind app_v2 unnoticed. It declares no product flavors, so
-    # -Flavor does not apply to it.
-    [ValidateSet("app_v2", "wear")]
+    # pin drifted nine minor versions behind app_v2 unnoticed.
+    # S2090: wear now declares its own two-flavor `version` dimension, so -Flavor applies to it too -
+    # but only over Standard and NoLegal. The per-module allowed set is checked below.
+    # S2121: the module list moved to scripts/utils/gradle-modules.ps1 - one table, read by the
+    # closure facade's resource-link gate too. A ValidateSet here was a third copy of it.
     [string]$Module = "app_v2",
     # S1988: which build type the check compiles. Debug is the working default and the only one any
     # caller used before, but it compiles src/debug ALONGSIDE src/main, so it cannot answer the one
     # question a debug-only test seam raises: does src/main still build when the debug class is gone?
     # `.\a.ps1 nl` looks like that proof and is not - release targets delegate to the git worktree at
     # ../FastMediaSorter_release and build main, so they never see the working tree's changes.
-    [ValidateSet("Debug", "Release")]
-    [string]$BuildType = "Debug",
+    # S2123: no ValidateSet, for the same reason -Flavor lost its one in S2121 - the accepted values
+    # differ per module. :benchmark declares neither Debug nor Release: androidx.baselineprofile gives
+    # it nonMinifiedRelease and benchmarkRelease, so a two-value ValidateSet made every call to that
+    # module name a task gradle has never had. Left unbound this resolves to the module's own default
+    # (its first declared build type), which is still Debug for the three ordinary Android modules.
+    [string]$BuildType,
     [string]$Tests,
     # S1735: system properties forwarded to the gradle JVM, "name=value" each.
     #
@@ -48,16 +60,63 @@ param(
 $ErrorActionPreference = "Stop"
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
+. "$PSScriptRoot\..\utils\gradle-modules.ps1"
 . "$PSScriptRoot\gradle-run-verdict.ps1"
-Enter-BuildLockOrExit -Reason "check-standard-fast.ps1"
-try {
 
-$projectRoot = Resolve-Path "$PSScriptRoot\..\.."
-Set-Location $projectRoot
-
-if ($Module -eq 'wear' -and $Flavor -ne 'Standard') {
-    Write-Error "check-standard-fast: -Flavor '$Flavor' is meaningless for the wear module - it declares no product flavors." -ErrorAction Continue
+# S2121: validate the module BEFORE taking a lock or launching gradle. An unknown module used to be
+# impossible here only because a ValidateSet listed two of the five projects the build declares;
+# with the registry it is a real input, and the honest answer is "could not check" rather than a
+# task name guessed for a project that may not exist.
+if (-not (Test-GradleModuleName -Name $Module)) {
+    $knownModules = (Get-GradleModuleNames) -join ', '
+    Write-Error "check-standard-fast: -Module '$Module' is not a registered Gradle module - known modules are $knownModules. Add a row in scripts/utils/gradle-modules.ps1 if the build declares it." -ErrorAction Continue
     exit 2
+}
+
+# S2090: each module declares its own flavor set, so the allowed values are per-module rather than one
+# ValidateSet. Naming what the module DOES accept matters more than naming what it rejected: the wear
+# set is a strict subset of the phone's, so the plausible mistake is asking for a phone-only flavor.
+# S2121: the sets live in the registry now, and an EMPTY set is a real answer - watchface declares no
+# flavor dimension at all, so its task names carry no variant segment. Resolved before the lock for
+# the same reason the toolchain check is: a refusal must not first take a place in every sibling's
+# queue and then decline to build anything.
+$declaredFlavors = @(Get-GradleModuleFlavors -Name $Module)
+if ($PSBoundParameters.ContainsKey('Flavor') -and $Flavor) {
+    if ($declaredFlavors.Count -eq 0) {
+        Write-Error "check-standard-fast: -Flavor '$Flavor' was passed to '$Module', which declares no product flavors - omit -Flavor for this module." -ErrorAction Continue
+        exit 2
+    }
+    if ($declaredFlavors -notcontains $Flavor) {
+        Write-Error "check-standard-fast: -Flavor '$Flavor' does not exist in the '$Module' module - it declares $($declaredFlavors -join ', ')." -ErrorAction Continue
+        exit 2
+    }
+}
+else {
+    # Unbound means "the module's default variant" - its first declared flavor, or none at all. A
+    # literal "Standard" default would name a variant a flavorless module has never had.
+    $Flavor = if ($declaredFlavors.Count -gt 0) { $declaredFlavors[0] } else { '' }
+}
+
+# S2123: the build type is validated against the registry exactly as the flavor is, and for the same
+# reason - it is the other half of the variant name, and it was the half left hardcoded. Resolved
+# before the lock too: a refusal must not first take a place in every sibling's queue.
+$declaredBuildTypes = @(Get-GradleModuleBuildTypes -Name $Module)
+if ($PSBoundParameters.ContainsKey('BuildType') -and $BuildType) {
+    if ($declaredBuildTypes.Count -eq 0) {
+        Write-Error "check-standard-fast: -BuildType '$BuildType' was passed to '$Module', which declares no build types at all - it has no Android plugin, so no variant task exists for it." -ErrorAction Continue
+        exit 2
+    }
+    if ($declaredBuildTypes -notcontains $BuildType) {
+        Write-Error "check-standard-fast: -BuildType '$BuildType' does not exist in the '$Module' module - it declares $($declaredBuildTypes -join ', ')." -ErrorAction Continue
+        exit 2
+    }
+}
+else {
+    if ($declaredBuildTypes.Count -eq 0) {
+        Write-Error "check-standard-fast: '$Module' declares no build types - it has no Android plugin, so there is no task for this check to run." -ErrorAction Continue
+        exit 2
+    }
+    $BuildType = Get-GradleModuleDefaultBuildType -Name $Module
 }
 
 # S1988/S1873: -Mode Assemble is the only mode that packages an installable artifact, and its version
@@ -69,8 +128,23 @@ if ($BuildType -eq 'Release' -and $Mode -eq 'Assemble') {
     exit 2
 }
 
-# The wear module declares no product flavors, so its task names carry no flavor segment.
-$variant = if ($Module -eq 'wear') { '' } else { $Flavor }
+# S2109: the domain is derived from -Module - ADR-1 wants the domain read off data the call carries,
+# not declared a second time and left to drift from it.
+# S2121: the derivation moved into the registry, so a module with no domain of its own widens to the
+# full build set (ADR-2) instead of silently taking the phone's and serialising against nothing.
+$buildDomains = @(Get-GradleModuleBuildDomains -Name $Module)
+Enter-BuildLockOrExit -Reason "check-standard-fast.ps1 ($Module)" -Domain $buildDomains
+try {
+
+$projectRoot = Resolve-Path "$PSScriptRoot\..\.."
+Set-Location $projectRoot
+
+# S2090: both app modules carry a flavor dimension, so their task names get the segment. Before this,
+# wear substituted an empty segment - a task name gradle stopped having the moment the dimension existed.
+# S2121: a module that declares NO dimension is the mirror case and needs the empty segment back -
+# :watchface:processDebugResources is the real task name, and interpolating any variant into it names
+# a task gradle has never had.
+$variant = $Flavor
 
 function Get-GradleTaskList {
     switch ($Mode) {
@@ -137,7 +211,11 @@ if ($Tests) {
 # S1807: the label names the module, not only the flavor. This banner is what gets pasted into a
 # step log as proof, and with two active modules a phone verdict quoted under a wear ticket has to
 # read as foreign rather than as confirmation.
-$checkLabel = if ($Module -eq 'wear') { 'wear' } else { "app_v2/$Flavor" }
+# S2090: it now names the flavor for BOTH modules. wear used to print a bare 'wear' because it had one
+# variant; with two, a bare module name states half of what was checked.
+# S2121: a module with no flavor dimension prints its bare name - "watchface/" would read as a
+# variant whose name got lost, which is the opposite of what the banner is for.
+$checkLabel = if ($Flavor) { "$Module/$Flavor" } else { $Module }
 Write-Host "Fast $checkLabel check.." -ForegroundColor Cyan
 Write-Host "Mode: $Mode" -ForegroundColor Yellow
 Write-Host "Build type: $BuildType" -ForegroundColor Yellow
@@ -244,5 +322,7 @@ if ($Tests -and $Mode -eq "Unit") {
 
 }
 finally {
-    Exit-AgentLock -Name Build
+    # Release exactly the domain taken above - a bare Build here would free the other module's
+    # domain, which this run never held and a sibling may be building in right now.
+    Exit-AgentLock -Name 'Build' -Domains $buildDomains
 }

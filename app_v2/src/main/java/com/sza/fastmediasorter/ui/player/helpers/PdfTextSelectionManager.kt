@@ -3,9 +3,9 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.graphics.Bitmap
 import android.graphics.PointF
 import android.graphics.pdf.PdfRenderer
+import android.os.Build
 import android.text.Selection
 import android.text.Spannable
-import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
@@ -16,6 +16,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -298,7 +299,7 @@ class PdfTextSelectionManager(
                     page.close()
                 }
             } catch (e: Exception) {
-                Timber.e(e, "PdfTextSelectionManager: native text extraction failed for page $pageIndex")
+                e.errorUnlessCancellation("PdfTextSelectionManager: native text extraction failed for page $pageIndex")
                 PageText("", null)
             }
         }
@@ -311,7 +312,7 @@ class PdfTextSelectionManager(
                 val lang = TranslationManager.languageCodeToMLKit(settings.translationSourceLanguage)
                 translationManager.extractTextOnly(bitmap, lang) ?: ""
             } catch (e: Exception) {
-                Timber.e(e, "PdfTextSelectionManager: OCR text extraction failed")
+                e.errorUnlessCancellation("PdfTextSelectionManager: OCR text extraction failed")
                 ""
             }
         }

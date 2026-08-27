@@ -53,6 +53,7 @@ FastMedia Launcher gives you full control over your device's home screen layout:
 - **Custom Folder Shortcuts:** One-tap shortcuts to local folders, USB drives, NAS shares, or cloud storage.
 - **Built-in Application Drawer:** Quickly open any installed Android application directly from the launcher taskbar.
 - **Desktop Locking:** Lock desktop editing to prevent accidental changes during daily driving or photo frame operation.
+- **Live Camera Background:** Set the desktop wallpaper to a live frame from one of the device's cameras. The entry appears in the wallpaper list only on devices that have a camera; choosing it asks for the camera permission and then lets you pick which lens to use. The stream stops the moment the desktop leaves the screen, so nothing runs in the background, and a device without a camera or with the permission refused keeps the branded wallpaper instead of a black screen.
 - **Stream Window Tile:** Put one internet channel on the desktop and pick it when you add the tile. A radio channel gets a small tile with its name, its icon and a play button. A video channel gets a larger tile with the picture playing inside it; tap to stop, and the tile keeps the last frame instead of going blank. Nothing starts playing until you press play.
 
 ---

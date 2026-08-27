@@ -314,7 +314,7 @@ Timber.e(exception, "Error message")
 .\gradlew.bat :wear:assembleRelease
 ```
 
-APK will be available at: `wear/build/outputs/apk/release/wear-release.apk`
+APK will be available at: `wear/build/outputs/apk/standard/release/wear-standard-release.apk` - the watch module carries `standard` and `noLegal` flavors since S2090, and `standard` is what ships.
 
 ## Deployment to Play Store
 

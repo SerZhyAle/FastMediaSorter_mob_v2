@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.settings
 
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
+import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 
 /**
@@ -41,6 +42,18 @@ data class SettingsUiState(
 
     /** S1862: who decides that a finished voice note leaves the watch. Ships automatic (§6 item 1). */
     val voiceNoteSendPolicy: VoiceNoteSendPolicy = VoiceNoteSendPolicy.AUTOMATIC,
+
+    /**
+     * S2093 / ADR-3: what is drawn behind the screens. The mode is two values and so belongs on both
+     * sides; the picture it selects stays a phone-side choice, because picking one means a gallery.
+     */
+    val backgroundMode: WearBackgroundMode = WearBackgroundMode.BRANDED_ANIMATION,
+
+    /** S2093: epoch-millis the two sides last agreed, or 0 when they never have. */
+    val lastSyncedAtEpochMillis: Long = 0L,
+
+    /** S2093: true while an exchange started from this watch is in flight. */
+    val isSyncing: Boolean = false,
     
     // App info
     val appVersion: String = "",

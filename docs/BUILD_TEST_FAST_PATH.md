@@ -49,6 +49,18 @@ Measured on this host, 2026-08-01, warm daemon, configuration cache reused:
 | `a.ps1 dq` | 18.4 s | foreground |
 | `a.ps1 d` / `dav` / `r` / `fu` | not measured | background |
 
+The script-suite runner splits across the threshold, which is why it has two call sites rather than one (S2122, measured 2026-08-27, 39 suites in the tree):
+
+| Run of `scripts/quality/run-script-suites.ps1` | Wall clock | Verdict |
+| --- | ---: | --- |
+| `a.ps1 fs` - full sweep, every suite, 39 of 39 green | 215.4 s | **background** |
+| `script-suite-regression` gate in `post-change.ps1`, 6 suites selected by a 12-file changed set | 13.6 s | foreground |
+| `a.ps1 fs -ListOnly` - selection only, nothing run | 0.5 s | foreground |
+
+The sweep measured 214.8 s over 37 suites when the ticket was scoped and 215.4 s over 39 with every suite doing its full work - so the number tracks the suite count and the two readings agree. A sweep run through the agent's Bash tool reads slightly differently (221.6 s) and yellow rather than green, because that shell's PATH drops `rg` and one suite short-circuits: `docs/DEV_OPS.md` "Where a regression suite runs".
+
+The full sweep does not fit the foreground window and never will: the distribution has a heavy tail, and six suites carry more than half the total - `spec_catalog/preview.tests` 35.1 s, `quality/detekt-scoped.tests` 23.4 s, `spec_catalog/close-and-log.tests` 21.9 s, `spec_catalog/update.tests` 20.4 s, `spec_catalog/session-bootstrap.tests` 17.4 s, `quality/assert-no-ticket-logs.tests` 15.6 s. The median suite is about 1.5 s, and 24 of the 39 finish under 3 s. So a ticket close pays for the suites guarding what it changed and nothing else, while the sweep that cannot be attributed to any changed file runs once per release from `assert-release-scope-gates.ps1`. Which suite a change selects: `docs/DEV_OPS.md` "Where a regression suite runs".
+
 The `resource-link-gate` rows were measured on 2026-08-21 (S1915), warm daemon, `app_v2`:
 
 | Gate run | Wall clock | Verdict |
@@ -62,6 +74,29 @@ A two-flavor set costs the sum of two such runs, because the gate invokes the he
 so the worst case observed here doubles to roughly 84 s and still clears the 120 s threshold. The
 1.9 s row is the one that matters for everyday cost: a closure whose resource set is already linked
 pays almost nothing, and the 41.8 s row is what an actual resource edit costs.
+
+Since S2121 the gate runs once per flavor **per module**, and the modules come from the changed paths
+rather than from `-Module`. The multiplier is therefore the set's own shape: a single-module closure
+costs exactly what the table above says, and a set spanning two modules pays both. Flavorless modules
+are the cheap case - one call, no variant segment: `:watchface:processDebugResources` measured 1.5 s
+and 1.4 s on two consecutive warm-daemon runs with nothing to relink (2026-08-27), matching the
+1.9 s row above. A resource path under a module the registry
+(`scripts/utils/gradle-modules.ps1`) does not list costs nothing at all, because the gate refuses by
+name instead of linking a module the change never touched.
+
+The `benchmark` module is flavorless too, but its build types are not `Debug` / `Release` - the
+`androidx.baselineprofile` plugin declares it `nonMinifiedRelease` and `benchmarkRelease`, and the
+registry carries them (S2123). Measured 2026-08-27, warm daemon:
+
+| Task | Wall clock | Verdict |
+| --- | ---: | --- |
+| `:benchmark:processNonMinifiedReleaseManifest` | 1.4 s | foreground |
+| `:benchmark:processNonMinifiedReleaseResources` | 2.4 s | foreground |
+
+Neither needs `:app_v2` to build, so a closure touching `benchmark/src/main/AndroidManifest.xml` pays
+the 2.4 s row and nothing more. Before S2123 it paid nothing and proved nothing: the registry recorded
+the module as having no resource-processing task, which was a verdict about the guessed name
+`:benchmark:processDebugResources` rather than about the module.
 
 The OCR overlay bench rows were measured on 2026-08-26 (S1782), warm daemon, `app_v2`. Both benches live
 in the test source set, so nothing here ships in an APK:
@@ -82,6 +117,8 @@ The three `detekt-scoped` rows were measured on 2026-08-12 (S1595). They are the
 `assert-doc-icons-sync.ps1 -Gate` was measured on 2026-08-14 (S1545) as a completed foreground run with no lock wait. The 0.36 s figure is the gate's own wall-clock duration, not time spent queued for a repository lock.
 
 Since that measurement `fg` gained one gate: `assert-shared-test-flavor-scope` (S1453) at 1.4-1.9 s, which puts the batch around 20 s and still an order of magnitude below the 120 s threshold. The row above is left at its 2026-08-01 value rather than restated, because the only re-run available on 2026-08-09 read 46.1 s wall with two sibling sessions holding `BUILD.LOCK` for gradle - a measurement of contention, not of the batch.
+
+S2103 then added four layer-import rules to `assert-source-gates`, measured 2026-08-27 on a warm cache as a paired run over the same 4930 files: 25 rules at 20432 ms against 29 rules at 21737 ms, so the four cost **1.3 s**. Two consecutive 25-rule runs read 20431 and 20432 ms, which is what makes that delta a measurement rather than noise. The cost is a regex pass over text the walk has already loaded - the roots were unchanged, so no file is read twice - and it leaves the batch near 21 s, still far below the 120 s threshold.
 
 Two caveats, recorded rather than smoothed over:
 

@@ -171,10 +171,13 @@ $script:SuspendFunRx = [regex]'\bsuspend\s+(?:inline\s+)?fun\b'
 # Entering any of these means the code below runs in a coroutine even when the enclosing
 # function is not itself `suspend` - the lambda body is.
 $script:CoroutineCtxRx = [regex]'\b(?:withContext|coroutineScope|supervisorScope|runBlocking|flow|channelFlow|callbackFlow|produce|launch|async)\s*[({]|\bsuspendCancellableCoroutine\b'
-# core/util/CoroutineExt.kt offers the second sanctioned form of the same fix. Its KDoc requires
-# the call to be the FIRST statement of the block, so anything after a statement has already run
-# error-path work on a cancellation and is still a violation.
-$script:RethrowHelperRx = [regex]'\brethrowIfCancellation\s*\('
+# core/util/CoroutineExt.kt offers the second sanctioned form of the same fix, as a FAMILY rather
+# than a single function: `rethrowIfCancellation()` plus every `<verb>UnlessCancellation(..)` member,
+# each of which re-throws the cancellation before doing any error-path work. Matched by name shape so
+# a new member needs no paired edit here - an enumeration forgotten costs a whole batch its count
+# (S2104 ADR-3). Every member's KDoc requires the call to be the FIRST statement of the block, so a
+# call sitting after another statement has already run error-path work and is still a violation.
+$script:RethrowHelperRx = [regex]'\b(?:rethrowIfCancellation|\w+UnlessCancellation)\s*\('
 
 function Get-LineIndent([string]$line) {
     return [regex]::Match($line, '^[ \t]*').Length
@@ -210,13 +213,33 @@ function Find-SwallowedCancellationLines([string]$Text) {
         if ($covered -or $tryLine -lt 0) { continue }
 
         # The block may instead open with the helper, which rethrows before any error-path work.
+        # A one-line block carries that first statement on the catch line itself, after the opening
+        # brace, so seeding the scan from the next line alone would read the closing `}` and call a
+        # cured site a violation. That case is not rare: fitting the guard on one line is the entire
+        # reason the helper family exists (S1890/S2104). The brace is located at paren depth 0 so an
+        # annotated arm - `catch (@Suppress("TooGenericExceptionCaught") t: Throwable) {` - resolves
+        # to the block brace rather than to the annotation's own parentheses.
         $firstStatement = ''
-        for ($j = $i + 1; $j -lt $lines.Count; $j++) {
-            $cand = $lines[$j]
-            if ($cand.Trim().Length -eq 0) { continue }
-            if ($cand.Trim() -match '^(//|/\*|\*)') { continue }
-            $firstStatement = $cand
-            break
+        $braceIdx = -1
+        $depth = 0
+        for ($c = 0; $c -lt $lines[$i].Length; $c++) {
+            $ch = $lines[$i][$c]
+            if ($ch -eq '(') { $depth++ }
+            elseif ($ch -eq ')') { $depth-- }
+            elseif ($ch -eq '{' -and $depth -le 0) { $braceIdx = $c; break }
+        }
+        if ($braceIdx -ge 0) {
+            $inlineTail = $lines[$i].Substring($braceIdx + 1).Trim()
+            if ($inlineTail.Length -gt 0 -and $inlineTail -notmatch '^(//|/\*)') { $firstStatement = $inlineTail }
+        }
+        if ($firstStatement.Length -eq 0) {
+            for ($j = $i + 1; $j -lt $lines.Count; $j++) {
+                $cand = $lines[$j]
+                if ($cand.Trim().Length -eq 0) { continue }
+                if ($cand.Trim() -match '^(//|/\*|\*)') { continue }
+                $firstStatement = $cand
+                break
+            }
         }
         if ($script:RethrowHelperRx.IsMatch($firstStatement)) { continue }
 
@@ -492,6 +515,48 @@ function Get-SourceRules {
         (New-RegexRule -Name 'findviewbyid' `
                 -Pattern ([regex]'\bfindViewById\s*[<(]') `
                 -FailMessage 'new findViewById in app_v2/src/main (S1693). Use the layout''s generated binding field; if this file is genuinely a legitimate shape (custom View, adapter, runtime-resolved layout, documented host-neutral helper), justify the growth in review instead of raising the baseline.'),
+        # S2103: the layering rule `UI -> ViewModel -> UseCase -> Repository -> DataSource`
+        # (CLAUDE.md Rule 8, docs/ARCHITECTURE.md) was the last architectural rule in this repo with
+        # no exit code behind it, and Rule 33's own measurement is that prose holds at 1-8% while an
+        # exit code holds at 99%. Growth stops, not a migration order: measured 2026-08-27 the debt is
+        # 403 / 47 / 36 / 2 and no campaign over the 164 files is scheduled - the Rule 32 model, same
+        # as findviewbyid above.
+        #
+        # FOUR baselines rather than one aggregate, and the overlap of the last two with the first is
+        # deliberate. The numbers span three orders of magnitude, so under a single counter a new DAO
+        # in a fragment could be paid for by deleting one unused data.cloud import in the same change.
+        # S1910 is the ticket where exactly that masking happened. The cost of the split is zero: the
+        # root app_v2/src/main is already walked for every rule above, so each of these is one more
+        # regex pass over text already in memory.
+        #
+        # `\r?$` is load-bearing on the last two - these files are CRLF, and in .NET multiline mode
+        # `$` matches before the `\n` with the `\r` still ahead of it, so a bare `Entity$` would count
+        # zero and ship a dead gate that reads green.
+        (New-RegexRule -Name 'ui-imports-data' `
+                -Pattern ([regex]'(?m)^import com\.sza\.fastmediasorter\.data\.') `
+                -PathFilter 'app_v2/src/main/java/com/sza/fastmediasorter/ui/' `
+                -FailMessage 'new data-layer import in a UI file (S2103). UI reaches data through a UseCase, not directly: inject the UseCase and let it own the repository call. The baseline falls when an import moves behind its layer; it is never raised.'),
+        # Sharper than the rule above and worth driving to zero first: a Room DAO or entity in a
+        # fragment means the persistence schema is now a UI dependency, so a migration cannot move
+        # without touching screens.
+        (New-RegexRule -Name 'ui-imports-room' `
+                -Pattern ([regex]'(?m)^import com\.sza\.fastmediasorter\.data\.[A-Za-z0-9_.]*(Dao|Entity)\r?$') `
+                -PathFilter 'app_v2/src/main/java/com/sza/fastmediasorter/ui/' `
+                -FailMessage 'Room DAO or entity imported straight into UI (S2103). Map the entity to a domain model in the repository and let the UI see only that model. This is the sharpest of the four layer rules - its baseline is meant to reach zero.'),
+        # Deliberately any *Impl under data., not only data.repository: today both hits live in
+        # data.repository, so widening moves no baseline, but a data.cloud.SomethingImpl is the same
+        # violation and the narrow pattern would have waved it through.
+        (New-RegexRule -Name 'ui-imports-impl' `
+                -Pattern ([regex]'(?m)^import com\.sza\.fastmediasorter\.data\.[A-Za-z0-9_.]*Impl\r?$') `
+                -PathFilter 'app_v2/src/main/java/com/sza/fastmediasorter/ui/' `
+                -FailMessage 'concrete data-layer implementation imported in UI (S2103). Depend on the interface the impl satisfies and let Hilt bind it, so the UI cannot be coupled to one implementation.'),
+        # The UseCase layer skipped: 219 UseCase classes exist and 31 of the 44 ViewModels still reach
+        # past them into domain.repository. PathFilter is the ui/ subtree because every *ViewModel.kt
+        # in app_v2/src/main lives there - verified 2026-08-27, zero outside it.
+        (New-RegexRule -Name 'viewmodel-imports-repository' `
+                -Pattern ([regex]'(?m)^import com\.sza\.fastmediasorter\.domain\.repository\.') `
+                -PathFilter 'app_v2/src/main/java/com/sza/fastmediasorter/ui/.*ViewModel\.kt$' `
+                -FailMessage 'ViewModel imports a repository directly, skipping the UseCase layer (S2103). Put the operation in a VerbNounUseCase and inject that instead. The baseline falls when a call moves into a UseCase; it is never raised.'),
         (New-RegexRule -Name 'empty-catch' `
                 -Pattern ([regex]'catch\s*\([^)]*\)\s*\{\s*(?:(?://[^\r\n]*)|(?:/\*[\s\S]*?\*/))?\s*\}') `
                 -FailMessage 'new empty catch block introduced. Recover, use a safe default, or log at the correct level.'),
@@ -571,6 +636,16 @@ function Get-SourceRules {
                 -Baseline 'deprecated-pm-flags-baseline.txt' `
                 -ExcludeNames @('PackageManagerCompat.kt') `
                 -FailMessage 'new raw-int PackageManager overload introduced. Use the *Compat helpers in util/PackageManagerCompat.kt (CLAUDE.md Rule 21).'),
+        # S2094: the canonical toggle-row pattern (switch left, title, optional tooltip button,
+        # subtitle) is a View-side composite element with no Compose counterpart. Wear companion's
+        # WearWatchSettingsGroup.kt is the one place allowed to call Compose Switch directly - it IS
+        # the canonical wrapper's Compose reproduction (SwitchRow) - so it is excluded the same way
+        # PackageManagerCompat.kt is excluded above. Baseline seeded at 0: this file was the only raw
+        # Compose Switch( call in app_v2 at authoring time, and this ticket brought it to canon.
+        (New-RegexRule -Name 'compose-raw-switch' `
+                -Pattern ([regex]'\bSwitch\s*\(') `
+                -ExcludeNames @('WearWatchSettingsGroup.kt') `
+                -FailMessage 'new raw Compose Switch( call outside the canonical row wrapper. Compose has no shared toggle-row element yet - wrap it the way WearWatchSettingsGroup.kt does (SwitchRow) or route through the View-side SettingsToggleRow pattern (CLAUDE.md Rule 33, S2094).'),
         # S1335: PermissionRegistryRepositoryImpl.resolveFlavorGate is the S0970 compile-time
         # whitelist map - the deliberate single place BuildConfig flavor reads are allowed in
         # src/main (reflection breaks under R8, see the function's own KDoc). Every optional,

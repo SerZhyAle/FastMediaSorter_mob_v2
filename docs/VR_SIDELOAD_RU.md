@@ -6,7 +6,11 @@ permalink: /docs/VR_SIDELOAD_RU.html
 
 # Руководство по установке VR через sideload
 
-Как установить FastMediaSorter VR APK на Meta Quest без использования магазина.
+Как установить рабочую иммерсивную VR-сборку (`noLegal`) на Meta Quest без использования магазина.
+
+Флейвор `vr` - целевой канал для Meta Horizon Store / Google Play, но его иммерсивный рендеринг на
+шлеме пока не подключён (эпик S0773) - см. [Обзор VR-редакции](VR_EDITION_RU.md). Сегодня
+единственный канал с рабочим иммерсивным режимом - `noLegal`, его и ставит это руководство.
 
 ## Требования
 
@@ -47,35 +51,28 @@ adb devices
 
 Устройство должно отображаться со статусом `device` (не `unauthorized`).
 
-## Шаг 4: Собрать VR APK
+## Шаг 4: Собрать noLegal APK
 
 ```powershell
-# Вариант A: Скрипт сборки (автоверсия + копирование в DOWNLOADS/)
-.\scripts\builders\build-vr-debug.ps1
-
-# Вариант B: Gradle напрямую
-.\gradlew.bat assembleVrDebug
+.\a.ps1 nd
 ```
 
-APK будет по пути:
+Это запускает `scripts/builders/build-nolegal-debug.ps1`, который передаёт флаги, нужные
+`noLegal` (`-Pchaquopy.enabled=true --no-configuration-cache`), поэтому сборка не зависит от
+локальной настройки в `local.properties`. APK окажется по пути:
 ```
-app_v2/build/outputs/apk/vr/debug/app_v2-vr-debug.apk
-```
-
-Или, при использовании скрипта, также скопирован в:
-```
-DOWNLOADS/FastMediaSorter_vr_debug.apk
+app_v2/build/outputs/apk/noLegal/debug/
 ```
 
 ## Шаг 5: Установить на Quest
 
 ```powershell
-# Вариант A: Сборка + установка одной командой
-.\scripts\builders\build-vr-device.ps1
-
-# Вариант B: Ручная установка
-adb install -r -d DOWNLOADS\FastMediaSorter_vr_debug.apk
+.\a.ps1 ivn
 ```
+
+Это запускает `scripts/builders/install-nolegal-debug-to-device.ps1`, который сам находит только
+что собранный APK под ABI подключённого устройства и ставит его - не нужно вручную вводить имя
+файла с версией. Скрипт только устанавливает, намеренно (см. Шаг 6).
 
 ## Шаг 6: Запуск на Quest
 
@@ -84,12 +81,11 @@ adb install -r -d DOWNLOADS\FastMediaSorter_vr_debug.apk
 1. Наденьте шлем
 2. Откройте **Библиотеку приложений**
 3. Выберите **Unknown Sources** в фильтре (верхний правый угол)
-4. Найдите **FastMediaSorter VR** и запустите
+4. Найдите **FastMediaSorter (noLegal debug)** и запустите
 
-Также можно запустить через ADB:
-```powershell
-adb shell am start -n com.sza.fastmediasorter.vr.debug/com.sza.fastmediasorter.ui.main.MainActivity
-```
+Запускайте из библиотеки Quest, а не через `adb shell am start`: запуск через ADB пропускает
+vrshell `launch_id`, нужный иммерсивной сессии для входа в focused XR, поэтому приложение
+откроется, но шлем останется на плоском 2D-окне.
 
 ## ADB через Wi-Fi (беспроводное подключение)
 

@@ -61,11 +61,43 @@ Why it stays silent: nobody routinely runs unit tests on the reduced flavors, so
 
 Enforced by `scripts/quality/assert-shared-test-flavor-scope.ps1` (S1453), which runs in the fast-gates batch. It refuses both halves of this rule: a shared test referencing a flavor-scoped type, and a capability test set whose mount list drifted from its main counterpart's.
 
+### RULE 8: THE WEAR MODULE PLAYS BY THE SAME RULES (origin: S2090)
+
+Everything above was written for `app_v2` and applies unchanged to `wear`. Since S2090 the watch
+carries its own `version` dimension with two flavors - `standard` (the one Play accepts, the default)
+and `noLegal` (sideload). Read `wear/build.gradle.kts` for the watch, `app_v2/build.gradle.kts` for
+the phone; the two dimensions are independent and only happen to share two names.
+
+Rules 1-5 map directly: the contract and its no-op live in `wear/src/main/java/`, the real
+implementation in `wear/src/noLegal/java/`, and the binding in a flavor-local Hilt module under
+`wear/src/noLegal/java/.../di/`. Substitute `wear/` for `app_v2/` and nothing else changes.
+
+Two deltas are specific to the watch, and both are hard:
+
+- **No `applicationIdSuffix`, under any circumstances.** Play Services routes Wear Data Layer traffic
+  by an AppKey of (package name, signing certificate) and drops a mismatch inside `WearableService`,
+  below the application - so a suffix stops delivery in both directions while the watch goes on
+  logging successful sends (S1681). S1951 records what a suffix costs when a flavor does take one:
+  the phone's `legacy` flavor got `.legacy` and the resolution was to switch the Wear companion off in
+  that flavor entirely, not to find a way to pair two package names.
+- **No `manifest.srcFile` on a wear flavor.** On the phone that substitution REPLACED the
+  auto-detected flavor manifest and silently dropped its other entries, which then had to be re-added
+  through `androidComponents.onVariants` (S0174/S0183). Leaving it unset means a
+  `wear/src/noLegal/AndroidManifest.xml` is picked up by convention and merged normally - which is why
+  no such file needs to exist until something has a permission to declare.
+
+**`wear/src/noLegal/` is empty today, and that is the finished state of S2090.** No class, no manifest,
+no resource. The dimension exists so that the next capability Play refuses on a watch has somewhere to
+go instead of being deleted, which is what happened to `ACCESS_FINE_LOCATION` in S2013. Do not read the
+emptiness as an unused dimension, and do not fill it with a placeholder class or an empty manifest to
+make it look occupied: strategic S2090 §9 ADR-5 rules both out, the first as a shipped stub under Rule
+19 and the second as dead weight under Rule 20. The first real capability creates both files.
+
 ## 3. AGENT BEHAVIOR & SKILLS
 
 When an AI Agent is tasked with creating a feature for a non-STANDARD build:
 
-1. **Verify Target Flavor:** Read `app_v2/build.gradle.kts` to understand the target flavor and its assigned `sourceSets`.
+1. **Verify Target Flavor:** Read `app_v2/build.gradle.kts` - or `wear/build.gradle.kts` for the watch - to understand the target flavor and its assigned `sourceSets`.
 2. **Never Hardcode BuildConfigs in Main:** If you are about to type `BuildConfig.IS_...` in `src/main/java`, **STOP**. You are doing it wrong.
 3. **Check for Existing Interfaces:** Look for existing delegates or managers (e.g., `VrFeatureManager`) that you can extend.
 4. **Isolate UI Changes:** If a specific flavor requires a new UI element (like the NewPipe license in `noLegal`), do not hardcode its visibility in `main`'s XML. Instead:

@@ -43,3 +43,6 @@ include(":app_v2")
 include(":wear")
 include(":lint-rules")
 include(":benchmark")
+// S1677: the Watch Face Format package. Its own AAB by necessity, not by preference - Google Play
+// refuses a bundle carrying both Wear OS logic and a watch face, so it cannot be folded into :wear.
+include(":watchface")

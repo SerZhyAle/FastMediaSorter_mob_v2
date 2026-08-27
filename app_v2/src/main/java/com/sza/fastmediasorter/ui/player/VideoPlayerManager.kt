@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.core.memory.MemoryProbe
 import com.sza.fastmediasorter.core.memory.MemoryProfileCoordinator
 import com.sza.fastmediasorter.core.memory.MemoryScenario
 import com.sza.fastmediasorter.core.playback.RecentDecoderFailureTracker
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
@@ -598,7 +599,7 @@ class VideoPlayerManager(
                                     reason = "playback-completed"
                                 )
                             } catch (e: Exception) {
-                                Timber.e(e, "VideoPlayerManager: markPlaybackCompleted failed")
+                                e.errorUnlessCancellation("VideoPlayerManager: markPlaybackCompleted failed")
                             }
                         }
                     }

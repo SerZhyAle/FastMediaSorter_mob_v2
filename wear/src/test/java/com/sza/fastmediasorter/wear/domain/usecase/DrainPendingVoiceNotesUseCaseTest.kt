@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.wear.domain.model.VoiceNote
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteDeliveryState
 import com.sza.fastmediasorter.wear.domain.model.WearFileSendOutcome
 import com.sza.fastmediasorter.wear.domain.repository.FakeVoiceNoteRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearFileSendResult
 import com.sza.fastmediasorter.wear.domain.repository.WearFileSenderRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -33,11 +34,11 @@ class DrainPendingVoiceNotesUseCaseTest {
 
         val sentFiles: MutableList<File> = mutableListOf()
 
-        override suspend fun sendFile(file: File): com.sza.fastmediasorter.wear.domain.repository.WearFileSendResult {
+        override suspend fun sendFile(file: File): WearFileSendResult {
             val index = sentFiles.size
             sentFiles += file
             delay(SEND_DELAY_MILLIS)
-            return com.sza.fastmediasorter.wear.domain.repository.WearFileSendResult(outcomes.getOrElse(index) { fallback })
+            return WearFileSendResult(outcomes.getOrElse(index) { fallback })
         }
 
         private companion object {

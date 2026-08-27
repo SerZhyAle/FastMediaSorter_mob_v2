@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.content.Context
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.DropboxClient
@@ -210,7 +211,7 @@ class NetworkFileManager(
                     }
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Failed to upload edited file")
+                e.errorUnlessCancellation("Failed to upload edited file")
                 false
             }
         }
@@ -274,7 +275,7 @@ class NetworkFileManager(
                     throw java.io.IOException("Download failed: File not created")
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Error downloading network file")
+                e.errorUnlessCancellation("Error downloading network file")
                 throw e
             }
         }

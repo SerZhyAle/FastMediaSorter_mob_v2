@@ -12,17 +12,25 @@ param(
     # report one identical versionName, and the device cannot say which one it is running.
     # Pass -AutoVersion:$false to opt back into the checked-in frozen version when
     # configuration-cache reuse matters more than a fresh version.
-    [switch]$AutoVersion = $true
+    [switch]$AutoVersion = $true,
+
+    # S2090: which watch variant to build. 'standard' mirrors what ships and stays the default;
+    # 'noLegal' is the sideload variant.
+    [ValidateSet('standard', 'noLegal')]
+    [string]$Flavor = 'standard'
 )
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
-Enter-BuildLockOrExit -Reason "build-wear-debug.PS1"
+Enter-BuildLockOrExit -Reason "build-wear-debug.PS1" -Domain Build.Wear
 try {
 
-Write-Host "Building Wear OS debug APK.." -ForegroundColor Cyan
+# AGP capitalises the flavor inside a task name and lower-cases it inside an output path.
+$taskFlavor = $Flavor.Substring(0, 1).ToUpperInvariant() + $Flavor.Substring(1)
+
+Write-Host "Building Wear OS debug APK [$Flavor].." -ForegroundColor Cyan
 
 # Start the Gradle build process (Debug only for speed)
-$gradleArgs = @(":wear:assembleDebug", "--configuration-cache")
+$gradleArgs = @(":wear:assemble${taskFlavor}Debug", "--configuration-cache")
 . "$PSScriptRoot\..\utils\build-version-stamp.ps1"
 if ($AutoVersion) {
     # 8 digits, deliberately one shorter than app_v2's 9: the documented derivation is
@@ -56,7 +64,7 @@ $projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
 $downloadsDir = "$projectRoot\DOWNLOADS"
 
 # Resolve the built APK path from AGP output metadata.
-$apkDir = Join-Path $projectRoot "wear\build\outputs\apk\debug"
+$apkDir = Join-Path $projectRoot "wear\build\outputs\apk\$Flavor\debug"
 # S1972: one resolver for every builder - it selects by ABI from output-metadata.json
 # and refuses to guess, where this block used to take element 0 and then the newest file.
 . "$PSScriptRoot\..\utils\find-build-artifact.ps1"
@@ -133,5 +141,5 @@ Write-Host "APK copied to $tcDir\$destName" -ForegroundColor Green
 
 }
 finally {
-    Exit-AgentLock -Name Build
+    Exit-AgentLock -Name 'Build' -Domains @('Build.Wear')
 }

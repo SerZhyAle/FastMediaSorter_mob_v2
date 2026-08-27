@@ -1408,7 +1408,6 @@
     <string name="wear_settings_slideshow">স্লাইডশো</string>
     <string name="wear_settings_album_art">অ্যালবাম আর্ট</string>
     <string name="wear_settings_slideshow_interval">স্লাইডশোর বিরতি (সেকেন্ড)</string>
-    <string name="wear_push_settings">ঘড়ির সেটিংস পাঠান</string>
     <string name="wear_push_settings_failed">ঘড়ির সেটিংস পাঠানো যায়নি। আবার চেষ্টা করুন।</string>
     <string name="wear_import_pending_title">ঘড়ি থেকে উৎস পাওয়া গেছে</string>
     <string name="wear_import_pending_desc">%2$s থেকে %1$d-টি উৎস</string>

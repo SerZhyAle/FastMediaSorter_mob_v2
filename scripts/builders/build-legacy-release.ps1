@@ -2,7 +2,7 @@
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151)
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
-Enter-BuildLockOrExit -Reason "build-legacy-release.ps1"
+Enter-BuildLockOrExit -Reason "build-legacy-release.ps1" -Domain Build.Phone
 try {
 
 Write-Host "Building Legacy Release APK (auto-versioned)..." -ForegroundColor Cyan
@@ -124,5 +124,5 @@ Copy-Item -Path "$downloadsDir\$destName" -Destination "$tcDir\$destName" -Force
 Write-Host "APK copied to $tcDir\$destName" -ForegroundColor Green
 }
 finally {
-    Exit-AgentLock -Name Build
+    Exit-AgentLock -Name 'Build' -Domains @('Build.Phone')
 }

@@ -36,13 +36,26 @@ class LauncherCameraBackgroundManager(
     private val lensEnumeration = CameraLensEnumerationManager()
     private var cameraProvider: ProcessCameraProvider? = null
 
+    // The lens this manager is bound to, or is on its way to binding. Set before the provider is awaited
+    // so a second call arriving during that await is recognised as a repeat rather than a new request.
+    private var requestedCameraId: String? = null
+
     /**
      * Binds the preview to [cameraId], or to the lens the capture screen would start on if it is gone.
+     *
+     * A repeat call for the lens already held returns without touching the camera. The foreground edge
+     * produces exactly such a repeat: [LauncherWallpaperManager.attach] collects the wallpaper flow with
+     * `collectOnLifecycle`, which re-emits on every STARTED edge and renders, while `onStart` asks for the
+     * same lens again. Rebinding there tore a working session down and rebuilt it, which the other backdrop
+     * branches survive because restarting an animation is free and opening a camera is not.
      *
      * Awaits the provider instead of registering a listener on its future: a future listener has no
      * removal counterpart, so it would outlive a desktop the user already left.
      */
     fun start(cameraId: String) {
+        if (requestedCameraId == cameraId) return
+        requestedCameraId = cameraId
+        Timber.d("S2076: launcher camera backdrop start requested for lens $cameraId")
         lifecycleOwner.lifecycleScope.launch {
             runCatching {
                 val context = previewView.context
@@ -54,6 +67,8 @@ class LauncherCameraBackgroundManager(
                 cameraProvider = provider
                 bind(provider, cameraId)
             }.onFailure { error ->
+                // Clear the claim so the next foreground edge may retry this lens.
+                requestedCameraId = null
                 if (error is CancellationException) throw error
                 // The desktop keeps whatever it is already showing; a toast here would fire on a screen
                 // the user opens dozens of times a day.
@@ -64,9 +79,11 @@ class LauncherCameraBackgroundManager(
 
     /** Releases the camera. Symmetric with [start]; safe to call when nothing is bound. */
     fun stop() {
+        Timber.d("S2076: launcher camera backdrop released, bound=${cameraProvider != null}")
         runCatching { cameraProvider?.unbindAll() }
             .onFailure { Timber.e(it, "Launcher camera backdrop could not stop") }
         cameraProvider = null
+        requestedCameraId = null
     }
 
     private fun bind(provider: ProcessCameraProvider, cameraId: String) {

@@ -450,6 +450,32 @@ All complication services inherit from `BaseWearComplicationService` and load da
 
 ---
 
+## ⚙️ Two-Way Settings Sync (S2093)
+
+Watch settings used to travel in one direction only, and the watch could not report its own state, so the
+phone showed its memory of its last send rather than what the watch held. An edit made on the watch did
+not exist for the phone at all.
+
+- The list of watch settings is declared once per module in `WearSettingsRegistry` - id, value type,
+  default, owning side, and a written `exceptionReason` for anything not editable from both sides. The
+  two copies are hand-mirrored, like the payload and path files above, because the modules share no code.
+- `SETTINGS_REPORT` is the reverse leg: `GatherWearSettingsUseCase` reads the whole watch state out and
+  `ReportWearSettingsUseCase` publishes it as a Data Item, so the phone reads the latest set after
+  reconnecting instead of having to listen at the moment the watch sent it.
+- Merging is per field, and the later edit wins. Each side stamps the time of every edit it makes; the
+  receiver corrects the other side's stamps by the clock skew it measures from the envelope's own
+  `sentAt` against its arrival time, so a constant offset between the two devices cannot invert a merge.
+- A missing field still means "the other side did not send this" and never resets a value, which is what
+  keeps an older build on either side from losing settings it does not know about.
+- Both sides carry one button with the same label and a caption saying when they last agreed. Two
+  settings stay watch-only by decision (auto rotation, voice note policy) and the background picture
+  stays a phone choice; each is a registry entry with its reason written down.
+- Three settings the watch has always had were missing from the published settings reference and are now
+  in it. `scripts/quality/assert-wear-settings-parity.ps1` runs in `scripts/post-change.ps1`, so a
+  setting added to one side and not the other fails the closure and names the missing side.
+
+---
+
 ## 🛠️ Technical Details for Developers
 
 - **Install package (`applicationId`)**: `com.sza.fastmediasorter` - the phone app's identity, required for Data Layer delivery (S1681)
@@ -471,16 +497,17 @@ All complication services inherit from `BaseWearComplicationService` and load da
 - **Compile Status**: ✅ BUILD SUCCESSFUL (debug APK, release APK, release AAB bundle)
 - **Module**: `:wear`
 - **Output Artifacts**:
-  - `wear/build/outputs/apk/debug/` - Debug APK (with direct network credential input for development)
-  - `wear/build/outputs/apk/release/` - Release APK (sideloadable release build)
-  - `wear/build/outputs/bundle/release/wear-release.aab` - Play Store release bundle (WO-P6 compliant)
+  - `wear/build/outputs/apk/<flavor>/debug/` - Debug APK (with direct network credential input for development)
+  - `wear/build/outputs/apk/<flavor>/release/` - Release APK (sideloadable release build)
+  - `wear/build/outputs/bundle/<flavor>/release/wear-<flavor>-release.aab` - Play Store release bundle (WO-P6 compliant); the store track takes the `standard` one
+  - `<flavor>` is `standard` or `noLegal` - the module gained its own flavor dimension in S2090, and `standard` is what Play accepts
 - **Target SDK**: 36
 - **Min SDK**: 28 (Wear OS 2.0+)
 
 ### Feature Set Status
 - **Local Playback**: Audio, Video, Image viewing with round-screen scaffold (S1678) and edge swipe dismissal (S1705).
 - **Network Storage**: SMB, FTP, SFTP streaming and browsing.
-- **Companion Sync**: Phone-to-watch network source and configuration sync via Wearable Data Layer (S1681).
+- **Companion Sync**: Network source and configuration sync over the Wearable Data Layer (S1681), settings in both directions since S2093.
 - **Play Store Compliance**: Credential entry hidden on store release builds (WO-P6 / S1707), listing text localized in EN/RU/UK with Wear OS keyword.
 
 ---

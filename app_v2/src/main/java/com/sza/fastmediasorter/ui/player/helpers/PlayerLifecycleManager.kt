@@ -14,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.mutation.Mutation
@@ -387,6 +388,7 @@ class PlayerLifecycleManager(
                     Timber.d("PlayerLifecycleManager: Saved playback position $position/$duration for ${currentFile.name}")
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "PlayerLifecycleManager: Failed to save playback position for ${currentFile.name}")
             }
         }

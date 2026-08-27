@@ -25,7 +25,7 @@ param(
 )
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
-Enter-BuildLockOrExit -Reason "build-debug.PS1"
+Enter-BuildLockOrExit -Reason "build-debug.PS1" -Domain Build.Phone
 try {
 
 # Patterns that are suppressed in -Quiet mode. Order: most-frequent first.
@@ -360,5 +360,5 @@ else {
 
 }
 finally {
-    Exit-AgentLock -Name Build
+    Exit-AgentLock -Name 'Build' -Domains @('Build.Phone')
 }

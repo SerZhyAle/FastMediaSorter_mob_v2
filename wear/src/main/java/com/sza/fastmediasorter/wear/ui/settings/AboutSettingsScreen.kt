@@ -80,7 +80,10 @@ fun AboutSettingsScreen(
             item {
                 Chip(
                     onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/wear/"))
+                        val intent = Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse("https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/wear/")
+                        )
                         try {
                             context.startActivity(intent)
                         } catch (e: ActivityNotFoundException) {

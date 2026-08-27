@@ -16,7 +16,7 @@ param(
 )
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
-Enter-BuildLockOrExit -Reason "build-debug-clean.PS1"
+Enter-BuildLockOrExit -Reason "build-debug-clean.PS1" -Domain Build.Phone
 try {
 
 Write-Host "Cleaning caches and building debug APK.." -ForegroundColor Cyan
@@ -173,5 +173,5 @@ else {
 
 }
 finally {
-    Exit-AgentLock -Name Build
+    Exit-AgentLock -Name 'Build' -Domains @('Build.Phone')
 }

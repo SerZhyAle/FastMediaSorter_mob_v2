@@ -376,4 +376,11 @@
     <string name="wear_upload_outcome_channel_name">Upload Notifications</string>
     <string name="wear_upload_outcome_failed_title">Upload failed</string>
     <string name="wear_upload_outcome_failed_text">Failed to upload %1$s to %2$s</string>
+    <string name="wear_settings_sync_button">Sync settings</string>
+    <string name="wear_settings_last_synced">Last synced: %1$s</string>
+    <string name="wear_settings_sync_never">Never synced</string>
+    <string name="wear_setting_streams_section">Show Streams</string>
+    <string name="wear_setting_background_mode">Watch Background</string>
+    <string name="wear_background_mode_animation">Branded animation</string>
+    <string name="wear_background_mode_image">Your image</string>
 </resources>

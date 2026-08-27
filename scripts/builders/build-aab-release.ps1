@@ -55,7 +55,7 @@ $gradlew = "$projectRoot\gradlew.bat"
 # "sibling fallback" search was a band-aid that hid exactly this bug - after
 # the Push-Location below, outputs are guaranteed to be under $projectRoot.
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
-Enter-BuildLockOrExit -Reason "build-aab-release.ps1"
+Enter-BuildLockOrExit -Reason "build-aab-release.ps1" -Domain Build.Phone
 
 Push-Location $projectRoot
 try {
@@ -66,6 +66,14 @@ $content = Get-Content $buildGradlePath -Raw
 $content = $content -replace '(versionCode\s*=\s*)\d+', "`${1}$versionCodeInt"
 $content = $content -replace '(versionName\s*=\s*)"[^"]*"', "`${1}`"$versionName`""
 Set-Content $buildGradlePath $content -NoNewline
+
+# This script only ever stamps app_v2 - wear is a separate module the caller may not even be
+# touching this run. A non-fatal warning here catches the drift at the moment this stamp is
+# created instead of leaving it for the next unrelated ticket's `fg` gate to trip over (S2117).
+& (Join-Path $PSScriptRoot "..\quality\assert-module-version-parity.ps1") -Quiet
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Warning: app_v2/build.gradle.kts and wear/build.gradle.kts now disagree on version - see scripts/quality/assert-module-version-parity.ps1. Align wear before the next release (S2117)." -ForegroundColor Yellow
+}
 
 # Start the Gradle build process for AAB (Release with R8 optimizations)
 Write-Host "Running: gradlew bundleStandardRelease" -ForegroundColor Yellow
@@ -251,5 +259,5 @@ Write-Host "Ready for upload to Google Play Console" -ForegroundColor Cyan
 }
 finally {
     Pop-Location
-    Exit-AgentLock -Name Build
+    Exit-AgentLock -Name 'Build' -Domains @('Build.Phone')
 }

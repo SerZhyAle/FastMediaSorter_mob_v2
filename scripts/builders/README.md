@@ -48,14 +48,19 @@ Optimized builds with ProGuard (requires keystore):
 
 ## VR (OpenXR)
 
+`build-vr-release.ps1` is the only VR builder here. Debug builds, the AAB and installing all go
+through Gradle and `scripts/devtest/adb.ps1` - `adb.ps1 install -Flavor` has no `vr` value, so the
+APK is named explicitly.
+
 ```powershell
-.\scripts\builders\build-vr-debug.ps1                    # VR debug (Quest / Android XR)    | .\a.ps1 vrd
 .\scripts\builders\build-vr-release.ps1                  # VR release APK (Meta Horizon Store) | .\a.ps1 vr
-.\scripts\builders\build-vr-aab.ps1                      # VR release AAB + APK (Google Play / Android XR)
-.\scripts\builders\build-vr-device.ps1                   # VR debug + ADB install + auto-launch (smoke tests only - no FOCUSED)
-.\scripts\builders\install-vr-debug-to-device.ps1        # Install VR debug APK, NO launch   | .\a.ps1 ivrd
-.\scripts\builders\install-vr-release-to-device.ps1      # Install VR release APK, NO launch | .\a.ps1 ivr
+.\gradlew.bat assembleVrDebug                            # VR debug (Quest / Android XR)
+.\gradlew.bat bundleVrRelease                            # VR release AAB (Google Play / Android XR)
+.\scripts\devtest\adb.ps1 install -Apk app_v2\build\outputs\apk\vr\debug\FastMediaSorter_vr_debug_v<version>.apk
 ```
+
+Install only - do not auto-launch a VR build over ADB. That skips the vrshell launch_id path, so the
+Activity never reaches FOCUSED and immersive entry cannot be judged; launch from the headset library.
 
 ## Wear OS
 
@@ -74,8 +79,9 @@ Build + install to connected device:
 .\scripts\builders\build-lite-device.ps1
 .\scripts\builders\build-photos-device.ps1
 .\scripts\builders\build-legacy-device.ps1
-.\scripts\builders\build-vr-device.ps1          # Quest via ADB
 ```
+
+VR has no build+install script - see the VR section above.
 
 ## Universal
 
@@ -89,7 +95,7 @@ Build + install to connected device:
 - **Debug APKs**: `app_v2/build/outputs/apk/[flavor]/debug/`
 - **Release APKs**: `app_v2/build/outputs/apk/[flavor]/release/`
 - **AAB Bundle**: `app_v2/build/outputs/bundle/standardRelease/` or `vrRelease/`
-- **Wear APKs**: `wear/build/outputs/apk/debug/` or `release/`
+- **Wear APKs**: `wear/build/outputs/apk/<flavor>/debug/` or `.../<flavor>/release/`, where `<flavor>` is `standard` (default) or `noLegal` (S2090)
 - **Auto-copy**: `DOWNLOADS/` (release builds only)
 - **Failure diagnostics**: `.\a.ps1 bf` prints the relevant block from the latest saved `temp/*build*.log`. For a structured, agent-readable companion use `build-failure-digest.ps1` (alias `.\a.ps1 bfd`) - it reuses the same `bf` extraction and emits a compact JSON digest (command, exit code, first actionable failure with module/flavor/file/line/message, raw-log path, verdict) plus a concise human verdict. See [`build-failure-digest.SCHEMA.md`](build-failure-digest.SCHEMA.md) for the JSON contract.
 

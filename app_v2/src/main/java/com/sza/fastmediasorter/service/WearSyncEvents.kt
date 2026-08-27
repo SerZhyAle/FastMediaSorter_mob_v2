@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.service
 
 import com.sza.fastmediasorter.domain.model.WearFileTransferAck
 import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
+import com.sza.fastmediasorter.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.domain.model.WearSourcesExportPayload
 import com.sza.fastmediasorter.domain.model.WearStreamTransferAck
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -38,6 +39,17 @@ object WearSyncEvents {
         MutableSharedFlow<WearStreamTransferAck>(extraBufferCapacity = 4)
     val streamTransferAckFlow: SharedFlow<WearStreamTransferAck> = _streamTransferAckFlow.asSharedFlow()
 
+    /**
+     * S2093: the merged watch settings, after a `SETTINGS_REPORT` was reconciled with the mirror.
+     *
+     * Replays the last one, because the companion sheet is opened long after the exchange that
+     * produced it and would otherwise show the merge only if it happened to be on screen at the time -
+     * the sheet's ViewModel dies with its dialog.
+     */
+    private val _watchSettingsMergedFlow =
+        MutableSharedFlow<WearSettingsPayload>(replay = 1, extraBufferCapacity = 1)
+    val watchSettingsMergedFlow: SharedFlow<WearSettingsPayload> = _watchSettingsMergedFlow.asSharedFlow()
+
     private val _fileTransferAckFlow =
         MutableSharedFlow<WearFileTransferAck>(replay = 1, extraBufferCapacity = 4)
     val fileTransferAckFlow: SharedFlow<WearFileTransferAck> = _fileTransferAckFlow.asSharedFlow()
@@ -53,4 +65,7 @@ object WearSyncEvents {
 
     suspend fun emitWatchPlaybackState(state: WearPlaybackStatePayload?) =
         _watchPlaybackStateFlow.emit(state)
+
+    suspend fun emitWatchSettingsMerged(settings: WearSettingsPayload) =
+        _watchSettingsMergedFlow.emit(settings)
 }

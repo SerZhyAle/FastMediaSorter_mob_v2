@@ -40,6 +40,18 @@ function Assert-SourceRule([string]$Name, [string]$ExpectedBaseline) {
     }
 }
 
+function Assert-RuleCount([string]$Rule, [string]$Name, [string[]]$Lines, [int]$Expected) {
+    $r = Get-SourceRules | Where-Object Name -eq $Rule
+    if ($null -eq $r) { throw "Missing source rule '$Rule'." }
+    # CRLF is joined explicitly rather than taken from a here-string: these rules anchor on `\r?$`,
+    # and a here-string would inherit whatever line endings this file was checked out with, so the
+    # very defect the anchor exists to prevent could pass on one machine and fail on another.
+    $actual = & $r.CountInText (($Lines -join "`r`n") + "`r`n")
+    if ($actual -ne $Expected) {
+        throw "$Rule / $Name expected $Expected hit(s), got $actual."
+    }
+}
+
 Assert-SourceRule -Name 'flavor-flags' -ExpectedBaseline 'flavor-flag-baseline.txt'
 Assert-SourceRule -Name 'public-mutable-flow' -ExpectedBaseline 'public-mutable-flow-baseline.txt'
 Assert-SourceRule -Name 'deprecated-pm-flags' -ExpectedBaseline 'deprecated-pm-flags-baseline.txt'
@@ -92,4 +104,41 @@ class LauncherDesktopThing {
 }
 '@
 
-Write-Output 'source-matchers tests: PASS (9 cases)'
+Assert-SourceRule -Name 'ui-imports-data' -ExpectedBaseline 'ui-imports-data-baseline.txt'
+Assert-SourceRule -Name 'ui-imports-room' -ExpectedBaseline 'ui-imports-room-baseline.txt'
+Assert-SourceRule -Name 'ui-imports-impl' -ExpectedBaseline 'ui-imports-impl-baseline.txt'
+Assert-SourceRule -Name 'viewmodel-imports-repository' `
+    -ExpectedBaseline 'viewmodel-imports-repository-baseline.txt'
+
+Assert-RuleCount -Rule 'ui-imports-data' -Name 'counts data imports, ignores domain and platform' `
+    -Expected 2 -Lines @(
+    'import com.sza.fastmediasorter.data.cloud.CloudFolder',
+    'import com.sza.fastmediasorter.data.local.db.ResourceDao',
+    'import com.sza.fastmediasorter.domain.model.Resource',
+    'import androidx.fragment.app.Fragment')
+
+Assert-RuleCount -Rule 'ui-imports-data' -Name 'a commented-out import is not an import' `
+    -Expected 0 -Lines @(
+    '// import com.sza.fastmediasorter.data.cloud.CloudFolder',
+    '    import com.sza.fastmediasorter.data.cloud.CloudFolder')
+
+Assert-RuleCount -Rule 'ui-imports-room' -Name 'Dao and Entity across CRLF lines' `
+    -Expected 2 -Lines @(
+    'import com.sza.fastmediasorter.data.local.db.StreamSourceEntity',
+    'import com.sza.fastmediasorter.data.local.db.ResourceDao',
+    'import com.sza.fastmediasorter.data.cloud.CloudFolder')
+
+Assert-RuleCount -Rule 'ui-imports-room' -Name 'a class merely ending in Data is not Room' `
+    -Expected 0 -Lines @('import com.sza.fastmediasorter.data.common.EntityHolder')
+
+Assert-RuleCount -Rule 'ui-imports-impl' -Name 'impl counted, interface not' `
+    -Expected 1 -Lines @(
+    'import com.sza.fastmediasorter.data.repository.ResumeStateRepositoryImpl',
+    'import com.sza.fastmediasorter.domain.repository.ResumeStateRepository')
+
+Assert-RuleCount -Rule 'viewmodel-imports-repository' -Name 'domain repository import in a ViewModel' `
+    -Expected 1 -Lines @(
+    'import com.sza.fastmediasorter.domain.repository.ResourceRepository',
+    'import com.sza.fastmediasorter.domain.usecase.LoadResourcesUseCase')
+
+Write-Output 'source-matchers tests: PASS (19 cases)'

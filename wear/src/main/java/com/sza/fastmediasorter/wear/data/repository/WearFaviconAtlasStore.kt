@@ -3,9 +3,11 @@ package com.sza.fastmediasorter.wear.data.repository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.json.JSONException
 import org.json.JSONObject
 import timber.log.Timber
 import java.io.File
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -40,7 +42,10 @@ class WearFaviconAtlasStore @Inject constructor(
         if (!file.isFile) return@withContext emptyMap()
         try {
             decodeCoords(file.readText(Charsets.UTF_8))
-        } catch (e: Exception) {
+        } catch (e: IOException) {
+            Timber.i(e, "Favicon coords sidecar unreadable; treating as empty")
+            emptyMap()
+        } catch (e: JSONException) {
             Timber.i(e, "Favicon coords sidecar unreadable; treating as empty")
             emptyMap()
         }

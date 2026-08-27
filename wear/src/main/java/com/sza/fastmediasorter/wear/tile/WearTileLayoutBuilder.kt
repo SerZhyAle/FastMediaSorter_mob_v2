@@ -14,7 +14,6 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.model.WearTileContent
 import com.sza.fastmediasorter.wear.domain.model.WearTileKind
-import com.sza.fastmediasorter.wear.domain.model.WearTileTargetRef
 import com.sza.fastmediasorter.wear.domain.model.writeTo
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject

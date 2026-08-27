@@ -1408,7 +1408,6 @@
     <string name="wear_settings_slideshow">Presentazione</string>
     <string name="wear_settings_album_art">Copertina dell\'album</string>
     <string name="wear_settings_slideshow_interval">Intervallo della presentazione (secondi)</string>
-    <string name="wear_push_settings">Invia le impostazioni dell\'orologio</string>
     <string name="wear_push_settings_failed">Impossibile inviare le impostazioni dell\'orologio. Riprova.</string>
     <string name="wear_import_pending_title">Sorgenti ricevute dall\'orologio</string>
     <string name="wear_import_pending_desc">%1$d sorgenti da %2$s</string>

@@ -2,10 +2,12 @@ package com.sza.fastmediasorter.wear.data.preferences
 
 import android.content.Context
 import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
@@ -66,6 +68,44 @@ class WearPreferencesRepositoryImpl @Inject constructor(
         val APP_LANGUAGE = stringPreferencesKey("wear_app_language")
         val VOICE_NOTE_SEND_POLICY = stringPreferencesKey("wear_voice_note_send_policy")
         val NOTIFICATION_PERMISSION_ASKED = booleanPreferencesKey("wear_notification_permission_asked")
+        val SETTING_TIMESTAMPS = stringPreferencesKey("wear_setting_timestamps")
+        val LAST_SETTINGS_SYNC = longPreferencesKey("wear_settings_last_sync")
+    }
+
+    override val lastSettingsSyncAt: Flow<Long> = context.dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.LAST_SETTINGS_SYNC] ?: 0L
+    }
+
+    override suspend fun markSettingsSynced(atEpochMillis: Long) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.LAST_SETTINGS_SYNC] = atEpochMillis
+        }
+    }
+
+    // S2093: the value and its stamp are written in one edit, so a setter cannot record a change
+    // without recording when it happened - the future setting this ticket exists to protect is exactly
+    // the one whose author would have forgotten a separate stamping call. Callers name the registry
+    // field rather than the DataStore key, because the exchange contract addresses fields.
+    private suspend fun stampedEdit(field: String, write: (MutablePreferences) -> Unit) {
+        val changedAt = System.currentTimeMillis()
+        context.dataStore.edit { prefs ->
+            write(prefs)
+            prefs[PreferencesKeys.SETTING_TIMESTAMPS] = SettingTimestampsCodec.encode(
+                SettingTimestampsCodec.decode(prefs[PreferencesKeys.SETTING_TIMESTAMPS]) + (field to changedAt)
+            )
+        }
+    }
+
+    override val settingTimestamps: Flow<Map<String, Long>> = context.dataStore.data.map { prefs ->
+        SettingTimestampsCodec.decode(prefs[PreferencesKeys.SETTING_TIMESTAMPS])
+    }
+
+    override suspend fun stampSetting(field: String, atEpochMillis: Long) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.SETTING_TIMESTAMPS] = SettingTimestampsCodec.encode(
+                SettingTimestampsCodec.decode(prefs[PreferencesKeys.SETTING_TIMESTAMPS]) + (field to atEpochMillis)
+            )
+        }
     }
 
     // Media type toggles
@@ -82,19 +122,19 @@ class WearPreferencesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun setAudioEnabled(enabled: Boolean) {
-        context.dataStore.edit { prefs ->
+        stampedEdit("audioEnabled") { prefs ->
             prefs[PreferencesKeys.AUDIO_ENABLED] = enabled
         }
     }
 
     override suspend fun setVideoEnabled(enabled: Boolean) {
-        context.dataStore.edit { prefs ->
+        stampedEdit("videoEnabled") { prefs ->
             prefs[PreferencesKeys.VIDEO_ENABLED] = enabled
         }
     }
 
     override suspend fun setImagesEnabled(enabled: Boolean) {
-        context.dataStore.edit { prefs ->
+        stampedEdit("imagesEnabled") { prefs ->
             prefs[PreferencesKeys.IMAGES_ENABLED] = enabled
         }
     }
@@ -109,13 +149,13 @@ class WearPreferencesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun setSlideshowEnabled(enabled: Boolean) {
-        context.dataStore.edit { prefs ->
+        stampedEdit("slideshowEnabled") { prefs ->
             prefs[PreferencesKeys.SLIDESHOW_ENABLED] = enabled
         }
     }
 
     override suspend fun setSlideshowIntervalSeconds(seconds: Int) {
-        context.dataStore.edit { prefs ->
+        stampedEdit("slideshowIntervalSeconds") { prefs ->
             prefs[PreferencesKeys.SLIDESHOW_INTERVAL] = seconds
         }
     }
@@ -126,7 +166,7 @@ class WearPreferencesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun setDownloadAlbumArt(enabled: Boolean) {
-        context.dataStore.edit { prefs ->
+        stampedEdit("downloadAlbumArt") { prefs ->
             prefs[PreferencesKeys.DOWNLOAD_ALBUM_ART] = enabled
         }
     }
@@ -148,7 +188,7 @@ class WearPreferencesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun setViewMode(mode: WearViewMode) {
-        context.dataStore.edit { prefs ->
+        stampedEdit("viewMode") { prefs ->
             prefs[PreferencesKeys.VIEW_MODE] = mode.name
         }
     }
@@ -160,7 +200,7 @@ class WearPreferencesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun setFileListViewMode(mode: WearViewMode) {
-        context.dataStore.edit { prefs ->
+        stampedEdit("fileListViewMode") { prefs ->
             prefs[PreferencesKeys.FILE_LIST_VIEW_MODE] = mode.name
         }
     }
@@ -172,7 +212,7 @@ class WearPreferencesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun setBackgroundMode(mode: WearBackgroundMode) {
-        context.dataStore.edit { prefs ->
+        stampedEdit("backgroundMode") { prefs ->
             prefs[PreferencesKeys.BACKGROUND_MODE] = mode.name
         }
     }
@@ -204,7 +244,7 @@ class WearPreferencesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun setKeepScreenAwakeOutsidePlayers(enabled: Boolean) {
-        context.dataStore.edit { prefs ->
+        stampedEdit("keepScreenAwakeOutsidePlayers") { prefs ->
             prefs[PreferencesKeys.KEEP_SCREEN_AWAKE] = enabled
         }
     }
@@ -252,7 +292,7 @@ class WearPreferencesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun setStreamsSectionEnabled(enabled: Boolean) {
-        context.dataStore.edit { prefs ->
+        stampedEdit("streamsSectionEnabled") { prefs ->
             prefs[PreferencesKeys.STREAMS_SECTION_ENABLED] = enabled
         }
     }

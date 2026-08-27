@@ -1408,7 +1408,6 @@
     <string name="wear_settings_slideshow">سلائیڈ شو</string>
     <string name="wear_settings_album_art">البم آرٹ</string>
     <string name="wear_settings_slideshow_interval">سلائیڈ شو وقفہ (سیکنڈ)</string>
-    <string name="wear_push_settings">گھڑی کی سیٹنگز بھیجیں</string>
     <string name="wear_push_settings_failed">گھڑی کی سیٹنگز نہیں بھیجی جا سکیں۔ دوبارہ کوشش کریں۔</string>
     <string name="wear_import_pending_title">گھڑی سے ذرائع موصول ہوئے</string>
     <string name="wear_import_pending_desc">%2$s سے %1$d ذرائع</string>

@@ -12,7 +12,7 @@ param(
 )
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
-Enter-BuildLockOrExit -Reason "build-standard-debug.ps1"
+Enter-BuildLockOrExit -Reason "build-standard-debug.ps1" -Domain Build.Phone
 try {
 
 Write-Host "Building Standard Debug APK.." -ForegroundColor Cyan
@@ -150,5 +150,5 @@ Write-Host "APK copied to $tcDir\$destName" -ForegroundColor Green
 
 }
 finally {
-    Exit-AgentLock -Name Build
+    Exit-AgentLock -Name 'Build' -Domains @('Build.Phone')
 }

@@ -5,6 +5,7 @@ import android.view.View
 import android.webkit.WebView
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -217,7 +218,7 @@ class EpubTranslationOverlayHelper(
                         }
                     }
                 } catch (e: Exception) {
-                    Timber.e(e, "EPUB Translation: EXCEPTION during translation process")
+                    e.errorUnlessCancellation("EPUB Translation: EXCEPTION during translation process")
                     withContext(Dispatchers.Main) {
                         callback.showError(root.context.getString(R.string.translation_error))
                     }

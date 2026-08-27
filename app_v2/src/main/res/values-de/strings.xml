@@ -1408,7 +1408,6 @@
     <string name="wear_settings_slideshow">Diashow</string>
     <string name="wear_settings_album_art">Albumcover</string>
     <string name="wear_settings_slideshow_interval">Diashow-Intervall (Sekunden)</string>
-    <string name="wear_push_settings">Uhr-Einstellungen senden</string>
     <string name="wear_push_settings_failed">Die Uhr-Einstellungen konnten nicht gesendet werden. Erneut versuchen.</string>
     <string name="wear_import_pending_title">Ressourcen von der Uhr empfangen</string>
     <string name="wear_import_pending_desc">%1$d Ressourcen von %2$s</string>

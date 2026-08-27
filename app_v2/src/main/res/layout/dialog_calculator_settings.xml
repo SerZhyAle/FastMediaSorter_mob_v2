@@ -21,7 +21,7 @@
                 android:id="@+id/switchCalculatorGroupThousands"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minHeight="48dp"
+                android:minHeight="@dimen/touch_target_min_height"
                 android:text="@string/calculator_settings_group_thousands"
                 android:textColor="?android:attr/textColorPrimary" />
 
@@ -70,7 +70,7 @@
                     android:id="@+id/radioKeypadModeNormal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:minHeight="48dp"
+                    android:minHeight="@dimen/touch_target_min_height"
                     android:text="@string/calculator_keypad_mode_normal"
                     android:textColor="?android:attr/textColorPrimary" />
 
@@ -78,7 +78,7 @@
                     android:id="@+id/radioKeypadModeLarge"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:minHeight="48dp"
+                    android:minHeight="@dimen/touch_target_min_height"
                     android:text="@string/calculator_keypad_mode_large"
                     android:textColor="?android:attr/textColorPrimary" />
 
@@ -86,7 +86,7 @@
                     android:id="@+id/radioKeypadModeCompact"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:minHeight="48dp"
+                    android:minHeight="@dimen/touch_target_min_height"
                     android:text="@string/calculator_keypad_mode_compact"
                     android:textColor="?android:attr/textColorPrimary" />
             </RadioGroup>

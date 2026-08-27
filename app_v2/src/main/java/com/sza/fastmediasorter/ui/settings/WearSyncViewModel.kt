@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.domain.model.PairedWatchStatus
 import com.sza.fastmediasorter.domain.model.WearFileTransferOutcome
 import com.sza.fastmediasorter.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
+import com.sza.fastmediasorter.domain.model.WearSettingsFieldDiff
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.domain.model.WearSourcesExportPayload
 import com.sza.fastmediasorter.domain.repository.WearFileTransferRepository
@@ -119,8 +120,9 @@ class WearSyncViewModel @Inject constructor(
 
     // The sheet that shows these values is a BottomSheetDialogFragment, so this ViewModel dies with
     // it and an in-memory-only mirror lost every edit the moment the sheet closed - a picked GRID_3
-    // read back as the LIST default on the next open. The watch has no channel to report its own
-    // settings back, so the phone's last known set is the only thing there is to restore.
+    // read back as the LIST default on the next open. S2093: the watch now does report its own set
+    // back, and the merged result is written to the same mirror, so this restores the last agreed
+    // state rather than only the phone's last send.
     private val _watchSettingsState = MutableStateFlow(wearSettingsMirrorStore.readSettings())
     val watchSettingsState: StateFlow<WearSettingsPayload?> = _watchSettingsState.asStateFlow()
 
@@ -151,6 +153,11 @@ class WearSyncViewModel @Inject constructor(
     val lastSyncTimestamp: Long
         get() = wearSettingsMirrorStore.readLastSyncTimestamp()
 
+    // S2093: the same value as [lastSyncTimestamp], observable - the caption beside the sync button
+    // has to change when a report arrives, and a plain getter is read once and never again.
+    private val _lastSyncTimestamp = MutableStateFlow(wearSettingsMirrorStore.readLastSyncTimestamp())
+    val lastSyncedAt: StateFlow<Long> = _lastSyncTimestamp.asStateFlow()
+
     init {
         // Observe ack events emitted by PhoneWearListenerService
         viewModelScope.launch {
@@ -172,6 +179,11 @@ class WearSyncViewModel @Inject constructor(
         viewModelScope.launch {
             WearSyncEvents.watchPlaybackStateFlow.collect { state ->
                 _watchPlaybackState.value = state
+            }
+        }
+        viewModelScope.launch {
+            WearSyncEvents.watchSettingsMergedFlow.collect { merged ->
+                adoptMergedSettings(merged)
             }
         }
     }
@@ -266,9 +278,38 @@ class WearSyncViewModel @Inject constructor(
         rememberSettings(withBackgroundMode(settings))
     }
 
+    /**
+     * S2093: the edit is stamped as well as stored, so the next exchange can tell it apart from an
+     * edit made on the watch.
+     *
+     * The changed fields are derived by comparing rather than reported by the control that moved: the
+     * group rebuilds the whole payload on every edit, and a stamping call wired per control would be
+     * missed by the next control someone adds - the exact failure this ticket removes.
+     */
     private fun rememberSettings(settings: WearSettingsPayload) {
+        val changed = WearSettingsFieldDiff.changedFields(_watchSettingsState.value, settings)
         _watchSettingsState.value = settings
         wearSettingsMirrorStore.writeSettings(settings)
+        if (changed.isEmpty()) return
+        Timber.d("S2093: phone stamping edited watch settings: ${changed.joinToString(",")}")
+        val editedAt = System.currentTimeMillis()
+        wearSettingsMirrorStore.writeFieldTimestamps(
+            wearSettingsMirrorStore.readFieldTimestamps() + changed.associateWith { editedAt }
+        )
+    }
+
+    /**
+     * S2093: adopts what the watch reported after the merge, so an edit made on the watch is visible
+     * here without reopening the sheet.
+     *
+     * Written straight into the state rather than through [rememberSettings]: the merge has already
+     * stored the payload and its stamps, and re-stamping them here would mark the watch's edit as a
+     * phone edit made now, which would then beat the watch on the next exchange.
+     */
+    private fun adoptMergedSettings(settings: WearSettingsPayload) {
+        _watchSettingsState.value = settings
+        settings.backgroundMode?.let { _backgroundMode.value = it }
+        _lastSyncTimestamp.value = wearSettingsMirrorStore.readLastSyncTimestamp()
     }
 
     /**

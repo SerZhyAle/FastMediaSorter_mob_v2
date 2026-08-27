@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Withdraw this session's own place in a lock queue: temp/BUILD.QUEUE or temp/CODE.QUEUE.
+    Withdraw this session's own place in a lock queue, in one domain or across a whole type.
 
 .DESCRIPTION
     S2098. The queue had operations for taking a place, waiting for it and evicting a ticket whose
@@ -23,10 +23,13 @@
         "nothing of mine was queued" when the truth is "nothing could be judged".
 
 .PARAMETER Name
-    Which queue to withdraw from: Build or Code.
+    Which queue to withdraw from: a concrete domain (Build.Phone, Build.Wear, Code.Phone,
+    Code.Wear, Code.Scripts) or a bare Build/Code, which withdraws across every domain of that
+    type. S2109: a set-level waiter holds one ticket per domain, so withdrawing an abandoned
+    multi-domain intent needs the bare name; withdrawing one domain leaves the rest standing.
 
 .EXAMPLE
-    pwsh -NoProfile -File scripts/utils/withdraw-lock-ticket.ps1 -Name Code
+    pwsh -NoProfile -File scripts/utils/withdraw-lock-ticket.ps1 -Name Code.Scripts
 
 .EXAMPLE
     .\a.ps1 uqc
@@ -39,11 +42,22 @@
           environment), so nothing was removed.
 #>
 param(
-    [Parameter(Mandatory)][ValidateSet('Build', 'Code')][string]$Name
+    [Parameter(Mandatory)][string]$Name
 )
 
 $ErrorActionPreference = 'Stop'
 . "$PSScriptRoot\agent-lock.ps1"
+
+# S2109: withdraw only inside the named domains. A bare name withdraws across the whole set,
+# which is what a set-level waiter took; a concrete domain leaves this session's places in every
+# other domain standing, because abandoning one intent is not abandoning the rest.
+try {
+    $domains = @(Resolve-AgentLockDomains -Name $Name)
+}
+catch {
+    Write-Error "withdraw-lock-ticket: $($_.Exception.Message)" -ErrorAction Continue
+    exit 2
+}
 
 $sessionId = $env:CLAUDE_CODE_SESSION_ID
 if ([string]::IsNullOrWhiteSpace($sessionId)) {
@@ -54,21 +68,25 @@ if ([string]::IsNullOrWhiteSpace($sessionId)) {
     exit 2
 }
 
-$removed = Remove-AgentSessionTickets -Name $Name -SessionId $sessionId
-$remaining = @(Get-AgentLockQueue -Name $Name)
+$totalRemoved = 0
+foreach ($domain in $domains) {
+    $removed = Remove-AgentSessionTickets -Name $domain -SessionId $sessionId
+    $totalRemoved += $removed
+    $remaining = @(Get-AgentLockQueue -Name $domain)
 
-if ($removed -gt 0) {
-    Write-Host "$Name queue: $removed ticket(s) withdrawn for session $sessionId; $($remaining.Count) still waiting." -ForegroundColor Green
-}
-else {
-    Write-Host "$Name queue: nothing to withdraw - session $sessionId held no ticket; $($remaining.Count) still waiting." -ForegroundColor Gray
-}
+    if ($removed -gt 0) {
+        Write-Host "$domain queue: $removed ticket(s) withdrawn for session $sessionId; $($remaining.Count) still waiting." -ForegroundColor Green
+    }
+    else {
+        Write-Host "$domain queue: nothing to withdraw - session $sessionId held no ticket; $($remaining.Count) still waiting." -ForegroundColor Gray
+    }
 
-# Name the next session in line: the point of withdrawing is that someone else moves up, and saying
-# who makes the effect checkable without a second call to the queue inspector.
-if ($removed -gt 0 -and $remaining.Count -gt 0) {
-    $head = $remaining[0]
-    Write-Host "  Head of queue is now #$($head.seq) session $($head.sessionId) (reason: '$($head.reason)')." -ForegroundColor Gray
+    # Name the next session in line: the point of withdrawing is that someone else moves up, and
+    # saying who makes the effect checkable without a second call to the queue inspector.
+    if ($removed -gt 0 -and $remaining.Count -gt 0) {
+        $head = $remaining[0]
+        Write-Host "  Head of the $domain queue is now #$($head.seq) session $($head.sessionId) (reason: '$($head.reason)')." -ForegroundColor Gray
+    }
 }
 
 exit 0

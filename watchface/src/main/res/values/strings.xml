@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="watch_face_name">FastMediaSorter</string>
+
+    <!-- Complication slot labels. These are what the system watch face editor shows against each
+         slot, so they name the position on the dial, not the provider a slot happens to hold: the
+         user is free to reassign any slot, and a label naming the default provider would then lie. -->
+    <string name="slot_outer_left_label">Outer left</string>
+    <string name="slot_inner_left_label">Inner left</string>
+    <string name="slot_inner_right_label">Inner right</string>
+    <string name="slot_outer_right_label">Outer right</string>
+
+</resources>

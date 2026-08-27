@@ -27,7 +27,7 @@ $projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
 $gradlew = "$projectRoot\gradlew.bat"
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
-Enter-BuildLockOrExit -Reason "build-nolegal-release.ps1"
+Enter-BuildLockOrExit -Reason "build-nolegal-release.ps1" -Domain Build.Phone
 
 # CRITICAL: pin CWD to $projectRoot so Gradle resolves the correct project
 # directory regardless of how the script was invoked (e.g. when a.ps1
@@ -129,5 +129,5 @@ else {
 }
 finally {
     Pop-Location
-    Exit-AgentLock -Name Build
+    Exit-AgentLock -Name 'Build' -Domains @('Build.Phone')
 }

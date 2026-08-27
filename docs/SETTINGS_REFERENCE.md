@@ -310,7 +310,7 @@ _Settings -> General -> System launcher settings_
 | Network type | Shows the current connection type - Wi-Fi, mobile or wired - in the launcher tray. |
 | SIM 1 signal | Shows the signal level of the first SIM in the launcher tray. Needs permission to read the phone state; the indicator is absent without it or without a SIM in the slot. |
 | SIM 2 signal | Shows the signal level of the second SIM in the launcher tray. Needs permission to read the phone state; the indicator is absent without it or on a single-SIM device. |
-| Desktop wallpaper | Chooses the launcher desktop's wallpaper: branded animation, a static striped frame refreshed when you return to the launcher, an empty surface, or your own image. |
+| Desktop wallpaper | Chooses the launcher desktop's wallpaper: branded animation, a static striped frame refreshed when you return to the launcher, an empty surface, your own image, or a live frame from a device camera. The camera entry appears only on devices that have a camera; choosing it asks for the camera permission and then for a lens, and the stream stops whenever the desktop leaves the screen. |
 | Widget backdrop opacity | Controls the opacity of widget background cards on the launcher desktop (0% transparent to 100% opaque; 85% default). |
 | Grid density | Chooses the icon density the launcher reset lays the starter set out at; it opens on the density your device profile suggests. |
 
@@ -409,6 +409,7 @@ _Reached from Wear OS watch app -> Settings._
 
 | Setting | What it does |
 |---|---|
+| Auto rotation | Lets the watch screen follow the wrist. Watch-only: the row is absent on a watch with no rotation sensor. |
 | Watch Background | Chooses what the watch draws behind the app screens: the branded waves-and-particles animation, or an image picked on the phone. The picked image is cropped and scaled to the watch frame on the phone and travels the file channel, so the watch receives a ready frame and never resizes anything. When the image is missing or has not arrived, the watch draws the animation instead. A constant dim sits between the background and the content so text stays readable over a light picture, and the background is not drawn while the app is away from the foreground or in ambient mode. |
 | Download album art | Downloads and displays cover art for audio tracks on Wear OS. |
 | Enable audio | Enables playback and browsing of audio files on Wear OS. |
@@ -418,5 +419,6 @@ _Reached from Wear OS watch app -> Settings._
 | Files view | Chooses how file lists on the watch are laid out: a list, or a grid of two or three columns with real thumbnails. |
 | Keep screen on | Keeps the watch screen on across every screen outside the players, the startup splash and the permission screen included; the audio, video and image players hold it on regardless. |
 | Slideshow interval | Sets the delay in seconds between slides during slideshow playback on Wear OS. |
+| Show Streams | Shows or hides the Streams section on the watch home screen. Off leaves the other media sections untouched. |
 | Screens view | Chooses how the watch navigation screens, including Settings, are laid out: a list, or a grid of two or three columns. |
 | Voice note delivery | Chooses what happens to a voice note recorded on the watch once it is stopped: send it to the phone straight away, or keep it on the watch until it is sent by hand. Either way the note stays on the watch until it is deleted, and a note taken while the phone is out of reach waits and leaves on its own when the link returns. |

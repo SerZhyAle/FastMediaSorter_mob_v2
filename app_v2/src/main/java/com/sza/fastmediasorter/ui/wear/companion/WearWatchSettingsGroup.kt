@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.wear.companion
 
 import android.content.Context
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,15 +9,21 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,13 +36,22 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.dp
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
+import com.sza.fastmediasorter.ui.dialog.TooltipDialog
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
+import java.text.DateFormat
+import java.util.Date
 
 private const val DEFAULT_SLIDESHOW_INTERVAL_SECONDS = 5
 private const val SLIDESHOW_INTERVAL_MAX_SECONDS = 3600f
+
+// S2094: matches the View-side canonical row's ic_help_outline_24 - a touch target close to
+// the default IconButton size with a slightly smaller glyph, per docs/ARCHITECTURE.md Pattern A.
+private val SETTINGS_HELP_ICON_SIZE = 24.dp
+private val SETTINGS_HELP_ICON_GLYPH_SIZE = 18.dp
 
 // S1781: the wear module's WearViewMode enum names, mirrored here as strings - this module does not
 // depend on that one, and the payload carries the name rather than an ordinal.
@@ -62,6 +78,9 @@ fun WearWatchSettingsGroup(
 ) {
     val context = LocalContext.current
     val state = remember(watchSettings) { WatchSettingsState(watchSettings) }
+    // collectAsState, matching the sibling groups on this island: app_v2 does not carry
+    // lifecycle-runtime-compose, and the whole island lives inside a dialog that is torn down with it.
+    val lastSyncedAt by viewModel.lastSyncedAt.collectAsState()
 
     WearCompanionGroup(
         title = stringResource(R.string.wear_settings_section_title),
@@ -71,6 +90,7 @@ fun WearWatchSettingsGroup(
         WatchSettingsControls(
             state = state,
             pushEnabled = pushEnabled,
+            lastSyncedAtEpochMillis = lastSyncedAt,
             onChanged = { viewModel.updateWatchSettingsLocally(state.payload(context)) },
             onPush = { viewModel.pushSettings(state.payload(context)) }
         )
@@ -89,8 +109,15 @@ private class WatchSettingsState(watchSettings: WearSettingsPayload?) {
     var videoEnabled by mutableStateOf(watchSettings?.videoEnabled ?: true)
     var imagesEnabled by mutableStateOf(watchSettings?.imagesEnabled ?: true)
     var slideshowEnabled by mutableStateOf(watchSettings?.slideshowEnabled ?: false)
-    var albumArtEnabled by mutableStateOf(watchSettings?.downloadAlbumArt ?: true)
+
+    // S2093: seeded false because that is the watch's own stored default. Seeded true, an unedited
+    // push silently turned album art on - an exchange must not change a value nobody touched.
+    var albumArtEnabled by mutableStateOf(watchSettings?.downloadAlbumArt ?: false)
     var keepScreenAwake by mutableStateOf(watchSettings?.keepScreenAwakeOutsidePlayers ?: false)
+
+    // S2093: the watch's Streams row, which had no phone control at all - the one-sided setting this
+    // ticket exists to remove. Default true, matching the watch's stored default.
+    var streamsSectionEnabled by mutableStateOf(watchSettings?.streamsSectionEnabled ?: true)
     var viewMode by mutableStateOf(watchSettings?.viewMode ?: WEAR_VIEW_MODE_LIST)
     var fileListViewMode by mutableStateOf(watchSettings?.fileListViewMode ?: WEAR_VIEW_MODE_LIST)
     var slideshowInterval by mutableStateOf(
@@ -107,7 +134,8 @@ private class WatchSettingsState(watchSettings: WearSettingsPayload?) {
         viewMode = viewMode,
         keepScreenAwakeOutsidePlayers = keepScreenAwake,
         fileListViewMode = fileListViewMode,
-        appLanguage = context?.let { LocaleHelper.getLanguage(it) }
+        appLanguage = context?.let { LocaleHelper.getLanguage(it) },
+        streamsSectionEnabled = streamsSectionEnabled
     )
 }
 
@@ -115,6 +143,7 @@ private class WatchSettingsState(watchSettings: WearSettingsPayload?) {
 private fun WatchSettingsControls(
     state: WatchSettingsState,
     pushEnabled: Boolean,
+    lastSyncedAtEpochMillis: Long,
     onChanged: () -> Unit,
     onPush: () -> Unit
 ) {
@@ -145,6 +174,10 @@ private fun WatchSettingsControls(
         onSecondsSettled = onChanged
     )
     Spacer(Modifier.height(SPACING_SMALL))
+    // S2093 / ADR-1: one button per side, not two. This is the phone half of the symmetric pair - the
+    // press sends this set, the watch answers with its own, and each field keeps whichever edit is
+    // later. The id stays `wearPushSettings`: S2091 is parked at BlockNeedUserTest with a device note
+    // that names this node, and renaming it would fail a check a human is already holding.
     Button(
         onClick = onPush,
         enabled = pushEnabled,
@@ -152,11 +185,39 @@ private fun WatchSettingsControls(
             .fillMaxWidth()
             .testTag("wearPushSettings")
     ) {
-        Text(stringResource(R.string.wear_push_settings))
+        Text(stringResource(R.string.wear_settings_sync_button))
     }
+    LastSyncedCaption(lastSyncedAtEpochMillis = lastSyncedAtEpochMillis)
 }
 
-/** The six content toggles, held apart from the rest so neither half outgrows the length ceiling. */
+/**
+ * S2093: when the two sides last agreed, read from the stored sync time rather than from the press.
+ *
+ * The time is written by the merge that consumed the watch's answering report, so a press that reached
+ * nothing leaves the previous time standing instead of reading as a successful sync.
+ */
+@Composable
+private fun LastSyncedCaption(lastSyncedAtEpochMillis: Long) {
+    val caption = if (lastSyncedAtEpochMillis <= 0L) {
+        stringResource(R.string.wear_settings_sync_never)
+    } else {
+        stringResource(
+            R.string.wear_settings_last_synced,
+            DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
+                .format(Date(lastSyncedAtEpochMillis))
+        )
+    }
+    Text(
+        text = caption,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("wearSyncSettingsStatus")
+    )
+}
+
+/** The content toggles, held apart from the rest so neither half outgrows the length ceiling. */
 @Composable
 private fun WatchContentSwitches(state: WatchSettingsState, onChanged: () -> Unit) {
     SwitchRow(
@@ -196,10 +257,21 @@ private fun WatchContentSwitches(state: WatchSettingsState, onChanged: () -> Uni
         onChanged()
     }
     SwitchRow(
+        tag = "wearSwitchStreams",
+        label = stringResource(R.string.wear_setting_streams_section),
+        description = stringResource(R.string.wear_setting_streams_section_desc),
+        checked = state.streamsSectionEnabled
+    ) {
+        state.streamsSectionEnabled = it
+        onChanged()
+    }
+    SwitchRow(
         tag = "wearSwitchAlbumArt",
         label = stringResource(R.string.wear_settings_album_art),
         description = stringResource(R.string.wear_settings_album_art_desc),
-        checked = state.albumArtEnabled
+        checked = state.albumArtEnabled,
+        helpTitleRes = R.string.wear_settings_album_art_tooltip_title,
+        helpMessageRes = R.string.wear_settings_album_art_tooltip_message
     ) {
         state.albumArtEnabled = it
         onChanged()
@@ -208,7 +280,9 @@ private fun WatchContentSwitches(state: WatchSettingsState, onChanged: () -> Uni
         tag = "wearSwitchKeepAwake",
         label = stringResource(R.string.wear_settings_keep_awake),
         description = stringResource(R.string.wear_settings_keep_awake_desc),
-        checked = state.keepScreenAwake
+        checked = state.keepScreenAwake,
+        helpTitleRes = R.string.wear_settings_keep_awake_tooltip_title,
+        helpMessageRes = R.string.wear_settings_keep_awake_tooltip_message
     ) {
         state.keepScreenAwake = it
         onChanged()
@@ -282,8 +356,13 @@ private fun ViewModeRow(
 }
 
 /**
- * S2094: Wear Companion toggle row canonical pattern (switch left, title & description middle).
- * The whole row is toggleable so clicking text or switch toggles the state.
+ * S2094: Wear Companion toggle row canonical pattern (switch left, title & description middle,
+ * optional help button inline with the title - `docs/ARCHITECTURE.md` § "UI Patterns - Trigger Row").
+ * The whole row is toggleable so clicking text or switch toggles the state; the help button is a
+ * separate tap target with its own semantics so TalkBack announces it apart from the switch.
+ *
+ * [helpTitleRes]/[helpMessageRes] are supplied only for the settings whose effect is not already
+ * covered by [description] alone (strategic §2 goal 3) - most rows pass neither and render no icon.
  */
 @Composable
 private fun SwitchRow(
@@ -291,8 +370,11 @@ private fun SwitchRow(
     label: String,
     checked: Boolean,
     description: String? = null,
+    @StringRes helpTitleRes: Int? = null,
+    @StringRes helpMessageRes: Int? = null,
     onCheckedChange: (Boolean) -> Unit
 ) {
+    val context = LocalContext.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -304,7 +386,25 @@ private fun SwitchRow(
         Switch(checked = checked, onCheckedChange = null)
         Spacer(Modifier.width(SPACING_SMALL))
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = label, style = MaterialTheme.typography.bodyMedium)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = label, style = MaterialTheme.typography.bodyMedium)
+                if (helpTitleRes != null && helpMessageRes != null) {
+                    val helpTitle = stringResource(helpTitleRes)
+                    IconButton(
+                        onClick = { TooltipDialog.show(context, helpTitleRes, helpMessageRes) },
+                        modifier = Modifier
+                            .size(SETTINGS_HELP_ICON_SIZE)
+                            .testTag(tag + "_help")
+                            .semantics { contentDescription = helpTitle }
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.HelpOutline,
+                            contentDescription = null,
+                            modifier = Modifier.size(SETTINGS_HELP_ICON_GLYPH_SIZE)
+                        )
+                    }
+                }
+            }
             if (!description.isNullOrEmpty()) {
                 Text(
                     text = description,

@@ -19,6 +19,8 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.share.ShareableContent
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -131,7 +133,7 @@ class StandaloneFileOperationsHandler(
                     }
 
                     uri.scheme == "content" -> {
-                        // API 26–29: direct delete; on API 29 catch RecoverableSecurityException
+                        // API 26-29: direct delete; on API 29 catch RecoverableSecurityException
                         try {
                             val rows = activity.contentResolver.delete(uri, null, null)
                             if (rows > 0) onDeleteSuccess(fileName)
@@ -162,7 +164,7 @@ class StandaloneFileOperationsHandler(
                 safeViews.setVisibleIfPresent(R.id.btnDeleteCmd, false)
                 Toast.makeText(activity, R.string.delete_permission_denied, Toast.LENGTH_LONG).show()
             } catch (e: Exception) {
-                Timber.e(e, "StandalonePlayer: delete failed for $fileName")
+                e.errorUnlessCancellation("StandalonePlayer: delete failed for $fileName")
                 Toast.makeText(
                     activity,
                     activity.getString(R.string.delete_failed),
@@ -190,7 +192,7 @@ class StandaloneFileOperationsHandler(
                 if (rows > 0) onDeleteSuccess(fileName)
                 else toastDeleteFailed()
             } catch (e: Exception) {
-                Timber.e(e, "StandalonePlayer: retry delete failed for $fileName")
+                e.errorUnlessCancellation("StandalonePlayer: retry delete failed for $fileName")
                 Toast.makeText(
                     activity,
                     activity.getString(R.string.delete_failed),
@@ -431,6 +433,7 @@ class StandaloneFileOperationsHandler(
                         Toast.makeText(activity, activity.getString(failedRes), Toast.LENGTH_LONG).show()
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "StandalonePlayer: ${if (isMove) "move" else "copy"} to $destinationPath failed")
                 Toast.makeText(activity, activity.getString(failedRes), Toast.LENGTH_LONG).show()
             }
@@ -536,7 +539,7 @@ class StandaloneFileOperationsHandler(
                     }
                 }
             } catch (e: Exception) {
-                Timber.e(e, "StandalonePlayer: rename failed for $uri → $newName")
+                e.errorUnlessCancellation("StandalonePlayer: rename failed for $uri → $newName")
                 withContext(Dispatchers.Main) {
                     Toast.makeText(
                         activity,

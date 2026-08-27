@@ -143,6 +143,11 @@
         Fix   = 'A launcher preference is not covered by the reset path - add it there so a reset leaves no stale state behind.'
     }
 
+    'wear-settings-parity-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-wear-settings-parity.ps1 -Gate'
+        Fix   = 'A watch setting exists on one side of the phone/watch pair and not the other. The message names the missing side: add the field to that WearSettingsPayload copy, the key to the watch DataStore, the entry to the other WearSettingsRegistry copy, or the row to SettingsDocScopeCatalog.wearEntries. A setting that is deliberately one-sided is legal, but only with a written exceptionReason on its registry entry - without one it is indistinguishable from a forgotten side.'
+    }
+
     # S1939: hints for icon-inventory-sync, doc-icons-sync and device-profile-matrix were removed
     # with the gates themselves - they moved to scripts/quality/assert-release-scope-gates.ps1, which
     # prints each child's own remediation line rather than reading this table.
@@ -163,7 +168,22 @@
 
     'resource-link-gate' = @{
         Repro = 'pwsh -NoProfile -File ./a.ps1 fr'
-        Fix   = 'A changed resource or manifest does not link. The aapt line above names the file and the reference it could not resolve - fix that, because nothing else in the facade runs aapt and fk stays green on a broken layout. Exit 2 is a DIFFERENT answer: the target never started (most often JAVA_HOME pointing at a JDK that no longer exists), so nothing was checked and the resource is still unproven.'
+        Fix   = 'A changed resource or manifest does not link. The aapt line above names the file and the reference it could not resolve - fix that, because nothing else in the facade runs aapt and fk stays green on a broken layout. Exit 2 is a DIFFERENT answer: the target never started (most often JAVA_HOME pointing at a JDK that no longer exists), so nothing was checked and the resource is still unproven. A THIRD shape (S2121): the gate names resource paths belonging to no registered Gradle module and refuses without linking anything - add the module row in scripts/utils/gradle-modules.ps1 rather than passing -Module, which this gate deliberately ignores.'
+    }
+
+    'detekt-baseline-split-sync' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/split-detekt-baseline.ps1 -Gate'
+        Fix   = 'The format/signal view files derived from the detekt baseline are stale against the baseline you changed - regenerate them with -Update on the same script. Exit 2 is a different answer: the operational baseline or config/detekt/rule-categories.txt is missing, unparseable, or names a rule the table does not classify, so nothing was compared. Staleness matters between releases because agents read these views to decide how much debt of each kind exists (S2105).'
+    }
+
+    'detekt-format' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/detekt-scoped.ps1 -ChangedFiles "<your,files>" -AutoCorrect'
+        Fix   = 'The formatting pass rewrote your files before they were judged; nothing is wrong unless the step itself failed, in which case ktlint could not parse a file - read the error above and fix the syntax. Never widen the pass to files you did not change: its own rewrap trips LargeClass on untouched code (S2116).'
+    }
+
+    'script-suite-regression' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/run-script-suites.ps1 -ChangedFiles "<your,files>"'
+        Fix   = 'A regression suite guarding a script you changed is red - read its output above and fix the script, not the suite. Run -ListOnly to see which suite claims your file as its subject. Exit 2 is a different answer: the suite could not run for want of an environment tool (rg, for instance), which is advisory here and fatal only before a release (S2122).'
     }
 
     'androidtest-compile-gate' = @{

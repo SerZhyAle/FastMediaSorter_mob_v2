@@ -4,32 +4,35 @@ import android.content.Context
 import android.graphics.Bitmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.ui.BaseViewModel
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
+import com.sza.fastmediasorter.data.local.db.StereoFormatOverrideDao
+import com.sza.fastmediasorter.data.local.db.StereoFormatOverrideEntity
+import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
+import com.sza.fastmediasorter.domain.model.CleanupPromptRequest
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
-import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
-import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
-import com.sza.fastmediasorter.domain.model.CleanupPromptRequest
 import com.sza.fastmediasorter.domain.model.OffloadOffer
+import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.domain.model.PrefetchCacheMultiplier
 import com.sza.fastmediasorter.domain.model.PrefetchPlan
+import com.sza.fastmediasorter.domain.model.ResourceProfile
+import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.ResumeState
+import com.sza.fastmediasorter.domain.model.ScreenType
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.model.StreamingCacheCleanupMode
 import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
-import com.sza.fastmediasorter.domain.model.ResumeState
-import com.sza.fastmediasorter.domain.model.ResourceProfile
-import com.sza.fastmediasorter.domain.model.ResourceType
-import com.sza.fastmediasorter.domain.model.ScreenType
 import com.sza.fastmediasorter.domain.model.UndoOperation
-import com.sza.fastmediasorter.ui.player.state.PlayerImageEditMode
+import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.data.repository.CachedFileListRepository
-import com.sza.fastmediasorter.data.local.db.StereoFormatOverrideDao
-import com.sza.fastmediasorter.data.local.db.StereoFormatOverrideEntity
+import com.sza.fastmediasorter.domain.repository.StreamingCacheRepository
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
@@ -38,13 +41,15 @@ import com.sza.fastmediasorter.domain.usecase.GetMediaFilesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.IsShareTargetEnabledUseCase
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
-import com.sza.fastmediasorter.domain.repository.StreamingCacheRepository
 import com.sza.fastmediasorter.domain.usecase.StreamOffloadUseCase
 import com.sza.fastmediasorter.ui.player.helpers.PrefetchPolicyManager
 import com.sza.fastmediasorter.ui.player.helpers.PrefetchProgress
 import com.sza.fastmediasorter.ui.player.helpers.PrefetchProgressTracker
+import com.sza.fastmediasorter.ui.player.state.PlayerImageEditMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -56,12 +61,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import com.sza.fastmediasorter.BuildConfig
-import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -472,7 +473,7 @@ class PlayerViewModel @Inject constructor(
             if (resourceId == -100L) null // Favorites itself has no credentials
             else getResourcesUseCase.getById(resourceId)?.credentialsId
         } catch (e: Exception) {
-            Timber.e(e, "Failed to get credentialsId for resource $resourceId")
+            e.errorUnlessCancellation("Failed to get credentialsId for resource $resourceId")
             null
         }
     }
@@ -542,7 +543,7 @@ class PlayerViewModel @Inject constructor(
                     saveResumeStateUseCase(windowId, resumeState)
                 }
             } catch (e: Exception) {
-                Timber.e(e, "PlayerViewModel: Failed to save resume state")
+                e.errorUnlessCancellation("PlayerViewModel: Failed to save resume state")
             }
         }
     }
@@ -590,7 +591,7 @@ class PlayerViewModel @Inject constructor(
                     )
                 )
             } catch (e: Exception) {
-                Timber.e(e, "Failed to save slideshow settings")
+                e.errorUnlessCancellation("Failed to save slideshow settings")
             }
         }
     }
@@ -601,7 +602,7 @@ class PlayerViewModel @Inject constructor(
                 val settings = settingsRepository.getSettings().first()
                 settingsRepository.updateSettings(settings.copy(backgroundAudioExitBehavior = behavior))
             } catch (e: Exception) {
-                Timber.e(e, "Failed to save background audio exit behavior")
+                e.errorUnlessCancellation("Failed to save background audio exit behavior")
             }
         }
     }
@@ -671,7 +672,7 @@ class PlayerViewModel @Inject constructor(
                     resourceRepository.updateResource(resource.copy(showCommandPanel = effectiveShowCommandPanel))
                     Timber.d("PlayerViewModel.toggleCommandPanel: Saved showCommandPanel=$effectiveShowCommandPanel for resource ${resource.id} (global default=${currentSettings.defaultShowCommandPanel})")
                 } catch (e: Exception) {
-                    timber.log.Timber.e(e, "Failed to save command panel preference")
+                    e.errorUnlessCancellation("Failed to save command panel preference")
                 }
             }
         }
@@ -888,7 +889,7 @@ class PlayerViewModel @Inject constructor(
                     Timber.d("PlayerViewModel: Refreshed file info - old size: ${currentFile.size}, new size: $updatedSize")
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Failed to refresh file info")
+                e.errorUnlessCancellation("Failed to refresh file info")
             }
         }
     }
@@ -983,7 +984,7 @@ class PlayerViewModel @Inject constructor(
                 val targetResourceId = currentFile.resourceId ?: resource.id
                 favoritesUseCase.toggleFavorite(currentFile, targetResourceId)
             } catch (e: Exception) {
-                Timber.e(e, "Error toggling favorite")
+                e.errorUnlessCancellation("Error toggling favorite")
                 // Revert UI on error
                 val revertedFiles = state.value.files.map {
                     if (it.path == currentFile.path) it.copy(isFavorite = !it.isFavorite) else it

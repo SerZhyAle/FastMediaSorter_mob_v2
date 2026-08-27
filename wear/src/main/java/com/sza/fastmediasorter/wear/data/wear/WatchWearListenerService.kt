@@ -35,6 +35,7 @@ import com.sza.fastmediasorter.wear.domain.repository.WearFileReceiverRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ApplyWearSettingsUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.DrainPendingVoiceNotesUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ImportNetworkSourcesUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.ReportWearSettingsUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.StoreTransferredStreamUseCase
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
@@ -74,6 +75,8 @@ class WatchWearListenerService : WearableListenerService() {
     @Inject lateinit var importNetworkSourcesUseCase: ImportNetworkSourcesUseCase
 
     @Inject lateinit var applyWearSettingsUseCase: ApplyWearSettingsUseCase
+
+    @Inject lateinit var reportWearSettingsUseCase: ReportWearSettingsUseCase
 
     @Inject lateinit var wearFileReceiverRepository: WearFileReceiverRepository
 
@@ -353,11 +356,15 @@ class WatchWearListenerService : WearableListenerService() {
     }
 
     private fun handleSettingsPush(payloadBytes: ByteArray) {
+        val receivedAt = System.currentTimeMillis()
         serviceScope.launch {
             try {
                 val envelope = envelopeCodec.decode(payloadBytes)
                 val payload = gson.fromJson(envelope.data.decodeToString(), WearSettingsPayload::class.java)
-                applyWearSettingsUseCase(payload)
+                applyWearSettingsUseCase(payload, envelope.sentAt, receivedAt)
+                // S2093: a push is answered with what the watch ended up holding, so one press on the
+                // phone completes the exchange in both directions rather than only sending.
+                reportWearSettingsUseCase()
             } catch (e: Exception) {
                 Timber.e(e, "Failed to apply settings push")
                 WatchSyncEvents.settingsErrorFlow.emit(e.message ?: "Settings apply failed")

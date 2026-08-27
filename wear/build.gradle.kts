@@ -18,8 +18,8 @@ plugins {
 //     codes MUST differ: both modules publish under the same applicationId (S1681), and Play refuses
 //     a release whose artifacts repeat a versionCode. Wear = app_v2 code without its last digit.
 // Gate: scripts/quality/assert-module-version-parity.ps1.
-val defaultAppVersionCode = 26082605
-val defaultAppVersionName = "2.60.8260.551"
+val defaultAppVersionCode = 26082701
+val defaultAppVersionName = "2.60.8270.111"
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }
@@ -116,6 +116,36 @@ android {
                     "Create keystore.properties with keyAlias/keyPassword/storeFile/storePassword and ensure storeFile exists."
                 )
             }
+        }
+    }
+
+    // S2090: the watch gets the same two-variant split the phone has had for years. Until this block
+    // existed there was nowhere to put a capability Play refuses on a watch, so the only available
+    // answer was to delete it - which is what happened to ACCESS_FINE_LOCATION in S2013. The dimension
+    // is deliberately empty of source sets: no class and no manifest overlay lives under
+    // wear/src/noLegal yet, and the first Play-blocked capability creates both. See
+    // dev/FLAVOR_DEVELOPMENT_RULES.md for the shape that capability must take.
+    flavorDimensions += listOf("version")
+
+    productFlavors {
+        create("standard") {
+            dimension = "version"
+            isDefault = true
+        }
+
+        create("noLegal") {
+            dimension = "version"
+            // S1681: no applicationIdSuffix, ever. Play Services routes Data Layer traffic by an AppKey
+            // of (package name, signing certificate) and drops a mismatch inside WearableService, below
+            // the app - so a suffix here would stop delivery in both directions while the watch went on
+            // logging successful sends. app_v2's own noLegal carries no suffix for the same class of
+            // reason (S0232), and S1951 shows the outcome when a flavor does take one.
+            //
+            // No manifest.srcFile either: on the phone that substitution REPLACED the auto-detected
+            // flavor manifest and silently dropped the other entries, which had to be re-added through
+            // androidComponents.onVariants. Leaving it unset means a future wear/src/noLegal/
+            // AndroidManifest.xml is picked up by convention and merged normally.
+            versionNameSuffix = "-NoLegal"
         }
     }
 

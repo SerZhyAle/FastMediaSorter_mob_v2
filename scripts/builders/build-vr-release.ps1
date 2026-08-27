@@ -20,7 +20,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
-Enter-BuildLockOrExit -Reason "build-vr-release.ps1"
+Enter-BuildLockOrExit -Reason "build-vr-release.ps1" -Domain Build.Phone
 try {
 
 $projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
@@ -133,5 +133,5 @@ exit 0
 
 }
 finally {
-    Exit-AgentLock -Name Build
+    Exit-AgentLock -Name 'Build' -Domains @('Build.Phone')
 }

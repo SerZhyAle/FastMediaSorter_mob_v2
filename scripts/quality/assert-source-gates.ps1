@@ -23,23 +23,28 @@
       -Only           Restrict to the named rules (repeatable), for the wrapper scripts.
       -List           Print file:line for every hit (full-scan mode only).
       -UpdateBaseline Ratchet each baseline DOWN to the measured count. Full scan only.
+      -Explain        S2110: name the files that moved a rule off its baseline. Reports only -
+                      it never fails on a delta. Takes precedence over every mode above.
 
 .NOTES
     Exit codes (CLAUDE.md Rule 7):
       0  every rule at or below its baseline, or a non-gate report run.
       1  -Gate and at least one rule is above its baseline.
-      2  cannot verify - an unknown rule name in -Only, or a source root that does not exist.
+      2  cannot verify - an unknown rule name in -Only, a source root that does not exist, or
+         (-Explain) a rule whose baseline file has no commit, so there is no reference point.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-source-gates.ps1 -Gate
     pwsh -NoProfile -File scripts/quality/assert-source-gates.ps1 -Gate -Only em-dash
     pwsh -NoProfile -File scripts/quality/assert-source-gates.ps1 -Gate -ChangedFiles "a.kt,b.xml"
+    pwsh -NoProfile -File scripts/quality/assert-source-gates.ps1 -Explain -Only layout-hardcoded-dimens
 #>
 [CmdletBinding()]
 param(
     [switch]$Gate,
     [switch]$List,
     [switch]$UpdateBaseline,
+    [switch]$Explain,
     [string[]]$Only,
     [string[]]$ChangedFiles
 )
@@ -64,6 +69,85 @@ if ($Only) {
 }
 
 $failed = [System.Collections.Generic.List[string]]::new()
+
+# --- explain mode ----------------------------------------------------------------------
+# S2110: a full-scan failure prints a number and no address - `baseline 1893 | actual 1899` -
+# and finding the six literals behind it cost an hour of git archaeology. This mode performs
+# that archaeology mechanically. The reference point is the commit that last touched the rule's
+# OWN baseline file, because that is the tree state the integer was true for: anything counted
+# above it arrived after the threshold was set. Reports only - a delta never fails the run,
+# since the gate modes above already own the refusal.
+if ($Explain) {
+    $repoRootNorm = ($repoRoot -replace '\\', '/').TrimEnd('/')
+    $cannotVerify = $false
+
+    foreach ($rule in $rules) {
+        $baselineRel = ((Join-Path $PSScriptRoot $rule.Baseline) -replace '\\', '/')
+        if ($baselineRel.ToLower().StartsWith($repoRootNorm.ToLower() + '/')) {
+            $baselineRel = $baselineRel.Substring($repoRootNorm.Length + 1)
+        }
+
+        $refCommit = (& git -C $repoRoot log -1 --format=%H -- $baselineRel 2>$null | Out-String).Trim()
+        if ([string]::IsNullOrWhiteSpace($refCommit)) {
+            # Saying this out loud is the point (strategic S2110 section 7): an empty list would
+            # read as "nothing drifted", which is the opposite of "I could not look".
+            Write-Host ("{0}: NO REFERENCE POINT - {1} has no commit, so there is no tree state its baseline was true for." -f
+                $rule.Name, $baselineRel) -ForegroundColor Yellow
+            $cannotVerify = $true
+            continue
+        }
+
+        $roots = @($rule.Roots)
+        $tracked = @(& git -C $repoRoot diff --name-only $refCommit -- @roots 2>$null)
+        # An untracked working file is part of "the working tree" too, and it is exactly the shape
+        # that reaches neither judging mode, so leaving it out would reproduce the original hole.
+        $untracked = @(& git -C $repoRoot ls-files --others --exclude-standard -- @roots 2>$null)
+
+        $paths = @(@($tracked + $untracked) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+            ForEach-Object { $_ -replace '\\', '/' } | Sort-Object -Unique | Where-Object {
+                ($_ -match $rule.PathFilter) -and
+                ($rule.Extensions -contains [System.IO.Path]::GetExtension($_)) -and
+                ($rule.ExcludeNames -notcontains [System.IO.Path]::GetFileName($_))
+            })
+
+        $refTotal = 0
+        $workTotal = 0
+        $drifted = [System.Collections.Generic.List[object]]::new()
+
+        foreach ($p in $paths) {
+            $refText = (& git -C $repoRoot show "${refCommit}:$p" 2>$null | Out-String)
+            # Absent at the reference commit means it contributed nothing then - the same
+            # fail-closed reading delta mode gives a file missing from HEAD.
+            if ($LASTEXITCODE -ne 0 -or $null -eq $refText) { $refText = '' }
+
+            $abs = Join-Path $repoRoot $p
+            $workText = ''
+            if (Test-Path -LiteralPath $abs) {
+                $workText = Get-Content -LiteralPath $abs -Raw
+                if ($null -eq $workText) { $workText = '' }
+            }
+
+            $refCount = [int](& $rule.CountInText $refText)
+            $workCount = [int](& $rule.CountInText $workText)
+            $refTotal += $refCount
+            $workTotal += $workCount
+            if ($refCount -ne $workCount) {
+                $drifted.Add([pscustomobject]@{ Path = $p; Ref = $refCount; Work = $workCount })
+            }
+        }
+
+        Write-Host ("{0}: reference {1} ({2})" -f $rule.Name, $refCommit.Substring(0, 9), $baselineRel)
+        foreach ($d in $drifted) { Write-Host ("  {0}  {1} -> {2}" -f $d.Path, $d.Ref, $d.Work) }
+        Write-Host ("  {0} path(s) examined | reference {1} | working {2} | delta {3}" -f
+            $paths.Count, $refTotal, $workTotal, ($workTotal - $refTotal)) -ForegroundColor DarkGray
+    }
+
+    if ($cannotVerify) {
+        Write-Error 'assert-source-gates: CANNOT VERIFY - at least one rule has no reference commit.' -ErrorAction Continue
+        exit 2
+    }
+    exit 0
+}
 
 # --- delta mode ------------------------------------------------------------------------
 # One rule at a time, because the delta is defined per file against its HEAD version and

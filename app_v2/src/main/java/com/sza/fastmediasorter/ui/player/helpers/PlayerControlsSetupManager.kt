@@ -4,6 +4,7 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
@@ -427,7 +428,7 @@ class PlayerControlsSetupManager(
                         }
                     }
                 } catch (e: Exception) {
-                    Timber.e(e, "Lyrics translation failed")
+                    e.errorUnlessCancellation("Lyrics translation failed")
                     withContext(Dispatchers.Main) {
                         Toast.makeText(activity, R.string.translation_error, Toast.LENGTH_SHORT).show()
                     }

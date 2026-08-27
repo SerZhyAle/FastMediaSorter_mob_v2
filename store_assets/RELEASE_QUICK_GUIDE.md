@@ -95,6 +95,10 @@ Open `store_assets/whats_new.txt` and paste into Play Console:
 - [ ] Review user feedback
 - [ ] Check reported bugs
 - [ ] Monitor performance metrics
+- [ ] **Technical quality thresholds (enforced from February 2027)** - run section G of
+      `PLAY_CONSOLE_CHECKLIST.md`. The four surfaces and where the figures are recorded are listed
+      there and deliberately not repeated here, so there is one place to update when Play changes
+      the thresholds.
 - [ ] Plan hotfix if needed
 
 ## 🎯 This Release Fixes

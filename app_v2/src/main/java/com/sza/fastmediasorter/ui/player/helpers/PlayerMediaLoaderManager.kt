@@ -14,6 +14,9 @@ import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.core.playback.RecentDecoderFailureTracker
 import com.sza.fastmediasorter.core.util.PathUtils
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.CloudStorageClient
@@ -581,6 +584,7 @@ class PlayerMediaLoaderManager(
                     true
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.d("preCacheNetworkAudio: reachability probe failed for $host:$port (${e.javaClass.simpleName})")
                 false
             }
@@ -734,7 +738,7 @@ class PlayerMediaLoaderManager(
                 }
             }
         } catch (e: Exception) {
-            Timber.e(e, "preCacheCloudAudio: download failed for $path")
+            e.errorUnlessCancellation("preCacheCloudAudio: download failed for $path")
             destFile.delete()
             null
         }
@@ -865,7 +869,7 @@ class PlayerMediaLoaderManager(
                         Glide.get(activity).clearDiskCache()
                         Timber.d("PlayerMediaLoaderManager: Cleared Glide disk cache after image edit")
                     } catch (e: Exception) {
-                        Timber.w(e, "Failed to clear Glide disk cache")
+                        e.warnUnlessCancellation("Failed to clear Glide disk cache")
                     }
                 }
                 
@@ -884,7 +888,7 @@ class PlayerMediaLoaderManager(
                 displayImage(currentFile.path)
                 
             } catch (e: Exception) {
-                Timber.e(e, "PlayerMediaLoaderManager: Error reloading image after edit")
+                e.errorUnlessCancellation("PlayerMediaLoaderManager: Error reloading image after edit")
                 activity.showError(activity.getString(R.string.msg_failed_reload_image), e)
             }
         }

@@ -6,6 +6,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -234,7 +235,7 @@ class PlayerDialogAndUiStateManager(
                 }
                 
             } catch (e: Exception) {
-                Timber.e(e, "PDF export failed")
+                e.errorUnlessCancellation("PDF export failed")
                 withContext(Dispatchers.Main) {
                     Toast.makeText(
                         activity,

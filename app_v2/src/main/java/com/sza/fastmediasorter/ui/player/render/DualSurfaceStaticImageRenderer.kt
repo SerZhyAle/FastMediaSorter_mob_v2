@@ -11,12 +11,13 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.signature.ObjectKey
-import com.sza.fastmediasorter.di.memoryPressureDecodeFormatResolver
 import com.github.chrisbanes.photoview.PhotoView
 import com.sza.fastmediasorter.core.util.MemoryTier
-import com.sza.fastmediasorter.data.cloud.glide.CloudThumbnailData
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.data.cloud.CloudProvider
+import com.sza.fastmediasorter.data.cloud.glide.CloudThumbnailData
 import com.sza.fastmediasorter.data.network.glide.NetworkFileData
+import com.sza.fastmediasorter.di.memoryPressureDecodeFormatResolver
 import com.sza.fastmediasorter.domain.model.StereoMode
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.Dispatchers
@@ -133,7 +134,7 @@ class DualSurfaceStaticImageRenderer(
                 prefetchTarget(target)
                 Timber.d("DualSurfaceStaticImageRenderer: Prefetch completed for ${target.mediaFile.name}")
             } catch (e: Exception) {
-                Timber.w(e, "DualSurfaceStaticImageRenderer: Prefetch failed for ${target.mediaFile.name}")
+                e.warnUnlessCancellation("DualSurfaceStaticImageRenderer: Prefetch failed for ${target.mediaFile.name}")
             }
         }
     }

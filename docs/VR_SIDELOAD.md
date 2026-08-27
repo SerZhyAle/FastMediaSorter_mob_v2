@@ -6,7 +6,12 @@ permalink: /docs/VR_SIDELOAD.html
 
 # VR Sideloading Guide
 
-How to install the FastMediaSorter VR APK on Meta Quest without using a store.
+How to install the working immersive VR build (`noLegal`) on Meta Quest without using a store.
+
+The `vr` flavor is the intended Meta Horizon Store / Google Play channel, but its immersive
+headset rendering isn't wired up yet (epic S0773) - see [VR Edition Overview](VR_EDITION.md).
+Today the only channel with a working immersive experience is `noLegal`, which this guide
+installs.
 
 ## Prerequisites
 
@@ -47,35 +52,28 @@ adb devices
 
 You should see your device listed as `device` (not `unauthorized`).
 
-## Step 4: Build the VR APK
+## Step 4: Build the noLegal APK
 
 ```powershell
-# Option A: Build script (auto-versions + copies to DOWNLOADS/)
-.\scripts\builders\build-vr-debug.ps1
-
-# Option B: Gradle direct
-.\gradlew.bat assembleVrDebug
+.\a.ps1 nd
 ```
 
-The APK will be at:
+That runs `scripts/builders/build-nolegal-debug.ps1`, which passes the flags `noLegal` actually
+needs (`-Pchaquopy.enabled=true --no-configuration-cache`) so the build doesn't depend on a
+machine-local `local.properties` setting. The APK lands at:
 ```
-app_v2/build/outputs/apk/vr/debug/app_v2-vr-debug.apk
-```
-
-Or, if using the build script, also copied to:
-```
-DOWNLOADS/FastMediaSorter_vr_debug.apk
+app_v2/build/outputs/apk/noLegal/debug/
 ```
 
 ## Step 5: Install on Quest
 
 ```powershell
-# Option A: Build + install in one step
-.\scripts\builders\build-vr-device.ps1
-
-# Option B: Manual install
-adb install -r -d DOWNLOADS\FastMediaSorter_vr_debug.apk
+.\a.ps1 ivn
 ```
+
+That runs `scripts/builders/install-nolegal-debug-to-device.ps1`, which resolves the just-built
+APK for the connected device's ABI and installs it - no need to type the version-stamped file name
+by hand. It installs only, by design (see Step 6).
 
 ## Step 6: Launch on Quest
 
@@ -84,12 +82,11 @@ The app appears in **Unknown Sources** in the Quest library:
 1. Put on your headset
 2. Open **App Library**
 3. Select **Unknown Sources** from the filter dropdown (top right)
-4. Find **FastMediaSorter VR** and launch it
+4. Find **FastMediaSorter (noLegal debug)** and launch it
 
-You can also launch via ADB:
-```powershell
-adb shell am start -n com.sza.fastmediasorter.vr.debug/com.sza.fastmediasorter.ui.main.MainActivity
-```
+Launch from the Quest Library, not `adb shell am start`: launching over ADB skips the vrshell
+`launch_id` the immersive session needs to enter focused XR, so the app opens but the headset
+stays on the flat 2D window.
 
 ## ADB over Wi-Fi (Wireless)
 

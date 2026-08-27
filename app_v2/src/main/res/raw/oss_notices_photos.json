@@ -11,6 +11,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -35,6 +36,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -59,6 +61,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -83,6 +86,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -107,6 +111,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -131,6 +136,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -155,6 +161,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -179,6 +186,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -203,6 +211,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -227,6 +236,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -252,6 +262,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -277,6 +288,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -301,6 +313,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -326,6 +339,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -350,6 +364,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -375,6 +390,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -399,6 +415,7 @@
     "sourceUrl": "https://github.com/androidx/constraintlayout",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -423,6 +440,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -447,6 +465,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -478,7 +497,7 @@
       "standard",
       "vr"
     ],
-    "allFlavors": true,
+    "allFlavors": false,
     "transitive": false,
     "via": null,
     "bundled": false,
@@ -496,6 +515,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -520,6 +540,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -544,6 +565,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -568,6 +590,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -592,6 +615,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -616,6 +640,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -640,6 +665,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -665,6 +691,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -690,6 +717,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -714,6 +742,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -739,6 +768,7 @@
     "sourceUrl": "https://github.com/androidx/media",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -763,6 +793,7 @@
     "sourceUrl": "https://github.com/androidx/media",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -787,6 +818,7 @@
     "sourceUrl": "https://github.com/androidx/media",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -812,6 +844,7 @@
     "sourceUrl": "https://github.com/androidx/media",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -837,6 +870,7 @@
     "sourceUrl": "https://github.com/androidx/media",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -862,6 +896,7 @@
     "sourceUrl": "https://github.com/androidx/media",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -887,6 +922,7 @@
     "sourceUrl": "https://github.com/androidx/media",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -911,6 +947,7 @@
     "sourceUrl": "https://github.com/androidx/media",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -935,6 +972,7 @@
     "sourceUrl": "https://github.com/androidx/media",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -960,6 +998,7 @@
     "sourceUrl": "https://github.com/androidx/media",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1007,6 +1046,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1031,6 +1071,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1055,6 +1096,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1079,6 +1121,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1104,6 +1147,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1129,6 +1173,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1154,6 +1199,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1178,6 +1224,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1202,6 +1249,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1226,6 +1274,7 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1250,6 +1299,7 @@
     "sourceUrl": "https://github.com/google/desugar_jdk_libs",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1281,7 +1331,7 @@
       "standard",
       "vr"
     ],
-    "allFlavors": true,
+    "allFlavors": false,
     "transitive": false,
     "via": null,
     "bundled": false,
@@ -1298,6 +1348,7 @@
     "sourceUrl": "https://github.com/bumptech/glide",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1322,6 +1373,7 @@
     "sourceUrl": "https://github.com/bumptech/glide",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1346,6 +1398,7 @@
     "sourceUrl": "https://github.com/Baseflow/PhotoView",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1370,6 +1423,7 @@
     "sourceUrl": "https://github.com/ChuckerTeam/chucker",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1395,6 +1449,7 @@
     "sourceUrl": "https://github.com/mwiede/jsch",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1426,7 +1481,7 @@
       "standard",
       "vr"
     ],
-    "allFlavors": true,
+    "allFlavors": false,
     "transitive": false,
     "via": null,
     "bundled": false,
@@ -1467,6 +1522,7 @@
     "sourceUrl": "https://developers.google.com/android/guides/setup",
     "oss": false,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1514,6 +1570,7 @@
     "sourceUrl": "https://github.com/material-components/material-components-android",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1545,7 +1602,7 @@
       "standard",
       "vr"
     ],
-    "allFlavors": true,
+    "allFlavors": false,
     "transitive": false,
     "via": null,
     "bundled": false,
@@ -1569,7 +1626,7 @@
       "standard",
       "vr"
     ],
-    "allFlavors": true,
+    "allFlavors": false,
     "transitive": false,
     "via": null,
     "bundled": false,
@@ -1587,6 +1644,7 @@
     "sourceUrl": "https://github.com/google/dagger",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1611,6 +1669,7 @@
     "sourceUrl": "https://github.com/zxing/zxing",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1636,6 +1695,7 @@
     "sourceUrl": "https://github.com/hierynomus/smbj",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1661,6 +1721,7 @@
     "sourceUrl": "https://github.com/JakeWharton/timber",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1692,7 +1753,7 @@
       "standard",
       "vr"
     ],
-    "allFlavors": true,
+    "allFlavors": false,
     "transitive": false,
     "via": null,
     "bundled": false,
@@ -1710,6 +1771,7 @@
     "sourceUrl": "https://github.com/square/okhttp",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1735,6 +1797,7 @@
     "sourceUrl": "https://github.com/square/retrofit",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1760,6 +1823,7 @@
     "sourceUrl": "https://github.com/square/retrofit",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1785,6 +1849,7 @@
     "sourceUrl": "https://github.com/apache/commons-net",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1809,6 +1874,7 @@
     "sourceUrl": "https://github.com/documentnode/epub4j",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1833,6 +1899,7 @@
     "sourceUrl": "https://github.com/noties/Markwon",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1857,6 +1924,7 @@
     "sourceUrl": "https://github.com/srikanth-lingala/zip4j",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1888,7 +1956,7 @@
       "standard",
       "vr"
     ],
-    "allFlavors": true,
+    "allFlavors": false,
     "transitive": false,
     "via": null,
     "bundled": false,
@@ -1911,7 +1979,8 @@
       "lite",
       "photos",
       "legacy",
-      "vr"
+      "vr",
+      "foss"
     ],
     "allFlavors": true,
     "transitive": true,
@@ -1931,6 +2000,7 @@
     "sourceUrl": "https://github.com/Kotlin/kotlinx.coroutines",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1955,6 +2025,7 @@
     "sourceUrl": "https://github.com/Kotlin/kotlinx.coroutines",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -1980,6 +2051,7 @@
     "sourceUrl": "https://github.com/Kotlin/kotlinx.coroutines",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",
@@ -2004,6 +2076,7 @@
     "sourceUrl": "https://github.com/jhy/jsoup",
     "oss": true,
     "shippedIn": [
+      "foss",
       "legacy",
       "lite",
       "noLegal",

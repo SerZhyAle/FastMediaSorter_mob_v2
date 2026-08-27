@@ -7,7 +7,11 @@
      S1767: every indicator is a control, not a label - a tap opens the Android settings section it
      reports on. Focusable as well as clickable, because this row is read by a D-pad as often as by a
      finger, and the ring goes in the FOREGROUND: the battery view's background is already its outline,
-     and on the ImageViews a background ring would replace the ripple instead of sitting over it. -->
+     and on the ImageViews a background ring would replace the ripple instead of sitting over it.
+
+     S2023: the four glyph slots are LauncherTrayIconView, which carries the click, focus and foreground
+     itself and adds room for an overlay badge and a corner mark inside the same 18dp square. The battery
+     stays a TextView - it already carried text before any of this. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/trayIndicators"
@@ -16,51 +20,35 @@
     android:gravity="center_vertical"
     android:orientation="horizontal">
 
-    <ImageView
+    <com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayIconView
         android:id="@+id/trayBluetooth"
-        android:clickable="true"
-        android:focusable="true"
-        android:foreground="@drawable/focus_button_background"
         android:layout_width="@dimen/launcher_tray_icon_size"
         android:layout_height="@dimen/launcher_tray_icon_size"
         android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
         android:visibility="gone"
-        tools:src="@drawable/ic_bluetooth"
         tools:visibility="visible" />
 
-    <ImageView
+    <com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayIconView
         android:id="@+id/traySim1"
-        android:clickable="true"
-        android:focusable="true"
-        android:foreground="@drawable/focus_button_background"
         android:layout_width="@dimen/launcher_tray_icon_size"
         android:layout_height="@dimen/launcher_tray_icon_size"
         android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
         android:visibility="gone"
-        tools:src="@drawable/ic_signal_cellular"
         tools:visibility="visible" />
 
-    <ImageView
+    <com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayIconView
         android:id="@+id/traySim2"
-        android:clickable="true"
-        android:focusable="true"
-        android:foreground="@drawable/focus_button_background"
         android:layout_width="@dimen/launcher_tray_icon_size"
         android:layout_height="@dimen/launcher_tray_icon_size"
         android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
         android:visibility="gone"
-        tools:src="@drawable/ic_signal_cellular"
         tools:visibility="visible" />
 
-    <ImageView
+    <com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayIconView
         android:id="@+id/trayNetwork"
-        android:clickable="true"
-        android:focusable="true"
-        android:foreground="@drawable/focus_button_background"
         android:layout_width="@dimen/launcher_tray_icon_size"
         android:layout_height="@dimen/launcher_tray_icon_size"
-        android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
-        tools:src="@drawable/ic_wifi" />
+        android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing" />
 
     <TextView
         android:id="@+id/trayBatteryLevel"

@@ -3,6 +3,8 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.content.Context
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
@@ -162,11 +164,10 @@ class PlayerMediaFilesLoader(
                         )
                     }
                 }
+            } catch (e: CancellationException) {
+                Timber.d("PlayerViewModel.loadSettings: Cancelled (normal during destroy)")
+                throw e
             } catch (e: Exception) {
-                if (e is CancellationException) {
-                    Timber.d("PlayerViewModel.loadSettings: Cancelled (normal during destroy)")
-                    throw e
-                }
                 Timber.e(e, "Error loading settings")
             }
         }
@@ -509,7 +510,7 @@ class PlayerMediaFilesLoader(
                         )
                     }
                 } catch (e: Exception) {
-                    Timber.w(e, "Player media files: failed to reconcile favorites, using existing flags")
+                    e.warnUnlessCancellation("Player media files: failed to reconcile favorites, using existing flags")
                     files
                 }
 
@@ -620,6 +621,7 @@ class PlayerMediaFilesLoader(
             } catch (e: Exception) {
                 // A watchdog-aborted scan gets the scan-specific message; everything else keeps the
                 // generic load-failed copy. The player cannot list files, so re-opening is the retry.
+                e.rethrowIfCancellation()
                 val msgRes = if (e is com.sza.fastmediasorter.data.network.exceptions.ScanTimeoutException) {
                     R.string.error_scan_timeout
                 } else {

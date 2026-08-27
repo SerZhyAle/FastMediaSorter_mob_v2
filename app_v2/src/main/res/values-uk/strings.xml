@@ -1659,7 +1659,6 @@
     <string name="wear_settings_slideshow">Слайдшоу</string>
     <string name="wear_settings_album_art">Обкладинки альбомів</string>
     <string name="wear_settings_slideshow_interval">Інтервал слайдшоу (с)</string>
-    <string name="wear_push_settings">Надіслати налаштування годиннику</string>
     <string name="wear_push_settings_failed">Не вдалося надіслати налаштування на годинник. Спробуйте ще раз.</string>
 
     <!-- Import from Watch strings (S0111 Phase 03) -->
@@ -3471,7 +3470,6 @@
     <string name="open_on_phone_notification_title">Відкрити з годинника</string>
     <string name="open_on_phone_notification_text">Натисніть, щоб відкрити %1$s</string>
     <string name="open_on_phone_channel_name">Відкриття з годинника</string>
-    <string name="wear_companion_enable_description">Увімкнути налаштування на годиннику</string>
     <string name="wear_settings_audio_desc">Відтворення та синхронізація аудіо на годиннику</string>
     <string name="wear_settings_video_desc">Відтворення та синхронізація відео на годиннику</string>
     <string name="wear_settings_images_desc">Перегляд та синхронізація зображень на годиннику</string>
@@ -3480,4 +3478,13 @@
     <string name="wear_settings_keep_awake_desc">Запобігати згасанню екрана годинника поза плеєрами</string>
     <string name="launcher_settings_wallpaper_camera">Камера</string>
     <string name="launcher_settings_wallpaper_camera_lens_title">Виберіть камеру</string>
+    <string name="wear_settings_album_art_tooltip_title">Обкладинка альбому</string>
+    <string name="wear_settings_album_art_tooltip_message">Завантажує і зберігає на годиннику обкладинку для кожного синхронізованого аудіофайлу. Займає додаткове місце на годиннику і, під час першої синхронізації, додатковий трафік.</string>
+    <string name="wear_settings_keep_awake_tooltip_title">Не вимикати екран</string>
+    <string name="wear_settings_keep_awake_tooltip_message">Не дає екрану годинника гаснути поза відтворенням аудіо, відео та фото - наприклад, під час перегляду налаштувань або списку файлів. Збільшує витрату батареї годинника.</string>
+    <string name="wear_settings_sync_button">Синхронізувати налаштування</string>
+    <string name="wear_settings_last_synced">Синхронізовано: %1$s</string>
+    <string name="wear_settings_sync_never">Ще не синхронізовано</string>
+    <string name="wear_setting_streams_section">Показувати трансляції</string>
+    <string name="wear_setting_streams_section_desc">Показувати розділ трансляцій на годиннику</string>
 </resources>

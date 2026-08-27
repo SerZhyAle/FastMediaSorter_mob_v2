@@ -5,10 +5,11 @@ import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.RectF
 import android.net.Uri
+import android.os.ParcelFileDescriptor
 import android.view.View
 import androidx.annotation.RequiresApi
-import android.os.ParcelFileDescriptor
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -341,7 +342,7 @@ class PdfLinkAndSearchManager(
                     onShareToGoogleLens(tempFile)
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Failed to save PDF page for Google Lens")
+                e.errorUnlessCancellation("Failed to save PDF page for Google Lens")
                 withContext(Dispatchers.Main) {
                     onError(root.context.getString(R.string.toast_error_google_lens))
                 }

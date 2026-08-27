@@ -99,7 +99,10 @@ $spectrum = [ordered]@{
     photos   = "app_v2/build/outputs/apk/photos/release"
     legacy   = "app_v2/build/outputs/apk/legacy/release"
     noLegal  = "app_v2/build/outputs/apk/noLegal/release"
-    wear     = "wear/build/outputs/apk/release"
+    # S2090: the watch has its own flavor dimension now. The published asset is the store variant, the
+    # same one the Play track gets - the sideload watch variant is built on request and is not part of
+    # the spectrum a release publishes (ADR-6).
+    wear     = "wear/build/outputs/apk/standard/release"
 }
 
 # ----------------------------------------------------------------------

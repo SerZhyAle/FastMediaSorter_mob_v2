@@ -23,7 +23,16 @@ Exit-AgentLock -Name Code
 # place, and saying "released" then would be a false completion claim.
 $after = Get-AgentLockStatus -Name Code
 if ($after.Exists -and -not $after.Stale) {
-    Write-Host "CODE.LOCK left in place - it belongs to another live session." -ForegroundColor Yellow
+    # S2109: say WHOSE it is. This line used to assert "another live session" without checking,
+    # so a lock this session still held after a failed release was reported as somebody else's -
+    # which is the one reading that stops the holder from investigating its own leak.
+    $owner = [string]$after.SessionId
+    if ($owner -and $owner -eq $env:CLAUDE_CODE_SESSION_ID) {
+        Write-Host "CODE.LOCK still held by THIS session after the release attempt ($($after.Path)) - investigate, nothing is waiting on a sibling." -ForegroundColor Red
+    }
+    else {
+        Write-Host "CODE.LOCK left in place - it belongs to another live session ($owner)." -ForegroundColor Yellow
+    }
 }
 else {
     Write-Host "CODE.LOCK released (or was already free)." -ForegroundColor Green

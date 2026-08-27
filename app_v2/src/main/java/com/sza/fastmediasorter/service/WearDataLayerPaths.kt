@@ -13,6 +13,19 @@ object WearDataLayerPaths {
     /** Message, watch → phone. Carries network sources export payload. */
     const val SOURCES_EXPORT = "/fms/watch/sources_export"
 
+    /**
+     * Data Item, watch → phone. Carries the watch's own settings payload back to the phone (S2093).
+     *
+     * A Data Item rather than a Message, matching [PLAYBACK_STATE]: the watch's settings are state, so
+     * the phone must be able to read the latest one after reconnecting rather than only catching it live.
+     *
+     * The `/fms/watch` prefix is the reason no manifest edit is needed. `src/wearGms/AndroidManifest.xml`
+     * already declares `pathPrefix="/fms/watch"` for PhoneWearListenerService, added by S1697 after the
+     * service handled watch paths in code while the filter matched one unrelated path and GMS silently
+     * dropped the rest. A path named outside the prefix would need its own filter entry.
+     */
+    const val SETTINGS_REPORT = "/fms/watch/settings_report"
+
     /** Data Item, watch → phone. Carries current playback state. */
     const val PLAYBACK_STATE = "/fms/watch/playback_state"
 
@@ -101,6 +114,9 @@ object WearDataLayerPaths {
 
     /** eventType value for SETTINGS_PUSH envelopes. */
     const val EVENT_SETTINGS = "SETTINGS_PUSH"
+
+    /** eventType value for SETTINGS_REPORT envelopes (S2093). */
+    const val EVENT_SETTINGS_REPORT = "SETTINGS_REPORT"
 
     /** eventType value for SOURCES_EXPORT envelopes. */
     const val EVENT_SOURCES_EXPORT = "SOURCES_EXPORT"

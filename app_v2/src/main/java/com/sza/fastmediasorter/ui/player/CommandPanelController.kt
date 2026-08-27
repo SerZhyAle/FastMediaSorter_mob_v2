@@ -11,13 +11,14 @@ import androidx.core.view.isVisible
 import androidx.documentfile.provider.DocumentFile
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import com.sza.fastmediasorter.core.cast.CastController
 import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.core.cast.CastController
 import com.sza.fastmediasorter.ui.player.helpers.CommandPanelLayoutPlanner
 import com.sza.fastmediasorter.ui.player.helpers.LanguageBadgeDrawable
 import com.sza.fastmediasorter.ui.player.helpers.PlayerBigButtonsModeManager
@@ -711,6 +712,7 @@ class CommandPanelController(
                         popup.show()
                     }
                 } catch (e: Exception) {
+                    e.rethrowIfCancellation()
                     withContext(Dispatchers.Main) { popup.show() }
                 }
             }

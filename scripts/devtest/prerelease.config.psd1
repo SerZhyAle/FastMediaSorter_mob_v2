@@ -48,5 +48,37 @@
         StreamsListScroll = @{ Metric = 'janky-frames-pct';       Limit = 20 }
         StreamsGridScroll = @{ Metric = 'janky-frames-pct';       Limit = 20 }
         StreamsPeakMemory = @{ Metric = 'peak-rss-kb';            Limit = 524288 }
+        PlayAnonMemory    = @{ Metric = 'anon-rss-plus-swap-kb';  Limit = $null }
+        PlayBitmapMemory  = @{ Metric = 'native-heap-kb';         Limit = $null }
+    }
+
+    # S2100: Google Play technical quality thresholds, enforced from February 2027.
+    # Read from support.google.com/googleplay/android-developer/answer/17492799 on 2026-08-27.
+    #
+    # These two metrics have no scalar limit, which is why their Thresholds rows above carry $null:
+    # Play's limit is a function of the device's physical RAM AND the process state, so
+    # prerelease-measure.ps1 resolves it from this table at measurement time instead. Google states
+    # the thresholds will change over time - when they do, this block is the only edit required.
+    #
+    # AnonMemoryKb: apps table, 90th percentile of anonymous RSS + swap. Keyed by the declared RAM
+    # bucket (the device's MemTotal is rounded to the nearest one), then by process state. The games
+    # table is deliberately absent - it does not apply to this app.
+    #
+    # BitmapMemoryKb: Play sets no foreground limit at all; bitmaps in foreground are acceptable by
+    # its own statement. A foreground row here would gate on a rule that does not exist, so there
+    # is none, and an absent row means "not judged" rather than "unlimited".
+    PlayMemory = @{
+        AnonMemoryKb = @{
+            '4'  = @{ foreground = 2097152; perceptible = 1048576; background = 1048576; cached = 1048576 }
+            '6'  = @{ foreground = 2359296; perceptible = 1310720; background = 1310720; cached = 1310720 }
+            '8'  = @{ foreground = 2359296; perceptible = 1572864; background = 1572864; cached = 1572864 }
+            '12' = @{ foreground = 3407872; perceptible = 1835008; background = 1835008; cached = 1835008 }
+            '16' = @{ foreground = 4456448; perceptible = 2097152; background = 2097152; cached = 2097152 }
+        }
+        BitmapMemoryKb = @{
+            perceptible = 204800
+            background  = 204800
+            cached      = 409600
+        }
     }
 }

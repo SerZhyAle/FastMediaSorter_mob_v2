@@ -34,6 +34,11 @@ param(
     # flag's row in docs/FLAVOR_MATRIX.md. S1982: flags joined by '+' mean the capability needs all
     # of them at once, and `flavors` must then equal the intersection of their rows.
     [Parameter(Mandatory = $false, ParameterSetName = 'Add')] [string]$Gate = "",
+    # S2090: which WEAR-module variants the capability exists in. Optional, and omitting it asserts
+    # "every watch build" - so naming both is refused rather than accepted as a synonym. Unrelated to
+    # -Flavors, which names phone variants; see docs/ALL_FEATURES.schema.json for why the two are
+    # separate axes rather than one field read differently for watch records.
+    [Parameter(Mandatory = $false, ParameterSetName = 'Add')] [string]$WearFlavors = "",
     [Parameter(Mandatory = $false, ParameterSetName = 'Add')] [string]$Spec = "",
     [Parameter(Mandatory = $false, ParameterSetName = 'Add')] [ValidateSet("active", "removed")] [string]$Status = "active",
     [Parameter(Mandatory = $true, ParameterSetName = 'List')] [switch]$ListAreas,
@@ -44,7 +49,8 @@ param(
 $ErrorActionPreference = "Stop"
 trap { Write-Error $_; exit 1 }
 
-$validFlavors = @("standard", "lite", "photos", "legacy", "vr", "noLegal")
+# S2090: the wear module's own dimension, deliberately a separate list from the phone's.
+$validWearFlavors = @("standard", "noLegal")
 
 function Fail([string]$msg) { Write-Error $msg; exit 1 }
 
@@ -58,6 +64,10 @@ $scriptDir = $PSScriptRoot
 if (-not $scriptDir) { $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path }
 . (Join-Path $scriptDir '_lib.ps1')
 $repoRoot = Resolve-FeatureRepoRoot -ScriptDir $scriptDir
+# The matrix header is the live list; the literal below is only the fallback for a checkout where
+# docs/FLAVOR_MATRIX.md is missing, and it is what went stale when `foss` was declared (S2093).
+$validFlavors = @(Get-FlavorMatrixColumns -RepoRoot $repoRoot)
+if ($validFlavors.Count -eq 0) { $validFlavors = @("standard", "lite", "photos", "legacy", "vr", "noLegal") }
 $fileName = if ($NoLegal) { "ALL_FEATURES_noLegal.jsonl" } else { "ALL_FEATURES.jsonl" }
 $dataFile = Get-FeatureInventoryPath -RepoRoot $repoRoot -NoLegal:$NoLegal
 
@@ -94,6 +104,19 @@ foreach ($f in $flavorList) {
     }
 }
 $flavorList = @($flavorList | Select-Object -Unique)
+
+$wearFlavorList = @()
+if (-not [string]::IsNullOrWhiteSpace($WearFlavors)) {
+    $wearFlavorList = @($WearFlavors -split '[,\s]+' | Where-Object { $_ } | ForEach-Object { $_.Trim() } | Select-Object -Unique)
+    foreach ($f in $wearFlavorList) {
+        if ($validWearFlavors -notcontains $f) {
+            Fail "Invalid wear flavor '$f'. Allowed: $($validWearFlavors -join ', ')."
+        }
+    }
+    if ($wearFlavorList.Count -eq $validWearFlavors.Count) {
+        Fail "-WearFlavors names every watch build. Omit the parameter instead - an absent wearFlavors already means that."
+    }
+}
 
 $specVal = $null
 if (-not [string]::IsNullOrWhiteSpace($Spec)) {
@@ -136,6 +159,11 @@ $record = [ordered]@{
 # "behind no flag"; a present-but-blank one would read as an unfinished record instead.
 if ($gateN) {
     $record.Insert(5, 'gate', $gateN)
+}
+# S2090: same rule as `gate` above - omit the key rather than write an empty one. An absent
+# wearFlavors is the assertion "every watch build has it", which a blank array would not say.
+if ($wearFlavorList.Count -gt 0) {
+    $record.Insert($record.Keys.Count - 2, 'wearFlavors', $wearFlavorList)
 }
 $line = ($record | ConvertTo-Json -Compress -Depth 5)
 

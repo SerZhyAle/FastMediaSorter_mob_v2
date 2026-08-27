@@ -12,7 +12,6 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.os.BatteryManager
 import android.view.View
-import android.widget.ImageView
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
@@ -29,6 +28,8 @@ import com.sza.fastmediasorter.domain.usecase.devicestatus.GetNetworkStatusUseCa
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayBluetoothMonitor
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayCallbacks
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayComposition
+import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayIconModel
+import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayIconView
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTraySimSignalMonitor
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.Job
@@ -143,9 +144,8 @@ class LauncherTrayManager(
      * Appended rather than replacing: the state is what the indicator is for, and a description saying
      * only "opens settings" would cost a screen-reader user the reading they came for.
      */
-    private fun describe(view: View, state: CharSequence?) {
-        view.contentDescription = context.getString(R.string.launcher_tray_indicator_action, state)
-    }
+    private fun describe(state: CharSequence?): String =
+        context.getString(R.string.launcher_tray_indicator_action, state)
 
     /**
      * Follow the persisted replacement policy for as long as [lifecycleOwner] is started. Call once from
@@ -212,8 +212,12 @@ class LauncherTrayManager(
             indicators.trayBluetooth.isVisible = false
             return
         }
-        indicators.trayBluetooth.setImageResource(R.drawable.ic_bluetooth)
-        describe(indicators.trayBluetooth, context.getString(R.string.launcher_tray_bluetooth_on))
+        indicators.trayBluetooth.apply(
+            LauncherTrayIconModel(
+                iconRes = R.drawable.ic_bluetooth,
+                contentDescription = describe(context.getString(R.string.launcher_tray_bluetooth_on)),
+            ),
+        )
         indicators.trayBluetooth.isVisible = true
     }
 
@@ -247,7 +251,7 @@ class LauncherTrayManager(
      * SIM2 to report, and drawing level 0 there would read as "no coverage" (ADR-1, strategic §11.5).
      */
     private fun renderSimSlot(
-        view: ImageView,
+        view: LauncherTrayIconView,
         slotIndex: Int,
         enabled: Boolean,
         levels: Map<Int, Int>,
@@ -258,16 +262,18 @@ class LauncherTrayManager(
             return
         }
         val slotNumber = slotIndex + 1
-        view.setImageResource(R.drawable.launcher_tray_signal_level)
-        view.setImageLevel(level)
-        describe(
-            view,
-            if (level == NO_SERVICE_LEVEL) {
-                context.getString(R.string.launcher_tray_sim_signal_none, slotNumber)
-            } else {
-                context.getString(R.string.launcher_tray_sim_signal, slotNumber, level)
-            },
+        val state = if (level == NO_SERVICE_LEVEL) {
+            context.getString(R.string.launcher_tray_sim_signal_none, slotNumber)
+        } else {
+            context.getString(R.string.launcher_tray_sim_signal, slotNumber, level)
+        }
+        view.apply(
+            LauncherTrayIconModel(
+                iconRes = R.drawable.launcher_tray_signal_level,
+                contentDescription = describe(state),
+            ),
         )
+        view.setGlyphLevel(level)
         view.isVisible = true
     }
 
@@ -325,8 +331,12 @@ class LauncherTrayManager(
     }
 
     private fun renderNetwork(transport: NetworkTransport) {
-        indicators.trayNetwork.setImageResource(iconOf(transport))
-        describe(indicators.trayNetwork, context.getString(labelOf(transport)))
+        indicators.trayNetwork.apply(
+            LauncherTrayIconModel(
+                iconRes = iconOf(transport),
+                contentDescription = describe(context.getString(labelOf(transport))),
+            ),
+        )
         networkScreenKey = screenOf(transport)
     }
 
@@ -367,8 +377,7 @@ class LauncherTrayManager(
         indicators.trayBatteryLevel.text = context.getString(R.string.launcher_tray_battery_value, percent)
         // The number alone is what the owner asked for (strategic §2 goal 2), so the spoken description is
         // the only place left that says what the number means and whether the device is charging.
-        describe(
-            indicators.trayBatteryLevel,
+        indicators.trayBatteryLevel.contentDescription = describe(
             context.getString(
                 if (charging) R.string.launcher_tray_battery_charging else R.string.launcher_tray_battery_level,
                 percent,

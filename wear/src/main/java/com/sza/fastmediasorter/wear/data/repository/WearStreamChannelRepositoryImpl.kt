@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.data.repository
 
 import android.content.Context
 import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -80,7 +82,10 @@ class WearStreamChannelRepositoryImpl @Inject constructor(
             val json = file.readText(Charsets.UTF_8)
             val type = object : TypeToken<List<WearStreamChannel>>() {}.type
             gson.fromJson<List<WearStreamChannel>>(json, type) ?: emptyList()
-        } catch (e: Exception) {
+        } catch (e: IOException) {
+            Timber.w(e, "WearStreamChannelRepository: Failed to read channels from file")
+            emptyList()
+        } catch (e: JsonSyntaxException) {
             Timber.w(e, "WearStreamChannelRepository: Failed to read channels from file")
             emptyList()
         }

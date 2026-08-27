@@ -4,6 +4,8 @@
     S1879 matcher suite for `adb.ps1 tap-id` - selecting a node by its resource-id.
 
 .DESCRIPTION
+    Subject: scripts/devtest/lib/ui-tree.ps1, scripts/devtest/adb.ps1
+
     Hermetic: drives scripts/devtest/lib/ui-tree.ps1 against a recorded phone-shaped uiautomator
     dump. No adb call, no device, no network, no writes.
 

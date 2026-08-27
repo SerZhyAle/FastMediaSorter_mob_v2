@@ -212,17 +212,37 @@ object SettingsDocScopeCatalog {
             titleRu = "Доставка голосовых заметок",
             titleUk = "Доставка голосових нотаток"
         ),
-        // S2000: the one watch setting that is not offered on the watch. It is chosen in the phone
-        // companion's own group, because the picture it selects is prepared and sent from the phone
-        // and the watch has no picker to choose it with. A radio group like the entry above: it
-        // names two models rather than switching one thing off.
+        // S2000 introduced this as a phone-only choice. S2093 / ADR-3 split it: the mode is two values
+        // and is now offered on the watch's Screen settings as well, while the picture it points at
+        // stays a phone choice, because picking one means opening a gallery and sending a file.
         WearDocEntry(
             key = "wearBackgroundMode",
-            layout = "wear_companion_background_group",
+            layout = "wear_screen_settings",
             kind = "RADIO_GROUP",
             titleEn = "Watch Background",
             titleRu = "Фон на часах",
             titleUk = "Фон на годиннику"
+        ),
+        // S2093: a real watch row since S1781 that was never published - a pre-existing Rule 22 gap,
+        // in scope here because strategic criterion 9 is that this reference lists the set the owner
+        // actually has, and the parity gate fails the closure while it does not.
+        WearDocEntry(
+            key = "wearStreamsSection",
+            layout = "wear_media_types_settings",
+            kind = "TOGGLE_ROW",
+            titleEn = "Show Streams",
+            titleRu = "Показывать трансляции",
+            titleUk = "Показувати трансляції"
+        ),
+        // S2093: a real watch row since S1718, likewise never published. ADR-2 keeps it watch-only -
+        // it describes one physical watch and does not exist at all without a rotation sensor.
+        WearDocEntry(
+            key = "wearAutoRotation",
+            layout = "wear_other_settings",
+            kind = "TOGGLE_ROW",
+            titleEn = "Auto rotation",
+            titleRu = "Автоповорот",
+            titleUk = "Автоповорот"
         )
     )
 }

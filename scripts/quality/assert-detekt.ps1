@@ -112,6 +112,12 @@ if (-not (Test-Path $gradlew)) {
 $reportModules = if ($PSBoundParameters.ContainsKey('Module')) { @($Module) } else { @('app_v2', 'wear') }
 $lockReason = if ($PSBoundParameters.ContainsKey('Module')) { "assert-detekt.ps1 -Module $Module" } else { "assert-detekt.ps1 (app_v2 + wear)" }
 $cacheLabel = if ($PSBoundParameters.ContainsKey('Module')) { $Module } else { 'app_v2 + wear' }
+# S2109: detekt reads a whole module, so its domain is the module - and a run WITHOUT -Module
+# compiles both, which artifact 04 flagged as the third genuinely multi-domain entry point. Taking
+# one domain there would let a sibling build a module this run is already compiling.
+$detektDomains = if ($PSBoundParameters.ContainsKey('Module')) {
+    @(if ($Module -eq 'wear') { 'Build.Wear' } else { 'Build.Phone' })
+} else { @('Build.Phone', 'Build.Wear') }
 $cachePath = Join-Path $repoRoot 'temp/detekt-gate-cache.json'
 
 function Get-DetektTreeFingerprint {
@@ -186,7 +192,7 @@ if (-not $NoCache) {
 # build reports "could not verify" at the exact moment a ticket is being closed, and that reads
 # as a defect in the change under review. The ceiling is shorter than a build's, because a gate
 # that waits an hour has stopped being a gate.
-Enter-BuildLockOrExit -Reason $lockReason -WaitTimeoutSeconds 900
+Enter-BuildLockOrExit -Reason $lockReason -WaitTimeoutSeconds 900 -Domain $detektDomains
 
 Push-Location $repoRoot
 try {
@@ -235,7 +241,7 @@ try {
 }
 finally {
     Pop-Location
-    Exit-AgentLock -Name Build
+    Exit-AgentLock -Name 'Build' -Domains $detektDomains
 }
 
 if ($timedOut) {

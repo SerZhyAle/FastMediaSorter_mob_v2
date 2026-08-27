@@ -3,6 +3,8 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.app.Activity
 import androidx.appcompat.app.AlertDialog
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.models.TranslationFontFamily
 import com.sza.fastmediasorter.domain.models.TranslationFontSize
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -14,7 +16,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * Applies the session's playback settings to ExoPlayer, and owns the playback-speed dialog.
@@ -67,16 +68,18 @@ class PlayerSettingsManager(
                 val fontSize = try {
                     TranslationFontSize.valueOf(settings.ocrDefaultFontSize)
                 } catch (e: Exception) {
+                    e.rethrowIfCancellation()
                     TranslationFontSize.AUTO
                 }
                 val fontFamily = try {
                     TranslationFontFamily.valueOf(settings.ocrDefaultFontFamily)
                 } catch (e: Exception) {
+                    e.rethrowIfCancellation()
                     TranslationFontFamily.DEFAULT
                 }
                 videoPlayerManagerProvider().applySubtitleStyle(fontSize, fontFamily)
             } catch (e: Exception) {
-                Timber.e(e, "Failed to apply subtitle styling")
+                e.errorUnlessCancellation("Failed to apply subtitle styling")
             }
         }
     }

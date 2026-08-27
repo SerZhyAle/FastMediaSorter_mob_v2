@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.pdf.PdfRenderer
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
@@ -57,7 +58,7 @@ class PdfRendererWrapper(
                     page.close()
                 }
             } catch (e: Exception) {
-                Timber.e(e, "PdfRendererWrapper: Error rendering page $pageIndex")
+                e.errorUnlessCancellation("PdfRendererWrapper: Error rendering page $pageIndex")
                 null
             }
         }
@@ -78,7 +79,7 @@ class PdfRendererWrapper(
                     page.close()
                 }
             } catch (e: Exception) {
-                Timber.e(e, "PdfRendererWrapper: Error getting dimensions for page $pageIndex")
+                e.errorUnlessCancellation("PdfRendererWrapper: Error getting dimensions for page $pageIndex")
                 null
             }
         }

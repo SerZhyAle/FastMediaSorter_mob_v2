@@ -36,7 +36,7 @@
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/utils/copy-to-drive.ps1 `
-        -Path wear/build/outputs/apk/release/wear-release.apk `
+        -Path wear/build/outputs/apk/standard/release/wear-standard-release.apk `
         -Name FastMediaSorter_wear_release.apk
 
 .NOTES

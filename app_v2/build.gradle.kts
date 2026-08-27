@@ -680,6 +680,49 @@ android {
             buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "false") // S1433: no diagnostic program in vr
         }
 
+        // ===== FOSS (F-Droid catalogue: zero proprietary dependencies) =====
+        // S0403: the F-Droid inclusion policy refuses Google Play Services, ML Kit, MSAL and the
+        // Dropbox SDK outright, so this flavor is defined by what it does NOT link rather than by a
+        // feature tier. Everything reachable on free libraries stays on: local media, SMB/FTP/SFTP
+        // shares, documents, EPUB, animations, background audio, the default player.
+        create("foss") {
+            dimension = "version"
+            manifestPlaceholders["ossNoticesPayload"] = "@raw/oss_notices_foss"
+            // S0403 research 07: a distinct id lets the F-Droid build coexist with a Play or
+            // sideload install and keeps F-Droid's signing key off the store identity. Cloud OAuth
+            // is off here, so the shared-id argument that keeps noLegal and vr on the store id
+            // (see the applicationId policy above) does not apply.
+            applicationIdSuffix = ".fdroid"
+            versionNameSuffix = "-FOSS"
+            // Owner ruling 2026-07-14: reach over API surface - de-googled ROMs are commonly older
+            // devices, so foss matches legacy's floor instead of the API 26 line.
+            minSdk = 23
+            disableNativeBuild()
+            buildConfigField("boolean", "SUPPORT_VIDEO", "true")
+            buildConfigField("boolean", "SUPPORT_AUDIO", "true")
+            // Owner ruling 2026-07-14: conservative first iteration - no IPTV stream catalogue, so
+            // foss mounts streamingDisabled and hides the entry point like lite and photos do.
+            buildConfigField("boolean", "SUPPORT_STREAMS", "false")
+            buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "false")
+            // Video capture still records audio, so RECORD_AUDIO stays declared and the permission
+            // row must stay visible - the same split lite carries (S1459).
+            buildConfigField("boolean", "DECLARES_MIC_RECORDING", "true")
+            buildConfigField("boolean", "SUPPORT_IMAGES", "true")
+            buildConfigField("boolean", "SUPPORT_CLOUD", "false")
+            // Network shares are the FOSS audience's replacement for cloud storage (strategic goal 4).
+            buildConfigField("boolean", "SUPPORT_LOCAL_NETWORK", "true")
+            buildConfigField("boolean", "SUPPORT_DOCUMENTS", "true")
+            buildConfigField("boolean", "ENABLE_ANIMATIONS", "true")
+            buildConfigField("boolean", "ENABLE_EPUB", "true")
+            buildConfigField("boolean", "ENABLE_TRANSLATION", "false")
+            buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "true")
+            buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")
+            buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
+            buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")
+            buildConfigField("boolean", "SUPPORT_CAST", "false")
+            buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "false")
+        }
+
         // S0250: flavor `vrUnlicensed` was archived (2026-05-19). Its role - sideload-only
         // VR-capable build - is now fulfilled by `noLegal` (full VR feature surface, runtime
         // XR-gated via XrDetectionFacade). The `vr` flavor remains as the Store-published
@@ -747,6 +790,13 @@ android {
         getByName("standard") {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            // S0403: Play Core seam (LanguageSplitInstaller, ReviewRequestManager). Both classes
+            // used to sit in src/main with an unconditional Play Core import, which made it
+            // impossible to take the library off any flavor's classpath. Each source set carries a
+            // full copy under the same FQCN - the OfficeDocumentFamilyCatalog pattern - so call
+            // sites keep injecting one type and never ask which flavor they are in (Rule 14).
+            // Every flavor mounts exactly one of playServicesEnabled / playServicesDisabled.
+            kotlin.directories.add("src/playServicesEnabled/java")
             // S0403: Google Cast SDK seam impl (CastMediaManagerImpl); foss mounts castDisabled.
             kotlin.directories.add("src/castEnabled/java")
             // S0403: GMS-backed Wear Data Layer bridge; foss / non-Wear flavors mount wearStub.
@@ -797,6 +847,7 @@ android {
             manifest.srcFile("src/vr/AndroidManifest.xml")
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            kotlin.directories.add("src/playServicesEnabled/java")
             // S0403: Google Cast SDK seam impl (castEnabled manifest injected via addStaticManifestFile
             // below - manifest.srcFile above is a set, so it cannot also mount the cast overlay).
             kotlin.directories.add("src/castEnabled/java")
@@ -820,6 +871,7 @@ android {
         getByName("legacy") {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            kotlin.directories.add("src/playServicesEnabled/java")
             // S0403: Google Cast SDK seam impl (CastMediaManagerImpl); foss mounts castDisabled.
             kotlin.directories.add("src/castEnabled/java")
             // S1951: no Wear companion in this flavor - the applicationIdSuffix makes the Data Layer
@@ -837,6 +889,7 @@ android {
         getByName("vr") {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            kotlin.directories.add("src/playServicesEnabled/java")
             // S1439: vr declares SUPPORT_CAST=false because Horizon OS has no Play Services Cast
             // module, so it mounts the no-op seam impl - shipping the real one packaged an SDK the
             // platform cannot back, behind two safeguards nothing recorded as requirements.
@@ -856,6 +909,7 @@ android {
         getByName("photos") {
             kotlin.directories.add("src/streamingDisabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            kotlin.directories.add("src/playServicesEnabled/java")
             // S0403: Google Cast SDK seam impl (CastMediaManagerImpl); foss mounts castDisabled.
             kotlin.directories.add("src/castEnabled/java")
             // S0403: photos has no Wear companion -> mount the wearStub no-op.
@@ -869,9 +923,24 @@ android {
             // S1433: no Network Monitor program in this flavor - mount the no-op capability contract.
             kotlin.directories.add("src/networkMonitorDisabled/java")
         }
+        // S0403: foss subtracts exactly the proprietary nodes. Every "disabled"/"stub" set below is
+        // the no-op contract half of a seam whose real half links a Google, Microsoft or Dropbox
+        // SDK; documents, EPUB, audio and default-player stay on, which is what separates it from lite.
+        getByName("foss") {
+            kotlin.directories.add("src/streamingDisabled/java")
+            kotlin.directories.add("src/cloudDisabled/java")
+            kotlin.directories.add("src/castDisabled/java")
+            kotlin.directories.add("src/wearStub/java")
+            kotlin.directories.add("src/ocrDisabled/java")
+            kotlin.directories.add("src/vrStub/java")
+            kotlin.directories.add("src/launcherDisabled/java")
+            kotlin.directories.add("src/networkMonitorDisabled/java")
+            kotlin.directories.add("src/playServicesDisabled/java")
+        }
         getByName("lite") {
             kotlin.directories.add("src/streamingDisabled/java")
             kotlin.directories.add("src/cloudDisabled/java")
+            kotlin.directories.add("src/playServicesEnabled/java")
             // S0403: lite ships Cast (video flavor), so it mounts the GMS-backed castEnabled impl.
             kotlin.directories.add("src/castEnabled/java")
             // S0403: lite has no Wear companion (SUPPORT_WEAR_COMPANION=false) -> wearStub no-op.
@@ -1252,6 +1321,7 @@ tasks.configureEach {
 
 val complianceSourceRoots = listOf(
     "src/main",
+    "src/foss",
     "src/legacy",
     "src/lite",
     "src/photos",
@@ -1579,7 +1649,15 @@ dependencies {
     // Credential Manager replaces the deprecated Google Sign-In SDK; googleid supplies GetGoogleIdOption.
     // androidx.browser is consumed by Phase 03 CCT routing - added here to keep all S0200 deps colocated.
     implementation("androidx.credentials:credentials:1.3.0")
-    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    // S0403: the -play-services-auth provider is the Credential Manager half that pulls GMS in, so
+    // it is scoped away from foss. The core artifact above stays global - it is plain androidx and
+    // the system Credential Manager works without Play Services.
+    "standardImplementation"("androidx.credentials:credentials-play-services-auth:1.3.0")
+    "noLegalImplementation"("androidx.credentials:credentials-play-services-auth:1.3.0")
+    "liteImplementation"("androidx.credentials:credentials-play-services-auth:1.3.0")
+    "photosImplementation"("androidx.credentials:credentials-play-services-auth:1.3.0")
+    "legacyImplementation"("androidx.credentials:credentials-play-services-auth:1.3.0")
+    "vrImplementation"("androidx.credentials:credentials-play-services-auth:1.3.0")
     // S0385: googleid is consumed only by src/cloudEnabled (CredentialManagerGoogleIdentityRepository),
     // which is mounted into every flavor EXCEPT lite (lite mounts cloudDisabled). Scope it per-flavor
     // so the lite APK stops packaging an unused Google-identity dependency.
@@ -1611,10 +1689,23 @@ dependencies {
     implementation("com.google.android.material:material:1.14.0")
 
     // Google Play In-App Review (S0135)
-    implementation("com.google.android.play:review-ktx:2.0.2")
+    // S0403: Play Core is unavailable on F-Droid, so both artifacts are scoped away from foss. A
+    // catalogue install has no Play store page to review and carries every locale in the APK, so
+    // neither library has anything to do there. Consumers live behind the src/playServices* seam.
+    "standardImplementation"("com.google.android.play:review-ktx:2.0.2")
+    "noLegalImplementation"("com.google.android.play:review-ktx:2.0.2")
+    "liteImplementation"("com.google.android.play:review-ktx:2.0.2")
+    "photosImplementation"("com.google.android.play:review-ktx:2.0.2")
+    "legacyImplementation"("com.google.android.play:review-ktx:2.0.2")
+    "vrImplementation"("com.google.android.play:review-ktx:2.0.2")
     // Google Play language splits (S1190). Brought back for on-demand locale delivery only - the
     // dynamic-feature module this library once served was deleted with S0423 and stays deleted.
-    implementation("com.google.android.play:feature-delivery-ktx:2.1.0")
+    "standardImplementation"("com.google.android.play:feature-delivery-ktx:2.1.0")
+    "noLegalImplementation"("com.google.android.play:feature-delivery-ktx:2.1.0")
+    "liteImplementation"("com.google.android.play:feature-delivery-ktx:2.1.0")
+    "photosImplementation"("com.google.android.play:feature-delivery-ktx:2.1.0")
+    "legacyImplementation"("com.google.android.play:feature-delivery-ktx:2.1.0")
+    "vrImplementation"("com.google.android.play:feature-delivery-ktx:2.1.0")
 
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
@@ -1780,9 +1871,22 @@ dependencies {
     // on the one flavor whose whole purpose is old and weak devices (minSdk 23).
 
     // Cloud Storage - Google Drive (REST API + Google Sign-In)
-    implementation("com.google.android.gms:play-services-auth:21.0.0")
-    implementation("net.openid:appauth:0.11.1")
-    
+    // S0403: both are reachable only through src/cloudEnabled, and play-services-auth is proprietary
+    // outright. appauth is Apache-2.0 but rides the same OAuth path, so a flavor mounting
+    // cloudDisabled has no consumer for either. Keep this list in sync with the cloudEnabled mounts.
+    "standardImplementation"("com.google.android.gms:play-services-auth:21.0.0")
+    "noLegalImplementation"("com.google.android.gms:play-services-auth:21.0.0")
+    "liteImplementation"("com.google.android.gms:play-services-auth:21.0.0")
+    "photosImplementation"("com.google.android.gms:play-services-auth:21.0.0")
+    "legacyImplementation"("com.google.android.gms:play-services-auth:21.0.0")
+    "vrImplementation"("com.google.android.gms:play-services-auth:21.0.0")
+    "standardImplementation"("net.openid:appauth:0.11.1")
+    "noLegalImplementation"("net.openid:appauth:0.11.1")
+    "liteImplementation"("net.openid:appauth:0.11.1")
+    "photosImplementation"("net.openid:appauth:0.11.1")
+    "legacyImplementation"("net.openid:appauth:0.11.1")
+    "vrImplementation"("net.openid:appauth:0.11.1")
+
     // Network - Retrofit for iTunes Search API
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
@@ -1792,11 +1896,23 @@ dependencies {
     releaseImplementation("com.github.chuckerteam.chucker:library-no-op:4.0.0")
     
     // Cloud Storage - Dropbox
-    implementation("com.dropbox.core:dropbox-core-sdk:5.4.5")
-    
+    // S0403: F-Droid refuses the Dropbox SDK, and cloudDisabled leaves it with no call site anyway.
+    "standardImplementation"("com.dropbox.core:dropbox-core-sdk:5.4.5")
+    "noLegalImplementation"("com.dropbox.core:dropbox-core-sdk:5.4.5")
+    "liteImplementation"("com.dropbox.core:dropbox-core-sdk:5.4.5")
+    "photosImplementation"("com.dropbox.core:dropbox-core-sdk:5.4.5")
+    "legacyImplementation"("com.dropbox.core:dropbox-core-sdk:5.4.5")
+    "vrImplementation"("com.dropbox.core:dropbox-core-sdk:5.4.5")
+
     // Cloud Storage - OneDrive (REST API + MSAL OAuth)
-    implementation("com.microsoft.identity.client:msal:6.0.1")
-    
+    // S0403: MSAL is proprietary Microsoft code - same exclusion as the Dropbox SDK above.
+    "standardImplementation"("com.microsoft.identity.client:msal:6.0.1")
+    "noLegalImplementation"("com.microsoft.identity.client:msal:6.0.1")
+    "liteImplementation"("com.microsoft.identity.client:msal:6.0.1")
+    "photosImplementation"("com.microsoft.identity.client:msal:6.0.1")
+    "legacyImplementation"("com.microsoft.identity.client:msal:6.0.1")
+    "vrImplementation"("com.microsoft.identity.client:msal:6.0.1")
+
     // Google Cast SDK + MediaRouter (Chromecast output from player) + NanoHTTPD proxy.
     // S0403: consumed only by src/castEnabled (CastMediaManagerImpl / LocalCastProxyServer). Scoped
     // per-flavor so a flavor mounting castDisabled never packages the proprietary Google Cast SDK.

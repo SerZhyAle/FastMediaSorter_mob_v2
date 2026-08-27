@@ -68,7 +68,7 @@ Build type summary:
 
 ## Build Outputs and Size Facts
 - Main app APK outputs: `app_v2/build/outputs/apk/<flavor>/<buildType>/`
-- Wear APK outputs: `wear/build/outputs/apk/<buildType>/`
+- Wear APK outputs: `wear/build/outputs/apk/<flavor>/<buildType>/` - the module declares `standard` and `noLegal` since S2090
 - Main app AAB outputs: `app_v2/build/outputs/bundle/<flavor>Release/`
 - Main app metadata example: `app_v2/build/outputs/apk/standard/debug/output-metadata.json`
 

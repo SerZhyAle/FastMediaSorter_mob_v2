@@ -9,8 +9,9 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.Priority
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.signature.ObjectKey
-import com.sza.fastmediasorter.data.network.glide.NetworkFileData
 import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.data.network.glide.NetworkFileData
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -262,6 +263,7 @@ class AudioSlideshowPhotoModeManager(
                                     binding.imageView.scaleType = scaleType
                                     Timber.d("AudioSlideshow: Applied scale type $scaleType (image: ${imageWidth}x${imageHeight}, device: ${deviceWidth}x${deviceHeight})")
                                 } catch (e: Exception) {
+                                    e.rethrowIfCancellation()
                                     Timber.e(e, "AudioSlideshow: Error determining scale type, using FIT_CENTER")
                                     binding.imageView.scaleType = ImageView.ScaleType.FIT_CENTER
                                 }

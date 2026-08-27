@@ -118,6 +118,36 @@ if ($resourceGateBlock -match 'gradlew') {
 if ($resourceGateBlock -notmatch 'if \(\$LASTEXITCODE -ne 0\) \{ return \}') {
     throw 'Resource-link gate does not stop at the first failing flavor, so an earlier red would read as a pass.'
 }
+# S2121: the module must be DERIVED from the changed paths. Reading -Module is what made a change
+# entirely under watchface/ link :app_v2: resources and print PASS.
+if ($resourceGateBlock -match '-Module \$Module') {
+    throw 'Resource-link gate still passes the declared -Module instead of the module derived from the changed paths.'
+}
+if ($facade -notmatch '\$resourceLinkResolution = Resolve-GradleModulesForPaths') {
+    throw 'Resource-link gate does not resolve its module set from the changed paths.'
+}
+if ($resourceGateBlock -notmatch 'Unresolved\.Count -gt 0') {
+    throw 'Resource-link gate does not refuse a resource path belonging to no registered module.'
+}
+if ($resourceGateBlock -notmatch 'LinksResources') {
+    throw 'Resource-link gate does not skip a module that has no resource-processing task.'
+}
+# S2123: the build type is per-module too. A hardcoded Debug named a task :benchmark has never had -
+# that module's only build types are nonMinifiedRelease and benchmarkRelease - and the gate recorded
+# the module as unlinkable rather than the task name as unbuildable.
+if ($resourceGateBlock -notmatch 'Get-GradleModuleDefaultBuildType') {
+    throw 'Resource-link gate does not take its build type from the registry.'
+}
+if (([regex]::Matches($resourceGateBlock, '-BuildType')).Count -lt 2) {
+    throw 'Resource-link gate does not pass -BuildType on both the flavorless and the per-flavor branch.'
+}
+# The duplicated flavor table is gone - one registry, read by the builder too.
+if ($facade -match 'ResourceLinkFlavors\s*=\s*@\{') {
+    throw 'The per-module flavor table is declared in the facade again instead of read from the registry.'
+}
+if ($facade -notmatch "gradle-modules\.ps1") {
+    throw 'The facade does not load the Gradle module registry.'
+}
 
 # Behaviour of the variant selector, run from the facade's own function text so a rename or a logic
 # change fails here rather than silently selecting the wrong variant.
@@ -132,9 +162,13 @@ if (-not $selectorAst) {
     throw 'Get-ResourceLinkFlavors is not defined in the facade.'
 }
 
+# S2121: the harness loads the real registry instead of stubbing a flavor list. The stub it replaced
+# had already drifted - it substituted a flat array where the facade had grown a per-module hashtable,
+# so the selector was being exercised in a shape the facade no longer had.
+$registryPath = Join-Path $repoRoot 'scripts/utils/gradle-modules.ps1'
 $selectorHarness = [scriptblock]::Create(@"
 param([string[]] `$normChangedFiles, [string] `$TargetModule)
-`$script:ResourceLinkFlavors = @('Standard', 'NoLegal', 'Lite', 'Photos', 'Legacy', 'Vr')
+. '$registryPath'
 $($selectorAst.Extent.Text)
 Get-ResourceLinkFlavors -TargetModule `$TargetModule
 "@)
@@ -174,10 +208,21 @@ Assert-FlavorSelection -Case 'repeated flavor source set' -TargetModule 'app_v2'
     -ChangedSet @(
         'app_v2/src/vr/res/values/strings.xml',
         'app_v2/src/vr/res/layout/vr_player.xml')
-# The watch module declares no product flavors and check-standard-fast.ps1 exits 2 on any other
-# -Flavor, so a flavor-shaped path in the set must not leak into a wear invocation.
+# The watch declares Standard and NoLegal only, and check-standard-fast.ps1 exits 2 on any other
+# -Flavor, so a phone flavor path in the set must not leak into a wear invocation.
 Assert-FlavorSelection -Case 'wear module' -TargetModule 'wear' -Expected @('Standard') `
     -ChangedSet @('wear/src/main/res/values/strings.xml', 'app_v2/src/vr/res/values/strings.xml')
+Assert-FlavorSelection -Case 'wear noLegal source set' -TargetModule 'wear' -Expected @('Standard', 'NoLegal') `
+    -ChangedSet @('wear/src/noLegal/res/values/strings.xml')
+# S2121: a module with no flavor dimension answers with an EMPTY set, which is what tells the gate to
+# invoke the builder without -Flavor and gradle to run :watchface:processDebugResources.
+Assert-FlavorSelection -Case 'flavorless module' -TargetModule 'watchface' -Expected @() `
+    -ChangedSet @('watchface/src/main/res/values/colors.xml')
+# Only THIS module's paths may select a flavor. A set spanning two modules used to offer each of them
+# the other's source sets, which is harmless only while the gate runs for one declared module.
+Assert-FlavorSelection -Case 'foreign flavor path does not leak in' -TargetModule 'app_v2' `
+    -Expected @('Standard') `
+    -ChangedSet @('app_v2/src/main/res/values/colors.xml', 'wear/src/noLegal/res/values/strings.xml')
 
 # S2069: an app_v2-only gate must be decided by WHERE the change is, not only by its ChangeType.
 # A wear-only set used to fire the focus-highlight gate, which can read nothing but app_v2, and the

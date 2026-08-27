@@ -1690,7 +1690,6 @@
     <string name="wear_settings_slideshow">Слайдшоу</string>
     <string name="wear_settings_album_art">Обложки альбомов</string>
     <string name="wear_settings_slideshow_interval">Интервал слайдшоу (сек)</string>
-    <string name="wear_push_settings">Отправить настройки часам</string>
     <string name="wear_push_settings_failed">Не получилось отправить настройки на часы. Попробуйте ещё раз.</string>
 
     <!-- Import from Watch strings (S0111 Phase 03) -->
@@ -3486,7 +3485,6 @@
     <string name="open_on_phone_notification_title">Открыть с часов</string>
     <string name="open_on_phone_notification_text">Нажмите, чтобы открыть %1$s</string>
     <string name="open_on_phone_channel_name">Открытие с часов</string>
-    <string name="wear_companion_enable_description">Включить настройку на часах</string>
     <string name="wear_settings_audio_desc">Воспроизведение и синхронизация аудио на часах</string>
     <string name="wear_settings_video_desc">Воспроизведение и синхронизация видео на часах</string>
     <string name="wear_settings_images_desc">Просмотр и синхронизация изображений на часах</string>
@@ -3495,4 +3493,13 @@
     <string name="wear_settings_keep_awake_desc">Предотвращать засыпание экрана часов вне плееров</string>
     <string name="launcher_settings_wallpaper_camera">Камера</string>
     <string name="launcher_settings_wallpaper_camera_lens_title">Выберите камеру</string>
+    <string name="wear_settings_album_art_tooltip_title">Обложка альбома</string>
+    <string name="wear_settings_album_art_tooltip_message">Загружает и сохраняет на часах обложку для каждого синхронизированного аудиофайла. Занимает дополнительное место на часах и, при первой синхронизации, дополнительный трафик.</string>
+    <string name="wear_settings_keep_awake_tooltip_title">Не выключать экран</string>
+    <string name="wear_settings_keep_awake_tooltip_message">Не даёт экрану часов гаснуть вне воспроизведения аудио, видео и фото - например, при просмотре настроек или списка файлов. Увеличивает расход батареи часов.</string>
+    <string name="wear_settings_sync_button">Синхронизировать настройки</string>
+    <string name="wear_settings_last_synced">Синхронизировано: %1$s</string>
+    <string name="wear_settings_sync_never">Ещё не синхронизировано</string>
+    <string name="wear_setting_streams_section">Показывать трансляции</string>
+    <string name="wear_setting_streams_section_desc">Показывать раздел трансляций на часах</string>
 </resources>

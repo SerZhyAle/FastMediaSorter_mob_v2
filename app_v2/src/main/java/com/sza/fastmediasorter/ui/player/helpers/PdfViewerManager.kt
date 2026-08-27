@@ -13,6 +13,8 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.stats.StatsEvent
@@ -392,6 +394,7 @@ class PdfViewerManager(
                     try {
                         networkFileManager.prepareFileForRead(mediaFile)
                     } catch (e: Exception) {
+                        e.rethrowIfCancellation()
                         withContext(Dispatchers.Main) {
                             loadingToastJob.cancel()
                             safeViews.playerProgressBar.isVisible = false
@@ -468,7 +471,7 @@ class PdfViewerManager(
                             callback.showError(root.context.getString(R.string.protected_file_unsupported))
                         }
                     } catch (e: Exception) {
-                        Timber.e(e, "Error initializing PDF renderer")
+                        e.errorUnlessCancellation("Error initializing PDF renderer")
                         withContext(Dispatchers.Main) {
                             loadingToastJob.cancel()
                             safeViews.playerProgressBar.isVisible = false
@@ -477,7 +480,7 @@ class PdfViewerManager(
                     }
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Error loading PDF")
+                e.errorUnlessCancellation("Error loading PDF")
                 loadingToastJob.cancel()
                 safeViews.playerProgressBar.isVisible = false
                 callback.showError(root.context.getString(R.string.pdf_display_error))
@@ -605,7 +608,7 @@ class PdfViewerManager(
                 val current = settingsRepository.getSettings().first()
                 settingsRepository.updateSettings(current.copy(pdfScrollMode = isScrollMode))
             } catch (e: Exception) {
-                Timber.e(e, "PDF: Failed to persist scroll mode preference")
+                e.errorUnlessCancellation("PDF: Failed to persist scroll mode preference")
             }
         }
 
@@ -648,7 +651,7 @@ class PdfViewerManager(
                 val current = settingsRepository.getSettings().first()
                 settingsRepository.updateSettings(current.copy(pdfColorMode = currentColorMode.name))
             } catch (e: Exception) {
-                Timber.e(e, "PDF: Failed to persist color mode preference")
+                e.errorUnlessCancellation("PDF: Failed to persist color mode preference")
             }
         }
     }
@@ -812,7 +815,7 @@ class PdfViewerManager(
                     duration = pdfPageCount.toLong()
                 )
             } catch (e: Exception) {
-                Timber.e(e, "PDF: Failed to save page position")
+                e.errorUnlessCancellation("PDF: Failed to save page position")
             }
         }
     }
@@ -956,7 +959,7 @@ class PdfViewerManager(
                     }
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Error rendering PDF page")
+                e.errorUnlessCancellation("Error rendering PDF page")
                 withContext(Dispatchers.Main) {
                     safeViews.playerProgressBar.isVisible = false
                     callback.showError(root.context.getString(R.string.pdf_page_render_failed))

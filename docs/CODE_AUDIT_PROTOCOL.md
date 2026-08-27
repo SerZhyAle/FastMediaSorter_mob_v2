@@ -101,7 +101,7 @@ This is a fast self-review, not a substitute for the deeper end-of-task audit (e
 
 Check these first:
 
-- UI -> ViewModel -> UseCase -> Repository -> DataSource is preserved
+- UI -> ViewModel -> UseCase -> Repository -> DataSource is preserved. Partly ratcheted since S2103 by four rules under the neuroslop umbrella - `ui-imports-data`, `ui-imports-room`, `ui-imports-impl`, `viewmodel-imports-repository` - which stop the `src/main` counts from growing but say nothing about the leaks already frozen in the baselines, so read the layering by eye as well
 - no business logic is introduced into Activities
 - singleton classes do not retain `Activity`, `Fragment`, `View`, `Dialog`, or adapter instances
 - manager classes own a clear release point

@@ -61,30 +61,27 @@ VR-редакция - не отдельное приложение, а тот ж
 | Meta Horizon Store | Quest 3 / Quest Pro / Quest 2 | `assembleVrRelease` | В планах - иммерсивный режим ещё не подключён |
 | Google Play | Устройства Android XR | `bundleVrRelease` (AAB) | В планах - иммерсивный режим ещё не подключён |
 
-Имя пакета: `com.sza.fastmediasorter.vr`
+Имя пакета: `com.sza.fastmediasorter` - общее с флейвором `standard` (см. «Технические ограничения» ниже).
 
 За рабочим 3D-погружением сегодня - в sideload-сборку `noLegal`, см. [Установка VR через sideload](VR_SIDELOAD_RU.md).
 
 ## Команды сборки
 
+`build-vr-release.ps1` - единственный VR-сборщик. Debug-сборки и AAB собираются напрямую через Gradle.
+
 ```powershell
-# Debug
-.\scripts\builders\build-vr-debug.ps1
-
-# Debug + установка на Quest через ADB
-.\scripts\builders\build-vr-device.ps1
-
-# Release APK (Meta Horizon Store)
+# Release APK (Meta Horizon Store) - алиас: .\a.ps1 vr
 .\scripts\builders\build-vr-release.ps1
 
-# Release AAB + APK (Google Play / Android XR)
-.\scripts\builders\build-vr-aab.ps1
-
-# Gradle напрямую
+# Debug APK
 .\gradlew.bat assembleVrDebug
+
+# Release APK / AAB (Google Play / Android XR)
 .\gradlew.bat assembleVrRelease
 .\gradlew.bat bundleVrRelease
 ```
+
+Как поставить сборку на шлем - см. [Установка VR через sideload](VR_SIDELOAD_RU.md).
 
 ## Технические ограничения
 
@@ -93,7 +90,7 @@ VR-редакция - не отдельное приложение, а тот ж
 - **XR-рантайм:** для входа в иммерсивный режим нужен OpenXR 1.1.48+. Без обнаруженного XR-рантайма приложение работает как обычно, в плоском плеере - отдельного экрана-заглушки нет.
 - **Нативный код:** поставляется OpenXR loader AAR плюс `openxr_native.so` (C++ мост, собираемый CMake). Добавляет ~8 МБ нативной нагрузки поверх стандартной сборки.
 - **Нет Wear OS companion:** у шлемов нет парных часов, поэтому `SUPPORT_WEAR_COMPANION = false`.
-- **Package ID:** `com.sza.fastmediasorter.vr` принадлежит флейвору `vr` (Store-канал). Sideload-сборка с VR отдаётся через флейвор `noLegal` и использует `com.sza.fastmediasorter` - на одном устройстве `vr` и `noLegal` могут сосуществовать.
+- **Package ID:** у флейвора `vr` нет собственного `applicationIdSuffix` - он делит `com.sza.fastmediasorter` со `standard` и со sideload-сборкой `noLegal`. Одновременно на устройстве может быть установлен только один из трёх - установка другого заменяет уже стоящий. Отдельный `.vr`-идентификатор появится, когда флейвор реально выйдет в стор (S0555 / S0556).
 - **DTS / расширенные кодеки:** всегда вшиты через `fms-ffmpeg-dts.aar`. Hardware Quest везде arm64, поэтому single-ABI AAR достаточно каждому VR-пользователю.
 
 ### Каналы дистрибуции

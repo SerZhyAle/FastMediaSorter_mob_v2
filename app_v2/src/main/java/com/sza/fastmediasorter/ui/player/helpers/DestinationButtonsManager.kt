@@ -13,6 +13,7 @@ import androidx.core.widget.TextViewCompat
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -249,7 +250,7 @@ class DestinationButtonsManager(
                 callback.onUpdateCommandAvailability()
                 refreshSlotBadges()
             } catch (e: Exception) {
-                Timber.e(e, "Failed to load destinations")
+                e.errorUnlessCancellation("Failed to load destinations")
                 Toast.makeText(root.context, R.string.toast_failed_to_load_destinations, Toast.LENGTH_SHORT).show()
             }
         }

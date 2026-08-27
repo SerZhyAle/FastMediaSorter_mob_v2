@@ -2,7 +2,7 @@
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151)
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
-Enter-BuildLockOrExit -Reason "build-standard-device.ps1"
+Enter-BuildLockOrExit -Reason "build-standard-device.ps1" -Domain Build.Phone
 try {
 
 # ADB path
@@ -151,5 +151,5 @@ Write-Host "To stop: Stop-Process -Id $($logcatProcess.Id)" -ForegroundColor Cya
 
 }
 finally {
-    Exit-AgentLock -Name Build
+    Exit-AgentLock -Name 'Build' -Domains @('Build.Phone')
 }

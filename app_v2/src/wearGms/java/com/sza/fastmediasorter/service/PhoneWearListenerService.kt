@@ -33,12 +33,14 @@ import com.sza.fastmediasorter.domain.model.WearPhoneResourceRequest
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceRequestKind
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceResponseStatus
 import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
+import com.sza.fastmediasorter.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.domain.model.WearSourcesExportPayload
 import com.sza.fastmediasorter.domain.model.WearStreamTransferAck
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
 import com.sza.fastmediasorter.domain.usecase.ApplyWatchFavoritesDeltaUseCase
 import com.sza.fastmediasorter.domain.usecase.ImportWatchSourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.ListPhoneResourcePageUseCase
+import com.sza.fastmediasorter.domain.usecase.MergeWearSettingsReportUseCase
 import com.sza.fastmediasorter.domain.usecase.OpenPhoneResourceChannelUseCase
 import com.sza.fastmediasorter.domain.usecase.PhoneResourceChannel
 import com.sza.fastmediasorter.domain.usecase.ReceiveWatchFileUseCase
@@ -89,6 +91,8 @@ class PhoneWearListenerService : WearableListenerService() {
     @Inject lateinit var gson: Gson
 
     @Inject lateinit var wearSettingsMirrorStore: SharedPreferencesWearSettingsMirrorStore
+
+    @Inject lateinit var mergeWearSettingsReportUseCase: MergeWearSettingsReportUseCase
 
     @Inject
     @ApplicationScope
@@ -224,16 +228,43 @@ class PhoneWearListenerService : WearableListenerService() {
     }
 
     override fun onDataChanged(events: DataEventBuffer) {
+        val receivedAt = System.currentTimeMillis()
         for (event in events) {
-            if (event.type == DataEvent.TYPE_CHANGED &&
-                event.dataItem.uri.path == WearDataLayerPaths.PLAYBACK_STATE
-            ) {
-                val payloadBytes = DataMapItem.fromDataItem(event.dataItem)
-                    .dataMap.getByteArray("payload") ?: continue
-                handlePlaybackState(payloadBytes)
-            }
+            if (event.type != DataEvent.TYPE_CHANGED) continue
+            dispatchDataEvent(event, receivedAt)
         }
         events.release()
+    }
+
+    // The per-event work is a function rather than the loop body so that skipping a payload-less
+    // event is a return here instead of a second continue in the walk above.
+    private fun dispatchDataEvent(event: DataEvent, receivedAtEpochMillis: Long) {
+        val payloadBytes = DataMapItem.fromDataItem(event.dataItem)
+            .dataMap.getByteArray("payload") ?: return
+        when (event.dataItem.uri.path) {
+            WearDataLayerPaths.PLAYBACK_STATE -> handlePlaybackState(payloadBytes)
+            WearDataLayerPaths.SETTINGS_REPORT -> handleSettingsReport(payloadBytes, receivedAtEpochMillis)
+        }
+    }
+
+    // S2093: the reverse leg of the settings exchange terminates here, beside every other
+    // watch-originated path. The arrival time is read once for the whole buffer and handed down,
+    // because the merge measures the clock skew from it against the envelope's own sentAt.
+    private fun handleSettingsReport(data: ByteArray, receivedAtEpochMillis: Long) {
+        applicationScope.launch {
+            try {
+                val envelope = envelopeCodec.decode(data)
+                val payload = gson.fromJson(
+                    envelope.data.decodeToString(),
+                    WearSettingsPayload::class.java
+                )
+                Timber.d("S2093: phone merging watch report, skew=${receivedAtEpochMillis - envelope.sentAt}ms")
+                val merged = mergeWearSettingsReportUseCase(payload, envelope.sentAt, receivedAtEpochMillis)
+                WearSyncEvents.emitWatchSettingsMerged(merged)
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to merge watch settings report")
+            }
+        }
     }
 
     private fun handlePlaybackState(data: ByteArray) {

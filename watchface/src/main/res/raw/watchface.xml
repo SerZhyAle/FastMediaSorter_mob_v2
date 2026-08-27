@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    S1677 - FastMediaSorter watch face, Watch Face Format v4, 480x480 round (Galaxy Watch 7).
+
+    Composition signed off by the owner on 2026-08-26: large time in the centre, date beneath it,
+    an arc of complication slots along the bottom edge, waves as a background across the lower
+    half, and particles the tilt of the case pushes around.
+
+    Everything moving here is drawn with vector primitives and moved by <Transform>/<Gyro>, never
+    by a sequence of frames. That is a budget decision, not a stylistic one: an image counts
+    against the memory limit after decompression at 4 bytes per pixel, so one full-screen 480x480
+    frame costs about 0.9 MB and a frame-by-frame wave animation would eat the entire 10 MB
+    ambient allowance on its own. Vector primitives cost nothing.
+-->
+<WatchFace width="480" height="480" clipShape="CIRCLE">
+
+    <Metadata key="CLOCK_TYPE" value="DIGITAL" />
+    <Metadata key="PREVIEW_TIME" value="10:08:32" />
+
+    <Scene backgroundColor="#ff05070c">
+
+        <!-- ========== waves, interactive ========== -->
+        <Group name="waves" x="0" y="0" width="480" height="480" alpha="255">
+            <Variant mode="AMBIENT" target="alpha" value="0" />
+            <!-- Lane 1: half-period 120 px, amplitude 15 px, 6 humps spanning 720 px.
+                 Each hump is a 56.1-degree arc of a circle of radius 127.5, which is the circle through
+                 the hump's two crossings and its peak - that is what makes neighbouring humps meet
+                 at matching tangents instead of in a cusp.
+                 One whole period (240 px) travels past every 12 s. 12 divides 60, so the
+                 sawtooth wraps exactly when the arc pattern repeats and the seam is invisible. -->
+            <Group name="wave_lane_1" x="0" y="0" width="720" height="480">
+                <Transform target="x" value="(0 - 240) * fract([SECOND_MILLISECOND] / 12)" />
+                <PartDraw x="0" y="0" width="720" height="480">
+                    <Gyro x="[ACCELEROMETER_ANGLE_X] * 0.1" y="[ACCELEROMETER_ANGLE_Y] * 0.04" />
+                    <Arc centerX="60" centerY="428.5" width="255" height="255" startAngle="331.93" endAngle="28.07">
+                        <Stroke color="#ff0b82eb" thickness="4" cap="ROUND" />
+                    </Arc>
+                    <Arc centerX="180" centerY="203.5" width="255" height="255" startAngle="151.93" endAngle="208.07">
+                        <Stroke color="#ff0b82eb" thickness="4" cap="ROUND" />
+                    </Arc>
+                    <Arc centerX="300" centerY="428.5" width="255" height="255" startAngle="331.93" endAngle="28.07">
+                        <Stroke color="#ff0b82eb" thickness="4" cap="ROUND" />
+                    </Arc>
+                    <Arc centerX="420" centerY="203.5" width="255" height="255" startAngle="151.93" endAngle="208.07">
+                        <Stroke color="#ff0b82eb" thickness="4" cap="ROUND" />
+                    </Arc>
+                    <Arc centerX="540" centerY="428.5" width="255" height="255" startAngle="331.93" endAngle="28.07">
+                        <Stroke color="#ff0b82eb" thickness="4" cap="ROUND" />
+                    </Arc>
+                    <Arc centerX="660" centerY="203.5" width="255" height="255" startAngle="151.93" endAngle="208.07">
+                        <Stroke color="#ff0b82eb" thickness="4" cap="ROUND" />
+                    </Arc>
+                </PartDraw>
+            </Group>
+            <!-- Lane 2: half-period 96 px, amplitude 12 px, 7 humps spanning 672 px.
+                 Each hump is a 56.1-degree arc of a circle of radius 102, which is the circle through
+                 the hump's two crossings and its peak - that is what makes neighbouring humps meet
+                 at matching tangents instead of in a cusp.
+                 One whole period (192 px) travels past every 20 s. 20 divides 60, so the
+                 sawtooth wraps exactly when the arc pattern repeats and the seam is invisible. -->
+            <Group name="wave_lane_2" x="0" y="0" width="672" height="480">
+                <Transform target="x" value="(0 - 192) * fract([SECOND_MILLISECOND] / 20)" />
+                <PartDraw x="0" y="0" width="672" height="480">
+                    <Gyro x="[ACCELEROMETER_ANGLE_X] * 0.2" y="[ACCELEROMETER_ANGLE_Y] * 0.08" />
+                    <Arc centerX="48" centerY="442" width="204" height="204" startAngle="331.93" endAngle="28.07">
+                        <Stroke color="#ff3d9bef" thickness="5" cap="ROUND" />
+                    </Arc>
+                    <Arc centerX="144" centerY="262" width="204" height="204" startAngle="151.93" endAngle="208.07">
+                        <Stroke color="#ff3d9bef" thickness="5" cap="ROUND" />
+                    </Arc>
+                    <Arc centerX="240" centerY="442" width="204" height="204" startAngle="331.93" endAngle="28.07">
+                        <Stroke color="#ff3d9bef" thickness="5" cap="ROUND" />
+                    </Arc>
+                    <Arc centerX="336" centerY="262" width="204" height="204" startAngle="151.93" endAngle="208.07">
+                        <Stroke color="#ff3d9bef" thickness="5" cap="ROUND" />
+                    </Arc>
+                    <Arc centerX="432" centerY="442" width="204" height="204" startAngle="331.93" endAngle="28.07">
+                        <Stroke color="#ff3d9bef" thickness="5" cap="ROUND" />
+                    </Arc>
+                    <Arc centerX="528" centerY="262" width="204" height="204" startAngle="151.93" endAngle="208.07">
+                        <Stroke color="#ff3d9bef" thickness="5" cap="ROUND" />
+                    </Arc>
+                    <Arc centerX="624" centerY="442" width="204" height="204" startAngle="331.93" endAngle="28.07">
+                        <Stroke color="#ff3d9bef" thickness="5" cap="ROUND" />
+                    </Arc>
+                </PartDraw>
+            </Group>
+            <!-- Lane 3: half-period 160 px, amplitude 20 px, 5 humps spanning 800 px.
+                 Each hump is a 56.1-degree arc of a circle of radius 170, which is the circle through
+                 the hump's two crossings and its peak - that is what makes neighbouring humps meet
+                 at matching tangents instead of in a cusp.
+                 One whole period (320 px) travels past every 15 s. 15 divides 60, so the
+                 sawtooth wraps exactly when the arc pattern repeats and the seam is invisible. -->
+            <Group name="wave_lane_3" x="0" y="0" width="800" height="480">
+                <Transform target="x" value="(0 - 320) * fract([SECOND_MILLISECOND] / 15)" />
+                <PartDraw x="0" y="0" width="800" height="480">
+                    <Gyro x="[ACCELEROMETER_ANGLE_X] * 0.3" y="[ACCELEROMETER_ANGLE_Y] * 0.12" />
+                    <Arc centerX="80" centerY="542" width="340" height="340" startAngle="331.93" endAngle="28.07">
+                        <Stroke color="#ff6db4f3" thickness="5" cap="ROUND" />
+                    </Arc>
+                    <Arc centerX="240" centerY="242" width="340" height="340" startAngle="151.93" endAngle="208.07">
+                        <Stroke color="#ff6db4f3" thickness="5" cap="ROUND" />
+                    </Arc>
+                    <Arc centerX="400" centerY="542" width="340" height="340" startAngle="331.93" endAngle="28.07">
+                        <Stroke color="#ff6db4f3" thickness="5" cap="ROUND" />
+                    </Arc>
+                    <Arc centerX="560" centerY="242" width="340" height="340" startAngle="151.93" endAngle="208.07">
+                        <Stroke color="#ff6db4f3" thickness="5" cap="ROUND" />
+                    </Arc>
+                    <Arc centerX="720" centerY="542" width="340" height="340" startAngle="331.93" endAngle="28.07">
+                        <Stroke color="#ff6db4f3" thickness="5" cap="ROUND" />
+                    </Arc>
+                </PartDraw>
+            </Group>
+            <!-- Lane 4: half-period 80 px, amplitude 10 px, 8 humps spanning 640 px.
+                 Each hump is a 56.1-degree arc of a circle of radius 85, which is the circle through
+                 the hump's two crossings and its peak - that is what makes neighbouring humps meet
+                 at matching tangents instead of in a cusp.
+                 One whole period (160 px) travels past every 10 s. 10 divides 60, so the
+                 sawtooth wraps exactly when the arc pattern repeats and the seam is invisible. -->
+            <Group name="wave_lane_4" x="0" y="0" width="640" height="480">
+                <Transform target="x" value="(0 - 160) * fract([SECOND_MILLISECOND] / 10)" />
+                <PartDraw x="0" y="0" width="640" height="480">
+                    <Gyro x="[ACCELEROMETER_ANGLE_X] * 0.4" y="[ACCELEROMETER_ANGLE_Y] * 0.16" />
+                    <Arc centerX="40" centerY="507" width="170" height="170" startAngle="331.93" endAngle="28.07">
+                        <Stroke color="#ff98cff1" thickness="6" cap="ROUND" />
+                    </Arc>
+                    <Arc centerX="120" centerY="357" width="170" height="170" startAngle="151.93" endAngle="208.07">
+                        <Stroke color="#ff98cff1" thickness="6" cap="ROUND" />
+                    </Arc>
+                    <Arc centerX="200" centerY="507" width="170" height="170" startAngle="331.93" endAngle="28.07">
+                        <Stroke color="#ff98cff1" thickness="6" cap="ROUND" />
+                    </Arc>
+                    <Arc centerX="280" centerY="357" width="170" height="170" startAngle="151.93" endAngle="208.07">
+                        <Stroke color="#ff98cff1" thickness="6" cap="ROUND" />
+                    </Arc>
+                    <Arc centerX="360" centerY="507" width="170" height="170" startAngle="331.93" endAngle="28.07">
+                        <Stroke color="#ff98cff1" thickness="6" cap="ROUND" />
+                    </Arc>
+                    <Arc centerX="440" centerY="357" width="170" height="170" startAngle="151.93" endAngle="208.07">
+                        <Stroke color="#ff98cff1" thickness="6" cap="ROUND" />
+                    </Arc>
+                    <Arc centerX="520" centerY="507" width="170" height="170" startAngle="331.93" endAngle="28.07">
+                        <Stroke color="#ff98cff1" thickness="6" cap="ROUND" />
+                    </Arc>
+                    <Arc centerX="600" centerY="357" width="170" height="170" startAngle="151.93" endAngle="208.07">
+                        <Stroke color="#ff98cff1" thickness="6" cap="ROUND" />
+                    </Arc>
+                </PartDraw>
+            </Group>
+        </Group>
+
+        <!-- ========== waves, ambient ========== -->
+        <!-- One lane, thin, static and dim. The always-on screen is held to 15% lit pixels averaged
+             across the whole face, sampled roughly every ten minutes for a full day, and every
+             sample has to pass - so ambient gets an outline, never a wash. -->
+        <Group name="waves_ambient" x="0" y="0" width="480" height="480" alpha="0">
+            <Variant mode="AMBIENT" target="alpha" value="255" />
+            <PartDraw x="0" y="0" width="480" height="480">
+                <Arc centerX="80" centerY="542" width="340" height="340" startAngle="331.93" endAngle="28.07">
+                    <Stroke color="#ff5c6b7d" thickness="2" cap="ROUND" />
+                </Arc>
+                <Arc centerX="240" centerY="242" width="340" height="340" startAngle="151.93" endAngle="208.07">
+                    <Stroke color="#ff5c6b7d" thickness="2" cap="ROUND" />
+                </Arc>
+                <Arc centerX="400" centerY="542" width="340" height="340" startAngle="331.93" endAngle="28.07">
+                    <Stroke color="#ff5c6b7d" thickness="2" cap="ROUND" />
+                </Arc>
+            </PartDraw>
+        </Group>
+
+        <!-- ========== particles ========== -->
+        <!-- Hidden entirely in ambient: motion on an always-on screen costs power and reads as
+             nothing, and every lit particle spends part of the 15% budget. -->
+        <Group name="particles" x="0" y="0" width="480" height="480" alpha="255">
+            <Variant mode="AMBIENT" target="alpha" value="0" />
+            <!-- far layer: at the full +/-90 degrees of tilt it slides 22.5 px across and 7.2 px down.
+                 Each layer carries its own coefficient on purpose - one shared value would move the
+                 whole field as a single rigid sheet instead of a scatter with depth. -->
+            <PartDraw name="particles_far" x="0" y="0" width="480" height="480">
+                <Gyro x="[ACCELEROMETER_ANGLE_X] * 0.25" y="[ACCELEROMETER_ANGLE_Y] * 0.08" />
+                <Ellipse x="115.5" y="93.5" width="5" height="5">
+                    <Fill color="#66c4e3f7" />
+                </Ellipse>
+                <Ellipse x="350" y="82" width="4" height="4">
+                    <Fill color="#66c4e3f7" />
+                </Ellipse>
+                <Ellipse x="203.8" y="59.8" width="4.4" height="4.4">
+                    <Fill color="#66c4e3f7" />
+                </Ellipse>
+                <Ellipse x="395.6" y="187.6" width="4.8" height="4.8">
+                    <Fill color="#66c4e3f7" />
+                </Ellipse>
+                <Ellipse x="64" y="198" width="4" height="4">
+                    <Fill color="#66c4e3f7" />
+                </Ellipse>
+                <Ellipse x="298.2" y="126.2" width="3.6" height="3.6">
+                    <Fill color="#66c4e3f7" />
+                </Ellipse>
+            </PartDraw>
+            <!-- mid layer: at the full +/-90 degrees of tilt it slides 40.5 px across and 13.5 px down.
+                 Each layer carries its own coefficient on purpose - one shared value would move the
+                 whole field as a single rigid sheet instead of a scatter with depth. -->
+            <PartDraw name="particles_mid" x="0" y="0" width="480" height="480">
+                <Gyro x="[ACCELEROMETER_ANGLE_X] * 0.45" y="[ACCELEROMETER_ANGLE_Y] * 0.15" />
+                <Ellipse x="146.5" y="146.5" width="7" height="7">
+                    <Fill color="#99cfe7fb" />
+                </Ellipse>
+                <Ellipse x="327" y="145" width="6" height="6">
+                    <Fill color="#99cfe7fb" />
+                </Ellipse>
+                <Ellipse x="236.8" y="92.8" width="6.4" height="6.4">
+                    <Fill color="#99cfe7fb" />
+                </Ellipse>
+                <Ellipse x="92.6" y="264.6" width="6.8" height="6.8">
+                    <Fill color="#99cfe7fb" />
+                </Ellipse>
+                <Ellipse x="389" y="259" width="6" height="6">
+                    <Fill color="#99cfe7fb" />
+                </Ellipse>
+            </PartDraw>
+            <!-- near layer: at the full +/-90 degrees of tilt it slides 63 px across and 21.6 px down.
+                 Each layer carries its own coefficient on purpose - one shared value would move the
+                 whole field as a single rigid sheet instead of a scatter with depth. -->
+            <PartDraw name="particles_near" x="0" y="0" width="480" height="480">
+                <Gyro x="[ACCELEROMETER_ANGLE_X] * 0.7" y="[ACCELEROMETER_ANGLE_Y] * 0.24" />
+                <Ellipse x="181" y="205" width="10" height="10">
+                    <Fill color="#cce3f2fe" />
+                </Ellipse>
+                <Ellipse x="291.8" y="221.8" width="8.4" height="8.4">
+                    <Fill color="#cce3f2fe" />
+                </Ellipse>
+                <Ellipse x="127.4" y="325.4" width="9.2" height="9.2">
+                    <Fill color="#cce3f2fe" />
+                </Ellipse>
+                <Ellipse x="346" y="314" width="8" height="8">
+                    <Fill color="#cce3f2fe" />
+                </Ellipse>
+                <Ellipse x="240.2" y="296.2" width="7.6" height="7.6">
+                    <Fill color="#cce3f2fe" />
+                </Ellipse>
+            </PartDraw>
+        </Group>
+
+        <!-- ========== slot guides ========== -->
+        <!-- Drawn under the slots so the arc is a visible part of the design even before the user
+             has assigned anything. A slot showing EMPTY renders nothing at all, and without these
+             rings the bottom of the face would simply look unfinished. -->
+        <Group name="slot_guides" x="0" y="0" width="480" height="480" alpha="255">
+            <Variant mode="AMBIENT" target="alpha" value="0" />
+            <PartDraw x="0" y="0" width="480" height="480">
+                <Ellipse x="83" y="304" width="58" height="58">
+                    <Stroke color="#3398cff1" thickness="2" cap="BUTT" />
+                </Ellipse>
+                <Ellipse x="162" y="361" width="58" height="58">
+                    <Stroke color="#3398cff1" thickness="2" cap="BUTT" />
+                </Ellipse>
+                <Ellipse x="260" y="361" width="58" height="58">
+                    <Stroke color="#3398cff1" thickness="2" cap="BUTT" />
+                </Ellipse>
+                <Ellipse x="339" y="304" width="58" height="58">
+                    <Stroke color="#3398cff1" thickness="2" cap="BUTT" />
+                </Ellipse>
+            </PartDraw>
+        </Group>
+
+        <!-- ========== time and date ========== -->
+        <!-- The group stops at y=302 and the slot arc starts at y=304. That two-pixel gap is
+             deliberate: <Launch> fires on a tap anywhere inside this group, nothing in the format
+             documents how a tap is arbitrated between an overlapping Launch and a complication
+             slot, and the cheapest way not to depend on an undocumented rule is not to overlap. -->
+        <Group name="dial_core" x="40" y="112" width="400" height="190">
+            <Launch target="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.MainActivity" />
+
+            <DigitalClock x="0" y="0" width="400" height="150">
+                <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="400" height="150" alpha="255">
+                    <Variant mode="AMBIENT" target="alpha" value="0" />
+                    <Font family="SYNC_TO_DEVICE" size="118" weight="MEDIUM" slant="NORMAL" color="#ffffffff" />
+                </TimeText>
+                <!-- The ambient twin of the same reading: thinner weight and a dimmer grey, swapped
+                     in by alpha rather than by restyling one element, which is the idiom the format
+                     documents for an ambient appearance change. -->
+                <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="400" height="150" alpha="0">
+                    <Variant mode="AMBIENT" target="alpha" value="255" />
+                    <Font family="SYNC_TO_DEVICE" size="118" weight="THIN" slant="NORMAL" color="#ffb9c6d6" />
+                </TimeText>
+            </DigitalClock>
+
+            <PartText x="0" y="150" width="400" height="40" alpha="255">
+                <Variant mode="AMBIENT" target="alpha" value="140" />
+                <Text align="CENTER" ellipsis="TRUE">
+                    <Font family="SYNC_TO_DEVICE" size="26" weight="NORMAL" slant="NORMAL" color="#ff9aa7b8">
+                        <Template><![CDATA[%s %s %s]]><Parameter expression="[DAY_OF_WEEK_S]" /><Parameter expression="[DAY]" /><Parameter expression="[MONTH_S]" /></Template>
+                    </Font>
+                </Text>
+            </PartText>
+        </Group>
+
+        <!-- ========== complication slots ==========
+             Four slots, well under the format ceiling of eight. Three carry a primaryProvider
+             naming a service that S2047 put in the wear module; the component is written from the
+             RELEASE application id of the watch app, because the debug build takes a .debug suffix
+             and a slot pointing at the debug component would sit empty on a release watch.
+
+             Every slot also lists EMPTY. That is what makes DefaultProviderPolicy optional and lets
+             a slot legitimately show nothing when FastMediaSorter is not installed - preferable to
+             falling back on an unrelated system value the owner never asked to see.
+
+             Each slot is hidden in ambient. Which of these four the always-on screen should keep is
+             still open for the owner to decide (strategic spec 6.7); starting from none makes the
+             remaining pixel budget measurable instead of guessed at. -->
+
+        <ComplicationSlot x="83" y="304" width="58" height="58" slotId="1" displayName="slot_outer_left_label" supportedTypes="SHORT_TEXT MONOCHROMATIC_IMAGE EMPTY">
+            <Variant mode="AMBIENT" target="alpha" value="0" />
+            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearFavouritesComplicationService" primaryProviderType="SHORT_TEXT" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
+            <BoundingOval x="0" y="0" width="58" height="58" outlinePadding="2.0" />
+            <Complication type="SHORT_TEXT">
+                <PartDraw x="0" y="0" width="58" height="58">
+                    <Ellipse x="0" y="0" width="58" height="58">
+                        <Fill color="#e605070c" />
+                    </Ellipse>
+                </PartDraw>
+                <PartText x="3" y="19" width="52" height="22">
+                    <Text align="CENTER" ellipsis="TRUE">
+                        <Font family="SYNC_TO_DEVICE" size="17" weight="MEDIUM" slant="NORMAL" color="#ffe3f2fe">
+                            <Template><![CDATA[%s]]><Parameter expression="[COMPLICATION.TEXT]" /></Template>
+                        </Font>
+                    </Text>
+                </PartText>
+            </Complication>
+            <Complication type="MONOCHROMATIC_IMAGE">
+                <PartDraw x="0" y="0" width="58" height="58">
+                    <Ellipse x="0" y="0" width="58" height="58">
+                        <Fill color="#e605070c" />
+                    </Ellipse>
+                </PartDraw>
+                <PartImage x="15" y="15" width="28" height="28" tintColor="#ffe3f2fe">
+                    <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                </PartImage>
+            </Complication>
+        </ComplicationSlot>
+
+        <ComplicationSlot x="162" y="361" width="58" height="58" slotId="2" displayName="slot_inner_left_label" supportedTypes="SHORT_TEXT EMPTY">
+            <Variant mode="AMBIENT" target="alpha" value="0" />
+            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearLastResourceComplicationService" primaryProviderType="SHORT_TEXT" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
+            <BoundingOval x="0" y="0" width="58" height="58" outlinePadding="2.0" />
+            <Complication type="SHORT_TEXT">
+                <PartDraw x="0" y="0" width="58" height="58">
+                    <Ellipse x="0" y="0" width="58" height="58">
+                        <Fill color="#e605070c" />
+                    </Ellipse>
+                </PartDraw>
+                <PartText x="3" y="19" width="52" height="22">
+                    <Text align="CENTER" ellipsis="TRUE">
+                        <Font family="SYNC_TO_DEVICE" size="17" weight="MEDIUM" slant="NORMAL" color="#ffe3f2fe">
+                            <Template><![CDATA[%s]]><Parameter expression="[COMPLICATION.TEXT]" /></Template>
+                        </Font>
+                    </Text>
+                </PartText>
+            </Complication>
+        </ComplicationSlot>
+
+        <ComplicationSlot x="260" y="361" width="58" height="58" slotId="3" displayName="slot_inner_right_label" supportedTypes="SHORT_TEXT EMPTY">
+            <Variant mode="AMBIENT" target="alpha" value="0" />
+            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearNowPlayingComplicationService" primaryProviderType="SHORT_TEXT" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
+            <BoundingOval x="0" y="0" width="58" height="58" outlinePadding="2.0" />
+            <Complication type="SHORT_TEXT">
+                <PartDraw x="0" y="0" width="58" height="58">
+                    <Ellipse x="0" y="0" width="58" height="58">
+                        <Fill color="#e605070c" />
+                    </Ellipse>
+                </PartDraw>
+                <PartText x="3" y="19" width="52" height="22">
+                    <Text align="CENTER" ellipsis="TRUE">
+                        <Font family="SYNC_TO_DEVICE" size="17" weight="MEDIUM" slant="NORMAL" color="#ffe3f2fe">
+                            <Template><![CDATA[%s]]><Parameter expression="[COMPLICATION.TEXT]" /></Template>
+                        </Font>
+                    </Text>
+                </PartText>
+            </Complication>
+        </ComplicationSlot>
+
+        <ComplicationSlot x="339" y="304" width="58" height="58" slotId="4" displayName="slot_outer_right_label" supportedTypes="SMALL_IMAGE MONOCHROMATIC_IMAGE SHORT_TEXT EMPTY">
+            <Variant mode="AMBIENT" target="alpha" value="0" />
+            <!-- No DefaultProviderPolicy on purpose. This is the app-shortcut slot, and which
+                 app a shortcut points at is a choice that belongs to the wearer - preselecting
+                 one would be guessing. It also avoids an unverified value: the format documents
+                 APP_SHORTCUT as a system provider but never states which complication type it
+                 returns, so naming one here would be an invention. -->
+            <BoundingOval x="0" y="0" width="58" height="58" outlinePadding="2.0" />
+            <Complication type="SMALL_IMAGE">
+                <PartDraw x="0" y="0" width="58" height="58">
+                    <Ellipse x="0" y="0" width="58" height="58">
+                        <Fill color="#e605070c" />
+                    </Ellipse>
+                </PartDraw>
+                <PartImage x="11" y="11" width="36" height="36">
+                    <Image resource="[COMPLICATION.SMALL_IMAGE]" />
+                </PartImage>
+            </Complication>
+            <Complication type="MONOCHROMATIC_IMAGE">
+                <PartDraw x="0" y="0" width="58" height="58">
+                    <Ellipse x="0" y="0" width="58" height="58">
+                        <Fill color="#e605070c" />
+                    </Ellipse>
+                </PartDraw>
+                <PartImage x="15" y="15" width="28" height="28" tintColor="#ffe3f2fe">
+                    <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                </PartImage>
+            </Complication>
+            <Complication type="SHORT_TEXT">
+                <PartDraw x="0" y="0" width="58" height="58">
+                    <Ellipse x="0" y="0" width="58" height="58">
+                        <Fill color="#e605070c" />
+                    </Ellipse>
+                </PartDraw>
+                <PartText x="3" y="19" width="52" height="22">
+                    <Text align="CENTER" ellipsis="TRUE">
+                        <Font family="SYNC_TO_DEVICE" size="17" weight="MEDIUM" slant="NORMAL" color="#ffe3f2fe">
+                            <Template><![CDATA[%s]]><Parameter expression="[COMPLICATION.TEXT]" /></Template>
+                        </Font>
+                    </Text>
+                </PartText>
+            </Complication>
+        </ComplicationSlot>
+
+    </Scene>
+
+</WatchFace>

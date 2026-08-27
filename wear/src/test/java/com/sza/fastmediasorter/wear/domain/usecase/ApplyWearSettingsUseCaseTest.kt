@@ -18,6 +18,13 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 
+// S2093: two edit times far enough apart that no rounding can reorder them, and a clock offset larger
+// than the gap between them - the case where an uncorrected comparison gives the wrong winner.
+private const val EARLY_EDIT = 1_000_000L
+private const val LATE_EDIT = 2_000_000L
+private const val CLOCK_SKEW = 5_000_000L
+private const val EXCHANGE_AT = 9_000_000L
+
 class ApplyWearSettingsUseCaseTest {
 
     private val context: Context = mockk(relaxed = true)
@@ -210,6 +217,82 @@ class ApplyWearSettingsUseCaseTest {
         )
     }
 
+    @Test
+    fun `S2093 a payload with no timestamps applies its values, as an older phone always did`() = runTest {
+        val repository = FakeWearPreferencesRepository().apply {
+            viewModeValue = WearViewMode.LIST
+            settingTimestampsValue = mapOf("viewMode" to LATE_EDIT)
+        }
+        val useCase = ApplyWearSettingsUseCase(context, repository)
+
+        useCase(payloadWithoutNewFields().copy(viewMode = WearViewMode.GRID_3.name))
+
+        assertEquals(WearViewMode.GRID_3, repository.viewModeValue)
+    }
+
+    @Test
+    fun `S2093 an incoming field edited later wins`() = runTest {
+        val repository = FakeWearPreferencesRepository().apply {
+            viewModeValue = WearViewMode.LIST
+            settingTimestampsValue = mapOf("viewMode" to EARLY_EDIT)
+        }
+        val useCase = ApplyWearSettingsUseCase(context, repository)
+
+        useCase(
+            payloadWithoutNewFields().copy(
+                viewMode = WearViewMode.GRID_3.name,
+                fieldTimestamps = mapOf("viewMode" to LATE_EDIT)
+            ),
+            sentAtEpochMillis = EXCHANGE_AT,
+            receivedAtEpochMillis = EXCHANGE_AT
+        )
+
+        assertEquals(WearViewMode.GRID_3, repository.viewModeValue)
+        assertEquals(LATE_EDIT, repository.settingTimestampsValue["viewMode"])
+    }
+
+    @Test
+    fun `S2093 an incoming field edited earlier loses to the watch value`() = runTest {
+        val repository = FakeWearPreferencesRepository().apply {
+            viewModeValue = WearViewMode.GRID_2
+            settingTimestampsValue = mapOf("viewMode" to LATE_EDIT)
+        }
+        val useCase = ApplyWearSettingsUseCase(context, repository)
+
+        useCase(
+            payloadWithoutNewFields().copy(
+                viewMode = WearViewMode.GRID_3.name,
+                fieldTimestamps = mapOf("viewMode" to EARLY_EDIT)
+            ),
+            sentAtEpochMillis = EXCHANGE_AT,
+            receivedAtEpochMillis = EXCHANGE_AT
+        )
+
+        assertEquals(WearViewMode.GRID_2, repository.viewModeValue)
+    }
+
+    @Test
+    fun `S2093 a sender whose clock lags still wins with the later edit`() = runTest {
+        val repository = FakeWearPreferencesRepository().apply {
+            viewModeValue = WearViewMode.LIST
+            settingTimestampsValue = mapOf("viewMode" to LATE_EDIT)
+        }
+        val useCase = ApplyWearSettingsUseCase(context, repository)
+
+        // The sender's clock is a full skew behind, so its genuinely later edit reads as the earlier
+        // number. Correcting by sentAt against the arrival time is what stops the watch from winning.
+        useCase(
+            payloadWithoutNewFields().copy(
+                viewMode = WearViewMode.GRID_3.name,
+                fieldTimestamps = mapOf("viewMode" to LATE_EDIT - CLOCK_SKEW + 1)
+            ),
+            sentAtEpochMillis = EXCHANGE_AT - CLOCK_SKEW,
+            receivedAtEpochMillis = EXCHANGE_AT
+        )
+
+        assertEquals(WearViewMode.GRID_3, repository.viewModeValue)
+    }
+
     private fun payloadWithoutNewFields() = WearSettingsPayload(
         audioEnabled = true,
         videoEnabled = true,
@@ -243,6 +326,8 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     var gameStateValue: String? = null
     var voiceNoteSendPolicyValue = VoiceNoteSendPolicy.AUTOMATIC
     var notificationPermissionAskedValue = false
+    var settingTimestampsValue: Map<String, Long> = emptyMap()
+    var lastSettingsSyncAtValue = 0L
 
     override val isAudioEnabled: Flow<Boolean> = MutableStateFlow(audioEnabled)
     override val isVideoEnabled: Flow<Boolean> = MutableStateFlow(videoEnabled)
@@ -359,5 +444,21 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
 
     override suspend fun setAppLanguage(languageCode: String?) {
         appLanguageValue = languageCode
+    }
+
+    // S2093: read through a getter, unlike the flows above - the merge reads the stamps back, so a test
+    // that seeds them after construction must be visible to it.
+    override val settingTimestamps: Flow<Map<String, Long>>
+        get() = MutableStateFlow(settingTimestampsValue)
+
+    override suspend fun stampSetting(field: String, atEpochMillis: Long) {
+        settingTimestampsValue = settingTimestampsValue + (field to atEpochMillis)
+    }
+
+    override val lastSettingsSyncAt: Flow<Long>
+        get() = MutableStateFlow(lastSettingsSyncAtValue)
+
+    override suspend fun markSettingsSynced(atEpochMillis: Long) {
+        lastSettingsSyncAtValue = atEpochMillis
     }
 }

@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -189,7 +190,7 @@ internal class TextViewerLoader(
                     }
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Error loading text file")
+                e.errorUnlessCancellation("Error loading text file")
                 withContext(Dispatchers.Main) {
                     setTextLoadSpinner(false)
                     showError(context.getString(R.string.text_file_display_error))

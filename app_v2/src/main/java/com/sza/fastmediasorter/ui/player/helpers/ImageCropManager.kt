@@ -17,6 +17,8 @@ import androidx.exifinterface.media.ExifInterface
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.usecase.FileOperation
@@ -103,7 +105,8 @@ class ImageCropManager(
                 exifOrientationToDegrees(
                     exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
                 )
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 0
             }
         } else {
@@ -224,7 +227,7 @@ class ImageCropManager(
                 callback.onSuccess(currentFile.path, CropMode.CROP)
             }
         } catch (e: Exception) {
-            Timber.e(e, "performCrop failed")
+            e.errorUnlessCancellation("performCrop failed")
             withContext(Dispatchers.Main) { callback.onError(context.getString(R.string.crop_failed)) }
         } finally {
             withContext(Dispatchers.IO) {
@@ -274,7 +277,7 @@ class ImageCropManager(
 
             withContext(Dispatchers.Main) { callback.onSuccess(targetPath, CropMode.CROP_TO_FILE) }
         } catch (e: Exception) {
-            Timber.e(e, "performCropToFile failed")
+            e.errorUnlessCancellation("performCropToFile failed")
             withContext(Dispatchers.Main) { callback.onError(context.getString(R.string.crop_to_file_failed)) }
         } finally {
             withContext(Dispatchers.IO) {
@@ -324,7 +327,7 @@ class ImageCropManager(
 
             withContext(Dispatchers.Main) { callback.onSuccess(targetPath, CropMode.COMPRESS_COPY) }
         } catch (e: Exception) {
-            Timber.e(e, "performCompressedCopy failed")
+            e.errorUnlessCancellation("performCompressedCopy failed")
             withContext(Dispatchers.Main) { callback.onError(context.getString(R.string.compress_copy_failed)) }
         } finally {
             withContext(Dispatchers.IO) {

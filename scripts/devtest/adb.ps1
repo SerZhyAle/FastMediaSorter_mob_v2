@@ -153,8 +153,9 @@
   read it - the watch publishes under the phone's application id, so every other verb already
   addresses a watch correctly once -DeviceId points at one. For `launch` it selects the component,
   because the watch declares its own activity under its own code namespace; for `install` it
-  selects `wear\build\outputs\apk\release` instead of the phone's flavored debug directory, and it
-  refuses a -Flavor, which the watch module does not have. `install` also refuses when -Module
+  selects `wear\build\outputs\apk\<flavor>\release` instead of the phone's flavored debug directory.
+  Since S2090 the watch has a flavor dimension of its own, but only `standard` and `noLegal` - a
+  phone-only flavor is refused by name. `install` also refuses when -Module
   disagrees with the selected device's `ro.build.characteristics` (watch vs not) - both modules
   share one applicationId (S1681), so the wrong -Module would otherwise silently replace whichever
   app is already on that device and still report success (S2043).
@@ -657,14 +658,18 @@ switch ($Verb.ToLowerInvariant()) {
         if (-not $isWatchDevice -and $Module -eq 'wear') {
             Fail 1 "device $id does not report watch characteristics but -Module wear was requested - installing the wear build onto a non-watch device is almost certainly a mistake. Point -DeviceId at the paired watch, or drop -Module wear."
         }
-        if ($Module -eq 'wear' -and $PSBoundParameters.ContainsKey('Flavor')) {
-            Fail 1 "-Module wear does not take -Flavor: the watch module declares no product flavors, so '$Flavor' names a variant that does not exist"
+        # S2090: the watch declares its own `version` dimension now, but only over two of the phone's six.
+        # Naming the accepted set beats naming the rejection: the wear set is a strict subset, so the
+        # plausible mistake is asking a watch for a phone-only flavor.
+        $wearFlavors = @('standard', 'noLegal')
+        if ($Module -eq 'wear' -and $wearFlavors -notcontains $Flavor) {
+            Fail 1 "-Module wear does not have flavor '$Flavor': the watch module declares $($wearFlavors -join ', ')"
         }
         $apkPath = $Apk
         if (-not $apkPath) {
             $repoRoot = (Resolve-Path -Path (Join-Path $PSScriptRoot '..\..')).Path
             $apkDir = if ($Module -eq 'wear') {
-                Join-Path $repoRoot 'wear\build\outputs\apk\release'
+                Join-Path $repoRoot "wear\build\outputs\apk\$Flavor\release"
             } else {
                 Join-Path $repoRoot "app_v2\build\outputs\apk\$Flavor\debug"
             }

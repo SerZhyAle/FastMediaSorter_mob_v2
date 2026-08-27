@@ -61,30 +61,27 @@ Today, only the `noLegal` sideload build has a working immersive headset experie
 | Meta Horizon Store | Quest 3 / Quest Pro / Quest 2 | `assembleVrRelease` | Planned - immersive mode not wired yet |
 | Google Play | Android XR devices | `bundleVrRelease` (AAB) | Planned - immersive mode not wired yet |
 
-Package name: `com.sza.fastmediasorter.vr`
+Package name: `com.sza.fastmediasorter` - shared with the `standard` flavor (see Technical Constraints below).
 
 For a working 3D immersive experience today, sideload the `noLegal` build instead - see the [VR Sideloading Guide](VR_SIDELOAD.md).
 
 ## Build Commands
 
+`build-vr-release.ps1` is the only VR builder script. Debug builds and the AAB run through Gradle directly.
+
 ```powershell
-# Debug
-.\scripts\builders\build-vr-debug.ps1
-
-# Debug + install on Quest via ADB
-.\scripts\builders\build-vr-device.ps1
-
-# Release APK (Meta Horizon Store)
+# Release APK (Meta Horizon Store) - alias: .\a.ps1 vr
 .\scripts\builders\build-vr-release.ps1
 
-# Release AAB + APK (Google Play / Android XR)
-.\scripts\builders\build-vr-aab.ps1
-
-# Gradle direct
+# Debug APK
 .\gradlew.bat assembleVrDebug
+
+# Release APK / AAB (Google Play / Android XR)
 .\gradlew.bat assembleVrRelease
 .\gradlew.bat bundleVrRelease
 ```
+
+To install a build on a headset, see the [VR Sideloading Guide](VR_SIDELOAD.md).
 
 ## Technical Constraints
 
@@ -93,7 +90,7 @@ For a working 3D immersive experience today, sideload the `noLegal` build instea
 - **XR runtime:** OpenXR 1.1.48+ is required to enter immersive mode. Without an XR runtime detected, the app plays normally in the flat player - there is no separate fallback screen.
 - **Native code:** ships the OpenXR loader AAR plus `openxr_native.so` (C++ bridge built by CMake). Adds ~8 MB of native payload over the standard build.
 - **No Wear OS companion:** headsets have no paired watch, so `SUPPORT_WEAR_COMPANION = false`.
-- **Package ID:** `com.sza.fastmediasorter.vr` belongs to the `vr` (Store) flavor. The sideload-VR build ships as the `noLegal` flavor and uses `com.sza.fastmediasorter` - it can coexist with `vr` on the same device.
+- **Package ID:** the `vr` flavor has no `applicationIdSuffix` of its own - it shares `com.sza.fastmediasorter` with `standard` and with the sideload-VR `noLegal` build. Only one of the three can be installed on a device at a time; installing another replaces whichever is already there. A dedicated `.vr` identity is deferred until the flavor actually ships to a store (S0555 / S0556).
 - **DTS / extended codecs:** always bundled via `fms-ffmpeg-dts.aar`. Quest hardware is uniformly arm64, so the single-ABI AAR is sufficient for every VR user.
 
 ### Distribution Channels

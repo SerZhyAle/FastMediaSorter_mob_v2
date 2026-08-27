@@ -419,8 +419,11 @@ function Get-FirstChangedFileMatch([string]$Pattern) {
     return $null
 }
 
-# S1915: the flavors app_v2 declares, spelled exactly as check-standard-fast.ps1 accepts them.
-$script:ResourceLinkFlavors = @('Standard', 'NoLegal', 'Lite', 'Photos', 'Legacy', 'Vr')
+# S1915: the flavors each module declares, spelled exactly as check-standard-fast.ps1 accepts them.
+# S2090: wear grew its own two-flavor dimension, so the candidate list is per module.
+# S2121: the list itself moved to scripts/utils/gradle-modules.ps1 - it was declared here AND in
+# check-standard-fast.ps1, and the copies had already started to drift.
+. (Join-Path $root 'scripts/utils/gradle-modules.ps1')
 
 function Get-ResourceLinkFlavors([string]$TargetModule) {
     # Which variants have to link before the changed set counts as proven. A resource under
@@ -428,19 +431,31 @@ function Get-ResourceLinkFlavors([string]$TargetModule) {
     # verdict about a variant that never sees the file - the same false green S1807 found when a
     # phone target was quoted as proof under a wear change.
     #
-    # wear declares no product flavors and check-standard-fast.ps1 exits 2 on any -Flavor but the
-    # default, so the watch module is answered before the source sets are read at all.
-    if ($TargetModule -eq 'wear') { return @('Standard') }
+    # S2090: wear used to be answered here with a flat @('Standard'), before the source sets were read
+    # at all, because it had one variant and the builder refused any -Flavor. Both premises are gone,
+    # and leaving the shortcut would close a wear/src/noLegal/res change green without ever linking it -
+    # exactly the false green this gate exists to prevent (S1881).
+    $candidates = @(Get-GradleModuleFlavors -Name $TargetModule)
+    # S2121: an empty answer is a real one - watchface declares no flavor dimension, and its task name
+    # carries no variant segment at all. The caller invokes the builder without -Flavor for it.
+    if ($candidates.Count -eq 0) { return @() }
+
+    # S2121: only THIS module's paths may select a flavor. Before, every path in the changed set was
+    # scanned for every module, so a set spanning two modules offered each of them the other's source
+    # sets - harmless while the gate only ever ran for one declared module, wrong the moment it runs
+    # for the set it derived.
+    $modulePrefix = (Get-GradleModule -Name $TargetModule).PathPrefix
 
     # src/main, src/debug and every other non-flavor source set ship inside the default variant,
     # so it is always linked; the loop only ever ADDS flavors on top of it.
     $selected = [System.Collections.Generic.List[string]]::new()
-    $selected.Add('Standard')
+    $selected.Add($candidates[0])
 
     foreach ($candidate in $normChangedFiles) {
+        if ($candidate -notlike "$modulePrefix*") { continue }
         if ($candidate -match '(^|/)src/([^/]+)/') {
             $sourceSet = $Matches[2]
-            foreach ($flavor in $script:ResourceLinkFlavors) {
+            foreach ($flavor in $candidates) {
                 # -eq on strings is case-insensitive here, which is what lets `vr` select `Vr`.
                 if ($sourceSet -eq $flavor -and -not $selected.Contains($flavor)) { $selected.Add($flavor) }
             }
@@ -501,6 +516,15 @@ $runsDetektGate = $isCodeChange
 # bug is its own ticket (S1372) - do not copy that shape here.
 $runsBaselineAbsorptionGate = @($changedFiles | Where-Object {
         ($_ -replace '\\', '/') -match 'config/detekt/baseline-[A-Za-z0-9_]+\.(xml|ids)$'
+    }).Count -gt 0
+# S2105: split-sync gate trigger. Deliberately its own variable, wider than the absorption gate's
+# above - it must also fire on the format/signal VIEW files (`baseline-<module>-format.xml` /
+# `-signal.xml`, hyphenated names the absorption regex above does not match by design) and on the
+# classification table itself, since either one changing without a regeneration is exactly the
+# staleness this gate exists to catch.
+$runsBaselineSplitSyncGate = @($changedFiles | Where-Object {
+        $f = ($_ -replace '\\', '/')
+        $f -match 'config/detekt/baseline-[A-Za-z0-9_-]+\.xml$' -or $f -eq 'config/detekt/rule-categories.txt'
     }).Count -gt 0
 # S0416 FGS-notification gate. Blocks the Android 16 "Bad notification for startForeground"
 # crash class: ?attr-tinted notification small icons (A) and foreground-service paths that
@@ -605,6 +629,23 @@ $runsScriptCheatsheetGate = (
     (Test-AnyChangedFile '(^|/)scripts/.*\.ps1$') -or
     (Test-AnyChangedFile 'docs/SCRIPT_CHEATSHEET\.md$')
 )
+# S2122 script-suite regression gate. Applicability is ASKED OF THE RUNNER, not re-derived here:
+# it owns the subject-resolution rules (sibling script, sibling lib, sibling directory, nested
+# tests dir, declared subject), and a second copy of that arithmetic in the facade is exactly how
+# a facade and its gate come to disagree about what a suite guards. The probe is skipped entirely
+# unless the set carries something under scripts/, so a Kotlin-, resource- or docs-only closure
+# spawns no process and pays nothing.
+$runsScriptSuiteGate = $false
+$scriptSuiteSkipReason = 'not applicable - no changed file lives under scripts/'
+if (Test-AnyChangedFile '(^|/)scripts/') {
+    $suiteProbe = & $pwsh -NoProfile -File (Join-Path $root 'scripts/quality/run-script-suites.ps1') `
+        -ListOnly -ChangedFiles ($changedFiles -join ',') 2>&1
+    $probeMatch = [regex]::Match(($suiteProbe -join "`n"), 'run-script-suites: (\d+) suite\(s\) selected')
+    $runsScriptSuiteGate = ($probeMatch.Success -and [int]$probeMatch.Groups[1].Value -gt 0)
+    if (-not $runsScriptSuiteGate) {
+        $scriptSuiteSkipReason = 'not applicable - no changed script has a regression suite guarding it'
+    }
+}
 # S1392 flavor-matrix doc-conformance gate. Fires when the flavor grid itself moves
 # (app_v2/build.gradle.kts), when the generated snapshot / rendered table is touched, or when one
 # of the documents carrying a checked glyph table is edited. Compares cell VALUES against
@@ -633,7 +674,11 @@ $runsOssNoticesGate = (
     (Test-AnyChangedFile 'scripts/(docs/oss-licenses\.psd1|docs/generate-oss-notices\.ps1|docs/OssDependencyParser\.ps1|quality/assert-oss-notices\.ps1)$')
 )
 
-Write-Host "post-change: $resolvedChangeType | $File -> $Target" -ForegroundColor Yellow
+# S2109: the banner names the code domains this closure covers, so the run says up front which
+# resource it will release at the end rather than leaving it to be inferred from the file list.
+. (Join-Path $root "scripts/utils/agent-lock-domains.ps1")
+$closureDomains = @(Resolve-CodeDomainsForPaths -Path ($changedFiles + $deletedFiles))
+Write-Host "post-change: $resolvedChangeType | $File -> $Target | domains: $($closureDomains -join ', ')" -ForegroundColor Yellow
 
 # S1372: keyed on the whole set - a resource file is rarely the first path a caller names, and
 # resolving the source set from $File alone judges the wrong flavor in a mixed close.
@@ -798,6 +843,38 @@ if ($runsBaselineAbsorptionGate) {
 }
 else {
     Skip-Step "detekt-baseline-absorption" "not applicable - no detekt baseline among the changed files"
+}
+
+# S2105: fatal for the same reason as the absorption gate above - a stale format/signal view file
+# would silently misreport how much of each kind of debt exists, and staleness here is exactly the
+# failure Rule 33's per-ticket criterion names ("agents read the artifact between releases").
+if ($runsBaselineSplitSyncGate) {
+    Invoke-Gate "detekt-baseline-split-sync" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/split-detekt-baseline.ps1") -Gate
+    }
+}
+else {
+    Skip-Step "detekt-baseline-split-sync" "not applicable - no detekt baseline, view file, or category table among the changed files"
+}
+
+# S2122: the per-ticket half of the regression-suite run site. Only the suites whose subject this
+# change touched are run, which is what makes a finding attributable to this ticket under Rule 33;
+# the full 38-suite sweep is release-scope (assert-release-scope-gates.ps1) because it is attributable
+# to no changed file and exceeds the foreground budget.
+#
+# NOT called with -Gate on purpose. With -Gate the runner returns 2 for a suite that could not run
+# for want of an environment tool, and Invoke-Gate treats every non-zero code as fatal - which would
+# block a ticket close on a developer machine simply missing an optional tool such as rg. Without
+# -Gate the same condition prints an advisory line and returns 0. The release-scope caller passes
+# -Gate precisely to invert that reading.
+if ($runsScriptSuiteGate) {
+    Invoke-Gate "script-suite-regression" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/run-script-suites.ps1") `
+            -ChangedFiles ($changedFiles -join ',') -Quiet
+    }
+}
+else {
+    Skip-Step "script-suite-regression" $scriptSuiteSkipReason
 }
 
 # S0826: a project-wide gate without per-file delta support runs advisory (warn, non-fatal)
@@ -1151,6 +1228,21 @@ Invoke-Gate "launcher-reset-coverage-gate" {
     & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-launcher-reset-coverage.ps1") -Gate -Quiet
 }
 
+# S2093: a watch setting present on one side of the phone/watch pair and absent on the other. The list
+# lived in four independently maintained places, so a one-sided setting diverged in silence and was
+# found only when the owner could not see it where it was expected. Here and not only in the fg batch:
+# the closure is where a ticket is judged, and a check the closure never runs cannot stop the ticket
+# that skipped a side. FATAL for the same reason as the launcher gate above - it reads six named files
+# and judges one rule between them, so another ticket's WIP cannot fail it unless that WIP is the defect.
+if (Test-AnyChangedFile '(^|/)wear/|Wear[A-Za-z]*\.kt$|SettingsDocScopeCatalog\.kt$') {
+    Invoke-Gate "wear-settings-parity-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-wear-settings-parity.ps1") -Gate -Quiet
+    }
+}
+else {
+    Skip-Step "wear-settings-parity-gate" "not applicable - no changed file touches the watch module or a watch-settings surface"
+}
+
 # S1639: FATAL rather than advisory. The registry beside the gate already carries every finding the tree
 # holds today, so a failure here is new by construction and belongs to the change being closed.
 if ($runsGsonContractGate) {
@@ -1174,15 +1266,62 @@ else {
 # gate below - the helper takes BUILD.LOCK, and calling gradlew here would race every sibling session
 # (CLAUDE.md Rule 23).
 if ($runsResourceLinkGate) {
-    $resourceLinkFlavors = Get-ResourceLinkFlavors -TargetModule $Module
-    Write-Host "  resource-link: module $Module, flavor(s) $($resourceLinkFlavors -join ', ')" -ForegroundColor DarkGray
+    # S2121: the module set is DERIVED from the resource paths, never from -Module. -Module defaults
+    # to app_v2 and nothing corrected it, so a ten-file change entirely under watchface/ linked
+    # :app_v2:processStandardDebugResources and printed PASS - a verdict about a module the change
+    # never touched, which is worse than no gate because it looks like one that fired. Same regex as
+    # the $hasXmlResource trigger above, so the gate resolves exactly the files that summoned it.
+    $resourceLinkPaths = @($normChangedFiles | Where-Object { $_ -match '(^|/)src/.*\.xml$' })
+    $resourceLinkResolution = Resolve-GradleModulesForPaths -Path $resourceLinkPaths
+    Write-Host "  resource-link: module(s) $($resourceLinkResolution.Modules -join ', ')" -ForegroundColor DarkGray
     Invoke-Gate "resource-link-gate" {
-        foreach ($resourceFlavor in $resourceLinkFlavors) {
-            & $pwsh -NoProfile -File (Join-Path $root "scripts/builders/check-standard-fast.ps1") `
-                -Mode Resources -Module $Module -Flavor $resourceFlavor
-            # Stop at the first red. Without this the loop would run on and Invoke-Gate would read the
-            # LAST flavor's exit code, turning an earlier failure into a pass.
-            if ($LASTEXITCODE -ne 0) { return }
+        # Refuse rather than guess a task name. Guessing ends one of two ways - gradle fails to find
+        # the task and reports it worse than this line does, or the task happens to exist and the
+        # closure passes about something nobody chose. One row in the registry is the cheaper answer.
+        if ($resourceLinkResolution.Unresolved.Count -gt 0) {
+            Write-Host ("  resource path(s) in no registered Gradle module: {0}" -f
+                ($resourceLinkResolution.Unresolved -join ', ')) -ForegroundColor Red
+            Write-Host "  add the module in scripts/utils/gradle-modules.ps1 - this closure cannot link them." -ForegroundColor Red
+            $global:LASTEXITCODE = 1
+            return
+        }
+        if ($resourceLinkResolution.Modules.Count -eq 0) {
+            Write-Host "  no module resolved from the changed resources - nothing was linked." -ForegroundColor Red
+            $global:LASTEXITCODE = 1
+            return
+        }
+        foreach ($resourceModule in $resourceLinkResolution.Modules) {
+            # A module with no Android plugin has no resource-processing task at all. Measured on
+            # :benchmark, where the call answers "task not found" - which reads as a broken gate
+            # rather than as a module with nothing to link, so it is named and skipped instead.
+            if (-not (Get-GradleModule -Name $resourceModule).LinksResources) {
+                Write-Host "  $resourceModule - no resource-processing task; skipped." -ForegroundColor DarkGray
+                continue
+            }
+            $resourceLinkFlavors = @(Get-ResourceLinkFlavors -TargetModule $resourceModule)
+            # S2123: the build type is per-module too, not the literal Debug it was until now.
+            # :benchmark declares neither Debug nor Release - androidx.baselineprofile gives it
+            # nonMinifiedRelease and benchmarkRelease - so a hardcoded Debug named a task gradle has
+            # never had, and the module was recorded as having no link step because of it.
+            $resourceLinkBuildType = Get-GradleModuleDefaultBuildType -Name $resourceModule
+            Write-Host "  resource-link: $resourceModule build type $resourceLinkBuildType" -ForegroundColor DarkGray
+            $builder = Join-Path $root "scripts/builders/check-standard-fast.ps1"
+            if ($resourceLinkFlavors.Count -eq 0) {
+                # A flavorless module must be invoked WITHOUT -Flavor: the builder refuses one, and
+                # its task name carries no variant segment (:watchface:processDebugResources).
+                & $pwsh -NoProfile -File $builder `
+                    -Mode Resources -Module $resourceModule -BuildType $resourceLinkBuildType
+                if ($LASTEXITCODE -ne 0) { return }
+                continue
+            }
+            foreach ($resourceFlavor in $resourceLinkFlavors) {
+                & $pwsh -NoProfile -File $builder `
+                    -Mode Resources -Module $resourceModule -Flavor $resourceFlavor `
+                    -BuildType $resourceLinkBuildType
+                # Stop at the first red. Without this the loop would run on and Invoke-Gate would read the
+                # LAST flavor's exit code, turning an earlier failure into a pass.
+                if ($LASTEXITCODE -ne 0) { return }
+            }
         }
     }
 }
@@ -1229,15 +1368,36 @@ finally {
         try { Remove-Job -Job $detektJob -Force -ErrorAction SilentlyContinue } catch { }
     }
     # Tier-2 coordination lock (CLAUDE.md Rule 23): post-change.ps1 is the "logical change is
-    # done" checkpoint every code-editing skill already calls, so releasing CODE.LOCK here makes
-    # release automatic - skills only need to acquire it (scripts/utils/enter-code-lock.ps1)
-    # before their first source edit. Safe no-op if nothing was ever acquired in this run.
+    # done" checkpoint every code-editing skill already calls, so releasing the code lock here
+    # makes release automatic - skills only need to acquire it
+    # (scripts/utils/enter-code-lock.ps1) before their first source edit. Safe no-op if nothing
+    # was ever acquired in this run.
+    #
+    # S2109: release exactly the domains this change set maps to, never the whole code side.
+    # Research artifact 04 found the unconditional release was blind to the module, so under
+    # domains a wear-only closure would have freed the phone domain a sibling was holding and
+    # handed its turn away mid-edit - the facade would have become the thing that breaks the
+    # split it is meant to use.
     try {
         . (Join-Path $root "scripts/utils/agent-lock.ps1")
-        Exit-AgentLock -Name Code
+        # "Exactly the domains ACQUIRED" - which is not the same as "the domains this change set
+        # maps to". A session that took the full set and then closes a scripts-only change would
+        # otherwise release Code.Scripts and keep Code.Phone and Code.Wear held for nobody, which
+        # is a leak that outlives the run: measured here, two domains survived a green closure.
+        # Ownership is recorded in the lock files, so the acquired set can simply be read back, and
+        # Exit-AgentLockDomain owner-checks each one - a domain held by a sibling is never touched.
+        $derivedDomains = @(Resolve-CodeDomainsForPaths -Path ($changedFiles + $deletedFiles))
+        $mySession = $env:CLAUDE_CODE_SESSION_ID
+        $heldByThisSession = @(Resolve-AgentLockDomains -Name 'Code' | Where-Object {
+            $s = Get-AgentLockStatus -Name $_
+            $s.Exists -and -not [string]::IsNullOrWhiteSpace($mySession) -and
+                [string]$s.SessionId -eq $mySession
+        })
+        $releaseDomains = @(@($derivedDomains + $heldByThisSession) | Select-Object -Unique)
+        Exit-AgentLock -Name 'Code' -Domains $releaseDomains
     }
     catch {
-        Write-Host "  [code-lock-release] WARN - could not release CODE.LOCK: $($_.Exception.Message)" -ForegroundColor Yellow
+        Write-Host "  [code-lock-release] WARN - could not release the code lock: $($_.Exception.Message)" -ForegroundColor Yellow
     }
 }
 

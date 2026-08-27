@@ -5,7 +5,7 @@
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151)
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
-Enter-BuildLockOrExit -Reason "build-nolegal-device.ps1"
+Enter-BuildLockOrExit -Reason "build-nolegal-device.ps1" -Domain Build.Phone
 try {
 
 # ADB path
@@ -148,5 +148,5 @@ else {
 
 }
 finally {
-    Exit-AgentLock -Name Build
+    Exit-AgentLock -Name 'Build' -Domains @('Build.Phone')
 }

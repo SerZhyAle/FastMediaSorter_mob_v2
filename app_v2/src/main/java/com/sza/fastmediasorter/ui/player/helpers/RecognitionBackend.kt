@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.content.Context
 import android.graphics.Bitmap
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.delivery.DeliveredNativeLibraryIncompatibleException
 import com.sza.fastmediasorter.data.delivery.DeliveredNativeLibraryLoader
 import com.sza.fastmediasorter.data.delivery.DeliveredPayloadCorruptException
@@ -71,7 +72,7 @@ class RecognitionBackend(
             Timber.d("Extracted text, total ${extractedText.length} characters")
             return extractedText
         } catch (e: Exception) {
-            Timber.e(e, "OCR extraction error")
+            e.errorUnlessCancellation("OCR extraction error")
             callback.showError(context.getString(R.string.ocr_error))
             return null
         }
@@ -102,7 +103,7 @@ class RecognitionBackend(
             Timber.i("OCR engines not loadable on this device - recognition unavailable")
             return null
         } catch (e: Exception) {
-            Timber.e(e, "Failed to load OCR engines native libraries")
+            e.errorUnlessCancellation("Failed to load OCR engines native libraries")
             callback.showError(context.getString(R.string.ocr_error))
             return null
         }
@@ -147,7 +148,7 @@ class RecognitionBackend(
             Timber.i("OCR engines not loadable on this device - block recognition unavailable")
             return null
         } catch (e: Exception) {
-            Timber.e(e, "Failed to load OCR engines native libraries")
+            e.errorUnlessCancellation("Failed to load OCR engines native libraries")
             callback.showError(context.getString(R.string.ocr_error))
             return null
         }
@@ -214,7 +215,7 @@ class RecognitionBackend(
             Timber.i("OCR engines not loadable on this device - selection recognition unavailable")
             return null
         } catch (e: Exception) {
-            Timber.e(e, "Failed to load OCR engines native libraries")
+            e.errorUnlessCancellation("Failed to load OCR engines native libraries")
             return null
         }
 

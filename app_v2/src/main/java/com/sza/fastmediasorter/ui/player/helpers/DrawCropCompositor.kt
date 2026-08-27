@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.RectF
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.usecase.MergeDrawOverlayUseCase
@@ -82,6 +83,7 @@ class DrawCropCompositor(
                 )
             } catch (e: Exception) {
                 // Full-resolution path is best-effort; degrade to the on-screen composite (§6.1).
+                e.rethrowIfCancellation()
                 Timber.i(e, "Draw crop: full-res region decode failed, using working composite")
             }
         }

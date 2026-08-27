@@ -16,6 +16,7 @@
                                       swallowed-cancellation, activity-logic (S1329),
                                       untracked-dialog and the two string-resource rules)
       - assert-listener-symmetry
+      - assert-wear-settings-parity  (S2093 watch settings present on one side of the pair only)
       - assert-qualifier-shadowing   (values-land key a smallestWidth bucket always outranks)
       - assert-tactical-step-form    (S1343 Why-field ratchet over PLAN/*/PHASE_*.md)
       - assert-flavor-matrix-docs    (S1392 doc flavor tables vs the generated capability snapshot)
@@ -91,6 +92,13 @@ $gates = [ordered]@{
     # The individual scripts still exist as wrappers for any direct caller.
     'assert-source-gates.ps1'                   = @()
     'assert-wear-route-literals.ps1'            = @()
+    # S2093: a watch setting present on one side of the phone/watch pair and absent on the other. The
+    # list used to live in four independently maintained places, so a one-sided setting diverged in
+    # silence and was found only when the owner could not see it where it was expected. Reads the two
+    # WearSettingsRegistry copies against the payload, the watch store and the settings reference; no
+    # gradle daemon. Per-ticket by Rule 33: only the author knows whether a new one-sided setting was
+    # meant to be one-sided, and the reference it guards is read by agents between releases.
+    'assert-wear-settings-parity.ps1'           = @('-Quiet')
     'assert-listener-symmetry.ps1'              = @()
     'assert-orientation-implied-feature.ps1'    = @()
     # S1549: an activity that absorbs 'orientation' in configChanges never re-inflates on

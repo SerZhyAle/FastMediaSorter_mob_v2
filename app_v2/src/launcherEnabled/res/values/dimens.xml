@@ -7,6 +7,13 @@
     <dimen name="launcher_taskbar_item_spacing">6dp</dimen>
     <dimen name="launcher_tray_icon_size">18dp</dimen>
 
+    <!-- S2023: the overlays a tray glyph carries - the Wi-Fi generation digit, the Bluetooth device count,
+         the SIM data-type letter, and the roaming ring. Both are sized to fit inside the 18dp square above
+         rather than beside it: the strip is shared by the taskbar and the top status band, so anything that
+         grew a slot would move both at once (strategic §7). -->
+    <dimen name="launcher_tray_badge_text_size">8sp</dimen>
+    <dimen name="launcher_tray_corner_marker_size">5dp</dimen>
+
     <!-- S1421: the freed system status band. Constant by owner ruling - the strip neither collapses nor
          resizes when its content changes, so its height cannot come from the content. Matched to the
          status bar it replaces (24dp) plus room for a chip's touch feedback. -->

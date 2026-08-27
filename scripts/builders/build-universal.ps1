@@ -15,7 +15,7 @@ param(
 )
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
-Enter-BuildLockOrExit -Reason "build-universal.ps1"
+Enter-BuildLockOrExit -Reason "build-universal.ps1" -Domain Build.Phone
 try {
 
 Write-Host "=== FastMediaSorter Universal Build Script ===" -ForegroundColor Cyan
@@ -153,5 +153,5 @@ if ($Device) {
 
 }
 finally {
-    Exit-AgentLock -Name Build
+    Exit-AgentLock -Name 'Build' -Domains @('Build.Phone')
 }

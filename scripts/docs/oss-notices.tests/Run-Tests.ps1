@@ -3,6 +3,8 @@
     S1495 - test suite for the OSS notice parser and generator.
 
 .DESCRIPTION
+    Subject: scripts/docs/generate-oss-notices.ps1, scripts/docs/OssDependencyParser.ps1, scripts/docs/oss-licenses.psd1
+
     Asserts the parser's coordinate extraction and its shipping classification
     against synthetic fixtures, and asserts that a missing dependencies block is
     a refusal rather than an empty result.

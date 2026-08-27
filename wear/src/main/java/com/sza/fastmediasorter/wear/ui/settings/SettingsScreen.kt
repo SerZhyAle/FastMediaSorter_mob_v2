@@ -46,12 +46,15 @@ import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
+import java.text.DateFormat
+import java.util.Date
 
 private const val SINGLE_COLUMN = 1
 private const val MENU_LABEL_MAX_LINES = 2
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
 private val CELL_BUTTON_SIZE = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
 private val CELL_ICON_SIZE = 24.dp
+private val SYNC_CELL_TOP_PADDING = 8.dp
 
 @Composable
 fun SettingsScreen(
@@ -96,6 +99,13 @@ fun SettingsScreen(
                     columns = columns,
                     onClick = navController::navigate
                 )
+                item {
+                    SyncSettingsCell(
+                        lastSyncedAtEpochMillis = uiState.lastSyncedAtEpochMillis,
+                        syncing = uiState.isSyncing,
+                        onSync = viewModel::syncSettings
+                    )
+                }
             }
         }
     }
@@ -150,6 +160,50 @@ private fun ScalingLazyListScope.settingsItems(
         }
     }
 }
+
+/**
+ * S2093: the watch half of the symmetric sync control - one button with the same name the phone's
+ * companion window uses, and beneath it when the two sides last agreed.
+ *
+ * The caption reads from the stored sync time rather than from the press, so a press that reached
+ * nothing leaves the old time standing instead of claiming a sync that did not happen.
+ */
+@Composable
+private fun SyncSettingsCell(
+    lastSyncedAtEpochMillis: Long,
+    syncing: Boolean,
+    onSync: () -> Unit
+) {
+    val caption = if (lastSyncedAtEpochMillis <= 0L) {
+        stringResource(R.string.wear_settings_sync_never)
+    } else {
+        stringResource(R.string.wear_settings_last_synced, formatSyncTime(lastSyncedAtEpochMillis))
+    }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = SYNC_CELL_TOP_PADDING),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Chip(
+            onClick = onSync,
+            enabled = !syncing,
+            label = { Text(stringResource(R.string.wear_settings_sync_button)) }
+        )
+        Text(
+            text = caption,
+            style = MaterialTheme.typography.caption3,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+// Short local date and time rather than a full timestamp: the caption sits under a chip on a round
+// screen, where a long form wraps to three lines and pushes the chip off the readable band.
+private fun formatSyncTime(epochMillis: Long): String = DateFormat
+    .getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
+    .format(Date(epochMillis))
 
 private fun iconFor(route: String) = when (route) {
     SettingsRoutes.MEDIA_TYPES -> Icons.Filled.PermMedia

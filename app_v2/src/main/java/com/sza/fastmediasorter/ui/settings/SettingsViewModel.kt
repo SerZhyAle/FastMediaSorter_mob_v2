@@ -686,13 +686,18 @@ class SettingsViewModel @Inject constructor(
                 if (result1.isSuccess && result2.isSuccess) {
                     Timber.d(
                         "Destination moved: %s %d->%d, %s %d->%d",
-                        resource.name, currentOrder, targetOrder,
-                        targetResource.name, targetOrder, currentOrder,
+                        resource.name,
+                        currentOrder,
+                        targetOrder,
+                        targetResource.name,
+                        targetOrder,
+                        currentOrder,
                     )
                 } else {
                     Timber.e(
                         "Error moving destination: result1=%s, result2=%s",
-                        result1.exceptionOrNull(), result2.exceptionOrNull(),
+                        result1.exceptionOrNull(),
+                        result2.exceptionOrNull(),
                     )
                 }
             } catch (e: Exception) {

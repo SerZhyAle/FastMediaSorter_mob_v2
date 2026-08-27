@@ -22,5 +22,15 @@ data class WearSettingsPayload(
     // S2000: name of a WearBackgroundMode. Only the choice rides here - the picture itself goes over
     // the file-transfer channel, because this payload is Gson-encoded and a ByteArray would serialize
     // as an array of numbers, pushing the data item past the size where it is dropped in silence.
-    val backgroundMode: String? = null
+    val backgroundMode: String? = null,
+    // S2093: the watch row that had no phone control until this ticket.
+    val streamsSectionEnabled: Boolean? = null,
+    // S2093: contract field name to epoch-millis of that field's last edit on the sending side. One map
+    // rather than a companion field per setting, so a later registry entry needs no new contract field
+    // and no new storage key. Absent entirely on a side that predates the two-way exchange, which the
+    // merge reads as "apply the incoming value", preserving today's one-way behaviour.
+    val fieldTimestamps: Map<String, Long>? = null,
+    // S2093: device traits the other side cannot infer, keyed by
+    // WearSettingsRegistry.CAPABILITY_AUTO_ROTATION_SENSOR and its future peers.
+    val capabilities: Map<String, Boolean>? = null
 )

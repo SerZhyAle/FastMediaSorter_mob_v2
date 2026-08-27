@@ -4,6 +4,8 @@
     S1847 calibration suite for the `adb.ps1 clip-check` classification.
 
 .DESCRIPTION
+    Subject: scripts/devtest/lib/ui-tree.ps1, scripts/devtest/adb.ps1
+
     Hermetic: drives scripts/devtest/lib/ui-tree.ps1 against recorded uiautomator dumps from a real
     Galaxy Watch. No adb call, no device, no network, no writes.
 

@@ -22,6 +22,8 @@ import com.sza.fastmediasorter.data.repository.StorageVolumeSource
 import com.sza.fastmediasorter.data.repository.StreamingCacheRepositoryImpl
 import com.sza.fastmediasorter.data.repository.ThumbnailCacheRepositoryImpl
 import com.sza.fastmediasorter.data.repository.streams.RealStreamFrameIngestor
+import com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore
+import com.sza.fastmediasorter.data.repository.wear.WearSettingsMirrorStore
 import com.sza.fastmediasorter.domain.detector.DeviceProfileDetector
 import com.sza.fastmediasorter.domain.game.GameStateRepository
 import com.sza.fastmediasorter.domain.repository.BatteryRuntimeEstimator
@@ -63,6 +65,14 @@ abstract class RepositoryModule {
             .create()
     }
     
+    // S2093: the two older consumers inject the implementation directly; the merge use case takes the
+    // interface so a test can hand it a plain fake instead of a mocked SharedPreferences.
+    @Binds
+    @Singleton
+    abstract fun bindWearSettingsMirrorStore(
+        impl: SharedPreferencesWearSettingsMirrorStore
+    ): WearSettingsMirrorStore
+
     @Binds
     @Singleton
     abstract fun bindResourceRepository(

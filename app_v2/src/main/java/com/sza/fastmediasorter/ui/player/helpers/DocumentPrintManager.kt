@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.player.print.PrintDispatchActivity
@@ -87,7 +88,7 @@ class DocumentPrintManager(
                 host.printNetworkFileManager.prepareFileForRead(mediaFile)
             }
         } catch (e: Exception) {
-            Timber.e(e, "DocumentPrintManager: failed to prepare file for print: ${mediaFile.path}")
+            e.errorUnlessCancellation("DocumentPrintManager: failed to prepare file for print: ${mediaFile.path}")
             showMessage(host.printHostActivity.getString(R.string.error_print_download_failed))
             return null
         }

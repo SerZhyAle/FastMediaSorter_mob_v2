@@ -8,6 +8,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.share.ShareableContent
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.player.PlayerActivity
@@ -93,7 +94,7 @@ class PlayerShareManager(
                     Toast.makeText(activity, R.string.no_app_to_open, Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Failed to open Office document in external viewer")
+                e.errorUnlessCancellation("Failed to open Office document in external viewer")
                 Toast.makeText(activity, R.string.error_opening_file_simple, Toast.LENGTH_SHORT).show()
             } finally {
                 activity.finish()
@@ -168,7 +169,7 @@ class PlayerShareManager(
                 )
                 activity.sendToMenuManager.show(activity, content, settings)
             } catch (e: Exception) {
-                Timber.e(e, "Failed to share Office document")
+                e.errorUnlessCancellation("Failed to share Office document")
                 Toast.makeText(activity, R.string.error_opening_file_simple, Toast.LENGTH_SHORT).show()
             }
         }
@@ -189,7 +190,7 @@ class PlayerShareManager(
                 val started = activity.officeDocumentViewerManager.open(mediaFile, preparedFile)
                 if (!started) showOfficeFallbackDialog(mediaFile)
             } catch (e: Exception) {
-                Timber.e(e, "Failed to render Office document internally")
+                e.errorUnlessCancellation("Failed to render Office document internally")
                 showOfficeFallbackDialog(mediaFile)
             }
         }
@@ -210,7 +211,7 @@ class PlayerShareManager(
                     val file = activity.networkFileManager.prepareFileForRead(currentFile)
                     shareFileToGoogleLens(file)
                 } catch (e: Exception) {
-                    Timber.e(e, "Failed to prepare file for Google Lens")
+                    e.errorUnlessCancellation("Failed to prepare file for Google Lens")
                     Toast.makeText(activity, R.string.toast_failed_to_prepare_file, Toast.LENGTH_SHORT).show()
                 }
             }

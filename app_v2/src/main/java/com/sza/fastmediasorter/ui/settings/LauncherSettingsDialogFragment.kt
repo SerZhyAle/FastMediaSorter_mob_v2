@@ -308,6 +308,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
     private fun beginCameraWallpaperSelection() {
         val granted = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) ==
             PackageManager.PERMISSION_GRANTED
+        Timber.d("S2076: camera wallpaper mode picked in settings, permission granted=$granted")
         if (granted) showCameraLensPicker() else requestCameraForWallpaper.launch(Manifest.permission.CAMERA)
     }
 

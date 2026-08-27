@@ -16,15 +16,16 @@ import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.di.memoryPressureDecodeFormatResolver
 import com.sza.fastmediasorter.core.logging.LoggingHelper
 import com.sza.fastmediasorter.core.util.HeifSupportUtils
 import com.sza.fastmediasorter.core.util.MemoryTier
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.glide.CloudThumbnailData
 import com.sza.fastmediasorter.data.network.glide.NetworkFileData
 import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
+import com.sza.fastmediasorter.di.memoryPressureDecodeFormatResolver
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -36,8 +37,8 @@ import com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController
 import com.sza.fastmediasorter.ui.player.helpers.AudioInfoDisplayHelper
 import com.sza.fastmediasorter.ui.player.helpers.LoadingSource
 import com.sza.fastmediasorter.ui.player.helpers.PanelStereoSingleEyeNotifier
-import com.sza.fastmediasorter.ui.player.helpers.PlayerLoadingIndicatorCoordinator
 import com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews
+import com.sza.fastmediasorter.ui.player.helpers.PlayerLoadingIndicatorCoordinator
 import com.sza.fastmediasorter.ui.player.helpers.WindowMetricsCompat
 import com.sza.fastmediasorter.ui.player.render.DualSurfaceStaticImageRenderer
 import com.sza.fastmediasorter.ui.player.render.StaticImageRenderer
@@ -341,7 +342,7 @@ class ImageLoadingManager(
                     }
                 }
             } catch (e: Exception) {
-                Timber.e(e, "ImageLoadingManager: Error re-evaluating scale type on rotation")
+                e.errorUnlessCancellation("ImageLoadingManager: Error re-evaluating scale type on rotation")
             }
         }
     }
@@ -858,7 +859,7 @@ class ImageLoadingManager(
                 val docFile = DocumentFile.fromSingleUri(binding.root.context, uri)
                 docFile?.exists() == true
             } catch (e: Exception) {
-                Timber.e(e, "ImageLoadingManager: Error checking SAF URI existence: $path")
+                e.errorUnlessCancellation("ImageLoadingManager: Error checking SAF URI existence: $path")
                 false
             }
         } else {

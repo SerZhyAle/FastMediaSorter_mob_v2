@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- S1677: the palette of the product's signature visual, "waves and particles". The two anchor
+         values are the same ones the wear module already uses for its splash gradient, so the watch
+         face reads as the same product rather than as a lookalike. -->
+    <color name="brand_accent">#FF0B82EB</color>
+    <color name="brand_accent_light">#FF98CFF1</color>
+
+    <color name="dial_background">#FF05070C</color>
+    <color name="time_primary">#FFFFFFFF</color>
+    <color name="date_secondary">#FF9AA7B8</color>
+
+    <!-- Wave lanes, darkest at the bottom of the screen to brightest near the horizon line. Held as
+         named colors rather than inline literals so that changing the feel is one edit here instead
+         of a dozen inside the watch face markup. -->
+    <color name="wave_lane_1">#FF0B82EB</color>
+    <color name="wave_lane_2">#FF3D9BEF</color>
+    <color name="wave_lane_3">#FF6DB4F3</color>
+    <color name="wave_lane_4">#FF98CFF1</color>
+    <color name="wave_lane_5">#FFC4E3F7</color>
+
+    <color name="particle_tint">#FFCFE7FB</color>
+
+    <!-- Ambient. One colour, no fills: the 15% lit-pixel ceiling is an average measured across the
+         whole screen roughly every ten minutes for a full day, and every one of those samples has to
+         pass - so ambient is a sparse outline, never a wash. -->
+    <color name="ambient_foreground">#FFB9C6D6</color>
+    <color name="ambient_dim">#FF5C6B7D</color>
+
+</resources>

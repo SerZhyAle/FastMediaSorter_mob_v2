@@ -8,6 +8,8 @@ import android.widget.Toast
 import androidx.core.content.FileProvider
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -190,7 +192,7 @@ class FileOperationsHandler(
                     }
                 }
             } catch (e: Exception) {
-                Timber.e(e, "FileOperationsHandler: Copy operation failed")
+                e.errorUnlessCancellation("FileOperationsHandler: Copy operation failed")
                 if (!isActivityGone()) {
                     withContext(Dispatchers.Main) {
                         reportOperationError(com.sza.fastmediasorter.R.string.error_copy_failed)
@@ -256,7 +258,7 @@ class FileOperationsHandler(
                     }
                 }
             } catch (e: Exception) {
-                Timber.e(e, "FileOperationsHandler: performCopyToPath failed")
+                e.errorUnlessCancellation("FileOperationsHandler: performCopyToPath failed")
                 if (!isActivityGone()) {
                     withContext(Dispatchers.Main) {
                         reportOperationError(com.sza.fastmediasorter.R.string.error_copy_failed)
@@ -321,7 +323,7 @@ class FileOperationsHandler(
 
                 null
             } catch (e: Exception) {
-                Timber.w(e, "FileOperationsHandler: SMB destination unreachable: ${destination.path}")
+                e.warnUnlessCancellation("FileOperationsHandler: SMB destination unreachable: ${destination.path}")
                 context.getString(com.sza.fastmediasorter.R.string.error_connection_failed_generic, destination.name)
             }
         }

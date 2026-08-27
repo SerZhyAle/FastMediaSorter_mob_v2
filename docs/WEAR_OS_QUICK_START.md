@@ -74,7 +74,7 @@ watch's own installer confirmation.
 
 ```powershell
 # Install debug APK to device
-adb install .\wear\build\outputs\apk\debug\wear-debug.apk
+adb install .\wear\build\outputs\apk\standard\debug\wear-standard-debug.apk
 
 # Launch app
 adb shell am start -n com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.MainActivity

@@ -317,6 +317,7 @@ scripts/all_features/add.ps1
     -Description  (req)  [String]
     -Flavors      (req)  [String]
     -Gate                [String] = ""
+    -WearFlavors         [String] = ""
     -Spec                [String] = ""
     -Status              [String] = "active"  {active|removed}
     -ListAreas    (req)  [SwitchParameter]
@@ -628,6 +629,7 @@ scripts/builders/build-vr-release.ps1
 scripts/builders/build-wear-debug.PS1
   Params:
     -AutoVersion         [SwitchParameter] = $true
+    -Flavor              [String] = 'standard'  {standard|noLegal}
 ```
 
 ### build-wear-release.PS1
@@ -639,6 +641,7 @@ scripts/builders/build-wear-release.PS1
     -Artifact             [String] = 'Apk'  {Apk|Aab|Both}
     -VersionName          [String]
     -VersionCode          [Int32]
+    -Flavor               [String] = 'standard'  {standard|noLegal}
   Exit: 0 - requested artifacts built and copied; 1 - artifact missing after a successful Gradle run, or an argument is unusable
 ```
 
@@ -655,16 +658,16 @@ scripts/builders/check-lint-rules.ps1
 ```
 
 ### check-standard-fast.ps1
-Fast per-flavor Gradle check - compile, resources, unit tests or assemble. Defaults to app_v2; -Module wear checks the Wear OS module, which has no product flavors.
+Fast per-module, per-flavor Gradle check - compile, resources, unit tests or assemble. Defaults to app_v2. Every module in scripts/utils/gradle-modules.ps1 is accepted, including one with no flavor dimension, whose task names carry no variant segment (:watchface:processDebugResources).
 
 ```
 scripts/builders/check-standard-fast.ps1
-  Fast per-flavor Gradle check - compile, resources, unit tests or assemble. Defaults to app_v2; -Module wear checks the Wear OS module, which has no product flavors.
+  Fast per-module, per-flavor Gradle check - compile, resources, unit tests or assemble. Defaults to app_v2. Every module in scripts/utils/gradle-modules.ps1 is accepted, including one with no flavor dimension, whose task names carry no variant segment (:watchface:processDebugResources).
   Params:
     -Mode                   [String] = "CodeAndResources"  {Code|Resources|CodeAndResources|Unit|AndroidTest|Assemble}
-    -Flavor                 [String] = "Standard"  {Standard|NoLegal|Lite|Photos|Legacy|Vr}
-    -Module                 [String] = "app_v2"  {app_v2|wear}
-    -BuildType              [String] = "Debug"  {Debug|Release}
+    -Flavor                 [String]
+    -Module                 [String] = "app_v2"
+    -BuildType              [String]
     -Tests                  [String]
     -SystemProperty         [String[]]
     -Quiet                  [SwitchParameter]
@@ -869,6 +872,23 @@ scripts/devtest/device-ready.ps1
   Exit: 0 - state determined and reported: ready, or not-ready with a `state`/`reason`; 2 - the probe itself could not run
 ```
 
+### find-recent-screenshots.ps1
+Enumerates recent device/emulator screenshots under temp/ for the S2108 usability audit.
+
+```
+scripts/devtest/find-recent-screenshots.ps1
+  Enumerates recent device/emulator screenshots under temp/ for the S2108 usability audit.
+  Params:
+    -MaxAgeDays                    [Int32] = 7  {range 1..90}
+    -Extensions                    [String[]] = @('png')
+    -ExcludeDirs                   [String[]] = @('gradle-tmp')
+    -TempRoot                      [String]
+    -OutFile                       [String]
+    -NearBlackVarianceMax          [Double] = 25.0
+    -NearBlackLuminanceMax         [Double] = 12.0
+  Exit: 0 - the scan ran to completion, including when it found nothing (an empty corpus is a valid
+```
+
 ### maestro-run.ps1
 Run a Maestro YAML flow against a device and emit a compact, off-context verdict.
 
@@ -917,10 +937,10 @@ scripts/devtest/prerelease-measure.ps1
   S0484 pre-release sweep - per-checkpoint performance measurement.
   Params:
     -DeviceId           [String]
-    -Checkpoint  (req)  [String]  {cold-start|list-scroll|player-open|network-listing|streams-open|streams-search|streams-list-scroll|streams-grid-scroll|streams-peak-memory}
+    -Checkpoint  (req)  [String]  {cold-start|list-scroll|player-open|network-listing|streams-open|streams-search|streams-list-scroll|streams-grid-scroll|streams-peak-memory|play-anon-memory|play-bitmap-memory}
     -ElapsedMs          [Int32] = -1
     -Json               [SwitchParameter]
-  Exit: 0 - measured and within threshold (pass); 1 - bad arguments / config unreadable / adb missing; 11 - measured but over threshold (fail)
+  Exit: 0 - measured and within threshold (pass), or advisory; 1 - bad arguments / config unreadable / adb missing; 11 - measured but over threshold (fail)
 ```
 
 ### prerelease-prepare.ps1
@@ -972,10 +992,11 @@ S1984 - prepare a watch for the pre-release run: qualify the device, build the r
 scripts/devtest/wear-prerelease-prepare.ps1
   S1984 - prepare a watch for the pre-release run: qualify the device, build the release artifacts, record which artifact is about to be judged, install it and start it.
   Params:
-    -DeviceId          [String]
-    -OutDir            [String] = 'temp/scratch/wear-prerelease'
-    -SkipBuild         [SwitchParameter]
-    -Json              [SwitchParameter]
+    -DeviceId           [String]
+    -OutDir             [String] = 'temp/scratch/wear-prerelease'
+    -SkipBuild          [SwitchParameter]
+    -WearFlavor         [String] = 'standard'  {standard|noLegal}
+    -Json               [SwitchParameter]
   Exit: 0 prepared: artifacts recorded, installed and launched on a qualified watch; 1 a step failed: the build, the install or the launch returned non-zero; 2 could not verify: no unambiguous device, the device is not a watch or is below the
 ```
 
@@ -2400,11 +2421,11 @@ scripts/quality/assert-script-described.ps1
 ```
 
 ### assert-script-references.ps1
-Gate: a repository script that nothing references is either deleted or declares itself a hand-run tool (S1872). .DESCRIPTION Before this gate the only way to learn a script was dead was to sweep the repository by hand - an answer that is true once and never re-checked. Fifteen scripts were found that way on 2026-08-21, including a twelve-script migration directory whose own README calls itself finished and two wrappers whose headers claim callers they do not have. HOW IT JUDGES. Every project-authored .ps1 under the script roots is collected, then every file in the reference corpus is read once and scanned for .ps1-shaped tokens. A script is UNREFERENCED when every file mentioning its basename is itself a file of that basename - a script quoting its own name in help text does not keep itself alive. THE CHEATSHEET IS EXCLUDED, AND THAT IS NOT A SETTING. docs/SCRIPT_CHEATSHEET.md is generated from every script in the repository, so a corpus containing it reports zero unreferenced scripts forever and the gate becomes a check that cannot fail. READ-ONLY ZONES ARE IN THE CORPUS. dev/archive, V1, v2_6 and spec_v2 may not be written, but they may be read, and a reference living only there is still a reference. THE ESCAPE HATCH. A script the owner runs by hand is unreferenced by definition and is the costliest class to delete, because the loss surfaces only when it is next needed. Such a script declares itself with a line in its comment-based help: Manual tool: <why it exists and who runs it> An empty reason does not count as a declaration. MEMORY MODE. -Memory checks the other direction: every .ps1 path token written in the agent memory must resolve to a real file, or carry a `Historical:` or `External:` marker on its line or the line above. The tokens include paths beginning with a dot - dropping that leading dot was the exact flaw in the manual pass this gate replaces. DOCS MODE. -Docs asks the memory question of the live documents: a document that names a .ps1 file which does not exist hands the reader a command that cannot run. S1978 found one such line and a sweep found thirteen, in three registered documents, alive for an unknown time because nothing ever re-asked (S1979). The corpus is docs/, dev/ minus its archive and changelog, .claude/ minus agent-memory (owned by -Memory above), and the four agent-rule files at the root. PLAN/, V1/, v2_6/ and spec_v2/ are excluded on the same live-versus-historical cut the main mode uses: a spec that described a script does not run it. RESOLUTION IS TREE-WIDE, JUDGING IS NOT. Both reverse modes resolve a token against every .ps1 in the repository, not against the three script roots the main mode judges - maestro/, .claude/hooks/ and dev/build-with-version.ps1 are real scripts, and resolving against the narrow set would report each of them as a phantom. THE DOCS BASELINE IS A LIST, NOT A COUNT. doc-script-reference-baseline.txt holds one `path :: token` line per known-bad reference, so a new phantom cannot hide behind a fixed one. A baseline line that no longer matches anything is printed as a prune hint, not a failure. .PARAMETER Gate Accepted for the fast-gate batch's uniform call shape; judging is already the default. .PARAMETER Report List the findings and exit 0 regardless of the baseline. Use when deciding, not when gating. .PARAMETER Memory Check agent-memory script paths instead of repository reference connectivity. .PARAMETER Docs Check that every .ps1 token in the live documents resolves to a real script. .PARAMETER ChangedFiles -Docs only: judge findings in these files alone, so one closure is not charged for another session's in-flight document. A .ps1 anywhere in the set widens the judgement back to the whole corpus, because a renamed or deleted script breaks documents that are not in the set. .PARAMETER Quiet Print the verdict line only. .PARAMETER RepoRoot Repository root. Defaults to the directory two levels above this script. .NOTES Exit codes: 0 - at or below the baseline, or -Report was given 1 - above the baseline: an unreferenced script appeared, a memory path resolves to nothing, or a document names a script that does not exist and is not in the docs baseline 2 - cannot verify: a script root, the agent memory, the document corpus or a baseline file is missing
+Gate: a repository script that nothing references is either deleted or declares itself a hand-run tool (S1872). .DESCRIPTION Before this gate the only way to learn a script was dead was to sweep the repository by hand - an answer that is true once and never re-checked. Fifteen scripts were found that way on 2026-08-21, including a twelve-script migration directory whose own README calls itself finished and two wrappers whose headers claim callers they do not have. HOW IT JUDGES. Every project-authored .ps1 under the script roots is collected BY PATH, then every file in the reference corpus is read once and scanned for .ps1-shaped tokens. Each token is resolved into the file it names by the ladder in lib/script-reference-resolution.ps1, and a script is UNREFERENCED when no corpus file other than itself resolves to it. A script quoting its own name in help text does not keep itself alive. THE KEY IS A PATH, NOT A FILE NAME (S2124). It was a name until 2026-08-27, and the tree holds 37 files called Run-Tests.ps1: they shared one entry, so three comments naming that bare word marked all 37 referenced, none of which is called from anywhere. The blindness was structural - any group of files sharing a name went unjudged the moment one of them was mentioned. Under the path key the verdict rose from 30 to 58, and the 28 added files are one homogeneous class. AN AMBIGUOUS BARE NAME IS NOT EVIDENCE. A token that is a bare file name carried by several scripts names none of them. -Report says how many scripts are held up by nothing better, which is the number that was silently zero before S2124. FILES THAT LIST SCRIPTS ARE EXCLUDED, AND THAT IS NOT A SETTING. docs/SCRIPT_CHEATSHEET.md is generated from every script in the repository, and the two baselines beside this script are lists of script paths it writes itself. A corpus containing any of them reports zero unreferenced scripts forever and the gate becomes a check that cannot fail - which is exactly what happened the moment the main baseline stopped being a count. THE BASELINE IS A LIST, NOT A COUNT (S2124). script-reference-baseline.txt holds one script path per known orphan, so repairing one cannot free a slot the next one occupies silently. This is only possible under the path key: with a name key the 37 Run-Tests.ps1 could not be told apart on a line. A baseline line matching nothing is printed as a prune hint, not a failure - the same contract the docs baseline has had since S1979. READ-ONLY ZONES ARE IN THE CORPUS. dev/archive, V1, v2_6 and spec_v2 may not be written, but they may be read, and a reference living only there is still a reference. THE ESCAPE HATCH. A script the owner runs by hand is unreferenced by definition and is the costliest class to delete, because the loss surfaces only when it is next needed. Such a script declares itself with a line in its comment-based help: Manual tool: <why it exists and who runs it> An empty reason does not count as a declaration. MEMORY MODE. -Memory checks the other direction: every .ps1 path token written in the agent memory must resolve to a real file, or carry a `Historical:` or `External:` marker on its line or the line above. The tokens include paths beginning with a dot - dropping that leading dot was the exact flaw in the manual pass this gate replaces. DOCS MODE. -Docs asks the memory question of the live documents: a document that names a .ps1 file which does not exist hands the reader a command that cannot run. S1978 found one such line and a sweep found thirteen, in three registered documents, alive for an unknown time because nothing ever re-asked (S1979). The corpus is docs/, dev/ minus its archive and changelog, .claude/ minus agent-memory (owned by -Memory above), and the four agent-rule files at the root. PLAN/, V1/, v2_6/ and spec_v2/ are excluded on the same live-versus-historical cut the main mode uses: a spec that described a script does not run it. RESOLUTION IS TREE-WIDE, JUDGING IS NOT. Both reverse modes resolve a token against every .ps1 in the repository, not against the three script roots the main mode judges - maestro/, .claude/hooks/ and dev/build-with-version.ps1 are real scripts, and resolving against the narrow set would report each of them as a phantom. THE DOCS BASELINE IS A LIST, NOT A COUNT. doc-script-reference-baseline.txt holds one `path :: token` line per known-bad reference, so a new phantom cannot hide behind a fixed one. A baseline line that no longer matches anything is printed as a prune hint, not a failure. .PARAMETER Gate Accepted for the fast-gate batch's uniform call shape; judging is already the default. .PARAMETER Report List the findings and exit 0 regardless of the baseline. Use when deciding, not when gating. .PARAMETER Memory Check agent-memory script paths instead of repository reference connectivity. .PARAMETER Docs Check that every .ps1 token in the live documents resolves to a real script. .PARAMETER ChangedFiles -Docs only: judge findings in these files alone, so one closure is not charged for another session's in-flight document. A .ps1 anywhere in the set widens the judgement back to the whole corpus, because a renamed or deleted script breaks documents that are not in the set. .PARAMETER Quiet Print the verdict line only. .PARAMETER RepoRoot Repository root. Defaults to the directory two levels above this script. .NOTES Exit codes: 0 - every finding is in the baseline, or -Report was given 1 - an unreferenced script that is not in the baseline appeared, a memory path resolves to nothing, or a document names a script that does not exist and is not in the docs baseline 2 - cannot verify: a script root, the agent memory, the document corpus or a baseline file is missing
 
 ```
 scripts/quality/assert-script-references.ps1
-  Gate: a repository script that nothing references is either deleted or declares itself a hand-run tool (S1872). .DESCRIPTION Before this gate the only way to learn a script was dead was to sweep the repository by hand - an answer that is true once and never re-checked. Fifteen scripts were found that way on 2026-08-21, including a twelve-script migration directory whose own README calls itself finished and two wrappers whose headers claim callers they do not have. HOW IT JUDGES. Every project-authored .ps1 under the script roots is collected, then every file in the reference corpus is read once and scanned for .ps1-shaped tokens. A script is UNREFERENCED when every file mentioning its basename is itself a file of that basename - a script quoting its own name in help text does not keep itself alive. THE CHEATSHEET IS EXCLUDED, AND THAT IS NOT A SETTING. docs/SCRIPT_CHEATSHEET.md is generated from every script in the repository, so a corpus containing it reports zero unreferenced scripts forever and the gate becomes a check that cannot fail. READ-ONLY ZONES ARE IN THE CORPUS. dev/archive, V1, v2_6 and spec_v2 may not be written, but they may be read, and a reference living only there is still a reference. THE ESCAPE HATCH. A script the owner runs by hand is unreferenced by definition and is the costliest class to delete, because the loss surfaces only when it is next needed. Such a script declares itself with a line in its comment-based help: Manual tool: <why it exists and who runs it> An empty reason does not count as a declaration. MEMORY MODE. -Memory checks the other direction: every .ps1 path token written in the agent memory must resolve to a real file, or carry a `Historical:` or `External:` marker on its line or the line above. The tokens include paths beginning with a dot - dropping that leading dot was the exact flaw in the manual pass this gate replaces. DOCS MODE. -Docs asks the memory question of the live documents: a document that names a .ps1 file which does not exist hands the reader a command that cannot run. S1978 found one such line and a sweep found thirteen, in three registered documents, alive for an unknown time because nothing ever re-asked (S1979). The corpus is docs/, dev/ minus its archive and changelog, .claude/ minus agent-memory (owned by -Memory above), and the four agent-rule files at the root. PLAN/, V1/, v2_6/ and spec_v2/ are excluded on the same live-versus-historical cut the main mode uses: a spec that described a script does not run it. RESOLUTION IS TREE-WIDE, JUDGING IS NOT. Both reverse modes resolve a token against every .ps1 in the repository, not against the three script roots the main mode judges - maestro/, .claude/hooks/ and dev/build-with-version.ps1 are real scripts, and resolving against the narrow set would report each of them as a phantom. THE DOCS BASELINE IS A LIST, NOT A COUNT. doc-script-reference-baseline.txt holds one `path :: token` line per known-bad reference, so a new phantom cannot hide behind a fixed one. A baseline line that no longer matches anything is printed as a prune hint, not a failure. .PARAMETER Gate Accepted for the fast-gate batch's uniform call shape; judging is already the default. .PARAMETER Report List the findings and exit 0 regardless of the baseline. Use when deciding, not when gating. .PARAMETER Memory Check agent-memory script paths instead of repository reference connectivity. .PARAMETER Docs Check that every .ps1 token in the live documents resolves to a real script. .PARAMETER ChangedFiles -Docs only: judge findings in these files alone, so one closure is not charged for another session's in-flight document. A .ps1 anywhere in the set widens the judgement back to the whole corpus, because a renamed or deleted script breaks documents that are not in the set. .PARAMETER Quiet Print the verdict line only. .PARAMETER RepoRoot Repository root. Defaults to the directory two levels above this script. .NOTES Exit codes: 0 - at or below the baseline, or -Report was given 1 - above the baseline: an unreferenced script appeared, a memory path resolves to nothing, or a document names a script that does not exist and is not in the docs baseline 2 - cannot verify: a script root, the agent memory, the document corpus or a baseline file is missing
+  Gate: a repository script that nothing references is either deleted or declares itself a hand-run tool (S1872). .DESCRIPTION Before this gate the only way to learn a script was dead was to sweep the repository by hand - an answer that is true once and never re-checked. Fifteen scripts were found that way on 2026-08-21, including a twelve-script migration directory whose own README calls itself finished and two wrappers whose headers claim callers they do not have. HOW IT JUDGES. Every project-authored .ps1 under the script roots is collected BY PATH, then every file in the reference corpus is read once and scanned for .ps1-shaped tokens. Each token is resolved into the file it names by the ladder in lib/script-reference-resolution.ps1, and a script is UNREFERENCED when no corpus file other than itself resolves to it. A script quoting its own name in help text does not keep itself alive. THE KEY IS A PATH, NOT A FILE NAME (S2124). It was a name until 2026-08-27, and the tree holds 37 files called Run-Tests.ps1: they shared one entry, so three comments naming that bare word marked all 37 referenced, none of which is called from anywhere. The blindness was structural - any group of files sharing a name went unjudged the moment one of them was mentioned. Under the path key the verdict rose from 30 to 58, and the 28 added files are one homogeneous class. AN AMBIGUOUS BARE NAME IS NOT EVIDENCE. A token that is a bare file name carried by several scripts names none of them. -Report says how many scripts are held up by nothing better, which is the number that was silently zero before S2124. FILES THAT LIST SCRIPTS ARE EXCLUDED, AND THAT IS NOT A SETTING. docs/SCRIPT_CHEATSHEET.md is generated from every script in the repository, and the two baselines beside this script are lists of script paths it writes itself. A corpus containing any of them reports zero unreferenced scripts forever and the gate becomes a check that cannot fail - which is exactly what happened the moment the main baseline stopped being a count. THE BASELINE IS A LIST, NOT A COUNT (S2124). script-reference-baseline.txt holds one script path per known orphan, so repairing one cannot free a slot the next one occupies silently. This is only possible under the path key: with a name key the 37 Run-Tests.ps1 could not be told apart on a line. A baseline line matching nothing is printed as a prune hint, not a failure - the same contract the docs baseline has had since S1979. READ-ONLY ZONES ARE IN THE CORPUS. dev/archive, V1, v2_6 and spec_v2 may not be written, but they may be read, and a reference living only there is still a reference. THE ESCAPE HATCH. A script the owner runs by hand is unreferenced by definition and is the costliest class to delete, because the loss surfaces only when it is next needed. Such a script declares itself with a line in its comment-based help: Manual tool: <why it exists and who runs it> An empty reason does not count as a declaration. MEMORY MODE. -Memory checks the other direction: every .ps1 path token written in the agent memory must resolve to a real file, or carry a `Historical:` or `External:` marker on its line or the line above. The tokens include paths beginning with a dot - dropping that leading dot was the exact flaw in the manual pass this gate replaces. DOCS MODE. -Docs asks the memory question of the live documents: a document that names a .ps1 file which does not exist hands the reader a command that cannot run. S1978 found one such line and a sweep found thirteen, in three registered documents, alive for an unknown time because nothing ever re-asked (S1979). The corpus is docs/, dev/ minus its archive and changelog, .claude/ minus agent-memory (owned by -Memory above), and the four agent-rule files at the root. PLAN/, V1/, v2_6/ and spec_v2/ are excluded on the same live-versus-historical cut the main mode uses: a spec that described a script does not run it. RESOLUTION IS TREE-WIDE, JUDGING IS NOT. Both reverse modes resolve a token against every .ps1 in the repository, not against the three script roots the main mode judges - maestro/, .claude/hooks/ and dev/build-with-version.ps1 are real scripts, and resolving against the narrow set would report each of them as a phantom. THE DOCS BASELINE IS A LIST, NOT A COUNT. doc-script-reference-baseline.txt holds one `path :: token` line per known-bad reference, so a new phantom cannot hide behind a fixed one. A baseline line that no longer matches anything is printed as a prune hint, not a failure. .PARAMETER Gate Accepted for the fast-gate batch's uniform call shape; judging is already the default. .PARAMETER Report List the findings and exit 0 regardless of the baseline. Use when deciding, not when gating. .PARAMETER Memory Check agent-memory script paths instead of repository reference connectivity. .PARAMETER Docs Check that every .ps1 token in the live documents resolves to a real script. .PARAMETER ChangedFiles -Docs only: judge findings in these files alone, so one closure is not charged for another session's in-flight document. A .ps1 anywhere in the set widens the judgement back to the whole corpus, because a renamed or deleted script breaks documents that are not in the set. .PARAMETER Quiet Print the verdict line only. .PARAMETER RepoRoot Repository root. Defaults to the directory two levels above this script. .NOTES Exit codes: 0 - every finding is in the baseline, or -Report was given 1 - an unreferenced script that is not in the baseline appeared, a memory path resolves to nothing, or a document names a script that does not exist and is not in the docs baseline 2 - cannot verify: a script root, the agent memory, the document corpus or a baseline file is missing
   Params:
     -Gate                 [SwitchParameter]
     -Report               [SwitchParameter]
@@ -2413,7 +2434,7 @@ scripts/quality/assert-script-references.ps1
     -ChangedFiles         [String[]] = @()
     -Quiet                [SwitchParameter]
     -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-  Exit: 0 - at or below the baseline, or -Report was given; 1 - above the baseline: an unreferenced script appeared, a memory path resolves to nothing,
+  Exit: 0 - every finding is in the baseline, or -Report was given; 1 - an unreferenced script that is not in the baseline appeared, a memory path resolves to
 ```
 
 ### assert-sdk-pin-claims.ps1
@@ -2490,9 +2511,10 @@ scripts/quality/assert-source-gates.ps1
     -Gate                   [SwitchParameter]
     -List                   [SwitchParameter]
     -UpdateBaseline         [SwitchParameter]
+    -Explain                [SwitchParameter]
     -Only                   [String[]]
     -ChangedFiles           [String[]]
-  Exit: 0 every rule at or below its baseline, or a non-gate report run.; 1 -Gate and at least one rule is above its baseline.; 2 cannot verify - an unknown rule name in -Only, or a source root that does not exist.
+  Exit: 0 every rule at or below its baseline, or a non-gate report run.; 1 -Gate and at least one rule is above its baseline.; 2 cannot verify - an unknown rule name in -Only, a source root that does not exist, or
 ```
 
 ### assert-splash-brand-sync.ps1
@@ -2638,6 +2660,18 @@ scripts/quality/assert-wear-route-literals.ps1
     -Gate         [SwitchParameter]
 ```
 
+### assert-wear-settings-parity.ps1
+S2093: fails when a watch setting exists on one side of the phone/watch pair and not the other.
+
+```
+scripts/quality/assert-wear-settings-parity.ps1
+  S2093: fails when a watch setting exists on one side of the phone/watch pair and not the other.
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - parity holds; or a divergence was reported without -Gate, matching the advisory shape of; 1 - a divergence was found and -Gate was passed.; 2 - a source file could not be read, or a registry parsed to zero entries, so nothing was
+```
+
 ### assert-window-insets.ps1
 Ratchet gate: window-inset handling that ignores displayCutout must never grow (S1338, Rule 17).
 
@@ -2773,6 +2807,26 @@ scripts/quality/migrate-locale-fingerprints-module.ps1
   Exit: 0 - migration completed, or -DryRun classified without writing.; 1 - a corpus export failed, so ownership could not be resolved; nothing was written.; 2 - the registry is already at the current schema version; nothing to do.
 ```
 
+### prune-detekt-baseline.ps1
+S2112: remove from the operational detekt baseline exactly the entries whose finding no longer exists in a named file set - and refuse outright when that set carries a finding the baseline does not already hold.
+
+```
+scripts/quality/prune-detekt-baseline.ps1
+  S2112: remove from the operational detekt baseline exactly the entries whose finding no longer exists in a named file set - and refuse outright when that set carries a finding the baseline does not already hold.
+  Params:
+    -Module               [String] = 'app_v2'  {app_v2|wear}
+    -Files                [String[]]
+    -Apply                [SwitchParameter]
+    -Reason               [String]
+    -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -BaselinePath         [String]
+    -SourceRoot           [String]
+    -ConfigPath           [String]
+    -CacheRoot            [String] = (Join-Path $env:USERPROFILE '.gradle/caches/modules-2/files-2.1')
+    -Json                 [String]
+  Exit: 0 - reported, or pruned. No entry in the fresh scoped run is missing from the operational
+```
+
 ### reindex-settings.ps1
 Mandatory pre-release settings reindex - regenerate the settings search index mirror, then verify it is consistent with the app.
 
@@ -2798,6 +2852,23 @@ scripts/quality/remove-ticket-probes.ps1
     -WhatIf                  [SwitchParameter]
 ```
 
+### run-script-suites.ps1
+S2122: the run site for the repository's regression suites - one implementation, three callers.
+
+```
+scripts/quality/run-script-suites.ps1
+  S2122: the run site for the repository's regression suites - one implementation, three callers.
+  Params:
+    -ChangedFiles         [String[]]
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+    -ListOnly             [SwitchParameter]
+    -Root                 [String]
+    -Json                 [String]
+    -Help                 [SwitchParameter]
+  Exit: 0 every selected suite passed, or none was selected, or -ListOnly.; 1 at least one suite failed.; 2 no suite failed, but at least one could not verify and -Gate was passed.
+```
+
 ### sector-gate-pilot.ps1
 S1344 pilot instrument: benchmarks the sector map against full -Search, classifies gate refusals, and computes the adopt/reject verdict.
 
@@ -2810,6 +2881,22 @@ scripts/quality/sector-gate-pilot.ps1
     -Classification         [String]  {correct|false-block}
     -Runs                   [Int32] = 5
   Exit: 0 - the requested action completed.; 2 - the catalogue or the sector file is unreadable, or the arguments are unusable.; 3 - -Action summary with fewer than 3 classified refusals: not enough evidence for a verdict.
+```
+
+### split-detekt-baseline.ps1
+S2105 gate: generate/verify format-vs-signal view files derived from the operational detekt baseline, so the format and signal debt each have a cheap, separate count.
+
+```
+scripts/quality/split-detekt-baseline.ps1
+  S2105 gate: generate/verify format-vs-signal view files derived from the operational detekt baseline, so the format and signal debt each have a cheap, separate count.
+  Params:
+    -Module                 [String]  {app_v2|wear}
+    -Gate                   [SwitchParameter]
+    -Update                 [SwitchParameter]
+    -Reason                 [String]
+    -CategoriesFile         [String]
+    -Json                   [String]
+  Exit: 0 PASS - view files match what the operational baseline + table currently produce, or
 ```
 
 ## scripts\quality.tests
@@ -2911,6 +2998,18 @@ scripts/quality/assert-orientation-layout-pairing.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
+## scripts\quality\assert-script-references.tests
+
+### Run-Tests.ps1
+Regression tests for the .ps1 token resolution ladder behind assert-script-references (S2124).
+
+```
+scripts/quality/assert-script-references.tests/Run-Tests.ps1
+  Regression tests for the .ps1 token resolution ladder behind assert-script-references (S2124).
+  (no param block)
+  Exit: 0 - every case passed; 1 - at least one case failed
+```
+
 ## scripts\quality\assert-shared-test-flavor-scope.tests
 
 ### Run-Tests.ps1
@@ -2958,7 +3057,7 @@ scripts/quality/assert-window-insets.tests/Run-Tests.ps1
 scripts/quality/detekt-scoped.tests/Run-Tests.ps1
   Params:
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
-  Exit: 0 - every case passed.; 1 - at least one case failed.
+  Exit: 0 - every case passed.; 1 - at least one case failed.; 2 - the suite could not build a fixture it needs, so it never judged anything.
 ```
 
 ## scripts\quality\doc-icon-gate-routing.tests
@@ -3003,6 +3102,15 @@ S1184: shared -ChangedFiles normalization for diff-scoped quality gates.
 ```
 scripts/quality/lib/changed-files.ps1
   S1184: shared -ChangedFiles normalization for diff-scoped quality gates.
+  (no param block)
+```
+
+### detekt-classpath.ps1
+Read the detekt version pin out of the root build.gradle.kts.
+
+```
+scripts/quality/lib/detekt-classpath.ps1
+  Read the detekt version pin out of the root build.gradle.kts.
   (no param block)
 ```
 
@@ -3063,6 +3171,15 @@ scripts/quality/lib/locale-fingerprints.ps1
   (no param block)
 ```
 
+### script-reference-resolution.ps1
+Resolve a .ps1 token found in a file into the script path(s) it actually names (S2124).
+
+```
+scripts/quality/lib/script-reference-resolution.ps1
+  Resolve a .ps1 token found in a file into the script path(s) it actually names (S2124).
+  (no param block)
+```
+
 ### source-matchers.ps1
 S1338: the one definition of every lexical source rule in the neuroslop family.
 
@@ -3090,6 +3207,17 @@ scripts/quality/lib/ticket-acceptance-probes.ps1
   (no param block)
 ```
 
+## scripts\quality\prune-detekt-baseline.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/prune-detekt-baseline.tests/Run-Tests.ps1
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+  Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
 ## scripts\quality\remove-ticket-probes.tests
 
 ### Run-Tests.ps1
@@ -3097,6 +3225,18 @@ scripts/quality/lib/ticket-acceptance-probes.ps1
 ```
 scripts/quality/remove-ticket-probes.tests/Run-Tests.ps1
   (no param block)
+```
+
+## scripts\quality\run-script-suites.tests
+
+### Run-Tests.ps1
+S2122 - regression suite for the script-suite runner itself.
+
+```
+scripts/quality/run-script-suites.tests/Run-Tests.ps1
+  S2122 - regression suite for the script-suite runner itself.
+  (no param block)
+  Exit: 0 every case passed.; 1 at least one case failed.; 2 could not verify - the runner script is missing.
 ```
 
 ## scripts\quality\source-matchers.tests
@@ -3125,15 +3265,16 @@ scripts/release/apply-github-store-metadata.ps1
 ```
 
 ### build-release-spectrum.ps1
-Build the full release spectrum at ONE uniform version for GitHub Release publication (S0394). .DESCRIPTION Stamps a single version into BOTH app_v2 and wear, then builds every release flavor + the wear release in the established two-pass (Chaquopy) order, so all artifacts share one version and the publisher can upload them under one tag. Flavors built (release only): standard, lite, photos, legacy, vr (pass 1, Chaquopy disabled) wear (:wear:assembleRelease + :wear:bundleRelease) (pass 1) noLegal (pass 2, Chaquopy enabled) Out of scope (kept in the existing per-flavor builders / build-and-push-all): debug variants, git operations, Google Drive + tc-folder mirrors. Run from the release worktree on main so the follow-up publisher (scripts/release/publish-github-release.ps1) passes its branch guard. .PARAMETER SkipBuild Stamp the uniform version into app_v2 + wear build.gradle.kts and exit without building. Useful to inspect the version reconciliation in isolation. .PARAMETER ReuseVersion Do NOT compute a fresh version. Reuse the version already stamped in app_v2/build.gradle.kts (e.g. by a prior `a.ps1 r`) and align wear to it. This keeps the GitHub Release APKs aligned with the Google Play AAB produced by `a.ps1 r` in the same release window - used by the /skill-release flow. .PARAMETER Flavors Subset of the spectrum to build. Accepts any of: standard, lite, photos, legacy, vr, wear, noLegal plus the alias 'all' (== 'full' == 'spectrum') for every flavor. Case-insensitive; order-independent; de-duplicated. Omitted / empty => the full spectrum (backward-compatible default for direct invocation). The /skill-release flow passes 'standard' by default so a plateau release builds only the standard edition unless extra flavors are requested.
+Build the full release spectrum at ONE uniform version for GitHub Release publication (S0394). .DESCRIPTION Stamps a single version into BOTH app_v2 and wear, then builds every release flavor + the wear release in the established two-pass (Chaquopy) order, so all artifacts share one version and the publisher can upload them under one tag. Flavors built (release only): standard, lite, photos, legacy, vr (pass 1, Chaquopy disabled) wear (:wear:assembleRelease + :wear:bundleRelease) (pass 1) noLegal (pass 2, Chaquopy enabled) Out of scope (kept in the existing per-flavor builders / build-and-push-all): debug variants, git operations, Google Drive + tc-folder mirrors. Run from the release worktree on main so the follow-up publisher (scripts/release/publish-github-release.ps1) passes its branch guard. .PARAMETER SkipBuild Stamp the uniform version into app_v2 + wear build.gradle.kts and exit without building. Useful to inspect the version reconciliation in isolation. .PARAMETER ReuseVersion Do NOT compute a fresh version. Reuse the version already stamped in app_v2/build.gradle.kts (e.g. by a prior `a.ps1 r`) and align wear to it. This keeps the GitHub Release APKs aligned with the Google Play AAB produced by `a.ps1 r` in the same release window - used by the /skill-release flow. .PARAMETER Flavors Subset of the spectrum to build. Accepts any of: standard, lite, photos, legacy, vr, wear, noLegal plus the alias 'all' (== 'full' == 'spectrum') for every flavor. Case-insensitive; order-independent; de-duplicated. Omitted / empty => the full spectrum (backward-compatible default for direct invocation). The /skill-release flow passes 'standard' by default so a plateau release builds only the standard edition unless extra flavors are requested. .PARAMETER WearFlavor Which watch variant the 'wear' entry of -Flavors resolves to: 'standard' (default, the one Play accepts) or 'noLegal' (sideload). S2090 gave the wear module its own flavor dimension; ADR-6 of that ticket fixes the release default at the store variant, because building the sideload one on every release costs a full watch build for a difference no user of the release sees.
 
 ```
 scripts/release/build-release-spectrum.ps1
-  Build the full release spectrum at ONE uniform version for GitHub Release publication (S0394). .DESCRIPTION Stamps a single version into BOTH app_v2 and wear, then builds every release flavor + the wear release in the established two-pass (Chaquopy) order, so all artifacts share one version and the publisher can upload them under one tag. Flavors built (release only): standard, lite, photos, legacy, vr (pass 1, Chaquopy disabled) wear (:wear:assembleRelease + :wear:bundleRelease) (pass 1) noLegal (pass 2, Chaquopy enabled) Out of scope (kept in the existing per-flavor builders / build-and-push-all): debug variants, git operations, Google Drive + tc-folder mirrors. Run from the release worktree on main so the follow-up publisher (scripts/release/publish-github-release.ps1) passes its branch guard. .PARAMETER SkipBuild Stamp the uniform version into app_v2 + wear build.gradle.kts and exit without building. Useful to inspect the version reconciliation in isolation. .PARAMETER ReuseVersion Do NOT compute a fresh version. Reuse the version already stamped in app_v2/build.gradle.kts (e.g. by a prior `a.ps1 r`) and align wear to it. This keeps the GitHub Release APKs aligned with the Google Play AAB produced by `a.ps1 r` in the same release window - used by the /skill-release flow. .PARAMETER Flavors Subset of the spectrum to build. Accepts any of: standard, lite, photos, legacy, vr, wear, noLegal plus the alias 'all' (== 'full' == 'spectrum') for every flavor. Case-insensitive; order-independent; de-duplicated. Omitted / empty => the full spectrum (backward-compatible default for direct invocation). The /skill-release flow passes 'standard' by default so a plateau release builds only the standard edition unless extra flavors are requested.
+  Build the full release spectrum at ONE uniform version for GitHub Release publication (S0394). .DESCRIPTION Stamps a single version into BOTH app_v2 and wear, then builds every release flavor + the wear release in the established two-pass (Chaquopy) order, so all artifacts share one version and the publisher can upload them under one tag. Flavors built (release only): standard, lite, photos, legacy, vr (pass 1, Chaquopy disabled) wear (:wear:assembleRelease + :wear:bundleRelease) (pass 1) noLegal (pass 2, Chaquopy enabled) Out of scope (kept in the existing per-flavor builders / build-and-push-all): debug variants, git operations, Google Drive + tc-folder mirrors. Run from the release worktree on main so the follow-up publisher (scripts/release/publish-github-release.ps1) passes its branch guard. .PARAMETER SkipBuild Stamp the uniform version into app_v2 + wear build.gradle.kts and exit without building. Useful to inspect the version reconciliation in isolation. .PARAMETER ReuseVersion Do NOT compute a fresh version. Reuse the version already stamped in app_v2/build.gradle.kts (e.g. by a prior `a.ps1 r`) and align wear to it. This keeps the GitHub Release APKs aligned with the Google Play AAB produced by `a.ps1 r` in the same release window - used by the /skill-release flow. .PARAMETER Flavors Subset of the spectrum to build. Accepts any of: standard, lite, photos, legacy, vr, wear, noLegal plus the alias 'all' (== 'full' == 'spectrum') for every flavor. Case-insensitive; order-independent; de-duplicated. Omitted / empty => the full spectrum (backward-compatible default for direct invocation). The /skill-release flow passes 'standard' by default so a plateau release builds only the standard edition unless extra flavors are requested. .PARAMETER WearFlavor Which watch variant the 'wear' entry of -Flavors resolves to: 'standard' (default, the one Play accepts) or 'noLegal' (sideload). S2090 gave the wear module its own flavor dimension; ADR-6 of that ticket fixes the release default at the store variant, because building the sideload one on every release costs a full watch build for a difference no user of the release sees.
   Params:
     -SkipBuild            [SwitchParameter]
     -ReuseVersion         [SwitchParameter]
     -Flavors              [String[]]
+    -WearFlavor           [String] = 'standard'  {standard|noLegal}
 ```
 
 ### capture-play-screenshots.ps1
@@ -3988,6 +4129,15 @@ scripts/streams/modules/StreamPublisher.Probes.ps1
 
 ## scripts\utils
 
+### agent-lock-domains.ps1
+Domain table for the cross-agent coordination locks (S2109).
+
+```
+scripts/utils/agent-lock-domains.ps1
+  Domain table for the cross-agent coordination locks (S2109).
+  (no param block)
+```
+
 ### agent-lock.ps1
 Cross-agent coordination locks: temp/BUILD.LOCK and temp/CODE.LOCK.
 
@@ -4096,8 +4246,9 @@ Remove a stale agent lock, or forcibly clear a live one when explicitly requeste
 scripts/utils/clear-agent-lock.ps1
   Remove a stale agent lock, or forcibly clear a live one when explicitly requested.
   Params:
-    -Name   (req)  [String]  {Build|Code}
+    -Name   (req)  [String]
     -Force         [SwitchParameter]
+  Exit: 0 - the named domain(s) are free: already free, or cleared here.; 1 - refused: a live holder was found and -Force was not given. Its pid, age, reason and
 ```
 
 ### commit-push.ps1
@@ -4161,9 +4312,11 @@ scripts/utils/enter-code-lock.ps1
   Acquire temp/CODE.LOCK before starting a multi-file source (Kotlin/XML/build-file) edit.
   Params:
     -Reason              (req)  [String]
+    -Files                      [String[]]
+    -Domain                     [String]
     -Wait                       [SwitchParameter]
     -WaitTimeoutSeconds         [Int32] = 1200
-  Exit: 0 - lock acquired, start editing. Also returned when this session ALREADY holds the lock; 4 - queued: another session holds it. Your ticket is in the queue; wait for your turn with
+  Exit: 0 - the domains are acquired, start editing. Also returned when this session ALREADY holds
 ```
 
 ### exit-code-lock.ps1
@@ -4275,6 +4428,15 @@ scripts/utils/get-device-abi.ps1
   (no param block)
 ```
 
+### gradle-modules.ps1
+Registry of the Gradle modules declared in settings.gradle.kts (S2121).
+
+```
+scripts/utils/gradle-modules.ps1
+  Registry of the Gradle modules declared in settings.gradle.kts (S2121).
+  (no param block)
+```
+
 ### help.ps1
 Print the parameter signature of any repo PowerShell script, or generate a full cheatsheet - so callers stop re-reading scripts just to recall params.
 
@@ -4382,13 +4544,13 @@ scripts/utils/locale-set.ps1
 ```
 
 ### lock-status.ps1
-Fast, read-only check of temp/BUILD.LOCK or temp/CODE.LOCK - existence, age, holder.
+Fast, read-only check of one coordination domain - existence, age, holder. A bare Build or Code reports every domain of that type, one section each, every line naming its own domain.
 
 ```
 scripts/utils/lock-status.ps1
-  Fast, read-only check of temp/BUILD.LOCK or temp/CODE.LOCK - existence, age, holder.
+  Fast, read-only check of one coordination domain - existence, age, holder. A bare Build or Code reports every domain of that type, one section each, every line naming its own domain.
   Params:
-    -Name                (req)  [String]  {Build|Code}
+    -Name                (req)  [String]
     -Json                       [SwitchParameter]
     -StrictExit                 [SwitchParameter]
     -Queue                      [SwitchParameter]
@@ -4699,7 +4861,7 @@ Take a place in a lock's queue, block until it is this session's turn, then EXIT
 scripts/utils/wait-for-lock-turn.ps1
   Take a place in a lock's queue, block until it is this session's turn, then EXIT.
   Params:
-    -Name                (req)  [String]  {Build|Code}
+    -Name                (req)  [String]
     -Reason              (req)  [String]
     -WaitTimeoutSeconds         [Int32] = 3600
     -PollSeconds                [Int32] = 5
@@ -4722,24 +4884,24 @@ scripts/utils/wait-for-ticket-work.ps1
 ```
 
 ### withdraw-lock-ticket.ps1
-Withdraw this session's own place in a lock queue: temp/BUILD.QUEUE or temp/CODE.QUEUE.
+Withdraw this session's own place in a lock queue, in one domain or across a whole type.
 
 ```
 scripts/utils/withdraw-lock-ticket.ps1
-  Withdraw this session's own place in a lock queue: temp/BUILD.QUEUE or temp/CODE.QUEUE.
+  Withdraw this session's own place in a lock queue, in one domain or across a whole type.
   Params:
-    -Name  (req)  [String]  {Build|Code}
+    -Name  (req)  [String]
   Exit: 0 - withdrawal judged: this session's tickets, if any, are gone. Zero removed is a normal; 2 - ownership could not be established (no CLAUDE_CODE_SESSION_ID / CODEX_SESSION_ID in the
 ```
 
 ## scripts\utils\agent-lock.tests
 
 ### Run-Tests.ps1
-Regression tests for agent-lock.ps1: the stale-JAVA_HOME snapshot repair (S1928) and the BUILD.LOCK fail-fast refusal's exit code (S2058).
+Regression tests for agent-lock.ps1: the domain taxonomy (S2109), the stale-JAVA_HOME snapshot repair (S1928) and the BUILD.LOCK fail-fast refusal's exit code (S2058).
 
 ```
 scripts/utils/agent-lock.tests/Run-Tests.ps1
-  Regression tests for agent-lock.ps1: the stale-JAVA_HOME snapshot repair (S1928) and the BUILD.LOCK fail-fast refusal's exit code (S2058).
+  Regression tests for agent-lock.ps1: the domain taxonomy (S2109), the stale-JAVA_HOME snapshot repair (S1928) and the BUILD.LOCK fail-fast refusal's exit code (S2058).
   (no param block)
   Exit: 0 - every case passed.; 1 - a case failed.
 ```
@@ -4752,6 +4914,17 @@ Test suite for format-kotlin-imports.ps1.
 ```
 scripts/utils/format-kotlin-imports.tests/run-tests.ps1
   Test suite for format-kotlin-imports.ps1.
+  (no param block)
+```
+
+## scripts\utils\gradle-modules.tests
+
+### Run-Tests.ps1
+Regression tests for the Gradle module registry (S2121).
+
+```
+scripts/utils/gradle-modules.tests/Run-Tests.ps1
+  Regression tests for the Gradle module registry (S2121).
   (no param block)
 ```
 

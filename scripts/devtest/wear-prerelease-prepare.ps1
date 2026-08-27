@@ -48,6 +48,11 @@ param(
 
     [switch]$SkipBuild,
 
+    # S2090: which watch variant this sweep judges. 'standard' is what reaches Play and stays the
+    # default; 'noLegal' is the sideload variant, swept on request (ADR-6).
+    [ValidateSet('standard', 'noLegal')]
+    [string]$WearFlavor = 'standard',
+
     [switch]$Json
 )
 
@@ -151,7 +156,7 @@ if (-not $SkipBuild) {
     # sidesteps the same tail by refusing its own interactive builder outright. The artifact this
     # run judges is read from wear/build/outputs, which -NoDistribute does not touch, so ADR-3
     # still holds: the build comes from the recorded path, inside the run.
-    & pwsh -NoProfile -File $wearBuilder -Artifact Both -NoDistribute
+    & pwsh -NoProfile -File $wearBuilder -Artifact Both -NoDistribute -Flavor $WearFlavor
     if ($LASTEXITCODE -ne 0) { Stop-Run 1 "build-wear-release.PS1 exited $LASTEXITCODE" }
 }
 elseif (-not $Json) {
@@ -199,11 +204,17 @@ function Get-BuiltArtifact {
     }
 }
 
-$apk = Get-BuiltArtifact -Directory 'wear/build/outputs/apk/release' -Extension 'apk'
-$aab = Get-BuiltArtifact -Directory 'wear/build/outputs/bundle/release' -Extension 'aab'
+# S2090: the watch outputs sit under a flavor segment now. The sweep judges the artifact that ships,
+# so it defaults to the store variant; a miss must name the variant AND the directory searched, because
+# this script reports a path miss as "nothing got built" and the two read identically otherwise.
+$apkDir = "wear/build/outputs/apk/$WearFlavor/release"
+$aabDir = "wear/build/outputs/bundle/$WearFlavor/release"
 
-if (-not $apk) { Stop-Run 2 'no release APK under wear/build/outputs/apk/release - build without -SkipBuild' }
-if (-not $aab) { Stop-Run 2 'no release bundle under wear/build/outputs/bundle/release - build without -SkipBuild' }
+$apk = Get-BuiltArtifact -Directory $apkDir -Extension 'apk'
+$aab = Get-BuiltArtifact -Directory $aabDir -Extension 'aab'
+
+if (-not $apk) { Stop-Run 2 "no $WearFlavor release APK under $apkDir - build without -SkipBuild" }
+if (-not $aab) { Stop-Run 2 "no $WearFlavor release bundle under $aabDir - build without -SkipBuild" }
 
 # The bundle directory carries no output-metadata.json, so the AAB has no version of its own to read.
 # Both artifacts come out of one gradle invocation, so the APK's version is the bundle's version - and

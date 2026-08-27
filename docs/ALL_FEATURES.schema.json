@@ -29,7 +29,7 @@
     },
     "flavors": {
       "type": "array",
-      "$comment": "Build variants where the capability is available. S1934 fixes how the set is derived: from the build system, never from the build the change happened to be tested on - the flag's row in docs/FLAVOR_MATRIX.md when the capability sits behind a gate, and the full six when nothing gates it, because a capability nothing narrows cannot be narrower than the app. A set that is neither the full six nor equal to some flag's row claims a reach the build system does not produce; validate.ps1 counts those against a ratchet baseline rather than refusing each one, since 242 records predate the rule. A capability living entirely in the wear module carries the full six: that module declares no flavors, the watch app is its own installation, and no phone build excludes it - any narrower set asserts an exclusion the build does not have. A watch capability that does need the phone bridge is gated by SUPPORT_WEAR_COMPANION instead.",
+      "$comment": "Build variants where the capability is available. S1934 fixes how the set is derived: from the build system, never from the build the change happened to be tested on - the flag's row in docs/FLAVOR_MATRIX.md when the capability sits behind a gate, and the full six when nothing gates it, because a capability nothing narrows cannot be narrower than the app. A set that is neither the full six nor equal to some flag's row claims a reach the build system does not produce; validate.ps1 counts those against a ratchet baseline rather than refusing each one, since 242 records predate the rule. A capability living entirely in the wear module carries the full six: the watch app is its own installation and no phone build excludes it, so any narrower set here asserts a PHONE exclusion the build does not have. A watch capability that does need the phone bridge is gated by SUPPORT_WEAR_COMPANION instead. Since S2090 the wear module has a flavor dimension of its own, and a capability present in only one of ITS variants says so in 'wearFlavors' - this field stays about the phone either way.",
       "minItems": 1,
       "uniqueItems": true,
       "items": {
@@ -41,6 +41,16 @@
       "type": "string",
       "$comment": "S1929. The BuildConfig flag this capability lives behind, e.g. 'SUPPORT_WEAR_COMPANION'. OPTIONAL, and its absence is an assertion rather than an omission: it means the capability is behind no flag at all, which is why documentation-only and watch-standalone records carry no gate and keep their own flavor sets. When present, scripts/all_features/validate.ps1 requires 'flavors' to equal that flag's row in docs/FLAVOR_MATRIX.md exactly, and a flag the matrix does not list is an error rather than a skip - a typo must not silently switch the check off. S1982 admits one shape beyond a single name: flags joined by '+' are a CONJUNCTION, meaning the capability needs every named flag at once, and 'flavors' must then equal the intersection of their rows exactly. Live-stream casting is the shape it exists for - the stream comes from SUPPORT_STREAMS, the receiver from SUPPORT_CAST, and neither row alone is true of it. This is still not a list of alternatives: no syntax here ever means 'any of these flags', because a capability sitting behind two different answers is two capabilities, or a record boundary drawn in the wrong place (S1933). Term order is the author's and is not normalised; a repeated term is an error, since it narrows nothing and only hides a mistyped second flag.",
       "pattern": "^[A-Z][A-Z0-9_]*(?:\\+[A-Z][A-Z0-9_]*)*$"
+    },
+    "wearFlavors": {
+      "type": "array",
+      "$comment": "S2090. Which WEAR-MODULE build variants the capability exists in. OPTIONAL, and absence is an assertion: it means every watch build has it, which is why naming both variants is refused rather than accepted as a synonym. This is a separate axis from 'flavors', not a reinterpretation of it: 'flavors' names PHONE variants and answers 'which phone build gates this companion capability', and the S1934 ratchet only counts a set as explained when it equals the full six or some flag's row. A capability living only in the watch's noLegal build is gated by no phone flavor at all, so under 'flavors' alone it would be forced to claim the full six and thereby assert availability everywhere - which is the one thing it must not say. Redefining 'flavors' for watch records instead was rejected: S1951 changed one flag's row and thirty records stopped matching it in a single step, twenty about the watch and ten not, so a silent change of meaning across live records is a known failure mode here.",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": ["standard", "noLegal"]
+      }
     },
     "spec": {
       "$comment": "Provenance: source spec ticket id, or null when not spec-tracked.",

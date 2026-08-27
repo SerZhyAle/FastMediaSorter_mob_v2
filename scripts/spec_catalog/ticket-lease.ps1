@@ -144,7 +144,13 @@ function Test-LeaseOwnerHoldsLock {
     $ticketId = [string]$Lease.id
     if ([string]::IsNullOrWhiteSpace($ownerSessionId) -or [string]::IsNullOrWhiteSpace($ticketId)) { return $false }
 
-    foreach ($lockName in @('Code', 'Build')) {
+    # S2109: scan every domain, not the two bare names. Research artifact 05 flagged this as one of
+    # only two functional consumers of the lock name outside the library: after the split a session
+    # holding Code.Wear writes no file under the bare name, so a check that looked only there would
+    # find nothing, read a working session's lease as abandoned, and sweep it out from under it.
+    $lockNames = @(Resolve-AgentLockDomains -Name 'Code') + @(Resolve-AgentLockDomains -Name 'Build') +
+        @('Code', 'Build')
+    foreach ($lockName in $lockNames) {
         $lock = Get-AgentLockStatus -Name $lockName
         if (-not $lock.Exists -or $lock.Stale) { continue }
         if ([string]$lock.SessionId -ne $ownerSessionId) { continue }

@@ -26,7 +26,8 @@ $buildSuccess = $false
 . "$PSScriptRoot\..\utils\build-version-stamp.ps1"
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
-Enter-BuildLockOrExit -Reason "build-and-push-all.ps1"
+# S2109: builds every flavor AND the watch module, so it genuinely holds both build domains.
+Enter-BuildLockOrExit -Reason "build-and-push-all.ps1" -Domain @('Build.Phone', 'Build.Wear')
 try {
 
 $stamp = Get-BuildVersionStamp
@@ -65,9 +66,13 @@ while (-not $buildSuccess -and $retryCount -lt $maxRetries) {
             throw "Pass 1 (non-noLegal) failed with exit code $pass1Exit"
         }
 
-        Write-Host "  Pass 1b: Wear OS..." -ForegroundColor DarkGray
+        # S2090: the watch task names carry a flavor segment now. Only the store variant is built here -
+        # this script mirrors artifacts to Drive and the tc folder, and the sideload watch variant is
+        # built on request rather than on every batch run (ADR-6). The copy loop below still scans both,
+        # so a noLegal build made by hand is still picked up and mirrored under its own name.
+        Write-Host "  Pass 1b: Wear OS (standard)..." -ForegroundColor DarkGray
         & $gradlew `
-            :wear:assembleDebug :wear:assembleRelease `
+            :wear:assembleStandardDebug :wear:assembleStandardRelease `
             "-Pchaquopy.enabled=false" `
             "-Pfms.versionCode=$($stamp.WearVersionCode)" `
             "-Pfms.versionName=$($stamp.VersionName)" `
@@ -111,7 +116,7 @@ while (-not $buildSuccess -and $retryCount -lt $maxRetries) {
 
 }
 finally {
-    Exit-AgentLock -Name Build
+    Exit-AgentLock -Name 'Build' -Domains @('Build.Phone', 'Build.Wear')
 }
 
 if (-not $buildSuccess) {
@@ -209,8 +214,12 @@ Write-Host "`nArtifacts copied to $downloadsDir" -ForegroundColor Green
 Write-Host "`nProcessing Wear OS artifacts..." -ForegroundColor Cyan
 $wearApkRoot = "$projectRoot\wear\build\outputs\apk"
 if (Test-Path $wearApkRoot) {
+    # S2090: the watch grew a flavor dimension, so its outputs sit one directory deeper. The store
+    # variant keeps the historic destination name - callers and the Drive mirror address it by that
+    # name - and only the sideload variant carries a flavor segment in what it is copied to.
+    foreach ($wearFlavor in @("standard", "noLegal")) {
     foreach ($buildType in @("debug", "release")) {
-        $wearApkDir = "$wearApkRoot\$buildType"
+        $wearApkDir = "$wearApkRoot\$wearFlavor\$buildType"
         if (-not (Test-Path $wearApkDir)) { continue }
 
         # S1972: one resolver for every builder - it selects by ABI from output-metadata.json
@@ -220,30 +229,33 @@ if (Test-Path $wearApkRoot) {
         $apkPath = if ($resolvedArtifact) { $resolvedArtifact.FullName } else { $null }
 
         if (-not $apkPath -or -not (Test-Path $apkPath)) {
-            Write-Host "  Warning: Wear $buildType APK not found, skipping." -ForegroundColor Yellow
+            Write-Host "  Warning: Wear $wearFlavor $buildType APK not found, skipping." -ForegroundColor Yellow
             continue
         }
 
-        $wearDest = "$downloadsDir\FastMediaSorter_wear_$buildType.apk"
+        $wearSuffix = if ($wearFlavor -eq 'standard') { '' } else { "_$wearFlavor" }
+        $wearBaseName = "FastMediaSorter_wear${wearSuffix}_$buildType"
+        $wearDest = "$downloadsDir\$wearBaseName.apk"
         Copy-Item -Path $apkPath -Destination $wearDest -Force
-        Write-Host "Copied: FastMediaSorter_wear_$buildType.apk" -ForegroundColor Gray
+        Write-Host "Copied: $wearBaseName.apk" -ForegroundColor Gray
 
-        $logEntry = "$timestamp | wear-$buildType-batch | FastMediaSorter_wear_$buildType.apk"
+        $logEntry = "$timestamp | wear-$wearFlavor-$buildType-batch | $wearBaseName.apk"
         Add-Content -Path $journalPath -Value $logEntry
 
         # Copy raw APK to Google Drive AND create password-protected ZIP.
         $gdDir = "c:\GD\WORK\FastMediaSorter"
         if (!(Test-Path $gdDir)) { New-Item -ItemType Directory -Path $gdDir | Out-Null }
-        Copy-Item -Path $wearDest -Destination "$gdDir\FastMediaSorter_wear_$buildType.apk" -Force
+        Copy-Item -Path $wearDest -Destination "$gdDir\$wearBaseName.apk" -Force
         $7zipPath = "C:\Program Files\7-Zip\7z.exe"
         if (Test-Path $7zipPath) {
-            & $7zipPath a -tzip -p1 "$gdDir\FastMediaSorter_wear_$buildType.zip" "$wearDest" | Out-Null
+            & $7zipPath a -tzip -p1 "$gdDir\$wearBaseName.zip" "$wearDest" | Out-Null
         }
 
         # Copy to tc folder
         $tcDir = "c:\GD\tc\SZA\_APP"
         if (!(Test-Path $tcDir)) { New-Item -ItemType Directory -Path $tcDir | Out-Null }
-        Copy-Item -Path $wearDest -Destination "$tcDir\FastMediaSorter_wear_$buildType.apk" -Force
+        Copy-Item -Path $wearDest -Destination "$tcDir\$wearBaseName.apk" -Force
+    }
     }
 } else {
     Write-Host "  Warning: Wear build output not found at $wearApkRoot" -ForegroundColor Yellow

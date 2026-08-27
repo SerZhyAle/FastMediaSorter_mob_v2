@@ -1,8 +1,8 @@
 #requires -Version 7.0
 <#
 .SYNOPSIS
-    Regression tests for agent-lock.ps1: the stale-JAVA_HOME snapshot repair (S1928) and the
-    BUILD.LOCK fail-fast refusal's exit code (S2058).
+    Regression tests for agent-lock.ps1: the domain taxonomy (S2109), the stale-JAVA_HOME
+    snapshot repair (S1928) and the BUILD.LOCK fail-fast refusal's exit code (S2058).
 
 .DESCRIPTION
     The repair sits directly in front of a refusal that gates every gradle target in the repository,
@@ -23,7 +23,7 @@
     would terminate the test runner itself instead of producing an observable exit code.
 
 .NOTES
-    Exit codes (CLAUDE.md Rule 7):
+    Exit codes:
       0 - every case passed.
       1 - a case failed.
 #>
@@ -47,6 +47,85 @@ function Assert-Case {
 }
 
 try {
+    # 0. S2109 domain taxonomy. These cases touch no lock file at all - they read the table and
+    #    the two path builders - so they run first and unconditionally, before any case that has
+    #    to skip itself around a live BUILD.LOCK.
+    $codeDomains = @(Resolve-AgentLockDomains -Name 'Code')
+    Assert-Case -Name 'a bare Code resolves to the three code domains in canonical order' `
+        -Ok (($codeDomains -join ',') -eq 'Code.Phone,Code.Wear,Code.Scripts') `
+        -Detail "got '$($codeDomains -join ',')'"
+
+    $buildDomains = @(Resolve-AgentLockDomains -Name 'Build')
+    Assert-Case -Name 'a bare Build resolves to both build domains in canonical order' `
+        -Ok (($buildDomains -join ',') -eq 'Build.Phone,Build.Wear') `
+        -Detail "got '$($buildDomains -join ',')'"
+
+    Assert-Case -Name 'a concrete domain resolves to itself' `
+        -Ok ((@(Resolve-AgentLockDomains -Name 'Code.Wear') -join ',') -eq 'Code.Wear') `
+        -Detail 'a concrete domain did not resolve to a single-element set'
+
+    # An unknown name must throw rather than return empty (strategic S2109 section 11 criterion 6):
+    # an empty set is a lock nobody holds and every caller believes in.
+    $unknownThrew = $false
+    try { Resolve-AgentLockDomains -Name 'Code.Tablet' | Out-Null }
+    catch { $unknownThrew = $true }
+    Assert-Case -Name 'an unknown resource name throws instead of resolving to nothing' `
+        -Ok $unknownThrew -Detail 'Resolve-AgentLockDomains returned quietly for an unknown name'
+
+    Assert-Case -Name 'two domains produce two different lock paths' `
+        -Ok ((Get-AgentLockPath -Name 'Code.Wear') -ne (Get-AgentLockPath -Name 'Code.Phone')) `
+        -Detail 'two distinct domains share one lock file'
+
+    Assert-Case -Name 'a bare name still resolves to the pre-split path' `
+        -Ok ((Get-AgentLockPath -Name 'Code').EndsWith('CODE.LOCK') -and
+             (Get-AgentLockPath -Name 'Build').EndsWith('BUILD.LOCK')) `
+        -Detail 'a bare name no longer points at the path every existing caller uses'
+
+    Assert-Case -Name 'every concrete domain has its own timings record' `
+        -Ok (@('Build.Phone', 'Build.Wear', 'Code.Phone', 'Code.Wear', 'Code.Scripts' |
+            Where-Object { $null -eq (Get-AgentLockTimings -Name $_) }).Count -eq 0) `
+        -Detail 'a concrete domain resolved to no timings record'
+
+    # S2109 derivation table. These are strategic criteria 1 and 2 stated as arithmetic on the
+    # mapping: the whole benefit of the split is that these sets come out DISJOINT, and a table
+    # without a test is one rename away from quietly mapping everything to the full set again -
+    # which would restore the old serialisation while every banner still printed a domain name.
+    $wearSet = @(Resolve-CodeDomainsForPaths -Path @('wear/src/main/java/A.kt'))
+    $phoneSet = @(Resolve-CodeDomainsForPaths -Path @('app_v2/src/main/java/B.kt'))
+    $scriptSet = @(Resolve-CodeDomainsForPaths -Path @('scripts/post-change.ps1'))
+    Assert-Case -Name 'disjoint code domains: a wear set and a phone set share none' `
+        -Ok (@($wearSet | Where-Object { $phoneSet -contains $_ }).Count -eq 0 -and
+             $wearSet.Count -eq 1 -and $phoneSet.Count -eq 1) `
+        -Detail "wear=$($wearSet -join ','), phone=$($phoneSet -join ',')"
+    Assert-Case -Name 'disjoint code domains: a scripts set shares none with either module' `
+        -Ok (@($scriptSet | Where-Object { $wearSet -contains $_ -or $phoneSet -contains $_ }).Count -eq 0) `
+        -Detail "scripts=$($scriptSet -join ',')"
+    Assert-Case -Name 'a set spanning both modules resolves to both module domains' `
+        -Ok ((@(Resolve-CodeDomainsForPaths -Path @('wear/src/A.kt', 'app_v2/src/B.kt')) -join ',') -eq 'Code.Phone,Code.Wear') `
+        -Detail "got '$(@(Resolve-CodeDomainsForPaths -Path @('wear/src/A.kt','app_v2/src/B.kt')) -join ',')'"
+    # A module's OWN build file is deliberately NOT that module's domain - the configuration phase
+    # processes every subproject, so a broken one fails a check requested for the other module.
+    Assert-Case -Name 'a build file resolves to the full code set, not to its own module' `
+        -Ok ((@(Resolve-CodeDomainsForPaths -Path @('wear/build.gradle.kts')).Count -eq 3) -and
+             (@(Resolve-CodeDomainsForPaths -Path @('settings.gradle.kts')).Count -eq 3)) `
+        -Detail "wear build file=$(@(Resolve-CodeDomainsForPaths -Path @('wear/build.gradle.kts')) -join ',')"
+    Assert-Case -Name 'an unrecognised path fails closed to the full code set' `
+        -Ok (@(Resolve-CodeDomainsForPaths -Path @('brand_new_module/src/A.kt')).Count -eq 3) `
+        -Detail 'an unknown path narrowed the set instead of widening it'
+
+    # `pwsh -File` collapses a comma list into ONE string element, so an unsplit list matched only
+    # its first prefix and resolved NARROWER than the change - the one direction this must never
+    # fail in. Observed live: -Files with three script paths reported "1 changed path".
+    Assert-Case -Name 'a comma-joined file list is split, not matched as one path' `
+        -Ok ((@(Resolve-CodeDomainsForPaths -Path @('wear/src/A.kt,app_v2/src/B.kt')) -join ',') -eq 'Code.Phone,Code.Wear') `
+        -Detail "got '$(@(Resolve-CodeDomainsForPaths -Path @('wear/src/A.kt,app_v2/src/B.kt')) -join ',')' - a collapsed list must not narrow the set"
+
+    # Deliberately table-only. Proving disjointness by actually TAKING the two sets belongs in
+    # test-agent-lock-queue.ps1 (case 11), which runs in a throwaway sandbox: this file resolves
+    # against the real repository root, so acquiring here would contend with whatever sibling
+    # session is editing right now - and releasing afterwards would drop a lock this process never
+    # owned. A test that can hand away a working session's lock is worse than the gap it closes.
+
     $missingDir = Join-Path $repoRoot 'temp/S1928-no-such-jdk'
 
     # 1. Stale snapshot, persisted value usable and different -> repaired, and the scope is named.

@@ -22,6 +22,7 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsItem
@@ -50,6 +51,20 @@ fun ScreenSettingsScreen(
     val displayModeItems = viewModeItems(displayModeLabel, uiState.viewMode, viewModel::setViewMode)
     val fileListItems =
         viewModeItems(fileListLabel, uiState.fileListViewMode, viewModel::setFileListViewMode)
+    // S2093 / ADR-3: the mode is two values and so is editable from both sides; the picture it points
+    // at stays a phone choice, because choosing one means opening a gallery.
+    val backgroundLabel = stringResource(R.string.wear_setting_background_mode)
+    val backgroundItems = WearBackgroundMode.entries.map { mode ->
+        WearSettingsItem { narrow ->
+            BackgroundModeRow(
+                mode = mode,
+                groupLabel = backgroundLabel,
+                narrow = narrow,
+                selected = uiState.backgroundMode == mode,
+                onSelect = { viewModel.setBackgroundMode(mode) }
+            )
+        }
+    }
     val keepAwakeLabel = stringResource(R.string.screen_settings_keep_awake)
     val keepAwakeItems = listOf(
         WearSettingsItem { narrow ->
@@ -89,6 +104,8 @@ fun ScreenSettingsScreen(
                 items(packSettingsRows(displayModeItems, columns)) { row -> WearSettingsRow(row) }
                 item { GroupCaption(text = fileListLabel) }
                 items(packSettingsRows(fileListItems, columns)) { row -> WearSettingsRow(row) }
+                item { GroupCaption(text = backgroundLabel) }
+                items(packSettingsRows(backgroundItems, columns)) { row -> WearSettingsRow(row) }
                 items(packSettingsRows(keepAwakeItems, columns)) { row -> WearSettingsRow(row) }
             }
         }
@@ -143,6 +160,36 @@ private fun ViewModeRow(
         // exactly what strategic §6 item 1 forbids.
         accessibilityLabel = "$groupLabel: $label"
     )
+}
+
+/**
+ * S2093: the two background modes as a radio pair, in the same shape as the view-mode rows above.
+ *
+ * Picking the image mode with no picture delivered is allowed and needs no new fallback: the existing
+ * renderer already falls back to the branded animation when no frame has arrived.
+ */
+@Composable
+private fun BackgroundModeRow(
+    mode: WearBackgroundMode,
+    groupLabel: String,
+    narrow: Boolean,
+    selected: Boolean,
+    onSelect: () -> Unit
+) {
+    val label = stringResource(backgroundLabelResFor(mode))
+    WearSettingsToggleCell(
+        label = label,
+        checked = selected,
+        narrow = narrow,
+        onToggle = { if (!selected) onSelect() },
+        radio = true,
+        accessibilityLabel = "$groupLabel: $label"
+    )
+}
+
+private fun backgroundLabelResFor(mode: WearBackgroundMode): Int = when (mode) {
+    WearBackgroundMode.BRANDED_ANIMATION -> R.string.wear_background_mode_animation
+    WearBackgroundMode.IMAGE -> R.string.wear_background_mode_image
 }
 
 private fun labelResFor(mode: WearViewMode): Int = when (mode) {

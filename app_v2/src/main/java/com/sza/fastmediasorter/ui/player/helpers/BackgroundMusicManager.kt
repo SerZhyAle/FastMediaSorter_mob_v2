@@ -10,6 +10,8 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
@@ -206,7 +208,7 @@ class BackgroundMusicManager @Inject constructor(
 
                     Timber.i("BackgroundMusic: Auto-recovery successful - playing next track")
                 } catch (e: Exception) {
-                    Timber.e(e, "BackgroundMusic: Auto-recovery failed, attempting full reinitialization")
+                    e.errorUnlessCancellation("BackgroundMusic: Auto-recovery failed, attempting full reinitialization")
 
                     // Last resort: reinitialize player
                     try {
@@ -223,6 +225,7 @@ class BackgroundMusicManager @Inject constructor(
 
                         Timber.i("BackgroundMusic: Player reinitialized after recovery failure")
                     } catch (reinitError: Exception) {
+                        reinitError.rethrowIfCancellation()
                         Timber.e(reinitError, "BackgroundMusic: Reinitialization failed - music playback disabled")
                         this@BackgroundMusicManager.onMusicErrorListener?.invoke(
                             context.getString(R.string.music_restore_failed)
@@ -395,7 +398,7 @@ class BackgroundMusicManager @Inject constructor(
                             null
                         }
                     } catch (e: Exception) {
-                        Timber.e(e, "BackgroundMusic: Failed to prepare ${randomFile.name}")
+                        e.errorUnlessCancellation("BackgroundMusic: Failed to prepare ${randomFile.name}")
                         null
                     }
                     
@@ -557,7 +560,7 @@ class BackgroundMusicManager @Inject constructor(
                 null
             }
         } catch (e: Exception) {
-            Timber.e(e, "BackgroundMusic: Failed to prepare ${file.name}")
+            e.errorUnlessCancellation("BackgroundMusic: Failed to prepare ${file.name}")
             null
         }
     }
@@ -590,7 +593,7 @@ class BackgroundMusicManager @Inject constructor(
                                 try {
                                     skipToNextRandomTrack()
                                 } catch (e: Exception) {
-                                    Timber.e(e, "BackgroundMusic: Health check recovery failed")
+                                    e.errorUnlessCancellation("BackgroundMusic: Health check recovery failed")
                                 }
                             } else if (!isActuallyPlaying && playbackState != Player.STATE_BUFFERING) {
                                 Timber.w("BackgroundMusic: Health check - player not playing (state: $playbackState)")
@@ -599,7 +602,7 @@ class BackgroundMusicManager @Inject constructor(
                                 try {
                                     player.play()
                                 } catch (e: Exception) {
-                                    Timber.e(e, "BackgroundMusic: Failed to resume playback")
+                                    e.errorUnlessCancellation("BackgroundMusic: Failed to resume playback")
                                 }
                             } else {
                                 Timber.d("BackgroundMusic: Health check OK - playbackState=$playbackState, isPlaying=$isActuallyPlaying")

@@ -13,6 +13,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -275,7 +276,7 @@ class PlayerDrawingSaveHelper(
                     currentResource = currentResource,
                 )
             } catch (e: Exception) {
-                Timber.e(e, "draw crop compose failed")
+                e.errorUnlessCancellation("draw crop compose failed")
                 withContext(Dispatchers.Main) {
                     Toast.makeText(activity, R.string.draw_crop_failed, Toast.LENGTH_SHORT).show()
                 }
@@ -354,7 +355,7 @@ class PlayerDrawingSaveHelper(
                     else -> false
                 }
             } catch (e: Throwable) {
-                Timber.e(e, "draw in-place write failed for $path")
+                e.errorUnlessCancellation("draw in-place write failed for $path")
                 false
             }
         }
@@ -535,7 +536,7 @@ class PlayerDrawingSaveHelper(
                                 }
                                 true
                             } catch (e: Throwable) {
-                                Timber.e(e, "Draw overlay in-place write failed for ${currentFile.path}")
+                                e.errorUnlessCancellation("Draw overlay in-place write failed for ${currentFile.path}")
                                 false
                             }
                         }

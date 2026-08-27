@@ -3001,10 +3001,20 @@
       "titleUk": "Зберігати кадри відео в буфер обміну"
     },
     {
+      "key": "wearAutoRotation",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_other_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Auto rotation",
+      "titleRu": "Автоповорот",
+      "titleUk": "Автоповорот"
+    },
+    {
       "key": "wearBackgroundMode",
       "sectionId": "wear",
       "destination": "MEDIA",
-      "layout": "wear_companion_background_group",
+      "layout": "wear_screen_settings",
       "kind": "RADIO_GROUP",
       "titleEn": "Watch Background",
       "titleRu": "Фон на часах",
@@ -3089,6 +3099,16 @@
       "titleEn": "Slideshow interval",
       "titleRu": "Интервал слайд-шоу",
       "titleUk": "Інтервал слайд-шоу"
+    },
+    {
+      "key": "wearStreamsSection",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_media_types_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show Streams",
+      "titleRu": "Показывать трансляции",
+      "titleUk": "Показувати трансляції"
     },
     {
       "key": "wearViewMode",

@@ -253,7 +253,7 @@
                             android:fontFamily="monospace"
                             android:padding="@dimen/margin_small"
                             android:textColor="@android:color/white"
-                            android:textSize="12sp"
+                            android:textSize="@dimen/network_monitor_console_text_size"
                             tools:text="--- Ping 8.8.8.8 ---\nPinging 8.8.8.8...\n[1] Reached 8.8.8.8 (15 ms)" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>

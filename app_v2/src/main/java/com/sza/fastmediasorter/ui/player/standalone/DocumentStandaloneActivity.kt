@@ -27,6 +27,7 @@ import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.share.SharePrintHost
 import com.sza.fastmediasorter.core.ui.BaseActivity
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.databinding.ActivityStandaloneDocumentBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -795,7 +796,7 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
                 val started = officeViewerHost.open(mediaFile, preparedFile)
                 if (!started) openOfficeExternally(mediaFile)
             } catch (e: Exception) {
-                Timber.e(e, "DocumentStandalone: failed to render Office document internally")
+                e.errorUnlessCancellation("DocumentStandalone: failed to render Office document internally")
                 openOfficeExternally(mediaFile)
             }
         }
@@ -812,7 +813,7 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
                 )
                 if (!opened) showToastError(getString(R.string.no_app_to_open))
             } catch (e: Exception) {
-                Timber.e(e, "DocumentStandalone: failed to open Office document externally")
+                e.errorUnlessCancellation("DocumentStandalone: failed to open Office document externally")
                 showToastError(getString(R.string.error_opening_file_simple))
             }
         }

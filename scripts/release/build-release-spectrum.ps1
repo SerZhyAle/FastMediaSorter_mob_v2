@@ -38,13 +38,22 @@
     the full spectrum (backward-compatible default for direct invocation).
     The /skill-release flow passes 'standard' by default so a plateau release
     builds only the standard edition unless extra flavors are requested.
+
+.PARAMETER WearFlavor
+    Which watch variant the 'wear' entry of -Flavors resolves to: 'standard' (default,
+    the one Play accepts) or 'noLegal' (sideload). S2090 gave the wear module its own
+    flavor dimension; ADR-6 of that ticket fixes the release default at the store
+    variant, because building the sideload one on every release costs a full watch
+    build for a difference no user of the release sees.
 #>
 
 [CmdletBinding()]
 param(
     [switch]   $SkipBuild,
     [switch]   $ReuseVersion,
-    [string[]] $Flavors
+    [string[]] $Flavors,
+    [ValidateSet('standard', 'noLegal')]
+    [string]   $WearFlavor = 'standard'
 )
 
 $ErrorActionPreference = "Stop"
@@ -81,6 +90,10 @@ Write-Host "Selected flavors: $($selected -join ', ')" -ForegroundColor Green
 $pass1Flavors = @($selected | Where-Object { $_ -ne 'wear' -and $_ -ne 'noLegal' })
 $buildWear    = 'wear'    -in $selected
 $buildNoLegal = 'noLegal' -in $selected
+# S2090: the wear module's task names and output directories carry a flavor segment now. Capitalised
+# for the gradle task name, lower-case for the path - AGP spells them differently and always has.
+$wearTaskFlavor = $WearFlavor.Substring(0, 1).ToUpperInvariant() + $WearFlavor.Substring(1)
+if ($buildWear) { Write-Host "Wear variant: $WearFlavor" -ForegroundColor Green }
 $buildAnyApp  = ($pass1Flavors.Count -gt 0) -or $buildNoLegal
 
 $projectRoot = Resolve-Path "$PSScriptRoot\..\.."
@@ -156,6 +169,16 @@ if ($ReuseVersion) {
     if ($buildWear)   { Set-ModuleVersion -Path $wearGradle -Code $wearVersionCode -Name $versionName }
 }
 
+# A flavor-scoped selection (e.g. -Flavors wear, or a plateau release run with -Flavors standard)
+# only ever stamps the module(s) it was asked to build, by design. That is correct for the build,
+# but it is also exactly how the two modules drift apart in a checkout this script's discard step
+# (the /skill-release release-worktree flow) never reaches - so warn, non-fatally, at the moment the
+# stamp is written rather than leaving it for the next unrelated ticket's `fg` gate (S2117).
+& (Join-Path $PSScriptRoot "..\quality\assert-module-version-parity.ps1") -Quiet
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Warning: app_v2/build.gradle.kts and wear/build.gradle.kts now disagree on version - see scripts/quality/assert-module-version-parity.ps1. Expected in a partial-flavor run; align both modules before this stamp is committed (S2117)." -ForegroundColor Yellow
+}
+
 if ($SkipBuild) {
     Write-Host "-SkipBuild set: version stamped, no build performed." -ForegroundColor Yellow
     exit 0
@@ -165,7 +188,15 @@ if ($SkipBuild) {
 # Two-pass release build. CWD pinned to $projectRoot so Gradle resolves the
 # correct project directory regardless of how this script was invoked.
 # ----------------------------------------------------------------------
-Enter-BuildLockOrExit -Reason 'build-release-spectrum.ps1'
+# S2109: this is one of only two entry points whose task graph really spans both modules, and it
+# spans them CONDITIONALLY - the flavor selection already says which. Artifact 03 measured that a
+# phone release never touches the wear module, so a phone-only spectrum has no business holding the
+# watch domain and blocking a sibling that is checking it.
+$spectrumDomains = @()
+if ($buildAnyApp) { $spectrumDomains += 'Build.Phone' }
+if ($buildWear) { $spectrumDomains += 'Build.Wear' }
+if ($spectrumDomains.Count -eq 0) { $spectrumDomains = @('Build.Phone', 'Build.Wear') }
+Enter-BuildLockOrExit -Reason 'build-release-spectrum.ps1' -Domain $spectrumDomains
 Push-Location $projectRoot
 try {
     # Pass 1: selected app flavors (Chaquopy off) + wear, if requested.
@@ -180,7 +211,7 @@ try {
     # one tree state or one version, so a divergence between what a user sideloads and what the store
     # serves would have been caught by no gate (S2040). Kept as a list rather than two literals so a
     # third watch artifact costs one entry instead of a rewrite of this block.
-    if ($buildWear) { $pass1Tasks += @(':wear:assembleRelease', ':wear:bundleRelease') }
+    if ($buildWear) { $pass1Tasks += @(":wear:assemble${wearTaskFlavor}Release", ":wear:bundle${wearTaskFlavor}Release") }
 
     if ($pass1Tasks.Count -gt 0) {
         Write-Host "Pass 1: $($pass1Tasks -join ', ') (Chaquopy disabled).." -ForegroundColor Cyan
@@ -199,7 +230,7 @@ try {
 }
 finally {
     Pop-Location
-    Exit-AgentLock -Name Build
+    Exit-AgentLock -Name 'Build' -Domains $spectrumDomains
 }
 
 Write-Host "`nBuild Successful! Release spectrum at version $versionName." -ForegroundColor Green
@@ -215,7 +246,7 @@ $apkRoots = [ordered]@{
     photos   = "app_v2\build\outputs\apk\photos\release"
     legacy   = "app_v2\build\outputs\apk\legacy\release"
     noLegal  = "app_v2\build\outputs\apk\noLegal\release"
-    wear     = "wear\build\outputs\apk\release"
+    wear     = "wear\build\outputs\apk\$WearFlavor\release"
 }
 
 Write-Host "`nRelease spectrum APKs:" -ForegroundColor Cyan
@@ -244,7 +275,7 @@ foreach ($flavor in $apkRoots.Keys) {
 # exact. More than one means something this script does not model, and it refuses rather than picking
 # by write time - guessing when the choice is real is what S1972 removed from the builders.
 if ($buildWear) {
-    $bundleDir = Join-Path $projectRoot 'wear\build\outputs\bundle\release'
+    $bundleDir = Join-Path $projectRoot "wear\build\outputs\bundle\$WearFlavor\release"
     $wearAabs  = @(Get-ChildItem -Path $bundleDir -Filter *.aab -File -ErrorAction SilentlyContinue)
     if ($wearAabs.Count -eq 1) {
         Write-Host "  wear (aab) : $($wearAabs[0].FullName)" -ForegroundColor Green
@@ -326,7 +357,9 @@ $mappingRoots = [ordered]@{
     photos  = 'app_v2\build\outputs\mapping\photosRelease\mapping.txt'
     legacy  = 'app_v2\build\outputs\mapping\legacyRelease\mapping.txt'
     noLegal = 'app_v2\build\outputs\mapping\noLegalRelease\mapping.txt'
-    wear    = 'wear\build\outputs\mapping\release\mapping.txt'
+    # S2090: AGP names a mapping directory after the full variant, camel-cased - the phone rows above
+    # read `vrRelease`, so the watch reads `standardRelease` / `noLegalRelease`, not a bare `release`.
+    wear    = "wear\build\outputs\mapping\${WearFlavor}Release\mapping.txt"
 }
 
 if (Test-Path -LiteralPath $retainScript) {

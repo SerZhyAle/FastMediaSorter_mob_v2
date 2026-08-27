@@ -34,7 +34,7 @@ FastMediaSorter собран на перечисленных ниже компо
 | AndroidX ConstraintLayout | `androidx.constraintlayout:constraintlayout` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://github.com/androidx/constraintlayout) |
 | AndroidX Core KTX | `androidx.core:core-ktx` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX Credentials | `androidx.credentials:credentials` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
-| AndroidX Credentials Play Services Auth | `androidx.credentials:credentials-play-services-auth` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
+| AndroidX Credentials Play Services Auth | `androidx.credentials:credentials-play-services-auth` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | legacy, lite, noLegal, photos, standard, vr | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX DataStore Preferences | `androidx.datastore:datastore-preferences` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX DocumentFile | `androidx.documentfile:documentfile` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX ExifInterface | `androidx.exifinterface:exifinterface` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
@@ -80,7 +80,7 @@ FastMediaSorter собран на перечисленных ниже компо
 | AndroidX Wear WatchFace Complication Data Source KTX | `androidx.wear.watchface:watchface-complications-data-source-ktx` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX WorkManager Runtime KTX | `androidx.work:work-runtime-ktx` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | Java 8+ API desugaring support | `com.android.tools:desugar_jdk_libs` | [GPL-2.0-with-classpath-exception](https://github.com/google/desugar_jdk_libs/blob/master/LICENSE) | все сборки | [link](https://github.com/google/desugar_jdk_libs) |
-| Dropbox Java SDK | `com.dropbox.core:dropbox-core-sdk` | [MIT](https://raw.githubusercontent.com/dropbox/dropbox-sdk-java/main/License.txt) | все сборки | [link](https://github.com/dropbox/dropbox-sdk-java) |
+| Dropbox Java SDK | `com.dropbox.core:dropbox-core-sdk` | [MIT](https://raw.githubusercontent.com/dropbox/dropbox-sdk-java/main/License.txt) | legacy, lite, noLegal, photos, standard, vr | [link](https://github.com/dropbox/dropbox-sdk-java) |
 | Glide | `com.github.bumptech.glide:glide` | [BSD-2-Clause AND Apache-2.0 AND MIT](https://raw.githubusercontent.com/bumptech/glide/master/LICENSE) | все сборки | [link](https://github.com/bumptech/glide) |
 | Glide OkHttp3 Integration | `com.github.bumptech.glide:okhttp3-integration` | [BSD-2-Clause](https://raw.githubusercontent.com/bumptech/glide/master/LICENSE) | все сборки | [link](https://github.com/bumptech/glide) |
 | PhotoView | `com.github.chrisbanes:PhotoView` | [Apache-2.0](https://raw.githubusercontent.com/Baseflow/PhotoView/2.3.0/LICENSE) | все сборки | [link](https://github.com/Baseflow/PhotoView) |
@@ -93,7 +93,7 @@ FastMediaSorter собран на перечисленных ниже компо
 | ZXing Core | `com.google.zxing:core` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://github.com/zxing/zxing) |
 | SMBJ | `com.hierynomus:smbj` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://github.com/hierynomus/smbj) |
 | Timber | `com.jakewharton.timber:timber` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://github.com/JakeWharton/timber) |
-| Microsoft Authentication Library | `com.microsoft.identity.client:msal` | [MIT](https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/LICENSE) | все сборки | [link](https://github.com/AzureAD/microsoft-authentication-library-for-android) |
+| Microsoft Authentication Library | `com.microsoft.identity.client:msal` | [MIT](https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/LICENSE) | legacy, lite, noLegal, photos, standard, vr | [link](https://github.com/AzureAD/microsoft-authentication-library-for-android) |
 | OkHttp | `com.squareup.okhttp3:okhttp` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://github.com/square/okhttp) |
 | Retrofit Gson Converter | `com.squareup.retrofit2:converter-gson` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://github.com/square/retrofit) |
 | Retrofit | `com.squareup.retrofit2:retrofit` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://github.com/square/retrofit) |
@@ -104,7 +104,7 @@ FastMediaSorter собран на перечисленных ниже компо
 | Markwon | `io.noties.markwon:core` | [Apache-2.0](https://raw.githubusercontent.com/noties/Markwon/master/LICENSE) | все сборки | [link](https://github.com/noties/Markwon) |
 | FFmpeg (custom Media3 decoder build) (встроенный бинарник) | `local:fms-ffmpeg-dts` | [LGPL-2.1-or-later](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html) | standard, noLegal, legacy, vr | [link](https://github.com/androidx/media/tree/release/libraries/decoder_ffmpeg) |
 | Zip4j | `net.lingala.zip4j:zip4j` | [Apache-2.0](https://raw.githubusercontent.com/srikanth-lingala/zip4j/master/LICENSE) | все сборки | [link](https://github.com/srikanth-lingala/zip4j) |
-| AppAuth for Android | `net.openid:appauth` | [Apache-2.0](https://raw.githubusercontent.com/openid/AppAuth-Android/master/LICENSE) | все сборки | [link](https://github.com/openid/AppAuth-Android) |
+| AppAuth for Android | `net.openid:appauth` | [Apache-2.0](https://raw.githubusercontent.com/openid/AppAuth-Android/master/LICENSE) | legacy, lite, noLegal, photos, standard, vr | [link](https://github.com/openid/AppAuth-Android) |
 | Bouncy Castle Provider (через `com.hierynomus:smbj`) | `org.bouncycastle:bcprov-jdk18on` | [MIT](https://www.bouncycastle.org/licence.html) | все сборки | [link](https://github.com/bcgit/bc-java) |
 | Kotlin Coroutines Android | `org.jetbrains.kotlinx:kotlinx-coroutines-android` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://github.com/Kotlin/kotlinx.coroutines) |
 | Kotlin Coroutines Core | `org.jetbrains.kotlinx:kotlinx-coroutines-core` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://github.com/Kotlin/kotlinx.coroutines) |
@@ -120,12 +120,12 @@ FastMediaSorter собран на перечисленных ниже компо
 
 | Библиотека | Координата | Лицензия | В каких сборках | Исходники |
 |---|---|---|---|---|
-| Google Play services Auth | `com.google.android.gms:play-services-auth` | [Android Software Development Kit License](https://developer.android.com/studio/terms.html) | все сборки | [link](https://developers.google.com/android/guides/setup) |
+| Google Play services Auth | `com.google.android.gms:play-services-auth` | [Android Software Development Kit License](https://developer.android.com/studio/terms.html) | legacy, lite, noLegal, photos, standard, vr | [link](https://developers.google.com/android/guides/setup) |
 | Google Cast Framework | `com.google.android.gms:play-services-cast-framework` | [Android Software Development Kit License](https://developer.android.com/studio/terms.html) | legacy, lite, noLegal, photos, standard | [link](https://developers.google.com/cast) |
 | Google Play services Wearable | `com.google.android.gms:play-services-wearable` | [Android Software Development Kit License](https://developer.android.com/studio/terms.html) | все сборки | [link](https://developers.google.com/android/guides/setup) |
 | Google ID for Credential Manager | `com.google.android.libraries.identity.googleid:googleid` | [Android Software Development Kit License](https://developer.android.com/studio/terms.html) | legacy, noLegal, photos, standard, vr | [link](https://developer.android.com/identity/sign-in/credential-manager-siwg) |
-| Play Feature Delivery | `com.google.android.play:feature-delivery-ktx` | [Play Core Software Development Kit Terms of Service](https://developer.android.com/guide/playcore/license) | все сборки | [link](https://developer.android.com/guide/playcore) |
-| Play In-App Review | `com.google.android.play:review-ktx` | [Play Core Software Development Kit Terms of Service](https://developer.android.com/guide/playcore/license) | все сборки | [link](https://developer.android.com/guide/playcore) |
+| Play Feature Delivery | `com.google.android.play:feature-delivery-ktx` | [Play Core Software Development Kit Terms of Service](https://developer.android.com/guide/playcore/license) | legacy, lite, noLegal, photos, standard, vr | [link](https://developer.android.com/guide/playcore) |
+| Play In-App Review | `com.google.android.play:review-ktx` | [Play Core Software Development Kit Terms of Service](https://developer.android.com/guide/playcore/license) | legacy, lite, noLegal, photos, standard, vr | [link](https://developer.android.com/guide/playcore) |
 | ML Kit Language Identification | `com.google.mlkit:language-id` | [ML Kit Terms of Service](https://developers.google.com/ml-kit/terms) | legacy, noLegal, standard, vr | [link](https://developers.google.com/ml-kit/language/identification) |
 | ML Kit Translation | `com.google.mlkit:translate` | [ML Kit Terms of Service](https://developers.google.com/ml-kit/terms) | legacy, noLegal, standard, vr | [link](https://developers.google.com/ml-kit/language/translation) |
 

@@ -5,12 +5,12 @@
 # for arm64-v8a only, so VR mode is reachable only on Quest-class headsets.
 #
 # Why install-only (no auto-launch):
-#   Symmetric with `ivr` / `ivrd`. The user picks the launch surface on the
-#   device - phone launcher for standard UI, Quest Library (Unknown Sources)
-#   for the VR entry. Auto-launching via `adb shell am start` would force one
-#   of those surfaces and, on Quest, would skip the vrshell launch_id path
-#   needed for FOCUSED XR sessions (same reason documented in
-#   install-vr-debug-to-device.ps1).
+#   The user picks the launch surface on the device - phone launcher for
+#   standard UI, Quest Library (Unknown Sources) for the VR entry.
+#   Auto-launching via `adb shell am start` would force one of those surfaces
+#   and, on Quest, would skip the vrshell launch_id path needed for FOCUSED XR
+#   sessions (S1983: the dedicated VR installers this once pointed at are gone;
+#   the same reasoning is written up in docs/DEV_OPS.md, Quest debugging).
 #
 # Usage:
 #   .\scripts\builders\install-nolegal-debug-to-device.ps1

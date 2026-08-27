@@ -1757,7 +1757,6 @@
     <string name="wear_settings_slideshow">Slideshow</string>
     <string name="wear_settings_album_art">Album Art</string>
     <string name="wear_settings_slideshow_interval">Slideshow interval (seconds)</string>
-    <string name="wear_push_settings">Push Watch Settings</string>
     <string name="wear_push_settings_failed">Couldn\'t send the watch settings. Try again.</string>
 
     <!-- Import from Watch strings (S0111 Phase 03) -->
@@ -3526,7 +3525,6 @@
     <string name="open_on_phone_notification_title">Open from your watch</string>
     <string name="open_on_phone_notification_text">Tap to open %1$s</string>
     <string name="open_on_phone_channel_name">Open from watch</string>
-    <string name="wear_companion_enable_description">Enable setting on watch</string>
     <string name="wear_settings_audio_desc">Enable audio playback and sync to watch</string>
     <string name="wear_settings_video_desc">Enable video playback and sync to watch</string>
     <string name="wear_settings_images_desc">Enable image viewing and sync to watch</string>
@@ -3535,4 +3533,13 @@
     <string name="wear_settings_keep_awake_desc">Prevent watch screen from sleeping outside players</string>
     <string name="launcher_settings_wallpaper_camera">Camera</string>
     <string name="launcher_settings_wallpaper_camera_lens_title">Choose a camera</string>
+    <string name="wear_settings_album_art_tooltip_title">Album Art</string>
+    <string name="wear_settings_album_art_tooltip_message">Downloads and stores a cover image on the watch for every synced audio file. Uses extra watch storage and, on first sync, extra network data.</string>
+    <string name="wear_settings_keep_awake_tooltip_title">Keep Screen Awake</string>
+    <string name="wear_settings_keep_awake_tooltip_message">Keeps the watch screen on outside audio, video and photo playback - for example while browsing settings or file lists. Increases watch battery use.</string>
+    <string name="wear_settings_sync_button">Sync settings</string>
+    <string name="wear_settings_last_synced">Last synced: %1$s</string>
+    <string name="wear_settings_sync_never">Never synced</string>
+    <string name="wear_setting_streams_section">Show Streams</string>
+    <string name="wear_setting_streams_section_desc">Show the Streams section on watch</string>
 </resources>
