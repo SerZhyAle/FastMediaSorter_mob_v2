@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S2212: front flashlight accent icon for light widget backgrounds -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FF4F46E5"
+        android:pathData="M6,14l3,3v5h6v-5l3,-3V9H6V14zM11,2h2v3h-2V2zM3.5,5.87l1.41,-1.41 2.12,2.12L5.62,7.99 3.5,5.87zM16.96,6.58l2.12,-2.12 1.41,1.41 -2.12,2.12 -1.41,-1.41z" />
+</vector>

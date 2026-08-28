@@ -81,4 +81,6 @@
     <string name="widget_network_monitor_direct_connection">Прямое подключение</string>
     <string name="launcher_gadget_network_indicator">Сетевой показатель</string>
     <string name="launcher_gadget_network_indicator_pick_title">Какой показатель показывать</string>
+    <string name="widget_front_flashlight_label">Экранный фонарик</string>
+    <string name="widget_front_flashlight_description">Включает экранный фонарик в одно касание</string>
 </resources>

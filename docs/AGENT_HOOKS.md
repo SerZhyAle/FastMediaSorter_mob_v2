@@ -26,6 +26,7 @@ The canon ships some of these guards in its own `hooks/` folder. Until the *inst
 | `guard-catalog-before-kt-search.ps1` | PreToolUse / Grep, Glob | refuses | project | - | `.claude/hooks/tests/run-guard-catalog-cases.ps1` |
 | `observe-empty-grep.ps1` | PostToolUse / Grep | observes | project | - | `.claude/hooks/tests/Run-ObserveEmptyGrep-Tests.ps1` |
 | `nudge-small-task-tier.ps1` | UserPromptSubmit | nudges | project | - | - |
+| `sweep-agent-lock-queues.ps1` | UserPromptSubmit | observes | project | 23 | - |
 | `reset-catalog-touch-marker.ps1` | SessionStart | arms | project | - | - |
 | `refuse-spec-do-stop.ps1` | Stop | **refuses** | project | - | `.claude/hooks/tests/Run-RefuseSpecDoStop-Tests.ps1` |
 
@@ -53,6 +54,7 @@ The canon ships some of these guards in its own `hooks/` folder. Until the *inst
 - **`warn-context-size`** injects a context-size warning at prompt submit. Advisory.
 - **`nudge-small-task-tier`** injects a routing reminder naming `/quick` and `/skill-fix` when the prompt reads as a micro-task. Advisory, always exit 0 - a false fire that refused a prompt would cost more than the miss it prevents.
 - **`reset-catalog-touch-marker`** deletes `temp/catalog-touch.marker` at session start, so the Kotlin-search gate is armed once per session rather than passing forever after its first ever query.
+- **`sweep-agent-lock-queues`** calls the existing `Remove-StaleAgentLockTickets` (Rule 23) for every domain (`Build.Phone`, `Build.Wear`, `Code.Phone`, `Code.Wear`, `Code.Scripts`) on every prompt submit. It introduces no new eviction rule - `Get-AgentLockQueue` already sweeps on every call, but only when something calls it, which nothing does for a ticket whose owner died before ever launching a background `wait-for-lock-turn.ps1` poller. Observed live 2026-08-28: a queue with waiting tickets and zero `wait-for-lock-turn.ps1` processes running anywhere on the machine - nobody was polling, so a dead reservation-expired head sat until the coarse `SessionStaleMinutes` fallback instead of the tight `ReservationMinutes` forfeit window. This hook cannot evict a session's own ticket (both sweep passes exclude self) and never blocks the prompt - always exit 0, empty stdout.
 
 ## Keeping this file honest
 

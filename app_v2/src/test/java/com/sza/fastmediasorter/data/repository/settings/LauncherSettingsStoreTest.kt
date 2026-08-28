@@ -38,6 +38,9 @@ class LauncherSettingsStoreTest {
         assertEquals(0, values.launcherScreenBlackoutTimeoutSeconds)
         assertEquals(AppSettings.LAUNCHER_TASKBAR_PLACEMENT_BOTTOM, values.launcherTaskbarPlacement)
         assertEquals(AppSettings.LAUNCHER_WALLPAPER_BRANDED, values.launcherWallpaperMode)
+        // S2213: no saved place yet is the state a fresh install is in, and the branch a device pass is
+        // least likely to reach - the tester has picked a city before he thinks to test this.
+        assertEquals("", values.launcherWeatherLastLocation)
     }
 
     @Test
@@ -70,6 +73,7 @@ class LauncherSettingsStoreTest {
             launcherWallpaperImagePath = "/storage/emulated/0/wall.png",
             allAppsSortDescending = true,
             launcherScreenBlackoutTimeoutSeconds = 45,
+            launcherWeatherLastLocation = "50.45,30.52,Kyiv",
         )
 
         val prefs = mutablePreferencesOf()
@@ -103,5 +107,6 @@ class LauncherSettingsStoreTest {
         assertEquals(settings.launcherTaskbarPlacement, values.launcherTaskbarPlacement)
         assertEquals(settings.launcherWallpaperMode, values.launcherWallpaperMode)
         assertEquals(settings.allAppsSortOrder, values.allAppsSortOrder)
+        assertEquals(settings.launcherWeatherLastLocation, values.launcherWeatherLastLocation)
     }
 }

@@ -325,7 +325,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 val programs = ProgramsSettingsStore.read(preferences)
                 val launcher = LauncherSettingsStore.read(preferences)
 
-                AppSettings(
+                val base = AppSettings(
                     language = language,
                     colorTheme = colorTheme,
                     disableAnimations = preferences[KEY_DISABLE_ANIMATIONS] ?: false,
@@ -589,31 +589,6 @@ class SettingsRepositoryImpl @Inject constructor(
                     // S1045: absent key → true (secure by default on fresh install).
                     secureSensitiveScreens = preferences[KEY_SECURE_SENSITIVE_SCREENS] ?: true,
 
-                    // S0404: launcher desktop tuning - owned by LauncherSettingsStore.
-                    launcherDensityFactor = launcher.launcherDensityFactor,
-                    launcherTaskbarShowRecents = launcher.launcherTaskbarShowRecents,
-                    launcherTaskbarShowPinned = launcher.launcherTaskbarShowPinned,
-                    launcherTaskbarShowTray = launcher.launcherTaskbarShowTray,
-                    launcherTrayShowClock = launcher.launcherTrayShowClock,
-                    launcherTrayShowBluetooth = launcher.launcherTrayShowBluetooth,
-                    launcherTrayShowSim1 = launcher.launcherTrayShowSim1,
-                    launcherTrayShowSim2 = launcher.launcherTrayShowSim2,
-                    launcherTrayShowNetwork = launcher.launcherTrayShowNetwork,
-                    launcherTrayShowBattery = launcher.launcherTrayShowBattery,
-                    launcherTrayShowSpeed = launcher.launcherTrayShowSpeed,
-                    launcherReplaceSystemStatusArea = launcher.launcherReplaceSystemStatusArea,
-                    launcherTopStatusStripMode = launcher.launcherTopStatusStripMode,
-                    launcherForeignNotificationsEnabled = launcher.launcherForeignNotificationsEnabled,
-                    launcherTaskbarPlacement = launcher.launcherTaskbarPlacement,
-                    launcherRotationHintShown = launcher.launcherRotationHintShown,
-                    launcherDesktopLocked = launcher.launcherDesktopLocked,
-                    launcherWallpaperMode = launcher.launcherWallpaperMode,
-                    launcherWallpaperImagePath = launcher.launcherWallpaperImagePath,
-                    launcherWallpaperCameraId = launcher.launcherWallpaperCameraId,
-                    allAppsSortOrder = launcher.allAppsSortOrder,
-                    allAppsSortDescending = launcher.allAppsSortDescending,
-                    launcherScreenBlackoutTimeoutSeconds = launcher.launcherScreenBlackoutTimeoutSeconds,
-
                     // Adaptive pre-cache strategy (spec §5)
                     prefetchCacheMultiplier = com.sza.fastmediasorter.domain.model.PrefetchCacheMultiplier
                         .fromName(preferences[KEY_PREFETCH_CACHE_MULTIPLIER]),
@@ -633,6 +608,9 @@ class SettingsRepositoryImpl @Inject constructor(
                     playerFollowSystemRotation = preferences[KEY_PLAYER_FOLLOW_SYSTEM_ROTATION] ?: false,
                     playerRotationSensorEnabled = preferences[KEY_PLAYER_ROTATION_SENSOR_ENABLED] ?: true
                 )
+                // S0404: launcher desktop tuning - owned by LauncherSettingsStore, which now applies its
+                // own group rather than having the field names restated here (S2213).
+                LauncherSettingsStore.applyTo(base, launcher)
             }
             .distinctUntilChanged()
             // S1517: without this the whole mapping - including the Keystore round trip behind the

@@ -3568,4 +3568,5 @@
     <string name="launcher_tray_speed_unit_gigabytes">%1$s GB/s</string>
     <string name="launcher_tray_speed_download">Download speed: %1$s</string>
     <string name="launcher_tray_speed_upload">Upload speed: %1$s</string>
+    <string name="launcher_wallpaper_mode_instant_photo">Instant photo</string>
 </resources>

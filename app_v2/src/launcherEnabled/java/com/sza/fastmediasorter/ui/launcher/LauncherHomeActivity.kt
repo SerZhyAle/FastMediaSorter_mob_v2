@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityLauncherHomeBinding
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
+import com.sza.fastmediasorter.domain.model.launcher.LauncherWallpaper
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetHost
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherCellViewBinder
@@ -36,6 +37,7 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherDesktopActions
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherDesktopGeometryManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherEditModeManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherGadgetRenderManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherInstantPhotoCaptureManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResizeManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceActionManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceCreateManager
@@ -64,6 +66,9 @@ import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 
@@ -179,6 +184,12 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     // S1101: created in setupViews() like the other managers; onStart/onStop forward the foreground edges.
     private lateinit var wallpaperManager: LauncherWallpaperManager
 
+    // S2210: one-shot photo capture manager for instant photo wallpaper mode. Built lazily - only the
+    // instant-photo wallpaper mode ever reaches it, and most launcher sessions run another backdrop.
+    private val instantPhotoCaptureManager by lazy { LauncherInstantPhotoCaptureManager(this) }
+
+    private var instantPhotoCaptureJob: Job? = null
+
     private lateinit var resizeManager: LauncherResizeManager
 
     // S1741: manages the app-private screen blackout overlay and inactivity timeout.
@@ -276,6 +287,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             gadgetHost = gadgetHost,
             onWeatherReconfigure = { cellId -> addFlowManager.openWeatherLocationPicker(cellId) },
             onWorldClockReconfigure = { cellId -> addFlowManager.openWorldClockZonePicker(cellId) },
+            savedWeatherLocation = { viewModel.weatherLastLocation.value.takeIf { it.isNotEmpty() } },
         )
     }
 
@@ -492,6 +504,21 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
     override fun onResumeWithViews() {
         viewModel.onHomeResumed()
+        val currentWallpaper = viewModel.wallpaper.value
+        // A capture still in flight owns the camera and the single output file; a second one would unbind
+        // it mid-write and both would fail, so a fast resume-pause-resume waits for the frame it started.
+        if (currentWallpaper is LauncherWallpaper.InstantPhoto && instantPhotoCaptureJob?.isActive != true) {
+            Timber.d("S2210: instant photo wallpaper resume trigger for camera %s", currentWallpaper.cameraId)
+            instantPhotoCaptureJob = lifecycleScope.launch {
+                val capturedPath = instantPhotoCaptureManager.captureSingleFrame(
+                    cameraId = currentWallpaper.cameraId,
+                    lifecycleOwner = this@LauncherHomeActivity,
+                )
+                if (capturedPath != null) {
+                    viewModel.onInstantPhotoCaptured(capturedPath)
+                }
+            }
+        }
     }
 
     /**

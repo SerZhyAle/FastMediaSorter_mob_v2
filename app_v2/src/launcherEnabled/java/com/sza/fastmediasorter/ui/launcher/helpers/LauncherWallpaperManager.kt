@@ -56,6 +56,7 @@ class LauncherWallpaperManager(
             is LauncherWallpaper.Branded -> wavesLayer.startAnimation()
             is LauncherWallpaper.StaticStripes -> wavesLayer.renderFreshStaticFrame()
             is LauncherWallpaper.Image -> imageAnimatable()?.start()
+            is LauncherWallpaper.InstantPhoto -> render(wallpaper)
             is LauncherWallpaper.LiveCamera -> cameraBackground.start(wallpaper.cameraId)
             is LauncherWallpaper.None -> Unit
         }
@@ -101,6 +102,26 @@ class LauncherWallpaperManager(
                     .load(file)
                     .signature(ObjectKey(file.lastModified()))
                     .into(imageLayer)
+            }
+
+            is LauncherWallpaper.InstantPhoto -> {
+                stopWaves()
+                stopCamera()
+                val path = wallpaper.imagePath
+                // S2210: no disk probe here. render() runs on the main thread, and both the existence
+                // stat and lastModified() tripped StrictMode on device. A non-null path is already proof
+                // the capture landed, and the frame's mtime rides along as the cache key.
+                if (path != null) {
+                    imageLayer.isVisible = true
+                    Glide.with(imageLayer)
+                        .load(File(path))
+                        .signature(ObjectKey(wallpaper.capturedAtMillis))
+                        .into(imageLayer)
+                } else {
+                    clearImage()
+                    wavesLayer.isVisible = true
+                    wavesLayer.startAnimation()
+                }
             }
 
             is LauncherWallpaper.LiveCamera -> {

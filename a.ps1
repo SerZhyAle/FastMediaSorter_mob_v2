@@ -51,6 +51,7 @@
     wd   - Build Wear OS Debug and distribute APK
     r1   - Run the release queue unattended, instance A (one fresh claude process per ticket)
     r2   - Same, instance B - the second parallel stream, staggered so it does not race A
+    r3   - Same, instance C - the third parallel stream, staggered further so it does not race A or B
            Order comes from PLAN/RELEASE_QUEUE.md; the model is picked per ticket (Opus where a
            decision is left, Sonnet for Implemented and tier 1-2). Options forward through, e.g.
            `.\a.ps1 r1 -MaxTickets 5 -TimeoutMinutes 45`.
@@ -81,6 +82,7 @@
 .EXAMPLE
     .\a.ps1 r1
     .\a.ps1 r2
+    .\a.ps1 r3
     .\a.ps1 rm
     .\a.ps1 rs
 .EXAMPLE
@@ -160,11 +162,13 @@ $scripts = @{
     'nd'        = @{ Path = 'scripts\builders\build-nolegal-debug.ps1'; Args = @{} }
     'wd'        = @{ Path = 'scripts\builders\build-wear-debug.PS1'; Args = @{} }
     # Unattended queue runners. Each ticket gets its own claude process, so the context resets
-    # between tickets instead of growing all session. r1 and r2 are the two parallel instances -
-    # r2 staggers its first ranking so the pair does not rank on the same instant and race for
-    # the same ticket. Long-running by design: start them in their own windows.
+    # between tickets instead of growing all session. r1, r2 and r3 are the parallel instances -
+    # r2 and r3 stagger their first ranking, each by a wider window than the last, so no pair
+    # ranks on the same instant and races for the same ticket. Long-running by design: start them
+    # in their own windows.
     'r1'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Instance = 'a' } }
     'r2'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Instance = 'b'; StartDelaySeconds = 20 } }
+    'r3'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Instance = 'c'; StartDelaySeconds = 40 } }
     'rs'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Stop = $true } }
     'rm'        = @{ Path = 'scripts\utils\monitor-spec-queue.ps1'; Args = @{} }
     # Lock releasers. Conservative by design: a lock whose owner is still alive is REFUSED and its
@@ -260,6 +264,7 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  wd   - Build Wear OS Debug and distribute APK" -ForegroundColor Cyan
     Write-Host "  r1   - Run the release queue unattended, instance A (fresh process per ticket)" -ForegroundColor Cyan
     Write-Host "  r2   - Same, instance B - the second parallel stream" -ForegroundColor Cyan
+    Write-Host "  r3   - Same, instance C - the third parallel stream" -ForegroundColor Cyan
     Write-Host "  rs   - Stop the runners after the ticket each is on (-Kill to terminate now)" -ForegroundColor Cyan
     Write-Host "  rm   - Monitor the runners (-Watch to refresh)" -ForegroundColor Cyan
     Write-Host "  ub   - Unlock build: every build domain, stale/dead only (-Force to override)" -ForegroundColor Cyan

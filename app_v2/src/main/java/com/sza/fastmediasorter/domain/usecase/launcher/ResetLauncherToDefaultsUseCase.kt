@@ -34,6 +34,12 @@ import javax.inject.Inject
  * system HOME role, and the cached list of installed apps (a rebuildable mirror of the device, not
  * launcher state).
  *
+ * S2213: also outside it, and this one must stay outside - the place the user last picked for a weather
+ * gadget. The reset clears the desktop and the launcher re-seeds the starter set, so a weather cell comes
+ * back without a place of its own; clearing the remembered one too would return an empty block and make
+ * the user search for his city again after every reset. The desktop layout is what the reset restores -
+ * a choice the user made is not the layout.
+ *
  * S1613: also outside it, and this one must stay outside - the platform's record of which shortcuts other
  * apps pinned to this launcher. That record is precisely what the desktop seed reads back to restore them
  * after this reset, so releasing the pins here would delete the restore silently instead of failing

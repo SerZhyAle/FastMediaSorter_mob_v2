@@ -552,6 +552,9 @@ class LauncherAddFlowManager(
                 LauncherWeatherLocationDialogFragment.RESULT_CELL_ID,
                 LauncherWeatherLocationDialogFragment.NO_CELL_ID,
             )
+            // S2213: above the branch on purpose - a first placement and a repoint are both the user
+            // confirming a place, and one call covers both.
+            viewModel.rememberWeatherLocation(encoded)
             if (cellId == LauncherWeatherLocationDialogFragment.NO_CELL_ID) {
                 placeWeatherGadget(encoded)
             } else {

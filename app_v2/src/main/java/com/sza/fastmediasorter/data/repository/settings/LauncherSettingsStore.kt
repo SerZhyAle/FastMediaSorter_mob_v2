@@ -11,8 +11,8 @@ import com.sza.fastmediasorter.domain.model.launcher.InstalledAppSortOrder
 
 /**
  * Owns persistence of launcher-mode desktop settings: grid density, taskbar composition and
- * placement, tray indicator visibility, wallpaper, desktop lock, all-apps sort and the
- * screen-blackout timeout.
+ * placement, tray indicator visibility, wallpaper, desktop lock, all-apps sort, the
+ * screen-blackout timeout and the last place picked for a weather gadget.
  *
  * Extracted from SettingsRepositoryImpl as a single named responsibility. Public
  * `AppSettings` shape and persisted key strings are unchanged - behaviour-preserving.
@@ -46,6 +46,8 @@ object LauncherSettingsStore {
     private val KEY_ALL_APPS_SORT_DESCENDING = booleanPreferencesKey("all_apps_sort_descending")
     private val KEY_LAUNCHER_SCREEN_BLACKOUT_TIMEOUT_SECONDS =
         intPreferencesKey("launcher_screen_blackout_timeout_seconds")
+    private val KEY_LAUNCHER_WEATHER_LAST_LOCATION =
+        stringPreferencesKey("launcher_weather_last_location")
 
     /** Launcher desktop fields read from DataStore, ready for [AppSettings]. */
     data class Values(
@@ -72,6 +74,7 @@ object LauncherSettingsStore {
         val allAppsSortOrder: String,
         val allAppsSortDescending: Boolean,
         val launcherScreenBlackoutTimeoutSeconds: Int,
+        val launcherWeatherLastLocation: String,
     )
 
     // S0404: absent keys resolve to auto density + full taskbar (S2017: except the tray clock, off by
@@ -114,6 +117,43 @@ object LauncherSettingsStore {
         launcherScreenBlackoutTimeoutSeconds = preferences
             .getOrDefault(KEY_LAUNCHER_SCREEN_BLACKOUT_TIMEOUT_SECONDS, 0)
             .coerceAtLeast(0),
+        // S2213: empty means the user has never picked a place, which is what a fresh install reads.
+        launcherWeatherLastLocation = preferences.getOrDefault(KEY_LAUNCHER_WEATHER_LAST_LOCATION, ""),
+    )
+
+    /**
+     * S2213: copies the launcher group onto [settings].
+     *
+     * The assembly lives here rather than in the repository's `AppSettings(..)` call because this object
+     * already owns the group - the repository only knew the field names, and every launcher setting added
+     * since made that call longer without making it more informative. Keeping it here also means one more
+     * launcher field costs one line in this file instead of two across two.
+     */
+    fun applyTo(settings: AppSettings, values: Values): AppSettings = settings.copy(
+        launcherDensityFactor = values.launcherDensityFactor,
+        launcherTaskbarShowRecents = values.launcherTaskbarShowRecents,
+        launcherTaskbarShowPinned = values.launcherTaskbarShowPinned,
+        launcherTaskbarShowTray = values.launcherTaskbarShowTray,
+        launcherTrayShowClock = values.launcherTrayShowClock,
+        launcherTrayShowBluetooth = values.launcherTrayShowBluetooth,
+        launcherTrayShowSim1 = values.launcherTrayShowSim1,
+        launcherTrayShowSim2 = values.launcherTrayShowSim2,
+        launcherTrayShowNetwork = values.launcherTrayShowNetwork,
+        launcherTrayShowBattery = values.launcherTrayShowBattery,
+        launcherTrayShowSpeed = values.launcherTrayShowSpeed,
+        launcherReplaceSystemStatusArea = values.launcherReplaceSystemStatusArea,
+        launcherTopStatusStripMode = values.launcherTopStatusStripMode,
+        launcherForeignNotificationsEnabled = values.launcherForeignNotificationsEnabled,
+        launcherTaskbarPlacement = values.launcherTaskbarPlacement,
+        launcherRotationHintShown = values.launcherRotationHintShown,
+        launcherDesktopLocked = values.launcherDesktopLocked,
+        launcherWallpaperMode = values.launcherWallpaperMode,
+        launcherWallpaperImagePath = values.launcherWallpaperImagePath,
+        launcherWallpaperCameraId = values.launcherWallpaperCameraId,
+        allAppsSortOrder = values.allAppsSortOrder,
+        allAppsSortDescending = values.allAppsSortDescending,
+        launcherScreenBlackoutTimeoutSeconds = values.launcherScreenBlackoutTimeoutSeconds,
+        launcherWeatherLastLocation = values.launcherWeatherLastLocation,
     )
 
     fun write(preferences: MutablePreferences, settings: AppSettings) {
@@ -141,5 +181,6 @@ object LauncherSettingsStore {
         preferences[KEY_ALL_APPS_SORT_DESCENDING] = settings.allAppsSortDescending
         preferences[KEY_LAUNCHER_SCREEN_BLACKOUT_TIMEOUT_SECONDS] =
             settings.launcherScreenBlackoutTimeoutSeconds
+        preferences[KEY_LAUNCHER_WEATHER_LAST_LOCATION] = settings.launcherWeatherLastLocation
     }
 }

@@ -649,6 +649,14 @@
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_calculator_info" />
         </receiver>
 
+        <!-- Front Flashlight Widget -->
+        <receiver android:name=".widget.FrontFlashlightWidgetProvider" android:exported="true" android:label="@string/widget_front_flashlight_label" android:icon="@drawable/ic_widget_front_flashlight_accent">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_front_flashlight_info" />
+        </receiver>
+
         <!-- Camera OCR Translate Widget -->
         <receiver android:name=".widget.CameraOcrTranslateWidgetProvider" android:exported="true" android:label="@string/widget_camera_ocr_translate_label" android:icon="@drawable/ic_camera_ocr_translate">
             <intent-filter>

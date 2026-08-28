@@ -403,6 +403,62 @@ class LauncherGridGeometryTest {
         assertEquals(2, stored.col)
     }
 
+    @Test
+    fun `renderPlan compresses rows below packed header chains eliminating empty space S2214`() {
+        val cells = listOf(
+            ui(cell(row = 0, col = 0, kind = LauncherCellKind.SECTION, target = "secA")),
+            ui(cell(row = 1, col = 0, kind = LauncherCellKind.SECTION, target = "secB")),
+            ui(cell(row = 2, col = 0, kind = LauncherCellKind.SECTION, target = "secC")),
+            ui(cell(row = 3, col = 0, kind = LauncherCellKind.SECTION, target = "secD")),
+            ui(cell(row = 3, col = 2, target = "shortcutD")),
+        )
+
+        val plan = LauncherGridGeometry.renderPlan(
+            cells = cells,
+            collapsedSections = setOf("secA", "secB", "secC"),
+            columns = 6,
+        )
+
+        val renderedMap = plan.associate { it.item.cell.target to it }
+        assertEquals(0, renderedMap["secA"]?.renderRow)
+        assertEquals(0, renderedMap["secA"]?.renderCol)
+
+        assertEquals(0, renderedMap["secB"]?.renderRow)
+        assertEquals(2, renderedMap["secB"]?.renderCol)
+
+        assertEquals(0, renderedMap["secC"]?.renderRow)
+        assertEquals(4, renderedMap["secC"]?.renderCol)
+
+        // Section D and its shortcut are lifted by 2 rows (from 3 down to 1), leaving zero empty space under packed headers
+        assertEquals(1, renderedMap["secD"]?.renderRow)
+        assertEquals(0, renderedMap["secD"]?.renderCol)
+
+        assertEquals(1, renderedMap["shortcutD"]?.renderRow)
+        assertEquals(2, renderedMap["shortcutD"]?.renderCol)
+    }
+
+    @Test
+    fun `storedSlotFor accounts for packed header row compression S2214`() {
+        val cells = listOf(
+            ui(cell(row = 0, col = 0, kind = LauncherCellKind.SECTION, target = "secA")),
+            ui(cell(row = 1, col = 0, kind = LauncherCellKind.SECTION, target = "secB")),
+            ui(cell(row = 2, col = 0, kind = LauncherCellKind.SECTION, target = "secC")),
+            ui(cell(row = 3, col = 0, kind = LauncherCellKind.SECTION, target = "secD")),
+            ui(cell(row = 3, col = 2, target = "shortcutD")),
+        )
+
+        val stored = LauncherGridGeometry.storedSlotFor(
+            slot = LauncherGridGeometry.Slot(row = 1, col = 0),
+            cells = cells,
+            collapsedSections = setOf("secA", "secB", "secC"),
+            columns = 6,
+        )
+
+        // Press on drawn row 1 maps back to stored row 3 (Section D)
+        assertEquals(3, stored.row)
+        assertEquals(0, stored.col)
+    }
+
     // --- fixtures -----------------------------------------------------------------------------
 
     private fun cell(

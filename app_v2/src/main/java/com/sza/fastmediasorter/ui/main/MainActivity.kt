@@ -162,6 +162,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         com.sza.fastmediasorter.domain.model.ResourceGridCellSize.DEFAULT
     private var isNetworkMonitorEnabled = false
     private var isSystemInfoEnabled = false
+    private var isFrontFlashlightEnabled = false
     private var isWearCompanionEnabled = false
     private var isEmbeddedGameEnabled = false
     private var isCameraOcrEnabled = false
@@ -783,6 +784,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         screenRecording = isScreenRecordingEnabled,
         systemInfo = isSystemInfoEnabled,
         wearCompanion = isWearCompanionEnabled,
+        frontFlashlight = isFrontFlashlightEnabled,
     )
 
     private fun showMainWindowDropdownMenu() {
@@ -1250,95 +1252,101 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
         // Observe settings to show/hide Favorites button
         collectOnLifecycle(appSettings) { settings ->
-            latestSettings = settings // S0770: keep the freshest snapshot for the panel item menus.
-            val calculatorEnabledChanged = isCalculatorEnabled != settings.enableCalculator
-            val networkMonitorNowEnabled =
-                settings.enableNetworkMonitor && networkMonitorContract.isAvailableInBuild
-            val networkMonitorEnabledChanged = isNetworkMonitorEnabled != networkMonitorNowEnabled
-            val systemInfoEnabledChanged = isSystemInfoEnabled != settings.enableSystemInfo
-            // S1735 (ADR-1): the setting AND the build's watch bridge. The setting alone would offer the
-            // companion where no bridge exists; the capability alone would deny the user the switch.
-            val wearCompanionNowEnabled =
-                settings.enableWearCompanion && mediaCapabilities.supportsWearCompanion
-            val wearCompanionEnabledChanged = isWearCompanionEnabled != wearCompanionNowEnabled
-            val embeddedGameEnabledChanged = isEmbeddedGameEnabled != settings.embeddedGameEnabled
-            val cameraOcrEnabledChanged = isCameraOcrEnabled != settings.cameraOcrTranslationEnabled
-            // S0523: the quick-capture menu entries reuse the existing capture toggles - no separate
-            // settings. Voice -> mic recording; video/photo -> the inverted capture-enable flags.
-            val quickVoiceEnabledChanged = isQuickVoiceEnabled != settings.micRecordingEnabled
-            val quickVideoEnabledChanged = isQuickVideoEnabled != !settings.disableVideoCapture
-            val quickPhotoEnabledChanged = isQuickPhotoEnabled != !settings.disableCameraCapture
-            // S0542: the manual "Download by link" entry reuses the existing link auto-download
-            // setting - no separate toggle.
-            val linkDownloadEnabledChanged = isLinkDownloadEnabled != settings.linkAutoDownloadEnabled
-            // S0755/S0756: streams-enabled and the two panel toggles all change panel visibility/content.
-            val streamsEnabledChanged = isStreamsEnabled != settings.enableStreams
-            val programsPanelChanged = isProgramsPanelEnabled != settings.showProgramsPanelInMainWindow
-            val streamsPanelChanged = isStreamsPanelEnabled != settings.showStreamsPanelInMainWindow
-            // S0774: gate on the toggle AND the capability (empty controller set on lite/photos/legacy).
-            val screenRecordingNowEnabled =
-                settings.screenRecordingEnabled && screenVideoRecordingControllers.isNotEmpty()
-            val screenRecordingEnabledChanged = isScreenRecordingEnabled != screenRecordingNowEnabled
-            isCalculatorEnabled = settings.enableCalculator
-            isNetworkMonitorEnabled = networkMonitorNowEnabled
-            isSystemInfoEnabled = settings.enableSystemInfo
-            isWearCompanionEnabled = wearCompanionNowEnabled
-            isEmbeddedGameEnabled = settings.embeddedGameEnabled
-            isCameraOcrEnabled = settings.cameraOcrTranslationEnabled
-            isQuickVoiceEnabled = settings.micRecordingEnabled
-            isQuickVideoEnabled = !settings.disableVideoCapture
-            isQuickPhotoEnabled = !settings.disableCameraCapture
-            isLinkDownloadEnabled = settings.linkAutoDownloadEnabled
-            isStreamsEnabled = settings.enableStreams
-            isProgramsPanelEnabled = settings.showProgramsPanelInMainWindow
-            isStreamsPanelEnabled = settings.showStreamsPanelInMainWindow
-            isScreenRecordingEnabled = screenRecordingNowEnabled
-            // S1672: the toggle reports eligibility instead of writing visibility, so the overflow
-            // planner can tell "switched off" from "evicted for width" (both would be GONE).
-            layoutChrome.setCommandEligible(R.id.btnFavorites, settings.enableFavorites)
-            resourceAdapter.setUseCompactElements(settings.useCompactElements)
-            resourceAdapter.setOverflowModeEnabled(settings.resourceOpsInOverflowMenu) // S0160
-            if (settings.disableAnimations) {
-                binding.rvResources.itemAnimator = null
-            } else if (binding.rvResources.itemAnimator == null) {
-                binding.rvResources.itemAnimator = androidx.recyclerview.widget.DefaultItemAnimator()
-            }
-            // S0727: apply the persisted allowSeparateWindow preference off-Main here (OR runtime
-            // capability), replacing the removed runBlocking read in setupViews.
-            resourceAdapter.setOpenInNewWindowVisible(
-                settings.allowSeparateWindow ||
-                    com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
-                        .isMultiWindowActiveNow(this@MainActivity)
-            )
-            // S0963: re-mirror XR availability (VR-3D master toggle) onto the resource VR Cinema entry.
-            resourceAdapter.setOpenInVrCinemaVisible(resourceVrCinemaLaunchManager.isAvailable)
-            layoutChrome.applyCompactToolbar(settings.useCompactElements)
-            layoutChrome.refreshGridSpacing()
-            // S1285: this collector is the only one that sees a cell-size change, and until now it
-            // could not alter the span count - without this the new step would sit unapplied until
-            // the next rotation or state emission, reading to the user as a setting that did nothing.
-            if (appliedResourceGridCellSize != settings.resourceGridCellSize) {
-                appliedResourceGridCellSize = settings.resourceGridCellSize
-                layoutChrome.updateLayoutManagerForScreenSize()
-            }
-            // S0759: the left-edge gesture overlay is a setting, not a service - feed its live value to
-            // the exit button so the minimize/close mode (and icon) tracks it without an app restart.
-            exitButtonManager.setGestureOverlayEnabled(settings.gestureOverlayEnabled)
-            // S0755/S0756: any menu-affecting gate OR a panel/streams toggle change rebuilds the panels
-            // (the programs panel mirrors the menu) and refreshes the three-dots button visibility.
-            val panelInputsChanged = listOf(
-                calculatorEnabledChanged, embeddedGameEnabledChanged, cameraOcrEnabledChanged,
-                networkMonitorEnabledChanged, systemInfoEnabledChanged,
-                wearCompanionEnabledChanged,
-                quickVoiceEnabledChanged, quickVideoEnabledChanged, quickPhotoEnabledChanged,
-                linkDownloadEnabledChanged, streamsEnabledChanged, programsPanelChanged, streamsPanelChanged,
-                screenRecordingEnabledChanged,
-            ).any { it }
-            if (panelInputsChanged) {
-                refreshPanels()
-            }
-            layoutChrome.restitchControlBarFocusChain()
+            applyAppSettingsToUi(settings)
         }
+    }
+
+    private fun applyAppSettingsToUi(settings: AppSettings) {
+        latestSettings = settings // S0770: keep the freshest snapshot for the panel item menus.
+        val calculatorEnabledChanged = isCalculatorEnabled != settings.enableCalculator
+        val networkMonitorNowEnabled =
+            settings.enableNetworkMonitor && networkMonitorContract.isAvailableInBuild
+        val networkMonitorEnabledChanged = isNetworkMonitorEnabled != networkMonitorNowEnabled
+        val systemInfoEnabledChanged = isSystemInfoEnabled != settings.enableSystemInfo
+        val frontFlashlightEnabledChanged = isFrontFlashlightEnabled != settings.frontFlashlightEnabled
+        // S1735 (ADR-1): the setting AND the build's watch bridge. The setting alone would offer the
+        // companion where no bridge exists; the capability alone would deny the user the switch.
+        val wearCompanionNowEnabled =
+            settings.enableWearCompanion && mediaCapabilities.supportsWearCompanion
+        val wearCompanionEnabledChanged = isWearCompanionEnabled != wearCompanionNowEnabled
+        val embeddedGameEnabledChanged = isEmbeddedGameEnabled != settings.embeddedGameEnabled
+        val cameraOcrEnabledChanged = isCameraOcrEnabled != settings.cameraOcrTranslationEnabled
+        // S0523: the quick-capture menu entries reuse the existing capture toggles - no separate
+        // settings. Voice -> mic recording; video/photo -> the inverted capture-enable flags.
+        val quickVoiceEnabledChanged = isQuickVoiceEnabled != settings.micRecordingEnabled
+        val quickVideoEnabledChanged = isQuickVideoEnabled != !settings.disableVideoCapture
+        val quickPhotoEnabledChanged = isQuickPhotoEnabled != !settings.disableCameraCapture
+        // S0542: the manual "Download by link" entry reuses the existing link auto-download
+        // setting - no separate toggle.
+        val linkDownloadEnabledChanged = isLinkDownloadEnabled != settings.linkAutoDownloadEnabled
+        // S0755/S0756: streams-enabled and the two panel toggles all change panel visibility/content.
+        val streamsEnabledChanged = isStreamsEnabled != settings.enableStreams
+        val programsPanelChanged = isProgramsPanelEnabled != settings.showProgramsPanelInMainWindow
+        val streamsPanelChanged = isStreamsPanelEnabled != settings.showStreamsPanelInMainWindow
+        // S0774: gate on the toggle AND the capability (empty controller set on lite/photos/legacy).
+        val screenRecordingNowEnabled =
+            settings.screenRecordingEnabled && screenVideoRecordingControllers.isNotEmpty()
+        val screenRecordingEnabledChanged = isScreenRecordingEnabled != screenRecordingNowEnabled
+        isCalculatorEnabled = settings.enableCalculator
+        isNetworkMonitorEnabled = networkMonitorNowEnabled
+        isSystemInfoEnabled = settings.enableSystemInfo
+        isFrontFlashlightEnabled = settings.frontFlashlightEnabled
+        isWearCompanionEnabled = wearCompanionNowEnabled
+        isEmbeddedGameEnabled = settings.embeddedGameEnabled
+        isCameraOcrEnabled = settings.cameraOcrTranslationEnabled
+        isQuickVoiceEnabled = settings.micRecordingEnabled
+        isQuickVideoEnabled = !settings.disableVideoCapture
+        isQuickPhotoEnabled = !settings.disableCameraCapture
+        isLinkDownloadEnabled = settings.linkAutoDownloadEnabled
+        isStreamsEnabled = settings.enableStreams
+        isProgramsPanelEnabled = settings.showProgramsPanelInMainWindow
+        isStreamsPanelEnabled = settings.showStreamsPanelInMainWindow
+        isScreenRecordingEnabled = screenRecordingNowEnabled
+        // S1672: the toggle reports eligibility instead of writing visibility, so the overflow
+        // planner can tell "switched off" from "evicted for width" (both would be GONE).
+        layoutChrome.setCommandEligible(R.id.btnFavorites, settings.enableFavorites)
+        resourceAdapter.setUseCompactElements(settings.useCompactElements)
+        resourceAdapter.setOverflowModeEnabled(settings.resourceOpsInOverflowMenu) // S0160
+        if (settings.disableAnimations) {
+            binding.rvResources.itemAnimator = null
+        } else if (binding.rvResources.itemAnimator == null) {
+            binding.rvResources.itemAnimator = androidx.recyclerview.widget.DefaultItemAnimator()
+        }
+        // S0727: apply the persisted allowSeparateWindow preference off-Main here (OR runtime
+        // capability), replacing the removed runBlocking read in setupViews.
+        resourceAdapter.setOpenInNewWindowVisible(
+            settings.allowSeparateWindow ||
+                com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
+                    .isMultiWindowActiveNow(this@MainActivity)
+        )
+        // S0963: re-mirror XR availability (VR-3D master toggle) onto the resource VR Cinema entry.
+        resourceAdapter.setOpenInVrCinemaVisible(resourceVrCinemaLaunchManager.isAvailable)
+        layoutChrome.applyCompactToolbar(settings.useCompactElements)
+        layoutChrome.refreshGridSpacing()
+        // S1285: this collector is the only one that sees a cell-size change, and until now it
+        // could not alter the span count - without this the new step would sit unapplied until
+        // the next rotation or state emission, reading to the user as a setting that did nothing.
+        if (appliedResourceGridCellSize != settings.resourceGridCellSize) {
+            appliedResourceGridCellSize = settings.resourceGridCellSize
+            layoutChrome.updateLayoutManagerForScreenSize()
+        }
+        // S0759: the left-edge gesture overlay is a setting, not a service - feed its live value to
+        // the exit button so the minimize/close mode (and icon) tracks it without an app restart.
+        exitButtonManager.setGestureOverlayEnabled(settings.gestureOverlayEnabled)
+        // S0755/S0756: any menu-affecting gate OR a panel/streams toggle change rebuilds the panels
+        // (the programs panel mirrors the menu) and refreshes the three-dots button visibility.
+        val panelInputsChanged = listOf(
+            calculatorEnabledChanged, embeddedGameEnabledChanged, cameraOcrEnabledChanged,
+            networkMonitorEnabledChanged, systemInfoEnabledChanged, frontFlashlightEnabledChanged,
+            wearCompanionEnabledChanged,
+            quickVoiceEnabledChanged, quickVideoEnabledChanged, quickPhotoEnabledChanged,
+            linkDownloadEnabledChanged, streamsEnabledChanged, programsPanelChanged, streamsPanelChanged,
+            screenRecordingEnabledChanged,
+        ).any { it }
+        if (panelInputsChanged) {
+            refreshPanels()
+        }
+        layoutChrome.restitchControlBarFocusChain()
     }
 
     private fun openSettings() {

@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetHost
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetView
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherTimeZoneCatalog
+import com.sza.fastmediasorter.ui.launcher.gadget.LauncherWeatherParamFallback
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherCellViewBinder
 import timber.log.Timber
 
@@ -30,6 +31,11 @@ class LauncherGadgetRenderManager(
     private val gadgetHost: LauncherGadgetHost,
     private val onWeatherReconfigure: (cellId: Long) -> Unit,
     private val onWorldClockReconfigure: (cellId: Long) -> Unit,
+    // S2213: read per bind rather than captured once - a place picked after this manager was built must
+    // be visible to the next bind, otherwise the fix would appear to work only after a restart. No
+    // default on purpose: a construction site that forgot this would still compile and would silently
+    // stop substituting, which is the failure this ticket exists to remove.
+    private val savedWeatherLocation: () -> String?,
 ) {
 
     /**
@@ -44,11 +50,18 @@ class LauncherGadgetRenderManager(
             container.addView(unavailableGadgetView(container))
             return
         }
+        // S2213: resolved once and fed to both call sites below - wireReconfigure decides from the same
+        // param whether the cell still needs its "tap to configure" listener, so substituting in only one
+        // of the two would show the city while still treating the cell as unconfigured.
+        val param = LauncherWeatherParamFallback.resolve(decoded.first, decoded.second, savedWeatherLocation())
+        if (param != decoded.second) {
+            Timber.d("S2213: weather cell without its own place took the saved one")
+        }
         // A gadget that cannot build its view degrades to a named failed-gadget tile (S2208). Without
         // this, the exception escapes into the HOME activity's render pass, and because
         // the system restarts HOME immediately the desktop crash-loops the device with no way in to
         // remove the offending cell - S2207 did exactly that from one bad layout inflation.
-        val view = runCatching { gadget.createView(container, gadgetHost, decoded.second) }
+        val view = runCatching { gadget.createView(container, gadgetHost, param) }
             .onFailure {
                 Timber.e(it, "Gadget ${decoded.first} failed to build its view; cell degraded")
                 Timber.d("S2208: ${decoded.first} view creation failed")
@@ -64,7 +77,7 @@ class LauncherGadgetRenderManager(
                 container.addView(failedGadgetView(container, gadget.labelRes))
             }
         }
-        wireReconfigure(decoded.first, decoded.second, cellUi.cell.id, view)
+        wireReconfigure(decoded.first, param, cellUi.cell.id, view)
         container.addView(view)
     }
 

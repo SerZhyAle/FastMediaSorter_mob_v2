@@ -154,6 +154,56 @@ object LauncherSectionMembership {
         return positions
     }
 
+    /**
+     * S2214: calculating the row compression lift caused by consecutive collapsed/empty section headers
+     * packed onto shared rows.
+     *
+     * Returns a map from section header target to accumulated row compression lift (number of rows saved).
+     */
+    fun packingLifts(
+        cells: List<LauncherCell>,
+        collapsedTargets: Set<String>,
+        columns: Int,
+        renderRowOf: (LauncherCell) -> Int?,
+    ): Map<String, Int> {
+        val packed = packedHeaderPositions(cells, collapsedTargets, columns, renderRowOf)
+        if (packed.isEmpty()) return emptyMap()
+        val sections = sectionsInOrder(cells)
+        val lifts = mutableMapOf<String, Int>()
+        var currentLift = 0
+        for (header in sections) {
+            val drawnRow = renderRowOf(header)
+            val packedPos = packed[header.target]
+            if (drawnRow != null && packedPos != null) {
+                currentLift = (drawnRow - packedPos.row).coerceAtLeast(0)
+            }
+            lifts[header.target] = currentLift
+        }
+        return lifts
+    }
+
+    /**
+     * S2214: calculating the accumulated packing lift to invert for a given rendered row.
+     */
+    fun packingLiftForRenderRow(
+        renderRow: Int,
+        sections: List<LauncherCell>,
+        packedPositions: Map<String, PackedPosition>,
+        renderRowOf: (LauncherCell) -> Int?,
+    ): Int {
+        var lift = 0
+        for (header in sections) {
+            val packedPos = packedPositions[header.target]
+            val drawnRow = renderRowOf(header)
+            if (packedPos != null && drawnRow != null) {
+                if (renderRow > packedPos.row) {
+                    lift = (drawnRow - packedPos.row).coerceAtLeast(0)
+                }
+            }
+        }
+        return lift
+    }
+
     /** The row and column a packed header is drawn at. Never stored - see [packedHeaderPositions]. */
     data class PackedPosition(val row: Int, val col: Int)
 

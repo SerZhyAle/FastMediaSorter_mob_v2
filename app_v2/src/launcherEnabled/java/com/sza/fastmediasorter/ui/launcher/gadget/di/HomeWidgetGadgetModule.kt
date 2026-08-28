@@ -39,9 +39,9 @@ annotation class HomeWidgetGadgets
 object HomeWidgetGadgetModule {
 
     /**
-     * Nine catalog widgets whose entire behaviour is "open one screen", plus the two that render a live
+     * Ten catalog widgets whose entire behaviour is "open one screen", plus the two that render a live
      * list, the one that drives the playback service, and the two that keep per-instance state - each
-     * of those five carrying its own class. 9 + 2 + 1 + 2 = 14 of 14.
+     * of those five carrying its own class. 10 + 2 + 1 + 2 = 15 of 15.
      *
      * S1930 closed the last two. `random_photo_frame` and `camera_quick_capture` are keyed on
      * `AppWidgetManager.EXTRA_APPWIDGET_ID` end to end, and a desktop cell has no widget id - so its
@@ -71,6 +71,12 @@ object HomeWidgetGadgetModule {
         audioNowPlaying,
         youtube,
         youtubeMusic,
+    ) + singleScreenWidgetGadgets() + configurableWidgetGadgets()
+
+    private fun singleScreenWidgetGadgets(): List<LauncherGadget> =
+        singleScreenWidgetGadgetsGroup1() + singleScreenWidgetGadgetsGroup2()
+
+    private fun singleScreenWidgetGadgetsGroup1(): List<LauncherGadget> = listOf(
         HomeWidgetGadget(
             key = KEY_CALCULATOR,
             labelRes = R.string.widget_calculator_label,
@@ -78,6 +84,14 @@ object HomeWidgetGadgetModule {
             defaultSpanW = SPAN_SMALL,
             defaultSpanH = SPAN_SMALL,
             command = LauncherCellCommand.Feature(InternalRouteCatalog.KEY_CALCULATOR),
+        ),
+        HomeWidgetGadget(
+            key = KEY_FRONT_FLASHLIGHT,
+            labelRes = R.string.widget_front_flashlight_label,
+            iconRes = R.drawable.ic_widget_front_flashlight_accent,
+            defaultSpanW = SPAN_SMALL,
+            defaultSpanH = SPAN_SMALL,
+            command = LauncherCellCommand.Feature(InternalRouteCatalog.KEY_FRONT_FLASHLIGHT),
         ),
         HomeWidgetGadget(
             key = KEY_CAMERA_OCR_TRANSLATE,
@@ -106,6 +120,9 @@ object HomeWidgetGadgetModule {
             defaultSpanH = SPAN_SMALL,
             command = LauncherCellCommand.Feature(InternalRouteCatalog.KEY_CAMERA_LAUNCH),
         ),
+    )
+
+    private fun singleScreenWidgetGadgetsGroup2(): List<LauncherGadget> = listOf(
         HomeWidgetGadget(
             key = KEY_CAMERA_PHOTOS,
             labelRes = R.string.widget_camera_photos_label,
@@ -148,7 +165,7 @@ object HomeWidgetGadgetModule {
             defaultSpanH = SPAN_SMALL,
             command = LauncherCellCommand.Feature(InternalRouteCatalog.KEY_QUICK_VOICE),
         ),
-    ) + configurableWidgetGadgets()
+    )
 
     /**
      * S1930: the widgets whose desktop cell owns a configured instance. Constructed rather than
@@ -167,6 +184,7 @@ object HomeWidgetGadgetModule {
     // Mirrors HomeWidgetCatalog.gadgetKey verbatim. Persisted inside a cell's target column from the
     // moment Settings places one, so these are a storage format - never rename them.
     private const val KEY_CALCULATOR = "calculator"
+    private const val KEY_FRONT_FLASHLIGHT = "front_flashlight"
     private const val KEY_CAMERA_OCR_TRANSLATE = "camera_ocr_translate"
     private const val KEY_CAPTURE_OCR_PANEL = "capture_ocr_panel"
     private const val KEY_CAMERA_LAUNCH = "camera_launch"

@@ -48,8 +48,9 @@
 .NOTES
     Exit codes (CLAUDE.md Rule 7 / S1070 contract):
       0  PASS - every launcher field is restored or excused.
-      1  FAIL - a launcher field is not restored, a restored name no longer exists, or a field is
-         written from a parameter without being declared in $ParameterRestoredFields.
+      1  FAIL - a launcher field is not restored, a restored name no longer exists, a field is
+         written from a parameter without being declared in $ParameterRestoredFields, or a field
+         excused from the reset is restored by it anyway (S2213 - the two claims contradict).
       2  CANNOT VERIFY - a source file is missing or no launcher field could be parsed at all.
 
 .EXAMPLE
@@ -69,10 +70,12 @@ $settingsFile = Join-Path $repoRoot 'app_v2/src/main/java/com/sza/fastmediasorte
 $resetFile = Join-Path $repoRoot 'app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/launcher/ResetLauncherToDefaultsUseCase.kt'
 
 # A launcher field that must NOT be restored, keyed by field name, valued by the reason it survives a
-# reset. Empty today: every launcher field currently belongs in the reset, including the one-shot hint
-# flag (a fresh install has not shown the hint either). An entry here is a claim about product
-# behaviour, so it needs a sentence a later reader can judge - not a name on its own.
-$ExcusedFields = @{}
+# reset. An entry here is a claim about product behaviour, so it needs a sentence a later reader can
+# judge - not a name on its own. Every other launcher field belongs in the reset, including the
+# one-shot hint flag (a fresh install has not shown the hint either).
+$ExcusedFields = @{
+    launcherWeatherLastLocation = 'S2213: the city the user picked for a weather gadget. The reset clears the desktop and the launcher then re-seeds the starter set, which brings a weather cell back with no place of its own; a cleared value would hand the user back an empty block and make him search for his city again after every reset. Restoring the desktop layout is what the reset promises - discarding a choice the user made is not. Re-judge this only if the weather cell leaves the starter set, which is what makes the value observable after a reset at all.'
+}
 
 # A launcher field the reset restores from a caller-supplied parameter rather than from `AppSettings()`,
 # keyed by field name, valued by the reason. Like an excusal, an entry here is a claim about product
@@ -127,6 +130,11 @@ $undeclaredParameter = @($parameterRestored | Where-Object { -not $ParameterRest
 $missing = @($declared | Where-Object { $_ -notin $restored -and -not $ExcusedFields.ContainsKey($_) })
 $stale = @($restored | Where-Object { $_ -notin $declared })
 $excused = @($declared | Where-Object { $ExcusedFields.ContainsKey($_) })
+# S2213: an excusal says "the reset must NOT clear this", so the same name appearing in the restore list
+# is a contradiction, and the half of the excusal that matters is the one no other check watches. Without
+# this the registry only ever asks "is every field accounted for" - a later edit could add the restore
+# line back and both lists would still be satisfied, silently undoing the excusal it contradicts.
+$contradicted = @($excused | Where-Object { $_ -in $restored })
 
 if (-not $Quiet) {
     Write-Host ("launcher-reset-coverage: {0} launcher field(s), {1} restored, {2} excused." -f
@@ -167,9 +175,18 @@ if ($stale.Count -gt 0) {
     Write-Host 'Remove or rename the line - a stale entry is how a renamed field stops being covered.'
 }
 
-if ($missing.Count -gt 0 -or $stale.Count -gt 0 -or $undeclaredParameter.Count -gt 0) {
-    Write-Error ('assert-launcher-reset-coverage: FAIL - {0} field(s) not restored, {1} stale name(s), {2} undeclared parameter assignment(s).' -f
-        $missing.Count, $stale.Count, $undeclaredParameter.Count) -ErrorAction Continue
+if ($contradicted.Count -gt 0) {
+    Write-Host 'Launcher fields excused from the reset that the reset restores anyway:'
+    foreach ($name in $contradicted) {
+        Write-Host ("  {0} - excused because: {1}" -f $name, $ExcusedFields[$name])
+    }
+    Write-Host ('Remove the `<name> = ..` line from ResetLauncherToDefaultsUseCase.restoreLauncherSettings(), ' +
+        'or drop the excusal in this script if the reason above no longer holds. A field cannot be both.')
+}
+
+if ($missing.Count -gt 0 -or $stale.Count -gt 0 -or $undeclaredParameter.Count -gt 0 -or $contradicted.Count -gt 0) {
+    Write-Error ('assert-launcher-reset-coverage: FAIL - {0} field(s) not restored, {1} stale name(s), {2} undeclared parameter assignment(s), {3} contradicted excusal(s).' -f
+        $missing.Count, $stale.Count, $undeclaredParameter.Count, $contradicted.Count) -ErrorAction Continue
     exit 1
 }
 

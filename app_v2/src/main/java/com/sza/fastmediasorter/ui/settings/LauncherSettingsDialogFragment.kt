@@ -276,7 +276,8 @@ class LauncherSettingsDialogFragment : DialogFragment() {
      */
     private val offeredWallpaperModes: List<String> by lazy {
         AppSettings.LAUNCHER_WALLPAPER_MODES.filter { mode ->
-            mode != AppSettings.LAUNCHER_WALLPAPER_CAMERA || isCameraWallpaperAvailable.hasHardware()
+            (mode != AppSettings.LAUNCHER_WALLPAPER_CAMERA && mode != AppSettings.LAUNCHER_WALLPAPER_INSTANT_PHOTO) ||
+                isCameraWallpaperAvailable.hasHardware()
         }
     }
 
@@ -289,8 +290,9 @@ class LauncherSettingsDialogFragment : DialogFragment() {
                 // Image mode only becomes real once a file is actually picked and copied, so the write
                 // happens in the picker callback, not here.
                 AppSettings.LAUNCHER_WALLPAPER_IMAGE -> pickWallpaperImage.launch(WALLPAPER_MIME_TYPES)
-                // S2076: same shape - the camera mode is real only once a lens has been chosen.
-                AppSettings.LAUNCHER_WALLPAPER_CAMERA -> beginCameraWallpaperSelection()
+                // S2076 / S2210: camera modes are real only once a lens has been chosen.
+                AppSettings.LAUNCHER_WALLPAPER_CAMERA -> beginCameraWallpaperSelection(isInstantPhoto = false)
+                AppSettings.LAUNCHER_WALLPAPER_INSTANT_PHOTO -> beginCameraWallpaperSelection(isInstantPhoto = true)
                 else -> viewModel.applyLauncherWallpaperMode(mode)
             }
         }
@@ -301,15 +303,20 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         AppSettings.LAUNCHER_WALLPAPER_NONE -> R.string.launcher_settings_wallpaper_none
         AppSettings.LAUNCHER_WALLPAPER_IMAGE -> R.string.launcher_settings_wallpaper_image
         AppSettings.LAUNCHER_WALLPAPER_CAMERA -> R.string.launcher_settings_wallpaper_camera
+        AppSettings.LAUNCHER_WALLPAPER_INSTANT_PHOTO -> R.string.launcher_wallpaper_mode_instant_photo
         else -> R.string.launcher_settings_wallpaper_branded
     }
 
     /** S2076: ask for the grant first when it is missing; the lens list needs an open camera to exist. */
-    private fun beginCameraWallpaperSelection() {
+    private fun beginCameraWallpaperSelection(isInstantPhoto: Boolean = false) {
         val granted = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) ==
             PackageManager.PERMISSION_GRANTED
-        Timber.d("S2076: camera wallpaper mode picked in settings, permission granted=$granted")
-        if (granted) showCameraLensPicker() else requestCameraForWallpaper.launch(Manifest.permission.CAMERA)
+        Timber.d("Camera wallpaper mode picked in settings (instantPhoto=$isInstantPhoto), permission granted=$granted")
+        if (granted) {
+            showCameraLensPicker(isInstantPhoto)
+        } else {
+            requestCameraForWallpaper.launch(Manifest.permission.CAMERA)
+        }
     }
 
     /**
@@ -317,7 +324,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
      * open on. Cancelling, refusing, or finding no lens all put the row back on the stored mode - the
      * behaviour a cancelled image pick already has.
      */
-    private fun showCameraLensPicker() {
+    private fun showCameraLensPicker(isInstantPhoto: Boolean = false) {
         val context = requireContext()
         viewLifecycleOwner.lifecycleScope.launch {
             // Enumerating lenses starts CameraX and reads Camera2 characteristics, which is disk and
@@ -345,7 +352,13 @@ class LauncherSettingsDialogFragment : DialogFragment() {
                 .setTitle(R.string.launcher_settings_wallpaper_camera_lens_title)
                 .setSingleChoiceItems(labels, preselected) { _, which -> chosen = which }
                 .setPositiveButton(R.string.ok) { _, _ ->
-                    entries.getOrNull(chosen)?.let { viewModel.applyLauncherWallpaperCamera(it.id) }
+                    entries.getOrNull(chosen)?.let { entry ->
+                        if (isInstantPhoto) {
+                            viewModel.applyLauncherWallpaperInstantPhoto(entry.id)
+                        } else {
+                            viewModel.applyLauncherWallpaperCamera(entry.id)
+                        }
+                    }
                 }
                 .setNegativeButton(R.string.cancel) { _, _ -> renderWallpaperRow(viewModel.settings.value) }
                 .setOnCancelListener { renderWallpaperRow(viewModel.settings.value) }

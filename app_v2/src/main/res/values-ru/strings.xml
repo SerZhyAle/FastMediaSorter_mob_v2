@@ -3528,4 +3528,5 @@
     <string name="launcher_tray_speed_unit_gigabytes">%1$s ГБ/с</string>
     <string name="launcher_tray_speed_download">Скорость приёма: %1$s</string>
     <string name="launcher_tray_speed_upload">Скорость передачи: %1$s</string>
+    <string name="launcher_wallpaper_mode_instant_photo">Мгновенное фото</string>
 </resources>

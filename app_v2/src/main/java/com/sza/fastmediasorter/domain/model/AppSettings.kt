@@ -436,7 +436,12 @@ data class AppSettings(
     // S1741: launcher-private screen blackout timeout in seconds (0 = Off).
     val launcherScreenBlackoutTimeoutSeconds: Int = 0,
     // S1748: launcher widget backdrop opacity (0.0f = 0% transparent, 0.85f = 85% default, 1.0f = 100% opaque).
-    val launcherWidgetBackdropAlpha: Float = 0.85f
+    val launcherWidgetBackdropAlpha: Float = 0.85f,
+    // S2213: the place last picked for a weather gadget, in `WeatherLocation.encode` form. It lives here
+    // rather than only inside the desktop cell because clearing the desktop is exactly what a launcher
+    // reset does, and the picked place must outlive it. Empty until the user picks one. No UI row
+    // (invisible to the settings-doc gate); it is a remembered choice, not a user-facing toggle.
+    val launcherWeatherLastLocation: String = ""
 ) {
     companion object {
         /** S1796: opaque white - the flashlight starts as a plain white lamp until a colour is picked. */
@@ -478,6 +483,9 @@ data class AppSettings(
         /** S2076: live frame from a device camera, lens named by [launcherWallpaperCameraId]. */
         const val LAUNCHER_WALLPAPER_CAMERA = "CAMERA"
 
+        /** S2210: one-shot photo capture wallpaper from a device camera. */
+        const val LAUNCHER_WALLPAPER_INSTANT_PHOTO = "INSTANT_PHOTO"
+
         /** S1101: wallpaper tokens in the order the settings row offers them. */
         val LAUNCHER_WALLPAPER_MODES = listOf(
             LAUNCHER_WALLPAPER_BRANDED,
@@ -485,6 +493,7 @@ data class AppSettings(
             LAUNCHER_WALLPAPER_NONE,
             LAUNCHER_WALLPAPER_IMAGE,
             LAUNCHER_WALLPAPER_CAMERA,
+            LAUNCHER_WALLPAPER_INSTANT_PHOTO,
         )
     }
 

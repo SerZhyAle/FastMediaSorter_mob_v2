@@ -48,6 +48,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -133,6 +134,16 @@ class LauncherHomeViewModel @Inject constructor(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, settingsDefaults.launcherWidgetBackdropAlpha)
 
+    /**
+     * S2213: the place last picked for a weather gadget, handed to a cell that has none of its own.
+     * Seeded from [settingsDefaults] rather than a literal so the seed cannot drift from the model
+     * default - the reason that shared defaults object exists.
+     */
+    val weatherLastLocation: StateFlow<String> = settingsRepository.getSettings()
+        .map { it.launcherWeatherLastLocation }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, settingsDefaults.launcherWeatherLastLocation)
+
     val taskbarComposition: Flow<LauncherTaskbarComposition> = settingsRepository.getSettings()
         .map {
             LauncherTaskbarComposition(
@@ -206,27 +217,40 @@ class LauncherHomeViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, settingsDefaults.launcherDesktopLocked)
 
     /**
+     * S2210: the frame the last instant-photo capture produced, held only for this process.
+     *
+     * Deliberately not a setting: the frame is a transient camera capture, and the one persisted wallpaper
+     * path belongs to the image the user picked. Storing it there would overwrite that pick the first time
+     * instant-photo mode ran, and would carry a dead capture path into backup and restore.
+     */
+    private val instantPhotoFrame = MutableStateFlow<InstantPhotoFrame?>(null)
+
+    /**
      * S1101: what the desktop draws behind its cells. Image mode degrades to the branded animation when
      * the stored copy is gone (cleared app data, manual delete): a desktop that silently turns blank
      * reads as a bug, and the branded default is always available. The existence probe is disk I/O, so
      * the mapping runs off the main thread.
      */
-    val wallpaper: StateFlow<LauncherWallpaper> = settingsRepository.getSettings()
-        .map { settings ->
-            val imageAvailable = settings.launcherWallpaperMode == AppSettings.LAUNCHER_WALLPAPER_IMAGE &&
-                settings.launcherWallpaperImagePath.isNotBlank() && File(settings.launcherWallpaperImagePath).isFile
-            // S2076: re-read on every emission, not once - the CAMERA grant can be revoked while the
-            // desktop is on screen, and the probe short-circuits on the token like the image one does.
-            val cameraAvailable = settings.launcherWallpaperMode == AppSettings.LAUNCHER_WALLPAPER_CAMERA &&
-                isCameraWallpaperAvailable()
-            resolveLauncherWallpaper(
-                mode = settings.launcherWallpaperMode,
-                imagePath = settings.launcherWallpaperImagePath,
-                imageAvailable = imageAvailable,
-                cameraId = settings.launcherWallpaperCameraId,
-                cameraAvailable = cameraAvailable,
-            )
-        }
+    val wallpaper: StateFlow<LauncherWallpaper> = combine(
+        settingsRepository.getSettings(),
+        instantPhotoFrame,
+    ) { settings, instantPhoto ->
+        val imageAvailable = settings.launcherWallpaperMode == AppSettings.LAUNCHER_WALLPAPER_IMAGE &&
+            settings.launcherWallpaperImagePath.isNotBlank() && File(settings.launcherWallpaperImagePath).isFile
+        val cameraAvailable = (
+            settings.launcherWallpaperMode == AppSettings.LAUNCHER_WALLPAPER_CAMERA ||
+                settings.launcherWallpaperMode == AppSettings.LAUNCHER_WALLPAPER_INSTANT_PHOTO
+            ) &&
+            isCameraWallpaperAvailable()
+        resolveLauncherWallpaper(
+            mode = settings.launcherWallpaperMode,
+            imagePath = settings.launcherWallpaperImagePath,
+            imageAvailable = imageAvailable,
+            cameraId = settings.launcherWallpaperCameraId,
+            cameraAvailable = cameraAvailable,
+            instantPhoto = instantPhoto,
+        )
+    }
         .distinctUntilChanged()
         .flowOn(Dispatchers.IO)
         .stateIn(
@@ -502,6 +526,31 @@ class LauncherHomeViewModel @Inject constructor(
     fun removePin(position: Int) {
         viewModelScope.launch {
             taskbarDependencies.pinsRepository.removePin(position)
+        }
+    }
+
+    /**
+     * S2210: publishes the frame a capture just wrote, so the desktop swaps to it.
+     *
+     * Stamped with the file's own mtime rather than a wall clock: every capture reuses one path, so the
+     * timestamp is the only thing that distinguishes this frame from the previous one downstream of
+     * `distinctUntilChanged`.
+     */
+    fun onInstantPhotoCaptured(path: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val capturedAtMillis = File(path).lastModified()
+            instantPhotoFrame.value = InstantPhotoFrame(path, capturedAtMillis)
+        }
+    }
+
+    /**
+     * S2213: remembers the place the user just picked, outside the desktop cell that holds it, so a
+     * launcher reset cannot carry it away with the cell it clears.
+     */
+    fun rememberWeatherLocation(encoded: String) {
+        viewModelScope.launch {
+            Timber.d("S2213: weather place remembered outside the desktop cell")
+            settingsRepository.updateSettings { it.copy(launcherWeatherLastLocation = encoded) }
         }
     }
 
@@ -1027,6 +1076,7 @@ internal fun resolveLauncherWallpaper(
     imageAvailable: Boolean,
     cameraId: String,
     cameraAvailable: Boolean,
+    instantPhoto: InstantPhotoFrame? = null,
 ): LauncherWallpaper = when (mode) {
     AppSettings.LAUNCHER_WALLPAPER_NONE -> LauncherWallpaper.None
     AppSettings.LAUNCHER_WALLPAPER_STATIC_STRIPES -> LauncherWallpaper.StaticStripes
@@ -1040,5 +1090,22 @@ internal fun resolveLauncherWallpaper(
             ?.let { LauncherWallpaper.LiveCamera(it) }
             ?: LauncherWallpaper.Branded
 
+    // S2210: the frame comes from this session's capture, never from the stored image path - that path is
+    // the user's own wallpaper pick, and reading it here would show their picture as if the camera had
+    // just taken it.
+    AppSettings.LAUNCHER_WALLPAPER_INSTANT_PHOTO ->
+        cameraId.takeIf { cameraAvailable && it.isNotBlank() }
+            ?.let {
+                LauncherWallpaper.InstantPhoto(
+                    cameraId = it,
+                    imagePath = instantPhoto?.path,
+                    capturedAtMillis = instantPhoto?.capturedAtMillis ?: 0L,
+                )
+            }
+            ?: LauncherWallpaper.Branded
+
     else -> LauncherWallpaper.Branded
 }
+
+/** S2210: one captured instant-photo frame - its file and the mtime that tells it from the previous one. */
+internal data class InstantPhotoFrame(val path: String, val capturedAtMillis: Long)

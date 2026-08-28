@@ -19,6 +19,7 @@
     { "field": "launcherWallpaperImagePath", "reason": "pointer to a wallpaper file that exists only on this install" },
     { "field": "launcherWallpaperCameraId", "reason": "lens id enumerated by this device's own camera subsystem - a profile names a class of devices, so an id valid on one member is absent on the rest (S2076)" },
     { "field": "launcherWidgetBackdropAlpha", "reason": "launcher desktop tuning - user setting for widget backdrop opacity" },
+    { "field": "launcherWeatherLastLocation", "reason": "the city the user picked for a weather block - a profile names a class of devices, and where someone lives is not a property of his phone model (S2213)" },
     { "field": "frontFlashlightColor", "reason": "personal taste - the flashlight glow colour is the user's pick, and the default white is already what every device class wants (S1796)" },
 
     { "field": "screenCaptureDisclosureAccepted", "reason": "consent - only the user can give it" },

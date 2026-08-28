@@ -321,6 +321,21 @@ class SettingsViewModel @Inject constructor(
     }
 
     /**
+     * S2210: sets wallpaper mode to instant photo with selected camera lens ID.
+     */
+    fun applyLauncherWallpaperInstantPhoto(cameraId: String) {
+        val current = settings.value
+        updateSettings(
+            current.copy(
+                launcherWallpaperMode = AppSettings.LAUNCHER_WALLPAPER_INSTANT_PHOTO,
+                launcherWallpaperImagePath = "",
+                launcherWallpaperCameraId = cameraId,
+            )
+        )
+        viewModelScope.launch { storeLauncherWallpaperUseCase.clear() }
+    }
+
+    /**
      * S1101: takes the picked image into private storage and switches to image mode only if the copy
      * succeeded - a failed import leaves the previous wallpaper untouched rather than blanking it.
      */

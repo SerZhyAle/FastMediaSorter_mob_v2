@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
+import timber.log.Timber
 
 /**
  * S0404: desktop grid sizing. The column count is derived from the screen at render time and the
@@ -202,6 +203,7 @@ object LauncherGridGeometry {
         collapsedSections: Set<String>,
         columns: Int,
     ): List<RenderedCell> {
+        Timber.d("S2214: renderPlan calculating packing lifts for %d cells", cells.size)
         val stored = cells.map { it.cell }
         val headerRows = LauncherSectionMembership.headerRows(stored)
         val collapsedHeaderRows = collapsedHeaderRowsOf(stored, collapsedSections)
@@ -213,8 +215,16 @@ object LauncherGridGeometry {
                 collapsedHeaderRows = collapsedHeaderRows,
             )
         }
+        val sections = LauncherSectionMembership.sectionsInOrder(stored)
         // S1645: packing runs on the folded rows, so it continues the lift instead of fighting it.
         val packed = LauncherSectionMembership.packedHeaderPositions(
+            cells = stored,
+            collapsedTargets = collapsedSections,
+            columns = columns,
+            renderRowOf = drawnRowOf,
+        )
+        // S2214: packing compression lifts rows below packed header chains so no empty rows remain.
+        val lifts = LauncherSectionMembership.packingLifts(
             cells = stored,
             collapsedTargets = collapsedSections,
             columns = columns,
@@ -224,9 +234,11 @@ object LauncherGridGeometry {
             val drawnRow = drawnRowOf(item.cell) ?: return@mapNotNull null
             val packedPosition = packed[item.cell.target]
                 ?.takeIf { item.cell.kind == LauncherCellKind.SECTION }
+            val owner = LauncherSectionMembership.ownerOf(item.cell, sections)
+            val packingLift = owner?.target?.let { lifts[it] } ?: 0
             RenderedCell(
                 item = item,
-                renderRow = packedPosition?.row ?: drawnRow,
+                renderRow = packedPosition?.row ?: (drawnRow - packingLift).coerceAtLeast(0),
                 renderCol = packedPosition?.col ?: item.cell.colIndex,
             )
         }
@@ -296,13 +308,42 @@ object LauncherGridGeometry {
      * headers themselves rather than the content stored under them, so no press on a content square owes
      * its column to a fold.
      */
-    fun storedSlotFor(slot: Slot, cells: List<LauncherCellUi>, collapsedSections: Set<String>): Slot {
+    fun storedSlotFor(
+        slot: Slot,
+        cells: List<LauncherCellUi>,
+        collapsedSections: Set<String>,
+        columns: Int = MAX_COLUMNS,
+    ): Slot {
         val stored = cells.map { it.cell }
+        val headerRows = LauncherSectionMembership.headerRows(stored)
+        val collapsedHeaderRows = collapsedHeaderRowsOf(stored, collapsedSections)
+        val drawnRowOf = { cell: LauncherCell ->
+            LauncherSectionMembership.renderRowFor(
+                row = cell.rowIndex,
+                isHeader = cell.kind == LauncherCellKind.SECTION,
+                headerRows = headerRows,
+                collapsedHeaderRows = collapsedHeaderRows,
+            )
+        }
+        val sections = LauncherSectionMembership.sectionsInOrder(stored)
+        val packed = LauncherSectionMembership.packedHeaderPositions(
+            cells = stored,
+            collapsedTargets = collapsedSections,
+            columns = columns,
+            renderRowOf = drawnRowOf,
+        )
+        val packingLift = LauncherSectionMembership.packingLiftForRenderRow(
+            renderRow = slot.row,
+            sections = sections,
+            packedPositions = packed,
+            renderRowOf = drawnRowOf,
+        )
+        val unpackedRenderRow = (slot.row + packingLift).coerceAtLeast(0)
         return slot.copy(
             row = LauncherSectionMembership.storedRowFor(
-                renderRow = slot.row,
-                headerRows = LauncherSectionMembership.headerRows(stored),
-                collapsedHeaderRows = collapsedHeaderRowsOf(stored, collapsedSections),
+                renderRow = unpackedRenderRow,
+                headerRows = headerRows,
+                collapsedHeaderRows = collapsedHeaderRows,
             ),
         )
     }
