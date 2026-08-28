@@ -26,6 +26,7 @@
     <string name="enable_slideshow">Enable Slideshow</string>
     <string name="slideshow_interval">Interval: %ds</string>
     <string name="download_album_art">Download Album Art</string>
+    <string name="pref_disable_animations">Disable animations</string>
     <string name="about">About</string>
     <string name="version">Version: %s</string>
     <string name="build_number">Build: %s</string>
@@ -400,4 +401,5 @@
     <string name="enable_documents">Enable Documents</string>
     <string name="wear_settings_sections">Sections</string>
     <string name="phone_resource_no_resource_for_type">No phone resource is set up to hold this type.</string>
+    <string name="wear_folder_load_more">Show more</string>
 </resources>

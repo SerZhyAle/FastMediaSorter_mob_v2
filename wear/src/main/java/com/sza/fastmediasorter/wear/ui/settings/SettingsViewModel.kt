@@ -42,6 +42,7 @@ private const val INDEX_VOICE_NOTE_POLICY = 11
 private const val INDEX_BACKGROUND_MODE = 12
 private const val INDEX_LAST_SYNC = 13
 private const val INDEX_DOCUMENTS = 14
+private const val INDEX_DISABLE_ANIMATIONS = 15
 
 /**
  * ViewModel for Settings screen.
@@ -103,7 +104,8 @@ class SettingsViewModel @Inject constructor(
                     preferencesRepository.voiceNoteSendPolicy,
                     preferencesRepository.backgroundMode,
                     preferencesRepository.lastSettingsSyncAt,
-                    preferencesRepository.isDocumentsEnabled
+                    preferencesRepository.isDocumentsEnabled,
+                    preferencesRepository.isAnimationsDisabled
                 )
             ) { values ->
                 val audio = values[INDEX_AUDIO] as Boolean
@@ -121,6 +123,7 @@ class SettingsViewModel @Inject constructor(
                 val background = values[INDEX_BACKGROUND_MODE] as WearBackgroundMode
                 val lastSync = values[INDEX_LAST_SYNC] as Long
                 val documents = values[INDEX_DOCUMENTS] as Boolean
+                val disableAnimations = values[INDEX_DISABLE_ANIMATIONS] as Boolean
                 _uiState.value.copy(
                     backgroundMode = background,
                     lastSyncedAtEpochMillis = lastSync,
@@ -138,6 +141,7 @@ class SettingsViewModel @Inject constructor(
                     isAutoRotationEnabled = autoRotation,
                     hasAutoRotationSensor = hasAccelerometer,
                     voiceNoteSendPolicy = sendPolicy,
+                    isAnimationsDisabled = disableAnimations,
                     isLoading = false
                 )
             }.collect { combinedState ->
@@ -214,6 +218,12 @@ class SettingsViewModel @Inject constructor(
     fun toggleStreamsSection() {
         viewModelScope.launch {
             preferencesRepository.setStreamsSectionEnabled(!_uiState.value.streamsSectionEnabled)
+        }
+    }
+
+    fun toggleDisableAnimations() {
+        viewModelScope.launch {
+            preferencesRepository.setAnimationsDisabled(!_uiState.value.isAnimationsDisabled)
         }
     }
 

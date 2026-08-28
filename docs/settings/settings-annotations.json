@@ -4,6 +4,16 @@
     "ru": "Задаёт максимальный объём дискового пространства для локального кэша приложения.",
     "uk": "Задає максимальний обсяг дискового простору для локального кешу застосунку."
   },
+  "rowDisableAnimations": {
+    "en": "Disables visual transition animations and decorative effects.",
+    "ru": "Отключает визуальные анимации переходов и декоративные эффекты.",
+    "uk": "Вимкає візуальні анімації переходів та декоративні ефекти."
+  },
+  "wearDisableAnimations": {
+    "en": "Disables visual transition animations and decorative effects on Wear OS.",
+    "ru": "Отключает визуальные анимации переходов и декоративные эффекты на Wear OS.",
+    "uk": "Вимкає візуальні анімації переходів та декоративні ефекти на Wear OS."
+  },
   "actvNetworkParallelism": {
     "en": "Sets the number of simultaneous network connections used when accessing remote resources.",
     "ru": "Задаёт количество одновременных сетевых подключений при доступе к удалённым ресурсам.",
@@ -1098,6 +1108,11 @@
     "en": "Shows the battery charge in the launcher tray as a number in an outline, yellow below 30 percent, red below 15, blinking below 10.",
     "ru": "Показывает заряд батареи в трее лаунчера числом в обводке: ниже 30 процентов - жёлтым, ниже 15 - красным, ниже 10 - мигающим.",
     "uk": "Показує заряд батареї в треї лаунчера числом в обводці: нижче 30 відсотків - жовтим, нижче 15 - червоним, нижче 10 - миготливим."
+  },
+  "rowLauncherTraySpeed": {
+    "en": "Shows device-wide download and upload transfer speeds in the launcher status area as two separate cells; updates once per second when enabled.",
+    "ru": "Показывает общую скорость приёма и передачи в области статуса лаунчера двумя отдельными ячейками; обновляется раз в секунду при включении.",
+    "uk": "Показує загальну швидкість прийому та передачі в області статусу лаунчера двома окремими ячейками; оновлюється раз на секунду при увімкненні."
   },
   "rowLauncherTrayBluetooth": {
     "en": "Shows a Bluetooth icon in the launcher tray while the adapter is on.",

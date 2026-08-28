@@ -74,6 +74,9 @@ object WearRoutes {
     const val ARG_FILE_ID = "fileId"
     const val ARG_TILE_KIND = "tileKind"
 
+    /** S2201: the level of the watch-local folder walk to open, as `WearFolderAddress.asToken` writes it. */
+    const val ARG_FOLDER_TOKEN = "folderToken"
+
     const val BROWSE_PATTERN = "browse/{$ARG_MEDIA_TYPE}"
     const val PHONE_BROWSE_PATTERN = "browse_phone/{$ARG_MEDIA_TYPE}"
     const val BROWSE_SOURCE_PATTERN =
@@ -103,6 +106,15 @@ object WearRoutes {
      */
     const val TILE_TARGET_PICKER_PATTERN = "tile_target_picker/{$ARG_TILE_KIND}"
 
+    /**
+     * S2201: one level of the watch's own folder walk.
+     *
+     * The argument is optional because the entrance names no level at all: an absent token is the
+     * root, which is exactly what `WearFolderAddress.parse` answers for a blank one. Declaring it
+     * mandatory would leave the walk with no address for its first screen.
+     */
+    const val LOCAL_FOLDER_PATTERN = "local_folder?$ARG_FOLDER_TOKEN={$ARG_FOLDER_TOKEN}"
+
     fun browse(mediaType: String): String = "browse/$mediaType"
 
     fun browsePhone(mediaType: String): String = "browse_phone/$mediaType"
@@ -126,6 +138,19 @@ object WearRoutes {
     fun imageViewer(fileId: Long): String = "image_viewer/$fileId"
 
     fun tileTargetPicker(kind: String): String = "tile_target_picker/${encodeArg(kind)}"
+
+    /**
+     * S2201: the walk opened at the level [token] names.
+     *
+     * Encoded like every other argument here, and for a sharper reason than most: an address token
+     * carries a filesystem path or a MediaStore relative path, so it holds `/` by construction and
+     * a folder name inside it may legally hold `&`. Concatenated raw, either one misses this
+     * pattern and the tap does nothing at all.
+     */
+    fun localFolder(token: String): String = "local_folder?$ARG_FOLDER_TOKEN=${encodeArg(token)}"
+
+    /** The walk opened at its entrance, where no level has been chosen yet. */
+    fun localFolderRoot(): String = localFolder("")
 
     /**
      * S1848: percent-encodes one argument value before it is concatenated into a route.

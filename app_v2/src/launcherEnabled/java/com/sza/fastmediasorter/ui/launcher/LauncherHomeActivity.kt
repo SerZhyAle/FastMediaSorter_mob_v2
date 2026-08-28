@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.launcher
 import android.Manifest
 import android.content.Intent
 import android.content.res.Configuration
+import android.os.Build
 import android.view.View
 import android.widget.Toast
 import androidx.activity.addCallback
@@ -112,6 +113,9 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     // the Activity is STARTED throws. The activity only owns the launcher; whether and when to ask is the
     // tray manager's decision (Rule 3).
     private val requestPhoneStatePermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
+
+    private val requestBluetoothPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
     // S1179: a field initialiser for the same reason as the two above - it registers a permission
@@ -648,6 +652,11 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     private fun trayCallbacks(): LauncherTrayCallbacks = LauncherTrayCallbacks(
         onRequestPhoneStatePermission = {
             requestPhoneStatePermission.launch(Manifest.permission.READ_PHONE_STATE)
+        },
+        onRequestBluetoothPermission = {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                requestBluetoothPermission.launch(Manifest.permission.BLUETOOTH_CONNECT)
+            }
         },
         // Screen-only: an indicator reports on a section and opens it, never toggling the radio the
         // shared OsShortcut path would try first (ticket ADR-1).

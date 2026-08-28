@@ -55,6 +55,8 @@ class DeviceProfilePresetApplier @Inject constructor(
             "enableNetworkMonitor" -> settings.copy(enableNetworkMonitor = raw.toBool())
             "enableSystemInfo" -> settings.copy(enableSystemInfo = raw.toBool())
             "enableWearCompanion" -> settings.copy(enableWearCompanion = raw.toBool())
+            "disableAnimations" -> settings.copy(disableAnimations = raw.toBool())
+            "launcherTrayShowSpeed" -> settings.copy(launcherTrayShowSpeed = raw.toBool())
             "isCacheSizeUserModified" -> settings.copy(isCacheSizeUserModified = raw.toBool())
             "enableBackgroundSync" -> settings.copy(enableBackgroundSync = raw.toBool())
             "enableStreams" -> settings.copy(enableStreams = raw.toBool())

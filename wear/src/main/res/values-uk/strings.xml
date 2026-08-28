@@ -26,6 +26,7 @@
     <string name="enable_slideshow">Увімкнути слайд-шоу</string>
     <string name="slideshow_interval">Інтервал: %dс</string>
     <string name="download_album_art">Завантажувати обкладинки</string>
+    <string name="pref_disable_animations">Вимкнути анімацію</string>
     <string name="about">Про застосунок</string>
     <string name="version">Версія: %s</string>
     <string name="build_number">Збірка: %s</string>
@@ -400,4 +401,5 @@
     <string name="enable_documents">Увімкнути документи</string>
     <string name="wear_settings_sections">Розділи</string>
     <string name="phone_resource_no_resource_for_type">Жоден ресурс телефона не налаштований на цей тип.</string>
+    <string name="wear_folder_load_more">Показати ще</string>
 </resources>

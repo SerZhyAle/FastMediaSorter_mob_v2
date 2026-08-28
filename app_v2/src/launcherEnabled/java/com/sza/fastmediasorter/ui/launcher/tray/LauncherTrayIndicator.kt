@@ -16,6 +16,8 @@ enum class LauncherTrayIndicator {
     BLUETOOTH,
     SIM1,
     SIM2,
+    SPEED_RX,
+    SPEED_TX,
     NETWORK,
     BATTERY,
 }
@@ -26,6 +28,7 @@ data class LauncherTrayComposition(
     val bluetooth: Boolean,
     val sim1: Boolean,
     val sim2: Boolean,
+    val speed: Boolean,
     val network: Boolean,
     val battery: Boolean,
 ) {
@@ -35,6 +38,8 @@ data class LauncherTrayComposition(
         LauncherTrayIndicator.BLUETOOTH -> bluetooth
         LauncherTrayIndicator.SIM1 -> sim1
         LauncherTrayIndicator.SIM2 -> sim2
+        LauncherTrayIndicator.SPEED_RX -> speed
+        LauncherTrayIndicator.SPEED_TX -> speed
         LauncherTrayIndicator.NETWORK -> network
         LauncherTrayIndicator.BATTERY -> battery
     }
@@ -45,6 +50,7 @@ data class LauncherTrayComposition(
             bluetooth = settings.launcherTrayShowBluetooth,
             sim1 = settings.launcherTrayShowSim1,
             sim2 = settings.launcherTrayShowSim2,
+            speed = settings.launcherTrayShowSpeed,
             network = settings.launcherTrayShowNetwork,
             battery = settings.launcherTrayShowBattery,
         )

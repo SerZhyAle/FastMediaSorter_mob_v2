@@ -156,6 +156,14 @@
                     app:str_subtitle="@string/launcher_settings_tray_battery_subtitle"
                     app:str_title="@string/launcher_settings_tray_battery_title" />
 
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowLauncherTraySpeed"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:str_subtitle="@string/launcher_settings_tray_speed_subtitle"
+                    app:str_title="@string/launcher_settings_tray_speed_title" />
+
             </LinearLayout>
 
         </LinearLayout>

@@ -14,6 +14,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.location.LocationManagerCompat
 import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
 import com.sza.fastmediasorter.core.network.NetworkStateMonitor
+import com.sza.fastmediasorter.core.networkmonitor.WifiGenerationMapper
 import com.sza.fastmediasorter.data.network.lifecycle.NetworkLifecycleBootstrapper
 import com.sza.fastmediasorter.domain.model.networkmonitor.ActiveLink
 import com.sza.fastmediasorter.domain.model.networkmonitor.MonitorSection
@@ -242,29 +243,7 @@ class ConnectivitySnapshotDataSource @Inject constructor(
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             return null
         }
-        return when (info.wifiStandard) {
-            ScanResultCompat.WIFI_STANDARD_LEGACY -> "802.11 a/b/g"
-            ScanResultCompat.WIFI_STANDARD_11N -> "Wi-Fi 4 (802.11n)"
-            ScanResultCompat.WIFI_STANDARD_11AC -> "Wi-Fi 5 (802.11ac)"
-            ScanResultCompat.WIFI_STANDARD_11AX -> "Wi-Fi 6 (802.11ax)"
-            ScanResultCompat.WIFI_STANDARD_11BE -> "Wi-Fi 7 (802.11be)"
-            else -> null
-        }
-    }
-
-    /**
-     * Wi-Fi standard constants, named locally.
-     *
-     * `ScanResult.WIFI_STANDARD_*` are plain compile-time ints inlined at build time, so naming them here
-     * keeps the `when` above readable without a magic number and without importing a scan class into a
-     * data source that must never scan.
-     */
-    private object ScanResultCompat {
-        const val WIFI_STANDARD_LEGACY = 1
-        const val WIFI_STANDARD_11N = 4
-        const val WIFI_STANDARD_11AC = 5
-        const val WIFI_STANDARD_11AX = 6
-        const val WIFI_STANDARD_11BE = 8
+        return WifiGenerationMapper.displayName(info.wifiStandard)
     }
 
     private companion object {

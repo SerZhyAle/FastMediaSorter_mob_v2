@@ -64,6 +64,7 @@ _Generated from the app. Do not edit by hand._
 | Mirror log to opened folder | Copies the debug log into the folder currently open in the viewer, so a reproduction can be picked up without digging into the app sandbox. Off by default; debug builds only. |
 | Open browse in grid view | Opens the file browser in grid view by default instead of list view. |
 | Device profile | Selects the device profile that adapts the interface and controls to your device type. |
+| Disable animations | Disables visual transition animations and decorative effects. |
 | Enable background sync | Lets the app sync remote resources in the background when the device is idle. |
 | Enable Favorites | Enables the Favorites feature so you can mark and quickly access starred files. |
 | Statistics collection | Enables anonymous usage statistics collection to help improve the app. |
@@ -310,6 +311,7 @@ _Settings -> General -> System launcher settings_
 | Network type | Shows the current connection type - Wi-Fi, mobile or wired - in the launcher tray. |
 | SIM 1 signal | Shows the signal level of the first SIM in the launcher tray. Needs permission to read the phone state; the indicator is absent without it or without a SIM in the slot. |
 | SIM 2 signal | Shows the signal level of the second SIM in the launcher tray. Needs permission to read the phone state; the indicator is absent without it or on a single-SIM device. |
+| Transfer speed | Shows device-wide download and upload transfer speeds in the launcher status area as two separate cells; updates once per second when enabled. |
 | Desktop wallpaper | Chooses the launcher desktop's wallpaper: branded animation, a static striped frame refreshed when you return to the launcher, an empty surface, your own image, or a live frame from a device camera. The camera entry appears only on devices that have a camera; choosing it asks for the camera permission and then for a lens, and the stream stops whenever the desktop leaves the screen. |
 | Widget backdrop opacity | Controls the opacity of widget background cards on the launcher desktop (0% transparent to 100% opaque; 85% default). |
 | Grid density | Chooses the icon density the launcher reset lays the starter set out at; it opens on the density your device profile suggests. |
@@ -411,6 +413,7 @@ _Reached from Wear OS watch app -> Settings._
 |---|---|
 | Auto rotation | Lets the watch screen follow the wrist. Watch-only: the row is absent on a watch with no rotation sensor. |
 | Watch Background | Chooses what the watch draws behind the app screens: the branded waves-and-particles animation, or an image picked on the phone. The picked image is cropped and scaled to the watch frame on the phone and travels the file channel, so the watch receives a ready frame and never resizes anything. When the image is missing or has not arrived, the watch draws the animation instead. A constant dim sits between the background and the content so text stays readable over a light picture, and the background is not drawn while the app is away from the foreground or in ambient mode. |
+| Disable animations | Disables visual transition animations and decorative effects on Wear OS. |
 | Download album art | Downloads and displays cover art for audio tracks on Wear OS. |
 | Enable audio | Enables playback and browsing of audio files on Wear OS. |
 | Enable documents | Enables browsing of document files on Wear OS, on the watch storage and on the paired phone alike. |

@@ -37,6 +37,7 @@ class GatherWearSettingsUseCase @Inject constructor(
         appLanguage = null,
         backgroundMode = preferencesRepository.backgroundMode.first().name,
         streamsSectionEnabled = preferencesRepository.streamsSectionEnabled.first(),
+        disableAnimations = preferencesRepository.isAnimationsDisabled.first(),
         fieldTimestamps = preferencesRepository.settingTimestamps.first(),
         capabilities = mapOf(
             WearSettingsRegistry.CAPABILITY_AUTO_ROTATION_SENSOR to hasAutoRotationSensor()

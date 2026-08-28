@@ -42,7 +42,10 @@
 
                 <!-- S2177 caption plate, mirrored from the standard layout. Declared after the image and
                      before every control because a FrameLayout draws later children on top: the VR badge,
-                     the checkbox, the star, the operations and the overflow button all stay above it. -->
+                     the checkbox, the star, the operations and the overflow button all stay above it.
+                     S2202: the corner controls clear the centred plate on their own, but the VR badge is a
+                     full-width pill, so MediaFileAdapter.placeCaption keeps the plate out of its band by
+                     shrinking the line budget and shifting the plate down - no attribute here does it. -->
                 <TextView
                     android:id="@+id/tvNameOverlay"
                     android:layout_width="match_parent"
@@ -66,10 +69,10 @@
                 <LinearLayout
                     android:id="@id/browseApkVrBadgeContainer"
                     android:layout_width="wrap_content"
-                    android:layout_height="20dp"
+                    android:layout_height="@dimen/browse_apk_vr_badge_height"
                     android:layout_gravity="top|start"
                     android:layout_marginStart="4dp"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/browse_apk_vr_badge_top_margin"
                     android:background="@drawable/bg_circle_dark"
                     android:clickable="false"
                     android:contentDescription="@string/apk_vr_badge_content_description"
@@ -77,7 +80,7 @@
                     android:focusable="false"
                     android:gravity="center_vertical"
                     android:importantForAccessibility="yes"
-                    android:minHeight="20dp"
+                    android:minHeight="@dimen/browse_apk_vr_badge_height"
                     android:orientation="horizontal"
                     android:paddingStart="6dp"
                     android:paddingTop="2dp"

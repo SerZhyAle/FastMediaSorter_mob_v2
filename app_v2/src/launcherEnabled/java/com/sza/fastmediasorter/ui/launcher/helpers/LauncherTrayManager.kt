@@ -10,8 +10,12 @@ import android.content.res.ColorStateList
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
+import android.net.wifi.WifiInfo
+import android.net.wifi.WifiManager
 import android.os.BatteryManager
+import android.os.Build
 import android.view.View
+import android.widget.TextView
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
@@ -19,12 +23,19 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.networkmonitor.WifiGenerationMapper
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
+import com.sza.fastmediasorter.data.networkmonitor.TrafficRateReading
+import com.sza.fastmediasorter.data.networkmonitor.TrafficRateSampler
 import com.sza.fastmediasorter.databinding.LauncherStatusClockBinding
 import com.sza.fastmediasorter.databinding.LauncherStatusIndicatorsBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.devicestatus.NetworkTransport
+import com.sza.fastmediasorter.domain.model.networkmonitor.MonitorSection
+import com.sza.fastmediasorter.domain.model.networkmonitor.SectionAvailability
 import com.sza.fastmediasorter.domain.usecase.devicestatus.GetNetworkStatusUseCase
+import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayBadgeMapper
+import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayBluetoothConnectionMonitor
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayBluetoothMonitor
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayCallbacks
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayComposition
@@ -33,9 +44,13 @@ import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayIconView
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayIndicator
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTraySectionRouting
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTraySimSignalMonitor
+import com.sza.fastmediasorter.ui.launcher.tray.LauncherTraySimState
+import com.sza.fastmediasorter.ui.launcher.tray.LauncherTraySpeedFormatter
+import com.sza.fastmediasorter.ui.launcher.tray.SpeedUnit
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import timber.log.Timber
 
 /**
@@ -91,16 +106,20 @@ class LauncherTrayManager(
     private val defaultBatteryColor = indicators.trayBatteryLevel.currentTextColor
 
     private val bluetoothMonitor = LauncherTrayBluetoothMonitor(context)
+    private val bluetoothConnectionMonitor = LauncherTrayBluetoothConnectionMonitor(context)
 
     private val simSignalMonitor = LauncherTraySimSignalMonitor(context)
+    private val trafficRateSampler = TrafficRateSampler()
 
     /** Held so the collection can be cancelled when the switch goes off, not merely hidden (§5.2). */
     private var bluetoothJob: Job? = null
 
     private var simJob: Job? = null
+    private var speedJob: Job? = null
 
     /** Asked once per activity instance: the system's own "don't ask again" governs everything after that. */
     private var phoneStatePermissionRequested = false
+    private var bluetoothPermissionRequested = false
 
     /**
      * S1767: which settings screen the network indicator currently points at.
@@ -119,12 +138,12 @@ class LauncherTrayManager(
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
-            indicators.root.post { renderNetwork(GetNetworkStatusUseCase.classify(capabilities)) }
+            indicators.root.post { renderNetwork(GetNetworkStatusUseCase.classify(capabilities), capabilities) }
         }
 
         override fun onLost(network: Network) {
             // The default network went away; anything still up will re-announce itself immediately.
-            indicators.root.post { renderNetwork(NetworkTransport.NONE) }
+            indicators.root.post { renderNetwork(NetworkTransport.NONE, null) }
         }
     }
 
@@ -139,6 +158,8 @@ class LauncherTrayManager(
         indicators.trayBluetooth.setOnClickListener { routeTo(LauncherTrayIndicator.BLUETOOTH) }
         indicators.traySim1.setOnClickListener { routeTo(LauncherTrayIndicator.SIM1) }
         indicators.traySim2.setOnClickListener { routeTo(LauncherTrayIndicator.SIM2) }
+        indicators.traySpeedRx.setOnClickListener { routeTo(LauncherTrayIndicator.SPEED_RX) }
+        indicators.traySpeedTx.setOnClickListener { routeTo(LauncherTrayIndicator.SPEED_TX) }
         indicators.trayNetwork.setOnClickListener { routeTo(LauncherTrayIndicator.NETWORK) }
         indicators.trayBatteryLevel.setOnClickListener { openSystem(OsShortcutCatalog.KEY_BATTERY) }
     }
@@ -176,6 +197,8 @@ class LauncherTrayManager(
         unregisterBattery()
         unregisterNetwork()
         stopBlink()
+        speedJob?.cancel()
+        speedJob = null
     }
 
     /**
@@ -194,6 +217,49 @@ class LauncherTrayManager(
         if (!battery) stopBlink()
         applyBluetooth(statusContentVisible && composition.bluetooth)
         applySim(statusContentVisible && (composition.sim1 || composition.sim2))
+        applySpeed(statusContentVisible && composition.speed)
+    }
+
+    private fun applySpeed(enabled: Boolean) {
+        if (!enabled) {
+            speedJob?.cancel()
+            speedJob = null
+            indicators.traySpeedRx.isVisible = false
+            indicators.traySpeedTx.isVisible = false
+            return
+        }
+        if (speedJob?.isActive == true) return
+        speedJob = lifecycleOwner.collectOnLifecycle(trafficRateSampler.observe()) { renderSpeed(it) }
+    }
+
+    private fun renderSpeed(section: MonitorSection<TrafficRateReading>) {
+        val reading = section.data
+        if (section.availability != SectionAvailability.Available || reading == null) {
+            indicators.traySpeedRx.isVisible = false
+            indicators.traySpeedTx.isVisible = false
+            return
+        }
+        renderSpeedCell(indicators.traySpeedRx, "↓ ", reading.rxBytesPerSecond, R.string.launcher_tray_speed_download)
+        renderSpeedCell(indicators.traySpeedTx, "↑ ", reading.txBytesPerSecond, R.string.launcher_tray_speed_upload)
+    }
+
+    private fun renderSpeedCell(
+        view: TextView,
+        prefix: String,
+        bytesPerSecond: Double,
+        descriptionRes: Int,
+    ) {
+        val readout = LauncherTraySpeedFormatter.format(bytesPerSecond)
+        val unitText = when (readout.unit) {
+            SpeedUnit.BYTES -> context.getString(R.string.launcher_tray_speed_unit_bytes, readout.value)
+            SpeedUnit.KILOBYTES -> context.getString(R.string.launcher_tray_speed_unit_kilobytes, readout.value)
+            SpeedUnit.MEGABYTES -> context.getString(R.string.launcher_tray_speed_unit_megabytes, readout.value)
+            SpeedUnit.GIGABYTES -> context.getString(R.string.launcher_tray_speed_unit_gigabytes, readout.value)
+        }
+        val formatted = "$prefix$unitText"
+        view.text = formatted
+        view.contentDescription = describe(context.getString(descriptionRes, unitText))
+        view.isVisible = true
     }
 
     private fun applyBluetooth(enabled: Boolean) {
@@ -203,8 +269,18 @@ class LauncherTrayManager(
             indicators.trayBluetooth.isVisible = false
             return
         }
+        if (!bluetoothPermissionRequested && !bluetoothConnectionMonitor.hasPermission()) {
+            bluetoothPermissionRequested = true
+            callbacks.onRequestBluetoothPermission()
+        }
         if (bluetoothJob?.isActive == true) return
-        bluetoothJob = lifecycleOwner.collectOnLifecycle(bluetoothMonitor.state()) { renderBluetooth(it) }
+        bluetoothJob = lifecycleOwner.collectOnLifecycle(
+            combine(bluetoothMonitor.state(), bluetoothConnectionMonitor.connectedCount()) { onState, count ->
+                onState to count
+            },
+        ) { (onState, count) ->
+            renderBluetooth(onState, count)
+        }
     }
 
     /**
@@ -212,15 +288,24 @@ class LauncherTrayManager(
      * An unreadable state (`null`) hides it too - ADR-1 keeps "unknown" out of the tray rather than drawing it
      * as off.
      */
-    private fun renderBluetooth(enabled: Boolean?) {
+    private fun renderBluetooth(enabled: Boolean?, count: Int?) {
         if (enabled != true) {
             indicators.trayBluetooth.isVisible = false
             return
         }
+        val badge = LauncherTrayBadgeMapper.bluetoothBadge(count)
+        val highlighted = count != null && count > 0
+        val descriptionText = if (count != null && count > 0) {
+            context.getString(R.string.launcher_tray_bluetooth_connected, count)
+        } else {
+            context.getString(R.string.launcher_tray_bluetooth_on)
+        }
         indicators.trayBluetooth.apply(
             LauncherTrayIconModel(
                 iconRes = R.drawable.ic_bluetooth,
-                contentDescription = describe(context.getString(R.string.launcher_tray_bluetooth_on)),
+                badge = badge,
+                highlighted = highlighted,
+                contentDescription = describe(descriptionText),
             ),
         )
         indicators.trayBluetooth.isVisible = true
@@ -243,39 +328,53 @@ class LauncherTrayManager(
             callbacks.onRequestPhoneStatePermission()
         }
         if (simJob?.isActive == true) return
-        simJob = lifecycleOwner.collectOnLifecycle(simSignalMonitor.levels()) { renderSim(it) }
+        simJob = lifecycleOwner.collectOnLifecycle(simSignalMonitor.states()) { renderSim(it) }
     }
 
-    private fun renderSim(levels: Map<Int, Int>) {
-        renderSimSlot(indicators.traySim1, SIM1_SLOT, composition.sim1, levels)
-        renderSimSlot(indicators.traySim2, SIM2_SLOT, composition.sim2, levels)
+    private fun renderSim(states: Map<Int, LauncherTraySimState>) {
+        renderSimSlot(indicators.traySim1, SIM1_SLOT, composition.sim1, states)
+        renderSimSlot(indicators.traySim2, SIM2_SLOT, composition.sim2, states)
     }
 
     /**
-     * A slot missing from [levels] is absent whatever its switch says: on a single-SIM device there is no
+     * A slot missing from [states] is absent whatever its switch says: on a single-SIM device there is no
      * SIM2 to report, and drawing level 0 there would read as "no coverage" (ADR-1, strategic §11.5).
      */
     private fun renderSimSlot(
         view: LauncherTrayIconView,
         slotIndex: Int,
         enabled: Boolean,
-        levels: Map<Int, Int>,
+        states: Map<Int, LauncherTraySimState>,
     ) {
-        val level = levels[slotIndex]
-        if (!enabled || level == null) {
+        val simState = states[slotIndex]
+        if (!enabled || simState == null) {
             view.isVisible = false
             return
         }
         val slotNumber = slotIndex + 1
-        val state = if (level == NO_SERVICE_LEVEL) {
-            context.getString(R.string.launcher_tray_sim_signal_none, slotNumber)
-        } else {
-            context.getString(R.string.launcher_tray_sim_signal, slotNumber, level)
+        val level = simState.signalLevel
+        val dataBadge = LauncherTrayBadgeMapper.dataTypeBadge(simState.dataNetworkType, simState.nrAdvanced)
+        val roaming = simState.roaming
+
+        val stateDescription = when {
+            level == NO_SERVICE_LEVEL -> context.getString(R.string.launcher_tray_sim_signal_none, slotNumber)
+            roaming && dataBadge != null -> context.getString(
+                R.string.launcher_tray_sim_roaming_data_type,
+                slotNumber,
+                level,
+                dataBadge
+            )
+            roaming -> context.getString(R.string.launcher_tray_sim_roaming, slotNumber, level)
+            dataBadge != null -> context.getString(R.string.launcher_tray_sim_data_type, slotNumber, level, dataBadge)
+            else -> context.getString(R.string.launcher_tray_sim_signal, slotNumber, level)
         }
+
         view.apply(
             LauncherTrayIconModel(
                 iconRes = R.drawable.launcher_tray_signal_level,
-                contentDescription = describe(state),
+                badge = dataBadge,
+                cornerMarked = roaming,
+                contentDescription = describe(stateDescription),
             ),
         )
         view.setGlyphLevel(level)
@@ -314,7 +413,8 @@ class LauncherTrayManager(
     private fun registerNetwork() {
         val manager = connectivityManager ?: return
         if (networkCallbackRegistered) return
-        renderNetwork(currentTransport())
+        val activeCapabilities = manager.activeNetwork?.let { manager.getNetworkCapabilities(it) }
+        renderNetwork(GetNetworkStatusUseCase.classify(activeCapabilities), activeCapabilities)
         runCatching {
             manager.registerDefaultNetworkCallback(networkCallback)
             networkCallbackRegistered = true
@@ -329,18 +429,24 @@ class LauncherTrayManager(
             .onFailure { Timber.w(it, "Launcher tray: network callback was not registered") }
     }
 
-    private fun currentTransport(): NetworkTransport {
-        val manager = connectivityManager ?: return NetworkTransport.NONE
-        val capabilities = manager.activeNetwork?.let { manager.getNetworkCapabilities(it) }
-        return GetNetworkStatusUseCase.classify(capabilities)
-    }
-
-    private fun renderNetwork(transport: NetworkTransport) {
+    private fun renderNetwork(transport: NetworkTransport, capabilities: NetworkCapabilities? = null) {
         lastTransport = transport
+        val badge = if (transport == NetworkTransport.WIFI && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val wifiInfo = (capabilities?.transportInfo as? WifiInfo)
+                ?: (context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager)?.connectionInfo
+            wifiInfo?.wifiStandard?.let { WifiGenerationMapper.generationOf(it) }?.toString()
+        } else {
+            null
+        }
+
+        val baseLabel = context.getString(labelOf(transport))
+        val descriptionText = if (badge != null) "$baseLabel Wi-Fi $badge" else baseLabel
+
         indicators.trayNetwork.apply(
             LauncherTrayIconModel(
                 iconRes = iconOf(transport),
-                contentDescription = describe(context.getString(labelOf(transport))),
+                badge = badge,
+                contentDescription = describe(descriptionText),
             ),
         )
     }

@@ -82,7 +82,7 @@ fun LocalHomeScreen(
     // back stack, so Back returns to the home screen rather than to a step that decided nothing.
     LaunchedEffect(categories) {
         val only = categories.singleOrNull() ?: return@LaunchedEffect
-        navController.navigate(WearRoutes.browse(only.token)) {
+        navController.navigate(routeForCategory(only)) {
             popUpTo(WearRoutes.LOCAL_HOME) { inclusive = true }
         }
     }
@@ -126,7 +126,7 @@ fun LocalHomeScreen(
                     items(categories) { category ->
                         LocalCategoryChip(
                             category = category,
-                            onClick = { navController.navigate(WearRoutes.browse(category.token)) }
+                            onClick = { navController.navigate(routeForCategory(category)) }
                         )
                     }
                 } else {
@@ -135,7 +135,7 @@ fun LocalHomeScreen(
                             categories = rowCategories,
                             columns = columns,
                             onCategoryClick = { category ->
-                                navController.navigate(WearRoutes.browse(category.token))
+                                navController.navigate(routeForCategory(category))
                             }
                         )
                     }
@@ -175,6 +175,20 @@ private fun LocalCategoryChip(
  * same rule `HomeScreen` applies, kept here because a `Spacer` addresses nothing and must not become
  * a cell that looks tappable.
  */
+/**
+ * The address a tapped category opens.
+ *
+ * S2201: `browse` is the one entry of the seven that is not a media-type variation of the flat list.
+ * It opens the folder walk over the watch's own storage, so sending it through [WearRoutes.browse]
+ * would land it on the flat listing it is defined not to be - the collapse S2130 exists to prevent.
+ */
+private fun routeForCategory(category: WearBrowseCategory): String =
+    if (category.token == BrowseCategoryCatalog.TOKEN_BROWSE) {
+        WearRoutes.localFolderRoot()
+    } else {
+        WearRoutes.browse(category.token)
+    }
+
 @Composable
 private fun LocalCategoryRow(
     categories: List<WearBrowseCategory>,

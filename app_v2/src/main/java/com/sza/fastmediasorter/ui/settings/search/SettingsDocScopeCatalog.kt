@@ -251,6 +251,14 @@ object SettingsDocScopeCatalog {
             titleEn = "Auto rotation",
             titleRu = "Автоповорот",
             titleUk = "Автоповорот"
+        ),
+        WearDocEntry(
+            key = "wearDisableAnimations",
+            layout = "wear_other_settings",
+            kind = "TOGGLE_ROW",
+            titleEn = "Disable animations",
+            titleRu = "Отключить анимацию",
+            titleUk = "Вимкнути анімацію"
         )
     )
 }

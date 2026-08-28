@@ -80,6 +80,9 @@ class ApplyWearSettingsUseCase @Inject constructor(
         apply(resolver, "backgroundMode", payload.backgroundMode) {
             preferencesRepository.setBackgroundMode(WearBackgroundMode.fromNameOrDefault(it))
         }
+        apply(resolver, "disableAnimations", payload.disableAnimations) {
+            preferencesRepository.setAnimationsDisabled(it)
+        }
     }
 
     // S1814: the language is a PHONE_ONLY registry entry, so it is inherited rather than merged - the

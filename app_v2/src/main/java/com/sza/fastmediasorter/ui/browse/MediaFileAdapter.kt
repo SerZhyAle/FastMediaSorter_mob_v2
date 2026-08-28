@@ -1118,11 +1118,17 @@ class MediaFileAdapter(
          *
          * [tileHeightPx] is the live container height, which follows the user's icon-size setting -
          * hence the line count is measured here rather than fixed in the layout.
+         *
+         * A flavor badge along the top edge (S2202) is subtracted from that height and the plate is shifted
+         * down by half of it, because the corner controls above clear a centred plate on their own while a
+         * full-width badge does not.
          */
         private fun placeCaption(file: MediaFile, tileHeightPx: Int, captionSp: Float) {
             val density = binding.root.context.resources.displayMetrics.density
             val lineHeightPx = captionSp * CAPTION_LINE_SPACING * density
-            val lines = (tileHeightPx / lineHeightPx).toInt()
+            val topBandPx = apkTileBadgeBinder.reservedTopBandPx(file)
+            val captionHeightPx = (tileHeightPx - topBandPx).coerceAtLeast(0)
+            val lines = (captionHeightPx / lineHeightPx).toInt()
                 .coerceIn(1, MAX_OVERLAY_CAPTION_LINES)
             val showOverlay = AdapterThumbnailLoader.rendersGroupIcon(file) &&
                 lines > BELOW_TILE_CAPTION_LINES
@@ -1130,11 +1136,26 @@ class MediaFileAdapter(
             binding.tvNameOverlay.isVisible = showOverlay
             if (!showOverlay) return
 
+            Timber.d("S2202: plate tile=$tileHeightPx band=$topBandPx lines=$lines name=${file.name}")
+            // FrameLayout lays a centred child out at (parentHeight - childHeight) / 2 + topMargin, so half
+            // the reserved band is exactly the offset that re-centres the plate in the strip left below it.
+            applyCaptionTopMargin(topBandPx / 2)
             binding.tvNameOverlay.apply {
                 text = file.name
                 setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, captionSp)
                 maxLines = lines
             }
+        }
+
+        /**
+         * Assigning layoutParams schedules a layout pass, so the write is guarded - a grid fling rebinds
+         * every visible holder and the margin is unchanged for all but the badge-bearing ones.
+         */
+        private fun applyCaptionTopMargin(topMarginPx: Int) {
+            val params = binding.tvNameOverlay.layoutParams as? ViewGroup.MarginLayoutParams ?: return
+            if (params.topMargin == topMarginPx) return
+            params.topMargin = topMarginPx
+            binding.tvNameOverlay.layoutParams = params
         }
 
         /**

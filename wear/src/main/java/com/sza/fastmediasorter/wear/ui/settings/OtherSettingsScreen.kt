@@ -85,6 +85,7 @@ private fun otherSettingsItems(
     viewModel: SettingsViewModel
 ): List<WearSettingsItem> {
     val albumArtLabel = stringResource(R.string.download_album_art)
+    val disableAnimationsLabel = stringResource(R.string.pref_disable_animations)
     val autoRotationLabel = stringResource(R.string.wear_auto_rotation)
     val sendAutomaticallyLabel = stringResource(R.string.wear_voice_note_policy_automatic)
     val keepOnWatchLabel = stringResource(R.string.wear_voice_note_policy_manual)
@@ -96,6 +97,16 @@ private fun otherSettingsItems(
                     checked = uiState.downloadAlbumArt,
                     narrow = narrow,
                     onToggle = { viewModel.toggleAlbumArt() }
+                )
+            }
+        )
+        add(
+            WearSettingsItem { narrow ->
+                WearSettingsToggleCell(
+                    label = disableAnimationsLabel,
+                    checked = uiState.isAnimationsDisabled,
+                    narrow = narrow,
+                    onToggle = { viewModel.toggleDisableAnimations() }
                 )
             }
         )

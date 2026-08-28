@@ -230,3 +230,5 @@
 "launcherWidgetBackdropAlpha","","","","","","","","","","",""
 "frontFlashlightEnabled","FALSE","FALSE","FALSE","TRUE","FALSE","TRUE","FALSE","FALSE","FALSE","FALSE",""
 "enableSystemInfo","","","","","","","","","","",""
+"disableAnimations","","","","","","","","","","",""
+"launcherTrayShowSpeed","","","","","","","","","","",""

@@ -51,9 +51,9 @@ class AudioWaveParticleView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
     companion object {
-        // Must match the speed of the HTML canvas version: time += 0.003 per animation frame.
-        // ValueAnimator fires ~60fps; 0.003 per tick gives ~0.18/s drift.
-        private const val TIME_INCREMENT = 0.003f
+        // Must match the speed of the HTML canvas version: time += 0.002 per animation frame.
+        // ValueAnimator fires ~60fps; 0.002 per tick gives ~0.12/s drift.
+        private const val TIME_INCREMENT = 0.002f
 
         // Randomization ranges - normal devices
         private const val WAVE_COUNT_MIN    = 5
@@ -264,8 +264,11 @@ class AudioWaveParticleView @JvmOverloads constructor(
      * legacy flavor builds against a lower minSdk - below that the same state is the animator
      * duration scale this ticket measured.
      */
+    /** S2209: app-level preference to disable animations. */
+    var disableAnimations: Boolean = false
+
     private fun animatorsDisabled(): Boolean =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        disableAnimations || if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             !ValueAnimator.areAnimatorsEnabled()
         } else {
             Settings.Global.getFloat(
@@ -367,6 +370,7 @@ class AudioWaveParticleView @JvmOverloads constructor(
                 pendingStart = false
                 initParticles(w, h)
                 wavePaint.strokeWidth = waveStrokeWidth
+                Timber.d("S2206: AudioWaveParticleView startAnimation with TIME_INCREMENT=$TIME_INCREMENT")
                 animator.start()
                 // S1277: covers the ordering where the host starts the animation after layout -
                 // onSizeChanged already painted its frame with the previous session's palette,

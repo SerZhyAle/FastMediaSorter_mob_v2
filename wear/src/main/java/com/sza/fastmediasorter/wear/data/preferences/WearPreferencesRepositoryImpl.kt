@@ -57,6 +57,7 @@ class WearPreferencesRepositoryImpl @Inject constructor(
         val SLIDESHOW_INTERVAL = intPreferencesKey("wear_slideshow_interval_seconds")
 
         val DOWNLOAD_ALBUM_ART = booleanPreferencesKey("wear_download_album_art")
+        val WEAR_DISABLE_ANIMATIONS = booleanPreferencesKey("wear_disable_animations")
 
         val SHUFFLE_ENABLED = booleanPreferencesKey("wear_shuffle_enabled")
 
@@ -201,6 +202,16 @@ class WearPreferencesRepositoryImpl @Inject constructor(
     override suspend fun setShuffleEnabled(enabled: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[PreferencesKeys.SHUFFLE_ENABLED] = enabled
+        }
+    }
+
+    override val isAnimationsDisabled: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.WEAR_DISABLE_ANIMATIONS] ?: false
+    }
+
+    override suspend fun setAnimationsDisabled(disabled: Boolean) {
+        stampedEdit("disableAnimations") { prefs ->
+            prefs[PreferencesKeys.WEAR_DISABLE_ANIMATIONS] = disabled
         }
     }
 

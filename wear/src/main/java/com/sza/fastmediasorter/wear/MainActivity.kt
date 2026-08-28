@@ -2,9 +2,11 @@ package com.sza.fastmediasorter.wear
 
 import android.Manifest
 import android.app.Activity
+import android.content.ContentResolver
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.BadParcelableException
 import android.os.Build
 import android.os.Bundle
@@ -43,6 +45,7 @@ import com.sza.fastmediasorter.wear.core.util.WearLocaleManager
 import com.sza.fastmediasorter.wear.data.wear.WatchFileOpenEvents
 import com.sza.fastmediasorter.wear.data.wear.WatchStreamOpenEvents
 import com.sza.fastmediasorter.wear.domain.model.WearBackground
+import com.sza.fastmediasorter.wear.domain.model.WearFileOpenRequest
 import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.model.readWearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
@@ -61,6 +64,7 @@ import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
 import com.sza.fastmediasorter.wear.ui.common.WearAppBackground
 import com.sza.fastmediasorter.wear.ui.common.playerRouteFor
 import com.sza.fastmediasorter.wear.ui.favourites.FavouritesScreen
+import com.sza.fastmediasorter.wear.ui.folder.WearFolderWalkScreen
 import com.sza.fastmediasorter.wear.ui.home.HomeScreen
 import com.sza.fastmediasorter.wear.ui.home.LocalHomeScreen
 import com.sza.fastmediasorter.wear.ui.home.PhoneHomeScreen
@@ -122,6 +126,9 @@ data class WearLaunchEntry(
     /** Takes the target it handled, so a newer one that arrived mid-resolution is not cleared unhandled. */
     val onHandled: (WearLaunchTarget) -> Unit,
 )
+
+/** S2201: the sentinel the player view models already treat as "no file was named". */
+private const val UNRESOLVED_FILE_ID = -1L
 
 /** The three player routes: each covers the whole window, so the shared background is not drawn behind them. */
 private val PLAYER_ROUTES = setOf(
@@ -460,6 +467,8 @@ fun MainNavigation(
             }
 
             browseRoutes(navController = navController)
+
+            localFolderRoutes(navController, hostUseCases.prepareFilePlayback)
 
             miniAppRoutes(navController = navController)
 
@@ -812,6 +821,61 @@ private fun NavGraphBuilder.browseRoutes(navController: NavHostController) {
 
     composable(WearRoutes.STREAMS) {
         StreamsScreen(navController = navController)
+    }
+}
+
+/**
+ * S2201: the walk over the watch's own storage.
+ *
+ * Its own group rather than a line in [browseRoutes] because its file tap needs the playback
+ * preparation, which nothing else in that group carries - handing it to the whole browse block would
+ * pass a use case to six destinations that never touch it.
+ */
+private fun NavGraphBuilder.localFolderRoutes(
+    navController: NavHostController,
+    prepareFilePlayback: PrepareWearFilePlaybackUseCase
+) {
+    composable(
+        route = WearRoutes.LOCAL_FOLDER_PATTERN,
+        arguments = listOf(
+            navArgument(WearRoutes.ARG_FOLDER_TOKEN) {
+                type = NavType.StringType
+                nullable = true
+                defaultValue = null
+            }
+        )
+    ) {
+        WearFolderWalkScreen(
+            onOpenFile = { uri, mimeType ->
+                val route = playerRouteFor(localFileIdFor(uri, mimeType, prepareFilePlayback), mimeType)
+                navController.navigate(route)
+            },
+            onExit = { navController.popBackStack() }
+        )
+    }
+}
+
+/**
+ * How a player addresses a file the walk found.
+ *
+ * The walk spans two halves of watch storage and they are addressable in different ways. A MediaStore
+ * row already is: the players look an id up in MediaStore, and the walk's uri carries that id. A file
+ * in the app's own tree has no row to look up, so it goes through the same hand-off S1884 built for a
+ * file the phone delivered - a second preparation here would be free to drift from that one.
+ *
+ * A uri that is neither yields [UNRESOLVED_FILE_ID], which is the value the players already read as
+ * "nothing was selected" rather than a crash on a malformed address.
+ */
+private fun localFileIdFor(
+    uri: Uri,
+    mimeType: String?,
+    prepareFilePlayback: PrepareWearFilePlaybackUseCase
+): Long {
+    val path = uri.path
+    return if (uri.scheme == ContentResolver.SCHEME_FILE && path != null) {
+        prepareFilePlayback(WearFileOpenRequest(path = path, mimeType = mimeType.orEmpty())).fileId
+    } else {
+        uri.lastPathSegment?.toLongOrNull() ?: UNRESOLVED_FILE_ID
     }
 }
 

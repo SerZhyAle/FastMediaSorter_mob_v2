@@ -12,6 +12,7 @@
          rather than beside it: the strip is shared by the taskbar and the top status band, so anything that
          grew a slot would move both at once (strategic §7). -->
     <dimen name="launcher_tray_badge_text_size">8sp</dimen>
+    <dimen name="launcher_tray_speed_text_size">12sp</dimen>
     <dimen name="launcher_tray_corner_marker_size">5dp</dimen>
 
     <!-- S1421: the freed system status band. Constant by owner ruling - the strip neither collapses nor

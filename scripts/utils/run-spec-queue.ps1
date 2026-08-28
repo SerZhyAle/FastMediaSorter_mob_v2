@@ -40,11 +40,15 @@
     is the default and the cheap tiers have to be earned:
 
       - Opus   - anything that still needs a decision: Draft, Approved, Tactical, In Progress,
-                 Partial, Broken, or a spec at tier 4 and above. Designing, planning and writing
-                 Kotlin against this architecture is where a weak model produces work that has to be
-                 redone, which costs more than it saved.
-      - Sonnet - Implemented, where the only work left is /spec-check auditing a spec against code
-                 that already exists; and tier 1-2 tickets, which are single-surface fixes.
+                 Partial, Broken, BlockQuestions, or a spec at tier 4 and above. Designing,
+                 planning and writing Kotlin against this architecture is where a weak model
+                 produces work that has to be redone, which costs more than it saved, and a
+                 BlockQuestions run's whole product is the questions it puts to the owner.
+      - Sonnet - the code-complete states, Implemented and BlockNeedUserTest, where the run audits
+                 a spec against code the tree already carries and the only thing outstanding is a
+                 human on a device; and tier 1-3 tickets, the band below the strong tier's own
+                 floor. Status is read before tier: a status names what work is left, a tier only
+                 names how big it is.
       - Haiku  - never for a whole ticket. It is a lookup tier: a full /spec-all run has to hold a
                  spec, a tactical plan, gate verdicts and a build log at once. Where haiku belongs is
                  inside a session, on the search and doc subagents (CLAUDE.md Rule 31), and that is a
@@ -330,10 +334,25 @@ function Select-ModelFor {
         $tier = [int]$Matches[1]
     }
 
-    # Implemented means the code is already in the tree and the run is an audit of it - reading and
-    # comparing, not deciding. Tier 1-2 is a single-surface fix by the tier definition itself.
-    if ($status -eq 'Implemented') { return $CheapModel }
-    if ($tier -ge 1 -and $tier -le 2) { return $CheapModel }
+    # STATUS decides before tier, because a status names what work is left while a tier only names
+    # how big it is. These are the states where the run still has to decide something - design a
+    # spec, plan it, write Kotlin, diagnose a failure - plus BlockQuestions, whose whole product is
+    # a set of questions put to the owner, where a badly framed question costs a round trip with a
+    # human in it.
+    $decisionStatuses = @('Draft', 'Approved', 'Tactical', 'In Progress', 'Partial', 'Broken', 'BlockQuestions')
+    if ($decisionStatuses -contains $status) { return $StrongModel }
+
+    # Code-complete states: the tree already carries the change and the run is an audit of it,
+    # reading and comparing rather than deciding. BlockNeedUserTest is Implemented's twin - what is
+    # outstanding there is a human on a device, not a decision this run makes - and it is the
+    # largest open state in the catalog (76 of 168 open tickets, measured 2026-08-28).
+    if ($status -eq 'Implemented' -or $status -eq 'BlockNeedUserTest') { return $CheapModel }
+
+    # Tier is the fallback for whatever the status list did not settle. The strong band starts at
+    # tier 4 by the description above ("a spec at tier 4 and above"), so tiers 1-3 are the cheap
+    # band. The cut used to sit at 2, which sent the whole of tier 3 - the queue's modal tier, 52 of
+    # 76 BlockNeedUserTest tickets alone - to the strong model against this script's own docstring.
+    if ($tier -ge 1 -and $tier -le 3) { return $CheapModel }
 
     return $StrongModel
 }

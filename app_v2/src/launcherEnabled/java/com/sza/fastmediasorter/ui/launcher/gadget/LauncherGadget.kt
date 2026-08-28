@@ -11,9 +11,11 @@ import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 /**
  * S0404: one kind of interactive block the user can place on the desktop (ADR-5 - our own views only,
@@ -96,6 +98,9 @@ abstract class LauncherGadgetView @JvmOverloads constructor(
 
     private var activeJob: Job? = null
 
+    /** The renderer replaces this cell with its failed-gadget state after asynchronous work fails. */
+    var onFailure: (() -> Unit)? = null
+
     /**
      * Runs while attached and STARTED; cancelled on detach or stop, and restarted on the next
      * attach/start. Loading here (rather than in the constructor) is what keeps Home cheap - a gadget
@@ -109,7 +114,21 @@ abstract class LauncherGadgetView @JvmOverloads constructor(
         val owner = findViewTreeLifecycleOwner() ?: return
         activeJob = owner.lifecycleScope.launch {
             owner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                onActive()
+                // A failing gadget may cost its own cell and nothing more (S2208). This view is part of
+                // the home screen, so an exception escaping here kills the process the system restarts
+                // as HOME, which crash-loops the whole device until the desktop is edited - and the
+                // desktop cannot be edited while the launcher keeps dying (S2207 did exactly that).
+                try {
+                    onActive()
+                } catch (cancellation: CancellationException) {
+                    throw cancellation
+                    // Deliberately every throwable: an isolation boundary that enumerated exception
+                    // types would let the one it did not list through, which is the crash-loop again.
+                } catch (@Suppress("TooGenericExceptionCaught") failure: Throwable) {
+                    Timber.e(failure, "Gadget ${javaClass.simpleName} failed; cell left inert")
+                    Timber.d("S2208: ${javaClass.simpleName} active work failed")
+                    onFailure?.invoke()
+                }
             }
         }
     }

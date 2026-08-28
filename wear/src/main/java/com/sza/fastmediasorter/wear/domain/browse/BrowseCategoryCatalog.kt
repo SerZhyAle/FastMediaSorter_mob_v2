@@ -112,15 +112,15 @@ object BrowseCategoryCatalog {
      * Whether the watch can present this category from this origin.
      *
      * The two watch-side origins used to share one narrow set of three media types. They no longer
-     * do, because the reason each of them was narrow was a different reason:
+     * do, and only one of them is narrow at all now:
      *
-     * - The watch's own store now reaches documents through `MediaStore.Files` and answers a flat
-     *   mixed listing by merging the collections it queries, so every entry but the folder walk
-     *   exists. It omits `browse` alone: walking the watch filesystem is not a variation on a query
-     *   but a browsing surface the module has in no form, and strategic §7 keeps a category out
-     *   until the thing behind it exists rather than letting it open permanently empty. That
-     *   surface is parked as S2201; when it lands, `browse` joins this origin and the condition
-     *   below becomes `true`.
+     * - The watch's own store now offers all seven. It reaches documents through `MediaStore.Files`,
+     *   answers a flat mixed listing by merging the collections it queries, and since S2201 has a
+     *   folder walk behind `browse`. That walk spans both halves of watch storage, because only one
+     *   of them is reachable by a filesystem walk: the app's own roots are enumerated directly and
+     *   hold files MediaStore never indexed, while shared storage - which no app may walk at
+     *   targetSdk 36 without special access - is reconstructed as a hierarchy by grouping rows on
+     *   `RELATIVE_PATH`.
      * - A network share is listed one directory at a time over SMB, FTP or SFTP, with no index to
      *   sort by date across directories and no document handling, so it stays at the three media
      *   types it can filter a single listing down to.
@@ -130,7 +130,7 @@ object BrowseCategoryCatalog {
     private fun isPresentable(category: WearBrowseCategory, origin: WearCategoryOrigin): Boolean =
         when (origin) {
             WearCategoryOrigin.PHONE -> true
-            WearCategoryOrigin.LOCAL -> category.token != TOKEN_BROWSE
+            WearCategoryOrigin.LOCAL -> true
             WearCategoryOrigin.NETWORK_SOURCE -> category.type in NETWORK_PRESENTABLE_TYPES
         }
 

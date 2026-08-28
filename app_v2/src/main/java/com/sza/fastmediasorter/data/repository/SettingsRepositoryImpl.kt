@@ -58,6 +58,7 @@ class SettingsRepositoryImpl @Inject constructor(
     companion object {
         private val KEY_LANGUAGE = stringPreferencesKey("language")
         private val KEY_COLOR_THEME = stringPreferencesKey("color_theme")
+        private val KEY_DISABLE_ANIMATIONS = booleanPreferencesKey("disable_animations")
         private val KEY_PREVENT_SLEEP = booleanPreferencesKey("prevent_sleep")
         private val KEY_KEEP_SCREEN_ON_PLAYER = booleanPreferencesKey("keep_screen_on_player")
         private val KEY_SHOW_SMALL_CONTROLS = booleanPreferencesKey("show_small_controls")
@@ -327,6 +328,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 AppSettings(
                     language = language,
                     colorTheme = colorTheme,
+                    disableAnimations = preferences[KEY_DISABLE_ANIMATIONS] ?: false,
                     preventSleep = preferences[KEY_PREVENT_SLEEP] ?: true,
                     keepScreenOnPlayer = preferences[KEY_KEEP_SCREEN_ON_PLAYER] ?: true,
                     showSmallControls = preferences[KEY_SHOW_SMALL_CONTROLS] ?: false,
@@ -598,6 +600,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     launcherTrayShowSim2 = launcher.launcherTrayShowSim2,
                     launcherTrayShowNetwork = launcher.launcherTrayShowNetwork,
                     launcherTrayShowBattery = launcher.launcherTrayShowBattery,
+                    launcherTrayShowSpeed = launcher.launcherTrayShowSpeed,
                     launcherReplaceSystemStatusArea = launcher.launcherReplaceSystemStatusArea,
                     launcherTopStatusStripMode = launcher.launcherTopStatusStripMode,
                     launcherForeignNotificationsEnabled = launcher.launcherForeignNotificationsEnabled,
@@ -687,6 +690,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 // app to the currently effective language.
                 preferences[KEY_LANGUAGE] = storedLanguage
                 preferences[KEY_COLOR_THEME] = storedColorTheme
+                preferences[KEY_DISABLE_ANIMATIONS] = settings.disableAnimations
                 preferences[KEY_PREVENT_SLEEP] = settings.preventSleep
                 preferences[KEY_KEEP_SCREEN_ON_PLAYER] = settings.keepScreenOnPlayer
                 preferences[KEY_SHOW_SMALL_CONTROLS] = settings.showSmallControls

@@ -97,6 +97,7 @@ class ResetLauncherToDefaultsUseCase @Inject constructor(
                 launcherTrayShowSim2 = defaults.launcherTrayShowSim2,
                 launcherTrayShowNetwork = defaults.launcherTrayShowNetwork,
                 launcherTrayShowBattery = defaults.launcherTrayShowBattery,
+                launcherTrayShowSpeed = defaults.launcherTrayShowSpeed,
                 launcherRotationHintShown = defaults.launcherRotationHintShown,
                 launcherDesktopLocked = defaults.launcherDesktopLocked,
                 launcherWallpaperMode = defaults.launcherWallpaperMode,

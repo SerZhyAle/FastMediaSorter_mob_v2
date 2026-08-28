@@ -121,8 +121,13 @@ class BrowseCategoryCatalogTest {
         )
     }
 
+    /**
+     * S2201 completed this origin: it offers the same seven entries as the paired phone, in the order
+     * the owner named them. Until the folder walk existed it stopped at six, and the assertion below
+     * is what would catch a later change silently dropping one back out.
+     */
     @Test
-    fun `the watch own store offers only what it can query`() {
+    fun `the watch own store offers the seven entries the owner named, in order`() {
         val tokens = BrowseCategoryCatalog
             .categoriesFor(WearCategoryOrigin.LOCAL, ALL_TYPES)
             .map { it.token }
@@ -134,25 +139,27 @@ class BrowseCategoryCatalogTest {
                 BrowseCategoryCatalog.TOKEN_MUSIC,
                 BrowseCategoryCatalog.TOKEN_PHOTOS,
                 BrowseCategoryCatalog.TOKEN_DOCUMENTS,
-                BrowseCategoryCatalog.TOKEN_ALL
+                BrowseCategoryCatalog.TOKEN_ALL,
+                BrowseCategoryCatalog.TOKEN_BROWSE
             ),
             tokens
         )
     }
 
     /**
-     * The one entry the watch's own store still cannot serve. It is pinned separately from the list
-     * above so that a future ticket adding a local folder walk fails here by name rather than by an
-     * off-by-one in a six-element expectation.
+     * The entry S2201 added, kept pinned separately for the reason it was pinned when it was absent:
+     * a seventh token appearing or disappearing should fail here by name rather than as an
+     * off-by-one in a whole-list expectation. It must stay present because a folder walk now exists
+     * behind it, over the app's own roots and a hierarchy grouped from MediaStore `RELATIVE_PATH`.
      */
     @Test
-    fun `the watch own store omits the folder walk`() {
+    fun `the watch own store offers the folder walk`() {
         val tokens = BrowseCategoryCatalog
             .categoriesFor(WearCategoryOrigin.LOCAL, ALL_TYPES)
             .map { it.token }
 
-        assertFalse(
-            "the local origin offered a folder walk it has no surface for",
+        assertTrue(
+            "the local origin dropped the folder walk it has a surface for",
             tokens.contains(BrowseCategoryCatalog.TOKEN_BROWSE)
         )
     }

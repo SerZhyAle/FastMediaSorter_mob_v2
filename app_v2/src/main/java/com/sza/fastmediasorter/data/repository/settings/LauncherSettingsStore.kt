@@ -29,6 +29,7 @@ object LauncherSettingsStore {
     private val KEY_LAUNCHER_TRAY_SHOW_SIM2 = booleanPreferencesKey("launcher_tray_show_sim2")
     private val KEY_LAUNCHER_TRAY_SHOW_NETWORK = booleanPreferencesKey("launcher_tray_show_network")
     private val KEY_LAUNCHER_TRAY_SHOW_BATTERY = booleanPreferencesKey("launcher_tray_show_battery")
+    private val KEY_LAUNCHER_TRAY_SHOW_SPEED = booleanPreferencesKey("launcher_tray_show_speed")
     private val KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA =
         booleanPreferencesKey("launcher_replace_system_status_area")
     private val KEY_LAUNCHER_TOP_STATUS_STRIP_MODE =
@@ -58,6 +59,7 @@ object LauncherSettingsStore {
         val launcherTrayShowSim2: Boolean,
         val launcherTrayShowNetwork: Boolean,
         val launcherTrayShowBattery: Boolean,
+        val launcherTrayShowSpeed: Boolean,
         val launcherReplaceSystemStatusArea: Boolean,
         val launcherTopStatusStripMode: Boolean,
         val launcherForeignNotificationsEnabled: Boolean,
@@ -86,6 +88,7 @@ object LauncherSettingsStore {
         launcherTrayShowSim2 = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_SIM2, true),
         launcherTrayShowNetwork = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_NETWORK, true),
         launcherTrayShowBattery = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_BATTERY, true),
+        launcherTrayShowSpeed = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_SPEED, false),
         // S2017: hide the system status bar by default.
         launcherReplaceSystemStatusArea = preferences.getOrDefault(KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA, true),
         launcherTopStatusStripMode = preferences.getOrDefault(KEY_LAUNCHER_TOP_STATUS_STRIP_MODE, false),
@@ -124,6 +127,7 @@ object LauncherSettingsStore {
         preferences[KEY_LAUNCHER_TRAY_SHOW_SIM2] = settings.launcherTrayShowSim2
         preferences[KEY_LAUNCHER_TRAY_SHOW_NETWORK] = settings.launcherTrayShowNetwork
         preferences[KEY_LAUNCHER_TRAY_SHOW_BATTERY] = settings.launcherTrayShowBattery
+        preferences[KEY_LAUNCHER_TRAY_SHOW_SPEED] = settings.launcherTrayShowSpeed
         preferences[KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA] = settings.launcherReplaceSystemStatusArea
         preferences[KEY_LAUNCHER_TOP_STATUS_STRIP_MODE] = settings.launcherTopStatusStripMode
         preferences[KEY_LAUNCHER_FOREIGN_NOTIFICATIONS] = settings.launcherForeignNotificationsEnabled

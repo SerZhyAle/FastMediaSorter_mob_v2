@@ -125,6 +125,10 @@ object AppLaunchPanelRouteIntents {
             .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS)
             .withPanelFlags()
 
+    // S2211: black screen as an autonomous sub-program.
+    fun blackScreen(context: Context): Intent =
+        Intent(context, com.sza.fastmediasorter.ui.blackscreen.BlackScreenActivity::class.java).withPanelFlags()
+
     // S0978: reuse the same standalone camera/photo trampolines the left-edge gesture dispatcher uses
     // (PhotoCaptureLaunchActivity auto-captures then routes; CameraLaunchActivity.videoIntent opens the
     // camera in video mode). The AUTO_ACTION_* constants match the gesture path's routing exactly.

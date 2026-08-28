@@ -1298,6 +1298,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             layoutChrome.setCommandEligible(R.id.btnFavorites, settings.enableFavorites)
             resourceAdapter.setUseCompactElements(settings.useCompactElements)
             resourceAdapter.setOverflowModeEnabled(settings.resourceOpsInOverflowMenu) // S0160
+            if (settings.disableAnimations) {
+                binding.rvResources.itemAnimator = null
+            } else if (binding.rvResources.itemAnimator == null) {
+                binding.rvResources.itemAnimator = androidx.recyclerview.widget.DefaultItemAnimator()
+            }
             // S0727: apply the persisted allowSeparateWindow preference off-Main here (OR runtime
             // capability), replacing the removed runBlocking read in setupViews.
             resourceAdapter.setOpenInNewWindowVisible(

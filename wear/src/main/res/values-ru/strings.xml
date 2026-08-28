@@ -26,6 +26,7 @@
     <string name="enable_slideshow">Включить слайд-шоу</string>
     <string name="slideshow_interval">Интервал: %dс</string>
     <string name="download_album_art">Загружать обложки</string>
+    <string name="pref_disable_animations">Отключить анимацию</string>
     <string name="about">О приложении</string>
     <string name="version">Версия: %s</string>
     <string name="build_number">Сборка: %s</string>
@@ -400,4 +401,5 @@
     <string name="enable_documents">Включить документы</string>
     <string name="wear_settings_sections">Разделы</string>
     <string name="phone_resource_no_resource_for_type">Ни один ресурс телефона не настроен на этот тип.</string>
+    <string name="wear_folder_load_more">Показать ещё</string>
 </resources>

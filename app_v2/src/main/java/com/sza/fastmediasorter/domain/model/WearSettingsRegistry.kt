@@ -146,6 +146,13 @@ object WearSettingsRegistry {
             ownership = WearSettingOwnership.BOTH
         ),
         WearSettingScope(
+            field = "disableAnimations",
+            watchPreferenceKey = "wear_disable_animations",
+            docScopeId = "wearDisableAnimations",
+            valueType = TYPE_BOOLEAN,
+            ownership = WearSettingOwnership.BOTH
+        ),
+        WearSettingScope(
             field = "autoRotationEnabled",
             watchPreferenceKey = "wear_auto_rotation_enabled",
             docScopeId = "wearAutoRotation",

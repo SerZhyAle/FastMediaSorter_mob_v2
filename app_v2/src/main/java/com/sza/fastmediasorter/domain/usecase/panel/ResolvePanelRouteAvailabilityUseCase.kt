@@ -121,6 +121,9 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
             // is the same shape the embedded game uses: always built in, gated by the user's toggle.
             InternalRouteCatalog.KEY_FRONT_FLASHLIGHT ->
                 Availability(availableInBuild = true, enabledAtRuntime = settings.frontFlashlightEnabled)
+            // S2211: black screen needs no special capability - always available in build and runtime.
+            InternalRouteCatalog.KEY_BLACK_SCREEN ->
+                Availability(availableInBuild = true, enabledAtRuntime = true)
             else -> resolveCaptureRoute(routeKey, settings)
         }
 

@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.wear.data.repository.VoiceNoteRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearFavoritesRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearFileReceiverRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearFileSenderRepositoryImpl
+import com.sza.fastmediasorter.wear.data.repository.WearLocalFolderRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearMediaRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearOpenOnPhoneRepositoryImpl
 import com.sza.fastmediasorter.wear.data.wear.AndroidWearSystemInfoDataSource
@@ -36,6 +37,7 @@ import com.sza.fastmediasorter.wear.domain.repository.VoiceNoteRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFileReceiverRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFileSenderRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearLocalFolderRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearNetworkChannelMonitor
 import com.sza.fastmediasorter.wear.domain.repository.WearNowPlayingRepository
@@ -108,6 +110,15 @@ object WearAppModule {
         contentResolver: android.content.ContentResolver
     ): WearMediaRepository {
         return WearMediaRepositoryImpl(contentResolver)
+    }
+
+    @Provides
+    @Singleton
+    fun provideWearLocalFolderRepository(
+        @ApplicationContext context: Context,
+        contentResolver: android.content.ContentResolver
+    ): WearLocalFolderRepository {
+        return WearLocalFolderRepositoryImpl(context, contentResolver)
     }
 
     @Provides

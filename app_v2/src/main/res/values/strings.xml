@@ -259,6 +259,8 @@
     <string name="reset_settings_success">Settings reset to defaults successfully</string>
     <string name="setup_content_first_toast">Setup the content first..</string>
     <string name="prevent_sleep">Prevent sleep</string>
+    <string name="pref_disable_animations_title">Disable animations</string>
+    <string name="pref_disable_animations_desc">Turn off visual transition and decorative animations</string>
     <string name="small_controls">Compact player buttons</string>
     <string name="compact_elements">Compact elements</string>
     <string name="enable_favorites">Enable Favorites</string>
@@ -3553,4 +3555,17 @@
     <string name="app_launch_panel_os_location">Location</string>
     <string name="wear_settings_documents">Documents</string>
     <string name="wear_settings_documents_desc">Enable document browsing and sync to watch</string>
+    <string name="launcher_home_gadget_failed">%1$s could not start. The rest of your desktop is available.</string>
+    <string name="launcher_settings_tray_speed_title">Transfer speed</string>
+    <string name="launcher_settings_tray_speed_subtitle">Shows device-wide download and upload rates in the taskbar; updates once per second when enabled.</string>
+    <string name="launcher_tray_bluetooth_connected">Bluetooth, %1$d connected</string>
+    <string name="launcher_tray_sim_data_type">SIM %1$d, signal %2$d of 4, %3$s</string>
+    <string name="launcher_tray_sim_roaming">SIM %1$d, signal %2$d of 4, roaming</string>
+    <string name="launcher_tray_sim_roaming_data_type">SIM %1$d, signal %2$d of 4, roaming, %3$s</string>
+    <string name="launcher_tray_speed_unit_bytes">%1$s B/s</string>
+    <string name="launcher_tray_speed_unit_kilobytes">%1$s KB/s</string>
+    <string name="launcher_tray_speed_unit_megabytes">%1$s MB/s</string>
+    <string name="launcher_tray_speed_unit_gigabytes">%1$s GB/s</string>
+    <string name="launcher_tray_speed_download">Download speed: %1$s</string>
+    <string name="launcher_tray_speed_upload">Upload speed: %1$s</string>
 </resources>

@@ -147,6 +147,15 @@ object SubProgramCatalog {
             surfaces = setOf(SubProgramSurface.QUICK_ACCESS_PANEL, SubProgramSurface.LAUNCHER_SHORTCUT),
         ),
         SubProgramEntry(
+            routeKey = InternalRouteCatalog.KEY_BLACK_SCREEN,
+            order = 105,
+            surfaces = setOf(
+                SubProgramSurface.PROGRAMS_MENU,
+                SubProgramSurface.QUICK_ACCESS_PANEL,
+                SubProgramSurface.LAUNCHER_SHORTCUT,
+            ),
+        ),
+        SubProgramEntry(
             routeKey = InternalRouteCatalog.KEY_TAKE_PHOTO_SEND_TO,
             order = 110,
             surfaces = setOf(SubProgramSurface.QUICK_ACCESS_PANEL, SubProgramSurface.LAUNCHER_SHORTCUT),

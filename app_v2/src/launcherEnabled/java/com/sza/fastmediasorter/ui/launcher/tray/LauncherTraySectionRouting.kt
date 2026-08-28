@@ -20,7 +20,8 @@ object LauncherTraySectionRouting {
         LauncherTrayIndicator.BLUETOOTH ->
             NetworkMonitorSection.Bluetooth.key to OsShortcutCatalog.KEY_BLUETOOTH
 
-        LauncherTrayIndicator.SIM1, LauncherTrayIndicator.SIM2 ->
+        LauncherTrayIndicator.SIM1, LauncherTrayIndicator.SIM2,
+        LauncherTrayIndicator.SPEED_RX, LauncherTrayIndicator.SPEED_TX ->
             NetworkMonitorSection.Mobile.key to OsShortcutCatalog.KEY_WIRELESS
 
         LauncherTrayIndicator.NETWORK -> if (currentTransport == NetworkTransport.WIFI) {

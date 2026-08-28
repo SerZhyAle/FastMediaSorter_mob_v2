@@ -35,6 +35,8 @@ data class WearSettingsPayload(
     // reason - a phone that predates it omits it, and only a nullable field lets the watch keep its
     // own stored value instead of reading the absence as "documents switched off".
     @SerializedName("documentsEnabled") val documentsEnabled: Boolean? = null,
+    // S2209: disable animations toggle synced between phone and watch.
+    @SerializedName("disableAnimations") val disableAnimations: Boolean? = null,
     // S2093: contract field name to epoch-millis of that field's last edit on the sending side. One map
     // rather than a companion field per setting, so a later registry entry needs no new contract field
     // and no new storage key. Absent entirely on a side that predates the two-way exchange, which the

@@ -292,6 +292,8 @@
     <string name="reset_settings_success">Налаштування успішно скинуто на значення за замовчуванням</string>
     <string name="setup_content_first_toast">Спочатку налаштуйте контент..</string>
     <string name="prevent_sleep">Заборонити сон пристрою</string>
+    <string name="pref_disable_animations_title">Вимкнути анімацію</string>
+    <string name="pref_disable_animations_desc">Вимкнути візуальні переходи та декоративні анімації</string>
     <string name="small_controls">Компактні кнопки плеєра</string>
     <string name="compact_elements">Компактні елементи (глобально)</string>
     <string name="enable_favorites">Увімкнути обране</string>
@@ -3498,4 +3500,17 @@
     <string name="app_launch_panel_os_location">Геолокація</string>
     <string name="wear_settings_documents">Документи</string>
     <string name="wear_settings_documents_desc">Перегляд та синхронізація документів на годиннику</string>
+    <string name="launcher_home_gadget_failed">%1$s не запустився. Решта робочого столу доступна.</string>
+    <string name="launcher_settings_tray_speed_title">Швидкість передачі</string>
+    <string name="launcher_settings_tray_speed_subtitle">Показує загальну швидкість прийому та передачі в панелі завдань; оновлюється раз на секунду при увімкненні.</string>
+    <string name="launcher_tray_bluetooth_connected">Bluetooth, %1$d підкл.</string>
+    <string name="launcher_tray_sim_data_type">SIM %1$d, сигнал %2$d з 4, %3$s</string>
+    <string name="launcher_tray_sim_roaming">SIM %1$d, сигнал %2$d з 4, роумінг</string>
+    <string name="launcher_tray_sim_roaming_data_type">SIM %1$d, сигнал %2$d з 4, роумінг, %3$s</string>
+    <string name="launcher_tray_speed_unit_bytes">%1$s Б/с</string>
+    <string name="launcher_tray_speed_unit_kilobytes">%1$s КБ/с</string>
+    <string name="launcher_tray_speed_unit_megabytes">%1$s МБ/с</string>
+    <string name="launcher_tray_speed_unit_gigabytes">%1$s ГБ/с</string>
+    <string name="launcher_tray_speed_download">Швидкість прийому: %1$s</string>
+    <string name="launcher_tray_speed_upload">Швидкість передачі: %1$s</string>
 </resources>

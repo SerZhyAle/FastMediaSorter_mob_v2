@@ -90,6 +90,19 @@ class WearSettingsMergeResolverTest {
         assertFalse(resolver.resolve(field).apply)
     }
 
+    @Test
+    fun `disableAnimations field merges correctly based on stamps`() {
+        val resolver = resolver(
+            incomingStamps = mapOf("disableAnimations" to LATE),
+            localStamps = mapOf("disableAnimations" to EARLY),
+            skewMillis = SKEW
+        )
+
+        val decision = resolver.resolve("disableAnimations")
+        assertTrue(decision.apply)
+        assertEquals(LATE + SKEW, decision.stampEpochMillis)
+    }
+
     private fun resolver(
         incomingStamps: Map<String, Long>?,
         localStamps: Map<String, Long>,

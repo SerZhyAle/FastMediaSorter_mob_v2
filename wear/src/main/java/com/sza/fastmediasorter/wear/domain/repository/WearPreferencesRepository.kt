@@ -86,6 +86,10 @@ interface WearPreferencesRepository {
     val keepScreenAwakeOutsidePlayers: Flow<Boolean>
     suspend fun setKeepScreenAwakeOutsidePlayers(enabled: Boolean)
 
+    /** S2209: disable visual transition and decorative animations across the Wear OS app. */
+    val isAnimationsDisabled: Flow<Boolean>
+    suspend fun setAnimationsDisabled(disabled: Boolean)
+
     /**
      * S1781: the resources opened last, newest first. S1836: an entry that predates the identifier
      * cannot address a source and never reaches this list. S1974: a list rather than a single value,

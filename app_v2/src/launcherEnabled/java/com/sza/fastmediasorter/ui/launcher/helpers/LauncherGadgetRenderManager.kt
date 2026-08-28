@@ -4,6 +4,7 @@ import android.view.Gravity
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.TextView
+import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
@@ -11,8 +12,10 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.weather.WeatherLocation
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetHost
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
+import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetView
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherTimeZoneCatalog
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherCellViewBinder
+import timber.log.Timber
 
 /**
  * S1541: builds the view for a gadget cell - registry lookup, the gadget's own view, and the
@@ -41,7 +44,26 @@ class LauncherGadgetRenderManager(
             container.addView(unavailableGadgetView(container))
             return
         }
-        val view = gadget.createView(container, gadgetHost, decoded.second)
+        // A gadget that cannot build its view degrades to a named failed-gadget tile (S2208). Without
+        // this, the exception escapes into the HOME activity's render pass, and because
+        // the system restarts HOME immediately the desktop crash-loops the device with no way in to
+        // remove the offending cell - S2207 did exactly that from one bad layout inflation.
+        val view = runCatching { gadget.createView(container, gadgetHost, decoded.second) }
+            .onFailure {
+                Timber.e(it, "Gadget ${decoded.first} failed to build its view; cell degraded")
+                Timber.d("S2208: ${decoded.first} view creation failed")
+            }
+            .getOrNull()
+        if (view == null) {
+            container.addView(failedGadgetView(container, gadget.labelRes))
+            return
+        }
+        if (view is LauncherGadgetView) {
+            view.onFailure = {
+                container.removeAllViews()
+                container.addView(failedGadgetView(container, gadget.labelRes))
+            }
+        }
         wireReconfigure(decoded.first, decoded.second, cellUi.cell.id, view)
         container.addView(view)
     }
@@ -85,8 +107,22 @@ class LauncherGadgetRenderManager(
      * gadget in order to remove it (Phase 07).
      */
     fun unavailableGadgetView(container: FrameLayout): View =
+        gadgetStateView(container, R.string.launcher_home_cell_unavailable)
+
+    private fun failedGadgetView(container: FrameLayout, @StringRes labelRes: Int): View =
+        gadgetStateView(
+            container,
+            R.string.launcher_home_gadget_failed,
+            container.context.getString(labelRes),
+        )
+
+    private fun gadgetStateView(
+        container: FrameLayout,
+        @StringRes messageRes: Int,
+        vararg formatArgs: Any,
+    ): View =
         TextView(container.context).apply {
-            setText(R.string.launcher_home_cell_unavailable)
+            text = context.getString(messageRes, *formatArgs)
             gravity = Gravity.CENTER
             alpha = LauncherCellViewBinder.UNAVAILABLE_ALPHA
             isFocusable = true

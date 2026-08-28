@@ -1491,6 +1491,16 @@
       "titleUk": "Профіль пристрою"
     },
     {
+      "key": "rowDisableAnimations",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Disable animations",
+      "titleRu": "Отключить анимацию",
+      "titleUk": "Вимкнути анімацію"
+    },
+    {
       "key": "rowEnableBackgroundSync",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -2401,6 +2411,16 @@
       "titleUk": "Сигнал SIM 2"
     },
     {
+      "key": "rowLauncherTraySpeed",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Transfer speed",
+      "titleRu": "Скорость передачи",
+      "titleUk": "Швидкість передачі"
+    },
+    {
       "key": "rowLauncherWallpaper",
       "sectionId": "launcher",
       "destination": "GENERAL",
@@ -3019,6 +3039,16 @@
       "titleEn": "Watch Background",
       "titleRu": "Фон на часах",
       "titleUk": "Фон на годиннику"
+    },
+    {
+      "key": "wearDisableAnimations",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_other_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Disable animations",
+      "titleRu": "Отключить анимацию",
+      "titleUk": "Вимкнути анімацію"
     },
     {
       "key": "wearDownloadAlbumArt",

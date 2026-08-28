@@ -306,6 +306,9 @@
 
         <activity android:name=".ui.flashlight.FrontFlashlightActivity" android:exported="false" android:label="@string/front_flashlight_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
+        <!-- S2211: autonomous Black Screen application surface -->
+        <activity android:name=".ui.blackscreen.BlackScreenActivity" android:exported="false" android:label="@string/launcher_action_black_screen" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+
         <!-- S1433: no orientation|screenSize in configChanges on purpose - the Summary screen has a
              layout-land variant, and an Activity that absorbs the configuration change never re-inflates it. -->
         <activity android:name=".ui.networkmonitor.NetworkMonitorActivity" android:exported="false" android:label="@string/network_monitor_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />

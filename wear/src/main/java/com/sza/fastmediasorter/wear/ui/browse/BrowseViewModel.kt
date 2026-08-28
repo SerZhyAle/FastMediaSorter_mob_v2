@@ -345,6 +345,7 @@ class BrowseViewModel @Inject constructor(
         // only point at which the types this route actually holds are known.
         refineRestore.consume(presentContentTypes())?.let { types ->
             _refineState.value = _refineState.value.copy(contentTypes = types)
+            Timber.d("S2199: wear browse restored types=$types of ${presentContentTypes()}")
         }
         republish()
     }
@@ -441,6 +442,7 @@ class BrowseViewModel @Inject constructor(
             viewModelScope.launch {
                 preferencesRepository.setBrowseContentTypes(updated.contentTypes)
                 preferencesRepository.setBrowseSortOrder(updated.sortOrder)
+                Timber.d("S2199: wear browse persisted types=${updated.contentTypes} order=${updated.sortOrder}")
             }
         }
         republish()

@@ -399,6 +399,10 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(launcherTrayShowBattery = isChecked))
         }
+        binding.rowLauncherTraySpeed.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings(viewModel.settings.value.copy(launcherTrayShowSpeed = isChecked))
+        }
     }
 
     /**
@@ -455,6 +459,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             binding.rowLauncherTraySim2.setCheckedSilently(settings.launcherTrayShowSim2)
             binding.rowLauncherTrayNetwork.setCheckedSilently(settings.launcherTrayShowNetwork)
             binding.rowLauncherTrayBattery.setCheckedSilently(settings.launcherTrayShowBattery)
+            binding.rowLauncherTraySpeed.setCheckedSilently(settings.launcherTrayShowSpeed)
             binding.rowLauncherReplaceStatusArea.setCheckedSilently(settings.launcherReplaceSystemStatusArea)
             binding.rowLauncherTopStatusStrip.setCheckedSilently(settings.launcherTopStatusStripMode)
             renderTopStatusStripRows(settings)

@@ -27,6 +27,8 @@ data class AppSettings(
 
     // General settings
     val language: String = "en",
+    // S2209: disable visual transition and decorative animations across the main app.
+    val disableAnimations: Boolean = false,
     val preventSleep: Boolean = true,
     // S0438: dependent player-scoped keep-screen-on. Effective only when preventSleep is off;
     // when preventSleep is on, this is logically treated as on and hidden in the settings UI.
@@ -411,6 +413,7 @@ data class AppSettings(
     val launcherTrayShowSim2: Boolean = true,
     val launcherTrayShowNetwork: Boolean = true,
     val launcherTrayShowBattery: Boolean = true,
+    val launcherTrayShowSpeed: Boolean = false,
     // S0404: one-shot - true once the first-rotation hint has been shown, so it never repeats. No UI row
     // (invisible to the settings-doc gate); it is a remembered event, not a user-facing toggle.
     val launcherRotationHintShown: Boolean = false,
