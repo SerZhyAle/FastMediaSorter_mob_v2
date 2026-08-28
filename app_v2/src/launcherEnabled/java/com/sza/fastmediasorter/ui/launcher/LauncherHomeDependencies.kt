@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.domain.usecase.streams.RemoveStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.UnpinStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.UpdateStreamSourceUseCase
+import com.sza.fastmediasorter.ui.launcher.gadget.ConfiguredWidgetInstanceManager
 import com.sza.fastmediasorter.ui.main.helpers.ResourceScanCoordinator
 import javax.inject.Inject
 
@@ -34,6 +35,9 @@ class LauncherDesktopDependencies @Inject constructor(
     val desktopRepository: LauncherDesktopRepository,
     val seedLauncherDesktop: SeedLauncherDesktopUseCase,
     val resourceRepository: ResourceRepository,
+    // S1930: removing a configured widget cell has to throw its stored instance away, and the cell is
+    // the only thing that still knows which one - so the cleanup joins the surface that owns removal.
+    val configuredWidgetInstances: ConfiguredWidgetInstanceManager,
 )
 
 /** Serves the taskbar strips - the recents row, the pinned row and what each icon renders as. */

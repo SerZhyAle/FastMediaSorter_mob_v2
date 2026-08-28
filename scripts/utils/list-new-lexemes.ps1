@@ -14,7 +14,13 @@
         only place that decides what counts as translatable text at all. A value marked
         translatable="false", a glyph, a layout literal such as "1/1" or "3D", a value carrying
         escaped markup - none of those reach the export, so none of them can be reported here.
-      - A unit is untranslated when at least one best-effort locale's resource file lacks its key.
+      - A unit is untranslated in a locale on any of three counts: that locale's resource file
+        lacks the key; it carries the key but the fingerprint registry has no provenance for it; or
+        the provenance it does carry names a different English source text than the one in the tree
+        today. The third count is what makes a REWORDED string visible (S1824) - the key is present
+        in all ten locales and every value looks filled in, yet each one translates a sentence the
+        English no longer says. Judging presence alone would ship that stale wording silently, which
+        is what the whole registry exists to prevent; do not re-describe this check as a key check.
         Ten locales are checked rather than one reference locale, because the rule being enforced
         says thirteen: a key that landed in German and nowhere else is still untranslated.
       - Everything named in the baseline is subtracted. That file holds the identities already

@@ -43,6 +43,22 @@ fun contentTypeForMime(mimeType: String?): WearContentType? = when {
     else -> null
 }
 
+/**
+ * The content type a list entry stands for, judged from what the entry itself carries.
+ *
+ * S2129: for the phone-file lists, which hold a mime type and a directory flag and nothing else.
+ * Unlike [contentTypeForMime] this always answers, because the caller is a drawing point that has
+ * to put some glyph in the row - there is no screen-level media type to fall back to when a phone
+ * folder mixes audio, images and documents in one listing.
+ *
+ * A directory wins over its mime type: some providers hand a folder a mime of its own, and a
+ * folder that drew as an audio file would misreport what tapping it does.
+ */
+fun contentTypeForEntry(mimeType: String?, isDirectory: Boolean): WearContentType = when {
+    isDirectory -> WearContentType.FOLDER
+    else -> contentTypeForMime(mimeType) ?: WearContentType.DOCUMENT
+}
+
 /** What a browse surface stands for when the file's own mime type classifies nothing. */
 fun MediaType.asContentType(): WearContentType = when (this) {
     MediaType.MUSIC -> WearContentType.MUSIC

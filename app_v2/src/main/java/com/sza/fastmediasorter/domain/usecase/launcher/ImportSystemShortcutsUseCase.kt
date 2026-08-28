@@ -43,7 +43,6 @@ class ImportSystemShortcutsUseCase @Inject constructor(
             // consumer never stated one, which is why the desktop filled up in enumeration order.
             val ordered = apps.sortedBy { it.label.lowercase() }
             val now = System.currentTimeMillis()
-            Timber.d("S2018: importing %d apps into the desktop section", ordered.size)
 
             importInto(LauncherOrientation.PORTRAIT, portraitCols, ordered, now)
             importInto(LauncherOrientation.LANDSCAPE, landscapeCols, ordered, now)

@@ -45,6 +45,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
 $RepoRoot     = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $DebugPackage = 'com.sza.fastmediasorter.debug'
 $DbName       = 'fastmediasorter_v2.db'

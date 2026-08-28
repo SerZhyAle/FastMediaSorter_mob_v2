@@ -132,7 +132,7 @@ class BrowseLifecycleSetupManager(
 
     private fun restoreFilterState() {
         scope.launch(ioDispatcher) {
-            dependencies.stateDependencies.browseStateDataStore.filter.first()?.let { savedFilter ->
+            dependencies.stateDependencies.browseStateDataStore.filter(resourceId).first()?.let { savedFilter ->
                 if (!savedFilter.isEmpty()) {
                     withContext(Dispatchers.Main) {
                         dependencies.stateDependencies.updateState { it.copy(filter = savedFilter) }

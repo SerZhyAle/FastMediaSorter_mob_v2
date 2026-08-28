@@ -15,18 +15,21 @@ import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.material.Icon
-import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
+import com.sza.fastmediasorter.wear.ui.common.CellCaption
 import com.sza.fastmediasorter.wear.ui.common.LongPressChip
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
+import com.sza.fastmediasorter.wear.ui.common.WearCaptionText
+import com.sza.fastmediasorter.wear.ui.common.WearListMetrics
+import com.sza.fastmediasorter.wear.ui.icon.WearResourceIconRegistry
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 
 private const val SINGLE_COLUMN = 1
+private const val CHIP_LABEL_LINES = 2
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
-private val CELL_ICON_SIZE = 24.dp
 
 /**
  * The per-type glyph, taken from the phone's own vectors so one entity wears one icon across both
@@ -40,6 +43,17 @@ private fun iconFor(type: NetworkSourceType): Int = when (type) {
     NetworkSourceType.SFTP -> R.drawable.ic_resource_sftp
     NetworkSourceType.GOOGLE_DRIVE -> R.drawable.ic_resource_cloud
 }
+
+/**
+ * The resource's own icon, or the glyph its connection type wears when it has none.
+ *
+ * S2129: the type glyph made several shares of one kind identical, which is what the owner reported.
+ * The fallback stays because a resource synced before the id existed, or one carrying an id this
+ * build does not have, must still draw something rather than nothing.
+ */
+@DrawableRes
+private fun iconFor(source: SourceItem): Int =
+    WearResourceIconRegistry.resolveDrawable(source.iconId) ?: iconFor(source.type)
 
 /** One column keeps the informative chip; a grid trades the server line for a reachable cell. */
 internal fun ScalingLazyListScope.sourceItems(
@@ -73,22 +87,28 @@ private fun SourceChip(
             actions.onSourceLongPress(source)
         },
         label = {
-            Text(text = "${source.name}\n${source.server}")
+            // Two lines inside a fixed 52 dp chip is exactly where a raised caption stops fitting
+            // (strategic §7), so the name goes through the scale and shrinks to the floor instead
+            // of being clipped at the ceiling.
+            WearCaptionText(
+                text = "${source.name}\n${source.server}",
+                maxLines = CHIP_LABEL_LINES
+            )
         },
         modifier = Modifier.fillMaxWidth(),
         icon = {
             Icon(
-                painter = painterResource(id = iconFor(source.type)),
+                painter = painterResource(id = iconFor(source)),
                 contentDescription = null,
-                modifier = Modifier.size(CELL_ICON_SIZE),
+                modifier = Modifier.size(WearListMetrics.LeadingIconNormal),
                 tint = Color.Unspecified
             )
         },
         secondaryLabel = {
-            Text(
-                text = stringResource(R.string.hold_to_delete),
-                style = MaterialTheme.typography.caption2
-            )
+            // No explicit style: the chip's secondary slot already provides caption2, and restating
+            // it here only risked the two drifting apart. The subtitle deliberately stays off the
+            // caption scale - see the slot comment in LongPressChip.
+            Text(text = stringResource(R.string.hold_to_delete))
         }
     )
 }
@@ -134,10 +154,13 @@ private fun SourceCell(
         // outside it and never fire, which is how the reshape in S1970 lost the long press (S1953).
         onLongClick = {
             actions.onSourceLongPress(source)
-        }
+        },
+        // One glyph per source type, so several shares of the same kind are told apart by their
+        // names alone and the name gets the cell (S2177).
+        captionLayout = CellCaption(overGroupIcon = true)
     ) { glyphModifier ->
         Icon(
-            painter = painterResource(id = iconFor(source.type)),
+            painter = painterResource(id = iconFor(source)),
             contentDescription = null,
             modifier = glyphModifier,
             tint = Color.Unspecified

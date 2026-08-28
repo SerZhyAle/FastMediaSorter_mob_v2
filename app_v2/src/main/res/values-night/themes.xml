@@ -29,6 +29,10 @@
         <item name="launcherStartRowGroup2">@color/launcher_start_row_group2</item>
         <item name="launcherStartRowGroup3">@color/launcher_start_row_group3</item>
         <item name="launcherStartRowGroup4">@color/launcher_start_row_group4</item>
+        <item name="colorOnSurfaceVariant">#FFCAC4D0</item>
+        <item name="android:textColorSecondary">@color/text_color_secondary</item>
+        <item name="colorOutline">#FF938F99</item>
+        <item name="colorOutlineVariant">@color/m3_surface_variant</item>
 
         <!-- Window background - dark for night mode -->
         <item name="android:windowBackground">@color/item_normal</item>
@@ -37,6 +41,13 @@
 
         <!-- See values/themes.xml - overridden by Theme.FastMediaSorter.LargePlayerControls when compact is OFF. -->
         <item name="customPlayerControlsLayout">@layout/custom_player_controls</item>
+
+        <!-- S2179: day theme (values/themes.xml) defines this seam item; the night variant is a
+             separate resource, not a merge, so it was silently missing here. Without it every plain
+             MaterialAlertDialogBuilder(context) call (no per-dialog override style) falls back to the
+             stock M3 alert dialog in dark mode, losing the DialogConfirm/DialogCancel pair entirely. -->
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.FastMediaSorter.MaterialAlertDialog</item>
+        <item name="materialSwitchStyle">@style/Widget.FastMediaSorter.Switch</item>
     </style>
 
     <!-- Pre-35 transparent bars. enableEdgeToEdge() sets these at runtime, but release R8 strips

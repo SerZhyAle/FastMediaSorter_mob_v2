@@ -163,6 +163,12 @@ $excusePattern = '(?i)\b(Historical|External|placeholder|example)\b'
 function Test-Excluded {
     param([string] $Relative)
     if ($Relative -match '(^|[\\/])node_modules([\\/]|$)') { return $true }
+    # A git worktree under .claude/worktrees is another agent's isolated checkout of this same
+    # repository, not this tree's content. Every document in it is a copy, so scanning it doubles
+    # every finding and judges files the working tree is not responsible for. Observed 2026-08-27
+    # while closing S2194: a sibling agent's worktree appeared mid-ticket and added 505 phantom
+    # document references, failing the closure of a change that had touched none of them.
+    if ($Relative.Replace('\', '/') -like '.claude/worktrees/*') { return $true }
     foreach ($e in $corpusExclusions) {
         if ($Relative.Replace('\', '/') -ieq $e) { return $true }
     }

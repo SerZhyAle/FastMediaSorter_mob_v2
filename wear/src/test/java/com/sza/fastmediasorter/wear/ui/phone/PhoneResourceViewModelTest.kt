@@ -6,6 +6,7 @@ import androidx.lifecycle.SavedStateHandle
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceClient
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceOutcome
+import com.sza.fastmediasorter.wear.domain.browse.BrowseCategoryCatalog
 import com.sza.fastmediasorter.wear.domain.files.WEAR_PHONE_FILE_CACHE_DIR
 import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
@@ -18,6 +19,7 @@ import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.PerformWearFileOperationUseCase
 import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
+import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -35,6 +37,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -71,6 +74,16 @@ class PhoneResourceViewModelTest {
         every { it.cacheDir } returns cacheRoot
     }
 
+    /**
+     * S2130: what the screen actually asked the phone for - the type filter and the list shape.
+     *
+     * Recorded rather than asserted one argument at a time because ADR-3's requirement is that two
+     * requests be *different*, which is a comparison and not a per-call verification.
+     */
+    private data class BrowseAsk(val mediaType: String?, val isFlat: Boolean?)
+
+    private val browseAsks = mutableListOf<BrowseAsk>()
+
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
@@ -78,6 +91,10 @@ class PhoneResourceViewModelTest {
         // The action menu builds a Uri for the entry's copy, and android.net.Uri is a stub in a unit test.
         mockkStatic(Uri::class)
         every { Uri.fromFile(any()) } returns mockk(relaxed = true)
+        coEvery { client.browse(any(), any(), any(), any()) } answers {
+            browseAsks += BrowseAsk(arg<String?>(2), arg<Boolean?>(3))
+            PhoneResourceOutcome.Page(page(item("Camera")))
+        }
     }
 
     @After
@@ -223,6 +240,63 @@ class PhoneResourceViewModelTest {
         (uiState.value as PhoneResourceUiState.Content).title
 
     /**
+     * S2130 ADR-3: All and Browse are two different lists, and the only thing telling them apart on
+     * the way in is the route argument - All sends the `all` token, the folder browser sends none.
+     * Both want a null *type filter*, so the shape was being derived from that shared null and the two
+     * entries collapsed into one identical request. These cases pin the argument-to-request mapping at
+     * the exact point that collapsed.
+     */
+    @Test
+    fun `the all chip asks for a flat list of every type`() = runTest {
+        buildViewModel(BrowseCategoryCatalog.TOKEN_ALL)
+        advanceUntilIdle()
+
+        assertEquals(BrowseAsk(mediaType = null, isFlat = true), browseAsks.single())
+    }
+
+    @Test
+    fun `the folder browser carries no argument and asks for a folder walk`() = runTest {
+        buildViewModel(categoryToken = null)
+        advanceUntilIdle()
+
+        assertEquals(BrowseAsk(mediaType = null, isFlat = false), browseAsks.single())
+    }
+
+    @Test
+    fun `a type chip asks for a flat list carrying its own filter`() = runTest {
+        buildViewModel(BrowseCategoryCatalog.TOKEN_VIDEOS)
+        advanceUntilIdle()
+
+        assertEquals(
+            BrowseAsk(mediaType = BrowseCategoryCatalog.TOKEN_VIDEOS, isFlat = true),
+            browseAsks.single()
+        )
+    }
+
+    /** The regression this phase exists to prevent: the two entries must not ask the same question. */
+    @Test
+    fun `all and browse do not produce the same request`() = runTest {
+        buildViewModel(BrowseCategoryCatalog.TOKEN_ALL)
+        advanceUntilIdle()
+        buildViewModel(categoryToken = null)
+        advanceUntilIdle()
+
+        assertNotEquals(browseAsks[0], browseAsks[1])
+    }
+
+    /**
+     * S2130: the title comes from the same table the chip on the home screen was drawn from, so All
+     * is not labelled "Phone" like the folder browser it used to be indistinguishable from.
+     */
+    @Test
+    fun `the all chip titles the screen with its own word`() = runTest {
+        val viewModel = buildViewModel(BrowseCategoryCatalog.TOKEN_ALL)
+        advanceUntilIdle()
+
+        assertEquals(ScreenTitle.Resource(R.string.wear_phone_all), viewModel.contentTitle())
+    }
+
+    /**
      * S1898: the refusal line is anchored to the screen now, so it no longer scrolls out of sight on
      * its own. Walking into another folder has to drop it, or it stays on screen naming a file the
      * folder in front of the user does not contain.
@@ -346,14 +420,16 @@ class PhoneResourceViewModelTest {
         items = items.toList()
     )
 
-    private fun buildViewModel() = PhoneResourceViewModel(
+    private fun buildViewModel(categoryToken: String? = null) = PhoneResourceViewModel(
         client,
         selectedMedia,
         capabilityPolicy,
         performFileOperation,
         context,
         preferences,
-        SavedStateHandle()
+        SavedStateHandle(
+            categoryToken?.let { mapOf(WearRoutes.ARG_MEDIA_TYPE to it) }.orEmpty()
+        )
     )
 
     private fun item(name: String) = WearPhoneResourceItem(

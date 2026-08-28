@@ -101,7 +101,6 @@
     <string name="file_deleted">\"%1$s\" supprimé</string>
     <string name="file_info">Informations sur le fichier</string>
     <string name="file_info_copy_path">Copier le chemin</string>
-    <string name="file_info_copy_path_done">Chemin copié</string>
     <string name="file_info_directory_label">Répertoire : %1$s</string>
     <string name="file_info_extension_mime_label">Format : %1$s · %2$s</string>
     <string name="file_info_filename_label">Fichier : %1$s</string>

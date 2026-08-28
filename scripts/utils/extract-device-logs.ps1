@@ -7,6 +7,9 @@ param(
     [string]$PackageName = "com.sza.fastmediasorter"
 )
 
+$ErrorActionPreference = 'Stop'
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $logFile = Join-Path $OutputDir "device_logs_$timestamp.txt"
 $prefsFile = Join-Path $OutputDir "app_settings_$timestamp.xml"

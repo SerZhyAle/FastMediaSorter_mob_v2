@@ -33,8 +33,10 @@
                before/after oracle that proves no key was lost or duplicated by a multi-file move.
                (S0339; widened past <string> in S1568.)
 
-    Locale parity: add/get/remove/rename/move always work on EN (values), RU (values-ru), UK (values-uk)
-    together. set is single-locale by design (per-locale tone fixes).
+    Locale parity: add writes EN (values), RU (values-ru) and UK (values-uk) in lockstep and refuses
+    without all three. get/remove/rename/move are WIDER - they sweep every locale directory present on
+    disk (13 today), not just those three, because a key half-removed or half-renamed across locales is
+    a missing string at runtime. set is single-locale by design (per-locale tone fixes).
 
 .PARAMETER Action
     set | add | get | remove | rename | list (default: set).

@@ -49,6 +49,7 @@ class LauncherHomeViewModelSeedTest {
             executeScheduledOperation = mockk(relaxed = true),
             isCameraWallpaperAvailable = mockk(relaxed = true),
             savedStateHandle = SavedStateHandle(),
+            resolveRouteAvailability = mockk(relaxed = true),
         )
     }
 

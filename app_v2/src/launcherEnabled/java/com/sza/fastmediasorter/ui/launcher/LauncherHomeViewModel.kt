@@ -8,6 +8,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.domain.model.AppSettings
@@ -20,6 +21,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellPlacement
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
+import com.sza.fastmediasorter.domain.model.launcher.LauncherContactChannel
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.model.launcher.LauncherWallpaper
 import com.sza.fastmediasorter.domain.repository.LauncherSectionVisibilityRepository
@@ -30,6 +32,7 @@ import com.sza.fastmediasorter.domain.usecase.companion.ExportCompanionConfigUse
 import com.sza.fastmediasorter.domain.usecase.launcher.ExecuteLauncherCommandUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.IsCameraWallpaperAvailableUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.PickContactShortcutUseCase
+import com.sza.fastmediasorter.domain.usecase.panel.ResolvePanelRouteAvailabilityUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherSectionCollapseManager
@@ -79,7 +82,7 @@ sealed interface LauncherHomeEvent {
     data class PerformLauncherAction(val actionKey: String) : LauncherHomeEvent
 }
 
-@Suppress("LongParameterList")
+@Suppress("LongParameterList", "TooManyFunctions")
 @HiltViewModel
 class LauncherHomeViewModel @Inject constructor(
     private val visibility: LauncherSectionVisibilityRepository,
@@ -95,6 +98,7 @@ class LauncherHomeViewModel @Inject constructor(
     // S2076: the camera wallpaper's own precondition - hardware plus a live CAMERA grant.
     private val isCameraWallpaperAvailable: IsCameraWallpaperAvailableUseCase,
     private val savedStateHandle: SavedStateHandle,
+    private val resolveRouteAvailability: ResolvePanelRouteAvailabilityUseCase,
 ) : ViewModel() {
 
     // Rotation swaps which layout is observed. The collection itself is never torn down: the
@@ -418,6 +422,7 @@ class LauncherHomeViewModel @Inject constructor(
             // the first free square it finds can sit inside a collapsed section - where the render plan
             // drops the cell and the user is left with an item that was written and cannot be seen.
             id?.let { sections.revealSectionHolding(it) }
+            Timber.d("S2033: addCellInFirstFreeSlot id=%s", id)
         }
     }
 
@@ -467,6 +472,14 @@ class LauncherHomeViewModel @Inject constructor(
             val cell = cells.value.find { it.cell.id == id }?.cell
             if (cell != null && cell.kind == LauncherCellKind.SECTION) {
                 sections.clear(cell)
+            }
+            // S1930: a configured widget cell owns a stored instance, and the row is the only thing
+            // that still knows its token - reading it after the delete would find nothing, and the
+            // snapshot would sit in prefs forever with no cell pointing at it (strategic §11.4). The
+            // clear runs here rather than in LauncherDesktopRepository because that repository lives
+            // in src/main and knows nothing about gadgets (Rule 14).
+            if (cell != null && cell.kind == LauncherCellKind.GADGET) {
+                desktopDependencies.configuredWidgetInstances.clearInstanceOf(cell.target)
             }
             desktopDependencies.desktopRepository.removeCell(id)
         }
@@ -568,6 +581,22 @@ class LauncherHomeViewModel @Inject constructor(
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * S2025: opens our Monitor section when available, else the Android settings screen the indicator reports on.
+     */
+    fun openNetworkSurface(sectionKey: String, osShortcutKey: String) {
+        viewModelScope.launch {
+            val availability = resolveRouteAvailability(InternalRouteCatalog.KEY_NETWORK_MONITOR)
+            val command = if (availability.isLaunchable) {
+                LauncherCellCommand.FeatureSection(InternalRouteCatalog.KEY_NETWORK_MONITOR, sectionKey)
+            } else {
+                LauncherCellCommand.OsShortcut(osShortcutKey)
+            }
+            val screenOnly = !availability.isLaunchable
+            run(command, screenOnly)
         }
     }
 
@@ -862,6 +891,87 @@ class LauncherHomeViewModel @Inject constructor(
             savedStateHandle[KEY_PENDING_CONTACT_ACTION] = value?.name
         }
 
+    /**
+     * S2102: the contact action of the step the branch is on **before** the system picker takes over -
+     * the pending `READ_CONTACTS` answer, the number-source picker, and the manual number dialog.
+     *
+     * Distinct from [pendingContactAction] above rather than merged into it, because the two have
+     * different lifetimes and the merge would silently re-open S2099: that one is written when the
+     * system picker launches and cleared when its result arrives, while this one is written on entry to
+     * the contact branch and handed over the moment the system picker starts. They never overlap -
+     * `launchSystemPicker` clears this as it writes that.
+     *
+     * `LauncherContactPickManager` used to hold both the action and a `pendingPick` closure in fields,
+     * and that manager is rebuilt by the Activity's field initialiser on every process restart, so the
+     * contacts answer arrived at a manager with nothing to resume and the flow ended without a word.
+     *
+     * Stored by enum name and read back by matching the entries, like [pendingContactAction], so a value
+     * this build no longer knows reads as "no step in flight" rather than throwing on a restored bundle.
+     * A property rather than a named function, like the three above: this class sits exactly at detekt's
+     * `TooManyFunctions` ceiling.
+     */
+    var pendingContactStep: LauncherContactAction?
+        get() {
+            val stored = savedStateHandle.get<String>(KEY_PENDING_CONTACT_STEP)
+            return LauncherContactAction.entries.firstOrNull { it.name == stored }
+        }
+        set(value) {
+            savedStateHandle[KEY_PENDING_CONTACT_STEP] = value?.name
+        }
+
+    /**
+     * S2102: the messaging channels the user is choosing between, durable across process death.
+     *
+     * The list is produced by a contacts query the restored process never repeats, and the picker
+     * showing it cannot restore itself - `SearchableOptionPickerDialog` keeps its options in a plain
+     * field because an option may carry a `Drawable`, so a restored instance closes itself in `onStart`.
+     * Both re-presenting the choice and mapping the answer back to a placeable target therefore depend
+     * on this value surviving.
+     *
+     * Stored as two parallel string lists rather than one joined list: the label is whatever the
+     * messaging app wrote on the contact's row and may contain anything at all, including the codec's
+     * separator, so joining it to the encoded target would need a second escaping layer over one that
+     * already percent-encodes every field (strategic ADR-3). The target itself rides in
+     * [LauncherCellCommand.Contact]'s existing cell encoding, which keeps the domain model a plain data
+     * class - a `@Parcelize` on it would drag an Android type into `domain/`.
+     *
+     * Reads back as null unless the whole list is intact: a half-decodable list would offer the user
+     * rows that cannot be placed, which is the failure this ticket exists to remove rather than reshape.
+     * The app icon beside each row is deliberately absent - it is re-fetched from `PackageManager` by
+     * the stored `messagePackage`, exactly as the first showing did.
+     */
+    var pendingContactChannels: List<LauncherContactChannel>?
+        get() = decodePendingChannels(
+            savedStateHandle.get<ArrayList<String>>(KEY_PENDING_CHANNEL_LABELS),
+            savedStateHandle.get<ArrayList<String>>(KEY_PENDING_CHANNEL_TARGETS),
+        )
+        set(value) {
+            savedStateHandle[KEY_PENDING_CHANNEL_LABELS] =
+                value?.mapTo(ArrayList()) { it.label }
+            savedStateHandle[KEY_PENDING_CHANNEL_TARGETS] =
+                value?.mapTo(ArrayList()) { LauncherCellCommand.Contact(it.target).encode() }
+        }
+
+    /**
+     * S1930: the gadget key and minted token of the configurable widget whose configuration screen is
+     * in front, or null when none is. In [SavedStateHandle] for the same reason as the two above -
+     * that screen is a separate Activity, which is precisely when the OS is free to kill this one, and
+     * a lost token would leave a written snapshot no cell ever points at.
+     *
+     * One property carrying both halves, like [pendingSlot]: a token without its key names no widget
+     * to place, and a key without its token names no instance to place it with.
+     */
+    var pendingConfiguredWidget: Pair<String, Int>?
+        get() {
+            val key = savedStateHandle.get<String>(KEY_PENDING_WIDGET_KEY)
+            val token = savedStateHandle.get<Int>(KEY_PENDING_WIDGET_TOKEN)
+            return if (key != null && token != null) key to token else null
+        }
+        set(value) {
+            savedStateHandle[KEY_PENDING_WIDGET_KEY] = value?.first
+            savedStateHandle[KEY_PENDING_WIDGET_TOKEN] = value?.second
+        }
+
     private companion object {
         const val SUBSCRIPTION_TIMEOUT_MS = 5_000L
 
@@ -871,6 +981,39 @@ class LauncherHomeViewModel @Inject constructor(
         const val KEY_PENDING_ROW = "launcher_pending_row"
         const val KEY_PENDING_COL = "launcher_pending_col"
         const val KEY_PENDING_CONTACT_ACTION = "launcher_pending_contact_action"
+        const val KEY_PENDING_CONTACT_STEP = "launcher_pending_contact_step"
+        const val KEY_PENDING_CHANNEL_LABELS = "launcher_pending_channel_labels"
+        const val KEY_PENDING_CHANNEL_TARGETS = "launcher_pending_channel_targets"
+        const val KEY_PENDING_WIDGET_KEY = "launcher_pending_widget_key"
+        const val KEY_PENDING_WIDGET_TOKEN = "launcher_pending_widget_token"
+    }
+}
+
+/**
+ * S2102: rebuilds what [LauncherHomeViewModel.pendingContactChannels] stored, or null when what came
+ * back cannot be trusted as a whole.
+ *
+ * Top-level rather than a member, so the round-trip is testable without constructing the ViewModel and
+ * every collaborator it injects, and so the class stays under detekt's `TooManyFunctions` ceiling.
+ *
+ * Every rejection is the same rejection. A caller handed a short list would present rows that place
+ * nothing - the exact failure this ticket removes - so a missing key, a length mismatch and one
+ * undecodable entry all yield null rather than a best effort. An empty list is nothing to choose
+ * between, so it reads as "no channel step in flight" too.
+ */
+internal fun decodePendingChannels(
+    labels: List<String>?,
+    encodedTargets: List<String>?,
+): List<LauncherContactChannel>? {
+    if (labels == null || encodedTargets == null || labels.size != encodedTargets.size) return null
+    val decoded = encodedTargets.map { LauncherCellCommand.decode(it) as? LauncherCellCommand.Contact }
+    val complete = decoded.filterNotNull()
+    return if (complete.isEmpty() || complete.size != decoded.size) {
+        null
+    } else {
+        complete.mapIndexed { index, command ->
+            LauncherContactChannel(target = command.target, label = labels[index])
+        }
     }
 }
 

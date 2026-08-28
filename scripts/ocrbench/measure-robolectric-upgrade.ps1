@@ -185,7 +185,7 @@ try {
     Copy-Item $templatePath (Join-Path $probeDir 'NativeGraphicsProbeTest.kt') -Force
 
     . (Join-Path $repoRoot 'scripts\utils\agent-lock.ps1')
-    Enter-BuildLockOrExit -Reason "measure-robolectric-upgrade.ps1 ($Version)"
+    Enter-BuildLockOrExit -Reason "measure-robolectric-upgrade.ps1 ($Version)" -Domain Build.Phone
     try {
         Write-Host "measure-robolectric-upgrade: running $gradleTask on robolectric $Version .."
         Push-Location $worktreePath
@@ -197,7 +197,7 @@ try {
         }
         $suiteRan = $true
     } finally {
-        Exit-AgentLock -Name Build
+        Exit-AgentLock -Name 'Build' -Domains @('Build.Phone')
     }
 
     $resultsDir = Join-Path $worktreePath 'app_v2\build\test-results\testStandardDebugUnitTest'

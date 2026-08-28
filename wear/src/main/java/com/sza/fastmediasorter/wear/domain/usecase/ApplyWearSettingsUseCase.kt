@@ -47,6 +47,9 @@ class ApplyWearSettingsUseCase @Inject constructor(
         apply(resolver, "audioEnabled", payload.audioEnabled) { preferencesRepository.setAudioEnabled(it) }
         apply(resolver, "videoEnabled", payload.videoEnabled) { preferencesRepository.setVideoEnabled(it) }
         apply(resolver, "imagesEnabled", payload.imagesEnabled) { preferencesRepository.setImagesEnabled(it) }
+        apply(resolver, "documentsEnabled", payload.documentsEnabled) {
+            preferencesRepository.setDocumentsEnabled(it)
+        }
         apply(resolver, "downloadAlbumArt", payload.downloadAlbumArt) {
             preferencesRepository.setDownloadAlbumArt(it)
         }

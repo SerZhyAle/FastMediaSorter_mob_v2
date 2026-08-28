@@ -60,7 +60,7 @@ if (Test-Path $cxxDebugDir) {
 # the emulator variant this ticket hoped to hand back is not expressible while Chaquopy is in the
 # build. The other flavors, which build with -Pchaquopy.enabled=false, are split normally.
 $gradleArgs = @(
-    "assembleNoLegalDebug",
+    ":app_v2:assembleNoLegalDebug",
     "-Pchaquopy.enabled=true",
     "--no-configuration-cache"
 )

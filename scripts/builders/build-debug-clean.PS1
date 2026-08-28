@@ -60,7 +60,7 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "Starting build (no cache)..." -ForegroundColor Yellow
 # Using --no-build-cache to force recompilation
 $gradleArgs = @(
-    "assembleStandardDebug",
+    ":app_v2:assembleStandardDebug",
     "-Pfms.abiSplits=true",
     "-Pchaquopy.enabled=false",
     "--no-build-cache",

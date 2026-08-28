@@ -99,7 +99,8 @@ class NetworkSourcesViewModel @Inject constructor(
                                 id = source.id,
                                 name = source.name,
                                 server = source.server,
-                                type = source.type
+                                type = source.type,
+                                iconId = source.iconId
                             )
                         }
                         Timber.d("Observed ${sourceItems.size} network sources")
@@ -172,7 +173,8 @@ class NetworkSourcesViewModel @Inject constructor(
                             id = source.id,
                             name = source.name,
                             server = source.server,
-                            type = source.type
+                            type = source.type,
+                            iconId = source.iconId
                         )
                     }
                     _uiState.value = NetworkSourcesUiState.Success(sourceItems)

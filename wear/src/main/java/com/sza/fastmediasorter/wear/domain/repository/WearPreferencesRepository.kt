@@ -1,9 +1,11 @@
 package com.sza.fastmediasorter.wear.domain.repository
 
+import com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder
 import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
 import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
+import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import kotlinx.coroutines.flow.Flow
 
@@ -17,10 +19,12 @@ interface WearPreferencesRepository {
     val isAudioEnabled: Flow<Boolean>
     val isVideoEnabled: Flow<Boolean>
     val isImagesEnabled: Flow<Boolean>
+    val isDocumentsEnabled: Flow<Boolean>
 
     suspend fun setAudioEnabled(enabled: Boolean)
     suspend fun setVideoEnabled(enabled: Boolean)
     suspend fun setImagesEnabled(enabled: Boolean)
+    suspend fun setDocumentsEnabled(enabled: Boolean)
 
     // Slideshow settings
     val isSlideshowEnabled: Flow<Boolean>
@@ -44,6 +48,18 @@ interface WearPreferencesRepository {
     /** S1730: the view of a file list inside a resource, deliberately separate from [viewMode]. */
     val fileListViewMode: Flow<WearViewMode>
     suspend fun setFileListViewMode(mode: WearViewMode)
+
+    /**
+     * S2199: how the browse list was last narrowed and ordered, so the choice survives a restart.
+     *
+     * The search query is deliberately absent: a restored text empties the list on a word the wearer
+     * cannot see, which is the same call `StreamsSessionStore` made on the phone.
+     */
+    val browseContentTypes: Flow<Set<WearContentType>>
+    suspend fun setBrowseContentTypes(types: Set<WearContentType>)
+
+    val browseSortOrder: Flow<BrowseSortOrder>
+    suspend fun setBrowseSortOrder(order: BrowseSortOrder)
 
     /**
      * S1948: the video player's frame mode, so the choice survives the player closing and covers a

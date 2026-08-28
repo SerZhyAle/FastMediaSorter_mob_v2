@@ -61,6 +61,13 @@ class MergeWearSettingsReportUseCase @Inject constructor(
         audioEnabled = merge.required("audioEnabled", incoming.audioEnabled, stored.audioEnabled),
         videoEnabled = merge.required("videoEnabled", incoming.videoEnabled, stored.videoEnabled),
         imagesEnabled = merge.required("imagesEnabled", incoming.imagesEnabled, stored.imagesEnabled),
+        // Optional, not required, unlike its three siblings: the field is nullable so a phone that
+        // predates S2130 omits it, and treating that absence as a value would switch documents off.
+        documentsEnabled = merge.optional(
+            "documentsEnabled",
+            incoming.documentsEnabled,
+            stored.documentsEnabled
+        ),
         slideshowEnabled = merge.required(
             "slideshowEnabled",
             incoming.slideshowEnabled,

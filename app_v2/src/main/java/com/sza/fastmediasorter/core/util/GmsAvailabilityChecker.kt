@@ -1,8 +1,6 @@
 package com.sza.fastmediasorter.core.util
 
 import android.content.Context
-import com.google.android.gms.common.ConnectionResult
-import com.google.android.gms.common.GoogleApiAvailability
 import timber.log.Timber
 
 /**
@@ -50,6 +48,13 @@ object GmsAvailabilityChecker {
             Timber.i("GmsAvailabilityChecker: XR device detected, skipping GMS availability check")
             return
         }
+        // S0403: same reasoning, one step earlier - a build that does not link Play Services cannot
+        // offer the "update Play Services" CTA either, and BaseActivity raises its snackbar on ANY
+        // non-OK cached status. Leaving the cache at OK is what keeps that entry point absent.
+        // [evaluateLive] and [recheckFor] stay honest for callers that branch on the real answer.
+        if (!GmsAvailabilityProbe.IS_SUPPORTED) {
+            return
+        }
         status = evaluate(context, minApkVersion = 0)
     }
 
@@ -76,26 +81,11 @@ object GmsAvailabilityChecker {
      */
     fun evaluateLive(context: Context): Status = evaluate(context, minApkVersion = 0)
 
-    private fun evaluate(context: Context, minApkVersion: Int): Status {
-        return try {
-            val code = GoogleApiAvailability.getInstance()
-                .isGooglePlayServicesAvailable(context, minApkVersion)
-            when (code) {
-                ConnectionResult.SUCCESS -> Status.OK
-                ConnectionResult.SERVICE_VERSION_UPDATE_REQUIRED -> {
-                    Timber.w("GmsAvailabilityChecker: Google Play Services update required (code=$code, minApkVersion=$minApkVersion)")
-                    Status.UPDATE_REQUIRED
-                }
-                else -> {
-                    Timber.w("GmsAvailabilityChecker: Google Play Services unavailable (code=$code, minApkVersion=$minApkVersion)")
-                    Status.UNAVAILABLE
-                }
-            }
-        } catch (e: Exception) {
-            Timber.w(e, "GmsAvailabilityChecker: check failed (minApkVersion=$minApkVersion)")
-            Status.UNAVAILABLE
-        }
-    }
+    // S0403: the GMS call itself lives in GmsAvailabilityProbe, which has one copy per flavor
+    // (src/playServicesEnabled, src/playServicesDisabled). That is the only reason this file no
+    // longer names com.google.android.gms - it is otherwise unchanged.
+    private fun evaluate(context: Context, minApkVersion: Int): Status =
+        GmsAvailabilityProbe.evaluate(context, minApkVersion)
 
     fun isWarningSeen(context: Context): Boolean =
         prefs(context).getBoolean(PREFS_KEY_WARNING_SEEN, false)

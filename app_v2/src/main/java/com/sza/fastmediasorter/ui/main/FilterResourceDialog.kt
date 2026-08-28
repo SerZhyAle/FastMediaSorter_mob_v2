@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.databinding.DialogFilterResourceBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
+import com.sza.fastmediasorter.domain.scanner.WearWatchMediaScanner
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -34,6 +35,8 @@ class FilterResourceDialog : DialogFragment() {
     @Inject lateinit var remoteSourceGate: RemoteSourceAvailabilityGate
 
     @Inject lateinit var mediaCapabilities: MediaCapabilities
+
+    @Inject lateinit var wearWatchMediaScanner: WearWatchMediaScanner
 
     private var _binding: DialogFilterResourceBinding? = null
     private val binding get() = _binding!!
@@ -135,19 +138,16 @@ class FilterResourceDialog : DialogFragment() {
     private fun setupResourceTypeChips() {
         binding.chipGroupResourceType.removeAllViews()
 
-        // S0391: chips reflect the availability node (compile support AND user toggle), not just flavor.
-        // HTTP_STREAM/RTSP_STREAM excluded: no UI entry point creates a resource of these types
-        // (AddResourceActivity only offers LOCAL/SMB/SFTP/FTP/CLOUD), so a filter chip for them
-        // can never match a real resource - dead/confusing option in this dialog.
+        // S2085: HTTP_STREAM/RTSP_STREAM creation point added to AddResourceActivity.
         val allowedResourceTypes = ResourceType.values().filter { type ->
             when (type) {
                 ResourceType.LOCAL -> true
                 ResourceType.CLOUD -> remoteSourceGate.anyCloudEnabled()
-                ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> false
-                // S1861: same reason as the streams above - no UI entry point creates a watch
-                // resource yet, so the chip could only ever match nothing. Flip this to a
-                // capability check once the add-resource flow offers the watch.
-                ResourceType.WEAR_WATCH -> false
+                ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> true
+                // S2106: mirrors AddResourceViewModel.isPairedWatchAvailable - the same build-capability
+                // flag (source set wearGms vs wearStub) that decides whether the add-resource screen
+                // offers a paired-watch entry point, not whether a watch is reachable right now.
+                ResourceType.WEAR_WATCH -> wearWatchMediaScanner.isCompanionAvailable
                 else -> RemoteSourceId.networkFromResourceType(type)
                     ?.let { remoteSourceGate.isEnabled(it) } ?: true
             }

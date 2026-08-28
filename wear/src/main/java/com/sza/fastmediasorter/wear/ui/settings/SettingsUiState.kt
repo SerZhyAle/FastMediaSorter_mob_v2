@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.ui.settings
 
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
 import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
+import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 
 /**
@@ -14,7 +15,8 @@ data class SettingsUiState(
     val isAudioEnabled: Boolean = true,
     val isVideoEnabled: Boolean = true,
     val isImagesEnabled: Boolean = true,
-    
+    val isDocumentsEnabled: Boolean = true,
+
     // Slideshow
     val isSlideshowEnabled: Boolean = false,
     val slideshowIntervalSeconds: Int = 5,
@@ -59,3 +61,28 @@ data class SettingsUiState(
     val appVersion: String = "",
     val buildNumber: String = ""
 )
+
+/**
+ * The content types the user has left switched on.
+ *
+ * S2130: each category screen used to map its own token strings back onto these booleans in a private
+ * `when`, so a type could be added to the vocabulary without a single screen failing to compile. This
+ * is the one translation from settings into the language `BrowseCategoryCatalog` speaks.
+ *
+ * Whether an origin can present a type at all is a separate question, and the catalog's availability
+ * predicate is what answers it: this set says what the user allows, not what the source can show.
+ */
+fun SettingsUiState.allowedContentTypes(): Set<WearContentType> = buildSet {
+    if (isAudioEnabled) {
+        add(WearContentType.MUSIC)
+    }
+    if (isVideoEnabled) {
+        add(WearContentType.VIDEO)
+    }
+    if (isImagesEnabled) {
+        add(WearContentType.IMAGE)
+    }
+    if (isDocumentsEnabled) {
+        add(WearContentType.DOCUMENT)
+    }
+}

@@ -56,6 +56,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
 # ---------- result shape ----------
 
 $script:result = [ordered]@{

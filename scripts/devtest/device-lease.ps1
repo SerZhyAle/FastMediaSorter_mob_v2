@@ -81,6 +81,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
 . (Join-Path $PSScriptRoot '..\utils\agent-lock.ps1')
 
 $timings = Get-AgentLockTimings -Name Device

@@ -3,9 +3,6 @@
     <string name="app_name">FastMedia Wear</string>
     <!-- S1724: title of the settings group that holds what the named groups do not. -->
     <string name="settings_group_other">Other</string>
-    <string name="music">Music</string>
-    <string name="videos">Videos</string>
-    <string name="photos">Photos</string>
     <string name="play">Play</string>
     <string name="pause">Pause</string>
     <string name="previous">Previous</string>
@@ -383,4 +380,24 @@
     <string name="wear_setting_background_mode">Watch Background</string>
     <string name="wear_background_mode_animation">Branded animation</string>
     <string name="wear_background_mode_image">Your image</string>
+    <string name="wear_content_type_document">Document</string>
+    <string name="wear_content_type_folder">Folder</string>
+    <string name="wear_browse_search">Search files</string>
+    <string name="wear_browse_filter">Filter files</string>
+    <string name="wear_browse_sort">Sort files</string>
+    <string name="wear_browse_search_hint">Search</string>
+    <string name="wear_browse_clear_search">Clear search</string>
+    <string name="wear_browse_search_unavailable">Search input is not available on this watch</string>
+    <string name="wear_browse_no_matches">Nothing here matches. Clear the search or the filter to see the whole list.</string>
+    <string name="wear_browse_filter_type_all">All types</string>
+    <string name="wear_browse_sort_default">Default order</string>
+    <string name="wear_browse_sort_name_asc">Name (A-Z)</string>
+    <string name="wear_browse_sort_name_desc">Name (Z-A)</string>
+    <string name="wear_browse_sort_date_asc">Date (oldest first)</string>
+    <string name="wear_browse_sort_date_desc">Date (newest first)</string>
+    <string name="wear_browse_sort_size_asc">Size (smallest first)</string>
+    <string name="wear_browse_sort_size_desc">Size (largest first)</string>
+    <string name="enable_documents">Enable Documents</string>
+    <string name="wear_settings_sections">Sections</string>
+    <string name="phone_resource_no_resource_for_type">No phone resource is set up to hold this type.</string>
 </resources>

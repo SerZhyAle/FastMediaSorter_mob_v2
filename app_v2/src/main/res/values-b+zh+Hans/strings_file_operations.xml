@@ -99,7 +99,6 @@
     <string name="file_deleted">已删除“%1$s”</string>
     <string name="file_info">文件信息</string>
     <string name="file_info_copy_path">复制路径</string>
-    <string name="file_info_copy_path_done">复制的路径</string>
     <string name="file_info_directory_label">目录：%1$s</string>
     <string name="file_info_extension_mime_label">格式：%1$s · %2$s</string>
     <string name="file_info_filename_label">文件：%1$s</string>

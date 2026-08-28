@@ -8,12 +8,6 @@
     -->
     <attr name="customPlayerControlsLayout" format="reference" />
 
-    <!-- Unified dialog action-button sizing (S0538). Default theme binds the large dimens; the
-         ThemeOverlay.FastMediaSorter.CompactDialogButtons overlay (applied in BaseActivity when
-         "Compact elements (global)" is on) rebinds them to the 50% compact dimens. -->
-    <attr name="dialogActionButtonMinHeight" format="dimension|reference" />
-    <attr name="dialogActionButtonGap" format="dimension|reference" />
-
     <!-- S1895: foreground colours of the launcher taskbar and Start panel. Each theme supplies its
          own value, measured against the surface it lands on by assert-launcher-contrast.ps1. They
          are launcher-scoped rather than M3 roles because the same roles paint the rest of the app,

@@ -33,7 +33,7 @@ $gradlew = "$projectRoot\gradlew.bat"
 # per ABI so the phone and the emulator each get their own APK. No release builder passes it, so a
 # release still emits one all-architecture APK per flavor (S1972).
 $gradleArgs = @(
-    "assembleStandardDebug",
+    ":app_v2:assembleStandardDebug",
     "-Pchaquopy.enabled=false",
     "-Pfms.abiSplits=true",
     "--configuration-cache"

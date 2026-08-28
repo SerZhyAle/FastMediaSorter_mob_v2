@@ -49,4 +49,30 @@ class LauncherWidgetTokenTest {
     fun `distinct sentinel and top of range`() {
         assertNotEquals(LauncherWidgetToken.NONE, LauncherWidgetToken.MAX_TOKEN)
     }
+
+    /**
+     * The platform is not the only allocator of ids that travel in `EXTRA_APPWIDGET_ID`. The app parks
+     * its own hand-written sentinels there, and the first version of this range began at -1, so its
+     * thousandth token would have been the app-launch panel's -1000 - a cell whose captures went to the
+     * panel's camera folder instead of its own target, with no exception and no log.
+     *
+     * Every such value goes in the list below when it is introduced. A new one that lands inside the
+     * token range fails here rather than in the field.
+     */
+    @Test
+    fun `ids this app reserves for itself are not launcher tokens`() {
+        RESERVED_APP_IDS.forEach { (name, id) ->
+            assertFalse(
+                "$name = $id falls inside the launcher token range, so a minted token can impersonate it",
+                LauncherWidgetToken.isLauncherToken(id),
+            )
+        }
+    }
+
+    private companion object {
+        val RESERVED_APP_IDS = listOf(
+            "CameraQuickCaptureLaunchManager.PANEL_APP_WIDGET_ID" to
+                CameraQuickCaptureLaunchManager.PANEL_APP_WIDGET_ID,
+        )
+    }
 }

@@ -2603,7 +2603,6 @@
     <string name="stream_info_state_empty">Nicht gesetzt</string>
     <string name="stream_info_not_in_catalog">Dieser Kanal ist nicht in deiner Liste, daher ist nichts über ihn gespeichert. Füge ihn zur Liste hinzu, um seine Details zu behalten.</string>
     <string name="stream_info_copy">Alles kopieren</string>
-    <string name="stream_info_copied">Details kopiert</string>
     <string name="stream_info_value_picture_size">%1$d x %2$d</string>
     <string name="stream_info_value_frame_rate">%1$s fps</string>
     <string name="stream_info_value_bitrate">%1$s kbit/s</string>
@@ -2817,7 +2816,6 @@
     <string name="launcher_gadget_map_actions_at">Karte von %1$s. Tippen Sie hier, um die Karten-App zu öffnen.</string>
     <string name="browse_empty_filtered_out">%1$d-Dateien werden durch die Einstellung für die maximale Dateigröße ausgeblendet.</string>
     <string name="browse_empty_filtered_out_hint">Erhöhen Sie die maximale Dateigröße in den Einstellungen, um sie anzuzeigen.</string>
-    <string name="network_monitor_ip_addresses_label">IP-Adressen</string>
     <string name="network_monitor_permission_grant">Berechtigung nicht erteilt. Tippen Sie hier, um sie zu erteilen.</string>
     <string name="network_monitor_permission_open_settings">Die Berechtigung wurde blockiert. Tippen Sie hier, um die App-Einstellungen zu öffnen.</string>
     <string name="cast_cropping_stereo">Die Einzelbild-Kopie wird vorbereitet..</string>

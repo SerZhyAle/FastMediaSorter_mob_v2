@@ -58,7 +58,7 @@ if ($DryRun) {
 Push-Location $projectRoot
 try {
     Write-Host "Running: gradlew assembleVrRelease" -ForegroundColor Yellow
-    & $gradlew assembleVrRelease "-Pchaquopy.enabled=false" --configuration-cache
+    & $gradlew :app_v2:assembleVrRelease "-Pchaquopy.enabled=false" --configuration-cache
     $buildExit = $LASTEXITCODE
 }
 finally {

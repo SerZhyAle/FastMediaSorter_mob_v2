@@ -53,22 +53,135 @@ class ListPhoneResourcePageUseCase @Inject constructor(
             }
             WearPhoneResourceRequestKind.CHILDREN -> listChildren(request)
             WearPhoneResourceRequestKind.OPEN -> failure(request, WearPhoneResourceResponseStatus.NOT_FOUND)
+            WearPhoneResourceRequestKind.THUMBNAIL -> thumbnailFor(request)
         }
 
-    // S1911: the scan is a plugin boundary - any host, protocol or provider failure must become one
-    // domain answer, so the broad arm is the contract rather than laziness. The one throwable that
-    // must NOT be folded in, CancellationException, is rethrown as the first arm above it.
+    /**
+     * S2129: one picture for one item, answered as a page carrying that item alone.
+     *
+     * No clock allowance guards this branch, deliberately. S1860 records below that the decoder is
+     * blocking and does not answer cancellation, so an allowance can only stop the NEXT decode and
+     * never the running one - which is why the page-wide clock protected nothing and starved the
+     * items behind it instead. One request carrying one picture is already bounded by the watch's
+     * own ten-second wait, and an overrun now costs that single row rather than every row behind it.
+     *
+     * A file that cannot produce a picture answers OK with a null picture, never an error: the watch
+     * draws its type glyph either way, and a failure status would be reported to the owner as one.
+     */
+    private suspend fun thumbnailFor(request: WearPhoneResourceRequest): WearPhoneResourcePage {
+        val token = request.itemToken?.let { PhoneResourceToken.parse(it) }
+            ?: return failure(request, WearPhoneResourceResponseStatus.NOT_FOUND)
+
+        val lookup = runCatching { resourceRepository.getResourceById(token.resourceId) }
+            .onFailure { Timber.w(it, "Phone resource lookup failed for thumbnail") }
+        val resource = lookup.getOrNull()
+
+        return when {
+            lookup.isFailure -> failure(request, WearPhoneResourceResponseStatus.PHONE_UNAVAILABLE)
+            resource == null -> failure(request, WearPhoneResourceResponseStatus.NOT_FOUND)
+            !resource.isExposedToWatch() -> failure(request, WearPhoneResourceResponseStatus.ACCESS_DENIED)
+            else -> singleItemPage(request, token, resource)
+        }
+    }
+
+    private suspend fun singleItemPage(
+        request: WearPhoneResourceRequest,
+        token: PhoneResourceToken,
+        resource: MediaResource
+    ): WearPhoneResourcePage {
+        val file = locateFile(token, resource)
+            ?: return failure(request, WearPhoneResourceResponseStatus.NOT_FOUND)
+
+        // The parent the wire token is rebuilt against, so the answer addresses the item exactly as
+        // the request did rather than under a second spelling of the same file.
+        val parent = PhoneResourceToken(
+            resourceId = token.resourceId,
+            relativePath = token.relativePath.substringBeforeLast('/', "")
+        )
+        // The picture is built here rather than left to the page path's gate: that gate is the page's
+        // shared allowance and step 05.3 removes it, after which the page answers with no picture at
+        // all and this branch is the only producer. The per-picture ceiling still applies - it lives
+        // inside BuildWatchThumbnailUseCase, not in the gate.
+        val picture = buildWatchThumbnail(file)
+        return WearPhoneResourcePage(
+            requestId = request.requestId,
+            status = WearPhoneResourceResponseStatus.OK,
+            items = listOf(file.toWireItem(parent) { _ -> picture })
+        )
+    }
+
+    /**
+     * The file a token addresses, or null when the resource no longer holds it.
+     *
+     * A scan is the only way back from a token to a file: the token is stateless by design, so there
+     * is no server-side table to look the item up in. A path token scans the folder it names; a
+     * MediaStore token scans the resource root, because an element of a virtual resource has no path
+     * inside that resource and is separated from its same-named siblings only by its store id.
+     */
+    // S1911: same plugin boundary as the listing paths - any host or provider failure becomes one
+    // domain answer, and only CancellationException is let through.
     @Suppress("TooGenericExceptionCaught")
+    private suspend fun locateFile(token: PhoneResourceToken, resource: MediaResource): MediaFile? {
+        val byMediaStoreId = token.mediaStoreId != null
+        val scanPath = if (byMediaStoreId) {
+            resource.path
+        } else {
+            PhoneResourceToken(token.resourceId, token.relativePath.substringBeforeLast('/', ""))
+                .resolveAgainst(resource)
+        }
+
+        val children = runCatching { mediaScannerFactory.getScanner(resource.type) }.getOrNull()
+            ?.let { scanner ->
+                try {
+                    withinScanBudget(scanDeadline()) {
+                        scanner.listDirectoryContents(
+                            path = scanPath,
+                            supportedTypes = resource.supportedMediaTypes,
+                            credentialsId = resource.credentialsId,
+                            showHiddenFiles = resource.showHiddenFiles
+                        )
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Timber.w(e, "Phone resource thumbnail listing failed")
+                    null
+                }
+            }
+
+        val visible = children?.visibleTo(resource)?.filterNot { it.isDirectory }.orEmpty()
+        return if (byMediaStoreId) {
+            visible.firstOrNull { it.mediaStoreIdOrNull() == token.mediaStoreId }
+        } else {
+            visible.firstOrNull { it.name == token.relativePath.substringAfterLast('/') }
+        }
+    }
+
     private suspend fun listFlatItems(request: WearPhoneResourceRequest): WearPhoneResourcePage {
         val filter = request.mediaTypeFilter()
-        val resources = runCatching { resourceRepository.getAllResourcesSync() }
+        val exposed = runCatching { resourceRepository.getAllResourcesSync() }
             .getOrElse { error ->
                 Timber.w(error, "Phone resource roots unavailable for flat list")
                 return failure(request, WearPhoneResourceResponseStatus.PHONE_UNAVAILABLE)
             }
             .filter { it.isExposedToWatch() }
-            .filter { it.holdsAnyOf(filter) }
 
+        // The gap is answered before the walk, not after it: scanning every exposed resource to
+        // produce an empty page would spend the watch's whole wait to learn what the resource
+        // configuration already said.
+        return typeGapOrNull(request, exposed, filter)
+            ?: scanFlatItems(request, exposed.filter { it.holdsAnyOf(filter) }, filter)
+    }
+
+    // S1911: the scan is a plugin boundary - any host, protocol or provider failure must become one
+    // domain answer, so the broad arm is the contract rather than laziness. The one throwable that
+    // must NOT be folded in, CancellationException, is rethrown as the first arm above it.
+    @Suppress("TooGenericExceptionCaught")
+    private suspend fun scanFlatItems(
+        request: WearPhoneResourceRequest,
+        resources: List<MediaResource>,
+        filter: Set<MediaType>?
+    ): WearPhoneResourcePage {
         // S1860: one allowance for the whole walk, not one per resource - this list scans every
         // exposed resource in turn, so a single dead host must not spend the watch's whole wait.
         val deadline = scanDeadline()
@@ -109,15 +222,47 @@ class ListPhoneResourcePageUseCase @Inject constructor(
     }
 
     private suspend fun listRoots(request: WearPhoneResourceRequest): WearPhoneResourcePage {
-        val visible = runCatching { resourceRepository.getAllResourcesSync() }
+        val filter = request.mediaTypeFilter()
+        val exposed = runCatching { resourceRepository.getAllResourcesSync() }
             .getOrElse { error ->
                 Timber.w(error, "Phone resource roots unavailable")
                 return failure(request, WearPhoneResourceResponseStatus.PHONE_UNAVAILABLE)
             }
             .filter { it.isExposedToWatch() }
-            .filter { it.holdsAnyOf(request.mediaTypeFilter()) }
 
-        return page(request, visible) { resource, _ -> resource.toRootItem() }
+        return typeGapOrNull(request, exposed, filter)
+            ?: page(request, exposed.filter { it.holdsAnyOf(filter) }) { resource, _ ->
+                resource.toRootItem()
+            }
+    }
+
+    /**
+     * S2130 ADR-5: the answer that names why this category is empty, or null when that is not what
+     * emptied it.
+     *
+     * Both conditions matter. With no filter there is no category to blame - the watch asked for
+     * everything and everything is what it got. With nothing exposed at all the phone is simply
+     * showing the watch nothing, which is the ordinary EMPTY answer about the phone rather than a
+     * statement about this category, and answering otherwise would tell someone with no configured
+     * resources that their videos are misconfigured.
+     *
+     * The narrowing itself is not revisited here: strategic ADR-5 keeps it, because it carries out
+     * the owner's own per-resource choice. What changes is that the choice now explains itself.
+     */
+    private fun typeGapOrNull(
+        request: WearPhoneResourceRequest,
+        exposed: List<MediaResource>,
+        filter: Set<MediaType>?
+    ): WearPhoneResourcePage? {
+        val blamesTheCategory = filter != null &&
+            exposed.isNotEmpty() &&
+            exposed.none { it.holdsAnyOf(filter) }
+        return if (blamesTheCategory) {
+            Timber.i("No exposed resource holds %s - answering the watch with the reason", request.mediaType)
+            failure(request, WearPhoneResourceResponseStatus.NO_RESOURCE_FOR_TYPE)
+        } else {
+            null
+        }
     }
 
     private suspend fun listChildren(request: WearPhoneResourceRequest): WearPhoneResourcePage {

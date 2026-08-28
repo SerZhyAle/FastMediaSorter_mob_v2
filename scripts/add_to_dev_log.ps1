@@ -102,12 +102,22 @@ $safeDesc = $Description -replace '\|', '\|'
 # The signature closes on the `[branch:` marker that follows the description in every row,
 # so it matches a whole description and not a prefix of one - before this, a row described
 # as "Fix A" counted as a duplicate of a row described as "Fix A and B".
+#
+# S2072: the anchor file is NOT part of the key either. post-change.ps1 writes the first element
+# of the caller's -Files set into the File column, so the anchor encodes file ORDER, not the
+# identity of the change - and the closure rule asks the caller to name the whole set, which an
+# agent re-running a closure after fixing a gate naturally rebuilds shorter or in another order.
+# That moved the anchor, the signature missed, and a second permanent row landed for one logical
+# change (observed on S2000: same target, same description, 37-file set then 16-file set). What
+# identifies a change is what the caller asserted about it - target plus description - so those
+# are the whole key. Two genuinely distinct changes sharing both, inside the 8-row window, are
+# what -AllowDuplicate is for; collapsing them is also what Rule 12 journalling granularity asks.
 $setSuffixInDesc = '\s*\[set of \d+:[^\]]*\]\s*$'
 # In a written row the tail sits immediately before the branch tag; anchoring there keeps a
 # `[set of ..]` a caller typed inside its own prose out of it.
 $setSuffixInRow  = '\s*\[set of \d+:[^\]]*\](?=\s*\[branch:)'
 $coreDesc = $safeDesc -replace $setSuffixInDesc, ''
-$signature = "``$safeFile`` | ``$safeTarget`` | $coreDesc [branch:"
+$signature = "``$safeTarget`` | $coreDesc [branch:"
 if (-not $AllowDuplicate) {
     $dataRows = @(Get-Content -Path $logFile -Encoding UTF8 | Where-Object { $_ -match '^\|\s\d{4}-\d{2}-\d{2}' })
     if ($dataRows.Count -gt 0) {

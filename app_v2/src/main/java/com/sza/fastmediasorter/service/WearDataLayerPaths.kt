@@ -60,6 +60,20 @@ object WearDataLayerPaths {
     const val STREAM_TRANSFER_ACK = "/fms/watch/stream_transfer_ack"
 
     /**
+     * Data Item, phone → watch. Carries the whole set of pinned stream identities (S2149).
+     *
+     * A Data Item rather than a Message because the set is state, not an event: a watch switched on a
+     * day later must see the current set rather than have missed the moment it changed. The set is
+     * always sent whole - never a delta and never skipped when empty - because replacing it is the only
+     * thing that lets an unpin on the phone withdraw the channel from the watch's top group.
+     *
+     * The path deliberately sits under `/fms/phone`, a prefix `wear/src/main/AndroidManifest.xml`
+     * already declares for the watch listener, so it needs no manifest edit. A path named outside an
+     * already-declared prefix is silently dropped by GMS - the S1697 failure.
+     */
+    const val STREAM_PINS = "/fms/phone/stream_pins"
+
+    /**
      * Channel, either direction. Carries the bytes of one file sent to the paired watch (S1861).
      *
      * The file name rides in the path as a trailing segment ("$FILE_TRANSFER/photo.jpg"): the watch
@@ -117,6 +131,9 @@ object WearDataLayerPaths {
 
     /** eventType value for SETTINGS_REPORT envelopes (S2093). */
     const val EVENT_SETTINGS_REPORT = "SETTINGS_REPORT"
+
+    /** eventType value for STREAM_PINS envelopes (S2149). */
+    const val EVENT_STREAM_PINS = "STREAM_PINS"
 
     /** eventType value for SOURCES_EXPORT envelopes. */
     const val EVENT_SOURCES_EXPORT = "SOURCES_EXPORT"

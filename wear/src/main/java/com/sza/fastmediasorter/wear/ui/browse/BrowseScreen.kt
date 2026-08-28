@@ -1,6 +1,9 @@
 package com.sza.fastmediasorter.wear.ui.browse
 
+import android.app.RemoteInput
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -23,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -41,7 +45,11 @@ import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.dialog.Alert
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.domain.browse.BrowseCategoryCatalog
+import com.sza.fastmediasorter.wear.domain.browse.BrowseRefineState
+import com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder
 import com.sza.fastmediasorter.wear.domain.model.MediaType
+import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperation
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationOutcome
@@ -50,14 +58,28 @@ import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
+import com.sza.fastmediasorter.wear.ui.common.WEAR_SEARCH_INPUT_KEY
+import com.sza.fastmediasorter.wear.ui.common.WearChoiceDialog
 import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
+import com.sza.fastmediasorter.wear.ui.common.WearRefineControlHeader
+import com.sza.fastmediasorter.wear.ui.common.WearRefineHeaderActions
+import com.sza.fastmediasorter.wear.ui.common.WearRefineHeaderHeight
+import com.sza.fastmediasorter.wear.ui.common.WearRefineHeaderLabels
+import com.sza.fastmediasorter.wear.ui.common.WearRefineHeaderState
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.WearSearchDialog
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
+import com.sza.fastmediasorter.wear.ui.common.labelForContentType
+import com.sza.fastmediasorter.wear.ui.common.labelForSortOrder
+import com.sza.fastmediasorter.wear.ui.common.launchWearSearchInput
 import com.sza.fastmediasorter.wear.ui.common.playerRouteFor
 import com.sza.fastmediasorter.wear.ui.common.rememberWearRenameInput
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
+import com.sza.fastmediasorter.wear.ui.player.common.VolumeIndicatorBar
+import com.sza.fastmediasorter.wear.ui.player.common.VolumeIndicatorViewModel
+import com.sza.fastmediasorter.wear.ui.player.common.VolumeReadout
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
 
@@ -86,7 +108,9 @@ fun BrowseScreen(
 
     // Initialize ViewModel with navigation args
     LaunchedEffect(mediaTypeArg, sourceId) {
-        viewModel.setNavigationArgs(mediaType, sourceId, sourceName)
+        // S2130: the raw token travels too. Documents, "all" and "recents" carry no MediaType, so
+        // collapsing the argument into one would hand the ViewModel a music request for all three.
+        viewModel.setNavigationArgs(mediaType, sourceId, sourceName, mediaTypeArg)
         viewModel.loadMediaFiles()
     }
 
@@ -97,6 +121,10 @@ fun BrowseScreen(
     val selectedIds by viewModel.selectedFileIds.collectAsStateWithLifecycle()
     val allowedOperations by viewModel.allowedOperations.collectAsStateWithLifecycle()
     val operationRun by viewModel.operationRun.collectAsStateWithLifecycle()
+    // S2140: its own holder, not a field on BrowseViewModel - the reading belongs to the indicator, so
+    // another screen adopting the bar needs this one line and no edit to its state holder.
+    val volumeViewModel: VolumeIndicatorViewModel = hiltViewModel()
+    val volume by volumeViewModel.readout.collectAsStateWithLifecycle()
     val title = viewModel.getScreenTitle().resolveText()
 
     var showActions by remember { mutableStateOf(false) }
@@ -105,16 +133,7 @@ fun BrowseScreen(
         viewModel.runOperation(WearFileOperation.Rename(newName))
     }
 
-    // S2070: log the state kind and, for Success, the file count only - never interpolate
-    // $uiState directly. BrowseUiState.Success wraps a data class list, so a full toString()
-    // walks every WearMediaFile in it on every recomposition, and the string is built by this
-    // call site before any planted Timber.Tree gets to filter it by priority.
-    val uiStateSnapshot = uiState
-    val uiStateSummary = when (uiStateSnapshot) {
-        is BrowseUiState.Success -> "Success(files=${uiStateSnapshot.files.size})"
-        else -> uiStateSnapshot.javaClass.simpleName
-    }
-    Timber.d("BrowseScreen composing with state: $uiStateSummary")
+    Timber.d("BrowseScreen composing with state: ${uiState.summarize()}")
 
     // Selection mode owns back first: leaving the screen with a selection still armed would strand
     // the user's choice on a list they can no longer see.
@@ -126,14 +145,18 @@ fun BrowseScreen(
 
     val listState = rememberScalingLazyListState()
 
+    val refineState by viewModel.refineState.collectAsStateWithLifecycle()
+
     BrowseScaffold(
         uiState = uiState,
         listState = listState,
+        refine = browseRefineUi(viewModel, refineState),
         presentation = BrowseListPresentation(
             title = title,
             thumbnails = thumbnails,
             mediaType = mediaType,
-            viewMode = fileListViewMode
+            viewMode = fileListViewMode,
+            volume = volume
         ),
         selection = MediaSelectionState(
             selectedIds = selectedIds,
@@ -168,6 +191,150 @@ fun BrowseScreen(
         onActionsVisibilityChange = { showActions = it },
         onDeleteVisibilityChange = { showDeleteConfirm = it },
         onRequestRename = requestRename
+    )
+
+    BrowseRefineDialogsHost(refine = refineState, viewModel = viewModel)
+}
+
+/**
+ * S2070: the state's kind, and for Success the file count only.
+ *
+ * Never interpolate the state itself. [BrowseUiState.Success] wraps a list of data classes, so a
+ * full `toString()` walks every [WearMediaFile] on every recomposition - and the call site builds
+ * that string before any planted `Timber.Tree` gets to filter it by priority.
+ */
+private fun BrowseUiState.summarize(): String = when (this) {
+    is BrowseUiState.Success -> "Success(files=${files.size})"
+    else -> javaClass.simpleName
+}
+
+/** S2136: binds the refine header to the ViewModel that answers it. */
+private fun browseRefineUi(
+    viewModel: BrowseViewModel,
+    refineState: BrowseRefineState
+) = BrowseRefineUi(
+    state = refineState,
+    // ADR-2: read off the loaded list, not off the route - a category screen lists one type, and
+    // its filter icon would open a dialog offering that single type.
+    showFilter = viewModel.presentContentTypes().size > 1,
+    onSearchClick = {
+        // A new attempt retires the previous refusal, so the notice does not outlive the condition
+        // it reported.
+        viewModel.setSearchInputUnavailable(false)
+        viewModel.setShowSearchDialog(true)
+    },
+    onFilterClick = { viewModel.setShowFilterDialog(true) },
+    onSortClick = { viewModel.setShowSortDialog(true) }
+)
+
+/** S2136: what the refine header needs from the screen's state, in one carrier. */
+private data class BrowseRefineUi(
+    val state: BrowseRefineState,
+    val showFilter: Boolean,
+    val onSearchClick: () -> Unit,
+    val onFilterClick: () -> Unit,
+    val onSortClick: () -> Unit
+)
+
+/**
+ * S2136: hands the watch's input result back to the ViewModel as a search query.
+ *
+ * The fallback over the whole bundle is the streams screen's, kept because some input activities
+ * answer under a key of their own rather than the one the request named, and a query that arrived
+ * but was read under the wrong key looks exactly like a query the user never typed.
+ */
+@Composable
+private fun rememberBrowseSearchInput(viewModel: BrowseViewModel): () -> Unit {
+    val searchHint = stringResource(R.string.wear_browse_search_hint)
+    val searchLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val results = result.data?.let { RemoteInput.getResultsFromIntent(it) }
+        val query = results?.let { bundle ->
+            bundle.getCharSequence(WEAR_SEARCH_INPUT_KEY)?.toString()
+                ?: bundle.keySet().firstNotNullOfOrNull { key ->
+                    bundle.getCharSequence(key)?.toString()?.takeIf { it.isNotBlank() }
+                }
+        }
+        if (!query.isNullOrBlank()) {
+            viewModel.setSearchQuery(query)
+        }
+    }
+    return {
+        launchWearSearchInput(
+            searchHint = searchHint,
+            onUnavailable = { viewModel.setSearchInputUnavailable(true) },
+            launch = { searchLauncher.launch(it) }
+        )
+    }
+}
+
+/** S2136: the three dialogs behind the refine header, each shown by its own flag. */
+@Composable
+private fun BrowseRefineDialogsHost(
+    refine: BrowseRefineState,
+    viewModel: BrowseViewModel
+) {
+    // The launcher is remembered here rather than by the screen: it exists only to answer this
+    // dialog, and hoisting it made the screen carry a value it never read itself.
+    val onLaunchInput = rememberBrowseSearchInput(viewModel)
+    if (refine.showSearchDialog) {
+        WearSearchDialog(
+            title = stringResource(R.string.wear_browse_search),
+            inputLabel = stringResource(R.string.wear_browse_search_hint),
+            clearLabel = stringResource(R.string.wear_browse_clear_search),
+            currentQuery = refine.searchQuery,
+            onLaunchInput = onLaunchInput,
+            onClear = {
+                viewModel.setSearchQuery("")
+                viewModel.setShowSearchDialog(false)
+            },
+            onDismiss = { viewModel.setShowSearchDialog(false) }
+        )
+    }
+
+    if (refine.showSortDialog) {
+        WearChoiceDialog(
+            title = stringResource(R.string.wear_browse_sort),
+            options = viewModel.availableSortOrders(),
+            selected = refine.sortOrder,
+            labelOf = { stringResource(labelForSortOrder(it)) },
+            onSelected = viewModel::setSortOrder,
+            onDismiss = { viewModel.setShowSortDialog(false) }
+        )
+    }
+
+    if (refine.showFilterDialog) {
+        BrowseTypeFilterDialog(
+            present = viewModel.presentContentTypes(),
+            selected = refine.contentTypes,
+            onSelected = viewModel::setContentTypes,
+            onDismiss = { viewModel.setShowFilterDialog(false) }
+        )
+    }
+}
+
+/**
+ * S2136: the type filter, offered as one choice rather than a set of toggles.
+ *
+ * A null option is the "all types" row that clears the set - modelling it as an absent value keeps
+ * [WearChoiceDialog] generic instead of teaching it what "everything" means for this screen.
+ */
+@Composable
+private fun BrowseTypeFilterDialog(
+    present: List<WearContentType>,
+    selected: Set<WearContentType>,
+    onSelected: (Set<WearContentType>) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val allTypes = stringResource(R.string.wear_browse_filter_type_all)
+    WearChoiceDialog(
+        title = stringResource(R.string.wear_browse_filter),
+        options = listOf(null) + present,
+        selected = selected.singleOrNull(),
+        labelOf = { type -> if (type == null) allTypes else stringResource(labelForContentType(type)) },
+        onSelected = { type -> onSelected(if (type == null) emptySet() else setOf(type)) },
+        onDismiss = onDismiss
     )
 }
 
@@ -284,13 +451,19 @@ private fun WearFileOperationOutcome.messageRes(): Int = when (this) {
  * spells the type wrong is a real possibility rather than a theoretical one. The default stays - a
  * browse screen must still open - but it stops being silent: a wrong route used to be
  * indistinguishable from a deliberate music request.
+ *
+ * S2130: a token the catalog knows but no MediaType covers - documents, "all", "recents" - is not a
+ * spelling mistake. The ViewModel routes those three by token and never reads this value for them,
+ * so they take the default without the error line that a genuinely unknown token still earns.
  */
 private fun parseMediaType(mediaTypeArg: String?): MediaType = when (mediaTypeArg) {
-    "music" -> MediaType.MUSIC
-    "videos" -> MediaType.VIDEO
-    "photos" -> MediaType.PHOTO
+    BrowseCategoryCatalog.TOKEN_MUSIC -> MediaType.MUSIC
+    BrowseCategoryCatalog.TOKEN_VIDEOS -> MediaType.VIDEO
+    BrowseCategoryCatalog.TOKEN_PHOTOS -> MediaType.PHOTO
     else -> {
-        Timber.e("Browse: unknown media type argument '%s'; falling back to MUSIC", mediaTypeArg)
+        if (BrowseCategoryCatalog.categoryForToken(mediaTypeArg) == null) {
+            Timber.e("Browse: unknown media type argument '%s'; falling back to MUSIC", mediaTypeArg)
+        }
         MediaType.MUSIC
     }
 }
@@ -336,16 +509,25 @@ private fun MediaListContent(
     listState: ScalingLazyListState,
     viewMode: WearViewMode,
     selection: MediaSelectionState,
-    actions: MediaFileActions
+    actions: MediaFileActions,
+    volume: VolumeReadout
 ) {
     // The column count comes from the width this composable actually gets, never from the mode name -
     // the same rule the Resources page applies, so the two lists cannot drift apart.
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val columns = GridColumnFit.columnsFor(viewMode, maxWidth.value.toInt())
+        val screenInsets = wearScreenInsets()
         ScalingLazyColumn(
             modifier = Modifier.fillMaxSize(),
             state = listState,
-            contentPadding = wearScreenInsets(),
+            // S2136: the refine header is laid over this list rather than in it, so the list has to
+            // give back the height it covers - otherwise the first row starts under the icons.
+            contentPadding = PaddingValues(
+                start = screenInsets.calculateLeftPadding(LayoutDirection.Ltr),
+                top = screenInsets.calculateTopPadding() + WearRefineHeaderHeight,
+                end = screenInsets.calculateRightPadding(LayoutDirection.Ltr),
+                bottom = screenInsets.calculateBottomPadding()
+            ),
             scalingParams = WearGridScalingParams
         ) {
             item {
@@ -357,6 +539,13 @@ private fun MediaListContent(
                         .padding(vertical = 12.dp),
                     textAlign = TextAlign.Center
                 )
+            }
+
+            // S2140: unconditional, and second so it is read before the eye reaches the files. This is
+            // the last screen before a tap starts playback, which is the moment the warning is for -
+            // the category screens above deliberately do not carry it (strategic ADR-3).
+            item {
+                VolumeIndicatorBar(level = volume.level, max = volume.max)
             }
 
             // Offered only once a selection exists: on an untouched list they would be controls with
@@ -522,7 +711,8 @@ private data class BrowseListPresentation(
     val title: String,
     val thumbnails: Map<Long, WearThumbnail>,
     val mediaType: MediaType,
-    val viewMode: WearViewMode
+    val viewMode: WearViewMode,
+    val volume: VolumeReadout
 )
 
 /** What a stateless branch offers: repeat the load that failed, or leave the screen. */
@@ -536,6 +726,7 @@ private data class BrowseStateActions(
 private fun BrowseScaffold(
     uiState: BrowseUiState,
     listState: ScalingLazyListState,
+    refine: BrowseRefineUi,
     presentation: BrowseListPresentation,
     selection: MediaSelectionState,
     actions: MediaFileActions,
@@ -551,40 +742,113 @@ private fun BrowseScaffold(
             null
         }
     ) {
-        when (val state = uiState) {
-            is BrowseUiState.Loading -> {
-                LoadingContent()
-            }
-            is BrowseUiState.Success -> {
-                MediaListContent(
-                    title = presentation.title,
-                    data = MediaListData(
-                        files = state.files,
-                        thumbnails = presentation.thumbnails,
-                        mediaType = presentation.mediaType
+        // The header sits over the list rather than inside it (strategic 5.3): as a list item it
+        // would scroll away, and it has to stay reachable in exactly the states that need it - a
+        // search that emptied the list is undone from this row and nowhere else.
+        Box(modifier = Modifier.fillMaxSize()) {
+            BrowseStateBranch(
+                uiState = uiState,
+                listState = listState,
+                presentation = presentation,
+                selection = selection,
+                actions = actions,
+                stateActions = stateActions
+            )
+
+            Column(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(wearScreenInsets()),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                WearRefineControlHeader(
+                    state = WearRefineHeaderState(
+                        searchActive = refine.state.searchQuery.isNotBlank(),
+                        filterActive = refine.state.contentTypes.isNotEmpty(),
+                        sortActive = refine.state.sortOrder != BrowseSortOrder.DEFAULT,
+                        showFilter = refine.showFilter
                     ),
-                    listState = listState,
-                    viewMode = presentation.viewMode,
-                    selection = selection,
-                    actions = actions
+                    labels = WearRefineHeaderLabels(
+                        search = stringResource(R.string.wear_browse_search),
+                        filter = stringResource(R.string.wear_browse_filter),
+                        sort = stringResource(R.string.wear_browse_sort)
+                    ),
+                    actions = WearRefineHeaderActions(
+                        onSearchClick = refine.onSearchClick,
+                        onFilterClick = refine.onFilterClick,
+                        onSortClick = refine.onSortClick
+                    )
                 )
+
+                // The watch refused to offer any input path. Said here rather than in the dialog
+                // because the dialog has already closed by the time the refusal comes back, and an
+                // unsaid refusal reads as a search that matched everything (S1946).
+                if (refine.state.searchInputUnavailable) {
+                    Text(
+                        text = stringResource(R.string.wear_browse_search_unavailable),
+                        style = MaterialTheme.typography.caption2,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
-            is BrowseUiState.Empty -> {
-                // No retry: the load that produced this emptiness already succeeded.
-                WearStateBlock(
-                    kind = WearStateKind.EMPTY,
-                    message = state.message.resolveText(),
-                    onBack = stateActions.onBack
-                )
-            }
-            is BrowseUiState.Error -> {
-                WearStateBlock(
-                    kind = WearStateKind.ERROR,
-                    message = state.message.resolveText(),
-                    onRetry = stateActions.onRetry,
-                    onBack = stateActions.onBack
-                )
-            }
+        }
+    }
+}
+
+/** Picks the branch for the current state. The header above it is composed in every branch. */
+@Composable
+private fun BrowseStateBranch(
+    uiState: BrowseUiState,
+    listState: ScalingLazyListState,
+    presentation: BrowseListPresentation,
+    selection: MediaSelectionState,
+    actions: MediaFileActions,
+    stateActions: BrowseStateActions
+) {
+    when (val state = uiState) {
+        is BrowseUiState.Loading -> {
+            LoadingContent()
+        }
+        is BrowseUiState.Success -> {
+            MediaListContent(
+                title = presentation.title,
+                data = MediaListData(
+                    files = state.files,
+                    thumbnails = presentation.thumbnails,
+                    mediaType = presentation.mediaType
+                ),
+                listState = listState,
+                viewMode = presentation.viewMode,
+                selection = selection,
+                actions = actions,
+                volume = presentation.volume
+            )
+        }
+        is BrowseUiState.Empty -> {
+            // No retry: the load that produced this emptiness already succeeded.
+            WearStateBlock(
+                kind = WearStateKind.EMPTY,
+                message = state.message.resolveText(),
+                onBack = stateActions.onBack
+            )
+        }
+        is BrowseUiState.NoMatches -> {
+            // Deliberately not EMPTY and deliberately without Retry: the resource has files, the
+            // wearer's own narrowing is hiding them, and reloading would change nothing.
+            WearStateBlock(
+                kind = WearStateKind.EMPTY,
+                message = stringResource(R.string.wear_browse_no_matches),
+                onBack = stateActions.onBack
+            )
+        }
+        is BrowseUiState.Error -> {
+            WearStateBlock(
+                kind = WearStateKind.ERROR,
+                message = state.message.resolveText(),
+                onRetry = stateActions.onRetry,
+                onBack = stateActions.onBack
+            )
         }
     }
 }

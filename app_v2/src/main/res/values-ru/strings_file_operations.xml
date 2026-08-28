@@ -103,7 +103,6 @@
     <string name="file_deleted">«%1$s» удалён</string>
     <string name="file_info">Информация о файле</string>
     <string name="file_info_copy_path">Копировать путь</string>
-    <string name="file_info_copy_path_done">Путь скопирован</string>
     <string name="file_info_directory_label">Каталог: %1$s</string>
     <string name="file_info_extension_mime_label">Формат: %1$s · %2$s</string>
     <string name="file_info_filename_label">Файл: %1$s</string>

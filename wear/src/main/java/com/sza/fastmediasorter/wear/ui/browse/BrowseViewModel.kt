@@ -1,13 +1,21 @@
 package com.sza.fastmediasorter.wear.ui.browse
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.network.WearNetworkDataSources
+import com.sza.fastmediasorter.wear.domain.browse.BrowseCategoryCatalog
+import com.sza.fastmediasorter.wear.domain.browse.BrowseListProjection
+import com.sza.fastmediasorter.wear.domain.browse.BrowseRefineKeys
+import com.sza.fastmediasorter.wear.domain.browse.BrowseRefineRestore
+import com.sza.fastmediasorter.wear.domain.browse.BrowseRefineState
+import com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder
 import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
 import com.sza.fastmediasorter.wear.domain.model.MediaType
 import com.sza.fastmediasorter.wear.domain.model.NetworkBasePath
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
+import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperation
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationOutcome
@@ -15,6 +23,8 @@ import com.sza.fastmediasorter.wear.domain.model.WearFileOperationResult
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
+import com.sza.fastmediasorter.wear.domain.model.asContentType
+import com.sza.fastmediasorter.wear.domain.model.contentTypeForMime
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
@@ -22,12 +32,14 @@ import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearThumbnailRepository
 import com.sza.fastmediasorter.wear.domain.usecase.PerformWearFileOperationUseCase
+import com.sza.fastmediasorter.wear.ui.common.BrowseCategoryPresentation
 import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
 import com.sza.fastmediasorter.wear.util.MediaMimeTypes
 import com.sza.fastmediasorter.wear.util.WearThumbnailBudget
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -63,6 +75,20 @@ class BrowseViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow<BrowseUiState>(BrowseUiState.Loading)
     val uiState: StateFlow<BrowseUiState> = _uiState.asStateFlow()
+
+    /**
+     * S2136: the list exactly as the source returned it, never narrowed.
+     *
+     * Private because [uiState] publishes the projection of it and ADR-6 makes that substitution the
+     * whole point: every existing reader of `Success.files` - the player's paging set, "select all",
+     * the allowed-operation intersection - must follow what the wearer can actually see. Keeping the
+     * full list here rather than beside the projected one is what lets a cleared query re-project in
+     * memory instead of walking the folder or the network again.
+     */
+    private var loadedFiles: List<WearMediaFile> = emptyList()
+
+    private val _refineState = MutableStateFlow(BrowseRefineState())
+    val refineState: StateFlow<BrowseRefineState> = _refineState.asStateFlow()
 
     private val _selectedFile = MutableStateFlow<WearMediaFile?>(null)
     val selectedFile: StateFlow<WearMediaFile?> = _selectedFile.asStateFlow()
@@ -102,6 +128,16 @@ class BrowseViewModel @Inject constructor(
     private var _sourceId: String? = null
     private var _sourceName: String? = null
 
+    /**
+     * S2130: the category the route asked for, which is what [_mediaType] cannot express.
+     *
+     * Documents, "all" and "recents" are categories with no [MediaType] of their own - the first has
+     * no typed MediaStore collection and the other two are ways of looking at every type at once.
+     * Before this the route argument was collapsed into a [MediaType] on the way in, so those three
+     * were indistinguishable from a music request by the time the load ran.
+     */
+    private var _categoryToken: String? = null
+
     val mediaType: MediaType get() = _mediaType
     val isNetworkSource: Boolean get() = _sourceId != null
     val sourceName: String? get() = _sourceName
@@ -109,15 +145,41 @@ class BrowseViewModel @Inject constructor(
     /**
      * Initialize navigation arguments. Call this from the composable.
      */
-    fun setNavigationArgs(mediaType: MediaType, sourceId: String? = null, sourceName: String? = null) {
+    fun setNavigationArgs(
+        mediaType: MediaType,
+        sourceId: String? = null,
+        sourceName: String? = null,
+        categoryToken: String? = null
+    ) {
         _mediaType = mediaType
         _sourceId = sourceId
         _sourceName = sourceName
+        _categoryToken = categoryToken
     }
+
+    private val refineRestore = BrowseRefineRestore()
 
     init {
         Timber.d("BrowseViewModel initialized")
         // loadMediaFiles() will be called after setNavigationArgs() from UI
+        viewModelScope.launch {
+            // S2199: the order applies at once because it needs no list. The type filter cannot:
+            // which types exist is a property of what this route loaded, so it waits for the load.
+            // Assigned straight to the state rather than through updateRefine, which would write the
+            // value back out and turn a restore into a save.
+            refineRestore.remember(preferencesRepository.browseContentTypes.first())
+            val storedOrder = preferencesRepository.browseSortOrder.first()
+            if (storedOrder != BrowseSortOrder.DEFAULT) {
+                _refineState.value = _refineState.value.copy(sortOrder = storedOrder)
+            }
+            // Reading the two values suspends on a disk read, so a fast source can publish its list
+            // before this line is reached; without this the restore would be silently skipped
+            // whenever the load won the race. Republishing the list already held re-runs the apply.
+            // Both paths run on the main dispatcher, so this cannot observe a half-assigned list.
+            if (loadedFiles.isNotEmpty()) {
+                publishLoaded(loadedFiles)
+            }
+        }
     }
 
     fun loadMediaFiles() {
@@ -138,19 +200,13 @@ class BrowseViewModel @Inject constructor(
     }
 
     private suspend fun loadLocalFiles() {
-        // Check if media type is enabled in settings
-        val isEnabled = when (mediaType) {
-            MediaType.MUSIC -> preferencesRepository.isAudioEnabled.first()
-            MediaType.VIDEO -> preferencesRepository.isVideoEnabled.first()
-            MediaType.PHOTO -> preferencesRepository.isImagesEnabled.first()
-        }
-
-        if (!isEnabled) {
+        val source = localSource()
+        if (source == null) {
             _uiState.value = BrowseUiState.Empty(ScreenTitle.Resource(R.string.browse_media_type_disabled))
             return
         }
 
-        mediaRepository.getMediaFiles(mediaType)
+        source
             .catch { e ->
                 Timber.e(e, "Error loading local media files")
                 _uiState.value = BrowseUiState.Error(ScreenTitle.Resource(R.string.browse_load_failed))
@@ -158,17 +214,48 @@ class BrowseViewModel @Inject constructor(
             .collect { result ->
                 result.fold(
                     onSuccess = { files ->
-                        _uiState.value = if (files.isEmpty()) {
-                            BrowseUiState.Empty(ScreenTitle.Resource(R.string.browse_no_media_files))
-                        } else {
-                            BrowseUiState.Success(files)
-                        }
+                        publishLoaded(files)
                     },
                     onFailure = { e ->
                         _uiState.value = BrowseUiState.Error(ScreenTitle.Resource(R.string.browse_load_failed))
                     }
                 )
             }
+    }
+
+    /**
+     * S2130: which watch-store listing this route asked for, or null when a setting hides it.
+     *
+     * The route's category token decides, not its media type: documents come from a
+     * `MediaStore.Files` query with no typed collection behind it, and "all" and "recents" read the
+     * same flat merged listing - §6 settled that recency is the newest-first sort plus the first
+     * page, so the two differ in label and in how far the wearer scrolls, not in the query.
+     *
+     * Only a content type can be switched off. "All" and "recents" are ways of looking at whatever
+     * is allowed rather than types of their own, which is the same rule
+     * `BrowseCategoryCatalog.DISABLEABLE_TYPES` states for the chips that lead here.
+     */
+    private suspend fun localSource(): Flow<Result<List<WearMediaFile>>>? = when (_categoryToken) {
+        BrowseCategoryCatalog.TOKEN_ALL,
+        BrowseCategoryCatalog.TOKEN_RECENTS -> mediaRepository.getAllMediaFiles()
+
+        BrowseCategoryCatalog.TOKEN_DOCUMENTS -> if (preferencesRepository.isDocumentsEnabled.first()) {
+            mediaRepository.getDocumentFiles()
+        } else {
+            null
+        }
+
+        else -> if (isMediaTypeEnabled()) {
+            mediaRepository.getMediaFiles(mediaType)
+        } else {
+            null
+        }
+    }
+
+    private suspend fun isMediaTypeEnabled(): Boolean = when (mediaType) {
+        MediaType.MUSIC -> preferencesRepository.isAudioEnabled.first()
+        MediaType.VIDEO -> preferencesRepository.isVideoEnabled.first()
+        MediaType.PHOTO -> preferencesRepository.isImagesEnabled.first()
     }
 
     private suspend fun loadNetworkFiles(sourceId: String) {
@@ -235,11 +322,7 @@ class BrowseViewModel @Inject constructor(
                 }.filter { matchesMediaType(it.mimeType, mediaType) }
                 Timber.d("Loaded ${mediaFiles.size} media files from ${source.type}")
                 withContext(Dispatchers.Main) {
-                    _uiState.value = if (mediaFiles.isEmpty()) {
-                        BrowseUiState.Empty(ScreenTitle.Resource(R.string.browse_no_media_files))
-                    } else {
-                        BrowseUiState.Success(mediaFiles)
-                    }
+                    publishLoaded(mediaFiles)
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Exception loading network files")
@@ -248,6 +331,119 @@ class BrowseViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    /**
+     * S2136: takes what the source returned and shows the refined view of it.
+     *
+     * The only place [loadedFiles] is set, so there is one answer to "what did the source say" no
+     * matter which of the two load paths asked.
+     */
+    private fun publishLoaded(files: List<WearMediaFile>) {
+        loadedFiles = files
+        // S2199: the remembered type filter is applied here and nowhere else, because this is the
+        // only point at which the types this route actually holds are known.
+        refineRestore.consume(presentContentTypes())?.let { types ->
+            _refineState.value = _refineState.value.copy(contentTypes = types)
+        }
+        republish()
+    }
+
+    /**
+     * S2136: how to read the refine keys off a file on this screen.
+     *
+     * The content type resolves the mime type and falls back to the route's own media type, which is
+     * what `MediaFileGrid` already does for the badge - a file whose extension the resolver does not
+     * know still filters as the thing the route is listing, rather than collapsing into "other".
+     */
+    private fun refineKeys(): BrowseRefineKeys<WearMediaFile> = BrowseRefineKeys(
+        name = WearMediaFile::name,
+        contentType = { contentTypeForMime(it.mimeType) ?: unresolvedContentType() },
+        dateModified = WearMediaFile::dateModified,
+        sizeBytes = WearMediaFile::size
+    )
+
+    /**
+     * S2130: what an unrecognised file counts as, taken from the category rather than the media type.
+     *
+     * The mime resolver knows image, video and audio and nothing else, so on the documents list every
+     * row would otherwise fall back to the route's media type and filter as music. The catalog's
+     * answer is right for all three shapes at once: DOCUMENT on the documents list, and OTHER on the
+     * two mixed listings, where a file the resolver cannot place genuinely is unclassified.
+     */
+    private fun unresolvedContentType(): WearContentType =
+        BrowseCategoryCatalog.categoryForToken(_categoryToken)?.type ?: mediaType.asContentType()
+
+    /**
+     * S2136: recomputes the published state from the held list and the current refine state.
+     *
+     * Called by every setter, and never by a loader other than through [publishLoaded]. An empty
+     * projection over a non-empty list is [BrowseUiState.NoMatches] rather than `Empty`: strategic
+     * goal 6 requires the wearer to tell "nothing matched" from "this resource is empty", and only
+     * this function knows both counts at once.
+     */
+    private fun republish() {
+        if (loadedFiles.isEmpty()) {
+            _uiState.value = BrowseUiState.Empty(ScreenTitle.Resource(R.string.browse_no_media_files))
+            return
+        }
+        val shown = BrowseListProjection.refine(loadedFiles, refineKeys(), _refineState.value)
+        _uiState.value = if (shown.isEmpty()) {
+            BrowseUiState.NoMatches
+        } else {
+            BrowseUiState.Success(shown)
+        }
+    }
+
+    /**
+     * S2136: the content types actually present in the loaded list.
+     *
+     * The screen offers the filter icon only when this holds more than one entry - ADR-2 makes that
+     * a property of the list rather than of the route, so a new route inherits the rule silently.
+     */
+    fun presentContentTypes(): List<WearContentType> =
+        BrowseListProjection.presentTypes(loadedFiles, refineKeys())
+
+    /** S2136: the orders this list can be shown in - all seven, since a file carries every key. */
+    fun availableSortOrders(): List<BrowseSortOrder> = refineKeys().availableSortOrders()
+
+    fun setSearchQuery(query: String) = updateRefine { it.copy(searchQuery = query) }
+
+    fun setContentTypes(types: Set<WearContentType>) = updateRefine { it.copy(contentTypes = types) }
+
+    fun setSortOrder(order: BrowseSortOrder) = updateRefine { it.copy(sortOrder = order) }
+
+    fun setShowSearchDialog(show: Boolean) = updateRefine { it.copy(showSearchDialog = show) }
+
+    fun setShowFilterDialog(show: Boolean) = updateRefine { it.copy(showFilterDialog = show) }
+
+    fun setShowSortDialog(show: Boolean) = updateRefine { it.copy(showSortDialog = show) }
+
+    fun setSearchInputUnavailable(unavailable: Boolean) =
+        updateRefine { it.copy(searchInputUnavailable = unavailable) }
+
+    /**
+     * S2136: the one path every refine setter takes.
+     *
+     * Recomputes rather than reloads - strategic goal 5 requires a choice to apply without touching
+     * the source, and on this screen the source may be a network share reached through the phone.
+     */
+    private fun updateRefine(transform: (BrowseRefineState) -> BrowseRefineState) {
+        val previous = _refineState.value
+        val updated = transform(previous)
+        _refineState.value = updated
+        Timber.d("S2136: browse refine q='${updated.searchQuery}' order=${updated.sortOrder}")
+        // S2199: only the two choices the wearer made deliberately. The query and the three dialog
+        // flags stay in memory: a restored query narrows the list on a word nobody can see, and a
+        // restored flag would reopen a dialog the moment the screen is entered. The equality guard
+        // keeps opening a dialog from touching the disk.
+        if (previous.contentTypes != updated.contentTypes || previous.sortOrder != updated.sortOrder) {
+            viewModelScope.launch {
+                preferencesRepository.setBrowseContentTypes(updated.contentTypes)
+                preferencesRepository.setBrowseSortOrder(updated.sortOrder)
+            }
+        }
+        republish()
     }
 
     /**
@@ -308,12 +504,12 @@ class BrowseViewModel @Inject constructor(
 
     /** Long press opens selection mode on the pressed file. */
     fun enterSelection(file: WearMediaFile) {
-        if (!isActionable(file)) return
+        if (capabilityPolicy.operationsFor(file, isNetworkSource).isEmpty()) return
         _selectedFileIds.value = setOf(file.id)
     }
 
     fun toggleSelection(file: WearMediaFile) {
-        if (!isActionable(file)) return
+        if (capabilityPolicy.operationsFor(file, isNetworkSource).isEmpty()) return
         _selectedFileIds.update { current ->
             if (file.id in current) current - file.id else current + file.id
         }
@@ -321,7 +517,10 @@ class BrowseViewModel @Inject constructor(
 
     fun selectAll() {
         val displayed = (_uiState.value as? BrowseUiState.Success)?.files ?: return
-        _selectedFileIds.value = displayed.filter(::isActionable).map { it.id }.toSet()
+        _selectedFileIds.value = displayed
+            .filter { capabilityPolicy.operationsFor(it, isNetworkSource).isNotEmpty() }
+            .map { it.id }
+            .toSet()
     }
 
     fun clearFileSelection() {
@@ -332,11 +531,6 @@ class BrowseViewModel @Inject constructor(
      * A file no operation accepts must never enter the selection: it would count towards the batch
      * and let the action menu offer work its source cannot perform.
      */
-    private fun isActionable(file: WearMediaFile): Boolean {
-        val storageClass = capabilityPolicy.classify(file, isNetworkSource)
-        return capabilityPolicy.allowedOperations(storageClass).isNotEmpty()
-    }
-
     /** An empty intersection when nothing is selected, so the action chip has nothing to open. */
     private fun allowedFor(state: BrowseUiState, ids: Set<Long>): Set<WearFileOperationKind> {
         val selected = (state as? BrowseUiState.Success)
@@ -347,7 +541,7 @@ class BrowseViewModel @Inject constructor(
             emptySet()
         } else {
             selected
-                .map { capabilityPolicy.allowedOperations(capabilityPolicy.classify(it, isNetworkSource)) }
+                .map { capabilityPolicy.operationsFor(it, isNetworkSource) }
                 .reduce { acc, allowed -> acc intersect allowed }
         }
     }
@@ -457,6 +651,10 @@ class BrowseViewModel @Inject constructor(
      * S1683: the title is either a source's own name, which no dictionary can translate, or one of
      * four resources. It used to be four English literals, so the browse list stayed English under a
      * Russian interface - the defect that put the localization constraint in the spec at all.
+     *
+     * S2130: the three type titles read the same keys the category chips do. A chip labelled "Images"
+     * used to open a screen titled "Photos", because the chip and the screen it opens were labelled
+     * from two different key sets.
      */
     fun getScreenTitle(): ScreenTitle {
         if (isNetworkSource) {
@@ -467,26 +665,54 @@ class BrowseViewModel @Inject constructor(
                 ScreenTitle.Text(name)
             }
         }
-        return ScreenTitle.Resource(
-            when (mediaType) {
-                MediaType.MUSIC -> R.string.music
-                MediaType.VIDEO -> R.string.videos
-                MediaType.PHOTO -> R.string.photos
-            }
-        )
+        return ScreenTitle.Resource(localTitleRes())
     }
 
     /**
-     * Check if a MIME type matches the expected media type category.
+     * S2130: the chip's own label, so documents, "all" and "recents" are titled at all.
+     *
+     * Those three have no media type to map, and the presentation table already holds the word each
+     * chip is written with - reading it here is what keeps the screen titled the same as the chip
+     * that opened it, which is the defect the key set above records.
      */
-    private fun matchesMediaType(mimeType: String?, mediaType: MediaType): Boolean {
-        if (mimeType == null) return false
+    @StringRes
+    private fun localTitleRes(): Int =
+        BrowseCategoryCatalog.categoryForToken(_categoryToken)
+            ?.let { BrowseCategoryPresentation.labelFor(it) }
+            ?: when (mediaType) {
+                MediaType.MUSIC -> R.string.wear_phone_audio
+                MediaType.VIDEO -> R.string.wear_phone_video
+                MediaType.PHOTO -> R.string.wear_phone_images
+            }
+}
 
-        return when (mediaType) {
-            MediaType.PHOTO -> mimeType.startsWith("image/")
-            MediaType.VIDEO -> mimeType.startsWith("video/")
-            MediaType.MUSIC -> mimeType.startsWith("audio/")
-        }
+/**
+ * Whether a MIME type belongs to the expected media type category.
+ *
+ * Top-level rather than a member: it reads no state of the screen, taking both of its inputs as
+ * arguments, and sat inside the class only by habit. It is `mutatesList` below with a different
+ * subject.
+ */
+/**
+ * What [file] permits, classified first.
+ *
+ * The classify-then-allow pair was written out at two call sites, and the screen only ever asked it
+ * two questions: "may this file be acted on at all" and "what do all the selected ones share". Both
+ * are this one expression, so it lives here once rather than as a member per question.
+ */
+private fun WearFileCapabilityPolicy.operationsFor(
+    file: WearMediaFile,
+    isNetworkSource: Boolean
+): Set<WearFileOperationKind> = allowedOperations(classify(file, isNetworkSource))
+
+private fun matchesMediaType(mimeType: String?, mediaType: MediaType): Boolean {
+    if (mimeType == null) {
+        return false
+    }
+    return when (mediaType) {
+        MediaType.PHOTO -> mimeType.startsWith("image/")
+        MediaType.VIDEO -> mimeType.startsWith("video/")
+        MediaType.MUSIC -> mimeType.startsWith("audio/")
     }
 }
 

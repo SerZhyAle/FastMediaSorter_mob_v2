@@ -41,6 +41,13 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <application>
+        <!--
+            S2026: an affinity of its own, so the home task holds the home surface and nothing else.
+            Without it this activity shares the app's default affinity, so every FLAG_ACTIVITY_NEW_TASK
+            launch off the desktop matched the *home* task and landed the player inside it - and Android
+            refuses enterPictureInPictureMode() for a home-type task ("Current activity does not support
+            picture-in-picture"), which is the reported "PiP errors out on streams".
+        -->
         <activity
             android:name="com.sza.fastmediasorter.ui.launcher.LauncherHomeActivity"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
@@ -48,7 +55,8 @@
             android:excludeFromRecents="true"
             android:exported="true"
             android:launchMode="singleTask"
-            android:stateNotNeeded="true">
+            android:stateNotNeeded="true"
+            android:taskAffinity="${applicationId}.launcherhome">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.HOME" />

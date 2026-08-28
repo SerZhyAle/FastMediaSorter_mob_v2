@@ -2602,7 +2602,6 @@
     <string name="stream_info_state_empty">غير محدّد</string>
     <string name="stream_info_not_in_catalog">هذه القناة ليست في قائمتك، لذا لا توجد بيانات محفوظة عنها. أضفها إلى القائمة للاحتفاظ بتفاصيلها.</string>
     <string name="stream_info_copy">نسخ الكل</string>
-    <string name="stream_info_copied">تم نسخ التفاصيل</string>
     <string name="stream_info_value_picture_size">%1$d x %2$d</string>
     <string name="stream_info_value_frame_rate">%1$s إطار/ثانية</string>
     <string name="stream_info_value_bitrate">%1$s كيلوبت/ثانية</string>
@@ -2815,7 +2814,6 @@
     <string name="launcher_gadget_map_stale">آخر مكان معروف</string>
     <string name="launcher_gadget_map_actions_at">خريطة %1$s. انقر لفتح تطبيق الخريطة</string>
     <string name="browse_empty_filtered_out_hint">قم بزيادة الحد الأقصى لحجم الملف في الإعدادات لعرضها.</string>
-    <string name="network_monitor_ip_addresses_label">عناوين IP</string>
     <string name="network_monitor_permission_grant">لم يتم منح الإذن. انقر لمنحه.</string>
     <string name="network_monitor_permission_open_settings">تم حظر الإذن. انقر لفتح إعدادات التطبيق.</string>
     <string name="cast_cropping_stereo">جارٍ تحضير نسخة العين الواحدة..</string>

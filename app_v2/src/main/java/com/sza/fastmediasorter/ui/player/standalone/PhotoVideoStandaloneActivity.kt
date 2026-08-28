@@ -275,6 +275,13 @@ class PhotoVideoStandaloneActivity :
     // S0393 U1: Picture-in-Picture, ported from legacy StandalonePlayerActivity.
     private var pipManager: com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager? = null
 
+    // S2026: the immersive-fullscreen claim held when PiP started, re-asserted when PiP ends.
+    private var wasFullscreenBeforePip = false
+
+    // S2174: true only while onStop() actually released the video player, so onStart() rebuilds
+    // exactly what was torn down. Mirrors VideoPlayerLifecycleHelper.wasLoadedBeforeStop.
+    private var videoReleasedOnStop = false
+
     // S0393 wave-C: black-screen overlay (dim screen during video playback). Generic manager.
     private val blackScreenManager by lazy {
         com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager(
@@ -1121,7 +1128,27 @@ class PhotoVideoStandaloneActivity :
     @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode)
+        // S2026: PiP takes the window out of immersive fullscreen, so the fullscreen claim stops being
+        // true the moment PiP starts. Dropping it here is what stops the "system bars are back" inset
+        // dispatch that arrives after the PiP exit from reading as a user swipe and restoring the
+        // command panel - the state the pre-PiP window never had. Re-asserting fullscreen afterwards
+        // both restores the immersive window the user left and re-arms the manager's own guard.
+        val fsManager = fullscreenManager
+        if (isInPictureInPictureMode) {
+            wasFullscreenBeforePip = fsManager?.isFullscreenActive == true
+            fsManager?.releaseFullscreenClaim()
+        }
         pipManager?.onPictureInPictureModeChanged(isInPictureInPictureMode)
+        if (!isInPictureInPictureMode) {
+            if (wasFullscreenBeforePip && fsManager != null) {
+                fsManager.enterFullscreenWithPanel(binding.topCommandPanel) {
+                    updateFullscreenExitButtonVisibility()
+                }
+            }
+            wasFullscreenBeforePip = false
+        }
+        updateFullscreenExitButtonVisibility()
+        Timber.d("S2026: standalone PiP=$isInPictureInPictureMode, panel=${binding.topCommandPanel.isVisible}")
     }
 
     // S0393: reapply window insets after rotation (configChanges handles orientation here, so the
@@ -1245,13 +1272,28 @@ class PhotoVideoStandaloneActivity :
     // S0893: API24+ multi-window release edge - release the video codec while backgrounded.
     override fun onStop() {
         super.onStop()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) viewManager.onStopVideo()
+        // S2174: releaseVideoPlayer() calls clearVideoSurface() before release(), so running it while
+        // the window is still on screen in PiP strips the output surface and the floating window goes
+        // black for the rest of its life - onStart() never fires again to rebuild it. S0893's contract
+        // is a backgrounded host, and a PiP window is neither backgrounded nor invisible; teardown of a
+        // PiP session lands in onDestroy() instead. Guard mirrors onPause() above.
+        val isInPip = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode
+        val release = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && !isInPip
+        videoReleasedOnStop = release
+        Timber.d("S2174: standalone onStop pip=$isInPip releaseVideo=$release")
+        if (release) viewManager.onStopVideo()
     }
 
     // S0893: rebuild only the video path - audio/image/document types have nothing to recreate here.
     override fun onStart() {
         super.onStart()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && viewModel.state.value.mediaType == MediaType.VIDEO) {
+        // S2174: rebuild only what onStop() actually tore down. An unconditional show() re-created the
+        // player under an already-visible PiP window whenever the OS dispatched a stop/start pair
+        // across the PiP transition, losing the frame on the rebuild.
+        Timber.d("S2174: standalone onStart rebuildVideo=$videoReleasedOnStop")
+        if (!videoReleasedOnStop) return
+        videoReleasedOnStop = false
+        if (viewModel.state.value.mediaType == MediaType.VIDEO) {
             viewModel.state.value.mediaFile?.let { file ->
                 viewManager.show(file, MediaType.VIDEO, onVideoReady = { pv -> setupVideoControls(pv) })
             }

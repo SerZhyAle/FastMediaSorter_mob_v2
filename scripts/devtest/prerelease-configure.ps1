@@ -40,6 +40,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
 $RepoRoot      = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $DebugPackage  = 'com.sza.fastmediasorter.debug'
 $ConfigPath    = Join-Path $PSScriptRoot 'prerelease.config.psd1'

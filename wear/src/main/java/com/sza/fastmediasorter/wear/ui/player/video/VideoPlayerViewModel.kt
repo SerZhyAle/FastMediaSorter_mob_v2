@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.player.video
 
 import android.content.Context
+import android.media.AudioManager
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -50,6 +51,9 @@ private const val KEY_BATTERY_WARNING_SHOWN = "battery_warning_shown"
 /** S1683: same step the audio player uses, so one bezel detent means the same thing in both. */
 private const val SEEK_STEP_MS = 10_000L
 
+/** S2140: how long the volume readout stays after the last bezel step - same value audio uses. */
+private const val VOLUME_VISIBLE_MS = 1_500L
+
 /**
  * ViewModel for the video player screen.
  * Manages ExoPlayer instance and playback state for video files.
@@ -79,6 +83,7 @@ class VideoPlayerViewModel @Inject constructor(
     private var progressUpdateJob: Job? = null
 
     private var controlsHideJob: Job? = null
+    private var volumeHideJob: Job? = null
 
     /**
      * S1683: the selection this screen was opened with, kept only when it is a network one, so paging
@@ -441,12 +446,49 @@ class VideoPlayerViewModel @Inject constructor(
         }
     }
 
+    /**
+     * S2140: one bezel step, on the system media stream - the same mapping S1701 gave the audio player.
+     *
+     * Unlike [onScreenTap] this never hides an already-visible panel: it only ever reveals one that was
+     * hidden, so the readout below is visible whenever a step actually changes something. Reusing
+     * [showControls]/[scheduleHideControls] instead of routing through the tap toggle is what keeps that
+     * one-directional guarantee - going through the toggle would hide the panel on every other step.
+     */
+    fun onVolumeStep(up: Boolean) {
+        Timber.d("S2140: video bezel volume step, up=$up")
+        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return
+        audioManager.adjustStreamVolume(
+            AudioManager.STREAM_MUSIC,
+            if (up) AudioManager.ADJUST_RAISE else AudioManager.ADJUST_LOWER,
+            0,
+        )
+        _uiState.update {
+            it.copy(
+                volumeLevel = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC),
+                volumeMax = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC),
+                isVolumeVisible = true,
+            )
+        }
+        hideVolumeAfterDelay()
+        showControls()
+        scheduleHideControls()
+    }
+
+    private fun hideVolumeAfterDelay() {
+        volumeHideJob?.cancel()
+        volumeHideJob = viewModelScope.launch {
+            delay(VOLUME_VISIBLE_MS)
+            _uiState.update { it.copy(isVolumeVisible = false) }
+        }
+    }
+
     fun seekTo(positionMs: Long) {
         exoPlayer.seekTo(positionMs)
         _uiState.update { it.copy(currentPositionMs = positionMs) }
     }
 
     fun seekForward() {
+        Timber.d("S2140: video long-press seek forward")
         val target = exoPlayer.currentPosition + SEEK_STEP_MS
         // ExoPlayer reports C.TIME_UNSET, a large negative, while the duration is still unknown -
         // clamping to it would send playback backwards past the start on the first turn of the bezel.
@@ -455,6 +497,7 @@ class VideoPlayerViewModel @Inject constructor(
     }
 
     fun seekBackward() {
+        Timber.d("S2140: video long-press seek backward")
         val newPosition = (exoPlayer.currentPosition - SEEK_STEP_MS).coerceAtLeast(0)
         seekTo(newPosition)
     }
@@ -578,6 +621,7 @@ class VideoPlayerViewModel @Inject constructor(
         Timber.d("VideoPlayerViewModel cleared")
         stopProgressUpdates()
         controlsHideJob?.cancel()
+        volumeHideJob?.cancel()
         streamPlaybackSession.clear()
         exoPlayer.removeListener(playerListener)
         viewModelScope.launch {

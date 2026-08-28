@@ -4,9 +4,6 @@
 <resources>
     <string name="app_name">FastMedia Wear</string>
     <string name="settings_group_other">其他</string>
-    <string name="music">音乐</string>
-    <string name="videos">视频</string>
-    <string name="photos">照片</string>
     <string name="play">播放</string>
     <string name="pause">暂停</string>
     <string name="previous">上一个</string>

@@ -108,6 +108,10 @@ private class WatchSettingsState(watchSettings: WearSettingsPayload?) {
     var audioEnabled by mutableStateOf(watchSettings?.audioEnabled ?: true)
     var videoEnabled by mutableStateOf(watchSettings?.videoEnabled ?: true)
     var imagesEnabled by mutableStateOf(watchSettings?.imagesEnabled ?: true)
+
+    // S2130: the fourth allowed-type switch. Seeded true, matching the watch's stored default, for
+    // the reason the album-art line below records - an unedited push must change nothing.
+    var documentsEnabled by mutableStateOf(watchSettings?.documentsEnabled ?: true)
     var slideshowEnabled by mutableStateOf(watchSettings?.slideshowEnabled ?: false)
 
     // S2093: seeded false because that is the watch's own stored default. Seeded true, an unedited
@@ -128,6 +132,7 @@ private class WatchSettingsState(watchSettings: WearSettingsPayload?) {
         audioEnabled = audioEnabled,
         videoEnabled = videoEnabled,
         imagesEnabled = imagesEnabled,
+        documentsEnabled = documentsEnabled,
         slideshowEnabled = slideshowEnabled,
         slideshowIntervalSeconds = slideshowInterval.toInt(),
         downloadAlbumArt = albumArtEnabled,
@@ -245,6 +250,15 @@ private fun WatchContentSwitches(state: WatchSettingsState, onChanged: () -> Uni
         checked = state.imagesEnabled
     ) {
         state.imagesEnabled = it
+        onChanged()
+    }
+    SwitchRow(
+        tag = "wearSwitchDocuments",
+        label = stringResource(R.string.wear_settings_documents),
+        description = stringResource(R.string.wear_settings_documents_desc),
+        checked = state.documentsEnabled
+    ) {
+        state.documentsEnabled = it
         onChanged()
     }
     SwitchRow(

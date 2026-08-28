@@ -133,6 +133,13 @@ class LauncherGadgetRegistry @Inject constructor(
         // system zone by contract, and reusing its key would retarget every clock already placed.
         const val KEY_WORLD_CLOCK = "world_clock"
 
+        // S1930: the two home-screen widgets whose cell owns a configured instance. Same contract as
+        // every key above - this is what a cell's `target` column stores, so it is never renamed - and
+        // both spell the `gadgetKey` HomeWidgetCatalog already publishes for them, so the desktop cell
+        // and its home-screen twin answer to one name.
+        const val KEY_RANDOM_PHOTO_FRAME = "random_photo_frame"
+        const val KEY_CAMERA_QUICK_CAPTURE = "camera_quick_capture"
+
         private const val SEPARATOR = ':'
     }
 }

@@ -30,6 +30,8 @@ import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayCallbacks
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayComposition
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayIconModel
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayIconView
+import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayIndicator
+import com.sza.fastmediasorter.ui.launcher.tray.LauncherTraySectionRouting
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTraySimSignalMonitor
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.Job
@@ -107,7 +109,7 @@ class LauncherTrayManager(
      * would answer for a moment the user is not looking at, and the icon they tapped is the promise the
      * tap has to keep.
      */
-    private var networkScreenKey = OsShortcutCatalog.KEY_WIRELESS
+    private var lastTransport: NetworkTransport = NetworkTransport.NONE
 
     private val batteryReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -128,14 +130,17 @@ class LauncherTrayManager(
 
     init {
         lifecycleOwner.lifecycle.addObserver(this)
-        // S1767: an indicator reports on a system screen, so it opens that screen. The SIM slots share the
-        // network-and-internet section, which is where SIM cards and the mobile network live.
-        val open = callbacks.onOpenSystemScreen
-        indicators.trayBluetooth.setOnClickListener { open(OsShortcutCatalog.KEY_BLUETOOTH) }
-        indicators.traySim1.setOnClickListener { open(OsShortcutCatalog.KEY_WIRELESS) }
-        indicators.traySim2.setOnClickListener { open(OsShortcutCatalog.KEY_WIRELESS) }
-        indicators.trayNetwork.setOnClickListener { open(networkScreenKey) }
-        indicators.trayBatteryLevel.setOnClickListener { open(OsShortcutCatalog.KEY_BATTERY) }
+        val openSystem = callbacks.onOpenSystemScreen
+        val openNetwork = callbacks.onOpenNetworkSurface
+        val routeTo = { indicator: LauncherTrayIndicator ->
+            val (sectionKey, osShortcutKey) = LauncherTraySectionRouting.routeFor(indicator, lastTransport)
+            openNetwork(sectionKey, osShortcutKey)
+        }
+        indicators.trayBluetooth.setOnClickListener { routeTo(LauncherTrayIndicator.BLUETOOTH) }
+        indicators.traySim1.setOnClickListener { routeTo(LauncherTrayIndicator.SIM1) }
+        indicators.traySim2.setOnClickListener { routeTo(LauncherTrayIndicator.SIM2) }
+        indicators.trayNetwork.setOnClickListener { routeTo(LauncherTrayIndicator.NETWORK) }
+        indicators.trayBatteryLevel.setOnClickListener { openSystem(OsShortcutCatalog.KEY_BATTERY) }
     }
 
     /**
@@ -331,22 +336,13 @@ class LauncherTrayManager(
     }
 
     private fun renderNetwork(transport: NetworkTransport) {
+        lastTransport = transport
         indicators.trayNetwork.apply(
             LauncherTrayIconModel(
                 iconRes = iconOf(transport),
                 contentDescription = describe(context.getString(labelOf(transport))),
             ),
         )
-        networkScreenKey = screenOf(transport)
-    }
-
-    /**
-     * S1767: Wi-Fi has its own settings screen; every other transport - and no transport at all - belongs
-     * to the network-and-internet section, which is where a user goes to fix exactly that.
-     */
-    private fun screenOf(transport: NetworkTransport): String = when (transport) {
-        NetworkTransport.WIFI -> OsShortcutCatalog.KEY_WIFI
-        else -> OsShortcutCatalog.KEY_WIRELESS
     }
 
     @DrawableRes

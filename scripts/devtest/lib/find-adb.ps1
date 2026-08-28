@@ -14,6 +14,8 @@
   how to fail (adb.ps1 exits 1; a command's inline block can `Fail`/`throw` its own way).
 #>
 
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
 function Find-Adb {
     foreach ($root in @($env:ANDROID_HOME, $env:ANDROID_SDK_ROOT)) {
         if ($root) {

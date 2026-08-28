@@ -3,7 +3,7 @@
 
 param(
     [switch]$SkipZip,
-    [string]$Task = "assembleStandardDebug",
+    [string]$Task = ":app_v2:assembleStandardDebug",
     # A packaged debug APK is a distribution artifact - it is copied to DOWNLOADS and installed
     # by hand - so it carries its own build timestamp by default (S1873). Frozen versions belong
     # to the compile-only fast checks (fk/fc/fr/fw) that produce no APK. Pass -AutoVersion:$false
@@ -25,6 +25,8 @@ param(
 )
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
+# S2127: Test-KotlinStaleIncrementalState + Get-KotlinStaleIncrementalRepairArgs.
+. "$PSScriptRoot\gradle-run-verdict.ps1"
 Enter-BuildLockOrExit -Reason "build-debug.PS1" -Domain Build.Phone
 try {
 
@@ -119,7 +121,8 @@ function Get-GradleExecutionHistoryRelativePath {
 function Invoke-DebugBuild {
     param(
         [switch]$DisableBuildCache,
-        [switch]$NoDaemon
+        [switch]$NoDaemon,
+        [switch]$NoKotlinIncremental
     )
 
     $versionOverrideArgs = @()
@@ -169,6 +172,9 @@ function Invoke-DebugBuild {
     }
     if ($NoDaemon) {
         $gradleArgs += "--no-daemon"
+    }
+    if ($NoKotlinIncremental) {
+        $gradleArgs += Get-KotlinStaleIncrementalRepairArgs
     }
     if ($versionOverrideArgs.Count -gt 0) {
         $gradleArgs += $versionOverrideArgs
@@ -229,6 +235,19 @@ if ($buildResult.ExitCode -ne 0) {
         Remove-BuildPathIfExists -RelativePath "app_v2\build\kotlin"
 
         $buildResult = Invoke-DebugBuild -DisableBuildCache -NoDaemon
+    }
+
+    # S2127: a class the Kotlin incremental state lost, reported against a source file nobody edited.
+    # Distinct from the two branches around it: nothing is locked and nothing failed to pack, the
+    # compile simply cannot see a class whose source file moved between source sets. The retry drops
+    # incremental compilation rather than deleting caches - see Get-KotlinStaleIncrementalRepairArgs.
+    $isKotlinStaleIncrementalState =
+    Test-KotlinStaleIncrementalState -Lines ($buildResult.Output -split "`r?`n")
+
+    if (($buildResult.ExitCode -ne 0) -and $isKotlinStaleIncrementalState) {
+        Write-Host "`nKotlin reported a class its incremental state lost, not a source defect (S2127). Retrying once without incremental compilation..." -ForegroundColor Yellow
+
+        $buildResult = Invoke-DebugBuild -NoKotlinIncremental
     }
 
     if (($buildResult.ExitCode -ne 0) -and $isKaptIncrementalDataLockError) {

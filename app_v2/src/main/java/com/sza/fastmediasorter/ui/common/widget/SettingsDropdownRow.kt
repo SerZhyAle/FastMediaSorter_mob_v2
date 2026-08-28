@@ -198,12 +198,15 @@ class SettingsDropdownRow @JvmOverloads constructor(
      */
     private fun showOptions() {
         if (!isEnabled || entries.isEmpty() || optionsPopup != null) return
+        // S2185: never narrower than the field it is anchored to, but expands past a compact
+        // field (e.g. sdr_fieldMaxWidth) to fit the widest entry - see measurePopupContentWidth.
+        val adapter = ArrayAdapter(context, android.R.layout.simple_list_item_1, entries)
         val popup = ListPopupWindow(context).apply {
             anchorView = inputLayout
             isModal = true
-            width = if (inputLayout.width > 0) inputLayout.width else ListPopupWindow.WRAP_CONTENT
+            width = measurePopupContentWidth(context, adapter, minWidthPx = inputLayout.width)
             height = ListPopupWindow.WRAP_CONTENT
-            setAdapter(ArrayAdapter(context, android.R.layout.simple_list_item_1, entries))
+            setAdapter(adapter)
             setOnItemClickListener { _, _, position, _ ->
                 dismiss()
                 applySelection(position)

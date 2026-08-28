@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import kotlin.math.roundToInt
 
 /**
@@ -91,6 +92,7 @@ class LauncherEditModeManager(
         val slot = desktop.slotAt(desktop.lastPressX, desktop.lastPressY)?.let {
             LauncherGridGeometry.storedSlotFor(it, viewModel.cells.value, viewModel.sections.collapsed.value)
         }
+        Timber.d("S2033: showQuickMenu slot=%s", slot)
         // Each gesture builds a fresh menu, so the popup's own replace-on-show guard never sees the
         // previous instance - closing it here is what keeps two modal windows off the desktop.
         quickMenu?.dismiss()

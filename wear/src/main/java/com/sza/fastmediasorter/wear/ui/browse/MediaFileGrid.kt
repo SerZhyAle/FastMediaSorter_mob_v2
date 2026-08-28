@@ -19,6 +19,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.items
@@ -33,9 +34,12 @@ import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.asContentType
 import com.sza.fastmediasorter.wear.domain.model.contentTypeForMime
+import com.sza.fastmediasorter.wear.ui.common.CellCaption
 import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
 import com.sza.fastmediasorter.wear.ui.common.LongPressChip
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
+import com.sza.fastmediasorter.wear.ui.common.WearRowDensity
+import com.sza.fastmediasorter.wear.ui.common.rowDensityFor
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import java.util.Locale
 
@@ -76,12 +80,20 @@ internal fun ScalingLazyListScope.mediaFileItems(
     selectedIds: Set<Long>,
     actions: MediaFileActions
 ) {
+    // Decided here, for the whole list, rather than per row: a picture that lands mid-scroll must not
+    // re-size the glyph under the reading finger (strategic ADR-3). Only the cell path ever swaps a
+    // glyph for a thumbnail, so the column count is what answers that question.
+    val density = rowDensityFor(
+        types = files.map { contentTypeForMime(it.mimeType) ?: mediaType.asContentType() },
+        canProduceThumbnails = columns != SINGLE_COLUMN
+    )
     if (columns == SINGLE_COLUMN) {
         items(files, key = { it.id }) { file ->
             MediaFileChip(
                 file = file,
                 mediaType = mediaType,
                 selected = file.id in selectedIds,
+                density = density,
                 onClick = { actions.onFileClick(file) },
                 onLongClick = { actions.onFileLongClick(file) }
             )
@@ -125,7 +137,13 @@ private fun MediaFileRow(
                     onClick = { actions.onFileClick(file) },
                     modifier = selectionFrame(selected),
                     onLongClick = { actions.onFileLongClick(file) },
-                    captionMaxLines = GRID_CAPTION_LINES
+                    // A file with a thumbnail keeps the two-line caption under its own picture; one
+                    // without shows the mime-type glyph shared by every file of that type, and there
+                    // the name moves onto it (S2177).
+                    captionLayout = CellCaption(
+                        maxLines = GRID_CAPTION_LINES,
+                        overGroupIcon = true
+                    )
                 ) { glyphModifier ->
                     // The inset is the cell's, not the glyph's: ThumbnailCell hands the S2003
                     // placeholder contract down already sized, so this slot applies it untouched
@@ -156,6 +174,7 @@ private fun MediaFileChip(
     file: WearMediaFile,
     mediaType: MediaType,
     selected: Boolean,
+    density: WearRowDensity,
     onClick: () -> Unit,
     onLongClick: () -> Unit
 ) {
@@ -181,10 +200,11 @@ private fun MediaFileChip(
         modifier = Modifier
             .fillMaxWidth()
             .then(selectionFrame(selected)),
+        // Both glyphs take the same size, or selecting a row would resize its leading slot.
         icon = if (selected) {
-            { SelectionBadge() }
+            { SelectionBadge(size = density.leadingIconSize) }
         } else {
-            { TypeBadge(file = file, mediaType = mediaType) }
+            { TypeBadge(file = file, mediaType = mediaType, size = density.leadingIconSize) }
         },
         // The glyph used to lead this line, so it was never empty. Now that the type has its own
         // slot, a file whose mime type classifies nothing has nothing to say here, and an empty
@@ -210,11 +230,11 @@ private fun selectionFrame(selected: Boolean): Modifier = if (selected) {
 }
 
 @Composable
-private fun SelectionBadge(modifier: Modifier = Modifier) {
+private fun SelectionBadge(modifier: Modifier = Modifier, size: Dp = SELECTION_BADGE_SIZE) {
     Icon(
         imageVector = Icons.Default.Check,
         contentDescription = stringResource(R.string.wear_file_selected),
-        modifier = modifier.size(SELECTION_BADGE_SIZE),
+        modifier = modifier.size(size),
         tint = MaterialTheme.colors.primary
     )
 }
@@ -222,16 +242,16 @@ private fun SelectionBadge(modifier: Modifier = Modifier) {
 /**
  * The type glyph a row wears while nothing is selected, so its icon slot is never empty.
  *
- * It keeps the selection badge's size, so opening a selection swaps one glyph for the other without
- * shifting the row's height.
+ * The caller hands both this glyph and the selection badge one size, so opening a selection swaps
+ * one glyph for the other without shifting the row's height.
  */
 @Composable
-private fun TypeBadge(file: WearMediaFile, mediaType: MediaType) {
+private fun TypeBadge(file: WearMediaFile, mediaType: MediaType, size: Dp) {
     val type = contentTypeForMime(file.mimeType) ?: mediaType.asContentType()
     Icon(
         painter = painterResource(ContentTypeCatalog.iconFor(type)),
         contentDescription = stringResource(typeNameRes(type)),
-        modifier = Modifier.size(SELECTION_BADGE_SIZE),
+        modifier = Modifier.size(size),
         tint = typeTint(type)
     )
 }

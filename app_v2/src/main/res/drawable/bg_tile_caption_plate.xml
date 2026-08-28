@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S2177: backdrop for a file name drawn over a grid tile's shared extension icon. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <solid android:color="@color/tile_caption_plate" />
+
+    <corners android:radius="4dp" />
+
+</shape>

@@ -111,7 +111,7 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.rowOpenApp.setOnClickListener {
-            startActivity(Intent(requireContext(), MainActivity::class.java))
+            startActivity(inOwnTask(Intent(requireContext(), MainActivity::class.java)))
             dismiss()
         }
         binding.rowResources.setOnClickListener { openResourcePicker() }
@@ -125,7 +125,7 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
         }
         binding.rowAppSettings.setOnClickListener {
             // S1088: plain app (FMS) settings; the launcher's own settings now have a dedicated row below.
-            startActivity(Intent(requireContext(), SettingsActivity::class.java))
+            startActivity(inOwnTask(Intent(requireContext(), SettingsActivity::class.java)))
             dismiss()
         }
         binding.rowLauncherSettings.setOnClickListener {
@@ -150,6 +150,14 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
 
         listenForPickedResource()
     }
+
+    /**
+     * S2026: a launcher opens an app into its own task, never into the home task it is itself the root
+     * of. Left in the home task, a player opened later down that stack is refused Picture-in-Picture by
+     * the platform, which rejects it for home-type tasks. Pairs with LauncherHomeActivity's own
+     * taskAffinity - the flag alone would still match the home task while both share one affinity.
+     */
+    private fun inOwnTask(intent: Intent): Intent = intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
     override fun onStart() {
         super.onStart()

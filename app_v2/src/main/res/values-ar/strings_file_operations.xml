@@ -99,7 +99,6 @@
     <string name="file_deleted">تم حذف \"%1$s\"</string>
     <string name="file_info">معلومات الملف</string>
     <string name="file_info_copy_path">مسار النسخ</string>
-    <string name="file_info_copy_path_done">تم نسخ المسار</string>
     <string name="file_info_directory_label">الدليل: %1$s</string>
     <string name="file_info_extension_mime_label">الصيغة: %1$s · %2$s</string>
     <string name="file_info_filename_label">الملف: %1$s</string>

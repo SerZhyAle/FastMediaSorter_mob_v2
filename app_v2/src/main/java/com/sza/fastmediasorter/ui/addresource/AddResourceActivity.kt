@@ -60,9 +60,13 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     })
 
     @Inject lateinit var unifiedAuthManager: UnifiedCloudAuthManager
+
     @Inject lateinit var dropboxClient: dagger.Lazy<DropboxClient>
+
     @Inject lateinit var oneDriveClient: dagger.Lazy<OneDriveRestClient>
+
     @Inject lateinit var remoteSourceGate: RemoteSourceAvailabilityGate
+
     @Inject lateinit var mediaCapabilities: MediaCapabilities
 
     @Inject lateinit var createdResourcePinManager: CreatedResourcePinManager
@@ -147,8 +151,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         pinShortcutOnCreate = intent.getBooleanExtra(EXTRA_PIN_SHORTCUT_ON_CREATE, false)
 
         val preselectedTab = intent.getStringExtra(EXTRA_PRESELECTED_TAB)?.let {
-            try { com.sza.fastmediasorter.ui.main.ResourceTab.valueOf(it) }
-            catch (e: IllegalArgumentException) { null }
+            try { com.sza.fastmediasorter.ui.main.ResourceTab.valueOf(it) } catch (e: IllegalArgumentException) { null }
         }
 
         copyResourceId?.let {
@@ -200,6 +203,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             binding.cardNetworkFolder,
             binding.cardSftpFolder,
             binding.cardCloudStorage,
+            binding.cardStream,
             binding.cardPairedWatch,
         ).firstOrNull(isShown) ?: binding.btnAddToResources
     }
@@ -257,6 +261,16 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("CloudStorageCard", "AddResource")
             showCloudStorageOptions()
         }
+        binding.cardStream.setOnClickListener {
+            Timber.d("S2085: cardStream clicked -> opening ResourceEditor for HTTP_STREAM")
+            com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("StreamCard", "AddResource")
+            startActivity(
+                com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity.createAddIntent(
+                    this,
+                    ResourceType.HTTP_STREAM
+                )
+            )
+        }
         binding.cardPairedWatch.setOnClickListener {
             com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("PairedWatchCard", "AddResource")
             watchPromptManager.promptForName()
@@ -302,12 +316,17 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         }
         forms.local.btnAddManually.setOnClickListener {
             com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("AddLocalManually", "AddResource")
-            Timber.w("FOLDER_PICKER: Android SDK=${android.os.Build.VERSION.SDK_INT}, hasAllFilesAccess=${com.sza.fastmediasorter.core.util.PermissionHelper.hasAllFilesAccessPermission(this)}")
+            Timber.w(
+                "FOLDER_PICKER: Android SDK=${android.os.Build.VERSION.SDK_INT}, hasAllFilesAccess=${com.sza.fastmediasorter.core.util.PermissionHelper.hasAllFilesAccessPermission(
+                    this
+                )}"
+            )
             // S2012: gated on the merged manifest, not on the SDK level. Where all-files access is not
             // declared there is nothing to ask for, so the folder choices open directly and every
             // path-based entry inside them is already withdrawn.
             if (com.sza.fastmediasorter.core.util.StoragePermissionRule.requiresAllFilesAccess(this) &&
-                !com.sza.fastmediasorter.core.util.PermissionHelper.hasAllFilesAccessPermission(this)) {
+                !com.sza.fastmediasorter.core.util.PermissionHelper.hasAllFilesAccessPermission(this)
+            ) {
                 scanManager.showAllFilesAccessPermissionDialog()
             } else {
                 scanManager.showFolderSelectionDialog()
@@ -441,17 +460,38 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
         collectOnLifecycle(viewModel.events) { event ->
             when (event) {
-                is AddResourceEvent.ShowAccountPicker -> connectionManager.showAccountPicker(event.providerName, event.accounts)
+                is AddResourceEvent.ShowAccountPicker -> connectionManager.showAccountPicker(
+                    event.providerName,
+                    event.accounts
+                )
                 is AddResourceEvent.ShowError -> connectionManager.showError(event.message)
-                is AddResourceEvent.ShowMessage -> Toast.makeText(this@AddResourceActivity, event.message, Toast.LENGTH_SHORT).show()
-                is AddResourceEvent.ShowTestResult -> connectionManager.showTestResultDialog(event.message, event.isSuccess)
+                is AddResourceEvent.ShowMessage -> Toast.makeText(
+                    this@AddResourceActivity,
+                    event.message,
+                    Toast.LENGTH_SHORT
+                ).show()
+                is AddResourceEvent.ShowTestResult -> connectionManager.showTestResultDialog(
+                    event.message,
+                    event.isSuccess
+                )
                 is AddResourceEvent.LoadResourceForCopy -> {
                     Timber.d("LoadResourceForCopy event: ${event.resource.name}, type=${event.resource.type}")
-                    helper.preFillResourceData(event.resource, event.username, event.password, event.domain, event.sshKey, event.sshPassphrase)
+                    helper.preFillResourceData(
+                        event.resource,
+                        event.username,
+                        event.password,
+                        event.domain,
+                        event.sshKey,
+                        event.sshPassphrase
+                    )
                 }
                 is AddResourceEvent.ResourcesAdded -> routeResourcesAdded(event.createdResourceIds)
                 AddResourceEvent.ShowNoSharesFound -> connectionManager.showNoSharesFoundDialog()
-                is AddResourceEvent.ShowSharePicker -> connectionManager.showSharePickerDialog(event.server, event.shares, event.manualShares)
+                is AddResourceEvent.ShowSharePicker -> connectionManager.showSharePickerDialog(
+                    event.server,
+                    event.shares,
+                    event.manualShares
+                )
                 AddResourceEvent.ShowLocalNetworkPermission -> connectionManager.showLocalNetworkPermissionRationale()
             }
         }

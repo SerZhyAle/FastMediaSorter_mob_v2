@@ -5,15 +5,16 @@ import android.content.res.Configuration
 import android.util.TypedValue
 import android.view.GestureDetector
 import android.view.MotionEvent
-import android.view.inputmethod.InputMethodManager
-import android.widget.Toast
-import androidx.core.view.isVisible
 import android.view.View
+import androidx.core.view.isVisible
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.clipboard.copyTextToClipboard
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.utils.CharsetDetector
 import com.sza.fastmediasorter.utils.SyntaxHighlighter
+import com.sza.fastmediasorter.utils.UserActionLogger
 import io.noties.markwon.Markwon
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,11 +26,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import com.sza.fastmediasorter.BuildConfig
-import com.sza.fastmediasorter.utils.MediaStoreNotifier
-import com.sza.fastmediasorter.utils.UserActionLogger
 import java.nio.charset.Charset
-import kotlin.math.abs
 
 /**
  * Manages text viewing/editing in PlayerActivity:
@@ -82,6 +79,7 @@ class TextViewerManager(
         fun showEncodingDialog()
         fun launchEditorCalculator(initialInput: String)
         fun launchSelectionCalculator(initialInput: String)
+
         // S0189: invoked by Save & Close to return the user to Browse with the new file.
         fun finishActivity()
     }
@@ -140,6 +138,7 @@ class TextViewerManager(
         }
     }
     private val calculatorEnabledFlow = MutableStateFlow(false)
+
     // S0189 Phase 07: auto-fit font manager; created fresh on each enterEditMode
     private var autoFitFontManager: TextEditorAutoFitFontManager? = null
     private val safeViews = PlayerBindingSafeViews(root)
@@ -306,11 +305,7 @@ class TextViewerManager(
         safeViews.btnCopyTextCmd.setOnClickListener {
             val text = safeViews.tvTextContent.text.toString()
             if (text.isNotEmpty()) {
-                val clipboard =
-                    context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                val clip = android.content.ClipData.newPlainText("text", text)
-                clipboard.setPrimaryClip(clip)
-                Toast.makeText(context, R.string.text_copied, Toast.LENGTH_SHORT).show()
+                context.copyTextToClipboard("text", text)
             }
         }
 
@@ -462,7 +457,6 @@ class TextViewerManager(
         }
         safeViews.tvTextContent.typeface = currentTypeface
         safeViews.tvTranslatedText.typeface = currentTypeface
-
     }
 
     private fun increaseTextFontSize() {
@@ -553,9 +547,7 @@ class TextViewerManager(
             onTextCopyClicked = {
                 val text = safeViews.tvTextContent.text.toString()
                 if (text.isNotEmpty()) {
-                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                    clipboard.setPrimaryClip(android.content.ClipData.newPlainText("text", text))
-                    Toast.makeText(context, R.string.text_copied, Toast.LENGTH_SHORT).show()
+                    context.copyTextToClipboard("text", text)
                 }
             },
         )
@@ -763,8 +755,10 @@ class TextViewerManager(
     /** Resolve reader theme by name. "SYSTEM" picks DARK or LIGHT based on the device dark-mode setting; any unrecognized name also falls back to the system default. */
     private fun resolveTheme(name: String): TextReaderTheme {
         if (name.equals("SYSTEM", ignoreCase = true)) {
-            val isNight = (context.resources.configuration.uiMode
-                    and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+            val isNight = (
+                context.resources.configuration.uiMode
+                    and Configuration.UI_MODE_NIGHT_MASK
+                ) == Configuration.UI_MODE_NIGHT_YES
             return if (isNight) TextReaderTheme.DARK else TextReaderTheme.LIGHT
         }
         return TextReaderTheme.entries.find { it.name.equals(name, ignoreCase = true) }
@@ -897,12 +891,16 @@ class TextViewerManager(
     internal fun enterEditMode(autoOpen: Boolean = false) = editorModeController.enterEditMode(autoOpen)
 
     /** S0189: after a successful Save of a new note, append the resulting file directly to [com.sza.fastmediasorter.core.cache.MediaFilesCacheManager] for its resource. Browse's `onResume` Reconciler (S0242 Phase 03) sees no pending journal entry for the new note, so the cache append is the canonical signal - the new entry appears in the Browse list on next resume without triggering a full network rescan. Skipped for non-staged edits (the file already exists in the resource list). */
-    private fun cacheNewlySavedNote(outcome: com.sza.fastmediasorter.domain.usecase.SaveTextNoteUseCase.SaveOutcome, content: String) {
-        val resourceId = currentFile?.resourceId ?: return
-        val previousLocalFile = currentLocalFile ?: return
+    private fun cacheNewlySavedNote(
+        outcome: com.sza.fastmediasorter.domain.usecase.SaveTextNoteUseCase.SaveOutcome,
+        content: String
+    ) {
+        val resourceId = currentFile?.resourceId
+        val previousLocalFile = currentLocalFile
         // Only act for a deferred-staged note. For arbitrary text-file edits the cache list
         // already contains this file - adding again would create a duplicate.
-        textNoteStagingRegistry?.lookup(previousLocalFile) ?: return
+        val staged = previousLocalFile?.let { textNoteStagingRegistry?.lookup(it) }
+        if (resourceId == null || staged == null) return
         val newFile = com.sza.fastmediasorter.domain.model.MediaFile(
             name = outcome.finalName,
             path = outcome.finalPath,

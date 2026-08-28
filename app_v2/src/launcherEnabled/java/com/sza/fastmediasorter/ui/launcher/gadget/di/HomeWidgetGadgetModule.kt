@@ -4,9 +4,11 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.ui.launcher.gadget.AudioNowPlayingGadget
+import com.sza.fastmediasorter.ui.launcher.gadget.CameraQuickCaptureGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.FavoritesGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.HomeWidgetGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadget
+import com.sza.fastmediasorter.ui.launcher.gadget.RandomPhotoFrameGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.ScheduledTasksGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.YouTubeGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.YouTubeMusicGadget
@@ -38,13 +40,14 @@ object HomeWidgetGadgetModule {
 
     /**
      * Nine catalog widgets whose entire behaviour is "open one screen", plus the two that render a live
-     * list and therefore carry their own class.
+     * list, the one that drives the playback service, and the two that keep per-instance state - each
+     * of those five carrying its own class. 9 + 2 + 1 + 2 = 14 of 14.
      *
-     * Two still absent - `random_photo_frame` and `camera_quick_capture`. Both keep per-instance state
-     * written by their own configuration activity, and those activities are keyed on
-     * `AppWidgetManager.EXTRA_APPWIDGET_ID` end to end (config screen, refresher, provider update). A
-     * desktop cell has no widget id, so registering either before those paths accept an owner token
-     * would put a cell on the desktop that can never be configured. 9 + 2 + 1 = 12 of 14.
+     * S1930 closed the last two. `random_photo_frame` and `camera_quick_capture` are keyed on
+     * `AppWidgetManager.EXTRA_APPWIDGET_ID` end to end, and a desktop cell has no widget id - so its
+     * cell carries a launcher-minted token in its param instead, and the widget chain skips the calls
+     * that would hand that number to the platform. Adding a third such widget is one entry here plus
+     * one row in `ConfigurableWidgetCatalog`.
      *
      * Every span is the `targetCellWidth` / `targetCellHeight` the widget declares in its own
      * `appwidget-provider`, so a cell lands on the desktop the size its twin has on the Android home
@@ -145,6 +148,20 @@ object HomeWidgetGadgetModule {
             defaultSpanH = SPAN_SMALL,
             command = LauncherCellCommand.Feature(InternalRouteCatalog.KEY_QUICK_VOICE),
         ),
+    ) + configurableWidgetGadgets()
+
+    /**
+     * S1930: the widgets whose desktop cell owns a configured instance. Constructed rather than
+     * injected, like every `HomeWidgetGadget` above - each reads its instance out of the cell param
+     * and needs nothing from the graph.
+     *
+     * Their own function rather than two more lines in the list: that list is at detekt's `LongMethod`
+     * ceiling, and this is where the third such widget goes - beside the one row it also owes
+     * `ConfigurableWidgetCatalog`.
+     */
+    private fun configurableWidgetGadgets(): List<LauncherGadget> = listOf(
+        RandomPhotoFrameGadget(),
+        CameraQuickCaptureGadget(),
     )
 
     // Mirrors HomeWidgetCatalog.gadgetKey verbatim. Persisted inside a cell's target column from the

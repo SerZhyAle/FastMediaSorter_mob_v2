@@ -35,22 +35,31 @@ class CameraQuickCaptureWidgetProvider : AppWidgetProvider() {
     }
 
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val editor = prefs.edit()
         for (appWidgetId in appWidgetIds) {
-            editor.remove(keyTargetId(appWidgetId))
-            editor.remove(keyTargetName(appWidgetId))
-            editor.remove(keyTargetPath(appWidgetId))
-            editor.remove(keyTargetType(appWidgetId))
-            editor.remove(keyTargetIsCameraFolder(appWidgetId))
-            editor.remove(keyCaptureMode(appWidgetId))
+            clearInstanceConfig(context, appWidgetId)
         }
-        editor.apply()
     }
 
     companion object {
 
         const val PREFS_NAME = "widget_prefs"
+
+        /**
+         * S1930: forgets everything [appWidgetId] configured. Extracted out of [onDeleted] so the
+         * launcher's own cell removal clears an instance through this call rather than repeating the
+         * key list - a second copy would go stale the first time a `cam_capture_*` key is added.
+         */
+        fun clearInstanceConfig(context: Context, appWidgetId: Int) {
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .remove(keyTargetId(appWidgetId))
+                .remove(keyTargetName(appWidgetId))
+                .remove(keyTargetPath(appWidgetId))
+                .remove(keyTargetType(appWidgetId))
+                .remove(keyTargetIsCameraFolder(appWidgetId))
+                .remove(keyCaptureMode(appWidgetId))
+                .apply()
+        }
 
         // Distinct key namespace so this widget never collides with ResourceLaunch's resource_* keys.
         fun keyTargetId(id: Int) = "cam_capture_target_id_$id"

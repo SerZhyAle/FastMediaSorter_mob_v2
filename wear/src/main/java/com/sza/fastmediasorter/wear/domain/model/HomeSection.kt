@@ -17,13 +17,15 @@ enum class HomeSectionId {
  * One row of the home screen.
  *
  * [dynamicLabel] wins over [labelRes] for the last-used resource, which is shown under its own name
- * rather than a generic caption.
+ * rather than a generic caption. [iconId] does the same for the glyph, and only the last-used
+ * entries ever carry one - every other section keeps the fixed glyph its id names.
  */
 data class HomeSection(
     val id: HomeSectionId,
     @StringRes val labelRes: Int,
     val route: String,
-    val dynamicLabel: String? = null
+    val dynamicLabel: String? = null,
+    val iconId: String? = null
 )
 
 /**

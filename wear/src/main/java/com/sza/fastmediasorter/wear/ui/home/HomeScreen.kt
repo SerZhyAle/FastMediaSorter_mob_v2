@@ -30,6 +30,7 @@ import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
+import androidx.wear.compose.material.LocalContentColor
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
@@ -40,16 +41,17 @@ import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
+import com.sza.fastmediasorter.wear.ui.common.WearListMetrics
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberCloseAppAction
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.icon.WearResourceIconRegistry
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
-private val CELL_ICON_SIZE = 24.dp
 
 @Composable
 fun HomeScreen(
@@ -168,14 +170,16 @@ private fun HomeSectionChip(
     onClick: () -> Unit
 ) {
     val label = section.dynamicLabel ?: stringResource(section.labelRes)
+    val glyph = glyphFor(section)
     Chip(
         onClick = onClick,
         label = { Text(text = label) },
         icon = {
             Icon(
-                painter = painterResource(iconFor(section.id)),
+                painter = painterResource(glyph.painterRes),
                 contentDescription = label,
-                modifier = Modifier.size(CELL_ICON_SIZE)
+                modifier = Modifier.size(WearListMetrics.LeadingIconNormal),
+                tint = if (glyph.ownsItsColour) Color.Unspecified else LocalContentColor.current
             )
         },
         // A section announces its own name - the dynamic resource name where it has one - so the
@@ -231,14 +235,39 @@ private fun HomeSectionCell(
         onClick = onClick,
         modifier = modifier
     ) { glyphModifier ->
+        val glyph = glyphFor(section)
         Icon(
-            painter = painterResource(iconFor(section.id)),
+            painter = painterResource(glyph.painterRes),
             contentDescription = null,
             modifier = glyphModifier,
-            tint = sectionTint(contentTypeFor(section.id))
+            tint = if (glyph.ownsItsColour) {
+                Color.Unspecified
+            } else {
+                sectionTint(contentTypeFor(section.id))
+            }
         )
     }
 }
+
+/**
+ * What a section draws in its icon slot: a vector plus whether that vector owns its colour.
+ *
+ * S2129: the last-used entries used to share one history glyph, so two or three recent resources
+ * were impossible to tell apart on a small screen. A resource's own vector is coloured already, and
+ * tinting it would repaint the very thing that distinguishes one row from the next.
+ */
+private data class SectionGlyph(@DrawableRes val painterRes: Int, val ownsItsColour: Boolean)
+
+/**
+ * The resource's own icon where the section carries one, otherwise the fixed glyph its id names.
+ *
+ * Only the last-used entries ever carry an icon id, so every other section reaches the fixed switch
+ * with no special case, and an id this build does not have falls back there too.
+ */
+private fun glyphFor(section: HomeSection): SectionGlyph =
+    WearResourceIconRegistry.resolveDrawable(section.iconId)
+        ?.let { SectionGlyph(it, ownsItsColour = true) }
+        ?: SectionGlyph(iconFor(section.id), ownsItsColour = false)
 
 /**
  * The semantic tone for a section glyph, or none when the painter already carries its own colour.

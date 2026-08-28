@@ -4,9 +4,6 @@
 <resources>
     <string name="app_name">FastMedia Wear</string>
     <string name="settings_group_other">Autre</string>
-    <string name="music">Musique</string>
-    <string name="videos">Vidéos</string>
-    <string name="photos">Photos</string>
     <string name="play">Lecture</string>
     <string name="pause">Pause</string>
     <string name="previous">Précédent</string>

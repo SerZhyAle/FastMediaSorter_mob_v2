@@ -101,7 +101,6 @@
     <string name="file_deleted">\"%1$s\" کو حذف کر دیا گیا۔</string>
     <string name="file_info">فائل کی معلومات</string>
     <string name="file_info_copy_path">راستہ کاپی کریں۔</string>
-    <string name="file_info_copy_path_done">پاتھ کاپی ہو گیا۔</string>
     <string name="file_info_directory_label">ڈائریکٹری: %1$s</string>
     <string name="file_info_extension_mime_label">فارمیٹ: %1$s · %2$s</string>
     <string name="file_info_filename_label">فائل: %1$s</string>

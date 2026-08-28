@@ -56,7 +56,7 @@ $apkDir = Split-Path -Parent "$projectRoot\$apkPathRelative"
 Write-Host "Features: $features" -ForegroundColor Yellow
 
 # Build the APK
-$taskName = "assemble" + $Flavor.Substring(0, 1).ToUpper() + $Flavor.Substring(1) + $BuildType.Substring(0, 1).ToUpper() + $BuildType.Substring(1)
+$taskName = ":app_v2:assemble" + $Flavor.Substring(0, 1).ToUpper() + $Flavor.Substring(1) + $BuildType.Substring(0, 1).ToUpper() + $BuildType.Substring(1)
 . "$PSScriptRoot\..\utils\build-version-stamp.ps1"
 $stamp = Get-BuildVersionStamp
 Write-Host "`nBuilding $Flavor $BuildType APK..." -ForegroundColor Cyan

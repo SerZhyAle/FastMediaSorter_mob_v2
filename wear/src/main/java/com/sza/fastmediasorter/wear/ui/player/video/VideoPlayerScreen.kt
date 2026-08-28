@@ -71,6 +71,7 @@ import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandButton
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerSeekActions
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
 import timber.log.Timber
 
@@ -89,7 +90,7 @@ private data class VideoPlayerActions(
     val onPlayPause: () -> Unit,
     val onSkipNext: () -> Unit,
     val onSkipPrevious: () -> Unit,
-    val onSeekTo: (Long) -> Unit,
+    val seek: PlayerSeekActions,
     val onRotaryStep: (Int) -> Unit,
     val onToggleScaleMode: () -> Unit,
     val onToggleShuffle: () -> Unit,
@@ -136,15 +137,15 @@ fun VideoPlayerScreen(
                         onPlayPause = viewModel::togglePlayPause,
                         onSkipNext = viewModel::skipToNext,
                         onSkipPrevious = viewModel::skipToPrevious,
-                        onSeekTo = viewModel::seekTo,
+                        seek = PlayerSeekActions(
+                            onSeekTo = viewModel::seekTo,
+                            onSeekBackward = viewModel::seekBackward,
+                            onSeekForward = viewModel::seekForward
+                        ),
                         onRotaryStep = { step ->
-                            // S1683: same binding as audio, per strategic 6.2 - the bezel moves inside the
-                            // file, and the file is changed by the buttons only.
-                            if (step > 0) {
-                                viewModel.seekForward()
-                            } else {
-                                viewModel.seekBackward()
-                            }
+                            // S2140: the bezel now matches audio's volume binding (S1701) instead of
+                            // seeking - seeking moved to a long press on the previous/next buttons.
+                            viewModel.onVolumeStep(up = step > 0)
                         },
                         onToggleScaleMode = viewModel::toggleScaleMode,
                         onToggleShuffle = viewModel::toggleShuffle,
@@ -333,7 +334,6 @@ private fun PlayPauseButton(
 
 @Composable
 private fun VideoActionButtons(
-    hasSet: Boolean,
     isPlaying: Boolean,
     scaleMode: VideoScaleMode,
     isShuffleEnabled: Boolean,
@@ -345,18 +345,27 @@ private fun VideoActionButtons(
     val shuffleDesc = stringResource(
         if (isShuffleEnabled) R.string.wear_shuffle_on else R.string.wear_shuffle_off
     )
+    // S2140: seeking moved off the bezel onto a long press here, and the labels are what TalkBack reads
+    // in place of "double tap and hold".
+    val seekBackwardDesc = stringResource(R.string.wear_seek_backward)
+    val seekForwardDesc = stringResource(R.string.wear_seek_forward)
 
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (hasSet) {
-            PlayerCommandButton(
-                onClick = actions.onSkipPrevious,
-                icon = Icons.Filled.SkipPrevious,
-                contentDescription = previousDesc
-            )
-        }
+        // S2140: drawn whether or not a set exists, unlike before. The bezel used to carry seeking and
+        // did not care about the set, so hiding these two with the set cost nothing; now they carry it,
+        // and hiding them would take seeking away from exactly the single file and the stream that the
+        // bezel used to serve. The tap is the part that stays conditional - skipToPrevious/skipToNext
+        // already return early on a set of one, so a tap without a set does nothing rather than wrong.
+        PlayerCommandButton(
+            onClick = actions.onSkipPrevious,
+            icon = Icons.Filled.SkipPrevious,
+            contentDescription = previousDesc,
+            onLongClick = actions.seek.onSeekBackward,
+            onLongClickLabel = seekBackwardDesc
+        )
 
         PlayPauseButton(
             isPlaying = isPlaying,
@@ -364,13 +373,13 @@ private fun VideoActionButtons(
             onClick = actions.onPlayPause
         )
 
-        if (hasSet) {
-            PlayerCommandButton(
-                onClick = actions.onSkipNext,
-                icon = Icons.Filled.SkipNext,
-                contentDescription = nextDesc
-            )
-        }
+        PlayerCommandButton(
+            onClick = actions.onSkipNext,
+            icon = Icons.Filled.SkipNext,
+            contentDescription = nextDesc,
+            onLongClick = actions.seek.onSeekForward,
+            onLongClickLabel = seekForwardDesc
+        )
 
         val scaleIcon = if (scaleMode == VideoScaleMode.CROP_PAN) {
             Icons.Filled.AspectRatio
@@ -433,18 +442,36 @@ private fun VideoControls(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Bottom
     ) {
+        // S2140: shown only while the bezel is being turned and for a moment after, same readout shape
+        // and the same string audio already uses (strategic 3.2 - one key, not a duplicate per screen).
+        // It needs no visibility rule of its own: this whole column is already inside the panel's
+        // AnimatedVisibility, so hiding the panel hides this with it.
+        if (uiState.isVolumeVisible) {
+            val readout = stringResource(
+                R.string.wear_audio_volume_level,
+                uiState.volumeLevel,
+                uiState.volumeMax,
+            )
+            Text(
+                text = readout,
+                style = MaterialTheme.typography.caption1,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics { contentDescription = readout },
+            )
+        }
         PlaybackTimeRow(
             currentPosition = uiState.currentPositionFormatted,
             duration = uiState.durationFormatted,
             progress = uiState.progress,
             durationMs = uiState.durationMs,
-            onSeekTo = actions.onSeekTo
+            onSeekTo = actions.seek.onSeekTo
         )
 
         Spacer(modifier = Modifier.height(4.dp))
 
         VideoActionButtons(
-            hasSet = uiState.hasSet,
             isPlaying = uiState.isPlaying,
             scaleMode = uiState.scaleMode,
             isShuffleEnabled = uiState.isShuffleEnabled,

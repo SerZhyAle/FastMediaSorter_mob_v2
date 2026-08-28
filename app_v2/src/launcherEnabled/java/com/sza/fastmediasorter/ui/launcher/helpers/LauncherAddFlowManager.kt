@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.ui.applaunchpanel.edit.OsShortcutPickerDialogFrag
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.ResourcePickerDialogFragment
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
+import com.sza.fastmediasorter.ui.launcher.gadget.ConfigurableWidgetCatalog
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherTimeZoneCatalog
 import com.sza.fastmediasorter.ui.launcher.gadget.NetworkIndicatorGadget.Companion.PARAM_SEPARATOR
@@ -31,6 +32,7 @@ import com.sza.fastmediasorter.ui.launcher.picker.LauncherScheduledOpPickerDialo
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherSectionNameDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherStreamPickerDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherWeatherLocationDialogFragment
+import com.sza.fastmediasorter.widget.LauncherWidgetToken
 import com.sza.fastmediasorter.widget.networkmonitor.NetworkMonitorIndicator
 import timber.log.Timber
 
@@ -56,7 +58,7 @@ class LauncherAddFlowManager(
     private val contactPickManager: LauncherContactPickManager,
     private val sensorPermissionManager: LauncherSensorPermissionManager,
     private val currentColumns: () -> Int,
-    private val onCreateResource: () -> Unit,
+    private val hostActions: LauncherAddFlowHostActions,
 ) {
 
     // S1209: [NO_SLOT] in either coordinate means the flow started from the taskbar "+", where the user
@@ -366,6 +368,11 @@ class LauncherAddFlowManager(
                 LauncherNetworkIndicatorDialogFragment.TAG,
             )
 
+            // S1930: same shape as the four above - the param is an instance token, not a registered
+            // resource - but the question is asked by the widget's own configuration Activity rather
+            // than by a dialog of ours, and the cell is placed only once that Activity says yes.
+            ConfigurableWidgetCatalog.isConfigurable(gadgetKey) -> configureThenPlace(gadgetKey)
+
             gadget.requiresResourceParam -> {
                 pendingGadgetKey = gadgetKey
                 val filter = if (gadgetKey == LauncherGadgetRegistry.KEY_PLAYLIST) MediaType.AUDIO else null
@@ -377,6 +384,40 @@ class LauncherAddFlowManager(
 
             else -> placeGadget(gadgetKey, param = null, resourceId = null)
         }
+    }
+
+    /**
+     * S1930: mints the cell's instance, hands it to the widget's own configuration screen, and stops.
+     * Nothing is placed yet - [onWidgetConfigured] finishes the flow, because a cell placed first and
+     * configured second is a cell the user can abandon half-made.
+     */
+    private fun configureThenPlace(gadgetKey: String) {
+        val token = LauncherWidgetToken.mint(context)
+        Timber.d("S1930: configure %s with token %d", gadgetKey, token)
+        val intent = ConfigurableWidgetCatalog.configIntent(context, gadgetKey, token) ?: return
+        // In saved state, not a field here: the configuration screen is a separate Activity, which is
+        // exactly when the OS may kill this one (S2060, S2099).
+        viewModel.pendingConfiguredWidget = gadgetKey to token
+        hostActions.startWidgetConfiguration(intent)
+    }
+
+    /**
+     * S1930: the configuration screen returned. [configured] is its `RESULT_OK`, which every widget
+     * config Activity here sets only after writing its instance.
+     *
+     * A cancelled configuration clears the instance rather than leaving it: the screens set
+     * `RESULT_CANCELED` first and can still have written a partial one before the user backed out, and
+     * with no cell placed nothing would ever point at it again.
+     */
+    fun onWidgetConfigured(configured: Boolean) {
+        val (gadgetKey, token) = viewModel.pendingConfiguredWidget ?: return
+        Timber.d("S1930: configured=%b for %s token %d", configured, gadgetKey, token)
+        viewModel.pendingConfiguredWidget = null
+        if (!configured) {
+            ConfigurableWidgetCatalog.clearInstance(context, gadgetKey, token)
+            return
+        }
+        placeGadget(gadgetKey, param = token.toString(), resourceId = null)
     }
 
     /**
@@ -476,7 +517,7 @@ class LauncherAddFlowManager(
             // S1423: "Create new.." carries no resource id - the shortcut is pinned by the creation
             // flow itself, so there is no mode to pick and no cell to place here.
             if (bundle.getBoolean(ResourcePickerDialogFragment.RESULT_CREATE_NEW, false)) {
-                onCreateResource()
+                hostActions.createResource()
                 return@setFragmentResultListener
             }
             val resourceId = bundle.getLong(ResourcePickerDialogFragment.RESULT_RESOURCE_ID)
@@ -586,6 +627,10 @@ class LauncherAddFlowManager(
      * every other kind.
      */
     fun addShortcut(command: LauncherCellCommand) {
+        // S2107: the far end of the contact chain. The slot is logged with it because pendingSlot
+        // defaults to (0, 0) rather than to NO_SLOT, so a lost coordinate places the cell top-left
+        // instead of nowhere - and from the tapped square that is indistinguishable from no cell at all.
+        Timber.d("S2107: addShortcut kind=${command::class.simpleName} slot=${viewModel.pendingSlot}")
         placeAtPendingSlot(
             kind = LauncherCellKind.SHORTCUT,
             target = command.encode(),

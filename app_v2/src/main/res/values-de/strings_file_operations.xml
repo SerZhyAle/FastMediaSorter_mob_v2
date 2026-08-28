@@ -99,7 +99,6 @@
     <string name="file_deleted">\"%1$s\" gelöscht</string>
     <string name="file_info">Dateiinformationen</string>
     <string name="file_info_copy_path">Pfad kopieren</string>
-    <string name="file_info_copy_path_done">Pfad kopiert</string>
     <string name="file_info_directory_label">Verzeichnis: %1$s</string>
     <string name="file_info_extension_mime_label">Format: %1$s · %2$s</string>
     <string name="file_info_filename_label">Datei: %1$s</string>

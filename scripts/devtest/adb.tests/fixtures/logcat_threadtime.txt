@@ -1,0 +1,8 @@
+08-27 21:14:02.113  4711  4711 I FastMediaSorter: application start, flavor=standard
+08-27 21:14:02.288  4711  4736 D MediaScanRepository: scan begin, roots=3
+08-27 21:14:02.401  1122  1150 I ActivityManager: Start proc 4711:com.sza.fastmediasorter.debug/u0a318 for activity
+08-27 21:14:03.007  4711  4711 W PlayerViewModel: seek requested before prepare, ignored
+08-27 21:14:03.512  2087  2087 I SurfaceFlinger: layer added
+08-27 21:14:04.220  4711  4736 E ThumbnailLoader: decode failed for content://media/external/images/media/91
+08-27 21:14:05.008  1122  1150 E AndroidRuntime: Process: com.sza.fastmediasorter.debug, PID: 4711
+08-27 21:14:06.771  3099  3099 D Launcher: onResume

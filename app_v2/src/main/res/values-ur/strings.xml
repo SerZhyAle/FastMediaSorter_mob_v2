@@ -2604,7 +2604,6 @@
     <string name="stream_info_state_empty">مقرر نہیں</string>
     <string name="stream_info_not_in_catalog">یہ چینل آپ کی فہرست میں نہیں ہے، اس لیے اس کے بارے میں کچھ محفوظ نہیں۔ تفصیلات رکھنے کے لیے اسے فہرست میں شامل کریں۔</string>
     <string name="stream_info_copy">سب کاپی کریں</string>
-    <string name="stream_info_copied">تفصیلات کاپی ہو گئیں</string>
     <string name="stream_info_value_picture_size">%1$d x %2$d</string>
     <string name="stream_info_value_frame_rate">%1$s fps</string>
     <string name="stream_info_value_bitrate">%1$s kbit/s</string>
@@ -2818,7 +2817,6 @@
     <string name="launcher_gadget_map_actions_at">%1$s کا نقشہ۔ نقشہ ایپلیکیشن کھولنے کے لیے تھپتھپائیں۔</string>
     <string name="browse_empty_filtered_out">%1$d فائلیں زیادہ سے زیادہ فائل سائز کی ترتیب کے ذریعے چھپی ہوئی ہیں۔</string>
     <string name="browse_empty_filtered_out_hint">انہیں دیکھنے کے لیے ترتیبات میں فائل کا زیادہ سے زیادہ سائز بڑھائیں۔</string>
-    <string name="network_monitor_ip_addresses_label">IP پتے</string>
     <string name="network_monitor_permission_grant">اجازت نہیں دی گئی۔ اسے دینے کے لیے تھپتھپائیں۔</string>
     <string name="network_monitor_permission_open_settings">اجازت مسدود ہے۔ ایپ کی ترتیبات کھولنے کے لیے تھپتھپائیں۔</string>
     <string name="cast_cropping_stereo">سنگل آئی کاپی تیار کی جا رہی ہے..</string>

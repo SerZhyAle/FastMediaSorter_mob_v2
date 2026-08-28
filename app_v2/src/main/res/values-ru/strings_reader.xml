@@ -61,7 +61,6 @@
     <string name="epub_table_of_contents">Оглавление</string>
     <string name="epub_text_empty_tts">Текст в главе не найден</string>
     <string name="text_content_hint">Текстовое содержимое</string>
-    <string name="text_copied">Text copied to clipboard</string>
     <string name="text_editing_large_file">Editing is not available for files with multiple pages</string>
     <string name="text_editor_action_cancel">Отменить</string>
     <string name="text_editor_action_save">Сохранить</string>

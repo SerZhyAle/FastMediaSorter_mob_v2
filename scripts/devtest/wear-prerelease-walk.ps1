@@ -74,6 +74,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
 $APP_PACKAGE = 'com.sza.fastmediasorter'
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)

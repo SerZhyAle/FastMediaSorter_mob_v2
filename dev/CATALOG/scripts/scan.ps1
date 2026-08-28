@@ -275,11 +275,17 @@ foreach ($file in $ktFiles) {
     # to all of them. That made manual role/status updates unsafe and gave
     # consumers misleading class ownership.
     $topClasses = Get-TopLevelClasses $content
-    if ($topClasses.Count -eq 0) {
+    $fileRecordName = [System.IO.Path]::GetFileNameWithoutExtension($file.Name)
+    $topLevelComposable = [regex]::IsMatch(
+        $content,
+        "(?m)^\s*@Composable\s*(?:\r?\n\s*)*(?:public\s+)?fun\s+$([regex]::Escape($fileRecordName))\s*\("
+    )
+    $hasFileNamedType = @($topClasses | Where-Object { $_.Name -eq $fileRecordName }).Count -gt 0
+    if ($topClasses.Count -eq 0 -or ($topLevelComposable -and -not $hasFileNamedType)) {
         $topClasses = @([PSCustomObject]@{
-            Name = [System.IO.Path]::GetFileNameWithoutExtension($file.Name)
+            Name = $fileRecordName
             DeclIndex = 0
-        })
+        }) + $topClasses
     }
 
     for ($ci = 0; $ci -lt $topClasses.Count; $ci++) {

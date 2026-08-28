@@ -21,6 +21,7 @@ import com.sza.fastmediasorter.data.repository.StorageVolumeRepositoryImpl
 import com.sza.fastmediasorter.data.repository.StorageVolumeSource
 import com.sza.fastmediasorter.data.repository.StreamingCacheRepositoryImpl
 import com.sza.fastmediasorter.data.repository.ThumbnailCacheRepositoryImpl
+import com.sza.fastmediasorter.data.repository.settings.MainListSessionStore
 import com.sza.fastmediasorter.data.repository.streams.RealStreamFrameIngestor
 import com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore
 import com.sza.fastmediasorter.data.repository.wear.WearSettingsMirrorStore
@@ -30,6 +31,7 @@ import com.sza.fastmediasorter.domain.repository.BatteryRuntimeEstimator
 import com.sza.fastmediasorter.domain.repository.DeviceMemoryRepository
 import com.sza.fastmediasorter.domain.repository.DeviceProfileRepository
 import com.sza.fastmediasorter.domain.repository.FavoritesRepository
+import com.sza.fastmediasorter.domain.repository.MainListSessionRepository
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
@@ -72,6 +74,14 @@ abstract class RepositoryModule {
     abstract fun bindWearSettingsMirrorStore(
         impl: SharedPreferencesWearSettingsMirrorStore
     ): WearSettingsMirrorStore
+
+    // S2199: the resource list's remembered sort and filters. Bound as an interface because the
+    // screen must not import the data layer - see the ui-imports-data gate (S2103).
+    @Binds
+    @Singleton
+    abstract fun bindMainListSessionRepository(
+        impl: MainListSessionStore
+    ): MainListSessionRepository
 
     @Binds
     @Singleton

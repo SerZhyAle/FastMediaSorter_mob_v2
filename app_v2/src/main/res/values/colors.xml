@@ -435,6 +435,11 @@
     <!-- S2076: darkens the launcher desktop's live camera backdrop so icon labels stay legible over an
          arbitrary scene. Same value as the grid-tile scrim above, which solves the same problem. -->
     <color name="launcher_camera_scrim">#99000000</color>
+    <!-- S2177: plate behind the file name written on a browse grid tile whose picture is the shared
+         extension tile. Same value again, and named for its own surface rather than borrowed from the
+         stream grid: the plate covers the text only, so the tile colour that identifies the type still
+         reads above and below it. -->
+    <color name="tile_caption_plate">#99000000</color>
     <!-- S1062: red pill behind the grid-tile "Pinned" badge (top-left indicator). Deliberately a full
          red so the pinned state reads at a glance; a separate element from the bottom-left play-status dot. -->
     <color name="stream_pin_badge_bg">#FFC62828</color>

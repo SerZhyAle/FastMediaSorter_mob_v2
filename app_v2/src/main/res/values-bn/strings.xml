@@ -2602,7 +2602,6 @@
     <string name="stream_info_state_empty">নির্ধারিত নয়</string>
     <string name="stream_info_not_in_catalog">এই চ্যানেল আপনার তালিকায় নেই, তাই এটি সম্পর্কে কিছু সংরক্ষিত নেই। বিবরণ রাখতে এটি তালিকায় যোগ করুন।</string>
     <string name="stream_info_copy">সব কপি করুন</string>
-    <string name="stream_info_copied">বিবরণ কপি হয়েছে</string>
     <string name="stream_info_value_picture_size">%1$d x %2$d</string>
     <string name="stream_info_value_frame_rate">%1$s fps</string>
     <string name="stream_info_value_bitrate">%1$s kbit/s</string>
@@ -2816,7 +2815,6 @@
     <string name="launcher_gadget_map_actions_at">%1$s এর মানচিত্র। মানচিত্র অ্যাপ্লিকেশনটি খুলতে ট্যাপ করুন।</string>
     <string name="browse_empty_filtered_out">সর্বোচ্চ ফাইলের আকার নির্ধারণের কারণে %1$d ফাইলগুলো লুকানো থাকে।</string>
     <string name="browse_empty_filtered_out_hint">সেগুলো দেখতে সেটিংসে সর্বোচ্চ ফাইলের আকার বাড়ান।</string>
-    <string name="network_monitor_ip_addresses_label">আইপি ঠিকানা</string>
     <string name="network_monitor_permission_grant">অনুমতি দেওয়া হয়নি। অনুমতি দিতে ট্যাপ করুন।</string>
     <string name="network_monitor_permission_open_settings">অনুমতি অবরুদ্ধ করা হয়েছে। অ্যাপ সেটিংস খুলতে ট্যাপ করুন।</string>
     <string name="cast_cropping_stereo">সিঙ্গেল-আই কপি প্রস্তুত করা হচ্ছে..</string>

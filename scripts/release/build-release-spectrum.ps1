@@ -203,7 +203,7 @@ try {
     $pass1Tasks = @()
     foreach ($f in $pass1Flavors) {
         # standard -> assembleStandardRelease, vr -> assembleVrRelease, etc.
-        $pass1Tasks += "assemble$((Get-Culture).TextInfo.ToTitleCase($f))Release"
+        $pass1Tasks += ":app_v2:assemble$((Get-Culture).TextInfo.ToTitleCase($f))Release"
     }
     # Both watch artifacts come out of this single invocation. The sideload APK and the Play bundle
     # used to be produced by two gradle calls at different times - this script and
@@ -222,7 +222,7 @@ try {
     if ($buildNoLegal) {
         Write-Host "Pass 2: noLegal release (Chaquopy enabled, no configuration cache).." -ForegroundColor Cyan
         & $gradlew `
-            assembleNoLegalRelease `
+            :app_v2:assembleNoLegalRelease `
             "-Pchaquopy.enabled=true" `
             --no-configuration-cache
         if ($LASTEXITCODE -ne 0) { throw "Pass 2 (noLegal release) failed with exit $LASTEXITCODE" }

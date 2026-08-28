@@ -20,10 +20,7 @@ import java.util.WeakHashMap
 fun KeepScreenOnEffect(enabled: Boolean) {
     val window = LocalContext.current.findActivity()?.window
     DisposableEffect(window, enabled) {
-        if (enabled) {
-            timber.log.Timber.d("S2095: KeepScreenOnEffect acquire window=%s", window)
-            window?.let(KeepScreenOnClaims::acquire)
-        }
+        if (enabled) window?.let(KeepScreenOnClaims::acquire)
         onDispose {
             if (enabled) window?.let(KeepScreenOnClaims::release)
         }

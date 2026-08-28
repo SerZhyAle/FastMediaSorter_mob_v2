@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
@@ -61,6 +62,7 @@ import androidx.wear.input.RemoteInputIntentHelper
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
+import com.sza.fastmediasorter.wear.ui.common.CellCaption
 import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
@@ -86,6 +88,12 @@ private const val KEY_SEARCH_QUERY = "search_query"
 // only clipped nodes on that screen are channel cards scrolled past the edge, unrelated to this row.
 // No extra round-screen inset is needed beyond the shared `wearScreenInsets()` already applied below.
 private val TOOLBAR_BUTTON_SIZE = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
+private val TOOLBAR_ROW_PADDING = 4.dp
+
+// S2178: what the pinned row actually occupies, as opposed to the button inside it. Anything pushed
+// below the row must clear this, not TOOLBAR_BUTTON_SIZE - the 8 dp difference is the row's own
+// vertical padding, and using the button size left exactly that much content under the icons.
+private val TOOLBAR_ROW_HEIGHT = TOOLBAR_BUTTON_SIZE + TOOLBAR_ROW_PADDING * 2
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
 private val CELL_ICON_SIZE = 24.dp
 
@@ -294,7 +302,7 @@ private fun StreamsMainContent(
                 state = listState,
                 contentPadding = PaddingValues(
                     start = screenInsets.calculateLeftPadding(LayoutDirection.Ltr),
-                    top = screenInsets.calculateTopPadding() + TOOLBAR_BUTTON_SIZE,
+                    top = screenInsets.calculateTopPadding() + TOOLBAR_ROW_HEIGHT,
                     end = screenInsets.calculateRightPadding(LayoutDirection.Ltr),
                     bottom = screenInsets.calculateBottomPadding()
                 ),
@@ -413,7 +421,13 @@ private fun StreamsStateBlock(
 ) {
     val failed = uiState.error != null
     val refreshLabel = stringResource(R.string.wear_streams_refresh)
+    LaunchedEffect(failed) { Timber.d("S2178: streams state block offset below the pinned row") }
     WearStateBlock(
+        // S2178: the control header keeps painting over this branch, so the block centres its message
+        // in the area below the row rather than in the whole screen. Passed as the caller's modifier
+        // because the block applies that one before its own fillMaxSize, which is what shrinks the
+        // centring area; every other caller of the block has nothing pinned above it.
+        modifier = Modifier.padding(top = TOOLBAR_ROW_HEIGHT),
         kind = if (failed) WearStateKind.ERROR else WearStateKind.EMPTY,
         message = if (failed) {
             stringResource(R.string.wear_streams_update_failed)
@@ -494,7 +508,7 @@ private fun StreamsControlHeader(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = TOOLBAR_ROW_PADDING),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -960,7 +974,11 @@ private fun StreamCell(
         thumbnail = thumbnail,
         caption = channel.name,
         onClick = onClick,
-        modifier = modifier
+        modifier = modifier,
+        // Every channel whose favicon has not resolved draws the same ic_cast, so the name is the
+        // only thing telling one tile from the next - the grid the 2026-08-27 audit found reading
+        // six times as "S1945 Seed.." (S2177).
+        captionLayout = CellCaption(overGroupIcon = true)
     ) { glyphModifier ->
         Icon(
             painter = painterResource(R.drawable.ic_cast),

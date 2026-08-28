@@ -36,7 +36,16 @@ data class VideoPlayerUiState(
      * channel actually stopped or disturbed a stream. A reason rather than a message, because the
      * screen owns the wording and the locale.
      */
-    val channelReason: StreamChannelReason? = null
+    val channelReason: StreamChannelReason? = null,
+    /**
+     * S2140: the system media volume, read back after each change rather than counted here - same
+     * invariant the audio player already keeps (S1701). The player owns no scale of its own: anything
+     * else on the watch may move the same stream, and a private copy would drift from what is heard.
+     */
+    val volumeLevel: Int = 0,
+    val volumeMax: Int = 0,
+    /** True only while the bezel is being turned, plus the short tail after it stops. */
+    val isVolumeVisible: Boolean = false
 ) {
     val positionText: String
         get() = if (setSize > 0) "${setIndex + 1}/$setSize" else ""

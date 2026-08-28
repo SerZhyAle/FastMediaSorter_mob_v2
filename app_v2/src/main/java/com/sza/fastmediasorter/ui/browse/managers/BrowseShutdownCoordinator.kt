@@ -30,7 +30,8 @@ class BrowseShutdownCoordinator(
     private val browseStateDataStore: BrowseStateDataStore,
     private val unifiedCache: UnifiedFileCache,
     private val hasActiveTransfer: suspend () -> Boolean,
-    private val cleanupTrash: suspend (MediaResource) -> Unit
+    private val cleanupTrash: suspend (MediaResource) -> Unit,
+    private val resourceId: Long
 ) {
 
     fun buildNetworkResourceKey(): String? {
@@ -72,7 +73,7 @@ class BrowseShutdownCoordinator(
             }
         }
         scope.launch(ioDispatcher) {
-            browseStateDataStore.saveFilter(stateFlow.value.filter)
+            browseStateDataStore.saveFilter(resourceId, stateFlow.value.filter)
         }
     }
 

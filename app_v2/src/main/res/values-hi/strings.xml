@@ -2600,7 +2600,6 @@
     <string name="stream_info_state_empty">सेट नहीं</string>
     <string name="stream_info_not_in_catalog">यह चैनल आपकी सूची में नहीं है, इसलिए इसके बारे में कुछ संग्रहीत नहीं है। इसका विवरण रखने के लिए इसे सूची में जोड़ें।</string>
     <string name="stream_info_copy">सब कॉपी करें</string>
-    <string name="stream_info_copied">विवरण कॉपी किए गए</string>
     <string name="stream_info_value_picture_size">%1$d x %2$d</string>
     <string name="stream_info_value_frame_rate">%1$s fps</string>
     <string name="stream_info_value_bitrate">%1$s kbit/s</string>
@@ -2814,7 +2813,6 @@
     <string name="launcher_gadget_map_actions_at">%1$s का नक्शा। नक्शा एप्लिकेशन खोलने के लिए टैप करें।</string>
     <string name="browse_empty_filtered_out">%1$d फ़ाइलें अधिकतम फ़ाइल आकार सेटिंग द्वारा छिपी हुई हैं।</string>
     <string name="browse_empty_filtered_out_hint">उन्हें देखने के लिए सेटिंग्स में अधिकतम फ़ाइल आकार बढ़ाएँ।</string>
-    <string name="network_monitor_ip_addresses_label">आईपी ​​पते</string>
     <string name="network_monitor_permission_grant">अनुमति नहीं दी गई है। अनुमति देने के लिए टैप करें।</string>
     <string name="network_monitor_permission_open_settings">अनुमति अवरुद्ध है। ऐप सेटिंग्स खोलने के लिए टैप करें।</string>
     <string name="cast_cropping_stereo">सिंगल-आई कॉपी तैयार की जा रही है..</string>

@@ -12,6 +12,7 @@ import android.graphics.drawable.Icon
 import android.os.Build
 import android.util.Rational
 import android.widget.ImageButton
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -22,9 +23,9 @@ import timber.log.Timber
 /**
  * Manages Picture-in-Picture mode for PlayerActivity and StandalonePlayerActivity.
  *
- * Scope: Android 12+ (API 31+) only.
+ * Scope: Android 8+ (API 26+); auto-enter on leaving the activity is API 31+ only.
  * - Auto-enter PiP on home button press (when video playing)
- * - PiP button in custom controls (hidden on API < 31)
+ * - PiP button in custom controls (hidden where the platform has no PiP)
  * - Remote actions: play/pause
  * - UI adjustments when entering/exiting PiP
  */
@@ -111,7 +112,6 @@ class PictureInPictureManager(
      * Handle PiP mode change - update UI visibility.
      */
     fun onPictureInPictureModeChanged(isInPipMode: Boolean) {
-        Timber.d("S2026: PiP mode changed, isInPip=$isInPipMode")
         Timber.d("PiPManager: mode changed, isInPip=$isInPipMode")
         this.isInPipMode = isInPipMode
 
@@ -161,14 +161,28 @@ class PictureInPictureManager(
     @RequiresApi(Build.VERSION_CODES.O)
     private fun enterPipApi26() {
         try {
+            // S2186: hide the controller BEFORE requesting the mode change, not only inside
+            // onPictureInPictureModeChanged. That callback fires asynchronously after the system
+            // already began the transition, so a controller left visible here gets frozen into
+            // the PiP window at whatever instant ExoPlayer's un-clamped currentPosition ticked -
+            // observed as a time counter/seek-bar past the clip's duration that never updates
+            // again once useController=false stops the controller's refresh loop.
+            playerView.useController = false
+            Timber.d("S2186: controller hidden before PiP mode request")
             // Register receiver BEFORE building params so that the PendingIntents
             // inside RemoteActions are guaranteed to have an active receiver.
             registerPipReceiver()
             val params = buildPipParams()
             activity.enterPictureInPictureMode(params)
             Timber.d("PiPManager: entered PiP mode")
+            Timber.d("S2026: PiP accepted by host ${activity.javaClass.simpleName}, taskId=${activity.taskId}")
         } catch (e: Exception) {
             Timber.e(e, "PiPManager: failed to enter PiP")
+            // S2026: the refusal used to reach the log only, so a tap on the button looked like a dead
+            // control. The platform rejects PiP for whole classes of host - a home-type task above all -
+            // and the user is owed an answer either way.
+            unregisterPipReceiver()
+            Toast.makeText(activity, R.string.pip_enter_failed, Toast.LENGTH_SHORT).show()
         }
     }
 

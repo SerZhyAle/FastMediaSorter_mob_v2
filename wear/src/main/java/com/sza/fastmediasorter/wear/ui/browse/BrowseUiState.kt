@@ -11,6 +11,16 @@ sealed class BrowseUiState {
     data object Loading : BrowseUiState()
     data class Success(val files: List<WearMediaFile>) : BrowseUiState()
     data class Empty(val message: ScreenTitle) : BrowseUiState()
+
+    /**
+     * S2136: the resource holds files, and none of them survive the current search or type filter.
+     *
+     * Distinct from [Empty] because the two need opposite things said to the wearer - one is a
+     * resource with nothing in it, the other is a list the wearer has narrowed and can widen again
+     * (strategic goal 6). Carries no message: the screen names the cause, and the header stays on
+     * top of this state so the narrowing can be cleared.
+     */
+    data object NoMatches : BrowseUiState()
     data class Error(val message: ScreenTitle) : BrowseUiState()
 }
 

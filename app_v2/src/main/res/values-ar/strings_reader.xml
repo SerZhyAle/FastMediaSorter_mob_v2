@@ -61,7 +61,6 @@
     <string name="epub_table_of_contents">جدول المحتويات</string>
     <string name="epub_text_empty_tts">لم يتم العثور على أي نص في الفصل</string>
     <string name="text_content_hint">محتوى النص</string>
-    <string name="text_copied">تم نسخ النص إلى الحافظة</string>
     <string name="text_editing_large_file">لا تتوفر إمكانية التحرير للملفات التي تحتوي على صفحات متعددة</string>
     <string name="text_editor_action_cancel">يلغي</string>
     <string name="text_editor_action_save">يحفظ</string>

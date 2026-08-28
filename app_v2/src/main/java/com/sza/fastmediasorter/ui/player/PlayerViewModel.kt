@@ -90,6 +90,7 @@ class PlayerViewModel @Inject constructor(
     private val googleDriveClient: com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient,
     private val credentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository,
     private val favoritesUseCase: com.sza.fastmediasorter.domain.usecase.FavoritesUseCase,
+    private val classifyMediaLoadFailureUseCase: com.sza.fastmediasorter.domain.usecase.ClassifyMediaLoadFailureUseCase,
     private val smbClient: com.sza.fastmediasorter.data.network.SmbClient,
     private val cachedFileListRepository: CachedFileListRepository,
     private val clearResumeStateUseCase: com.sza.fastmediasorter.domain.usecase.ClearResumeStateUseCase,
@@ -216,6 +217,11 @@ class PlayerViewModel @Inject constructor(
         ) : PlayerEvent()
         // S0162: fired when the player-level rotation sensor toggle is changed
         data class RotationSensorToggled(val sensorEnabled: Boolean) : PlayerEvent()
+
+        // S2151: a media file failed to load for a recognised network reason. [gone] separates the
+        // terminal outcome - the server answered that the file does not exist - from a resource
+        // that is merely silent, because only the first one may offer to drop the favorite.
+        data class ShowMediaUnavailable(val fileName: String, val gone: Boolean) : PlayerEvent()
     }
 
     override fun getInitialState(): PlayerState {
@@ -291,6 +297,22 @@ class PlayerViewModel @Inject constructor(
      * "stream unavailable" dialog (retry / remove); otherwise fall back to the generic error so the
      * existing behavior is preserved for arbitrary http(s) media that is not a stored stream.
      */
+    /**
+     * S2151: reports an already-thrown media load failure by its cause instead of one generic string.
+     * Returns false when the failure is not a recognised network one, so the caller keeps the existing
+     * error surface - a calm message covering a real defect leaves nothing to diagnose.
+     */
+    fun onMediaLoadFailed(candidates: List<Throwable>, fileName: String): Boolean {
+        val outcome = classifyMediaLoadFailureUseCase(candidates)
+        if (outcome == com.sza.fastmediasorter.domain.usecase.MediaLoadFailureOutcome.UNRECOGNISED) {
+            return false
+        }
+        val gone = outcome == com.sza.fastmediasorter.domain.usecase.MediaLoadFailureOutcome.GONE
+        Timber.d("S2151: media load failure recognised, gone=$gone")
+        sendEvent(PlayerEvent.ShowMediaUnavailable(fileName = fileName, gone = gone))
+        return true
+    }
+
     fun onStreamPlaybackFailed(url: String) {
         viewModelScope.launch {
             val source = getStreamSourceByUrlUseCase(url)

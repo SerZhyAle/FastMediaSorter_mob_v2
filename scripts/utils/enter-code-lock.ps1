@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Acquire temp/CODE.LOCK before starting a multi-file source (Kotlin/XML/build-file) edit.
+    Acquire the code domains a changed file set belongs to, before a source/XML/build-file edit.
 
 .DESCRIPTION
     S1432: the lock is ordered. When another session is mid-edit this no longer shrugs and lets
@@ -27,11 +27,18 @@
     Exit codes:
     0 - the domains are acquired, start editing. Also returned when this session ALREADY holds
         every domain of the requested set (re-entrant call): nothing is enqueued and the existing
-        locks stay yours (S1448). Holding only part of the set still queues for the rest.
+        locks stay yours (S1448). Holding only PART of the set tops up the missing domains
+        directly when that is safe (S2200: every missing domain outranks every held one in
+        canonical order) - the held domains are never released or re-queued for.
     2 - the resource name is not an accepted domain or bare type (S2109); nothing was enqueued.
     4 - queued: another session holds one of your domains, or you are not its queue head. Your
         ticket is in the queue; wait for your turn with scripts/utils/wait-for-lock-turn.ps1 (or
         re-run with -Wait). Do not edit sources yet.
+
+        Also returned, WITHOUT enqueueing anything, when this session holds a domain that
+        outranks a domain still missing from the request (S2200) - granting that directly would
+        require acquiring out of canonical order, which a symmetric session could deadlock
+        against. Release the held domains and retake the full set (message names the two calls).
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/utils/enter-code-lock.ps1 -Reason "S0900: refactor BrowseViewModel"
@@ -56,17 +63,19 @@ $ErrorActionPreference = "Stop"
 . "$PSScriptRoot\agent-lock.ps1"
 
 if ($Domain) {
-    $lockName = $Domain
     $domains = @(Resolve-AgentLockDomains -Name $Domain)
     $derivedFrom = "declared -Domain $Domain"
 }
 elseif ($Files) {
     $domains = @(Resolve-CodeDomainsForPaths -Path $Files)
-    $lockName = $null
-    $derivedFrom = "derived from $(@($Files).Count) changed path(s)"
+    # Count the paths the RESOLVER sees, not the parameter's element count: `pwsh -File` binds a
+    # comma list as one string, so a five-file set reported itself as "1 changed path" - a line
+    # that reads like the caller lost four of its files (S2170).
+    $pathCount = @($Files | ForEach-Object { ([string]$_) -split ',' } |
+        ForEach-Object { $_.Trim() } | Where-Object { $_ }).Count
+    $derivedFrom = "derived from $pathCount changed path(s)"
 }
 else {
-    $lockName = 'Code'
     $domains = @(Resolve-AgentLockDomains -Name 'Code')
     $derivedFrom = 'no file set given - taking the full code set'
 }
@@ -80,23 +89,34 @@ foreach ($buildDomain in @(Resolve-AgentLockDomains -Name 'Build')) {
     }
 }
 
-# S1448 re-entrancy guard, mirroring the one Enter-BuildLockOrExit applies to BUILD.LOCK. A
-# session that already holds the lock and asks again must not enqueue behind itself: it would
-# exit 4, never be granted, and leave that ticket on the queue head - the very state this ticket
+# S1448/S2200 re-entrancy guard, mirroring the one Enter-BuildLockOrExit applies to BUILD.LOCK. A
+# session that already holds part or all of the requested set must not enqueue behind itself for
+# the part it already holds: it would exit 4, never be granted from the outside, and leave that
+# ticket parked on the queue head forever (research/01, item 1) - the very state this ticket
 # exists to remove, reached through a second door.
-$mySessionId = $env:CLAUDE_CODE_SESSION_ID
-# Re-entrant only when EVERY domain of the requested set is already ours: holding two of three and
-# calling again still has to queue for the third, or the caller would edit under a domain it never
-# took.
-$heldByMe = @($domains | Where-Object {
-    $s = Get-AgentLockStatus -Name $_
-    $s.Exists -and -not $s.Stale -and -not [string]::IsNullOrWhiteSpace($mySessionId) -and
-        [string]$s.SessionId -eq $mySessionId
-})
-if ($heldByMe.Count -eq $domains.Count) {
+$topUp = Resolve-AgentLockTopUp -Domains $domains
+
+if ($topUp.Missing.Count -eq 0) {
     Write-Host "Code domains $($domains -join ', ') already held by this session - reusing them, nothing queued." -ForegroundColor Green
     exit 0
 }
+
+if ($topUp.Held.Count -gt 0 -and -not $topUp.AscendingSafe) {
+    # S2200: this session holds a domain that outranks one still missing. Granting the missing
+    # one directly would require acquiring out of canonical order - the shape a symmetric session
+    # (holding the low-ranked domain, needing the high-ranked one) could deadlock against. Refuse
+    # before any ticket is written for the colliding domain, so nothing here can ever queue behind
+    # this session's own lock (research/01, item 3).
+    Write-Error "enter-code-lock: this session already holds $($topUp.Held -join ', '), which outranks missing domain(s) $($topUp.Missing -join ', ') in canonical order - acquiring them together without releasing risks a cross-session deadlock (S2200)." -ErrorAction Continue
+    Write-Host "  Release the held domains and retake the full set in one call:" -ForegroundColor Yellow
+    Write-Host "    pwsh -NoProfile -File scripts/utils/exit-code-lock.ps1" -ForegroundColor Gray
+    Write-Host "    pwsh -NoProfile -File scripts/utils/enter-code-lock.ps1 -Files <full changed set> -Reason '$Reason'" -ForegroundColor Gray
+    exit 4
+}
+
+# Ascending top-up (or no overlap at all): only the missing domains need a ticket or an acquire -
+# the held ones stay exactly as they are, never released, never re-queued for (research/01, item 2).
+$acquireDomains = $topUp.Missing
 
 # S1448: take the place in the queue BEFORE asking for the lock, exactly as
 # Enter-BuildLockOrExit does. Two things depend on it. The ticket the acquire retires is then
@@ -104,27 +124,27 @@ if ($heldByMe.Count -eq $domains.Count) {
 # released the lock and immediately wants it back queues BEHIND whoever was already waiting
 # instead of stepping over them. The issuer below reuses this session's existing ticket, so
 # asking twice keeps the place already earned rather than taking a second one.
-$tickets = New-AgentLockTicketSet -Name 'Code' -Reason $Reason -Domains $domains
-$ticket = $tickets[$domains[0]]
+$tickets = New-AgentLockTicketSet -Name 'Code' -Reason $Reason -Domains $acquireDomains
+$ticket = $tickets[$acquireDomains[0]]
 
-$result = Enter-AgentLock -Name 'Code' -Reason $Reason -Domains $domains -Tickets $tickets
+$result = Enter-AgentLock -Name 'Code' -Reason $Reason -Domains $acquireDomains -Tickets $tickets
 if ($result.Acquired) {
     Write-Host "Code domains acquired: $($domains -join ', ') (reason: '$Reason')." -ForegroundColor Green
     exit 0
 }
 
 if ($Wait) {
-    Write-Host "Code domains unavailable - queued at position $((Test-AgentLockTurnSet -Name 'Code' -Tickets $tickets -Domains $domains).Position), waiting up to ${WaitTimeoutSeconds}s.." -ForegroundColor DarkGray
-    $waited = Enter-AgentLock -Name 'Code' -Reason $Reason -Domains $domains -Wait -WaitTimeoutSeconds $WaitTimeoutSeconds -Tickets $tickets
+    Write-Host "Code domains unavailable - queued at position $((Test-AgentLockTurnSet -Name 'Code' -Tickets $tickets -Domains $acquireDomains).Position), waiting up to ${WaitTimeoutSeconds}s.." -ForegroundColor DarkGray
+    $waited = Enter-AgentLock -Name 'Code' -Reason $Reason -Domains $acquireDomains -Wait -WaitTimeoutSeconds $WaitTimeoutSeconds -Tickets $tickets
     if ($waited.Acquired) {
         Write-Host "Code domains acquired: $($domains -join ', ') (reason: '$Reason')." -ForegroundColor Green
         exit 0
     }
-    foreach ($d in $domains) { Remove-Item -LiteralPath $tickets[$d].path -Force -ErrorAction SilentlyContinue }
+    foreach ($d in $acquireDomains) { Remove-Item -LiteralPath $tickets[$d].path -Force -ErrorAction SilentlyContinue }
 }
 
-$turn = Test-AgentLockTurnSet -Name 'Code' -Tickets $tickets -Domains $domains
-$blocked = if ($turn.BlockingDomain) { $turn.BlockingDomain } else { $domains[0] }
+$turn = Test-AgentLockTurnSet -Name 'Code' -Tickets $tickets -Domains $acquireDomains
+$blocked = if ($turn.BlockingDomain) { $turn.BlockingDomain } else { $acquireDomains[0] }
 $holder = Get-AgentLockStatus -Name $blocked
 
 # S1448: name the blocker that actually exists. The message used to claim "held by another

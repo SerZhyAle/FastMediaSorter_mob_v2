@@ -348,12 +348,18 @@ class BrowseResourceLoadManager(
                 updateState { it.copy(totalFileCount = resource.fileCount) }
             }
 
+            // S2195: this catch only ever sees exceptions from finalizeLoadedFiles' post-scan work
+            // (sort/favorites/cache/save-enrich) - real scan failures (timeout, connection loss, auth)
+            // are already caught non-throwing inside BrowseLoadingManager's flow .catch and routed to
+            // handleLoadingError. A blind retry of deterministic post-processing protects against
+            // nothing; route through the same classified error path the scan-failure case already uses.
             try {
                 loadMediaFilesStandard(resourceForScan, sizeFilter)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
-                if (e is kotlinx.coroutines.CancellationException) throw e
                 Timber.e(e, "BrowseResourceLoadManager.loadMediaFiles: error")
-                loadMediaFilesStandard(resourceForScan, sizeFilter)
+                onHandleLoadingError(resourceForScan, e)
             } finally {
                 stopTimerJob?.cancel()
             }

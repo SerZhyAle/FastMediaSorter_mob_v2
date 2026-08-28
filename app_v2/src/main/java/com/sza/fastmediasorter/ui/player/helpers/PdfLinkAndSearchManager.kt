@@ -9,6 +9,7 @@ import android.os.ParcelFileDescriptor
 import android.view.View
 import androidx.annotation.RequiresApi
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.clipboard.copyTextToClipboard
 import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
@@ -305,15 +306,7 @@ class PdfLinkAndSearchManager(
 
             withContext(Dispatchers.Main) {
                 if (!recognizedText.isNullOrBlank()) {
-                    val ctx = root.context
-                    val clipboard = ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE)
-                            as android.content.ClipboardManager
-                    clipboard.setPrimaryClip(android.content.ClipData.newPlainText("pdf_text", recognizedText))
-                    android.widget.Toast.makeText(
-                        ctx,
-                        ctx.getString(com.sza.fastmediasorter.R.string.text_copied),
-                        android.widget.Toast.LENGTH_SHORT
-                    ).show()
+                    root.context.copyTextToClipboard("pdf_text", recognizedText)
                 } else {
                     onError(root.context.getString(com.sza.fastmediasorter.R.string.ocr_no_text_found))
                 }

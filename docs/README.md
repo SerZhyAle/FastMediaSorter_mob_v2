@@ -334,9 +334,9 @@ Wear OS documentation:
 
 ```powershell
 .\build-debug.PS1
-.\gradlew.bat assembleStandardDebug
+.\gradlew.bat :app_v2:assembleStandardDebug
 .\gradlew.bat testStandardDebugUnitTest
-.\gradlew.bat lintStandardDebug
+.\gradlew.bat :app_v2:lintStandardDebug
 ```
 
 ### Built APKs 📦

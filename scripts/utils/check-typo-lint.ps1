@@ -11,7 +11,7 @@ param(
     [switch]$FailOnActivityWarnings,
     [ValidateSet("auto", "typos", "cspell")]
     [string]$TypoTool = "auto",
-    [string]$LintTask = "lintStandardDebug"
+    [string]$LintTask = ":app_v2:lintStandardDebug"
 )
 
 $ErrorActionPreference = "Stop"
@@ -116,13 +116,17 @@ try {
     if (-not $SkipLint) {
         Write-Section "GRADLE LINT"
         Write-Host "Running .\\gradlew.bat $LintTask ..." -ForegroundColor Yellow
-        Enter-BuildLockOrExit -Reason "check-typo-lint.ps1 ($LintTask)"
+        # S2170: derive the domain from the task the caller already named (S2109 ADR-1) rather than
+        # pinning the phone. -LintTask is free-form, so a wear lint task would otherwise hold the
+        # phone domain it never builds - and a task naming no module cannot be narrowed at all.
+        $lintDomains = if ($LintTask -match 'wear') { @('Build.Wear') } else { @('Build.Phone') }
+        Enter-BuildLockOrExit -Reason "check-typo-lint.ps1 ($LintTask)" -Domain $lintDomains
         try {
             & .\gradlew.bat $LintTask
             $lintExitCode = $LASTEXITCODE
         }
         finally {
-            Exit-AgentLock -Name Build
+            Exit-AgentLock -Name 'Build' -Domains $lintDomains
         }
 
         if ($lintExitCode -ne 0) {

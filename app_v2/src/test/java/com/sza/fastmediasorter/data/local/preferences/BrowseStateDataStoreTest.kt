@@ -5,6 +5,8 @@ import androidx.datastore.core.okio.OkioStorage
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.PreferencesSerializer
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.testing.createFileFilter
 import kotlinx.coroutines.CoroutineScope
@@ -27,7 +29,8 @@ import org.junit.rules.TemporaryFolder
 /**
  * Round-trips [BrowseStateDataStore] against a real file-backed Preferences DataStore
  * (pure JVM). Covers the all-null -> null read branch, isEmpty -> remove-all write branch,
- * per-field present/absent persistence, and invalid-enum tolerance.
+ * per-field present/absent persistence, invalid-enum tolerance, resource scoping and legacy
+ * global-key cleanup (S2203).
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class BrowseStateDataStoreTest {
@@ -64,12 +67,13 @@ class BrowseStateDataStoreTest {
 
     @Test
     fun `filter is null when nothing persisted`() = runTest {
-        assertNull(store.filter.first())
+        assertNull(store.filter(RESOURCE_A).first())
     }
 
     @Test
     fun `save then read round-trips a populated filter`() = runTest {
         store.saveFilter(
+            RESOURCE_A,
             createFileFilter(
                 nameContains = "vac",
                 minDate = 10L,
@@ -80,9 +84,11 @@ class BrowseStateDataStoreTest {
             )
         )
 
-        val loaded = store.filter.first()
+        val loaded = store.filter(RESOURCE_A).first()
         requireNotNull(loaded)
-        assertEquals("vac", loaded.nameContains)
+        // nameContains is never persisted by BrowseStateDataStore - a typed search term should
+        // not reappear on its own the next time this resource is opened.
+        assertNull(loaded.nameContains)
         assertEquals(10L, loaded.minDate)
         assertEquals(20L, loaded.maxDate)
         assertEquals(1.5f, loaded.minSizeMb)
@@ -92,36 +98,60 @@ class BrowseStateDataStoreTest {
 
     @Test
     fun `saving an empty filter clears all keys`() = runTest {
-        store.saveFilter(createFileFilter(nameContains = "x"))
-        store.saveFilter(createFileFilter()) // empty -> removes everything
-        assertNull(store.filter.first())
+        store.saveFilter(RESOURCE_A, createFileFilter(nameContains = "x"))
+        store.saveFilter(RESOURCE_A, createFileFilter()) // empty -> removes everything
+        assertNull(store.filter(RESOURCE_A).first())
     }
 
     @Test
     fun `saving null clears all keys`() = runTest {
-        store.saveFilter(createFileFilter(minDate = 5L))
-        store.saveFilter(null)
-        assertNull(store.filter.first())
+        store.saveFilter(RESOURCE_A, createFileFilter(minDate = 5L))
+        store.saveFilter(RESOURCE_A, null)
+        assertNull(store.filter(RESOURCE_A).first())
     }
 
     @Test
     fun `clearFilter removes a previously saved filter`() = runTest {
-        store.saveFilter(createFileFilter(nameContains = "keep"))
-        store.clearFilter()
-        assertNull(store.filter.first())
+        store.saveFilter(RESOURCE_A, createFileFilter(nameContains = "keep"))
+        store.clearFilter(RESOURCE_A)
+        assertNull(store.filter(RESOURCE_A).first())
     }
 
     @Test
     fun `absent fields are removed while present ones persist`() = runTest {
-        store.saveFilter(createFileFilter(nameContains = "a", minDate = 1L, maxDate = 2L))
+        store.saveFilter(RESOURCE_A, createFileFilter(nameContains = "a", minDate = 1L, maxDate = 2L))
         // Re-save with only minSizeMb -> name/date keys must be dropped.
-        store.saveFilter(createFileFilter(minSizeMb = 4.0f))
+        store.saveFilter(RESOURCE_A, createFileFilter(minSizeMb = 4.0f))
 
-        val loaded = store.filter.first()
+        val loaded = store.filter(RESOURCE_A).first()
         requireNotNull(loaded)
         assertNull(loaded.nameContains)
         assertNull(loaded.minDate)
         assertNull(loaded.maxDate)
         assertEquals(4.0f, loaded.minSizeMb)
+    }
+
+    @Test
+    fun `filter saved for one resource does not bleed into a different resource`() = runTest {
+        store.saveFilter(RESOURCE_A, createFileFilter(minDate = 100L))
+
+        assertNull(store.filter(RESOURCE_B).first())
+        assertEquals(100L, store.filter(RESOURCE_A).first()?.minDate)
+    }
+
+    @Test
+    fun `saveFilter discards a pre-fix legacy global key`() = runTest {
+        // Simulate a filter persisted by the pre-S2203 unscoped key.
+        dataStore.edit { it[longPreferencesKey("filter_min_date")] = 999L }
+
+        store.saveFilter(RESOURCE_B, createFileFilter(minDate = 1L))
+
+        val preferences = dataStore.data.first()
+        assertNull(preferences[longPreferencesKey("filter_min_date")])
+    }
+
+    private companion object {
+        const val RESOURCE_A = 1L
+        const val RESOURCE_B = 2L
     }
 }

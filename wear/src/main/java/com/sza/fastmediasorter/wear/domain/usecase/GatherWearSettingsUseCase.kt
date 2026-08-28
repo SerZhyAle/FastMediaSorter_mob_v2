@@ -25,6 +25,7 @@ class GatherWearSettingsUseCase @Inject constructor(
         audioEnabled = preferencesRepository.isAudioEnabled.first(),
         videoEnabled = preferencesRepository.isVideoEnabled.first(),
         imagesEnabled = preferencesRepository.isImagesEnabled.first(),
+        documentsEnabled = preferencesRepository.isDocumentsEnabled.first(),
         slideshowEnabled = preferencesRepository.isSlideshowEnabled.first(),
         slideshowIntervalSeconds = preferencesRepository.slideshowIntervalSeconds.first(),
         downloadAlbumArt = preferencesRepository.downloadAlbumArt.first(),

@@ -131,6 +131,14 @@ param(
     # goes - but the ticket in flight is left mid-run and its lease is dropped.
     [switch] $Kill,
 
+    # Skip the skip-cache reset this run normally does at start. The cache accumulates skip verdicts
+    # (owner-gate, drift, and transient ones like a held code lock or a dirty tree) from every prior
+    # /spec-all child, phone and wear instances alike, and honours the transient reasons unchecked
+    # until their TTL - so a lock released or a tree cleaned an hour ago still hides that ticket from
+    # today's ranking. Resetting at each run start makes every ticket answer for itself again; anything
+    # still genuinely blocked gets re-cached within seconds by the first live preview that finds it.
+    [switch] $KeepSkipCache,
+
     [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path,
 
     [switch] $Help
@@ -161,6 +169,7 @@ if (-not $claude) {
 
 $preflight = Join-Path $RepoRoot 'scripts\spec_catalog\spec-next-preflight.ps1'
 $select = Join-Path $RepoRoot 'scripts\spec_catalog\select.ps1'
+$skipCache = Join-Path $RepoRoot 'scripts\spec_catalog\skip-cache.ps1'
 $leaseScript = Join-Path $RepoRoot 'scripts\spec_catalog\ticket-lease.ps1'
 foreach ($required in @($preflight, $select)) {
     if (-not (Test-Path $required)) {
@@ -399,6 +408,15 @@ if ($StartDelaySeconds -gt 0) {
     $jitter = Get-Random -Minimum 0 -Maximum ($StartDelaySeconds + 1)
     Write-Host ("run-spec-queue: staggering {0}s before the first ranking." -f $jitter) -ForegroundColor DarkGray
     Start-Sleep -Seconds $jitter
+}
+
+# Reset the shared skip-cache so this run's first ranking answers every ticket for itself instead of
+# trusting verdicts a sibling instance or an earlier run cached - see -KeepSkipCache above for why.
+# Placed after the stagger so a staggered second instance does not immediately erase what the first
+# one just re-derived in its own opening seconds.
+if (-not $KeepSkipCache) {
+    & pwsh -NoProfile -File $skipCache -Action reset | Out-Null
+    Write-Host "run-spec-queue: skip-cache reset for this run (-KeepSkipCache to skip)." -ForegroundColor DarkGray
 }
 
 $processed = New-Object System.Collections.Generic.List[string]

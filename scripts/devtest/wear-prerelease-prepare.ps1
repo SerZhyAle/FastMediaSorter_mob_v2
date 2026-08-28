@@ -58,6 +58,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
 $WEAR_MIN_SDK = 28
 # The split where READ_EXTERNAL_STORAGE gives way to the three per-type media permissions.
 $MEDIA_PERMISSION_SDK = 33

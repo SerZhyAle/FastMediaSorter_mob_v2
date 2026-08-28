@@ -60,6 +60,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
 $SearchLog = Join-Path $PSScriptRoot '..\utils\search-log.ps1'
 
 if (-not (Test-Path $LogFile))   { if ($Json) { '{"pass":false,"error":"log file not found"}' } else { Write-Host 'log file not found' }; exit 2 }

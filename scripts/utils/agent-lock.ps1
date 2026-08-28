@@ -429,19 +429,37 @@ function Get-AgentTicketLiveness {
 function Remove-StaleAgentLockTickets {
     <#
     .SYNOPSIS
-        Drop tickets whose owner is no longer live. Returns the count.
+        Drop tickets whose owner is no longer live, plus a head that forfeited its turn. Returns
+        the total count.
     .DESCRIPTION
         Without this, one closed session parks itself at the head of the queue and every other
         agent waits forever - a worse failure than the contention the queue exists to fix.
         A malformed ticket file is deleted, mirroring how a torn lock file is already treated.
+
+        Two independent reasons, in this order:
+          1. the owner is stale by Get-AgentTicketLiveness against SessionStaleMinutes;
+          2. S2194 - the ticket is its queue's head, its turn was granted more than
+             ReservationMinutes ago, and it never took the lock. See the comment at that branch
+             for why this is not the ticket-age timer the timings table forbids.
     #>
     param([Parameter(Mandatory)][string]$Name)
 
     $timings = Get-AgentLockTimings -Name $Name
-    $queueDir = Get-AgentLockQueueDir -Name $Name
+    $queueDirs = @(Get-AgentLockQueueDir -Name $Name)
+
+    # S2170: sweep the pre-split queue too, exactly the set Get-AgentLockQueue reads. Without this
+    # the two halves disagreed: a ticket written before the split was READ as a place in every
+    # domain of its type but never judged for liveness, so a dead session's pre-split ticket sat on
+    # the head of all three code domains permanently - visible to every inspector, evictable by
+    # nothing, which is the starvation shape the eviction pass exists to prevent.
+    $legacyName = Get-AgentLockLegacyName -Name $Name
+    if ($legacyName) {
+        $legacyDir = Join-Path (Join-Path $Script:AgentLockRepoRoot 'temp') "$($legacyName.ToUpper()).QUEUE"
+        if (Test-Path -LiteralPath $legacyDir) { $queueDirs += $legacyDir }
+    }
     $removed = 0
 
-    foreach ($file in @(Get-ChildItem -LiteralPath $queueDir -Filter '*.json' -ErrorAction SilentlyContinue)) {
+    foreach ($file in @($queueDirs | ForEach-Object { Get-ChildItem -LiteralPath $_ -Filter '*.json' -ErrorAction SilentlyContinue })) {
         $ticket = $null
         try { $ticket = Get-Content -LiteralPath $file.FullName -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop }
         catch { $ticket = $null }
@@ -463,6 +481,45 @@ function Remove-StaleAgentLockTickets {
             Remove-Item -LiteralPath $file.FullName -Force -ErrorAction SilentlyContinue
             $removed++
         }
+    }
+
+    # S2194: a second, deliberately narrow reason to drop a ticket - a HEAD whose turn was granted
+    # and never taken. This is NOT the ticket-age timer the timings table above forbids: it reads
+    # ReservationMinutes rather than TicketCeilingMinutes or SessionStaleMinutes, and it judges an
+    # already-granted turn instead of a wait, so a session waiting behind a long build is untouched
+    # however long it waits. Safe because it fires only AFTER the reservation expired, at which
+    # point the head holds no privilege anyway - Test-AgentLockTurn already hands the turn to
+    # whoever asks. Leaving it in place is what costs: every remaining waiter is then told "your
+    # turn" at once and they race for the lock file, so a later arrival can overtake an earlier
+    # one, and every inspector reports a waiter that does not exist.
+    $selfSessionId = Get-AgentSessionId
+    $lockStatus = Get-AgentLockStatus -Name $Name
+    $reservationMs = [double]$timings.ReservationMinutes * 60000.0
+    $nowMs = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
+
+    foreach ($queueDir in $queueDirs) {
+        $entries = @()
+        foreach ($file in @(Get-ChildItem -LiteralPath $queueDir -Filter '*.json' -ErrorAction SilentlyContinue)) {
+            $ticket = $null
+            try { $ticket = Get-Content -LiteralPath $file.FullName -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop }
+            catch { $ticket = $null }
+            if ($null -eq $ticket -or $null -eq $ticket.seq) { continue }
+            $entries += [pscustomobject]@{ File = $file; Ticket = $ticket }
+        }
+        if ($entries.Count -eq 0) { continue }
+
+        $head = @($entries | Sort-Object { [int]$_.Ticket.seq })[0]
+        $headTicket = $head.Ticket
+        if (-not ($headTicket.PSObject.Properties['turnGrantedAt'] -and $headTicket.turnGrantedAt)) { continue }
+        # Never the caller's own head: this sweep runs on the acquire path, so without this the
+        # session would drop the very turn it came to take.
+        if ([string]$headTicket.sessionId -eq $selfSessionId) { continue }
+        # The head may have taken the lock and simply not cleared its ticket yet.
+        if ($lockStatus.Exists -and [string]$lockStatus.SessionId -eq [string]$headTicket.sessionId) { continue }
+        if (($nowMs - [int64]$headTicket.turnGrantedAt) -le $reservationMs) { continue }
+
+        Remove-Item -LiteralPath $head.File.FullName -Force -ErrorAction SilentlyContinue
+        $removed++
     }
 
     return $removed
@@ -876,6 +933,65 @@ function Get-AgentLockStatus {
     }
 
     return [pscustomobject]$result
+}
+
+function Resolve-AgentLockTopUp {
+    <#
+    .SYNOPSIS
+        Split a requested domain set into what this session already holds and what is still
+        missing, and judge whether a top-up (acquire the missing domains, keep the held ones) is
+        safe. Returns @{ Domains; Held; Missing; AscendingSafe }.
+    .DESCRIPTION
+        S2200. `Enter-AgentLockDomain` has no self-ownership check - a domain this session already
+        holds is judged "busy" exactly like a foreign holder's, so a superset request queues the
+        caller behind its own lock. That queue entry can never be granted from the outside (the
+        only release is this session's own future Exit-AgentLock, which runs only after the
+        request already unblocked), so treating it as an ordinary wait is a livelock, not a delay.
+
+        Safety of a top-up is not a single yes/no - it depends on canonical rank (research
+        artifact PLAN/S2200_.../research/01). Granting the missing domains while keeping the held
+        ones is equivalent to continuing an already-in-progress canonical-order acquisition, and
+        inherits that acquisition's deadlock-freedom, only when every held domain outranks every
+        missing one - i.e. the caller is extending strictly upward through the table. Extending
+        downward (holding a higher-ranked domain, needing to add a lower-ranked one) would let a
+        symmetric session holding the lower one and needing the higher deadlock against it - the
+        exact AB-BA shape canonical order exists to rule out. That direction is reported unsafe
+        here and must fall back to release-then-retake, never a direct grant.
+    #>
+    param(
+        [Parameter(Mandatory)][string[]]$Domains
+    )
+
+    $ordered = Sort-AgentLockDomains -Domain $Domains
+    $sessionId = Get-AgentSessionId
+
+    $held = @()
+    $missing = @()
+    foreach ($domain in $ordered) {
+        $status = Get-AgentLockStatus -Name $domain
+        $isMine = $status.Exists -and -not $status.Stale -and
+            [string]$status.SessionId -eq $sessionId
+        if ($isMine) { $held += $domain } else { $missing += $domain }
+    }
+
+    $rankOf = @{}
+    foreach ($entry in (Get-AgentLockDomainTable)) { $rankOf[$entry.Domain] = $entry.Rank }
+
+    # Nothing held, or nothing missing: no direction to judge, so there is nothing unsafe about it
+    # - the caller falls straight through to the ordinary full-set or already-held path.
+    $ascendingSafe = $true
+    if ($held.Count -gt 0 -and $missing.Count -gt 0) {
+        $maxHeldRank = ($held | ForEach-Object { $rankOf[$_] } | Measure-Object -Maximum).Maximum
+        $minMissingRank = ($missing | ForEach-Object { $rankOf[$_] } | Measure-Object -Minimum).Minimum
+        $ascendingSafe = $maxHeldRank -lt $minMissingRank
+    }
+
+    return [pscustomobject]@{
+        Domains       = $ordered
+        Held          = $held
+        Missing       = $missing
+        AscendingSafe = $ascendingSafe
+    }
 }
 
 function Enter-AgentLockDomain {

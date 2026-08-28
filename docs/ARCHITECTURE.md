@@ -50,6 +50,10 @@ An Activity may not declare an `@Inject` field of a repository, use case, data s
 - **Strategy Pattern**: File operations (`FileOperationStrategy`).
 - **Connection Pooling**: Network clients (`SmbConnectionManager`).
 
+## One Visual Form Per Element Role (MANDATORY, S2193)
+
+A UI element's visual form is declared once per module, by the role that owns it - a named reusable component, or a named style/taxonomy entry - never redeclared per screen. This is the general statement behind several rules already in force separately: the Trigger Row patterns and the Button Taxonomy below own every toggle, checkbox and button role in `app_v2`; `S2006` ADR-2 ("a command button is declared once per module") owns the wear player's controls; `S2133` ADR-2/ADR-4 own the wear dialog toggle and its mechanical gate. A hand-rolled duplicate of an already-owned role is technical debt, migrated opportunistically when its screen is next touched - never a forced rework campaign, the same policy Pattern A below already states for its own hand-built rows.
+
 ## UI Patterns - Trigger Row (MANDATORY)
 
 Every toggle/switch or checkbox control that carries a description **must** follow one of the two canonical row patterns below. Mixing the patterns or using ad-hoc sizes is prohibited.
@@ -160,6 +164,18 @@ inside the component.
 - Help text size → `@dimen/text_size_small` (14sp = MaterialCheckBox default 16sp − 2sp).
 - No help icon in Pattern B rows (icon not needed when the trigger is a standalone checkbox).
 
+#### Reusable component
+
+The canonical implementation is `com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow`
+(compound view) backed by `view_form_checkbox_row.xml`. The subtitle is **optional**:
+`setSubtitle(null)` / an empty `app:fcr_subtitle` hides the subtitle view without breaking row
+layout, so this component is the single canonical form for every checkbox row - with or without a
+subtitle, including a short fixed-choice grid (e.g. a media-type filter row) laid out with
+`layout_weight`/`layout_columnWeight`. A raw `MaterialCheckBox` outside this component (S2193
+inventory: 17 file entries, mostly a duplicated media-type filter set with no shared style) is
+technical debt, migrated opportunistically per the same policy as Pattern A - not a required
+rework whenever the debt is merely noticed.
+
 ### Dimen reference
 
 | Dimen key | Value | Role |
@@ -183,6 +199,7 @@ One named Material3 style per semantic role, defined in `values/themes.xml`. The
 | Secondary | `Widget.FastMediaSorter.Button.Outlined` | Neutral secondary action paired with a Filled primary (Back, Choose, Browse). |
 | Low-emphasis / cancel | `Widget.FastMediaSorter.Button.Text` | Link-like / inline dismiss ("Not now", "Skip") OUTSIDE a dialog action pair; anything that previously used `?android:attr/borderlessButtonStyle`. For a dialog/bottom-sheet confirm-cancel pair use the S0538/S0684 `DialogCancel` slot below (soft-pink tonal), not this style. |
 | Icon-only | `Widget.FastMediaSorter.Button.Icon` | Toolbar / inline icon actions that want a Material ripple and 48dp target. |
+| Destructive (standalone) | `Widget.FastMediaSorter.Button.Destructive` | A non-dialog destructive action that sits next to a neutral action and must not read lighter/secondary than it (e.g. "Delete all" beside "Install all" in a screen footer). Standard Filled sizing - NOT the oversized dialog-pair `DialogDestructive` below, which would visually dominate a standalone surface (S2179). |
 
 Dialog action pair (S0538/S0684) - special-purpose, NOT the general role taxonomy. Use these (and only these) for the confirm/cancel pair of any non-system dialog, action-pair bottom sheet, or custom dialog layout. The pair is deliberately asymmetric so a blind finger tap (e.g. while driving) cannot miss or confuse the actions: the confirm/destructive slot is large (min `dialog_action_button_min_height`, ~56dp) and wide (`dialog_confirm_button_min_width`), while the cancel is intentionally shorter (`dialog_cancel_button_min_height`, 48dp) and narrower so the affirmative action dominates. A `dialog_action_button_gap` sits between them. Colour key: green = confirm, soft-pink tonal = cancel, saturated red = destructive confirm only. The "at most one Filled per surface" rule does not apply to this pair.
 
@@ -357,13 +374,13 @@ Launcher Mode turns the app into an Android home screen: a cell desktop, a botto
 
 **Grid.** The desktop is a hand-written `ViewGroup`, deliberately not a `RecyclerView` (ADR-9): the persisted model is a canvas with 2D positions, spans and meaningful gaps, which no stock `LayoutManager` expresses - and a desktop is dozens of cells, not a feed, so recycling buys nothing while costing the model. Column count resolves from available width and a user density factor within a fixed range; height is the scroll axis. All footprint arithmetic funnels through one geometry helper precisely so layout, hit-testing and the free-slot sweep cannot disagree. Drag-to-move uses a container-level `OnDragListener` with `startDragAndDrop` rather than `ItemTouchHelper`, which is RecyclerView-only for the same ADR-9 reason.
 
-**Gadgets.** A gadget is an interactive block the user places on the desktop, and it is always **our own view - never a third-party `AppWidget`** (ADR-5): hosting foreign widgets means foreign layout outside our control and breaks the D-pad contract, so instead the pre-existing home-screen widget catalog is *bridged* into gadgets rather than duplicated. The registry is an open extension point fed by qualified Hilt list multibindings; treat the set of gadgets as growing, and read the current membership from the registry rather than from any document. Gadget lifecycle is enforced in one place: the view starts its work in `onActive` under `repeatOnLifecycle(STARTED)` and cancels on detach, because the grid is not a `RecyclerView` and there is no `onViewRecycled` to lean on.
+**Gadgets.** A gadget is an interactive block the user places on the desktop, and it is always **our own view - never a third-party `AppWidget`** (ADR-5): hosting foreign widgets means foreign layout outside our control and breaks the D-pad contract, so instead the pre-existing home-screen widget catalog is *bridged* into gadgets rather than duplicated. The registry is an open extension point fed by qualified Hilt list multibindings; treat the set of gadgets as growing, and read the current membership from the registry rather than from any document. Gadget lifecycle is enforced in one place: the view starts its work in `onActive` under `repeatOnLifecycle(STARTED)` and cancels on detach, because the grid is not a `RecyclerView` and there is no `onViewRecycled` to lean on. A bridged widget that keeps **per-instance** state reaches the desktop as well: its cell carries a launcher-minted instance token in the cell param instead of an `appWidgetId`, its own configuration screen is what the add flow opens, and the widget chain skips the calls that would hand that token to `AppWidgetManager`.
 
 **Taskbar and command funnel.** The taskbar is bottom-anchored in both orientations, hosting the Start button, the recents and pinned strips, and the status tray. Each tray indicator subscribes to its source *only* while that indicator is switched on and the launcher owns the status area, and going false cancels the collector rather than merely hiding the view; an indicator whose state cannot be read is absent rather than drawn as "off". Every tap on every surface - desktop cell, either taskbar strip, Start menu row, gadget-issued command - funnels through a single guarded execution path on the launcher's ViewModel, so there is exactly one launch guard and one failure message, and a gadget never builds a parallel one.
 
 **Surface colours.** Every foreground on the taskbar and the Start panel comes from a launcher-scoped theme attribute - `launcherTaskbarStartText` and `launcherTaskbarAllAppsText` for the two taskbar buttons, which sit on `colorSurfaceVariant`, and `launcherStartRowGroup1`..`launcherStartRowGroup4` for the four semantic row groups, which sit on `colorSurface`. Three rules hold together. Each attribute has a value in **every** theme set: the base day and night themes define all six, and the six `ThemeOverlay.FastMediaSorter.*` colour themes inherit them, overriding one only where their own surfaces would fall short. Each M3 role the app actually paints with is defined **by the app** in both sets - `colorSurfaceVariant`, `colorTertiary` and `colorError` used to resolve from the library baseline, which is a colour nobody chose and a library upgrade can move. And the result is **measured, not eyeballed**: `scripts/quality/assert-launcher-contrast.ps1` (in the `.\a.ps1 fg` batch) resolves each attribute and its background out of the resource files for all eight themes and fails below 7:1, the owner's threshold, above WCAG's 4.5:1 for ordinary text. The attributes are launcher-scoped rather than plain M3 roles because those roles paint dozens of other surfaces, where the lightness this threshold demands would be an unrelated change; the check is a script because the previous pass over these same colours was signed off by looking at it and shipped the Start label at 4.22:1. A new colour theme, or a new Start-panel row, runs the gate rather than matching a value by eye.
 
-Related specs: S0404 (the founding ADR set, archived), S1103 (cell actions), S1170 (widget-to-gadget bridge), S1415 (tray composition), S1461 (this section), S1587 (per-section seeding floor and content-first order), S1895 (surface colours and the contrast gate). Launcher classes are indexed in the class catalog under the `launcher` sector.
+Related specs: S0404 (the founding ADR set, archived), S1103 (cell actions), S1170 (widget-to-gadget bridge), S1415 (tray composition), S1461 (this section), S1587 (per-section seeding floor and content-first order), S1895 (surface colours and the contrast gate), S1930 (per-instance widgets on the desktop). Launcher classes are indexed in the class catalog under the `launcher` sector.
 
 ## Performance & Resource Optimization
 
@@ -416,6 +433,23 @@ New screens with collapsible/expandable sections MUST use the unified pattern (S
 - **Default expansion:** dense config screens (settings, source editors) and list groupings collapsed; short dialogs (folder picker) expanded; player overlay panels collapsed until activated.
 - **Accessibility:** state announced via `ViewCompat.setStateDescription` (API 30+) with a `contentDescription` fallback below; chevron tinted via theme attribute (`?attr/colorOnSurfaceVariant`, override per-context with `csh_chevronTint`); no hardcoded colors.
 - **List consumers** (RecyclerView section headers, e.g. Statistics/Keybinding) build the `CollapsibleSectionHeader` programmatically and bind it via `setTitle`/`setExpanded`/`setOnExpandedChangeListener`.
+
+## List Refine State Persistence (MANDATORY, S2199)
+
+A list that offers a filter or a sort remembers the choice. This is a project rule, not a per-screen decision: it went unwritten until S2199, and three screens skipped it independently as a result.
+
+- **One session boundary.** The choice is written to disk when it changes, so it survives leaving the screen, process death and a reboot alike. These three are not distinguished - every persistence mechanism in the tree already writes immediately, so a weaker tier would be a new mechanism with no benefit.
+- **Keys belong to one screen.** Each screen owns its own keys; a filter is never stored under a record another screen also reads. The one implementation that ignored this, `BrowseStateDataStore`, is why the rule is stated: its single global key carries a filter chosen in one resource into the next resource opened (S2203).
+- **A separate search field is not persisted; a filter facet is.** The line is drawn by whether the screen shows the restored value back. Text typed into a search box or dialog is dropped - it empties the list on a word nobody can see - while a facet the active-filter indicator names, including a textual one, is kept. `StreamsSessionStore` and the launcher's all-apps list both recorded this exclusion in code before it was a rule.
+- **The active-filter indicator is a precondition, not a part.** A screen does not begin persisting until it already shows that a filter is on. Without that, restoring a narrow filter produces a list indistinguishable from an empty one, so persistence would be the cause of a screen that looks broken.
+- **A restored value is checked against what the screen offers.** Apply only the part of a stored choice the open route actually holds, and apply nothing when none of it applies. Browse on the watch is entered separately per media type and per category, so a type saved on one route names nothing on another.
+
+Housing differs by module, because `wear` does not depend on `app_v2` and the two can share a pattern but never a class:
+
+- **Phone** - a dedicated store class in `data/repository/settings/` with its own DataStore file per screen: `StreamsSessionStore` (`streams_session`), `MainListSessionStore` (`main_list_session`).
+- **Watch** - `WearPreferencesRepository`, the module's single settings mechanism, using plain `context.dataStore.edit`. Never `stampedEdit`: that call enters a value into the phone-watch settings exchange, and how a list was last narrowed is state the wearer set on this device, not a setting to replicate.
+
+**A new store reaches its screen through the full layer chain**, however short the operation looks. On the phone that is `MainListSessionStore` (data) behind `MainListSessionRepository` (domain), read and written by `ReadMainListSessionUseCase` / `SaveMainListSessionUseCase`, which the screen's `MainListSessionManager` holds. The ViewModel imports neither the store nor the repository. This is not a preference: the `ui-imports-data` and `viewmodel-imports-repository` dimensions of `scripts/quality/assert-source-gates.ps1` (S2103) refuse both imports in a changed file, and their baselines only ever fall. The older shortcuts that predate those gates - `StreamsSessionStore` injected straight into `StreamsViewModel`, `WearPreferencesRepository` into the watch ViewModels - are baselined history, not a pattern to copy. S2199 ADR-6 originally proposed copying them and was refuted by the gate at closure time; the record is in `dev/REFUTED_APPROACHES.md`.
 
 ## Wear Settings Persistence (S2050)
 

@@ -11,20 +11,30 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceClient
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceOutcome
+import com.sza.fastmediasorter.wear.domain.browse.BrowseCategoryCatalog
+import com.sza.fastmediasorter.wear.domain.browse.BrowseListProjection
+import com.sza.fastmediasorter.wear.domain.browse.BrowseRefineKeys
+import com.sza.fastmediasorter.wear.domain.browse.BrowseRefineState
+import com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder
 import com.sza.fastmediasorter.wear.domain.files.WEAR_PHONE_FILE_CACHE_DIR
 import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
 import com.sza.fastmediasorter.wear.domain.model.WEAR_FILE_TRANSFER_MAX_BYTES
+import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperation
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationOutcome
+import com.sza.fastmediasorter.wear.domain.model.WearListShape
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceItem
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceResponseStatus
+import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceResponseStatus.NO_RESOURCE_FOR_TYPE
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
+import com.sza.fastmediasorter.wear.domain.model.contentTypeForMime
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.PerformWearFileOperationUseCase
+import com.sza.fastmediasorter.wear.ui.common.BrowseCategoryPresentation
 import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.util.MediaCacheEvictor
@@ -44,9 +54,6 @@ import java.io.File
 import javax.inject.Inject
 
 private const val VIEW_MODE_SUBSCRIPTION_MS = 5_000L
-
-/** S1846: the chip that means "no filter" - the phone reads its absence the same way. */
-private const val MEDIA_TYPE_ALL = "all"
 
 private const val BYTES_PER_MB = 1024L * 1024L
 
@@ -91,25 +98,24 @@ internal fun WearPhoneResourceItem.toWearThumbnail(): WearThumbnail {
     return bitmap?.let { WearThumbnail.Ready(it) } ?: WearThumbnail.Unavailable
 }
 
-/** What the paired-phone screen is showing right now. */
 /**
  * S1846: the screen is titled by the chip that opened it, so a filtered list is not labelled "Phone"
- * like the unfiltered one. The labels are the chips' own strings rather than new keys - a second
- * wording for the same word is how two screens start disagreeing about what they show.
+ * like the unfiltered one.
+ *
+ * S2130 took the word off this file: the title now asks the same table the chip on the home screen
+ * asked, so a category cannot be called one thing where it is tapped and another where it opens. The
+ * unfiltered folder browser carries no token at all and keeps the screen's own name.
  */
 @StringRes
-private fun titleResFor(mediaType: String?): Int = when (mediaType) {
-    "recents" -> R.string.wear_phone_recents
-    "photos" -> R.string.wear_phone_images
-    "videos" -> R.string.wear_phone_video
-    "music" -> R.string.wear_phone_audio
-    "documents" -> R.string.wear_phone_documents
-    else -> R.string.phone_resource_title
-}
+private fun titleResFor(categoryToken: String?): Int =
+    BrowseCategoryCatalog.categoryForToken(categoryToken)
+        ?.let { BrowseCategoryPresentation.labelFor(it) }
+        ?: R.string.phone_resource_title
 
 /** One folder of the walked path: the token that reloads it, and the name the header titles it by. */
 private data class FolderLevel(val token: String, val name: String)
 
+/** What the paired-phone screen is showing right now. */
 sealed interface PhoneResourceUiState {
 
     data object Loading : PhoneResourceUiState
@@ -122,6 +128,24 @@ sealed interface PhoneResourceUiState {
 
     /** The phone answered, and there is nothing here it is willing to show. */
     data object Empty : PhoneResourceUiState
+
+    /**
+     * S2130: the phone has resources, and none of them is configured to hold this category.
+     *
+     * Apart from [Empty] because the two send the wearer to different places: an empty folder is
+     * about files that are not there yet, this is about a setting on the phone. Strategic ADR-5 makes
+     * naming the cause the fix - the owner read "Video is empty" as the watch failing while the phone
+     * was answering correctly about resources that were never configured to carry video.
+     */
+    data object NoResourceForType : PhoneResourceUiState
+
+    /**
+     * S2136: the folder holds entries, and none survive the current search or type filter.
+     *
+     * Separate from [Empty] for the reason strategic goal 6 gives: one is a folder with nothing in
+     * it, the other is a list the wearer narrowed and can widen again from the header above it.
+     */
+    data object NoMatches : PhoneResourceUiState
 
     /**
      * No usable answer. [reason] is a protocol status or null when the phone never replied, and the
@@ -149,21 +173,46 @@ class PhoneResourceViewModel @Inject constructor(
     private val cacheDir: File = File(context.cacheDir, WEAR_PHONE_FILE_CACHE_DIR).apply { mkdirs() }
 
     /**
-     * S1846: the kind of file this screen was opened for, or null when it was opened unfiltered.
+     * S2130: the category this screen was opened for, exactly as the route carried it.
+     *
+     * Kept uncollapsed because it is the only thing that tells the two entries apart: the All chip
+     * sends [BrowseCategoryCatalog.TOKEN_ALL] and the folder browser sends no argument at all, yet
+     * both want a null *type filter*. Deriving the list shape from that shared null is what made All
+     * and Browse open the same folder listing (strategic ADR-3), so the shape is read from here and
+     * the filter from [mediaType].
+     */
+    private val categoryToken: String? = savedStateHandle
+        .get<String>(WearRoutes.ARG_MEDIA_TYPE)
+        ?.takeIf { it.isNotBlank() }
+
+    /**
+     * S1846: the kind of file this screen was opened for, or null when no kind narrows it.
      *
      * Held for the screen's lifetime rather than passed once: it travels on every request of the
      * session - the first load, a step into a folder, Back and Retry alike - because dropping it
      * halfway would widen the list back to everything without the user asking.
      *
-     * The unfiltered entrance registers no argument at all, and the "all files" chip sends the one
-     * value that means the same thing; both arrive here as null.
+     * Null for both the All chip and the folder browser, which is correct for a *filter* - the phone
+     * reads a null type as "every type". What separates those two is [categoryToken], not this.
      */
-    val mediaType: String? = savedStateHandle
-        .get<String>(WearRoutes.ARG_MEDIA_TYPE)
-        ?.takeIf { it.isNotBlank() && it != MEDIA_TYPE_ALL }
+    val mediaType: String? = categoryToken?.takeIf { it != BrowseCategoryCatalog.TOKEN_ALL }
 
     private val _uiState = MutableStateFlow<PhoneResourceUiState>(PhoneResourceUiState.Loading)
     val uiState: StateFlow<PhoneResourceUiState> = _uiState.asStateFlow()
+
+    /**
+     * S2136: the page exactly as the phone sent it, and the token it was fetched under.
+     *
+     * Private for the reason ADR-6 gives on the browse screen: [uiState] publishes the projection,
+     * so every reader follows what the wearer sees. Keeping the page here is also what lets a
+     * cleared query re-project locally - the alternative is another round trip over the Data Layer,
+     * which on this screen costs a visible pause.
+     */
+    private var loadedItems: List<WearPhoneResourceItem> = emptyList()
+    private var loadedParentToken: String? = null
+
+    private val _refineState = MutableStateFlow(BrowseRefineState())
+    val refineState: StateFlow<BrowseRefineState> = _refineState.asStateFlow()
 
     /** The same stored view the general file browser reads, so both lists change together. */
     val fileListViewMode: StateFlow<WearViewMode> = preferencesRepository.fileListViewMode
@@ -389,7 +438,7 @@ class PhoneResourceViewModel @Inject constructor(
         // Tokens are per folder, so keeping the previous page's pictures would only hold bitmaps
         // no cell can ask for again.
         _thumbnails.value = emptyMap()
-        val isFlat = mediaType != null && mediaType != MEDIA_TYPE_ALL
+        val isFlat = BrowseCategoryCatalog.shapeForToken(categoryToken) == WearListShape.FLAT_MEDIA
         viewModelScope.launch {
             val outcome = phoneResourceClient.browse(parentToken, mediaType = mediaType, isFlat = isFlat)
             _uiState.value = when (outcome) {
@@ -397,7 +446,14 @@ class PhoneResourceViewModel @Inject constructor(
                     decodeThumbnails(outcome.page.items)
                     outcome.page.items.toState(parentToken)
                 }
-                is PhoneResourceOutcome.Rejected -> PhoneResourceUiState.Unavailable(outcome.status)
+                // S2130: one refusal is not a failure. The phone answered, correctly, that no
+                // configured resource carries this category - so it gets its own state rather than
+                // the Unavailable copy, which offers a Retry that would return the same answer.
+                is PhoneResourceOutcome.Rejected -> if (outcome.status == NO_RESOURCE_FOR_TYPE) {
+                    PhoneResourceUiState.NoResourceForType
+                } else {
+                    PhoneResourceUiState.Unavailable(outcome.status)
+                }
                 else -> {
                     Timber.d("Paired phone did not answer a browse request")
                     PhoneResourceUiState.Unavailable(null)
@@ -426,16 +482,95 @@ class PhoneResourceViewModel @Inject constructor(
     private fun currentTitle(): ScreenTitle {
         val level = trail.lastOrNull()
         return if (level == null) {
-            ScreenTitle.Resource(titleResFor(mediaType))
+            ScreenTitle.Resource(titleResFor(categoryToken))
         } else {
             ScreenTitle.Text(level.name)
         }
     }
 
-    private fun List<WearPhoneResourceItem>.toState(parentToken: String?): PhoneResourceUiState =
-        if (isEmpty()) {
-            PhoneResourceUiState.Empty
-        } else {
-            PhoneResourceUiState.Content(items = this, parentToken = parentToken, title = currentTitle())
+    private fun List<WearPhoneResourceItem>.toState(parentToken: String?): PhoneResourceUiState {
+        loadedItems = this
+        loadedParentToken = parentToken
+        return refinedState()
+    }
+
+    /**
+     * S2136: how to read the refine keys off a phone-folder entry.
+     *
+     * [BrowseRefineKeys.dateModified] is left null on purpose - the wire model carries no date at
+     * all, so ADR-5 drops the two date orders from this screen's dialog without a per-screen branch
+     * anywhere in that dialog. A directory is its own content type before the mime type is
+     * consulted, because the phone sends none for a folder.
+     */
+    private fun refineKeys(): BrowseRefineKeys<WearPhoneResourceItem> = BrowseRefineKeys(
+        name = WearPhoneResourceItem::name,
+        contentType = { item ->
+            if (item.isDirectory) {
+                WearContentType.FOLDER
+            } else {
+                contentTypeForMime(item.mimeType) ?: WearContentType.OTHER
+            }
+        },
+        sizeBytes = WearPhoneResourceItem::sizeBytes
+    )
+
+    /** S2136: the content types present on the loaded page - the filter icon's own condition. */
+    fun presentContentTypes(): List<WearContentType> =
+        BrowseListProjection.presentTypes(loadedItems, refineKeys())
+
+    /** S2136: five orders here, not seven - the date pair has no key to sort by (ADR-5). */
+    fun availableSortOrders(): List<BrowseSortOrder> = refineKeys().availableSortOrders()
+
+    fun setSearchQuery(query: String) = updateRefine { it.copy(searchQuery = query) }
+
+    fun setContentTypes(types: Set<WearContentType>) = updateRefine { it.copy(contentTypes = types) }
+
+    fun setSortOrder(order: BrowseSortOrder) = updateRefine { it.copy(sortOrder = order) }
+
+    fun setShowSearchDialog(show: Boolean) = updateRefine { it.copy(showSearchDialog = show) }
+
+    fun setShowFilterDialog(show: Boolean) = updateRefine { it.copy(showFilterDialog = show) }
+
+    fun setShowSortDialog(show: Boolean) = updateRefine { it.copy(showSortDialog = show) }
+
+    fun setSearchInputUnavailable(unavailable: Boolean) =
+        updateRefine { it.copy(searchInputUnavailable = unavailable) }
+
+    /**
+     * S2136: every refine setter's one path - re-project, never re-request.
+     *
+     * Nothing here reaches [phoneResourceClient]: strategic goal 5 requires a refine choice to
+     * apply without touching the source, and this screen's source is the phone over the Data Layer.
+     */
+    private fun updateRefine(transform: (BrowseRefineState) -> BrowseRefineState) {
+        _refineState.value = transform(_refineState.value)
+        Timber.d("S2136: phone refine q='${_refineState.value.searchQuery}' order=${_refineState.value.sortOrder}")
+        // Only the states the projection itself produces may be re-projected. A refine choice made
+        // before the first page landed has nothing to project yet, and re-projecting a state that
+        // reports why there is no list - S2130's NoResourceForType, or an Unavailable - would replace
+        // the reason with a bare "empty" derived from a page that never arrived.
+        if (_uiState.value.isProjected()) {
+            _uiState.value = refinedState()
         }
+    }
+
+    /** Whether [refinedState] is what produced this state, and so may recompute it. */
+    private fun PhoneResourceUiState.isProjected(): Boolean =
+        this is PhoneResourceUiState.Content ||
+            this is PhoneResourceUiState.NoMatches ||
+            this is PhoneResourceUiState.Empty
+
+    private fun refinedState(): PhoneResourceUiState {
+        if (loadedItems.isEmpty()) return PhoneResourceUiState.Empty
+        val shown = BrowseListProjection.refine(loadedItems, refineKeys(), _refineState.value)
+        return if (shown.isEmpty()) {
+            PhoneResourceUiState.NoMatches
+        } else {
+            PhoneResourceUiState.Content(
+                items = shown,
+                parentToken = loadedParentToken,
+                title = currentTitle()
+            )
+        }
+    }
 }

@@ -595,6 +595,11 @@ $runsOrientationFeatureGate = Test-AnyChangedFile '^app_v2/.*AndroidManifest\.xm
 # S2069: both halves anchored to app_v2, which is the only module this gate roots in.
 $runsOrientationLayoutPairingGate = (Test-AnyChangedFile '^app_v2/.*AndroidManifest\.xml$') -or
     (Test-AnyChangedFile '^app_v2/.*res/layout[^/]*-land[^/]*/.*\.xml$')
+# S2198 layout id-parity gate. Fires on any app_v2 layout XML, because a layout that exists in more
+# than one copy - a config variant, or a flavor override - loses a ViewBinding field the moment one
+# copy drops an id, and either copy can be the one edited. Per-ticket rather than release-scope
+# (Rule 33): the flavor half is a compile break in shared src/main code, so later work builds on it.
+$runsLayoutVariantIdParityGate = Test-AnyChangedFile '^app_v2/.*res/layout[^/]*/.*\.xml$'
 # S1639 Gson persistence contract gate. Fires on a Kotlin source or an obfuscation rules file, the two
 # halves of the invariant: a model whose JSON outlives the process must have its field names pinned, and
 # either half can break it alone - a new model, or a keep rule that stopped covering an old one. The
@@ -993,6 +998,15 @@ else {
     Skip-Step "orientation-layout-pairing-gate" "not applicable - no changed file is an app_v2 manifest or landscape layout"
 }
 
+if ($runsLayoutVariantIdParityGate) {
+    Invoke-Gate "layout-variant-id-parity-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-layout-variant-id-parity.ps1") -Gate
+    }
+}
+else {
+    Skip-Step "layout-variant-id-parity-gate" "not applicable - no changed file is an app_v2 layout XML"
+}
+
 if ($runsFgsGate) {
     Invoke-Gate "fgs-notification-gate" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-fgs-notifications.ps1") -Gate
@@ -1241,6 +1255,21 @@ if (Test-AnyChangedFile '(^|/)wear/|Wear[A-Za-z]*\.kt$|SettingsDocScopeCatalog\.
 }
 else {
     Skip-Step "wear-settings-parity-gate" "not applicable - no changed file touches the watch module or a watch-settings surface"
+}
+
+# S2125: the sibling of the gate above, judging the TEXT the parity gate never reads. The two modules
+# ship no shared resource artifact, so a label the owner sees on both sides exists twice and editing
+# one copy left no trace on the other. PER-TICKET by Rule 33 because only the author knows whether a
+# newly shared key was meant to read the same, but summoned only by a changed strings.xml: run
+# unconditionally it would judge the whole tree on every closure, which is the shape Rule 33 warns
+# about. The declaration it enforces is scripts/quality/wear-mirrored-strings.psd1.
+if (Test-AnyChangedFile '(^|/)(app_v2|wear)/src/.*/res/values[^/]*/strings\.xml$') {
+    Invoke-Gate "wear-mirrored-strings-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-wear-mirrored-strings.ps1") -Gate -Quiet
+    }
+}
+else {
+    Skip-Step "wear-mirrored-strings-gate" "not applicable - no changed file is a strings.xml under app_v2 or wear"
 }
 
 # S1639: FATAL rather than advisory. The registry beside the gate already carries every finding the tree

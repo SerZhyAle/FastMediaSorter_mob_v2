@@ -402,6 +402,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             binding.btnPath,
             binding.btnSort,
             binding.btnFilter,
+            binding.btnSearch,
             binding.btnRefresh,
             binding.btnToggleView,
             binding.btnSelectAll,
@@ -484,6 +485,13 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             this,
             object : androidx.activity.OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
+                    // S2171 §3.2/§11.6: Back/Escape closes live search before navigating up.
+                    // This single callback is also reached from KEYCODE_ESCAPE (via
+                    // KeyboardNavigationManager's InputAction.ExitSurface -> activity.onBackPressed())
+                    // and from the gamepad Back action, so no separate key handler is needed.
+                    if (::initializer.isInitialized && initializer.buttonSetupHelper.closeSearchIfActive()) {
+                        return
+                    }
                     if (viewModel.canNavigateUp()) {
                         if (viewModel.state.value.resource?.isAudioOnly() != true) viewModel.inlineStop()
                         if (viewModel.navigateUp()) {
@@ -672,7 +680,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             is GamepadAction.BrowserAction.ContextMenu -> {
                 currentFocus?.performLongClick() ?: return false
             }
-            is GamepadAction.BrowserAction.Search -> binding.btnFilter.performClick()
+            // S2171 ADR-1/ADR-4: the loupe now opens live search; the gamepad "Search" action
+            // follows the icon it is named after instead of the tune-icon extended filter.
+            is GamepadAction.BrowserAction.Search -> binding.btnSearch.performClick()
             is GamepadAction.BrowserAction.SwitchTab -> binding.btnToggleView.performClick()
         }
         return true

@@ -8,7 +8,6 @@ import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.Priority
-import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
@@ -82,6 +81,10 @@ class ImageLoadingManager(
         fun getAdjacentFiles(): List<MediaFile>
         fun getCurrentFile(): MediaFile?
         fun getCurrentResource(): com.sza.fastmediasorter.domain.model.MediaResource?
+        suspend fun getCredentialsIdForResource(resourceId: Long): String?
+
+        /** S2151: true when the failure was recognised and already surfaced by its own cause. */
+        fun onNetworkMediaLoadFailed(candidates: List<Throwable>): Boolean
         fun getExoPlayer(): androidx.media3.exoplayer.ExoPlayer?
         fun getString(resId: Int): String
         fun isShowingCommandPanel(): Boolean
@@ -89,6 +92,7 @@ class ImageLoadingManager(
         fun isImageCropEditMode(): Boolean
         fun setAnimatedBadgeVisible(visible: Boolean)
         fun onImageContentLoaded() {}
+
         /** S0107: Called when a static (non-GIF) image is fully loaded; null on load failure or video transition. */
         fun onStaticImageLoaded(bitmap: android.graphics.Bitmap?) {}
     }
@@ -104,6 +108,7 @@ class ImageLoadingManager(
     private var currentDeviceHeight: Int = 0
     private var currentTargetView: android.widget.ImageView? = null
     private var currentIsAnimatedContent: Boolean = false
+
     /** True while image mode is active; false when video/audio took over via [clearForVideoTransition]. */
     private var isInImageDisplayMode: Boolean = false
     private val animatedImageController = AnimatedImageController()
@@ -246,7 +251,6 @@ class ImageLoadingManager(
 
     /** Cleanup all resources - cancel Glide requests and pending handlers. Called from PlayerLifecycleManager.onDestroy() to prevent memory leaks. */
     fun cleanup() {
-
         // Cancel any dynamic background processing
         dynamicBackgroundProcessor?.clear()
 
@@ -269,7 +273,6 @@ class ImageLoadingManager(
         callback.setAnimatedBadgeVisible(false)
         staticImageRenderer.release()
         dynamicBackgroundProcessor = null
-
     }
 
     /** Pause renderer - called from Activity onPause(). Pauses any pending prefetch operations. */
@@ -483,7 +486,9 @@ class ImageLoadingManager(
         if (!HeifSupportUtils.isSupported(pathExtension)) {
             loadingIndicatorCoordinator.reset(LoadingSource.IMAGE_GLIDE)
             val minVersion = HeifSupportUtils.minimumAndroidVersion(pathExtension) ?: pathExtension
-            Timber.w("ImageLoadingManager: ${pathExtension.uppercase()} not supported on this device (requires $minVersion)")
+            Timber.w(
+                "ImageLoadingManager: ${pathExtension.uppercase()} not supported on this device (requires $minVersion)"
+            )
             callback.showError(
                 binding.root.context.getString(
                     R.string.heic_not_supported_on_device,
@@ -498,7 +503,10 @@ class ImageLoadingManager(
         lifecycleScope.launch {
             val settings = settingsRepository.getSettings().first()
             if (settings.rendererMigrationEnabled) {
-                Timber.i("ImageLoadingManager: rendererMigrationEnabled=true (boundary active, legacy rendering path remains in use)")
+                Timber.i(
+                    "ImageLoadingManager: rendererMigrationEnabled=true " +
+                        "(boundary active, legacy rendering path remains in use)"
+                )
             }
             // During slideshow, force size limit to prevent OOM crashes
             val isSlideshowActive = callback.isSlideshowActive()
@@ -517,7 +525,7 @@ class ImageLoadingManager(
 
             // Switch visibility between ImageView and PhotoView
             binding.imageView.isVisible = !usePhotoView
-                binding.photoDualSurfaceContainer?.isVisible = usePhotoView
+            binding.photoDualSurfaceContainer?.isVisible = usePhotoView
             binding.photoView.isVisible = usePhotoView
             binding.photoViewSurfaceB?.isVisible = false
             // Configure PhotoView gestures based on loadFullSizeImages setting
@@ -526,9 +534,9 @@ class ImageLoadingManager(
                     if (settings.loadFullSizeImages) {
                         // Full gestures mode: zoom, pan, rotation, double-tap
                         // PhotoView supports all gestures by default when scale limits allow it
-                        minimumScale = 1.0f  // Original size
-                        mediumScale = 2.0f   // Not used (we override tap gestures)
-                        maximumScale = 5.0f  // Maximum zoom
+                        minimumScale = 1.0f // Original size
+                        mediumScale = 2.0f // Not used (we override tap gestures)
+                        maximumScale = 5.0f // Maximum zoom
 
                         // NOTE: OnDoubleTapListener is set once in setupGestureDetector()
                         // Do NOT reset it here - it handles touch zones + custom zoom logic
@@ -536,9 +544,8 @@ class ImageLoadingManager(
                         // Rotation-only mode: disable zoom by setting all scales to 1.0f
                         // PhotoView rotation is always available (two-finger gesture)
                         minimumScale = 1.0f
-                        mediumScale = 1.0f  // Disable zoom on double-tap
+                        mediumScale = 1.0f // Disable zoom on double-tap
                         maximumScale = 1.0f // Disable pinch zoom
-
                     }
 
                     // Add matrix change listener for debug logging
@@ -619,7 +626,8 @@ class ImageLoadingManager(
             if (currentFile != null && actualResourceType == ResourceType.CLOUD) {
                 loadCloudImage(path, currentFile, targetView, effectiveLoadFullSize, isSlideshowActive)
             } else if (currentFile != null &&
-                (actualResourceType == ResourceType.SMB || actualResourceType == ResourceType.SFTP || actualResourceType == ResourceType.FTP)) {
+                (actualResourceType == ResourceType.SMB || actualResourceType == ResourceType.SFTP || actualResourceType == ResourceType.FTP)
+            ) {
                 loadNetworkImage(path, currentFile, resource, targetView, effectiveLoadFullSize, isSlideshowActive)
             } else {
                 loadLocalImage(path, currentFile, targetView, effectiveLoadFullSize, isSlideshowActive)
@@ -667,14 +675,13 @@ class ImageLoadingManager(
         val thumbnailData = CloudThumbnailData(
             fileId = fileId,
             thumbnailUrl = currentFile.thumbnailUrl ?: "",
-            loadFullImage = true,  // Always load full image in player
+            loadFullImage = true, // Always load full image in player
             cloudProvider = provider
         )
 
         val isGif = currentFile.type == MediaType.GIF || path.endsWith(".gif", ignoreCase = true)
 
         if (isGif) {
-
             val gifRequest = Glide.with(binding.root.context)
                 .asGif()
                 .load(thumbnailData)
@@ -696,7 +703,7 @@ class ImageLoadingManager(
 
         val glideRequest = Glide.with(binding.root.context)
             .load(thumbnailData)
-            .diskCacheStrategy(DiskCacheStrategy.RESOURCE)  // Cache decoded image, not source stream
+            .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache decoded image, not source stream
             .priority(Priority.IMMEDIATE)
 
         // Apply memory-aware optimizations for LOW tier devices
@@ -721,8 +728,11 @@ class ImageLoadingManager(
         }
 
         // In slideshow mode skip crossfade so image and edge-strips appear simultaneously.
-        val cloudTransition = if (isSlideshowActive) DrawableTransitionOptions.withCrossFade(0)
-                              else DrawableTransitionOptions.withCrossFade(150)
+        val cloudTransition = if (isSlideshowActive) {
+            DrawableTransitionOptions.withCrossFade(0)
+        } else {
+            DrawableTransitionOptions.withCrossFade(150)
+        }
 
         // Show cached thumbnail immediately while full image downloads (eliminates black flash).
         // The thumbnail was already loaded in BrowseActivity → Glide disk cache hit = instant.
@@ -761,18 +771,19 @@ class ImageLoadingManager(
         // Use NetworkFileData for Glide to load via NetworkFileModelLoader
         val networkData = NetworkFileData(
             path = path,
-            credentialsId = resource?.credentialsId,
+            credentialsId = currentFile.resourceId?.let { callback.getCredentialsIdForResource(it) }
+                ?: resource?.credentialsId,
             loadFullImage = true,
             highPriority = true,
             size = currentFile.size,
             createdDate = currentFile.createdDate
         )
+        Timber.d("S2151: network image credentials for resourceId=${currentFile.resourceId}")
         val cacheKey = networkData.getCacheKey()
 
         val isGif = currentFile.type == MediaType.GIF || path.endsWith(".gif", ignoreCase = true)
 
         if (isGif) {
-
             val gifRequest = Glide.with(binding.root.context)
                 .asGif()
                 .load(networkData)
@@ -835,8 +846,11 @@ class ImageLoadingManager(
         }
 
         // In slideshow mode skip crossfade so image and edge-strips appear simultaneously.
-        val networkTransition = if (isSlideshowActive) DrawableTransitionOptions.withCrossFade(0)
-                                else DrawableTransitionOptions.withCrossFade(150)
+        val networkTransition = if (isSlideshowActive) {
+            DrawableTransitionOptions.withCrossFade(0)
+        } else {
+            DrawableTransitionOptions.withCrossFade(150)
+        }
         finalRequest
             .transition(networkTransition)
             .listener(createGlideListener())
@@ -870,7 +884,9 @@ class ImageLoadingManager(
             Timber.w("ImageLoadingManager: File does not exist, showing error: $path")
             loadingIndicatorCoordinator.reset(LoadingSource.IMAGE_GLIDE)
             if (!callback.isDestroyed()) {
-                callback.showError(binding.root.context.getString(R.string.file_not_found_name, currentFile?.name ?: path))
+                callback.showError(
+                    binding.root.context.getString(R.string.file_not_found_name, currentFile?.name ?: path)
+                )
             }
             return
         }
@@ -887,7 +903,6 @@ class ImageLoadingManager(
         val isGif = currentFile?.type == MediaType.GIF || path.endsWith(".gif", ignoreCase = true)
 
         if (isGif) {
-
             val gifRequest = Glide.with(binding.root.context)
                 .asGif()
                 .load(data)
@@ -950,8 +965,11 @@ class ImageLoadingManager(
         }
 
         // In slideshow mode skip crossfade so image and edge-strips appear simultaneously.
-        val localTransition = if (isSlideshowActive) DrawableTransitionOptions.withCrossFade(0)
-                              else DrawableTransitionOptions.withCrossFade(150)
+        val localTransition = if (isSlideshowActive) {
+            DrawableTransitionOptions.withCrossFade(0)
+        } else {
+            DrawableTransitionOptions.withCrossFade(150)
+        }
         finalRequest
             .transition(localTransition)
             .listener(createGlideListener())
@@ -1013,7 +1031,6 @@ class ImageLoadingManager(
                     safeViews.btnTranslateImage.isVisible = false
                     safeViews.btnGoogleLensImage.isVisible = false
                     safeViews.btnOcrImage.isVisible = false
-
                 }
             }
         }

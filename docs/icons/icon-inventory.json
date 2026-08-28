@@ -681,6 +681,14 @@
   },
   {
     "surface": "program-nav",
+    "key": "location",
+    "feature": "app_launch_panel_os_location",
+    "drawable": "ic_location",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "network_monitor",
     "feature": "network_monitor_title",
     "drawable": "ic_network_monitor",

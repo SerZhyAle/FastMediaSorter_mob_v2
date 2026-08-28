@@ -2604,7 +2604,6 @@
     <string name="stream_info_state_empty">Non impostato</string>
     <string name="stream_info_not_in_catalog">Questo canale non è nel tuo elenco, quindi non c\'è nulla di memorizzato su di esso. Aggiungilo all\'elenco per conservarne i dettagli.</string>
     <string name="stream_info_copy">Copia tutto</string>
-    <string name="stream_info_copied">Dettagli copiati</string>
     <string name="stream_info_value_picture_size">%1$d x %2$d</string>
     <string name="stream_info_value_frame_rate">%1$s fps</string>
     <string name="stream_info_value_bitrate">%1$s kbit/s</string>
@@ -2818,7 +2817,6 @@
     <string name="launcher_gadget_map_actions_at">Mappa di %1$s. Tocca per aprire l\'applicazione mappa</string>
     <string name="browse_empty_filtered_out">I file %1$d sono nascosti dall\'impostazione della dimensione massima del file.</string>
     <string name="browse_empty_filtered_out_hint">Aumenta la dimensione massima dei file nelle Impostazioni per visualizzarli.</string>
-    <string name="network_monitor_ip_addresses_label">indirizzi IP</string>
     <string name="network_monitor_permission_grant">Autorizzazione non concessa. Tocca per concederla.</string>
     <string name="network_monitor_permission_open_settings">L\'autorizzazione è bloccata. Tocca per aprire le impostazioni dell\'app.</string>
     <string name="cast_cropping_stereo">Preparazione della copia a occhio singolo..</string>

@@ -93,6 +93,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
 # ---------- helpers ----------
 
 $script:result = [ordered]@{

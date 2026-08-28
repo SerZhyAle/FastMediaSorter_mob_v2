@@ -3,9 +3,6 @@
     <string name="app_name">FastMedia Wear</string>
     <!-- S1724: title of the settings group that holds what the named groups do not. -->
     <string name="settings_group_other">Другие</string>
-    <string name="music">Музыка</string>
-    <string name="videos">Видео</string>
-    <string name="photos">Фото</string>
     <string name="play">Воспроизвести</string>
     <string name="pause">Пауза</string>
     <string name="previous">Предыдущий</string>
@@ -383,4 +380,24 @@
     <string name="wear_setting_background_mode">Фон на часах</string>
     <string name="wear_background_mode_animation">Фирменная анимация</string>
     <string name="wear_background_mode_image">Своё изображение</string>
+    <string name="wear_content_type_document">Документ</string>
+    <string name="wear_content_type_folder">Папка</string>
+    <string name="wear_browse_search">Поиск файлов</string>
+    <string name="wear_browse_filter">Фильтр файлов</string>
+    <string name="wear_browse_sort">Сортировка файлов</string>
+    <string name="wear_browse_search_hint">Поиск</string>
+    <string name="wear_browse_clear_search">Очистить поиск</string>
+    <string name="wear_browse_search_unavailable">Ввод для поиска на этих часах недоступен</string>
+    <string name="wear_browse_no_matches">Здесь ничего не нашлось. Снимите поиск или фильтр, чтобы увидеть весь список.</string>
+    <string name="wear_browse_filter_type_all">Все типы</string>
+    <string name="wear_browse_sort_default">По умолчанию</string>
+    <string name="wear_browse_sort_name_asc">Название (А-Я)</string>
+    <string name="wear_browse_sort_name_desc">Название (Я-А)</string>
+    <string name="wear_browse_sort_date_asc">Дата (сначала старые)</string>
+    <string name="wear_browse_sort_date_desc">Дата (сначала новые)</string>
+    <string name="wear_browse_sort_size_asc">Размер (сначала маленькие)</string>
+    <string name="wear_browse_sort_size_desc">Размер (сначала большие)</string>
+    <string name="enable_documents">Включить документы</string>
+    <string name="wear_settings_sections">Разделы</string>
+    <string name="phone_resource_no_resource_for_type">Ни один ресурс телефона не настроен на этот тип.</string>
 </resources>

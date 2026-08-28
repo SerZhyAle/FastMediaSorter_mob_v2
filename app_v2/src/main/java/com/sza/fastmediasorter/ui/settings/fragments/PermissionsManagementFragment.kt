@@ -94,6 +94,7 @@ class PermissionsManagementFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        Timber.d("S2178: permissions screen laid out, action divider above the list")
 
         // Survive config change / process death while a system permission screen is open, so the
         // "Grant all" run resumes from where it left off when specialSettingsLauncher fires.

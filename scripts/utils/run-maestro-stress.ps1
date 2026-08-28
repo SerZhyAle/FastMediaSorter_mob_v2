@@ -1,4 +1,4 @@
-﻿# Maestro Stress Test Runner with Live Monitoring
+# Maestro Stress Test Runner with Live Monitoring
 # FastMediaSorter v2
 # Usage: .\scripts\utils\run-maestro-stress.ps1 [-Suite monkey|navigation|lifecycle|all] [-Monitor] [-Report]
 
@@ -450,14 +450,14 @@ $appInstalled = & $adbPath shell pm list packages | Select-String "com.sza.fastm
 if (-not $appInstalled) {
     if (-not $SkipBuild) {
         Write-Host "⚠ App not installed, building..." -ForegroundColor Yellow
-        Enter-BuildLockOrExit -Reason 'run-maestro-stress.ps1 (assembleStandardDebug)'
+        Enter-BuildLockOrExit -Reason 'run-maestro-stress.ps1 (assembleStandardDebug)' -Domain Build.Phone
         try {
             . (Join-Path $ProjectRoot 'scripts/utils/build-version-stamp.ps1')
             $stamp = Get-BuildVersionStamp
-            & "$ProjectRoot\gradlew.bat" assembleStandardDebug "-Pfms.versionCode=$($stamp.AppVersionCode)" "-Pfms.versionName=$($stamp.VersionName)"
+            & "$ProjectRoot\gradlew.bat" :app_v2:assembleStandardDebug "-Pfms.versionCode=$($stamp.AppVersionCode)" "-Pfms.versionName=$($stamp.VersionName)"
         }
         finally {
-            Exit-AgentLock -Name Build
+            Exit-AgentLock -Name 'Build' -Domains @('Build.Phone')
         }
         $apk = Get-ChildItem -Path "$ProjectRoot\app_v2\build\outputs\apk\standard\debug" -Filter "*.apk" | Select-Object -First 1
         if ($apk) {

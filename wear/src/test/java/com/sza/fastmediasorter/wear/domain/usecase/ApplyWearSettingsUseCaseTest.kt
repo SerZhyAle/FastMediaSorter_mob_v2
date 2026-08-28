@@ -2,10 +2,12 @@ package com.sza.fastmediasorter.wear.domain.usecase
 
 import android.content.Context
 import com.sza.fastmediasorter.wear.core.util.WearLanguageCatalog
+import com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder
 import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
 import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
+import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
@@ -307,6 +309,7 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     var audioEnabled = true
     var videoEnabled = true
     var imagesEnabled = true
+    var documentsEnabled = true
     var slideshowEnabled = false
     var slideshowIntervalSecondsValue = 5
     var downloadAlbumArtValue = false
@@ -328,10 +331,13 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     var notificationPermissionAskedValue = false
     var settingTimestampsValue: Map<String, Long> = emptyMap()
     var lastSettingsSyncAtValue = 0L
+    var browseContentTypesValue: Set<WearContentType> = emptySet()
+    var browseSortOrderValue: BrowseSortOrder = BrowseSortOrder.DEFAULT
 
     override val isAudioEnabled: Flow<Boolean> = MutableStateFlow(audioEnabled)
     override val isVideoEnabled: Flow<Boolean> = MutableStateFlow(videoEnabled)
     override val isImagesEnabled: Flow<Boolean> = MutableStateFlow(imagesEnabled)
+    override val isDocumentsEnabled: Flow<Boolean> = MutableStateFlow(documentsEnabled)
     override val isSlideshowEnabled: Flow<Boolean> = MutableStateFlow(slideshowEnabled)
     override val slideshowIntervalSeconds: Flow<Int> = MutableStateFlow(slideshowIntervalSecondsValue)
     override val downloadAlbumArt: Flow<Boolean> = MutableStateFlow(downloadAlbumArtValue)
@@ -352,6 +358,19 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     override val voiceNoteSendPolicy: Flow<VoiceNoteSendPolicy> = MutableStateFlow(voiceNoteSendPolicyValue)
     override val notificationPermissionAsked: Flow<Boolean> =
         MutableStateFlow(notificationPermissionAskedValue)
+
+    // S2199: browse-list refine state. Not part of the settings exchange this test exercises, so the
+    // fake only has to satisfy the contract - the values are never read by ApplyWearSettingsUseCase.
+    override val browseContentTypes: Flow<Set<WearContentType>> = MutableStateFlow(browseContentTypesValue)
+    override val browseSortOrder: Flow<BrowseSortOrder> = MutableStateFlow(browseSortOrderValue)
+
+    override suspend fun setBrowseContentTypes(types: Set<WearContentType>) {
+        browseContentTypesValue = types
+    }
+
+    override suspend fun setBrowseSortOrder(order: BrowseSortOrder) {
+        browseSortOrderValue = order
+    }
 
     override suspend fun setNotificationPermissionAsked(asked: Boolean) {
         notificationPermissionAskedValue = asked
@@ -375,6 +394,10 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
 
     override suspend fun setImagesEnabled(enabled: Boolean) {
         imagesEnabled = enabled
+    }
+
+    override suspend fun setDocumentsEnabled(enabled: Boolean) {
+        documentsEnabled = enabled
     }
 
     override suspend fun setSlideshowEnabled(enabled: Boolean) {

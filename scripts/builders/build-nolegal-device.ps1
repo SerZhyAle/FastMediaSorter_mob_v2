@@ -59,7 +59,7 @@ Set-Content $buildGradlePath $content -NoNewline
 # -Pchaquopy.enabled=true: noLegal flavor REQUIRES the Chaquopy Python runtime.
 #   Passing the flag explicitly removes the dependency on a machine-local
 #   `chaquopy.enabled=true` line in `local.properties` (gitignored, may be absent).
-& $gradlew assembleNoLegalDebug "-Pchaquopy.enabled=true" --no-configuration-cache
+& $gradlew :app_v2:assembleNoLegalDebug "-Pchaquopy.enabled=true" --no-configuration-cache
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nBuild Failed! Exiting..." -ForegroundColor Red

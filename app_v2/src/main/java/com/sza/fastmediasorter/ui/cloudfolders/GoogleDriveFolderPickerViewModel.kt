@@ -11,7 +11,7 @@ import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
-import com.google.android.gms.auth.UserRecoverableAuthException
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import androidx.lifecycle.SavedStateHandle
@@ -102,19 +102,8 @@ class GoogleDriveFolderPickerViewModel @Inject constructor(
                         _state.update { it.copy(isLoading = false) }
                     }
                 }
-            } catch (e: UserRecoverableAuthException) {
-                Timber.w("User consent required for new permissions")
-                val intent = e.intent
-                if (intent != null) {
-                    _events.send(GoogleDriveFolderPickerEvent.RequiresReAuth(intent))
-                } else {
-                    _events.send(GoogleDriveFolderPickerEvent.ShowError(authFailedMessage()))
-                }
-                _state.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
-                Timber.e(e, "Error loading folders")
-                _events.send(GoogleDriveFolderPickerEvent.ShowError(genericErrorMessage()))
-                _state.update { it.copy(isLoading = false) }
+                handleFolderFailure(e, "Error loading folders")
             }
         }
     }
@@ -220,19 +209,8 @@ class GoogleDriveFolderPickerViewModel @Inject constructor(
                         _state.update { it.copy(isLoading = false) }
                     }
                 }
-            } catch (e: UserRecoverableAuthException) {
-                Timber.w("User consent required for new permissions")
-                val intent = e.intent
-                if (intent != null) {
-                    _events.send(GoogleDriveFolderPickerEvent.RequiresReAuth(intent))
-                } else {
-                    _events.send(GoogleDriveFolderPickerEvent.ShowError(authFailedMessage()))
-                }
-                _state.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
-                Timber.e(e, "Error navigating into folder")
-                _events.send(GoogleDriveFolderPickerEvent.ShowError(genericErrorMessage()))
-                _state.update { it.copy(isLoading = false) }
+                handleFolderFailure(e, "Error navigating into folder")
             }
         }
     }
@@ -286,24 +264,33 @@ class GoogleDriveFolderPickerViewModel @Inject constructor(
                         _state.update { it.copy(isLoading = false) }
                     }
                 }
-            } catch (e: UserRecoverableAuthException) {
-                Timber.w("User consent required for new permissions")
-                val intent = e.intent
-                if (intent != null) {
-                    _events.send(GoogleDriveFolderPickerEvent.RequiresReAuth(intent))
-                } else {
-                    _events.send(GoogleDriveFolderPickerEvent.ShowError(authFailedMessage()))
-                }
-                _state.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
-                _events.send(GoogleDriveFolderPickerEvent.ShowError(genericErrorMessage()))
-                _state.update { it.copy(isLoading = false) }
+                handleFolderFailure(e, "Error navigating back out of folder")
             }
         }
         return true
     }
 
     private fun alreadyAddedMessage(): String = context.getString(R.string.virtual_resource_already_added)
+
+    /**
+     * S0403: the three folder-browsing calls used to catch `UserRecoverableAuthException` inline,
+     * which was this ViewModel's only tie to a proprietary SDK. [GoogleAuthRecoveryIntent] answers
+     * the one question that needed it - "is there a consent intent to hand back?" - and has a copy
+     * per source set, so the picker itself stays in `src/main`.
+     */
+    private suspend fun handleFolderFailure(error: Exception, logMessage: String) {
+        error.rethrowIfCancellation()
+        val recoveryIntent = GoogleAuthRecoveryIntent.from(error)
+        if (recoveryIntent != null) {
+            Timber.w("User consent required for new permissions")
+            _events.send(GoogleDriveFolderPickerEvent.RequiresReAuth(recoveryIntent))
+        } else {
+            Timber.e(error, logMessage)
+            _events.send(GoogleDriveFolderPickerEvent.ShowError(genericErrorMessage()))
+        }
+        _state.update { it.copy(isLoading = false) }
+    }
 
     private fun authFailedMessage(): String = context.getString(R.string.friendly_copy_error_auth_failed)
 

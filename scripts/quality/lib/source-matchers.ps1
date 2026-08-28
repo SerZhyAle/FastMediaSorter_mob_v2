@@ -594,6 +594,36 @@ function Get-SourceRules {
                          'app_v2/src/main/res/layout-w600dp') `
                 -PathFilter 'app_v2/src/main/res/layout(-land|-sw480dp|-sw720dp|-w600dp)?/' `
                 -FailMessage 'new hardcoded dimension literal in a layout (S1922). Move the value into @dimen/ and reference it, so the size can be changed in one place. Structural "0dp" (ConstraintLayout match-constraints) is NOT counted by this rule - if that is what you added, this is not the finding.'),
+        # S2193: "one visual form per element role" (docs/ARCHITECTURE.md, right before the Trigger
+        # Row patterns). SettingsToggleRow already owns the toggle-row role; a hand-rolled
+        # MaterialSwitch + TextView + ImageButton triplet outside it is the same debt Pattern A's
+        # own prose already calls out. Excluded: the wrapper's own layout (it legitimately embeds
+        # the switch), and item_scheduled_operation.xml, the S0536 documented dense-list-item
+        # exception where ARCHITECTURE.md explicitly allows a bare MaterialSwitch. Same five layout
+        # roots as the colour/dimen rules above, on the same S1932 measurement basis.
+        (New-RegexRule -Name 'view-raw-switch' `
+                -Pattern ([regex]'<com\.google\.android\.material\.materialswitch\.MaterialSwitch\b') `
+                -Extensions @('.xml') `
+                -Roots @('app_v2/src/main/res/layout', 'app_v2/src/main/res/layout-land',
+                         'app_v2/src/main/res/layout-sw480dp', 'app_v2/src/main/res/layout-sw720dp',
+                         'app_v2/src/main/res/layout-w600dp') `
+                -PathFilter 'app_v2/src/main/res/layout(-land|-sw480dp|-sw720dp|-w600dp)?/' `
+                -ExcludeNames @('view_settings_toggle_row.xml', 'item_scheduled_operation.xml') `
+                -FailMessage 'new hand-rolled MaterialSwitch row outside the canonical wrapper (S2193). Use com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow (docs/ARCHITECTURE.md Pattern A) instead of a private MaterialSwitch + TextView triplet.'),
+        # S2193: same principle, checkbox side. FormCheckboxRow already owns the checkbox-row role
+        # and its subtitle is optional (setSubtitle(null) hides it), so it is the canonical form
+        # with or without a subtitle - a raw MaterialCheckBox outside it (e.g. a hand-rolled
+        # media-type filter grid) is the same debt as the switch rule above. Only the wrapper's own
+        # layout is excluded.
+        (New-RegexRule -Name 'view-raw-checkbox' `
+                -Pattern ([regex]'<com\.google\.android\.material\.checkbox\.MaterialCheckBox\b') `
+                -Extensions @('.xml') `
+                -Roots @('app_v2/src/main/res/layout', 'app_v2/src/main/res/layout-land',
+                         'app_v2/src/main/res/layout-sw480dp', 'app_v2/src/main/res/layout-sw720dp',
+                         'app_v2/src/main/res/layout-w600dp') `
+                -PathFilter 'app_v2/src/main/res/layout(-land|-sw480dp|-sw720dp|-w600dp)?/' `
+                -ExcludeNames @('view_form_checkbox_row.xml') `
+                -FailMessage 'new raw MaterialCheckBox outside the canonical wrapper (S2193). Use com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow (docs/ARCHITECTURE.md Pattern B - subtitle is optional) instead of a hand-rolled checkbox.'),
         [pscustomobject]@{
             Name        = 'unsafe-collect'
             Extensions  = @('.kt')

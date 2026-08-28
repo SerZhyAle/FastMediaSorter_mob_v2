@@ -13,8 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -34,35 +32,36 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
-import com.sza.fastmediasorter.wear.domain.model.WearContentType
+import com.sza.fastmediasorter.wear.domain.browse.BrowseCategoryCatalog
+import com.sza.fastmediasorter.wear.domain.model.WearBrowseCategory
+import com.sza.fastmediasorter.wear.domain.model.WearCategoryOrigin
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
-import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
+import com.sza.fastmediasorter.wear.ui.common.BrowseCategoryPresentation
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
+import com.sza.fastmediasorter.wear.ui.common.WearListMetrics
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.wear.ui.settings.allowedContentTypes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
-private val CHIP_ICON_SIZE = 24.dp
 private val TITLE_VERTICAL_PADDING = 12.dp
-
-private data class LocalCategory(
-    val labelRes: Int,
-    val mediaType: String,
-    val type: WearContentType
-)
 
 /**
  * Media stored on the watch itself, split by type.
  *
  * These three rows used to sit on the home screen; the home screen now lists origins, so they moved
  * one level down without changing what they do or which settings hide them.
+ *
+ * S2130: what the row contains is the catalog's answer for the local origin, not a list written here.
+ * It is one entry short of the phone's - the watch has no folder-walk surface over its own
+ * filesystem - and the catalog's availability predicate states that, and states it once.
  */
 @Composable
 fun LocalHomeScreen(
@@ -74,24 +73,16 @@ fun LocalHomeScreen(
     val settings by settingsViewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberScalingLazyListState()
 
-    val categories = listOf(
-        LocalCategory(R.string.music, "music", WearContentType.MUSIC),
-        LocalCategory(R.string.videos, "videos", WearContentType.VIDEO),
-        LocalCategory(R.string.photos, "photos", WearContentType.IMAGE)
-    ).filter { category ->
-        when (category.mediaType) {
-            "music" -> settings.isAudioEnabled
-            "videos" -> settings.isVideoEnabled
-            "photos" -> settings.isImagesEnabled
-            else -> true
-        }
-    }
+    val categories = BrowseCategoryCatalog.categoriesFor(
+        WearCategoryOrigin.LOCAL,
+        settings.allowedContentTypes()
+    )
 
     // A choice between one option is not a choice. Pass straight through and drop this screen from the
     // back stack, so Back returns to the home screen rather than to a step that decided nothing.
     LaunchedEffect(categories) {
         val only = categories.singleOrNull() ?: return@LaunchedEffect
-        navController.navigate(WearRoutes.browse(only.mediaType)) {
+        navController.navigate(WearRoutes.browse(only.token)) {
             popUpTo(WearRoutes.LOCAL_HOME) { inclusive = true }
         }
     }
@@ -135,7 +126,7 @@ fun LocalHomeScreen(
                     items(categories) { category ->
                         LocalCategoryChip(
                             category = category,
-                            onClick = { navController.navigate(WearRoutes.browse(category.mediaType)) }
+                            onClick = { navController.navigate(WearRoutes.browse(category.token)) }
                         )
                     }
                 } else {
@@ -144,7 +135,7 @@ fun LocalHomeScreen(
                             categories = rowCategories,
                             columns = columns,
                             onCategoryClick = { category ->
-                                navController.navigate(WearRoutes.browse(category.mediaType))
+                                navController.navigate(WearRoutes.browse(category.token))
                             }
                         )
                     }
@@ -156,19 +147,19 @@ fun LocalHomeScreen(
 
 @Composable
 private fun LocalCategoryChip(
-    category: LocalCategory,
+    category: WearBrowseCategory,
     onClick: () -> Unit
 ) {
-    val label = stringResource(category.labelRes)
+    val label = stringResource(BrowseCategoryPresentation.labelFor(category))
     Chip(
         onClick = onClick,
         label = { Text(text = label) },
         icon = {
             Icon(
-                painter = painterResource(ContentTypeCatalog.iconFor(category.type)),
+                painter = painterResource(BrowseCategoryPresentation.glyphFor(category)),
                 contentDescription = null,
-                modifier = Modifier.size(CHIP_ICON_SIZE),
-                tint = categoryTint(category.type)
+                modifier = Modifier.size(WearListMetrics.LeadingIconNormal),
+                tint = BrowseCategoryPresentation.tintFor(category.type)
             )
         },
         // The row announces its own name, so the reading never degrades to a position in the list.
@@ -186,9 +177,9 @@ private fun LocalCategoryChip(
  */
 @Composable
 private fun LocalCategoryRow(
-    categories: List<LocalCategory>,
+    categories: List<WearBrowseCategory>,
     columns: Int,
-    onCategoryClick: (LocalCategory) -> Unit
+    onCategoryClick: (WearBrowseCategory) -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -209,11 +200,11 @@ private fun LocalCategoryRow(
 
 @Composable
 private fun LocalCategoryCell(
-    category: LocalCategory,
+    category: WearBrowseCategory,
     modifier: Modifier,
     onClick: () -> Unit
 ) {
-    val label = stringResource(category.labelRes)
+    val label = stringResource(BrowseCategoryPresentation.labelFor(category))
     ThumbnailCell(
         thumbnail = WearThumbnail.Unavailable,
         caption = label,
@@ -221,24 +212,10 @@ private fun LocalCategoryCell(
         modifier = modifier
     ) { glyphModifier ->
         Icon(
-            painter = painterResource(ContentTypeCatalog.iconFor(category.type)),
+            painter = painterResource(BrowseCategoryPresentation.glyphFor(category)),
             contentDescription = null,
             modifier = glyphModifier,
-            tint = categoryTint(category.type)
+            tint = BrowseCategoryPresentation.tintFor(category.type)
         )
     }
 }
-
-/**
- * The semantic tone for a category glyph, or none when the painter already carries its own colour.
- *
- * Same guard as `HomeScreen`: an already coloured vector must keep what it has, so the catalog is
- * asked rather than tinted blindly.
- */
-@Composable
-private fun categoryTint(type: WearContentType): Color =
-    if (ContentTypeCatalog.isMonochrome(type)) {
-        colorResource(ContentTypeCatalog.tintFor(type))
-    } else {
-        Color.Unspecified
-    }

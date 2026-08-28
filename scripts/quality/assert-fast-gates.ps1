@@ -18,6 +18,7 @@
       - assert-listener-symmetry
       - assert-wear-settings-parity  (S2093 watch settings present on one side of the pair only)
       - assert-qualifier-shadowing   (values-land key a smallestWidth bucket always outranks)
+      - assert-qualified-gradle-tasks (S2172 a Gradle task name missing its :module: segment)
       - assert-tactical-step-form    (S1343 Why-field ratchet over PLAN/*/PHASE_*.md)
       - assert-flavor-matrix-docs    (S1392 doc flavor tables vs the generated capability snapshot)
 - assert-sdk-pin-claims        (S1438 SDK pins stated in prose vs the build files)
@@ -117,6 +118,13 @@ $gates = [ordered]@{
     # EAP=Stop makes the following `exit N` unreachable, so a script's documented code
     # collapses to 1. Cheap (scans scripts/*.ps1 only) and the class has regrown 3 times.
     'assert-exit-contract.ps1'                  = @('-Quiet')
+    # S2172: a Gradle task name written without its module segment. Gradle expands such a name across
+    # every project that declares it, so `assembleStandardDebug` began meaning "app_v2 AND wear" the
+    # day S2090 gave the watch a `standard` flavor - changing what 40 call sites did without editing
+    # one of them. The entry point then writes into wear/build/** while holding only Build.Phone, so
+    # a sibling session's watch build dies on a locked R.jar reading as broken code. Scans scripts/*.ps1
+    # only, no gradle daemon.
+    'assert-qualified-gradle-tasks.ps1'         = @('-Quiet')
     # S1844: a Room migration with no instrumented migration test. Nothing compiled androidTest and
     # nothing checked the pairing, so a migration could ship untested while a plausible-looking test
     # file sat beside it - AppDatabaseMigration50To51Test.kt referenced a constant it never declared
@@ -137,6 +145,12 @@ $gates = [ordered]@{
     # wear shipped them for months - 1.2 MB, 10 % of its release APK, on a watch. Parses the two
     # build files by brace balance, no gradle daemon.
     'assert-packaging-excludes-parity.ps1'      = @('-Quiet')
+    # S2129: the wear copy of the resource-icon set against app_v2, its source of truth. The watch
+    # resolves a synced `ico-NN-NNN` id locally, so a missing copy answers null and falls back to
+    # the type glyph - the very defect S2129 removes, returning with no crash and no log. Per-ticket
+    # by Rule 33: the fallback is silent, so between releases nothing else would surface it.
+    # Forwards to the generator's own -Check, so gate and fix cannot disagree; no gradle daemon.
+    'assert-resource-icon-parity.ps1'           = @('-Quiet')
     # The version fields of app_v2 and wear are one contract under one applicationId: the same
     # versionName, and versionCodes that must NOT collide - Play refuses the repeat at submission
     # time, long after the build passed. The tree carried both modules on 260815161. Reads the two

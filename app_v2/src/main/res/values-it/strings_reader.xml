@@ -61,7 +61,6 @@
     <string name="epub_table_of_contents">Sommario</string>
     <string name="epub_text_empty_tts">Nessun testo trovato nel capitolo</string>
     <string name="text_content_hint">Contenuto testuale</string>
-    <string name="text_copied">Testo copiato negli appunti</string>
     <string name="text_editing_large_file">La modifica non è disponibile per i file con più pagine.</string>
     <string name="text_editor_action_cancel">Cancellare</string>
     <string name="text_editor_action_save">Salva</string>

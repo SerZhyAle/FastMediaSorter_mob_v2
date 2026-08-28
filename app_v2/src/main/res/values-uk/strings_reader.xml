@@ -61,7 +61,6 @@
     <string name="epub_table_of_contents">Зміст</string>
     <string name="epub_text_empty_tts">Текст у розділі не знайдено</string>
     <string name="text_content_hint">Текстовий вміст</string>
-    <string name="text_copied">Text copied to clipboard</string>
     <string name="text_editing_large_file">Editing is not available for files with multiple pages</string>
     <string name="text_editor_action_cancel">Скасувати</string>
     <string name="text_editor_action_save">Зберегти</string>

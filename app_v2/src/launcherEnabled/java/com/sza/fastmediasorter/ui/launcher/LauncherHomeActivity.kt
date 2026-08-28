@@ -24,11 +24,13 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetHost
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherCellViewBinder
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAddFlowHostActions
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAddFlowManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAllAppsGestureManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAppActionMenuManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherCellActionMenuManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherContactPickManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherContactStepState
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherDesktopActions
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherDesktopGeometryManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherEditModeManager
@@ -117,6 +119,14 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     // decision (Rule 3); the activity only owns where the cell goes.
     private val sensorPermissionManager = LauncherSensorPermissionManager(this)
 
+    // S1930: a field initialiser for the same reason again - a widget's configuration screen is an
+    // Activity, and its contract must be registered before this one is STARTED. What the answer means,
+    // and whether a cell is placed because of it, is the add flow's decision (Rule 3). addFlowManager
+    // is lazy and is only dereferenced when a result actually arrives, long after it exists.
+    private val widgetConfiguration = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { result -> addFlowManager.onWidgetConfigured(result.resultCode == RESULT_OK) }
+
     // A field initialiser, not setupViews(): BaseActivity posts that call, so it runs after the Activity
     // is STARTED and an activity-result contract registered there would throw. The operations are passed
     // as functions so nothing is dereferenced at this point in construction.
@@ -130,6 +140,15 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // above - viewModel must not be touched while this initialiser runs.
         readPendingAction = { viewModel.pendingContactAction },
         writePendingAction = { action -> viewModel.pendingContactAction = action },
+        // S2102: the same arrangement for the step that runs before the system picker, plus the channel
+        // list the messenger choice needs. Bundled rather than four more parameters, which would put
+        // this constructor at detekt's LongParameterList ceiling.
+        stepState = LauncherContactStepState(
+            readStep = { viewModel.pendingContactStep },
+            writeStep = { action -> viewModel.pendingContactStep = action },
+            readChannels = { viewModel.pendingContactChannels },
+            writeChannels = { channels -> viewModel.pendingContactChannels = channels },
+        ),
     )
 
     private val cellBinder = LauncherCellViewBinder(
@@ -240,7 +259,10 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             contactPickManager = contactPickManager,
             sensorPermissionManager = sensorPermissionManager,
             currentColumns = { geometryManager.currentColumns() },
-            onCreateResource = { resourceCreateManager.startCreateResource(this) },
+            hostActions = LauncherAddFlowHostActions(
+                createResource = { resourceCreateManager.startCreateResource(this) },
+                startWidgetConfiguration = { intent -> widgetConfiguration.launch(intent) },
+            ),
         )
     }
 
@@ -350,6 +372,12 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         ).attach()
         geometryManager.syncOrientation()
         addFlowManager.registerAddFlowListeners()
+        // S2102: the contact branch's three keys, claimed for the Activity's lifetime rather than at the
+        // moment each dialog opens - a restored dialog re-runs no such method.
+        contactPickManager.registerContactPickListeners()
+        // Order matters: the re-opened picker delivers to the listener registered on the line above, so
+        // registering second would drop the very pick this call exists to enable.
+        contactPickManager.restorePendingPicker()
         blackoutManager = LauncherScreenBlackoutManager(WeakReference(this))
         blackoutManager.onStart()
     }
@@ -438,7 +466,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                 LauncherHomeEvent.OpenStreamPicker ->
                     addFlowManager.openStreamPicker()
                 LauncherHomeEvent.OpenStreamsSettings -> {
-                    startActivity(SettingsActivity.openStreamsSectionIntent(this))
+                    startActivity(inOwnTask(SettingsActivity.openStreamsSectionIntent(this)))
                     Toast.makeText(this, R.string.launcher_edit_streams_enable_first, Toast.LENGTH_LONG).show()
                 }
                 is LauncherHomeEvent.PerformLauncherAction -> performLauncherAction(event.actionKey)
@@ -463,13 +491,22 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     }
 
     /**
+     * S2026: this activity is the root of the device's home task, and Android refuses
+     * Picture-in-Picture to anything running in a home-type task. Every app screen opened from here
+     * therefore starts its own task, so a player reached further down that stack can still enter PiP.
+     * The flag needs LauncherHomeActivity's separate taskAffinity to have any effect - while both share
+     * the app's default affinity, NEW_TASK matches the home task and changes nothing.
+     */
+    private fun inOwnTask(intent: Intent): Intent = intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+    /**
      * S1402: a launcher-action cell does exactly what its namesake row in the Start menu does - same
      * screen, same dialog, same confirmation before the device stops using us as its home screen.
      */
     private fun performLauncherAction(actionKey: String) {
         when (actionKey) {
             LauncherActionCatalog.KEY_APP_SETTINGS ->
-                startActivity(Intent(this, SettingsActivity::class.java))
+                startActivity(inOwnTask(Intent(this, SettingsActivity::class.java)))
 
             LauncherActionCatalog.KEY_LAUNCHER_SETTINGS -> showLauncherSettings()
 
@@ -616,6 +653,9 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // shared OsShortcut path would try first (ticket ADR-1).
         onOpenSystemScreen = { key ->
             viewModel.run(LauncherCellCommand.OsShortcut(key), screenOnly = true)
+        },
+        onOpenNetworkSurface = { sectionKey, osShortcutKey ->
+            viewModel.openNetworkSurface(sectionKey, osShortcutKey)
         },
     )
 

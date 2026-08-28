@@ -91,6 +91,28 @@ class AdapterThumbnailLoader(
         // S1317: decode-capability failure fragment - Glide's required-transform throw on an
         // AnimatedImageDrawable it cannot convert, not a broken source file.
         private const val BITMAP_CONVERSION_FRAGMENT = "to a bitmap"
+
+        /**
+         * True when [file] is drawn with the generated extension tile rather than a picture of its own.
+         *
+         * Mirrors the branches of [load] that return before any Glide request is issued, and lives
+         * here for that reason: a type that later gains a real preview then moves this answer and the
+         * loading path together instead of leaving a second copy of the list to drift (S2177).
+         *
+         * Deliberately synchronous and type-only. An image whose decode fails also ends on the
+         * extension tile, but only after the cell is already on screen, and flipping the caption then
+         * would reflow the row under a scrolling finger.
+         */
+        fun rendersGroupIcon(file: MediaFile): Boolean {
+            val hasOwnPicture = file.resourceId == SyntheticResourceIds.STREAM || file.isDirectory
+            return !hasOwnPicture &&
+                (
+                    file.type == MediaType.AUDIO ||
+                        file.type == MediaType.TEXT ||
+                        file.type == MediaType.OFFICE_DOCUMENT ||
+                        file.type.isBinaryFile()
+                    )
+        }
     }
 
     // ─── Public entry point ───────────────────────────────────────────────────

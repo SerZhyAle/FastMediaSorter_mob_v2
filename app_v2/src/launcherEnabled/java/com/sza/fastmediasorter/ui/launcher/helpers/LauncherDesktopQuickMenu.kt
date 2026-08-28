@@ -2,7 +2,10 @@ package com.sza.fastmediasorter.ui.launcher.helpers
 
 import android.view.View
 import android.widget.ListPopupWindow
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.sza.fastmediasorter.R
+import timber.log.Timber
 
 /**
  * S1466: the four desktop entry points the quick menu spends, passed as one value.
@@ -74,16 +77,20 @@ class LauncherDesktopQuickMenu(
                 onSelected = onLauncherSettings,
             ),
         )
+        val adapter = LauncherAppShortcutAdapter(context, rows)
+        val popupWidthPx = context.resources.getDimensionPixelSize(R.dimen.launcher_shortcut_popup_width)
         val popup = ListPopupWindow(context)
         popup.anchorView = anchor
         // Modal so D-pad, keyboard and mouse focus enter the list instead of staying on the desktop.
         popup.isModal = true
-        popup.width = context.resources.getDimensionPixelSize(R.dimen.launcher_shortcut_popup_width)
+        popup.width = popupWidthPx
         popup.horizontalOffset = xPx + POPUP_GAP_PX
-        // ListPopupWindow measures its drop from the anchor's bottom edge, and the anchor here is the whole
-        // desktop canvas - so the press position is that height minus where the finger landed.
-        popup.verticalOffset = yPx - anchor.height + POPUP_GAP_PX
-        popup.setAdapter(LauncherAppShortcutAdapter(context, rows))
+        popup.verticalOffset = verticalOffsetPx(
+            anchor = anchor,
+            yPx = yPx,
+            menuHeightPx = estimateMenuHeightPx(adapter, popupWidthPx, rows.size),
+        )
+        popup.setAdapter(adapter)
         popup.setOnItemClickListener { _, _, position, _ ->
             popup.dismiss()
             rows[position].onSelected.invoke()
@@ -91,6 +98,44 @@ class LauncherDesktopQuickMenu(
         popup.setOnDismissListener { window = null }
         window = popup
         popup.show()
+    }
+
+    /**
+     * Below the press point by default; above it when the system-bar safe area (Rule 17) leaves less
+     * room below than the menu needs and more room above than below (S2181) - without this, a press
+     * near the bottom edge opens a menu whose last row lands under the nav bar/taskbar, unreachable.
+     */
+    private fun verticalOffsetPx(anchor: View, yPx: Int, menuHeightPx: Int): Int {
+        val insets = ViewCompat.getRootWindowInsets(anchor)?.getInsets(
+            WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout(),
+        )
+        val topSafePx = insets?.top ?: 0
+        val bottomSafePx = insets?.bottom ?: 0
+        val spaceBelowPx = anchor.height - bottomSafePx - yPx
+        val spaceAbovePx = yPx - topSafePx
+        val opensAbove = spaceBelowPx < menuHeightPx + POPUP_GAP_PX && spaceAbovePx > spaceBelowPx
+        Timber.d("S2181: quick menu opensAbove=$opensAbove spaceBelowPx=$spaceBelowPx menuHeightPx=$menuHeightPx")
+        // ListPopupWindow measures its drop from the anchor's bottom edge, and the anchor here is the
+        // whole desktop canvas - so the press position is that height minus where the finger landed.
+        return if (opensAbove) {
+            yPx - anchor.height - menuHeightPx - POPUP_GAP_PX
+        } else {
+            yPx - anchor.height + POPUP_GAP_PX
+        }
+    }
+
+    /**
+     * One measured row stands in for the whole list: `item_launcher_app_shortcut.xml` is a fixed
+     * single-line (`maxLines="1"`) layout, so every row is the same height regardless of label length,
+     * and this stays correct under the user's font-scale setting because it measures rather than
+     * assuming a hardcoded row-height dimension (none exists in this repo).
+     */
+    private fun estimateMenuHeightPx(adapter: LauncherAppShortcutAdapter, widthPx: Int, rowCount: Int): Int {
+        val sampleRow = adapter.getView(0, null, null)
+        val widthSpec = View.MeasureSpec.makeMeasureSpec(widthPx, View.MeasureSpec.EXACTLY)
+        val heightSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+        sampleRow.measure(widthSpec, heightSpec)
+        return sampleRow.measuredHeight * rowCount
     }
 
     /** Closes any open menu; the host calls this on its teardown edge. */

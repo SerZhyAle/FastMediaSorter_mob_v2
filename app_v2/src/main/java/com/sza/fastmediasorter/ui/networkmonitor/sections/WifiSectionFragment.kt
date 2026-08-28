@@ -8,6 +8,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.databinding.FragmentNetworkMonitorWifiBinding
 import com.sza.fastmediasorter.databinding.ViewNetworkMonitorLinkDetailsBinding
 import com.sza.fastmediasorter.domain.model.networkmonitor.ActiveLink
@@ -16,6 +17,7 @@ import com.sza.fastmediasorter.domain.model.networkmonitor.WifiEntry
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.NetworkMonitorPermissionManager
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.RadioToggleBinder
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.SignalChartBinder
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.startSystemSurfaceFor
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.toReasonRes
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -71,6 +73,9 @@ class WifiSectionFragment : Fragment() {
             resetTarget = binding.wifiChart.root,
             onResetRequested = viewModel::onChartResetRequested,
         )
+        binding.wifiSectionHeading.setOnClickListener {
+            requireContext().startSystemSurfaceFor(OsShortcutCatalog.KEY_WIFI)
+        }
         collectOnLifecycle(viewModel.uiState) { render(it) }
         collectOnLifecycle(viewModel.radio) { radioBinder?.render(it) }
         collectOnLifecycle(viewModel.radioOutcome) { radioBinder?.apply(it) }

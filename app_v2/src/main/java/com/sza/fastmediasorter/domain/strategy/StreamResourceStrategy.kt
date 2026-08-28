@@ -67,7 +67,7 @@ class StreamResourceStrategy : ResourceStrategy {
 
     override fun fieldSchema(): List<ResourceFieldSchema> = listOf(
         ResourceFieldSchema(ResourceFieldKey.NAME, required = true),
-        ResourceFieldSchema(ResourceFieldKey.PATH, required = true, visible = false),
+        ResourceFieldSchema(ResourceFieldKey.PATH, required = true, visible = true),
         ResourceFieldSchema(ResourceFieldKey.COMMENT, required = false),
         ResourceFieldSchema(ResourceFieldKey.ACCESS_PIN, required = false)
     )

@@ -4,9 +4,6 @@
 <resources>
     <string name="app_name">FastMedia Wear</string>
     <string name="settings_group_other">دیگر</string>
-    <string name="music">موسیقی</string>
-    <string name="videos">ویڈیوز</string>
-    <string name="photos">تصاویر</string>
     <string name="play">چلائیں</string>
     <string name="pause">روکیں</string>
     <string name="previous">پچھلا</string>

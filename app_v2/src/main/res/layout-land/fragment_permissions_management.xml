@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Permissions management screen, landscape (Rule 11 counterpart of layout/fragment_permissions_management.xml).
      Same ids and view types as the portrait variant; the two action buttons sit side by side (split by a
-     centre guideline so the layout stays correct when btn_grant_all is GONE), and the list fills
-     the remaining area.
+     centre guideline so the layout stays correct when btn_grant_all is GONE), a divider marks where the
+     pinned area ends, and the list fills the remaining area.
      All ids must stay in sync with the portrait variant. -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -22,6 +22,19 @@
         app:navigationContentDescription="@string/back"
         app:navigationIcon="@drawable/ic_arrow_back"
         app:navigationIconTint="?attr/colorOnPrimary" />
+
+    <!-- S2178: declared before the buttons so it draws behind them. Makes the pinned zone a visibly
+         different plane from the list; a 1dp divider alone was invisible on the dark theme and the
+         clipped first row still read as damage. -->
+    <View
+        android:id="@+id/bg_permissions_actions"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="?attr/colorSurfaceVariant"
+        app:layout_constraintBottom_toBottomOf="@id/divider_permissions_actions"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar" />
 
     <!-- Centre split so the action buttons share the width; robust when btn_grant_all is GONE. -->
     <androidx.constraintlayout.widget.Guideline
@@ -57,8 +70,19 @@
         app:layout_constraintStart_toEndOf="@id/guideline_actions_center"
         app:layout_constraintTop_toBottomOf="@id/toolbar" />
 
-    <!-- Anchor the list below whichever action button is taller; both share the toolbar baseline so
-         using btn_open_system_settings (always visible) is safe. -->
+    <!-- S2178: the list's top edge used to sit flush against the action buttons on the same background,
+         so a half-scrolled row read as erased rather than as scrolled under the pinned area.
+         Anchored to btn_open_system_settings for the reason the list used to be: both buttons share the
+         toolbar baseline, and that one is always visible. -->
+    <View
+        android:id="@+id/divider_permissions_actions"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/item_divider_height"
+        android:background="?attr/colorOutlineVariant"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_open_system_settings" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_permissions"
         android:layout_width="0dp"
@@ -69,6 +93,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_open_system_settings" />
+        app:layout_constraintTop_toBottomOf="@id/divider_permissions_actions" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

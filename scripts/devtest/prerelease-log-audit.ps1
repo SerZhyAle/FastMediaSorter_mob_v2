@@ -58,6 +58,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
 if (-not (Test-Path $LogFile)) {
     if ($Json) { '{"ok":false,"exitCode":2,"error":"log file not found"}' } else { Write-Host 'log file not found' }
     exit 2

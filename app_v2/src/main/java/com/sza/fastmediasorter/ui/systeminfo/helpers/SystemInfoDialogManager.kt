@@ -1,16 +1,14 @@
 package com.sza.fastmediasorter.ui.systeminfo.helpers
 
 import android.Manifest
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.pm.PackageManager
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.clipboard.copyTextToClipboard
 import com.sza.fastmediasorter.core.systeminfo.SystemInfoReport
 import com.sza.fastmediasorter.domain.usecase.GatherSystemInfoUseCase
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLensSelectionReporter
@@ -74,9 +72,7 @@ class SystemInfoDialogManager @Inject constructor(
             .setTitle(R.string.system_info_reveal_confirm_title)
             .setMessage(R.string.system_info_reveal_confirm_message)
             .setPositiveButton(R.string.system_info_copy_full_report) { _, _ ->
-                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                clipboard.setPrimaryClip(ClipData.newPlainText("System info", fullText))
-                Toast.makeText(context, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show()
+                context.copyTextToClipboard("System info", fullText)
             }
             .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(context)

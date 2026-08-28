@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.wear.ui.home
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,8 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -34,34 +31,26 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
-import com.sza.fastmediasorter.wear.domain.model.WearContentType
+import com.sza.fastmediasorter.wear.domain.browse.BrowseCategoryCatalog
+import com.sza.fastmediasorter.wear.domain.model.WearBrowseCategory
+import com.sza.fastmediasorter.wear.domain.model.WearCategoryOrigin
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
-import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
+import com.sza.fastmediasorter.wear.ui.common.BrowseCategoryPresentation
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
+import com.sza.fastmediasorter.wear.ui.common.WearListMetrics
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.wear.ui.settings.allowedContentTypes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
-private val CHIP_ICON_SIZE = 24.dp
 private val TITLE_VERTICAL_PADDING = 12.dp
-
-/**
- * @property iconOverride set only where the row is not a content type and so has no catalog glyph -
- * recents is a time filter, which is why it keeps its own symbol and borrows only the tone.
- */
-private data class PhoneCategory(
-    val labelRes: Int,
-    val mediaType: String,
-    val type: WearContentType,
-    @DrawableRes val iconOverride: Int? = null
-)
 
 /**
  * The phone's virtual resources, reached from the watch.
@@ -70,6 +59,10 @@ private data class PhoneCategory(
  * section, which is the whole point of splitting these two by content origin rather than media type.
  * The last row keeps the paired-phone folder browser reachable - it is a separate capability that
  * only ever had its entrance on the home screen.
+ *
+ * S2130: the row of categories is whatever `BrowseCategoryCatalog` returns for the phone origin. This
+ * screen used to declare its own list, and being the set the owner called correct made it the one
+ * every other screen was measured against while nothing kept them equal.
  */
 @Composable
 fun PhoneHomeScreen(
@@ -82,34 +75,27 @@ fun PhoneHomeScreen(
     val settings by settingsViewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberScalingLazyListState()
 
-    val categories = listOf(
-        PhoneCategory(
-            R.string.wear_phone_recents,
-            "recents",
-            WearContentType.OTHER,
-            iconOverride = R.drawable.ic_history
-        ),
-        PhoneCategory(R.string.wear_phone_video, "videos", WearContentType.VIDEO),
-        PhoneCategory(R.string.wear_phone_audio, "music", WearContentType.MUSIC),
-        PhoneCategory(R.string.wear_phone_images, "photos", WearContentType.IMAGE),
-        PhoneCategory(R.string.wear_phone_documents, "documents", WearContentType.DOCUMENT),
-        PhoneCategory(R.string.wear_phone_all, "all", WearContentType.OTHER)
+    // S2130 ADR-6: the type toggles narrow this screen too. The setting's label promises which types
+    // are allowed without qualifying by origin, so an origin they cannot reach makes the promise false.
+    val vocabulary = BrowseCategoryCatalog.categoriesFor(
+        WearCategoryOrigin.PHONE,
+        settings.allowedContentTypes()
     )
+    val categories = vocabulary.filterNot { it.token == BrowseCategoryCatalog.TOKEN_BROWSE }
+    val folderBrowser = vocabulary.firstOrNull { it.token == BrowseCategoryCatalog.TOKEN_BROWSE }
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,
         positionIndicator = { PositionIndicator(listState) }
     ) {
-        // The six categories are declared above and never filtered, so this branch does not run
-        // today. It is here because the category vocabulary is S2051's to decide: the moment that
-        // ticket makes a row conditional, this screen already reports emptiness like its two
-        // siblings instead of drawing a header over nothing. The generic message is deliberate -
-        // unlike the sibling screens, nothing here is switched off in settings, so naming settings
-        // as the cause would be false.
         if (categories.isEmpty()) {
+            // S2130: now that the toggles reach this screen, settings is the only way to empty it -
+            // the phone presents every category otherwise - so the cause can finally be named. No
+            // retry, for the reason the two sibling screens give: the settings read succeeded.
             WearStateBlock(
                 kind = WearStateKind.EMPTY,
+                message = stringResource(R.string.wear_media_types_all_disabled),
                 onBack = { navController.popBackStack() }
             )
             return@WearScreenScaffold
@@ -139,7 +125,7 @@ fun PhoneHomeScreen(
                         PhoneCategoryChip(
                             category = category,
                             onClick = {
-                                navController.navigate(WearRoutes.browsePhone(category.mediaType))
+                                navController.navigate(WearRoutes.browsePhone(category.token))
                             }
                         )
                     }
@@ -149,16 +135,19 @@ fun PhoneHomeScreen(
                             categories = rowCategories,
                             columns = columns,
                             onCategoryClick = { category ->
-                                navController.navigate(WearRoutes.browsePhone(category.mediaType))
+                                navController.navigate(WearRoutes.browsePhone(category.token))
                             }
                         )
                     }
                 }
 
-                item {
-                    PhoneFolderChip(
-                        onClick = { navController.navigate(WearRoutes.PHONE_RESOURCE) }
-                    )
+                if (folderBrowser != null) {
+                    item {
+                        PhoneFolderChip(
+                            category = folderBrowser,
+                            onClick = { navController.navigate(WearRoutes.PHONE_RESOURCE) }
+                        )
+                    }
                 }
             }
         }
@@ -168,19 +157,25 @@ fun PhoneHomeScreen(
 /**
  * A full-width row of its own in every mode: the paired-phone folder browser is a separate
  * capability, and a cell in the type grid would read as a seventh content category.
+ *
+ * It is also the one entry whose route carries no media type, which is what distinguishes it from
+ * the flat All listing that sits directly above it.
  */
 @Composable
-private fun PhoneFolderChip(onClick: () -> Unit) {
-    val label = stringResource(R.string.wear_phone_browse)
+private fun PhoneFolderChip(
+    category: WearBrowseCategory,
+    onClick: () -> Unit
+) {
+    val label = stringResource(BrowseCategoryPresentation.labelFor(category))
     Chip(
         onClick = onClick,
         label = { Text(text = label) },
         icon = {
             Icon(
-                painter = painterResource(ContentTypeCatalog.iconFor(WearContentType.FOLDER)),
+                painter = painterResource(BrowseCategoryPresentation.glyphFor(category)),
                 contentDescription = label,
-                modifier = Modifier.size(CHIP_ICON_SIZE),
-                tint = categoryTint(WearContentType.FOLDER)
+                modifier = Modifier.size(WearListMetrics.LeadingIconNormal),
+                tint = BrowseCategoryPresentation.tintFor(category.type)
             )
         },
         modifier = Modifier.fillMaxWidth(),
@@ -190,19 +185,19 @@ private fun PhoneFolderChip(onClick: () -> Unit) {
 
 @Composable
 private fun PhoneCategoryChip(
-    category: PhoneCategory,
+    category: WearBrowseCategory,
     onClick: () -> Unit
 ) {
-    val label = stringResource(category.labelRes)
+    val label = stringResource(BrowseCategoryPresentation.labelFor(category))
     Chip(
         onClick = onClick,
         label = { Text(text = label) },
         icon = {
             Icon(
-                painter = painterResource(glyphFor(category)),
+                painter = painterResource(BrowseCategoryPresentation.glyphFor(category)),
                 contentDescription = null,
-                modifier = Modifier.size(CHIP_ICON_SIZE),
-                tint = categoryTint(category.type)
+                modifier = Modifier.size(WearListMetrics.LeadingIconNormal),
+                tint = BrowseCategoryPresentation.tintFor(category.type)
             )
         },
         // The row announces its own name, so the reading never degrades to a position in the list.
@@ -220,9 +215,9 @@ private fun PhoneCategoryChip(
  */
 @Composable
 private fun PhoneCategoryRow(
-    categories: List<PhoneCategory>,
+    categories: List<WearBrowseCategory>,
     columns: Int,
-    onCategoryClick: (PhoneCategory) -> Unit
+    onCategoryClick: (WearBrowseCategory) -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -243,11 +238,11 @@ private fun PhoneCategoryRow(
 
 @Composable
 private fun PhoneCategoryCell(
-    category: PhoneCategory,
+    category: WearBrowseCategory,
     modifier: Modifier,
     onClick: () -> Unit
 ) {
-    val label = stringResource(category.labelRes)
+    val label = stringResource(BrowseCategoryPresentation.labelFor(category))
     ThumbnailCell(
         thumbnail = WearThumbnail.Unavailable,
         caption = label,
@@ -255,29 +250,10 @@ private fun PhoneCategoryCell(
         modifier = modifier
     ) { glyphModifier ->
         Icon(
-            painter = painterResource(glyphFor(category)),
+            painter = painterResource(BrowseCategoryPresentation.glyphFor(category)),
             contentDescription = null,
             modifier = glyphModifier,
-            tint = categoryTint(category.type)
+            tint = BrowseCategoryPresentation.tintFor(category.type)
         )
     }
 }
-
-/** The row's own glyph where it has one, otherwise the catalog's for its content type. */
-@DrawableRes
-private fun glyphFor(category: PhoneCategory): Int =
-    category.iconOverride ?: ContentTypeCatalog.iconFor(category.type)
-
-/**
- * The semantic tone for a category glyph, or none when the painter already carries its own colour.
- *
- * Same guard as `HomeScreen`: an already coloured vector must keep what it has, so the catalog is
- * asked rather than tinted blindly.
- */
-@Composable
-private fun categoryTint(type: WearContentType): Color =
-    if (ContentTypeCatalog.isMonochrome(type)) {
-        colorResource(ContentTypeCatalog.tintFor(type))
-    } else {
-        Color.Unspecified
-    }

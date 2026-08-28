@@ -450,7 +450,7 @@ scripts/builders/build-debug-device.ps1
 scripts/builders/build-debug.PS1
   Params:
     -SkipZip             [SwitchParameter]
-    -Task                [String] = "assembleStandardDebug"
+    -Task                [String] = ":app_v2:assembleStandardDebug"
     -AutoVersion         [SwitchParameter] = $true
     -Chaquopy            [SwitchParameter]
     -Quiet               [SwitchParameter]
@@ -1053,6 +1053,28 @@ scripts/devtest/adb-tap-id.tests/Run-Tests.ps1
   Exit: 0 - every case passed; 1 - at least one case failed
 ```
 
+## scripts\devtest\adb.tests
+
+### Run-Tests.ps1
+S2088 contract suite for the machine-readable (-Json) output of `adb.ps1`.
+
+```
+scripts/devtest/adb.tests/Run-Tests.ps1
+  S2088 contract suite for the machine-readable (-Json) output of `adb.ps1`.
+  (no param block)
+  Exit: 0 - every case passed; 1 - at least one case failed
+```
+
+## scripts\devtest\adb.tests\stub
+
+### adb-stub.ps1
+
+```
+scripts/devtest/adb.tests/stub/adb-stub.ps1
+  (no param block)
+  Exit: 0 - the call matched the table; 99 - the call matched nothing; the signature is appended to $FMS_STUB_HOME/stub-misses.txt
+```
+
 ## scripts\devtest\device-lease.tests
 
 ### Run-Tests.ps1
@@ -1063,6 +1085,18 @@ scripts/devtest/device-lease.tests/Run-Tests.ps1
   Regression tests for the device lease sweep (S1926).
   (no param block)
   Exit: 0 - every case passed.; 1 - a case failed.
+```
+
+## scripts\devtest\devtest-encoding.tests
+
+### Run-Tests.ps1
+S2197 regression test suite: verify that devtest and device utility scripts configure UTF-8 output encoding.
+
+```
+scripts/devtest/devtest-encoding.tests/Run-Tests.ps1
+  S2197 regression test suite: verify that devtest and device utility scripts configure UTF-8 output encoding.
+  (no param block)
+  Exit: 0 - all audited devtest/utils scripts contain OutputEncoding configuration.; 1 - at least one audited script is missing OutputEncoding configuration.
 ```
 
 ## scripts\devtest\lib
@@ -2105,11 +2139,11 @@ scripts/quality/assert-launcher-reset-coverage.ps1
 ```
 
 ### assert-layout-variant-id-parity.ps1
-S1259: android:id parity between res/layout-land and res/layout-w600dp variants.
+android:id parity between sibling copies of one layout - across config variants (S1259) and across flavor source sets (S2198).
 
 ```
 scripts/quality/assert-layout-variant-id-parity.ps1
-  S1259: android:id parity between res/layout-land and res/layout-w600dp variants.
+  android:id parity between sibling copies of one layout - across config variants (S1259) and across flavor source sets (S2198).
   Params:
     -Gate          [SwitchParameter]
     -Quiet         [SwitchParameter]
@@ -2332,6 +2366,19 @@ scripts/quality/assert-prerelease-content-gates.ps1
   Exit: 0 every gating gate passed for every requested module; an advisory finding still exits 0; 1 at least one gating gate found a defect, and no gate was unable to verify; 2 at least one gate could not verify - its own exit 2, or the gate script is missing
 ```
 
+### assert-qualified-gradle-tasks.ps1
+Rejects a Gradle variant task name written without its module segment in a repository script or a GitHub Actions workflow.
+
+```
+scripts/quality/assert-qualified-gradle-tasks.ps1
+  Rejects a Gradle variant task name written without its module segment in a repository script or a GitHub Actions workflow.
+  Params:
+    -Gate                 [SwitchParameter]
+    -ChangedFiles         [String[]]
+    -Quiet                [SwitchParameter]
+  Exit: 0 PASS, or findings reported without -Gate.; 1 FAIL - at least one unqualified task name, and -Gate was supplied.; 2 Cannot verify - the scan root does not exist.
+```
+
 ### assert-qualifier-shadowing.ps1
 S1282: a values-land / values-w600dp resource that no device can ever resolve.
 
@@ -2353,6 +2400,18 @@ scripts/quality/assert-release-scope-gates.ps1
     -Json         [SwitchParameter]
     -Help         [SwitchParameter]
   Exit: 0 every gate passed.; 1 at least one gate found a defect. The release does not ship until it is fixed.; 2 cannot verify - a gate script is missing from scripts/quality/.
+```
+
+### assert-resource-icon-parity.ps1
+Parity gate: the wear module's mirrored resource-icon set must match app_v2's source of truth.
+
+```
+scripts/quality/assert-resource-icon-parity.ps1
+  Parity gate: the wear module's mirrored resource-icon set must match app_v2's source of truth.
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 the mirrored set and the generated registry match the source; 1 drift found - regenerate with scripts/wear/generate-wear-resource-icons.ps1; 2 cannot verify - the generator is missing, or the source set is absent or unreadable
 ```
 
 ### assert-retired-dependency-names.ps1
@@ -2650,6 +2709,18 @@ scripts/quality/assert-untracked-dialogs.ps1
     -ChangedFiles           [String[]]
 ```
 
+### assert-wear-mirrored-strings.ps1
+S2125: fails when a string mirrored on the phone and the watch stops reading the same.
+
+```
+scripts/quality/assert-wear-mirrored-strings.ps1
+  S2125: fails when a string mirrored on the phone and the watch stops reading the same.
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - every declared pair is in step; or a divergence was reported without -Gate, matching the; 1 - a divergence was found and -Gate was passed.; 2 - could not verify: the declaration is missing, parses to zero pairs, or a strings.xml under
+```
+
 ### assert-wear-route-literals.ps1
 Rejects raw Wear navigation route and argument literals outside route registries.
 
@@ -2908,6 +2979,13 @@ scripts/quality.tests/android-string-liveness.Tests.ps1
   (no param block)
 ```
 
+### changed-files-normalizer.Tests.ps1
+
+```
+scripts/quality.tests/changed-files-normalizer.Tests.ps1
+  (no param block)
+```
+
 ### check-device-profile-presets.Tests.ps1
 
 ```
@@ -2925,10 +3003,13 @@ scripts/quality.tests/locale-fingerprints.Tests.ps1
 ```
 
 ### Run-Tests.ps1
+S2126: entry point for the quality.tests suite - runs each sibling *.Tests.ps1 in its own process.
 
 ```
 scripts/quality.tests/Run-Tests.ps1
+  S2126: entry point for the quality.tests suite - runs each sibling *.Tests.ps1 in its own process.
   (no param block)
+  Exit: 0 every test file passed, or the folder holds no test file.; 1 at least one test file failed.; 2 no test file failed, but at least one could not verify its environment.
 ```
 
 ### set-android-string-remove.Tests.ps1
@@ -3046,7 +3127,7 @@ scripts/quality/assert-ticket-acceptance-probes.tests/Run-Tests.ps1
 ```
 scripts/quality/assert-window-insets.tests/Run-Tests.ps1
   (no param block)
-  Exit: 0 all cases pass.; 1 at least one case failed.; 2 could not acquire CODE.LOCK for the end-to-end case - re-run once the lock is free.
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 could not acquire the Code.Phone domain for the end-to-end case - re-run once the lock is free.
 ```
 
 ## scripts\quality\detekt-scoped.tests
@@ -3373,6 +3454,19 @@ scripts/release/publish-play-release.ps1
     -Aab                      [String]
     -VersionCode              [Int32]
     -NotesVersionCode         [Int32]
+```
+
+### read-play-tracks.ps1
+Read the live Google Play track state - read-only, safe to run at any time.
+
+```
+scripts/release/read-play-tracks.ps1
+  Read the live Google Play track state - read-only, safe to run at any time.
+  Params:
+    -Json                         [SwitchParameter]
+    -RequireWearCodeBelow         [Int32]
+    -Package                      [String] = 'com.sza.fastmediasorter'
+  Exit: 0 - state read (and the -RequireWearCodeBelow assertion held, when given); 1 - the -RequireWearCodeBelow assertion failed: the Wear track already holds that code or higher; 2 - could not verify: no virtual environment, no service-account key, or the API call failed
 ```
 
 ### retain-deobfuscation.ps1
@@ -4062,6 +4156,16 @@ scripts/streams/collect-stream-candidates.ps1
 
 ## scripts\streams.tests
 
+### Run-Tests.ps1
+S2126: entry point for the streams.tests suite - runs the folder's Pester specs.
+
+```
+scripts/streams.tests/Run-Tests.ps1
+  S2126: entry point for the streams.tests suite - runs the folder's Pester specs.
+  (no param block)
+  Exit: 0 every Pester test passed.; 1 at least one Pester test failed.; 2 could not verify - the Pester module is not installed.
+```
+
 ### StreamPublisher.Artwork.Tests.ps1
 
 ```
@@ -4236,7 +4340,7 @@ scripts/utils/check-typo-lint.ps1
     -SkipActivityChecks             [SwitchParameter]
     -FailOnActivityWarnings         [SwitchParameter]
     -TypoTool                       [String] = "auto"  {auto|typos|cspell}
-    -LintTask                       [String] = "lintStandardDebug"
+    -LintTask                       [String] = ":app_v2:lintStandardDebug"
 ```
 
 ### clear-agent-lock.ps1
@@ -4305,11 +4409,11 @@ scripts/utils/create-run-configs.ps1
 ```
 
 ### enter-code-lock.ps1
-Acquire temp/CODE.LOCK before starting a multi-file source (Kotlin/XML/build-file) edit.
+Acquire the code domains a changed file set belongs to, before a source/XML/build-file edit.
 
 ```
 scripts/utils/enter-code-lock.ps1
-  Acquire temp/CODE.LOCK before starting a multi-file source (Kotlin/XML/build-file) edit.
+  Acquire the code domains a changed file set belongs to, before a source/XML/build-file edit.
   Params:
     -Reason              (req)  [String]
     -Files                      [String[]]
@@ -4320,11 +4424,11 @@ scripts/utils/enter-code-lock.ps1
 ```
 
 ### exit-code-lock.ps1
-Release temp/CODE.LOCK. Safe no-op if unheld or held by a different process.
+Release every code domain this session holds. Safe no-op if unheld or held by another session.
 
 ```
 scripts/utils/exit-code-lock.ps1
-  Release temp/CODE.LOCK. Safe no-op if unheld or held by a different process.
+  Release every code domain this session holds. Safe no-op if unheld or held by another session.
   (no param block)
 ```
 
@@ -4666,6 +4770,7 @@ scripts/utils/run-spec-queue.ps1
     -DryRun                    [SwitchParameter]
     -Stop                      [SwitchParameter]
     -Kill                      [SwitchParameter]
+    -KeepSkipCache             [SwitchParameter]
     -RepoRoot                  [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
     -Help                      [SwitchParameter]
   Exit: 2 = invalid invocation - the Claude CLI or the preflight script could not be found or
@@ -4926,5 +5031,18 @@ Regression tests for the Gradle module registry (S2121).
 scripts/utils/gradle-modules.tests/Run-Tests.ps1
   Regression tests for the Gradle module registry (S2121).
   (no param block)
+```
+
+## scripts\wear
+
+### generate-wear-resource-icons.ps1
+S2129 - mirrors the phone's resource-icon set into the wear module (single source of truth renderer).
+
+```
+scripts/wear/generate-wear-resource-icons.ps1
+  S2129 - mirrors the phone's resource-icon set into the wear module (single source of truth renderer).
+  Params:
+    -Check         [SwitchParameter]
+  Exit: 0 outputs written, or -Check found them current; 1 -Check found drift (regenerate without -Check); 2 cannot verify - source directory missing, or it holds no ico_*.xml at all
 ```
 

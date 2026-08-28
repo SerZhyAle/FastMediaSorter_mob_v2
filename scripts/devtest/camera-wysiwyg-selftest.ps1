@@ -45,6 +45,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
 # The crop injected into the negative case. Recovered value must land within Tolerance of it, so the
 # comparator is held to naming the crop rather than merely disliking the pair.
 $InjectedKeep = 0.74

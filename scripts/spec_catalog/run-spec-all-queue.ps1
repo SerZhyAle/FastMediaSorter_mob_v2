@@ -20,9 +20,10 @@
 
   Three coordination guards, all taken from 2026-08-08 runs where sessions
   collided on one ticket:
-    - A ticket whose id appears in the reason of a held or queued CODE.LOCK /
-      BUILD.LOCK is passed over: a sibling is driving it right now. Only
-      /spec-next claims a lease, so "unleased" does not mean "free".
+    - A ticket whose id appears in the reason of a held or queued coordination
+      lock - any of the five domains, code or build - is passed over: a sibling
+      is driving it right now. Only /spec-next claims a lease, so "unleased"
+      does not mean "free".
     - temp/spec-all-queue.lock admits one driver per checkout. Several drivers
       rank the same queue, so they all pick the same head.
     - Tickets are taken through scripts/spec_catalog/ticket-lease.ps1, so one a
@@ -133,16 +134,20 @@ function Get-TicketBusySignal {
     param([Parameter(Mandatory)][string] $TicketId)
 
     $pattern = [regex]::Escape($TicketId)
-    foreach ($lockName in @('Code', 'Build')) {
+    # S2170: every concrete domain, never the two bare names. A bare name resolves to the ONE
+    # pre-split file that nothing writes any more, so this test read "free" for every sibling and
+    # the driver went back to starting tickets a live session was already on - the exact failure
+    # the function was written to prevent.
+    foreach ($lockName in @(Resolve-AgentLockDomains -Name 'Code') + @(Resolve-AgentLockDomains -Name 'Build')) {
         $status = Get-AgentLockStatus -Name $lockName
         if ($status.Exists -and -not $status.Stale -and [string] $status.Reason -match $pattern) {
-            return "$lockName.LOCK held for '$([string] $status.Reason)'"
+            return "$($lockName.ToUpper()).LOCK held for '$([string] $status.Reason)'"
         }
 
         foreach ($queued in @(Get-AgentLockQueue -Name $lockName)) {
             if ('reason' -notin $queued.PSObject.Properties.Name) { continue }
             $reason = [string] $queued.reason
-            if ($reason -match $pattern) { return "$lockName.LOCK queue: '$reason'" }
+            if ($reason -match $pattern) { return "$($lockName.ToUpper()).LOCK queue: '$reason'" }
         }
     }
 

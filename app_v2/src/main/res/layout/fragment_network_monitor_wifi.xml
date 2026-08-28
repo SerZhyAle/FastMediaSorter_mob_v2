@@ -16,8 +16,14 @@
         android:orientation="vertical">
 
         <TextView
+            android:id="@+id/wifiSectionHeading"
             style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
             android:drawableStart="@drawable/ic_wifi"
+            android:drawableEnd="@drawable/ic_open_in_browse"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground"
+            android:contentDescription="@string/app_launch_panel_os_wifi"
             android:text="@string/network_monitor_section_wifi" />
 
         <com.google.android.material.card.MaterialCardView

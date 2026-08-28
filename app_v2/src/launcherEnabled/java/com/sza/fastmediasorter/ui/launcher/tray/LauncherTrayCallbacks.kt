@@ -11,4 +11,6 @@ data class LauncherTrayCallbacks(
     val onRequestPhoneStatePermission: () -> Unit = {},
     /** Opens the Android settings section an indicator reports on, by [OsShortcutCatalog] key. */
     val onOpenSystemScreen: (String) -> Unit = {},
+    /** Opens our Monitor section when it is available, else the Android screen the indicator reports on. */
+    val onOpenNetworkSurface: (sectionKey: String, osShortcutKey: String) -> Unit = { _, _ -> },
 )

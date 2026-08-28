@@ -19,6 +19,7 @@ object WearSettingsFieldDiff {
             addIfChanged("audioEnabled", before.audioEnabled, after.audioEnabled)
             addIfChanged("videoEnabled", before.videoEnabled, after.videoEnabled)
             addIfChanged("imagesEnabled", before.imagesEnabled, after.imagesEnabled)
+            addIfChanged("documentsEnabled", before.documentsEnabled, after.documentsEnabled)
             addIfChanged("slideshowEnabled", before.slideshowEnabled, after.slideshowEnabled)
             addIfChanged(
                 "slideshowIntervalSeconds",

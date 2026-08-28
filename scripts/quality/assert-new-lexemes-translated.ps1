@@ -9,6 +9,12 @@
     the release. This gate is where "allowed to lag" ends: it refuses while any string added since
     the rule was introduced is missing from a declared locale.
 
+    "Missing" covers a reworded string, not only an absent key: a locale holding the key against a
+    superseded English source is reported too (S1824, provenance in locale-source-fingerprints.json).
+    That case is invisible to the eye - all thirteen files carry the key and look filled in - so the
+    registry is the only thing standing between a re-worded label and shipping the old sentence in
+    ten languages.
+
     It owns no logic of its own. scripts/utils/list-new-lexemes.ps1 computes the set and writes the
     file the translator takes; this gate turns that command's exit 3 into a release blocker and
     prints what to do about it. Keeping the producer separate is what lets the same set be reported

@@ -90,6 +90,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
 $RepoRoot     = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $DebugPackage = 'com.sza.fastmediasorter.debug'
 $CodePackage  = 'com.sza.fastmediasorter'

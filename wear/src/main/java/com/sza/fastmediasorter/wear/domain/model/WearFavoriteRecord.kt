@@ -146,6 +146,39 @@ private const val RTSP_DEFAULT_PORT = 554
 private const val NO_DEFAULT_PORT = -1
 
 /**
+ * S2149: the rule for COMPARING two stream addresses, and only that.
+ *
+ * [normalizeWearStreamUrl] produces the key a favourite is stored under and must keep producing exactly
+ * that: widening it would invalidate every mark the user has already placed, which is the failure S2039
+ * recorded. So the extra rule the phone has lives here instead, on top, applied to both sides of a
+ * comparison and never written anywhere. It replaces an `http` or `https` scheme with a single token so
+ * the two spellings of one channel compare equal; every other scheme, `rtsp` included, is returned
+ * untouched, because two genuinely different protocols on one host and path are two different channels.
+ *
+ * Mirrors the phone's `StreamChannelIdentity.of`, which is the rule pinned identities arrive folded by -
+ * measured there on 17628 published rows, this fold alone collapses 53 groups of duplicate broadcasters.
+ */
+fun foldWearStreamIdentity(url: String): String {
+    val normalized = normalizeWearStreamUrl(url)
+    val separator = normalized.indexOf(SCHEME_SEPARATOR)
+    if (separator <= 0) {
+        return normalized
+    }
+    // The malformed-address branch of the normalizer returns the input verbatim, so the scheme it hands
+    // back is not guaranteed lowercase the way the parsed branch is.
+    val scheme = normalized.substring(0, separator).lowercase(Locale.ROOT)
+    return if (scheme in WEB_SCHEMES) {
+        WEB_SCHEME_TOKEN + normalized.substring(separator)
+    } else {
+        normalized
+    }
+}
+
+private const val SCHEME_SEPARATOR = "://"
+private const val WEB_SCHEME_TOKEN = "web"
+private val WEB_SCHEMES = setOf("http", "https")
+
+/**
  * S1846: the whole favourites list, from the two shapes the store holds.
  *
  * Pure on purpose. The store itself sits behind `EncryptedSharedPreferences`, which needs a real Android

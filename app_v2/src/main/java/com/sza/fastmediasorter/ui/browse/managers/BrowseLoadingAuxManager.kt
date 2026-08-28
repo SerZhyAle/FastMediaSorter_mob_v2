@@ -6,8 +6,8 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.util.CachedMediaMetadataExtractor
 import com.sza.fastmediasorter.data.cloud.CloudProvider
+import com.sza.fastmediasorter.data.network.exceptions.BrowseFriendlyErrorResolver
 import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDeniedException
-import com.sza.fastmediasorter.data.network.exceptions.WifiRequiredException
 import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -17,7 +17,6 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseEvent
 import com.sza.fastmediasorter.ui.browse.BrowseState
-import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,6 +26,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Auxiliary loading helpers for the Browse screen:
@@ -65,72 +65,10 @@ class BrowseLoadingAuxManager(
 
     @Volatile private var audioMetadataEnrichmentJob: Job? = null
 
+    // S2196: heuristic itself lives in BrowseFriendlyErrorResolver (shared with BrowseViewModel) -
+    // was a private duplicate here that had drifted from the ViewModel's copy.
     private fun getFriendlyBrowseErrorMessage(throwable: Throwable): String =
-        context.getString(resolveFriendlyBrowseErrorRes(throwable))
-
-    private fun resolveFriendlyBrowseErrorRes(throwable: Throwable): Int {
-        // WifiRequiredException fires before any socket attempt - clearly a Wi-Fi gate rejection,
-        // not a generic outage. Must be checked by type before the message-based heuristics below.
-        if (throwable is WifiRequiredException) return R.string.error_wifi_required_smb
-
-        // A watchdog-aborted scan is a distinct case: a folder that never finished listing, not a
-        // per-request socket timeout. Map by type so the user sees the scan-specific message.
-        if (throwable is com.sza.fastmediasorter.data.network.exceptions.ScanTimeoutException) {
-            return R.string.error_scan_timeout
-        }
-
-        // SFTP protocol status is locale-independent; the server's message text is not
-        // (Windows OpenSSH sends "cannot find the file specified", matched by no rule below). S1000.
-        when (com.sza.fastmediasorter.data.remote.sftp.SftpOperationFailure.fromThrowable(throwable).category) {
-            com.sza.fastmediasorter.data.remote.sftp.SftpFailureCategory.NOT_FOUND ->
-                return R.string.friendly_copy_error_not_found
-            com.sza.fastmediasorter.data.remote.sftp.SftpFailureCategory.PERMISSION_DENIED ->
-                return R.string.friendly_copy_error_access_denied
-            else -> Unit
-        }
-
-        val message = throwable.message.orEmpty()
-        return when {
-            message.contains("Authentication", ignoreCase = true) ||
-                message.contains("LOGON_FAILURE", ignoreCase = true) ||
-                message.contains("Not authenticated", ignoreCase = true) ->
-                R.string.friendly_copy_error_auth_failed
-
-            (message.contains("permission", ignoreCase = true) &&
-                message.contains("denied", ignoreCase = true)) ||
-                message.contains("STATUS_ACCESS_DENIED", ignoreCase = true) ||
-                message.contains("access denied", ignoreCase = true) ->
-                R.string.friendly_copy_error_access_denied
-
-            message.contains("STATUS_BAD_NETWORK_NAME", ignoreCase = true) ||
-                message.contains("STATUS_OBJECT_NAME_NOT_FOUND", ignoreCase = true) ||
-                message.contains("STATUS_OBJECT_PATH_NOT_FOUND", ignoreCase = true) ||
-                message.contains("not found", ignoreCase = true) ->
-                R.string.friendly_copy_error_not_found
-
-            message.contains("unreachable", ignoreCase = true) ||
-                message.contains("Cannot resolve host", ignoreCase = true) ||
-                message.contains("Unknown host", ignoreCase = true) ->
-                R.string.friendly_copy_error_no_connection
-
-            message.contains("Connection reset", ignoreCase = true) ||
-                message.contains("connection closed", ignoreCase = true) ||
-                message.contains("broken pipe", ignoreCase = true) ||
-                message.contains("connection lost", ignoreCase = true) ->
-                R.string.error_network_connection_lost
-
-            message.contains("timed out", ignoreCase = true) ||
-                message.contains("timeout", ignoreCase = true) ||
-                message.contains("SocketTimeoutException", ignoreCase = true) ->
-                R.string.error_network_timeout
-
-            message.contains("Connection", ignoreCase = true) ||
-                message.contains("Network", ignoreCase = true) ->
-                R.string.error_network_connection
-
-            else -> R.string.friendly_copy_error_generic
-        }
-    }
+        BrowseFriendlyErrorResolver.message(context, throwable)
 
     // ── Public API ────────────────────────────────────────────────────────────
 

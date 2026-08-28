@@ -61,7 +61,6 @@
     <string name="epub_table_of_contents">Índice</string>
     <string name="epub_text_empty_tts">Nenhum texto encontrado no capítulo</string>
     <string name="text_content_hint">Conteúdo do texto</string>
-    <string name="text_copied">Texto copiado para a área de transferência</string>
     <string name="text_editing_large_file">A edição não está disponível para arquivos com várias páginas.</string>
     <string name="text_editor_action_cancel">Cancelar</string>
     <string name="text_editor_action_save">Salvar</string>

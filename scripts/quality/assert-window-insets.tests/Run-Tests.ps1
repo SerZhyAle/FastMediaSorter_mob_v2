@@ -13,7 +13,7 @@
 #                    -Gate -ChangedFiles against a fixture file that must physically exist under
 #                    app_v2/src/main/ for the rule's PathFilter to even consider it (S1338's
 #                    -ChangedFiles delta is git-diff-based: working-copy count minus HEAD count).
-#                    The fixture is written under temp/CODE.LOCK and removed in a finally block
+#                    The fixture is written under the Code.Phone lock and removed in a finally block
 #                    regardless of outcome, so a crash mid-test cannot leave stray source behind.
 # Plus a live regression: the real app_v2/src/main tree must stay at/under the committed baseline.
 #
@@ -22,7 +22,7 @@
 # Exit codes:
 #   0   all cases pass.
 #   1   at least one case failed.
-#   2   could not acquire CODE.LOCK for the end-to-end case - re-run once the lock is free.
+#   2   could not acquire the Code.Phone domain for the end-to-end case - re-run once the lock is free.
 
 [CmdletBinding()]
 param()
@@ -155,9 +155,11 @@ private fun s1347WindowInsetsFixture(view: android.view.View) {
 }
 '@
 
-$lock = Enter-AgentLock -Name Code -Reason 'S1347 assert-window-insets.tests end-to-end fixture'
+# S2170: Code.Phone only - the fixture is one app_v2 source file, so holding the wear and scripts
+# domains too would stall a watch or tooling edit for a test that cannot touch either.
+$lock = Enter-AgentLock -Name 'Code' -Domains @('Code.Phone') -Reason 'S1347 assert-window-insets.tests end-to-end fixture'
 if (-not $lock.Acquired) {
-    Write-Error 'assert-window-insets.tests: could not acquire CODE.LOCK - another session is editing. Re-run once free.' -ErrorAction Continue
+    Write-Error 'assert-window-insets.tests: could not acquire the Code.Phone domain - another session is editing. Re-run once free.' -ErrorAction Continue
     exit 2
 }
 try {
@@ -173,7 +175,7 @@ try {
 }
 finally {
     Remove-Item -LiteralPath $fixtureAbs -Force -ErrorAction SilentlyContinue
-    Exit-AgentLock -Name Code
+    Exit-AgentLock -Name 'Code' -Domains @('Code.Phone')
     $stillThere = Test-Path -LiteralPath $fixtureAbs
     Assert-That 'E3 fixture removed - no stray source left behind' (-not $stillThere) 'fixture file still exists after cleanup'
 }

@@ -497,5 +497,8 @@ data class SourceItem(
     val server: String,
     // S1952: the list showed one glyph for every row because the type never reached the UI model,
     // so a share and a cloud account were indistinguishable at a glance.
-    val type: NetworkSourceType
+    val type: NetworkSourceType,
+    // S2129: the type alone still leaves several shares of one kind identical. Null means the phone
+    // never sent an id - the row falls back to the type glyph rather than losing its icon.
+    val iconId: String? = null
 )

@@ -33,5 +33,8 @@ data class NetworkSource(
     // S1555: canonical SHA256 host-key pin set on the phone; null means permissive, as before.
     val hostKeyFingerprint: String? = null,
     val domain: String = "",         // SMB domain
-    val sshPrivateKey: String? = null // SFTP key-auth
+    val sshPrivateKey: String? = null, // SFTP key-auth
+    // S2129: `ico-NN-NNN` as sent by the phone, kept opaque here and resolved to a vector only at
+    // draw time, so an id this build does not carry degrades to the type glyph instead of failing.
+    val iconId: String? = null
 )

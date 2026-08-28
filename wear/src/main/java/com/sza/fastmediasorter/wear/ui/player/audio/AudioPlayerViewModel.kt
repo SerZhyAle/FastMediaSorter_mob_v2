@@ -466,6 +466,7 @@ class AudioPlayerViewModel @Inject constructor(
     }
 
     fun seekForward() {
+        Timber.d("S2140: audio long-press seek forward")
         val target = exoPlayer.currentPosition + SEEK_STEP_MS
         // ExoPlayer reports C.TIME_UNSET, a large negative, while the duration is still unknown -
         // clamping to it would send playback backwards past the start. Reachable here since S1683,
@@ -475,6 +476,7 @@ class AudioPlayerViewModel @Inject constructor(
     }
 
     fun seekBackward() {
+        Timber.d("S2140: audio long-press seek backward")
         val newPosition = (exoPlayer.currentPosition - SEEK_STEP_MS).coerceAtLeast(0)
         seekTo(newPosition)
     }

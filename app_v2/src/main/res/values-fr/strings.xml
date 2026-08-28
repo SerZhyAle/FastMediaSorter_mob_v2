@@ -2604,7 +2604,6 @@
     <string name="stream_info_state_empty">Non défini</string>
     <string name="stream_info_not_in_catalog">Cette chaîne n\'est pas dans votre liste, aucune information n\'est donc enregistrée à son sujet. Ajoutez-la à la liste pour conserver ses détails.</string>
     <string name="stream_info_copy">Tout copier</string>
-    <string name="stream_info_copied">Détails copiés</string>
     <string name="stream_info_value_picture_size">%1$d x %2$d</string>
     <string name="stream_info_value_frame_rate">%1$s fps</string>
     <string name="stream_info_value_bitrate">%1$s kbit/s</string>
@@ -2818,7 +2817,6 @@
     <string name="launcher_gadget_map_actions_at">Carte de %1$s. Appuyez pour ouvrir l\'application de carte.</string>
     <string name="browse_empty_filtered_out">Les fichiers %1$d sont masqués par le paramètre de taille maximale des fichiers.</string>
     <string name="browse_empty_filtered_out_hint">Augmentez la taille maximale des fichiers dans les paramètres pour les afficher.</string>
-    <string name="network_monitor_ip_addresses_label">adresses IP</string>
     <string name="network_monitor_permission_grant">Autorisation refusée. Appuyez pour l\'accorder.</string>
     <string name="network_monitor_permission_open_settings">L\'accès est bloqué. Appuyez pour ouvrir les paramètres de l\'application.</string>
     <string name="cast_cropping_stereo">Préparation de la copie mono-œil..</string>

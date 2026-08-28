@@ -31,6 +31,14 @@ private const val COMMAND_GLYPH_DP = 32
  *
  * The caller's [modifier] is applied before the default size, so a screen that needs a larger target
  * - the video player's play/pause - passes its own `size` and wins; everything else gets the default.
+ *
+ * S2140: a button carrying [onLongClick] should also carry [onLongClickLabel]. Without it TalkBack
+ * offers the gesture as a bare "double tap and hold", which names the motion and not the command, so a
+ * user who cannot see the icon has no way to learn what holding it would do.
+ *
+ * S2140 also dropped an `enabled` parameter that no caller had ever passed. It defaulted to true and
+ * every one of the three players took the default, so it disabled nothing; kept alongside the long-press
+ * pair it would have pushed this list to detekt's LongParameterList threshold for a switch nobody threw.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -39,9 +47,9 @@ internal fun PlayerCommandButton(
     icon: ImageVector,
     contentDescription: String,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true,
     checked: Boolean? = null,
-    onLongClick: (() -> Unit)? = null
+    onLongClick: (() -> Unit)? = null,
+    onLongClickLabel: String? = null
 ) {
     val tint = if (checked == true) {
         MaterialTheme.colors.primary
@@ -53,8 +61,8 @@ internal fun PlayerCommandButton(
         modifier = modifier
             .size(COMMAND_TOUCH_TARGET_DP.dp)
             .combinedClickable(
-                enabled = enabled,
                 role = Role.Button,
+                onLongClickLabel = onLongClickLabel,
                 onLongClick = onLongClick,
                 onClick = onClick
             )

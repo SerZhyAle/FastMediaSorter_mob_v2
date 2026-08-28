@@ -104,7 +104,7 @@ if (-not $SkipManifestTest -and $manifestAffected) {
     # that job finishes, so a non-waiting acquire here loses the race against our own sibling job
     # (not cross-session contention) and reports a false lock-contention FAIL. -Wait queues instead;
     # a genuine timeout still surfaces as exit 2 CANNOT-VERIFY (documented above), never exit 1.
-    Enter-BuildLockOrExit -Reason "assert-settings-doc-sync.ps1 (SettingsManifestExportTest)" -Wait
+    Enter-BuildLockOrExit -Reason "assert-settings-doc-sync.ps1 (SettingsManifestExportTest)" -Wait -Domain Build.Phone
     Push-Location $RepoRoot
     try {
         # S1786: execute with timeout ceiling
@@ -116,7 +116,7 @@ if (-not $SkipManifestTest -and $manifestAffected) {
         $manifestOutput = $run.Output
         $manifestExit = if ($run.TimedOut) { 2 } else { $run.ExitCode }
         $timedOut = $run.TimedOut
-    } finally { Pop-Location; Exit-AgentLock -Name Build }
+    } finally { Pop-Location; Exit-AgentLock -Name 'Build' -Domains @('Build.Phone') }
     if ($timedOut) {
         CannotVerify 'manifest-fresh' "the SettingsManifestExportTest gradle run exceeded ${TimeoutSeconds}s and was killed (exit 2)."
     }

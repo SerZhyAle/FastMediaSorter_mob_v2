@@ -8,6 +8,7 @@ import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.error.ErrorSeverity
 import com.sza.fastmediasorter.domain.mutation.Mutation
+import com.sza.fastmediasorter.ui.player.MediaUnavailableDialog
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import com.sza.fastmediasorter.ui.streams.StreamUnavailableDialog
@@ -39,25 +40,8 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
                 showError(event.message)
             is PlayerViewModel.PlayerEvent.ShowMessage ->
                 Toast.makeText(activity, event.message, Toast.LENGTH_SHORT).show()
-            is PlayerViewModel.PlayerEvent.FileModified -> {
-                // S0242 Phase 02: FileModified is fired only after a successful delete
-                // from PlayerDeleteUndoCoordinator - journal it as Mutation.Delete so the
-                // Browse Reconciler picks it up on its next onResume.
-                val resourceId = activity.lifecycleManager.currentResourceId()
-                val resourceType = activity.lifecycleManager.currentResourceType()
-                if (resourceId != null && resourceType != null) {
-                    activity.lifecycleManager.recordMutation(
-                        Mutation.Delete(
-                            resourceId = resourceId,
-                            canonicalPath = activity.lifecycleManager
-                                .pathNormalizer()
-                                .canonical(event.filePath, resourceType),
-                            opId = UUID.randomUUID().toString(),
-                            timestampMs = System.currentTimeMillis(),
-                        )
-                    )
-                }
-            }
+            is PlayerViewModel.PlayerEvent.FileModified ->
+                recordDeleteMutation(event.filePath)
             is PlayerViewModel.PlayerEvent.ShowUndoSnackbar ->
                 activity.undoOperationManager.showUndoSnackbar(event.operation)
             is PlayerViewModel.PlayerEvent.CloudAuthRequired ->
@@ -75,7 +59,9 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
                     activity.getString(com.sza.fastmediasorter.R.string.cast_connected, event.deviceName)
                 } else if (!event.isCasting) {
                     activity.getString(com.sza.fastmediasorter.R.string.cast_disconnected)
-                } else null
+                } else {
+                    null
+                }
                 if (msg != null) Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show()
             }
             is PlayerViewModel.PlayerEvent.ShowVrInstallCta -> {
@@ -87,14 +73,38 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
                 Toast.makeText(activity, R.string.playback_order_stopped, Toast.LENGTH_SHORT).show()
             }
             // S0162: rotation sensor toggled from player button
+            is PlayerViewModel.PlayerEvent.ShowStreamUnavailable ->
+                showStreamUnavailable(event.source, event.offline)
+            is PlayerViewModel.PlayerEvent.ShowMediaUnavailable ->
+                showMediaUnavailable(event.fileName, event.gone)
             is PlayerViewModel.PlayerEvent.RotationSensorToggled -> {
                 activity.onRotationSensorToggled(event.sensorEnabled)
             }
             // S0581: a list stream failed to play - offer retry / remove-from-list.
-            is PlayerViewModel.PlayerEvent.ShowStreamUnavailable -> {
-                showStreamUnavailable(event.source, event.offline)
-            }
         }
+    }
+
+    /**
+     * S0242 Phase 02: FileModified is fired only after a successful delete from
+     * PlayerDeleteUndoCoordinator - journal it as Mutation.Delete so the Browse Reconciler picks it up
+     * on its next onResume.
+     *
+     * S2151: lifted out of [handleEvent]'s when so that adding the media-unavailable branch did not
+     * push that function past its cyclomatic ceiling.
+     */
+    private fun recordDeleteMutation(filePath: String) {
+        val resourceId = activity.lifecycleManager.currentResourceId() ?: return
+        val resourceType = activity.lifecycleManager.currentResourceType() ?: return
+        activity.lifecycleManager.recordMutation(
+            Mutation.Delete(
+                resourceId = resourceId,
+                canonicalPath = activity.lifecycleManager
+                    .pathNormalizer()
+                    .canonical(filePath, resourceType),
+                opId = UUID.randomUUID().toString(),
+                timestampMs = System.currentTimeMillis(),
+            )
+        )
     }
 
     fun showError(message: String, throwable: Throwable? = null) {
@@ -191,6 +201,35 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
                 activity.finish()
             },
             onDismiss = { activity.finish() },
+        )
+    }
+
+    /**
+     * S2151: a media file failed to load for a recognised network reason. Unlike
+     * [showStreamUnavailable], dismissing this does NOT leave the player: the rest of the list is
+     * usually alive, and ejecting the viewer over one unreachable file is a harsh answer to a
+     * temporary outage (owner ruling, /ui-clarify 2026-08-27).
+     */
+    private fun showMediaUnavailable(fileName: String, gone: Boolean) {
+        val isInPip = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N &&
+            activity.isInPictureInPictureMode
+        if (isInPip) {
+            Timber.w("showMediaUnavailable: in PiP mode - suppressing dialog")
+            return
+        }
+        // Removal is offered only for a file that is final AND actually saved: the host toggle would
+        // otherwise add a gone file to favorites on a list where it was never saved.
+        val offerRemove = gone && activity.viewModel.state.value.currentFile?.isFavorite == true
+        Timber.d("S2151: media unavailable dialog gone=$gone offerRemove=$offerRemove")
+        activeDialog?.dismiss()
+        activeDialog = MediaUnavailableDialog.show(
+            activity = activity,
+            fileName = fileName,
+            gone = gone,
+            offerRemoveFavorite = offerRemove,
+            onRetry = { activity.reloadCurrentImageInPlace() },
+            onRemoveFromFavorites = { activity.viewModel.toggleFavorite() },
+            onDismiss = { },
         )
     }
 

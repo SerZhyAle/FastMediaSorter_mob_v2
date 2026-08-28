@@ -100,7 +100,6 @@
     <string name="file_deleted">\"%1$s\" हटा दिया गया</string>
     <string name="file_info">फ़ाइल जानकारी</string>
     <string name="file_info_copy_path">पथ कॉपी करें</string>
-    <string name="file_info_copy_path_done">पथ कॉपी किया गया</string>
     <string name="file_info_directory_label">निर्देशिका: %1$s</string>
     <string name="file_info_extension_mime_label">फॉर्मेट: %1$s · %2$s</string>
     <string name="file_info_filename_label">फ़ाइल: %1$s</string>

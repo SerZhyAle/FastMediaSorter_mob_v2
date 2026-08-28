@@ -67,6 +67,7 @@ import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
 import com.sza.fastmediasorter.wear.ui.common.WaveParticleBackground
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandButton
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerSeekActions
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
 import timber.log.Timber
 
@@ -152,7 +153,11 @@ fun AudioPlayerScreen(
                         onSkipPrevious = viewModel::skipToPrevious,
                         onToggleDimmed = viewModel::toggleDimmed,
                         onToggleShuffle = viewModel::toggleShuffle,
-                        onSeekTo = viewModel::seekTo
+                        seek = PlayerSeekActions(
+                            onSeekTo = viewModel::seekTo,
+                            onSeekBackward = viewModel::seekBackward,
+                            onSeekForward = viewModel::seekForward
+                        )
                     )
                 )
             }
@@ -192,7 +197,7 @@ private data class AudioPlayerActions(
     val onSkipPrevious: () -> Unit,
     val onToggleDimmed: () -> Unit,
     val onToggleShuffle: () -> Unit,
-    val onSeekTo: (Long) -> Unit
+    val seek: PlayerSeekActions
 )
 
 @Composable
@@ -248,7 +253,7 @@ private fun AudioPlayerContent(
                 duration = uiState.durationFormatted,
                 progress = uiState.progress,
                 durationMs = uiState.durationMs,
-                onSeekTo = actions.onSeekTo
+                onSeekTo = actions.seek.onSeekTo
             )
         }
         item {
@@ -258,7 +263,8 @@ private fun AudioPlayerContent(
                 onPlayPause = actions.onPlayPause,
                 onSkipNext = actions.onSkipNext,
                 onSkipPrevious = actions.onSkipPrevious,
-                onToggleShuffle = actions.onToggleShuffle
+                onToggleShuffle = actions.onToggleShuffle,
+                seek = actions.seek
             )
         }
         item {
@@ -493,10 +499,15 @@ private fun PlaybackControls(
     onPlayPause: () -> Unit,
     onSkipNext: () -> Unit,
     onSkipPrevious: () -> Unit,
-    onToggleShuffle: () -> Unit
+    onToggleShuffle: () -> Unit,
+    seek: PlayerSeekActions
 ) {
     val previousDesc = stringResource(R.string.wear_previous_file)
     val nextDesc = stringResource(R.string.wear_next_file)
+    // S2140: seeking came back to this row as a long press. The two labels are what TalkBack reads
+    // instead of "double tap and hold", so the second command on these buttons is discoverable.
+    val seekBackwardDesc = stringResource(R.string.wear_seek_backward)
+    val seekForwardDesc = stringResource(R.string.wear_seek_forward)
     // The description names the action the press performs, and it changes with the state, so a screen
     // reader announces playing versus paused - the icon alone states it only to someone looking.
     val playPauseDesc = stringResource(if (isPlaying) R.string.pause else R.string.play)
@@ -511,7 +522,9 @@ private fun PlaybackControls(
         PlayerCommandButton(
             onClick = onSkipPrevious,
             icon = Icons.Filled.SkipPrevious,
-            contentDescription = previousDesc
+            contentDescription = previousDesc,
+            onLongClick = seek.onSeekBackward,
+            onLongClickLabel = seekBackwardDesc
         )
 
         PlayerCommandButton(
@@ -524,7 +537,9 @@ private fun PlaybackControls(
         PlayerCommandButton(
             onClick = onSkipNext,
             icon = Icons.Filled.SkipNext,
-            contentDescription = nextDesc
+            contentDescription = nextDesc,
+            onLongClick = seek.onSeekForward,
+            onLongClickLabel = seekForwardDesc
         )
 
         PlayerCommandButton(

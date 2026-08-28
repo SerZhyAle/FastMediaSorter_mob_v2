@@ -3041,6 +3041,16 @@
       "titleUk": "Увімкнути аудіо"
     },
     {
+      "key": "wearEnableDocuments",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_media_types_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Enable documents",
+      "titleRu": "Включить документы",
+      "titleUk": "Увімкнути документи"
+    },
+    {
       "key": "wearEnableImages",
       "sectionId": "wear",
       "destination": "MEDIA",

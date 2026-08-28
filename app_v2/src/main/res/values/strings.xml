@@ -3054,7 +3054,6 @@
     <string name="stream_info_state_empty">Not set</string>
     <string name="stream_info_not_in_catalog">This channel is not in your list, so there is nothing stored about it. Add it to the list to keep its details.</string>
     <string name="stream_info_copy">Copy all</string>
-    <string name="stream_info_copied">Details copied</string>
     <string name="stream_info_value_picture_size">%1$d x %2$d</string>
     <string name="stream_info_value_frame_rate">%1$s fps</string>
     <string name="stream_info_value_bitrate">%1$s kbit/s</string>
@@ -3276,7 +3275,6 @@
     <string name="launcher_gadget_map_actions_at">Map of %1$s. Tap to open the map application</string>
     <string name="browse_empty_filtered_out">%1$d files are hidden by the maximum file size setting.</string>
     <string name="browse_empty_filtered_out_hint">Raise the maximum file size in Settings to see them.</string>
-    <string name="network_monitor_ip_addresses_label">IP addresses</string>
     <string name="network_monitor_permission_grant">Permission not granted. Tap to grant it.</string>
     <string name="network_monitor_permission_open_settings">Permission is blocked. Tap to open app settings.</string>
     <string name="cast_cropping_stereo">Preparing the single-eye copy..</string>
@@ -3467,7 +3465,6 @@
     <string name="network_monitor_console_empty">Results will appear here..</string>
     <string name="network_monitor_action_clear">Clear</string>
     <string name="network_monitor_action_copy">Copy</string>
-    <string name="network_monitor_copied">Copied to clipboard</string>
     <string name="network_monitor_subnet_scan_heading">Subnet scan</string>
     <string name="network_monitor_section_resource_speed">Resource Speed</string>
     <string name="network_monitor_select_resource_heading">Target Resource</string>
@@ -3542,4 +3539,18 @@
     <string name="wear_settings_sync_never">Never synced</string>
     <string name="wear_setting_streams_section">Show Streams</string>
     <string name="wear_setting_streams_section_desc">Show the Streams section on watch</string>
+    <string name="stream_folder_description">Add HTTP, HTTPS or RTSP internet stream</string>
+    <string name="pip_enter_failed">Picture-in-picture is not available here</string>
+    <string name="launcher_scheduled_op_create">Create operation</string>
+    <string name="network_monitor_local_ip_label">Local IP</string>
+    <string name="network_monitor_external_ip_label">External IP</string>
+    <string name="network_monitor_external_ip_reveal">Tap to find out</string>
+    <string name="network_monitor_external_ip_resolving">Asking..</string>
+    <string name="media_unavailable_title">Resource unavailable</string>
+    <string name="media_unavailable_message">%1$s is on a resource that is not responding right now. Check the connection and try again.</string>
+    <string name="media_gone_title">File is gone</string>
+    <string name="media_gone_message">The server says %1$s no longer exists. You can remove it from your favorites.</string>
+    <string name="app_launch_panel_os_location">Location</string>
+    <string name="wear_settings_documents">Documents</string>
+    <string name="wear_settings_documents_desc">Enable document browsing and sync to watch</string>
 </resources>

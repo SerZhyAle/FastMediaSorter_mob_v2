@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.settings
 
 import com.sza.fastmediasorter.domain.usecase.PushWearSettingsUseCase
+import com.sza.fastmediasorter.domain.usecase.PushWearStreamPinsUseCase
 import com.sza.fastmediasorter.domain.usecase.SendPlaybackCommandUseCase
 import com.sza.fastmediasorter.domain.usecase.SendResourcesToWatchUseCase
 import javax.inject.Inject
@@ -17,5 +18,6 @@ import javax.inject.Inject
 class WearOutboundUseCases @Inject constructor(
     val sendResources: SendResourcesToWatchUseCase,
     val pushSettings: PushWearSettingsUseCase,
-    val sendPlaybackCommand: SendPlaybackCommandUseCase
+    val sendPlaybackCommand: SendPlaybackCommandUseCase,
+    val pushStreamPins: PushWearStreamPinsUseCase
 )

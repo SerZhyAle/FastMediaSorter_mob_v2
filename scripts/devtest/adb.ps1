@@ -121,8 +121,9 @@
     7 - the underlying adb command returned non-zero
     8 - `tap-label` / `tap-id`: no visible node carried that label or that resource-id, so NOTHING
         was tapped. Distinct from 7 because "the screen does not show it" and "the tap failed" call
-        for different next moves - the first usually means an animation was still running, or the
-        list needs scrolling
+        for different next moves - the first usually means an animation was still running, the
+        list needs scrolling, or the target simply is not on this screen and the name was guessed
+        rather than read off `uidump`
     9 - `clip-check`: at least one node is OFF-GLASS. EDGE and CLIPPED never reach this code
 
   Human output: one verdict line per verb (plus the data the verb produces).
@@ -253,6 +254,16 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+# Emit UTF-8 whatever shell launched us, and do it BEFORE the first write - the stdout writer is
+# built on first output and keeps the encoding it was born with, so setting this later fixes
+# nothing. When stdout is redirected, pwsh inherits the OEM codepage (cp866 on a Russian Windows),
+# so every non-Latin label this script prints reaches the caller as mojibake. That is not cosmetic:
+# `uidump` exists to tell a caller which label to pass to `tap-label`, and an unreadable listing
+# makes the verb pair unusable on a localized device. It cost S2084 a whole device session - the
+# labels came back as question marks, the caller concluded `-Label` was being corrupted in transit,
+# and stopped. The argument was never corrupted; only this echo was.
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
 # Canonical app coordinates (see install/builder scripts and /spec-test-device).
 $BASE_PACKAGE   = 'com.sza.fastmediasorter'
@@ -891,7 +902,7 @@ switch ($Verb.ToLowerInvariant()) {
         $nodes = @(Get-UiNodes (Get-UiTree $id $file))
         $hits  = @(Select-UiNodesById $nodes $ResourceId -Exact:$Exact)
         if ($hits.Count -eq 0) {
-            Fail 8 "no visible node carries the resource-id '$ResourceId' - nothing was tapped. The tree is at $file; run 'uidump -Ids' against it, and remember a screen still animating or a list needing a scroll shows neither"
+            Fail 8 "no visible node carries the resource-id '$ResourceId' - nothing was tapped. The tree is at $file; run 'uidump -Ids' and match an id from ITS output. Causes, commonest first: this node carries no resource-id at all (TabLayout tabs carry none - reach those with tap-label), the list needs scrolling, the screen is still animating"
         }
         if ($Index -lt 1 -or $Index -gt $hits.Count) {
             Fail 1 "-Index $Index is out of range: '$ResourceId' matches $($hits.Count) node(s)"
@@ -917,7 +928,7 @@ switch ($Verb.ToLowerInvariant()) {
             else { $_.text -like "*$Label*" -or $_.desc -like "*$Label*" }
         })
         if ($hits.Count -eq 0) {
-            Fail 8 "no visible node carries '$Label' - nothing was tapped. The tree is at $file; the usual causes are a screen still animating and a list that needs scrolling"
+            Fail 8 "no visible node carries '$Label' - nothing was tapped. The tree is at $file; run 'uidump' and match a label from ITS output rather than a guessed or translated one. Causes, commonest first: the name is not on this screen at all, the list needs scrolling, the screen is still animating"
         }
         if ($Index -lt 1 -or $Index -gt $hits.Count) {
             Fail 1 "-Index $Index is out of range: '$Label' matches $($hits.Count) node(s)"

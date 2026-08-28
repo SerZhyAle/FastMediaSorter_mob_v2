@@ -61,7 +61,6 @@
     <string name="epub_table_of_contents">সূচিপত্র</string>
     <string name="epub_text_empty_tts">অধ্যায়ে কোনো লেখা পাওয়া যায়নি</string>
     <string name="text_content_hint">পাঠ্য বিষয়বস্তু</string>
-    <string name="text_copied">টেক্সট ক্লিপবোর্ডে কপি করা হয়েছে</string>
     <string name="text_editing_large_file">একাধিক পৃষ্ঠাযুক্ত ফাইল সম্পাদনা করা যায় না।</string>
     <string name="text_editor_action_cancel">বাতিল করুন</string>
     <string name="text_editor_action_save">সংরক্ষণ করুন</string>

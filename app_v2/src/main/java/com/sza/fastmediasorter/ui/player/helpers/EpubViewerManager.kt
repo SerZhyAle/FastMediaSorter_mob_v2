@@ -8,6 +8,7 @@ import android.webkit.WebViewClient
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.clipboard.copyTextToClipboard
 import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -892,16 +893,7 @@ class EpubViewerManager(
             val extractedText = result.trim().removeSurrounding("\"")
 
             if (extractedText.isNotBlank()) {
-                val clipboard = root.context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                val clip = android.content.ClipData.newPlainText("EPUB Text", extractedText)
-                clipboard.setPrimaryClip(clip)
-
-                android.widget.Toast.makeText(
-                    root.context,
-                    root.context.getString(R.string.text_copied),
-                    android.widget.Toast.LENGTH_SHORT
-                ).show()
-
+                root.context.copyTextToClipboard("EPUB Text", extractedText)
             } else {
                 android.widget.Toast.makeText(
                     root.context,

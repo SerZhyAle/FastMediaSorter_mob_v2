@@ -104,11 +104,7 @@ class RadioToggleBinder(
      */
     private fun openSystemSurface(kind: RadioKind) {
         setCheckedSilently(observedOn == true)
-        val target = OsShortcutCatalog.byKey(kind.shortcutKey()) ?: return
-        val context = switch.context
-        val fallback = target.fallbackIntent?.invoke(context)
-        val candidates = listOfNotNull(fallback, target.intent(context))
-        context.startFirstAvailableSystemSurface(candidates)
+        switch.context.startSystemSurfaceFor(kind.shortcutKey())
     }
 
     private fun showUnsupported() {

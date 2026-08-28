@@ -91,6 +91,10 @@ function New-SyntheticTicket {
         [Parameter(Mandatory)][string]$SessionId,
         [Parameter(Mandatory)][double]$AgeMinutes,
         [Nullable[double]]$HeartbeatAgeMinutes = $null,
+        # S2194: stamps turnGrantedAt at a chosen age, which is how a head that was told to go and
+        # never went is expressed. Going through Test-AgentLockTurn cannot express "granted 9
+        # minutes ago" - it always stamps the present moment.
+        [Nullable[double]]$TurnGrantedMinutesAgo = $null,
         [string]$TranscriptPath = $null,
         [switch]$OldShape
     )
@@ -109,6 +113,9 @@ function New-SyntheticTicket {
     }
     if (-not $OldShape -and $null -ne $HeartbeatAgeMinutes) {
         $ticket['lastSeenAt'] = $nowMs - [int64]($HeartbeatAgeMinutes * 60000)
+    }
+    if (-not $OldShape -and $null -ne $TurnGrantedMinutesAgo) {
+        $ticket['turnGrantedAt'] = $nowMs - [int64]($TurnGrantedMinutesAgo * 60000)
     }
 
     $queueDir = Get-AgentLockQueueDir -Name $domain
@@ -382,6 +389,122 @@ try {
     Write-Verdict -Label 'legacy release boundary: releasing one domain leaves the pre-split lock covering the others' `
         -Ok (Test-Path -LiteralPath $legacyLock) `
         -Detail '(a single-domain release dropped a file that covers every domain of its type)'
+
+    # ---- S2194: a head that was granted its turn and never took it ------------------------------
+    #
+    # Every case below gives the head a FRESH heartbeat, so the pre-S2194 eviction rule judges it
+    # live. Whatever removes it can therefore only be the forfeit branch, which is the point: the
+    # two reasons must stay separable.
+
+    $forfeited = $timings.ReservationMinutes + 4
+    $withinReservation = [math]::Max(0.2, $timings.ReservationMinutes / 2.0)
+
+    # 18 - The defect itself. A head whose reservation expired without the lock being taken holds no
+    #      privilege any more - Test-AgentLockTurn already hands the turn to whoever asks - so
+    #      leaving it in place only breaks the ordering for everyone behind and lies to every
+    #      inspector about who is waiting.
+    Reset-Sandbox
+    [void](New-SyntheticTicket -Seq 1 -SessionId 'sandbox-session-forfeiting' -AgeMinutes $forfeited `
+            -HeartbeatAgeMinutes 0 -TurnGrantedMinutesAgo $forfeited -TranscriptPath 'Z:\no-such-transcript\missing.jsonl')
+    $env:CLAUDE_CODE_SESSION_ID = $sessionA
+    $afterForfeit = @(Get-AgentLockQueue -Name $domain)
+    Write-Verdict -Label 'forfeit: a head granted its turn more than ReservationMinutes ago and never entered is dropped' `
+        -Ok ($afterForfeit.Count -eq 0) `
+        -Detail "(survivors=$($afterForfeit.Count), granted ${forfeited}m ago vs ReservationMinutes=$($timings.ReservationMinutes))"
+
+    # 19 - The near boundary. Inside its reservation window the head still owns the turn outright,
+    #      so removing it there would hand the lock to a session that arrived later.
+    Reset-Sandbox
+    [void](New-SyntheticTicket -Seq 1 -SessionId 'sandbox-session-just-granted' -AgeMinutes 1 `
+            -HeartbeatAgeMinutes 0 -TurnGrantedMinutesAgo $withinReservation -TranscriptPath 'Z:\no-such-transcript\missing.jsonl')
+    $env:CLAUDE_CODE_SESSION_ID = $sessionA
+    $insideWindow = @(Get-AgentLockQueue -Name $domain)
+    Write-Verdict -Label 'forfeit boundary: a head still inside its reservation window is kept' `
+        -Ok ($insideWindow.Count -eq 1) `
+        -Detail "(survivors=$($insideWindow.Count), granted ${withinReservation}m ago vs ReservationMinutes=$($timings.ReservationMinutes))"
+
+    # 20 - The far boundary, and the one the timings table forbids crossing: a ticket that was never
+    #      granted a turn is WAITING, and its wait is controlled by whoever holds the lock. No
+    #      elapsed time may evict it.
+    Reset-Sandbox
+    $longWait = $timings.TicketCeilingMinutes + 10
+    [void](New-SyntheticTicket -Seq 1 -SessionId 'sandbox-session-never-granted' -AgeMinutes $longWait `
+            -HeartbeatAgeMinutes 0 -TranscriptPath 'Z:\no-such-transcript\missing.jsonl')
+    $env:CLAUDE_CODE_SESSION_ID = $sessionA
+    $neverGranted = @(Get-AgentLockQueue -Name $domain)
+    Write-Verdict -Label 'forfeit boundary: a ticket with no turnGrantedAt is never dropped, however long it waits' `
+        -Ok ($neverGranted.Count -eq 1) `
+        -Detail "(survivors=$($neverGranted.Count), waited ${longWait}m - forfeit must not become a ticket-age timer)"
+
+    # 21 - The sweep runs on the acquire path, so a caller that did not exclude its own ticket would
+    #      delete the very turn it came to take.
+    Reset-Sandbox
+    [void](New-SyntheticTicket -Seq 1 -SessionId $sessionA -AgeMinutes $forfeited `
+            -HeartbeatAgeMinutes 0 -TurnGrantedMinutesAgo $forfeited -TranscriptPath 'Z:\no-such-transcript\missing.jsonl')
+    $env:CLAUDE_CODE_SESSION_ID = $sessionA
+    $ownHead = @(Get-AgentLockQueue -Name $domain)
+    Write-Verdict -Label 'forfeit safety: the caller own expired head is not dropped by its own sweep' `
+        -Ok ($ownHead.Count -eq 1) `
+        -Detail "(survivors=$($ownHead.Count) - a session must not sweep away the turn it came to take)"
+
+    # 22 - What the removal is FOR. With the forfeited head gone the next waiter is the head and is
+    #      told so; before the fix it was told 'head reservation expired', the same answer every
+    #      other waiter got at the same moment, which is a race rather than a queue.
+    Reset-Sandbox
+    [void](New-SyntheticTicket -Seq 1 -SessionId 'sandbox-session-forfeiting' -AgeMinutes $forfeited `
+            -HeartbeatAgeMinutes 0 -TurnGrantedMinutesAgo $forfeited -TranscriptPath 'Z:\no-such-transcript\missing.jsonl')
+    $env:CLAUDE_CODE_SESSION_ID = $sessionB
+    $bTicket = New-AgentLockTicket -Name $domain -Reason 'B waits behind a forfeited head'
+    $bTurn = Test-AgentLockTurn -Name $domain -Ticket $bTicket
+    Write-Verdict -Label 'forfeit restores FIFO: the waiter behind a forfeited head becomes the head, not a racer' `
+        -Ok ($bTurn.IsMyTurn -and ($bTurn.Reason -eq 'head of queue')) `
+        -Detail "(isMyTurn=$($bTurn.IsMyTurn), reason='$($bTurn.Reason)', position=$($bTurn.Position))"
+
+    # ---- S2200: a superset request must never queue a session behind its own held domain --------
+
+    # 23 - The captured incident itself: holding the HIGHER-ranked domain (Code.Wear) and asking for
+    #      a set that also needs the LOWER-ranked one (Code.Phone) is the descending direction -
+    #      granting it directly would let a symmetric session deadlock against this one, so it must
+    #      be reported unsafe rather than silently topped up.
+    Reset-Sandbox
+    $env:CLAUDE_CODE_SESSION_ID = $sessionA
+    [void](Enter-AgentLock -Name 'Code.Wear' -Reason 'A already mid-edit in wear')
+    $descending = Resolve-AgentLockTopUp -Domains @('Code.Phone', 'Code.Wear')
+    Write-Verdict -Label 'top-up direction: holding the higher-ranked domain and missing the lower one is reported unsafe' `
+        -Ok ((-not $descending.AscendingSafe) -and ($descending.Held -contains 'Code.Wear') -and ($descending.Missing -contains 'Code.Phone')) `
+        -Detail "(ascendingSafe=$($descending.AscendingSafe), held=$($descending.Held -join ','), missing=$($descending.Missing -join ','))"
+
+    # 24 - The mirror case: holding the LOWER-ranked domain (Code.Phone) and asking to add the
+    #      higher-ranked one (Code.Wear) only continues the same canonical order a fresh acquirer
+    #      would already be following - safe to top up without releasing what is held.
+    Reset-Sandbox
+    $env:CLAUDE_CODE_SESSION_ID = $sessionA
+    [void](Enter-AgentLock -Name 'Code.Phone' -Reason 'A already mid-edit in phone')
+    $ascending = Resolve-AgentLockTopUp -Domains @('Code.Phone', 'Code.Wear')
+    Write-Verdict -Label 'top-up direction: holding the lower-ranked domain and missing the higher one is reported safe' `
+        -Ok ($ascending.AscendingSafe -and ($ascending.Held -contains 'Code.Phone') -and ($ascending.Missing -contains 'Code.Wear')) `
+        -Detail "(ascendingSafe=$($ascending.AscendingSafe), held=$($ascending.Held -join ','), missing=$($ascending.Missing -join ','))"
+
+    # 25 - A safe top-up must never touch the domain already held, only acquire what is missing -
+    #      the whole point is that the in-progress edit under Code.Phone is never interrupted.
+    $env:CLAUDE_CODE_SESSION_ID = $sessionA
+    $topUpAcquire = Enter-AgentLock -Name 'Code' -Reason 'A tops up to the full set' -Domains $ascending.Missing
+    $phoneStillMine = Get-AgentLockStatus -Name 'Code.Phone'
+    $wearNowMine = Get-AgentLockStatus -Name 'Code.Wear'
+    Write-Verdict -Label 'safe top-up: acquiring only the missing domain leaves the held one untouched and adds the other' `
+        -Ok ($topUpAcquire.Acquired -and $phoneStillMine.Exists -and ([string]$phoneStillMine.SessionId -eq $sessionA) -and `
+            $wearNowMine.Exists -and ([string]$wearNowMine.SessionId -eq $sessionA)) `
+        -Detail "(acquired=$($topUpAcquire.Acquired), phone held=$($phoneStillMine.Exists), wear held=$($wearNowMine.Exists))"
+
+    # 26 - Full re-entrancy stays a no-op: every domain of the requested set already held by this
+    #      session must not enqueue anything (S1448's original guard, unchanged by S2200).
+    Reset-Sandbox
+    $env:CLAUDE_CODE_SESSION_ID = $sessionA
+    [void](Enter-AgentLock -Name 'Code' -Reason 'A holds the whole set' -Domains @('Code.Phone', 'Code.Wear'))
+    $fullMatch = Resolve-AgentLockTopUp -Domains @('Code.Phone', 'Code.Wear')
+    Write-Verdict -Label 'full re-entrancy: every requested domain already held reports nothing missing' `
+        -Ok ($fullMatch.Missing.Count -eq 0) `
+        -Detail "(held=$($fullMatch.Held -join ','), missing=$($fullMatch.Missing -join ','))"
 }
 finally {
     if ($null -eq $callerSessionId) { Remove-Item Env:\CLAUDE_CODE_SESSION_ID -ErrorAction SilentlyContinue }

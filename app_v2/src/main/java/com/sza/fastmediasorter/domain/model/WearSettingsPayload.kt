@@ -31,6 +31,10 @@ data class WearSettingsPayload(
     @SerializedName("backgroundMode") val backgroundMode: String? = null,
     // S2093: the watch row that had no phone control until this ticket.
     @SerializedName("streamsSectionEnabled") val streamsSectionEnabled: Boolean? = null,
+    // S2130: the fourth allowed-type switch. Nullable unlike its three siblings above for the S1781
+    // reason - a phone that predates it omits it, and only a nullable field lets the watch keep its
+    // own stored value instead of reading the absence as "documents switched off".
+    @SerializedName("documentsEnabled") val documentsEnabled: Boolean? = null,
     // S2093: contract field name to epoch-millis of that field's last edit on the sending side. One map
     // rather than a companion field per setting, so a later registry entry needs no new contract field
     // and no new storage key. Absent entirely on a side that predates the two-way exchange, which the

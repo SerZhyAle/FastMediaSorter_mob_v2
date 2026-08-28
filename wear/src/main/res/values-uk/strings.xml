@@ -3,9 +3,6 @@
     <string name="app_name">FastMedia Wear</string>
     <!-- S1724: title of the settings group that holds what the named groups do not. -->
     <string name="settings_group_other">Інші</string>
-    <string name="music">Музика</string>
-    <string name="videos">Відео</string>
-    <string name="photos">Фото</string>
     <string name="play">Відтворити</string>
     <string name="pause">Пауза</string>
     <string name="previous">Попередній</string>
@@ -383,4 +380,24 @@
     <string name="wear_setting_background_mode">Фон на годиннику</string>
     <string name="wear_background_mode_animation">Фірмова анімація</string>
     <string name="wear_background_mode_image">Власне зображення</string>
+    <string name="wear_content_type_document">Документ</string>
+    <string name="wear_content_type_folder">Папка</string>
+    <string name="wear_browse_search">Пошук файлів</string>
+    <string name="wear_browse_filter">Фільтр файлів</string>
+    <string name="wear_browse_sort">Сортування файлів</string>
+    <string name="wear_browse_search_hint">Пошук</string>
+    <string name="wear_browse_clear_search">Очистити пошук</string>
+    <string name="wear_browse_search_unavailable">Введення для пошуку на цьому годиннику недоступне</string>
+    <string name="wear_browse_no_matches">Тут нічого не знайшлося. Зніміть пошук або фільтр, щоб побачити весь список.</string>
+    <string name="wear_browse_filter_type_all">Усі типи</string>
+    <string name="wear_browse_sort_default">За замовчуванням</string>
+    <string name="wear_browse_sort_name_asc">Назва (А-Я)</string>
+    <string name="wear_browse_sort_name_desc">Назва (Я-А)</string>
+    <string name="wear_browse_sort_date_asc">Дата (спочатку старі)</string>
+    <string name="wear_browse_sort_date_desc">Дата (спочатку нові)</string>
+    <string name="wear_browse_sort_size_asc">Розмір (спочатку малі)</string>
+    <string name="wear_browse_sort_size_desc">Розмір (спочатку великі)</string>
+    <string name="enable_documents">Увімкнути документи</string>
+    <string name="wear_settings_sections">Розділи</string>
+    <string name="phone_resource_no_resource_for_type">Жоден ресурс телефона не налаштований на цей тип.</string>
 </resources>

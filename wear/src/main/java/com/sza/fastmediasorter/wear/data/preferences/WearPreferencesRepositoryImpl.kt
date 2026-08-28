@@ -9,12 +9,15 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder
 import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
 import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
 import com.sza.fastmediasorter.wear.domain.model.WearComplicationKind
+import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.RequestWearComplicationRefreshUseCase
@@ -43,6 +46,13 @@ class WearPreferencesRepositoryImpl @Inject constructor(
         val VIDEO_ENABLED = booleanPreferencesKey("wear_video_enabled")
         val IMAGES_ENABLED = booleanPreferencesKey("wear_images_enabled")
 
+        /**
+         * S2130: added after the other three, so it defaults to on rather than to the absent-key
+         * default of off - documents are shown on the Phone screen today, and a key that read false
+         * on first launch would present the update as having removed them.
+         */
+        val DOCUMENTS_ENABLED = booleanPreferencesKey("wear_documents_enabled")
+
         val SLIDESHOW_ENABLED = booleanPreferencesKey("wear_slideshow_enabled")
         val SLIDESHOW_INTERVAL = intPreferencesKey("wear_slideshow_interval_seconds")
 
@@ -53,6 +63,8 @@ class WearPreferencesRepositoryImpl @Inject constructor(
         val VIEW_MODE = stringPreferencesKey("wear_view_mode")
         val BACKGROUND_MODE = stringPreferencesKey("wear_background_mode")
         val FILE_LIST_VIEW_MODE = stringPreferencesKey("wear_file_list_view_mode")
+        val BROWSE_CONTENT_TYPES = stringSetPreferencesKey("wear_browse_content_types")
+        val BROWSE_SORT_ORDER = stringPreferencesKey("wear_browse_sort_order")
         val VIDEO_SCALE_MODE = stringPreferencesKey("wear_video_scale_mode")
         val IMAGE_SCALE_MODE = stringPreferencesKey("wear_image_scale_mode")
         val KEEP_SCREEN_AWAKE = booleanPreferencesKey("wear_keep_screen_awake")
@@ -121,6 +133,10 @@ class WearPreferencesRepositoryImpl @Inject constructor(
         prefs[PreferencesKeys.IMAGES_ENABLED] ?: true
     }
 
+    override val isDocumentsEnabled: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.DOCUMENTS_ENABLED] ?: true
+    }
+
     override suspend fun setAudioEnabled(enabled: Boolean) {
         stampedEdit("audioEnabled") { prefs ->
             prefs[PreferencesKeys.AUDIO_ENABLED] = enabled
@@ -136,6 +152,12 @@ class WearPreferencesRepositoryImpl @Inject constructor(
     override suspend fun setImagesEnabled(enabled: Boolean) {
         stampedEdit("imagesEnabled") { prefs ->
             prefs[PreferencesKeys.IMAGES_ENABLED] = enabled
+        }
+    }
+
+    override suspend fun setDocumentsEnabled(enabled: Boolean) {
+        stampedEdit("documentsEnabled") { prefs ->
+            prefs[PreferencesKeys.DOCUMENTS_ENABLED] = enabled
         }
     }
 
@@ -202,6 +224,36 @@ class WearPreferencesRepositoryImpl @Inject constructor(
     override suspend fun setFileListViewMode(mode: WearViewMode) {
         stampedEdit("fileListViewMode") { prefs ->
             prefs[PreferencesKeys.FILE_LIST_VIEW_MODE] = mode.name
+        }
+    }
+
+    // S2199: browse-list refine state. Written with a plain edit and never through stampedEdit -
+    // that call enters a value into the phone-watch settings exchange, and how one list was last
+    // narrowed is session state the wearer set on this device, not a setting to replicate.
+    // A name that no longer parses is dropped: an enum constant renamed later must not stop the
+    // list from opening, and dropping degrades to "no filter", the safe direction to be wrong in.
+    override val browseContentTypes: Flow<Set<WearContentType>> = context.dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.BROWSE_CONTENT_TYPES]
+            ?.mapNotNull { name -> runCatching { WearContentType.valueOf(name) }.getOrNull() }
+            ?.toSet()
+            .orEmpty()
+    }
+
+    override suspend fun setBrowseContentTypes(types: Set<WearContentType>) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.BROWSE_CONTENT_TYPES] = types.map { it.name }.toSet()
+        }
+    }
+
+    override val browseSortOrder: Flow<BrowseSortOrder> = context.dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.BROWSE_SORT_ORDER]
+            ?.let { name -> runCatching { BrowseSortOrder.valueOf(name) }.getOrNull() }
+            ?: BrowseSortOrder.DEFAULT
+    }
+
+    override suspend fun setBrowseSortOrder(order: BrowseSortOrder) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.BROWSE_SORT_ORDER] = order.name
         }
     }
 

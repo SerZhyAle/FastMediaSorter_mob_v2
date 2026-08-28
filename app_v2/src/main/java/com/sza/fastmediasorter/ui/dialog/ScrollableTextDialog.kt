@@ -1,8 +1,6 @@
 package com.sza.fastmediasorter.ui.dialog
 
 import android.app.Activity
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
@@ -23,6 +21,7 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.clipboard.copyTextToClipboard
 import com.sza.fastmediasorter.core.logging.LogExportHelper
 import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
 import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
@@ -278,9 +277,7 @@ object ScrollableTextDialog {
     }
 
     private fun copyToClipboard(context: Context, text: String) {
-        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(ClipData.newPlainText("Dialog text", text))
-        Toast.makeText(context, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show()
+        context.copyTextToClipboard("Dialog text", text)
     }
 
     private fun saveErrorToFile(context: Context, text: String) {

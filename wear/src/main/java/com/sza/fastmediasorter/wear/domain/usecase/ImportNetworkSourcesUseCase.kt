@@ -52,7 +52,10 @@ class ImportNetworkSourcesUseCase @Inject constructor(
                 basePath = NetworkBasePath.normalize(item.basePath, type, item.shareName),
                 domain = item.domain,
                 sshPrivateKey = item.sshPrivateKey,
-                hostKeyFingerprint = item.hostKeyFingerprint
+                hostKeyFingerprint = item.hostKeyFingerprint,
+                // S2129: stored opaque. Resolution happens at draw time, so an id this build does
+                // not know still imports and simply falls back to the type glyph.
+                iconId = item.iconId
             )
             // upsertSource will update if merge key matches, add otherwise.
             // We detect add vs update by checking if the id already existed.

@@ -100,7 +100,6 @@
     <string name="file_deleted">\"%1$s\" মুছে ফেলা হয়েছে</string>
     <string name="file_info">ফাইলের তথ্য</string>
     <string name="file_info_copy_path">কপি পাথ</string>
-    <string name="file_info_copy_path_done">পথ কপি করা হয়েছে</string>
     <string name="file_info_directory_label">ডিরেক্টরি: %1$s</string>
     <string name="file_info_extension_mime_label">ফরম্যাট: %1$s · %2$s</string>
     <string name="file_info_filename_label">ফাইল: %1$s</string>

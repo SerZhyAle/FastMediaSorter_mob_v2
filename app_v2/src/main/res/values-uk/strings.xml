@@ -3002,7 +3002,6 @@
     <string name="stream_info_state_empty">Не задано</string>
     <string name="stream_info_not_in_catalog">Цього каналу немає у вашому списку, тому про нього нічого не збережено. Додайте його до списку, щоб зберігати відомості.</string>
     <string name="stream_info_copy">Копіювати все</string>
-    <string name="stream_info_copied">Відомості скопійовано</string>
     <string name="stream_info_value_picture_size">%1$d x %2$d</string>
     <string name="stream_info_value_frame_rate">%1$s кадр/с</string>
     <string name="stream_info_value_bitrate">%1$s кбіт/с</string>
@@ -3224,7 +3223,6 @@
     <string name="launcher_gadget_map_actions_at">Карта: %1$s. Натисніть, щоб відкрити застосунок карт</string>
     <string name="browse_empty_filtered_out">%1$d файлів приховано налаштуванням максимального розміру файлу.</string>
     <string name="browse_empty_filtered_out_hint">Збільште максимальний розмір файлу в налаштуваннях, щоб побачити їх.</string>
-    <string name="network_monitor_ip_addresses_label">IP-адреси</string>
     <string name="network_monitor_permission_grant">Дозвіл не надано. Натисніть, щоб надати його.</string>
     <string name="network_monitor_permission_open_settings">Дозвіл заблоковано. Натисніть, щоб відкрити налаштування програми.</string>
     <string name="cast_cropping_stereo">Готуємо копію для одного ока..</string>
@@ -3412,7 +3410,6 @@
     <string name="network_monitor_console_empty">Результати перевірок відобразяться тут..</string>
     <string name="network_monitor_action_clear">Очистити</string>
     <string name="network_monitor_action_copy">Скопіювати</string>
-    <string name="network_monitor_copied">Скопійовано до буфера обміну</string>
     <string name="network_monitor_subnet_scan_heading">Скан підмережі</string>
     <string name="network_monitor_section_resource_speed">Швидкість до ресурсу</string>
     <string name="network_monitor_select_resource_heading">Цільовий ресурс</string>
@@ -3487,4 +3484,18 @@
     <string name="wear_settings_sync_never">Ще не синхронізовано</string>
     <string name="wear_setting_streams_section">Показувати трансляції</string>
     <string name="wear_setting_streams_section_desc">Показувати розділ трансляцій на годиннику</string>
+    <string name="stream_folder_description">Додати інтернет-потік HTTP, HTTPS або RTSP</string>
+    <string name="pip_enter_failed">Режим «картинка в картинці» тут недоступний</string>
+    <string name="launcher_scheduled_op_create">Створити операцію</string>
+    <string name="network_monitor_local_ip_label">Внутрішній IP</string>
+    <string name="network_monitor_external_ip_label">Зовнішній IP</string>
+    <string name="network_monitor_external_ip_reveal">Натисніть, щоб дізнатися</string>
+    <string name="network_monitor_external_ip_resolving">Запитуємо..</string>
+    <string name="media_unavailable_title">Ресурс недоступний</string>
+    <string name="media_unavailable_message">«%1$s» лежить на ресурсі, який зараз не відповідає. Перевірте підключення та спробуйте ще раз.</string>
+    <string name="media_gone_title">Файлу більше немає</string>
+    <string name="media_gone_message">Сервер відповідає, що «%1$s» більше не існує. Можна прибрати його з обраного.</string>
+    <string name="app_launch_panel_os_location">Геолокація</string>
+    <string name="wear_settings_documents">Документи</string>
+    <string name="wear_settings_documents_desc">Перегляд та синхронізація документів на годиннику</string>
 </resources>

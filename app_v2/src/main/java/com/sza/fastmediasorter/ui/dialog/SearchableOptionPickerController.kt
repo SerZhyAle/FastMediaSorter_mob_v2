@@ -47,6 +47,8 @@ object SearchableOptionPickerController {
         val layout: View?,
         val input: TextInputEditText?,
         val emptyLabel: TextView?,
+        /** S2178: boundary line under the field; shares the field's runtime visibility. */
+        val divider: View? = null,
     )
 
     fun attach(
@@ -59,7 +61,12 @@ object SearchableOptionPickerController {
     ) {
         attachViews(
             recyclerOptions = binding.recyclerOptions,
-            searchUi = SearchUi(binding.layoutOptionSearch, binding.editOptionSearch, binding.tvOptionsEmpty),
+            searchUi = SearchUi(
+                binding.layoutOptionSearch,
+                binding.editOptionSearch,
+                binding.tvOptionsEmpty,
+                binding.dividerOptionSearch,
+            ),
             options = options,
             selectedId = selectedId,
             resetRow = resetRow,
@@ -104,7 +111,7 @@ object SearchableOptionPickerController {
         scrollToSelected(recyclerOptions, rows, selectedId)
         val searchLayout = searchUi?.layout
         if (searchLayout != null) {
-            applySearchVisibilityOnFit(recyclerOptions, searchLayout)
+            applySearchVisibilityOnFit(recyclerOptions, searchLayout, searchUi.divider)
         }
     }
 
@@ -133,14 +140,20 @@ object SearchableOptionPickerController {
      * list is laid out; re-runs on recreate (rotation), so it stays orientation-correct without a
      * separate landscape layout.
      */
-    private fun applySearchVisibilityOnFit(recycler: RecyclerView, searchLayout: View) {
+    private fun applySearchVisibilityOnFit(
+        recycler: RecyclerView,
+        searchLayout: View,
+        divider: View?,
+    ) {
         recycler.viewTreeObserver.addOnGlobalLayoutListener(
             object : ViewTreeObserver.OnGlobalLayoutListener {
                 override fun onGlobalLayout() {
                     if (recycler.height == 0) return
                     recycler.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                    searchLayout.isVisible =
-                        recycler.computeVerticalScrollRange() > recycler.height
+                    val overflows = recycler.computeVerticalScrollRange() > recycler.height
+                    Timber.d("S2178: option picker search and divider visible=$overflows")
+                    searchLayout.isVisible = overflows
+                    divider?.isVisible = overflows
                 }
             },
         )

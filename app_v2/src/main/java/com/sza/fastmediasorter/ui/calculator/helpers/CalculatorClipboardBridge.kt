@@ -1,10 +1,8 @@
 package com.sza.fastmediasorter.ui.calculator.helpers
 
-import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.widget.Toast
-import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.clipboard.copyTextToClipboard
 
 /**
  * The calculator's only door to the system clipboard.
@@ -12,6 +10,9 @@ import com.sza.fastmediasorter.R
  * S2024 gave copy and paste a second entry point - a tap and a long press on the result, beside the
  * menu rows that already existed - so the two system calls moved here rather than being repeated at
  * four call sites.
+ *
+ * S2192 moved the write half to the shared helper. Reading stays here: no other screen pastes from the
+ * clipboard, so there is nothing to share.
  */
 class CalculatorClipboardBridge(private val context: Context) {
 
@@ -20,8 +21,7 @@ class CalculatorClipboardBridge(private val context: Context) {
 
     /** Copies the raw, ungrouped value - never the separator-formatted text drawn on screen. */
     fun copy(value: String) {
-        clipboard.setPrimaryClip(ClipData.newPlainText(CLIP_LABEL, value))
-        Toast.makeText(context, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show()
+        context.copyTextToClipboard(CLIP_LABEL, value)
     }
 
     fun readText(): String =

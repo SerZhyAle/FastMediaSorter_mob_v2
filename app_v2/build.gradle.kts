@@ -208,8 +208,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-val defaultAppVersionCode = 260827011
-val defaultAppVersionName = "2.60.8270.111"
+val defaultAppVersionCode = 260827225
+val defaultAppVersionName = "2.60.8272.256"
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }
@@ -767,6 +767,17 @@ android {
         getByName("testPhotos") {
             kotlin.directories.add("src/testCloudEnabled/java")
         }
+        // S0403: testCloudSdk mirrors the src/cloudSdk main-set mount one for one - the same six
+        // flavors, foss excluded. It is a SEPARATE list from testCloudEnabled above because the two
+        // main sets it shadows do not have the same membership: lite mounts cloudDisabled (so it is
+        // off the testCloudEnabled lists) yet still links the Dropbox SDK, so DropboxClientUtilsTest
+        // must compile there. Merging the two lists would drop lite's coverage or break foss.
+        listOf("testStandard", "testNoLegal", "testLegacy", "testVr", "testPhotos", "testLite")
+            .forEach { unitTestSet ->
+                getByName(unitTestSet) {
+                    kotlin.directories.add("src/testCloudSdk/java")
+                }
+            }
         // S1433: RadioControlContractImpl lives in src/networkMonitor, which only standard and noLegal
         // mount, so its test cannot live in the shared src/test set - that set compiles for every flavor
         // and the reference would break unit-test compilation on the other four, which is the S1450 shape
@@ -790,6 +801,10 @@ android {
         getByName("standard") {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            // S0403: cloud provider clients that import the Dropbox / MSAL / AppAuth / Play Services
+            // auth SDKs directly. foss mounts src/cloudNoSdk, whose no-op twins bind the same four
+            // contracts. Keep this list in sync with the per-flavor cloud dependency blocks below.
+            kotlin.directories.add("src/cloudSdk/java")
             // S0403: Play Core seam (LanguageSplitInstaller, ReviewRequestManager). Both classes
             // used to sit in src/main with an unconditional Play Core import, which made it
             // impossible to take the library off any flavor's classpath. Each source set carries a
@@ -847,6 +862,10 @@ android {
             manifest.srcFile("src/vr/AndroidManifest.xml")
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            // S0403: cloud provider clients that import the Dropbox / MSAL / AppAuth / Play Services
+            // auth SDKs directly. foss mounts src/cloudNoSdk, whose no-op twins bind the same four
+            // contracts. Keep this list in sync with the per-flavor cloud dependency blocks below.
+            kotlin.directories.add("src/cloudSdk/java")
             kotlin.directories.add("src/playServicesEnabled/java")
             // S0403: Google Cast SDK seam impl (castEnabled manifest injected via addStaticManifestFile
             // below - manifest.srcFile above is a set, so it cannot also mount the cast overlay).
@@ -871,6 +890,10 @@ android {
         getByName("legacy") {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            // S0403: cloud provider clients that import the Dropbox / MSAL / AppAuth / Play Services
+            // auth SDKs directly. foss mounts src/cloudNoSdk, whose no-op twins bind the same four
+            // contracts. Keep this list in sync with the per-flavor cloud dependency blocks below.
+            kotlin.directories.add("src/cloudSdk/java")
             kotlin.directories.add("src/playServicesEnabled/java")
             // S0403: Google Cast SDK seam impl (CastMediaManagerImpl); foss mounts castDisabled.
             kotlin.directories.add("src/castEnabled/java")
@@ -889,6 +912,10 @@ android {
         getByName("vr") {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            // S0403: cloud provider clients that import the Dropbox / MSAL / AppAuth / Play Services
+            // auth SDKs directly. foss mounts src/cloudNoSdk, whose no-op twins bind the same four
+            // contracts. Keep this list in sync with the per-flavor cloud dependency blocks below.
+            kotlin.directories.add("src/cloudSdk/java")
             kotlin.directories.add("src/playServicesEnabled/java")
             // S1439: vr declares SUPPORT_CAST=false because Horizon OS has no Play Services Cast
             // module, so it mounts the no-op seam impl - shipping the real one packaged an SDK the
@@ -909,6 +936,10 @@ android {
         getByName("photos") {
             kotlin.directories.add("src/streamingDisabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            // S0403: cloud provider clients that import the Dropbox / MSAL / AppAuth / Play Services
+            // auth SDKs directly. foss mounts src/cloudNoSdk, whose no-op twins bind the same four
+            // contracts. Keep this list in sync with the per-flavor cloud dependency blocks below.
+            kotlin.directories.add("src/cloudSdk/java")
             kotlin.directories.add("src/playServicesEnabled/java")
             // S0403: Google Cast SDK seam impl (CastMediaManagerImpl); foss mounts castDisabled.
             kotlin.directories.add("src/castEnabled/java")
@@ -929,6 +960,10 @@ android {
         getByName("foss") {
             kotlin.directories.add("src/streamingDisabled/java")
             kotlin.directories.add("src/cloudDisabled/java")
+            // S0403: the no-op half of the cloud-provider seam. cloudDisabled above covers cloud
+            // IDENTITY only - one repository binding - which is why lite mounted it for a year while
+            // still linking all five cloud SDKs. This set is what actually keeps them off foss.
+            kotlin.directories.add("src/cloudNoSdk/java")
             kotlin.directories.add("src/castDisabled/java")
             kotlin.directories.add("src/wearStub/java")
             kotlin.directories.add("src/ocrDisabled/java")
@@ -940,6 +975,9 @@ android {
         getByName("lite") {
             kotlin.directories.add("src/streamingDisabled/java")
             kotlin.directories.add("src/cloudDisabled/java")
+            // S0403: lite drops cloud IDENTITY but still links every cloud SDK, so it mounts the
+            // SDK-backed clients like the other five. foss is the only flavor on src/cloudNoSdk.
+            kotlin.directories.add("src/cloudSdk/java")
             kotlin.directories.add("src/playServicesEnabled/java")
             // S0403: lite ships Cast (video flavor), so it mounts the GMS-backed castEnabled impl.
             kotlin.directories.add("src/castEnabled/java")

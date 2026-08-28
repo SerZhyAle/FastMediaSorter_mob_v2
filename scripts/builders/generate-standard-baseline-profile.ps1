@@ -7,7 +7,10 @@ param(
 $ErrorActionPreference = "Stop"
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
-Enter-BuildLockOrExit -Reason "generate-standard-baseline-profile.ps1"
+# S2170: Build.Phone, not the full set. The :benchmark module builds against app_v2's release
+# variant and never touches wear, so the only real collision is with a phone build - holding the
+# watch domain here would queue a wear session behind a benchmark it shares nothing with.
+Enter-BuildLockOrExit -Reason "generate-standard-baseline-profile.ps1" -Domain Build.Phone
 try {
 
 $projectRoot = Resolve-Path "$PSScriptRoot\..\.."
@@ -33,5 +36,5 @@ exit $LASTEXITCODE
 
 }
 finally {
-    Exit-AgentLock -Name Build
+    Exit-AgentLock -Name 'Build' -Domains @('Build.Phone')
 }

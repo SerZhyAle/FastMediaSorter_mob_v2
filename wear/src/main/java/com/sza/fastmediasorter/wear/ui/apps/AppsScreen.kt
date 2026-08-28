@@ -36,6 +36,7 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearApp
 import com.sza.fastmediasorter.wear.domain.model.WearAppId
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
+import com.sza.fastmediasorter.wear.ui.common.CellCaption
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
@@ -172,7 +173,9 @@ private fun AppCell(
         // Wrap, never ellipsize: strategic S2082, the rule S2042 set for the settings menu. A program
         // name is a fixed label the user has to read, unlike the arbitrary-length file name the cell
         // defaults to, so this screen asks for the second line the default deliberately withholds.
-        captionMaxLines = APP_LABEL_MAX_LINES
+        // Stays under the icon: each program has its own glyph, so covering it would lose the very
+        // distinction S2177 exists to preserve.
+        captionLayout = CellCaption(maxLines = APP_LABEL_MAX_LINES)
     ) { glyphModifier ->
         Icon(
             painter = painterResource(iconFor(app.id)),

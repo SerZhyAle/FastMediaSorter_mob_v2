@@ -356,9 +356,11 @@ Prove each affected flavor with the same fast check, selected by `-Flavor`. No d
 .\a.ps1 fc -Flavor Vr        # the only path that compiles src/vr
 ```
 
-`-Flavor` works on `fk` and `fr` too, and every call takes `BUILD.LOCK`, so a spec demanding proof on "every affected variant" is satisfiable without a direct `gradlew` call. Run them one at a time - Rule 23 allows a single gradle invocation at once. Measured on a warm daemon: roughly 1-2.5 min per flavor, since each one owns its own configuration-cache entry.
+`-Flavor` works on `fk` and `fr` too, and every call takes the build lock of the module it checks - `Build.Phone` here, since all six flavors are one domain - so a spec demanding proof on "every affected variant" is satisfiable without a direct `gradlew` call. Run them one at a time: Rule 23 allows one gradle invocation per build domain, so six phone flavors are still six sequential calls, while a watch check may run beside any of them. Measured on a warm daemon: roughly 1-2.5 min per flavor, since each one owns its own configuration-cache entry.
 
 Reason this is spelled out: the flag existed long before it was documented, and S1568 deferred its per-flavor validation on the assumption that no such command was available (S1589).
+
+Moving a class INTO a flavor source set, rather than editing one already there, has its own failure mode - see route 14.
 
 ### 13. KAPT stall recovery
 
@@ -369,6 +371,12 @@ pwsh -NoProfile -File scripts/utils/recover-kapt-stall.ps1 -Task ":app_v2:testSt
 ```
 
 Use full cache cleanup only as a last resort.
+
+### 14. A class relocated between source sets (S2127)
+
+A compile that fails on a `src/main` file nobody edited, saying it `Cannot access class 'X'. Check your module classpath for missing or conflicting dependencies.`, is reporting stale incremental state, not a defect. The class moved source root, so the incremental output lost it while its consumers' binaries still name it.
+
+`fk`/`fkn`/`fc`/`fr`/`fu` and `d`/`db`/`dq`/`dav` repair this themselves: they repeat the run once with `-Pkotlin.incremental=false`. Budget one extra compile on that first red run, and read `not a source defect (S2127)` in the output as the repair working rather than as a second failure. Full mechanism and the by-hand confirmation: `docs/DEV_OPS.md`, "A class the incremental state lost".
 
 ## Escalation ladder
 

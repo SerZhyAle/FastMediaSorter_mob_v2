@@ -52,8 +52,8 @@ while (-not $buildSuccess -and $retryCount -lt $maxRetries) {
         # compilation of this many flavors at once - see agent-memory project_build_gotchas.md
         # #13. Capping concurrency here trades some wall-clock for not crashing the daemon.
         & $gradlew `
-            assembleStandardDebug assembleLiteDebug assemblePhotosDebug assembleLegacyDebug assembleVrDebug `
-            assembleStandardRelease assembleLiteRelease assemblePhotosRelease assembleLegacyRelease assembleVrRelease `
+            :app_v2:assembleStandardDebug :app_v2:assembleLiteDebug :app_v2:assemblePhotosDebug :app_v2:assembleLegacyDebug :app_v2:assembleVrDebug `
+            :app_v2:assembleStandardRelease :app_v2:assembleLiteRelease :app_v2:assemblePhotosRelease :app_v2:assembleLegacyRelease :app_v2:assembleVrRelease `
             "-Pchaquopy.enabled=false" `
             "-Pfms.versionCode=$($stamp.AppVersionCode)" `
             "-Pfms.versionName=$($stamp.VersionName)" `
@@ -86,7 +86,7 @@ while (-not $buildSuccess -and $retryCount -lt $maxRetries) {
 
         Write-Host "  Pass 2: noLegal flavor..." -ForegroundColor DarkGray
         & $gradlew `
-            assembleNoLegalDebug assembleNoLegalRelease `
+            :app_v2:assembleNoLegalDebug :app_v2:assembleNoLegalRelease `
             "-Pchaquopy.enabled=true" `
             "-Pfms.versionCode=$($stamp.AppVersionCode)" `
             "-Pfms.versionName=$($stamp.VersionName)" `

@@ -34,7 +34,7 @@ $logDir = "$projectRoot\temp"
 # Start the Gradle build process (Debug only for speed)
 # Note: Now builds 'standardDebug' flavor automatically
 $gradleArgs = @(
-    "assembleStandardDebug",
+    ":app_v2:assembleStandardDebug",
     "-Pchaquopy.enabled=false",
     "--configuration-cache"
 )

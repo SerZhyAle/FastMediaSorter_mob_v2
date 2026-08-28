@@ -121,7 +121,8 @@ internal class VideoPlayerLifecycleHelper(
     // per official pre-multi-window guidance, and the legacy flavor's narrow API23 sliver keeps
     // today's behavior unchanged.
     fun onStop() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return
+        // S2189: skip player release on API < 24 or when host activity is displaying video in PiP mode.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N || isHostInPictureInPictureMode()) return
         val hasActivePlayer = manager.exoPlayer != null ||
             (manager.isUsingMediaPlayer && manager.mediaPlayer != null)
         wasLoadedBeforeStop = hasActivePlayer

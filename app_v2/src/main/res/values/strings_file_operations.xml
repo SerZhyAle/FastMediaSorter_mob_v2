@@ -103,7 +103,6 @@
     <string name="file_deleted">\"%1$s\" deleted</string>
     <string name="file_info">File Info</string>
     <string name="file_info_copy_path">Copy path</string>
-    <string name="file_info_copy_path_done">Path copied</string>
     <string name="file_info_directory_label">Directory: %1$s</string>
     <string name="file_info_extension_mime_label">Format: %1$s · %2$s</string>
     <string name="file_info_filename_label">File: %1$s</string>

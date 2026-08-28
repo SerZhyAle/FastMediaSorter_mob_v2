@@ -34,15 +34,15 @@
 .\gradlew.bat :wear:assembleDebug
 
 # DIRECT GRADLE (any flavor×buildType combination)
-.\gradlew.bat assembleStandardDebug
-.\gradlew.bat assembleStandardRelease
-.\gradlew.bat assembleLiteDebug
-.\gradlew.bat assemblePhotosDebug
-.\gradlew.bat assembleLegacyDebug
-.\gradlew.bat assembleVrDebug
-.\gradlew.bat assembleVrRelease
-.\gradlew.bat bundleVrRelease                            # AAB for Meta Horizon Store
-.\gradlew.bat assembleStandardStaging                    # staging = minified but debuggable
+.\gradlew.bat :app_v2:assembleStandardDebug
+.\gradlew.bat :app_v2:assembleStandardRelease
+.\gradlew.bat :app_v2:assembleLiteDebug
+.\gradlew.bat :app_v2:assemblePhotosDebug
+.\gradlew.bat :app_v2:assembleLegacyDebug
+.\gradlew.bat :app_v2:assembleVrDebug
+.\gradlew.bat :app_v2:assembleVrRelease
+.\gradlew.bat :app_v2:bundleVrRelease                            # AAB for Meta Horizon Store
+.\gradlew.bat :app_v2:assembleStandardStaging                    # staging = minified but debuggable
 ```
 
 ## a.ps1 SHORTCUTS
@@ -206,7 +206,7 @@ Two properties of the switch are worth knowing before reading a report:
 pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Unit -Tests "com.sza.fastmediasorter.SomeClassTest"
 
 # LINT
-.\gradlew.bat lintStandardDebug
+.\gradlew.bat :app_v2:lintStandardDebug
 ```
 
 ### Preferred local validation ladder
@@ -270,6 +270,32 @@ pwsh -NoProfile -File scripts/utils/recover-kapt-stall.ps1
 
 `recover-kapt-stall.ps1` is the targeted scalpel: it stops daemons, removes `app_v2/build/tmp/kapt3`, `app_v2/build/generated/source/kapt*`, `app_v2/build/kotlin`, `app_v2/build/tmp/kotlin-classes`, and `.gradle/<ver>/executionHistory`. `clean-gradle-caches.ps1` nukes everything (`.gradle/`, `build/`, `app_v2/build/`) and is the cold-start option.
 
+### A class the incremental state lost, not a class the sources lack - S2127
+
+Symptom: a Kotlin compile fails on a file in `src/main` that nobody edited, naming a class it "cannot access".
+
+```text
+e: .../ui/browse/managers/BrowseManagerInitializer.kt:118:53 Cannot access class 'ReviewRequestManager'.
+   Check your module classpath for missing or conflicting dependencies.
+e: .../ui/browse/managers/BrowseManagerInitializer.kt:390:42 Unresolved reference 'onSortOperationSuccess'.
+```
+
+Every part of it points away from the real cause. The classpath named is correct. The file named is a consumer, not the declaration. Neighbouring files that reference the same type explicitly stay silent, because they were not in the dirty set. And the run flips between red and green depending on what dirtied that set beforehand - a changed `-Pfms.versionCode` regenerates `BuildConfig`, which half the module depends on - which reads as a configuration defect.
+
+Cause: a class whose source file moved between source sets keeps its FQCN and changes its source root. The incremental output then holds no `.class` for it, while the already-compiled binaries of its consumers keep naming it in their signatures. This repo relocates classes into paired source sets as a routine seam technique, so it recurs - S0403 did it for `cast`, `wear` and `playServices` in one ticket.
+
+Handled automatically. `check-standard-fast.ps1` (`fk`/`fkn`/`fc`/`fr`/`fu`) and `build-debug.PS1` (`d`/`db`/`dq`/`dav`) both detect the signature and repeat the run once with `-Pkotlin.incremental=false`; that rebuilds the lost class output and heals the state for later incremental runs too. A run that compiles twice and prints `not a source defect (S2127)` is doing this on purpose.
+
+The repeat is bound to that one signature, so an ordinary compile error still costs a single attempt. A genuinely missing dependency pays one extra compile and then reports its own verdict - it is never hidden.
+
+Reproducing it by hand, if a future case needs confirming rather than repairing:
+
+```powershell
+.\gradlew.bat :app_v2:compileStandardDebugKotlin -Pchaquopy.enabled=false -Pkotlin.incremental=false --no-configuration-cache
+```
+
+Passing there while the incremental run fails is the proof - same task, same flavor, same configuration, one flag apart.
+
 ### KSP incremental is off on purpose - S1375
 
 Symptom, if the setting is ever removed: `:app_v2:kspStandardDebugKotlin` fails and `compileStandardDebugKotlin` never runs, so nothing in `app_v2` compiles.
@@ -317,6 +343,8 @@ The two types, and how each is taken:
 - **Build domains** - acquired by `Enter-BuildLockOrExit -Domain <..>` before any direct `gradlew`/`gradlew.bat` invocation, released by `Exit-AgentLock -Name Build -Domains <..>` after (success or failure). A caller that names no domain still takes both, so a script nobody has taught its module keeps serialising exactly as it did before the split. Since S1432 a busy domain **queues** the caller instead of refusing: it takes a ticket, reports its position and starts when its turn comes. Pass `-NoWait` (or set `FMS_LOCK_NO_WAIT=1`) where an immediate answer matters more than a turn.
 - **Code domains** - acquired via `scripts/utils/enter-code-lock.ps1 -Files "<changed paths>" -Reason "<ticket/skill>"` before a multi-file source edit (Kotlin/XML/build-file). Since S1432 a busy domain queues the caller and **exits 4** ("queued, not yet your turn") rather than waving the edit through. Auto-releases from `post-change.ps1`'s closure, which frees exactly the domains the run actually holds - the union of what its change set maps to and what this session owns - so a scripts-only closure by a session that took the full set does not leave two domains held for nobody. That release is owner-checked per domain, so it never removes a lock belonging to another live session; a skill that skips the facade (`/skill-fix`) must call `scripts/utils/exit-code-lock.ps1` itself when the edit is done.
 
+**A gradle task name in a repository script carries its module segment** (S2172). Write `:app_v2:assembleStandardDebug`, never `assembleStandardDebug`. This is not a spelling preference: an unqualified name is expanded by Gradle across **every** project in the build that declares it, so its meaning is set by the composition of the build rather than by the script that passes it. When S2090 gave the watch its own `standard` / `noLegal` dimension, forty call sites silently began building the watch as well, and not one of them was edited - measured 2026-08-27, `gradlew assembleStandardDebug --dry-run` scheduled 48 `:wear:` tasks beside 53 `:app_v2:` ones, while `:app_v2:assembleStandardDebug` scheduled none. This is the one way a correctly derived `-Domain` still under-protects, because the domain follows the module the entry point *believes* it builds: the caller holds `Build.Phone` and writes into `wear/build/**`, so a sibling's watch build dies on a locked `R.jar` with an error that reads as broken code rather than as contention. A watch artifact built by a phone task also inherits the phone's `versionCode`. Gate: `scripts/quality/assert-qualified-gradle-tasks.ps1`, in the fast-gates batch and so in every closure. S2175 extended the same gate to `.github/workflows/*.yml` - the CI workflows called `gradlew` with the identical unqualified shape, and a `.ps1`-only scanner could not see it.
+
 **Releasing a wedged lock:** `..ps1 ub` (build) and `..ps1 uc` (code) are the launcher shortcuts for `scripts/utils/clear-agent-lock.ps1`. Both are conservative - a lock whose holder is still live is refused, and the holder's pid, age, reason and session id are printed instead, because clearing it would hand the turn to the next agent mid-edit. `..ps1 uc -Force` overrides once the holder is confirmed gone (check the session's transcript mtime, not the pid - a code-domain pid can be recycled), and drops the whole queue with it, including any ticket your own background waiter is holding.
 
 #### Device leases - S1926
@@ -348,7 +376,9 @@ Like every other lock here, this is **advisory**: it coordinates consenting call
 
 - **Taking a lock retires every ticket of the acquiring session**, not only the ticket handed to the acquire. Otherwise a session working step by step - take lock, close step, immediately queue for the next one - leaves the previous step's ticket parked on the head *while it holds the lock*, and nobody behind it can ever advance.
 - **The turn is decided by ticket identity, never by session identity.** A caller holding no ticket is answered from the lock and the head's reservation; it can no longer inherit the turn just because the head happens to belong to its own session. `enter-code-lock.ps1` therefore takes its place in the queue **before** it asks for the lock, exactly as `Enter-BuildLockOrExit` already did - so a session that releases and immediately wants the lock back queues behind whoever was already waiting. A re-entrant call from a session that already holds the lock is recognised and returns 0 without queueing.
+- **A superset request tops up rather than re-queuing, but only in one direction** (S2200). The re-entrancy check above only fired when the requested set was *identical* to what the session already held - a session holding `Code.Wear` alone that then also needs `Code.Phone` fell through to the ordinary acquire path, which has no self-ownership check at all: it saw its own `Code.Wear` lock as "busy" and queued behind it, a wait nothing can ever end from the outside. `Enter-AgentLockDomain` still has no such check; instead `enter-code-lock.ps1` now splits the request into `Held` (already this session's) and `Missing` before touching the queue. Safety of granting `Missing` without releasing `Held` depends on canonical rank, not on self-ownership alone: it is safe exactly when every held domain outranks every missing one (`Code.Phone` < `Code.Wear` < `Code.Scripts`) - continuing upward through the table is equivalent to a fresh multi-domain acquire that already completed its first steps, so it inherits that acquire's deadlock-freedom. The other direction - holding a higher-ranked domain while a lower-ranked one is still missing - is refused outright (exit 4, nothing enqueued) with a message naming the self-collision and the recourse (`exit-code-lock.ps1` then retake the full set), because granting it would let a symmetric session holding the low-ranked domain deadlock against this one. `scripts/utils/agent-lock.ps1`'s `Resolve-AgentLockTopUp` is the single place this split is decided.
 - **A waiting ticket carries its own heartbeat.** Liveness reads `lastSeenAt` first (stamped by `wait-for-lock-turn.ps1` on every poll), the owning session's transcript second, the enqueue time last. The transcript alone punished exactly the behaviour the contract demands: a session that queues, backgrounds the waiter and goes off to do lock-free work writes nothing, looked dead at the 15-minute mark, and was evicted from a place it had earned. **An abandoned head does not age out** (S2098, correcting what this line claimed before): `TicketCeilingMinutes` is declared for `Build` and `Code` but read by no queue consumer - only `ticket-lease.ps1` and `device-lease.ps1` apply the field, and `Remove-StaleAgentLockTickets` judges the owner, never the ticket's age. That is deliberate. A legitimate wait behind one long build, or behind several queued builds, outlasts both numbers, so applying them would evict a session waiting exactly as the contract demands - `scripts/utils/test-agent-lock-queue.ps1` asserts that survival. The remedy for a dropped intent is therefore explicit withdrawal, below, not a timer.
+- **One head does age out: the one that was told to go and never went** (S2194). `Remove-StaleAgentLockTickets` carries a second, narrow reason to drop a ticket - **forfeit** - and it applies only to a queue **head** whose `turnGrantedAt` is older than that domain's `ReservationMinutes`, which does not hold the lock, and which is not the sweeping session's own. It is not the ticket-age timer the bullet above rules out: it reads `ReservationMinutes`, never `TicketCeilingMinutes` or `SessionStaleMinutes`, and it judges an **already-granted turn** rather than a wait, so a ticket that was never granted one survives any amount of waiting - `test-agent-lock-queue.ps1` asserts both boundaries. Safe because it fires only after the reservation expired, at which point the head holds no privilege anyway: `Test-AgentLockTurn` is already answering "your turn" to whoever asks. Leaving it in place is what costs - every remaining waiter is told to go at once and they race for the lock file, so a later arrival can overtake an earlier one, and every inspector reports a waiter who does not exist.
 - **The refusal names the blocker that exists.** A lock that is held reports its holder; a lock that is free while a foreign ticket owns the head says so and names the head's session, reason, wait and reservation window. `enter-code-lock.ps1` no longer prints a `Holder:` line built from an absent lock file - the observed `Holder: session  (age 0s, reason: '')` sent readers hunting for a holder that was not there.
 
 `lock-status.ps1 -Queue` surfaces the pathology directly: each ticket carries `heldByLockHolder`, the JSON payload carries `headOwnedByHolder`, and a text row owned by the current holder is suffixed `<- holds the lock`.
@@ -363,6 +393,8 @@ pwsh -NoProfile -File scripts/utils/lock-status.ps1 -Name Code -Queue -Json
 pwsh -NoProfile -File scripts/utils/wait-for-lock-turn.ps1 -Name Code.Phone -Reason "S0900 edit"
 ```
 
+**All five domains at a glance:** `.\a.ps1 rm` (`scripts/utils/monitor-spec-queue.ps1`) prints one line per domain with its holder and the tickets behind it, collapsing the idle domains into a single `free` line. Two properties are worth knowing before reading it. It **writes nothing** - unlike `lock-status.ps1`, it never evicts a stale ticket, so a queue entry it shows may be one the next acquire would sweep away; that is why every ticket row carries both its wait and its last heartbeat, and a long wait with a cold heartbeat is an abandoned intent, not a working sibling. And it takes the domain names from `agent-lock-domains.ps1` rather than listing them, which is the fix for what S2170 found: the section had kept naming the two pre-split files that nothing writes any more, so it reported "free" while three domains were held.
+
 `wait-for-lock-turn.ps1` takes a ticket, blocks, and **exits** the moment the turn arrives - its exit is the "your turn" signal, which is the only channel through which an external event returns an agent to work. The ticket deliberately survives that exit: the caller inherits it, protected by the reservation window, and passes it to `Enter-AgentLock -Ticket`. Exit codes: **0** granted, **2** timed out, **3** ticket evicted while waiting, **4** could not enqueue. Do not read the verdict from the exit code a background task reports - that is the exit of the last command in the launch line, and it has already turned a refused build into an apparently green one. Read the marker instead: `temp/<DOMAIN>.TURN-<sessionId>.json`, one per domain of the set, carrying `outcome` (`granted` / `timeout` / `evicted` / `enqueue-failed`), the ticket number and how long the wait took.
 
 **Withdrawing a dropped intent (S2098).** The queue has an operation for cancelling your own request, and it is the only remedy for an abandoned ticket:
@@ -371,7 +403,7 @@ pwsh -NoProfile -File scripts/utils/wait-for-lock-turn.ps1 -Name Code.Phone -Rea
 pwsh -NoProfile -File scripts/utils/withdraw-lock-ticket.ps1 -Name Code.Phone   # or: .\a.ps1 uqc / uqb
 ```
 
-Its three boundaries are what separate it from the two operations it sits next to. It removes **only the calling session's** tickets, so it can never take someone else's place in line. It **never reads or writes the lock file**, so it is safe to run at any moment during another session's edit. And it **refuses (exit 2) when no session id is in the environment** rather than reporting a quiet zero, because without an identity "my ticket" and anyone else's are indistinguishable. Compare: `clear-agent-lock.ps1 -Name <..>` evicts only tickets whose owner is judged gone - which an abandoned ticket's owner is not - and `clear-agent-lock.ps1 -Name <..> -Force` drops the entire queue **plus the lock**, which may belong to a third, actively working session. That distinction is not academic: on 2026-08-27 an abandoned head sat in front of two waiting sessions, the unforced clear declined it, `-Force` would have taken a working session's lock, and the queue was only freed by deleting the ticket file by hand.
+Its three boundaries are what separate it from the two operations it sits next to. It removes **only the calling session's** tickets, so it can never take someone else's place in line. It **never reads or writes the lock file**, so it is safe to run at any moment during another session's edit. And it **refuses (exit 2) when no session id is in the environment** rather than reporting a quiet zero, because without an identity "my ticket" and anyone else's are indistinguishable. Compare: `clear-agent-lock.ps1 -Name <..>` evicts only tickets whose owner is judged gone - which an abandoned ticket's owner is not - and `clear-agent-lock.ps1 -Name <..> -Force` drops the entire queue **plus the lock**, which may belong to a third, actively working session. That distinction is not academic: on 2026-08-27 an abandoned head sat in front of two waiting sessions, the unforced clear declined it, `-Force` would have taken a working session's lock, and the queue was only freed by deleting the ticket file by hand. Withdrawal stays the remedy for a ticket that has **not** been granted a turn; a head that was granted one and never entered is now dropped by the forfeit rule above, so that half of the case no longer needs a hand.
 
 **Re-entrancy.** Several gates run a nested script while already holding `BUILD.LOCK`, and `& other.ps1` executes in the same process - so a nested acquire would queue behind a lock this very run owns. `Enter-BuildLockOrExit` recognises the holder as itself (same pid) or as the ancestor that launched it (inherited `FMS_BUILD_LOCK_HELD_BY`) and reuses the lock instead of waiting.
 
@@ -1313,7 +1345,7 @@ task. The dedicated immersive host is `DiagnosticXrActivity`
 
 ```powershell
 # Build
-.\gradlew.bat assembleVrDebug                            # debug APK
+.\gradlew.bat :app_v2:assembleVrDebug                            # debug APK
 .\scripts\builders\build-vr-release.ps1                  # release APK | .\a.ps1 vr
 
 # Install, NO launch. `adb.ps1 install -Flavor` has no `vr` value, so name the APK explicitly.

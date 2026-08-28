@@ -3017,7 +3017,6 @@
     <string name="stream_info_state_empty">Не задано</string>
     <string name="stream_info_not_in_catalog">Этого канала нет в вашем списке, поэтому о нём ничего не сохранено. Добавьте его в список, чтобы хранить сведения.</string>
     <string name="stream_info_copy">Копировать всё</string>
-    <string name="stream_info_copied">Сведения скопированы</string>
     <string name="stream_info_value_picture_size">%1$d x %2$d</string>
     <string name="stream_info_value_frame_rate">%1$s кадр/с</string>
     <string name="stream_info_value_bitrate">%1$s кбит/с</string>
@@ -3239,7 +3238,6 @@
     <string name="launcher_gadget_map_actions_at">Карта: %1$s. Нажмите, чтобы открыть приложение карт</string>
     <string name="browse_empty_filtered_out">%1$d файлов скрыто настройкой максимального размера файла.</string>
     <string name="browse_empty_filtered_out_hint">Увеличьте максимальный размер файла в настройках, чтобы увидеть их.</string>
-    <string name="network_monitor_ip_addresses_label">IP-адреса</string>
     <string name="network_monitor_permission_grant">Разрешение не выдано. Нажмите, чтобы выдать его.</string>
     <string name="network_monitor_permission_open_settings">Разрешение заблокировано. Нажмите, чтобы открыть настройки приложения.</string>
     <string name="cast_cropping_stereo">Готовим копию для одного глаза..</string>
@@ -3427,7 +3425,6 @@
     <string name="network_monitor_console_empty">Результаты проверок отобразятся здесь..</string>
     <string name="network_monitor_action_clear">Очистить</string>
     <string name="network_monitor_action_copy">Скопировать</string>
-    <string name="network_monitor_copied">Скопировано в буфер обмена</string>
     <string name="network_monitor_subnet_scan_heading">Скан подсети</string>
     <string name="network_monitor_section_resource_speed">Скорость до ресурса</string>
     <string name="network_monitor_select_resource_heading">Целевой ресурс</string>
@@ -3502,4 +3499,18 @@
     <string name="wear_settings_sync_never">Ещё не синхронизировано</string>
     <string name="wear_setting_streams_section">Показывать трансляции</string>
     <string name="wear_setting_streams_section_desc">Показывать раздел трансляций на часах</string>
+    <string name="stream_folder_description">Добавить интернет-поток HTTP, HTTPS или RTSP</string>
+    <string name="pip_enter_failed">Режим «картинка в картинке» здесь недоступен</string>
+    <string name="launcher_scheduled_op_create">Создать операцию</string>
+    <string name="network_monitor_local_ip_label">Внутренний IP</string>
+    <string name="network_monitor_external_ip_label">Внешний IP</string>
+    <string name="network_monitor_external_ip_reveal">Нажмите, чтобы узнать</string>
+    <string name="network_monitor_external_ip_resolving">Запрашиваем..</string>
+    <string name="media_unavailable_title">Ресурс недоступен</string>
+    <string name="media_unavailable_message">«%1$s» лежит на ресурсе, который сейчас не отвечает. Проверьте подключение и попробуйте ещё раз.</string>
+    <string name="media_gone_title">Файла больше нет</string>
+    <string name="media_gone_message">Сервер отвечает, что «%1$s» больше не существует. Можно убрать его из избранного.</string>
+    <string name="app_launch_panel_os_location">Геолокация</string>
+    <string name="wear_settings_documents">Документы</string>
+    <string name="wear_settings_documents_desc">Просмотр и синхронизация документов на часах</string>
 </resources>

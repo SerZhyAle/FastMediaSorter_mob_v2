@@ -1514,6 +1514,11 @@
     "ru": "Включает воспроизведение и просмотр аудиофайлов на Wear OS.",
     "uk": "Вмикає відтворення та перегляд аудіофайлів на Wear OS."
   },
+  "wearEnableDocuments": {
+    "en": "Enables browsing of document files on Wear OS, on the watch storage and on the paired phone alike.",
+    "ru": "Включает просмотр документов на Wear OS - и в памяти часов, и на сопряжённом телефоне.",
+    "uk": "Вмикає перегляд документів на Wear OS - і в памʼяті годинника, і на спареному телефоні."
+  },
   "wearEnableImages": {
     "en": "Enables viewing and browsing of image files on Wear OS.",
     "ru": "Включает просмотр изображений на Wear OS.",
@@ -1527,7 +1532,7 @@
   "wearEnableVideo": {
     "en": "Enables playback and browsing of video files on Wear OS.",
     "ru": "Включает воспроизведение и просмотр видеофайлов на Wear OS.",
-    "uk": "Вмикає відтворення та перегляд видеофайлов на Wear OS."
+    "uk": "Вмикає відтворення та перегляд відеофайлів на Wear OS."
   },
   "wearFileListViewMode": {
     "en": "Chooses how file lists on the watch are laid out: a list, or a grid of two or three columns with real thumbnails.",

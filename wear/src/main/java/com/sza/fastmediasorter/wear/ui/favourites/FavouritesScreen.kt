@@ -44,6 +44,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.browse.FileDeleteConfirmDialog
+import com.sza.fastmediasorter.wear.ui.common.CellCaption
 import com.sza.fastmediasorter.wear.ui.common.LongPressChip
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WearFileActionsDialog
@@ -288,7 +289,10 @@ private fun ScalingLazyListScope.recordItems(
                         caption = record.displayName,
                         onClick = { onOpen(record) },
                         modifier = Modifier.weight(1f),
-                        onLongClick = { onLongPress(record) }
+                        onLongClick = { onLongPress(record) },
+                        // One glyph per record type: a screen full of favourites of the same kind is
+                        // read by name only, so the name takes the cell (S2177).
+                        captionLayout = CellCaption(overGroupIcon = true)
                     ) { glyphModifier ->
                         Icon(
                             imageVector = record.icon(),

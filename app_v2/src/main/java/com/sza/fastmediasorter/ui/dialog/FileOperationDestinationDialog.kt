@@ -10,11 +10,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.Toast
-import timber.log.Timber
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.clipboard.copyTextToClipboard
 import com.sza.fastmediasorter.databinding.DialogCopyToBinding
-import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.FileOperationType
+import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.UndoOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
@@ -26,6 +26,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.File
 
 /**
@@ -602,10 +603,7 @@ class FileOperationDestinationDialog(
             .setTitle(context.getString(R.string.authentication_required))
             .setMessage(context.getString(R.string.cloud_auth_copy_error))
             .setNeutralButton(context.getString(R.string.copy_error)) { _, _ ->
-                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                val clip = android.content.ClipData.newPlainText("Error", errorMessage)
-                clipboard.setPrimaryClip(clip)
-                Toast.makeText(context, context.getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
+                context.copyTextToClipboard("Error", errorMessage)
             }
             .setNegativeButton(android.R.string.cancel, null)
 

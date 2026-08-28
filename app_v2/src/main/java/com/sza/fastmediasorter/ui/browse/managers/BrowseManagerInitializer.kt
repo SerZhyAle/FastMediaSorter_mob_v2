@@ -530,6 +530,13 @@ class BrowseManagerInitializer(
         buttonCallbacks = object : BrowseButtonSetupHelper.ButtonCallbacks {
             override fun onFilterClicked() =
                 dialogHelper.showFilterDialog(viewModel.state.value.filter, viewModel.state.value.resource?.supportedMediaTypes)
+            // S2171 §5.2: live in-memory narrowing on the value already used by the extended
+            // filter dialog - one input, no second re-read of the resource (BrowseSortFilterManager
+            // fast-paths setFilter through the in-memory cache).
+            override fun onSearchQueryChanged(query: String) {
+                val updated = (viewModel.state.value.filter ?: FileFilter()).copy(nameContains = query.ifBlank { null })
+                viewModel.setFilter(if (updated.isEmpty()) null else updated)
+            }
             override fun onRefreshClicked() {
                 // S1323: sole owner of the failure-cache reset. The refresh button and the
                 // pull-to-refresh gesture both land here, and only an explicit gesture means

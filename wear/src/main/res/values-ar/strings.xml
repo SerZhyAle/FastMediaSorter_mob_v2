@@ -4,9 +4,6 @@
 <resources>
     <string name="app_name">FastMedia Wear</string>
     <string name="settings_group_other">أخرى</string>
-    <string name="music">الموسيقى</string>
-    <string name="videos">الفيديوهات</string>
-    <string name="photos">الصور</string>
     <string name="play">تشغيل</string>
     <string name="pause">إيقاف مؤقت</string>
     <string name="previous">السابق</string>

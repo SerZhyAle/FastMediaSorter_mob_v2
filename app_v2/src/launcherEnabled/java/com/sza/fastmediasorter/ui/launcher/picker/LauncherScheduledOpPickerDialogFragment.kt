@@ -65,6 +65,23 @@ class LauncherScheduledOpPickerDialogFragment : DialogFragment() {
             if (options.isEmpty()) {
                 binding.tvOptionsEmpty.text = getString(R.string.launcher_scheduled_op_none)
                 binding.tvOptionsEmpty.isVisible = true
+                binding.btnOptionEmptyAction.text = getString(R.string.launcher_scheduled_op_create)
+                binding.btnOptionEmptyAction.isVisible = true
+                binding.btnOptionEmptyAction.setOnClickListener {
+                    val intent = android.content.Intent(
+                        requireContext(),
+                        com.sza.fastmediasorter.ui.settings.SettingsActivity::class.java
+                    ).apply {
+                        putExtra(
+                            com.sza.fastmediasorter.ui.settings.SettingsActivity.EXTRA_INITIAL_TAB,
+                            com.sza.fastmediasorter.ui.settings.SettingsActivity.TAB_OPERATIONS
+                        )
+                        putExtra(com.sza.fastmediasorter.ui.settings.SettingsActivity.EXTRA_OPEN_SCHEDULED, true)
+                        addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    startActivity(intent)
+                    dismiss()
+                }
             }
             SearchableOptionPickerController.attach(binding, options, selectedId = null, resetRow = null) { picked ->
                 picked?.let { onPicked(it.id) }

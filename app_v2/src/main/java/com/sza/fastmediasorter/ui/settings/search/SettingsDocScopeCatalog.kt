@@ -142,6 +142,14 @@ object SettingsDocScopeCatalog {
             titleUk = "Увімкнути аудіо"
         ),
         WearDocEntry(
+            key = "wearEnableDocuments",
+            layout = "wear_media_types_settings",
+            kind = "TOGGLE_ROW",
+            titleEn = "Enable documents",
+            titleRu = "Включить документы",
+            titleUk = "Увімкнути документи"
+        ),
+        WearDocEntry(
             key = "wearEnableImages",
             layout = "wear_media_types_settings",
             kind = "TOGGLE_ROW",

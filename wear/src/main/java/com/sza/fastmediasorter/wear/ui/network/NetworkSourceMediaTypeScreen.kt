@@ -9,15 +9,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -35,7 +31,11 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.domain.browse.BrowseCategoryCatalog
+import com.sza.fastmediasorter.wear.domain.model.WearBrowseCategory
+import com.sza.fastmediasorter.wear.domain.model.WearCategoryOrigin
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
+import com.sza.fastmediasorter.wear.ui.common.BrowseCategoryPresentation
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
@@ -44,18 +44,13 @@ import com.sza.fastmediasorter.wear.ui.common.WearStateKind
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.wear.ui.settings.allowedContentTypes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 
 private const val SINGLE_COLUMN = 1
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
 private val CELL_ICON_SIZE = 24.dp
 private val TITLE_VERTICAL_PADDING = 12.dp
-
-private data class SourceMediaCategory(
-    val labelRes: Int,
-    val mediaType: String,
-    val icon: ImageVector
-)
 
 /**
  * S1829: the media type a network source is opened under.
@@ -69,6 +64,10 @@ private data class SourceMediaCategory(
  * The same three settings that hide a category on [com.sza.fastmediasorter.wear.ui.home.LocalHomeScreen]
  * hide it here, so a watch with video turned off never offers a route into a list it would refuse to
  * fill.
+ *
+ * S2130: this was the one category screen that consulted no visual owner at all - it drew Material's
+ * own icons with no tone, so the same category was a different colour here than two taps away. It now
+ * asks the same two objects its siblings do for its composition and for its appearance.
  */
 @Composable
 fun NetworkSourceMediaTypeScreen(
@@ -80,24 +79,16 @@ fun NetworkSourceMediaTypeScreen(
     val settings by settingsViewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberScalingLazyListState()
 
-    val categories = listOf(
-        SourceMediaCategory(R.string.music, MEDIA_TYPE_MUSIC, Icons.Filled.MusicNote),
-        SourceMediaCategory(R.string.videos, MEDIA_TYPE_VIDEOS, Icons.Filled.VideoLibrary),
-        SourceMediaCategory(R.string.photos, MEDIA_TYPE_PHOTOS, Icons.Filled.Image)
-    ).filter { category ->
-        when (category.mediaType) {
-            MEDIA_TYPE_MUSIC -> settings.isAudioEnabled
-            MEDIA_TYPE_VIDEOS -> settings.isVideoEnabled
-            MEDIA_TYPE_PHOTOS -> settings.isImagesEnabled
-            else -> true
-        }
-    }
+    val categories = BrowseCategoryCatalog.categoriesFor(
+        WearCategoryOrigin.NETWORK_SOURCE,
+        settings.allowedContentTypes()
+    )
 
     // A choice between one option is not a choice. Pass straight through and drop this screen from the
     // back stack, so Back returns to the source list rather than to a step that decided nothing.
     LaunchedEffect(categories, sourceId) {
         val only = categories.singleOrNull() ?: return@LaunchedEffect
-        navController.navigate(WearRoutes.browseSource(only.mediaType, sourceId, sourceName)) {
+        navController.navigate(WearRoutes.browseSource(only.token, sourceId, sourceName)) {
             popUpTo(WearRoutes.SOURCE_MEDIA_TYPE_PATTERN) { inclusive = true }
         }
     }
@@ -144,7 +135,7 @@ fun NetworkSourceMediaTypeScreen(
                     columns = columns,
                     onCategoryClick = { category ->
                         navController.navigate(
-                            WearRoutes.browseSource(category.mediaType, sourceId, sourceName)
+                            WearRoutes.browseSource(category.token, sourceId, sourceName)
                         )
                     }
                 )
@@ -154,9 +145,9 @@ fun NetworkSourceMediaTypeScreen(
 }
 
 private fun ScalingLazyListScope.categoryItems(
-    categories: List<SourceMediaCategory>,
+    categories: List<WearBrowseCategory>,
     columns: Int,
-    onCategoryClick: (SourceMediaCategory) -> Unit
+    onCategoryClick: (WearBrowseCategory) -> Unit
 ) {
     if (columns == SINGLE_COLUMN) {
         items(categories) { category ->
@@ -175,17 +166,18 @@ private fun ScalingLazyListScope.categoryItems(
 
 @Composable
 private fun CategoryChip(
-    category: SourceMediaCategory,
+    category: WearBrowseCategory,
     onClick: () -> Unit
 ) {
     Chip(
         onClick = onClick,
-        label = { Text(text = stringResource(category.labelRes)) },
+        label = { Text(text = stringResource(BrowseCategoryPresentation.labelFor(category))) },
         icon = {
             Icon(
-                imageVector = category.icon,
+                painter = painterResource(BrowseCategoryPresentation.glyphFor(category)),
                 contentDescription = null,
-                modifier = Modifier.size(CELL_ICON_SIZE)
+                modifier = Modifier.size(CELL_ICON_SIZE),
+                tint = BrowseCategoryPresentation.tintFor(category.type)
             )
         },
         modifier = Modifier.fillMaxWidth(),
@@ -196,9 +188,9 @@ private fun CategoryChip(
 /** A short row is padded with empty weights so its cells keep the width of a full row's cells. */
 @Composable
 private fun CategoryRow(
-    categories: List<SourceMediaCategory>,
+    categories: List<WearBrowseCategory>,
     columns: Int,
-    onCategoryClick: (SourceMediaCategory) -> Unit
+    onCategoryClick: (WearBrowseCategory) -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -219,11 +211,11 @@ private fun CategoryRow(
 
 @Composable
 private fun CategoryCell(
-    category: SourceMediaCategory,
+    category: WearBrowseCategory,
     modifier: Modifier,
     onClick: () -> Unit
 ) {
-    val label = stringResource(category.labelRes)
+    val label = stringResource(BrowseCategoryPresentation.labelFor(category))
     ThumbnailCell(
         thumbnail = WearThumbnail.Unavailable,
         caption = label,
@@ -231,15 +223,10 @@ private fun CategoryCell(
         modifier = modifier
     ) { glyphModifier ->
         Icon(
-            imageVector = category.icon,
+            painter = painterResource(BrowseCategoryPresentation.glyphFor(category)),
             contentDescription = null,
-            modifier = glyphModifier
+            modifier = glyphModifier,
+            tint = BrowseCategoryPresentation.tintFor(category.type)
         )
     }
 }
-
-// The route argument values BrowseScreen parses back into MediaType; they are a navigation contract,
-// not display text, so they stay literal on both ends.
-private const val MEDIA_TYPE_MUSIC = "music"
-private const val MEDIA_TYPE_VIDEOS = "videos"
-private const val MEDIA_TYPE_PHOTOS = "photos"

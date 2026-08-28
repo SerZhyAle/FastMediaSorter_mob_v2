@@ -67,6 +67,33 @@ permalink: /docs/WEAR_OS_STATUS.html
 - **DI**:
   - ✅ `WearAppModule` - Hilt module for repositories and ExoPlayer
 
+#### Search, filter and sort inside a resource (S2136)
+
+Every screen that lists the contents of a resource carries a row of three icons above the list: search,
+filter by content type, and sort. All four content routes have it - local category, phone category,
+network source (`BrowseScreen`) and the phone's own folder listing (`PhoneResourceScreen`).
+
+- **Search** matches a substring of the file name, ignoring case. The text arrives from the watch's own
+  input path, so the keyboard and the microphone both work; a watch that offers neither says so under the
+  icons rather than silently returning everything.
+- **Filter** narrows by content type, and the icon appears only when the loaded list actually holds more
+  than one type - a category screen already lists one kind, so the button would have nothing to offer.
+- **Sort** offers only the orders whose key the item carries. `BrowseScreen` shows seven - the source's
+  own order, plus name, date and size in both directions. The phone-folder route shows five: the wire
+  protocol between the phone and the watch carries no date, so the two date orders would be choices with
+  no effect and are not listed.
+- The three choices last for the visit and are not remembered. Reopening the screen starts unnarrowed,
+  the same way the watch's stream list behaves.
+- Narrowing never re-reads the source. The loaded list is kept and re-projected in memory, so clearing a
+  query costs nothing even when the files came over the network or from the phone.
+- A list emptied by the narrowing says that nothing matched, which is a different message from a resource
+  that holds nothing - and the icon row stays on screen in that state, because clearing the query is what
+  the user needs next.
+
+The shared pieces live in `ui/common/` (`WearRefineControlHeader`, `WearSearchDialog`, `WearChoiceDialog`,
+`WearSearchInputLauncher`, `WearRefineLabels`); the narrowing itself is a pure function in
+`domain/browse/BrowseListProjection`, covered by unit tests.
+
 ### 4. Player Screens (Phase 0 ✅)
 
 - **Audio Player** (`ui/player/audio/`):
@@ -473,6 +500,17 @@ not exist for the phone at all.
 - Three settings the watch has always had were missing from the published settings reference and are now
   in it. `scripts/quality/assert-wear-settings-parity.ps1` runs in `scripts/post-change.ps1`, so a
   setting added to one side and not the other fails the closure and names the missing side.
+- That gate checks a setting **exists** on both sides; `scripts/quality/assert-wear-mirrored-strings.ps1`
+  checks its label still **reads** the same. The two modules ship no shared resource artifact, so every
+  label the owner sees on both sides exists twice, and before this gate editing one copy left no trace on
+  the other. Which pairs are mirrored is declared in `scripts/quality/wear-mirrored-strings.psd1`, never
+  inferred from a matching key name: 20 key names occur in both modules and 14 of them are worded
+  differently on purpose, the watch taking the shorter form where the round screen demands it. A pair
+  named differently on the two sides is an ordinary record - the watch background setting is a section
+  heading on the phone (`wear_background_section_title`) and a row label on the watch
+  (`wear_setting_background_mode`). The gate is summoned by a changed `strings.xml` under either module,
+  and a key that appears in both modules without being classified fails it, so the list cannot age in
+  silence.
 
 ---
 

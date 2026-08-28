@@ -123,6 +123,11 @@
         Fix   = 'An activity absorbs orientation in configChanges while owning a landscape layout, so that layout never applies on rotation - stop absorbing it, re-apply the variant in code and record the exemption with its reason in scripts/quality/orientation-layout-pairing-exceptions.txt, or delete the layout if it encodes no difference.'
     }
 
+    'layout-variant-id-parity-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-layout-variant-id-parity.ps1 -Gate'
+        Fix   = 'One copy of a layout dropped a view id its sibling declares - re-declare it. [config-variant] means layout-land and layout-w600dp disagree, and both must match. [flavor-override] means a flavor copy lost an id that src/main declares and shared code binds, so add it back; the reverse is allowed and extra ids in an override are never a finding.'
+    }
+
     'all-features-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/all_features/validate.ps1'
         Fix   = 'The capability inventory is invalid or lost records - fix the JSONL row; add capabilities through scripts/all_features/add.ps1, never by hand.'
@@ -146,6 +151,11 @@
     'wear-settings-parity-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-wear-settings-parity.ps1 -Gate'
         Fix   = 'A watch setting exists on one side of the phone/watch pair and not the other. The message names the missing side: add the field to that WearSettingsPayload copy, the key to the watch DataStore, the entry to the other WearSettingsRegistry copy, or the row to SettingsDocScopeCatalog.wearEntries. A setting that is deliberately one-sided is legal, but only with a written exceptionReason on its registry entry - without one it is indistinguishable from a forgotten side.'
+    }
+
+    'wear-mirrored-strings-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-wear-mirrored-strings.ps1 -Gate'
+        Fix   = 'A string the phone and the watch are declared to share stopped reading the same, or a key now present in both modules is unclassified. The message names the key, the locale and both texts: bring the two copies back into line, or - if the two sides are meant to word it differently - move the pair to Mode = Independent in scripts/quality/wear-mirrored-strings.psd1 with a Reason. A new colliding key must be declared Mirrored or Independent there, because only the author who added it knows which it was meant to be.'
     }
 
     # S1939: hints for icon-inventory-sync, doc-icons-sync and device-profile-matrix were removed

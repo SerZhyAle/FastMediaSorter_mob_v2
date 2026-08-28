@@ -4,9 +4,6 @@
 <resources>
     <string name="app_name">FastMedia Wear</string>
     <string name="settings_group_other">अन्य</string>
-    <string name="music">संगीत</string>
-    <string name="videos">वीडियो</string>
-    <string name="photos">फ़ोटो</string>
     <string name="play">चलाएं</string>
     <string name="pause">रोकें</string>
     <string name="previous">पिछला</string>

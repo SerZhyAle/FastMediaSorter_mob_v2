@@ -1,18 +1,15 @@
 package com.sza.fastmediasorter.ui.networkmonitor.sections
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.google.android.material.chip.Chip
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.clipboard.copyTextToClipboard
 import com.sza.fastmediasorter.databinding.FragmentNetworkMonitorToolsBinding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -118,10 +115,7 @@ class ToolsSectionFragment : Fragment() {
     private fun copyConsoleToClipboard() {
         val text = binding.toolsConsoleOutput.text.toString()
         if (text.isNotBlank()) {
-            val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            val clip = ClipData.newPlainText("Diagnostic Output", text)
-            clipboard.setPrimaryClip(clip)
-            Toast.makeText(requireContext(), R.string.network_monitor_copied, Toast.LENGTH_SHORT).show()
+            requireContext().copyTextToClipboard("Diagnostic Output", text)
         }
     }
 

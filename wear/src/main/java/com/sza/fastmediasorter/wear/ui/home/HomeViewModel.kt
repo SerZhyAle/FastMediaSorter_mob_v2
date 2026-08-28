@@ -61,7 +61,8 @@ class HomeViewModel @Inject constructor(
         id = HomeSectionId.LAST_USED_RESOURCE,
         labelRes = R.string.wear_section_last_used,
         route = WearRoutes.sourceMediaType(resource.id, resource.name),
-        dynamicLabel = resource.name
+        dynamicLabel = resource.name,
+        iconId = resource.iconId
     )
 }
 

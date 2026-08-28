@@ -13,6 +13,12 @@
   path segment under temp/ is read as the ticket id when it looks like Sxxxx. A capture taken with no
   active ticket lives under temp/scratch and carries no ticket.
 
+  A ticket's temp/Sxxxx/ can also hold a cloned checkout of a third-party tool (e.g. a Watch Face
+  Format validator vendored for reference). That clone's own test fixtures are shipped as .png under
+  Android-resource-shaped paths (res/drawable*/, res/mipmap*/) and are never a device/emulator capture,
+  so they are excluded by path shape the same way gradle-tmp's Robolectric fixtures are excluded by
+  directory name (S2173).
+
   Exit codes:
     0 - the scan ran to completion, including when it found nothing (an empty corpus is a valid
         answer to this query, not a failure of it)
@@ -77,6 +83,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 if (-not $TempRoot) { $TempRoot = Join-Path $repoRoot 'temp' }
 
@@ -99,6 +107,17 @@ $excluded = @($ExcludeDirs | ForEach-Object { $_ -split ',' } | ForEach-Object {
 $tempRootFull = (Resolve-Path -LiteralPath $TempRoot).Path
 $cutoff = (Get-Date).AddDays(-$MaxAgeDays)
 
+# Path SHAPE markers of a vendored third-party checkout, as opposed to $ExcludeDirs' single directory
+# NAME match: a checkout's resource fixtures span a multi-segment shape (res/drawable-hdpi/, ..) that
+# no fixed directory name enumerates. Not exposed as a parameter - this is a structural fact about what
+# a screenshot capture never looks like, not a per-run tuning knob (S2173).
+$VendorCheckoutPatterns = @(
+    '(^|/)res/drawable[^/]*/',
+    '(^|/)res/mipmap[^/]*/',
+    '(^|/)\.git/',
+    '(^|/)node_modules/'
+)
+
 function Get-RelativeTempPath {
     param([string]$FullName)
     $relative = $FullName.Substring($tempRootFull.Length).TrimStart('\', '/')
@@ -111,6 +130,22 @@ function Get-SourceTicket {
     param([string]$RelativePath)
     $firstSegment = ($RelativePath -split '/')[0]
     if ($firstSegment -match '^S\d{4}$') { return $firstSegment }
+    return $null
+}
+
+# S2191: attributes a screenshot to the nearest preceding build log run in the same directory,
+# so screenshot audits do not conflate captures from two different APK builds into one render.
+function Get-NearestPrecedingBuildMarker {
+    param([string]$DirectoryPath, [datetime]$ImageMtime)
+    if (-not $DirectoryPath -or -not (Test-Path -LiteralPath $DirectoryPath)) { return $null }
+    $logs = Get-ChildItem -LiteralPath $DirectoryPath -File -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -match 'build.*\.log$|^gradle.*\.log$' } |
+        Where-Object { $_.LastWriteTime -le $ImageMtime } |
+        Sort-Object LastWriteTime -Descending
+    if ($logs.Count -gt 0) {
+        $log = $logs[0]
+        return "$($log.Name)@$($log.LastWriteTime.ToString('s'))"
+    }
     return $null
 }
 
@@ -175,6 +210,7 @@ foreach ($file in $candidates) {
     $relative = Get-RelativeTempPath -FullName $file.FullName
     $segments = $relative -split '/'
     if ($excluded | Where-Object { $segments -contains $_ }) { continue }
+    if ($VendorCheckoutPatterns | Where-Object { $relative -match $_ }) { continue }
 
     $candidateCount++
     $reason = Get-SkipReason -Path $file.FullName -SizeBytes $file.Length
@@ -188,6 +224,7 @@ foreach ($file in $candidates) {
         mtime        = $file.LastWriteTime.ToString('s')
         sizeBytes    = $file.Length
         sourceTicket = Get-SourceTicket -RelativePath $relative
+        buildMarker  = Get-NearestPrecedingBuildMarker -DirectoryPath $file.DirectoryName -ImageMtime $file.LastWriteTime
     })
 }
 

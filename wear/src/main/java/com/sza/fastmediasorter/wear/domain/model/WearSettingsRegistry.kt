@@ -83,6 +83,13 @@ object WearSettingsRegistry {
             ownership = WearSettingOwnership.BOTH
         ),
         WearSettingScope(
+            field = "documentsEnabled",
+            watchPreferenceKey = "wear_documents_enabled",
+            docScopeId = "wearEnableDocuments",
+            valueType = TYPE_BOOLEAN,
+            ownership = WearSettingOwnership.BOTH
+        ),
+        WearSettingScope(
             field = "slideshowEnabled",
             watchPreferenceKey = "wear_slideshow_enabled",
             docScopeId = "wearEnableSlideshow",

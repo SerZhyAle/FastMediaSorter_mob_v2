@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.domain.model.networkmonitor.NetworkTransport
 import com.sza.fastmediasorter.domain.model.networkmonitor.SectionAvailability
 import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorSection
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.NetworkMonitorSectionHost
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.copyMonitorValue
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -47,6 +48,7 @@ class NetworkMonitorSummaryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         bindTileClicks()
+        bindAddressClicks()
         collectOnLifecycle(viewModel.uiState) { render(it) }
     }
 
@@ -110,9 +112,43 @@ class NetworkMonitorSummaryFragment : Fragment() {
             getString(R.string.network_monitor_active_none)
         }
         binding.networkMonitorLocalIpRow.isVisible = hasLink
-        binding.networkMonitorLocalIpValue.text = listOfNotNull(state.localIpv4, state.externalIp)
-            .joinToString(separator = " | ")
-            .ifBlank { getString(R.string.network_monitor_value_unknown) }
+        binding.networkMonitorLocalIpValue.text = state.localIpv4?.takeIf { it.isNotBlank() }
+            ?: getString(R.string.network_monitor_value_unknown)
+        // The external row stays visible without a link: the address is a property of the last connection
+        // the outside world saw, and hiding it would read as "we lost it" rather than "you are offline".
+        binding.networkMonitorExternalIpValue.text = externalIpText(state)
+    }
+
+    private fun externalIpText(state: NetworkMonitorSummaryUiState): String {
+        val address = state.externalIp
+        return when {
+            !address.isNullOrBlank() -> address
+            state.isResolvingExternalIp -> getString(R.string.network_monitor_external_ip_resolving)
+            else -> getString(R.string.network_monitor_external_ip_reveal)
+        }
+    }
+
+    /**
+     * S2025: a filled row copies its own value, and the empty external row asks for one instead.
+     *
+     * The external address is fetched only here, on an explicit tap, because S1433 rates it a privacy risk
+     * and forbids this screen from holding it any longer than the process lives.
+     */
+    private fun bindAddressClicks() {
+        binding.networkMonitorLocalIpRow.setOnClickListener {
+            val address = viewModel.uiState.value.localIpv4
+            if (!address.isNullOrBlank()) {
+                requireContext().copyMonitorValue(R.string.network_monitor_local_ip_label, address)
+            }
+        }
+        binding.networkMonitorExternalIpRow.setOnClickListener {
+            val address = viewModel.uiState.value.externalIp
+            if (address.isNullOrBlank()) {
+                viewModel.onExternalIpRequested()
+            } else {
+                requireContext().copyMonitorValue(R.string.network_monitor_external_ip_label, address)
+            }
+        }
     }
 
     /** The transport alone when the platform gives no network name - an empty separator would read as a bug. */

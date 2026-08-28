@@ -33,7 +33,7 @@ FastMedia Wear turns your smartwatch into a full-featured standalone media hub a
 - **Connection Testing:** In-app connection probe to test network share availability directly from the watch.
 
 ### 📲 Paired Phone Integration
-- **Phone Media Browsing:** Browse videos, audio, images, documents, and folders hosted on your paired smartphone.
+- **Phone Media Browsing:** Recents, Videos, Audio, Images, Documents, All and Browse - the same categories, under the same names and colours, that your watch's own storage and your network shares offer. **All** is a flat list of media files, newest first and without folders; **Browse** walks the folders of your smartphone and shows everything in them. If no resource on your phone is set up to hold a category, opening it says so instead of showing an empty list.
 - **Selective Resource Transfer:** Choose specific NAS/cloud resources on your phone to make available on your watch.
 - **Remote Log Diagnostics:** Send watch diagnostic logs to the developer via the paired phone app.
 - **Open on the Watch from the Phone:** Pick your watch in the phone's "Send to.." menu and the photo, GIF, video or track you have open there opens on the watch. A file kept on a network or cloud source is fetched first, with progress you can cancel. The watch app has to be open at the time - if it is closed, the phone says so instead of leaving you guessing. The phone also tells you apart the watch being unreachable, the watch staying silent, a type the watch cannot show, and a file above the 32 MB limit. Documents, text and EPUB do not offer the watch at all.

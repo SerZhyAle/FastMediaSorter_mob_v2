@@ -18,9 +18,12 @@
         working *now* - the journal only gets its row when the ticket is finished.
       - The per-instance journals under temp/spec-queue/runs-<instance>.jsonl - what finished, how it
         ended, on which model, and how long it took.
-      - temp/BUILD.LOCK and temp/CODE.LOCK - who is building or editing, and who is queued behind
-        them. Two parallel instances spend real time here, and a run that looks idle is usually just
-        waiting for the other one's gradle.
+      - The coordination locks, one per domain (S2109/S2170) - who is building or editing, and who
+        is queued behind them. Two parallel instances spend real time here, and a run that looks
+        idle is usually just waiting for the other one's gradle. The domains come from
+        scripts/utils/agent-lock-domains.ps1, never from a list repeated here: a monitor carrying
+        its own copy of the domain names is exactly how this section spent a day showing two
+        pre-split files that nothing writes any more.
 
     Read-only. It starts nothing, stops nothing and writes nothing.
 
@@ -65,6 +68,12 @@ if (-not (Test-Path -LiteralPath $tempDir)) {
     exit 2
 }
 $runDir = Join-Path $tempDir 'spec-queue'
+
+# Only the domain table, never agent-lock.ps1 itself: this script promises to write nothing, and the
+# library's queue reader evicts stale tickets and creates queue directories as it goes. Paths are
+# rebuilt here from the same naming rule the library uses (temp/<DOMAIN>.LOCK, temp/<DOMAIN>.QUEUE).
+. (Join-Path $PSScriptRoot 'agent-lock-domains.ps1')
+$lockDomains = @(Get-AgentLockDomainTable | ForEach-Object { $_.Domain })
 
 function Write-Section([string] $Title) {
     Write-Host ''
@@ -128,6 +137,58 @@ function Format-LockAge {
     return ("{0,3:N0} min   (since {1:HH:mm:ss})" -f $minutes, $when)
 }
 
+function Format-EpochAge {
+    param($Epoch)
+
+    if ($null -eq $Epoch) { return '?' }
+    try { $when = [DateTimeOffset]::FromUnixTimeMilliseconds([int64]$Epoch).LocalDateTime }
+    catch { return '?' }
+    $minutes = ((Get-Date) - $when).TotalMinutes
+    if ($minutes -lt 1) { return ("{0:N0}s" -f ($minutes * 60)) }
+    if ($minutes -lt 90) { return ("{0:N0}m" -f $minutes) }
+    return ("{0:N1}h" -f ($minutes / 60))
+}
+
+function Get-QueueTickets {
+    <#
+    .SYNOPSIS
+        Tickets waiting in one domain's queue, oldest sequence first. Read-only by construction.
+    #>
+    param([Parameter(Mandatory)][string] $Domain)
+
+    $tickets = @()
+    foreach ($dir in @((Join-Path $tempDir "$($Domain.ToUpper()).QUEUE"),
+                       (Join-Path $tempDir ((Get-AgentLockLegacyName -Name $Domain).ToUpper() + '.QUEUE')))) {
+        if (-not (Test-Path -LiteralPath $dir)) { continue }
+        foreach ($file in @(Get-ChildItem -LiteralPath $dir -Filter '*.json' -ErrorAction SilentlyContinue)) {
+            try { $tickets += (Get-Content -LiteralPath $file.FullName -Raw -ErrorAction Stop | ConvertFrom-Json) }
+            catch { continue }
+        }
+    }
+    return @($tickets | Sort-Object { [int]$_.seq })
+}
+
+function Show-QueueTickets {
+    param($Tickets)
+
+    $index = 0
+    foreach ($ticket in @($Tickets)) {
+        $index++
+        # The session guid is what distinguishes two runners whose reasons read alike; eight
+        # characters separate them without spending a third of the line on one field.
+        $session = ([string]$ticket.sessionId)
+        if ($session.Length -gt 8) { $session = $session.Substring(0, 8) }
+        # Both ages, because they answer different questions and only together separate the two
+        # shapes: a long wait with a fresh heartbeat is a session doing its job behind a slow
+        # holder, while a long wait with a cold one is an abandoned intent head-blocking everybody.
+        # This view never evicts (it writes nothing), so it has to SAY which it is looking at.
+        $waited = Format-EpochAge -Epoch $ticket.enqueuedAt
+        $seen = Format-EpochAge -Epoch $ticket.lastSeenAt
+        Write-Host ("      #{0} {1}  waiting {2}, last seen {3}  {4}" -f `
+                $index, $session, $waited, $seen, [string]$ticket.reason) -ForegroundColor DarkGray
+    }
+}
+
 function Show-Snapshot {
 
     Write-Host ''
@@ -158,22 +219,48 @@ function Show-Snapshot {
 
     # --- locks -----------------------------------------------------------------------------------
     Write-Section 'locks (who is building or editing)'
-    foreach ($lock in @('BUILD.LOCK', 'CODE.LOCK')) {
-        $path = Join-Path $tempDir $lock
-        if (-not (Test-Path -LiteralPath $path)) {
-            Write-Host ("  {0,-11} free" -f $lock) -ForegroundColor DarkGray
-            continue
+    $free = @()
+    foreach ($domain in $lockDomains) {
+        $lockPath = Join-Path $tempDir "$($domain.ToUpper()).LOCK"
+        $queueTickets = @(Get-QueueTickets -Domain $domain)
+        if (-not (Test-Path -LiteralPath $lockPath)) {
+            # A queue with nobody holding the lock is not idleness - it is a turn about to be taken,
+            # and collapsing it into the "free" line would hide the one domain worth watching.
+            if ($queueTickets.Count -eq 0) { $free += $domain; continue }
+            Write-Host ("  {0,-13} free, {1} queued" -f $domain, $queueTickets.Count) -ForegroundColor DarkYellow
         }
-        $held = '(unreadable)'
+        else {
+            $held = '(unreadable)'
+            try {
+                $body = Get-Content -LiteralPath $lockPath -Raw -ErrorAction Stop | ConvertFrom-Json
+                # The file stores epoch milliseconds. Printed raw it answers nothing an operator asks:
+                # the question is "how long has this been held", not "at which millisecond did it start".
+                $held = "{0}  held {1}" -f $body.Reason, (Format-LockAge $body.AcquiredAt)
+            } catch {
+                $held = (Get-Content -LiteralPath $lockPath -Raw -ErrorAction SilentlyContinue).Trim()
+            }
+            Write-Host ("  {0,-13} HELD  {1}" -f $domain, $held) -ForegroundColor Yellow
+        }
+        Show-QueueTickets -Tickets $queueTickets
+    }
+
+    # Every free domain on one line: five domains printed as five lines push the block the operator
+    # actually reads off the screen, and "free" carries no detail worth a line of its own.
+    if ($free.Count -gt 0) {
+        Write-Host ("  {0,-13} {1}" -f 'free', ($free -join ', ')) -ForegroundColor DarkGray
+    }
+
+    # Pre-split files still hold every domain of their type until their owner releases them, so a
+    # session working from before the split must not read as nobody at all.
+    foreach ($legacy in @('BUILD', 'CODE')) {
+        $legacyPath = Join-Path $tempDir "$legacy.LOCK"
+        if (-not (Test-Path -LiteralPath $legacyPath)) { continue }
+        $reason = '(unreadable)'
         try {
-            $body = Get-Content -LiteralPath $path -Raw -ErrorAction Stop | ConvertFrom-Json
-            # The file stores epoch milliseconds. Printed raw it answers nothing an operator asks: the
-            # question is "how long has this been held", not "at which millisecond did it start".
-            $held = "{0}  held {1}" -f $body.Reason, (Format-LockAge $body.AcquiredAt)
-        } catch {
-            $held = (Get-Content -LiteralPath $path -Raw -ErrorAction SilentlyContinue).Trim()
-        }
-        Write-Host ("  {0,-11} HELD  {1}" -f $lock, $held) -ForegroundColor Yellow
+            $body = Get-Content -LiteralPath $legacyPath -Raw -ErrorAction Stop | ConvertFrom-Json
+            $reason = "{0}  held {1}" -f $body.Reason, (Format-LockAge $body.AcquiredAt)
+        } catch { }
+        Write-Host ("  {0,-13} HELD  {1}  (pre-split file - covers every {2} domain)" -f "$legacy.LOCK", $reason, $legacy.ToLower()) -ForegroundColor Yellow
     }
 
     # --- journals ---------------------------------------------------------------------------------

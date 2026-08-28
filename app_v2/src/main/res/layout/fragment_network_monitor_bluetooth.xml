@@ -17,8 +17,14 @@
         android:orientation="vertical">
 
         <TextView
+            android:id="@+id/bluetoothSectionHeading"
             style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
             android:drawableStart="@drawable/ic_bluetooth"
+            android:drawableEnd="@drawable/ic_open_in_browse"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground"
+            android:contentDescription="@string/app_launch_panel_os_bluetooth"
             android:text="@string/network_monitor_section_bluetooth" />
 
         <com.google.android.material.card.MaterialCardView

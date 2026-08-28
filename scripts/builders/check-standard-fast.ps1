@@ -224,11 +224,21 @@ if ($Tests) {
 }
 Write-Host "Command: .\\gradlew.bat $($gradleArgs -join ' ')" -ForegroundColor DarkGray
 
+# S2127: set by the repair block below, read by the runner on the retry. A closure rather than a
+# rebuilt argument list so the first attempt's command line - the one printed above as evidence - is
+# the one that actually ran.
+$script:kotlinIncrementalDisabled = $false
+
 $runOnce = {
     param([int]$Attempt)
 
+    $attemptArgs = @($gradleArgs)
+    if ($script:kotlinIncrementalDisabled) {
+        $attemptArgs += Get-KotlinStaleIncrementalRepairArgs
+    }
+
     $collected = New-Object System.Collections.Generic.List[string]
-    & "$projectRoot\gradlew.bat" @gradleArgs 2>&1 | ForEach-Object {
+    & "$projectRoot\gradlew.bat" @attemptArgs 2>&1 | ForEach-Object {
         $line = [string]$_
         $collected.Add($line)
         if ($Quiet -and ($line -match " UP-TO-DATE$" -or $line -match " NO-SOURCE$" -or $line -match " FROM-CACHE$")) {
@@ -241,14 +251,13 @@ $runOnce = {
 
 # S1463: only a unit run can lose its worker, and only there is a repeat the right answer - repeating
 # a failed compile would just double the wait for an error that is not going to change.
-$run = if ($Mode -eq "Unit") {
-    Invoke-GradleRunWithRetry -RunOnce $runOnce -MaxAttempts 2
-} else {
-    # Same shape on both branches on purpose: a caller that probes .WorkerDeath must not depend on
-    # which branch produced the object (the strict-mode property probe that broke S1462).
-    $single = & $runOnce 1
-    [pscustomobject]@{ ExitCode = $single.ExitCode; Lines = $single.Lines; Attempts = 1; WorkerDeath = $false }
-}
+# S2127: one failed compile IS worth repeating - the one whose error names a class the incremental
+# state lost rather than a class the sources lack. Both branches go through the wrapper now, so every
+# mode gets that repair; the retry policy stays bound to its two signatures and to nothing else, which
+# is what keeps an ordinary red compile a single attempt on either branch.
+$repairStaleState = { $script:kotlinIncrementalDisabled = $true }
+$run = Invoke-GradleRunWithRetry -RunOnce $runOnce -MaxAttempts 2 `
+    -RepairStaleIncrementalState $repairStaleState
 
 $gradleExit = $run.ExitCode
 
