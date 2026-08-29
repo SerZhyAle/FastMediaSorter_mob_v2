@@ -3537,4 +3537,12 @@
     <string name="launcher_desktop_swipe_down_title">Свайп вниз</string>
     <string name="launcher_desktop_swipe_left_title">Свайп влево</string>
     <string name="launcher_desktop_swipe_right_title">Свайп вправо</string>
+    <string name="streams_category_radio">Радио</string>
+    <string name="streams_category_live_tv">Прямой эфир ТВ</string>
+    <string name="streams_category_on_demand_video">Видео по запросу</string>
+    <string name="streams_category_test_streams">Тестовые потоки</string>
+    <string name="launcher_gadget_open_external">Открыть в браузере</string>
+    <string name="launcher_gadget_steps_since_date">С %1$s</string>
+    <string name="launcher_gadget_google_maps_live">Живой фрейм Google Maps</string>
+    <string name="launcher_gadget_google_maps_live_desc">Интерактивное окно живой карты Google Maps</string>
 </resources>

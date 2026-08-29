@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityNetworkMonitorBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.NetworkMonitorSectionHost
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.NetworkMonitorSectionNavigator
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
@@ -128,6 +129,12 @@ class NetworkMonitorActivity : BaseActivity<ActivityNetworkMonitorBinding>(), Ne
         if (navigator.canGoBack()) {
             navigator.returnToSummary()
             return
+        }
+        if (intent.hasNetworkMonitorLauncherOrigin()) {
+            val homeIntent = Intent(this, MainActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            }
+            startActivity(homeIntent)
         }
         finish()
     }

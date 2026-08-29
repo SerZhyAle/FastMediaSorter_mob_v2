@@ -420,14 +420,19 @@ data class AppSettings(
     // S1090: guards entry into desktop edit mode. Off by default so the long-press gesture stays
     // discoverable; the Start-menu entry is deliberate and stays reachable regardless of this flag.
     val launcherDesktopLocked: Boolean = false,
-    val launcherDesktopSwipeUpAction: LauncherDesktopSwipeAction =
-        LauncherDesktopSwipeAction.OPEN_ALL_APPS,
+    val launcherDesktopSwipeUpAction: LauncherDesktopSwipeAction = LauncherDesktopSwipeAction.OpenAllApps,
     val launcherDesktopSwipeDownAction: LauncherDesktopSwipeAction =
-        LauncherDesktopSwipeAction.OPEN_NOTIFICATION_SHADE,
+        LauncherDesktopSwipeAction.EdgeGestureAction(ScreenshotGestureAction.OPEN_NOTIFICATION_SHADE),
     val launcherDesktopSwipeLeftAction: LauncherDesktopSwipeAction =
-        LauncherDesktopSwipeAction.DO_NOT_USE,
+        LauncherDesktopSwipeAction.EdgeGestureAction(ScreenshotGestureAction.DO_NOT_USE),
     val launcherDesktopSwipeRightAction: LauncherDesktopSwipeAction =
-        LauncherDesktopSwipeAction.DO_NOT_USE,
+        LauncherDesktopSwipeAction.EdgeGestureAction(ScreenshotGestureAction.DO_NOT_USE),
+    // Launcher desktop directions can execute the same targeted actions as edge gestures. The payload
+    // is a package name for OPEN_APP or a URL for OPEN_URL; other actions ignore it.
+    val launcherDesktopSwipeUpPayload: String = "",
+    val launcherDesktopSwipeDownPayload: String = "",
+    val launcherDesktopSwipeLeftPayload: String = "",
+    val launcherDesktopSwipeRightPayload: String = "",
     // S1101: desktop wallpaper mode, one of [LAUNCHER_WALLPAPER_MODES]. Stored as a token (like
     // [colorTheme]) so an unknown value from a newer build degrades to the branded default.
     val launcherWallpaperMode: String = LAUNCHER_WALLPAPER_BRANDED,
@@ -449,7 +454,10 @@ data class AppSettings(
     // rather than only inside the desktop cell because clearing the desktop is exactly what a launcher
     // reset does, and the picked place must outlive it. Empty until the user picks one. No UI row
     // (invisible to the settings-doc gate); it is a remembered choice, not a user-facing toggle.
-    val launcherWeatherLastLocation: String = ""
+    val launcherWeatherLastLocation: String = "",
+    // S2239: resetting the launcher steps widget stores the cumulative step count and timestamp of reset.
+    val launcherStepsResetCount: Long = 0L,
+    val launcherStepsResetTimestamp: Long = 0L,
 ) {
     companion object {
         /** S1796: opaque white - the flashlight starts as a plain white lamp until a colour is picked. */

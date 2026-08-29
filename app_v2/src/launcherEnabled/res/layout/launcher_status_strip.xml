@@ -8,6 +8,8 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="@dimen/launcher_status_strip_height"
+    android:paddingStart="@dimen/launcher_status_strip_corner_inset"
+    android:paddingEnd="@dimen/launcher_status_strip_corner_inset"
     android:visibility="gone">
 
     <!-- Owned exclusively by LauncherStatusStripManager (S1421 ADR-2). Nothing else may add a child. -->

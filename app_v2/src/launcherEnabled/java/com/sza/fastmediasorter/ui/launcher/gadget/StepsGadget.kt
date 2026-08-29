@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.launcher.gadget
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
@@ -12,23 +13,27 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.GadgetLauncherStepsBinding
 import com.sza.fastmediasorter.domain.model.sensors.SensorCapability
 import com.sza.fastmediasorter.domain.repository.SensorAvailabilityRepository
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.sensors.ObserveStepCountUseCase
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.launch
 import java.text.NumberFormat
+import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 
 /**
- * S1179: the system step counter on the desktop.
+ * S1179 / S2239: the system step counter on the desktop.
  *
- * The tile shows what `TYPE_STEP_COUNTER` reports - steps since the last reboot - and computes
- * nothing on top of it. A daily or since-reset total would need a stored starting point this ticket
- * never specifies, and strategic §5.1 says a gadget reads its source rather than deriving from it.
+ * Displays steps count relative to the last user reset timestamp or since boot if not reset.
+ * Tapping the widget resets the current count and records the reset date and time.
  */
 class StepsGadget @Inject constructor(
     private val availability: SensorAvailabilityRepository,
     private val observeStepCount: Lazy<ObserveStepCountUseCase>,
+    private val settingsRepository: Lazy<SettingsRepository>,
 ) : LauncherGadget {
 
     override val key: String = LauncherGadgetRegistry.KEY_STEPS
@@ -43,30 +48,85 @@ class StepsGadget @Inject constructor(
     override fun isAvailable(): Boolean = availability.isAvailable(SensorCapability.STEP_COUNTER)
 
     override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View =
-        StepsGadgetView(container.context, observeStepCount.get())
+        StepsGadgetView(container.context, observeStepCount.get(), settingsRepository.get())
 }
 
 private class StepsGadgetView(
     context: Context,
     private val observeStepCount: ObserveStepCountUseCase,
+    private val settingsRepository: SettingsRepository,
 ) : LauncherGadgetView(context) {
 
     private val binding = GadgetLauncherStepsBinding.inflate(LayoutInflater.from(context), this)
 
-    override suspend fun CoroutineScope.onActive() {
-        if (!hasActivityPermission()) {
-            showMessage()
-            return
-        }
-        observeStepCount().collect { reading -> showSteps(reading.stepsSinceBoot) }
+    private var activeScope: CoroutineScope? = null
+    private var latestStepsSinceBoot: Long = 0L
+
+    init {
+        binding.gadgetStepsBody.setOnClickListener { resetSteps() }
     }
 
-    private fun showSteps(steps: Long) {
-        val formatted = NumberFormat.getIntegerInstance(Locale.getDefault()).format(steps)
-        binding.gadgetStepsValue.text = formatted
+    override suspend fun CoroutineScope.onActive() {
+        activeScope = this
+        try {
+            if (!hasActivityPermission()) {
+                showMessage()
+                return
+            }
+            combine(
+                observeStepCount(),
+                settingsRepository.getSettings(),
+            ) { reading, settings ->
+                reading.stepsSinceBoot to settings
+            }.collect { (stepsSinceBoot, settings) ->
+                latestStepsSinceBoot = stepsSinceBoot
+                showSteps(
+                    stepsSinceBoot = stepsSinceBoot,
+                    resetCount = settings.launcherStepsResetCount,
+                    resetTimestamp = settings.launcherStepsResetTimestamp,
+                )
+            }
+        } finally {
+            activeScope = null
+        }
+    }
+
+    private fun resetSteps() {
+        val current = latestStepsSinceBoot
+        if (current <= 0L) return
+        val now = System.currentTimeMillis()
+        activeScope?.launch {
+            settingsRepository.updateSettings { currentSettings ->
+                currentSettings.copy(
+                    launcherStepsResetCount = current,
+                    launcherStepsResetTimestamp = now,
+                )
+            }
+        }
+    }
+
+    private fun showSteps(
+        stepsSinceBoot: Long,
+        resetCount: Long,
+        resetTimestamp: Long,
+    ) {
+        val displaySteps = maxOf(0L, stepsSinceBoot - resetCount)
+        val formattedSteps = NumberFormat.getIntegerInstance(Locale.getDefault()).format(displaySteps)
+        binding.gadgetStepsValue.text = formattedSteps
         binding.gadgetStepsCaption.isVisible = true
         binding.gadgetStepsMessage.isVisible = false
-        contentDescription = context.getString(R.string.launcher_gadget_steps_description, formatted)
+
+        if (resetTimestamp > 0L) {
+            val formattedDate = DateFormat.getDateFormat(context).format(Date(resetTimestamp))
+            val formattedTime = DateFormat.getTimeFormat(context).format(Date(resetTimestamp))
+            val dateTimeString = "$formattedDate $formattedTime"
+            binding.gadgetStepsCaption.text =
+                context.getString(R.string.launcher_gadget_steps_since_date, dateTimeString)
+        } else {
+            binding.gadgetStepsCaption.setText(R.string.launcher_gadget_steps_since_boot)
+        }
+
+        contentDescription = context.getString(R.string.launcher_gadget_steps_description, formattedSteps)
     }
 
     /** The caption is hidden with the value: a denominator over an empty number says nothing. */

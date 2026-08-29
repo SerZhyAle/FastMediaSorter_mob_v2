@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.ui.launcher.helpers
 
-import android.annotation.SuppressLint
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
@@ -14,14 +13,14 @@ import kotlin.math.abs
  * Yields to scrolling: an upward swipe fires only at the lower desktop boundary, and a downward
  * swipe fires only at the upper boundary. Horizontal swipes do not inspect vertical scrolling.
  *
- * Attached as a touch listener on the container, so a press landing on a cell or an interactive gadget
- * is consumed by that child before this ever sees it - the same way the long press into edit mode
- * already behaves.
+ * The scroll container forwards its raw event stream before it dispatches to a child. That is required
+ * because a NestedScrollView otherwise intercepts a fling before a child listener receives ACTION_UP.
  */
 class LauncherAllAppsGestureManager(
     private val container: View,
     private val viewport: View,
     private val isEnabled: () -> Boolean,
+    private val isTouchOnInteractiveCell: (MotionEvent) -> Boolean,
     private val onSwipe: (DesktopSwipeDirection) -> Unit,
 ) {
 
@@ -33,6 +32,8 @@ class LauncherAllAppsGestureManager(
     }
 
     private val configuration = ViewConfiguration.get(container.context)
+
+    private var gestureStartedOnFreeDesktop = false
 
     private val detector = GestureDetector(
         container.context,
@@ -48,11 +49,16 @@ class LauncherAllAppsGestureManager(
         }
     )
 
-    // Touch listeners have no accessibility equivalent to declare here: the gesture is a shortcut for
-    // the taskbar button, which is the accessible path (strategic 3.2).
-    @SuppressLint("ClickableViewAccessibility")
-    fun attach() {
-        container.setOnTouchListener { _, event -> detector.onTouchEvent(event) && false }
+    /** Receives the scroll container's unconsumed raw event stream without changing normal scrolling. */
+    fun onTouchEvent(event: MotionEvent) {
+        if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+            gestureStartedOnFreeDesktop = !isTouchOnInteractiveCell(event)
+        }
+        if (!gestureStartedOnFreeDesktop) return
+        detector.onTouchEvent(event)
+        if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
+            gestureStartedOnFreeDesktop = false
+        }
     }
 
     private fun handleFling(

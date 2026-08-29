@@ -242,6 +242,33 @@ function Invoke-PublishCatalog {
     Write-Host ("Published stream-catalog.zip -> {0} ({1} rows, {2:N1} KB, {3})." -f $Tag, $rowCount, $zipKb, $bundleNote) -ForegroundColor Green
 }
 
+function Normalize-CatalogFacetRows {
+    param([object[]]$Rows)
+    $moves = @{}
+    $normalizers = @(
+        @{ facet = 'category'; apply = { param($value) Get-CanonicalCategory -Category $value } },
+        @{ facet = 'topic'; apply = { param($value) Get-CanonicalTopic -topic $value } },
+        @{ facet = 'language'; apply = { param($value) Get-CanonicalLanguages -Languages $value } },
+        @{ facet = 'country'; apply = { param($value) Get-CanonicalCountry -Country $value } }
+    )
+    foreach ($row in $Rows) {
+        foreach ($normalizer in $normalizers) {
+            $facet = [string]$normalizer.facet
+            $old = [string]$row.$facet
+            $new = [string](& $normalizer.apply $old)
+            if ($old -eq $new) { continue }
+            $key = "{0}`u{001F}{1}`u{001F}{2}" -f $facet, $old, $new
+            $moves[$key] = 1 + $(if ($moves.ContainsKey($key)) { $moves[$key] } else { 0 })
+            $row.$facet = $new
+        }
+    }
+    $moveRows = @($moves.GetEnumerator() | ForEach-Object {
+            $parts = $_.Key -split "`u{001F}", 3
+            [pscustomobject]@{ facet = $parts[0]; from = $parts[1]; to = $parts[2]; rows = $_.Value }
+        } | Sort-Object facet, rows -Descending)
+    [pscustomobject]@{ Rows = $Rows; Moves = $moveRows }
+}
+
 function Invoke-PublisherModeDispatch {
 if ($NormalizeFacets) {
     if (-not (Test-Path $ExistingCsv)) { throw "Catalog CSV not found: $ExistingCsv" }
@@ -299,33 +326,6 @@ if ($NormalizeTopics) {
     Write-Host ("Rubrics: rewrote {0}; backup -> {1}" -f $ExistingCsv, $topicBackup) -ForegroundColor Green
     if ($Publish) { Invoke-PublishCatalog }
     return $true
-}
-
-function Normalize-CatalogFacetRows {
-    param([object[]]$Rows)
-    $moves = @{}
-    $normalizers = @(
-        @{ facet = 'category'; apply = { param($value) Get-CanonicalCategory -Category $value } },
-        @{ facet = 'topic'; apply = { param($value) Get-CanonicalTopic -topic $value } },
-        @{ facet = 'language'; apply = { param($value) Get-CanonicalLanguages -Languages $value } },
-        @{ facet = 'country'; apply = { param($value) Get-CanonicalCountry -Country $value } }
-    )
-    foreach ($row in $Rows) {
-        foreach ($normalizer in $normalizers) {
-            $facet = [string]$normalizer.facet
-            $old = [string]$row.$facet
-            $new = [string](& $normalizer.apply $old)
-            if ($old -eq $new) { continue }
-            $key = "{0}`u{001F}{1}`u{001F}{2}" -f $facet, $old, $new
-            $moves[$key] = 1 + $(if ($moves.ContainsKey($key)) { $moves[$key] } else { 0 })
-            $row.$facet = $new
-        }
-    }
-    $moveRows = @($moves.GetEnumerator() | ForEach-Object {
-            $parts = $_.Key -split "`u{001F}", 3
-            [pscustomobject]@{ facet = $parts[0]; from = $parts[1]; to = $parts[2]; rows = $_.Value }
-        } | Sort-Object facet, rows -Descending)
-    [pscustomobject]@{ Rows = $Rows; Moves = $moveRows }
 }
 
 # Cache-warm is its own mode and writes nothing but cache files, so it is the one artwork pass that may

@@ -98,10 +98,12 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Edit the desktop, then lock it** `[Standard / noLegal]`: Long-press empty space to rearrange things, and switch on a lock so a finished desktop survives accidental taps.
 - **Widgets and your own status area** `[Standard / noLegal]`: Place the app's home-screen widgets onto the launcher desktop, and choose whether Android's status bar stays or the launcher shows its own clock and indicators.
 - **Pin a person, not a permission** `[Standard / noLegal]`: A contact cell opens that person in the system contacts app without granting a contacts permission - grant it only if you want their name and photo on the cell.
+- **Interactive Google Maps live frame** `[Standard / noLegal]`: Place a fully interactive Google Maps live frame widget on the launcher desktop with gesture-driven panning and zooming.
 - **Everything you pinned, in one place** `[Standard / noLegal]`: Shortcuts other apps pin land on the launcher desktop, each with the full action menu behind a long press.
 - **Taskbar along the edge you prefer** `[Standard / noLegal]`: Keep the launcher taskbar at the bottom or move it to the top edge, and the desktop lays itself out around it.
 - **Technical and sensor gadgets** `[Standard / noLegal]`: Put clock, sensors, signal strength, and a current-position map straight on the desktop, alongside a Now Playing cell that follows whichever app is playing.
 - **Every installed app on one screen** `[Standard / noLegal]`: A full-screen list of everything installed, reachable from the desktop without a drawer hunt.
+- **Idle dimming and blackout mode** `[Standard / noLegal]`: The launcher dims 4 seconds before screen timeout and pauses animated wallpapers and widgets to save power, resuming on any touch.
 - **Search the web and switch radios from the desktop** `[Standard / noLegal]`: Type a query and it opens in the browser, and the Wi-Fi and Bluetooth tiles turn the radios on or off in place.
 - **Other apps' notifications on the desktop** `[Standard / noLegal]`: The launcher top bar shows what other apps are reporting, and the Active signals panel lets you dismiss them without leaving the desktop.
 - **See the wallpaper through your gadgets** `[Standard / noLegal]`: Desktop cells draw anywhere from fully transparent to an opaque card, and edit mode always shows the full card so a cell stays easy to grab.

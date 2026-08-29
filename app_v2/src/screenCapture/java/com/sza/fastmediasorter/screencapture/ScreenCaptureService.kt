@@ -73,6 +73,7 @@ class ScreenCaptureService : Service() {
 
     private var gestureDirection: String? = null
     private var gestureZone: String? = null
+    private var requestedAction: String? = null
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -103,6 +104,7 @@ class ScreenCaptureService : Service() {
             ?: Activity.RESULT_CANCELED
         gestureDirection = intent?.getStringExtra(EXTRA_GESTURE_DIRECTION)
         gestureZone = intent?.getStringExtra(EXTRA_GESTURE_ZONE)
+        requestedAction = intent?.getStringExtra(EXTRA_ACTION)
         val resultData = intent?.readResultData()
         if (resultCode != Activity.RESULT_OK || resultData == null) {
             Timber.w("ScreenCaptureService: missing MediaProjection consent extras")
@@ -230,6 +232,9 @@ class ScreenCaptureService : Service() {
 
     /** Resolves the configured gesture action for the fired zone+direction; absent -> silent save. */
     private suspend fun resolveGestureAction(): ScreenshotGestureAction {
+        requestedAction?.let { actionName ->
+            ScreenshotGestureAction.entries.firstOrNull { it.name == actionName }?.let { return it }
+        }
         // Direction was gated to non-DO_NOT_USE in the overlay host; absent/unknown -> silent save.
         val direction = gestureDirection?.let {
             runCatching { ScreenshotGestureDirection.valueOf(it) }.getOrNull()
@@ -366,6 +371,7 @@ class ScreenCaptureService : Service() {
         const val EXTRA_RESULT_DATA = "screen_capture_result_data"
         const val EXTRA_GESTURE_DIRECTION = "gesture_direction"
         const val EXTRA_GESTURE_ZONE = "gesture_zone"
+        const val EXTRA_ACTION = "screen_capture_action"
 
         private const val CHANNEL_ID = "screen_capture_service"
         private const val NOTIFICATION_ID = NotificationIds.SCREEN_CAPTURE
@@ -376,13 +382,15 @@ class ScreenCaptureService : Service() {
             resultCode: Int,
             resultData: Intent,
             direction: String? = null,
-            zone: String? = null
+            zone: String? = null,
+            action: String? = null,
         ) {
             val intent = Intent(context, ScreenCaptureService::class.java).apply {
                 putExtra(EXTRA_RESULT_CODE, resultCode)
                 putExtra(EXTRA_RESULT_DATA, resultData)
                 direction?.let { putExtra(EXTRA_GESTURE_DIRECTION, it) }
                 zone?.let { putExtra(EXTRA_GESTURE_ZONE, it) }
+                action?.let { putExtra(EXTRA_ACTION, it) }
             }
             ContextCompat.startForegroundService(context, intent)
         }

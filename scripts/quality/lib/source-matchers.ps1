@@ -856,6 +856,58 @@ function Get-SourceRules {
                 return $count
             }
             FailMessage  = 'new class or interface in domain/usecase or data/repository violates Rule 6 naming suffix (expected *UseCase or *Repository / *RepositoryImpl).'
+        },
+        # S2133: Wear single declared toggle form. Refuses ToggleChip, Checkbox and Switch anywhere in
+        # wear/src/main outside ui/common.
+        (New-RegexRule -Name 'wear-raw-toggle' `
+                -Pattern ([regex]'\b(ToggleChip|Checkbox|Switch)\b') `
+                -Roots @('wear/src/main') `
+                -PathFilter '^wear/src/main/java/com/sza/fastmediasorter/wear/ui/(?!common/).*' `
+                -Baseline 'wear-raw-toggle-baseline.txt' `
+                -FailMessage 'new raw toggle (ToggleChip, Checkbox, Switch) in wear/src/main outside ui/common (S2133). Use WearSettingsToggleCell from ui/common instead.'),
+        # S2243: AppSettings field persistence completeness gate.
+        # Compares every field in AppSettings.kt against the combined text of
+        # data/repository/settings/*.kt and SettingsRepositoryImpl.kt.
+        [pscustomobject]@{
+            Name         = 'appsettings-persistence'
+            Extensions   = @('.kt')
+            Roots        = @('app_v2/src/main/java/com/sza/fastmediasorter/domain/model')
+            PathFilter   = 'app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings\.kt$'
+            Baseline     = 'appsettings-persistence-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = {
+                param($t)
+                if ([string]::IsNullOrWhiteSpace($t)) { return 0 }
+                $fields = @()
+                foreach ($line in ($t -split "`r?`n")) {
+                    if ($line -match '^\s+val\s+(\w+)\s*:') {
+                        $fields += $Matches[1]
+                    }
+                }
+                if ($fields.Count -eq 0) { return 0 }
+                
+                $repoRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
+                $storesDir = Join-Path $repoRoot 'app_v2/src/main/java/com/sza/fastmediasorter/data/repository/settings'
+                $implFile = Join-Path $repoRoot 'app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt'
+                
+                $storeTexts = @()
+                if (Test-Path $storesDir) {
+                    $storeTexts += Get-ChildItem $storesDir -Filter *.kt | ForEach-Object { Get-Content $_.FullName -Raw }
+                }
+                if (Test-Path $implFile) {
+                    $storeTexts += Get-Content $implFile -Raw
+                }
+                $combinedText = $storeTexts -join "`n"
+                
+                $missingCount = 0
+                foreach ($f in $fields) {
+                    if ($combinedText -notmatch [regex]::Escape($f)) {
+                        $missingCount++
+                    }
+                }
+                return $missingCount
+            }
+            FailMessage  = 'new field added to AppSettings without persistence in settings stores or SettingsRepositoryImpl (S2243).'
         }
     )
 }

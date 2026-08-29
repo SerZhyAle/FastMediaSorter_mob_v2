@@ -12,8 +12,13 @@
          rather than beside it: the strip is shared by the taskbar and the top status band, so anything that
          grew a slot would move both at once (strategic §7). -->
     <dimen name="launcher_tray_badge_text_size">8sp</dimen>
-    <dimen name="launcher_tray_speed_text_size">12sp</dimen>
+    <dimen name="launcher_tray_speed_text_size">10sp</dimen>
+    <dimen name="launcher_tray_speed_slot_width">60dp</dimen>
     <dimen name="launcher_tray_corner_marker_size">5dp</dimen>
+
+    <!-- Keeps top-edge status content clear of rounded screen corners while dynamic inset handling
+         continues to account for system bars and display cutouts. -->
+    <dimen name="launcher_status_strip_corner_inset">8dp</dimen>
 
     <!-- S1421: the freed system status band. Constant by owner ruling - the strip neither collapses nor
          resizes when its content changes, so its height cannot come from the content. Matched to the

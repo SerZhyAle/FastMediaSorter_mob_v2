@@ -7,10 +7,13 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
+import android.widget.EditText
+import android.widget.FrameLayout
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.NotificationManagerCompat
@@ -23,6 +26,8 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.CapabilityAvailability
+import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
 import com.sza.fastmediasorter.core.screencapture.gesture.GestureAccessibilityActions
 import com.sza.fastmediasorter.databinding.DialogLauncherResetConfirmBinding
@@ -30,12 +35,15 @@ import com.sza.fastmediasorter.databinding.DialogLauncherSettingsBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeAction
+import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.usecase.launcher.IsCameraWallpaperAvailableUseCase
+import com.sza.fastmediasorter.ui.applaunchpanel.edit.AppPickerDialogFragment
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLensEnumerationManager
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLensLabelFormatter
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.settings.helpers.LauncherDesktopSwipeActionPickerManager
+import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionPickerManager
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -75,6 +83,12 @@ class LauncherSettingsDialogFragment : DialogFragment() {
     @Inject
     lateinit var gestureAccessibilityActions: Set<@JvmSuppressWildcards GestureAccessibilityActions>
 
+    @Inject
+    lateinit var capabilityAvailability: CapabilityAvailability
+
+    @Inject
+    lateinit var screenVideoRecordingControllers: Set<@JvmSuppressWildcards ScreenVideoRecordingController>
+
     // S2076: whether this device has a camera at all. Injected here rather than into the shared settings
     // ViewModel, whose constructor is already at its parameter ceiling - and the question is a UI one:
     // it decides which entries the wallpaper dropdown offers, not what gets written.
@@ -87,6 +101,8 @@ class LauncherSettingsDialogFragment : DialogFragment() {
 
     // Guards render() writes so setCheckedSilently / setSelection never bounce back into a settings update.
     private var isUpdatingFromSettings = false
+
+    private var pendingDesktopSwipeAppDirection: DesktopSwipeDirection? = null
 
     /**
      * S1101: picks the desktop wallpaper image. The file is copied into private storage right away, so
@@ -132,6 +148,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         }
         Timber.d("S2017: launcher settings dialog opened")
         binding.btnClose.setOnClickListener { dismiss() }
+        registerDesktopSwipeAppPickerListener()
         setupCollapsibleSections()
         setupRows()
         observeSettings()
@@ -236,37 +253,128 @@ class LauncherSettingsDialogFragment : DialogFragment() {
     }
 
     private fun setupDesktopSwipeRows() {
-        val picker = LauncherDesktopSwipeActionPickerManager(
-            systemActionsAvailable = gestureAccessibilityActions.isNotEmpty(),
-        )
+        val picker = desktopSwipeActionPicker()
         binding.rowLauncherDesktopSwipeUp.setOnClickListener {
-            showDesktopSwipePicker(picker, viewModel.settings.value.launcherDesktopSwipeUpAction) {
-                viewModel.updateSettings(viewModel.settings.value.copy(launcherDesktopSwipeUpAction = it))
-            }
+            showDesktopSwipePicker(
+                picker,
+                viewModel.settings.value.launcherDesktopSwipeUpAction,
+                DesktopSwipeDirection.UP,
+            )
         }
         binding.rowLauncherDesktopSwipeDown.setOnClickListener {
-            showDesktopSwipePicker(picker, viewModel.settings.value.launcherDesktopSwipeDownAction) {
-                viewModel.updateSettings(viewModel.settings.value.copy(launcherDesktopSwipeDownAction = it))
-            }
+            showDesktopSwipePicker(
+                picker,
+                viewModel.settings.value.launcherDesktopSwipeDownAction,
+                DesktopSwipeDirection.DOWN,
+            )
         }
         binding.rowLauncherDesktopSwipeLeft.setOnClickListener {
-            showDesktopSwipePicker(picker, viewModel.settings.value.launcherDesktopSwipeLeftAction) {
-                viewModel.updateSettings(viewModel.settings.value.copy(launcherDesktopSwipeLeftAction = it))
-            }
+            showDesktopSwipePicker(
+                picker,
+                viewModel.settings.value.launcherDesktopSwipeLeftAction,
+                DesktopSwipeDirection.LEFT,
+            )
         }
         binding.rowLauncherDesktopSwipeRight.setOnClickListener {
-            showDesktopSwipePicker(picker, viewModel.settings.value.launcherDesktopSwipeRightAction) {
-                viewModel.updateSettings(viewModel.settings.value.copy(launcherDesktopSwipeRightAction = it))
-            }
+            showDesktopSwipePicker(
+                picker,
+                viewModel.settings.value.launcherDesktopSwipeRightAction,
+                DesktopSwipeDirection.RIGHT,
+            )
         }
     }
 
     private fun showDesktopSwipePicker(
         picker: LauncherDesktopSwipeActionPickerManager,
         current: LauncherDesktopSwipeAction,
-        onPicked: (LauncherDesktopSwipeAction) -> Unit,
+        direction: DesktopSwipeDirection,
     ) {
-        picker.showPicker(requireContext(), viewLifecycleOwner, current, onPicked)
+        picker.showPicker(requireContext(), viewLifecycleOwner, current) { picked ->
+            viewModel.updateSettings(updateDesktopSwipeAction(viewModel.settings.value, direction, picked))
+            when ((picked as? LauncherDesktopSwipeAction.EdgeGestureAction)?.action) {
+                ScreenshotGestureAction.OPEN_APP -> showDesktopSwipeAppPicker(direction)
+                ScreenshotGestureAction.OPEN_URL -> promptDesktopSwipeUrl(direction)
+                else -> Unit
+            }
+        }
+    }
+
+    private fun registerDesktopSwipeAppPickerListener() {
+        childFragmentManager.setFragmentResultListener(
+            DESKTOP_SWIPE_APP_PICKER_REQUEST_KEY,
+            viewLifecycleOwner,
+        ) { _, bundle ->
+            val packageName = bundle.getString(AppPickerDialogFragment.RESULT_PACKAGE).orEmpty()
+            val direction = pendingDesktopSwipeAppDirection
+            pendingDesktopSwipeAppDirection = null
+            if (packageName.isNotEmpty() && direction != null) {
+                viewModel.updateSettings(
+                    updateDesktopSwipePayload(viewModel.settings.value, direction, packageName),
+                )
+            }
+        }
+    }
+
+    private fun showDesktopSwipeAppPicker(direction: DesktopSwipeDirection) {
+        pendingDesktopSwipeAppDirection = direction
+        AppPickerDialogFragment.newInstance(DESKTOP_SWIPE_APP_PICKER_REQUEST_KEY)
+            .show(childFragmentManager, AppPickerDialogFragment.TAG)
+    }
+
+    private fun promptDesktopSwipeUrl(direction: DesktopSwipeDirection) {
+        val context = requireContext()
+        val input = EditText(context).apply {
+            setText(desktopSwipePayload(viewModel.settings.value, direction))
+            setSelection(text.length)
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
+            setHint(R.string.gesture_url_input_hint)
+        }
+        val padding = (URL_DIALOG_PADDING_DP * context.resources.displayMetrics.density).toInt()
+        val container = FrameLayout(context).apply {
+            setPadding(padding, padding / 2, padding, 0)
+            addView(input)
+        }
+        MaterialAlertDialogBuilder(context)
+            .setTitle(R.string.gesture_url_input_title)
+            .setView(container)
+            .setPositiveButton(R.string.ok) { _, _ ->
+                val url = input.text?.toString()?.trim().orEmpty()
+                viewModel.updateSettings(updateDesktopSwipePayload(viewModel.settings.value, direction, url))
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .showBoundTo(this)
+    }
+
+    private fun updateDesktopSwipeAction(
+        settings: AppSettings,
+        direction: DesktopSwipeDirection,
+        action: LauncherDesktopSwipeAction,
+    ): AppSettings = when (direction) {
+        DesktopSwipeDirection.UP -> settings.copy(launcherDesktopSwipeUpAction = action)
+        DesktopSwipeDirection.DOWN -> settings.copy(launcherDesktopSwipeDownAction = action)
+        DesktopSwipeDirection.LEFT -> settings.copy(launcherDesktopSwipeLeftAction = action)
+        DesktopSwipeDirection.RIGHT -> settings.copy(launcherDesktopSwipeRightAction = action)
+    }
+
+    private fun updateDesktopSwipePayload(
+        settings: AppSettings,
+        direction: DesktopSwipeDirection,
+        payload: String,
+    ): AppSettings = when (direction) {
+        DesktopSwipeDirection.UP -> settings.copy(launcherDesktopSwipeUpPayload = payload)
+        DesktopSwipeDirection.DOWN -> settings.copy(launcherDesktopSwipeDownPayload = payload)
+        DesktopSwipeDirection.LEFT -> settings.copy(launcherDesktopSwipeLeftPayload = payload)
+        DesktopSwipeDirection.RIGHT -> settings.copy(launcherDesktopSwipeRightPayload = payload)
+    }
+
+    private fun desktopSwipePayload(
+        settings: AppSettings,
+        direction: DesktopSwipeDirection,
+    ): String = when (direction) {
+        DesktopSwipeDirection.UP -> settings.launcherDesktopSwipeUpPayload
+        DesktopSwipeDirection.DOWN -> settings.launcherDesktopSwipeDownPayload
+        DesktopSwipeDirection.LEFT -> settings.launcherDesktopSwipeLeftPayload
+        DesktopSwipeDirection.RIGHT -> settings.launcherDesktopSwipeRightPayload
     }
 
     /**
@@ -561,9 +669,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
     }
 
     private fun renderDesktopSwipeRows(settings: AppSettings) {
-        val picker = LauncherDesktopSwipeActionPickerManager(
-            systemActionsAvailable = gestureAccessibilityActions.isNotEmpty(),
-        )
+        val picker = desktopSwipeActionPicker()
         binding.rowLauncherDesktopSwipeUp.setValue(
             picker.labelFor(requireContext(), settings.launcherDesktopSwipeUpAction)
         )
@@ -577,6 +683,15 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             picker.labelFor(requireContext(), settings.launcherDesktopSwipeRightAction)
         )
     }
+
+    private fun desktopSwipeActionPicker(): LauncherDesktopSwipeActionPickerManager =
+        LauncherDesktopSwipeActionPickerManager(
+            ScreenshotGestureActionPickerManager(
+                capabilityAvailability = capabilityAvailability,
+                screenRecordingAvailable = screenVideoRecordingControllers.isNotEmpty(),
+                systemActionsAvailable = gestureAccessibilityActions.isNotEmpty(),
+            ),
+        )
 
     /**
      * S1431: the two rows the mode governs.
@@ -741,6 +856,13 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         _binding = null
     }
 
+    private enum class DesktopSwipeDirection {
+        UP,
+        DOWN,
+        LEFT,
+        RIGHT,
+    }
+
     companion object {
         const val TAG = "LauncherSettingsDialogFragment"
 
@@ -752,6 +874,8 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         const val SECTION_DESKTOP = "desktop"
 
         private const val ARG_EXPAND_SECTION = "expand_section"
+        private const val DESKTOP_SWIPE_APP_PICKER_REQUEST_KEY = "launcher_desktop_swipe_app_picker"
+        private const val URL_DIALOG_PADDING_DP = 24
 
         /** [expandSection] unfolds one group on open regardless of its stored state; null keeps them as they were. */
         fun newInstance(expandSection: String? = null): LauncherSettingsDialogFragment =

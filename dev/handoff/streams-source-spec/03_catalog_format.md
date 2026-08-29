@@ -101,6 +101,35 @@ rows whose favicon actually decoded, in CSV order (see `04`/`08`). A consumer mu
 `is_live`/`https` decode via a case-insensitive-`"true"`-only rule: `"TRUE"`, `"  true  "` (trimmed) ->
 `true`; `"1"`, `"yes"`, `"false"`, blank -> `false`.
 
+### 2.4 Canonical facet values (S2233) **[CONTRACT]**
+
+The four grouping columns carry **stable canonical identifiers**, produced by the publisher-side
+normalizers (`scripts/streams/modules/StreamPublisher.Common.ps1`, `Get-Canonical*`) at candidate
+construction and by the isolated rewrite mode below. The app import applies the same contract
+(`StreamCatalogFacetNormalizer`), so an older asset and a fresh download converge on the same ids.
+
+- `category` - closed set: `Radio`, `Live TV`, `On-demand video`, `Test streams`. Known provider aliases
+  (`radio (somafm)`, `tv`, `open movies`, `movie`, `test stream`, ...) fold into these. An unknown
+  non-blank value is **preserved verbatim** for review (visible fallback), never dropped.
+- `topic` - the app's closed rubric set (S1477). Unknown or stale values fold into `General`.
+- `language` - lowercase English language names, comma-separated inside the cell; known regional variants
+  and typos (`american english`, `deutsch`, `brazilian portuguese`, `bahasa indonesia`, ...) fold into the
+  base name. A multi-language cell keeps one entry per language, so a channel matches each of its
+  languages in the filter. Unknown tokens stay as their normalized lowercase text.
+- `country` - ISO 3166-1 alpha-2, uppercase. Full country names and `uk`/`usa` aliases fold to the code;
+  an unrecognized non-blank value stays verbatim as the visible fallback.
+
+Blank cells stay blank in every facet; the fallback never invents a filter id. Adding a new known alias
+means extending the normalizer tables on both sides (publisher script + app normalizer) - no identifier
+or schema change is involved.
+
+**Rewrite mode.** `-NormalizeFacets` on `scripts/streams/collect-stream-candidates.ps1` rewrites the four
+grouping columns of an existing catalog without running any network collection. It writes a timestamped
+backup and a per-value move report under `temp/S2233/`, keeps the row count and URL multiset unchanged,
+and uploads nothing unless `-Publish` is also passed. It is a separate mode by design (strategic ADR-2):
+a mass metadata rewrite must never ride along with a discovery or artwork run. The legacy
+`-NormalizeTopics` switch remains the topic-only subset of the same operation.
+
 ---
 
 ## 3. The parser - `StreamCatalogCsvParser` *(impl detail; but the tokenizer contract is [CONTRACT])*
@@ -152,7 +181,8 @@ field-by-field table. Highlights:
   declared kind wins after uppercasing; a blank cell falls back to the URL classifier (section 4). This is
   the only path where a declared kind is trusted (manual add and playlist import always classify from the
   URL).
-- `category`/`topic`/`language`/`country`/`access` = `.ifBlank { null }`.
+- `category`/`topic`/`language`/`country` = `facetNormalizer.normalize(...)` output, `.ifBlank { null }`
+  (S2233 - the app mirrors the publisher canonical contract of §2.4); `access` = `.ifBlank { null }`.
 - The 10 catalog-only fields are dropped; `faviconIndex` is routed to the favicon sidecar keyed by URL.
 
 ---

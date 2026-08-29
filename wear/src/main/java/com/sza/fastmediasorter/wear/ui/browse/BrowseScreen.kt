@@ -32,6 +32,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
+import androidx.wear.compose.foundation.lazy.AutoCenteringParams
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
@@ -193,7 +194,7 @@ fun BrowseScreen(
         onRequestRename = requestRename
     )
 
-    BrowseRefineDialogsHost(refine = refineState, viewModel = viewModel)
+    BrowseRefineDialogsHost(refine = refineState, viewModel = viewModel, viewMode = fileListViewMode)
 }
 
 /**
@@ -273,7 +274,8 @@ private fun rememberBrowseSearchInput(viewModel: BrowseViewModel): () -> Unit {
 @Composable
 private fun BrowseRefineDialogsHost(
     refine: BrowseRefineState,
-    viewModel: BrowseViewModel
+    viewModel: BrowseViewModel,
+    viewMode: WearViewMode
 ) {
     // The launcher is remembered here rather than by the screen: it exists only to answer this
     // dialog, and hoisting it made the screen carry a value it never read itself.
@@ -300,7 +302,8 @@ private fun BrowseRefineDialogsHost(
             selected = refine.sortOrder,
             labelOf = { stringResource(labelForSortOrder(it)) },
             onSelected = viewModel::setSortOrder,
-            onDismiss = { viewModel.setShowSortDialog(false) }
+            onDismiss = { viewModel.setShowSortDialog(false) },
+            viewMode = viewMode
         )
     }
 
@@ -309,7 +312,8 @@ private fun BrowseRefineDialogsHost(
             present = viewModel.presentContentTypes(),
             selected = refine.contentTypes,
             onSelected = viewModel::setContentTypes,
-            onDismiss = { viewModel.setShowFilterDialog(false) }
+            onDismiss = { viewModel.setShowFilterDialog(false) },
+            viewMode = viewMode
         )
     }
 }
@@ -325,7 +329,8 @@ private fun BrowseTypeFilterDialog(
     present: List<WearContentType>,
     selected: Set<WearContentType>,
     onSelected: (Set<WearContentType>) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    viewMode: WearViewMode
 ) {
     val allTypes = stringResource(R.string.wear_browse_filter_type_all)
     WearChoiceDialog(
@@ -334,7 +339,8 @@ private fun BrowseTypeFilterDialog(
         selected = selected.singleOrNull(),
         labelOf = { type -> if (type == null) allTypes else stringResource(labelForContentType(type)) },
         onSelected = { type -> onSelected(if (type == null) emptySet() else setOf(type)) },
-        onDismiss = onDismiss
+        onDismiss = onDismiss,
+        viewMode = viewMode
     )
 }
 
@@ -517,9 +523,12 @@ private fun MediaListContent(
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val columns = GridColumnFit.columnsFor(viewMode, maxWidth.value.toInt())
         val screenInsets = wearScreenInsets()
+        val initialCenterIndex = if (columns == 1) 1 else 1
+        val autoCentering = remember(columns) { AutoCenteringParams(itemIndex = initialCenterIndex) }
         ScalingLazyColumn(
             modifier = Modifier.fillMaxSize(),
             state = listState,
+            autoCentering = autoCentering,
             // S2136: the refine header is laid over this list rather than in it, so the list has to
             // give back the height it covers - otherwise the first row starts under the icons.
             contentPadding = PaddingValues(

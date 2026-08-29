@@ -20,14 +20,6 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 /**
- * S1860: what an item asks before it decodes a picture - "is this page still willing to pay for one".
- *
- * A function rather than a holder class, so the page's remaining allowance stays a local of `page()`
- * and no item can read or reset it.
- */
-private typealias ThumbnailGate = suspend (suspend () -> String?) -> String?
-
-/**
  * S1697: resolves one paired-watch browse request into a bounded page of metadata the phone is
  * willing to expose. The watch never carries phone policy, so every visibility and permission
  * decision is taken here, per request, and a rejected request comes back as a protocol status
@@ -106,7 +98,7 @@ class ListPhoneResourcePageUseCase @Inject constructor(
         return WearPhoneResourcePage(
             requestId = request.requestId,
             status = WearPhoneResourceResponseStatus.OK,
-            items = listOf(file.toWireItem(parent) { _ -> picture })
+            items = listOf(file.toWireItem(parent, picture))
         )
     }
 
@@ -216,8 +208,8 @@ class ListPhoneResourcePageUseCase @Inject constructor(
         val sorted = allFiles.sortedByDescending { pair ->
             pair.second.lastModified.coerceAtLeast(pair.second.createdDate)
         }
-        return page(request, sorted) { (resource, file), gate ->
-            file.toWireItem(PhoneResourceToken(resource.id, ""), gate)
+        return page(request, sorted) { (resource, file) ->
+            file.toWireItem(PhoneResourceToken(resource.id, ""))
         }
     }
 
@@ -231,7 +223,7 @@ class ListPhoneResourcePageUseCase @Inject constructor(
             .filter { it.isExposedToWatch() }
 
         return typeGapOrNull(request, exposed, filter)
-            ?: page(request, exposed.filter { it.holdsAnyOf(filter) }) { resource, _ ->
+            ?: page(request, exposed.filter { it.holdsAnyOf(filter) }) { resource ->
                 resource.toRootItem()
             }
     }
@@ -320,8 +312,8 @@ class ListPhoneResourcePageUseCase @Inject constructor(
             // S1860: a scan that outran its allowance lands here too, and for the same reason - the
             // source is what did not answer, and saying so beats the watch's silent ten-second give-up.
             children == null -> failure(request, WearPhoneResourceResponseStatus.SOURCE_UNAVAILABLE)
-            else -> page(request, children.visibleTo(resource)) { file, gate ->
-                file.toWireItem(parent, gate)
+            else -> page(request, children.visibleTo(resource)) { file ->
+                file.toWireItem(parent)
             }
         }
     }
@@ -331,7 +323,7 @@ class ListPhoneResourcePageUseCase @Inject constructor(
 
     private suspend fun MediaFile.toWireItem(
         parent: PhoneResourceToken,
-        gate: ThumbnailGate
+        thumbnailBase64: String? = null
     ): WearPhoneResourceItem =
         WearPhoneResourceItem(
             // A folder is always addressed by its path; a file prefers its MediaStore identity,
@@ -346,13 +338,9 @@ class ListPhoneResourcePageUseCase @Inject constructor(
             mimeType = if (isDirectory) null else type.toWireMimeType(),
             sizeBytes = size,
             isDirectory = isDirectory,
-            // A folder carries no picture, and a file the use case declines carries none either -
-            // both are ordinary states the watch draws as a type icon.
-            thumbnailBase64 = if (isDirectory) {
-                null
-            } else {
-                gate { buildWatchThumbnail(this@toWireItem) }
-            }
+            // S2129: page items carry no embedded picture (thumbnailBase64 is null); pictures
+            // are fetched on-demand per visible row via THUMBNAIL requests.
+            thumbnailBase64 = if (isDirectory) null else thumbnailBase64
         )
 
     /**
@@ -382,23 +370,10 @@ class ListPhoneResourcePageUseCase @Inject constructor(
     private suspend fun <T> page(
         request: WearPhoneResourceRequest,
         source: List<T>,
-        toItem: suspend (T, ThumbnailGate) -> WearPhoneResourceItem
+        toItem: suspend (T) -> WearPhoneResourceItem
     ): WearPhoneResourcePage {
         val offset = request.pageToken?.toIntOrNull()?.coerceAtLeast(0) ?: 0
-        val startedAtNanos = System.nanoTime()
-        // The allowance is spent here, before the decode, rather than trimmed off the result after
-        // it: this state is what tells an item it is not worth decoding at all.
-        var spentChars = 0
-        val expiresAtNanos = startedAtNanos + TimeUnit.MILLISECONDS.toNanos(THUMBNAIL_BUDGET_MS)
-        val gate: ThumbnailGate = { decode ->
-            val remainingChars = MAX_PAGE_THUMBNAIL_CHARS - spentChars
-            val inTime = System.nanoTime() < expiresAtNanos
-            val decoded = if (remainingChars > 0 && inTime) decode() else null
-            val affordable = decoded?.takeIf { it.length <= remainingChars }
-            spentChars += affordable?.length ?: 0
-            affordable
-        }
-        val window = source.drop(offset).take(PAGE_SIZE).map { toItem(it, gate) }
+        val window = source.drop(offset).take(PAGE_SIZE).map { toItem(it) }
         val nextOffset = offset + window.size
         // EMPTY describes the folder, not the window: a page past the last item is still a valid OK
         // answer about a folder that does have content.
@@ -530,28 +505,6 @@ class ListPhoneResourcePageUseCase @Inject constructor(
 
         /** Upper bound of items in one watch-bound page. */
         const val PAGE_SIZE = 50
-
-        /**
-         * Upper bound of Base64 picture data one page may carry, across all its items.
-         *
-         * Sized well inside the Data Layer's per-message limit so the metadata the page also
-         * carries still fits beside the pictures.
-         *
-         * S1893: the envelope now Base64-encodes the payload and the sender measures its final bytes.
-         * A fifty-item page spends roughly 44 KB on names and tokens, so 24 KB of pictures stays
-         * conservatively below the 100 KB GMS limit after Base64 expansion.
-         */
-        const val MAX_PAGE_THUMBNAIL_CHARS = 24 * 1024
-
-        /**
-         * S1860: how long one page may spend decoding pictures before the rest ship without one.
-         *
-         * Sized against the watch's ten-second wait together with `SCAN_BUDGET_MS`: four for the
-         * scan, two for the pictures, and the rest is slack for the one decode that may start just
-         * inside the allowance and overrun it. A decoder is blocking and does not answer
-         * cancellation, so the allowance can only stop the NEXT decode, never the running one.
-         */
-        private const val THUMBNAIL_BUDGET_MS = 2_000L
 
         /** S1860: how long one request may spend scanning, across every resource it touches. */
         private const val SCAN_BUDGET_MS = 4_000L

@@ -18,7 +18,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
 import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
-import com.sza.fastmediasorter.core.screencapture.gesture.GestureAccessibilityActions
+import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
+import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityLauncherHomeBinding
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
@@ -39,6 +40,8 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherDesktopGeometryManage
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherDesktopSwipeActionHandler
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherEditModeManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherGadgetRenderManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherIdleManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherIdleState
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherInstantPhotoCaptureManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResizeManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceActionManager
@@ -92,7 +95,10 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     lateinit var gadgetRegistry: LauncherGadgetRegistry
 
     @Inject
-    lateinit var gestureAccessibilityActions: Set<@JvmSuppressWildcards GestureAccessibilityActions>
+    lateinit var screenshotGestureActionDispatcher: ScreenshotGestureActionDispatcher
+
+    @Inject
+    lateinit var menuScreenshotLaunchers: Set<@JvmSuppressWildcards MenuScreenshotLauncher>
 
     // S1421: the one node that owns the freed status band (ADR-2). Injected rather than built here because
     // it needs the singleton signal registry; the activity only hands it the view and the lifecycle.
@@ -103,6 +109,9 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     // is this manager's job - the same one the Start menu row uses.
     @Inject
     lateinit var roleManager: LauncherRoleManager
+
+    @Inject
+    lateinit var idleManager: LauncherIdleManager
 
     // S1423: the one shared launch every home-screen entry point uses; this host never builds the
     // Add Resource intent itself.
@@ -399,30 +408,37 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
     private fun attachDesktopSwipeActions() {
         val swipeActionHandler = LauncherDesktopSwipeActionHandler(
-            accessibilityActions = gestureAccessibilityActions,
+            activity = this,
+            actionDispatcher = screenshotGestureActionDispatcher,
+            screenshotLaunchers = menuScreenshotLaunchers,
             onOpenAllApps = ::showAllApps,
         )
-        LauncherAllAppsGestureManager(
+        val gestureManager = LauncherAllAppsGestureManager(
             container = binding.launcherDesktop,
             viewport = binding.launcherGridScroll,
             // Edit mode is for arranging the desktop; a swipe there belongs to the drag, not to us.
             isEnabled = { !viewModel.editMode.value },
+            isTouchOnInteractiveCell = { event ->
+                binding.launcherDesktop.hasChildAtScreenPosition(event.rawX, event.rawY)
+            },
             onSwipe = { direction ->
                 val settings = viewModel.launcherDesktopSettings.value
-                swipeActionHandler.handle(
-                    when (direction) {
+                lifecycleScope.launch {
+                    val (action, payload) = when (direction) {
                         LauncherAllAppsGestureManager.DesktopSwipeDirection.UP ->
-                            settings.launcherDesktopSwipeUpAction
+                            settings.launcherDesktopSwipeUpAction to settings.launcherDesktopSwipeUpPayload
                         LauncherAllAppsGestureManager.DesktopSwipeDirection.DOWN ->
-                            settings.launcherDesktopSwipeDownAction
+                            settings.launcherDesktopSwipeDownAction to settings.launcherDesktopSwipeDownPayload
                         LauncherAllAppsGestureManager.DesktopSwipeDirection.LEFT ->
-                            settings.launcherDesktopSwipeLeftAction
+                            settings.launcherDesktopSwipeLeftAction to settings.launcherDesktopSwipeLeftPayload
                         LauncherAllAppsGestureManager.DesktopSwipeDirection.RIGHT ->
-                            settings.launcherDesktopSwipeRightAction
+                            settings.launcherDesktopSwipeRightAction to settings.launcherDesktopSwipeRightPayload
                     }
-                )
+                    swipeActionHandler.handle(action, payload)
+                }
             },
-        ).attach()
+        )
+        binding.launcherGridScroll.onRawDesktopTouchEvent = gestureManager::onTouchEvent
     }
 
     /**
@@ -487,6 +503,24 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         }
         collectOnLifecycle(viewModel.screenBlackoutTimeoutSeconds) { timeout ->
             blackoutManager.updateTimeout(timeout)
+        }
+        collectOnLifecycle(idleManager.idleState) { state ->
+            when (state) {
+                LauncherIdleState.ACTIVE -> {
+                    binding.launcherIdleDimOverlay.visibility = View.GONE
+                    binding.launcherIdleDimOverlay.alpha = 0f
+                }
+                LauncherIdleState.DIMMING -> {
+                    binding.launcherIdleDimOverlay.visibility = View.VISIBLE
+                    binding.launcherIdleDimOverlay.animate().alpha(
+                        DIM_OVERLAY_ALPHA
+                    ).setDuration(DIM_ANIMATION_DURATION_MS).start()
+                }
+                LauncherIdleState.BLACKOUT -> {
+                    binding.launcherIdleDimOverlay.visibility = View.VISIBLE
+                    binding.launcherIdleDimOverlay.alpha = 1.0f
+                }
+            }
         }
         // S1904: the backdrop is part of what a cell looks like, so a new opacity is a re-render - the
         // binder's render key carries it and skips the rebuild when the value did not actually change.
@@ -731,6 +765,9 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     }
 
     override fun dispatchTouchEvent(ev: android.view.MotionEvent?): Boolean {
+        if (ev != null && ::idleManager.isInitialized) {
+            idleManager.onUserInteraction()
+        }
         if (ev != null && ::blackoutManager.isInitialized && blackoutManager.onDispatchTouchEvent(ev)) {
             return true
         }
@@ -738,6 +775,9 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     }
 
     override fun dispatchGenericMotionEvent(event: android.view.MotionEvent): Boolean {
+        if (::idleManager.isInitialized) {
+            idleManager.onUserInteraction()
+        }
         if (::blackoutManager.isInitialized && blackoutManager.onDispatchGenericMotionEvent(event)) {
             return true
         }
@@ -745,6 +785,9 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     }
 
     override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
+        if (::idleManager.isInitialized) {
+            idleManager.onUserInteraction()
+        }
         if (::blackoutManager.isInitialized && blackoutManager.onDispatchKeyEvent(event)) {
             return true
         }
@@ -811,5 +854,10 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // open their own instance - the same guard the Start menu carries.
         if (supportFragmentManager.findFragmentByTag(LauncherAllAppsFragment.TAG) != null) return
         LauncherAllAppsFragment().show(supportFragmentManager, LauncherAllAppsFragment.TAG)
+    }
+
+    companion object {
+        private const val DIM_OVERLAY_ALPHA = 0.6f
+        private const val DIM_ANIMATION_DURATION_MS = 4000L
     }
 }

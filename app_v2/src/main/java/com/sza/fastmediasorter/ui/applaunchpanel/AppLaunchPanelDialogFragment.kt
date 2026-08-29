@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
 import com.sza.fastmediasorter.databinding.DialogAppLaunchPanelBinding
 import com.sza.fastmediasorter.domain.model.AppLaunchPanelTileUi
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.EditAppLaunchPanelActivity
+import com.sza.fastmediasorter.ui.applaunchpanel.helpers.AppLaunchDensityHelper
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -50,9 +51,11 @@ class AppLaunchPanelDialogFragment : DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        timber.log.Timber.d("S2220: open launcher all programs alphabetical groups")
         tileAdapter = AppLaunchPanelTileAdapter(onTileClick = ::onTileClicked)
         val isWide = resources.configuration.isWideLayout()
-        val spanCount = if (isWide) 5 else 3
+        val preferredSpan = if (isWide) SPAN_LANDSCAPE else SPAN_PORTRAIT
+        val spanCount = AppLaunchDensityHelper.calculateSpanCount(resources.displayMetrics, preferredSpan)
         binding.rvPanelTiles.layoutManager = GridLayoutManager(requireContext(), spanCount)
         binding.rvPanelTiles.adapter = tileAdapter
         binding.btnEditPanel.setOnClickListener { openEditPanel() }
@@ -98,5 +101,7 @@ class AppLaunchPanelDialogFragment : DialogFragment() {
 
     companion object {
         const val TAG = "AppLaunchPanelDialog"
+        private const val SPAN_PORTRAIT = 3
+        private const val SPAN_LANDSCAPE = 5
     }
 }

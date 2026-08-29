@@ -71,10 +71,20 @@ class LauncherAllAppsGestureManagerTest {
         assertEquals(listOf(LauncherAllAppsGestureManager.DesktopSwipeDirection.RIGHT), harness.swipes)
     }
 
+    @Test
+    fun `swipe starting on a desktop cell does not dispatch`() {
+        val harness = GestureHarness(startsOnInteractiveCell = true)
+
+        harness.swipe(fromX = 100f, fromY = 300f, toX = 100f, toY = 100f)
+
+        assertTrue(harness.swipes.isEmpty())
+    }
+
     private inner class GestureHarness(
         canScrollDown: Boolean = false,
         canScrollUp: Boolean = false,
         isEnabled: Boolean = true,
+        startsOnInteractiveCell: Boolean = false,
     ) {
         val container = View(context)
         val swipes = mutableListOf<LauncherAllAppsGestureManager.DesktopSwipeDirection>()
@@ -87,18 +97,17 @@ class LauncherAllAppsGestureManagerTest {
             }
         }
 
-        init {
-            LauncherAllAppsGestureManager(
-                container = container,
-                viewport = viewport,
-                isEnabled = { isEnabled },
-                onSwipe = swipes::add,
-            ).attach()
-        }
+        private val manager = LauncherAllAppsGestureManager(
+            container = container,
+            viewport = viewport,
+            isEnabled = { isEnabled },
+            isTouchOnInteractiveCell = { startsOnInteractiveCell },
+            onSwipe = swipes::add,
+        )
 
         fun swipe(fromX: Float, fromY: Float, toX: Float, toY: Float) {
-            container.dispatchTouchEvent(event(MotionEvent.ACTION_DOWN, 0L, fromX, fromY))
-            container.dispatchTouchEvent(
+            manager.onTouchEvent(event(MotionEvent.ACTION_DOWN, 0L, fromX, fromY))
+            manager.onTouchEvent(
                 event(
                     MotionEvent.ACTION_MOVE,
                     FLING_DURATION_MS / 2,
@@ -106,7 +115,7 @@ class LauncherAllAppsGestureManagerTest {
                     (fromY + toY) / 2,
                 )
             )
-            container.dispatchTouchEvent(event(MotionEvent.ACTION_UP, FLING_DURATION_MS, toX, toY))
+            manager.onTouchEvent(event(MotionEvent.ACTION_UP, FLING_DURATION_MS, toX, toY))
         }
 
         private fun event(action: Int, eventTime: Long, x: Float, y: Float): MotionEvent =

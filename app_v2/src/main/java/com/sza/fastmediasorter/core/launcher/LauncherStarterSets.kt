@@ -58,6 +58,9 @@ object LauncherStarterSets {
     // S1886: the headset seeds charge rather than a media window - a window decides nothing there.
     private const val GADGET_BATTERY = "battery"
 
+    // S2241: Google Maps interactive live frame gadget
+    private const val GADGET_GOOGLE_MAPS_LIVE = "google_maps_live"
+
     /**
      * Every gadget key this table can emit. Public because the parity test cannot reach the private
      * consts above, and a hand-written list over there is what let the previous four-key guard fall
@@ -78,6 +81,7 @@ object LauncherStarterSets {
         GADGET_MEDIA_VIDEO_WINDOW,
         GADGET_MEDIA_DOCUMENT_WINDOW,
         GADGET_BATTERY,
+        GADGET_GOOGLE_MAPS_LIVE,
     )
 
     // S1560: third-party targets this table may seed. A cell is placed only when its package is present,

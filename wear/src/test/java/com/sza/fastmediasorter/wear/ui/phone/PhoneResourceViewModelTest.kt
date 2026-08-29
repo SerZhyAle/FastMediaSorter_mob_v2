@@ -445,6 +445,47 @@ class PhoneResourceViewModelTest {
         isDirectory = false
     )
 
+    @Test
+    fun `asking twice for the same token issues one request`() = runTest {
+        val page = WearPhoneResourcePage(
+            requestId = "r1",
+            status = WearPhoneResourceResponseStatus.OK,
+            items = listOf(fileItem("photo.jpg"))
+        )
+        coEvery { client.requestThumbnail("1:photo.jpg") } returns PhoneResourceOutcome.Page(page)
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        viewModel.requestThumbnail("1:photo.jpg")
+        viewModel.requestThumbnail("1:photo.jpg")
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { client.requestThumbnail("1:photo.jpg") }
+    }
+
+    @Test
+    fun `in-flight thumbnail request cap is not exceeded`() = runTest {
+        coEvery { client.requestThumbnail(any()) } coAnswers {
+            delay(100)
+            PhoneResourceOutcome.Page(
+                WearPhoneResourcePage(
+                    requestId = "r1",
+                    status = WearPhoneResourceResponseStatus.OK,
+                    items = emptyList()
+                )
+            )
+        }
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        viewModel.requestThumbnail("1:file1.jpg")
+        viewModel.requestThumbnail("1:file2.jpg")
+        viewModel.requestThumbnail("1:file3.jpg")
+        viewModel.requestThumbnail("1:file4.jpg")
+
+        coVerify(exactly = 3) { client.requestThumbnail(any()) }
+    }
+
     /** A file outside the three renderable families: the phone sends it with no type at all. */
     private fun documentItem(name: String) = WearPhoneResourceItem(
         token = "1:$name",

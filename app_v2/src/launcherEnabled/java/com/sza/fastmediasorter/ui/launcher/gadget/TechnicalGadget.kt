@@ -9,8 +9,11 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.view.isVisible
 import com.google.android.material.color.MaterialColors
+import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.databinding.GadgetLauncherTechnicalBinding
 import com.sza.fastmediasorter.domain.model.devicestatus.DeviceStatusProvider
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
+import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorSection
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -44,7 +47,7 @@ class TechnicalGadget(
     override val requiresResourceParam: Boolean = false
 
     override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View =
-        TechnicalGadgetView(container.context, key, iconRes, iconTintable, provider)
+        TechnicalGadgetView(container.context, host, key, iconRes, iconTintable, provider)
 }
 
 /**
@@ -54,6 +57,7 @@ class TechnicalGadget(
  */
 private class TechnicalGadgetView(
     context: Context,
+    private val host: LauncherGadgetHost,
     private val key: String,
     @DrawableRes iconRes: Int,
     iconTintable: Boolean,
@@ -79,6 +83,26 @@ private class TechnicalGadgetView(
             null
         }
         binding.gadgetTechnicalIcon.setImageResource(iconRes)
+        binding.gadgetTechnicalBody.setOnClickListener { openFeature() }
+        binding.gadgetTechnicalIcon.setOnClickListener { openFeature() }
+    }
+
+    private fun openFeature() {
+        val (routeKey, sectionKey) = when (key) {
+            LauncherGadgetRegistry.KEY_NETWORK ->
+                InternalRouteCatalog.KEY_NETWORK_MONITOR to NetworkMonitorSection.Summary.key
+            LauncherGadgetRegistry.KEY_BATTERY,
+            LauncherGadgetRegistry.KEY_STORAGE,
+            LauncherGadgetRegistry.KEY_RESOURCES ->
+                InternalRouteCatalog.KEY_SYSTEM_INFO to ""
+            else -> InternalRouteCatalog.KEY_SYSTEM_INFO to ""
+        }
+        host.run(
+            LauncherCellCommand.FeatureSection(
+                routeKey = routeKey,
+                sectionKey = sectionKey,
+            )
+        )
     }
 
     override suspend fun CoroutineScope.onActive() {

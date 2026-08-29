@@ -49,8 +49,11 @@ function Test-GradleWorkerDeath {
 
 # S2127: K2's MISSING_DEPENDENCY_CLASS. The wording is the stable part of the diagnostic - the class
 # name in front of it varies, and so does whether the second line says the class is a supertype.
+# S2219: KSP worker ClassCastException (KspAAWorkerAction) under incremental state.
 $script:KotlinStaleIncrementalPatterns = @(
-    'Check your module classpath for missing or conflicting dependencies'
+    'Check your module classpath for missing or conflicting dependencies',
+    'com\.google\.devtools\.ksp\.gradle\.KspAAWorkerAction',
+    '\[ksp\] java\.lang\.ClassCastException'
 )
 
 function Test-KotlinStaleIncrementalState {

@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.repository.streams
 
 import com.sza.fastmediasorter.data.repository.StreamCatalogCsvParser
+import com.sza.fastmediasorter.data.repository.StreamCatalogFacetNormalizer
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamCatalogUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.StreamMediaKindClassifier
@@ -78,6 +79,7 @@ class FaviconAtlasStoreTest {
     private fun useCase(): ImportStreamCatalogUseCase = ImportStreamCatalogUseCase(
         okHttpClient = mockk<OkHttpClient>(relaxed = true),
         parser = StreamCatalogCsvParser(),
+        facetNormalizer = StreamCatalogFacetNormalizer(),
         classifier = mockk<StreamMediaKindClassifier>(relaxed = true),
         repository = mockk<StreamSourceRepository>(relaxed = true),
         faviconAtlasStore = store,

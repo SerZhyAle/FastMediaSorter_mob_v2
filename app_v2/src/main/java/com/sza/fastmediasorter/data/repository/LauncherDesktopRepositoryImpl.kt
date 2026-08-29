@@ -475,6 +475,173 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun removeSection(
+        orientation: LauncherOrientation,
+        sectionCellId: Long,
+    ): List<String> = withContext(Dispatchers.IO) {
+        db.withTransaction {
+            val entities = cellDao.getAllCellsSync().filter { it.orientation == orientation.name }
+            val cells = entities.mapNotNull { it.toDomainOrNull() }
+            val sections = LauncherSectionMembership.sectionsInOrder(cells)
+            val header = sections.firstOrNull { it.id == sectionCellId }
+                // An id that names no section header of this orientation deletes nothing.
+                ?: return@withTransaction emptyList()
+
+            val blockIds = entities.filter { entity ->
+                val domain = entity.toDomainOrNull() ?: return@filter false
+                LauncherSectionMembership.ownerOf(domain, sections)?.id == header.id
+            }.map { it.id }.toSet()
+            val headerRow = header.rowIndex.coerceAtLeast(0)
+            val bandEnd = LauncherSectionMembership.sectionEndExclusive(
+                headerRow,
+                LauncherSectionMembership.headerRows(cells),
+            ) ?: cellDao.firstRowBelowAll(orientation.name)
+
+            // Targets come from the rows read inside this same transaction (S2217, ADR-3): the caller
+            // clears stored configured-widget instances with them, so a target this call did not remove
+            // would clear an instance a surviving cell still points at.
+            val removedTargets = entities.filter { it.id in blockIds }.map { it.target }
+            blockIds.forEach { cellDao.deleteById(it) }
+
+            val remaining = cellDao.getAllCellsSync().filter { it.orientation == orientation.name }
+            compactBandRows(remaining, headerRow, bandEnd, packedIds = emptySet())
+            removedTargets
+        }
+    }
+
+    override suspend fun resortSection(
+        orientation: LauncherOrientation,
+        sectionCellId: Long,
+        columns: Int,
+    ): Boolean = withContext(Dispatchers.IO) {
+        if (columns < MIN_SPAN) {
+            Timber.w("Launcher desktop: cannot repack a section on a %d-column grid", columns)
+            return@withContext false
+        }
+        db.withTransaction {
+            val entities = cellDao.getAllCellsSync().filter { it.orientation == orientation.name }
+            val before = entities.associate { it.id to (it.rowIndex to it.colIndex) }
+            val cells = entities.mapNotNull { it.toDomainOrNull() }
+            val sections = LauncherSectionMembership.sectionsInOrder(cells)
+            val header = sections.firstOrNull { it.id == sectionCellId }
+                ?: return@withTransaction false
+            val owned = cells.filter {
+                it.id != header.id &&
+                    LauncherSectionMembership.ownerOf(it, sections)?.id == header.id
+            }
+            if (owned.isEmpty()) return@withTransaction false
+
+            val headerRow = header.rowIndex.coerceAtLeast(0)
+            val bandEnd = LauncherSectionMembership.sectionEndExclusive(
+                headerRow,
+                LauncherSectionMembership.headerRows(cells),
+            ) ?: cellDao.firstRowBelowAll(orientation.name)
+            // Fixed obstacles at their stored positions: every co-section cell sharing the band (S1645).
+            // The repack routes around them, never through them - they belong to another section.
+            val obstacles = cells.filter {
+                it.rowIndex >= headerRow && it.rowIndex < bandEnd &&
+                    LauncherSectionMembership.ownerOf(it, sections)?.id != header.id
+            }
+            val ordered = owned.sortedWith(compareBy({ it.rowIndex }, { it.colIndex }))
+            val packed = packSectionContents(ordered, header, obstacles, bandEnd, columns)
+            packed.forEach { cellDao.update(it.toEntity()) }
+
+            val remaining = cellDao.getAllCellsSync().filter { it.orientation == orientation.name }
+            compactBandRows(remaining, headerRow, bandEnd, packedIds = packed.map { it.id }.toSet())
+
+            val after = cellDao.getAllCellsSync().filter { it.orientation == orientation.name }
+                .associate { it.id to (it.rowIndex to it.colIndex) }
+            after != before
+        }
+    }
+
+    /**
+     * S2222: closes the row gap a block operation left in the band starting at [headerRow] (ADR-2).
+     *
+     * Rows are counted per covered row, never per anchor, so a multi-row cell stays whole: every row it
+     * covers is occupied, and consecutive occupied rows map onto consecutive rows. The walk covers the
+     * band's own rows plus whatever [packedIds] the operation placed past its end; rows from
+     * [tailFromRow] down ride by the height difference instead - the same tail rule [swapSectionBlock]
+     * applies, extended to a band a co-section cell may still occupy (S1645), which a whole-band shift
+     * would fold into the gap and drag a live section up under its neighbour.
+     */
+    private suspend fun compactBandRows(
+        remaining: List<LauncherCellEntity>,
+        headerRow: Int,
+        tailFromRow: Int,
+        packedIds: Set<Long>,
+    ) {
+        val bandCells = remaining.filter {
+            (it.rowIndex >= headerRow && it.rowIndex < tailFromRow) || it.id in packedIds
+        }
+        val occupiedRows = bandCells
+            .flatMap { it.rowIndex until it.rowIndex + it.spanH }
+            .distinct()
+            .sorted()
+        val rowMap = occupiedRows.mapIndexed { index, row -> row to headerRow + index }.toMap()
+        bandCells.forEach { entity ->
+            val compacted = rowMap.getValue(entity.rowIndex)
+            if (compacted != entity.rowIndex) {
+                cellDao.update(entity.copy(rowIndex = compacted))
+            }
+        }
+        val shift = (tailFromRow - headerRow) - occupiedRows.size
+        if (shift != 0) {
+            remaining.filter { it.rowIndex >= tailFromRow && it.id !in packedIds }.forEach { entity ->
+                cellDao.update(entity.copy(rowIndex = entity.rowIndex - shift))
+            }
+        }
+    }
+
+    /**
+     * S2222: first-fit row-major repack of [ordered] section content around [obstacles].
+     *
+     * The scan starts on the header's own row, past [LauncherSectionMembership.HEADER_SPAN_W], and at
+     * column 0 of every row below. A footprint is coerced to the live [columns] for scanning only - the
+     * stored span is never widened, the rule [addCellInFirstFreeSlot] already applies. A cell that
+     * starts inside the band must end inside it: ending on the next section's first row is the straddle
+     * the placement layer refuses everywhere else, and the tail shift is what keeps that true after the
+     * pack, not the scan alone. A cell that no longer fits the band starts past [bandEnd] instead, on
+     * rows the tail shift is about to open.
+     */
+    private fun packSectionContents(
+        ordered: List<LauncherCell>,
+        header: LauncherCell,
+        obstacles: List<LauncherCell>,
+        bandEnd: Int,
+        columns: Int,
+    ): List<LauncherCell> {
+        val footprints = mutableListOf(
+            SectionFootprint(header.rowIndex, header.colIndex, header.spanW, header.spanH),
+        )
+        obstacles.forEach {
+            footprints.add(SectionFootprint(it.rowIndex, it.colIndex, it.spanW, it.spanH))
+        }
+        val packed = mutableListOf<LauncherCell>()
+        for (cell in ordered) {
+            val scanSpanW = cell.spanW.coerceAtMost(columns)
+            var row = header.rowIndex
+            var placed = false
+            while (!placed) {
+                val firstCol = if (row == header.rowIndex) LauncherSectionMembership.HEADER_SPAN_W else 0
+                var col = firstCol
+                while (!placed && col + scanSpanW <= columns) {
+                    val candidate = SectionFootprint(row, col, scanSpanW, cell.spanH)
+                    val crossesBandEnd = row < bandEnd && row + cell.spanH > bandEnd
+                    if (!crossesBandEnd && footprints.none { it.overlaps(candidate) }) {
+                        footprints.add(candidate)
+                        packed.add(cell.copy(rowIndex = row, colIndex = col))
+                        placed = true
+                    } else {
+                        col++
+                    }
+                }
+                row++
+            }
+        }
+        return packed
+    }
+
     override suspend fun moveCell(id: Long, rowIndex: Int, colIndex: Int): Boolean =
         withContext(Dispatchers.IO) {
             val targetRow = rowIndex.coerceAtLeast(0)
@@ -655,6 +822,14 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
 
     /** A free square the scan settled on: where a cell's footprint starts. */
     private data class GridAnchor(val row: Int, val col: Int)
+
+    /** S2222: one rectangle of the in-memory section repack - an anchor plus the span it is scanned at. */
+    private data class SectionFootprint(val row: Int, val col: Int, val spanW: Int, val spanH: Int) {
+        fun overlaps(other: SectionFootprint): Boolean = row < other.row + other.spanH &&
+            other.row < row + spanH &&
+            col < other.col + other.spanW &&
+            other.col < col + spanW
+    }
 
     private companion object {
         /** A cell always covers at least its own square; see [normalized]. */

@@ -69,6 +69,18 @@ class PhoneResourceClient @Inject constructor(
     }
 
     /**
+     * S2129: asks the phone for one item's thumbnail on-demand.
+     */
+    suspend fun requestThumbnail(itemToken: String): PhoneResourceOutcome {
+        val request = WearPhoneResourceRequest(
+            requestId = UUID.randomUUID().toString(),
+            kind = WearPhoneResourceRequestKind.THUMBNAIL,
+            itemToken = itemToken
+        )
+        return request(request, WearDataLayerPaths.PHONE_RESOURCE_BROWSE_REQUEST)
+    }
+
+    /**
      * Asks the phone to deliver one item into [destination]. The file is written only after the
      * phone accepted the request, and it is deleted again if the transfer does not complete - a
      * half-written media file would fail later, further from the cause.

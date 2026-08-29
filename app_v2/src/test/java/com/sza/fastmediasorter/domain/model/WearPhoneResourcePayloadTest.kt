@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.domain.model
 
 import com.google.gson.Gson
 import com.google.gson.JsonParser
-import com.sza.fastmediasorter.domain.usecase.ListPhoneResourcePageUseCase
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -101,9 +100,7 @@ class WearPhoneResourcePayloadTest {
                     token = "t-thumbnail",
                     name = "thumbnail.jpg",
                     isDirectory = false,
-                    thumbnailBase64 = "x".repeat(
-                        ListPhoneResourcePageUseCase.MAX_PAGE_THUMBNAIL_CHARS
-                    )
+                    thumbnailBase64 = "x".repeat(24 * 1024)
                 )
             )
         )

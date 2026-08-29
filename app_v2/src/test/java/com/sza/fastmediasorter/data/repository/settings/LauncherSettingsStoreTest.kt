@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.data.repository.settings
 
 import androidx.datastore.preferences.core.mutablePreferencesOf
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeAction
+import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -54,6 +56,28 @@ class LauncherSettingsStoreTest {
     }
 
     @Test
+    fun `desktop swipe keeps a shared edge-gesture action`() {
+        val settings = AppSettings(
+            launcherDesktopSwipeLeftAction = LauncherDesktopSwipeAction.EdgeGestureAction(
+                ScreenshotGestureAction.TOGGLE_FLASHLIGHT,
+            ),
+            launcherDesktopSwipeLeftPayload = "com.example.flashlight",
+        )
+        val prefs = mutablePreferencesOf()
+
+        LauncherSettingsStore.write(prefs, settings)
+
+        assertEquals(
+            settings.launcherDesktopSwipeLeftAction,
+            LauncherSettingsStore.read(prefs).launcherDesktopSwipeLeftAction,
+        )
+        assertEquals(
+            settings.launcherDesktopSwipeLeftPayload,
+            LauncherSettingsStore.read(prefs).launcherDesktopSwipeLeftPayload,
+        )
+    }
+
+    @Test
     fun `every persisted launcher field round-trips through write then read`() {
         val settings = AppSettings(
             launcherDensityFactor = 1.5f,
@@ -71,6 +95,10 @@ class LauncherSettingsStoreTest {
             launcherForeignNotificationsEnabled = true,
             launcherRotationHintShown = true,
             launcherDesktopLocked = true,
+            launcherDesktopSwipeUpPayload = "https://example.com",
+            launcherDesktopSwipeDownPayload = "com.example.app",
+            launcherDesktopSwipeLeftPayload = "https://example.org",
+            launcherDesktopSwipeRightPayload = "com.example.other",
             launcherWallpaperImagePath = "/storage/emulated/0/wall.png",
             allAppsSortDescending = true,
             launcherScreenBlackoutTimeoutSeconds = 45,
@@ -100,6 +128,10 @@ class LauncherSettingsStoreTest {
         )
         assertEquals(settings.launcherRotationHintShown, values.launcherRotationHintShown)
         assertEquals(settings.launcherDesktopLocked, values.launcherDesktopLocked)
+        assertEquals(settings.launcherDesktopSwipeUpPayload, values.launcherDesktopSwipeUpPayload)
+        assertEquals(settings.launcherDesktopSwipeDownPayload, values.launcherDesktopSwipeDownPayload)
+        assertEquals(settings.launcherDesktopSwipeLeftPayload, values.launcherDesktopSwipeLeftPayload)
+        assertEquals(settings.launcherDesktopSwipeRightPayload, values.launcherDesktopSwipeRightPayload)
         assertEquals(settings.launcherWallpaperImagePath, values.launcherWallpaperImagePath)
         assertEquals(settings.allAppsSortDescending, values.allAppsSortDescending)
         assertEquals(

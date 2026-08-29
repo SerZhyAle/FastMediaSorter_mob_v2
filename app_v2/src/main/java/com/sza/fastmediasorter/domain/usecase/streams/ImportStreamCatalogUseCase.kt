@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.StreamCatalogCsvParser
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
+import com.sza.fastmediasorter.data.streams.StreamCatalogFacetNormalizer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -24,6 +25,7 @@ import javax.inject.Inject
 class ImportStreamCatalogUseCase @Inject constructor(
     private val okHttpClient: OkHttpClient,
     private val parser: StreamCatalogCsvParser,
+    private val facetNormalizer: StreamCatalogFacetNormalizer,
     private val classifier: StreamMediaKindClassifier,
     private val repository: StreamSourceRepository,
     // S0668: persists the favicon sprite-atlas + url->index sidecar extracted from the same zip.
@@ -83,6 +85,12 @@ class ImportStreamCatalogUseCase @Inject constructor(
 
         val now = System.currentTimeMillis()
         val sources = entries.map { entry ->
+            val facets = facetNormalizer.normalize(
+                category = entry.category,
+                topic = entry.topic,
+                language = entry.language,
+                country = entry.country,
+            )
             StreamSourceEntity(
                 id = UUID.randomUUID().toString(),
                 url = entry.url,
@@ -92,10 +100,10 @@ class ImportStreamCatalogUseCase @Inject constructor(
                 sourceOrigin = "CATALOG",
                 sortIndex = 0,
                 addedAt = now,
-                category = entry.category.ifBlank { null },
-                topic = entry.topic.ifBlank { null },
-                language = entry.language.ifBlank { null },
-                country = entry.country.ifBlank { null },
+                category = facets.category.ifBlank { null },
+                topic = facets.topic.ifBlank { null },
+                language = facets.language.ifBlank { null },
+                country = facets.country.ifBlank { null },
                 // S1117: carry the region-restriction flag ("geo") so the list can badge it; blank -> null.
                 access = entry.access.ifBlank { null }
             )
@@ -158,8 +166,9 @@ class ImportStreamCatalogUseCase @Inject constructor(
                     entry.isDirectory -> Unit
                     name.endsWith(".csv") -> {
                         val text = readCappedUtf8(zip)
-                        if (name.endsWith("streams.csv")) streamsCsv = text
-                        else if (fallbackCsv == null) fallbackCsv = text
+                        if (name.endsWith("streams.csv")) {
+                            streamsCsv = text
+                        } else if (fallbackCsv == null) fallbackCsv = text
                     }
                     name.endsWith("favicon-atlas.png") -> {
                         // Over-cap atlas -> drop the atlas, KEEP the CSV (favicons just stay absent).

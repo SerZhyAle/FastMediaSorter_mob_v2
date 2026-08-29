@@ -118,6 +118,26 @@ interface LauncherDesktopRepository {
     suspend fun swapSectionBlock(orientation: LauncherOrientation, sectionCellId: Long, moveUp: Boolean): Boolean
 
     /**
+     * S2222: deletes the section header with cell id [sectionCellId] together with every cell it owns on
+     * [orientation], in one transaction. Returns the `target` of every removed row read inside that
+     * transaction (S2217 pattern - the caller clears stored configured-widget instances); cells below the
+     * section move up so no multi-row hole remains. Returns an empty list when the id is not a section
+     * header of this orientation. Block membership is [LauncherSectionMembership.ownerOf] - S1428
+     * positional membership, the same rule the swap and the renderer read.
+     */
+    suspend fun removeSection(orientation: LauncherOrientation, sectionCellId: Long): List<String>
+
+    /**
+     * S2222: repacks the cells owned by the section header [sectionCellId] densely in their current visual
+     * order (stored row, then column), starting at the first cell after the header on its own row
+     * ([LauncherSectionMembership.HEADER_SPAN_W]), first-fit row-major respecting each cell's span and the
+     * passed [columns]. Everything below the section shifts by the height difference the repack causes.
+     * Returns whether any row or column changed - false for an unknown id or a section with no owned
+     * cells. [columns] belongs to the rendering screen, same contract as [addCell].
+     */
+    suspend fun resortSection(orientation: LauncherOrientation, sectionCellId: Long, columns: Int): Boolean
+
+    /**
      * Places [cells] only when this orientation has never been seeded and holds no cells.
      * Returns whether it seeded, so a profile change can never overwrite a desktop the user owns.
      */

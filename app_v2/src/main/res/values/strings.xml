@@ -3577,4 +3577,12 @@
     <string name="launcher_desktop_swipe_down_title">Swipe down</string>
     <string name="launcher_desktop_swipe_left_title">Swipe left</string>
     <string name="launcher_desktop_swipe_right_title">Swipe right</string>
+    <string name="streams_category_radio">Radio</string>
+    <string name="streams_category_live_tv">Live TV</string>
+    <string name="streams_category_on_demand_video">On-demand video</string>
+    <string name="streams_category_test_streams">Test streams</string>
+    <string name="launcher_gadget_open_external">Open in browser</string>
+    <string name="launcher_gadget_steps_since_date">Since %1$s</string>
+    <string name="launcher_gadget_google_maps_live">Google Maps Live Frame</string>
+    <string name="launcher_gadget_google_maps_live_desc">Interactive live Google Maps window</string>
 </resources>

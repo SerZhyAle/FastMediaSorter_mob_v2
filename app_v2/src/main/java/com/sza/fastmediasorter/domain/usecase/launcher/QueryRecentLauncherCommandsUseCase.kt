@@ -3,11 +3,13 @@ package com.sza.fastmediasorter.domain.usecase.launcher
 import android.content.Context
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.repository.LauncherJournalRepository
+import com.sza.fastmediasorter.domain.repository.LauncherPinsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
+import timber.log.Timber
 import javax.inject.Inject
 
 /** A recent launcher launch, paired with the visual the taskbar draws for it. */
@@ -17,26 +19,29 @@ data class RecentLauncherCommand(
 )
 
 /**
- * S0404/S1097: the taskbar's "recent" strip. Built from the app's own journal (ADR-7) and, unlike the
+ * S0404/S1097/S2242: the taskbar's "recent" strip. Built from the app's own journal (ADR-7) and, unlike the
  * first iteration, spans every command kind the user launched - internal features, resources, streams
- * and OS shortcuts as well as third-party apps - because the seeded desktop launches mostly internal
- * targets and an apps-only strip stayed empty in normal use (owner decision 2026-07-18).
+ * and OS shortcuts as well as third-party apps.
  *
- * Each journalled command is resolved to its current visual through the same
- * [ResolveLauncherCommandLabelUseCase] the pins use, so labels/icons stay in one place. A target that
- * is gone now (uninstalled app, deleted resource, missing channel) is dropped rather than shown dead:
- * recents are a shortcut to reopen something, not a headstone like a desktop cell.
+ * S2242: deduplicates commands already pinned to the taskbar via [LauncherPinsRepository] so a pinned
+ * shortcut does not appear twice in the recent strip / Start panel.
  */
 class QueryRecentLauncherCommandsUseCase @Inject constructor(
     private val journal: LauncherJournalRepository,
+    private val pins: LauncherPinsRepository,
     private val resolveVisual: ResolveLauncherCommandLabelUseCase,
     @ApplicationContext private val context: Context,
 ) {
 
     operator fun invoke(limit: Int): Flow<List<RecentLauncherCommand>> =
-        journal.recentCommands(limit)
-            .map { commands -> commands.mapNotNull { resolve(it) } }
-            .flowOn(Dispatchers.IO)
+        combine(journal.recentCommands(limit * 2), pins.observePins()) { recentCommands, pinnedList ->
+            Timber.d("S2242: filtering recents against %d pinned items", pinnedList.size)
+            val pinnedCommands = pinnedList.map { it.second }.toSet()
+            recentCommands
+                .filter { command -> command !in pinnedCommands }
+                .mapNotNull { resolve(it) }
+                .take(limit)
+        }.flowOn(Dispatchers.IO)
 
     private suspend fun resolve(command: LauncherCellCommand): RecentLauncherCommand? {
         // An app must still be launchable to earn a recents slot. ResolveLauncherCommandLabelUseCase

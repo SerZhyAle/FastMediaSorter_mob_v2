@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layoutBorderlessAppTileRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="@dimen/layout_spacing_normal"
+    android:background="?attr/selectableItemBackgroundBorderless"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center"
+    android:minHeight="@dimen/calculator_display_min_height"
+    android:orientation="vertical"
+    android:paddingStart="@dimen/layout_spacing_normal"
+    android:paddingTop="@dimen/layout_spacing_medium_small"
+    android:paddingEnd="@dimen/layout_spacing_normal"
+    android:paddingBottom="@dimen/layout_spacing_medium_small">
+
+    <ImageView
+        android:id="@+id/ivAppIcon"
+        android:layout_width="@dimen/icon_size_large"
+        android:layout_height="@dimen/icon_size_large"
+        android:importantForAccessibility="no"
+        tools:src="@drawable/ic_apps" />
+
+    <TextView
+        android:id="@+id/tvAppLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/layout_spacing_normal"
+        android:breakStrategy="simple"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:hyphenationFrequency="none"
+        android:maxLines="2"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="@dimen/browse_cmd_text_size"
+        tools:text="App Name" />
+
+</LinearLayout>

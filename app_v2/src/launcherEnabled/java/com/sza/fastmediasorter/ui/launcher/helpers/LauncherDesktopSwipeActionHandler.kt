@@ -1,23 +1,27 @@
 package com.sza.fastmediasorter.ui.launcher.helpers
 
-import com.sza.fastmediasorter.core.screencapture.gesture.GestureAccessibilityActions
+import android.app.Activity
+import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
+import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
 import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeAction
-import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import timber.log.Timber
 
 /** Routes actions configured for directional swipes on the launcher desktop. */
 class LauncherDesktopSwipeActionHandler(
-    private val accessibilityActions: Set<@JvmSuppressWildcards GestureAccessibilityActions>,
+    private val activity: Activity,
+    private val actionDispatcher: ScreenshotGestureActionDispatcher,
+    private val screenshotLaunchers: Set<@JvmSuppressWildcards MenuScreenshotLauncher>,
     private val onOpenAllApps: () -> Unit,
 ) {
 
-    fun handle(action: LauncherDesktopSwipeAction) {
+    suspend fun handle(action: LauncherDesktopSwipeAction, payload: String) {
         Timber.d("S2221: execute desktop swipe action=%s", action)
         when (action) {
-            LauncherDesktopSwipeAction.OPEN_ALL_APPS -> onOpenAllApps()
-            LauncherDesktopSwipeAction.OPEN_NOTIFICATION_SHADE ->
-                accessibilityActions.firstOrNull()?.perform(ScreenshotGestureAction.OPEN_NOTIFICATION_SHADE)
-            LauncherDesktopSwipeAction.DO_NOT_USE -> Unit
+            LauncherDesktopSwipeAction.OpenAllApps -> onOpenAllApps()
+            is LauncherDesktopSwipeAction.EdgeGestureAction -> {
+                val handled = actionDispatcher.handlePreCaptureAction(activity, action.action, payload)
+                if (!handled) screenshotLaunchers.firstOrNull()?.launch(activity, action.action)
+            }
         }
     }
 }

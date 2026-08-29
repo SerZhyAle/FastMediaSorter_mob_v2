@@ -62,14 +62,17 @@ import androidx.wear.input.RemoteInputIntentHelper
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
+import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.CellCaption
 import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
+import com.sza.fastmediasorter.wear.ui.common.WearChoiceGridFit
 import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateExtraAction
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
+import com.sza.fastmediasorter.wear.ui.common.wearChoiceRows
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionScroll
@@ -260,12 +263,14 @@ private fun StreamsDialogsHost(
                 onTopicSelected = viewModel::setSelectedTopic,
                 onLanguageSelected = viewModel::setSelectedLanguage
             ),
+            viewMode = uiState.viewMode,
             onDismiss = { viewModel.setShowFilterDialog(false) }
         )
     }
     if (uiState.showSortDialog) {
         StreamSortDialog(
             selectedSort = uiState.sortOrder,
+            viewMode = uiState.viewMode,
             onSortSelected = viewModel::setSortOrder,
             onDismiss = { viewModel.setShowSortDialog(false) }
         )
@@ -649,6 +654,7 @@ private fun StreamSearchDialog(
 private fun StreamFilterDialog(
     state: StreamsFilterDialogState,
     actions: StreamsFilterDialogActions,
+    viewMode: WearViewMode,
     onDismiss: () -> Unit
 ) {
     Dialog(
@@ -656,68 +662,51 @@ private fun StreamFilterDialog(
         onDismissRequest = onDismiss
     ) {
         val listState = rememberScalingLazyListState()
-        ScalingLazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            state = listState,
-            contentPadding = wearScreenInsets()
-        ) {
-            item {
-                Text(
-                    text = stringResource(R.string.wear_streams_filter),
-                    style = MaterialTheme.typography.title3,
-                    modifier = Modifier.padding(bottom = 8.dp),
-                    textAlign = TextAlign.Center
-                )
-            }
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val gridFit = WearChoiceGridFit(
+                viewMode = viewMode,
+                availableWidthDp = maxWidth.value.toInt(),
+                fixedEnumeration = true
+            )
+            ScalingLazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                state = listState,
+                contentPadding = wearScreenInsets()
+            ) {
+                item {
+                    Text(
+                        text = stringResource(R.string.wear_streams_filter),
+                        style = MaterialTheme.typography.title3,
+                        modifier = Modifier.padding(bottom = 8.dp),
+                        textAlign = TextAlign.Center
+                    )
+                }
 
-            item {
-                Chip(
-                    onClick = { actions.onFilterSelected(StreamFilterKind.ALL) },
-                    label = { Text(stringResource(R.string.wear_streams_filter_all)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = if (state.selectedFilter == StreamFilterKind.ALL) {
-                        ChipDefaults.primaryChipColors()
-                    } else {
-                        ChipDefaults.secondaryChipColors()
-                    }
+                wearChoiceRows(
+                    options = listOf(StreamFilterKind.ALL, StreamFilterKind.AUDIO_ONLY, StreamFilterKind.VIDEO_ONLY),
+                    selected = state.selectedFilter,
+                    labelOf = { filter ->
+                        when (filter) {
+                            StreamFilterKind.ALL -> stringResource(R.string.wear_streams_filter_all)
+                            StreamFilterKind.AUDIO_ONLY -> stringResource(R.string.wear_streams_filter_audio)
+                            StreamFilterKind.VIDEO_ONLY -> stringResource(R.string.wear_streams_filter_video)
+                        }
+                    },
+                    onSelected = { actions.onFilterSelected(it) },
+                    gridFit = gridFit
                 )
-            }
 
-            item {
-                Chip(
-                    onClick = { actions.onFilterSelected(StreamFilterKind.AUDIO_ONLY) },
-                    label = { Text(stringResource(R.string.wear_streams_filter_audio)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = if (state.selectedFilter == StreamFilterKind.AUDIO_ONLY) {
-                        ChipDefaults.primaryChipColors()
-                    } else {
-                        ChipDefaults.secondaryChipColors()
-                    }
-                )
+                streamTopicFilterChoices(state, actions, gridFit)
+                streamLanguageFilterChoices(state, actions, gridFit)
             }
-
-            item {
-                Chip(
-                    onClick = { actions.onFilterSelected(StreamFilterKind.VIDEO_ONLY) },
-                    label = { Text(stringResource(R.string.wear_streams_filter_video)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = if (state.selectedFilter == StreamFilterKind.VIDEO_ONLY) {
-                        ChipDefaults.primaryChipColors()
-                    } else {
-                        ChipDefaults.secondaryChipColors()
-                    }
-                )
-            }
-
-            streamTopicFilterChoices(state, actions)
-            streamLanguageFilterChoices(state, actions)
         }
     }
 }
 
 private fun ScalingLazyListScope.streamTopicFilterChoices(
     state: StreamsFilterDialogState,
-    actions: StreamsFilterDialogActions
+    actions: StreamsFilterDialogActions,
+    gridFit: WearChoiceGridFit
 ) {
     if (state.availableTopics.isEmpty()) return
     item {
@@ -728,25 +717,19 @@ private fun ScalingLazyListScope.streamTopicFilterChoices(
             textAlign = TextAlign.Center
         )
     }
-    item {
-        StreamFilterChoice(
-            label = stringResource(R.string.wear_streams_filter_topic_all),
-            selected = state.selectedTopic == null,
-            onClick = { actions.onTopicSelected(null) }
-        )
-    }
-    items(state.availableTopics) { topic ->
-        StreamFilterChoice(
-            label = topic,
-            selected = state.selectedTopic == topic,
-            onClick = { actions.onTopicSelected(topic) }
-        )
-    }
+    wearChoiceRows(
+        options = listOf<String?>(null) + state.availableTopics,
+        selected = state.selectedTopic,
+        labelOf = { topic -> topic ?: stringResource(R.string.wear_streams_filter_topic_all) },
+        onSelected = { actions.onTopicSelected(it) },
+        gridFit = gridFit.copy(fixedEnumeration = false)
+    )
 }
 
 private fun ScalingLazyListScope.streamLanguageFilterChoices(
     state: StreamsFilterDialogState,
-    actions: StreamsFilterDialogActions
+    actions: StreamsFilterDialogActions,
+    gridFit: WearChoiceGridFit
 ) {
     if (state.availableLanguages.isEmpty()) return
     item {
@@ -757,35 +740,19 @@ private fun ScalingLazyListScope.streamLanguageFilterChoices(
             textAlign = TextAlign.Center
         )
     }
-    item {
-        StreamFilterChoice(
-            label = stringResource(R.string.wear_streams_filter_language_all),
-            selected = state.selectedLanguage == null,
-            onClick = { actions.onLanguageSelected(null) }
-        )
-    }
-    items(state.availableLanguages) { language ->
-        StreamFilterChoice(
-            label = language,
-            selected = state.selectedLanguage == language,
-            onClick = { actions.onLanguageSelected(language) }
-        )
-    }
-}
-
-@Composable
-private fun StreamFilterChoice(label: String, selected: Boolean, onClick: () -> Unit) {
-    Chip(
-        onClick = onClick,
-        label = { Text(label) },
-        modifier = Modifier.fillMaxWidth(),
-        colors = if (selected) ChipDefaults.primaryChipColors() else ChipDefaults.secondaryChipColors()
+    wearChoiceRows(
+        options = listOf<String?>(null) + state.availableLanguages,
+        selected = state.selectedLanguage,
+        labelOf = { language -> language ?: stringResource(R.string.wear_streams_filter_language_all) },
+        onSelected = { actions.onLanguageSelected(it) },
+        gridFit = gridFit.copy(fixedEnumeration = false)
     )
 }
 
 @Composable
 private fun StreamSortDialog(
     selectedSort: StreamSortOrder,
+    viewMode: WearViewMode,
     onSortSelected: (StreamSortOrder) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -794,72 +761,45 @@ private fun StreamSortDialog(
         onDismissRequest = onDismiss
     ) {
         val listState = rememberScalingLazyListState()
-        ScalingLazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            state = listState,
-            contentPadding = wearScreenInsets()
-        ) {
-            item {
-                Text(
-                    text = stringResource(R.string.wear_streams_sort),
-                    style = MaterialTheme.typography.title3,
-                    modifier = Modifier.padding(bottom = 8.dp),
-                    textAlign = TextAlign.Center
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val gridFit = WearChoiceGridFit(
+                viewMode = viewMode,
+                availableWidthDp = maxWidth.value.toInt(),
+                fixedEnumeration = true
+            )
+            ScalingLazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                state = listState,
+                contentPadding = wearScreenInsets()
+            ) {
+                item {
+                    Text(
+                        text = stringResource(R.string.wear_streams_sort),
+                        style = MaterialTheme.typography.title3,
+                        modifier = Modifier.padding(bottom = 8.dp),
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                wearChoiceRows(
+                    options = StreamSortOrder.entries,
+                    selected = selectedSort,
+                    labelOf = { sort ->
+                        val res = when (sort) {
+                            StreamSortOrder.DEFAULT -> R.string.wear_streams_sort_default
+                            StreamSortOrder.NAME_ASC -> R.string.wear_streams_sort_name_asc
+                            StreamSortOrder.NAME_DESC -> R.string.wear_streams_sort_name_desc
+                            StreamSortOrder.KIND -> R.string.wear_streams_sort_kind
+                            StreamSortOrder.TOPIC -> R.string.wear_streams_sort_topic
+                            StreamSortOrder.LANGUAGE -> R.string.wear_streams_sort_language
+                        }
+                        stringResource(res)
+                    },
+                    onSelected = onSortSelected,
+                    gridFit = gridFit
                 )
             }
-
-            streamSortChoice(
-                selectedSort,
-                StreamSortOrder.DEFAULT,
-                R.string.wear_streams_sort_default,
-                onSortSelected
-            )
-            streamSortChoice(
-                selectedSort,
-                StreamSortOrder.NAME_ASC,
-                R.string.wear_streams_sort_name_asc,
-                onSortSelected
-            )
-            streamSortChoice(
-                selectedSort,
-                StreamSortOrder.NAME_DESC,
-                R.string.wear_streams_sort_name_desc,
-                onSortSelected
-            )
-            streamSortChoice(
-                selectedSort,
-                StreamSortOrder.KIND,
-                R.string.wear_streams_sort_kind,
-                onSortSelected
-            )
-            streamSortChoice(
-                selectedSort,
-                StreamSortOrder.TOPIC,
-                R.string.wear_streams_sort_topic,
-                onSortSelected
-            )
-            streamSortChoice(
-                selectedSort,
-                StreamSortOrder.LANGUAGE,
-                R.string.wear_streams_sort_language,
-                onSortSelected
-            )
         }
-    }
-}
-
-private fun ScalingLazyListScope.streamSortChoice(
-    selectedSort: StreamSortOrder,
-    option: StreamSortOrder,
-    labelRes: Int,
-    onSortSelected: (StreamSortOrder) -> Unit
-) {
-    item {
-        StreamFilterChoice(
-            label = stringResource(labelRes),
-            selected = selectedSort == option,
-            onClick = { onSortSelected(option) }
-        )
     }
 }
 

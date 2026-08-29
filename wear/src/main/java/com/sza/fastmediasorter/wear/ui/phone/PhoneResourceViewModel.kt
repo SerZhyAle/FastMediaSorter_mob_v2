@@ -47,6 +47,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -66,6 +67,12 @@ private const val BYTES_PER_MB = 1024L * 1024L
  * directory stays bounded - it holds convenience copies, not anything the user asked to keep.
  */
 private const val PHONE_FILE_CACHE_CAP_BYTES = 128L * BYTES_PER_MB
+
+/** S2129: maximum concurrent on-demand thumbnail requests to the phone. */
+private const val MAX_IN_FLIGHT_THUMBNAILS = 3
+
+/** S2129: maximum thumbnail cache size on watch. */
+private const val MAX_CACHED_THUMBNAILS = 50
 
 /** S1846: what came of the last tap on a phone file. */
 sealed interface PhoneFileOpenOutcome {
@@ -234,6 +241,42 @@ class PhoneResourceViewModel @Inject constructor(
 
     private val _thumbnails = MutableStateFlow<Map<String, WearThumbnail>>(emptyMap())
     val thumbnails: StateFlow<Map<String, WearThumbnail>> = _thumbnails.asStateFlow()
+
+    private val inFlightThumbnails = mutableSetOf<String>()
+
+    /**
+     * S2129: requests one item's thumbnail on-demand from the phone.
+     *
+     * A token already requested or in flight is never requested again.
+     * Bounded by [MAX_IN_FLIGHT_THUMBNAILS] to avoid bridge decoder congestion.
+     */
+    fun requestThumbnail(itemToken: String) {
+        if (itemToken.isEmpty() || _thumbnails.value.containsKey(itemToken) || inFlightThumbnails.contains(itemToken)) {
+            return
+        }
+        if (inFlightThumbnails.size >= MAX_IN_FLIGHT_THUMBNAILS) return
+
+        inFlightThumbnails.add(itemToken)
+        _thumbnails.update { current -> current + (itemToken to WearThumbnail.Loading) }
+
+        viewModelScope.launch {
+            try {
+                val outcome = phoneResourceClient.requestThumbnail(itemToken)
+                val thumbnail = if (outcome is PhoneResourceOutcome.Page) {
+                    outcome.page.items.firstOrNull()?.toWearThumbnail() ?: WearThumbnail.Unavailable
+                } else {
+                    WearThumbnail.Unavailable
+                }
+                _thumbnails.update { current ->
+                    val next = current + (itemToken to thumbnail)
+                    val excess = next.size - MAX_CACHED_THUMBNAILS
+                    if (excess <= 0) next else next.entries.drop(excess).associate { it.key to it.value }
+                }
+            } finally {
+                inFlightThumbnails.remove(itemToken)
+            }
+        }
+    }
 
     /**
      * The folders walked into, each beside the name it is titled by, so Back returns one level
@@ -437,6 +480,7 @@ class PhoneResourceViewModel @Inject constructor(
         _uiState.value = PhoneResourceUiState.Loading
         // Tokens are per folder, so keeping the previous page's pictures would only hold bitmaps
         // no cell can ask for again.
+        inFlightThumbnails.clear()
         _thumbnails.value = emptyMap()
         val isFlat = BrowseCategoryCatalog.shapeForToken(categoryToken) == WearListShape.FLAT_MEDIA
         viewModelScope.launch {

@@ -120,11 +120,17 @@ class ResetLauncherToDefaultsUseCase @Inject constructor(
                 launcherDesktopSwipeDownAction = defaults.launcherDesktopSwipeDownAction,
                 launcherDesktopSwipeLeftAction = defaults.launcherDesktopSwipeLeftAction,
                 launcherDesktopSwipeRightAction = defaults.launcherDesktopSwipeRightAction,
+                launcherDesktopSwipeUpPayload = defaults.launcherDesktopSwipeUpPayload,
+                launcherDesktopSwipeDownPayload = defaults.launcherDesktopSwipeDownPayload,
+                launcherDesktopSwipeLeftPayload = defaults.launcherDesktopSwipeLeftPayload,
+                launcherDesktopSwipeRightPayload = defaults.launcherDesktopSwipeRightPayload,
                 launcherWallpaperMode = defaults.launcherWallpaperMode,
                 launcherWallpaperImagePath = defaults.launcherWallpaperImagePath,
                 launcherWallpaperCameraId = defaults.launcherWallpaperCameraId,
                 launcherScreenBlackoutTimeoutSeconds = defaults.launcherScreenBlackoutTimeoutSeconds,
                 launcherWidgetBackdropAlpha = defaults.launcherWidgetBackdropAlpha,
+                launcherStepsResetCount = defaults.launcherStepsResetCount,
+                launcherStepsResetTimestamp = defaults.launcherStepsResetTimestamp,
             )
         }
     }

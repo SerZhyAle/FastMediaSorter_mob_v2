@@ -69,7 +69,7 @@
 
     <!-- One screen plus downward scroll, no desktop pages (strategic §3.3). fillViewport is what makes
          a desktop shorter than the screen still fill it, so the grid is not a floating strip on top. -->
-    <androidx.core.widget.NestedScrollView
+    <com.sza.fastmediasorter.ui.launcher.grid.LauncherGestureNestedScrollView
         android:id="@+id/launcherGridScroll"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -87,7 +87,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-    </androidx.core.widget.NestedScrollView>
+    </com.sza.fastmediasorter.ui.launcher.grid.LauncherGestureNestedScrollView>
 
     <!-- S1430: replaces the scroll container's system bar, which is drawn but never touchable. Declared
          after the container so it draws on top, and anchored to the container rather than to the parent
@@ -112,5 +112,16 @@
 
     <!-- S1412: the "done" button lives on the taskbar (launcher_taskbar.xml), not here - floating over
          the grid's top-right corner covered up to two cells that edit mode then could not reach. -->
+
+    <View
+        android:id="@+id/launcherIdleDimOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#80000000"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

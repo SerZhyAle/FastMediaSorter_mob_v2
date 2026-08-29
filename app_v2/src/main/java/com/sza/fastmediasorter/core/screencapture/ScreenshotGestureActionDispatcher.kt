@@ -103,10 +103,17 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
         action: ScreenshotGestureAction,
         zone: ScreenshotGestureZone,
         direction: ScreenshotGestureDirection,
+    ): Boolean = handlePreCaptureAction(context, action, payloadFor(zone, direction))
+
+    /** Runs an edge action supplied by another gesture surface with its own optional action payload. */
+    suspend fun handlePreCaptureAction(
+        context: Context,
+        action: ScreenshotGestureAction,
+        payload: String,
     ): Boolean = when (action) {
         ScreenshotGestureAction.DO_NOT_USE -> true
         ScreenshotGestureAction.OPEN_APP -> {
-            launchSelectedApp(context, payloadFor(zone, direction))
+            launchSelectedApp(context, payload)
             true
         }
         ScreenshotGestureAction.OPEN_PANEL -> {
@@ -166,7 +173,7 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
         ScreenshotGestureAction.MEDIA_PREV -> mediaActionHandler.handle(context, action)
         // S1038: launch/intent actions. OPEN_URL alone needs the per-slot payload; the rest ignore it.
         ScreenshotGestureAction.OPEN_URL ->
-            launchActionHandler.handle(context, action, payloadFor(zone, direction))
+            launchActionHandler.handle(context, action, payload)
         ScreenshotGestureAction.OPEN_ASSISTANT,
         ScreenshotGestureAction.OPEN_GEMINI,
         ScreenshotGestureAction.CREATE_KEEP_NOTE,

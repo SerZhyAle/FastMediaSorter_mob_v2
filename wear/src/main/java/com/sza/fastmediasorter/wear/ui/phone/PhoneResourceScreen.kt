@@ -152,7 +152,12 @@ fun PhoneResourceScreen(
             PhoneResourceStateBranch(
                 state = state,
                 listState = listState,
-                presentation = PhoneListPresentation(fileListViewMode, thumbnails),
+                presentation = PhoneListPresentation(
+                    viewMode = fileListViewMode,
+                    thumbnails = thumbnails,
+                    title = (state as? PhoneResourceUiState.Content)?.title ?: ScreenTitle.Text(""),
+                    onRequestThumbnail = viewModel::requestThumbnail
+                ),
                 viewModel = viewModel,
                 navController = navController,
                 notices = PhoneResourceNotices(operationNotice, openOutcome),
@@ -172,7 +177,7 @@ fun PhoneResourceScreen(
         }
     }
 
-    PhoneRefineDialogsHost(refine = refineState, viewModel = viewModel)
+    PhoneRefineDialogsHost(refine = refineState, viewModel = viewModel, viewMode = fileListViewMode)
 
     PhoneFileDialogs(
         viewModel = viewModel,
@@ -194,7 +199,9 @@ private data class PhoneResourceNotices(
 /** How the list is drawn, as opposed to what it holds. */
 private data class PhoneListPresentation(
     val viewMode: WearViewMode,
-    val thumbnails: Map<String, WearThumbnail>
+    val thumbnails: Map<String, WearThumbnail>,
+    val title: ScreenTitle,
+    val onRequestThumbnail: (String) -> Unit
 )
 
 /** Picks the branch for the current state. The refine header above it is composed in every branch. */
@@ -218,9 +225,7 @@ private fun PhoneResourceStateBranch(
             PhoneResourceList(
                 items = current.items,
                 listState = listState,
-                viewMode = presentation.viewMode,
-                thumbnails = presentation.thumbnails,
-                title = current.title,
+                presentation = presentation,
                 onEntryClick = { entry ->
                     when {
                         entry.isDirectory -> viewModel.openFolder(entry.token, entry.name)
@@ -365,7 +370,8 @@ private fun rememberPhoneSearchInput(viewModel: PhoneResourceViewModel): () -> U
 @Composable
 private fun PhoneRefineDialogsHost(
     refine: BrowseRefineState,
-    viewModel: PhoneResourceViewModel
+    viewModel: PhoneResourceViewModel,
+    viewMode: WearViewMode
 ) {
     // Remembered here rather than by the screen, for the reason the browse screen gives: it answers
     // this dialog alone.
@@ -392,7 +398,8 @@ private fun PhoneRefineDialogsHost(
             selected = refine.sortOrder,
             labelOf = { stringResource(labelForSortOrder(it)) },
             onSelected = viewModel::setSortOrder,
-            onDismiss = { viewModel.setShowSortDialog(false) }
+            onDismiss = { viewModel.setShowSortDialog(false) },
+            viewMode = viewMode
         )
     }
 
@@ -410,7 +417,8 @@ private fun PhoneRefineDialogsHost(
             onSelected = { type ->
                 viewModel.setContentTypes(if (type == null) emptySet() else setOf(type))
             },
-            onDismiss = { viewModel.setShowFilterDialog(false) }
+            onDismiss = { viewModel.setShowFilterDialog(false) },
+            viewMode = viewMode
         )
     }
 }
@@ -553,16 +561,14 @@ private fun PhoneFileActionsMenu(
 private fun PhoneResourceList(
     items: List<WearPhoneResourceItem>,
     listState: ScalingLazyListState,
-    viewMode: WearViewMode,
-    thumbnails: Map<String, WearThumbnail>,
-    title: ScreenTitle,
+    presentation: PhoneListPresentation,
     onEntryClick: (WearPhoneResourceItem) -> Unit,
     onEntryLongClick: (WearPhoneResourceItem) -> Unit
 ) {
     // The column count comes from the width this composable actually gets, so this browser answers
     // the geometry question exactly as the general file list does.
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val columns = GridColumnFit.columnsFor(viewMode, maxWidth.value.toInt())
+        val columns = GridColumnFit.columnsFor(presentation.viewMode, maxWidth.value.toInt())
         // Decided here, for the whole loaded page, rather than per row: a picture that lands mid-scroll
         // must not re-size the glyph under the reading finger (strategic ADR-3). Only the cell path
         // ever swaps a glyph for a thumbnail, so the column count is what answers that question.
@@ -579,9 +585,9 @@ private fun PhoneResourceList(
             scalingParams = WearGridScalingParams
         ) {
             item {
-                val titleText = when (title) {
-                    is ScreenTitle.Text -> title.value
-                    is ScreenTitle.Resource -> stringResource(title.id)
+                val titleText = when (presentation.title) {
+                    is ScreenTitle.Text -> presentation.title.value
+                    is ScreenTitle.Resource -> stringResource(presentation.title.id)
                 }
                 Text(
                     text = titleText,
@@ -597,7 +603,8 @@ private fun PhoneResourceList(
                 items = items,
                 columns = columns,
                 density = density,
-                thumbnails = thumbnails,
+                thumbnails = presentation.thumbnails,
+                onRequestThumbnail = presentation.onRequestThumbnail,
                 onEntryClick = onEntryClick,
                 onEntryLongClick = onEntryLongClick
             )
@@ -651,11 +658,15 @@ private fun ScalingLazyListScope.entryItems(
     columns: Int,
     density: WearRowDensity,
     thumbnails: Map<String, WearThumbnail>,
+    onRequestThumbnail: (String) -> Unit,
     onEntryClick: (WearPhoneResourceItem) -> Unit,
     onEntryLongClick: (WearPhoneResourceItem) -> Unit
 ) {
     if (columns == SINGLE_COLUMN) {
-        items(items) { entry ->
+        items(items, key = { it.token }) { entry ->
+            if (!entry.isDirectory) {
+                onRequestThumbnail(entry.token)
+            }
             EntryChip(entry = entry, density = density, onEntryClick = onEntryClick)
         }
     } else {
@@ -664,6 +675,7 @@ private fun ScalingLazyListScope.entryItems(
                 entries = rowEntries,
                 columns = columns,
                 thumbnails = thumbnails,
+                onRequestThumbnail = onRequestThumbnail,
                 onEntryClick = onEntryClick,
                 onEntryLongClick = onEntryLongClick
             )
@@ -677,6 +689,7 @@ private fun EntryRow(
     entries: List<WearPhoneResourceItem>,
     columns: Int,
     thumbnails: Map<String, WearThumbnail>,
+    onRequestThumbnail: (String) -> Unit,
     onEntryClick: (WearPhoneResourceItem) -> Unit,
     onEntryLongClick: (WearPhoneResourceItem) -> Unit
 ) {
@@ -686,6 +699,9 @@ private fun EntryRow(
         horizontalArrangement = Arrangement.spacedBy(GRID_GAP)
     ) {
         entries.forEach { entry ->
+            if (!entry.isDirectory) {
+                onRequestThumbnail(entry.token)
+            }
             ThumbnailCell(
                 thumbnail = thumbnails[entry.token] ?: WearThumbnail.Unavailable,
                 caption = entry.name,

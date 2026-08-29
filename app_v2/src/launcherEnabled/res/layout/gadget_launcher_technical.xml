@@ -8,8 +8,12 @@
     tools:parentTag="android.widget.FrameLayout">
 
     <LinearLayout
+        android:id="@+id/gadgetTechnicalBody"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@drawable/focus_button_background"
+        android:clickable="true"
+        android:focusable="true"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:padding="@dimen/margin_small">

@@ -8,17 +8,16 @@ import com.sza.fastmediasorter.ui.dialog.ListSelectionAdapter
 import com.sza.fastmediasorter.ui.dialog.ListSelectionConfig
 import com.sza.fastmediasorter.ui.dialog.ListSelectionDialog
 
-/** Presents only launcher desktop actions that have an executable route in this build. */
+/** Presents the launcher route plus every edge-gesture action executable in this build. */
 class LauncherDesktopSwipeActionPickerManager(
-    private val systemActionsAvailable: Boolean,
+    private val edgeGestureActionPicker: ScreenshotGestureActionPickerManager,
 ) {
 
     fun labelFor(context: Context, action: LauncherDesktopSwipeAction): String = context.getString(
         when (action) {
-            LauncherDesktopSwipeAction.OPEN_ALL_APPS -> R.string.launcher_desktop_swipe_action_all_apps
-            LauncherDesktopSwipeAction.OPEN_NOTIFICATION_SHADE ->
-                R.string.launcher_desktop_swipe_action_notification_shade
-            LauncherDesktopSwipeAction.DO_NOT_USE -> R.string.launcher_desktop_swipe_action_do_not_use
+            LauncherDesktopSwipeAction.OpenAllApps -> R.string.launcher_desktop_swipe_action_all_apps
+            is LauncherDesktopSwipeAction.EdgeGestureAction ->
+                ScreenshotGestureActionCatalog.labelResFor(action.action)
         }
     )
 
@@ -47,9 +46,7 @@ class LauncherDesktopSwipeActionPickerManager(
         ).show()
     }
 
-    private fun availableActions(): List<LauncherDesktopSwipeAction> = buildList {
-        add(LauncherDesktopSwipeAction.OPEN_ALL_APPS)
-        if (systemActionsAvailable) add(LauncherDesktopSwipeAction.OPEN_NOTIFICATION_SHADE)
-        add(LauncherDesktopSwipeAction.DO_NOT_USE)
-    }
+    private fun availableActions(): List<LauncherDesktopSwipeAction> =
+        listOf(LauncherDesktopSwipeAction.OpenAllApps) +
+            edgeGestureActionPicker.availableActions().map(LauncherDesktopSwipeAction::EdgeGestureAction)
 }
