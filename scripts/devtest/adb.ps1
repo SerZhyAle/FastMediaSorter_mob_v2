@@ -54,7 +54,7 @@
                          phone use one rule and neither is hardcoded
     text                 input text -Text "<string>" (spaces handled)
     key                  input keyevent -Key <name-or-code> (e.g. BACK, 4, KEYCODE_HOME)
-    prefs                pull app_settings.xml via run-as to temp/scratch/ (debuggable build only)
+    prefs                pull settings.preferences.pb via run-as to temp/scratch/ (debuggable build only)
     pull                 fetch a file off the device: -Remote <path> [-Local <path>] [-Latest].
                          Without -Local the file lands in temp/scratch/ under its own name.
                          -Latest treats -Remote as a directory or glob and takes the newest match
@@ -539,7 +539,7 @@ switch ($Verb.ToLowerInvariant()) {
         Write-Host "  swipe      input swipe -X <x> -Y <y> -X2 <x> -Y2 <y> [-Duration ms]" -ForegroundColor White
         Write-Host "  text       input text -Text <string>" -ForegroundColor White
         Write-Host "  key        input keyevent -Key <name-or-code>" -ForegroundColor White
-        Write-Host "  prefs      pull app_settings.xml to temp/scratch/ (run-as)" -ForegroundColor White
+        Write-Host "  prefs      pull settings.preferences.pb to temp/scratch/ (run-as)" -ForegroundColor White
         Write-Host "  pull       fetch a file: -Remote <path> [-Local <path>] [-Latest] -> temp/scratch/" -ForegroundColor White
         Write-Host "  push       send a file: -Local <path> -Remote <path>" -ForegroundColor White
         Write-Host "  shell      passthrough -Cmd <adb shell command>" -ForegroundColor White
@@ -1019,10 +1019,15 @@ switch ($Verb.ToLowerInvariant()) {
         $id  = Select-Device
         $pkg = Resolve-Package $id
         $script:result.device = $id; $script:result.package = $pkg
-        $local = Join-Path (Get-TempDir) "app_settings_$(Get-Stamp).xml"
-        $out = & $adb -s $id shell "run-as $pkg cat /data/data/$pkg/shared_prefs/app_settings.xml" 2>$null
-        if (-not $out) { Fail 7 "could not read app_settings.xml (non-debuggable build or file absent)" }
-        ($out -join "`n") | Out-File -FilePath $local -Encoding UTF8
+        $local = Join-Path (Get-TempDir) "settings_$(Get-Stamp).preferences.pb"
+        $encoded = & $adb -s $id shell "run-as $pkg base64 /data/data/$pkg/files/datastore/settings.preferences_pb" 2>$null
+        if (-not $encoded) { Fail 7 "could not read settings.preferences.pb (non-debuggable build or file absent)" }
+        try {
+            $bytes = [Convert]::FromBase64String(($encoded -join ''))
+        } catch {
+            Fail 7 "could not decode settings.preferences.pb from $pkg"
+        }
+        [System.IO.File]::WriteAllBytes($local, $bytes)
         if ($Json) { Emit-Ok @{ id = $id; package = $pkg; file = $local } }
         Write-Host "PREFS $local" -ForegroundColor Green
         exit 0

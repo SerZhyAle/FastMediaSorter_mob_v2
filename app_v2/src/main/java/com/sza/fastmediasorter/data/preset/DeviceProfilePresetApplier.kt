@@ -388,6 +388,9 @@ class DeviceProfilePresetApplier @Inject constructor(
             "launcherScreenBlackoutTimeoutSeconds" -> applyLauncherField(field, raw, settings) { s ->
                 raw.trim().toIntOrNull()?.coerceAtLeast(0)?.let { s.copy(launcherScreenBlackoutTimeoutSeconds = it) }
             }
+            "launcherWidgetBackdropAlpha" -> applyLauncherField(field, raw, settings) { s ->
+                raw.trim().toFloatOrNull()?.coerceIn(0.0f, 1.0f)?.let { s.copy(launcherWidgetBackdropAlpha = it) }
+            }
 
             // ── String set fields (delimiter: comma, semicolon or pipe) ───
             "enabledShareTargets" -> settings.copy(enabledShareTargets = raw.toStringSet())

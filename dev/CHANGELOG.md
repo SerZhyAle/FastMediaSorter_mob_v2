@@ -29239,3 +29239,113 @@ Format: | datetime | file | target | description |
 | 2026-08-28 15:08:37 | `app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/helpers/LauncherWallpaperManager.kt` | `S2210` | Drop the main-thread file stat from instant photo wallpaper render [set of 2: app_v2/src/main/java/com/sza/fastmediasorter/domain/model/launcher/LauncherWallpaper.kt] [branch: DEBUG-v035] |
 | 2026-08-28 15:09:24 | `PLAN/S2210_launcher-instant-photo-wallpaper.md` | `spec-check` | Record S2210 device evidence and the render-path defect found by it [branch: DEBUG-v035] |
 | 2026-08-28 15:32:23 | `PLAN/S2222_launcher-section-delete-resort.md` | `spec` | Scaffold strategic spec skeleton S2222 [branch: DEBUG-v035] |
+| 2026-08-28 15:38:24 | `PLAN/S2223_animation-color-palettes.md` | `spec` | Scaffold strategic spec skeleton S2223 [branch: DEBUG-v035] |
+| 2026-08-28 19:42:09 | `PLAN/S2224_bugfix-icon-inventory-stale.md` | `spec` | Scaffold strategic spec skeleton S2224 [branch: DEBUG-v035] |
+| 2026-08-28 19:42:10 | `PLAN/S2225_bugfix-stream-editor-path-field.md` | `spec` | Scaffold strategic spec skeleton S2225 [branch: DEBUG-v035] |
+| 2026-08-28 19:53:23 | `PLAN/S2185_wallpaper-dropdown-clips-items-without-ellipsis/INDEX.md` | `spec-tech` | Create tactical plan for S2185 [branch: DEBUG-v035] |
+| 2026-08-28 19:53:24 | `PLAN/S2185_wallpaper-dropdown-clips-items-without-ellipsis/PHASE_01__shared-popup-width.md` | `spec-tech` | Phase 01: shared-popup-width [branch: DEBUG-v035] |
+| 2026-08-28 19:53:25 | `PLAN/S2185_wallpaper-dropdown-clips-items-without-ellipsis/PHASE_02__docs-catalog-cleanup.md` | `spec-tech` | Phase 02: docs-catalog-cleanup [branch: DEBUG-v035] |
+| 2026-08-28 19:53:26 | `PLAN/S2185_wallpaper-dropdown-clips-items-without-ellipsis.md` | `spec-tech` | Status to Tactical [branch: DEBUG-v035] |
+| 2026-08-28 19:54:46 | `PLAN/S2215_launcher-back-navigation-return.md` | `spec-all` | Pipeline BlockNeedUserTest: S2215 [branch: DEBUG-v035] |
+| 2026-08-28 19:54:47 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/launcher/ExecuteLauncherCommandUseCase.kt` | `spec-all` | Set FLAG_ACTIVITY_MULTIPLE_TASK for internal launcher targets [branch: DEBUG-v035] |
+| 2026-08-28 19:54:48 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/launcher/ExecuteLauncherCommandTaskFlagsTest.kt` | `spec-all` | Unit test for internal vs external target task flags [branch: DEBUG-v035] |
+| 2026-08-28 19:57:57 | `docs/icons/icon-inventory.json` | `spec-all` | S2224: regenerate stale icon inventory after S2211 black_screen route, export missing ic_location svg, re-render legend [set of 6: docs/ICON_LEGEND.md, docs/ICON_LEGEND_RU.md, docs/ICON_LEGEND_UK.md, docs/icons/svg/ic_location.svg, PLAN/S2224_bugfix-icon-inventory-stale.md] [branch: DEBUG-v035] |
+| 2026-08-28 20:00:24 | `scripts/catalog_sync.ps1` | `catalog_sync` | Speed up catalog_sync, scan.ps1 and render.ps1 via bulk git log, memoized link resolution and fast I/O [set of 3: dev/CATALOG/scripts/scan.ps1, dev/CATALOG/scripts/render.ps1] [branch: DEBUG-v035] |
+| 2026-08-28 20:01:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/widget/PopupMenuWidthMeasurer.kt` | `S2185` | Share bounded popup width measurement [set of 3: app_v2/src/main/java/com/sza/fastmediasorter/ui/common/widget/SettingsDropdownRow.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerBigButtonsModeManager.kt] [branch: DEBUG-v035] |
+| 2026-08-28 20:03:27 | `PLAN/S2226_bugfix-test-suite-mount-map-parser.md` | `spec` | Scaffold strategic spec skeleton S2226 [branch: DEBUG-v035] |
+| 2026-08-28 20:06:03 | `app_v2/src/main/java/com/sza/fastmediasorter/core/panel/SubProgramCatalog.kt` | `S2212` | S2212: front flashlight as a full internal program - programs menu item and one-cell home-screen widget [set of 14: app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/MainProgramsMenuCoordinator.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt, app_v2/src/main/java/com/sza/fastmediasorter/widget/FrontFlashlightWidgetProvider.kt, app_v2/src/main/java/com/sza/fastmediasorter/widget/registry/HomeWidgetCatalog.kt, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/gadget/di/HomeWidgetGadgetModule.kt, app_v2/src/main/res/drawable/ic_widget_front_flashlight_accent.xml, +7 more] [branch: DEBUG-v035] |
+| 2026-08-28 20:06:14 | `PLAN/S2216_house-style-dashes-in-mirrored-doc-pages.md` | `spec-all` | Resolve research and approve S2216 documentation style gate scope [branch: DEBUG-v035] |
+| 2026-08-28 20:15:22 | `PLAN/S2212_flashlight-internal-app-surfaces.md` | `spec-check` | Audit S2212 -> BlockNeedUserTest; PASS/WARN/FAIL 25/0/0, MANUAL 4 [branch: DEBUG-v035] |
+| 2026-08-28 20:15:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/MainProgramsMenuCoordinator.kt` | `spec-check` | S2212 device-test probes added at the menu and widget flow entries [branch: DEBUG-v035] |
+| 2026-08-28 20:25:12 | `PLAN/S2227_bugfix-adb-prefs-verb-reads-dead-path.md` | `spec` | Scaffold strategic spec skeleton S2227 [branch: DEBUG-v035] |
+| 2026-08-28 20:28:16 | `PLAN/S2226_bugfix-test-suite-mount-map-parser.md` | `spec-all` | Compact spec: S2226 [branch: DEBUG-v035] |
+| 2026-08-28 20:30:41 | `scripts/quality/lib/flavor-source-map.ps1` | `S2226` | Parse wrapped source-set loops in the test suite map [set of 2: scripts/quality/assert-shared-test-flavor-scope.tests/Run-Tests.ps1] [branch: DEBUG-v035] |
+| 2026-08-28 20:42:36 | `PLAN/S2226_bugfix-test-suite-mount-map-parser.md` | `spec-check` | Audit S2226 -> Verified; PASS/WARN/FAIL 6/0/0 [branch: DEBUG-v035] |
+| 2026-08-28 21:02:13 | `PLAN/S2228_bugfix-extract-device-logs-datastore-path.md` | `spec` | Scaffold strategic spec skeleton S2228 [branch: DEBUG-v035] |
+| 2026-08-28 21:03:58 | `PLAN/S2227_bugfix-adb-prefs-verb-reads-dead-path.md` | `spec-all` | Compact spec: S2227 [branch: DEBUG-v035] |
+| 2026-08-28 21:12:53 | `scripts/devtest/adb.ps1` | `spec-all` | S2227 export prefs DataStore payload as bytes [set of 3: scripts/devtest/adb.tests/Run-Tests.ps1, scripts/devtest/adb.tests/stub/adb-stub.ps1] [branch: DEBUG-v035] |
+| 2026-08-28 21:13:51 | `PLAN/S2227_bugfix-adb-prefs-verb-reads-dead-path.md` | `spec-all` | Implement byte-safe DataStore preferences export [branch: DEBUG-v035] |
+| 2026-08-28 21:13:52 | `PLAN/S2227_bugfix-adb-prefs-verb-reads-dead-path/research/01__datastore-prefs-evidence.md` | `spec-all` | Preserve DataStore path evidence [branch: DEBUG-v035] |
+| 2026-08-28 21:14:07 | `PLAN/S2227_bugfix-adb-prefs-verb-reads-dead-path.md` | `spec-all` | Phase 01 audit: no P0/P1 findings [branch: DEBUG-v035] |
+| 2026-08-28 21:14:16 | `PLAN/S2227_bugfix-adb-prefs-verb-reads-dead-path.md` | `spec-check` | Audit S2227 -> Verified; PASS/WARN/FAIL 0/0/0 [branch: DEBUG-v035] |
+| 2026-08-28 21:16:23 | `scripts/devtest/adb.ps1` | `spec-all` | S2227 remove stale SharedPreferences test fixture [set of 4: scripts/devtest/adb.tests/Run-Tests.ps1, scripts/devtest/adb.tests/stub/adb-stub.ps1, scripts/devtest/adb.tests/fixtures/app_settings.xml (deleted)] [branch: DEBUG-v035] |
+| 2026-08-28 21:17:08 | `PLAN/S2227_bugfix-adb-prefs-verb-reads-dead-path.md` | `spec-check` | Audit S2227 -> Verified; PASS/WARN/FAIL 8/0/0 [branch: DEBUG-v035] |
+| 2026-08-28 22:26:28 | `PLAN/S2229_launcher-idle-dim-blackout.md` | `spec` | Scaffold strategic spec skeleton S2229 [branch: DEBUG-v035] |
+| 2026-08-28 22:28:36 | `PLAN/S2230_video-stream-widget-overlay-controls.md` | `spec` | Scaffold strategic spec skeleton S2230 [branch: DEBUG-v035] |
+| 2026-08-28 23:47:04 | `PLAN/S2228_bugfix-extract-device-logs-datastore-path.md` | `spec-all` | Compact spec approved: S2228 extract-device-logs reads the dead shared_prefs path [branch: DEBUG-v035] |
+| 2026-08-28 23:53:08 | `scripts/utils/extract-device-logs.ps1` | `extract-device-logs.ps1` | S2228 extract-device-logs pulls the DataStore settings protobuf byte-safe and fixes the split-APK pm path crash [branch: DEBUG-v035] |
+| 2026-08-28 23:54:41 | `PLAN/S2228_bugfix-extract-device-logs-datastore-path.md` | `spec-check` | Audit S2228 -> Verified; PASS/WARN/FAIL 8/0/0 [branch: DEBUG-v035] |
+| 2026-08-28 23:54:58 | `PLAN/S2228_bugfix-extract-device-logs-datastore-path.md` | `spec-all` | Pipeline Verified: S2228 [branch: DEBUG-v035] |
+| 2026-08-29 00:05:20 | `PLAN/S2216_house-style-dashes-in-mirrored-doc-pages/INDEX.md` | `spec-tech` | Create tactical plan for S2216 [branch: DEBUG-v035] |
+| 2026-08-29 00:05:21 | `PLAN/S2216_house-style-dashes-in-mirrored-doc-pages/PHASE_01__fix-mirrored-pages.md` | `spec-tech` | Phase 01: fix-mirrored-pages [branch: DEBUG-v035] |
+| 2026-08-29 00:05:22 | `PLAN/S2216_house-style-dashes-in-mirrored-doc-pages/PHASE_02__doc-dash-gate.md` | `spec-tech` | Phase 02: doc-dash-gate [branch: DEBUG-v035] |
+| 2026-08-29 00:05:23 | `PLAN/S2216_house-style-dashes-in-mirrored-doc-pages/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup [branch: DEBUG-v035] |
+| 2026-08-29 00:05:24 | `PLAN/S2216_house-style-dashes-in-mirrored-doc-pages.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v035] |
+| 2026-08-29 00:07:08 | `docs/README.md` | `spec-dev` | S2216 phase 01: long dashes replaced with house-style hyphen [branch: DEBUG-v035] |
+| 2026-08-29 00:09:12 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/settings/LauncherSettingsStore.kt` | `app_v2` | Persist launcher widget backdrop alpha in settings store and preset applier [branch: DEBUG-v035] |
+| 2026-08-29 00:22:49 | `PLAN/S2217_launcher-reset-orphans-widget-instances.md` | `spec-all` | Compact spec: S2217 [branch: DEBUG-v035] |
+| 2026-08-29 00:23:18 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/apps/QueryAllAppsUseCase.kt` | `app_v2` | Add grouped all-apps letter buckets and a regression test for launcher app ordering. [branch: DEBUG-v035] |
+| 2026-08-29 00:39:20 | `PLAN/S2221_launcher-swipe-up-all-programs.md` | `spec-code` | Refine S2221 strategic scope and record unresolved launcher gesture defaults [branch: DEBUG-v035] |
+| 2026-08-29 00:39:21 | `PLAN/S2221_launcher-swipe-up-all-programs/research/01__current-gesture-behavior.md` | `spec-code` | Record S2221 launcher gesture research [branch: DEBUG-v035] |
+| 2026-08-29 00:41:09 | `PLAN/S2221_launcher-swipe-up-all-programs.md` | `spec-code` | Resolve S2221 left and right desktop swipe defaults [branch: DEBUG-v035] |
+| 2026-08-29 00:46:13 | `PLAN/S2221_launcher-swipe-up-all-programs.md` | `spec-tech` | Link tactical plan for S2221 [branch: DEBUG-v035] |
+| 2026-08-29 00:46:14 | `PLAN/S2221_launcher-swipe-up-all-programs/INDEX.md` | `spec-tech` | Create tactical plan for S2221 [branch: DEBUG-v035] |
+| 2026-08-29 00:46:15 | `PLAN/S2221_launcher-swipe-up-all-programs/PHASE_01__swipe-settings.md` | `spec-tech` | Phase 01: swipe settings [branch: DEBUG-v035] |
+| 2026-08-29 00:46:15 | `PLAN/S2221_launcher-swipe-up-all-programs/PHASE_02__gesture-dispatch.md` | `spec-tech` | Phase 02: gesture dispatch [branch: DEBUG-v035] |
+| 2026-08-29 00:46:16 | `PLAN/S2221_launcher-swipe-up-all-programs/PHASE_03__launcher-settings-ui.md` | `spec-tech` | Phase 03: launcher settings UI [branch: DEBUG-v035] |
+| 2026-08-29 00:46:17 | `PLAN/S2221_launcher-swipe-up-all-programs/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs catalog cleanup [branch: DEBUG-v035] |
+| 2026-08-29 00:51:27 | `PLAN/S2217_launcher-reset-orphans-widget-instances.md` | `spec-all` | Phases 01-02 done; status -> BlockNeedUserTest (device pass pending) [branch: DEBUG-v035] |
+| 2026-08-29 00:51:27 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/LauncherDesktopRepository.kt` | `spec-all` | clearAll returns deleted rows targets (S2217 contract) [branch: DEBUG-v035] |
+| 2026-08-29 00:51:28 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/LauncherDesktopRepositoryImpl.kt` | `spec-all` | clearAll reads targets inside the delete transaction [branch: DEBUG-v035] |
+| 2026-08-29 00:51:28 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/launcher/ConfiguredWidgetInstanceCleaner.kt` | `spec-all` | New seam interface for instance cleanup (Rule 14 flavor split) [branch: DEBUG-v035] |
+| 2026-08-29 00:51:29 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/launcher/ResetLauncherToDefaultsUseCase.kt` | `spec-all` | Reset clears widget instances via seam; KDoc inventory item 7; S2217 probe tag [branch: DEBUG-v035] |
+| 2026-08-29 00:51:29 | `app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/gadget/ConfiguredWidgetInstanceManager.kt` | `spec-all` | Manager implements the seam; KDoc second-caller note [branch: DEBUG-v035] |
+| 2026-08-29 00:51:30 | `app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/gadget/di/ConfiguredWidgetInstanceModule.kt` | `spec-all` | New Hilt binding of the seam in launcher flavors [branch: DEBUG-v035] |
+| 2026-08-29 00:51:30 | `app_v2/src/launcherDisabled/java/com/sza/fastmediasorter/di/LauncherModeModule.kt` | `spec-all` | No-op seam binding for flavors without the launcher [branch: DEBUG-v035] |
+| 2026-08-29 00:51:31 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/launcher/ResetLauncherToDefaultsUseCaseTest.kt` | `spec-all` | Tests: every returned target reaches the seam; empty list = zero calls [branch: DEBUG-v035] |
+| 2026-08-29 00:51:31 | `app_v2/src/test/java/com/sza/fastmediasorter/data/repository/LauncherDesktopRepositoryImplTest.kt` | `spec-all` | Test: clearAll returns all targets of both orientations, empties table [branch: DEBUG-v035] |
+| 2026-08-29 00:51:31 | `app_v2/src/testLauncherEnabled/java/com/sza/fastmediasorter/ui/launcher/gadget/ConfigurableWidgetCatalogTest.kt` | `spec-all` | Test: system widget id untouched, launcher token cleared [branch: DEBUG-v035] |
+| 2026-08-29 00:51:31 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/launcher/ImportSystemShortcutsUseCaseTest.kt` | `spec-all` | Fake desktop repository follows new clearAll signature [branch: DEBUG-v035] |
+| 2026-08-29 00:54:39 | `PLAN/S2231_bugfix-wear-fgs-cast-icon-tint.md` | `spec` | Scaffold strategic spec skeleton S2231 [branch: DEBUG-v035] |
+| 2026-08-29 00:55:27 | `PLAN/S2217_launcher-reset-orphans-widget-instances.md` | `spec-check` | Audit S2217 -> BlockNeedUserTest; PASS/WARN/FAIL 12/0/0, MANUAL 4, EXEMPT 1 [branch: DEBUG-v035] |
+| 2026-08-29 00:55:51 | `PLAN/S2217_launcher-reset-orphans-widget-instances.md` | `spec-all` | Pipeline BlockNeedUserTest: S2217 [branch: DEBUG-v035] |
+| 2026-08-29 01:01:11 | `scripts/quality/assert-doc-house-style.ps1` | `spec-dev` | S2216 phase 02: documentation house-style gate - long-dash findings in docs prose, changed-set scoping [branch: DEBUG-v035] |
+| 2026-08-29 01:03:43 | `PLAN/S2222_launcher-section-delete-resort.md` | `spec-all` | Strategic spec S2222: launcher section delete + resort (Filled and approved via /spec-all) [branch: DEBUG-v035] |
+| 2026-08-29 01:04:23 | `docs/README.md` | `docs/README.md` | S2216 phase 01: long dashes replaced with house-style hyphen on nine mirrored pages [set of 9: docs/README_RU.md, docs/README_UK.md, docs/launcher/index.md, docs/launcher/index-ru.md, docs/launcher/index-uk.md, docs/wear/index.md, +2 more] [branch: DEBUG-v035] |
+| 2026-08-29 01:05:04 | `scripts/quality/assert-doc-house-style.ps1` | `scripts/quality/assert-doc-house-style.ps1` | S2216 phase 02: documentation house-style gate script [branch: DEBUG-v035] |
+| 2026-08-29 01:07:49 | `scripts/post-change.ps1` | `scripts/post-change.ps1` | S2216 phase 02: doc-house-style gate wired into post-change; recovery hint added; cheatsheet regenerated [set of 4: scripts/quality/gate-recovery-hints.psd1, scripts/quality/assert-doc-house-style.ps1, docs/SCRIPT_CHEATSHEET.md] [branch: DEBUG-v035] |
+| 2026-08-29 01:09:05 | `PLAN/S2232_bugfix-generated-showcase-dashes.md` | `spec` | Scaffold strategic spec skeleton S2232 [branch: DEBUG-v035] |
+| 2026-08-29 01:09:49 | `PLAN/S2222_launcher-section-delete-resort/INDEX.md` | `spec-tech` | Create tactical plan for S2222 (3 phases) [branch: DEBUG-v035] |
+| 2026-08-29 01:09:49 | `PLAN/S2222_launcher-section-delete-resort/PHASE_01__section-block-operations.md` | `spec-tech` | Phase 01: section-block-operations [branch: DEBUG-v035] |
+| 2026-08-29 01:09:50 | `PLAN/S2222_launcher-section-delete-resort/PHASE_02__section-actions-ui.md` | `spec-tech` | Phase 02: section-actions-ui [branch: DEBUG-v035] |
+| 2026-08-29 01:09:51 | `PLAN/S2222_launcher-section-delete-resort/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup [branch: DEBUG-v035] |
+| 2026-08-29 01:09:52 | `PLAN/S2222_launcher-section-delete-resort.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v035] |
+| 2026-08-29 01:10:39 | `PLAN/S2216_house-style-dashes-in-mirrored-doc-pages.md` | `spec-dev` | All phases done; status -> Implemented [branch: DEBUG-v035] |
+| 2026-08-29 01:10:43 | `PLAN/S2233_stream-grouping-values-cleanup.md` | `spec` | Scaffold strategic spec skeleton S2233 [branch: DEBUG-v035] |
+| 2026-08-29 01:38:51 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/resourceeditor/ResourceEditorFragment.kt` | `S2225` | Restore editable stream URL field and align stream schema tests [branch: DEBUG-v035] |
+| 2026-08-29 01:38:52 | `PLAN/S2225_bugfix-stream-editor-path-field.md` | `spec-check` | Audit S2225 -> BlockNeedUserTest; PASS/WARN/FAIL 10/0/0 [branch: DEBUG-v035] |
+| 2026-08-29 01:39:31 | `PLAN/S2225_bugfix-stream-editor-path-field.md` | `spec-all` | Pipeline BlockNeedUserTest: S2225 [branch: DEBUG-v035] |
+| 2026-08-29 01:45:18 | `PLAN/S2232_bugfix-generated-showcase-dashes.md` | `spec-all` | Strategic spec S2232 [branch: DEBUG-v035] |
+| 2026-08-29 01:46:10 | `PLAN/S2232_bugfix-generated-showcase-dashes/INDEX.md` | `spec-all` | Tactical plan S2232 [branch: DEBUG-v035] |
+| 2026-08-29 01:46:11 | `PLAN/S2232_bugfix-generated-showcase-dashes/PHASE_01__showcase-style-normalization.md` | `spec-all` | Tactical phase S2232 [branch: DEBUG-v035] |
+| 2026-08-29 01:47:04 | `.claude/commands/skill-release.md` | `spec-dev` | Normalize noLegal showcase dashes in release workflow [set of 2: .claude/reference/skill-release.md] [branch: DEBUG-v035] |
+| 2026-08-29 01:48:32 | `scripts/utils/fix-house-style.ps1` | `spec-dev` | Normalize generated noLegal showcase dashes [set of 6: .claude/commands/skill-release.md, .claude/reference/skill-release.md, docs/FEATURES_noLegal.md, docs/FEATURES_noLegal_RU.md, docs/FEATURES_noLegal_UK.md] [branch: DEBUG-v035] |
+| 2026-08-29 01:50:20 | `PLAN/S2232_bugfix-generated-showcase-dashes.md` | `spec-check` | Audit S2232 -> Verified; PASS/WARN/FAIL 10/0/0 [branch: DEBUG-v035] |
+| 2026-08-29 01:50:20 | `PLAN/S2232_bugfix-generated-showcase-dashes/INDEX.md` | `spec-check` | Mark completed tactical plan S2232 [branch: DEBUG-v035] |
+| 2026-08-29 01:55:30 | `PLAN/S2231_bugfix-wear-fgs-cast-icon-tint.md` | `spec-code` | Strategic specification: S2231 [branch: DEBUG-v035] |
+| 2026-08-29 01:56:52 | `PLAN/S2231_bugfix-wear-fgs-cast-icon-tint/INDEX.md` | `spec-code` | Create tactical plan for S2231 [branch: DEBUG-v035] |
+| 2026-08-29 01:56:53 | `PLAN/S2231_bugfix-wear-fgs-cast-icon-tint/PHASE_01__wear-status-icon.md` | `spec-code` | Phase 01: wear-status-icon [branch: DEBUG-v035] |
+| 2026-08-29 01:56:53 | `PLAN/S2231_bugfix-wear-fgs-cast-icon-tint/PHASE_02__docs-catalog-cleanup.md` | `spec-code` | Phase 02: docs-catalog-cleanup [branch: DEBUG-v035] |
+| 2026-08-29 01:56:54 | `PLAN/S2231_bugfix-wear-fgs-cast-icon-tint.md` | `spec-code` | Status -> Tactical [branch: DEBUG-v035] |
+| 2026-08-29 02:01:18 | `wear/src/main/res/drawable/ic_notification_app_logo.xml` | `S2231` | Isolated Wear notification status-bar icon [set of 3: wear/src/main/java/com/sza/fastmediasorter/wear/core/notification/WearOpenOnWatchNotifier.kt, wear/src/main/java/com/sza/fastmediasorter/wear/core/notification/WearUploadOutcomeNotifier.kt] [branch: DEBUG-v035] |
+| 2026-08-29 02:02:23 | `PLAN/S2231_bugfix-wear-fgs-cast-icon-tint.md` | `spec-code` | Pipeline BlockNeedUserTest: S2231 [branch: DEBUG-v035] |
+| 2026-08-29 02:04:31 | `PLAN/S2221_launcher-swipe-up-all-programs.md` | `spec-code` | Pipeline handoff: configurable launcher desktop swipe actions [branch: DEBUG-v035] |
+| 2026-08-29 02:10:02 | `PLAN/S2233_stream-grouping-values-cleanup.md` | `spec-all` | Strategic spec: S2233 stream grouping value normalization [branch: DEBUG-v035] |
+| 2026-08-29 02:15:03 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/LauncherDesktopSwipeAction.kt` | `spec-code` | Implement configurable launcher desktop swipe actions [set of 25: app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt, app_v2/src/main/java/com/sza/fastmediasorter/data/repository/settings/LauncherSettingsStore.kt, app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/launcher/ResetLauncherToDefaultsUseCase.kt, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/helpers/LauncherDesktopSwipeActionHandler.kt, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/helpers/LauncherAllAppsGestureManager.kt, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/LauncherHomeActivity.kt, +18 more] [branch: DEBUG-v035] |
+| 2026-08-29 02:15:42 | `PLAN/S2233_stream-grouping-values-cleanup/INDEX.md` | `spec-tech` | Create tactical plan for S2233 [branch: DEBUG-v035] |
+| 2026-08-29 02:15:44 | `PLAN/S2233_stream-grouping-values-cleanup/PHASE_01__publisher-canonical-vocabulary.md` | `spec-tech` | Phase 01: publisher-canonical-vocabulary [branch: DEBUG-v035] |
+| 2026-08-29 02:15:44 | `PLAN/S2233_stream-grouping-values-cleanup/PHASE_02__catalog-rewrite-validation.md` | `spec-tech` | Phase 02: catalog-rewrite-validation [branch: DEBUG-v035] |
+| 2026-08-29 02:15:45 | `PLAN/S2233_stream-grouping-values-cleanup/PHASE_03__app-import-and-presentation.md` | `spec-tech` | Phase 03: app-import-and-presentation [branch: DEBUG-v035] |
+| 2026-08-29 02:15:47 | `PLAN/S2233_stream-grouping-values-cleanup/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup [branch: DEBUG-v035] |
+| 2026-08-29 02:15:48 | `PLAN/S2233_stream-grouping-values-cleanup.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v035] |
+| 2026-08-29 02:18:08 | `scripts/streams/modules/StreamPublisher.Common.ps1` | `S2233` | Normalize stream catalog facet values for future candidates [set of 3: scripts/streams/modules/StreamPublisher.Discovery.ps1, scripts/streams.tests/StreamPublisher.Common.Tests.ps1] [branch: DEBUG-v035] |

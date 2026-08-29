@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase.launcher
 
+import com.sza.fastmediasorter.domain.launcher.ConfiguredWidgetInstanceCleaner
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.InstalledAppsRepository
 import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
@@ -25,6 +26,9 @@ import javax.inject.Inject
  * 4. The launch statistics that feed the "most used" order.
  * 5. The launcher-scoped fields of [AppSettings] - and only those.
  * 6. The private copy of a user-picked wallpaper image.
+ * 7. S2217: the stored instances behind configurable widget cells, cleared through
+ *    [ConfiguredWidgetInstanceCleaner] - the gadget codec lives in the launcher flavor source set,
+ *    so the delete hands its removed rows' targets to a seam instead of reading them here.
  *
  * A ticket that introduces a new launcher-owned store must extend this list, otherwise the reset goes
  * silently incomplete.
@@ -62,12 +66,18 @@ class ResetLauncherToDefaultsUseCase @Inject constructor(
     private val installedApps: InstalledAppsRepository,
     private val settings: SettingsRepository,
     private val storeLauncherWallpaperUseCase: StoreLauncherWallpaperUseCase,
+    private val configuredWidgetInstances: ConfiguredWidgetInstanceCleaner,
 ) {
 
     /** Returns whether the reset completed, so the caller can tell the user it did not happen. */
     suspend operator fun invoke(densityFactor: Float): Boolean = withContext(Dispatchers.IO) {
         runCatching {
-            desktop.clearAll()
+            // S2217: the deleted rows are the only record of which configured widget instances
+            // existed - their targets come back from the delete and go straight through the seam,
+            // before the rest of the inventory clears anything else.
+            val clearedTargets = desktop.clearAll()
+            clearedTargets.forEach { configuredWidgetInstances.clearInstanceOf(it) }
+            Timber.d("S2217: launcher reset cleared %d configured widget instance targets", clearedTargets.size)
             pins.clearPins()
             journal.clearJournal()
             installedApps.clearLaunchStats()
@@ -106,6 +116,10 @@ class ResetLauncherToDefaultsUseCase @Inject constructor(
                 launcherTrayShowSpeed = defaults.launcherTrayShowSpeed,
                 launcherRotationHintShown = defaults.launcherRotationHintShown,
                 launcherDesktopLocked = defaults.launcherDesktopLocked,
+                launcherDesktopSwipeUpAction = defaults.launcherDesktopSwipeUpAction,
+                launcherDesktopSwipeDownAction = defaults.launcherDesktopSwipeDownAction,
+                launcherDesktopSwipeLeftAction = defaults.launcherDesktopSwipeLeftAction,
+                launcherDesktopSwipeRightAction = defaults.launcherDesktopSwipeRightAction,
                 launcherWallpaperMode = defaults.launcherWallpaperMode,
                 launcherWallpaperImagePath = defaults.launcherWallpaperImagePath,
                 launcherWallpaperCameraId = defaults.launcherWallpaperCameraId,

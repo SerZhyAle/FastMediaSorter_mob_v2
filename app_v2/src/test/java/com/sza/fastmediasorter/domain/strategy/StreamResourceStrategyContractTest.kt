@@ -37,8 +37,8 @@ class StreamResourceStrategyContractTest : ResourceEditorContractTestBase() {
     }
 
     @Test
-    fun `fieldSchema - PATH is present but not rendered`() {
-        assertPresentButHidden(strategy.fieldSchema(), ResourceFieldKey.PATH)
+    fun `fieldSchema - PATH is rendered`() {
+        assertVisible(strategy.fieldSchema(), ResourceFieldKey.PATH)
     }
 
     @Test
@@ -52,10 +52,15 @@ class StreamResourceStrategyContractTest : ResourceEditorContractTestBase() {
     }
 
     @Test
-    fun `fieldSchema - the editor renders exactly name, comment and pin`() {
+    fun `fieldSchema - the editor renders exactly name, path, comment and pin`() {
         val visibleKeys = strategy.fieldSchema().filter { it.visible }.map { it.key }.toSet()
         assertEquals(
-            setOf(ResourceFieldKey.NAME, ResourceFieldKey.COMMENT, ResourceFieldKey.ACCESS_PIN),
+            setOf(
+                ResourceFieldKey.NAME,
+                ResourceFieldKey.PATH,
+                ResourceFieldKey.COMMENT,
+                ResourceFieldKey.ACCESS_PIN
+            ),
             visibleKeys
         )
     }

@@ -341,6 +341,8 @@ $r = Invoke-Verb @('prefs')
 if (Assert-Envelope $r 'prefs' $true 0) {
     Assert-DataFields $r 'prefs' @('id', 'package', 'file')
     Assert-True (Test-Path -LiteralPath $r.json.data.file) 'prefs -Json: data.file names a file that exists' $r.json.data.file
+    $prefsBytes = [System.IO.File]::ReadAllBytes($r.json.data.file)
+    Assert-Equal 'settings-prefs-fixture' ([System.Text.Encoding]::UTF8.GetString($prefsBytes)) 'prefs -Json: data.file preserves decoded DataStore bytes'
 }
 
 $r = Invoke-Verb @('pull', '-Remote', '/sdcard/DCIM/Camera/shot.png')

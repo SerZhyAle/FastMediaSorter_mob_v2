@@ -1,6 +1,0 @@
-<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
-<map>
-    <boolean name="secureSensitiveScreens" value="true" />
-    <string name="theme">system</string>
-    <int name="gridColumns" value="3" />
-</map>

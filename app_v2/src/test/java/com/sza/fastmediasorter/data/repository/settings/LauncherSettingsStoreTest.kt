@@ -36,6 +36,7 @@ class LauncherSettingsStoreTest {
         assertFalse(values.allAppsSortDescending)
         assertEquals("", values.launcherWallpaperImagePath)
         assertEquals(0, values.launcherScreenBlackoutTimeoutSeconds)
+        assertEquals(0.85f, values.launcherWidgetBackdropAlpha, 0.0f)
         assertEquals(AppSettings.LAUNCHER_TASKBAR_PLACEMENT_BOTTOM, values.launcherTaskbarPlacement)
         assertEquals(AppSettings.LAUNCHER_WALLPAPER_BRANDED, values.launcherWallpaperMode)
         // S2213: no saved place yet is the state a fresh install is in, and the branch a device pass is
@@ -73,6 +74,7 @@ class LauncherSettingsStoreTest {
             launcherWallpaperImagePath = "/storage/emulated/0/wall.png",
             allAppsSortDescending = true,
             launcherScreenBlackoutTimeoutSeconds = 45,
+            launcherWidgetBackdropAlpha = 0.25f,
             launcherWeatherLastLocation = "50.45,30.52,Kyiv",
         )
 
@@ -104,6 +106,7 @@ class LauncherSettingsStoreTest {
             settings.launcherScreenBlackoutTimeoutSeconds,
             values.launcherScreenBlackoutTimeoutSeconds,
         )
+        assertEquals(settings.launcherWidgetBackdropAlpha, values.launcherWidgetBackdropAlpha, 0.0f)
         assertEquals(settings.launcherTaskbarPlacement, values.launcherTaskbarPlacement)
         assertEquals(settings.launcherWallpaperMode, values.launcherWallpaperMode)
         assertEquals(settings.allAppsSortOrder, values.allAppsSortOrder)

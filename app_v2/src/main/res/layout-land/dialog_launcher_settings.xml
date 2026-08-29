@@ -271,6 +271,46 @@
                         app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
                         app:sdr_title="@string/launcher_settings_density_title" />
 
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                        android:id="@+id/rowLauncherDesktopSwipeUp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        app:ssr_title="@string/launcher_desktop_swipe_up_title" />
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                        android:id="@+id/rowLauncherDesktopSwipeDown"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        app:ssr_title="@string/launcher_desktop_swipe_down_title" />
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                        android:id="@+id/rowLauncherDesktopSwipeLeft"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        app:ssr_title="@string/launcher_desktop_swipe_left_title" />
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                        android:id="@+id/rowLauncherDesktopSwipeRight"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        app:ssr_title="@string/launcher_desktop_swipe_right_title" />
+
                     <!-- S1090: blocks the long-press entry into desktop edit mode; the Start-menu entry is a
                          deliberate action and stays reachable while locked. -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow

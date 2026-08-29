@@ -8,6 +8,7 @@ import android.content.Intent
 import android.widget.RemoteViews
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.panel.AppLaunchPanelRouteIntents
+import timber.log.Timber
 
 class FrontFlashlightWidgetProvider : AppWidgetProvider() {
 
@@ -27,6 +28,7 @@ class FrontFlashlightWidgetProvider : AppWidgetProvider() {
             appWidgetManager: AppWidgetManager,
             appWidgetId: Int
         ) {
+            Timber.d("S2212: flashlight widget bound id=$appWidgetId")
             val views = RemoteViews(context.packageName, R.layout.widget_front_flashlight)
             val intent = AppLaunchPanelRouteIntents.frontFlashlight(context).apply {
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)

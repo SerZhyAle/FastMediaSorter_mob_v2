@@ -1897,6 +1897,19 @@ scripts/quality/assert-dialog-cancel-style.ps1
     -List                   [SwitchParameter]
 ```
 
+### assert-doc-house-style.ps1
+Gate: a typographic dash in documentation prose fails the closure (S2216).
+
+```
+scripts/quality/assert-doc-house-style.ps1
+  Gate: a typographic dash in documentation prose fails the closure (S2216).
+  Params:
+    -ChangedFiles         [String[]] = @()
+    -Quiet                [SwitchParameter]
+    -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+  Exit: 0 - no typographic dash in prose in the judged set; 1 - one or more findings, each printed as FAIL <path>:<line>: <count>; 2 - cannot verify: the docs corpus directory is missing, the house-style library declares
+```
+
 ### assert-doc-icons-sync.ps1
 S0889 drift gate: the docs/site icon system (map, assets, embeds) stays consistent.
 

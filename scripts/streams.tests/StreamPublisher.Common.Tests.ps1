@@ -33,7 +33,23 @@ Describe 'StreamPublisher.Common' {
         (Get-CanonicalTopic 'Adult Contemporary') | Should Be 'Pop'
         (Get-CanonicalTopic '') | Should Be 'General'
         (Map-IptvTopic 'sports') | Should Be 'Sports'
-        (Map-IptvTopic 'unknown-category') | Should Be 'Unknown-Category'
+        (Map-IptvTopic 'unknown-category') | Should Be 'General'
+    }
+
+    It 'normalizes each grouping facet while retaining unknown values for review' {
+        (Get-CanonicalCategory 'Radio (SomaFM)') | Should Be 'Radio'
+        (Get-CanonicalCategory 'Open movies') | Should Be 'On-demand video'
+        (Get-CanonicalTopic 'Adult Contemporary') | Should Be 'Pop'
+        (Get-CanonicalLanguages 'American English, Gernan') | Should Be 'english,german'
+        (Get-CanonicalLanguages 'english german') | Should Be 'english,german'
+        (Get-CanonicalCountry 'Germany') | Should Be 'DE'
+        (Get-CanonicalCountry 'USA') | Should Be 'US'
+        (Get-CanonicalCategory '') | Should Be ''
+        (Get-CanonicalLanguages '') | Should Be ''
+        (Get-CanonicalCountry '') | Should Be ''
+        (Get-CanonicalCategory 'Future provider class') | Should Be 'Future provider class'
+        (Get-CanonicalLanguages 'future language') | Should Be 'future language'
+        (Get-CanonicalCountry 'Future country') | Should Be 'Future country'
     }
 
     It 'normalizes comma-separated prune statuses' {

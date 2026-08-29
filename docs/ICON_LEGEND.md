@@ -27,6 +27,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_screen_rotation.svg" alt="ic_screen_rotation" width="24" height="24"> | Auto-rotate |
 | <img src="icons/svg/ic_battery.svg" alt="ic_battery" width="24" height="24"> | Battery |
 | <img src="icons/svg/ic_battery.svg" alt="ic_battery" width="24" height="24"> | Battery saver |
+| <img src="icons/svg/ic_black_screen.svg" alt="ic_black_screen" width="24" height="24"> | Black screen |
 | <img src="icons/svg/ic_bluetooth.svg" alt="ic_bluetooth" width="24" height="24"> | Bluetooth |
 | <img src="icons/svg/ic_calculator.svg" alt="ic_calculator" width="24" height="24"> | Calculator |
 | <img src="icons/svg/ic_widget_camera_launch_accent.svg" alt="ic_widget_camera_launch_accent" width="24" height="24"> | Camera |
@@ -40,6 +41,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_front_flashlight.svg" alt="ic_front_flashlight" width="24" height="24"> | Front flashlight |
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Mini-game |
 | <img src="icons/svg/ic_cloud_download.svg" alt="ic_cloud_download" width="24" height="24"> | Download by link |
+| <img src="icons/svg/ic_location.svg" alt="ic_location" width="24" height="24"> | Location |
 | <img src="icons/svg/ic_network_monitor.svg" alt="ic_network_monitor" width="24" height="24"> | Network Monitor |
 | <img src="icons/svg/ic_nfc.svg" alt="ic_nfc" width="24" height="24"> | NFC |
 | <img src="icons/svg/ic_camera_ocr_translate.svg" alt="ic_camera_ocr_translate" width="24" height="24"> | Photo OCR translate |

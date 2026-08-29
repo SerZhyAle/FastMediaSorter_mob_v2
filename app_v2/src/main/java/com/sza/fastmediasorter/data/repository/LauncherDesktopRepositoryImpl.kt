@@ -557,14 +557,16 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun clearAll() {
-        withContext(Dispatchers.IO) {
-            // One transaction: a crash between the two deletes would otherwise leave an empty desktop
-            // still flagged as seeded, and the starter set would never come back.
-            db.withTransaction {
-                cellDao.deleteAll()
-                stateDao.deleteAll()
-            }
+    override suspend fun clearAll(): List<String> = withContext(Dispatchers.IO) {
+        // One transaction: a crash between the two deletes would otherwise leave an empty desktop
+        // still flagged as seeded, and the starter set would never come back. S2217: the read shares
+        // that transaction so no cell can slip in between being reported as deleted and vanishing -
+        // its instance data would then survive the reset with nothing left pointing at it.
+        db.withTransaction {
+            val targets = cellDao.getAllCellsSync().map { it.target }
+            cellDao.deleteAll()
+            stateDao.deleteAll()
+            targets
         }
     }
 

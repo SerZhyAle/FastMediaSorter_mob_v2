@@ -4,7 +4,7 @@
 - Universal conventions (canon): SZA Unified Rules, shipped as the `sza` Claude Code plugin (`/plugin marketplace add SerZhyAle/sza-unified-rules`; `/plugin install sza@sza-unified-rules`). Consumption model: REFERENCE, not mirrored. This repo is overlay B and the reference the core was extracted from; per-repo overlay facts + channel matrix live in the canon at `rules/contrib/fastmediasorter_mob_v2.md`, adoption stamp `.sza-canon.json`. Canon wins for universal principles; fix them in a canon session.
 - Rules: `CLAUDE.md`, `.github/copilot-instructions.md`, `dev/PROJECT_OPERATIONS_INDEX.md`, `dev/AGENT_WORKFLOW.md`.
 - Stricter rules override. Import order: `CLAUDE.md` -> `.github/copilot-instructions.md` -> prompt/agent file.
-- Entry file per runtime, all describing the same repository: Codex CLI loads `AGENTS.md` (this file), Gemini CLI loads `GEMINI.md`, GitHub Copilot loads `.github/copilot-instructions.md`, Claude Code loads `CLAUDE.md`. Whichever loaded you, `CLAUDE.md` is the strictest and the longest - read it in full before any non-trivial work; the other three are deltas on it, not replacements.
+- Entry file per runtime, all describing the same repository: Codex CLI and ZCode load `AGENTS.md` (this file), Gemini CLI loads `GEMINI.md`, GitHub Copilot loads `.github/copilot-instructions.md`, Claude Code loads `CLAUDE.md`. Whichever loaded you, `CLAUDE.md` is the strictest and the longest - read it in full before any non-trivial work; the other three are deltas on it, not replacements.
 - **If you are not Claude Code, read §9 before acting.** Most of this repository's enforcement lives in Claude Code hooks and in a command library that only Claude Code auto-loads. Outside it, those rules are ordinary prose that nothing will refuse for you, and the pipelines are files you must open yourself.
 
 ## 2. Communication
@@ -106,7 +106,7 @@
 - One owner per `ExoPlayer` with a full release contract (`release()` + `setVideoSurface(null)` + remove listeners + abandon focus); mirror across player hosts. Glide decode-at-size + `clear(target)` on detach.
 - Reflection/serialization/DI/manifest/dependency changes are proven on the minified release/target variant, not only debug - which extends dead-weight hygiene (CLAUDE.md Rule 20): orphaned classes, resources, string keys and keep rules are deleted in the same change that orphans them.
 
-## 9. Non-Claude Runtimes (Codex, Gemini, Copilot)
+## 9. Non-Claude Runtimes (Codex, Gemini, Copilot, ZCode)
 
 The rules above were written for a runtime that enforces part of them mechanically. Outside Claude Code that half is missing, and nothing announces its absence - so this section states what you now owe by hand.
 
@@ -115,7 +115,7 @@ The rules above were written for a runtime that enforces part of them mechanical
 - **Hooks.** `.claude/hooks/*.ps1` plus per-machine global hooks refuse, rewrite or annotate Claude Code's tool calls; the complete inventory is `docs/AGENT_HOOKS.md`. None of them sees your calls. Every rule below is therefore self-enforced, and each one is here because an agent already got it wrong: `pwsh -NoProfile -File ./a.ps1 <cmd>` never a bare `./a.ps1` (a `.ps1` run as a Bash command head fails with **exit 0**, so a red build reads as green); `find` only with a concrete start path **and** `-maxdepth N`; no PowerShell cmdlet, no `& { .. }` batch idiom and no `node`/`npm`/`npx` inside Bash; under Git Bash on Windows a leading-slash argument value like `-Reason "/spec-dev .."` is silently rewritten to `C:/Program Files/Git/spec-dev ..`, so double it (`"//spec-dev .."`) or pass it from PowerShell; query `dev/CATALOG/scripts/query.ps1` before grepping `.kt`; read a long file in windows rather than whole; try `/quick` and `/skill-fix` before reaching for a spec pipeline.
 - **The command library.** Claude Code injects `.claude/commands/<name>.md` when you type `/name`. Nothing injects it for you - open the file (§5).
 - **Subagents.** `.claude/agents/*.md` describe six roles Claude Code can spawn in parallel (device operator, Kotlin developer, R&D specialist, solution researcher, doc writer, repo mechanic). You have no such fan-out: do the work inline, in one context, and keep whatever constraints that role's file states - notably that the researcher and the device operator never edit product code.
-- **Agent memory.** `.claude/agent-memory/android-rd-specialist/MEMORY.md` is an index of hard-won project facts that Claude Code always has in context. Read it at session start when the task touches builds, flavors, gates, devices or release; each line points at a file in the same directory.
+- **Agent memory.** `.claude/agent-memory/android-rd-specialist/MEMORY.md` is an index of hard-won project facts that Claude Code always has in context. Read it at session start when the task touches builds, flavors, gates, devices or release; each line points at a file in the same directory. ZCode ships the same index as a workspace skill, `android-rd-specialist-memory` (`.agents/skills/android-rd-specialist-memory/SKILL.md`), pointing at the `.agents/MEMORY.md` mirror and its feedback files.
 - **The skill loop.** The mandatory document-registry loop is a Claude Code skill at `.claude/skills/document-registry/SKILL.md`. Read that file and run its four steps yourself: identify area and trigger, query `scripts/document_registry/query.ps1`, read every returned record, state which are affected.
 
 ### 9.2 The development artifacts, and the script that owns each
@@ -136,7 +136,7 @@ Never hand-edit a generated or script-owned file; the CLI is the only supported 
 
 ### 9.3 Session kickoff
 
-Paste this at the start of a Codex or Gemini session, or when the runtime has been reset:
+Paste this at the start of a Codex, Gemini or ZCode session, or when the runtime has been reset:
 
 ```text
 Read, in this order, before doing anything: AGENTS.md (all of it, section 9 included), CLAUDE.md,

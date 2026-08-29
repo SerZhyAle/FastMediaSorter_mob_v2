@@ -128,7 +128,7 @@ switch -Regex ($sig) {
     '^shell stat -c %s /sdcard/_fms_shot\.png$' { Write-Output '48211'; exit 0 }
 
     # ---- run-as (prefs) ----
-    '^shell run-as \S+ cat .+app_settings\.xml$' { Write-Output (Get-Fixture 'app_settings.xml').TrimEnd(); exit 0 }
+    '^shell run-as \S+ base64 .+settings\.preferences_pb$' { Write-Output 'c2V0dGluZ3MtcHJlZnMtZml4dHVyZQ=='; exit 0 }
 
     # ---- pull / push ----
     '^shell ls -1pt .+$' {

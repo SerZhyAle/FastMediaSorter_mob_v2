@@ -85,6 +85,27 @@ class QueryAllAppsUseCaseTest {
     }
 
     @Test
+    fun `label groups keep the full list at all and bucket by first letter`() = runTest {
+        val useCase = useCaseOf(
+            app("z.pkg", "zebra"),
+            app("b.pkg", "banana"),
+            app("a.pkg", "Apple"),
+            app("m.pkg", "mango"),
+            app("c.pkg", "Cherry"),
+        )
+
+        val groups = useCase.groupedLabelsFor(InstalledAppSortOrder.LABEL)
+
+        assertEquals(listOf("All", "A", "B", "C", "M", "Z"), groups.map { it.title })
+        assertEquals(listOf("Apple", "banana", "Cherry", "mango", "zebra"), groups.first().items)
+        assertEquals(listOf("Apple"), groups[1].items)
+        assertEquals(listOf("banana"), groups[2].items)
+        assertEquals(listOf("Cherry"), groups[3].items)
+        assertEquals(listOf("mango"), groups[4].items)
+        assertEquals(listOf("zebra"), groups[5].items)
+    }
+
+    @Test
     fun `query matches the label`() = runTest {
         val useCase = useCaseOf(app("a.pkg", "Apple"), app("b.pkg", "banana"))
 
@@ -119,6 +140,11 @@ class QueryAllAppsUseCaseTest {
         order: InstalledAppSortOrder,
         query: String = ""
     ): List<String> = invoke(query, order, descending = false).first().map { it.label }
+
+    private suspend fun QueryAllAppsUseCase.groupedLabelsFor(
+        order: InstalledAppSortOrder,
+        query: String = ""
+    ): List<QueryAllAppsUseCase.AppGroup> = groupedApps(query, order, descending = false).first()
 
     private fun useCaseOf(vararg apps: InstalledApp) = useCaseOf(apps.toList(), emptyMap())
 

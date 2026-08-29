@@ -7,7 +7,7 @@ permalink: /docs/launcher/
 
 [📱 Main App Home](../README.md) | [📖 All Step-by-Step Guides](../howto/index.md) | [⌚ Wear OS Portal](../wear/index.md) | [Русский](index-ru.md) | [Українська](index-uk.md)
 
-Welcome to the **FastMedia Launcher Web Portal** — your complete guide to replacing the default Android home screen with a customizable desktop optimized for car head units, dedicated tablet photo frames, Android TV boxes, and display devices.
+Welcome to the **FastMedia Launcher Web Portal** - your complete guide to replacing the default Android home screen with a customizable desktop optimized for car head units, dedicated tablet photo frames, Android TV boxes, and display devices.
 
 ---
 
@@ -63,15 +63,15 @@ FastMedia Launcher gives you full control over your device's home screen layout:
 FastMediaSorter with Launcher Mode is available across major channels:
 
 ### Application Packages
-- [<img src="../icons/doc/ic_info.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Google Play Store**](https://play.google.com/store/apps) — Official Google Play Store download.
-- [<img src="../icons/doc/ic_resource_smb.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **F-Droid Open Source**](https://f-droid.org) — Open-source builds for Android phones, tablets, and head units.
-- [<img src="../icons/doc/ic_download.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Direct APK Release**](../DOWNLOADS_EN.md) — Direct APK downloads for phone, tablet, and car head unit sideloading.
+- [<img src="../icons/doc/ic_info.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Google Play Store**](https://play.google.com/store/apps) - Official Google Play Store download.
+- [<img src="../icons/doc/ic_resource_smb.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **F-Droid Open Source**](https://f-droid.org) - Open-source builds for Android phones, tablets, and head units.
+- [<img src="../icons/doc/ic_download.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Direct APK Release**](../DOWNLOADS_EN.md) - Direct APK downloads for phone, tablet, and car head unit sideloading.
 
 ---
 
 ## 📚 Step-by-Step Scenario Guides
 
-- [Use the App as Your Home Screen](../howto/scenario-launcher-mode.md) — Step-by-step setup guide for Launcher Mode.
-- [In-Car Music Player Guide](../howto/scenario-car-music.md) — Configure music playback and steering wheel controls for car head units.
-- [Digital Photo Frame Guide](../howto/scenario-photo-frame.md) — Turn any old tablet into an always-on photo frame.
-- [Connect to NAS / Windows Share](../howto/scenario-smb-setup.md) — Connect your desktop shortcuts directly to home NAS drives.
+- [Use the App as Your Home Screen](../howto/scenario-launcher-mode.md) - Step-by-step setup guide for Launcher Mode.
+- [In-Car Music Player Guide](../howto/scenario-car-music.md) - Configure music playback and steering wheel controls for car head units.
+- [Digital Photo Frame Guide](../howto/scenario-photo-frame.md) - Turn any old tablet into an always-on photo frame.
+- [Connect to NAS / Windows Share](../howto/scenario-smb-setup.md) - Connect your desktop shortcuts directly to home NAS drives.

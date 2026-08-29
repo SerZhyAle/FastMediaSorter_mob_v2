@@ -5,14 +5,14 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
+import timber.log.Timber
 import kotlin.math.abs
 
 /**
- * S1401: swipe up on free desktop space to open the full-screen app list.
+ * Recognizes directional swipes on free desktop space.
  *
- * Yields to scrolling: the gesture fires only while the desktop viewport sits at the top, so a
- * scrolled desktop answers the same swipe by scrolling back up first (strategic ADR-4 - the desktop
- * already scrolls, and stealing that scroll is the feature's first-ranked risk).
+ * Yields to scrolling: an upward swipe fires only at the lower desktop boundary, and a downward
+ * swipe fires only at the upper boundary. Horizontal swipes do not inspect vertical scrolling.
  *
  * Attached as a touch listener on the container, so a press landing on a cell or an interactive gadget
  * is consumed by that child before this ever sees it - the same way the long press into edit mode
@@ -22,8 +22,15 @@ class LauncherAllAppsGestureManager(
     private val container: View,
     private val viewport: View,
     private val isEnabled: () -> Boolean,
-    private val onOpen: () -> Unit,
+    private val onSwipe: (DesktopSwipeDirection) -> Unit,
 ) {
+
+    enum class DesktopSwipeDirection {
+        UP,
+        DOWN,
+        LEFT,
+        RIGHT,
+    }
 
     private val configuration = ViewConfiguration.get(container.context)
 
@@ -37,7 +44,7 @@ class LauncherAllAppsGestureManager(
                 e2: MotionEvent,
                 velocityX: Float,
                 velocityY: Float
-            ): Boolean = handleFling(e1, e2, velocityY)
+            ): Boolean = handleFling(e1, e2, velocityX, velocityY)
         }
     )
 
@@ -48,19 +55,58 @@ class LauncherAllAppsGestureManager(
         container.setOnTouchListener { _, event -> detector.onTouchEvent(event) && false }
     }
 
-    private fun handleFling(e1: MotionEvent?, e2: MotionEvent, velocityY: Float): Boolean {
-        if (e1 == null || !isEnabled() || !isDesktopAtTop()) return false
-        return isOpeningSwipe(e1, e2, velocityY).also { if (it) onOpen() }
+    private fun handleFling(
+        e1: MotionEvent?,
+        e2: MotionEvent,
+        velocityX: Float,
+        velocityY: Float,
+    ): Boolean = e1
+        ?.takeIf { isEnabled() }
+        ?.let { classifyDirection(it, e2, velocityX, velocityY) }
+        ?.takeIf(::isEligibleAtViewportBoundary)
+        ?.also { direction ->
+            Timber.d("S2221: dispatch desktop swipe direction=%s", direction)
+            onSwipe(direction)
+        } != null
+
+    private fun classifyDirection(
+        e1: MotionEvent,
+        e2: MotionEvent,
+        velocityX: Float,
+        velocityY: Float,
+    ): DesktopSwipeDirection? {
+        val distanceX = e2.x - e1.x
+        val distanceY = e2.y - e1.y
+        return if (abs(distanceY) > abs(distanceX)) {
+            verticalDirection(distanceY, velocityY)
+        } else if (abs(distanceX) > abs(distanceY)) {
+            horizontalDirection(distanceX, velocityX)
+        } else {
+            null
+        }
     }
 
-    /** Scrolled down: this swipe belongs to the scroll, not to us. */
-    private fun isDesktopAtTop(): Boolean = viewport.scrollY == 0
+    private fun verticalDirection(distance: Float, velocity: Float): DesktopSwipeDirection? = when {
+        distance < -configuration.scaledPagingTouchSlop &&
+            velocity < -configuration.scaledMinimumFlingVelocity -> DesktopSwipeDirection.UP
+        distance > configuration.scaledPagingTouchSlop &&
+            velocity > configuration.scaledMinimumFlingVelocity -> DesktopSwipeDirection.DOWN
+        else -> null
+    }
 
-    private fun isOpeningSwipe(e1: MotionEvent, e2: MotionEvent, velocityY: Float): Boolean {
-        val distanceY = e1.y - e2.y
-        return distanceY > configuration.scaledPagingTouchSlop &&
-            -velocityY > configuration.scaledMinimumFlingVelocity &&
-            // A diagonal swipe belongs to whatever the horizontal axis owns.
-            distanceY > abs(e1.x - e2.x)
+    private fun horizontalDirection(distance: Float, velocity: Float): DesktopSwipeDirection? = when {
+        distance < -configuration.scaledPagingTouchSlop &&
+            velocity < -configuration.scaledMinimumFlingVelocity -> DesktopSwipeDirection.LEFT
+        distance > configuration.scaledPagingTouchSlop &&
+            velocity > configuration.scaledMinimumFlingVelocity -> DesktopSwipeDirection.RIGHT
+        else -> null
+    }
+
+    private fun isEligibleAtViewportBoundary(direction: DesktopSwipeDirection): Boolean = when (direction) {
+        DesktopSwipeDirection.UP -> !viewport.canScrollVertically(1)
+        DesktopSwipeDirection.DOWN -> !viewport.canScrollVertically(-1)
+        DesktopSwipeDirection.LEFT,
+        DesktopSwipeDirection.RIGHT,
+        -> true
     }
 }

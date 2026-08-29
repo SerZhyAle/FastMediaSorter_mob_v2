@@ -7,7 +7,7 @@ permalink: /docs/wear/
 
 [📱 Main App Home](../README.md) | [📖 All Step-by-Step Guides](../howto/index.md) | [Русский](index-ru.md) | [Українська](index-uk.md)
 
-Welcome to the **FastMedia Wear OS Web Portal** — your complete guide to the standalone media player, network resource browser, and smartwatch companion for Wear OS. FastMedia Wear pairs seamlessly with the [FastMediaSorter Main Application](../README.md) for phones and tablets.
+Welcome to the **FastMedia Wear OS Web Portal** - your complete guide to the standalone media player, network resource browser, and smartwatch companion for Wear OS. FastMedia Wear pairs seamlessly with the [FastMediaSorter Main Application](../README.md) for phones and tablets.
 
 ---
 
@@ -89,9 +89,9 @@ FastMedia Wear operates both as an independent standalone smartwatch app and as 
 | Log Diagnostics | - | ✅ Yes (Relayed via Phone) |
 
 ### Learn More About the Phone & Tablet App
-- [Main Application Documentation](../README.md) — Complete overview of FastMediaSorter for Android phones, tablets, and TV.
-- [First Launch & Device Profiles](../QUICK_START.md#first-launch-choose-your-device-profile-30-seconds-) — Pre-configure your phone for Photo Frame, In-Car Music, or Home Cinema.
-- [All Step-by-Step Scenario Guides](../howto/index.md) — 15+ guides for network shares, camera backups, and media organization.
+- [Main Application Documentation](../README.md) - Complete overview of FastMediaSorter for Android phones, tablets, and TV.
+- [First Launch & Device Profiles](../QUICK_START.md#first-launch-choose-your-device-profile-30-seconds-) - Pre-configure your phone for Photo Frame, In-Car Music, or Home Cinema.
+- [All Step-by-Step Scenario Guides](../howto/index.md) - 15+ guides for network shares, camera backups, and media organization.
 
 ---
 
@@ -100,14 +100,14 @@ FastMedia Wear operates both as an independent standalone smartwatch app and as 
 FastMedia Wear and FastMedia Mobile App are available across major app stores and direct download channels:
 
 ### Smartwatch & Mobile App Packages
-- [<img src="../icons/doc/ic_info.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Google Play Store**](https://play.google.com/store/apps) — Download phone and Wear OS companion apps directly to your devices.
-- [<img src="../icons/doc/ic_resource_smb.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **F-Droid Open Source**](https://f-droid.org) — Open-source builds for Android devices and Wear OS watches.
-- [<img src="../icons/doc/ic_download.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Direct APK Release**](../DOWNLOADS_EN.md) — Direct APK downloads for phone and smartwatch sideloading.
+- [<img src="../icons/doc/ic_info.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Google Play Store**](https://play.google.com/store/apps) - Download phone and Wear OS companion apps directly to your devices.
+- [<img src="../icons/doc/ic_resource_smb.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **F-Droid Open Source**](https://f-droid.org) - Open-source builds for Android devices and Wear OS watches.
+- [<img src="../icons/doc/ic_download.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Direct APK Release**](../DOWNLOADS_EN.md) - Direct APK downloads for phone and smartwatch sideloading.
 
 ---
 
 ## 📚 Step-by-Step Guides
 
-- [Put FastMedia on Your Smartwatch](../howto/wear-install.md) — Step-by-step installation and pairing guide.
-- [Listen to Music on Smartwatch](../howto/scenario-watch-music.md) — How to play tracks, manage volume, and save battery.
-- [Connect Watch to Network Shares](../howto/scenario-watch-network.md) — Connect your watch directly to PC and NAS SMB/SFTP shares.
+- [Put FastMedia on Your Smartwatch](../howto/wear-install.md) - Step-by-step installation and pairing guide.
+- [Listen to Music on Smartwatch](../howto/scenario-watch-music.md) - How to play tracks, manage volume, and save battery.
+- [Connect Watch to Network Shares](../howto/scenario-watch-network.md) - Connect your watch directly to PC and NAS SMB/SFTP shares.

@@ -295,6 +295,10 @@ _Settings -> General -> System launcher settings_
 | Taskbar | Settings for the launcher taskbar at the bottom: recent and pinned apps, and which icons its tray shows. |
 | Top bar | Settings for the launcher's own top strip, which can replace the system status area. |
 | Grid density | Sets how many icons the launcher desktop grid fits per row and column. |
+| Swipe down | Chooses what happens when you swipe down on the launcher desktop. By default, it opens the notification shade when the system action is available. |
+| Swipe left | Chooses what happens when you swipe left on the launcher desktop. By default, no action is used. |
+| Swipe right | Chooses what happens when you swipe right on the launcher desktop. By default, no action is used. |
+| Swipe up | Chooses what happens when you swipe up on the launcher desktop after reaching the bottom. By default, it opens All apps. |
 | Notifications from other apps on the top bar | Shows one icon per other app that has pending notifications in the launcher top bar, with how many it has. Their title, text and attachments are never read. On by default and inert until the system grants notification access. |
 | Lock desktop | Blocks long-press entry into desktop edit mode; the Start-menu entry stays reachable. |
 | Change home screen | Opens Android's default-launcher chooser to switch the system home screen. |

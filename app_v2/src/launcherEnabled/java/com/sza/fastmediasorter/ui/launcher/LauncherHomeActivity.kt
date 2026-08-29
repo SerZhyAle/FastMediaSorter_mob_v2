@@ -18,6 +18,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
 import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
+import com.sza.fastmediasorter.core.screencapture.gesture.GestureAccessibilityActions
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityLauncherHomeBinding
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
@@ -35,6 +36,7 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherContactPickManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherContactStepState
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherDesktopActions
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherDesktopGeometryManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherDesktopSwipeActionHandler
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherEditModeManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherGadgetRenderManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherInstantPhotoCaptureManager
@@ -88,6 +90,9 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
     @Inject
     lateinit var gadgetRegistry: LauncherGadgetRegistry
+
+    @Inject
+    lateinit var gestureAccessibilityActions: Set<@JvmSuppressWildcards GestureAccessibilityActions>
 
     // S1421: the one node that owns the freed status band (ADR-2). Injected rather than built here because
     // it needs the singleton signal registry; the activity only hands it the view and the lifecycle.
@@ -379,13 +384,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             gadgetRegistry = gadgetRegistry,
             viewModel = viewModel,
         )
-        LauncherAllAppsGestureManager(
-            container = binding.launcherDesktop,
-            viewport = binding.launcherGridScroll,
-            // Edit mode is for arranging the desktop; a swipe there belongs to the drag, not to us.
-            isEnabled = { !viewModel.editMode.value },
-            onOpen = { showAllApps() },
-        ).attach()
+        attachDesktopSwipeActions()
         geometryManager.syncOrientation()
         addFlowManager.registerAddFlowListeners()
         // S2102: the contact branch's three keys, claimed for the Activity's lifetime rather than at the
@@ -396,6 +395,34 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         contactPickManager.restorePendingPicker()
         blackoutManager = LauncherScreenBlackoutManager(WeakReference(this))
         blackoutManager.onStart()
+    }
+
+    private fun attachDesktopSwipeActions() {
+        val swipeActionHandler = LauncherDesktopSwipeActionHandler(
+            accessibilityActions = gestureAccessibilityActions,
+            onOpenAllApps = ::showAllApps,
+        )
+        LauncherAllAppsGestureManager(
+            container = binding.launcherDesktop,
+            viewport = binding.launcherGridScroll,
+            // Edit mode is for arranging the desktop; a swipe there belongs to the drag, not to us.
+            isEnabled = { !viewModel.editMode.value },
+            onSwipe = { direction ->
+                val settings = viewModel.launcherDesktopSettings.value
+                swipeActionHandler.handle(
+                    when (direction) {
+                        LauncherAllAppsGestureManager.DesktopSwipeDirection.UP ->
+                            settings.launcherDesktopSwipeUpAction
+                        LauncherAllAppsGestureManager.DesktopSwipeDirection.DOWN ->
+                            settings.launcherDesktopSwipeDownAction
+                        LauncherAllAppsGestureManager.DesktopSwipeDirection.LEFT ->
+                            settings.launcherDesktopSwipeLeftAction
+                        LauncherAllAppsGestureManager.DesktopSwipeDirection.RIGHT ->
+                            settings.launcherDesktopSwipeRightAction
+                    }
+                )
+            },
+        ).attach()
     }
 
     /**

@@ -91,11 +91,10 @@ abstract class ResourceEditorContractTestBase {
         assertFalse("Field $key must be optional (not required)", field!!.required)
     }
 
-    /** Present in the schema (so validation still guards it) but never rendered by the editor. */
-    protected fun assertPresentButHidden(schema: List<ResourceFieldSchema>, key: ResourceFieldKey) {
+    protected fun assertVisible(schema: List<ResourceFieldSchema>, key: ResourceFieldKey) {
         val field = schema.find { it.key == key }
         assertNotNull("Field $key must be present in schema", field)
-        assertFalse("Field $key must not be visible to the editor", field!!.visible)
+        assertTrue("Field $key must be rendered by the editor", field!!.visible)
     }
 
     protected fun assertFieldAbsent(schema: List<ResourceFieldSchema>, key: ResourceFieldKey) {

@@ -128,8 +128,12 @@ interface LauncherDesktopRepository {
      * flags and the stored column widths go with it. A later [seedIfEmpty] therefore seeds again -
      * that is what makes the one-time starter set repeatable for a reset. Read [state] before calling
      * this: the column widths are gone afterwards.
+     *
+     * S2217: returns the `target` column of every row the delete removed, read inside the same
+     * transaction, so the reset can clear whatever those rows pointed at - a configured widget cell
+     * is the only thing that still knows its instance token, and after this call nothing does.
      */
-    suspend fun clearAll()
+    suspend fun clearAll(): List<String>
 
     suspend fun state(): LauncherDesktopState
 

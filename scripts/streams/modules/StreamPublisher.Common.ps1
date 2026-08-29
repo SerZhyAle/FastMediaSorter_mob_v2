@@ -184,20 +184,98 @@ function Get-CanonicalTopic {
     return 'General'
 }
 
+# Grouping values are a producer contract: the Android filter matches these ids directly, so each source
+# must converge before a candidate reaches a CSV write. Categories and countries preserve an unknown value
+# for review; topics intentionally keep their existing closed-set fallback of General.
+function Get-CanonicalCategory {
+    param([string]$Category)
+    $normalized = ($Category ?? '').Trim().ToLowerInvariant() -replace '\s+', ' '
+    switch ($normalized) {
+        { $_ -in @('radio', 'radio (somafm)', 'somafm') } { return 'Radio' }
+        { $_ -in @('live tv', 'tv', 'television') } { return 'Live TV' }
+        { $_ -in @('open movies', 'movie', 'movies', 'on demand video', 'on-demand video') } {
+            return 'On-demand video'
+        }
+        { $_ -in @('test', 'test stream', 'test streams') } { return 'Test streams' }
+        default { return $Category.Trim() }
+    }
+}
+
+function Get-CanonicalLanguageToken {
+    param([string]$Language)
+    $normalized = ($Language ?? '').Trim().ToLowerInvariant() -replace '\s+', ' '
+    switch ($normalized) {
+        { $_ -in @('american english', 'british english', 'english uk', 'engilsh') } { return 'english' }
+        { $_ -in @('deutsch', 'gernan', 'gerrnan') } { return 'german' }
+        { $_ -in @('español argentino', 'español internacional', '#spanish') } { return 'spanish' }
+        { $_ -in @('brazilian portuguese', 'português brasileiro', 'portugues do brasil', 'português (br)') } {
+            return 'portuguese'
+        }
+        'bahasa indonesia' { return 'indonesian' }
+        'ภาษาไทย' { return 'thai' }
+        default { return $normalized }
+    }
+}
+
+function Get-CanonicalLanguages {
+    param([string]$Languages)
+    $raw = ($Languages ?? '').Trim()
+    if (-not $raw) { return '' }
+    if ($raw.ToLowerInvariant() -eq 'english german') { return 'english,german' }
+    $tokens = @($raw -split '[,;/|]' |
+        ForEach-Object { Get-CanonicalLanguageToken -Language $_ } |
+        Where-Object { $_ } |
+        Select-Object -Unique)
+    return $tokens -join ','
+}
+
+function Get-CountryNameToCode {
+    if ($script:CountryNameToCode) { return $script:CountryNameToCode }
+    $map = @{}
+    foreach ($culture in [System.Globalization.CultureInfo]::GetCultures(
+            [System.Globalization.CultureTypes]::SpecificCultures)) {
+        try {
+            $region = [System.Globalization.RegionInfo]::new($culture.Name)
+            foreach ($name in @($region.EnglishName, $region.NativeName, $region.DisplayName)) {
+                $key = ($name ?? '').Trim().ToLowerInvariant() -replace '\s+', ' '
+                if ($key) { $map[$key] = $region.TwoLetterISORegionName }
+            }
+        } catch {
+            # A culture without a region is not a catalogue value and contributes no alias.
+        }
+    }
+    $script:CountryNameToCode = $map
+    return $map
+}
+
+function Get-CanonicalCountry {
+    param([string]$Country)
+    $raw = ($Country ?? '').Trim()
+    if (-not $raw) { return '' }
+    $upper = $raw.ToUpperInvariant()
+    if ($upper -match '^[A-Z]{2}$') { return $upper }
+    switch ($raw.ToLowerInvariant()) {
+        'uk' { return 'GB' }
+        'usa' { return 'US' }
+    }
+    $key = $raw.ToLowerInvariant() -replace '\s+', ' '
+    return (Get-CountryNameToCode)[$key] ?? $raw
+}
+
 function Map-IptvTopic([string]$cat) {
     switch ($cat) {
         'news' { 'News' }
         'documentary' { 'Documentary' }
-        'movies' { 'Movie' }
+        'movies' { 'Movies & Series' }
         'music' { 'Pop' }
         'sports' { 'Sports' }
         'kids' { 'Kids' }
         'family' { 'Kids' }
         'animation' { 'Kids' }
-        'science' { 'Science & Space' }
+        'science' { 'Documentary' }
         'general' { 'General' }
         'entertainment' { 'General' }
-        default { To-Title $cat }
+        default { Get-CanonicalTopic $cat }
     }
 }
 

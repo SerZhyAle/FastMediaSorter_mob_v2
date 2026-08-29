@@ -599,8 +599,59 @@ class LauncherDesktopRepositoryImplTest {
         assertEquals(2, storedCell(secB)?.rowIndex)
     }
 
+    /**
+     * S2217: the reset owes each deleted configured widget cell an instance cleanup it can only
+     * perform while it still knows the cell's target, so the delete hands those columns back. A
+     * dropped or invented target here means a leaked or wrongly cleared widget instance.
+     */
+    @Test
+    fun `clearAll returns every deleted target of both orientations and empties the table`() = runTest {
+        val dao = dbRule.db.launcherCellDao()
+        listOf(
+            entity(orientation = LauncherOrientation.PORTRAIT, kind = LauncherCellKind.GADGET, target = GADGET_TARGET),
+            entity(
+                orientation = LauncherOrientation.PORTRAIT,
+                kind = LauncherCellKind.SHORTCUT,
+                target = "app:com.example"
+            ),
+            entity(
+                orientation = LauncherOrientation.LANDSCAPE,
+                kind = LauncherCellKind.GADGET,
+                target = "app:com.other"
+            ),
+        ).forEach { dao.upsert(it) }
+
+        val targets = repository.clearAll()
+
+        assertEquals(setOf(GADGET_TARGET, "app:com.example", "app:com.other"), targets.toSet())
+        assertEquals(0, dao.countByOrientation(LauncherOrientation.PORTRAIT.name))
+        assertEquals(0, dao.countByOrientation(LauncherOrientation.LANDSCAPE.name))
+    }
+
+    private fun entity(
+        orientation: LauncherOrientation,
+        kind: LauncherCellKind,
+        target: String,
+        row: Int = 0,
+        col: Int = 0,
+    ) = LauncherCellEntity(
+        id = 0,
+        orientation = orientation.name,
+        rowIndex = row,
+        colIndex = col,
+        spanW = 1,
+        spanH = 1,
+        kind = kind.name,
+        target = target,
+        labelOverride = null,
+        addedAt = 0L,
+    )
+
     private companion object {
         /** Wide enough that no seeding call is refused for width alone. */
         const val COLUMNS = 8
+
+        /** A configured gadget cell's target carries its instance token as the param (S1930 codec). */
+        const val GADGET_TARGET = "gadget:random_photo_frame/-1000001"
     }
 }

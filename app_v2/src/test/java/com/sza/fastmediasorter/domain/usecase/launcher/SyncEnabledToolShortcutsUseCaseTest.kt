@@ -46,7 +46,7 @@ class SyncEnabledToolShortcutsUseCaseTest {
         override suspend fun resizeCell(id: Long, spanW: Int, spanH: Int): Boolean = true
         override suspend fun updateCellTarget(id: Long, target: String): Boolean = true
         override suspend fun seedIfEmpty(orientation: LauncherOrientation, cells: List<LauncherCell>): Boolean = true
-        override suspend fun clearAll() = Unit
+        override suspend fun clearAll(): List<String> = emptyList()
         override suspend fun state(): LauncherDesktopState = LauncherDesktopState(
             seededPortrait = true,
             seededLandscape = true,

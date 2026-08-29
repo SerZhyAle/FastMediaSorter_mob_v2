@@ -7,7 +7,7 @@ permalink: /docs/wear/index-uk.html
 
 [📱 Головний сайт застосунку](../README_UK.md) | [📖 Усі інструкції](../howto/index-uk.md) | [English](index.md) | [Русский](index-ru.md)
 
-Ласкаво просимо на **веб-портал FastMedia Wear OS** — повний довідник автономного медіаплеєра, мережевого браузера та компаньйона для розумних годинників на базі Wear OS. FastMedia Wear працює у тісній інтеграції з [основною програмою FastMediaSorter](../README_UK.md) для смартфонів та планшетів.
+Ласкаво просимо на **веб-портал FastMedia Wear OS** - повний довідник автономного медіаплеєра, мережевого браузера та компаньйона для розумних годинників на базі Wear OS. FastMedia Wear працює у тісній інтеграції з [основною програмою FastMediaSorter](../README_UK.md) для смартфонів та планшетів.
 
 ---
 
@@ -89,9 +89,9 @@ FastMedia Wear працює як самостійний застосунок н�
 | Відправлення логів розробнику | - | ✅ Так (Через мобільний клієнт) |
 
 ### Детальніше про основний застосунок для смартфона та планшетів
-- [Документація головного застосунку](../README_UK.md) — Повний огляд FastMediaSorter для Android смартфонів, планшетів та TV.
-- [Перший запуск та профілі пристроїв](../QUICK_START_UK.md#перший-запуск-вибір-профілю-пристрою-30-секунд) — Налаштування застосунку під фоторамку, авто-плеєр або домашній кінотеатр.
-- [Усі покрокові інструкції](../howto/index-uk.md) — Покрокові сценарії підключення NAS, резервного копіювання та сортування.
+- [Документація головного застосунку](../README_UK.md) - Повний огляд FastMediaSorter для Android смартфонів, планшетів та TV.
+- [Перший запуск та профілі пристроїв](../QUICK_START_UK.md#перший-запуск-вибір-профілю-пристрою-30-секунд) - Налаштування застосунку під фоторамку, авто-плеєр або домашній кінотеатр.
+- [Усі покрокові інструкції](../howto/index-uk.md) - Покрокові сценарії підключення NAS, резервного копіювання та сортування.
 
 ---
 
@@ -100,14 +100,14 @@ FastMedia Wear працює як самостійний застосунок н�
 Застосунки FastMedia Wear та FastMedia Mobile доступні в офіційних магазинах та для прямого завантаження:
 
 ### Магазини та завантаження
-- [<img src="../icons/doc/ic_info.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Google Play Store**](https://play.google.com/store/apps) — Завантаження версій для смартфона та годинників Wear OS.
-- [<img src="../icons/doc/ic_resource_smb.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **F-Droid Open Source**](https://f-droid.org) — Збірки з відкритим вихідним кодом для Android та Wear OS.
-- [<img src="../icons/doc/ic_download.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Пряме завантаження APK**](../DOWNLOADS_UK.md) — Прямі APK-файли для встановлення на телефон та годинник.
+- [<img src="../icons/doc/ic_info.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Google Play Store**](https://play.google.com/store/apps) - Завантаження версій для смартфона та годинників Wear OS.
+- [<img src="../icons/doc/ic_resource_smb.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **F-Droid Open Source**](https://f-droid.org) - Збірки з відкритим вихідним кодом для Android та Wear OS.
+- [<img src="../icons/doc/ic_download.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Пряме завантаження APK**](../DOWNLOADS_UK.md) - Прямі APK-файли для встановлення на телефон та годинник.
 
 ---
 
 ## 📚 Покрокові інструкції
 
-- [Встановлення FastMedia на розумний годинник](../howto/wear-install.md) — Покрокова інструкція з встановлення та прив'язування.
-- [Музика на розумному годиннику](../howto/scenario-watch-music.md) — Інструкція з прослуховування музики, керування гучністю та економії батареї.
-- [Підключення годинника до мережевих дисків](../howto/scenario-watch-network.md) — Налаштування прямого підключення годинника до ПК та NAS по SMB/SFTP.
+- [Встановлення FastMedia на розумний годинник](../howto/wear-install.md) - Покрокова інструкція з встановлення та прив'язування.
+- [Музика на розумному годиннику](../howto/scenario-watch-music.md) - Інструкція з прослуховування музики, керування гучністю та економії батареї.
+- [Підключення годинника до мережевих дисків](../howto/scenario-watch-network.md) - Налаштування прямого підключення годинника до ПК та NAS по SMB/SFTP.

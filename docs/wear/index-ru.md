@@ -7,7 +7,7 @@ permalink: /docs/wear/index-ru.html
 
 [📱 Главный сайт приложения](../README_RU.md) | [📖 Все руководства](../howto/index-ru.md) | [English](index.md) | [Українська](index-uk.md)
 
-Добро пожаловать на **веб-портал FastMedia Wear OS** — полный справочник по автономному медиаплееру, сетевому браузеру и компаньону для умных часов на базе Wear OS. FastMedia Wear работает в тесной интеграции с [основным приложением FastMediaSorter](../README_RU.md) для смартфонов и планшетов.
+Добро пожаловать на **веб-портал FastMedia Wear OS** - полный справочник по автономному медиаплееру, сетевому браузеру и компаньону для умных часов на базе Wear OS. FastMedia Wear работает в тесной интеграции с [основным приложением FastMediaSorter](../README_RU.md) для смартфонов и планшетов.
 
 ---
 
@@ -89,9 +89,9 @@ FastMedia Wear работает как самостоятельное прило
 | Отправка логов разработчику | - | ✅ Да (Через мобильный клиент) |
 
 ### Подробнее об основном приложении для телефона и планшетов
-- [Документация главного приложения](../README_RU.md) — Полный обзор FastMediaSorter для Android смартфонов, планшетов и TV.
-- [Первый запуск и профили устройств](../QUICK_START_RU.md#первый-запуск-выбор-профиля-устройства-30-секунд) — Настройка приложения под фоторамку, авто-плеер или домашний кинотеатр.
-- [Все пошаговые руководства](../howto/index-ru.md) — Пошаговые сценарии подключения NAS, резервного копирования и сортировки.
+- [Документация главного приложения](../README_RU.md) - Полный обзор FastMediaSorter для Android смартфонов, планшетов и TV.
+- [Первый запуск и профили устройств](../QUICK_START_RU.md#первый-запуск-выбор-профиля-устройства-30-секунд) - Настройка приложения под фоторамку, авто-плеер или домашний кинотеатр.
+- [Все пошаговые руководства](../howto/index-ru.md) - Пошаговые сценарии подключения NAS, резервного копирования и сортировки.
 
 ---
 
@@ -100,14 +100,14 @@ FastMedia Wear работает как самостоятельное прило
 Приложения FastMedia Wear и FastMedia Mobile доступны в официальных магазинах и для прямой загрузки:
 
 ### Магазины и загрузки
-- [<img src="../icons/doc/ic_info.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Google Play Store**](https://play.google.com/store/apps) — Загрузка версий для смартфона и часов Wear OS.
-- [<img src="../icons/doc/ic_resource_smb.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **F-Droid Open Source**](https://f-droid.org) — Сборки с открытым исходным кодом для Android и Wear OS.
-- [<img src="../icons/doc/ic_download.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Прямая загрузка APK**](../DOWNLOADS_RU.md) — Прямые APK-файлы для установки на телефон и часы.
+- [<img src="../icons/doc/ic_info.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Google Play Store**](https://play.google.com/store/apps) - Загрузка версий для смартфона и часов Wear OS.
+- [<img src="../icons/doc/ic_resource_smb.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **F-Droid Open Source**](https://f-droid.org) - Сборки с открытым исходным кодом для Android и Wear OS.
+- [<img src="../icons/doc/ic_download.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Прямая загрузка APK**](../DOWNLOADS_RU.md) - Прямые APK-файлы для установки на телефон и часы.
 
 ---
 
 ## 📚 Пошаговые руководства
 
-- [Установка FastMedia на умные часы](../howto/wear-install.md) — Пошаговое руководство по установке и привязке.
-- [Музыка на умных часах](../howto/scenario-watch-music.md) — Руководство по прослушиванию музыки, управлению громкостью и экономии батареи.
-- [Подключение часов к сетевым дискам](../howto/scenario-watch-network.md) — Настройка прямого подключения часов к ПК и NAS по SMB/SFTP.
+- [Установка FastMedia на умные часы](../howto/wear-install.md) - Пошаговое руководство по установке и привязке.
+- [Музыка на умных часах](../howto/scenario-watch-music.md) - Руководство по прослушиванию музыки, управлению громкостью и экономии батареи.
+- [Подключение часов к сетевым дискам](../howto/scenario-watch-network.md) - Настройка прямого подключения часов к ПК и NAS по SMB/SFTP.

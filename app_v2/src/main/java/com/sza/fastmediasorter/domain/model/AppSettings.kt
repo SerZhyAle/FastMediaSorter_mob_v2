@@ -420,6 +420,14 @@ data class AppSettings(
     // S1090: guards entry into desktop edit mode. Off by default so the long-press gesture stays
     // discoverable; the Start-menu entry is deliberate and stays reachable regardless of this flag.
     val launcherDesktopLocked: Boolean = false,
+    val launcherDesktopSwipeUpAction: LauncherDesktopSwipeAction =
+        LauncherDesktopSwipeAction.OPEN_ALL_APPS,
+    val launcherDesktopSwipeDownAction: LauncherDesktopSwipeAction =
+        LauncherDesktopSwipeAction.OPEN_NOTIFICATION_SHADE,
+    val launcherDesktopSwipeLeftAction: LauncherDesktopSwipeAction =
+        LauncherDesktopSwipeAction.DO_NOT_USE,
+    val launcherDesktopSwipeRightAction: LauncherDesktopSwipeAction =
+        LauncherDesktopSwipeAction.DO_NOT_USE,
     // S1101: desktop wallpaper mode, one of [LAUNCHER_WALLPAPER_MODES]. Stored as a token (like
     // [colorTheme]) so an unknown value from a newer build degrades to the branded default.
     val launcherWallpaperMode: String = LAUNCHER_WALLPAPER_BRANDED,
@@ -436,7 +444,7 @@ data class AppSettings(
     // S1741: launcher-private screen blackout timeout in seconds (0 = Off).
     val launcherScreenBlackoutTimeoutSeconds: Int = 0,
     // S1748: launcher widget backdrop opacity (0.0f = 0% transparent, 0.85f = 85% default, 1.0f = 100% opaque).
-    val launcherWidgetBackdropAlpha: Float = 0.85f,
+    val launcherWidgetBackdropAlpha: Float = DEFAULT_LAUNCHER_WIDGET_BACKDROP_ALPHA,
     // S2213: the place last picked for a weather gadget, in `WeatherLocation.encode` form. It lives here
     // rather than only inside the desktop cell because clearing the desktop is exactly what a launcher
     // reset does, and the picked place must outlive it. Empty until the user picks one. No UI row
@@ -446,6 +454,9 @@ data class AppSettings(
     companion object {
         /** S1796: opaque white - the flashlight starts as a plain white lamp until a colour is picked. */
         const val FRONT_FLASHLIGHT_DEFAULT_COLOR: Int = 0xFFFFFFFF.toInt()
+
+        /** S1748: canonical default for the launcher widget backdrop opacity. */
+        const val DEFAULT_LAUNCHER_WIDGET_BACKDROP_ALPHA: Float = 0.85f
 
         /** S1748: selectable widget backdrop opacity levels. */
         val LAUNCHER_WIDGET_BACKDROP_ALPHA_OPTIONS = listOf(0.0f, 0.25f, 0.50f, 0.70f, 0.85f, 1.0f)

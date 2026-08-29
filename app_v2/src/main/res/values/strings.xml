@@ -3569,4 +3569,12 @@
     <string name="launcher_tray_speed_download">Download speed: %1$s</string>
     <string name="launcher_tray_speed_upload">Upload speed: %1$s</string>
     <string name="launcher_wallpaper_mode_instant_photo">Instant photo</string>
+    <string name="launcher_desktop_swipe_picker_title">Desktop swipe action</string>
+    <string name="launcher_desktop_swipe_action_all_apps">All apps</string>
+    <string name="launcher_desktop_swipe_action_notification_shade">Notification shade</string>
+    <string name="launcher_desktop_swipe_action_do_not_use">Do not use</string>
+    <string name="launcher_desktop_swipe_up_title">Swipe up</string>
+    <string name="launcher_desktop_swipe_down_title">Swipe down</string>
+    <string name="launcher_desktop_swipe_left_title">Swipe left</string>
+    <string name="launcher_desktop_swipe_right_title">Swipe right</string>
 </resources>

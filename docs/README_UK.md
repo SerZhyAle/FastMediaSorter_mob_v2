@@ -347,9 +347,9 @@ FastMediaSorter має автономний застосунок та companion 
 
 Документація Wear OS:
 
-- 🌟 **[Веб-портал Wear OS](wear/index-uk.md)** — Повний огляд функцій, скріншоти та посилання на магазини
-- [Wear OS Quick Start](WEAR_OS_QUICK_START.md) — Посібник із прив'язування та первинного налаштування
-- [Wear OS Setup](WEAR_OS_SETUP.md) — Архітектура модуля та синхронізація з телефоном
+- 🌟 **[Веб-портал Wear OS](wear/index-uk.md)** - Повний огляд функцій, скріншоти та посилання на магазини
+- [Wear OS Quick Start](WEAR_OS_QUICK_START.md) - Посібник із прив'язування та первинного налаштування
+- [Wear OS Setup](WEAR_OS_SETUP.md) - Архітектура модуля та синхронізація з телефоном
 - [Розділ Wear OS у FEATURES](FEATURES.md#16-settings--navigation)
 
 ## Інструкція зі збирання

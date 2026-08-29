@@ -40,6 +40,7 @@ import com.sza.fastmediasorter.utils.PermissionChecker
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -756,6 +757,7 @@ class ResourceEditorFragment : Fragment() {
         val isLocal = type == ResourceType.LOCAL
         val isNetwork = type == ResourceType.SMB || type == ResourceType.SFTP || type == ResourceType.FTP
         val isCloud = type == ResourceType.CLOUD
+        val isStream = type == ResourceType.HTTP_STREAM || type == ResourceType.RTSP_STREAM
 
         val localFieldsVisible = isLocal && visibleKeys.contains(ResourceFieldKey.PATH)
         val networkFieldsVisible = isNetwork && (
@@ -766,12 +768,18 @@ class ResourceEditorFragment : Fragment() {
                 visibleKeys.contains(ResourceFieldKey.PATH)
             )
         val cloudFieldsVisible = isCloud && visibleKeys.contains(ResourceFieldKey.CLOUD_FOLDER)
+        // A stream's URL is rendered into tilPath, which lives inside this section - without
+        // this term the section hides the field renderFieldSchema just made visible.
+        val streamFieldsVisible = isStream && visibleKeys.contains(ResourceFieldKey.PATH)
 
         val shouldShowConnectionSection = localFieldsVisible ||
             networkFieldsVisible ||
             cloudFieldsVisible ||
+            streamFieldsVisible ||
             isNetwork ||
             isCloud
+
+        Timber.d("S2225: connection section for %s visible=%b", type, shouldShowConnectionSection)
 
         binding.cardConnectionSettings.isVisible = shouldShowConnectionSection
         binding.headerConnectionSettings.isVisible = shouldShowConnectionSection

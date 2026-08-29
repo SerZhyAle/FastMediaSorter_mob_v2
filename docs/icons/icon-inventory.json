@@ -577,6 +577,14 @@
   },
   {
     "surface": "program-nav",
+    "key": "black_screen",
+    "feature": "launcher_action_black_screen",
+    "drawable": "ic_black_screen",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "bluetooth",
     "feature": "app_launch_panel_os_bluetooth",
     "drawable": "ic_bluetooth",

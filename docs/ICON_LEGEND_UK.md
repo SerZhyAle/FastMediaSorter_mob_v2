@@ -27,6 +27,7 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_screen_rotation.svg" alt="ic_screen_rotation" width="24" height="24"> | Автообертання |
 | <img src="icons/svg/ic_battery.svg" alt="ic_battery" width="24" height="24"> | Батарея |
 | <img src="icons/svg/ic_battery.svg" alt="ic_battery" width="24" height="24"> | Економія заряду |
+| <img src="icons/svg/ic_black_screen.svg" alt="ic_black_screen" width="24" height="24"> | Чорний екран |
 | <img src="icons/svg/ic_bluetooth.svg" alt="ic_bluetooth" width="24" height="24"> | Bluetooth |
 | <img src="icons/svg/ic_calculator.svg" alt="ic_calculator" width="24" height="24"> | Калькулятор |
 | <img src="icons/svg/ic_widget_camera_launch_accent.svg" alt="ic_widget_camera_launch_accent" width="24" height="24"> | Камера |
@@ -40,6 +41,7 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_front_flashlight.svg" alt="ic_front_flashlight" width="24" height="24"> | Фронтальний ліхтарик |
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Міні-гра |
 | <img src="icons/svg/ic_cloud_download.svg" alt="ic_cloud_download" width="24" height="24"> | Завантажити за посиланням |
+| <img src="icons/svg/ic_location.svg" alt="ic_location" width="24" height="24"> | Геолокація |
 | <img src="icons/svg/ic_network_monitor.svg" alt="ic_network_monitor" width="24" height="24"> | Мережевий монітор |
 | <img src="icons/svg/ic_nfc.svg" alt="ic_nfc" width="24" height="24"> | NFC |
 | <img src="icons/svg/ic_camera_ocr_translate.svg" alt="ic_camera_ocr_translate" width="24" height="24"> | Фото-OCR-переклад |

@@ -12,7 +12,7 @@ $ErrorActionPreference = 'Stop'
 
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $logFile = Join-Path $OutputDir "device_logs_$timestamp.txt"
-$prefsFile = Join-Path $OutputDir "app_settings_$timestamp.xml"
+$prefsFile = Join-Path $OutputDir "app_settings_$timestamp.preferences.pb"
 
 # Resolve adb: prefer PATH, then common Android SDK locations. The dev machine
 # does not always have platform-tools on PATH, which previously aborted the
@@ -112,22 +112,28 @@ catch {
     Write-Host "  FAILED: $_" -ForegroundColor Red
 }
 
-# Extract SharedPreferences
-Write-Host "[2/4] Extracting SharedPreferences..." -ForegroundColor Yellow
+# Extract DataStore preferences
+Write-Host "[2/4] Extracting DataStore settings..." -ForegroundColor Yellow
 try {
-    $prefsOutput = & $adb shell "run-as $PackageName cat /data/data/$PackageName/shared_prefs/app_settings.xml" 2>$null
-    if ($prefsOutput) {
-        $prefsOutput | Out-File -FilePath $prefsFile -Encoding UTF8
+    # The app stores settings in Preferences DataStore (binary protobuf), not the legacy
+    # SharedPreferences XML. `base64` keeps the transfer byte-safe: decoding locally and
+    # writing the raw bytes preserves the payload for protobuf inspection, which a text
+    # `cat` + `Out-File` round trip would corrupt.
+    $encoded = & $adb shell "run-as $PackageName base64 /data/data/$PackageName/files/datastore/settings.preferences_pb" 2>$null
+    if ($encoded) {
+        $bytes = [Convert]::FromBase64String(($encoded -join ''))
+        [System.IO.File]::WriteAllBytes($prefsFile, $bytes)
         Write-Host "  Saved to: $prefsFile" -ForegroundColor Green
-        
-        # Parse language setting
-        if ($prefsOutput -match '<string name="selected_language">([^<]+)</string>') {
-            $lang = $matches[1]
-            Write-Host "  Current language: $lang" -ForegroundColor Cyan
+
+        # Best-effort: the protobuf payload interleaves tag and length bytes between the
+        # key name and its string value, so skip the display when the shape does not match.
+        $text = [System.Text.Encoding]::GetEncoding(28591).GetString($bytes)
+        if ($text -match 'language[^a-zA-Z0-9_]{0,6}([a-z]{2,3}(?:-[A-Za-z]{2,8})?)') {
+            Write-Host "  Current language: $($matches[1])" -ForegroundColor Cyan
         }
     }
     else {
-        Write-Host "  FAILED: Cannot access app data (device not rooted or app not debuggable)" -ForegroundColor Yellow
+        Write-Host "  FAILED: could not read settings.preferences_pb (device not rooted or app not debuggable)" -ForegroundColor Yellow
     }
 }
 catch {
@@ -161,8 +167,9 @@ catch {
 # Check if APK has localization resources
 Write-Host "[4/4] Checking app resources..." -ForegroundColor Yellow
 try {
-    # Get app path on device
-    $appPath = & $adb shell pm path $PackageName 2>$null
+    # Get app path on device. A split-APK install lists one line per split, and -match on
+    # an array filters lines instead of populating $Matches, so match the first line only.
+    $appPath = & $adb shell pm path $PackageName 2>$null | Select-Object -First 1
     if ($appPath -match "package:(.+)") {
         $apkPath = $matches[1].Trim()
         Write-Host "  APK location: $apkPath" -ForegroundColor Green
@@ -182,6 +189,6 @@ Write-Host "Logs saved to: $OutputDir" -ForegroundColor Green
 Write-Host ""
 Write-Host "Next steps:" -ForegroundColor Yellow
 Write-Host "1. Review logs: notepad $logFile"
-Write-Host "2. Check SharedPreferences: notepad $prefsFile"
+Write-Host "2. Check DataStore settings: notepad $prefsFile"
 Write-Host "3. If issue persists, send these files for analysis"
 Write-Host ""

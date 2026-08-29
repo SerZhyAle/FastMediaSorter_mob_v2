@@ -24,15 +24,18 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
+import com.sza.fastmediasorter.core.screencapture.gesture.GestureAccessibilityActions
 import com.sza.fastmediasorter.databinding.DialogLauncherResetConfirmBinding
 import com.sza.fastmediasorter.databinding.DialogLauncherSettingsBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeAction
 import com.sza.fastmediasorter.domain.usecase.launcher.IsCameraWallpaperAvailableUseCase
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLensEnumerationManager
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLensLabelFormatter
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
+import com.sza.fastmediasorter.ui.settings.helpers.LauncherDesktopSwipeActionPickerManager
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -68,6 +71,9 @@ class LauncherSettingsDialogFragment : DialogFragment() {
 
     @Inject
     lateinit var launcherRoleManager: LauncherRoleManager
+
+    @Inject
+    lateinit var gestureAccessibilityActions: Set<@JvmSuppressWildcards GestureAccessibilityActions>
 
     // S2076: whether this device has a camera at all. Injected here rather than into the shared settings
     // ViewModel, whose constructor is already at its parameter ceiling - and the question is a UI one:
@@ -157,6 +163,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
 
     private fun setupRows() {
         setupPlacementRow()
+        setupDesktopSwipeRows()
         binding.rowLauncherShowRecents.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(launcherTaskbarShowRecents = isChecked))
@@ -226,6 +233,40 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             launcherViewModel.importSystemShortcuts()
         }
         binding.btnResetLauncher.setOnClickListener { confirmReset() }
+    }
+
+    private fun setupDesktopSwipeRows() {
+        val picker = LauncherDesktopSwipeActionPickerManager(
+            systemActionsAvailable = gestureAccessibilityActions.isNotEmpty(),
+        )
+        binding.rowLauncherDesktopSwipeUp.setOnClickListener {
+            showDesktopSwipePicker(picker, viewModel.settings.value.launcherDesktopSwipeUpAction) {
+                viewModel.updateSettings(viewModel.settings.value.copy(launcherDesktopSwipeUpAction = it))
+            }
+        }
+        binding.rowLauncherDesktopSwipeDown.setOnClickListener {
+            showDesktopSwipePicker(picker, viewModel.settings.value.launcherDesktopSwipeDownAction) {
+                viewModel.updateSettings(viewModel.settings.value.copy(launcherDesktopSwipeDownAction = it))
+            }
+        }
+        binding.rowLauncherDesktopSwipeLeft.setOnClickListener {
+            showDesktopSwipePicker(picker, viewModel.settings.value.launcherDesktopSwipeLeftAction) {
+                viewModel.updateSettings(viewModel.settings.value.copy(launcherDesktopSwipeLeftAction = it))
+            }
+        }
+        binding.rowLauncherDesktopSwipeRight.setOnClickListener {
+            showDesktopSwipePicker(picker, viewModel.settings.value.launcherDesktopSwipeRightAction) {
+                viewModel.updateSettings(viewModel.settings.value.copy(launcherDesktopSwipeRightAction = it))
+            }
+        }
+    }
+
+    private fun showDesktopSwipePicker(
+        picker: LauncherDesktopSwipeActionPickerManager,
+        current: LauncherDesktopSwipeAction,
+        onPicked: (LauncherDesktopSwipeAction) -> Unit,
+    ) {
+        picker.showPicker(requireContext(), viewLifecycleOwner, current, onPicked)
     }
 
     /**
@@ -479,6 +520,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             binding.rowLauncherForeignNotifications.setCheckedSilently(settings.launcherForeignNotificationsEnabled)
             renderForeignNotificationsRow(settings.launcherForeignNotificationsEnabled)
             binding.rowLauncherTaskbarPlacement.setSelection(placementIndex(settings))
+            renderDesktopSwipeRows(settings)
             binding.rowLauncherLockDesktop.setCheckedSilently(settings.launcherDesktopLocked)
             val densityIndex = AppSettings.LAUNCHER_DENSITY_OPTIONS.indexOf(settings.launcherDensityFactor)
             binding.rowLauncherDensity.setSelection(if (densityIndex >= 0) densityIndex else DENSITY_DEFAULT_INDEX)
@@ -516,6 +558,24 @@ class LauncherSettingsDialogFragment : DialogFragment() {
                 Snackbar.LENGTH_LONG,
             ).show()
         }
+    }
+
+    private fun renderDesktopSwipeRows(settings: AppSettings) {
+        val picker = LauncherDesktopSwipeActionPickerManager(
+            systemActionsAvailable = gestureAccessibilityActions.isNotEmpty(),
+        )
+        binding.rowLauncherDesktopSwipeUp.setValue(
+            picker.labelFor(requireContext(), settings.launcherDesktopSwipeUpAction)
+        )
+        binding.rowLauncherDesktopSwipeDown.setValue(
+            picker.labelFor(requireContext(), settings.launcherDesktopSwipeDownAction)
+        )
+        binding.rowLauncherDesktopSwipeLeft.setValue(
+            picker.labelFor(requireContext(), settings.launcherDesktopSwipeLeftAction)
+        )
+        binding.rowLauncherDesktopSwipeRight.setValue(
+            picker.labelFor(requireContext(), settings.launcherDesktopSwipeRightAction)
+        )
     }
 
     /**

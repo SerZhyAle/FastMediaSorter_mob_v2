@@ -61,7 +61,8 @@ android {
         getByName("alpha") {
             kotlin.directories.add("src/sharedOne/java")
         }
-        listOf("testAlpha", "testBeta").forEach { unitTestSet ->
+        listOf("testAlpha", "testBeta")
+            .forEach { unitTestSet ->
             getByName(unitTestSet) {
                 kotlin.directories.add("src/testShared/java")
                 kotlin.directories.add("src/testMissing/java")
@@ -184,7 +185,7 @@ try {
     (($map.MainSetMounts['sharedOne'] -join ',') -eq 'alpha') `
         "got '$($map.MainSetMounts['sharedOne'] -join ',')'"
 
-    Assert-That 'P1 forEach loop mounts into every listed target' `
+    Assert-That 'P1 wrapped forEach loop mounts into every listed target' `
     ((($map.TestSetMounts['testShared'] | Sort-Object) -join ',') -eq 'testAlpha,testBeta') `
         "got '$($map.TestSetMounts['testShared'] -join ',')'"
 

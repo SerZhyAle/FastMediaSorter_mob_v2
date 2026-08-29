@@ -121,6 +121,9 @@ class LauncherHomeViewModel @Inject constructor(
      */
     private val settingsDefaults = AppSettings()
 
+    val launcherDesktopSettings: StateFlow<AppSettings> = settingsRepository.getSettings()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, settingsDefaults)
+
     val densityFactor: StateFlow<Float> = settingsRepository.getSettings()
         .map { it.launcherDensityFactor }
         .stateIn(viewModelScope, SharingStarted.Eagerly, settingsDefaults.launcherDensityFactor)

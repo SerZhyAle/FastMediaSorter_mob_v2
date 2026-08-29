@@ -144,6 +144,10 @@ param(
     # Combine with -Publish to upload the rewritten catalog, or run it alone to review the diff first.
     [switch]$NormalizeTopics,
 
+    # Normalize category, topic, language and country on an existing catalog. Unlike discovery this is
+    # a reviewable metadata-only rewrite: it creates a move report and never runs network collection.
+    [switch]$NormalizeFacets,
+
     # S1154 PHASE_06 channel-preview atlas. Captures one frame per VIDEO channel with ffmpeg, packs the
     # frames into the 240x135 / 34-column sheet the app's ChannelPreviewAtlasSlicer expects, and writes
     # the url->index sidecar. Off by default: a routine catalog refresh must never trigger a multi-hour

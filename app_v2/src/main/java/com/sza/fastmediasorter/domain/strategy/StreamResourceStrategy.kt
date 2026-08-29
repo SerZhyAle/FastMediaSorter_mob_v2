@@ -17,9 +17,8 @@ import com.sza.fastmediasorter.domain.model.ResourceValidationResult
  * merely disabled, following WearWatchResourceStrategy: a field the editor never renders cannot be
  * set by accident.
  *
- * PATH stays in the schema but invisible. The URL is the resource, so validation must refuse a blank
- * one, while no editor field writes it today - both path inputs are gated on the local and network
- * resource groups, which a stream belongs to neither of.
+ * PATH is required and rendered. The URL is the resource, so validation refuses a blank one, and the
+ * editor reuses the local path input under the stream URL hint rather than adding a second field.
  */
 class StreamResourceStrategy : ResourceStrategy {
 

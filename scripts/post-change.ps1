@@ -499,6 +499,12 @@ $runsDocScriptReferences =
     (Test-AnyChangedFile '^(docs|dev|\.claude)/.*\.(md|json|jsonl)$') -or
     (Test-AnyChangedFile '^(CLAUDE|AGENTS|GEMINI|README)\.md$') -or
     (Test-AnyChangedFile '\.ps1$')
+# S2216 documentation house-style gate. The site publishes docs/** on every push
+# (jekyll-gh-pages), so a typographic dash in a page reaches the public site with no Android
+# release involved - which is why the check is per change, scoped to the changed set, and not
+# only at release scope. Keyed on the changed set like doc-script-references above: a closure
+# whose set carries a docs/*.md runs it, a Kotlin-only one never does.
+$runsDocHouseStyle = Test-AnyChangedFile '^docs/.*\.md$'
 # S0383 neuroslop ratchet gate. Covers Kotlin (trivial comments / swallowing catch /
 # unsafe Flow collects) and Xml (hardcoded layout colors, build-invisible string-resource
 # quotes). Baselines only ratchet DOWN. The live set is whatever source-matchers.ps1
@@ -837,6 +843,24 @@ if ($runsDocScriptReferences) {
 }
 else {
     Skip-Step "doc-script-references" "not applicable - no changed file is a corpus document or a script"
+}
+
+# S2216: check-only documentation house-style gate. Fatal, not advisory - the canon flagged the
+# nine mirrored pages only from outside this repository, and a warning here would reproduce that
+# silence. Under -ScopeToFile the gate judges only the docs/*.md this change touched, so another
+# session's in-flight page cannot fail this closure; without it the whole docs corpus is judged,
+# which today names the generated FEATURES_noLegal pages as known debt (parked draft spec).
+if ($runsDocHouseStyle) {
+    Invoke-Gate "doc-house-style" {
+        $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-doc-house-style.ps1"))
+        if ($ScopeToFile -and $changedFiles.Count -gt 0) {
+            $a += @('-ChangedFiles', ($changedFiles -join ','))
+        }
+        & $pwsh @a
+    }
+}
+else {
+    Skip-Step "doc-house-style" "not applicable - no changed docs/*.md file"
 }
 
 # S1356: fatal, never advisory. The whole defect was that absorbing another ticket's debt produced

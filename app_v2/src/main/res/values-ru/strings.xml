@@ -3529,4 +3529,12 @@
     <string name="launcher_tray_speed_download">Скорость приёма: %1$s</string>
     <string name="launcher_tray_speed_upload">Скорость передачи: %1$s</string>
     <string name="launcher_wallpaper_mode_instant_photo">Мгновенное фото</string>
+    <string name="launcher_desktop_swipe_picker_title">Действие свайпа на рабочем столе</string>
+    <string name="launcher_desktop_swipe_action_all_apps">Все приложения</string>
+    <string name="launcher_desktop_swipe_action_notification_shade">Шторка уведомлений</string>
+    <string name="launcher_desktop_swipe_action_do_not_use">Не использовать</string>
+    <string name="launcher_desktop_swipe_up_title">Свайп вверх</string>
+    <string name="launcher_desktop_swipe_down_title">Свайп вниз</string>
+    <string name="launcher_desktop_swipe_left_title">Свайп влево</string>
+    <string name="launcher_desktop_swipe_right_title">Свайп вправо</string>
 </resources>

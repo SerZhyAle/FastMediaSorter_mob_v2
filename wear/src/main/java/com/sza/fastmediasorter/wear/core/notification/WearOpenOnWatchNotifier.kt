@@ -53,6 +53,7 @@ class WearOpenOnWatchNotifier @Inject constructor(
      * open rather than only that something will.
      */
     fun notifyPendingOpen(target: WearLaunchTarget, subtitle: String): Boolean {
+        Timber.d("S2231: notifyPendingOpen uses Wear status-bar icon")
         if (!canPostNotification()) {
             Timber.d("S1961: notifyPendingOpen POST_NOTIFICATIONS is denied")
             return false
@@ -90,7 +91,7 @@ class WearOpenOnWatchNotifier @Inject constructor(
         NotificationCompat.Builder(context, CHANNEL_ID)
             .setContentTitle(context.getString(R.string.wear_open_on_watch_notification_title))
             .setContentText(subtitle)
-            .setSmallIcon(R.drawable.ic_cast)
+            .setSmallIcon(R.drawable.ic_notification_app_logo)
             .setCategory(NotificationCompat.CATEGORY_RECOMMENDATION)
             // Half of "it puts itself away": the tap clears it. The other half is [cancel].
             .setAutoCancel(true)

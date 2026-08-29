@@ -30,6 +30,13 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class ResourceEditorUseCaseTest {
 
+    private val streamVisibleKeys = setOf(
+        ResourceFieldKey.NAME,
+        ResourceFieldKey.PATH,
+        ResourceFieldKey.COMMENT,
+        ResourceFieldKey.ACCESS_PIN
+    )
+
     private val resourceRepository = mockk<ResourceRepository>(relaxed = true)
     private val settingsRepository = mockk<SettingsRepository>()
     private val cachedFileListRepository = mockk<CachedFileListRepository>(relaxed = true)
@@ -53,29 +60,23 @@ class ResourceEditorUseCaseTest {
     // S2041: strategyFor is private, so fieldSchema(type) is the only proof from the outside that
     // both stream types reach StreamResourceStrategy rather than the folder schema they once had.
     @Test
-    fun `fieldSchema renders only name, comment and pin for an http stream`() {
+    fun `fieldSchema renders only name, path, comment and pin for an http stream`() {
         val visibleKeys = useCase.fieldSchema(ResourceType.HTTP_STREAM)
             .filter { it.visible }
             .map { it.key }
             .toSet()
 
-        assertEquals(
-            setOf(ResourceFieldKey.NAME, ResourceFieldKey.COMMENT, ResourceFieldKey.ACCESS_PIN),
-            visibleKeys
-        )
+        assertEquals(streamVisibleKeys, visibleKeys)
     }
 
     @Test
-    fun `fieldSchema renders only name, comment and pin for an rtsp stream`() {
+    fun `fieldSchema renders only name, path, comment and pin for an rtsp stream`() {
         val visibleKeys = useCase.fieldSchema(ResourceType.RTSP_STREAM)
             .filter { it.visible }
             .map { it.key }
             .toSet()
 
-        assertEquals(
-            setOf(ResourceFieldKey.NAME, ResourceFieldKey.COMMENT, ResourceFieldKey.ACCESS_PIN),
-            visibleKeys
-        )
+        assertEquals(streamVisibleKeys, visibleKeys)
     }
 
     @Test

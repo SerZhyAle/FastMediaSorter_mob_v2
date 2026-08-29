@@ -302,9 +302,9 @@ FastMediaSorter includes a full-featured Wear OS standalone app and phone compan
 
 Wear OS documentation:
 
-- 🌟 **[Wear OS Web Portal](wear/index.md)** — Complete feature showcase, screenshots, and app store downloads
-- [Wear OS Quick Start](WEAR_OS_QUICK_START.md) — Step-by-step pairing and setup guide
-- [Wear OS Setup](WEAR_OS_SETUP.md) — Module architecture and companion bridge configuration
+- 🌟 **[Wear OS Web Portal](wear/index.md)** - Complete feature showcase, screenshots, and app store downloads
+- [Wear OS Quick Start](WEAR_OS_QUICK_START.md) - Step-by-step pairing and setup guide
+- [Wear OS Setup](WEAR_OS_SETUP.md) - Module architecture and companion bridge configuration
 - [Wear OS section in Features](FEATURES.md#16-settings--navigation)
 
 ## Build Instructions

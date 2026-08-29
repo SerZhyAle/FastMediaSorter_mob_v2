@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorActivity
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
 import com.sza.fastmediasorter.ui.systeminfo.SystemInfoActivity
 import com.sza.fastmediasorter.ui.wear.WearCompanionActivity
+import timber.log.Timber
 
 /**
  * S0774: single home for the main-window programs menu - item registration, count, click dispatch,
@@ -196,6 +197,7 @@ class MainProgramsMenuCoordinator(
                 true
             }
             MENU_ITEM_FRONT_FLASHLIGHT -> {
+                Timber.d("S2212: programs menu opens front flashlight")
                 activity.startActivity(AppLaunchPanelRouteIntents.frontFlashlight(activity))
                 true
             }

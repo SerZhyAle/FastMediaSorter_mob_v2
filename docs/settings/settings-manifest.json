@@ -2251,6 +2251,46 @@
       "titleUk": "Щільність сітки"
     },
     {
+      "key": "rowLauncherDesktopSwipeDown",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Swipe down",
+      "titleRu": "Свайп вниз",
+      "titleUk": "Свайп униз"
+    },
+    {
+      "key": "rowLauncherDesktopSwipeLeft",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Swipe left",
+      "titleRu": "Свайп влево",
+      "titleUk": "Свайп ліворуч"
+    },
+    {
+      "key": "rowLauncherDesktopSwipeRight",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Swipe right",
+      "titleRu": "Свайп вправо",
+      "titleUk": "Свайп праворуч"
+    },
+    {
+      "key": "rowLauncherDesktopSwipeUp",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Swipe up",
+      "titleRu": "Свайп вверх",
+      "titleUk": "Свайп угору"
+    },
+    {
       "key": "rowLauncherForeignNotifications",
       "sectionId": "launcher",
       "destination": "GENERAL",

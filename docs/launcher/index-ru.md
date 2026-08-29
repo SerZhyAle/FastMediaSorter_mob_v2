@@ -7,7 +7,7 @@ permalink: /docs/launcher/index-ru.html
 
 [📱 Главный сайт приложения](../README_RU.md) | [📖 Все руководства](../howto/index-ru.md) | [⌚ Портал Wear OS](../wear/index-ru.md) | [English](index.md) | [Українська](index-uk.md)
 
-Добро пожаловать на **веб-портал FastMedia Launcher** — справочник по превращению стандартного экрана Android в настраиваемый рабочий стол для автомобильных магнитол, планшетов-фоторамок, TV-приставок и автономных дисплеев.
+Добро пожаловать на **веб-портал FastMedia Launcher** - справочник по превращению стандартного экрана Android в настраиваемый рабочий стол для автомобильных магнитол, планшетов-фоторамок, TV-приставок и автономных дисплеев.
 
 ---
 
@@ -63,15 +63,15 @@ FastMedia Launcher превращает любое Android-устройство 
 Приложение FastMediaSorter с режимом Лаунчера доступно в официальных магазинах:
 
 ### Загрузки и сборки
-- [<img src="../icons/doc/ic_info.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Google Play Store**](https://play.google.com/store/apps) — Загрузка из официального магазина Google Play.
-- [<img src="../icons/doc/ic_resource_smb.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **F-Droid Open Source**](https://f-droid.org) — Сборки с открытым исходным кодом.
-- [<img src="../icons/doc/ic_download.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Прямая загрузка APK**](../DOWNLOADS_RU.md) — Прямые APK-файлы для установки на магнитолу или планшет.
+- [<img src="../icons/doc/ic_info.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Google Play Store**](https://play.google.com/store/apps) - Загрузка из официального магазина Google Play.
+- [<img src="../icons/doc/ic_resource_smb.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **F-Droid Open Source**](https://f-droid.org) - Сборки с открытым исходным кодом.
+- [<img src="../icons/doc/ic_download.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Прямая загрузка APK**](../DOWNLOADS_RU.md) - Прямые APK-файлы для установки на магнитолу или планшет.
 
 ---
 
 ## 📚 Пошаговые руководства
 
-- [Использование приложения как рабочего стола](../howto/scenario-launcher-mode.md) — Руководство по настройке режима Лаунчера.
-- [Музыка в автомобиле](../howto/scenario-car-music-ru.md) — Настройка музыки и кнопок руля для Android-магнитолы.
-- [Цифровая фоторамка](../howto/scenario-photo-frame-ru.md) — Превращение планшета в постоянную фоторамку.
-- [Подключение к сетевому диску NAS (SMB)](../howto/scenario-smb-setup.md) — Подключение ярлыков к общим папкам ПК.
+- [Использование приложения как рабочего стола](../howto/scenario-launcher-mode.md) - Руководство по настройке режима Лаунчера.
+- [Музыка в автомобиле](../howto/scenario-car-music-ru.md) - Настройка музыки и кнопок руля для Android-магнитолы.
+- [Цифровая фоторамка](../howto/scenario-photo-frame-ru.md) - Превращение планшета в постоянную фоторамку.
+- [Подключение к сетевому диску NAS (SMB)](../howto/scenario-smb-setup.md) - Подключение ярлыков к общим папкам ПК.

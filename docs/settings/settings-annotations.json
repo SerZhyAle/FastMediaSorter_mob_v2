@@ -1044,6 +1044,26 @@
     "ru": "Задаёт, сколько значков помещается по строкам и столбцам сетки рабочего стола лаунчера.",
     "uk": "Задає, скільки піктограм вміщується в рядках і стовпцях сітки робочого столу лаунчера."
   },
+  "rowLauncherDesktopSwipeUp": {
+    "en": "Chooses what happens when you swipe up on the launcher desktop after reaching the bottom. By default, it opens All apps.",
+    "ru": "Выбирает действие для свайпа вверх по рабочему столу лаунчера после достижения нижней границы. По умолчанию открывает «Все приложения».",
+    "uk": "Вибирає дію для свайпу вгору на робочому столі лаунчера після досягнення нижньої межі. Типово відкриває «Усі програми»."
+  },
+  "rowLauncherDesktopSwipeDown": {
+    "en": "Chooses what happens when you swipe down on the launcher desktop. By default, it opens the notification shade when the system action is available.",
+    "ru": "Выбирает действие для свайпа вниз по рабочему столу лаунчера. По умолчанию открывает шторку уведомлений, если системное действие доступно.",
+    "uk": "Вибирає дію для свайпу вниз на робочому столі лаунчера. Типово відкриває шторку сповіщень, якщо системна дія доступна."
+  },
+  "rowLauncherDesktopSwipeLeft": {
+    "en": "Chooses what happens when you swipe left on the launcher desktop. By default, no action is used.",
+    "ru": "Выбирает действие для свайпа влево по рабочему столу лаунчера. По умолчанию действие не используется.",
+    "uk": "Вибирає дію для свайпу ліворуч на робочому столі лаунчера. Типово дія не використовується."
+  },
+  "rowLauncherDesktopSwipeRight": {
+    "en": "Chooses what happens when you swipe right on the launcher desktop. By default, no action is used.",
+    "ru": "Выбирает действие для свайпа вправо по рабочему столу лаунчера. По умолчанию действие не используется.",
+    "uk": "Вибирає дію для свайпу праворуч на робочому столі лаунчера. Типово дія не використовується."
+  },
   "rowLauncherForeignNotifications": {
     "en": "Shows one icon per other app that has pending notifications in the launcher top bar, with how many it has. Their title, text and attachments are never read. On by default and inert until the system grants notification access.",
     "ru": "Показывает в верхней полосе лаунчера по одному значку на каждое другое приложение с висящими уведомлениями и число этих уведомлений. Заголовок, текст и вложения не читаются. По умолчанию включено и бездействует, пока системный доступ к уведомлениям не выдан.",
