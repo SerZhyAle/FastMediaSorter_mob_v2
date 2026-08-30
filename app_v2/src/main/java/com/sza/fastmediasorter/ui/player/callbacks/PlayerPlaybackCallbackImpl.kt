@@ -38,6 +38,9 @@ class PlayerPlaybackCallbackImpl(
     override fun onPlaybackReady() {
         activity.slideshowResourceAvailabilityManager.onPlaybackReady()
         activity.emitPlayerReadyTraceIfNeeded()
+        // S2230: a launch asked to collapse straight into Picture-in-Picture (launcher stream
+        // window's PiP button) does it on the first READY - one-shot, refusal stays fullscreen.
+        activity.enterPipOnPlaybackReadyIfNeeded()
         // S0704: playback ready - drop VIDEO_EXOPLAYER and cancel the playVideo pending show so a
         // fast-starting clip never flashes the spinner over the first frame.
         activity.loadingIndicatorCoordinator.reset(LoadingSource.VIDEO_EXOPLAYER)

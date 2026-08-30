@@ -421,6 +421,29 @@ class LauncherAddFlowManager(
     }
 
     /**
+     * S2247: place a channel's stream window from its desktop menu, answering whether a slot was
+     * found. Deliberately NOT [placeGadget] - that path reads `viewModel.pendingSlot`, the square the
+     * user may still have pointed at for some other flow, which a menu invocation must neither use
+     * nor disturb; the write always goes to the first free slot.
+     */
+    fun placeStreamWindowFromMenu(
+        identityKey: String,
+        mediaKind: String,
+        onResult: (Boolean) -> Unit,
+    ) {
+        val (spanW, spanH) = StreamWindow.spanFor(mediaKind)
+        Timber.d("S2247: menu place stream window kind=%s span=%dx%d", mediaKind, spanW, spanH)
+        viewModel.addCellInFirstFreeSlot(
+            columns = currentColumns(),
+            kind = LauncherCellKind.GADGET,
+            target = gadgetRegistry.encodeTarget(LauncherGadgetRegistry.KEY_STREAM_WINDOW, identityKey),
+            spanW = spanW,
+            spanH = spanH,
+            onPlaced = onResult,
+        )
+    }
+
+    /**
      * S1440: [param] is whatever the gadget stores in its `target` - a resource id for most of them, an
      * indicator key for the network cell. [resourceId] stays separate because only a resource-backed
      * gadget has a file list to remember (ADR-10).

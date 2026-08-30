@@ -111,6 +111,9 @@ class LauncherSectionCollapseManager(
         return hidden
     }
 
+    /** A re-sorted section must be visible, so this exposes the manager-owned conditional reveal. */
+    fun reveal(cell: LauncherCell): Boolean = revealIfCollapsed(cell)
+
     /**
      * S1742 §04.2: clears collapsed-state entry for [cell] when it is removed.
      *

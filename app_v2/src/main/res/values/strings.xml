@@ -3356,6 +3356,7 @@
     <string name="launcher_section_actions_title">Section Actions</string>
     <string name="launcher_section_action_rename">Rename Section</string>
     <string name="front_flashlight_title">Front flashlight</string>
+    <string name="physical_flashlight_title">Camera flashlight</string>
     <string name="front_flashlight_settings_toggle_title">Front flashlight</string>
     <string name="front_flashlight_settings_toggle_subtitle">Turn the screen itself into a lamp</string>
     <string name="front_flashlight_help_title">Front flashlight</string>
@@ -3585,4 +3586,19 @@
     <string name="launcher_gadget_steps_since_date">Since %1$s</string>
     <string name="launcher_gadget_google_maps_live">Google Maps Live Frame</string>
     <string name="launcher_gadget_google_maps_live_desc">Interactive live Google Maps window</string>
+    <string name="launcher_translator_language_settings">Open translation settings</string>
+    <string name="launcher_section_action_delete">Delete Section</string>
+    <string name="launcher_section_action_resort">Re-sort Section</string>
+    <string name="launcher_section_delete_confirm_title">Delete this section?</string>
+    <string name="launcher_section_delete_confirm_message">This will delete the section and the shortcuts inside it (%1$d). You can add them again later.</string>
+    <string name="launcher_stream_overlay_play_pause">Play or pause</string>
+    <string name="launcher_stream_overlay_mute">Mute</string>
+    <string name="launcher_stream_overlay_stop">Stop</string>
+    <string name="launcher_stream_overlay_pip">Picture-in-picture</string>
+    <string name="launcher_stream_overlay_fullscreen">Fullscreen</string>
+    <string name="launcher_settings_double_tap_lock_title">Double tap to lock desktop</string>
+    <string name="launcher_settings_double_tap_lock_subtitle">Double tap empty desktop space to switch the edit lock</string>
+    <string name="launcher_stream_add_desktop_window">Add window to desktop</string>
+    <string name="launcher_stream_desktop_window_added">Window added to desktop</string>
+    <string name="launcher_stream_desktop_window_no_space">No free space on desktop</string>
 </resources>

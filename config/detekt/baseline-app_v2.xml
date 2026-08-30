@@ -3172,6 +3172,7 @@
     <ID>LargeClass:GoogleDriveRestClient.kt$GoogleDriveRestClient : CloudStorageClient</ID>
     <ID>LargeClass:ImageLoadingManager.kt$ImageLoadingManager</ID>
     <ID>LargeClass:IntegrationTestRunner.kt$IntegrationTestRunner</ID>
+    <ID>LargeClass:LauncherSettingsDialogFragment.kt$LauncherSettingsDialogFragment : DialogFragment</ID>
     <ID>LargeClass:MainActivity.kt$MainActivity : BaseActivity</ID>
     <ID>LargeClass:PdfViewerManager.kt$PdfViewerManager : BaseDocumentViewerManager</ID>
     <ID>LargeClass:PhotoVideoStandaloneActivity.kt$PhotoVideoStandaloneActivity : BaseActivityPlayerHostCapabilitiesPlayerActionHostSelfManagedScreenOrientationSharePrintHost</ID>
@@ -11526,6 +11527,7 @@
     <ID>TooManyFunctions:DropboxClient.kt$DropboxClient : CloudStorageClient</ID>
     <ID>TooManyFunctions:EpubViewerManager.kt$EpubViewerManager : BaseDocumentViewerManager</ID>
     <ID>TooManyFunctions:IntegrationTestRunner.kt$IntegrationTestRunner</ID>
+    <ID>TooManyFunctions:LauncherSettingsDialogFragment.kt$LauncherSettingsDialogFragment : DialogFragment</ID>
     <ID>TooManyFunctions:MainViewModel.kt$MainViewModel : BaseViewModel</ID>
     <ID>TooManyFunctions:NoLegalDiagnosticsCollectors.kt$NoLegalDiagnosticsCollectors</ID>
     <ID>TooManyFunctions:PdfViewerManager.kt$PdfViewerManager : BaseDocumentViewerManager</ID>

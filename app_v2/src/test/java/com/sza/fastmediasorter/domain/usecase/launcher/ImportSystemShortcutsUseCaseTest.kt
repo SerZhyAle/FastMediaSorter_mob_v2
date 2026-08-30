@@ -77,6 +77,17 @@ class ImportSystemShortcutsUseCaseTest {
             moveUp: Boolean,
         ): Boolean = true
 
+        override suspend fun removeSection(
+            orientation: LauncherOrientation,
+            sectionCellId: Long,
+        ): List<String> = emptyList()
+
+        override suspend fun resortSection(
+            orientation: LauncherOrientation,
+            sectionCellId: Long,
+            columns: Int,
+        ): Boolean = false
+
         override suspend fun updateColumns(orientation: LauncherOrientation, columns: Int) = Unit
     }
 

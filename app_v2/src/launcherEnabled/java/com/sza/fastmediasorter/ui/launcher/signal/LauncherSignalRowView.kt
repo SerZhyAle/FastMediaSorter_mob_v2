@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import com.sza.fastmediasorter.R
+import timber.log.Timber
 
 /**
  * S1421 ADR-3: the signal icons, laid out as two groups pressed to the edges with the display cutout's own
@@ -247,7 +248,17 @@ class LauncherSignalRowView @JvmOverloads constructor(
         if (hidden > 0 && capacity > 0) {
             bindCounter(flowChildAt(flowCount - 1), hidden)
         }
-        startGroupCount = minOf(startCapacity, (flowCount + 1) / 2)
+        // The counter rides the end group, so its slot comes off the end capacity before the split -
+        // without that, a full row plus its counter still reaches one slot across the cutout's right edge.
+        // An end side too narrow for even the counter keeps the counter with the start group instead,
+        // because a right-aligned block with nowhere to fit would still reach across the cutout.
+        val counterSlot = if (hidden > 0 && capacity > 0) 1 else 0
+        Timber.d("S2244: rebuilt launcher signal row with per-side cutout allocation")
+        startGroupCount = if (counterSlot == 1 && endCapacity == 0) {
+            flowCount
+        } else {
+            allocateStartGroupCount(chipCount, startCapacity, endCapacity - counterSlot)
+        }
         applyFocusOrder()
         requestLayout()
     }
@@ -345,3 +356,16 @@ class LauncherSignalRowView @JvmOverloads constructor(
         }
     }
 }
+
+/**
+ * S2244: how many of [chipCount] chips the start group holds when each edge group is bounded by its own
+ * side's capacity against the cutout span. The end group receives the rest.
+ *
+ * The half-share the row always used is kept while it fits, so the row looks unchanged until the end side
+ * cannot take its half - the case this corrects laid those chips out across the cutout's right edge,
+ * under the camera. Pure and free of view state so the allocation rule is testable without a layout.
+ */
+internal fun allocateStartGroupCount(chipCount: Int, startCapacity: Int, endCapacity: Int): Int =
+    minOf(startCapacity, (chipCount + 1) / 2)
+        .coerceAtLeast(chipCount - endCapacity)
+        .coerceIn(0, chipCount)

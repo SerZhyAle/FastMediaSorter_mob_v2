@@ -2251,6 +2251,16 @@
       "titleUk": "Щільність сітки"
     },
     {
+      "key": "rowLauncherDesktopDoubleTapLock",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Double tap to lock desktop",
+      "titleRu": "Двойной тап для блокировки рабочего стола",
+      "titleUk": "Подвійний дотик для блокування робочого стола"
+    },
+    {
       "key": "rowLauncherDesktopSwipeDown",
       "sectionId": "launcher",
       "destination": "GENERAL",

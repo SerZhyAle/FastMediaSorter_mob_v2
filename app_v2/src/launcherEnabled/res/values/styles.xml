@@ -44,4 +44,11 @@
         <item name="android:windowAnimationStyle">@style/Animation.FastMediaSorter.Launcher.TopPanel</item>
     </style>
 
+    <style name="Widget.FastMediaSorter.Launcher.TaskbarDone" parent="Widget.FastMediaSorter.Button.Filled">
+        <item name="backgroundTint">@color/confirm_button_bg</item>
+        <item name="android:textColor">@color/confirm_button_on</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:minHeight">0dp</item>
+    </style>
+
 </resources>

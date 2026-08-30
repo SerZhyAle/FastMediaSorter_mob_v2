@@ -613,6 +613,22 @@ class PlayerActivity :
         updateSystemBarsForPlayer(viewModel.state.value.showCommandPanel)
     }
 
+    /**
+     * S2230: the PiP-on-ready entry, called from [PlayerPlaybackCallbackImpl.onPlaybackReady].
+     * One-shot per activity instance; if the system refuses the entry (or the shell lacks PiP) the
+     * player simply stays fullscreen - no error surface (strategic §7 risk row 2 of S2230).
+     */
+    fun enterPipOnPlaybackReadyIfNeeded() {
+        if (pipOnReadyFired) return
+        if (!intent.getBooleanExtra(EXTRA_ENTER_PIP_ON_READY, false)) return
+        pipOnReadyFired = true
+        Timber.d("S2230: pip-on-ready requested, entering picture-in-picture")
+        Timber.i("PlayerActivity: entering picture-in-picture on playback ready")
+        pipManager?.enterPictureInPicture()
+    }
+
+    private var pipOnReadyFired = false
+
     /** Initialize all helper managers - delegates to PlayerManagerInitializer. */
     private fun initializeManagers() {
         playerManagerInitializer = PlayerManagerInitializer(this)
@@ -1446,6 +1462,11 @@ class PlayerActivity :
         // S0694: open a live video stream straight into fullscreen. Set by the Streams launch path;
         // honoured once on first layout (see initEnterFullscreenOnLaunch).
         const val EXTRA_ENTER_FULLSCREEN = "extra_enter_fullscreen"
+
+        // S2230: enter Picture-in-Picture once playback first reaches READY. Set by the launcher
+        // stream window's PiP overlay button - the cell is a view, not an activity, so the system
+        // PiP window must be hosted by the player activity it opens.
+        const val EXTRA_ENTER_PIP_ON_READY = "extra_enter_pip_on_ready"
         const val EXTRA_STREAM_THUMBNAIL_URL = "extra_stream_thumbnail_url"
 
         fun createIntent(

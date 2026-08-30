@@ -22,7 +22,9 @@ import com.sza.fastmediasorter.databinding.SheetLauncherSectionActionsBinding
 class LauncherSectionActionsSheet : BottomSheetDialogFragment() {
 
     enum class Action {
-        RENAME
+        RENAME,
+        RESORT,
+        DELETE,
     }
 
     data class ActionItem(

@@ -154,6 +154,15 @@ object SubProgramCatalog {
             disable = { it.copy(frontFlashlightEnabled = false) },
         ),
         SubProgramEntry(
+            routeKey = InternalRouteCatalog.KEY_PHYSICAL_FLASHLIGHT,
+            order = 101,
+            surfaces = setOf(
+                SubProgramSurface.PROGRAMS_MENU,
+                SubProgramSurface.QUICK_ACCESS_PANEL,
+                SubProgramSurface.LAUNCHER_SHORTCUT,
+            ),
+        ),
+        SubProgramEntry(
             routeKey = InternalRouteCatalog.KEY_BLACK_SCREEN,
             order = 105,
             surfaces = setOf(

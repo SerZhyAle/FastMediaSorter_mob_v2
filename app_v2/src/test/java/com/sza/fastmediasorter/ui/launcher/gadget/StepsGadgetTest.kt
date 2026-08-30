@@ -6,10 +6,11 @@ import androidx.test.core.app.ApplicationProvider
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.sensors.SensorCapability
-import com.sza.fastmediasorter.domain.model.sensors.SensorReading
+import com.sza.fastmediasorter.domain.model.sensors.StepReading
 import com.sza.fastmediasorter.domain.repository.SensorAvailabilityRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.sensors.ObserveStepCountUseCase
+import dagger.Lazy
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
@@ -30,8 +31,9 @@ class StepsGadgetTest {
     private val availability: SensorAvailabilityRepository = mockk {
         every { isAvailable(SensorCapability.STEP_COUNTER) } returns true
     }
-    private val observeStepCountUseCase: ObserveStepCountUseCase = mockk {
-        every { invoke() } returns flowOf(SensorReading.StepCount(stepsSinceBoot = 1000L))
+    private val observeStepCountUseCase: ObserveStepCountUseCase = mockk<ObserveStepCountUseCase>().also { useCase ->
+        every { useCase.invoke() } returns
+            flowOf(StepReading(stepsSinceBoot = 1000L, takenAtMillis = 0L))
     }
     private val settingsRepository: SettingsRepository = mockk(relaxed = true) {
         every {
@@ -42,13 +44,21 @@ class StepsGadgetTest {
 
     @Test
     fun `isAvailable delegates to sensor availability`() {
-        val gadget = StepsGadget(availability, { observeStepCountUseCase }, { settingsRepository })
+        val gadget = StepsGadget(
+            availability,
+            Lazy { observeStepCountUseCase },
+            Lazy { settingsRepository },
+        )
         assertTrue(gadget.isAvailable())
     }
 
     @Test
     fun `createView creates StepsGadgetView`() {
-        val gadget = StepsGadget(availability, { observeStepCountUseCase }, { settingsRepository })
+        val gadget = StepsGadget(
+            availability,
+            Lazy { observeStepCountUseCase },
+            Lazy { settingsRepository },
+        )
         val container = FrameLayout(context)
         val view = gadget.createView(container, host, null)
         assertEquals(R.id.gadgetStepsBody, view.id)

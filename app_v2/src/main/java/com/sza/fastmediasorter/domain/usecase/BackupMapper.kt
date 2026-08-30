@@ -286,6 +286,7 @@ object BackupMapper {
             launcherTrayShowBattery = settings.launcherTrayShowBattery,
             launcherRotationHintShown = settings.launcherRotationHintShown,
             launcherDesktopLocked = settings.launcherDesktopLocked,
+            launcherDesktopDoubleTapLockEnabled = settings.launcherDesktopDoubleTapLockEnabled,
             launcherWallpaperMode = settings.launcherWallpaperMode,
             launcherWallpaperImagePath = settings.launcherWallpaperImagePath,
             launcherWallpaperCameraId = settings.launcherWallpaperCameraId,
@@ -500,6 +501,9 @@ object BackupMapper {
             launcherTrayShowBattery = backup.launcherTrayShowBattery,
             launcherRotationHintShown = backup.launcherRotationHintShown,
             launcherDesktopLocked = backup.launcherDesktopLocked,
+            // null in older backup files → preserve current setting, so the gesture stays enabled by default
+            launcherDesktopDoubleTapLockEnabled = backup.launcherDesktopDoubleTapLockEnabled
+                ?: current.launcherDesktopDoubleTapLockEnabled,
             launcherWallpaperMode = backup.launcherWallpaperMode.gsonSafe(current.launcherWallpaperMode),
             launcherWallpaperImagePath = backup.launcherWallpaperImagePath.gsonSafe(current.launcherWallpaperImagePath),
             launcherWallpaperCameraId = backup.launcherWallpaperCameraId.gsonSafe(current.launcherWallpaperCameraId),

@@ -19,6 +19,10 @@
          to 6.89:1 on the Dark Green theme's, and the threshold holds under every colour theme. -->
     <color name="launcher_taskbar_start_text">#FFE1F0FD</color>
     <color name="launcher_taskbar_all_apps_text">#FFE6EBED</color>
+    <color name="launcher_all_apps_blue">#FF64B5F6</color>
+    <color name="launcher_all_apps_green">#FF81C784</color>
+    <color name="launcher_all_apps_yellow">#FFFFD54F</color>
+    <color name="launcher_all_apps_red">#FFEF9A9A</color>
     <color name="launcher_start_row_group1">#FF64B5F6</color>
     <color name="launcher_start_row_group2">#FF80CBC4</color>
     <color name="launcher_start_row_group3">#FFEFB8C8</color>

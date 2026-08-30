@@ -42,6 +42,7 @@ object InternalRouteCatalog {
 
     // S1796: the screen itself used as a lamp - a program like its neighbours, with its own toggle.
     const val KEY_FRONT_FLASHLIGHT = "front_flashlight"
+    const val KEY_PHYSICAL_FLASHLIGHT = "physical_flashlight"
 
     // S2211: black screen as an autonomous sub-program.
     const val KEY_BLACK_SCREEN = "black_screen"
@@ -162,6 +163,12 @@ object InternalRouteCatalog {
             iconRes = R.drawable.ic_front_flashlight,
             intent = AppLaunchPanelRouteIntents::frontFlashlight,
             settingsIntent = AppLaunchPanelRouteIntents::frontFlashlightSettings,
+        ),
+        Route(
+            key = KEY_PHYSICAL_FLASHLIGHT,
+            labelRes = R.string.physical_flashlight_title,
+            iconRes = R.drawable.ic_camera_flash_on,
+            intent = AppLaunchPanelRouteIntents::physicalFlashlight,
         ),
         Route(
             key = KEY_BLACK_SCREEN,

@@ -22,6 +22,7 @@ class LauncherAllAppsGestureManager(
     private val isEnabled: () -> Boolean,
     private val isTouchOnInteractiveCell: (MotionEvent) -> Boolean,
     private val onSwipe: (DesktopSwipeDirection) -> Unit,
+    private val onDoubleTap: (() -> Unit)? = null,
 ) {
 
     enum class DesktopSwipeDirection {
@@ -39,6 +40,8 @@ class LauncherAllAppsGestureManager(
         container.context,
         object : GestureDetector.SimpleOnGestureListener() {
             override fun onDown(e: MotionEvent): Boolean = true
+
+            override fun onDoubleTap(e: MotionEvent): Boolean = handleDoubleTap()
 
             override fun onFling(
                 e1: MotionEvent?,
@@ -74,6 +77,13 @@ class LauncherAllAppsGestureManager(
             Timber.d("S2221: dispatch desktop swipe direction=%s", direction)
             onSwipe(direction)
         } != null
+
+    private fun handleDoubleTap(): Boolean {
+        val callback = onDoubleTap
+        if (callback == null || !isEnabled()) return false
+        callback()
+        return true
+    }
 
     private fun classifyDirection(
         e1: MotionEvent,

@@ -119,7 +119,8 @@ $nonTargetIds = @(
     'pdfFullscreenOverlay',         # player PDF full-screen overlay (passthrough block)
     'translationOverlay',           # player translation card overlay (passthrough block)
     'translationOverlayBackground', # player translation dismiss scrim
-    'nowPlayingTitle'               # bottom-sheet title, focusable only to drive marquee scroll
+    'nowPlayingTitle',              # bottom-sheet title, focusable only to drive marquee scroll
+    'streamWindowOverlayRoot'       # S2230: stream window overlay scrim (tap-to-dismiss)
 )
 
 $materialCardForegroundPattern = [regex]'(?s)<com\.google\.android\.material\.card\.MaterialCardView\b(?<attrs>[^>]*?)>'

@@ -6,6 +6,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.domain.model.devicestatus.DeviceStatusProvider
+import com.sza.fastmediasorter.domain.model.devicestatus.MetricValue
 import com.sza.fastmediasorter.domain.model.devicestatus.NetworkStatus
 import com.sza.fastmediasorter.domain.model.devicestatus.NetworkTransport
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
@@ -28,7 +29,7 @@ class TechnicalGadgetTest {
 
     private val dummyProvider = object : DeviceStatusProvider<Any> {
         override val refreshIntervalMs: Long = 5000L
-        override suspend fun read(): Any = NetworkStatus(NetworkTransport.WIFI, null, true)
+        override suspend fun read(): Any = NetworkStatus(NetworkTransport.WIFI, MetricValue.Unknown, true)
     }
 
     @Test

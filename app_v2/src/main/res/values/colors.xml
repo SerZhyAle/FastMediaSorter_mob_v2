@@ -460,6 +460,10 @@
          measured by scripts/quality/assert-launcher-contrast.ps1. -->
     <color name="launcher_taskbar_start_text">#FF0B3D91</color>
     <color name="launcher_taskbar_all_apps_text">#FF2F3E46</color>
+    <color name="launcher_all_apps_blue">#FF0D47A1</color>
+    <color name="launcher_all_apps_green">#FF2E7D32</color>
+    <color name="launcher_all_apps_yellow">#FFF9A825</color>
+    <color name="launcher_all_apps_red">#FFC62828</color>
     <color name="launcher_start_row_group1">#FF0D47A1</color>
     <color name="launcher_start_row_group2">#FF00504F</color>
     <color name="launcher_start_row_group3">#FF633B48</color>
@@ -470,4 +474,3 @@
          selector, so the portrait state list stays defined in exactly one place. -->
     <item name="browse_scroll_button_tint" type="color">@color/selector_player_button_tint</item>
 </resources>
-

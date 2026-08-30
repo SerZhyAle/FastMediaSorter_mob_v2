@@ -5,6 +5,9 @@
     <dimen name="launcher_taskbar_height">56dp</dimen>
     <dimen name="launcher_taskbar_icon_size">40dp</dimen>
     <dimen name="launcher_taskbar_item_spacing">6dp</dimen>
+    <dimen name="launcher_taskbar_action_icon_size">40dp</dimen>
+    <!-- 125% of the pre-S2245 48dp All apps minimum touch target. -->
+    <dimen name="launcher_taskbar_all_apps_width">60dp</dimen>
     <dimen name="launcher_tray_icon_size">18dp</dimen>
 
     <!-- S2023: the overlays a tray glyph carries - the Wi-Fi generation digit, the Bluetooth device count,

@@ -22,8 +22,10 @@ import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
 import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityLauncherHomeBinding
+import com.sza.fastmediasorter.databinding.DialogDeleteBinding
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
+import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
 import com.sza.fastmediasorter.domain.model.launcher.LauncherWallpaper
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetHost
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
@@ -265,6 +267,11 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             togglePin = { source -> viewModel.toggleStreamPin(source) },
             removeStream = { source -> viewModel.removeStream(source) },
             streamEdit = viewModel.streamEditDependencies,
+            // S2247: the menu's "add window to desktop" row lands in the add flow, which owns the
+            // placement write for every gadget.
+            placeDesktopWindow = { identityKey, mediaKind, onResult ->
+                addFlowManager.placeStreamWindowFromMenu(identityKey, mediaKind, onResult)
+            },
         )
     }
 
@@ -435,6 +442,11 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                             settings.launcherDesktopSwipeRightAction to settings.launcherDesktopSwipeRightPayload
                     }
                     swipeActionHandler.handle(action, payload)
+                }
+            },
+            onDoubleTap = {
+                if (viewModel.launcherDesktopSettings.value.launcherDesktopDoubleTapLockEnabled) {
+                    viewModel.toggleDesktopLocked()
                 }
             },
         )
@@ -675,16 +687,58 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                 label = getString(R.string.launcher_section_action_rename),
                 iconResId = R.drawable.ic_rename,
             ),
+            LauncherSectionActionsSheet.ActionItem(
+                action = LauncherSectionActionsSheet.Action.RESORT,
+                label = getString(R.string.launcher_section_action_resort),
+                iconResId = R.drawable.ic_sort,
+            ),
+            LauncherSectionActionsSheet.ActionItem(
+                action = LauncherSectionActionsSheet.Action.DELETE,
+                label = getString(R.string.launcher_section_action_delete),
+                iconResId = R.drawable.ic_delete,
+            ),
         )
         sheet.onItemClick = { action ->
             when (action) {
                 LauncherSectionActionsSheet.Action.RENAME -> {
                     openRenameSectionDialog(cellUi)
                 }
+
+                LauncherSectionActionsSheet.Action.RESORT -> {
+                    viewModel.resortSection(cellUi.cell.id, geometryManager.currentColumns())
+                }
+
+                LauncherSectionActionsSheet.Action.DELETE -> confirmDeleteSection(cellUi)
             }
         }
         sheet.show(supportFragmentManager, "LauncherSectionActionsSheet")
         return true
+    }
+
+    private fun confirmDeleteSection(cellUi: LauncherCellUi) {
+        val desktop = viewModel.cells.value.map { it.cell }
+        val sections = LauncherSectionMembership.sectionsInOrder(desktop)
+        val contentCount = desktop.count {
+            it.id != cellUi.cell.id &&
+                LauncherSectionMembership.ownerOf(it, sections)?.id == cellUi.cell.id
+        }
+        if (contentCount <= SINGLE_SECTION_CONTENT_CELL) {
+            viewModel.deleteSection(cellUi.cell.id)
+            return
+        }
+
+        val dialogBinding = DialogDeleteBinding.inflate(layoutInflater)
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setView(dialogBinding.root)
+            .create()
+        dialogBinding.tvDialogTitle.setText(R.string.launcher_section_delete_confirm_title)
+        dialogBinding.tvMessage.text = getString(R.string.launcher_section_delete_confirm_message, contentCount)
+        dialogBinding.btnCancel.setOnClickListener { dialog.dismiss() }
+        dialogBinding.btnDelete.setOnClickListener {
+            viewModel.deleteSection(cellUi.cell.id)
+            dialog.dismiss()
+        }
+        dialog.showBoundToHost(this)
     }
 
     private fun openRenameSectionDialog(cellUi: LauncherCellUi) {
@@ -857,6 +911,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     }
 
     companion object {
+        private const val SINGLE_SECTION_CONTENT_CELL = 1
         private const val DIM_OVERLAY_ALPHA = 0.6f
         private const val DIM_ANIMATION_DURATION_MS = 4000L
     }

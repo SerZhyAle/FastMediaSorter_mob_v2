@@ -321,6 +321,14 @@
                         app:str_subtitle="@string/launcher_settings_lock_desktop_subtitle"
                         app:str_title="@string/launcher_settings_lock_desktop_title" />
 
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowLauncherDesktopDoubleTapLock"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:str_subtitle="@string/launcher_settings_double_tap_lock_subtitle"
+                        app:str_title="@string/launcher_settings_double_tap_lock_title" />
+
                     <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
                         android:id="@+id/rowLauncherWallpaper"
                         android:layout_width="match_parent"

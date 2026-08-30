@@ -3,10 +3,12 @@ package com.sza.fastmediasorter.ui.launcher.signal
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
+import android.graphics.drawable.AdaptiveIconDrawable
 import android.graphics.drawable.Drawable
 import android.widget.ImageView
 import androidx.annotation.DrawableRes
 import com.google.android.material.color.MaterialColors
+import com.sza.fastmediasorter.R
 import timber.log.Timber
 
 /**
@@ -27,13 +29,7 @@ internal object LauncherSignalIconBinder {
     fun bind(target: ImageView, icon: LauncherSignalIcon) {
         when (val resolved = resolve(target.context, icon)) {
             is Resolved.FromDrawable -> {
-                // The chip layout tints its drawable with ?attr/colorOnSurface so that this app's own
-                // monochrome glyphs follow the theme. A foreign application's icon is already coloured, and
-                // that tint would flatten every one of them into the same silhouette - which is the whole
-                // point of the row lost. Cleared per bind rather than in the layout, because the same view
-                // is recycled for both cases.
-                target.imageTintList = null
-                target.setImageDrawable(resolved.drawable)
+                bindApplicationDrawable(target, resolved.drawable)
             }
             is Resolved.FromResource -> {
                 // Restored rather than assumed intact: the overflow sheet recycles its rows, so a row that
@@ -44,7 +40,20 @@ internal object LauncherSignalIconBinder {
                     MaterialColors.getColor(target, com.google.android.material.R.attr.colorOnSurface),
                 )
                 target.setImageResource(resolved.res)
+                val basePadding = basePadding(target)
+                target.setPadding(basePadding, basePadding, basePadding, basePadding)
             }
+        }
+    }
+
+    private fun basePadding(target: ImageView): Int {
+        captureBasePadding(target)
+        return target.getTag(R.id.launcherSignalIconBasePadding) as Int
+    }
+
+    private fun captureBasePadding(target: ImageView) {
+        if (target.getTag(R.id.launcherSignalIconBasePadding) == null) {
+            target.setTag(R.id.launcherSignalIconBasePadding, target.paddingLeft)
         }
     }
 
@@ -56,6 +65,30 @@ internal object LauncherSignalIconBinder {
     fun resolve(context: Context, icon: LauncherSignalIcon): Resolved = when (icon) {
         is LauncherSignalIcon.Resource -> Resolved.FromResource(icon.res)
         is LauncherSignalIcon.Application -> resolveApplication(context, icon)
+    }
+
+    /**
+     * An adaptive icon's background is a plate around its recognisable application glyph. The strip has no
+     * room for that plate, so foreign notification chips draw only the foreground; legacy icons already are
+     * their glyph and pass through unchanged.
+     */
+    internal fun applicationGlyph(drawable: Drawable): Drawable {
+        if (drawable is AdaptiveIconDrawable) {
+            Timber.d("S2244: rendering adaptive notification foreground")
+            return drawable.foreground
+        }
+        return drawable
+    }
+
+    internal fun bindApplicationDrawable(target: ImageView, drawable: Drawable) {
+        // The chip layout tints its drawable with ?attr/colorOnSurface so that this app's own monochrome
+        // glyphs follow the theme. A foreign application's icon is already coloured, and that tint would
+        // flatten every one of them into the same silhouette - which is the whole point of the row lost.
+        // Cleared per bind rather than in the layout, because the same view is recycled for both cases.
+        target.imageTintList = null
+        target.setImageDrawable(applicationGlyph(drawable))
+        captureBasePadding(target)
+        target.setPadding(0, 0, 0, 0)
     }
 
     private fun resolveApplication(context: Context, icon: LauncherSignalIcon.Application): Resolved {

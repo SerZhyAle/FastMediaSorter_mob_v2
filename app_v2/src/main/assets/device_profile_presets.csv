@@ -240,3 +240,6 @@
 "launcherDesktopSwipeDownPayload","","","","","","","","","","",""
 "launcherDesktopSwipeLeftPayload","","","","","","","","","","",""
 "launcherDesktopSwipeRightPayload","","","","","","","","","","",""
+"launcherDesktopDoubleTapLockEnabled","","","","","","","","","","",""
+"launcherStepsResetCount","","","","","","","","","","",""
+"launcherStepsResetTimestamp","","","","","","","","","","",""

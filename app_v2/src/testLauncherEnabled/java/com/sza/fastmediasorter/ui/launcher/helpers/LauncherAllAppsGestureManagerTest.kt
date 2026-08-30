@@ -80,6 +80,24 @@ class LauncherAllAppsGestureManagerTest {
         assertTrue(harness.swipes.isEmpty())
     }
 
+    @Test
+    fun `double tap on free desktop dispatches callback`() {
+        val harness = GestureHarness()
+
+        harness.doubleTap()
+
+        assertEquals(1, harness.doubleTaps)
+    }
+
+    @Test
+    fun `double tap on desktop cell does not dispatch callback`() {
+        val harness = GestureHarness(startsOnInteractiveCell = true)
+
+        harness.doubleTap()
+
+        assertEquals(0, harness.doubleTaps)
+    }
+
     private inner class GestureHarness(
         canScrollDown: Boolean = false,
         canScrollUp: Boolean = false,
@@ -88,6 +106,7 @@ class LauncherAllAppsGestureManagerTest {
     ) {
         val container = View(context)
         val swipes = mutableListOf<LauncherAllAppsGestureManager.DesktopSwipeDirection>()
+        var doubleTaps = 0
 
         private val viewport = object : View(context) {
             override fun canScrollVertically(direction: Int): Boolean = when (direction) {
@@ -103,6 +122,7 @@ class LauncherAllAppsGestureManagerTest {
             isEnabled = { isEnabled },
             isTouchOnInteractiveCell = { startsOnInteractiveCell },
             onSwipe = swipes::add,
+            onDoubleTap = { doubleTaps++ },
         )
 
         fun swipe(fromX: Float, fromY: Float, toX: Float, toY: Float) {
@@ -116,6 +136,13 @@ class LauncherAllAppsGestureManagerTest {
                 )
             )
             manager.onTouchEvent(event(MotionEvent.ACTION_UP, FLING_DURATION_MS, toX, toY))
+        }
+
+        fun doubleTap() {
+            manager.onTouchEvent(event(MotionEvent.ACTION_DOWN, 0L, 100f, 100f))
+            manager.onTouchEvent(event(MotionEvent.ACTION_UP, 50L, 100f, 100f))
+            manager.onTouchEvent(event(MotionEvent.ACTION_DOWN, 100L, 100f, 100f))
+            manager.onTouchEvent(event(MotionEvent.ACTION_UP, 150L, 100f, 100f))
         }
 
         private fun event(action: Int, eventTime: Long, x: Float, y: Float): MotionEvent =

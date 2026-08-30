@@ -18,11 +18,14 @@ import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
 import com.sza.fastmediasorter.data.repository.streams.StreamFrameCache
 import com.sza.fastmediasorter.databinding.GadgetLauncherStreamWindowBinding
+import com.sza.fastmediasorter.databinding.GadgetLauncherStreamWindowControlsBinding
 import com.sza.fastmediasorter.databinding.GadgetLauncherStreamWindowPlayerBinding
+import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.usecase.streams.GetStreamSourceByIdentityUseCase
 import com.sza.fastmediasorter.ui.launcher.gadget.nowplaying.NowPlayingCommand
 import com.sza.fastmediasorter.ui.launcher.gadget.nowplaying.OwnSessionNowPlayingSource
+import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.helpers.StreamDataSourceFactoryProvider
 import com.sza.fastmediasorter.ui.streams.FaviconAtlasSlicer
 import kotlinx.coroutines.CoroutineScope
@@ -105,6 +108,15 @@ private class StreamWindowGadgetView(
     private var playerFace: GadgetLauncherStreamWindowPlayerBinding? = null
 
     /**
+     * S2230: the tap-invoked control overlay, living only on the video face. A tap shows it instead
+     * of toggling playback (strategic ADR-1); the manager owns show/hide and the auto-hide timer.
+     */
+    private var overlay: StreamWindowOverlayManager? = null
+
+    /** Kept so the transport icon can flip with state after the overlay buttons act. */
+    private var controlsBinding: GadgetLauncherStreamWindowControlsBinding? = null
+
+    /**
      * Created on the first tap and released on both exits, never held past the cell.
      *
      * A desktop rebuild drops and rebuilds every cell view with no recycler callback to hook, so detach
@@ -164,12 +176,87 @@ private class StreamWindowGadgetView(
         // The channel's own last frame when the app has one, otherwise its icon - strategic §6 item 3
         // rules out a third kind of placeholder.
         face.streamWindowPoster.setImageBitmap(streamFrameCache.get(source.url) ?: tile)
-        face.streamWindowPlayer.setOnClickListener { toggleVideo(source, face) }
+        bindVideoFace(source, face)
         try {
             awaitCancellation()
         } finally {
             release()
         }
+    }
+
+    /**
+     * S2230: a tap on the video toggles the control overlay, not playback (strategic ADR-1); the
+     * buttons report through the manager and act on the cell's own player or hand off to the
+     * fullscreen stream player exactly as the Streams screen does.
+     */
+    private fun bindVideoFace(source: StreamSourceEntity, face: GadgetLauncherStreamWindowPlayerBinding) {
+        val controls = GadgetLauncherStreamWindowControlsBinding
+            .inflate(LayoutInflater.from(context), face.streamWindowPlayer, true)
+        val manager = StreamWindowOverlayManager(controls.root)
+        overlay = manager
+        controlsBinding = controls
+        manager.callbacks = StreamWindowOverlayManager.Callbacks(
+            onPlayPause = { toggleVideo(source, face) },
+            onMute = {
+                val running = player ?: return@Callbacks
+                running.volume = if (running.volume > 0f) 0f else 1f
+            },
+            onStop = {
+                release()
+                face.streamWindowPoster.isVisible = true
+            },
+            onPip = { openFullscreenPlayer(source, enterPipOnReady = true) },
+            onFullscreen = { openFullscreenPlayer(source, enterPipOnReady = false) },
+        )
+        controls.streamWindowOverlayPlayPause.setOnClickListener {
+            manager.callbacks?.onPlayPause()
+            manager.rescheduleHide()
+        }
+        controls.streamWindowOverlayMute.setOnClickListener {
+            manager.callbacks?.onMute()
+            manager.rescheduleHide()
+        }
+        controls.streamWindowOverlayStop.setOnClickListener {
+            manager.callbacks?.onStop()
+            manager.hide()
+        }
+        controls.streamWindowOverlayPip.setOnClickListener {
+            manager.callbacks?.onPip()
+            manager.hide()
+        }
+        controls.streamWindowOverlayFullscreen.setOnClickListener {
+            manager.callbacks?.onFullscreen()
+            manager.hide()
+        }
+        // A tap on the layer outside a button hides the overlay again rather than falling through.
+        controls.streamWindowOverlayRoot.setOnClickListener { manager.hide() }
+        face.streamWindowPlayer.setOnClickListener {
+            Timber.d("S2230: video face tap, showing overlay")
+            manager.toggle()
+        }
+    }
+
+    /**
+     * The fullscreen stream player, opened the way `StreamsActivity.launchFullscreenStream` opens it -
+     * synthetic stream resource id, the channel's url as the initial path, straight into immersive
+     * fullscreen. The cell hands its codec back first: the player activity builds its own.
+     */
+    private fun openFullscreenPlayer(source: StreamSourceEntity, enterPipOnReady: Boolean) {
+        Timber.d("S2230: fullscreen entry pip=%b for %s", enterPipOnReady, source.title)
+        release()
+        val intent = PlayerActivity.createIntent(
+            context = context,
+            resourceId = SyntheticResourceIds.STREAM,
+            initialFilePath = source.url,
+            skipAvailabilityCheck = true,
+            enterFullscreen = true,
+        )
+            // S2230: the PiP button rides the same player and asks it to collapse once ready. The
+            // extra rides raw rather than as a createIntent parameter - that factory already sits
+            // past the detekt parameter-list ceiling.
+            .putExtra(PlayerActivity.EXTRA_ENTER_PIP_ON_READY, enterPipOnReady)
+            .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
     }
 
     private fun inflatePlayerFace(): GadgetLauncherStreamWindowPlayerBinding =
@@ -182,10 +269,11 @@ private class StreamWindowGadgetView(
             .also { playerFace = it }
 
     /**
-     * Starts the channel on the first tap and pauses it on the next.
+     * Starts the channel on the first overlay tap and pauses it on the next (strategic ADR-1: pause
+     * moved onto the overlay; a tap on the frame shows the controls instead).
      *
-     * Pausing keeps the player attached on purpose: the surface then holds the last decoded frame, which
-     * is the "freezes on a thumbnail" strategic §2.4 asks for. Nothing starts before a tap - a home
+     * Pausing keeps the player attached on purpose: the surface then holds the last decoded frame,
+     * which is the "freezes on a thumbnail" the overlay replaced. Nothing starts before a tap - a home
      * screen may not begin playing on its own (strategic §2.5).
      */
     private fun toggleVideo(source: StreamSourceEntity, face: GadgetLauncherStreamWindowPlayerBinding) {
@@ -194,8 +282,11 @@ private class StreamWindowGadgetView(
         if (running != null) {
             // The poster stays hidden from the first start on: a paused player keeps its last decoded
             // frame on the surface, and re-showing the stored one would replace what the user just saw
-            // with an older picture (strategic §2.4).
+            // with an older picture.
             running.playWhenReady = !running.playWhenReady
+            controlsBinding?.streamWindowOverlayPlayPause?.setImageResource(
+                if (running.playWhenReady) R.drawable.ic_pause else R.drawable.ic_play
+            )
             return
         }
         binding.streamWindowMessage.isVisible = false
@@ -215,6 +306,7 @@ private class StreamWindowGadgetView(
         started.playWhenReady = true
         started.prepare()
         face.streamWindowPoster.isVisible = false
+        controlsBinding?.streamWindowOverlayPlayPause?.setImageResource(R.drawable.ic_pause)
     }
 
     /**
@@ -232,6 +324,11 @@ private class StreamWindowGadgetView(
 
     /** Idempotent: the active scope's exit and a detach can both reach it, in either order. */
     private fun release() {
+        // S2230: the overlay dies with the player it steers - its auto-hide timer must not fire into
+        // a torn-down cell, and a fresh session starts with the controls hidden.
+        overlay?.cancel()
+        overlay?.hide()
+        controlsBinding?.streamWindowOverlayPlayPause?.setImageResource(R.drawable.ic_play)
         playerFace?.streamWindowPlayer?.player = null
         errorListener?.let { player?.removeListener(it) }
         errorListener = null

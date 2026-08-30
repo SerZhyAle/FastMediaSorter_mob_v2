@@ -1,8 +1,8 @@
 package com.sza.fastmediasorter.data.repository.streams
 
 import com.sza.fastmediasorter.data.repository.StreamCatalogCsvParser
-import com.sza.fastmediasorter.data.repository.StreamCatalogFacetNormalizer
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
+import com.sza.fastmediasorter.data.streams.StreamCatalogFacetNormalizer
 import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamCatalogUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.StreamMediaKindClassifier
 import io.mockk.mockk

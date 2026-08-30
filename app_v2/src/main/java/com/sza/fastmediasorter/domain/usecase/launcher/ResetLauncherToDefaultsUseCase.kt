@@ -116,6 +116,7 @@ class ResetLauncherToDefaultsUseCase @Inject constructor(
                 launcherTrayShowSpeed = defaults.launcherTrayShowSpeed,
                 launcherRotationHintShown = defaults.launcherRotationHintShown,
                 launcherDesktopLocked = defaults.launcherDesktopLocked,
+                launcherDesktopDoubleTapLockEnabled = defaults.launcherDesktopDoubleTapLockEnabled,
                 launcherDesktopSwipeUpAction = defaults.launcherDesktopSwipeUpAction,
                 launcherDesktopSwipeDownAction = defaults.launcherDesktopSwipeDownAction,
                 launcherDesktopSwipeLeftAction = defaults.launcherDesktopSwipeLeftAction,

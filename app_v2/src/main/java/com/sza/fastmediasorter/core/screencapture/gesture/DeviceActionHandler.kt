@@ -28,10 +28,7 @@ class DeviceActionHandler @Inject constructor() {
     /** Returns true when [action] is a device-control action this handler owns (performed or degraded). */
     fun handle(context: Context, action: ScreenshotGestureAction): Boolean {
         return when (action) {
-        ScreenshotGestureAction.TOGGLE_FLASHLIGHT -> {
-            toggleFlashlight(context)
-            true
-        }
+        ScreenshotGestureAction.TOGGLE_FLASHLIGHT -> toggleFlashlight(context)
         ScreenshotGestureAction.BRIGHTNESS_MAX -> {
             setBrightness(context, BRIGHTNESS_MAX_VALUE)
             true
@@ -44,27 +41,33 @@ class DeviceActionHandler @Inject constructor() {
         }
     }
 
-    private fun toggleFlashlight(context: Context) {
+    /** Toggles the physical camera flash and reports whether this device could accept the operation. */
+    fun toggleFlashlight(context: Context): Boolean {
         val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as? CameraManager
-        if (cameraManager == null) {
-            Timber.w("DeviceActionHandler: CameraManager unavailable, flashlight ignored")
-            return
+        val flashCameraId = cameraManager?.let { manager ->
+            runCatching {
+                manager.cameraIdList.firstOrNull { id ->
+                    manager.getCameraCharacteristics(id)
+                        .get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
+                }
+            }.getOrNull()
         }
-        val flashCameraId = runCatching {
-            cameraManager.cameraIdList.firstOrNull { id ->
-                cameraManager.getCameraCharacteristics(id)
-                    .get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
+        return when {
+            cameraManager == null -> {
+                Timber.w("DeviceActionHandler: CameraManager unavailable, flashlight ignored")
+                false
             }
-        }.getOrNull()
-        if (flashCameraId == null) {
+            flashCameraId == null -> {
             Timber.w("DeviceActionHandler: no flash unit on this device, flashlight ignored")
-            return
-        }
-        runCatching {
+                false
+            }
+            else -> runCatching {
             val next = !torchEnabled
             cameraManager.setTorchMode(flashCameraId, next)
             torchEnabled = next
-        }.onFailure { Timber.w(it, "DeviceActionHandler: setTorchMode failed") }
+            true
+            }.onFailure { Timber.w(it, "DeviceActionHandler: setTorchMode failed") }.getOrDefault(false)
+        }
     }
 
     private fun setBrightness(context: Context, value: Int) {

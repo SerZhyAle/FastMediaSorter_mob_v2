@@ -42,6 +42,8 @@
     { "field": "allAppsSortOrder", "reason": "view state - the all-apps screen writes back whatever the user picked in its own order menu" },
     { "field": "allAppsSortDescending", "reason": "view state - the all-apps screen writes back whatever the user picked in its own order menu" },
 
+    { "field": "launcherDesktopDoubleTapLockEnabled", "reason": "gesture availability preference - a profile presetting it would fight the user's own launcher settings choice" },
+
     { "field": "rendererMigrationEnabled", "reason": "migration flag - owned by the upgrade path, not by a profile" },
 
     { "field": "language", "reason": "owned by the first-run language step (strategic 3.2 Localization)" },

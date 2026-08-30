@@ -43,6 +43,8 @@ object LauncherSettingsStore {
     private val KEY_LAUNCHER_TASKBAR_PLACEMENT = stringPreferencesKey("launcher_taskbar_placement")
     private val KEY_LAUNCHER_ROTATION_HINT_SHOWN = booleanPreferencesKey("launcher_rotation_hint_shown")
     private val KEY_LAUNCHER_DESKTOP_LOCKED = booleanPreferencesKey("launcher_desktop_locked")
+    private val KEY_LAUNCHER_DESKTOP_DOUBLE_TAP_LOCK_ENABLED =
+        booleanPreferencesKey("launcher_desktop_double_tap_lock_enabled")
     private val KEY_LAUNCHER_DESKTOP_SWIPE_UP_ACTION =
         stringPreferencesKey("launcher_desktop_swipe_up_action")
     private val KEY_LAUNCHER_DESKTOP_SWIPE_DOWN_ACTION =
@@ -91,6 +93,7 @@ object LauncherSettingsStore {
         val launcherTaskbarPlacement: String,
         val launcherRotationHintShown: Boolean,
         val launcherDesktopLocked: Boolean,
+        val launcherDesktopDoubleTapLockEnabled: Boolean,
         val launcherDesktopSwipeUpAction: LauncherDesktopSwipeAction,
         val launcherDesktopSwipeDownAction: LauncherDesktopSwipeAction,
         val launcherDesktopSwipeLeftAction: LauncherDesktopSwipeAction,
@@ -137,6 +140,10 @@ object LauncherSettingsStore {
             ?: AppSettings.LAUNCHER_TASKBAR_PLACEMENT_BOTTOM,
         launcherRotationHintShown = preferences.getOrDefault(KEY_LAUNCHER_ROTATION_HINT_SHOWN, false),
         launcherDesktopLocked = preferences.getOrDefault(KEY_LAUNCHER_DESKTOP_LOCKED, false),
+        launcherDesktopDoubleTapLockEnabled = preferences.getOrDefault(
+            KEY_LAUNCHER_DESKTOP_DOUBLE_TAP_LOCK_ENABLED,
+            true,
+        ),
         launcherDesktopSwipeUpAction = LauncherDesktopSwipeAction.fromName(
             preferences[KEY_LAUNCHER_DESKTOP_SWIPE_UP_ACTION],
             LauncherDesktopSwipeAction.OpenAllApps,
@@ -207,6 +214,7 @@ object LauncherSettingsStore {
         launcherTaskbarPlacement = values.launcherTaskbarPlacement,
         launcherRotationHintShown = values.launcherRotationHintShown,
         launcherDesktopLocked = values.launcherDesktopLocked,
+        launcherDesktopDoubleTapLockEnabled = values.launcherDesktopDoubleTapLockEnabled,
         launcherDesktopSwipeUpAction = values.launcherDesktopSwipeUpAction,
         launcherDesktopSwipeDownAction = values.launcherDesktopSwipeDownAction,
         launcherDesktopSwipeLeftAction = values.launcherDesktopSwipeLeftAction,
@@ -245,6 +253,8 @@ object LauncherSettingsStore {
         preferences[KEY_LAUNCHER_TASKBAR_PLACEMENT] = settings.launcherTaskbarPlacement
         preferences[KEY_LAUNCHER_ROTATION_HINT_SHOWN] = settings.launcherRotationHintShown
         preferences[KEY_LAUNCHER_DESKTOP_LOCKED] = settings.launcherDesktopLocked
+        preferences[KEY_LAUNCHER_DESKTOP_DOUBLE_TAP_LOCK_ENABLED] =
+            settings.launcherDesktopDoubleTapLockEnabled
         preferences[KEY_LAUNCHER_DESKTOP_SWIPE_UP_ACTION] = settings.launcherDesktopSwipeUpAction.persistedName
         preferences[KEY_LAUNCHER_DESKTOP_SWIPE_DOWN_ACTION] = settings.launcherDesktopSwipeDownAction.persistedName
         preferences[KEY_LAUNCHER_DESKTOP_SWIPE_LEFT_ACTION] = settings.launcherDesktopSwipeLeftAction.persistedName

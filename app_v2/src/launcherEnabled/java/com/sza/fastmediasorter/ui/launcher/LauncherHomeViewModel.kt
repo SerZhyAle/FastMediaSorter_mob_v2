@@ -219,6 +219,17 @@ class LauncherHomeViewModel @Inject constructor(
         .map { it.launcherDesktopLocked }
         .stateIn(viewModelScope, SharingStarted.Eagerly, settingsDefaults.launcherDesktopLocked)
 
+    /** Switches the existing edit lock from a gesture without adding a second lock state. */
+    fun toggleDesktopLocked() {
+        viewModelScope.launch {
+            settingsRepository.updateSettings { settings ->
+                val locked = !settings.launcherDesktopLocked
+                Timber.d("S2249: desktop lock toggled locked=%s", locked)
+                settings.copy(launcherDesktopLocked = locked)
+            }
+        }
+    }
+
     /**
      * S2210: the frame the last instant-photo capture produced, held only for this process.
      *
@@ -426,6 +437,8 @@ class LauncherHomeViewModel @Inject constructor(
         // S1742: a user-created section carries its name from the moment it is placed - it has no preset
         // label to fall back on, so a header written without one would draw as unavailable.
         labelOverride: String? = null,
+        // S2247: answers whether a slot was found, so a programmatic placement can speak its refusal.
+        onPlaced: (Boolean) -> Unit = {},
     ) {
         viewModelScope.launch {
             rememberResourceFileList(rememberFileListResourceId)
@@ -450,6 +463,7 @@ class LauncherHomeViewModel @Inject constructor(
             // drops the cell and the user is left with an item that was written and cannot be seen.
             id?.let { sections.revealSectionHolding(it) }
             Timber.d("S2033: addCellInFirstFreeSlot id=%s", id)
+            onPlaced(id != null)
         }
     }
 
@@ -509,6 +523,25 @@ class LauncherHomeViewModel @Inject constructor(
                 desktopDependencies.configuredWidgetInstances.clearInstanceOf(cell.target)
             }
             desktopDependencies.desktopRepository.removeCell(id)
+        }
+    }
+
+    fun deleteSection(cellId: Long) {
+        viewModelScope.launch {
+            val header = cells.value.find { it.cell.id == cellId }?.cell
+            val removed = desktopDependencies.desktopRepository.removeSection(_orientation.value, cellId)
+            removed.forEach(desktopDependencies.configuredWidgetInstances::clearInstanceOf)
+            header?.let(sections::clear)
+            Timber.d("S2222: deleteSection id=%s removed=%d", cellId, removed.size)
+        }
+    }
+
+    fun resortSection(cellId: Long, columns: Int) {
+        viewModelScope.launch {
+            val header = cells.value.find { it.cell.id == cellId }?.cell ?: return@launch
+            sections.reveal(header)
+            val moved = desktopDependencies.desktopRepository.resortSection(_orientation.value, cellId, columns)
+            Timber.d("S2222: resortSection id=%s columns=%d moved=%s", cellId, columns, moved)
         }
     }
 

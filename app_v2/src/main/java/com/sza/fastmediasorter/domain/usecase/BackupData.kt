@@ -207,6 +207,9 @@ data class BackupSettings(
     val launcherTrayShowBattery: Boolean = true,
     val launcherRotationHintShown: Boolean = false,
     val launcherDesktopLocked: Boolean = false,
+    // Nullable so a field absent from an older backup restores as "keep current" - plain Gson
+    // skips Kotlin defaults, so a non-null Boolean here would silently read as false.
+    val launcherDesktopDoubleTapLockEnabled: Boolean? = null,
     val launcherWallpaperMode: String = "BRANDED",
     val launcherWallpaperImagePath: String = "",
     val launcherWallpaperCameraId: String = "",

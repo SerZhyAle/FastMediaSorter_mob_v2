@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase.panel
 
 import android.content.Context
+import android.content.pm.PackageManager
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
@@ -121,6 +122,11 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
             // is the same shape the embedded game uses: always built in, gated by the user's toggle.
             InternalRouteCatalog.KEY_FRONT_FLASHLIGHT ->
                 Availability(availableInBuild = true, enabledAtRuntime = settings.frontFlashlightEnabled)
+            InternalRouteCatalog.KEY_PHYSICAL_FLASHLIGHT ->
+                Availability(
+                    availableInBuild = context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH),
+                    enabledAtRuntime = true,
+                )
             // S2211: black screen needs no special capability - always available in build and runtime.
             InternalRouteCatalog.KEY_BLACK_SCREEN ->
                 Availability(availableInBuild = true, enabledAtRuntime = true)

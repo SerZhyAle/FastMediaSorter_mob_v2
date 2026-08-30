@@ -27,8 +27,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
-import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
+import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
 import com.sza.fastmediasorter.core.screencapture.gesture.GestureAccessibilityActions
 import com.sza.fastmediasorter.databinding.DialogLauncherResetConfirmBinding
 import com.sza.fastmediasorter.databinding.DialogLauncherSettingsBinding
@@ -239,6 +239,12 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         binding.rowLauncherLockDesktop.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(launcherDesktopLocked = isChecked))
+        }
+        binding.rowLauncherDesktopDoubleTapLock.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings(
+                viewModel.settings.value.copy(launcherDesktopDoubleTapLockEnabled = isChecked),
+            )
         }
         setupScreenTimeoutRow()
         setupWidgetBackdropAlphaRow()
@@ -630,6 +636,9 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             binding.rowLauncherTaskbarPlacement.setSelection(placementIndex(settings))
             renderDesktopSwipeRows(settings)
             binding.rowLauncherLockDesktop.setCheckedSilently(settings.launcherDesktopLocked)
+            binding.rowLauncherDesktopDoubleTapLock.setCheckedSilently(
+                settings.launcherDesktopDoubleTapLockEnabled,
+            )
             val densityIndex = AppSettings.LAUNCHER_DENSITY_OPTIONS.indexOf(settings.launcherDensityFactor)
             binding.rowLauncherDensity.setSelection(if (densityIndex >= 0) densityIndex else DENSITY_DEFAULT_INDEX)
             renderWallpaperRow(settings)

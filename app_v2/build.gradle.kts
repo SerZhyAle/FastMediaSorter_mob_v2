@@ -208,8 +208,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-val defaultAppVersionCode = 260829140
-val defaultAppVersionName = "2.60.8291.405"
+val defaultAppVersionCode = 260829204
+val defaultAppVersionName = "2.60.8292.047"
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }
@@ -2032,6 +2032,7 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     testImplementation("androidx.arch.core:core-testing:2.2.0")
+    testImplementation("androidx.test:core:1.6.1")
     testImplementation("io.mockk:mockk:1.13.9")
     testImplementation("org.robolectric:robolectric:4.16.1") // For Android framework in JVM tests
     

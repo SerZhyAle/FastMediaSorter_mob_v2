@@ -1774,6 +1774,17 @@ scripts/quality/assert-allfeatures-sync.ps1
   Exit: 0 - clean (or audit mode).; 1 - substantive failure: validation error or record-count regression.; 2 - the gate itself cannot run (inventory or validate.ps1 missing). Distinct
 ```
 
+### assert-appsettings-persistence.ps1
+S2243: every field of AppSettings is persisted in settings stores or SettingsRepositoryImpl.
+
+```
+scripts/quality/assert-appsettings-persistence.ps1
+  S2243: every field of AppSettings is persisted in settings stores or SettingsRepositoryImpl.
+  Params:
+    -Gate            [SwitchParameter]
+    -Explain         [SwitchParameter]
+```
+
 ### assert-artifact-version-fresh.ps1
 Gate: a packaged artifact must carry the version of its own build, not a historical constant.
 
@@ -4114,6 +4125,7 @@ scripts/streams/collect-stream-candidates.ps1
     -WarmArtworkCache                 [SwitchParameter]
     -ArtworkCacheOnly                 [SwitchParameter]
     -NormalizeTopics                  [SwitchParameter]
+    -NormalizeFacets                  [SwitchParameter]
     -WithChannelPreviews              [SwitchParameter]
     -PublishPreviewAtlas              [SwitchParameter]
     -PreviewAtlasPath                 [String] = 'temp/channel-preview-atlas.webp'

@@ -3316,6 +3316,7 @@
     <string name="launcher_section_actions_title">Действия с секцией</string>
     <string name="launcher_section_action_rename">Переименовать секцию</string>
     <string name="front_flashlight_title">Фронтальный фонарик</string>
+    <string name="physical_flashlight_title">Фонарик камеры</string>
     <string name="front_flashlight_settings_toggle_title">Фронтальный фонарик</string>
     <string name="front_flashlight_settings_toggle_subtitle">Превратить сам экран в лампу</string>
     <string name="front_flashlight_help_title">Фронтальный фонарик</string>
@@ -3545,4 +3546,19 @@
     <string name="launcher_gadget_steps_since_date">С %1$s</string>
     <string name="launcher_gadget_google_maps_live">Живой фрейм Google Maps</string>
     <string name="launcher_gadget_google_maps_live_desc">Интерактивное окно живой карты Google Maps</string>
+    <string name="launcher_translator_language_settings">Открыть настройки перевода</string>
+    <string name="launcher_section_action_delete">Удалить секцию</string>
+    <string name="launcher_section_action_resort">Пересортировать секцию</string>
+    <string name="launcher_section_delete_confirm_title">Удалить эту секцию?</string>
+    <string name="launcher_section_delete_confirm_message">Секция будет удалена вместе со всеми ярлыками внутри (%1$d). Добавить их снова можно в любое время.</string>
+    <string name="launcher_stream_overlay_play_pause">Воспроизвести или поставить на паузу</string>
+    <string name="launcher_stream_overlay_mute">Без звука</string>
+    <string name="launcher_stream_overlay_stop">Стоп</string>
+    <string name="launcher_stream_overlay_pip">Картинка в картинке</string>
+    <string name="launcher_stream_overlay_fullscreen">На весь экран</string>
+    <string name="launcher_settings_double_tap_lock_title">Двойной тап для блокировки рабочего стола</string>
+    <string name="launcher_settings_double_tap_lock_subtitle">Двойной тап по свободному месту переключает блокировку редактирования</string>
+    <string name="launcher_stream_add_desktop_window">Добавить окно на рабочий стол</string>
+    <string name="launcher_stream_desktop_window_added">Окно добавлено на рабочий стол</string>
+    <string name="launcher_stream_desktop_window_no_space">На рабочем столе нет свободного места</string>
 </resources>

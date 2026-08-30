@@ -35,6 +35,7 @@ class LauncherSettingsStoreTest {
         // S2017 ADR-1: default flipped to ON, superseding S1465 ADR-4's off-by-default rationale.
         assertTrue(values.launcherForeignNotificationsEnabled)
         assertFalse(values.launcherDesktopLocked)
+        assertTrue(values.launcherDesktopDoubleTapLockEnabled)
         assertFalse(values.allAppsSortDescending)
         assertEquals("", values.launcherWallpaperImagePath)
         assertEquals(0, values.launcherScreenBlackoutTimeoutSeconds)
@@ -95,6 +96,7 @@ class LauncherSettingsStoreTest {
             launcherForeignNotificationsEnabled = true,
             launcherRotationHintShown = true,
             launcherDesktopLocked = true,
+            launcherDesktopDoubleTapLockEnabled = false,
             launcherDesktopSwipeUpPayload = "https://example.com",
             launcherDesktopSwipeDownPayload = "com.example.app",
             launcherDesktopSwipeLeftPayload = "https://example.org",
@@ -128,6 +130,7 @@ class LauncherSettingsStoreTest {
         )
         assertEquals(settings.launcherRotationHintShown, values.launcherRotationHintShown)
         assertEquals(settings.launcherDesktopLocked, values.launcherDesktopLocked)
+        assertEquals(settings.launcherDesktopDoubleTapLockEnabled, values.launcherDesktopDoubleTapLockEnabled)
         assertEquals(settings.launcherDesktopSwipeUpPayload, values.launcherDesktopSwipeUpPayload)
         assertEquals(settings.launcherDesktopSwipeDownPayload, values.launcherDesktopSwipeDownPayload)
         assertEquals(settings.launcherDesktopSwipeLeftPayload, values.launcherDesktopSwipeLeftPayload)

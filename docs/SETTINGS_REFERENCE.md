@@ -295,10 +295,11 @@ _Settings -> General -> System launcher settings_
 | Taskbar | Settings for the launcher taskbar at the bottom: recent and pinned apps, and which icons its tray shows. |
 | Top bar | Settings for the launcher's own top strip, which can replace the system status area. |
 | Grid density | Sets how many icons the launcher desktop grid fits per row and column. |
-| Swipe down | Chooses a launcher swipe action from the same available actions as edge gestures. By default, it opens the notification shade when the system action is available. |
-| Swipe left | Chooses a launcher swipe action from the same available actions as edge gestures. By default, no action is used. |
-| Swipe right | Chooses a launcher swipe action from the same available actions as edge gestures. By default, no action is used. |
-| Swipe up | Chooses a launcher swipe action from the same available actions as edge gestures. Swipe up runs only after reaching the bottom; by default, it opens All apps. |
+| Double tap to lock desktop | Lets a double tap on empty desktop space switch the desktop edit lock. On by default. |
+| Swipe down | Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. By default, it opens the notification shade when the system action is available. |
+| Swipe left | Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. By default, no action is used. |
+| Swipe right | Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. By default, no action is used. |
+| Swipe up | Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. Swipe up runs only after reaching the bottom; by default, it opens All apps. |
 | Notifications from other apps on the top bar | Shows one icon per other app that has pending notifications in the launcher top bar, with how many it has. Their title, text and attachments are never read. On by default and inert until the system grants notification access. |
 | Lock desktop | Blocks long-press entry into desktop edit mode; the Start-menu entry stays reachable. |
 | Change home screen | Opens Android's default-launcher chooser to switch the system home screen. |

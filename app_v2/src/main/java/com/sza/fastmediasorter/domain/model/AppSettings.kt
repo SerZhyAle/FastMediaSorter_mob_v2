@@ -101,7 +101,9 @@ data class AppSettings(
     val saveAudioMetadataLocally: Boolean = true, // Save downloaded covers and metadata to local cache
     val enablePhotosDuringAudio: Boolean = false, // Enable random photos from resource during audio playback
     val audioBackgroundPhotosResourceId: String? = null, // ID of resource containing photos for audio background
-    val enablePersistentAudioPlayback: Boolean = false, // Continue audio when app minimized/screen locked (foreground service)
+    // S2247: enabled by default - a stream started from the launcher keeps playing after the screen
+    // turns off, via the foreground service. The setting is the off-switch, not the opt-in.
+    val enablePersistentAudioPlayback: Boolean = true,
     val backgroundAudioExitBehavior: BackgroundAudioExitBehavior = BackgroundAudioExitBehavior.ASK, // What to do when leaving player while background audio is active
     val showNowPlayingPanel: Boolean = false, // Show mini now-playing bar when browsing non-audio/video files while background audio is active
     val audioEmptyStateMode: String = "CANVAS_WAVES", // Animation mode when no cover art: NONE, AVD_PULSE, CANVAS_BARS, CANVAS_WAVES, VISUALIZATION (GIF_LOOP=legacy alias)
@@ -420,6 +422,8 @@ data class AppSettings(
     // S1090: guards entry into desktop edit mode. Off by default so the long-press gesture stays
     // discoverable; the Start-menu entry is deliberate and stays reachable regardless of this flag.
     val launcherDesktopLocked: Boolean = false,
+    // S2249: applies a convenient lock toggle only to a double tap that starts on empty desktop space.
+    val launcherDesktopDoubleTapLockEnabled: Boolean = true,
     val launcherDesktopSwipeUpAction: LauncherDesktopSwipeAction = LauncherDesktopSwipeAction.OpenAllApps,
     val launcherDesktopSwipeDownAction: LauncherDesktopSwipeAction =
         LauncherDesktopSwipeAction.EdgeGestureAction(ScreenshotGestureAction.OPEN_NOTIFICATION_SHADE),

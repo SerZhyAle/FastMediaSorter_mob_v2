@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.ui.applaunchpanel.AppLaunchPanelActivity
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.calculator.CalculatorActivity
 import com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity
+import com.sza.fastmediasorter.ui.flashlight.FlashlightToggleActivity
 import com.sza.fastmediasorter.ui.flashlight.FrontFlashlightActivity
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorActivity
@@ -127,6 +128,9 @@ object AppLaunchPanelRouteIntents {
         Intent(context, SettingsActivity::class.java)
             .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS)
             .withPanelFlags()
+
+    fun physicalFlashlight(context: Context): Intent =
+        Intent(context, FlashlightToggleActivity::class.java).withPanelFlags()
 
     // S2211: black screen as an autonomous sub-program.
     fun blackScreen(context: Context): Intent =

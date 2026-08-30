@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S2230: the tap-invoked control overlay of a stream window's video face, inflated on top of the
+     player surface. Shown by a tap on the video, hidden by a repeat tap or by the auto-hide timeout
+     the owning manager runs; a tap on the layer outside a button is consumed here so it hides the
+     overlay instead of falling through to the player.
+
+     Corner placement mirrors the strategic capture: play/pause sits bottom-center, mute top-start,
+     stop top-end, PiP bottom-start, fullscreen bottom-end. Buttons are 40dp on a translucent rounded
+     plate (gadget_stream_window_overlay_plate) so they stay legible on a bright frame.
+
+     Orientation-neutral like gadget_launcher_stream_window_player.xml: the launcher measures the cell
+     exactly, so there is no layout-land counterpart. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/streamWindowOverlayRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clickable="true"
+    android:focusable="true"
+    android:visibility="gone">
+
+    <ImageView
+        android:id="@+id/streamWindowOverlayMute"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="top|start"
+        android:layout_margin="@dimen/margin_small"
+        android:background="@drawable/gadget_stream_window_overlay_plate"
+        android:contentDescription="@string/launcher_stream_overlay_mute"
+        android:foreground="?attr/selectableItemBackground"
+        android:src="@drawable/ic_gesture_action_volume_mute"
+        app:tint="?attr/colorOnSurface" />
+
+    <ImageView
+        android:id="@+id/streamWindowOverlayStop"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="@dimen/margin_small"
+        android:background="@drawable/gadget_stream_window_overlay_plate"
+        android:contentDescription="@string/launcher_stream_overlay_stop"
+        android:foreground="?attr/selectableItemBackground"
+        android:src="@drawable/ic_stop"
+        app:tint="?attr/colorOnSurface" />
+
+    <ImageView
+        android:id="@+id/streamWindowOverlayPlayPause"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_margin="@dimen/margin_small"
+        android:background="@drawable/gadget_stream_window_overlay_plate"
+        android:contentDescription="@string/launcher_stream_overlay_play_pause"
+        android:foreground="?attr/selectableItemBackground"
+        android:src="@drawable/ic_play"
+        app:tint="?attr/colorOnSurface" />
+
+    <ImageView
+        android:id="@+id/streamWindowOverlayPip"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="bottom|start"
+        android:layout_margin="@dimen/margin_small"
+        android:background="@drawable/gadget_stream_window_overlay_plate"
+        android:contentDescription="@string/launcher_stream_overlay_pip"
+        android:foreground="?attr/selectableItemBackground"
+        android:src="@drawable/ic_picture_in_picture"
+        app:tint="?attr/colorOnSurface" />
+
+    <ImageView
+        android:id="@+id/streamWindowOverlayFullscreen"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="@dimen/margin_small"
+        android:background="@drawable/gadget_stream_window_overlay_plate"
+        android:contentDescription="@string/launcher_stream_overlay_fullscreen"
+        android:foreground="?attr/selectableItemBackground"
+        android:src="@drawable/ic_fullscreen"
+        app:tint="?attr/colorOnSurface" />
+
+</FrameLayout>

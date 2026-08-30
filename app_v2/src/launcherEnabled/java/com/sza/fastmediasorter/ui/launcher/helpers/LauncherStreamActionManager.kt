@@ -38,6 +38,9 @@ class LauncherStreamActionManager(
     // desktop's has nothing to add on the way through - a closure per callback would only be a longer
     // way to say the same thing.
     private val streamEdit: LauncherStreamEditDependencies,
+    // S2247: the add flow owns the placement write; the callback keeps this manager free of the
+    // desktop's view-model wiring while the menu still reaches it in one step.
+    private val placeDesktopWindow: (identityKey: String, mediaKind: String, onResult: (Boolean) -> Unit) -> Unit,
 ) {
 
     /**
@@ -68,6 +71,19 @@ class LauncherStreamActionManager(
         when (action) {
             StreamMenuAction.TOGGLE_PIN -> togglePin(source)
             StreamMenuAction.ADD_SHORTCUT -> pinShortcut(source)
+            // S2247: one step from the channel's menu to a desktop window; the placement answers
+            // asynchronously, so the result toast is spoken from the callback, not here.
+            StreamMenuAction.ADD_DESKTOP_WINDOW -> {
+                Timber.d("S2247: menu add desktop window for %s", source.title)
+                placeDesktopWindow(source.identityKey, source.mediaKind) { placed ->
+                    val message = if (placed) {
+                        R.string.launcher_stream_desktop_window_added
+                    } else {
+                        R.string.launcher_stream_desktop_window_no_space
+                    }
+                    Toast.makeText(activity, message, Toast.LENGTH_LONG).show()
+                }
+            }
             StreamMenuAction.SHARE_LINK -> shareLink(source)
             StreamMenuAction.EDIT -> edit(source)
             StreamMenuAction.REMOVE -> confirmRemove(source)
