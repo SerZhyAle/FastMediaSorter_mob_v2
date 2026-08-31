@@ -4,11 +4,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
 import android.provider.Settings
-import android.text.InputType
 import android.view.View
-import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.appcompat.widget.TooltipCompat
@@ -29,6 +25,8 @@ import com.sza.fastmediasorter.ui.applaunchpanel.edit.EditAppLaunchPanelActivity
 import com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.ui.settings.helpers.GestureTargetResetControl
+import com.sza.fastmediasorter.ui.settings.helpers.GestureUrlTargetDialog
 import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionPickerManager
 import com.sza.fastmediasorter.util.showBoundTo
 import timber.log.Timber
@@ -220,31 +218,15 @@ class EdgeGestureConfigManager(
         slotRow.setTrailingControl(resetControl(zone, direction))
     }
 
-    /**
-     * S1036: the explicit reset is the only path that clears a stored package - changing the direction's
-     * action must not, or switching away and back would silently drop the choice. It writes an empty
-     * payload for this one slot and leaves the action bound to it untouched.
-     */
-    private fun resetControl(zone: ScreenshotGestureZone, direction: ScreenshotGestureDirection): ImageView {
-        val ctx = fragment.requireContext()
-        val size = (RESET_ICON_SIZE_DP * ctx.resources.displayMetrics.density).toInt()
-        return ImageView(ctx).apply {
-            layoutParams = ViewGroup.LayoutParams(size, size)
-            setImageResource(R.drawable.ic_clear)
-            val borderless = intArrayOf(android.R.attr.selectableItemBackgroundBorderless)
-            background = ctx.obtainStyledAttributes(borderless).run { getDrawable(0).also { recycle() } }
-            isClickable = true
-            isFocusable = true
-            contentDescription = ctx.getString(R.string.gesture_slot_app_reset)
-            setOnClickListener {
-                // Render from the copy just written: the settings flow has not emitted it yet, so
-                // viewModel.settings.value would still carry the package being cleared.
-                val cleared = applyPayload(viewModel.settings.value, zone, direction, "")
-                viewModel.updateSettings(cleared)
-                renderAppRow(cleared, zone, direction)
-            }
+    // S2256: the same reset control the launcher desktop swipes carry, built once in a shared helper.
+    private fun resetControl(zone: ScreenshotGestureZone, direction: ScreenshotGestureDirection): ImageView =
+        GestureTargetResetControl.create(fragment.requireContext()) {
+            // Render from the copy just written: the settings flow has not emitted it yet, so
+            // viewModel.settings.value would still carry the package being cleared.
+            val cleared = applyPayload(viewModel.settings.value, zone, direction, "")
+            viewModel.updateSettings(cleared)
+            renderAppRow(cleared, zone, direction)
         }
-    }
 
     private fun openActionPicker(zone: ScreenshotGestureZone, direction: ScreenshotGestureDirection) {
         gestureActionPickerManager.showPicker(
@@ -303,28 +285,15 @@ class EdgeGestureConfigManager(
     }
 
     // S1038: per-slot URL entry for the OPEN_URL action, pre-filled with the current payload for editing.
+    // S2256: the same address prompt the launcher desktop swipes open, so one concept keeps one wording.
     private fun promptUrl(zone: ScreenshotGestureZone, direction: ScreenshotGestureDirection) {
-        val ctx = fragment.requireContext()
-        val input = EditText(ctx).apply {
-            setText(viewModel.settings.value.screenshotGesturePayload(zone, direction))
-            setSelection(text.length)
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
-            setHint(R.string.gesture_url_input_hint)
-        }
-        val pad = (URL_DIALOG_PADDING_DP * ctx.resources.displayMetrics.density).toInt()
-        val container = FrameLayout(ctx).apply {
-            setPadding(pad, pad / 2, pad, 0)
-            addView(input)
-        }
-        MaterialAlertDialogBuilder(ctx)
-            .setTitle(R.string.gesture_url_input_title)
-            .setView(container)
-            .setPositiveButton(R.string.ok) { _, _ ->
-                val url = input.text?.toString()?.trim().orEmpty()
+        GestureUrlTargetDialog.show(
+            host = fragment,
+            current = viewModel.settings.value.screenshotGesturePayload(zone, direction),
+            onSave = { url ->
                 viewModel.updateSettings(applyPayload(viewModel.settings.value, zone, direction, url))
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .showBoundTo(fragment)
+            },
+        )
     }
 
     private fun renderZone(settings: AppSettings, zone: ScreenshotGestureZone) {
@@ -570,10 +539,5 @@ class EdgeGestureConfigManager(
             ScreenshotGestureDirection.DOWN ->
                 s.copy(screenshotGesture = s.screenshotGesture.copy(payloadRightBottomDown = payload))
         }
-    }
-
-    private companion object {
-        private const val URL_DIALOG_PADDING_DP = 24
-        private const val RESET_ICON_SIZE_DP = 36
     }
 }

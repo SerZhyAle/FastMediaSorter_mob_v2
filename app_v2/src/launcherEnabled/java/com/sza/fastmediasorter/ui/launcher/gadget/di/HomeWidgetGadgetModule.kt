@@ -99,6 +99,7 @@ object HomeWidgetGadgetModule {
             iconRes = R.drawable.ic_camera_ocr_translate,
             defaultSpanW = SPAN_SMALL,
             defaultSpanH = SPAN_SMALL,
+            iconTintable = true,
             command = LauncherCellCommand.Feature(InternalRouteCatalog.KEY_OCR),
         ),
         // Two tap targets on the Android home screen (photos and OCR); one cell here, running the OCR
@@ -110,6 +111,7 @@ object HomeWidgetGadgetModule {
             iconRes = R.drawable.ic_camera_ocr_translate,
             defaultSpanW = SPAN_MEDIUM,
             defaultSpanH = SPAN_MEDIUM,
+            iconTintable = true,
             command = LauncherCellCommand.Feature(InternalRouteCatalog.KEY_OCR),
         ),
         HomeWidgetGadget(
@@ -129,6 +131,7 @@ object HomeWidgetGadgetModule {
             iconRes = R.drawable.ic_widget_camera_photos,
             defaultSpanW = SPAN_SMALL,
             defaultSpanH = SPAN_SMALL,
+            iconTintable = true,
             command = LauncherCellCommand.Feature(InternalRouteCatalog.KEY_CAMERA_PHOTOS),
         ),
         HomeWidgetGadget(
@@ -137,6 +140,7 @@ object HomeWidgetGadgetModule {
             iconRes = R.drawable.ic_widget_continue_reading,
             defaultSpanW = SPAN_SMALL,
             defaultSpanH = SPAN_SMALL,
+            iconTintable = true,
             command = LauncherCellCommand.Feature(InternalRouteCatalog.KEY_CONTINUE_READING),
         ),
         // The game route already models its own disabled state through the catalog's settingsIntent, so
@@ -155,6 +159,7 @@ object HomeWidgetGadgetModule {
             iconRes = R.drawable.ic_widget_random_music,
             defaultSpanW = SPAN_SMALL,
             defaultSpanH = SPAN_SMALL,
+            iconTintable = true,
             command = LauncherCellCommand.Feature(InternalRouteCatalog.KEY_RANDOM_MUSIC),
         ),
         HomeWidgetGadget(
@@ -163,6 +168,7 @@ object HomeWidgetGadgetModule {
             iconRes = R.drawable.ic_widget_quick_audio_recorder,
             defaultSpanW = SPAN_SMALL,
             defaultSpanH = SPAN_SMALL,
+            iconTintable = true,
             command = LauncherCellCommand.Feature(InternalRouteCatalog.KEY_QUICK_VOICE),
         ),
     )

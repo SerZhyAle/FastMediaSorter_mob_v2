@@ -23,6 +23,7 @@ import com.sza.fastmediasorter.core.logging.LoggingHelper
 import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
 import com.sza.fastmediasorter.core.memory.MemoryProbe
 import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayStartupCoordinator
+import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.core.util.CacheStatusHelper
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.core.util.LocaleHelper
@@ -194,6 +195,17 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 // stops a genuine rebuild failure from crashing the process via the warm-up coroutine.
                 Timber.e(e, "FastMediaSorterApp: Room warm-up failed")
             }
+        }
+
+        // S2250: the only subscription to the disable-animations flag in the process. Every
+        // animation site reads AnimationPolicy synchronously instead of carrying its own wiring,
+        // so this collector is what makes that read cheap enough for a draw path. Started here
+        // rather than behind firstFrameSignal because the first screen's own transition asks.
+        applicationScope.launch(Dispatchers.IO) {
+            settingsRepository.get().getSettings()
+                .map { it.disableAnimations }
+                .distinctUntilChanged()
+                .collect { disabled -> AnimationPolicy.update(disabled) }
         }
 
         // S0213 Pillar C: connect the release-safe degradation signal to MemoryEnduranceTracker so

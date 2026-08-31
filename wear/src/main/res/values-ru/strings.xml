@@ -402,4 +402,5 @@
     <string name="wear_settings_sections">Разделы</string>
     <string name="phone_resource_no_resource_for_type">Ни один ресурс телефона не настроен на этот тип.</string>
     <string name="wear_folder_load_more">Показать ещё</string>
+    <string name="wear_file_op_outcome_needs_consent">Не подтверждено - ничего не изменилось</string>
 </resources>

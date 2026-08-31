@@ -20,12 +20,11 @@ import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
 import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
 import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
 import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
+import com.sza.fastmediasorter.core.screencapture.gesture.GestureAccessibilityActions
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityLauncherHomeBinding
-import com.sza.fastmediasorter.databinding.DialogDeleteBinding
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
-import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
 import com.sza.fastmediasorter.domain.model.launcher.LauncherWallpaper
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetHost
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
@@ -45,12 +44,16 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherGadgetRenderManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherIdleManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherIdleState
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherInstantPhotoCaptureManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherModalSurfaceManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherOpenAllAppsRequest
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResizeManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceActionManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceCreateManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceOperations
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherScreenBlackoutManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherScreenLockManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherScrollThumbManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherSectionActionsManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherSensorPermissionManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherStatusStripManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherStreamActionManager
@@ -58,10 +61,6 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarPlacementManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTrayManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherWallpaperManager
-import com.sza.fastmediasorter.ui.launcher.menu.LauncherAllAppsFragment
-import com.sza.fastmediasorter.ui.launcher.menu.LauncherStartMenuFragment
-import com.sza.fastmediasorter.ui.launcher.picker.LauncherSectionNameDialogFragment
-import com.sza.fastmediasorter.ui.launcher.section.LauncherSectionActionsSheet
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayCallbacks
 import com.sza.fastmediasorter.ui.main.helpers.ResourceVrCinemaLaunchManager
 import com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager
@@ -93,11 +92,19 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
     private val viewModel: LauncherHomeViewModel by viewModels()
 
+    private val modalSurfaces by lazy { LauncherModalSurfaceManager(supportFragmentManager) }
+
+    private var desktopGestureManager: LauncherAllAppsGestureManager? = null
+
     @Inject
     lateinit var gadgetRegistry: LauncherGadgetRegistry
 
     @Inject
     lateinit var screenshotGestureActionDispatcher: ScreenshotGestureActionDispatcher
+
+    /** S2268: empty on every flavor but noLegal - the double-tap lock falls back to the black screen. */
+    @Inject
+    lateinit var gestureAccessibilityActions: Set<@JvmSuppressWildcards GestureAccessibilityActions>
 
     @Inject
     lateinit var menuScreenshotLaunchers: Set<@JvmSuppressWildcards MenuScreenshotLauncher>
@@ -188,7 +195,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         onAttachResizeHandle = { handle, cellUi -> resizeManager.attachHandle(handle, cellUi) },
         onCellLongPress = { view, cellUi -> showCellActions(view, cellUi) },
         onSectionClick = { cellUi -> viewModel.sections.toggle(cellUi.cell) },
-        onSectionLongClick = { _, cellUi -> showSectionActions(cellUi) },
+        onSectionLongClick = { _, cellUi -> sectionActionsManager.show(cellUi) },
     )
 
     private lateinit var taskbarManager: LauncherTaskbarManager
@@ -210,6 +217,16 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
     // S1741: manages the app-private screen blackout overlay and inactivity timeout.
     private lateinit var blackoutManager: LauncherScreenBlackoutManager
+
+    /** S2268: the section long-press menu and its dialogs, lifted out of this class unchanged. */
+    private val sectionActionsManager by lazy {
+        LauncherSectionActionsManager(this, viewModel) { geometryManager.currentColumns() }
+    }
+
+    /** S2268: the double-tap screen lock, with the desktop's own black screen as its fallback. */
+    private val screenLockManager by lazy {
+        LauncherScreenLockManager(gestureAccessibilityActions, ::showBlackScreen)
+    }
 
     // S1560: one overlay per Activity, built on the first black-screen tap - a fresh manager per tap
     // would leak the previous overlay view on the decor view instead of reusing its hide path.
@@ -370,8 +387,8 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             lifecycleOwner = this,
             binding = binding.launcherTaskbar,
             onCommand = { viewModel.run(it) },
-            onStartClick = { showStartMenu() },
-            onAllAppsClick = { showAllApps() },
+            onStartClick = { modalSurfaces.showStartMenu() },
+            onAllAppsClick = { modalSurfaces.showAllApps() },
             onAddPin = { addFlowManager.openPinAppPicker() },
             onRemovePin = { viewModel.removePin(it) },
             onRecentsCapacity = { viewModel.recentsCapacity = it },
@@ -418,9 +435,9 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             activity = this,
             actionDispatcher = screenshotGestureActionDispatcher,
             screenshotLaunchers = menuScreenshotLaunchers,
-            onOpenAllApps = ::showAllApps,
+            onOpenAllApps = modalSurfaces::showAllApps,
         )
-        val gestureManager = LauncherAllAppsGestureManager(
+        desktopGestureManager = LauncherAllAppsGestureManager(
             container = binding.launcherDesktop,
             viewport = binding.launcherGridScroll,
             // Edit mode is for arranging the desktop; a swipe there belongs to the drag, not to us.
@@ -446,11 +463,10 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             },
             onDoubleTap = {
                 if (viewModel.launcherDesktopSettings.value.launcherDesktopDoubleTapLockEnabled) {
-                    viewModel.toggleDesktopLocked()
+                    screenLockManager.lockScreen()
                 }
             },
         )
-        binding.launcherGridScroll.onRawDesktopTouchEvent = gestureManager::onTouchEvent
     }
 
     /**
@@ -481,6 +497,15 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             ),
         )
         editModeManager.attach()
+        // S2256: setupViews is BaseActivity's post-inflate hook, so the fragment manager is ready here
+        // and this activity declares no onCreate of its own.
+        if (LauncherOpenAllAppsRequest.consume(intent)) modalSurfaces.showAllApps()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        if (LauncherOpenAllAppsRequest.consume(intent)) modalSurfaces.showAllApps()
     }
 
     /** S1430: the desktop's own scroll thumb - the system bar it replaces could not be dragged. */
@@ -536,8 +561,10 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         }
         // S1904: the backdrop is part of what a cell looks like, so a new opacity is a re-render - the
         // binder's render key carries it and skips the rebuild when the value did not actually change.
-        collectOnLifecycle(viewModel.widgetBackdropAlpha) {
+        collectOnLifecycle(viewModel.widgetBackdropAlpha) { alpha ->
+            Timber.d("S2253: launcher shared surfaces alpha=%s", alpha)
             geometryManager.renderDesktop()
+            taskbarManager.applyBackdropAlpha(alpha)
         }
         // The density factor changes the column count, so re-derive the grid when it lands.
         collectOnLifecycle(viewModel.densityFactor) {
@@ -614,7 +641,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
             LauncherActionCatalog.KEY_LAUNCHER_SETTINGS -> showLauncherSettings()
 
-            LauncherActionCatalog.KEY_ALL_APPS -> showAllApps()
+            LauncherActionCatalog.KEY_ALL_APPS -> modalSurfaces.showAllApps()
 
             LauncherActionCatalog.KEY_BLACK_SCREEN -> showBlackScreen()
 
@@ -677,81 +704,6 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
             else -> false
         }
-    }
-
-    private fun showSectionActions(cellUi: LauncherCellUi): Boolean {
-        val sheet = LauncherSectionActionsSheet()
-        sheet.items = listOf(
-            LauncherSectionActionsSheet.ActionItem(
-                action = LauncherSectionActionsSheet.Action.RENAME,
-                label = getString(R.string.launcher_section_action_rename),
-                iconResId = R.drawable.ic_rename,
-            ),
-            LauncherSectionActionsSheet.ActionItem(
-                action = LauncherSectionActionsSheet.Action.RESORT,
-                label = getString(R.string.launcher_section_action_resort),
-                iconResId = R.drawable.ic_sort,
-            ),
-            LauncherSectionActionsSheet.ActionItem(
-                action = LauncherSectionActionsSheet.Action.DELETE,
-                label = getString(R.string.launcher_section_action_delete),
-                iconResId = R.drawable.ic_delete,
-            ),
-        )
-        sheet.onItemClick = { action ->
-            when (action) {
-                LauncherSectionActionsSheet.Action.RENAME -> {
-                    openRenameSectionDialog(cellUi)
-                }
-
-                LauncherSectionActionsSheet.Action.RESORT -> {
-                    viewModel.resortSection(cellUi.cell.id, geometryManager.currentColumns())
-                }
-
-                LauncherSectionActionsSheet.Action.DELETE -> confirmDeleteSection(cellUi)
-            }
-        }
-        sheet.show(supportFragmentManager, "LauncherSectionActionsSheet")
-        return true
-    }
-
-    private fun confirmDeleteSection(cellUi: LauncherCellUi) {
-        val desktop = viewModel.cells.value.map { it.cell }
-        val sections = LauncherSectionMembership.sectionsInOrder(desktop)
-        val contentCount = desktop.count {
-            it.id != cellUi.cell.id &&
-                LauncherSectionMembership.ownerOf(it, sections)?.id == cellUi.cell.id
-        }
-        if (contentCount <= SINGLE_SECTION_CONTENT_CELL) {
-            viewModel.deleteSection(cellUi.cell.id)
-            return
-        }
-
-        val dialogBinding = DialogDeleteBinding.inflate(layoutInflater)
-        val dialog = MaterialAlertDialogBuilder(this)
-            .setView(dialogBinding.root)
-            .create()
-        dialogBinding.tvDialogTitle.setText(R.string.launcher_section_delete_confirm_title)
-        dialogBinding.tvMessage.text = getString(R.string.launcher_section_delete_confirm_message, contentCount)
-        dialogBinding.btnCancel.setOnClickListener { dialog.dismiss() }
-        dialogBinding.btnDelete.setOnClickListener {
-            viewModel.deleteSection(cellUi.cell.id)
-            dialog.dismiss()
-        }
-        dialog.showBoundToHost(this)
-    }
-
-    private fun openRenameSectionDialog(cellUi: LauncherCellUi) {
-        val requestKey = "rename_section_${cellUi.cell.id}"
-        val initialName = cellUi.visual?.label?.toString().orEmpty()
-        supportFragmentManager.setFragmentResultListener(requestKey, this) { _, bundle ->
-            val newName = bundle.getString(LauncherSectionNameDialogFragment.RESULT_NAME)
-            if (!newName.isNullOrBlank()) {
-                viewModel.renameSection(cellUi.cell.id, newName)
-            }
-        }
-        LauncherSectionNameDialogFragment.newInstance(requestKey, initialName)
-            .show(supportFragmentManager, LauncherSectionNameDialogFragment.TAG)
     }
 
     override fun onStart() {
@@ -823,7 +775,11 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             idleManager.onUserInteraction()
         }
         if (ev != null && ::blackoutManager.isInitialized && blackoutManager.onDispatchTouchEvent(ev)) {
+            Timber.d("S2267: blackout consumed touch action=%d", ev.actionMasked)
             return true
+        }
+        if (ev != null) {
+            desktopGestureManager?.onTouchEvent(ev)
         }
         return super.dispatchTouchEvent(ev)
     }
@@ -896,22 +852,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         }
     }
 
-    private fun showStartMenu() {
-        // The sheet is modal; a second tap while it is up must not stack another one.
-        if (supportFragmentManager.findFragmentByTag(LauncherStartMenuFragment.TAG) != null) return
-        LauncherStartMenuFragment().show(supportFragmentManager, LauncherStartMenuFragment.TAG)
-    }
-
-    /** S1401: the app list, reached from the taskbar button and from the swipe-up gesture alike. */
-    private fun showAllApps() {
-        // The desktop stays touchable behind the screen, so the button and the gesture must not each
-        // open their own instance - the same guard the Start menu carries.
-        if (supportFragmentManager.findFragmentByTag(LauncherAllAppsFragment.TAG) != null) return
-        LauncherAllAppsFragment().show(supportFragmentManager, LauncherAllAppsFragment.TAG)
-    }
-
     companion object {
-        private const val SINGLE_SECTION_CONTENT_CELL = 1
         private const val DIM_OVERLAY_ALPHA = 0.6f
         private const val DIM_ANIMATION_DURATION_MS = 4000L
     }

@@ -14,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
+import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -531,8 +532,13 @@ class PlayerLifecycleManager(
         viewModel.clearResumeState()
         activity.finish()
         if (withTransition) {
+            // S2250: zero means "no transition" - the player still closes, only the slide is gone.
+            val animate = AnimationPolicy.isAnimationAllowed
             @Suppress("DEPRECATION")
-            activity.overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+            activity.overridePendingTransition(
+                if (animate) R.anim.slide_in_left else 0,
+                if (animate) R.anim.slide_out_right else 0
+            )
         }
     }
 

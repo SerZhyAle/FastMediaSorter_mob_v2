@@ -224,6 +224,14 @@ class VideoPlayerViewModel @Inject constructor(
             }
         }
 
+        // S2250: the stored flag is the watch's own path to the policy - the phone keeps a separate
+        // holder in its own module, and the two modules share no sources.
+        viewModelScope.launch {
+            preferencesRepository.isAnimationsDisabled.collect { disabled ->
+                _uiState.update { it.copy(animationsDisabled = disabled) }
+            }
+        }
+
         // Subscribe to remote playback commands from phone
         viewModelScope.launch {
             WatchPlaybackCommandEvents.commandFlow.collect { command ->

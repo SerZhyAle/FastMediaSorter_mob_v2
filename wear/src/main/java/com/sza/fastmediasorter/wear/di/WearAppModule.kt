@@ -252,6 +252,14 @@ object WearAppModule {
         impl: AndroidWearSystemInfoDataSource
     ): WearSystemInfoDataSource = impl
 
+    // S2142: the capability policy reads this to decide whether a MediaStore row may be written at
+    // all, so it has to answer on every device - including the 28-29 band, where the answer is "no".
+    @Provides
+    @Singleton
+    fun provideWearMediaStoreConsent(
+        impl: com.sza.fastmediasorter.wear.data.files.WearMediaStoreConsentImpl
+    ): com.sza.fastmediasorter.wear.domain.files.WearMediaStoreConsent = impl
+
     @Provides
     @Singleton
     fun provideOkHttpClient(): okhttp3.OkHttpClient {

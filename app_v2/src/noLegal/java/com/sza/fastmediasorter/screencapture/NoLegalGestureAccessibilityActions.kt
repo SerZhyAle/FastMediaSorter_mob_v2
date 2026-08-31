@@ -13,12 +13,12 @@ import javax.inject.Inject
  */
 class NoLegalGestureAccessibilityActions @Inject constructor() : GestureAccessibilityActions {
 
-    override fun perform(action: ScreenshotGestureAction) {
+    override fun perform(action: ScreenshotGestureAction): Boolean {
         val service = ScreenshotAccessibilityServiceHolder.instance
         if (service == null) {
             Timber.w("NoLegalGestureAccessibilityActions: accessibility service off, %s ignored", action)
-            return
+            return false
         }
-        service.performSystemAction(action)
+        return service.performSystemAction(action)
     }
 }

@@ -11,7 +11,6 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.sza.fastmediasorter.databinding.DialogListSelectionBinding
-import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import kotlinx.coroutines.launch
 
 /**
@@ -20,14 +19,18 @@ import kotlinx.coroutines.launch
  * sectioned [GesturePickerRow]s via [GesturePickerAdapter] instead of a flat formatter list. Rows are
  * bound on the owner's [lifecycleScope] so the list is never populated after the owner is destroyed,
  * mirroring the loader lifecycle of the flat dialog it replaces.
+ *
+ * S2256: one dialog for both assignment surfaces. The host supplies the rows and its own action type,
+ * so the edge-gesture slots and the launcher desktop swipes differ only in which actions they offer -
+ * never in grouping, order, icons or wording.
  */
-class GesturePickerDialog(
+class GesturePickerDialog<T : Any>(
     context: Context,
     private val title: CharSequence,
     private val lifecycleOwner: LifecycleOwner,
-    private val rows: List<GesturePickerRow>,
-    private val selectedAction: ScreenshotGestureAction,
-    private val onPicked: (ScreenshotGestureAction) -> Unit,
+    private val rows: List<GesturePickerRow<T>>,
+    private val selectedKey: T?,
+    private val onPicked: (T) -> Unit,
 ) : Dialog(context) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,9 +50,9 @@ class GesturePickerDialog(
         lifecycleOwner.lifecycleScope.launch {
             binding.listSelectionRecycler.adapter = GesturePickerAdapter(
                 rows = rows,
-                selectedAction = selectedAction,
-                onClick = { action ->
-                    onPicked(action)
+                selectedKey = selectedKey,
+                onClick = { actionKey ->
+                    onPicked(actionKey)
                     dismiss()
                 },
             )

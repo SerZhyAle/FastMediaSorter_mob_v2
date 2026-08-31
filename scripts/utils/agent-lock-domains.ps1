@@ -157,10 +157,13 @@ function Resolve-CodeDomainsForPaths {
 
         ADR-2, the fail-closed half: anything that does not decompose takes the full code set.
         That covers three cases deliberately.
-          - A build file, in either module or at the root. Research artifact 02 measured why: the
-            configuration phase processes every subproject, so a broken build file in one module
-            fails a check requested for the other. A module's own build.gradle.kts is therefore
-            NOT that module's domain.
+          - A build file, in either module or at the root, and a SHARED static-analysis config.
+            Research artifact 02 measured why: the configuration phase processes every subproject,
+            so a broken build file in one module fails a check requested for the other. A module's
+            own build.gradle.kts is therefore NOT that module's domain.
+            The per-module detekt baselines are the exception, carved out below - they are named
+            for their module and read by that module's check alone, so failing closed on them
+            bought no protection and cost the split on most Kotlin closures.
           - A path the table does not recognise, including a module added later. A new module is
             then over-protected rather than unprotected, which is the safe direction to be wrong.
           - An empty set, which asks about nothing and so cannot be narrowed.
@@ -187,7 +190,20 @@ function Resolve-CodeDomainsForPaths {
         if ([string]::IsNullOrWhiteSpace($raw)) { continue }
         # Normalise to repo-relative forward slashes: callers pass a mix of both separators, and a
         # backslash path silently matching nothing is how a set would widen without anyone noticing.
-        $normalised = ($raw -replace '\\', '/').Trim().TrimStart('./')
+        # Strip a leading './' as a PREFIX, never with TrimStart: that takes a character SET, so it
+        # also ate the leading dot of '.claude/..' and '.github/..'. Those then matched no branch
+        # below and fell through to the fail-closed full set, which made every command, hook, skill
+        # and agent-memory edit take all three code domains - the most common set in this repo.
+        $normalised = (($raw -replace '\\', '/').Trim() -replace '^\./')
+
+        # A per-module detekt baseline is that module's own file despite sitting beside the shared
+        # detekt config, so it is carved out ABOVE the config/detekt branch below, which must keep
+        # winning for detekt.yml and its siblings. The baselines are named for their module
+        # (baseline-app_v2*, baseline-wear*) and a check for one module never reads the other's.
+        # Widening here serialised every Kotlin closure that regenerated a baseline, which is most
+        # of them: observed live, a one-file app_v2 edit plus its baseline took all three domains.
+        if ($normalised -match '^config/detekt/baseline-app_v2') { $matched['Code.Phone'] = $true; continue }
+        if ($normalised -match '^config/detekt/baseline-wear') { $matched['Code.Wear'] = $true; continue }
 
         # Build files first - a module's own build file belongs to the full set, not to its module,
         # so this test has to win over the module-prefix tests below.

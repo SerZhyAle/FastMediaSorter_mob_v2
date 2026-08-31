@@ -4,20 +4,14 @@ import android.Manifest
 import android.app.Dialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
-import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
-import android.widget.EditText
-import android.widget.FrameLayout
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
@@ -34,23 +28,20 @@ import com.sza.fastmediasorter.databinding.DialogLauncherResetConfirmBinding
 import com.sza.fastmediasorter.databinding.DialogLauncherSettingsBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
-import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeAction
-import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.usecase.launcher.IsCameraWallpaperAvailableUseCase
-import com.sza.fastmediasorter.ui.applaunchpanel.edit.AppPickerDialogFragment
-import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLensEnumerationManager
-import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLensLabelFormatter
+import com.sza.fastmediasorter.domain.usecase.panel.QueryLaunchableAppsUseCase
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.settings.helpers.LauncherDesktopSwipeActionPickerManager
+import com.sza.fastmediasorter.ui.settings.helpers.LauncherDesktopSwipeSettingsManager
+import com.sza.fastmediasorter.ui.settings.helpers.LauncherScreenTimeoutSettingsManager
+import com.sza.fastmediasorter.ui.settings.helpers.LauncherSwipePayloadPickerManager
+import com.sza.fastmediasorter.ui.settings.helpers.LauncherWallpaperSettingsManager
 import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionPickerManager
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -89,6 +80,11 @@ class LauncherSettingsDialogFragment : DialogFragment() {
     @Inject
     lateinit var screenVideoRecordingControllers: Set<@JvmSuppressWildcards ScreenVideoRecordingController>
 
+    // S2256: the swipe target rows read an app's own label from the same source the edge slots use, so a
+    // row and the picker can never disagree about what an app is called.
+    @Inject
+    lateinit var queryLaunchableApps: QueryLaunchableAppsUseCase
+
     // S2076: whether this device has a camera at all. Injected here rather than into the shared settings
     // ViewModel, whose constructor is already at its parameter ceiling - and the question is a UI one:
     // it decides which entries the wallpaper dropdown offers, not what gets written.
@@ -102,7 +98,11 @@ class LauncherSettingsDialogFragment : DialogFragment() {
     // Guards render() writes so setCheckedSilently / setSelection never bounce back into a settings update.
     private var isUpdatingFromSettings = false
 
-    private var pendingDesktopSwipeAppDirection: DesktopSwipeDirection? = null
+    // Every row manager is released in onDestroyView: each one holds the binding, so a reference kept
+    // past the view outlives the hierarchy it renders into.
+    private var desktopSwipeSettingsManager: LauncherDesktopSwipeSettingsManager? = null
+    private var wallpaperSettingsManager: LauncherWallpaperSettingsManager? = null
+    private var screenTimeoutSettingsManager: LauncherScreenTimeoutSettingsManager? = null
 
     /**
      * S1101: picks the desktop wallpaper image. The file is copied into private storage right away, so
@@ -112,7 +112,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             if (uri == null) {
                 // Cancelled: the row already moved to "My image", so put it back on the stored mode.
-                renderWallpaperRow(viewModel.settings.value)
+                wallpaperSettingsManager?.render(viewModel.settings.value)
                 return@registerForActivityResult
             }
             viewModel.applyLauncherWallpaperImage(uri)
@@ -124,7 +124,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
      */
     private val requestCameraForWallpaper =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            if (granted) showCameraLensPicker() else renderWallpaperRow(viewModel.settings.value)
+            wallpaperSettingsManager?.onCameraPermissionResult(granted)
         }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -148,7 +148,45 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         }
         Timber.d("S2017: launcher settings dialog opened")
         binding.btnClose.setOnClickListener { dismiss() }
-        registerDesktopSwipeAppPickerListener()
+        desktopSwipeSettingsManager = LauncherDesktopSwipeSettingsManager(
+            host = this,
+            binding = binding,
+            currentSettings = { viewModel.settings.value },
+            updateSettings = viewModel::updateSettings,
+            picker = desktopSwipeActionPicker(),
+            payloadPicker = LauncherSwipePayloadPickerManager(
+                host = this,
+                currentSettings = { viewModel.settings.value },
+                updateSettings = viewModel::updateSettings,
+            ),
+            queryLaunchableApps = queryLaunchableApps,
+        )
+        wallpaperSettingsManager = LauncherWallpaperSettingsManager(
+            host = this,
+            binding = binding,
+            hasCamera = isCameraWallpaperAvailable::hasHardware,
+            currentSettings = { viewModel.settings.value },
+            isUpdating = { isUpdatingFromSettings },
+            applyMode = viewModel::applyLauncherWallpaperMode,
+            launchImagePicker = { pickWallpaperImage.launch(WALLPAPER_MIME_TYPES) },
+            requestCameraPermission = { requestCameraForWallpaper.launch(Manifest.permission.CAMERA) },
+            applyCameraLens = { lensId, isInstantPhoto ->
+                if (isInstantPhoto) {
+                    viewModel.applyLauncherWallpaperInstantPhoto(lensId)
+                } else {
+                    viewModel.applyLauncherWallpaperCamera(lensId)
+                }
+            },
+        )
+        screenTimeoutSettingsManager = LauncherScreenTimeoutSettingsManager(
+            host = this,
+            binding = binding,
+            currentSettings = { viewModel.settings.value },
+            isUpdating = { isUpdatingFromSettings },
+            updateSettings = viewModel::updateSettings,
+        )
+        Timber.d("S2255: launcher settings row managers attached")
+        desktopSwipeSettingsManager?.registerAppPickerListener()
         setupCollapsibleSections()
         setupRows()
         observeSettings()
@@ -180,7 +218,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
 
     private fun setupRows() {
         setupPlacementRow()
-        setupDesktopSwipeRows()
+        desktopSwipeSettingsManager?.setupRows()
         binding.rowLauncherShowRecents.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(launcherTaskbarShowRecents = isChecked))
@@ -235,7 +273,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             val factor = options.getOrElse(index) { options[DENSITY_DEFAULT_INDEX] }
             viewModel.updateSettings(viewModel.settings.value.copy(launcherDensityFactor = factor))
         }
-        setupWallpaperRow()
+        requireNotNull(wallpaperSettingsManager).setupRow()
         binding.rowLauncherLockDesktop.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(launcherDesktopLocked = isChecked))
@@ -246,7 +284,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
                 viewModel.settings.value.copy(launcherDesktopDoubleTapLockEnabled = isChecked),
             )
         }
-        setupScreenTimeoutRow()
+        requireNotNull(screenTimeoutSettingsManager).setupRow()
         setupWidgetBackdropAlphaRow()
         binding.rowLauncherOpenHomeSettings.setOnClickListener {
             val host = activity ?: return@setOnClickListener
@@ -256,131 +294,6 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             launcherViewModel.importSystemShortcuts()
         }
         binding.btnResetLauncher.setOnClickListener { confirmReset() }
-    }
-
-    private fun setupDesktopSwipeRows() {
-        val picker = desktopSwipeActionPicker()
-        binding.rowLauncherDesktopSwipeUp.setOnClickListener {
-            showDesktopSwipePicker(
-                picker,
-                viewModel.settings.value.launcherDesktopSwipeUpAction,
-                DesktopSwipeDirection.UP,
-            )
-        }
-        binding.rowLauncherDesktopSwipeDown.setOnClickListener {
-            showDesktopSwipePicker(
-                picker,
-                viewModel.settings.value.launcherDesktopSwipeDownAction,
-                DesktopSwipeDirection.DOWN,
-            )
-        }
-        binding.rowLauncherDesktopSwipeLeft.setOnClickListener {
-            showDesktopSwipePicker(
-                picker,
-                viewModel.settings.value.launcherDesktopSwipeLeftAction,
-                DesktopSwipeDirection.LEFT,
-            )
-        }
-        binding.rowLauncherDesktopSwipeRight.setOnClickListener {
-            showDesktopSwipePicker(
-                picker,
-                viewModel.settings.value.launcherDesktopSwipeRightAction,
-                DesktopSwipeDirection.RIGHT,
-            )
-        }
-    }
-
-    private fun showDesktopSwipePicker(
-        picker: LauncherDesktopSwipeActionPickerManager,
-        current: LauncherDesktopSwipeAction,
-        direction: DesktopSwipeDirection,
-    ) {
-        picker.showPicker(requireContext(), viewLifecycleOwner, current) { picked ->
-            viewModel.updateSettings(updateDesktopSwipeAction(viewModel.settings.value, direction, picked))
-            when ((picked as? LauncherDesktopSwipeAction.EdgeGestureAction)?.action) {
-                ScreenshotGestureAction.OPEN_APP -> showDesktopSwipeAppPicker(direction)
-                ScreenshotGestureAction.OPEN_URL -> promptDesktopSwipeUrl(direction)
-                else -> Unit
-            }
-        }
-    }
-
-    private fun registerDesktopSwipeAppPickerListener() {
-        childFragmentManager.setFragmentResultListener(
-            DESKTOP_SWIPE_APP_PICKER_REQUEST_KEY,
-            viewLifecycleOwner,
-        ) { _, bundle ->
-            val packageName = bundle.getString(AppPickerDialogFragment.RESULT_PACKAGE).orEmpty()
-            val direction = pendingDesktopSwipeAppDirection
-            pendingDesktopSwipeAppDirection = null
-            if (packageName.isNotEmpty() && direction != null) {
-                viewModel.updateSettings(
-                    updateDesktopSwipePayload(viewModel.settings.value, direction, packageName),
-                )
-            }
-        }
-    }
-
-    private fun showDesktopSwipeAppPicker(direction: DesktopSwipeDirection) {
-        pendingDesktopSwipeAppDirection = direction
-        AppPickerDialogFragment.newInstance(DESKTOP_SWIPE_APP_PICKER_REQUEST_KEY)
-            .show(childFragmentManager, AppPickerDialogFragment.TAG)
-    }
-
-    private fun promptDesktopSwipeUrl(direction: DesktopSwipeDirection) {
-        val context = requireContext()
-        val input = EditText(context).apply {
-            setText(desktopSwipePayload(viewModel.settings.value, direction))
-            setSelection(text.length)
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
-            setHint(R.string.gesture_url_input_hint)
-        }
-        val padding = (URL_DIALOG_PADDING_DP * context.resources.displayMetrics.density).toInt()
-        val container = FrameLayout(context).apply {
-            setPadding(padding, padding / 2, padding, 0)
-            addView(input)
-        }
-        MaterialAlertDialogBuilder(context)
-            .setTitle(R.string.gesture_url_input_title)
-            .setView(container)
-            .setPositiveButton(R.string.ok) { _, _ ->
-                val url = input.text?.toString()?.trim().orEmpty()
-                viewModel.updateSettings(updateDesktopSwipePayload(viewModel.settings.value, direction, url))
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .showBoundTo(this)
-    }
-
-    private fun updateDesktopSwipeAction(
-        settings: AppSettings,
-        direction: DesktopSwipeDirection,
-        action: LauncherDesktopSwipeAction,
-    ): AppSettings = when (direction) {
-        DesktopSwipeDirection.UP -> settings.copy(launcherDesktopSwipeUpAction = action)
-        DesktopSwipeDirection.DOWN -> settings.copy(launcherDesktopSwipeDownAction = action)
-        DesktopSwipeDirection.LEFT -> settings.copy(launcherDesktopSwipeLeftAction = action)
-        DesktopSwipeDirection.RIGHT -> settings.copy(launcherDesktopSwipeRightAction = action)
-    }
-
-    private fun updateDesktopSwipePayload(
-        settings: AppSettings,
-        direction: DesktopSwipeDirection,
-        payload: String,
-    ): AppSettings = when (direction) {
-        DesktopSwipeDirection.UP -> settings.copy(launcherDesktopSwipeUpPayload = payload)
-        DesktopSwipeDirection.DOWN -> settings.copy(launcherDesktopSwipeDownPayload = payload)
-        DesktopSwipeDirection.LEFT -> settings.copy(launcherDesktopSwipeLeftPayload = payload)
-        DesktopSwipeDirection.RIGHT -> settings.copy(launcherDesktopSwipeRightPayload = payload)
-    }
-
-    private fun desktopSwipePayload(
-        settings: AppSettings,
-        direction: DesktopSwipeDirection,
-    ): String = when (direction) {
-        DesktopSwipeDirection.UP -> settings.launcherDesktopSwipeUpPayload
-        DesktopSwipeDirection.DOWN -> settings.launcherDesktopSwipeDownPayload
-        DesktopSwipeDirection.LEFT -> settings.launcherDesktopSwipeLeftPayload
-        DesktopSwipeDirection.RIGHT -> settings.launcherDesktopSwipeRightPayload
     }
 
     /**
@@ -400,125 +313,6 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             val options = AppSettings.LAUNCHER_TASKBAR_PLACEMENT_OPTIONS
             val placement = options.getOrElse(index) { AppSettings.LAUNCHER_TASKBAR_PLACEMENT_BOTTOM }
             viewModel.updateSettings(viewModel.settings.value.copy(launcherTaskbarPlacement = placement))
-        }
-    }
-
-    /**
-     * S1741: presets (0, 5, 15, 30, 60, 300 seconds) and custom duration entry.
-     */
-    private fun setupScreenTimeoutRow() {
-        binding.rowLauncherScreenTimeout.setOnItemSelectedListener { index ->
-            if (isUpdatingFromSettings) return@setOnItemSelectedListener
-            val presets = AppSettings.LAUNCHER_SCREEN_TIMEOUT_PRESETS
-            if (index in presets.indices) {
-                val seconds = presets[index]
-                Timber.d("Screen timeout preset chosen, seconds=%d", seconds)
-                viewModel.updateSettings(
-                    viewModel.settings.value.copy(launcherScreenBlackoutTimeoutSeconds = seconds)
-                )
-            } else if (index == presets.size) {
-                showCustomScreenTimeoutDialog()
-            }
-        }
-    }
-
-    /** S1748: widget backdrop opacity presets selector. */
-    /**
-     * S2076: the offered modes, not all of them. A device with no camera never gets the camera entry,
-     * because the launcher also ships to car head units and TV boxes where that row would be dead
-     * forever rather than merely unavailable. The set is therefore variable, which is why every mapping
-     * below goes through this list by value and never through a fixed index.
-     */
-    private val offeredWallpaperModes: List<String> by lazy {
-        AppSettings.LAUNCHER_WALLPAPER_MODES.filter { mode ->
-            (mode != AppSettings.LAUNCHER_WALLPAPER_CAMERA && mode != AppSettings.LAUNCHER_WALLPAPER_INSTANT_PHOTO) ||
-                isCameraWallpaperAvailable.hasHardware()
-        }
-    }
-
-    private fun setupWallpaperRow() {
-        binding.rowLauncherWallpaper.setEntries(offeredWallpaperModes.map { getText(labelOf(it)) })
-        binding.rowLauncherWallpaper.setOnItemSelectedListener { index ->
-            if (isUpdatingFromSettings) return@setOnItemSelectedListener
-            val fallback = AppSettings.LAUNCHER_WALLPAPER_BRANDED
-            when (val mode = offeredWallpaperModes.getOrElse(index) { fallback }) {
-                // Image mode only becomes real once a file is actually picked and copied, so the write
-                // happens in the picker callback, not here.
-                AppSettings.LAUNCHER_WALLPAPER_IMAGE -> pickWallpaperImage.launch(WALLPAPER_MIME_TYPES)
-                // S2076 / S2210: camera modes are real only once a lens has been chosen.
-                AppSettings.LAUNCHER_WALLPAPER_CAMERA -> beginCameraWallpaperSelection(isInstantPhoto = false)
-                AppSettings.LAUNCHER_WALLPAPER_INSTANT_PHOTO -> beginCameraWallpaperSelection(isInstantPhoto = true)
-                else -> viewModel.applyLauncherWallpaperMode(mode)
-            }
-        }
-    }
-
-    private fun labelOf(mode: String): Int = when (mode) {
-        AppSettings.LAUNCHER_WALLPAPER_STATIC_STRIPES -> R.string.launcher_settings_wallpaper_static_stripes
-        AppSettings.LAUNCHER_WALLPAPER_NONE -> R.string.launcher_settings_wallpaper_none
-        AppSettings.LAUNCHER_WALLPAPER_IMAGE -> R.string.launcher_settings_wallpaper_image
-        AppSettings.LAUNCHER_WALLPAPER_CAMERA -> R.string.launcher_settings_wallpaper_camera
-        AppSettings.LAUNCHER_WALLPAPER_INSTANT_PHOTO -> R.string.launcher_wallpaper_mode_instant_photo
-        else -> R.string.launcher_settings_wallpaper_branded
-    }
-
-    /** S2076: ask for the grant first when it is missing; the lens list needs an open camera to exist. */
-    private fun beginCameraWallpaperSelection(isInstantPhoto: Boolean = false) {
-        val granted = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) ==
-            PackageManager.PERMISSION_GRANTED
-        Timber.d("Camera wallpaper mode picked in settings (instantPhoto=$isInstantPhoto), permission granted=$granted")
-        if (granted) {
-            showCameraLensPicker(isInstantPhoto)
-        } else {
-            requestCameraForWallpaper.launch(Manifest.permission.CAMERA)
-        }
-    }
-
-    /**
-     * S2076: offers the lenses CameraX actually admits to, preselecting the one the capture screen would
-     * open on. Cancelling, refusing, or finding no lens all put the row back on the stored mode - the
-     * behaviour a cancelled image pick already has.
-     */
-    private fun showCameraLensPicker(isInstantPhoto: Boolean = false) {
-        val context = requireContext()
-        viewLifecycleOwner.lifecycleScope.launch {
-            // Enumerating lenses starts CameraX and reads Camera2 characteristics, which is disk and
-            // binder work - never on the thread that is drawing the settings dialog.
-            val entries = withContext(Dispatchers.IO) {
-                runCatching {
-                    val provider = ProcessCameraProvider.getInstance(context).get()
-                    val enumeration = CameraLensEnumerationManager()
-                    enumeration.select(enumeration.expand(provider))
-                }.getOrElse { error ->
-                    if (error is CancellationException) throw error
-                    Timber.e(error, "Launcher wallpaper: camera lenses could not be listed")
-                    emptyList()
-                }
-            }
-            if (entries.isEmpty()) {
-                renderWallpaperRow(viewModel.settings.value)
-                return@launch
-            }
-            val formatter = CameraLensLabelFormatter()
-            val labels = entries.map { formatter.label(context, it, entries) }.toTypedArray()
-            val preselected = CameraLensEnumerationManager().initialLensIndex(entries)
-            var chosen = preselected
-            MaterialAlertDialogBuilder(context)
-                .setTitle(R.string.launcher_settings_wallpaper_camera_lens_title)
-                .setSingleChoiceItems(labels, preselected) { _, which -> chosen = which }
-                .setPositiveButton(R.string.ok) { _, _ ->
-                    entries.getOrNull(chosen)?.let { entry ->
-                        if (isInstantPhoto) {
-                            viewModel.applyLauncherWallpaperInstantPhoto(entry.id)
-                        } else {
-                            viewModel.applyLauncherWallpaperCamera(entry.id)
-                        }
-                    }
-                }
-                .setNegativeButton(R.string.cancel) { _, _ -> renderWallpaperRow(viewModel.settings.value) }
-                .setOnCancelListener { renderWallpaperRow(viewModel.settings.value) }
-                .create()
-                .showBoundTo(viewLifecycleOwner)
         }
     }
 
@@ -641,8 +435,8 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             )
             val densityIndex = AppSettings.LAUNCHER_DENSITY_OPTIONS.indexOf(settings.launcherDensityFactor)
             binding.rowLauncherDensity.setSelection(if (densityIndex >= 0) densityIndex else DENSITY_DEFAULT_INDEX)
-            renderWallpaperRow(settings)
-            renderScreenTimeoutRow(settings)
+            wallpaperSettingsManager?.render(settings)
+            screenTimeoutSettingsManager?.render(settings)
             renderWidgetBackdropAlphaRow(settings)
             isUpdatingFromSettings = false
         }
@@ -668,7 +462,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         }
         collectOnLifecycle(viewModel.launcherWallpaperImportFailed) {
             // The stored mode never changed, so the row has to be walked back off "My image" by hand.
-            renderWallpaperRow(viewModel.settings.value)
+            wallpaperSettingsManager?.render(viewModel.settings.value)
             Snackbar.make(
                 binding.root,
                 R.string.launcher_settings_wallpaper_import_failed,
@@ -678,19 +472,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
     }
 
     private fun renderDesktopSwipeRows(settings: AppSettings) {
-        val picker = desktopSwipeActionPicker()
-        binding.rowLauncherDesktopSwipeUp.setValue(
-            picker.labelFor(requireContext(), settings.launcherDesktopSwipeUpAction)
-        )
-        binding.rowLauncherDesktopSwipeDown.setValue(
-            picker.labelFor(requireContext(), settings.launcherDesktopSwipeDownAction)
-        )
-        binding.rowLauncherDesktopSwipeLeft.setValue(
-            picker.labelFor(requireContext(), settings.launcherDesktopSwipeLeftAction)
-        )
-        binding.rowLauncherDesktopSwipeRight.setValue(
-            picker.labelFor(requireContext(), settings.launcherDesktopSwipeRightAction)
-        )
+        desktopSwipeSettingsManager?.render(settings)
     }
 
     private fun desktopSwipeActionPicker(): LauncherDesktopSwipeActionPickerManager =
@@ -699,6 +481,10 @@ class LauncherSettingsDialogFragment : DialogFragment() {
                 capabilityAvailability = capabilityAvailability,
                 screenRecordingAvailable = screenVideoRecordingControllers.isNotEmpty(),
                 systemActionsAvailable = gestureAccessibilityActions.isNotEmpty(),
+                // S2256: left off deliberately - this surface offers the panel as its own local action,
+                // which reuses the open home task, so wrapping the shared enum route too would show the
+                // same panel twice under two different keys.
+                launcherRouteAvailable = false,
             ),
         )
 
@@ -762,81 +548,14 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         return if (index >= 0) index else 0
     }
 
-    private fun renderWallpaperRow(settings: AppSettings) {
-        val wasUpdating = isUpdatingFromSettings
-        isUpdatingFromSettings = true
-        val index = offeredWallpaperModes.indexOf(settings.launcherWallpaperMode)
-        binding.rowLauncherWallpaper.setSelection(if (index >= 0) index else 0)
-        isUpdatingFromSettings = wasUpdating
-    }
-
-    private fun renderScreenTimeoutRow(settings: AppSettings) {
-        val presets = AppSettings.LAUNCHER_SCREEN_TIMEOUT_PRESETS
-        val currentSeconds = settings.launcherScreenBlackoutTimeoutSeconds
-        val customLabel = if (currentSeconds !in presets && currentSeconds > 0) {
-            getString(R.string.launcher_settings_screen_timeout_custom_format, currentSeconds)
-        } else {
-            getString(R.string.launcher_settings_screen_timeout_custom)
-        }
-        val entries = listOf(
-            getText(R.string.launcher_settings_screen_timeout_off),
-            getText(R.string.launcher_settings_screen_timeout_5s),
-            getText(R.string.launcher_settings_screen_timeout_15s),
-            getText(R.string.launcher_settings_screen_timeout_30s),
-            getText(R.string.launcher_settings_screen_timeout_60s),
-            getText(R.string.launcher_settings_screen_timeout_300s),
-            customLabel,
-        )
-        binding.rowLauncherScreenTimeout.setEntries(entries)
-        val presetIndex = presets.indexOf(currentSeconds)
-        val selectedIndex = if (presetIndex >= 0) presetIndex else presets.size
-        binding.rowLauncherScreenTimeout.setSelection(selectedIndex)
-    }
-
     private fun renderWidgetBackdropAlphaRow(settings: AppSettings) {
         val options = AppSettings.LAUNCHER_WIDGET_BACKDROP_ALPHA_OPTIONS
         val index = options.indexOfFirst {
             kotlin.math.abs(it - settings.launcherWidgetBackdropAlpha) < ALPHA_MATCH_EPSILON
         }
-        binding.rowLauncherWidgetBackdropAlpha.setSelection(if (index >= 0) index else BACKDROP_ALPHA_DEFAULT_INDEX)
-    }
-
-    private fun showCustomScreenTimeoutDialog() {
-        val current = viewModel.settings.value.launcherScreenBlackoutTimeoutSeconds
-        val initialText = if (current > 0) current.toString() else ""
-        val context = requireContext()
-        val input = com.google.android.material.textfield.TextInputEditText(context).apply {
-            inputType = android.text.InputType.TYPE_CLASS_NUMBER
-            setText(initialText)
-            hint = getString(R.string.launcher_settings_screen_timeout_dialog_hint)
-            setSingleLine()
-            setSelection(text?.length ?: 0)
-        }
-        val container = android.widget.FrameLayout(context).apply {
-            val margin = resources.getDimensionPixelSize(R.dimen.margin_normal)
-            setPadding(margin, margin / 2, margin, 0)
-            addView(input)
-        }
-        MaterialAlertDialogBuilder(context)
-            .setTitle(R.string.launcher_settings_screen_timeout_dialog_title)
-            .setView(container)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                val entered = input.text?.toString()?.trim()?.toIntOrNull()
-                if (entered != null && entered > 0) {
-                    viewModel.updateSettings(
-                        viewModel.settings.value.copy(launcherScreenBlackoutTimeoutSeconds = entered)
-                    )
-                } else {
-                    renderScreenTimeoutRow(viewModel.settings.value)
-                }
-            }
-            .setNegativeButton(android.R.string.cancel) { _, _ ->
-                renderScreenTimeoutRow(viewModel.settings.value)
-            }
-            .setOnCancelListener {
-                renderScreenTimeoutRow(viewModel.settings.value)
-            }
-            .showBoundTo(this@LauncherSettingsDialogFragment)
+        val selected = if (index >= 0) index else BACKDROP_ALPHA_DEFAULT_INDEX
+        Timber.d("S2264: backdrop row alpha=%s idx=%s", settings.launcherWidgetBackdropAlpha, selected)
+        binding.rowLauncherWidgetBackdropAlpha.setSelection(selected)
     }
 
     override fun onStart() {
@@ -861,15 +580,11 @@ class LauncherSettingsDialogFragment : DialogFragment() {
     }
 
     override fun onDestroyView() {
+        desktopSwipeSettingsManager = null
+        wallpaperSettingsManager = null
+        screenTimeoutSettingsManager = null
         super.onDestroyView()
         _binding = null
-    }
-
-    private enum class DesktopSwipeDirection {
-        UP,
-        DOWN,
-        LEFT,
-        RIGHT,
     }
 
     companion object {
@@ -883,8 +598,6 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         const val SECTION_DESKTOP = "desktop"
 
         private const val ARG_EXPAND_SECTION = "expand_section"
-        private const val DESKTOP_SWIPE_APP_PICKER_REQUEST_KEY = "launcher_desktop_swipe_app_picker"
-        private const val URL_DIALOG_PADDING_DP = 24
 
         /** [expandSection] unfolds one group on open regardless of its stored state; null keeps them as they were. */
         fun newInstance(expandSection: String? = null): LauncherSettingsDialogFragment =
@@ -895,11 +608,20 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         // Standard density (1.0f) sits at index 1 of AppSettings.LAUNCHER_DENSITY_OPTIONS.
         private const val DENSITY_DEFAULT_INDEX = 1
 
-        // 0.85f sits at index 4 of AppSettings.LAUNCHER_WIDGET_BACKDROP_ALPHA_OPTIONS.
-        private const val BACKDROP_ALPHA_DEFAULT_INDEX = 4
-
         // The stored alpha is a float, so the row matches it by proximity rather than by equality.
         private const val ALPHA_MATCH_EPSILON = 0.01f
+
+        /**
+         * S2264: the row's fallback for a stored alpha no option matches is derived from the canonical
+         * default rather than written as an index, because a hardcoded one outlived the default it named -
+         * S2253 moved the default to fully transparent and this constant kept pointing at 0.85f.
+         */
+        private val BACKDROP_ALPHA_DEFAULT_INDEX =
+            AppSettings.LAUNCHER_WIDGET_BACKDROP_ALPHA_OPTIONS
+                .indexOfFirst {
+                    kotlin.math.abs(it - AppSettings.DEFAULT_LAUNCHER_WIDGET_BACKDROP_ALPHA) < ALPHA_MATCH_EPSILON
+                }
+                .coerceAtLeast(0)
 
         // S1101: stills and GIFs both arrive as image/*; the decoder picks the right path per file.
         private val WALLPAPER_MIME_TYPES = arrayOf("image/*")

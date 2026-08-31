@@ -28,6 +28,7 @@ import com.sza.fastmediasorter.core.memory.MemoryProfileCoordinator
 import com.sza.fastmediasorter.core.memory.MemoryScenario
 import com.sza.fastmediasorter.core.storage.RestrictedTreeTargetPolicy
 import com.sza.fastmediasorter.core.ui.BaseActivity
+import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
@@ -530,8 +531,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 )
             }
             finish()
-            @Suppress("DEPRECATION")
-            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+            applyBackTransition()
         }
     }
 
@@ -929,5 +929,18 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 action = Intent.ACTION_VIEW
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
+    }
+
+    /**
+     * S2250: zero means "no transition" to the platform, so the screen still changes - only the
+     * slide is gone.
+     */
+    private fun applyBackTransition() {
+        val animate = AnimationPolicy.isAnimationAllowed
+        @Suppress("DEPRECATION")
+        overridePendingTransition(
+            if (animate) R.anim.slide_in_left else 0,
+            if (animate) R.anim.slide_out_right else 0
+        )
     }
 }

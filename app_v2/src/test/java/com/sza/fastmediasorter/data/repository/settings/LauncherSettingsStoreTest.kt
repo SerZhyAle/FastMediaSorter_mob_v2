@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.data.repository.settings
 import androidx.datastore.preferences.core.mutablePreferencesOf
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeAction
+import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeDirection
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -39,7 +40,10 @@ class LauncherSettingsStoreTest {
         assertFalse(values.allAppsSortDescending)
         assertEquals("", values.launcherWallpaperImagePath)
         assertEquals(0, values.launcherScreenBlackoutTimeoutSeconds)
-        assertEquals(0.85f, values.launcherWidgetBackdropAlpha, 0.0f)
+        // S2253 ADR: the shared launcher backdrop starts fully transparent, so a fresh install shows
+        // the wallpaper through every plate. Pinned as a literal - reading the constant the store
+        // itself reads would compare it with itself and pin nothing.
+        assertEquals(0.0f, values.launcherWidgetBackdropAlpha, 0.0f)
         assertEquals(AppSettings.LAUNCHER_TASKBAR_PLACEMENT_BOTTOM, values.launcherTaskbarPlacement)
         assertEquals(AppSettings.LAUNCHER_WALLPAPER_BRANDED, values.launcherWallpaperMode)
         // S2213: no saved place yet is the state a fresh install is in, and the branch a device pass is
@@ -76,6 +80,90 @@ class LauncherSettingsStoreTest {
             settings.launcherDesktopSwipeLeftPayload,
             LauncherSettingsStore.read(prefs).launcherDesktopSwipeLeftPayload,
         )
+    }
+
+    /**
+     * S2256: the launcher route now exists twice - as the desktop-local [LauncherDesktopSwipeAction.OpenAllApps]
+     * and as the shared [ScreenshotGestureAction.OPEN_ALL_APPS] - and both spell the same persisted token.
+     * The desktop parser must keep resolving that token to the local value, so the desktop swipe reuses the
+     * already-open home task instead of routing through the overlay seam.
+     */
+    @Test
+    fun `desktop swipe resolves the shared all-apps token to the launcher-local value`() {
+        val settings = AppSettings(launcherDesktopSwipeUpAction = LauncherDesktopSwipeAction.OpenAllApps)
+        val prefs = mutablePreferencesOf()
+
+        LauncherSettingsStore.write(prefs, settings)
+
+        assertEquals(
+            LauncherDesktopSwipeAction.OpenAllApps,
+            LauncherSettingsStore.read(prefs).launcherDesktopSwipeUpAction,
+        )
+        assertEquals(
+            ScreenshotGestureAction.OPEN_ALL_APPS.name,
+            LauncherDesktopSwipeAction.OpenAllApps.persistedName,
+        )
+    }
+
+    @Test
+    fun `desktop swipe falls back to the direction default for an unknown token`() {
+        val fallback = LauncherDesktopSwipeAction.EdgeGestureAction(ScreenshotGestureAction.DO_NOT_USE)
+
+        assertEquals(fallback, LauncherDesktopSwipeAction.fromName("NO_SUCH_ACTION", fallback))
+    }
+
+    /**
+     * S2256: the swipe target is now user-editable per direction, so the field a direction writes and the
+     * field it reads have to be the same one - four near-identical `copy` arms are exactly where that goes
+     * wrong, and nothing else would notice a direction writing into its neighbour's payload.
+     */
+    @Test
+    fun `each direction writes and reads its own target`() {
+        LauncherDesktopSwipeDirection.entries.forEach { direction ->
+            val prefs = mutablePreferencesOf()
+            val written = direction.withPayload(AppSettings(), "target-for-$direction")
+
+            LauncherSettingsStore.write(prefs, written)
+            val read = LauncherSettingsStore.read(prefs)
+
+            assertEquals("target-for-$direction", read.payloadOf(direction))
+            LauncherDesktopSwipeDirection.entries
+                .filter { it != direction }
+                .forEach { other -> assertEquals("", read.payloadOf(other)) }
+        }
+    }
+
+    @Test
+    fun `clearing a target empties only that direction`() {
+        var settings = AppSettings()
+        LauncherDesktopSwipeDirection.entries.forEach { settings = it.withPayload(settings, "https://example.com") }
+        settings = LauncherDesktopSwipeDirection.LEFT.withPayload(settings, "")
+        val prefs = mutablePreferencesOf()
+
+        LauncherSettingsStore.write(prefs, settings)
+        val read = LauncherSettingsStore.read(prefs)
+
+        assertEquals("", read.payloadOf(LauncherDesktopSwipeDirection.LEFT))
+        LauncherDesktopSwipeDirection.entries
+            .filter { it != LauncherDesktopSwipeDirection.LEFT }
+            .forEach { assertEquals("https://example.com", read.payloadOf(it)) }
+    }
+
+    /**
+     * S2256: an empty target keeps today's fallback, so the dispatcher needs no new branch for it - the
+     * action still round-trips, and only the payload is blank.
+     */
+    @Test
+    fun `an action with an empty target survives the round trip unchanged`() {
+        val action = LauncherDesktopSwipeAction.EdgeGestureAction(ScreenshotGestureAction.OPEN_URL)
+        val settings = LauncherDesktopSwipeDirection.DOWN.withAction(AppSettings(), action)
+        val prefs = mutablePreferencesOf()
+
+        LauncherSettingsStore.write(prefs, settings)
+        val read = LauncherSettingsStore.read(prefs)
+
+        assertEquals(action, read.actionOf(LauncherDesktopSwipeDirection.DOWN))
+        assertEquals("", read.payloadOf(LauncherDesktopSwipeDirection.DOWN))
     }
 
     @Test
@@ -146,5 +234,25 @@ class LauncherSettingsStoreTest {
         assertEquals(settings.launcherWallpaperMode, values.launcherWallpaperMode)
         assertEquals(settings.allAppsSortOrder, values.allAppsSortOrder)
         assertEquals(settings.launcherWeatherLastLocation, values.launcherWeatherLastLocation)
+    }
+
+    // `read` answers with the store's own `Values`, not `AppSettings`, so the production direction
+    // accessors cannot be reused on the read side. The write side still goes through them, which is the
+    // mapping these tests are here to pin.
+    private fun LauncherSettingsStore.Values.payloadOf(direction: LauncherDesktopSwipeDirection): String =
+        when (direction) {
+            LauncherDesktopSwipeDirection.UP -> launcherDesktopSwipeUpPayload
+            LauncherDesktopSwipeDirection.DOWN -> launcherDesktopSwipeDownPayload
+            LauncherDesktopSwipeDirection.LEFT -> launcherDesktopSwipeLeftPayload
+            LauncherDesktopSwipeDirection.RIGHT -> launcherDesktopSwipeRightPayload
+        }
+
+    private fun LauncherSettingsStore.Values.actionOf(
+        direction: LauncherDesktopSwipeDirection,
+    ): LauncherDesktopSwipeAction = when (direction) {
+        LauncherDesktopSwipeDirection.UP -> launcherDesktopSwipeUpAction
+        LauncherDesktopSwipeDirection.DOWN -> launcherDesktopSwipeDownAction
+        LauncherDesktopSwipeDirection.LEFT -> launcherDesktopSwipeLeftAction
+        LauncherDesktopSwipeDirection.RIGHT -> launcherDesktopSwipeRightAction
     }
 }

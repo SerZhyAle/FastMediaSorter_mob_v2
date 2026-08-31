@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
 import androidx.core.view.isVisible
@@ -129,6 +130,17 @@ private class StreamWindowGadgetView(
     /** Held so the release path can detach it: a listener is added per player, so it is removed per player. */
     private var errorListener: Player.Listener? = null
 
+    /** S2267: how many times the overlay was inflated into the same player - a restart re-binds. */
+    private var bindCount = 0
+
+    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
+            val poster = playerFace?.streamWindowPoster?.isVisible == true
+            Timber.d("S2267: DOWN video=%b player=%b poster=%b", playerFace != null, player != null, poster)
+        }
+        return super.dispatchTouchEvent(ev)
+    }
+
     init {
         binding.streamWindowPlayPause.setOnClickListener { playOrPause() }
     }
@@ -139,6 +151,7 @@ private class StreamWindowGadgetView(
      * it runs only while this cell is attached and the launcher is STARTED.
      */
     override suspend fun CoroutineScope.onActive() {
+        Timber.d("S2267: onActive enter key=%s", identityKey)
         val resolved = identityKey?.let { getStreamByIdentity(it) }
         if (resolved == null) {
             showUnavailable()
@@ -180,6 +193,7 @@ private class StreamWindowGadgetView(
         try {
             awaitCancellation()
         } finally {
+            Timber.d("S2267: video face scope exit, releasing")
             release()
         }
     }
@@ -192,6 +206,8 @@ private class StreamWindowGadgetView(
     private fun bindVideoFace(source: StreamSourceEntity, face: GadgetLauncherStreamWindowPlayerBinding) {
         val controls = GadgetLauncherStreamWindowControlsBinding
             .inflate(LayoutInflater.from(context), face.streamWindowPlayer, true)
+        bindCount++
+        Timber.d("S2267: bindVideoFace #%d playerChildren=%d", bindCount, face.streamWindowPlayer.childCount)
         val manager = StreamWindowOverlayManager(controls.root)
         overlay = manager
         controlsBinding = controls
@@ -232,7 +248,9 @@ private class StreamWindowGadgetView(
         controls.streamWindowOverlayRoot.setOnClickListener { manager.hide() }
         face.streamWindowPlayer.setOnClickListener {
             Timber.d("S2230: video face tap, showing overlay")
+            Timber.d("S2267: tap overlay=%b poster=%b", controls.root.isVisible, face.streamWindowPoster.isVisible)
             manager.toggle()
+            Timber.d("S2267: after toggle overlay=%b", controls.root.isVisible)
         }
     }
 
@@ -306,6 +324,7 @@ private class StreamWindowGadgetView(
         started.playWhenReady = true
         started.prepare()
         face.streamWindowPoster.isVisible = false
+        Timber.d("S2267: player started url=%s", source.url)
         controlsBinding?.streamWindowOverlayPlayPause?.setImageResource(R.drawable.ic_pause)
     }
 
@@ -324,6 +343,7 @@ private class StreamWindowGadgetView(
 
     /** Idempotent: the active scope's exit and a detach can both reach it, in either order. */
     private fun release() {
+        Timber.d("S2267: release player=%b overlay=%b", player != null, overlay != null)
         // S2230: the overlay dies with the player it steers - its auto-hide timer must not fire into
         // a torn-down cell, and a fresh session starts with the controls hidden.
         overlay?.cancel()
@@ -337,6 +357,7 @@ private class StreamWindowGadgetView(
     }
 
     override fun onDetachedFromWindow() {
+        Timber.d("S2267: detached, releasing cell")
         release()
         super.onDetachedFromWindow()
     }
@@ -356,6 +377,9 @@ private class StreamWindowGadgetView(
     private fun render() {
         val state = ownSession.read()
         val playingThisChannel = state.isPlaying && state.title == source?.title
+        if (state.isPlaying && !playingThisChannel) {
+            Timber.d("S2267: session plays '%s', cell is '%s' - shown stopped", state.title, source?.title)
+        }
         binding.streamWindowPlayPause.setImageResource(
             if (playingThisChannel) R.drawable.ic_pause else R.drawable.ic_play
         )
@@ -378,8 +402,10 @@ private class StreamWindowGadgetView(
         val state = ownSession.read()
         Timber.d("S2031: radio tap, playing=${state.isPlaying} title=${state.title}")
         if (state.isPlaying && state.title == source?.title) {
+            Timber.d("S2267: radio tap -> pause own session")
             ownSession.send(NowPlayingCommand.PLAY_PAUSE)
         } else {
+            Timber.d("S2267: radio tap -> start channel via host")
             host.run(LauncherCellCommand.Stream(identity))
         }
     }

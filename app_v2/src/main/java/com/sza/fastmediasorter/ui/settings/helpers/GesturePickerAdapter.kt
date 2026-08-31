@@ -7,18 +7,19 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 
 /**
  * S1038: grouped gesture-action picker adapter mirroring [com.sza.fastmediasorter.ui.settings.fragments.PermissionRowAdapter]
- * (sectioned Header/Entry, per-entry description). Two view types; the row bound to [selectedAction]
+ * (sectioned Header/Entry, per-entry description). Two view types; the row bound to [selectedKey]
  * activates its highlighted background + trailing check, matching the flat picker's selection cue.
  * Disabled entries render dimmed and non-clickable so unavailable actions read as present-but-inactive.
+ *
+ * S2256: the action type is the host's, not one surface's enum - selection is key equality either way.
  */
-class GesturePickerAdapter(
-    private val rows: List<GesturePickerRow>,
-    private val selectedAction: ScreenshotGestureAction,
-    private val onClick: (ScreenshotGestureAction) -> Unit,
+class GesturePickerAdapter<T : Any>(
+    private val rows: List<GesturePickerRow<T>>,
+    private val selectedKey: T?,
+    private val onClick: (T) -> Unit,
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     companion object {
@@ -47,7 +48,7 @@ class GesturePickerAdapter(
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (val row = rows[position]) {
             is GesturePickerRow.Header -> (holder as HeaderViewHolder).bind(row)
-            is GesturePickerRow.Entry -> (holder as EntryViewHolder).bind(row)
+            is GesturePickerRow.Entry -> (holder as EntryViewHolder).bind(row, selectedKey, onClick)
         }
     }
 
@@ -57,15 +58,19 @@ class GesturePickerAdapter(
         }
     }
 
-    inner class EntryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        fun bind(entry: GesturePickerRow.Entry) {
+    class EntryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        fun <T : Any> bind(
+            entry: GesturePickerRow.Entry<T>,
+            selectedKey: T?,
+            onClick: (T) -> Unit,
+        ) {
             val ctx = itemView.context
             itemView.findViewById<TextView>(R.id.tv_gesture_entry_title)?.setText(entry.labelRes)
             itemView.findViewById<TextView>(R.id.tv_gesture_entry_desc)?.text =
                 ctx.getString(entry.explanationRes)
             itemView.findViewById<ImageView>(R.id.iv_gesture_entry_icon)
                 ?.setImageResource(entry.iconRes)
-            val selected = entry.action == selectedAction
+            val selected = entry.actionKey == selectedKey
             itemView.isActivated = selected
             itemView.findViewById<ImageView>(R.id.item_check)?.visibility =
                 if (selected) View.VISIBLE else View.GONE
@@ -74,7 +79,7 @@ class GesturePickerAdapter(
             itemView.isFocusable = entry.enabled
             itemView.isClickable = entry.enabled
             itemView.setOnClickListener(
-                if (entry.enabled) View.OnClickListener { onClick(entry.action) } else null,
+                if (entry.enabled) View.OnClickListener { onClick(entry.actionKey) } else null,
             )
         }
     }

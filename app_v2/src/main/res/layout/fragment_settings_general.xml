@@ -41,15 +41,16 @@
                         app:ssr_inline="true"
                         app:ssr_title="@string/language" />
 
-                    <!-- Color theme (S0328; S0567: raw Spinner -> SettingsDropdownRow). Inline single line (parity with Language). -->
+                    <!-- Color theme (S0328; S0567: raw Spinner -> SettingsDropdownRow).
+                         Value text mode: the value follows the title on one line, as in the Language
+                         and Device profile rows above and below it. -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
                         android:id="@+id/spinnerColorTheme"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/margin_tiny"
                         android:layout_marginBottom="@dimen/margin_tiny"
-                        app:sdr_inline="true"
-                        app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                        app:sdr_valueAsText="true"
                         app:sdr_title="@string/color_theme"
                         app:sdr_entries="@array/color_theme_options" />
 
@@ -94,7 +95,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_tiny"
-                        app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                        app:sdr_valueAsText="true"
                         app:sdr_title="@string/pref_resource_grid_cell_size_title" />
 
                     <!-- Enable Favorites (Moved from Sleep/Favorites container) -->

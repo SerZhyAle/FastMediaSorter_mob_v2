@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.launcher.helpers
 
+import android.graphics.Rect
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
@@ -13,8 +14,8 @@ import kotlin.math.abs
  * Yields to scrolling: an upward swipe fires only at the lower desktop boundary, and a downward
  * swipe fires only at the upper boundary. Horizontal swipes do not inspect vertical scrolling.
  *
- * The scroll container forwards its raw event stream before it dispatches to a child. That is required
- * because a NestedScrollView otherwise intercepts a fling before a child listener receives ACTION_UP.
+ * The Activity forwards its raw event stream before child dispatch, because the device can route a desktop
+ * touch around the NestedScrollView. A gesture still starts only within the scroll viewport.
  */
 class LauncherAllAppsGestureManager(
     private val container: View,
@@ -34,6 +35,8 @@ class LauncherAllAppsGestureManager(
 
     private val configuration = ViewConfiguration.get(container.context)
 
+    private val viewportBounds = Rect()
+
     private var gestureStartedOnFreeDesktop = false
 
     private val detector = GestureDetector(
@@ -52,10 +55,13 @@ class LauncherAllAppsGestureManager(
         }
     )
 
-    /** Receives the scroll container's unconsumed raw event stream without changing normal scrolling. */
+    /** Receives the Activity's raw event stream without changing normal child dispatch. */
     fun onTouchEvent(event: MotionEvent) {
         if (event.actionMasked == MotionEvent.ACTION_DOWN) {
-            gestureStartedOnFreeDesktop = !isTouchOnInteractiveCell(event)
+            gestureStartedOnFreeDesktop = isTouchWithinViewport(event) && !isTouchOnInteractiveCell(event)
+            if (gestureStartedOnFreeDesktop) {
+                Timber.d("S2262: desktop gesture dispatch")
+            }
         }
         if (!gestureStartedOnFreeDesktop) return
         detector.onTouchEvent(event)
@@ -84,6 +90,10 @@ class LauncherAllAppsGestureManager(
         callback()
         return true
     }
+
+    private fun isTouchWithinViewport(event: MotionEvent): Boolean =
+        viewport.getGlobalVisibleRect(viewportBounds) &&
+            viewportBounds.contains(event.rawX.toInt(), event.rawY.toInt())
 
     private fun classifyDirection(
         e1: MotionEvent,

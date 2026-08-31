@@ -10,4 +10,6 @@ class LauncherModeContractImpl : LauncherModeContract {
     override val isAvailableInBuild: Boolean = false
 
     override fun homeComponent(context: Context): ComponentName? = null
+
+    override fun openAllApps(context: Context): Boolean = false
 }

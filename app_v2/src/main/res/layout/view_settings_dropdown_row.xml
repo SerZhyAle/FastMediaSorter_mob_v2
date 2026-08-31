@@ -41,6 +41,18 @@
                 app:tint="@color/text_color_secondary"
                 android:visibility="gone" />
 
+            <!-- Value text mode: the chosen entry sits right after the title, matching the
+                 SettingsSelectionRow rows (Language, Device profile) it shares a section with. -->
+            <TextView
+                android:id="@+id/sdr_valueText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/settings_help_icon_margin"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="@dimen/settings_row_value_text_size"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
             <View
                 android:id="@+id/sdr_titleLineSpacer"
                 android:layout_width="0dp"
@@ -86,5 +98,18 @@
             android:textSize="@dimen/toggler_title_text_size" />
 
     </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Shown only in value text mode, in place of the outlined field, so the row still reads as a
+         selector. -->
+    <ImageView
+        android:id="@+id/sdr_valueTextIcon"
+        android:layout_width="@dimen/settings_help_icon_size"
+        android:layout_height="@dimen/settings_help_icon_size"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="@dimen/settings_help_icon_margin"
+        android:contentDescription="@null"
+        android:src="@drawable/ic_arrow_drop_down"
+        app:tint="?attr/colorOnSurfaceVariant"
+        android:visibility="gone" />
 
 </merge>

@@ -3,8 +3,10 @@ package com.sza.fastmediasorter.wear.domain.usecase
 import android.content.Context
 import android.net.Uri
 import com.sza.fastmediasorter.wear.data.files.WearMediaFileStager
+import com.sza.fastmediasorter.wear.data.files.WearMediaStoreFileWriter
 import com.sza.fastmediasorter.wear.domain.files.WEAR_PHONE_FILE_CACHE_DIR
 import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
+import com.sza.fastmediasorter.wear.domain.files.WearMediaStoreConsent
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperation
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearFileSendOutcome
@@ -50,11 +52,15 @@ class PerformWearFileOperationUseCaseTest {
         // The classifier also reads the cache directory, to tell a paired-phone copy from the watch's
         // own file. A relaxed mock answers it with a mock File, which the File constructor rejects.
         every { context.cacheDir } returns cacheDir
+        // S2142: every file this test writes is APP_OWNED, which takes the file branch and never
+        // reaches the resolver, so the confirmation seam only has to exist - not to answer anything.
+        val consent = mockk<WearMediaStoreConsent>(relaxed = true)
         useCase = PerformWearFileOperationUseCase(
-            capabilityPolicy = WearFileCapabilityPolicy(context),
+            capabilityPolicy = WearFileCapabilityPolicy(context, consent),
             senderRepository = sender,
             openOnPhoneRepository = opener,
-            stager = WearMediaFileStager(context)
+            stager = WearMediaFileStager(context),
+            mediaStoreWriter = WearMediaStoreFileWriter(context, consent)
         )
     }
 

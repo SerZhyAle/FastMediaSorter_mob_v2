@@ -20,6 +20,21 @@
         android:orientation="horizontal"
         android:paddingTop="@dimen/margin_small">
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/allAppsHome"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="@dimen/button_height"
+            android:layout_height="@dimen/button_height"
+            android:clickable="true"
+            android:contentDescription="@string/back"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:nextFocusDown="@id/allAppsGrid"
+            android:nextFocusRight="@id/allAppsSearch"
+            app:icon="@drawable/ic_arrow_back"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp" />
+
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/allAppsSearchLayout"
             android:layout_width="0dp"
@@ -35,8 +50,9 @@
                 android:layout_height="wrap_content"
                 android:imeOptions="actionSearch|flagNoExtractUi"
                 android:inputType="text"
-                android:nextFocusDown="@id/allAppsGrid"
-                android:nextFocusRight="@id/allAppsSort"
+            android:nextFocusDown="@id/allAppsGrid"
+            android:nextFocusRight="@id/allAppsSort"
+            android:nextFocusLeft="@id/allAppsHome"
                 android:singleLine="true" />
 
         </com.google.android.material.textfield.TextInputLayout>

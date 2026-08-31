@@ -61,8 +61,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/settings_help_icon_margin"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                android:textSize="@dimen/toggler_desc_text_size"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="@dimen/settings_row_value_text_size"
+                android:textStyle="bold"
                 android:visibility="gone" />
 
             <View

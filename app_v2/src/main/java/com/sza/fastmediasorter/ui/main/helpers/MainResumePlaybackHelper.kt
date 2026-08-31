@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.repository.ResumeStateRepositoryImpl
 import com.sza.fastmediasorter.databinding.ActivityMainBinding
@@ -159,8 +160,7 @@ class MainResumePlaybackHelper(
                             isSlideshowEnabled = state.isSlideshowEnabled
                         )
                         activity.startActivity(playerIntent)
-                        @Suppress("DEPRECATION")
-                        activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                        applyForwardTransition()
                     }
                     com.sza.fastmediasorter.domain.model.ScreenType.BROWSER -> {
                         val browseIntent = BrowseActivity.createIntent(
@@ -172,8 +172,7 @@ class MainResumePlaybackHelper(
                             isPlaying = effectiveIsPlaying
                         )
                         activity.startActivity(browseIntent)
-                        @Suppress("DEPRECATION")
-                        activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                        applyForwardTransition()
                     }
                 }
                 Timber.d("MainResumePlaybackHelper: Resumed playback → ${state.screenType} for ${state.filePath}")
@@ -203,8 +202,7 @@ class MainResumePlaybackHelper(
             dismissResumeLoading()
             // S0756 in-app play intent (no launcher task flags) so Back returns to Main.
             activity.startActivity(StreamsActivity.createPlayIntent(activity, streamState.url))
-            @Suppress("DEPRECATION")
-            activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+            applyForwardTransition()
         }
         return resume
     }
@@ -229,5 +227,18 @@ class MainResumePlaybackHelper(
     fun dismissResumeLoading() {
         isResumeLoadingActive = false
         binding.navigationProgressLayout.isVisible = false
+    }
+
+    /**
+     * S2250: the one place this helper decides whether a resumed launch slides. Three call sites
+     * shared the same pair, and three inlined conditions is where the fourth loses its gate.
+     */
+    private fun applyForwardTransition() {
+        val animate = AnimationPolicy.isAnimationAllowed
+        @Suppress("DEPRECATION")
+        activity.overridePendingTransition(
+            if (animate) R.anim.slide_in_right else 0,
+            if (animate) R.anim.slide_out_left else 0
+        )
     }
 }

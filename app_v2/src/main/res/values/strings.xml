@@ -3571,9 +3571,6 @@
     <string name="launcher_tray_speed_upload">Upload speed: %1$s</string>
     <string name="launcher_wallpaper_mode_instant_photo">Instant photo</string>
     <string name="launcher_desktop_swipe_picker_title">Desktop swipe action</string>
-    <string name="launcher_desktop_swipe_action_all_apps">All apps</string>
-    <string name="launcher_desktop_swipe_action_notification_shade">Notification shade</string>
-    <string name="launcher_desktop_swipe_action_do_not_use">Do not use</string>
     <string name="launcher_desktop_swipe_up_title">Swipe up</string>
     <string name="launcher_desktop_swipe_down_title">Swipe down</string>
     <string name="launcher_desktop_swipe_left_title">Swipe left</string>
@@ -3596,9 +3593,12 @@
     <string name="launcher_stream_overlay_stop">Stop</string>
     <string name="launcher_stream_overlay_pip">Picture-in-picture</string>
     <string name="launcher_stream_overlay_fullscreen">Fullscreen</string>
-    <string name="launcher_settings_double_tap_lock_title">Double tap to lock desktop</string>
-    <string name="launcher_settings_double_tap_lock_subtitle">Double tap empty desktop space to switch the edit lock</string>
+    <string name="launcher_settings_double_tap_lock_title">Double tap to lock the screen</string>
+    <string name="launcher_settings_double_tap_lock_subtitle">Double tap empty desktop space to lock the screen, or black it out where the device lock is unavailable</string>
     <string name="launcher_stream_add_desktop_window">Add window to desktop</string>
     <string name="launcher_stream_desktop_window_added">Window added to desktop</string>
     <string name="launcher_stream_desktop_window_no_space">No free space on desktop</string>
+    <string name="physical_flashlight_unavailable">Camera flashlight is unavailable. Try again.</string>
+    <string name="gesture_action_explain_open_all_apps">Opens the home screen with the All apps list.</string>
+    <string name="gesture_slot_url_none">Not set - tap to enter an address</string>
 </resources>

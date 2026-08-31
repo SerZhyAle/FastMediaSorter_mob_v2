@@ -10,6 +10,7 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -65,8 +66,7 @@ class BrowseEventHandler(
                 // the channel by URL and applies its own audio/video launch routing.
                 viewModel.inlineStop()
                 activity.startActivity(StreamsActivity.createPlayIntent(activity, event.url))
-                @Suppress("DEPRECATION")
-                activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                applyForwardTransition()
             }
             is BrowseEvent.NavigateToPlayer -> {
                 viewModel.inlineStop()
@@ -114,8 +114,7 @@ class BrowseEventHandler(
                         event.filePath,
                     )
                     playerActivityLauncher.launch(playerIntent)
-                    @Suppress("DEPRECATION")
-                    activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                    applyForwardTransition()
                 }
             }
             is BrowseEvent.NavigateToTextEditor -> {
@@ -131,8 +130,7 @@ class BrowseEventHandler(
                     initialFilePath = event.filePath,
                 ).putExtra(PlayerActivity.EXTRA_TEXT_EDIT_MODE_ON_OPEN, true)
                 playerActivityLauncher.launch(playerIntent)
-                @Suppress("DEPRECATION")
-                activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                applyForwardTransition()
             }
             is BrowseEvent.NavigateToDrawingEditor -> {
                 val activityHost = activity as? ComponentActivity ?: run {
@@ -145,8 +143,7 @@ class BrowseEventHandler(
                     initialFilePath = event.filePath,
                 ).putExtra(PlayerActivity.EXTRA_ACTIVATE_DRAW_MODE, true)
                 playerActivityLauncher.launch(playerIntent)
-                @Suppress("DEPRECATION")
-                activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                applyForwardTransition()
             }
             is BrowseEvent.ShowCloudAuthenticationRequired -> {
                 onShowCloudAuthDialog(event.provider)
@@ -334,5 +331,19 @@ class BrowseEventHandler(
                 )
             }
             .show()
+    }
+
+    /**
+     * S2250: the one place this screen decides whether a forward launch slides. Four call sites
+     * shared the same pair, and four inlined conditions is the shape that lets a fifth be written
+     * without one. Zero means "no transition" to the platform, so the screen still changes.
+     */
+    private fun applyForwardTransition() {
+        val animate = AnimationPolicy.isAnimationAllowed
+        @Suppress("DEPRECATION")
+        activity.overridePendingTransition(
+            if (animate) R.anim.slide_in_right else 0,
+            if (animate) R.anim.slide_out_left else 0
+        )
     }
 }

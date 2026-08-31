@@ -42,7 +42,8 @@ private val LOCAL_OPERATIONS = setOf(
  * list rows with no operation behind any of them.
  */
 class WearFileCapabilityPolicy @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val mediaStoreConsent: WearMediaStoreConsent
 ) {
 
     /**
@@ -80,8 +81,14 @@ class WearFileCapabilityPolicy @Inject constructor(
     ).mapNotNull { canonicalPathOf(it) }
 
     /**
-     * One expression on purpose: adding the MediaStore consent flow later moves one line rather than
-     * reshaping every caller.
+     * One expression on purpose: the MediaStore consent flow moved exactly the one line it was
+     * promised to move, and the next class needing a device-dependent answer changes one more.
+     *
+     * [WearFileStorageClass.MEDIA_STORE] is the only entry that depends on the device rather than on
+     * the class alone. The row belongs to whoever wrote it, so writing to it needs the owner's
+     * confirmation, and that confirmation exists only from API 30 - below it the operations are
+     * withheld rather than offered and refused, which is the rule S2004 ADR-4 already applies to
+     * every other unavailable action.
      */
     fun allowedOperations(storageClass: WearFileStorageClass): Set<WearFileOperationKind> =
         when (storageClass) {
@@ -89,13 +96,22 @@ class WearFileCapabilityPolicy @Inject constructor(
             // Everything a watch file allows, plus the one thing only this class can be asked: the
             // phone still holds the original, so it alone can be opened there.
             WearFileStorageClass.PHONE_COPY -> LOCAL_OPERATIONS + WearFileOperationKind.OPEN_ON_PHONE
-            WearFileStorageClass.MEDIA_STORE -> setOf(WearFileOperationKind.SEND_TO_PHONE)
+            WearFileStorageClass.MEDIA_STORE -> if (mediaStoreConsent.isAvailable()) {
+                LOCAL_OPERATIONS
+            } else {
+                setOf(WearFileOperationKind.SEND_TO_PHONE)
+            }
             WearFileStorageClass.NETWORK -> emptySet()
         }
 
     /**
-     * An unreadable URI falls back to the most restricted non-network class instead of throwing: a
+     * An unreadable URI falls back to [WearFileStorageClass.MEDIA_STORE] instead of throwing: a
      * browse list that cannot be classified must still be listable.
+     *
+     * That fallback was the most restricted non-network class until S2142; it no longer is, because
+     * MediaStore now carries the write operations on API 30+. What keeps it safe is the far end
+     * rather than this one - a URI that reached here without a usable file path is not a row the
+     * resolver can write either, so the write is refused there and reported as a failure.
      */
     private fun localPathOf(uri: Uri): String? {
         val scheme = uri.scheme

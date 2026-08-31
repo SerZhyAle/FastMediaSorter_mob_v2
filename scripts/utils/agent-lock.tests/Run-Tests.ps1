@@ -113,6 +113,32 @@ try {
         -Ok (@(Resolve-CodeDomainsForPaths -Path @('brand_new_module/src/A.kt')).Count -eq 3) `
         -Detail 'an unknown path narrowed the set instead of widening it'
 
+    # A leading './' has to be stripped as a PREFIX. TrimStart('./') takes a character SET, so it
+    # also ate the dot of a dotfile path: '.claude/..' became 'claude/..', matched no branch, and
+    # fell through to the fail-closed full set. Every command, hook, skill and agent-memory edit
+    # therefore took all three code domains - the most common changed set in this repository.
+    $dotSet = @(Resolve-CodeDomainsForPaths -Path @('.claude/commands/spec-all.md'))
+    $ghSet = @(Resolve-CodeDomainsForPaths -Path @('.github/workflows/ci.yml'))
+    Assert-Case -Name 'a dotfile path keeps its leading dot and resolves to Code.Scripts' `
+        -Ok (($dotSet -join ',') -eq 'Code.Scripts' -and ($ghSet -join ',') -eq 'Code.Scripts') `
+        -Detail ".claude=$($dotSet -join ','), .github=$($ghSet -join ',')"
+    Assert-Case -Name "a leading './' is still stripped from a module path" `
+        -Ok ((@(Resolve-CodeDomainsForPaths -Path @('./app_v2/src/B.kt')) -join ',') -eq 'Code.Phone') `
+        -Detail "got '$(@(Resolve-CodeDomainsForPaths -Path @('./app_v2/src/B.kt')) -join ',')'"
+
+    # A per-module detekt baseline is that module's file, not a shared config: it is named for its
+    # module and no other module's check reads it. Widening on it serialised every Kotlin closure
+    # that regenerated one. The shared config beside it must still fail closed.
+    $baselineSet = @(Resolve-CodeDomainsForPaths -Path @('app_v2/src/B.kt,config/detekt/baseline-app_v2.xml'))
+    Assert-Case -Name "a module's detekt baseline stays in that module's domain" `
+        -Ok (($baselineSet -join ',') -eq 'Code.Phone' -and
+             (@(Resolve-CodeDomainsForPaths -Path @('config/detekt/baseline-wear.ids')) -join ',') -eq 'Code.Wear') `
+        -Detail "phone edit + its baseline=$($baselineSet -join ',')"
+    Assert-Case -Name 'the shared detekt config still resolves to the full code set' `
+        -Ok ((@(Resolve-CodeDomainsForPaths -Path @('config/detekt/detekt.yml')).Count -eq 3) -and
+             (@(Resolve-CodeDomainsForPaths -Path @('config/detekt/rule-categories.txt')).Count -eq 3)) `
+        -Detail "detekt.yml=$(@(Resolve-CodeDomainsForPaths -Path @('config/detekt/detekt.yml')) -join ',')"
+
     # `pwsh -File` collapses a comma list into ONE string element, so an unsplit list matched only
     # its first prefix and resolved NARROWER than the change - the one direction this must never
     # fail in. Observed live: -Files with three script paths reported "1 changed path".

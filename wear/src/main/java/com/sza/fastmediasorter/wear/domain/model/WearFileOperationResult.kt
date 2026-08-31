@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.wear.domain.model
 
+import android.content.IntentSender
+
 /**
  * What happened to one file of a batch.
  *
@@ -12,7 +14,22 @@ data class WearFileOperationResult(
     /** The name the file ended up with when a conflict forced a suffix; null when nothing renamed it. */
     val finalName: String? = null,
     /** The destination on the phone where the file landed or was queued; null when local or unconfirmed. */
-    val destination: String? = null
+    val destination: String? = null,
+    /**
+     * The system confirmation to show for [WearFileOperationOutcome.NEEDS_CONSENT]; null otherwise.
+     *
+     * Carried on the result rather than raised from the use case because the use case is domain and
+     * returns a [kotlinx.coroutines.flow.Flow] - it has no Activity to start a dialog from. The
+     * screen does, so the request travels up as data and the screen decides when to show it.
+     */
+    val consentRequest: IntentSender? = null,
+    /**
+     * The operation to run again after the owner confirms, when it is not the one that was asked for.
+     *
+     * A move whose transfer already succeeded has only its source left to remove, so repeating the
+     * move would send the same bytes to the phone a second time. Null means "retry what was asked".
+     */
+    val retryAs: WearFileOperation? = null
 )
 
 /** Why one file of a batch ended the way it did. */
@@ -24,6 +41,14 @@ enum class WearFileOperationOutcome {
 
     /** The file's storage class does not allow this operation - it was never touched. */
     REFUSED_UNSUPPORTED,
+
+    /**
+     * The row belongs to another app, and the owner has not answered the system's confirmation yet.
+     *
+     * Not a failure and not a refusal: the same call succeeds once the owner confirms, so the file
+     * is left exactly as it was and the operation is retried rather than reported as lost.
+     */
+    NEEDS_CONSENT,
 
     /** Over the transfer channel's ceiling; refused before any byte was read. */
     REFUSED_TOO_LARGE,

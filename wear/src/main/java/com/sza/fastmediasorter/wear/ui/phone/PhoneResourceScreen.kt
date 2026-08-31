@@ -811,6 +811,9 @@ private fun WearFileOperationOutcome.toStatusRes(): Int = when (this) {
     WearFileOperationOutcome.NO_DESTINATION -> R.string.wear_file_op_outcome_no_destination
     WearFileOperationOutcome.UNCONFIRMED -> R.string.wear_file_op_outcome_unconfirmed
     WearFileOperationOutcome.REFUSED_UNSUPPORTED -> R.string.wear_file_op_outcome_unsupported
+    // A phone resource is never a watch MediaStore row, so this screen cannot raise the system
+    // confirmation - the branch exists because the enum is shared, not because it is reachable here.
+    WearFileOperationOutcome.NEEDS_CONSENT -> R.string.wear_file_op_outcome_needs_consent
     WearFileOperationOutcome.REFUSED_TOO_LARGE -> R.string.wear_file_op_outcome_too_large
     WearFileOperationOutcome.PHONE_UNREACHABLE -> R.string.wear_file_op_outcome_phone_unreachable
     WearFileOperationOutcome.OPENED_ON_PHONE -> R.string.wear_open_on_phone_shown

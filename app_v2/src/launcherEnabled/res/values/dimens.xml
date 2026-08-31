@@ -56,6 +56,9 @@
     <!-- S1401: smallest comfortable all-apps cell. The screen divides its measured width by this, so
          one layout serves both orientations and a wide screen simply gets more columns. -->
     <dimen name="launcher_all_apps_cell_min_width">88dp</dimen>
+    <!-- Letter groups share the app cells' footprint, so the all-apps grid stays visually regular. -->
+    <dimen name="launcher_all_apps_group_tile_min_height">72dp</dimen>
+    <dimen name="launcher_all_apps_group_tile_letter_text_size">26sp</dimen>
 
     <!-- S1173: contour width for a shortcut cell's icon and caption, overriding the shared 2dp default.
          That default is sized for large camera overlay labels; on a 12sp caption it thickens the glyph

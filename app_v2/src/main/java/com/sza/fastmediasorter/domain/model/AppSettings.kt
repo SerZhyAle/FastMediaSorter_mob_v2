@@ -452,7 +452,7 @@ data class AppSettings(
     val allAppsSortDescending: Boolean = false,
     // S1741: launcher-private screen blackout timeout in seconds (0 = Off).
     val launcherScreenBlackoutTimeoutSeconds: Int = 0,
-    // S1748: launcher widget backdrop opacity (0.0f = 0% transparent, 0.85f = 85% default, 1.0f = 100% opaque).
+    // S1748/S2253: launcher shared-surface opacity (0.0f = fully transparent, 1.0f = fully opaque).
     val launcherWidgetBackdropAlpha: Float = DEFAULT_LAUNCHER_WIDGET_BACKDROP_ALPHA,
     // S2213: the place last picked for a weather gadget, in `WeatherLocation.encode` form. It lives here
     // rather than only inside the desktop cell because clearing the desktop is exactly what a launcher
@@ -467,8 +467,8 @@ data class AppSettings(
         /** S1796: opaque white - the flashlight starts as a plain white lamp until a colour is picked. */
         const val FRONT_FLASHLIGHT_DEFAULT_COLOR: Int = 0xFFFFFFFF.toInt()
 
-        /** S1748: canonical default for the launcher widget backdrop opacity. */
-        const val DEFAULT_LAUNCHER_WIDGET_BACKDROP_ALPHA: Float = 0.85f
+        /** S1748/S2253: canonical default for a transparent launcher surface. */
+        const val DEFAULT_LAUNCHER_WIDGET_BACKDROP_ALPHA: Float = 0.0f
 
         /** S1748: selectable widget backdrop opacity levels. */
         val LAUNCHER_WIDGET_BACKDROP_ALPHA_OPTIONS = listOf(0.0f, 0.25f, 0.50f, 0.70f, 0.85f, 1.0f)

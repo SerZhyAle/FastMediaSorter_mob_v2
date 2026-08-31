@@ -6,12 +6,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
-import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
 import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
 import com.sza.fastmediasorter.databinding.DialogLauncherNetworkIndicatorBinding
-import com.sza.fastmediasorter.databinding.ItemSearchableOptionBinding
+import com.sza.fastmediasorter.databinding.ItemLauncherNetworkIndicatorOptionBinding
 import com.sza.fastmediasorter.widget.networkmonitor.NetworkMonitorIndicator
 
 /**
@@ -70,10 +69,9 @@ class LauncherNetworkIndicatorDialogFragment : DialogFragment() {
         val container = binding.containerNetworkIndicatorOptions
         val inflater = LayoutInflater.from(container.context)
         val rows = NetworkMonitorIndicator.entries.map { indicator ->
-            val row = ItemSearchableOptionBinding.inflate(inflater, container, false)
-            row.ivOptionIcon.setImageResource(indicator.iconRes)
-            row.ivOptionIcon.isVisible = true
-            row.tvOptionLabel.setText(indicator.labelRes)
+            val row = ItemLauncherNetworkIndicatorOptionBinding.inflate(inflater, container, false)
+            row.ivNetworkIndicatorOptionIcon.setImageResource(indicator.iconRes)
+            row.tvNetworkIndicatorOptionLabel.setText(indicator.labelRes)
             row.root.id = View.generateViewId()
             row.root.contentDescription = getString(indicator.labelRes)
             row.root.setOnClickListener { publish(indicator) }

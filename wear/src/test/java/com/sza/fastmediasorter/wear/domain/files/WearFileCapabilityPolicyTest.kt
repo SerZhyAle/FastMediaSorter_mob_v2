@@ -25,18 +25,45 @@ class WearFileCapabilityPolicyTest {
     @get:Rule
     val temporaryFolder = TemporaryFolder()
 
-    private val policy = WearFileCapabilityPolicy(mockk<Context>(relaxed = true))
+    private val policy = policyWithConsent(available = false)
 
     @Test
     fun `network files are offered nothing`() {
         assertEquals(emptySet<WearFileOperationKind>(), policy.allowedOperations(WearFileStorageClass.NETWORK))
     }
 
+    /**
+     * S2142: the API 28-29 band, which the owner's watch (Wear OS 5) cannot reproduce at all. The
+     * system has no write confirmation to show there, so the operations that need one are withheld
+     * rather than offered and refused - and this test is the only place that behaviour is observable.
+     */
     @Test
-    fun `media store files are offered send to phone only`() {
+    fun `media store files are offered send to phone only without a write confirmation`() {
         assertEquals(
             setOf(WearFileOperationKind.SEND_TO_PHONE),
             policy.allowedOperations(WearFileStorageClass.MEDIA_STORE)
+        )
+    }
+
+    @Test
+    fun `media store files are offered every local operation once a write confirmation exists`() {
+        assertEquals(
+            setOf(
+                WearFileOperationKind.SEND_TO_PHONE,
+                WearFileOperationKind.MOVE_TO_PHONE,
+                WearFileOperationKind.DELETE,
+                WearFileOperationKind.RENAME
+            ),
+            policyWithConsent(available = true).allowedOperations(WearFileStorageClass.MEDIA_STORE)
+        )
+    }
+
+    /** A read-only share allows nothing whether or not the device can confirm a write (S1863). */
+    @Test
+    fun `network files are offered nothing even with a write confirmation`() {
+        assertEquals(
+            emptySet<WearFileOperationKind>(),
+            policyWithConsent(available = true).allowedOperations(WearFileStorageClass.NETWORK)
         )
     }
 
@@ -218,7 +245,17 @@ class WearFileCapabilityPolicyTest {
         every { context.cacheDir } returns dirs.cache
         every { context.filesDir } returns dirs.files
         every { context.getExternalFilesDir(null) } returns dirs.externalFiles
-        return WearFileCapabilityPolicy(context)
+        return WearFileCapabilityPolicy(context, consentThatIs(available = false))
+    }
+
+    /** Classification never consults the confirmation, so these cases fix it either way. */
+    private fun policyWithConsent(available: Boolean): WearFileCapabilityPolicy =
+        WearFileCapabilityPolicy(mockk<Context>(relaxed = true), consentThatIs(available))
+
+    private fun consentThatIs(available: Boolean): WearMediaStoreConsent {
+        val consent = mockk<WearMediaStoreConsent>()
+        every { consent.isAvailable() } returns available
+        return consent
     }
 
     /** A file URI mocked rather than parsed: `Uri.parse` is not available to a plain JVM test. */

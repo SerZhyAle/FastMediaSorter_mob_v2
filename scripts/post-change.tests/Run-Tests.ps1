@@ -71,6 +71,15 @@ if ($facade -notmatch '\$catalogChangedFiles = @\(\$changedFiles\) \+ @\(\$delet
     throw 'Declared deletions are not included in catalog-sync input.'
 }
 
+# S2269: automatic release is intentionally per closure, but it must announce the transition so
+# the next phase cannot mistake a green closure for continued ownership of its code domain.
+if ($facade -notmatch '\$releasedDomains = @\(') {
+    throw 'post-change does not compute which code domains this session actually released.'
+}
+if ($facade -notmatch 'Before the next repository source, resource, build, or script edit') {
+    throw 'post-change does not print the code-lock reacquisition handoff.'
+}
+
 $hints = Import-PowerShellDataFile -LiteralPath $hintsPath
 $labels = [regex]::Matches($facade, 'Invoke-Gate "([^"]+)"') |
     ForEach-Object { $_.Groups[1].Value } |

@@ -109,6 +109,11 @@ class LauncherTaskbarManager(
         render()
     }
 
+    /** Keep the taskbar surface in the same wallpaper-visible layer as desktop cell backdrops. */
+    fun applyBackdropAlpha(alpha: Float) {
+        binding.root.background.mutate().alpha = (alpha.coerceIn(0f, 1f) * OPAQUE_ALPHA).toInt()
+    }
+
     private fun apply(newComposition: LauncherTaskbarComposition) {
         composition = newComposition
         render()
@@ -153,3 +158,5 @@ data class LauncherTaskbarComposition(
     /** S1431: while the top strip carries the indicators, the tray is hidden whatever [showTray] says. */
     val topStatusStripMode: Boolean = false,
 )
+
+private const val OPAQUE_ALPHA = 255

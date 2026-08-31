@@ -254,6 +254,13 @@ object ScreenshotGestureActionCatalog {
             R.string.gesture_action_explain_media_prev,
             R.drawable.ic_skip_previous,
         )
+        // S2256: shares the launcher panel's own "All apps" label so both catalogs name it identically.
+        ScreenshotGestureAction.OPEN_ALL_APPS -> GestureActionMeta(
+            GestureActionGroup.LAUNCH,
+            R.string.launcher_action_all_apps,
+            R.string.gesture_action_explain_open_all_apps,
+            R.drawable.ic_view_grid,
+        )
         ScreenshotGestureAction.DO_NOT_USE -> GestureActionMeta(
             GestureActionGroup.DISABLED,
             R.string.screenshot_gesture_action_none,

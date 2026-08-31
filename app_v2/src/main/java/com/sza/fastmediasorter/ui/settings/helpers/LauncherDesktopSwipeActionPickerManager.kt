@@ -4,22 +4,22 @@ import android.content.Context
 import androidx.lifecycle.LifecycleOwner
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeAction
-import com.sza.fastmediasorter.ui.dialog.ListSelectionAdapter
-import com.sza.fastmediasorter.ui.dialog.ListSelectionConfig
-import com.sza.fastmediasorter.ui.dialog.ListSelectionDialog
+import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
+import timber.log.Timber
 
-/** Presents the launcher route plus every edge-gesture action executable in this build. */
+/**
+ * Presents the launcher route plus every edge-gesture action executable in this build.
+ *
+ * S2256: through the same grouped dialog the edge-gesture slots use, over the same catalog metadata, so
+ * an action is named, grouped, explained and iconed identically on both surfaces. The only difference
+ * between the two surfaces is which actions each offers.
+ */
 class LauncherDesktopSwipeActionPickerManager(
     private val edgeGestureActionPicker: ScreenshotGestureActionPickerManager,
 ) {
 
-    fun labelFor(context: Context, action: LauncherDesktopSwipeAction): String = context.getString(
-        when (action) {
-            LauncherDesktopSwipeAction.OpenAllApps -> R.string.launcher_desktop_swipe_action_all_apps
-            is LauncherDesktopSwipeAction.EdgeGestureAction ->
-                ScreenshotGestureActionCatalog.labelResFor(action.action)
-        }
-    )
+    fun labelFor(context: Context, action: LauncherDesktopSwipeAction): String =
+        context.getString(metaFor(action).labelRes)
 
     fun showPicker(
         context: Context,
@@ -27,26 +27,38 @@ class LauncherDesktopSwipeActionPickerManager(
         current: LauncherDesktopSwipeAction,
         onPicked: (LauncherDesktopSwipeAction) -> Unit,
     ) {
-        ListSelectionDialog(
+        Timber.d("S2256: desktop swipe picker opened, current=%s", current.persistedName)
+        GesturePickerDialog(
             context = context,
-            config = ListSelectionConfig(
-                title = context.getString(R.string.launcher_desktop_swipe_picker_title),
-                lifecycleOwner = lifecycleOwner,
-                loader = { availableActions() },
-                formatter = object : ListSelectionAdapter.ItemFormatter<LauncherDesktopSwipeAction> {
-                    override fun getDisplayName(item: LauncherDesktopSwipeAction): String = labelFor(context, item)
-                },
-                hasSelection = true,
-                isSelected = { it == current },
-                allowClear = false,
-                emptyMessageRes = R.string.launcher_desktop_swipe_action_do_not_use,
-                errorMessageRes = R.string.launcher_desktop_swipe_action_do_not_use,
-                onSelected = { action -> action?.let(onPicked) },
+            title = context.getString(R.string.launcher_desktop_swipe_picker_title),
+            lifecycleOwner = lifecycleOwner,
+            rows = GesturePickerRowBuilder().build(
+                items = wrappedEdgeActions(),
+                launcherRoute = GesturePickerItem(
+                    key = LauncherDesktopSwipeAction.OpenAllApps,
+                    meta = metaFor(LauncherDesktopSwipeAction.OpenAllApps),
+                ),
             ),
+            selectedKey = current,
+            onPicked = onPicked,
         ).show()
     }
 
-    private fun availableActions(): List<LauncherDesktopSwipeAction> =
-        listOf(LauncherDesktopSwipeAction.OpenAllApps) +
-            edgeGestureActionPicker.availableActions().map(LauncherDesktopSwipeAction::EdgeGestureAction)
+    /**
+     * The edge picker is constructed without the launcher route, so `OPEN_ALL_APPS` is absent here and
+     * the panel is offered once - as the desktop-local value, which reuses the already-open home task
+     * instead of routing back through the overlay seam.
+     */
+    private fun wrappedEdgeActions(): List<GesturePickerItem<LauncherDesktopSwipeAction>> =
+        edgeGestureActionPicker.pickerItems().map {
+            GesturePickerItem(LauncherDesktopSwipeAction.EdgeGestureAction(it.key), it.meta, it.enabled)
+        }
+
+    private fun metaFor(action: LauncherDesktopSwipeAction): GestureActionMeta =
+        ScreenshotGestureActionCatalog.metaFor(
+            when (action) {
+                LauncherDesktopSwipeAction.OpenAllApps -> ScreenshotGestureAction.OPEN_ALL_APPS
+                is LauncherDesktopSwipeAction.EdgeGestureAction -> action.action
+            },
+        )
 }

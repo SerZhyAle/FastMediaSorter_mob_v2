@@ -402,4 +402,5 @@
     <string name="wear_settings_sections">Розділи</string>
     <string name="phone_resource_no_resource_for_type">Жоден ресурс телефона не налаштований на цей тип.</string>
     <string name="wear_folder_load_more">Показати ще</string>
+    <string name="wear_file_op_outcome_needs_consent">Не підтверджено - нічого не змінилося</string>
 </resources>

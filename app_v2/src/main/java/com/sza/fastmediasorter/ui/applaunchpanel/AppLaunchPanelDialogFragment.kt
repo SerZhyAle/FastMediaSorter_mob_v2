@@ -51,7 +51,6 @@ class AppLaunchPanelDialogFragment : DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        timber.log.Timber.d("S2220: open launcher all programs alphabetical groups")
         tileAdapter = AppLaunchPanelTileAdapter(onTileClick = ::onTileClicked)
         val isWide = resources.configuration.isWideLayout()
         val preferredSpan = if (isWide) SPAN_LANDSCAPE else SPAN_PORTRAIT

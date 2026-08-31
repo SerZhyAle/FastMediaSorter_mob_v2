@@ -10,6 +10,11 @@ sealed interface LauncherDesktopSwipeAction {
 
     val persistedName: String
 
+    /**
+     * S2256: spells the same token as [ScreenshotGestureAction.OPEN_ALL_APPS] on purpose - [fromName]
+     * checks this branch first, so a desktop swipe reuses the already-open home task while the edge
+     * slot with the same token goes through the launcher seam.
+     */
     data object OpenAllApps : LauncherDesktopSwipeAction {
         override val persistedName: String = "OPEN_ALL_APPS"
     }
@@ -27,10 +32,11 @@ sealed interface LauncherDesktopSwipeAction {
         ): LauncherDesktopSwipeAction = when (name) {
             OpenAllApps.persistedName -> OpenAllApps
             null -> default
-            else -> ScreenshotGestureAction.entries
-                .firstOrNull { it.name == name }
-                ?.let(::EdgeGestureAction)
-                ?: default
+            else ->
+                ScreenshotGestureAction.entries
+                    .firstOrNull { it.name == name }
+                    ?.let(::EdgeGestureAction)
+                    ?: default
         }
     }
 }

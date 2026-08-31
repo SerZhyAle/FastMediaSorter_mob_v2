@@ -1,11 +1,13 @@
 package com.sza.fastmediasorter.ui.launcher.gadget
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.databinding.GadgetHomeWidgetBinding
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 
@@ -30,6 +32,7 @@ class HomeWidgetGadget(
     @DrawableRes override val iconRes: Int,
     override val defaultSpanW: Int,
     override val defaultSpanH: Int,
+    override val iconTintable: Boolean = false,
     private val command: LauncherCellCommand,
 ) : LauncherGadget {
 
@@ -37,7 +40,7 @@ class HomeWidgetGadget(
     override val requiresResourceParam: Boolean = false
 
     override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View =
-        HomeWidgetGadgetView(container.context, labelRes, iconRes, command, host)
+        HomeWidgetGadgetView(container.context, labelRes, iconRes, iconTintable, command, host)
 }
 
 /**
@@ -49,6 +52,7 @@ private class HomeWidgetGadgetView(
     context: Context,
     @StringRes labelRes: Int,
     @DrawableRes iconRes: Int,
+    iconTintable: Boolean,
     command: LauncherCellCommand,
     host: LauncherGadgetHost,
 ) : LauncherGadgetView(context) {
@@ -56,6 +60,16 @@ private class HomeWidgetGadgetView(
     init {
         val binding = GadgetHomeWidgetBinding.inflate(LayoutInflater.from(context), this)
         binding.gadgetHomeWidgetIcon.setImageResource(iconRes)
+        binding.gadgetHomeWidgetIcon.imageTintList = if (iconTintable) {
+            ColorStateList.valueOf(
+                MaterialColors.getColor(
+                    binding.gadgetHomeWidgetIcon,
+                    com.google.android.material.R.attr.colorOnSurface,
+                )
+            )
+        } else {
+            null
+        }
         binding.gadgetHomeWidgetLabel.setText(labelRes)
         // The label is the only thing naming this cell, so the whole cell announces it rather than
         // leaving a talkback user with an unlabelled tap target (Rule 16).

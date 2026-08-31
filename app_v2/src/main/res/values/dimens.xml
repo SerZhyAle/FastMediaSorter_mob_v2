@@ -33,6 +33,9 @@
     <!-- Toggler Font Sizes -->
     <dimen name="toggler_title_text_size">14sp</dimen>
     <dimen name="toggler_desc_text_size">12sp</dimen>
+    <!-- Inline value of a settings row (SettingsSelectionRow / SettingsDropdownRow): one step above the
+         title, so the chosen value is what the eye lands on when scanning a settings section. -->
+    <dimen name="settings_row_value_text_size">16sp</dimen>
 
     <!-- Collapsible group header title: +2sp over toggler titles for stronger section hierarchy. -->
     <dimen name="collapsible_section_title_text_size">16sp</dimen>

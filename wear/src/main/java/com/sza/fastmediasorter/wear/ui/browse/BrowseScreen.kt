@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.wear.ui.browse
 
+import android.app.Activity
 import android.app.RemoteInput
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -20,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -195,6 +198,41 @@ fun BrowseScreen(
     )
 
     BrowseRefineDialogsHost(refine = refineState, viewModel = viewModel, viewMode = fileListViewMode)
+
+    MediaStoreConsentPrompt(viewModel = viewModel)
+}
+
+/**
+ * S2142: shows the system's write confirmation for a MediaStore row the app does not own.
+ *
+ * The dialog belongs here rather than in `BrowseDialogsHost` because it is not one of the screen's
+ * own dialogs: the system owns and draws it, and this side only starts it and reports the answer.
+ *
+ * [launched] survives Activity recreation, which is the case this guard exists for: the request is
+ * deliberately kept in the ViewModel so it outlives the screen, so without the flag a recreation
+ * while the system dialog is already up re-enters composition on the same non-null request and
+ * stacks a second confirmation on the first. The result callback is re-registered by
+ * [rememberLauncherForActivityResult] either way, so the answer still arrives.
+ */
+@Composable
+private fun MediaStoreConsentPrompt(viewModel: BrowseViewModel) {
+    val consentRequest by viewModel.consentRequest.collectAsStateWithLifecycle()
+    var launched by rememberSaveable { mutableStateOf(false) }
+    val consentLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        viewModel.onConsentAnswered(result.resultCode == Activity.RESULT_OK)
+    }
+    LaunchedEffect(consentRequest) {
+        val request = consentRequest
+        when {
+            request == null -> launched = false
+            !launched -> {
+                launched = true
+                consentLauncher.launch(IntentSenderRequest.Builder(request).build())
+            }
+        }
+    }
 }
 
 /**
@@ -442,6 +480,7 @@ private fun WearFileOperationOutcome.messageRes(): Int = when (this) {
     WearFileOperationOutcome.NO_DESTINATION -> R.string.wear_file_op_outcome_no_destination
     WearFileOperationOutcome.UNCONFIRMED -> R.string.wear_file_op_outcome_unconfirmed
     WearFileOperationOutcome.REFUSED_UNSUPPORTED -> R.string.wear_file_op_outcome_unsupported
+    WearFileOperationOutcome.NEEDS_CONSENT -> R.string.wear_file_op_outcome_needs_consent
     WearFileOperationOutcome.REFUSED_TOO_LARGE -> R.string.wear_file_op_outcome_too_large
     WearFileOperationOutcome.PHONE_UNREACHABLE -> R.string.wear_file_op_outcome_phone_unreachable
     WearFileOperationOutcome.OPENED_ON_PHONE -> R.string.wear_open_on_phone_shown

@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperation
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationOutcome
+import com.sza.fastmediasorter.wear.domain.model.WearFileStorageClass
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
@@ -149,7 +150,15 @@ class FavouritesViewModel @Inject constructor(
         // opening it there - but the phone resolves an open by the token its browse protocol issued,
         // and a favourite is addressed by its own record and carries no token. Offering it here would
         // put a refusal behind a menu row, which is the one thing strategic 11 criterion 7 forbids.
-        return capabilityPolicy.allowedOperations(storageClass) - WearFileOperationKind.OPEN_ON_PHONE
+        val addressable = capabilityPolicy.allowedOperations(storageClass) - WearFileOperationKind.OPEN_ON_PHONE
+        // S2142: writing to a foreign MediaStore row goes through a system confirmation, and only the
+        // browse list mounts the launcher that can show one. Offering delete or rename here would put
+        // a refusal behind a menu row - the same reason OPEN_ON_PHONE is withheld just above.
+        return if (storageClass == WearFileStorageClass.MEDIA_STORE) {
+            addressable - WearFileOperationKind.DELETE - WearFileOperationKind.RENAME
+        } else {
+            addressable
+        }
     }
 
     /** The file the action menu acts on - the same one the player is handed. */

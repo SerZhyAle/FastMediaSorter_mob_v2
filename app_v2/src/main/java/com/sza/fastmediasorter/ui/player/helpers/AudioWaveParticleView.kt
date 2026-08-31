@@ -26,8 +26,8 @@ import kotlin.random.Random
  * Custom View rendering a procedural wave + drifting particle animation as an audio background.
  *
  * Algorithm:
- *  - 5–12 sine-wave paths drawn per frame (count, stroke, amplitude, color randomized per session).
- *  - 15–55 drifting particles that bounce off view edges (count, size, speed, hue randomized).
+ *  - 5-12 sine-wave paths drawn per frame (count, stroke, amplitude, color randomized per session).
+ *  - 15-55 drifting particles that bounce off view edges (count, size, speed, hue randomized).
  *  - Motion-blur trail effect via a semi-transparent overlay drawn onto an off-screen Bitmap each
  *    frame, avoiding expensive post-processing blur filters.
  *
@@ -264,11 +264,8 @@ class AudioWaveParticleView @JvmOverloads constructor(
      * legacy flavor builds against a lower minSdk - below that the same state is the animator
      * duration scale this ticket measured.
      */
-    /** S2209: app-level preference to disable animations. */
-    var disableAnimations: Boolean = false
-
     private fun animatorsDisabled(): Boolean =
-        disableAnimations || if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             !ValueAnimator.areAnimatorsEnabled()
         } else {
             Settings.Global.getFloat(

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.browse
 
+import android.content.IntentSender
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -102,6 +103,12 @@ class BrowseViewModel @Inject constructor(
 
     private val _operationRun = MutableStateFlow(WearFileOperationRunState())
     val operationRun: StateFlow<WearFileOperationRunState> = _operationRun.asStateFlow()
+
+    /** S2142: owns which write confirmation is waiting and what to retry once it is answered. */
+    private val consentManager = MediaStoreConsentManager()
+
+    /** The system confirmation waiting to be shown, or null when nothing is waiting. */
+    val consentRequest: StateFlow<IntentSender?> = consentManager.request
 
     /** Cancelled by [viewModelScope] when the screen goes, so an abandoned batch stops copying. */
     private var operationJob: Job? = null
@@ -530,10 +537,12 @@ class BrowseViewModel @Inject constructor(
     }
 
     /**
-     * A file no operation accepts must never enter the selection: it would count towards the batch
-     * and let the action menu offer work its source cannot perform.
+     * What every selected file allows, intersected - an empty set when nothing is selected, so the
+     * action chip has nothing to open.
+     *
+     * A file no operation accepts must never enter the selection either: it would count towards the
+     * batch and let the action menu offer work its source cannot perform.
      */
-    /** An empty intersection when nothing is selected, so the action chip has nothing to open. */
     private fun allowedFor(state: BrowseUiState, ids: Set<Long>): Set<WearFileOperationKind> {
         val selected = (state as? BrowseUiState.Success)
             ?.files
@@ -563,11 +572,21 @@ class BrowseViewModel @Inject constructor(
         }
     }
 
-    private fun startOperation(targets: List<WearMediaFile>, operation: WearFileOperation) {
+    private fun startOperation(
+        targets: List<WearMediaFile>,
+        operation: WearFileOperation,
+        keptResults: List<WearFileOperationResult> = emptyList()
+    ) {
         operationJob?.cancel()
         operationJob = viewModelScope.launch {
             Timber.d("S1863: start $operation over ${targets.size} file(s)")
-            _operationRun.value = WearFileOperationRunState(running = true, total = targets.size)
+            _operationRun.value = WearFileOperationRunState(
+                running = true,
+                total = targets.size,
+                // A retry after the owner confirms keeps what the first pass already settled, so a
+                // batch that half succeeded does not lose those lines to the second run.
+                results = keptResults
+            )
             try {
                 collectRun(targets, operation)
             } finally {
@@ -575,6 +594,7 @@ class BrowseViewModel @Inject constructor(
                 // running = true forever, and the files never reached would have no answer at all.
                 finishRun(targets)
             }
+            consentManager.raiseIfBlocked(_operationRun.value.results, targets, operation)
             _selectedFileIds.value = emptySet()
             // Only a run that actually changed the directory invalidates the list on screen; a send
             // that left every file where it was would reload for nothing.
@@ -624,6 +644,20 @@ class BrowseViewModel @Inject constructor(
         }
     }
 
+    /**
+     * The owner has answered the system dialog; a granted one runs the refused files again.
+     *
+     * A refusal leaves every NEEDS_CONSENT line standing, because that line already reads as "not
+     * confirmed, nothing changed" - which is exactly what happened, and what strategic 11 criterion
+     * 2 requires the owner to be able to see.
+     */
+    fun onConsentAnswered(granted: Boolean) {
+        val pending = consentManager.consume(granted) ?: return
+        val kept = _operationRun.value.results
+            .filterNot { it.outcome == WearFileOperationOutcome.NEEDS_CONSENT }
+        startOperation(pending.files, pending.operation, keptResults = kept)
+    }
+
     /** Stops a run in flight; [finishRun] then records what it never reached. */
     fun cancelOperation() {
         operationJob?.cancel()
@@ -632,6 +666,7 @@ class BrowseViewModel @Inject constructor(
     /** The results stay until the user dismisses them, outliving the reload a run may have caused. */
     fun dismissOperationResults() {
         _operationRun.value = WearFileOperationRunState()
+        consentManager.reset()
     }
 
     private fun selectedFiles(): List<WearMediaFile> {
@@ -667,34 +702,30 @@ class BrowseViewModel @Inject constructor(
                 ScreenTitle.Text(name)
             }
         }
-        return ScreenTitle.Resource(localTitleRes())
+        return ScreenTitle.Resource(localTitleRes(_categoryToken, mediaType))
     }
-
-    /**
-     * S2130: the chip's own label, so documents, "all" and "recents" are titled at all.
-     *
-     * Those three have no media type to map, and the presentation table already holds the word each
-     * chip is written with - reading it here is what keeps the screen titled the same as the chip
-     * that opened it, which is the defect the key set above records.
-     */
-    @StringRes
-    private fun localTitleRes(): Int =
-        BrowseCategoryCatalog.categoryForToken(_categoryToken)
-            ?.let { BrowseCategoryPresentation.labelFor(it) }
-            ?: when (mediaType) {
-                MediaType.MUSIC -> R.string.wear_phone_audio
-                MediaType.VIDEO -> R.string.wear_phone_video
-                MediaType.PHOTO -> R.string.wear_phone_images
-            }
 }
 
 /**
- * Whether a MIME type belongs to the expected media type category.
+ * S2130: the chip's own label, so documents, "all" and "recents" are titled at all.
  *
- * Top-level rather than a member: it reads no state of the screen, taking both of its inputs as
- * arguments, and sat inside the class only by habit. It is `mutatesList` below with a different
- * subject.
+ * Those three have no media type to map, and the presentation table already holds the word each
+ * chip is written with - reading it here is what keeps the screen titled the same as the chip that
+ * opened it, which is the defect the key set above records.
+ *
+ * Top-level rather than a member, on the same grounds as [matchesMediaType] below: it reads no
+ * state the caller cannot hand it, and both of its inputs are arguments.
  */
+@StringRes
+private fun localTitleRes(categoryToken: String?, mediaType: MediaType): Int =
+    BrowseCategoryCatalog.categoryForToken(categoryToken)
+        ?.let { BrowseCategoryPresentation.labelFor(it) }
+        ?: when (mediaType) {
+            MediaType.MUSIC -> R.string.wear_phone_audio
+            MediaType.VIDEO -> R.string.wear_phone_video
+            MediaType.PHOTO -> R.string.wear_phone_images
+        }
+
 /**
  * What [file] permits, classified first.
  *
@@ -707,6 +738,13 @@ private fun WearFileCapabilityPolicy.operationsFor(
     isNetworkSource: Boolean
 ): Set<WearFileOperationKind> = allowedOperations(classify(file, isNetworkSource))
 
+/**
+ * Whether a MIME type belongs to the expected media type category.
+ *
+ * Top-level rather than a member: it reads no state of the screen, taking both of its inputs as
+ * arguments, and sat inside the class only by habit. It is [mutatesList] below with a different
+ * subject.
+ */
 private fun matchesMediaType(mimeType: String?, mediaType: MediaType): Boolean {
     if (mimeType == null) {
         return false

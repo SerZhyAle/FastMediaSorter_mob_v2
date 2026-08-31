@@ -45,6 +45,27 @@ class StreamStallRuleTest {
     }
 
     @Test
+    fun `unavailable video output spends no empty poll budget`() {
+        val rule = StreamStallRule()
+        rule.start(videoObservation())
+
+        assertEquals(
+            StreamStallOutcome.Suspended,
+            rule.onPoll(videoObservation(isVideoOutputExpected = false), FIRST_POLL_MS),
+        )
+        assertEquals(
+            StreamStallOutcome.Suspended,
+            rule.onPoll(videoObservation(isVideoOutputExpected = false), SECOND_POLL_MS),
+        )
+        assertEquals(StreamStallOutcome.Progressing, rule.onPoll(videoObservation(), THIRD_POLL_MS))
+        assertEquals(StreamStallOutcome.Progressing, rule.onPoll(videoObservation(), FOURTH_POLL_MS))
+        assertEquals(
+            StreamStallOutcome.Stalled(StreamStallReason.RENDERED_FRAMES_FROZEN),
+            rule.onPoll(videoObservation(), FIFTH_POLL_MS),
+        )
+    }
+
+    @Test
     fun `an absent frame counter answers no evidence and spends no budget`() {
         val rule = StreamStallRule()
         rule.start(videoObservation(renderedFrames = null))
@@ -205,6 +226,7 @@ class StreamStallRuleTest {
     private fun videoObservation(
         positionMs: Long = START_POSITION_MS,
         renderedFrames: Int? = FIRST_FRAME_COUNT,
+        isVideoOutputExpected: Boolean = true,
         isLive: Boolean = false,
         bufferedDurationMs: Long = 0L,
         isLoading: Boolean = false,
@@ -212,6 +234,7 @@ class StreamStallRuleTest {
         positionMs = positionMs,
         renderedFrames = renderedFrames,
         hasVideo = true,
+        isVideoOutputExpected = isVideoOutputExpected,
         bufferedDurationMs = bufferedDurationMs,
         isLoading = isLoading,
         isLive = isLive,
@@ -224,6 +247,7 @@ class StreamStallRuleTest {
         positionMs = positionMs,
         renderedFrames = null,
         hasVideo = false,
+        isVideoOutputExpected = false,
         bufferedDurationMs = 0L,
         isLoading = false,
         isLive = false,

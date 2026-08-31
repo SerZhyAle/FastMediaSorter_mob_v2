@@ -2,11 +2,13 @@ package com.sza.fastmediasorter.ui.common.widget
 
 import android.content.Context
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ListPopupWindow
 import android.widget.TextView
@@ -16,6 +18,7 @@ import androidx.core.view.updateLayoutParams
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.databinding.ViewSettingsDropdownRowBinding
 import com.sza.fastmediasorter.ui.dialog.TooltipDialog
 import timber.log.Timber
 
@@ -39,12 +42,16 @@ class SettingsDropdownRow @JvmOverloads constructor(
     defStyleAttr: Int = 0,
 ) : LinearLayout(context, attrs, defStyleAttr) {
 
-    private val textGroup: LinearLayout
-    private val titleView: TextView
-    private val subtitleView: TextView
-    private val helpIcon: ImageButton
-    private val inputLayout: TextInputLayout
-    private val valueView: TextInputEditText
+    private val binding = ViewSettingsDropdownRowBinding.inflate(LayoutInflater.from(context), this)
+
+    private val textGroup: LinearLayout = binding.sdrTextGroup
+    private val titleView: TextView = binding.sdrTitle
+    private val subtitleView: TextView = binding.sdrSubtitle
+    private val helpIcon: ImageButton = binding.sdrIconHelp
+    private val inputLayout: TextInputLayout = binding.sdrInputLayout
+    private val valueView: TextInputEditText = binding.sdrValue
+    private val valueTextView: TextView = binding.sdrValueText
+    private val valueTextIcon: ImageView = binding.sdrValueTextIcon
 
     private var helpTitleText: CharSequence? = null
     private var helpMessageText: CharSequence? = null
@@ -55,17 +62,10 @@ class SettingsDropdownRow @JvmOverloads constructor(
 
     // -1 (MATCH_PARENT) keeps the legacy fill behaviour; a positive value caps the field to a fixed width.
     private var fieldWidthPx: Int = LayoutParams.MATCH_PARENT
+    private var valueAsText: Boolean = false
 
     init {
         orientation = VERTICAL
-        LayoutInflater.from(context).inflate(R.layout.view_settings_dropdown_row, this, true)
-
-        textGroup = findViewById(R.id.sdr_textGroup)
-        titleView = findViewById(R.id.sdr_title)
-        subtitleView = findViewById(R.id.sdr_subtitle)
-        helpIcon = findViewById(R.id.sdr_iconHelp)
-        inputLayout = findViewById(R.id.sdr_inputLayout)
-        valueView = findViewById(R.id.sdr_value)
 
         bindHelpClick()
         bindItemSelection()
@@ -114,7 +114,7 @@ class SettingsDropdownRow @JvmOverloads constructor(
         entries = items
         dismissOptions()
         if (selectedIndex in items.indices) {
-            valueView.setText(items[selectedIndex])
+            showValue(items[selectedIndex])
         }
     }
 
@@ -124,8 +124,13 @@ class SettingsDropdownRow @JvmOverloads constructor(
     fun setSelection(index: Int) {
         selectedIndex = index
         if (index in entries.indices) {
-            valueView.setText(entries[index])
+            showValue(entries[index])
         }
+    }
+
+    private fun showValue(text: CharSequence) {
+        valueView.setText(text)
+        valueTextView.text = text
     }
 
     /**
@@ -164,6 +169,8 @@ class SettingsDropdownRow @JvmOverloads constructor(
         helpIcon.isEnabled = enabled
         inputLayout.isEnabled = enabled
         valueView.isEnabled = enabled
+        valueTextView.isEnabled = enabled
+        valueTextIcon.isEnabled = enabled
         alpha = if (enabled) 1f else 0.5f
         if (!enabled) dismissOptions()
     }
@@ -202,9 +209,9 @@ class SettingsDropdownRow @JvmOverloads constructor(
         // field (e.g. sdr_fieldMaxWidth) to fit the widest entry - see measurePopupContentWidth.
         val adapter = ArrayAdapter(context, android.R.layout.simple_list_item_1, entries)
         val popup = ListPopupWindow(context).apply {
-            anchorView = inputLayout
+            anchorView = if (valueAsText) this@SettingsDropdownRow else inputLayout
             isModal = true
-            width = measurePopupContentWidth(context, adapter, minWidthPx = inputLayout.width)
+            width = measurePopupContentWidth(context, adapter, minWidthPx = if (valueAsText) 0 else inputLayout.width)
             height = ListPopupWindow.WRAP_CONTENT
             setAdapter(adapter)
             setOnItemClickListener { _, _, position, _ ->
@@ -260,7 +267,10 @@ class SettingsDropdownRow @JvmOverloads constructor(
             )
             val fieldMaxWidthPx = typedArray.getDimensionPixelSize(R.styleable.SettingsDropdownRow_sdr_fieldMaxWidth, 0)
             if (fieldMaxWidthPx > 0) inputLayout.maxWidth = fieldMaxWidthPx
-            if (typedArray.getBoolean(R.styleable.SettingsDropdownRow_sdr_inline, false)) {
+            valueAsText = typedArray.getBoolean(R.styleable.SettingsDropdownRow_sdr_valueAsText, false)
+            if (valueAsText) {
+                applyValueAsTextLayout()
+            } else if (typedArray.getBoolean(R.styleable.SettingsDropdownRow_sdr_inline, false)) {
                 applyInlineLayout()
             } else if (fieldWidthPx != LayoutParams.MATCH_PARENT) {
                 inputLayout.updateLayoutParams<LayoutParams> { width = fieldWidthPx }
@@ -280,7 +290,7 @@ class SettingsDropdownRow @JvmOverloads constructor(
             weight = 1f
             marginEnd = resources.getDimensionPixelSize(R.dimen.settings_help_icon_margin)
         }
-        findViewById<View>(R.id.sdr_titleLineSpacer).visibility = View.GONE
+        binding.sdrTitleLineSpacer.visibility = View.GONE
         inputLayout.updateLayoutParams<LayoutParams> {
             // A fixed field width opts out of weight-based stretching for short-value selectors.
             if (fieldWidthPx != LayoutParams.MATCH_PARENT) {
@@ -292,6 +302,34 @@ class SettingsDropdownRow @JvmOverloads constructor(
             }
             gravity = android.view.Gravity.CENTER_VERTICAL
         }
+    }
+
+    /**
+     * Value text mode: the outlined field is dropped and the chosen entry is drawn right after the
+     * title, so this row reads identically to the SettingsSelectionRow rows it sits beside.
+     * The whole row becomes the trigger, since there is no field left to click.
+     */
+    private fun applyValueAsTextLayout() {
+        orientation = HORIZONTAL
+        gravity = android.view.Gravity.CENTER_VERTICAL
+        textGroup.updateLayoutParams<LayoutParams> {
+            width = 0
+            weight = 1f
+        }
+        inputLayout.visibility = View.GONE
+        valueTextView.visibility = View.VISIBLE
+        valueTextIcon.visibility = View.VISIBLE
+        isClickable = true
+        isFocusable = true
+        setOnClickListener { showOptions() }
+        setOnKeyListener { _, keyCode, event ->
+            if (!isConfirmKey(keyCode)) return@setOnKeyListener false
+            if (event.action == KeyEvent.ACTION_UP) showOptions()
+            true
+        }
+        val background = TypedValue()
+        context.theme.resolveAttribute(android.R.attr.selectableItemBackground, background, true)
+        if (background.resourceId != 0) setBackgroundResource(background.resourceId)
     }
 
     private fun syncHelpVisibility() {

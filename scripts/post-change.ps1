@@ -1448,6 +1448,18 @@ finally {
         })
         $releaseDomains = @(@($derivedDomains + $heldByThisSession) | Select-Object -Unique)
         Exit-AgentLock -Name 'Code' -Domains $releaseDomains
+
+        # A closure is the deliberate boundary of one logical change. The following edit needs a
+        # fresh lock, so make that state transition explicit before a later phase can write unlocked.
+        $releasedDomains = @($heldByThisSession | Where-Object {
+            $status = Get-AgentLockStatus -Name $_
+            -not ($status.Exists -and [string]$status.SessionId -eq $mySession)
+        })
+        if ($releasedDomains.Count -gt 0) {
+            Write-Host ("  [code-lock-release] RELEASED: $($releasedDomains -join ', '). " +
+                'Before the next repository source, resource, build, or script edit, acquire its derived code lock.') `
+                -ForegroundColor Yellow
+        }
     }
     catch {
         Write-Host "  [code-lock-release] WARN - could not release the code lock: $($_.Exception.Message)" -ForegroundColor Yellow

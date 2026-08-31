@@ -293,17 +293,28 @@ private fun VideoPlayerContent(
             )
         }
 
-        // Controls overlay
-        AnimatedVisibility(
-            visible = uiState.showControls,
-            enter = fadeIn(),
-            exit = fadeOut(),
-            modifier = Modifier.align(Alignment.Center)
-        ) {
-            VideoControls(
-                uiState = uiState,
-                actions = actions
-            )
+        // Controls overlay.
+        // S2250: the setting removes the fade, not the panel - the plain branch reaches the same
+        // visible state in one frame, and hiding it still hides VideoControls with it.
+        when {
+            !uiState.animationsDisabled -> AnimatedVisibility(
+                visible = uiState.showControls,
+                enter = fadeIn(),
+                exit = fadeOut(),
+                modifier = Modifier.align(Alignment.Center)
+            ) {
+                VideoControls(
+                    uiState = uiState,
+                    actions = actions
+                )
+            }
+
+            uiState.showControls -> Box(modifier = Modifier.align(Alignment.Center)) {
+                VideoControls(
+                    uiState = uiState,
+                    actions = actions
+                )
+            }
         }
     }
 
@@ -444,8 +455,8 @@ private fun VideoControls(
     ) {
         // S2140: shown only while the bezel is being turned and for a moment after, same readout shape
         // and the same string audio already uses (strategic 3.2 - one key, not a duplicate per screen).
-        // It needs no visibility rule of its own: this whole column is already inside the panel's
-        // AnimatedVisibility, so hiding the panel hides this with it.
+        // It needs no visibility rule of its own: this whole column is already inside whichever
+        // branch renders the panel, so hiding the panel hides this with it.
         if (uiState.isVolumeVisible) {
             val readout = stringResource(
                 R.string.wear_audio_volume_level,

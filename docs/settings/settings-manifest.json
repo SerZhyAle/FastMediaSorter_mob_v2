@@ -2256,9 +2256,9 @@
       "destination": "GENERAL",
       "layout": "dialog_launcher_settings",
       "kind": "TOGGLE_ROW",
-      "titleEn": "Double tap to lock desktop",
-      "titleRu": "Двойной тап для блокировки рабочего стола",
-      "titleUk": "Подвійний дотик для блокування робочого стола"
+      "titleEn": "Double tap to lock the screen",
+      "titleRu": "Двойной тап для блокировки экрана",
+      "titleUk": "Подвійний дотик для блокування екрана"
     },
     {
       "key": "rowLauncherDesktopSwipeDown",
@@ -2271,6 +2271,16 @@
       "titleUk": "Свайп униз"
     },
     {
+      "key": "rowLauncherDesktopSwipeDownTarget",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "SELECTION_ROW",
+      "titleEn": "App to launch",
+      "titleRu": "Программа для запуска",
+      "titleUk": "Програма для запуску"
+    },
+    {
       "key": "rowLauncherDesktopSwipeLeft",
       "sectionId": "launcher",
       "destination": "GENERAL",
@@ -2279,6 +2289,16 @@
       "titleEn": "Swipe left",
       "titleRu": "Свайп влево",
       "titleUk": "Свайп ліворуч"
+    },
+    {
+      "key": "rowLauncherDesktopSwipeLeftTarget",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "SELECTION_ROW",
+      "titleEn": "App to launch",
+      "titleRu": "Программа для запуска",
+      "titleUk": "Програма для запуску"
     },
     {
       "key": "rowLauncherDesktopSwipeRight",
@@ -2291,6 +2311,16 @@
       "titleUk": "Свайп праворуч"
     },
     {
+      "key": "rowLauncherDesktopSwipeRightTarget",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "SELECTION_ROW",
+      "titleEn": "App to launch",
+      "titleRu": "Программа для запуска",
+      "titleUk": "Програма для запуску"
+    },
+    {
       "key": "rowLauncherDesktopSwipeUp",
       "sectionId": "launcher",
       "destination": "GENERAL",
@@ -2299,6 +2329,16 @@
       "titleEn": "Swipe up",
       "titleRu": "Свайп вверх",
       "titleUk": "Свайп угору"
+    },
+    {
+      "key": "rowLauncherDesktopSwipeUpTarget",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "SELECTION_ROW",
+      "titleEn": "App to launch",
+      "titleRu": "Программа для запуска",
+      "titleUk": "Програма для запуску"
     },
     {
       "key": "rowLauncherForeignNotifications",

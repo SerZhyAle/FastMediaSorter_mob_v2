@@ -49,13 +49,13 @@
                             app:ssr_inline="true"
                             app:ssr_title="@string/language" />
 
-                        <!-- Color theme (S0328). -->
+                        <!-- Color theme (S0328). Value text mode, parity with the Language row it
+                             shares this landscape line with. -->
                         <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
                             android:id="@+id/spinnerColorTheme"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            app:sdr_inline="true"
-                            app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
+                            app:sdr_valueAsText="true"
                             app:sdr_title="@string/color_theme"
                             app:sdr_entries="@array/color_theme_options" />
 
@@ -93,7 +93,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_tiny"
-                        app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                        app:sdr_valueAsText="true"
                         app:sdr_title="@string/pref_resource_grid_cell_size_title" />
 
                     <!-- Row: Allow new windows (S0028) | Enable Favorites.

@@ -1,12 +1,17 @@
 package com.sza.fastmediasorter.ui.launcher.menu
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.PopupMenu
-import androidx.core.view.doOnLayout
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.DialogFragment
@@ -16,6 +21,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentLauncherAllAppsBinding
+import com.sza.fastmediasorter.domain.model.launcher.InstalledApp
 import com.sza.fastmediasorter.domain.model.launcher.InstalledAppSortOrder
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
@@ -41,6 +47,20 @@ class LauncherAllAppsFragment : DialogFragment() {
     private var _binding: FragmentLauncherAllAppsBinding? = null
     private val binding get() = _binding!!
 
+    private val systemDialogsReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.getStringExtra(SYSTEM_DIALOG_REASON) == SYSTEM_DIALOG_REASON_HOME_KEY) {
+                // The system can issue HOME after FragmentManager saves state; there is no UI state to retain.
+                dismissAllowingStateLoss()
+            }
+        }
+    }
+
+    private val groupManager = LauncherAlphabeticalAppGroupManager()
+
+    private var latestApps: List<InstalledApp> = emptyList()
+    private val expandedGroupKeys = mutableSetOf<String>()
+
     private val appsAdapter = LauncherAppGridAdapter(
         onAppClick = { app ->
             homeViewModel.run(LauncherCellCommand.App(app.id))
@@ -50,6 +70,7 @@ class LauncherAllAppsFragment : DialogFragment() {
             actionMenuManager.show(view, app.id)
             true
         },
+        onGroupToggle = ::toggleGroup,
     )
 
     // Built lazily on the first long press: most visits never open the menu at all. The scope is the
@@ -92,20 +113,19 @@ class LauncherAllAppsFragment : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setUpGrid()
+        binding.allAppsHome.setOnClickListener { dismiss() }
+        ContextCompat.registerReceiver(
+            requireContext(),
+            systemDialogsReceiver,
+            IntentFilter(Intent.ACTION_CLOSE_SYSTEM_DIALOGS),
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
         binding.allAppsSearch.doAfterTextChanged { viewModel.setQuery(it?.toString().orEmpty()) }
         binding.allAppsSort.setOnClickListener { showOrderMenu(it) }
 
         collectOnLifecycle(viewModel.apps) { apps ->
-            appsAdapter.submitApps(
-                apps.map { app ->
-                    LauncherAppGridAdapter.AppItem(
-                        id = app.packageName,
-                        label = app.label,
-                        iconFile = app.iconFile,
-                        iconVersion = app.lastUpdateTime,
-                    )
-                }
-            )
+            latestApps = apps
+            renderGroups()
             applyEmptyState(apps.isEmpty())
         }
     }
@@ -114,21 +134,35 @@ class LauncherAllAppsFragment : DialogFragment() {
         super.onDestroyView()
         // The popup anchors inside this screen and must not outlive it.
         actionMenuManager.dismiss()
+        requireContext().unregisterReceiver(systemDialogsReceiver)
         _binding = null
     }
 
-    /**
-     * The column count comes from the measured width rather than a constant, which is what lets one
-     * layout serve portrait and landscape (strategic 3.3 - no landscape counterpart is declared).
-     */
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // The launcher handles rotation itself, so the dialog must recalculate its grid instead of
+        // waiting for a new app-list emission that may never arrive.
+        renderGroups()
+    }
+
     private fun setUpGrid() {
-        val layoutManager = GridLayoutManager(requireContext(), FALLBACK_COLUMNS)
+        val layoutManager = GridLayoutManager(requireContext(), desktopColumns())
         binding.allAppsGrid.layoutManager = layoutManager
         binding.allAppsGrid.adapter = appsAdapter
-        binding.allAppsGrid.doOnLayout { grid ->
-            val cellWidth = resources.getDimensionPixelSize(R.dimen.launcher_all_apps_cell_min_width)
-            layoutManager.spanCount = (grid.width / cellWidth).coerceAtLeast(1)
-        }
+        layoutManager.spanSizeLookup = appsAdapter.getSpanSizeLookup(desktopColumns())
+    }
+
+    private fun renderGroups() {
+        val spanCount = desktopColumns()
+        val layoutManager = binding.allAppsGrid.layoutManager as GridLayoutManager
+        layoutManager.spanCount = spanCount
+        layoutManager.spanSizeLookup = appsAdapter.getSpanSizeLookup(spanCount)
+        appsAdapter.submitGroups(groupManager.groupApps(latestApps, spanCount, expandedGroupKeys))
+    }
+
+    private fun toggleGroup(key: String) {
+        if (!expandedGroupKeys.add(key)) expandedGroupKeys.remove(key)
+        renderGroups()
     }
 
     /**
@@ -174,11 +208,10 @@ class LauncherAllAppsFragment : DialogFragment() {
     companion object {
         const val TAG = "launcher_all_apps"
 
-        /** Used until the first layout pass reports a real width. */
-        private const val FALLBACK_COLUMNS = 4
-
         /** Kept clear of the order ids, which are the map's indices. */
         private const val REVERSE_ITEM_ID = 100
+        private const val SYSTEM_DIALOG_REASON = "reason"
+        private const val SYSTEM_DIALOG_REASON_HOME_KEY = "homekey"
 
         private val ORDER_LABELS = linkedMapOf(
             InstalledAppSortOrder.LABEL to R.string.launcher_all_apps_sort_label,

@@ -1049,20 +1049,40 @@
     "ru": "Выбирает действие свайпа лаунчера из того же доступного набора, что и для жестов с края. При выборе «Открыть приложение» или «Открыть URL» затем задаётся цель. Свайп вверх срабатывает только после нижней границы; по умолчанию открывает «Все приложения».",
     "uk": "Вибирає дію свайпу лаунчера з того самого доступного набору, що й для жестів з краю. Після вибору «Відкрити програму» або «Відкрити URL» задається ціль. Свайп угору спрацьовує лише після нижньої межі; типово відкриває «Усі програми»."
   },
+  "rowLauncherDesktopSwipeUpTarget": {
+    "en": "Sets the target of the upward swipe's action - the app it launches or the web address it opens. Shown only while the assigned action takes a target; tap to change it, and clear it from the address dialog. An empty target keeps the action's own fallback.",
+    "ru": "Задаёт цель действия свайпа вверх - программу, которую оно запускает, или адрес, который открывает. Строка видна, только пока назначенное действие принимает цель; нажатие меняет цель, а очистить её можно в диалоге адреса. Пустая цель оставляет запасное поведение самого действия.",
+    "uk": "Задає ціль дії свайпу вгору - програму, яку вона запускає, або адресу, яку відкриває. Рядок видно, лише поки призначена дія приймає ціль; натискання змінює ціль, а очистити її можна в діалозі адреси. Порожня ціль залишає запасну поведінку самої дії."
+  },
   "rowLauncherDesktopSwipeDown": {
     "en": "Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. By default, it opens the notification shade when the system action is available.",
     "ru": "Выбирает действие свайпа лаунчера из того же доступного набора, что и для жестов с края. При выборе «Открыть приложение» или «Открыть URL» затем задаётся цель. По умолчанию открывает шторку уведомлений, если системное действие доступно.",
     "uk": "Вибирає дію свайпу лаунчера з того самого доступного набору, що й для жестів з краю. Після вибору «Відкрити програму» або «Відкрити URL» задається ціль. Типово відкриває шторку сповіщень, якщо системна дія доступна."
+  },
+  "rowLauncherDesktopSwipeDownTarget": {
+    "en": "Sets the target of the downward swipe's action - the app it launches or the web address it opens. Shown only while the assigned action takes a target; tap to change it, and clear it from the address dialog. An empty target keeps the action's own fallback.",
+    "ru": "Задаёт цель действия свайпа вниз - программу, которую оно запускает, или адрес, который открывает. Строка видна, только пока назначенное действие принимает цель; нажатие меняет цель, а очистить её можно в диалоге адреса. Пустая цель оставляет запасное поведение самого действия.",
+    "uk": "Задає ціль дії свайпу вниз - програму, яку вона запускає, або адресу, яку відкриває. Рядок видно, лише поки призначена дія приймає ціль; натискання змінює ціль, а очистити її можна в діалозі адреси. Порожня ціль залишає запасну поведінку самої дії."
   },
   "rowLauncherDesktopSwipeLeft": {
     "en": "Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. By default, no action is used.",
     "ru": "Выбирает действие свайпа лаунчера из того же доступного набора, что и для жестов с края. При выборе «Открыть приложение» или «Открыть URL» затем задаётся цель. По умолчанию действие не используется.",
     "uk": "Вибирає дію свайпу лаунчера з того самого доступного набору, що й для жестів з краю. Після вибору «Відкрити програму» або «Відкрити URL» задається ціль. Типово дія не використовується."
   },
+  "rowLauncherDesktopSwipeLeftTarget": {
+    "en": "Sets the target of the leftward swipe's action - the app it launches or the web address it opens. Shown only while the assigned action takes a target; tap to change it, and clear it from the address dialog. An empty target keeps the action's own fallback.",
+    "ru": "Задаёт цель действия свайпа влево - программу, которую оно запускает, или адрес, который открывает. Строка видна, только пока назначенное действие принимает цель; нажатие меняет цель, а очистить её можно в диалоге адреса. Пустая цель оставляет запасное поведение самого действия.",
+    "uk": "Задає ціль дії свайпу вліво - програму, яку вона запускає, або адресу, яку відкриває. Рядок видно, лише поки призначена дія приймає ціль; натискання змінює ціль, а очистити її можна в діалозі адреси. Порожня ціль залишає запасну поведінку самої дії."
+  },
   "rowLauncherDesktopSwipeRight": {
     "en": "Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. By default, no action is used.",
     "ru": "Выбирает действие свайпа лаунчера из того же доступного набора, что и для жестов с края. При выборе «Открыть приложение» или «Открыть URL» затем задаётся цель. По умолчанию действие не используется.",
     "uk": "Вибирає дію свайпу лаунчера з того самого доступного набору, що й для жестів з краю. Після вибору «Відкрити програму» або «Відкрити URL» задається ціль. Типово дія не використовується."
+  },
+  "rowLauncherDesktopSwipeRightTarget": {
+    "en": "Sets the target of the rightward swipe's action - the app it launches or the web address it opens. Shown only while the assigned action takes a target; tap to change it, and clear it from the address dialog. An empty target keeps the action's own fallback.",
+    "ru": "Задаёт цель действия свайпа вправо - программу, которую оно запускает, или адрес, который открывает. Строка видна, только пока назначенное действие принимает цель; нажатие меняет цель, а очистить её можно в диалоге адреса. Пустая цель оставляет запасное поведение самого действия.",
+    "uk": "Задає ціль дії свайпу вправо - програму, яку вона запускає, або адресу, яку відкриває. Рядок видно, лише поки призначена дія приймає ціль; натискання змінює ціль, а очистити її можна в діалозі адреси. Порожня ціль залишає запасну поведінку самої дії."
   },
   "rowLauncherForeignNotifications": {
     "en": "Shows one icon per other app that has pending notifications in the launcher top bar, with how many it has. Their title, text and attachments are never read. On by default and inert until the system grants notification access.",
@@ -1075,9 +1095,9 @@
     "uk": "Блокує вхід у режим редагування робочого стола довгим натисканням; вхід через меню «Пуск» лишається доступним."
   },
   "rowLauncherDesktopDoubleTapLock": {
-    "en": "Lets a double tap on empty desktop space switch the desktop edit lock. On by default.",
-    "ru": "Позволяет двойным тапом по свободному месту рабочего стола переключать блокировку редактирования. По умолчанию включено.",
-    "uk": "Дозволяє подвійним дотиком по вільному місцю робочого стола перемикати блокування редагування. Типово ввімкнено."
+    "en": "Lets a double tap on empty desktop space lock the screen; where the device lock is out of reach the launcher blacks the screen out instead. On by default.",
+    "ru": "Позволяет двойным тапом по свободному месту рабочего стола блокировать экран; где блокировка устройства недоступна, лаунчер гасит экран в чёрный. По умолчанию включено.",
+    "uk": "Дозволяє подвійним дотиком по вільному місцю робочого стола блокувати екран; де блокування пристрою недоступне, лаунчер гасить екран у чорний. Типово ввімкнено."
   },
   "rowLauncherModeEnabled": {
     "en": "Makes the app the device home screen, so the Home button opens your own desktop.",
@@ -1170,9 +1190,9 @@
     "uk": "Вибирає заставку робочого стола лаунчера: фірмову анімацію, застиглий кадр у стилі смуг, що оновлюється після повернення до лаунчера, порожній фон, власне зображення, живий кадр з камери пристрою або миттєве фото, яке камера робить заново під час кожного повернення до лаунчера. Обидва пункти камери видно лише на пристроях із камерою, і під час вибору будь-якого з них запитується дозвіл на камеру, а потім пропонується обрати об'єктив. Живий кадр зупиняється, щойно робочий стіл зникає з екрана; миттєве фото звільняє камеру одразу після знімка і зберігає лише найсвіжіший кадр."
   },
   "rowLauncherWidgetBackdropAlpha": {
-    "en": "Controls the opacity of widget background cards on the launcher desktop (0% transparent to 100% opaque; 85% default).",
-    "ru": "Настраивает прозрачность подложки виджетов на рабочем столе лаунчера (от 0% прозрачно до 100% непрозрачно; по умолчанию 85%).",
-    "uk": "Налаштовує прозорість підкладки віджетів на робочому столі лаунчера (від 0% прозоро до 100% непрозоро; за замовчуванням 85%)."
+    "en": "Controls the opacity of widget background cards on the launcher desktop (0% transparent to 100% opaque; 0% default).",
+    "ru": "Настраивает прозрачность подложки виджетов на рабочем столе лаунчера (от 0% прозрачно до 100% непрозрачно; по умолчанию 0%).",
+    "uk": "Налаштовує прозорість підкладки віджетів на робочому столі лаунчера (від 0% прозоро до 100% непрозоро; за замовчуванням 0%)."
   },
   "rowLinkAutodownloadEnabled": {
     "en": "Automatically downloads a file when a link is shared into the app.",

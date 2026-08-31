@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
 import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
 import com.sza.fastmediasorter.core.screencapture.gesture.GestureAccessibilityActions
 import com.sza.fastmediasorter.databinding.DialogEdgeGestureConfigBinding
+import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureZone
@@ -73,11 +74,17 @@ class EdgeGestureConfigDialogFragment : DialogFragment(), EdgeGestureConfigManag
     // Guards render() writes so setCheckedSilently never bounces back into a settings update.
     private var isUpdatingFromSettings = false
 
+    // S2256: gates the launcher route in the shared picker - the seam is the single availability input,
+    // so an edge slot can never be assigned a panel the build does not compile.
+    @Inject
+    lateinit var launcherModeContract: LauncherModeContract
+
     private val gestureActionPickerManager by lazy {
         ScreenshotGestureActionPickerManager(
             capabilityAvailability,
             screenRecordingAvailable = screenVideoRecordingControllers.isNotEmpty(),
             systemActionsAvailable = gestureAccessibilityActions.isNotEmpty(),
+            launcherRouteAvailable = launcherModeContract.isAvailableInBuild,
         )
     }
 

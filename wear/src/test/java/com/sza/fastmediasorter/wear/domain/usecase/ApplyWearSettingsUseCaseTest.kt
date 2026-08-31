@@ -333,6 +333,7 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     var lastSettingsSyncAtValue = 0L
     var browseContentTypesValue: Set<WearContentType> = emptySet()
     var browseSortOrderValue: BrowseSortOrder = BrowseSortOrder.DEFAULT
+    var animationsDisabledValue = false
 
     override val isAudioEnabled: Flow<Boolean> = MutableStateFlow(audioEnabled)
     override val isVideoEnabled: Flow<Boolean> = MutableStateFlow(videoEnabled)
@@ -359,10 +360,17 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     override val notificationPermissionAsked: Flow<Boolean> =
         MutableStateFlow(notificationPermissionAskedValue)
 
+    // Like the refine state below: part of the contract, never read by ApplyWearSettingsUseCase.
+    override val isAnimationsDisabled: Flow<Boolean> = MutableStateFlow(animationsDisabledValue)
+
     // S2199: browse-list refine state. Not part of the settings exchange this test exercises, so the
     // fake only has to satisfy the contract - the values are never read by ApplyWearSettingsUseCase.
     override val browseContentTypes: Flow<Set<WearContentType>> = MutableStateFlow(browseContentTypesValue)
     override val browseSortOrder: Flow<BrowseSortOrder> = MutableStateFlow(browseSortOrderValue)
+
+    override suspend fun setAnimationsDisabled(disabled: Boolean) {
+        animationsDisabledValue = disabled
+    }
 
     override suspend fun setBrowseContentTypes(types: Set<WearContentType>) {
         browseContentTypesValue = types

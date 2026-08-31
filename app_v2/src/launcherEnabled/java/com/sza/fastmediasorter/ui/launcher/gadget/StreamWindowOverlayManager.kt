@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.launcher.gadget
 
 import android.widget.FrameLayout
 import androidx.core.view.isVisible
+import timber.log.Timber
 
 /**
  * S2230: owns the video face's control overlay - show on a tap, hide on a repeat tap or after the
@@ -36,10 +37,12 @@ class StreamWindowOverlayManager(private val root: FrameLayout) {
 
     fun show() {
         root.isVisible = true
+        Timber.d("S2267: overlay show %dx%d in %s", root.width, root.height, root.parent?.javaClass?.simpleName)
         rescheduleHide()
     }
 
     fun hide() {
+        Timber.d("S2267: overlay hide")
         root.removeCallbacks(autoHide)
         root.isVisible = false
     }

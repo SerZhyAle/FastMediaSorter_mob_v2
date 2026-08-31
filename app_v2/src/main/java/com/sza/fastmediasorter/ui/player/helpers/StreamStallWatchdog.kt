@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.os.SystemClock
+import androidx.lifecycle.Lifecycle
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import com.sza.fastmediasorter.core.playback.resilience.StreamStallObservation
@@ -44,6 +45,10 @@ internal fun VideoPlayerManager.checkStreamStall() {
     val outcome = streamStallRule.onPoll(streamStallObservation(), SystemClock.elapsedRealtime())
     when (outcome) {
         is StreamStallOutcome.Stalled -> recoverFromStreamStall(outcome.reason.diagnostic)
+        StreamStallOutcome.Suspended -> {
+            Timber.d("S2254: video output unavailable; watchdog poll suspended path=%s", currentFilePath)
+            rescheduleStreamStallPoll()
+        }
         is StreamStallOutcome.NoEvidence -> {
             logStreamStallNoEvidence(outcome)
             rescheduleStreamStallPoll()
@@ -87,6 +92,7 @@ internal fun VideoPlayerManager.checkStreamBufferingTimeout() {
     )
     when (outcome) {
         is StreamStallOutcome.Stalled -> recoverFromStreamStall(outcome.reason.diagnostic)
+        StreamStallOutcome.Suspended -> armStreamBufferingTimeout()
         // The deadline arrived without the rule ever being armed, so there is no leg to judge and
         // nothing to re-arm against - staying silent here would look identical to a healthy stream.
         is StreamStallOutcome.NoEvidence -> Timber.i(
@@ -157,10 +163,17 @@ private fun VideoPlayerManager.streamStallObservation(): StreamStallObservation 
         positionMs = player?.currentPosition ?: 0L,
         renderedFrames = activeStreamAnalyticsListener?.renderedFrames(),
         hasVideo = player?.videoFormat != null,
+        isVideoOutputExpected = isVideoOutputExpected(),
         bufferedDurationMs = player?.totalBufferedDuration ?: 0L,
         isLoading = player?.isLoading == true,
         isLive = player?.isCurrentMediaItemLive == true
     )
+}
+
+private fun VideoPlayerManager.isVideoOutputExpected(): Boolean {
+    val host = context as? androidx.lifecycle.LifecycleOwner ?: return false
+    val inPictureInPicture = (context as? android.app.Activity)?.isInPictureInPictureMode == true
+    return inPictureInPicture || host.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
 }
 
 /**

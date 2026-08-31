@@ -4,7 +4,8 @@ package com.sza.fastmediasorter.domain.model
  * Action assignable to an edge gesture direction. The screenshot actions capture the screen first and
  * then run a post-capture route; the camera/recording actions ([LAUNCH_CAMERA], [TAKE_PHOTO] and the
  * TAKE_PHOTO_* variants, [START_VIDEO_RECORDING], [START_AUDIO_RECORDING], [START_SCREEN_RECORDING])
- * plus [OPEN_APP], [OPEN_PANEL] and [DO_NOT_USE] are pre-capture actions that skip the screenshot path.
+ * plus [OPEN_APP], [OPEN_PANEL], [OPEN_ALL_APPS] and [DO_NOT_USE] are pre-capture actions that skip
+ * the screenshot path.
  */
 enum class ScreenshotGestureAction {
     SILENT_SCREENSHOT,
@@ -68,6 +69,10 @@ enum class ScreenshotGestureAction {
     LOCK_SCREEN,
     TOGGLE_SPLIT_SCREEN,
     PREVIOUS_APP,
+
+    // S2256: launcher route - bring the home surface forward with its All apps panel open. Executable
+    // only where the launcher-mode seam is compiled in; the picker hides it on the other flavors.
+    OPEN_ALL_APPS,
     DO_NOT_USE;
 
     companion object {

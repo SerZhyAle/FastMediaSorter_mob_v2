@@ -19,6 +19,8 @@ internal class FakeLauncherModeContract(
 ) : LauncherModeContract {
 
     override fun homeComponent(context: Context): ComponentName? = null
+
+    override fun openAllApps(context: Context): Boolean = false
 }
 
 internal class FakeNetworkMonitorContract(

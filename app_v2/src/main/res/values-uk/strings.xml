@@ -3516,9 +3516,6 @@
     <string name="launcher_tray_speed_upload">Швидкість передачі: %1$s</string>
     <string name="launcher_wallpaper_mode_instant_photo">Миттєве фото</string>
     <string name="launcher_desktop_swipe_picker_title">Дія свайпу на робочому столі</string>
-    <string name="launcher_desktop_swipe_action_all_apps">Усі програми</string>
-    <string name="launcher_desktop_swipe_action_notification_shade">Шторка сповіщень</string>
-    <string name="launcher_desktop_swipe_action_do_not_use">Не використовувати</string>
     <string name="launcher_desktop_swipe_up_title">Свайп угору</string>
     <string name="launcher_desktop_swipe_down_title">Свайп униз</string>
     <string name="launcher_desktop_swipe_left_title">Свайп ліворуч</string>
@@ -3541,9 +3538,12 @@
     <string name="launcher_stream_overlay_stop">Стоп</string>
     <string name="launcher_stream_overlay_pip">Картинка в картинці</string>
     <string name="launcher_stream_overlay_fullscreen">На весь екран</string>
-    <string name="launcher_settings_double_tap_lock_title">Подвійний дотик для блокування робочого стола</string>
-    <string name="launcher_settings_double_tap_lock_subtitle">Подвійний дотик по вільному місцю перемикає блокування редагування</string>
+    <string name="launcher_settings_double_tap_lock_title">Подвійний дотик для блокування екрана</string>
+    <string name="launcher_settings_double_tap_lock_subtitle">Подвійний дотик по вільному місцю блокує екран, а де блокування недоступне - гасить його в чорний</string>
     <string name="launcher_stream_add_desktop_window">Додати вікно на робочий стіл</string>
     <string name="launcher_stream_desktop_window_added">Вікно додано на робочий стіл</string>
     <string name="launcher_stream_desktop_window_no_space">На робочому столі немає вільного місця</string>
+    <string name="physical_flashlight_unavailable">Ліхтарик камери зараз недоступний. Спробуйте ще раз.</string>
+    <string name="gesture_action_explain_open_all_apps">Відкриває робочий стіл зі списком усіх програм.</string>
+    <string name="gesture_slot_url_none">Не задано - натисніть, щоб ввести адресу</string>
 </resources>

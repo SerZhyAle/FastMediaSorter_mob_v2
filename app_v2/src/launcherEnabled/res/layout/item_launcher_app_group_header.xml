@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/groupHeaderRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/margin_small"
+    android:paddingTop="@dimen/margin_small"
+    android:paddingEnd="@dimen/margin_small"
+    android:paddingBottom="@dimen/margin_small">
+
+    <ImageView
+        android:id="@+id/groupIndicator"
+        android:layout_width="@dimen/icon_size_button"
+        android:layout_height="@dimen/icon_size_button"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_expand_more" />
+
+    <TextView
+        android:id="@+id/groupTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textColor="?attr/colorOnSurface"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/groupCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="?attr/colorOnSurfaceVariant" />
+
+</LinearLayout>

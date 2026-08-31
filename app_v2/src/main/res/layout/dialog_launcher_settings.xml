@@ -265,6 +265,19 @@
                 app:ssr_title="@string/launcher_desktop_swipe_up_title" />
 
             <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                android:id="@+id/rowLauncherDesktopSwipeUpTarget"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/margin_medium"
+                android:layout_marginBottom="@dimen/margin_small"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:visibility="gone"
+                app:ssr_title="@string/gesture_slot_app_label"
+                app:ssr_value="@string/gesture_slot_app_none" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
                 android:id="@+id/rowLauncherDesktopSwipeDown"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -273,6 +286,19 @@
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackground"
                 app:ssr_title="@string/launcher_desktop_swipe_down_title" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                android:id="@+id/rowLauncherDesktopSwipeDownTarget"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/margin_medium"
+                android:layout_marginBottom="@dimen/margin_small"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:visibility="gone"
+                app:ssr_title="@string/gesture_slot_app_label"
+                app:ssr_value="@string/gesture_slot_app_none" />
 
             <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
                 android:id="@+id/rowLauncherDesktopSwipeLeft"
@@ -285,6 +311,19 @@
                 app:ssr_title="@string/launcher_desktop_swipe_left_title" />
 
             <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                android:id="@+id/rowLauncherDesktopSwipeLeftTarget"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/margin_medium"
+                android:layout_marginBottom="@dimen/margin_small"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:visibility="gone"
+                app:ssr_title="@string/gesture_slot_app_label"
+                app:ssr_value="@string/gesture_slot_app_none" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
                 android:id="@+id/rowLauncherDesktopSwipeRight"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -294,6 +333,18 @@
                 android:foreground="?attr/selectableItemBackground"
                 app:ssr_title="@string/launcher_desktop_swipe_right_title" />
 
+            <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                android:id="@+id/rowLauncherDesktopSwipeRightTarget"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/margin_medium"
+                android:layout_marginBottom="@dimen/margin_small"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:visibility="gone"
+                app:ssr_title="@string/gesture_slot_app_label"
+                app:ssr_value="@string/gesture_slot_app_none" />
             <!-- S1090: blocks the long-press entry into desktop edit mode; the Start-menu entry is a
                  deliberate action and stays reachable while locked. -->
             <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow

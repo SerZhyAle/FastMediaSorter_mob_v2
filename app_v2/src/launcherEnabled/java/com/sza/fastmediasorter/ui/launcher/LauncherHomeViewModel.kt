@@ -219,17 +219,6 @@ class LauncherHomeViewModel @Inject constructor(
         .map { it.launcherDesktopLocked }
         .stateIn(viewModelScope, SharingStarted.Eagerly, settingsDefaults.launcherDesktopLocked)
 
-    /** Switches the existing edit lock from a gesture without adding a second lock state. */
-    fun toggleDesktopLocked() {
-        viewModelScope.launch {
-            settingsRepository.updateSettings { settings ->
-                val locked = !settings.launcherDesktopLocked
-                Timber.d("S2249: desktop lock toggled locked=%s", locked)
-                settings.copy(launcherDesktopLocked = locked)
-            }
-        }
-    }
-
     /**
      * S2210: the frame the last instant-photo capture produced, held only for this process.
      *

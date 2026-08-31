@@ -45,7 +45,12 @@ data class VideoPlayerUiState(
     val volumeLevel: Int = 0,
     val volumeMax: Int = 0,
     /** True only while the bezel is being turned, plus the short tail after it stops. */
-    val isVolumeVisible: Boolean = false
+    val isVolumeVisible: Boolean = false,
+    /**
+     * S2250: the synced disable-animations preference. Until now the watch stored and synced this
+     * flag without a single consumer in rendering, so the switch changed nothing the user could see.
+     */
+    val animationsDisabled: Boolean = false
 ) {
     val positionText: String
         get() = if (setSize > 0) "${setIndex + 1}/$setSize" else ""

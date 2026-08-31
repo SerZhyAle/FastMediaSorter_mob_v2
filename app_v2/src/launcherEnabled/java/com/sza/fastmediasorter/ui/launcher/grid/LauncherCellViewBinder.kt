@@ -114,10 +114,17 @@ class LauncherCellViewBinder(
         plan.forEach { rendered ->
             val item = rendered.item
             val view = when (item.cell.kind) {
-                LauncherCellKind.SHORTCUT -> bindShortcut(inflater, container, item)
+                LauncherCellKind.SHORTCUT -> bindShortcut(inflater, container, item, gadgetBackdropAlpha)
                 LauncherCellKind.GADGET -> bindGadget(inflater, container, item)
                 LauncherCellKind.SECTION ->
-                    bindSection(inflater, container, item, item.cell.target in foldedSections, editMode)
+                    bindSection(
+                        inflater,
+                        container,
+                        item,
+                        item.cell.target in foldedSections,
+                        editMode,
+                        gadgetBackdropAlpha,
+                    )
             }
             applyCellSurface(view, item, editMode, gadgetBackdropAlpha)
             if (editMode) decorateForEdit(inflater, view, item)
@@ -189,6 +196,11 @@ class LauncherCellViewBinder(
         val opacity = (alpha.coerceIn(0f, 1f) * OPAQUE_ALPHA).roundToInt()
         card.setCardBackgroundColor(ColorUtils.setAlphaComponent(surface, opacity))
         card.cardElevation = 0f
+    }
+
+    /** S2253: decorative plates share the backdrop setting without fading their readable foreground. */
+    private fun applyBackdropAlpha(view: View, alpha: Float) {
+        view.background?.mutate()?.alpha = (alpha.coerceIn(0f, 1f) * OPAQUE_ALPHA).roundToInt()
     }
 
     /**
@@ -312,6 +324,7 @@ class LauncherCellViewBinder(
         inflater: LayoutInflater,
         container: LauncherDesktopLayout,
         item: LauncherCellUi,
+        backdropAlpha: Float,
     ): android.view.View {
         val binding = ItemLauncherCellShortcutBinding.inflate(inflater, container, false)
         applyShortcutLayoutScaling(binding, container)
@@ -337,6 +350,7 @@ class LauncherCellViewBinder(
         }
         bindMonogram(binding, visual?.monogramSeed)
         bindModeBadge(binding, item)
+        applyBackdropAlpha(binding.cellLabel, backdropAlpha)
         binding.root.contentDescription = describe(binding, item)
         binding.root.setOnClickListener { onCellClick(item) }
         binding.root.setOnLongClickListener { onCellLongPress(binding.root, item) }
@@ -424,6 +438,7 @@ class LauncherCellViewBinder(
         item: LauncherCellUi,
         collapsed: Boolean,
         editMode: Boolean,
+        backdropAlpha: Float,
     ): android.view.View {
         val binding = ItemLauncherSectionHeaderBinding.inflate(inflater, container, false)
         val title = item.visual?.label
@@ -434,6 +449,7 @@ class LauncherCellViewBinder(
         // animation here would play on a view the user has not seen yet, on every unrelated rebind.
         binding.sectionChevron.rotation =
             if (collapsed) COLLAPSED_CHEVRON_ROTATION else EXPANDED_CHEVRON_ROTATION
+        applyBackdropAlpha(binding.sectionTitle.parent as View, backdropAlpha)
         ViewCompat.setAccessibilityHeading(binding.root, true)
         binding.root.setOnClickListener { onSectionClick(item) }
         announceSectionState(binding.root, title, collapsed)

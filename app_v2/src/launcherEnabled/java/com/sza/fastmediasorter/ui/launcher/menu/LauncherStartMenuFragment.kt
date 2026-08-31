@@ -12,6 +12,9 @@ import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResultListener
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -33,6 +36,7 @@ import com.sza.fastmediasorter.ui.settings.LauncherSettingsDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
@@ -149,6 +153,11 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
         binding.rowExitMode.setOnClickListener { confirmExit() }
 
         listenForPickedResource()
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.widgetBackdropAlpha.collect(::applyPanelBackdropAlpha)
+            }
+        }
     }
 
     /**
@@ -197,6 +206,16 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
                 root.updateLayoutParams { height = available }
             }
         }
+    }
+
+    /** S2253: the Start panel shares the desktop backdrop without fading its rows or focus state. */
+    private fun applyPanelBackdropAlpha(alpha: Float) {
+        val panel = if (dialog is BottomSheetDialog) {
+            dialog?.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+        } else {
+            dialog?.window?.decorView
+        }
+        panel?.background?.mutate()?.alpha = (alpha.coerceIn(0f, 1f) * OPAQUE_ALPHA).toInt()
     }
 
     override fun onDestroyView() {
@@ -290,5 +309,6 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
 
         private const val RESOURCE_REQUEST_KEY = "launcher_start_menu_resource"
         private const val RESOURCE_PICKER_TAG = "launcher_start_menu_resource_picker"
+        private const val OPAQUE_ALPHA = 255
     }
 }

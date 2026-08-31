@@ -3531,9 +3531,6 @@
     <string name="launcher_tray_speed_upload">Скорость передачи: %1$s</string>
     <string name="launcher_wallpaper_mode_instant_photo">Мгновенное фото</string>
     <string name="launcher_desktop_swipe_picker_title">Действие свайпа на рабочем столе</string>
-    <string name="launcher_desktop_swipe_action_all_apps">Все приложения</string>
-    <string name="launcher_desktop_swipe_action_notification_shade">Шторка уведомлений</string>
-    <string name="launcher_desktop_swipe_action_do_not_use">Не использовать</string>
     <string name="launcher_desktop_swipe_up_title">Свайп вверх</string>
     <string name="launcher_desktop_swipe_down_title">Свайп вниз</string>
     <string name="launcher_desktop_swipe_left_title">Свайп влево</string>
@@ -3556,9 +3553,12 @@
     <string name="launcher_stream_overlay_stop">Стоп</string>
     <string name="launcher_stream_overlay_pip">Картинка в картинке</string>
     <string name="launcher_stream_overlay_fullscreen">На весь экран</string>
-    <string name="launcher_settings_double_tap_lock_title">Двойной тап для блокировки рабочего стола</string>
-    <string name="launcher_settings_double_tap_lock_subtitle">Двойной тап по свободному месту переключает блокировку редактирования</string>
+    <string name="launcher_settings_double_tap_lock_title">Двойной тап для блокировки экрана</string>
+    <string name="launcher_settings_double_tap_lock_subtitle">Двойной тап по свободному месту блокирует экран, а где блокировка недоступна - гасит его в чёрный</string>
     <string name="launcher_stream_add_desktop_window">Добавить окно на рабочий стол</string>
     <string name="launcher_stream_desktop_window_added">Окно добавлено на рабочий стол</string>
     <string name="launcher_stream_desktop_window_no_space">На рабочем столе нет свободного места</string>
+    <string name="physical_flashlight_unavailable">Фонарик камеры сейчас недоступен. Попробуйте ещё раз.</string>
+    <string name="gesture_action_explain_open_all_apps">Открывает рабочий стол со списком всех программ.</string>
+    <string name="gesture_slot_url_none">Не задан - нажмите, чтобы ввести адрес</string>
 </resources>

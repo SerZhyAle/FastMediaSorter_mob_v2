@@ -13,6 +13,8 @@ internal data class StreamStallObservation(
     val renderedFrames: Int?,
     /** A video track is selected, so frames rather than position carry the progress signal. */
     val hasVideo: Boolean,
+    /** False when the host cannot show frames, so frame progress is not a stream-health signal. */
+    val isVideoOutputExpected: Boolean,
     val bufferedDurationMs: Long,
     val isLoading: Boolean,
     /** Carried for the archive, not the decision - a no-evidence line has to name a live one (S1467). */
@@ -45,6 +47,9 @@ internal sealed interface StreamStallOutcome {
 
     /** The caller should run its recovery, quoting [reason] in the diagnostic. */
     data class Stalled(val reason: StreamStallReason) : StreamStallOutcome
+
+    /** The host cannot render video now, so retain the current budget and wait for output to return. */
+    object Suspended : StreamStallOutcome
 
     /**
      * The rule had nothing to judge. [blindForMs] is how long that has been true, so a log line can
@@ -108,7 +113,9 @@ internal class StreamStallRule(
     fun onPoll(observation: StreamStallObservation, nowMs: Long): StreamStallOutcome {
         val previousPositionMs = lastPositionMs
         lastPositionMs = observation.positionMs
-        return if (observation.hasVideo) {
+        return if (observation.hasVideo && !observation.isVideoOutputExpected) {
+            StreamStallOutcome.Suspended
+        } else if (observation.hasVideo) {
             pollByRenderedFrames(observation, nowMs)
         } else {
             judgeProgress(

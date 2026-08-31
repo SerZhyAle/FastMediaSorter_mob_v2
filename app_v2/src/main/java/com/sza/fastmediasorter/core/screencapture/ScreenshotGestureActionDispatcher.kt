@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.core.screencapture.gesture.GestureAccessibilityAc
 import com.sza.fastmediasorter.core.screencapture.gesture.LaunchActionHandler
 import com.sza.fastmediasorter.core.screencapture.gesture.MediaActionHandler
 import com.sza.fastmediasorter.core.share.SystemShareInvoker
+import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureZone
@@ -41,6 +42,8 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
     private val launchActionHandler: LaunchActionHandler,
     // S1038: empty on every flavor except noLegal, which contributes the accessibility-backed performer.
     private val accessibilityActions: Set<@JvmSuppressWildcards GestureAccessibilityActions>,
+    // S2256: launcher-route seam - the real implementation only on flavors that ship the home surface.
+    private val launcherModeContract: LauncherModeContract,
 ) {
 
     /**
@@ -120,6 +123,9 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
             launchPanel(context)
             true
         }
+        // S2256: the launcher route is handled here whether or not the seam could run it - a build
+        // without the launcher must fall silent, never fall through into the capture path.
+        ScreenshotGestureAction.OPEN_ALL_APPS -> launchAllApps(context)
         ScreenshotGestureAction.LAUNCH_CAMERA -> {
             launchCamera(context)
             true
@@ -136,18 +142,7 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
             launchPhotoCapture(context, PhotoVideoStandaloneActivity.AUTO_ACTION_DRAW)
             true
         }
-        ScreenshotGestureAction.TAKE_PHOTO_OCR_TRANSLATE -> {
-            // S1042: route straight to the unified OCR/translate crop screen (camera source), giving the
-            // same crop + language + OCR/translate UI as photos. Fall back to a plain photo save where
-            // translation is unavailable for this flavor.
-            if (capabilityAvailability.isTranslationAvailable()) {
-                launchOcrCaptureFlow(context)
-            } else {
-                Timber.i("ScreenshotGestureActionDispatcher: translation unavailable, saving photo")
-                launchPhotoCapture(context, autoAction = null)
-            }
-            true
-        }
+        ScreenshotGestureAction.TAKE_PHOTO_OCR_TRANSLATE -> launchOcrPhotoCapture(context)
         ScreenshotGestureAction.START_VIDEO_RECORDING -> {
             launchVideoCamera(context)
             true
@@ -186,16 +181,46 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
         ScreenshotGestureAction.OPEN_QUICK_SETTINGS,
         ScreenshotGestureAction.LOCK_SCREEN,
         ScreenshotGestureAction.TOGGLE_SPLIT_SCREEN,
-        ScreenshotGestureAction.PREVIOUS_APP -> {
-            val performer = accessibilityActions.firstOrNull()
-            if (performer != null) {
-                performer.perform(action)
-            } else {
-                Timber.w("ScreenshotGestureActionDispatcher: %s unavailable on this build", action)
-            }
-            true
-        }
+        ScreenshotGestureAction.PREVIOUS_APP -> performAccessibilityAction(action)
         else -> false
+    }
+
+    /**
+     * S1042: routes straight to the unified OCR/translate crop screen (camera source), giving the same
+     * crop + language + OCR/translate UI as photos. Falls back to a plain photo save where translation is
+     * unavailable for this flavor. Always handled, so the gesture never falls through to capture.
+     */
+    private fun launchOcrPhotoCapture(context: Context): Boolean {
+        if (capabilityAvailability.isTranslationAvailable()) {
+            launchOcrCaptureFlow(context)
+        } else {
+            Timber.i("ScreenshotGestureActionDispatcher: translation unavailable, saving photo")
+            launchPhotoCapture(context, autoAction = null)
+        }
+        return true
+    }
+
+    /** S2256: true even when the seam declines - an absent launcher degrades to a silent no-op. */
+    private fun launchAllApps(context: Context): Boolean {
+        Timber.d("S2256: OPEN_ALL_APPS dispatched from a gesture")
+        if (!launcherModeContract.openAllApps(context)) {
+            Timber.i("ScreenshotGestureActionDispatcher: OPEN_ALL_APPS unavailable on this build")
+        }
+        return true
+    }
+
+    /**
+     * S1038: SYSTEM actions run through the noLegal accessibility seam. Always handled (skip capture);
+     * the performer degrades internally when the service is off, and the set is empty on other flavors.
+     */
+    private fun performAccessibilityAction(action: ScreenshotGestureAction): Boolean {
+        val performer = accessibilityActions.firstOrNull()
+        if (performer != null) {
+            performer.perform(action)
+        } else {
+            Timber.w("ScreenshotGestureActionDispatcher: %s unavailable on this build", action)
+        }
+        return true
     }
 
     // S1038: resolves the per-slot payload from the persisted settings. The value is deliberately
@@ -308,6 +333,7 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
             ScreenshotGestureAction.SILENT_SCREENSHOT,
             ScreenshotGestureAction.OPEN_APP,
             ScreenshotGestureAction.OPEN_PANEL,
+            ScreenshotGestureAction.OPEN_ALL_APPS,
             ScreenshotGestureAction.LAUNCH_CAMERA,
             ScreenshotGestureAction.TAKE_PHOTO,
             ScreenshotGestureAction.TAKE_PHOTO_SEND_TO,
