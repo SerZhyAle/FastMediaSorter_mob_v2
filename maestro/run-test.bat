@@ -4,10 +4,13 @@ REM Quick wrapper to run Maestro tests with proper environment setup
 
 setlocal enabledelayedexpansion
 
-REM Add Node.js and npm global to PATH
-set "NODEJS_PATH=C:\Program Files\nodejs"
-set "NPM_PATH=%USERPROFILE%\AppData\Roaming\npm"
-set "PATH=%NODEJS_PATH%;%NPM_PATH%;%PATH%"
+REM Add Node.js and npm global to PATH. A batch file cannot dot-source the PowerShell resolver,
+REM so it honours the same FMS_NODE override and otherwise asks the shell where node is (S2326).
+set "NODEJS_PATH="
+if defined FMS_NODE for %%I in ("%FMS_NODE%") do set "NODEJS_PATH=%%~dpI"
+if not defined NODEJS_PATH for /f "delims=" %%I in ('where node 2^>nul') do if not defined NODEJS_PATH set "NODEJS_PATH=%%~dpI"
+set "NPM_PATH=%APPDATA%\npm"
+if defined NODEJS_PATH set "PATH=%NODEJS_PATH%;%NPM_PATH%;%PATH%"
 
 REM Get test argument
 set TEST=%1

@@ -21,10 +21,14 @@ param(
     # S1972: which slice of the split debug build to report and copy. Empty means "ask the connected
     # device", which is the right answer whenever exactly one is attached; name it explicitly when
     # several are, or when building for a device that is not plugged in.
-    [string]$Abi = ''
+    [string]$Abi = '',
+
+    [Parameter(ValueFromRemainingArguments = $true)]
+    [string[]]$GradleArgs
 )
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
+. "$PSScriptRoot\..\utils\project-paths.ps1"
 # S2127: Test-KotlinStaleIncrementalState + Get-KotlinStaleIncrementalRepairArgs.
 . "$PSScriptRoot\gradle-run-verdict.ps1"
 Enter-BuildLockOrExit -Reason "build-debug.PS1" -Domain Build.Phone
@@ -178,6 +182,9 @@ function Invoke-DebugBuild {
     }
     if ($versionOverrideArgs.Count -gt 0) {
         $gradleArgs += $versionOverrideArgs
+    }
+    if ($script:GradleArgs.Count -gt 0) {
+        $gradleArgs += $script:GradleArgs
     }
 
     Write-Host "Starting Gradle: .\\gradlew.bat $($gradleArgs -join ' ')" -ForegroundColor DarkGray
@@ -355,7 +362,7 @@ if ($SkipZip) {
     Write-Host "SkipZip enabled: ZIP creation and Google Drive archive copy skipped." -ForegroundColor Yellow
 }
 else {
-    $7zipPath = "C:\Program Files\7-Zip\7z.exe"
+    $7zipPath = Get-ToolPath -Tool SevenZip
     if (Test-Path -Path $7zipPath) {
         if (Test-Path -Path $zipPath) {
             Remove-Item -Path $zipPath -Force -ErrorAction SilentlyContinue

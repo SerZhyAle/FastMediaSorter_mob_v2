@@ -437,6 +437,15 @@ A third shared file follows the same family but keys ownership differently (S139
 pwsh -NoProfile -File scripts/spec_catalog/ticket-lease.ps1 -Verb Status
 pwsh -NoProfile -File scripts/spec_catalog/ticket-lease.ps1 -Verb Status -Json
 # Release-order view with ephemeral ownership for the selected package; it never rewrites PLAN/RELEASE_QUEUE.md.
+# Each taken row is marked inline ('[taken 5.4m, /spec-all, session 39ebfe7f]'), so occupancy reads in the
+# same scan as the plan; the block underneath still carries the full session id needed to steal or clear one.
+```
+
+**The release files carry the same marker** (owner ruling 2026-09-01). `PLAN/RELEASE_QUEUE.md` and `PLAN/RELEASE_READY.md` are where the plan is actually read, so a ticket held by a live session is marked on its own row there - `[taken 15:42, /spec-all, be08adb0]`, a claim time rather than an age, because an age written into a file is wrong a minute later. The lease store under `temp/` stays the source of truth: the marker is re-rendered from it on every catalog write, so a session that died loses its marker on the next write and its ticket reads as free again. Anything parsing those files must strip the marker before reading the status column - `Remove-ReleaseQueueLeaseMarker` in `scripts/spec_catalog/_lib.ps1` is that one strip, and `run-spec-all-queue.ps1` tolerates the same tail in its own line pattern.
+
+```powershell
+# Re-render the markers on demand (any catalog write does it too)
+pwsh -NoProfile -File scripts/spec_catalog/release-queue.ps1 -Reconcile
 pwsh -NoProfile -File scripts/spec_catalog/release-queue.ps1 -List -Release 32 -WithLeases
 ```
 
@@ -859,8 +868,32 @@ Instrumented leak detection run on demand using LeakCanary inside instrumented t
 Usage:
 ```powershell
 # Run the leak detection instrumented test
-.\gradlew.bat :app_v2:connectedStandardDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.sza.fastmediasorter.leak.LeakDetectionInstrumentationTest
+pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode ConnectedAndroidTest -Tests com.sza.fastmediasorter.leak.LeakDetectionInstrumentationTest
 ```
+
+Routed through the builder rather than `gradlew.bat` because Rule 23 admits one gradle invocation per
+build domain and a direct call bypasses `temp/BUILD.PHONE.LOCK`. In this mode `-Tests` is forwarded to
+AndroidJUnitRunner, not to Gradle: name **either** fully qualified classes (`Pkg.Class`, or
+`Pkg.Class#method`) **or** packages, comma-separated, and the builder picks `class=` or `package=` by the
+final segment's case. Mixing the two is refused rather than guessed, and a Gradle glob would be accepted
+silently and then run the whole instrumented suite on the device.
+
+### Database upgrade proof - S2306
+
+The Room migrations are the one thing that can destroy data a user already has, and Room only compares a
+migration against the exported schema on the device, during the first launch after an update. `.\a.ps1 fa`
+compiles the instrumented set; it does not run it. **`.\a.ps1 fam` runs it** - every test in
+`com.sza.fastmediasorter.data.local.db`, per-hop plus the whole-chain test - and is the only place that
+comparison happens before a user's phone performs it.
+
+```powershell
+.\a.ps1 fam          # needs a connected device or emulator; long, background it
+```
+
+Static half, in every closure that touches `data/local/db`, an exported schema or `DatabaseModule.kt`:
+`assert-migration-schema-conformance.ps1` (the SQL against the schema JSON) and
+`assert-migration-test-pairing.ps1` (a migration with no test). They judge text and do not replace the
+run. Release half: `/spec-prerelease` step 1.4, gating.
 
 
 ### Wear pre-release sweep - S1984
@@ -1019,11 +1052,12 @@ The app declares thirteen interface locales in `app_v2/src/main/res/xml/locales_
 2. Closing a ticket that touched a strings file prints the `new-lexeme-count` advisory. Also not a refusal.
 3. The pre-release sweep runs step `0.8`, which **is** the refusal. `list-new-lexemes.ps1` writes `temp/S1627/new_lexemes_en.txt`; that file goes to the external translation service, each returned file comes back through `locale-bulk-import.ps1`, and the step is re-run until it is 0.
 
-Four facts a reader cannot derive from the commands:
+Five facts a reader cannot derive from the commands:
 
 - **The refusal sits at the release, not at the ticket, by owner decision (strategic ADR-2).** Nothing ships between releases, so translating each key the day it is written buys the user nothing while costing ten translations per ticket; one batch per release costs one round trip for all of them.
 - **A missing translation is an absent key, never an English copy (ADR-6, S1190).** Android falls back to English on its own, so a partial locale is a shippable state. This is why the producer asks each locale's resource file which keys it carries, rather than comparing values.
 - **Provenance is tracked per module, and the gate runs once per module (S1858).** `scripts/quality/locale-source-fingerprints.json` addresses a unit as `module|set|file|key[|slot]`. It has to: `app_v2` and `wear` each ship `src/main/res/values/strings.xml` and share 14 key names, 6 of them with different English text, so an unqualified identity gave the two modules one slot with room for one hash. Whichever module imported last won it, and the gate then measured the other module's text against the wrong hash and called six translated keys untranslated - unfixable by re-importing, because re-importing only moved the red to the other module. A registry written before that split declares no schema version, reads as v1 and is refused with exit 2 until `scripts/quality/migrate-locale-fingerprints-module.ps1` rewrites it; a v1 store read as v2 would reproduce the same false report with nothing left to explain it.
+- **Provenance is written by whoever writes the text, so a direct seed is self-sufficient (S2327).** `scripts/utils/seed-locale-tranche.ps1` stamps the registry for every unit it translated from the supplied map, and `locale-bulk-import.ps1` no longer does it after the fact. A run that writes a locale file and no fingerprint produces a key the producer still reports as untranslated, however complete the file is - measured on S2320, where adding 20 registry entries by hand removed the key from the report without touching one byte of locale text. The importer could not get this right from where it stood: the accept-or-reject decision is per key and it saw one exit code per source file, so it stamped keys the seeder had rejected - and under `-Merge` a rejected replacement leaves the previously shipped translation in place, which turned the stamp into fresh provenance for stale text. Nothing is stamped for a `-Merge` passthrough, a rejected key or a `-DryRun`: none of them produced new text.
 - **`scripts/quality/locale-untranslated-baseline.txt` holds identities, not a count.** It froze the keys already untranslated on 2026-08-14 - all of them `S1626`'s placeholder-misread phrasings - so a pre-existing gap cannot be reported as new. A count would let a new key slip in behind an old one cleared in the same release. Its entries are module-qualified for the same reason the registry's are. Entries leave the file as `S1626` clears them, and the producer reports a cleared entry as stale; do not expect that soon, since `S1626` is `BlockExternal` - the rule that looked obvious (placeholder at a string edge) was measured over all 307 placeholder-bearing strings and does not discriminate, so the set clears through a probe in a future bulk round rather than through an edit anyone can make today.
 
 ### Maestro oracle convention - S1612

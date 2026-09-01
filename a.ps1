@@ -26,6 +26,7 @@
            BUILD.LOCK, so no direct gradlew invocation is needed.
     fu   - Fast full unit-test suite (app_v2)
     fa   - Fast instrumented-test COMPILE check (app_v2 androidTest; does not run them)
+    fam  - RUN the Room migration tests on a connected device (the database-upgrade proof)
     fw   - Fast Kotlin compile check, wear module
     fwr  - Fast resources/manifest check, wear module
     fwu  - Fast unit-test suite, wear module
@@ -137,6 +138,11 @@ $scripts = @{
     'fc'        = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'CodeAndResources' } }
     'fu'        = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Unit' } }
     'fa'        = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'AndroidTest' } }  # S1844: compile the instrumented set - no other target does
+    # S2306: RUN the Room migration tests on a connected device. `fa` proves they compile; only this
+    # executes runMigrationsAndValidate, which is the same schema comparison a user's phone performs on
+    # the first launch after an update - and the comparison that reset the owner's database on
+    # 2026-09-01. Needs a device; long, so background it (CLAUDE.md section 6).
+    'fam'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'ConnectedAndroidTest'; Tests = 'com.sza.fastmediasorter.data.local.db' } }
     'fw'        = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Code'; Module = 'wear' } }  # S1496: fast Kotlin compile for the wear module
     'fwr'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Resources'; Module = 'wear' } }  # S1807: fast resources/manifest check for the wear module
     'fwu'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Unit'; Module = 'wear' } }  # S1807: fast unit-test suite for the wear module
@@ -241,6 +247,7 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "         e.g. '.\a.ps1 fc -Flavor Lite' - proves any of the six flavors." -ForegroundColor DarkCyan
     Write-Host "  fu   - Fast full unit-test suite (app_v2)" -ForegroundColor Cyan
     Write-Host "  fa   - Fast instrumented-test COMPILE check (app_v2 androidTest)" -ForegroundColor Cyan
+    Write-Host "  fam  - RUN the Room migration tests on a connected device (database-upgrade proof)" -ForegroundColor Cyan
     Write-Host "  fw   - Fast Kotlin compile check, wear module" -ForegroundColor Cyan
     Write-Host "  fwr  - Fast resources/manifest check, wear module" -ForegroundColor Cyan
     Write-Host "  fwu  - Fast unit-test suite, wear module" -ForegroundColor Cyan

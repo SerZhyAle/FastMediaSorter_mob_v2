@@ -16,6 +16,20 @@
     from the English one is rejected and omitted, because a dropped or retyped %1$s survives the
     build and crashes at format time in front of the user.
 
+    S2327: writing the locale file is only half of translating a key - the other half is recording
+    which English text the translation answers, in scripts/quality/locale-source-fingerprints.json.
+    list-new-lexemes.ps1 reports a key with no entry there as untranslated however complete the
+    locale file is, so text seeded without a fingerprint is re-sent to the translator and comes back
+    overwriting live text. That registry is therefore written here, by the layer that decides what
+    was accepted, and not by the caller: locale-bulk-import.ps1 owned it until now and could only
+    see one exit code per source file, so it stamped keys this seeder had rejected - and under
+    -Merge a rejected replacement leaves the previously shipped translation in place, which made the
+    stamp read as fresh provenance for stale text.
+
+    Exactly one thing is stamped: a unit whose text came from the supplied map and was written in
+    this run. A -Merge passthrough, an Add-CarriedFallback rollback, a rejected key and a -DryRun
+    all keep whatever provenance they already had, because none of them produced new text.
+
     Escaping matches ConvertTo-XmlText in scripts/utils/set-android-string.ps1 exactly - XML-escape,
     then both &apos; and &quot; back to the backslash form. The two are deliberately not shared: that
     tool keeps its helpers private inside its own body, and hoisting them into a module would rewrite
@@ -85,8 +99,13 @@
     ad-hoc grep does - a multi-line or markup-carrying element slips through and the key is simply
     absent from the tranche with nothing reporting it.
 
+.PARAMETER FingerprintsPath
+    Override the locale fingerprint registry this run stamps. Defaults to the shipped
+    scripts/quality/locale-source-fingerprints.json; tests point it at a scratch file so they never
+    rewrite the real 4 MB store.
+
 .PARAMETER DryRun
-    Report the plan and write nothing.
+    Report the plan and write nothing - the registry included.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/utils/seed-locale-tranche.ps1 -SourceFile strings_setup.xml -Locale de -KeyPrefix welcome_ -MapPath temp/S1190/de_welcome.json
@@ -117,6 +136,7 @@ param(
     [string]$Locale,
     [string]$MapPath,
     [string]$KeyPrefix,
+    [string]$FingerprintsPath,
     [switch]$Merge,
     [switch]$DumpSource,
     [switch]$DryRun
@@ -127,6 +147,7 @@ $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 . (Join-Path $PSScriptRoot 'locale-set.ps1')
+. (Join-Path $repoRoot 'scripts/quality/lib/locale-fingerprints.ps1')
 
 $resDir = Join-Path $repoRoot "$Module/src/$SourceSet/res"
 if (-not (Test-Path -LiteralPath (Join-Path $resDir 'values'))) {
@@ -286,6 +307,11 @@ $rejected = [System.Collections.Generic.List[string]]::new()
 $eligible = [System.Collections.Generic.HashSet[string]]::new()
 $written = 0
 
+# Units this run actually translated from the map, each with the English body it answers. Filled at
+# the point of emission rather than derived afterwards from the map, because the map is what was
+# asked for and this list is what was accepted - the two differ by every rejection.
+$stamped = [System.Collections.Generic.List[hashtable]]::new()
+
 # A rejected replacement must not also delete the translation the locale already shipped. The run still
 # fails with exit 3 so the caller fixes the map, but the file it leaves behind is no worse than before.
 function Add-CarriedFallback([string]$Name) {
@@ -324,17 +350,37 @@ foreach ($element in $elements) {
         # which aapt then read as positional substitutions. translatable="false" cannot reach here -
         # Test-Translatable filtered it out above.
         $out.Add("    <string name=`"$name`"$attrs>$(ConvertTo-ResourceBody $value)</string>")
+        [void]$stamped.Add(@{ Key = $name; Slot = ''; En = $body })
     } elseif ($kind -eq 'plurals') {
         if ($value -isnot [hashtable]) { [void]$rejected.Add("$name (expected an object for <plurals>)"); Add-CarriedFallback $name; continue }
+        $englishItems = @{}
+        foreach ($item in [regex]::Matches($body, '(?s)<item\s+quantity="([^"]+)"[^>]*>(.*?)</item>')) {
+            $englishItems[$item.Groups[1].Value] = $item.Groups[2].Value
+        }
         $out.Add("    <plurals name=`"$name`"$attrs>")
         foreach ($quantity in $value.Keys) {
             $out.Add("        <item quantity=`"$quantity`">$(ConvertTo-ResourceBody $value[$quantity])</item>")
+            # A quantity the English source does not declare has no text for the stamp to answer, so
+            # it gets none - the item still ships, it just carries no provenance claim.
+            if ($englishItems.ContainsKey($quantity)) {
+                [void]$stamped.Add(@{ Key = $name; Slot = [string]$quantity; En = $englishItems[$quantity] })
+            }
         }
         $out.Add('    </plurals>')
     } else {
         if ($value -isnot [array]) { [void]$rejected.Add("$name (expected an array for <string-array>)"); Add-CarriedFallback $name; continue }
+        # Slot is the item's position, numbered exactly as locale-bulk-export.ps1 numbers it, so the
+        # identity this run writes is the one list-new-lexemes.ps1 later looks up.
+        $englishItems = @([regex]::Matches($body, '(?s)<item[^>]*>(.*?)</item>') | ForEach-Object { $_.Groups[1].Value })
         $out.Add("    <string-array name=`"$name`"$attrs>")
-        foreach ($item in $value) { $out.Add("        <item>$(ConvertTo-ResourceBody $item)</item>") }
+        $slot = 0
+        foreach ($item in $value) {
+            $out.Add("        <item>$(ConvertTo-ResourceBody $item)</item>")
+            if ($slot -lt $englishItems.Count) {
+                [void]$stamped.Add(@{ Key = $name; Slot = [string]$slot; En = $englishItems[$slot] })
+            }
+            $slot++
+        }
         $out.Add('    </string-array>')
     }
     $written++
@@ -355,6 +401,20 @@ if ($DryRun) {
     if (-not (Test-Path -LiteralPath $outDir)) { New-Item -ItemType Directory -Path $outDir | Out-Null }
     [System.IO.File]::WriteAllText($outPath, ($out -join $eol) + $eol, [System.Text.UTF8Encoding]::new($false))
     Write-Host "seed-locale-tranche: wrote $outPath"
+
+    if ($stamped.Count -gt 0) {
+        # The hash is taken from the same normalized plain text locale-bulk-export.ps1 records as
+        # `en`, through the shared normalizer - hashing the raw element body instead would stamp
+        # every unit with a value the freshness check reads as stale on its very next run.
+        $fingerprints = Get-LocaleSourceFingerprints -Path $FingerprintsPath
+        foreach ($unit in $stamped) {
+            $unitId = Get-LocaleUnitId -Module $Module -Set $SourceSet -File $SourceFile -Key $unit.Key -Slot $unit.Slot
+            $hash = Get-EnglishStringFingerprint -Text (ConvertFrom-ResourceBody $unit.En)
+            Update-LocaleSourceFingerprint -Fingerprints $fingerprints -Locale $Locale -Identity $unitId -Hash $hash
+        }
+        Save-LocaleSourceFingerprints -Fingerprints $fingerprints -Path $FingerprintsPath
+        Write-Host "seed-locale-tranche: stamped $($stamped.Count) fingerprint(s) for $Locale"
+    }
 }
 
 if ($rejected.Count -gt 0) {

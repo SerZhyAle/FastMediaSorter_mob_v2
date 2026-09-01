@@ -71,18 +71,20 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />
 
-        <!-- Enable-all Button (page 0 only; toggled by the Activity). Secondary/outlined so Next stays primary. -->
+        <!-- Enable-all Button (page 0 only; toggled by the Activity). S2310: carries the confirm fill
+             (@color/confirm_button_bg, contrast-checked day/night by S0611) so the one-tap finish reads as
+             the affirmative shortcut; Next keeps the primary filled face. -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnEnableAll"
-            style="@style/Widget.FastMediaSorter.Button.Outlined"
+            style="@style/Widget.FastMediaSorter.Button.Tonal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/margin_small"
             android:text="@string/welcome_enable_all"
             android:contentDescription="@string/welcome_enable_all_content_description"
             android:textSize="@dimen/welcome_button_text_size"
-            android:textColor="?attr/colorPrimary"
-            app:strokeColor="?attr/colorPrimary"
+            android:textColor="@color/confirm_button_on"
+            app:backgroundTint="@color/confirm_button_bg"
             android:minHeight="@dimen/welcome_button_min_height"
             android:visibility="gone"
             app:layout_constraintEnd_toStartOf="@id/btnNext"

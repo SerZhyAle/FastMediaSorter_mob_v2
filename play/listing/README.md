@@ -10,6 +10,12 @@ organizing invalidates the declaration - that pair is what an update was rejecte
 (S1989). The declaration's own text lives in `store_assets/PLAY_PERMISSIONS_DECLARATION.md`; edit the
 two together.
 
+The full description carries a second permission paragraph, for location (S2083). Google's location
+policy judges a declared permission against what the app tells the user, so that paragraph, the
+in-app rationale string, the privacy policy and the Data safety form
+(`store_assets/PLAY_DATA_SAFETY_LOCATION.md`) are read as one set. It deliberately does not claim
+that no coordinate leaves the device - the map gadgets fetch map imagery over the network.
+
 ## Why separate from fastlane
 
 `fastlane/metadata/android/` is the publication source for **IzzyOnDroid / GitHub-store**

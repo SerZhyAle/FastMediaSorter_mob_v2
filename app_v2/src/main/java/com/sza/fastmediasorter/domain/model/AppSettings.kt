@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.model
 
-import com.sza.fastmediasorter.domain.model.launcher.InstalledAppSortOrder
+import com.sza.fastmediasorter.domain.model.launcher.LauncherSettings
+import kotlin.math.abs
 
 /**
  * Application settings model
@@ -378,109 +379,96 @@ data class AppSettings(
     // User-disableable so power users on trusted devices can screen-record credential screens.
     val secureSensitiveScreens: Boolean = true,
 
-    // S0404: launcher-mode desktop tuning. Grid geometry is computed from the screen; this factor is
-    // the user's manual nudge on top of it (higher factor = smaller cells = more columns), needed
-    // because head units and TV boxes report unreliable densities. Desktop content itself lives in
-    // Room, not here - a device profile seeds it once and never re-applies (ADR-4).
-    val launcherDensityFactor: Float = 1.0f,
-    // S2251: number of desktop screens in launcher mode (1..5, default 2).
-    val launcherScreenCount: Int = 2,
-    // S1643: which screen edge the whole taskbar composition is anchored to, one of
-    // [LAUNCHER_TASKBAR_PLACEMENT_OPTIONS]. Stored as a token (like [launcherWallpaperMode]) so an
-    // unknown value from a newer build degrades to the bottom edge. Defaults to the bottom edge
-    // because an update must not move an existing user's bar before the user asks for it (ADR-2);
-    // the car head unit profile overrides it to the top edge through the preset CSV.
-    val launcherTaskbarPlacement: String = LAUNCHER_TASKBAR_PLACEMENT_BOTTOM,
-    val launcherTaskbarShowRecents: Boolean = true,
-    val launcherTaskbarShowPinned: Boolean = true,
-    val launcherTaskbarShowTray: Boolean = true,
-    // S2017: hides the system status bar by default so a fresh install looks like the requested
-    // "Hide system status bar" state without a manual toggle.
-    val launcherReplaceSystemStatusArea: Boolean = true,
-    // S1431: moves the clock and the indicator set off the taskbar tray and onto the freed top band,
-    // which frees the Start panel for a longer recents list. Meaningful only while
-    // [launcherReplaceSystemStatusArea] is on, since without it there is no freed band to draw in.
-    val launcherTopStatusStripMode: Boolean = false,
-    // S1465 ADR-4 default OFF was superseded by S2017 ADR-1 (explicit owner instruction, 2026-08-25):
-    // whether the top strip also shows other applications' pending notifications as an icon and a count.
-    // The store-policy risk ADR-4 raised - reusing a notification-listener grant given for an unrelated
-    // purpose - is real but narrow (only a pre-existing install that never touched this row and already
-    // holds that grant); S2017 records it as an accepted risk rather than blocking the default flip.
-    val launcherForeignNotificationsEnabled: Boolean = true,
-    // S1415: composition of the tray itself, one switch per indicator, in the tray's left-to-right order.
-    // [launcherTaskbarShowTray] above stays the master switch for the whole block; these only decide what
-    // the block contains once it is shown. All default ON so an upgrade looks exactly like the old tray
-    // plus the indicators the device can actually report - except the clock (S2017: duplicates the top
-    // bar's own clock once [launcherReplaceSystemStatusArea] is on by default).
-    val launcherTrayShowClock: Boolean = false,
-    val launcherTrayShowBluetooth: Boolean = true,
-    val launcherTrayShowSim1: Boolean = true,
-    val launcherTrayShowSim2: Boolean = true,
-    val launcherTrayShowNetwork: Boolean = true,
-    val launcherTrayShowBattery: Boolean = true,
-    val launcherTrayShowSpeed: Boolean = false,
-    // S0404: one-shot - true once the first-rotation hint has been shown, so it never repeats. No UI row
-    // (invisible to the settings-doc gate); it is a remembered event, not a user-facing toggle.
-    val launcherRotationHintShown: Boolean = false,
-    // S1090: guards entry into desktop edit mode. Off by default so the long-press gesture stays
-    // discoverable; the Start-menu entry is deliberate and stays reachable regardless of this flag.
-    val launcherDesktopLocked: Boolean = false,
-    // S2249: applies a convenient lock toggle only to a double tap that starts on empty desktop space.
-    val launcherDesktopDoubleTapLockEnabled: Boolean = true,
-    val launcherDesktopSwipeUpAction: LauncherDesktopSwipeAction = LauncherDesktopSwipeAction.OpenAllApps,
-    val launcherDesktopSwipeDownAction: LauncherDesktopSwipeAction =
-        LauncherDesktopSwipeAction.EdgeGestureAction(ScreenshotGestureAction.OPEN_NOTIFICATION_SHADE),
-    val launcherDesktopSwipeLeftAction: LauncherDesktopSwipeAction =
-        LauncherDesktopSwipeAction.EdgeGestureAction(ScreenshotGestureAction.DO_NOT_USE),
-    val launcherDesktopSwipeRightAction: LauncherDesktopSwipeAction =
-        LauncherDesktopSwipeAction.EdgeGestureAction(ScreenshotGestureAction.DO_NOT_USE),
-    // Launcher desktop directions can execute the same targeted actions as edge gestures. The payload
-    // is a package name for OPEN_APP or a URL for OPEN_URL; other actions ignore it.
-    val launcherDesktopSwipeUpPayload: String = "",
-    val launcherDesktopSwipeDownPayload: String = "",
-    val launcherDesktopSwipeLeftPayload: String = "",
-    val launcherDesktopSwipeRightPayload: String = "",
-    // S1101: desktop wallpaper mode, one of [LAUNCHER_WALLPAPER_MODES]. Stored as a token (like
-    // [colorTheme]) so an unknown value from a newer build degrades to the branded default.
-    val launcherWallpaperMode: String = LAUNCHER_WALLPAPER_BRANDED,
-    // S1101: absolute path of the user image copied into app-private storage; empty unless
-    // [launcherWallpaperMode] is [LAUNCHER_WALLPAPER_IMAGE].
-    val launcherWallpaperImagePath: String = "",
-    // S2076: chosen camera lens id in [CameraLensEntry.id] form; empty unless [launcherWallpaperMode]
-    // is [LAUNCHER_WALLPAPER_CAMERA].
-    val launcherWallpaperCameraId: String = "",
-    // S1401: the all-apps screen's chosen order, stored as an [InstalledAppSortOrder] name rather than
-    // an ordinal so reordering the enum later cannot silently repoint a saved preference.
-    val allAppsSortOrder: String = InstalledAppSortOrder.LABEL.name,
-    val allAppsSortDescending: Boolean = false,
-    // S1741: launcher-private screen blackout timeout in seconds (0 = Off).
-    val launcherScreenBlackoutTimeoutSeconds: Int = 0,
-    // S1748/S2253: launcher shared-surface opacity (0.0f = fully transparent, 1.0f = fully opaque).
-    val launcherWidgetBackdropAlpha: Float = DEFAULT_LAUNCHER_WIDGET_BACKDROP_ALPHA,
-    // S2213: the place last picked for a weather gadget, in `WeatherLocation.encode` form. It lives here
-    // rather than only inside the desktop cell because clearing the desktop is exactly what a launcher
-    // reset does, and the picked place must outlive it. Empty until the user picks one. No UI row
-    // (invisible to the settings-doc gate); it is a remembered choice, not a user-facing toggle.
-    val launcherWeatherLastLocation: String = "",
-    // S2239: resetting the launcher steps widget stores the cumulative step count and timestamp of reset.
-    val launcherStepsResetCount: Long = 0L,
-    val launcherStepsResetTimestamp: Long = 0L,
+    // S2300: the launcher-mode desktop group, nested rather than inline because this constructor had
+    // reached the JVM ceiling of 255 descriptor slots and every build crashed on launch. The count and
+    // the failure are recorded on [LauncherSettings].
+    val launcher: LauncherSettings = LauncherSettings(),
 ) {
+
+    // S2300: the launcher group moved into [launcher] to get this class back under the JVM descriptor
+    // ceiling. These read-through properties keep every existing `settings.launcherXxx` call site
+    // valid; a write goes through `copy(launcher = launcher.copy(..))`.
+    val launcherDensityFactor: Float get() = launcher.densityFactor
+    val launcherScreenCount: Int get() = launcher.screenCount
+    val launcherTaskbarPlacement: String get() = launcher.taskbarPlacement
+    val launcherTaskbarShowRecents: Boolean get() = launcher.taskbarShowRecents
+    val launcherTaskbarShowPinned: Boolean get() = launcher.taskbarShowPinned
+    val launcherTaskbarShowTray: Boolean get() = launcher.taskbarShowTray
+    val launcherReplaceSystemStatusArea: Boolean get() = launcher.replaceSystemStatusArea
+    val launcherTopStatusStripMode: Boolean get() = launcher.topStatusStripMode
+    val launcherForeignNotificationsEnabled: Boolean get() = launcher.foreignNotificationsEnabled
+    val launcherTrayShowClock: Boolean get() = launcher.trayShowClock
+    val launcherTrayShowBluetooth: Boolean get() = launcher.trayShowBluetooth
+    val launcherTrayShowSim1: Boolean get() = launcher.trayShowSim1
+    val launcherTrayShowSim2: Boolean get() = launcher.trayShowSim2
+    val launcherTrayShowNetwork: Boolean get() = launcher.trayShowNetwork
+    val launcherTrayShowBattery: Boolean get() = launcher.trayShowBattery
+    val launcherTrayShowSpeed: Boolean get() = launcher.trayShowSpeed
+    val launcherRotationHintShown: Boolean get() = launcher.rotationHintShown
+    val launcherDesktopLocked: Boolean get() = launcher.desktopLocked
+    val launcherDesktopDoubleTapLockEnabled: Boolean get() = launcher.desktopDoubleTapLockEnabled
+    val launcherDesktopSwipeUpAction: LauncherDesktopSwipeAction get() = launcher.desktopSwipeUpAction
+    val launcherDesktopSwipeDownAction: LauncherDesktopSwipeAction get() = launcher.desktopSwipeDownAction
+    val launcherDesktopSwipeLeftAction: LauncherDesktopSwipeAction get() = launcher.desktopSwipeLeftAction
+    val launcherDesktopSwipeRightAction: LauncherDesktopSwipeAction get() = launcher.desktopSwipeRightAction
+    val launcherDesktopSwipeUpPayload: String get() = launcher.desktopSwipeUpPayload
+    val launcherDesktopSwipeDownPayload: String get() = launcher.desktopSwipeDownPayload
+    val launcherDesktopSwipeLeftPayload: String get() = launcher.desktopSwipeLeftPayload
+    val launcherDesktopSwipeRightPayload: String get() = launcher.desktopSwipeRightPayload
+    val launcherAllAppsSwipeUpAction: LauncherAllAppsSwipeAction get() = launcher.allAppsSwipeUpAction
+    val launcherAllAppsSwipeDownAction: LauncherAllAppsSwipeAction get() = launcher.allAppsSwipeDownAction
+    val launcherAllAppsSwipeLeftAction: LauncherAllAppsSwipeAction get() = launcher.allAppsSwipeLeftAction
+    val launcherAllAppsSwipeRightAction: LauncherAllAppsSwipeAction get() = launcher.allAppsSwipeRightAction
+    val launcherAllAppsSwipeUpPayload: String get() = launcher.allAppsSwipeUpPayload
+    val launcherAllAppsSwipeDownPayload: String get() = launcher.allAppsSwipeDownPayload
+    val launcherAllAppsSwipeLeftPayload: String get() = launcher.allAppsSwipeLeftPayload
+    val launcherAllAppsSwipeRightPayload: String get() = launcher.allAppsSwipeRightPayload
+    val launcherWallpaperMode: String get() = launcher.wallpaperMode
+    val launcherWallpaperImagePath: String get() = launcher.wallpaperImagePath
+    val launcherWallpaperCameraId: String get() = launcher.wallpaperCameraId
+    val allAppsSortOrder: String get() = launcher.allAppsSortOrder
+    val allAppsSortDescending: Boolean get() = launcher.allAppsSortDescending
+    val launcherScreenBlackoutTimeoutSeconds: Int get() = launcher.screenBlackoutTimeoutSeconds
+    val launcherWidgetBackdropAlpha: Float get() = launcher.widgetBackdropAlpha
+    val launcherWeatherLastLocation: String get() = launcher.weatherLastLocation
+    val launcherStepsResetCount: Long get() = launcher.stepsResetCount
+    val launcherStepsResetTimestamp: Long get() = launcher.stepsResetTimestamp
     companion object {
         /** S1796: opaque white - the flashlight starts as a plain white lamp until a colour is picked. */
         const val FRONT_FLASHLIGHT_DEFAULT_COLOR: Int = 0xFFFFFFFF.toInt()
 
-        /** S1748/S2253: canonical default for a transparent launcher surface. */
-        const val DEFAULT_LAUNCHER_WIDGET_BACKDROP_ALPHA: Float = 0.0f
+        /**
+         * S1748/S2253/S2320: canonical default - launcher surfaces read as plates over the wallpaper
+         * on a fresh install. The 2% that preceded it was indistinguishable from fully transparent.
+         */
+        const val DEFAULT_LAUNCHER_WIDGET_BACKDROP_ALPHA: Float = 0.25f
 
         /** S1748: selectable widget backdrop opacity levels. */
         val LAUNCHER_WIDGET_BACKDROP_ALPHA_OPTIONS = listOf(0.0f, 0.25f, 0.50f, 0.70f, 0.85f, 1.0f)
+
+        /**
+         * S2320: the option nearest [value].
+         *
+         * A stored alpha is an arbitrary float, and S2320 dropped an option that installs still carry.
+         * Snapping on read keeps the settings row and the painted surfaces on one number: without it
+         * the row falls back to the default for a value no option matches while the surfaces keep
+         * painting the stored one.
+         */
+        fun snapLauncherWidgetBackdropAlpha(value: Float): Float =
+            LAUNCHER_WIDGET_BACKDROP_ALPHA_OPTIONS.minBy { option -> abs(option - value) }
 
         /** S1741: preset screen blackout timeout seconds for launcher settings selector (0 = Off). */
         val LAUNCHER_SCREEN_TIMEOUT_PRESETS = listOf(0, 5, 15, 30, 60, 300)
 
         /** S0404: selectable launcher grid densities (see [launcherDensityFactor]). */
         val LAUNCHER_DENSITY_OPTIONS = listOf(0.75f, 1.0f, 1.25f, 1.5f)
+
+        /**
+         * S2320: the dense grid is what the launcher ships with - smaller cells, more of them across.
+         * Named rather than written at the field, so the settings row and the reset dialog can derive
+         * their selected index from it instead of carrying a position that outlives the value.
+         */
+        const val DEFAULT_LAUNCHER_DENSITY_FACTOR: Float = 1.25f
 
         /** S1643: taskbar anchored to the bottom screen edge - the pre-S1643 layout and the default. */
         const val LAUNCHER_TASKBAR_PLACEMENT_BOTTOM = "BOTTOM"
@@ -522,6 +510,14 @@ data class AppSettings(
             LAUNCHER_WALLPAPER_INSTANT_PHOTO,
         )
     }
+
+    /**
+     * S2300: edits the nested launcher group - `settings.withLauncher { copy(desktopLocked = true) }`.
+     *
+     * Writing the nested copy by hand at a call site reads as `x.copy(launcher = x.launcher.copy(..))`,
+     * which names the receiver twice and pushes most call sites past the line limit.
+     */
+    fun withLauncher(edit: LauncherSettings.() -> LauncherSettings): AppSettings = copy(launcher = launcher.edit())
 
     /**
      * Returns set of MediaTypes that are globally enabled in app settings.

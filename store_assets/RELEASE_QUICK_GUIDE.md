@@ -117,12 +117,15 @@ Open `store_assets/whats_new.txt` and paste into Play Console:
 
 ## 📱 Supported Platforms
 
-**Minimum**: Android 9.0 (API 28)
-**Target**: Android 14.0 (API 35)
+Read off `app_v2/build.gradle.kts`, not from memory - every line here was wrong until S2272.
+
+**Minimum**: Android 8.0 (API 26) on every flavor except `legacy`, which is Android 6.0 (API 23)
+**Target**: Android 16 (API 36) - the level Play enforces since 2026-08-31
+**Compile**: API 36
 **Tested On**:
 - Android 10 (API 29) - Scoped Storage
 - Android 11+ (API 30+) - Batch Permissions
-- Android 12-14 (API 31-35) - Latest features
+- Android 12-15 (API 31-35) - Latest features
 
 ## 🔐 Signing Information
 

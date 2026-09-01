@@ -1,6 +1,7 @@
 <#
 .SYNOPSIS
-    Fast per-module, per-flavor Gradle check - compile, resources, unit tests or assemble. Defaults
+    Fast per-module, per-flavor Gradle check - compile, resources, unit tests, instrumented tests on a
+    connected device (-Mode ConnectedAndroidTest, the only mode needing one) or assemble. Defaults
     to app_v2. Every module in scripts/utils/gradle-modules.ps1 is accepted, including one with no
     flavor dimension, whose task names carry no variant segment (:watchface:processDebugResources).
 
@@ -15,7 +16,7 @@
              refused - see below).
 #>
 param(
-    [ValidateSet("Code", "Resources", "CodeAndResources", "Unit", "AndroidTest", "Assemble")]
+    [ValidateSet("Code", "Resources", "CodeAndResources", "Unit", "AndroidTest", "ConnectedAndroidTest", "Assemble")]
     [string]$Mode = "CodeAndResources",
     # S0826: per-flavor fast compile check. Standard is the default; NoLegal needs its own
     # path because it bundles Python via Chaquopy (see flag handling below).
@@ -156,6 +157,14 @@ function Get-GradleTaskList {
         # AppDatabaseMigration50To51Test shipped referencing an undeclared constant. Compile only -
         # running these needs a device, but a test that cannot build is never going to run anywhere.
         "AndroidTest" { return @(":${Module}:compile${variant}${BuildType}AndroidTestKotlin") }
+        # S2306: the only mode that RUNS the instrumented set, which is the only way a Room migration
+        # is ever executed against real SQLite before a user's phone does it. Compiling these proves
+        # they parse; runMigrationsAndValidate is the same schema comparison the device performs on
+        # the first launch after an update, and until this mode existed nothing in the repository ever
+        # performed it - S2251 shipped a migration whose column the entity did not declare, and the
+        # first execution of that comparison anywhere was on the owner's phone, which then reset the
+        # database. Needs a connected device or emulator.
+        "ConnectedAndroidTest" { return @(":${Module}:connected${variant}${BuildType}AndroidTest") }
         "Assemble" { return @(":${Module}:assemble${variant}Debug") }
         default { throw "Unsupported mode: $Mode" }
     }
@@ -193,9 +202,33 @@ if ($Mode -eq "Assemble") {
     Write-Host "Version override: $($stamp.VersionName) (code: $assembleVersionCode)" -ForegroundColor Green
 }
 
-if ($Tests) {
+if ($Tests -and $Mode -eq "ConnectedAndroidTest") {
+    # S2306: the connected task takes no `--tests` - filtering an instrumented run is the runner's
+    # job, not Gradle's, so the value is forwarded as an AndroidJUnitRunner argument. Passing a Gradle
+    # glob here would be accepted silently and run the WHOLE instrumented suite on the device, which
+    # reads as a much stronger verdict than it is.
+    #
+    # The runner has TWO arguments and they are not interchangeable: `class` takes a fully qualified
+    # class (or Class#method), `package` takes a package. Handing a package to `class` matches nothing -
+    # and "no tests found" is the worst possible outcome here, because it is a run that proved nothing
+    # while looking like one that ran. They are told apart by the Java convention every name in this
+    # repository follows: a final segment starting lower-case is a package, upper-case is a class.
+    $tokens = @($Tests -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+    $packages = @($tokens | Where-Object { ($_ -split '\.')[-1] -cmatch '^[a-z]' })
+    $classes = @($tokens | Where-Object { $packages -notcontains $_ })
+    if ($packages.Count -gt 0 -and $classes.Count -gt 0) {
+        throw "-Tests mixes package names ($($packages -join ', ')) with class names ($($classes -join ', ')). The instrumentation runner takes one or the other, so name only packages or only classes."
+    }
+    if ($packages.Count -gt 0) {
+        $null = $gradleArgs.Add("-Pandroid.testInstrumentationRunnerArguments.package=$($packages -join ',')")
+    }
+    else {
+        $null = $gradleArgs.Add("-Pandroid.testInstrumentationRunnerArguments.class=$($classes -join ',')")
+    }
+}
+elseif ($Tests) {
     if ($Mode -ne "Unit") {
-        throw "-Tests is supported only with -Mode Unit"
+        throw "-Tests is supported only with -Mode Unit or -Mode ConnectedAndroidTest"
     }
     # Gradle takes ONE pattern per --tests flag and does not split on commas: passing
     # "*ATest,*BTest" as a single argument makes it look for a class literally named that, and it

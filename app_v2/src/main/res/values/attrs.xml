@@ -83,7 +83,7 @@
         <attr name="sdr_fieldWidth" format="dimension|reference" />
         <!-- Caps the dropdown field max width while it still shrinks with the row (weighted columns). Default unset = uncapped. -->
         <attr name="sdr_fieldMaxWidth" format="dimension|reference" />
-        <!-- Drops the outlined field and shows the value as text right after the title, like SettingsSelectionRow. Default false. -->
+        <!-- Drops the outlined field and shows the value as text on the title line, like SettingsSelectionRow. Default false. -->
         <attr name="sdr_valueAsText" format="boolean" />
     </declare-styleable>
 

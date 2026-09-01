@@ -394,6 +394,12 @@
     <dimen name="dialog_button_icon_padding">0dp</dimen>
     <dimen name="dialog_button_inset">0dp</dimen>
 
+    <!-- S2322: the enable-all explainer's illustrated step rows. The gap sits between the generic
+         16dp and 24dp steps because each row carries a 48dp picture, which needs more air than a
+         text row and less than a section break. -->
+    <dimen name="enable_all_explainer_step_gap">20dp</dimen>
+    <dimen name="enable_all_explainer_guide_size">48dp</dimen>
+
     <!-- Item Layouts -->
     <dimen name="item_padding">8dp</dimen>
     <dimen name="item_padding_vertical">8dp</dimen>

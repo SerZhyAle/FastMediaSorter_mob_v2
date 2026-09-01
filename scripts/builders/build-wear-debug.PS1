@@ -21,6 +21,7 @@ param(
 )
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
+. "$PSScriptRoot\..\utils\project-paths.ps1"
 Enter-BuildLockOrExit -Reason "build-wear-debug.PS1" -Domain Build.Wear
 try {
 
@@ -120,7 +121,7 @@ $zipName = [System.IO.Path]::ChangeExtension($destName, ".zip")
 $zipPath = "$gdDir\$zipName"
 
 # Use 7-Zip to create password-protected archive
-$7zipPath = "C:\Program Files\7-Zip\7z.exe"
+$7zipPath = Get-ToolPath -Tool SevenZip
 if (Test-Path -Path $7zipPath) {
     & $7zipPath a -tzip -p1 "$zipPath" "$downloadsDir\$destName" | Out-Null
     Write-Host "APK zipped with password and copied to Google Drive: $zipPath" -ForegroundColor Cyan

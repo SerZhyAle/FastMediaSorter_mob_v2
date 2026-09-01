@@ -10,6 +10,10 @@ could refute in a minute, and the update was rejected with
 
 Edit **here** first, then paste into the console. Do not compose the text in the console.
 
+The other hand-pasted Console form is the Data safety location section, whose source is
+`PLAY_DATA_SAFETY_LOCATION.md` (S2083). Same shape, same reason: no API endpoint, so the repository
+is the only reviewable copy.
+
 The listing half of the same argument lives in `play/listing/<locale>/` and is published by
 `scripts/release/publish-play-listing.ps1`. Both halves are read together by the reviewer: the policy
 requires the core function to be *prominently documented and promoted* in the store description, so a

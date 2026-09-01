@@ -315,16 +315,22 @@ Assert-Trigger -VariableName 'runsOrientationLayoutPairingGate' -Case 'app_v2 ma
 Assert-Trigger -VariableName 'runsOrientationLayoutPairingGate' -Case 'app_v2 landscape layout' `
     -Expected $true -ChangedSet @('app_v2/src/main/res/layout-land/activity_main.xml')
 
-# The gate has to RECEIVE the changed set, not merely be reached: without -ChangedFiles it re-counts
-# the whole app_v2 tree and -ScopeToFile means nothing to it.
-$focusGateBlock = [regex]::Match(
-    $facade,
-    '(?s)Invoke-Gate "focus-highlight-gate" \{.*?\r?\n    \}\r?\n').Value
-if ([string]::IsNullOrWhiteSpace($focusGateBlock)) {
-    throw 'Could not extract the focus-highlight gate block - the assertions below would pass vacuously.'
-}
-if ($focusGateBlock -notmatch 'if \(\$ScopeToFile\).*-ChangedFiles') {
-    throw 'focus-highlight gate does not forward the changed set under -ScopeToFile.'
+# A gate has to RECEIVE the changed set, not merely be reached: without -ChangedFiles it re-counts
+# the whole tree and -ScopeToFile means nothing to it. S2326 moved the argument vectors out of the
+# call sites and into the pool-start blocks, so the assertion follows the variable the call site
+# names rather than reading the block - a form the next refactor cannot make pass vacuously.
+foreach ($scopedGate in @('focus-highlight-gate', 'neuroslop-gate', 'rtl-layout-attrs-gate', 'listener-symmetry-gate')) {
+    $callSitePattern = 'Invoke-Gate "{0}" \{{ Invoke-GateChild @(\w+) \}}' -f [regex]::Escape($scopedGate)
+    $callSite = [regex]::Match($facade, $callSitePattern)
+    if (-not $callSite.Success) {
+        throw "Could not find the $scopedGate call site - the assertion below would pass vacuously."
+    }
+    $argvName = $callSite.Groups[1].Value
+    $argvPattern = '(?s)\$' + [regex]::Escape($argvName) + ' = @\(.*?\r?\n(if \(\$ScopeToFile[^\r\n]*\r?\n)?'
+    $argvBlock = [regex]::Match($facade, $argvPattern).Value
+    if ($argvBlock -notmatch 'if \(\$ScopeToFile.*-ChangedFiles') {
+        throw "$scopedGate does not forward the changed set under -ScopeToFile (argument vector $argvName)."
+    }
 }
 
 Write-Output "post-change tests: PASS ($($labels.Count) routed labels with hints)"

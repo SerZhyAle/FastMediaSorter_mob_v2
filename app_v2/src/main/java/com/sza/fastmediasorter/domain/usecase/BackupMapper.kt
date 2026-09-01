@@ -485,31 +485,33 @@ object BackupMapper {
                 ?.takeIf { it != StereoMode.AUTO && it != StereoMode.UNKNOWN }
                 ?: current.stereoDefaultProjection,
             // S1740: Launcher settings
-            launcherDensityFactor = backup.launcherDensityFactor,
-            launcherTaskbarPlacement = backup.launcherTaskbarPlacement.gsonSafe(current.launcherTaskbarPlacement),
-            launcherTaskbarShowRecents = backup.launcherTaskbarShowRecents,
-            launcherTaskbarShowPinned = backup.launcherTaskbarShowPinned,
-            launcherTaskbarShowTray = backup.launcherTaskbarShowTray,
-            launcherReplaceSystemStatusArea = backup.launcherReplaceSystemStatusArea,
-            launcherTopStatusStripMode = backup.launcherTopStatusStripMode,
-            launcherForeignNotificationsEnabled = backup.launcherForeignNotificationsEnabled,
-            launcherTrayShowClock = backup.launcherTrayShowClock,
-            launcherTrayShowBluetooth = backup.launcherTrayShowBluetooth,
-            launcherTrayShowSim1 = backup.launcherTrayShowSim1,
-            launcherTrayShowSim2 = backup.launcherTrayShowSim2,
-            launcherTrayShowNetwork = backup.launcherTrayShowNetwork,
-            launcherTrayShowBattery = backup.launcherTrayShowBattery,
-            launcherRotationHintShown = backup.launcherRotationHintShown,
-            launcherDesktopLocked = backup.launcherDesktopLocked,
-            // null in older backup files → preserve current setting, so the gesture stays enabled by default
-            launcherDesktopDoubleTapLockEnabled = backup.launcherDesktopDoubleTapLockEnabled
-                ?: current.launcherDesktopDoubleTapLockEnabled,
-            launcherWallpaperMode = backup.launcherWallpaperMode.gsonSafe(current.launcherWallpaperMode),
-            launcherWallpaperImagePath = backup.launcherWallpaperImagePath.gsonSafe(current.launcherWallpaperImagePath),
-            launcherWallpaperCameraId = backup.launcherWallpaperCameraId.gsonSafe(current.launcherWallpaperCameraId),
-            allAppsSortOrder = backup.allAppsSortOrder.gsonSafe(current.allAppsSortOrder),
-            allAppsSortDescending = backup.allAppsSortDescending,
-            launcherScreenBlackoutTimeoutSeconds = backup.launcherScreenBlackoutTimeoutSeconds,
+            launcher = current.launcher.copy(
+                densityFactor = backup.launcherDensityFactor,
+                taskbarPlacement = backup.launcherTaskbarPlacement.gsonSafe(current.launcherTaskbarPlacement),
+                taskbarShowRecents = backup.launcherTaskbarShowRecents,
+                taskbarShowPinned = backup.launcherTaskbarShowPinned,
+                taskbarShowTray = backup.launcherTaskbarShowTray,
+                replaceSystemStatusArea = backup.launcherReplaceSystemStatusArea,
+                topStatusStripMode = backup.launcherTopStatusStripMode,
+                foreignNotificationsEnabled = backup.launcherForeignNotificationsEnabled,
+                trayShowClock = backup.launcherTrayShowClock,
+                trayShowBluetooth = backup.launcherTrayShowBluetooth,
+                trayShowSim1 = backup.launcherTrayShowSim1,
+                trayShowSim2 = backup.launcherTrayShowSim2,
+                trayShowNetwork = backup.launcherTrayShowNetwork,
+                trayShowBattery = backup.launcherTrayShowBattery,
+                rotationHintShown = backup.launcherRotationHintShown,
+                desktopLocked = backup.launcherDesktopLocked,
+                // null in older backup files → preserve current setting, so the gesture stays enabled by default
+                desktopDoubleTapLockEnabled = backup.launcherDesktopDoubleTapLockEnabled
+                    ?: current.launcherDesktopDoubleTapLockEnabled,
+                wallpaperMode = backup.launcherWallpaperMode.gsonSafe(current.launcherWallpaperMode),
+                wallpaperImagePath = backup.launcherWallpaperImagePath.gsonSafe(current.launcherWallpaperImagePath),
+                wallpaperCameraId = backup.launcherWallpaperCameraId.gsonSafe(current.launcherWallpaperCameraId),
+                allAppsSortOrder = backup.allAppsSortOrder.gsonSafe(current.allAppsSortOrder),
+                allAppsSortDescending = backup.allAppsSortDescending,
+                screenBlackoutTimeoutSeconds = backup.launcherScreenBlackoutTimeoutSeconds,
+            ),
         )
     }
 

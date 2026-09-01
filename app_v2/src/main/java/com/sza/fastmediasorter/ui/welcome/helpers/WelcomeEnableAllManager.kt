@@ -28,9 +28,11 @@ import timber.log.Timber
 import javax.inject.Inject
 
 /**
- * Orchestrates the welcome "Enable all" sequence (S0409) as a rotation-safe state machine: set profile
- * OTHER + enable every available function, then walk the permission system dialogs one at a time, then
- * the default-player system dialogs one at a time, then finish onboarding.
+ * Orchestrates the welcome "Enable all" sequence (S0409) as a rotation-safe state machine: apply the
+ * device profile the user confirmed (S2311 - it was a hardcoded OTHER before) + enable every available
+ * function, then walk the permission system dialogs one at a time, then the default-player system
+ * dialogs one at a time (S2322 - the host announces that stage before it opens the first of them),
+ * then finish onboarding.
  *
  * Field-injected into WelcomeActivity (Hilt deps) and [attach]ed to it so it can own an
  * ActivityResultLauncher. [attach] re-wires the host references on every recreation; the default-player
@@ -54,6 +56,7 @@ class WelcomeEnableAllManager @Inject constructor(
     private var activity: FragmentActivity? = null
     private var permissionsManager: WelcomePermissionsManager? = null
     private var onFinished: (() -> Unit)? = null
+    private var onConfirmDefaultPlayerStage: (() -> Unit)? = null
     private var defaultPlayerLauncher: ActivityResultLauncher<Intent>? = null
 
     // True from start() until the sequence finishes; survives rotation so a recreated Activity resumes
@@ -72,10 +75,12 @@ class WelcomeEnableAllManager @Inject constructor(
     fun attach(
         activity: FragmentActivity,
         permissionsManager: WelcomePermissionsManager,
+        onConfirmDefaultPlayerStage: () -> Unit,
         onFinished: () -> Unit,
     ) {
         this.activity = activity
         this.permissionsManager = permissionsManager
+        this.onConfirmDefaultPlayerStage = onConfirmDefaultPlayerStage
         this.onFinished = onFinished
         // S0910: attach() runs from setupViews, which BaseActivity defers to a post{} - i.e. AFTER
         // onRestoreInstanceState has already restored inProgress/defaultPlayerStageStarted here and the
@@ -111,20 +116,23 @@ class WelcomeEnableAllManager @Inject constructor(
         // is non-null. Calling reattach here (before attach) silently no-op'd and the sequence stalled.
     }
 
-    /** Kick off the full sequence. [applyProfileOther] sets the device profile to OTHER and persists it
-     *  (host-supplied so the manager stays free of ViewModel coupling). */
-    fun start(applyProfileOther: () -> Unit) {
+    /** Kick off the full sequence. [applyProfile] persists the device profile the user just confirmed and
+     *  suspends until its settings preset has been written (host-supplied so the manager stays free of
+     *  ViewModel coupling). */
+    fun start(applyProfile: suspend () -> Unit) {
         if (inProgress) return
         inProgress = true
         currentTypeIndex = 0
-        applyProfileOther()
         val pm = permissionsManager ?: run { finishSequence(); return }
-        // Apply settings strictly after the profile save and enqueue optional deliverables, then hand
-        // off to the permission walk on the main thread (it drives Activity-owned launchers).
+        // S2311: the profile preset is awaited BEFORE the enable-all write. The two used to run as
+        // independent coroutines; the repository mutex serializes them but fixes no order, so a
+        // non-OTHER preset landing second would switch the just-enabled functions back off.
         appScope.launch {
+            applyProfile()
+            Timber.d("S2311: profile preset awaited, applying enable-all settings now")
             enableAllSettingsUseCase()
-            // allFiles=true alone does not materialize the browsable "All Files" resource; the OTHER
-            // profile's preset never implies it, so create it here to match "everything enabled".
+            // allFiles=true alone does not materialize the browsable "All Files" resource; a profile
+            // preset need not imply it, so create it here to match "everything enabled".
             ensureAllFilesPredefinedResourceUseCase()
                 .onFailure { Timber.w(it, "WelcomeEnableAllManager: failed to ensure All Files resource") }
             enqueueOptionalDeliverables()
@@ -142,7 +150,36 @@ class WelcomeEnableAllManager @Inject constructor(
             return
         }
         currentTypeIndex = 0
+        // S2322: this stage raises the OS "Open with / Always" sheet over one of the user's own files,
+        // which reads as the app misbehaving unless it was announced. The host owns that announcement -
+        // this manager deliberately knows nothing about fragments, as with start()'s applyProfile.
+        Timber.d("S2322: default-player stage handed to host for confirmation")
+        val confirm = onConfirmDefaultPlayerStage
+        if (confirm == null) {
+            launchCurrentDefaultPlayerType()
+        } else {
+            confirm()
+        }
+    }
+
+    /** Host answered "show me": walk the applicable MIME types as before. */
+    fun onDefaultPlayerStageConfirmed() {
+        if (!inProgress) {
+            return
+        }
         launchCurrentDefaultPlayerType()
+    }
+
+    /**
+     * Host answered "skip": end the sequence without registering any default app. The whole stage is
+     * dropped rather than the current type, because the announcement the user declined described the
+     * stage - skipping one type would raise the same unexplained sheet for the next one.
+     */
+    fun onDefaultPlayerStageDeclined() {
+        if (!inProgress) {
+            return
+        }
+        finishSequence()
     }
 
     private fun launchCurrentDefaultPlayerType() {

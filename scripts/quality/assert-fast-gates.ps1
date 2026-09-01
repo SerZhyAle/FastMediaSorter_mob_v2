@@ -35,6 +35,7 @@
       - assert-gson-persistence-contract (S1639 a durable Gson model whose wire names nothing pins)
       - assert-stream-asset-revisions (S1828 a pinned stream-catalog asset that would stop being published)
       - assert-migration-test-pairing (S1844 a Room migration with no instrumented migration test)
+ - assert-migration-schema-conformance (S2306 migration SQL that disagrees with the exported schema)
       - assert-launcher-contrast     (S1895 a launcher colour measured under 7:1 on its own surface)
       - assert-detekt                (only with -IncludeDetekt; honours -ChangedFiles)
 
@@ -131,6 +132,13 @@ $gates = [ordered]@{
     # and could not compile at all. Ratchet over two directory listings, no gradle daemon; the 12
     # migrations that predate the habit are baselined so only a NEW gap fails.
     'assert-migration-test-pairing.ps1'         = @()
+    # S2306: the other half of the same contract - a migration test proves a test EXISTS, this proves
+    # the migration's SQL says what the exported schema Room validates against says. S2251 had neither:
+    # the SQL added `screen_index`, LauncherCellEntity declared `screenIndex`, and the disagreement was
+    # visible in two files in this tree while every check ran green. Room compares them on the user's
+    # device on the first launch after an update, and the recovery path deletes the database when they
+    # differ. Two directory listings and a JSON parse, no gradle daemon.
+    'assert-migration-schema-conformance.ps1'   = @('-Quiet')
     # S1895: the launcher taskbar and Start panel measured against the surfaces they land on, in all
     # eight themes. The previous change to these same colours was closed on a visual check and
     # shipped the Start label at 4.22:1; contrast is arithmetic, so it can be checked rather than

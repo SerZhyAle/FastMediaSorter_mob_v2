@@ -1,4 +1,4 @@
-#requires -Version 7.0
+﻿#requires -Version 7.0
 <#
 .SYNOPSIS
     Audit permanent Timber logs for embedded Sxxxx ticket ids.
@@ -78,67 +78,26 @@ $scanRoots = @(
     (Join-Path $repoRoot 'wear')
 ) | Where-Object { Test-Path $_ }
 
+# S2324: the probe form, the multi-line call reconstruction and the baseline parse moved to
+# scripts/quality/lib/blockneedusertest-probes.ps1 so that check-probe-present.ps1 - which
+# refuses a transition INTO BlockNeedUserTest - decides "carries a probe" by the same code this
+# gate uses. Two independent implementations of that sentence would let the closing gate refuse
+# a ticket this gate passes (S1621).
+. (Join-Path $PSScriptRoot 'lib/blockneedusertest-probes.ps1')
+
 # Opener of a Timber log call. The call may span several physical lines, so the
-# whole argument text is reconstructed from the source (see Get-CallEnd) before
-# scanning - a per-line match would miss `Timber.d(\n  "Sxxxx: ..")` (S0948).
-$openerRx = [regex]'Timber\.(?<level>[iwed])\('
+# whole argument text is reconstructed from the source before scanning - a per-line
+# match would miss `Timber.d(\n  "Sxxxx: ..")` (S0948).
+$openerRx = Get-TimberOpenerRegex
 # Freestanding ticket id in the reconstructed argument text. The id must not be
 # part of a longer identifier (class names such as MigrateS0059UseCase or
 # S0200AuthStateWipe legitimately embed an id and are NOT provenance tags) -
-# hence the surrounding non-word boundaries.
+# hence the surrounding non-word boundaries. Local to this gate: it is how a FORBIDDEN
+# id is spotted, which is this gate's own half of the invariant.
 $idRx = [regex]'(?<![A-Za-z0-9])S(?<num>\d{4})(?![0-9A-Za-z])'
 # Probe form: Timber.d("Sxxxx: ..) - the string may sit on a later line, so the
 # span is matched from its start and \s spans newlines.
-$probeRx = [regex]'^Timber\.d\(\s*"S(?<num>\d{4}):'
-
-# Reconstruct a Timber call from its 'Timber.<level>' start ($prefixStart) through
-# the ')' that matches its opening '(' ($openParenIdx), tracking string and comment
-# state. Returns @{ End = <index of that ')'>; Span = <call text with // and /* */
-# comments blanked to spaces but string literals kept verbatim> }. Comments are
-# blanked so a `// Sxxxx` rationale note sitting between call arguments is not
-# mistaken for log text; string literals stay intact because that is exactly where a
-# forbidden id lives. Parens inside strings/comments do not skew the depth count.
-# Kotlin raw-triple-quote strings and char literals holding a quote are rare in
-# Timber args and out of scope here.
-function Get-SanitizedCall([string] $content, [int] $prefixStart, [int] $openParenIdx) {
-    $sb = [System.Text.StringBuilder]::new()
-    [void]$sb.Append($content.Substring($prefixStart, $openParenIdx - $prefixStart))
-    $depth = 0
-    $inStr = $false
-    $inLine = $false
-    $inBlock = $false
-    $i = $openParenIdx
-    $len = $content.Length
-    $end = -1
-    while ($i -lt $len) {
-        $c = $content[$i]
-        if ($inLine) {
-            if ($c -eq "`n") { $inLine = $false; [void]$sb.Append($c) } else { [void]$sb.Append(' ') }
-            $i++; continue
-        }
-        if ($inBlock) {
-            if ($c -eq '*' -and ($i + 1) -lt $len -and $content[$i + 1] -eq '/') {
-                $inBlock = $false; [void]$sb.Append('  '); $i += 2; continue
-            }
-            [void]$sb.Append($(if ($c -eq "`n") { $c } else { ' ' })); $i++; continue
-        }
-        if ($inStr) {
-            [void]$sb.Append($c)
-            if ($c -eq '\' -and ($i + 1) -lt $len) { [void]$sb.Append($content[$i + 1]); $i += 2; continue }
-            if ($c -eq '"') { $inStr = $false }
-            $i++; continue
-        }
-        if ($c -eq '"') { $inStr = $true; [void]$sb.Append($c); $i++; continue }
-        if ($c -eq '/' -and ($i + 1) -lt $len -and $content[$i + 1] -eq '/') { $inLine = $true; [void]$sb.Append('  '); $i += 2; continue }
-        if ($c -eq '/' -and ($i + 1) -lt $len -and $content[$i + 1] -eq '*') { $inBlock = $true; [void]$sb.Append('  '); $i += 2; continue }
-        [void]$sb.Append($c)
-        if ($c -eq '(') { $depth++ }
-        elseif ($c -eq ')') { $depth--; if ($depth -eq 0) { $end = $i; break } }
-        $i++
-    }
-    if ($end -lt 0) { $end = [Math]::Min($len - 1, $openParenIdx + 2000) }
-    return @{ End = $end; Span = $sb.ToString() }
-}
+$probeRx = Get-TimberProbeFormRegex
 
 $findings = [System.Collections.Generic.List[object]]::new()
 # Ids for which a probe call actually exists in source, whatever its status. A stale probe counts
@@ -156,7 +115,7 @@ foreach ($root in $scanRoots) {
 
         foreach ($m in $openerRx.Matches($content)) {
             $openParenIdx = $m.Index + $m.Length - 1
-            $span = (Get-SanitizedCall $content $m.Index $openParenIdx).Span
+            $span = (Get-SanitizedTimberCallSpan -Content $content -PrefixStart $m.Index -OpenParenIndex $openParenIdx).Span
 
             $idm = $idRx.Match($span)
             if (-not $idm.Success) { continue }
@@ -231,17 +190,22 @@ if ($scoped) {
 # Exceptions are an allow-list rather than a count: measured 2026-08-14, every real gap had a
 # legitimate named reason (the ticket changes tooling or documentation, so a probe has nowhere to
 # live), and a bare counter would have recorded that as anonymous debt.
-$baselineFile = Join-Path $PSScriptRoot 'blockneedusertest-probe-baseline.txt'
-$excused = [System.Collections.Generic.HashSet[string]]::new()
-if (Test-Path -LiteralPath $baselineFile) {
-    foreach ($line in Get-Content -LiteralPath $baselineFile) {
-        $trimmedLine = $line.Trim()
-        if ($trimmedLine -eq '' -or $trimmedLine.StartsWith('#')) { continue }
-        if ($trimmedLine -match '^(?<id>S\d{4})\s+\S') { [void]$excused.Add($Matches['id']) }
-    }
-}
+$baselineFile = Get-ProbeBaselinePath -RepoRoot $repoRoot
+$excused = Get-ExcusedProbeTickets -BaselinePath $baselineFile
 
 $missingProbe = @($blockNeedUserTest | Where-Object { -not $probeIds.Contains($_) -and -not $excused.Contains($_) } | Sort-Object)
+
+# S2299: a forbidden id whose own ticket sits in BlockNeedUserTest with no probe in source is almost
+# always a probe typed at the wrong level - the author wanted a probe, the surrounding call was
+# naturally informational, so they reached for Timber.i. The gate already held both facts and printed
+# them as two unrelated lines (a forbidden id up here, a missing-probe entry below), which is how the
+# Migration53To54 line survived weeks of runs unfixed. Both sets are in memory at this point, so
+# naming the connection costs neither an extra catalogue read nor a second source walk.
+foreach ($finding in (@($findings) + @($outOfScope))) {
+    if ($blockNeedUserTest.Contains($finding.Ticket) -and -not $probeIds.Contains($finding.Ticket)) {
+        $finding.Reason = '{0} - looks like a probe typed at the wrong level; the probe form is Timber.d("{1}: ..")' -f $finding.Reason, $finding.Ticket
+    }
+}
 
 if (-not $Quiet -and $actual -gt 0) {
     Write-Host "Forbidden permanent-log ticket ids:`n"

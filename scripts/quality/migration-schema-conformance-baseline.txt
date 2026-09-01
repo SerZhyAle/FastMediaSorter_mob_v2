@@ -1,0 +1,10 @@
+# S2306 - accepted migration/schema disagreements, one "<migration>|<dimension>|<subject>" per line.
+#
+# This file is EMPTY on purpose and should stay that way. Every migration from 36 onward was compared
+# against its exported schema on 2026-09-01 and all of them agree; the hops below 36 have no exported
+# schema to compare against and are skipped by the gate rather than baselined here.
+#
+# A line added here says "this migration ships a database Room will refuse to validate, and we accept
+# that". The only defensible reason is a migration that ALREADY shipped, whose SQL is now history on
+# users' devices and cannot be corrected by editing it. For anything not yet released, fix the SQL or
+# the entity instead - baselining it here converts a caught defect into the S2251 incident again.

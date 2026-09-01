@@ -79,6 +79,9 @@ param(
     # full closure round-trip to report and one keystroke to fix. With -Fix this script corrects them
     # in place and always exits 0: formatting is never a verdict, it is housekeeping done before one.
     [switch]   $Fix,
+    # -Fix only: where to record that the judging pass found the whole set clean. The caller can
+    # then skip the separate preflight, which re-runs this same analyser over these same files.
+    [string]   $VerdictPath,
     [switch]   $Json
 )
 
@@ -305,6 +308,21 @@ foreach ($module in @($byModule.Keys)) {
 
 if ($targets.Count -eq 0) {
     $sw.Stop()
+    # The judging pass above ran the full configured rule set over the whole set and found nothing,
+    # and nothing was rewritten, so a second analyser run over the same files has nothing to find.
+    if ($VerdictPath) {
+        try {
+            [System.IO.File]::WriteAllText($VerdictPath, (@{
+                        status   = 'clean'
+                        files    = $fileCount
+                        findings = 0
+                    } | ConvertTo-Json -Compress))
+        }
+        catch {
+            # A verdict that cannot be recorded only costs the caller the preflight it would
+            # otherwise skip. It must never turn housekeeping into a failure.
+        }
+    }
     Write-Host ("detekt-scoped: FIXED [{0}] - {1} file(s) judged clean, nothing to correct - source untouched ({2:N1}s)." -f `
             $scope, $fileCount, $sw.Elapsed.TotalSeconds) -ForegroundColor Green
     exit 0

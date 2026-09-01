@@ -45,6 +45,18 @@ because the Developer API cannot create a form-factor track - an attempt returns
 - [ ] Wear screenshots live: `play/listing/en-US/images/wearScreenshots/` then `publish-play-listing.ps1 -Mode commit`
 - [ ] Watch artifact is on the Wear track, not a mobile one - a wear release left on a mobile track keeps
       serving users but can never be updated
+- [ ] Phone artifact and watch artifact are **not** in the same review batch. Managed publishing groups
+      everything unsent into one batch, and a rejection of either takes the whole batch with it. On
+      2026-08-25 the two travelled together; the watch verdict of 2026-08-31 held the phone release
+      that had been live since 2026-08-15, with not one claim against the phone (S2272, ADR-1).
+      Nothing enforces this mechanically - the Developer API exposes no review state at all - so this
+      line is the enforcement. Current publication state and the ordered recovery plan:
+      `docs/PLAY_PUBLISHING_STATE.md`
+- [ ] `Publishing overview -> unsent changes` read immediately before sending, and it contains nothing
+      from the watch. Measured 2026-09-01: while a rejection stands, `edits().commit()` refuses
+      automatic review (HTTP 400) and only `changesNotSentForReview=True` succeeds, so **every** API
+      edit queues into that list and rides out in the batch you send by hand. Building the two
+      artifacts separately does not keep them apart - this list does
 
 ## C3. All files access declaration (S1989)
 
@@ -68,6 +80,32 @@ reviewer refutes in a minute.
 - [ ] Store listing already reads as a file organizer (section A) - the two are reviewed as a pair
 - [ ] Under a policy enforcement, Play refuses automatic review: send the held edit from
       `Publishing overview -> Send changes for review` together with the declaration
+
+## C4. Data safety - location (S2083)
+
+Source of truth: `store_assets/PLAY_DATA_SAFETY_LOCATION.md`. Like C3 this form has no Play Developer
+API endpoint, so it is answered by hand - decide in the file, never in the console. The form is filled
+**per form factor**: the Wear answer is not inherited from the phone.
+
+The answer is settled for both form factors as of 2026-09-01: **location is not collected and not
+shared anywhere.** Every row below is unchecked, and the file above holds the evidence for each one.
+
+- [ ] Wear OS form factor: `Approximate location`, `Precise location` and background all **unchecked**
+      - the watch declares no location permission at all, so this one is a statement of fact
+- [ ] Phone form factor: `Approximate location`, `Precise location` and background all **unchecked**
+      - nothing retains a fix off the device. The two network paths that touch a coordinate are both
+        quantized to a map tile and retain nothing, which is the ephemeral-processing exemption
+        Google states on its own Data safety page
+- [ ] Background location unchecked on the phone too - `ACCESS_BACKGROUND_LOCATION` is declared in
+      neither module
+- [ ] Before answering the phone rows, confirm `GoogleMapsLiveFrameView.kt` still denies the page's
+      geolocation and still coarsens the coordinate (S2292). Until that fix landed, the Google Maps
+      Live Frame gadget (S2241) auto-granted an embedded Google page its own geolocation and passed a
+      full-precision coordinate, which would have forced a `Sharing` declaration instead
+- [ ] Store description names why location is asked for (section A) - the form and the description are
+      reviewed as a pair, exactly as in C3
+- [ ] If a location row was previously checked, changing it changes the published label - expect
+      review, and send the held edit from `Publishing overview -> Send changes for review`
 
 ## D. App Category
 

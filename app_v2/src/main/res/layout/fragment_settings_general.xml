@@ -29,42 +29,96 @@
 
                 <LinearLayout android:id="@+id/containerInterface" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
-                    <!-- Language (S0567: raw Spinner -> SettingsDropdownRow; S1190: -> SettingsSelectionRow).
-                         Thirteen interface languages do not fit an inline dropdown, so the row now opens the
-                         searchable picker and shows the chosen language as its value. -->
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
-                        android:id="@+id/rowLanguage"
+                    <!-- S0644 + owner ruling 2026-09-01: the four value rows share one label column,
+                         sized by the longest caption, so their values line up AND each value stays right
+                         beside the caption it belongs to. A value right-aligned to the row's far edge
+                         aligned just as well and was unreadable on a landscape phone, where the card is
+                         over 2000 px wide. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsValueRowGroup
+                        android:id="@+id/groupInterfaceValueRows"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/margin_tiny"
-                        android:layout_marginBottom="@dimen/margin_tiny"
-                        app:ssr_inline="true"
-                        app:ssr_title="@string/language" />
+                        android:layout_height="wrap_content">
 
-                    <!-- Color theme (S0328; S0567: raw Spinner -> SettingsDropdownRow).
-                         Value text mode: the value follows the title on one line, as in the Language
-                         and Device profile rows above and below it. -->
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-                        android:id="@+id/spinnerColorTheme"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/margin_tiny"
-                        android:layout_marginBottom="@dimen/margin_tiny"
-                        app:sdr_valueAsText="true"
-                        app:sdr_title="@string/color_theme"
-                        app:sdr_entries="@array/color_theme_options" />
+                        <!-- Language (S0567: raw Spinner -> SettingsDropdownRow; S1190: -> SettingsSelectionRow).
+                             Thirteen interface languages do not fit an inline dropdown, so the row now opens the
+                             searchable picker and shows the chosen language as its value. -->
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                            android:id="@+id/rowLanguage"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_tiny"
+                            android:layout_marginBottom="@dimen/margin_tiny"
+                            app:ssr_inline="true"
+                            app:ssr_title="@string/language" />
 
-                    <!-- Device Profile Row (S0327; S0567 unified to SettingsSelectionRow).
-                         Inline: chevron right after the value, no tall touch band - single compact line (parity with landscape). -->
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
-                        android:id="@+id/rowDeviceProfile"
+                        <!-- Color theme (S0328; S0567: raw Spinner -> SettingsDropdownRow).
+                             Value text mode: the value follows the title on one line, as in the Language
+                             and Device profile rows above and below it. -->
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                            android:id="@+id/spinnerColorTheme"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_tiny"
+                            android:layout_marginBottom="@dimen/margin_tiny"
+                            app:sdr_valueAsText="true"
+                            app:sdr_title="@string/color_theme"
+                            app:sdr_entries="@array/color_theme_options" />
+
+                        <!-- Device Profile Row (S0327; S0567 unified to SettingsSelectionRow).
+                             Inline: chevron right after the value, no tall touch band - single compact line (parity with landscape). -->
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                            android:id="@+id/rowDeviceProfile"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_tiny"
+                            android:layout_marginBottom="@dimen/margin_tiny"
+                            app:ssr_inline="true"
+                            app:ssr_title="@string/settings_profile_title"
+                            app:ssr_value="@string/welcome_profile_other_title" />
+
+                        <!-- S1285/S2288: cell size of the main-window resource grid. Follows the device
+                             profile because both settle the geometry of the same main window - the profile
+                             picks the preset, this row overrides the cell inside it. -->
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                            android:id="@+id/rowResourceGridCellSize"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_tiny"
+                            android:layout_marginBottom="@dimen/margin_tiny"
+                            app:sdr_valueAsText="true"
+                            app:sdr_title="@string/pref_resource_grid_cell_size_title" />
+                    </com.sza.fastmediasorter.ui.common.widget.SettingsValueRowGroup>
+
+
+                    <!-- S1088: System launcher enable toggle + entry to the launcher-settings dialog.
+                         GeneralSettingsLauncherHelper hides both on builds without the launcher surface
+                         (launcherModeContract.isAvailableInBuild) and keeps the entry button disabled until
+                         the launcher is enabled.
+                         S2288: the pair follows the grid-cell row because both decide what the home surface
+                         looks like; the entry is a content-width button, not a full-width row, so it reads
+                         as subordinate to the toggle rather than as an independent setting. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowLauncherModeEnabled"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/margin_tiny"
                         android:layout_marginBottom="@dimen/margin_tiny"
-                        app:ssr_inline="true"
-                        app:ssr_title="@string/settings_profile_title"
-                        app:ssr_value="@string/welcome_profile_other_title" />
+                        app:str_icon="@drawable/ic_launcher_mode"
+                        app:str_title="@string/launcher_settings_enable_title"
+                        app:str_subtitle="@string/launcher_settings_enable_desc"
+                        app:str_showHelp="true"
+                        app:str_helpTitle="@string/launcher_settings_enable_help_title"
+                        app:str_helpMessage="@string/launcher_settings_enable_help_message" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/rowLauncherSettings"
+                        style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/margin_large"
+                        android:layout_marginBottom="@dimen/margin_tiny"
+                        android:text="@string/launcher_settings_dialog_title"
+                        app:icon="@drawable/ic_launcher_mode"
+                        app:iconGravity="textStart" />
 
                     <!-- Global scaling (compact elements) -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
@@ -86,17 +140,6 @@
                         android:layout_marginBottom="@dimen/margin_tiny"
                         app:str_title="@string/pref_disable_animations_title"
                         app:str_subtitle="@string/pref_disable_animations_desc" />
-
-                    <!-- S1285: cell size of the main-window resource grid. Sits next to the compact
-                         toggle because both scale the same screen, but they are independent axes -
-                         this one changes the cell, that one the icon and text inside it. -->
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-                        android:id="@+id/rowResourceGridCellSize"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/margin_tiny"
-                        app:sdr_valueAsText="true"
-                        app:sdr_title="@string/pref_resource_grid_cell_size_title" />
 
                     <!-- Enable Favorites (Moved from Sleep/Favorites container) -->
                     <LinearLayout android:id="@+id/layoutEnableFavorites" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
@@ -128,31 +171,6 @@
                             app:str_helpMessage="@string/tooltip_allow_separate_window_message" />
 
                     </LinearLayout>
-
-                    <!-- S1088: System launcher enable toggle + entry to the launcher-settings dialog.
-                         GeneralSettingsLauncherHelper hides both on builds without the launcher surface
-                         (launcherModeContract.isAvailableInBuild) and keeps the entry row disabled until
-                         the launcher is enabled. -->
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                        android:id="@+id/rowLauncherModeEnabled"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/margin_tiny"
-                        app:str_icon="@drawable/ic_launcher_mode"
-                        app:str_title="@string/launcher_settings_enable_title"
-                        app:str_subtitle="@string/launcher_settings_enable_desc"
-                        app:str_showHelp="true"
-                        app:str_helpTitle="@string/launcher_settings_enable_help_title"
-                        app:str_helpMessage="@string/launcher_settings_enable_help_message" />
-
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
-                        android:id="@+id/rowLauncherSettings"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/margin_tiny"
-                        app:ssr_icon="@drawable/ic_launcher_mode"
-                        app:ssr_navMode="true"
-                        app:ssr_title="@string/launcher_settings_dialog_title" />
 
                 </LinearLayout>
             </LinearLayout>

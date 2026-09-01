@@ -60,7 +60,9 @@ class LauncherDesktopGeometryManager(
             currentColumns(),
             viewModel.editMode.value,
             currentViewportRows(),
-            viewModel.sections.collapsed.value,
+            // S2317: the targets folded on the cells actually being drawn. The whole set would fold a
+            // header on this screen because its twin on another screen is shut.
+            viewModel.sections.collapsedTargetsFor(screenCells),
             viewModel.widgetBackdropAlpha.value,
         )
     }

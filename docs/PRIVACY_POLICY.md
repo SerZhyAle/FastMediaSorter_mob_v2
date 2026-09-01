@@ -32,9 +32,10 @@ FastMediaSorter accesses the following data **only on your device and configured
    - Limited to folders you explicitly select
    - OAuth tokens for authenticated access
 
-4. **Location (Optional - Network Monitor)**
+4. **Location (Optional - map gadgets and Network Monitor)**
    - A GNSS track only while you turn on its separate setting and keep the Monitor's Satellites screen open
    - Stored on your device; it does not start in the background or leave the app unless you explicitly share its file
+   - The desktop map gadgets turn your position into a map-tile address and ask an online map service for the picture of that tile, and ask Android for the name of the place. That is the only case where your position leaves the device; it is used for the request and not stored by us
 
 ### What We Store Locally
 
@@ -148,7 +149,7 @@ Your build may show fewer of these than the list: a permission appears only when
 
 - `CAMERA`: Optional. Shoot photos and video inside the app, recognize text, and scan a companion QR code
 - `RECORD_AUDIO`: Optional. Record voice notes and the sound in a screen recording
-- `ACCESS_FINE_LOCATION` / `ACCESS_COARSE_LOCATION`: Optional. Four features read it. It writes coordinates into the photos and videos you shoot in the app; on the launcher desktop, it gives the compass, speed and chart gadgets your speed and altitude while one of those tiles is on screen; and the Network Monitor can record a GNSS track only while its Satellites screen is open and you turned on the separate track setting. The fourth is the name of the Wi-Fi network you are connected to, shown in the Monitor's Wi-Fi section: Android treats that name as location data and hides it from every app without this permission, so the row says why instead of showing it. Position is never read in the background. Charts and an opted-in track stay on this device; nothing is sent anywhere unless you explicitly share a track file. Denying it leaves captures without coordinates and those tiles idle with a message saying so
+- `ACCESS_FINE_LOCATION` / `ACCESS_COARSE_LOCATION`: Optional. Five features read it. It writes coordinates into the photos and videos you shoot in the app; on the launcher desktop, it gives the compass, speed and chart gadgets your speed and altitude while one of those tiles is on screen; also on the desktop, the map gadgets draw the map around you; and the Network Monitor can record a GNSS track only while its Satellites screen is open and you turned on the separate track setting. The fifth is the name of the Wi-Fi network you are connected to, shown in the Monitor's Wi-Fi section: Android treats that name as location data and hides it from every app without this permission, so the row says why instead of showing it. Position is never read in the background. All of it stays on this device except the map gadgets: to draw the map they ask an online map service for a picture of your area, and ask Android for the name of the place. Nothing else is sent anywhere unless you explicitly share a track file, and none of it goes to a server of ours - we have none. Denying it leaves captures without coordinates and those tiles idle with a message saying so
 
 ### Notifications
 

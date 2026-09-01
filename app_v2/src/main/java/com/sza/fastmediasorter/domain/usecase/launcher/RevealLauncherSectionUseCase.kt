@@ -23,13 +23,16 @@ class RevealLauncherSectionUseCase @Inject constructor(
         }.orEmpty()
 
         val placed = cells.firstOrNull { it.id == cellId }
-        val owner = placed?.let {
-            LauncherSectionMembership.ownerOf(it, LauncherSectionMembership.sectionsInOrder(cells))
+        val owner = placed?.let { cell ->
+            // S2317: membership is decided per screen. Ranking every screen's cells by row and column
+            // would let a header on an earlier screen own a cell it is not even drawn beside.
+            val sameScreen = cells.filter { it.screenIndex == cell.screenIndex }
+            LauncherSectionMembership.ownerOf(cell, LauncherSectionMembership.sectionsInOrder(sameScreen))
         }
 
-        if (owner != null && visibility.isCollapsed(orientation, owner.target)) {
+        if (owner != null && visibility.isCollapsed(orientation, owner.screenIndex, owner.target)) {
             Timber.d("S2061: Revealing section %s for placed cell %d", owner.target, cellId)
-            visibility.reveal(orientation, owner.target)
+            visibility.reveal(orientation, owner.screenIndex, owner.target)
             return true
         }
 

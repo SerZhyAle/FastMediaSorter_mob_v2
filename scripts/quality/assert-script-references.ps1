@@ -230,10 +230,16 @@ function Find-UnresolvedTokens {
     param([string[]] $Files, [hashtable] $Known)
     $out = New-Object System.Collections.Generic.List[object]
     foreach ($file in $Files) {
-        $lines = @(Get-Content -LiteralPath $file)
+        # ReadAllLines rather than Get-Content, a literal pre-filter before the token regex, and
+        # substring rather than Split-Path: the corpus is ~340 documents and the token appears on a
+        # small fraction of their lines, so the per-line cmdlet calls were the scan's dominant cost.
+        $lines = [System.IO.File]::ReadAllLines($file)
         for ($i = 0; $i -lt $lines.Count; $i++) {
+            if ($lines[$i] -notlike '*.ps1*') { continue }
             foreach ($m in $tokenPattern.Matches($lines[$i])) {
-                $leaf = Split-Path $m.Value -Leaf
+                $token = $m.Value
+                $cut = $token.LastIndexOfAny([char[]]@('/', '\'))
+                $leaf = if ($cut -lt 0) { $token } else { $token.Substring($cut + 1) }
                 if ($Known.ContainsKey($leaf)) { continue }
                 $context = $lines[$i]
                 if ($i -gt 0) { $context += "`n" + $lines[$i - 1] }

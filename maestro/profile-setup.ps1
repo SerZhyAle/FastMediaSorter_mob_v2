@@ -1,15 +1,17 @@
 ﻿# PowerShell Profile - FastMediaSorter Maestro Setup
 # Add this to your PowerShell profile for permanent PATH configuration
 
-# Add Node.js and npm to PATH (for Maestro CLI)
-$NodePath = "C:\Program Files\nodejs"
-$NpmPath = "C:\Users\$env:USERNAME\AppData\Roaming\npm"
+. "$PSScriptRoot\..\scripts\utils\project-paths.ps1"
 
-if (-not ($env:PATH -like "*$NodePath*")) {
+# Add Node.js and npm to PATH (for Maestro CLI). Discovered, not assumed (S2326).
+$NodePath = try { Split-Path -Parent (Get-ToolPath -Tool Node -Quiet) } catch { $null }
+$NpmPath = try { Split-Path -Parent (Get-ToolPath -Tool Npm -Quiet) } catch { $null }
+
+if ($NodePath -and -not ($env:PATH -like "*$NodePath*")) {
     $env:PATH = "$NodePath;$env:PATH"
 }
 
-if (-not ($env:PATH -like "*$NpmPath*")) {
+if ($NpmPath -and -not ($env:PATH -like "*$NpmPath*")) {
     $env:PATH = "$NpmPath;$env:PATH"
 }
 

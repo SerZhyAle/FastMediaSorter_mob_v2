@@ -515,6 +515,24 @@ class LauncherHomeViewModel @Inject constructor(
         }
     }
 
+    /**
+     * S2301: moves the cell - or, for a section header, the whole group - onto another screen.
+     *
+     * [columns] is read at the moment of the tap for the same reason the app menu reads it there: the
+     * column count belongs to the screen drawing the desktop, not to the stored desktop.
+     */
+    fun moveCellToScreen(cellId: Long, screenIndex: Int, columns: Int) {
+        viewModelScope.launch {
+            val moved = desktopDependencies.desktopRepository.moveCellToScreen(
+                orientation = _orientation.value,
+                cellId = cellId,
+                screenIndex = screenIndex,
+                columns = columns,
+            )
+            Timber.d("S2301: moveCellToScreen id=%s screen=%d moved=%s", cellId, screenIndex, moved)
+        }
+    }
+
     fun deleteSection(cellId: Long) {
         viewModelScope.launch {
             val header = cells.value.find { it.cell.id == cellId }?.cell
@@ -590,14 +608,14 @@ class LauncherHomeViewModel @Inject constructor(
     fun rememberWeatherLocation(encoded: String) {
         viewModelScope.launch {
             Timber.d("S2213: weather place remembered outside the desktop cell")
-            settingsRepository.updateSettings { it.copy(launcherWeatherLastLocation = encoded) }
+            settingsRepository.updateSettings { it.withLauncher { copy(weatherLastLocation = encoded) } }
         }
     }
 
     /** Remembers that the first-rotation hint has been shown, so it never appears again. */
     fun markRotationHintShown() {
         viewModelScope.launch {
-            settingsRepository.updateSettings { it.copy(launcherRotationHintShown = true) }
+            settingsRepository.updateSettings { it.withLauncher { copy(rotationHintShown = true) } }
         }
     }
 
@@ -858,6 +876,12 @@ class LauncherHomeViewModel @Inject constructor(
             val heightColumns = LauncherGridGeometry.columns(heightDp, density)
             val portraitColumns = if (startedPortrait) widthColumns else heightColumns
             val landscapeColumns = if (startedPortrait) heightColumns else widthColumns
+            Timber.d(
+                "S2320: seeding desktop density=%s portraitColumns=%s landscapeColumns=%s",
+                density,
+                portraitColumns,
+                landscapeColumns,
+            )
             desktopDependencies.seedLauncherDesktop(portraitColumns, landscapeColumns)
         }
     }

@@ -50,6 +50,28 @@ function Get-EnglishStringFingerprint {
     return [System.Convert]::ToHexString($hash).Substring(0, 16).ToLowerInvariant()
 }
 
+function ConvertFrom-ResourceBody {
+    <#
+    .SYNOPSIS
+        Decodes a resource element body into the plain English text a fingerprint is taken from.
+    .DESCRIPTION
+        S2327: the one normalizer for fingerprint input. It lived in locale-bulk-export.ps1, whose
+        sidecar field `en` is what every recorded hash is later compared against - so a second
+        writer hashing the raw XML body instead would stamp a corpus that reads as stale the moment
+        it is written. Entities and AAPT's backslash escapes for quote and apostrophe are dropped
+        because the recorded text is text, not resource syntax; \n stays spelled as two characters,
+        as the export contract requires.
+    #>
+    param(
+        [AllowEmptyString()]
+        [string]$Text
+    )
+
+    $plain = $Text -replace '\\([''"])', '$1'
+    $plain = $plain.Replace('&apos;', "'").Replace('&quot;', '"').Replace('&amp;', '&')
+    return ($plain -replace '[\r\n\t]+', ' ').Trim()
+}
+
 function Get-LocaleSourceFingerprintsPath {
     param([string]$Path)
     if ($Path) { return $Path }

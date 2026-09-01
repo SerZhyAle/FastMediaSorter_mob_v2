@@ -262,7 +262,14 @@ class SftpDataSource(
             transferEnded()
         }
 
+        // S2319: a failed open() leaves openTimeMs at zero, and close() then runs twice - once from
+        // the catch in open(), once from ExoPlayer's closeQuietly. The old unconditional log
+        // therefore printed this line twice with elapsed set to the current epoch, reading as a
+        // 56-year stream and hiding that the open never happened. Clearing the stamp after the log
+        // also collapses the double close of a healthy stream to the one line it describes.
+        if (openTimeMs == 0L) return
         val elapsedMs = System.currentTimeMillis() - openTimeMs
+        openTimeMs = 0L
         Timber.d(
             "SftpDataSource: Closed - totalRead=${totalBytesRead}B, calls=$readCallCount, elapsed=${elapsedMs}ms, connection returned to pool"
         )

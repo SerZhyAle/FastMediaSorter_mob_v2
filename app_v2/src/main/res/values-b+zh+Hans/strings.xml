@@ -2252,6 +2252,7 @@
     <string name="launcher_settings_show_pinned_title">显示已固定的应用</string>
     <string name="launcher_settings_show_tray_title">显示状态栏</string>
     <string name="launcher_settings_density_title">网格密度</string>
+    <string name="launcher_settings_screen_count_title">屏幕数量</string>
     <string name="launcher_settings_density_sparse">稀疏</string>
     <string name="launcher_settings_density_default">标准</string>
     <string name="launcher_settings_density_dense">密集</string>
@@ -2858,7 +2859,8 @@
     <string name="launcher_section_android_apps">应用程序</string>
     <string name="launcher_settings_widget_backdrop_alpha_title">小组件背景不透明度</string>
     <string name="launcher_settings_widget_backdrop_alpha_0">0%（透明）</string>
-    <string name="launcher_settings_widget_backdrop_alpha_85">85%（默认）</string>
+    <string name="launcher_settings_widget_backdrop_alpha_25">25%（默认）</string>
+    <string name="launcher_settings_widget_backdrop_alpha_85">85%</string>
     <string name="launcher_settings_widget_backdrop_alpha_100">100%（不透明）</string>
     <string name="launcher_gadget_youtube">YouTube</string>
     <string name="launcher_gadget_youtube_music">YouTube Music</string>
@@ -3124,9 +3126,26 @@
     <string name="gesture_action_explain_open_all_apps">打开包含所有应用程序列表的主屏幕。</string>
     <string name="gesture_slot_url_none">未设置 - 点击输入地址</string>
     <string name="launcher_settings_group_tray">系统托盘</string>
-    <string name="launcher_settings_group_gestures">Desktop gestures</string>
+    <string name="launcher_settings_group_gestures">手势</string>
     <string name="launcher_settings_group_appearance">Appearance</string>
     <string name="launcher_taskbar_pinned_action_launch">启动</string>
     <string name="launcher_taskbar_pinned_action_unpin">取消固定</string>
     <string name="s2283_apk_download_in_progress">APK 下载已在进行中</string>
+    <string name="launcher_gadget_google_keep_live">谷歌 Keep 实时框架</string>
+    <string name="launcher_gadget_google_calendar_live">谷歌日历实时框架</string>
+    <string name="launcher_desktop_swipe_action_next_screen">下一屏</string>
+    <string name="launcher_desktop_swipe_action_previous_screen">上一屏</string>
+    <string name="launcher_desktop_swipe_explain_next_screen">显示启动器的下一屏，到最后一屏为止。</string>
+    <string name="launcher_desktop_swipe_explain_previous_screen">显示启动器的上一屏，到第一屏为止。</string>
+    <string name="launcher_edit_move_to_screen">移动到第 %1$d 屏</string>
+    <string name="launcher_all_apps_swipe_picker_title">全部应用滑动手势</string>
+    <string name="launcher_all_apps_swipe_up_title">全部应用：向上滑动</string>
+    <string name="launcher_all_apps_swipe_down_title">全部应用：向下滑动</string>
+    <string name="launcher_all_apps_swipe_left_title">全部应用：向左滑动</string>
+    <string name="launcher_all_apps_swipe_right_title">全部应用：向右滑动</string>
+    <string name="launcher_all_apps_swipe_action_back_to_desktop">返回桌面</string>
+    <string name="launcher_all_apps_swipe_action_expand">展开全部应用</string>
+    <string name="launcher_all_apps_swipe_explain_back_to_desktop">关闭应用列表，显示其下方的桌面。</string>
+    <string name="launcher_all_apps_swipe_explain_expand">显示完整应用列表，而不是按字母分组。</string>
+    <string name="launcher_welcome_toggle_subtitle">用主屏幕按钮打开 FastMediaSorter。系统会在设置完成后请你确认，你随时可以在设置中切换回去。</string>
 </resources>

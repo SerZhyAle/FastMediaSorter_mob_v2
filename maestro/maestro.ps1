@@ -8,8 +8,14 @@ param(
     [switch]$Studio
 )
 
-# Setup PATH for Node.js and npm
-$env:PATH = "C:\Program Files\nodejs;C:\Users\$env:USERNAME\AppData\Roaming\npm;$env:PATH"
+. "$PSScriptRoot\..\scripts\utils\project-paths.ps1"
+
+# Setup PATH for Node.js and npm. Both are discovered rather than assumed (S2326); a machine
+# without them falls through to the maestro-cli check below, which already reports the problem.
+foreach ($tool in 'Node', 'Npm') {
+    $dir = try { Split-Path -Parent (Get-ToolPath -Tool $tool -Quiet) } catch { $null }
+    if ($dir -and $env:PATH -notlike "*$dir*") { $env:PATH = "$dir;$env:PATH" }
+}
 
 # Verify maestro-cli is available
 try {

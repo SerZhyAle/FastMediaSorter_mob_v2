@@ -20,7 +20,14 @@
   Run from anywhere; paths are resolved relative to the repo root.
   Exit 0 = clean, Exit 1 = violations found.
 #>
-param([switch]$Gate)
+param(
+    [switch]$Gate,
+    # The changed set. A violation of either rule can only be INTRODUCED by a changed Kotlin file
+    # (a new setSmallIcon call, a new foreground-service path) or by a changed drawable (a tint
+    # added to an icon already in use), so a scoped run judges exactly those and skips the rest of
+    # the tree. An unscoped run keeps the strict project-wide verdict.
+    [string]$ChangedFiles
+)
 
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path "$PSScriptRoot/../..").Path
@@ -29,21 +36,43 @@ $srcRoots = @("$root/app_v2/src", "$root/wear/src") | Where-Object { Test-Path $
 $violations = New-Object System.Collections.Generic.List[string]
 $rel = { param($p) $p.Substring($root.Length + 1) -replace '\\', '/' }
 
-$ktFiles = Get-ChildItem -Path $srcRoots -Recurse -Filter *.kt -File -ErrorAction SilentlyContinue
+$changedSet = @()
+foreach ($entry in @($ChangedFiles)) {
+    $changedSet += @($entry -split ',' | ForEach-Object { $_.Trim().Replace('\', '/') } | Where-Object { $_ })
+}
+# A changed drawable can only be judged against every call site, so its presence widens the run back.
+$changedDrawable = @($changedSet | Where-Object { $_ -match '(^|/)res/drawable[^/]*/.+\.xml$' }).Count -gt 0
+$scoped = $changedSet.Count -gt 0 -and -not $changedDrawable
+
+if ($scoped) {
+    # Resolve the named files directly. Walking both source trees to then discard 3695 of 3696
+    # entries is the cost the scoping exists to avoid.
+    $ktFiles = @($changedSet |
+        Where-Object { $_ -like '*.kt' } |
+        ForEach-Object { Join-Path $root $_ } |
+        Where-Object { Test-Path -LiteralPath $_ } |
+        ForEach-Object { Get-Item -LiteralPath $_ })
+}
+else {
+    $ktFiles = @(Get-ChildItem -Path $srcRoots -Recurse -Filter *.kt -File -ErrorAction SilentlyContinue)
+}
 
 # ---- Part A: ?attr-tinted notification small icons ----
 # Collect drawable names passed to setSmallIcon(R.drawable.X) (covers NotificationCompat.Builder,
 # Notification.Builder and Media3 DefaultMediaNotificationProvider.setSmallIcon).
 $iconRefs = @{}
+# Read each file once as one string and match the whole text, rather than looping its lines.
+# Same regex, same verdict; the per-line loop cost 4.4 s of the gate's 5.2 s on 3696 files
+# because it ran the interpreter over ~600k lines to find the two call sites that exist.
+# A line number is still reported, computed from the match offset only for a match that hit.
 foreach ($f in $ktFiles) {
-    $i = 0
-    foreach ($line in [System.IO.File]::ReadAllLines($f.FullName)) {
-        $i++
-        foreach ($m in [regex]::Matches($line, 'setSmallIcon\(\s*R\.drawable\.([A-Za-z0-9_]+)')) {
-            $name = $m.Groups[1].Value
-            if (-not $iconRefs.ContainsKey($name)) { $iconRefs[$name] = New-Object System.Collections.Generic.List[string] }
-            $iconRefs[$name].Add(("{0}:{1}" -f (& $rel $f.FullName), $i))
-        }
+    $text = [System.IO.File]::ReadAllText($f.FullName)
+    if (-not $text.Contains('setSmallIcon')) { continue }
+    foreach ($m in [regex]::Matches($text, 'setSmallIcon\(\s*R\.drawable\.([A-Za-z0-9_]+)')) {
+        $name = $m.Groups[1].Value
+        $lineNumber = ([regex]::Matches($text.Substring(0, $m.Index), "`n")).Count + 1
+        if (-not $iconRefs.ContainsKey($name)) { $iconRefs[$name] = New-Object System.Collections.Generic.List[string] }
+        $iconRefs[$name].Add(("{0}:{1}" -f (& $rel $f.FullName), $lineNumber))
     }
 }
 foreach ($name in $iconRefs.Keys) {
@@ -62,7 +91,9 @@ foreach ($name in $iconRefs.Keys) {
 # ---- Part B: FGS notification builders without channel creation ----
 foreach ($f in $ktFiles) {
     $text = [System.IO.File]::ReadAllText($f.FullName)
-    $startsFgs = ($text -match 'setForeground\(') -or ($text -match 'startForeground\(') -or ($text -match 'ForegroundInfo\(')
+    # Cheap literal pre-filter before the regexes: only a file naming one of these can violate B.
+    if (-not ($text.Contains('setForeground(') -or $text.Contains('startForeground(') -or $text.Contains('ForegroundInfo('))) { continue }
+    $startsFgs = $true
     $buildsNotif = $text -match 'Notification(Compat)?\.Builder\('
     if ($startsFgs -and $buildsNotif) {
         $ensuresChannel = ($text -match 'createNotificationChannel') -or ($text -match 'ensureChannel') -or ($text -match 'ensureNotificationChannel')
@@ -79,5 +110,6 @@ if ($violations.Count -gt 0) {
     Write-Host "Fix B: ensure the NotificationChannel exists (ensureChannel/createNotificationChannel) before setForeground/startForeground." -ForegroundColor Cyan
     exit 1
 }
-Write-Host "assert-fgs-notifications: PASS (no ?attr notification icons; every FGS path creates its channel)." -ForegroundColor Green
+$judged = if ($scoped) { "$($ktFiles.Count) changed Kotlin file(s)" } else { "$($ktFiles.Count) Kotlin file(s), whole tree" }
+Write-Host "assert-fgs-notifications: PASS - $judged (no ?attr notification icons; every FGS path creates its channel)." -ForegroundColor Green
 exit 0

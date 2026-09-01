@@ -14,28 +14,15 @@ $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $logFile = Join-Path $OutputDir "device_logs_$timestamp.txt"
 $prefsFile = Join-Path $OutputDir "app_settings_$timestamp.preferences.pb"
 
+. "$PSScriptRoot\project-paths.ps1"
+
 # Resolve adb: prefer PATH, then common Android SDK locations. The dev machine
 # does not always have platform-tools on PATH, which previously aborted the
 # whole script at the first `adb` call.
 function Resolve-Adb {
-    $onPath = Get-Command adb -ErrorAction SilentlyContinue
-    if ($onPath) { return $onPath.Source }
-    # Build SDK-root candidates only from env vars that are actually set -
-    # Join-Path throws on a null Path argument, which would abort the whole list.
-    $roots = @($env:LOCALAPPDATA, $env:ANDROID_HOME, $env:ANDROID_SDK_ROOT) | Where-Object { $_ }
-    $candidates = @()
-    foreach ($root in $roots) {
-        if ($root -eq $env:LOCALAPPDATA) {
-            $candidates += (Join-Path $root 'Android\Sdk\platform-tools\adb.exe')
-        } else {
-            $candidates += (Join-Path $root 'platform-tools\adb.exe')
-        }
-    }
-    $candidates += 'C:\Android\Sdk\platform-tools\adb.exe'
-    foreach ($c in $candidates) {
-        if ($c -and (Test-Path $c)) { return $c }
-    }
-    return $null
+    # Discovery is shared (S2326). The resolver raises when nothing is found, while this caller
+    # prints its own instructions and exits 1, so the raise is converted back to $null here.
+    try { return Get-ToolPath -Tool Adb -Quiet } catch { return $null }
 }
 
 $adb = Resolve-Adb

@@ -1,8 +1,9 @@
 package com.sza.fastmediasorter.ui.launcher.gadget
 
 import android.content.Context
+import android.view.ContextThemeWrapper
+import android.view.View
 import android.widget.FrameLayout
-import androidx.test.core.app.ApplicationProvider
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.domain.model.devicestatus.DeviceStatusProvider
@@ -16,6 +17,7 @@ import io.mockk.verify
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 /** S2238: verifies TechnicalGadget creation and tap handling. */
@@ -24,7 +26,8 @@ import org.robolectric.annotation.Config
 @Suppress("FunctionNaming")
 class TechnicalGadgetTest {
 
-    private val context: Context = ApplicationProvider.getApplicationContext()
+    private val context: Context =
+        ContextThemeWrapper(RuntimeEnvironment.getApplication(), R.style.Theme_FastMediaSorter)
     private val host: LauncherGadgetHost = mockk(relaxed = true)
 
     private val dummyProvider = object : DeviceStatusProvider<Any> {
@@ -43,7 +46,7 @@ class TechnicalGadgetTest {
         val container = FrameLayout(context)
         val view = gadget.createView(container, host, null)
 
-        view.performClick()
+        view.findViewById<View>(R.id.gadgetTechnicalBody).performClick()
 
         verify {
             host.run(
@@ -66,7 +69,7 @@ class TechnicalGadgetTest {
         val container = FrameLayout(context)
         val view = gadget.createView(container, host, null)
 
-        view.performClick()
+        view.findViewById<View>(R.id.gadgetTechnicalBody).performClick()
 
         verify {
             host.run(

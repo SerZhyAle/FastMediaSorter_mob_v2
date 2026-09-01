@@ -67,9 +67,10 @@ class LauncherAlphabeticalAppGroupManager {
         else -> first.compareTo(second)
     }
 
-    private companion object {
+    companion object {
+        /** S2304: read by the panel, which binds an expand route to a swipe. */
         const val KEY_PREVIEW = "preview"
-        const val PREVIEW_ROWS = 2
-        const val SYMBOL_GROUP = "#"
+        private const val PREVIEW_ROWS = 2
+        private const val SYMBOL_GROUP = "#"
     }
 }

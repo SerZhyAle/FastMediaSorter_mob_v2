@@ -36,17 +36,19 @@ class LauncherAppActionMenuManager(
     private val pinToTaskbar: (packageName: String) -> Unit,
     private val appInfoIntent: (packageName: String) -> Intent?,
     private val uninstallIntent: (packageName: String) -> Intent?,
+    private val removeDesktopCell: ((cellId: Long) -> Unit)? = null,
 ) {
 
     private var window: ListPopupWindow? = null
     private var pendingQuery: Job? = null
 
     /** Opens the action menu for [packageName] anchored to [anchor]. */
-    fun show(anchor: View, packageName: String) {
+    fun show(anchor: View, packageName: String, desktopCellId: Long? = null) {
+        Timber.d("S2316: app action menu desktopCellId=%s", desktopCellId)
         // A second long press must replace the first request, not stack a second window on top of it.
         dismiss()
         pendingQuery = scope.launch {
-            val rows = buildRows(anchor, packageName)
+            val rows = buildRows(anchor, packageName, desktopCellId)
             if (rows.isEmpty() || !anchor.isAttachedToWindow) return@launch
             showPopup(anchor, rows)
         }
@@ -64,13 +66,25 @@ class LauncherAppActionMenuManager(
      * An entry whose action cannot run on this device is left out rather than shown greyed: the user
      * never taps something that was going to refuse (strategic 5.1).
      */
-    private suspend fun buildRows(anchor: View, packageName: String): List<LauncherAppMenuRow> {
+    private suspend fun buildRows(
+        anchor: View,
+        packageName: String,
+        desktopCellId: Long?,
+    ): List<LauncherAppMenuRow> {
         val rows = mutableListOf<LauncherAppMenuRow>()
         rows += action(anchor, R.string.launcher_app_action_launch, R.drawable.ic_open_in_browse) {
             launchApp(packageName)
         }
-        rows += action(anchor, R.string.launcher_app_action_to_desktop, R.drawable.ic_add) {
-            placeOnDesktop(packageName)
+        if (desktopCellId == null) {
+            rows += action(anchor, R.string.launcher_app_action_to_desktop, R.drawable.ic_add) {
+                placeOnDesktop(packageName)
+            }
+        } else {
+            removeDesktopCell?.let { remove ->
+                rows += action(anchor, R.string.remove_action, R.drawable.ic_delete) {
+                    remove(desktopCellId)
+                }
+            }
         }
         rows += action(anchor, R.string.launcher_app_action_pin_taskbar, R.drawable.ic_pin) {
             pinToTaskbar(packageName)

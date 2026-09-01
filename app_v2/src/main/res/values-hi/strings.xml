@@ -2251,6 +2251,7 @@
     <string name="launcher_settings_show_pinned_title">पिन किए गए ऐप्स दिखाएं</string>
     <string name="launcher_settings_show_tray_title">स्थिति ट्रे दिखाएं</string>
     <string name="launcher_settings_density_title">ग्रिड घनत्व</string>
+    <string name="launcher_settings_screen_count_title">स्क्रीन की संख्या</string>
     <string name="launcher_settings_density_sparse">विरल</string>
     <string name="launcher_settings_density_default">मानक</string>
     <string name="launcher_settings_density_dense">घना</string>
@@ -2859,7 +2860,8 @@
     <string name="launcher_section_android_apps">Apps</string>
     <string name="launcher_settings_widget_backdrop_alpha_title">विजेट बैकड्रॉप अपारदर्शिता</string>
     <string name="launcher_settings_widget_backdrop_alpha_0">0% (पारदर्शी)</string>
-    <string name="launcher_settings_widget_backdrop_alpha_85">85% (डिफ़ॉल्ट)</string>
+    <string name="launcher_settings_widget_backdrop_alpha_25">25% (डिफ़ॉल्ट)</string>
+    <string name="launcher_settings_widget_backdrop_alpha_85">85%</string>
     <string name="launcher_settings_widget_backdrop_alpha_100">100% (अपारदर्शी)</string>
     <string name="launcher_gadget_youtube">YouTube</string>
     <string name="launcher_gadget_youtube_music">YouTube Music</string>
@@ -3125,9 +3127,26 @@
     <string name="gesture_action_explain_open_all_apps">सभी ऐप्स सूची के साथ होम स्क्रीन खोलता है।</string>
     <string name="gesture_slot_url_none">सेट नहीं - पता दर्ज करने के लिए टैप करें</string>
     <string name="launcher_settings_group_tray">सिस्टम ट्रे</string>
-    <string name="launcher_settings_group_gestures">डेस्कटॉप इशारे</string>
+    <string name="launcher_settings_group_gestures">जेस्चर</string>
     <string name="launcher_settings_group_appearance">उपस्थिति</string>
     <string name="launcher_taskbar_pinned_action_launch">लॉन्च करें</string>
     <string name="launcher_taskbar_pinned_action_unpin">पिन हटाएँ</string>
     <string name="s2283_apk_download_in_progress">APK डाउनलोड पहले से जारी है</string>
+    <string name="launcher_gadget_google_keep_live">गूगल कीप लाइव फ़्रेम</string>
+    <string name="launcher_gadget_google_calendar_live">गूगल कैलेंडर लाइव फ़्रेम</string>
+    <string name="launcher_desktop_swipe_action_next_screen">अगली स्क्रीन</string>
+    <string name="launcher_desktop_swipe_action_previous_screen">पिछली स्क्रीन</string>
+    <string name="launcher_desktop_swipe_explain_next_screen">लॉन्चर की अगली स्क्रीन दिखाता है और आख़िरी पर रुक जाता है।</string>
+    <string name="launcher_desktop_swipe_explain_previous_screen">लॉन्चर की पिछली स्क्रीन दिखाता है और पहली पर रुक जाता है।</string>
+    <string name="launcher_edit_move_to_screen">स्क्रीन %1$d पर ले जाएँ</string>
+    <string name="launcher_all_apps_swipe_picker_title">सभी ऐप स्वाइप क्रिया</string>
+    <string name="launcher_all_apps_swipe_up_title">सभी ऐप: ऊपर स्वाइप</string>
+    <string name="launcher_all_apps_swipe_down_title">सभी ऐप: नीचे स्वाइप</string>
+    <string name="launcher_all_apps_swipe_left_title">सभी ऐप: बाएँ स्वाइप</string>
+    <string name="launcher_all_apps_swipe_right_title">सभी ऐप: दाएँ स्वाइप</string>
+    <string name="launcher_all_apps_swipe_action_back_to_desktop">डेस्कटॉप पर वापस</string>
+    <string name="launcher_all_apps_swipe_action_expand">सभी ऐप विस्तृत करें</string>
+    <string name="launcher_all_apps_swipe_explain_back_to_desktop">ऐप सूची बंद करता है और उसके नीचे का डेस्कटॉप दिखाता है।</string>
+    <string name="launcher_all_apps_swipe_explain_expand">वर्णमाला अनुभागों की जगह पूरी ऐप सूची दिखाता है।</string>
+    <string name="launcher_welcome_toggle_subtitle">होम बटन से FastMediaSorter खोलें। सेटअप के बाद सिस्टम पुष्टि माँगता है, और आप कभी भी सेटिंग्स में वापस बदल सकते हैं।</string>
 </resources>

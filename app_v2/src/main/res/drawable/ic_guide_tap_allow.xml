@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S2322: schematic "tap Allow" guide picture. Deliberately abstract and letter-free - the real
+     Android permission dialog is drawn by the OS and differs across versions, OEM skins and
+     locales, so a picture of one phone would describe the wrong phone (spec ADR-3). No letters
+     means no translation of the artwork across the thirteen declared locales. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <!-- Dialog card outline. -->
+    <path
+        android:pathData="M6,10h36v28h-36z"
+        android:strokeColor="?attr/colorOnSurfaceVariant"
+        android:strokeWidth="1.6" />
+
+    <!-- Two lines of body copy. -->
+    <path
+        android:pathData="M11,18h22"
+        android:strokeColor="?attr/colorOnSurfaceVariant"
+        android:strokeWidth="1.6" />
+    <path
+        android:pathData="M11,23h14"
+        android:strokeColor="?attr/colorOnSurfaceVariant"
+        android:strokeWidth="1.6" />
+
+    <!-- Left action, left plain. -->
+    <path
+        android:pathData="M11,28h9v6h-9z"
+        android:strokeColor="?attr/colorOnSurfaceVariant"
+        android:strokeWidth="1.4" />
+
+    <!-- Right action: the one to tap. -->
+    <path
+        android:fillColor="?attr/colorPrimary"
+        android:pathData="M24,28h13v6h-13z" />
+
+    <!-- Tap ring over the right action. -->
+    <path
+        android:pathData="M23.5,31a7,7 0 1,0 14,0a7,7 0 1,0 -14,0"
+        android:strokeColor="?attr/colorPrimary"
+        android:strokeWidth="1.6" />
+</vector>

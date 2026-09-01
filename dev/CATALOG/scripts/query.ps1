@@ -131,10 +131,13 @@ if ($Sectors) {
 $InFile = Join-Path $Root "dev\CATALOG\$Module.jsonl"
 if (-not (Test-Path $InFile)) { throw "Catalogue not found: $InFile" }
 
-$result = @()
-foreach ($line in (Get-Content -Path $InFile -Encoding UTF8)) {
-    if ($line) { $result += ($line | ConvertFrom-Json) }
-}
+# One parse for the whole journal, not one per line. Measured on app_v2.jsonl (3233 records,
+# 3.2 MB): reading the bytes costs 26 ms and a per-line ConvertFrom-Json costs 3034 ms, so the
+# parser - not the file - was this query's whole cost. `$result +=` compounded it by reallocating
+# the array on every record. Joining the lines into one JSON array parses the same records in
+# 384 ms. The format on disk is unchanged; only the number of parser invocations is.
+$catalogLines = @([System.IO.File]::ReadAllLines($InFile) | Where-Object { $_ })
+$result = if ($catalogLines.Count -eq 0) { @() } else { @(('[' + ($catalogLines -join ',') + ']') | ConvertFrom-Json) }
 
 if ($Layer)         { $result = @($result | Where-Object { $_.layer -eq $Layer }) }
 if ($Status)        { $result = @($result | Where-Object { $_.status -eq $Status }) }

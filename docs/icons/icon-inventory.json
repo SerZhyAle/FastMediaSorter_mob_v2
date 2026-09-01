@@ -721,6 +721,14 @@
   },
   {
     "surface": "program-nav",
+    "key": "physical_flashlight",
+    "feature": "physical_flashlight_title",
+    "drawable": "ic_camera_flash_on",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "quick_camera",
     "feature": "widget_camera_quick_capture_label",
     "drawable": "ic_camera_capture",
@@ -1323,14 +1331,6 @@
     "surface": "settings-row",
     "key": "rowLauncherModeEnabled",
     "feature": "launcher_settings_enable_title",
-    "drawable": "ic_launcher_mode",
-    "assetFormat": "vector",
-    "public": true
-  },
-  {
-    "surface": "settings-row",
-    "key": "rowLauncherSettings",
-    "feature": "launcher_settings_dialog_title",
     "drawable": "ic_launcher_mode",
     "assetFormat": "vector",
     "public": true

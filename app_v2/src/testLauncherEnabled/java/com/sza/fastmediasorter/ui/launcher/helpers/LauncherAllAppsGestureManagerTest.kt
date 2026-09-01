@@ -72,6 +72,16 @@ class LauncherAllAppsGestureManagerTest {
     }
 
     @Test
+    fun `swipe starting outside the viewport does not dispatch`() {
+        val harness = GestureHarness(canScrollDown = false)
+
+        val outside = VIEWPORT_SIZE + 100f
+        harness.swipe(fromX = outside, fromY = outside + 200f, toX = outside, toY = outside)
+
+        assertTrue(harness.swipes.isEmpty())
+    }
+
+    @Test
     fun `swipe starting on a desktop cell does not dispatch`() {
         val harness = GestureHarness(startsOnInteractiveCell = true)
 
@@ -116,6 +126,12 @@ class LauncherAllAppsGestureManagerTest {
             }
         }
 
+        init {
+            // getGlobalVisibleRect() is false on a zero-sized view, which would close the
+            // manager's viewport gate for every event and make each assertion below vacuous.
+            viewport.layout(0, 0, VIEWPORT_SIZE, VIEWPORT_SIZE)
+        }
+
         private val manager = LauncherAllAppsGestureManager(
             container = container,
             viewport = viewport,
@@ -151,5 +167,8 @@ class LauncherAllAppsGestureManagerTest {
 
     private companion object {
         const val FLING_DURATION_MS = 100L
+
+        /** Large enough to contain every in-viewport coordinate the tests send. */
+        const val VIEWPORT_SIZE = 1000
     }
 }

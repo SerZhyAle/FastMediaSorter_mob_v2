@@ -2254,6 +2254,7 @@
     <string name="launcher_settings_show_pinned_title">پن کردہ ایپس دکھائیں</string>
     <string name="launcher_settings_show_tray_title">اسٹیٹس ٹرے دکھائیں</string>
     <string name="launcher_settings_density_title">گرڈ کثافت</string>
+    <string name="launcher_settings_screen_count_title">اسکرینوں کی تعداد</string>
     <string name="launcher_settings_density_sparse">کم گنجان</string>
     <string name="launcher_settings_density_default">معیاری</string>
     <string name="launcher_settings_density_dense">گنجان</string>
@@ -2863,7 +2864,8 @@
     <string name="launcher_section_android_apps">ایپس</string>
     <string name="launcher_settings_widget_backdrop_alpha_title">ویجٹ بیک ڈراپ اوپیسٹی</string>
     <string name="launcher_settings_widget_backdrop_alpha_0">0% (شفاف)</string>
-    <string name="launcher_settings_widget_backdrop_alpha_85">85% (ڈیفالٹ)</string>
+    <string name="launcher_settings_widget_backdrop_alpha_25">25% (ڈیفالٹ)</string>
+    <string name="launcher_settings_widget_backdrop_alpha_85">85%</string>
     <string name="launcher_settings_widget_backdrop_alpha_100">100% (غیر شفاف)</string>
     <string name="launcher_gadget_youtube">YouTube</string>
     <string name="launcher_gadget_youtube_music">YouTube Music</string>
@@ -3129,9 +3131,26 @@
     <string name="gesture_action_explain_open_all_apps">تمام ایپس کی فہرست کے ساتھ ہوم اسکرین کھولتا ہے۔</string>
     <string name="gesture_slot_url_none">سیٹ نہیں ہے - پتہ درج کرنے کے لیے تھپتھپائیں۔</string>
     <string name="launcher_settings_group_tray">سسٹم ٹرے</string>
-    <string name="launcher_settings_group_gestures">ڈیسک ٹاپ کے اشارے</string>
+    <string name="launcher_settings_group_gestures">اشارے</string>
     <string name="launcher_settings_group_appearance">ظاہری شکل</string>
     <string name="launcher_taskbar_pinned_action_launch">شروع کریں</string>
     <string name="launcher_taskbar_pinned_action_unpin">پن ہٹائیں</string>
     <string name="s2283_apk_download_in_progress">APK ڈاؤن لوڈ پہلے سے جاری ہے</string>
+    <string name="launcher_gadget_google_keep_live">Google Keep Live Frame</string>
+    <string name="launcher_gadget_google_calendar_live">Google Calendar Live Frame</string>
+    <string name="launcher_desktop_swipe_action_next_screen">اگلی اسکرین</string>
+    <string name="launcher_desktop_swipe_action_previous_screen">پچھلی اسکرین</string>
+    <string name="launcher_desktop_swipe_explain_next_screen">لانچر کی اگلی اسکرین دکھاتا ہے اور آخری پر رک جاتا ہے۔</string>
+    <string name="launcher_desktop_swipe_explain_previous_screen">لانچر کی پچھلی اسکرین دکھاتا ہے اور پہلی پر رک جاتا ہے۔</string>
+    <string name="launcher_edit_move_to_screen">اسکرین %1$d پر منتقل کریں</string>
+    <string name="launcher_all_apps_swipe_picker_title">تمام ایپس سوائپ عمل</string>
+    <string name="launcher_all_apps_swipe_up_title">تمام ایپس: اوپر سوائپ</string>
+    <string name="launcher_all_apps_swipe_down_title">تمام ایپس: نیچے سوائپ</string>
+    <string name="launcher_all_apps_swipe_left_title">تمام ایپس: بائیں سوائپ</string>
+    <string name="launcher_all_apps_swipe_right_title">تمام ایپس: دائیں سوائپ</string>
+    <string name="launcher_all_apps_swipe_action_back_to_desktop">ڈیسک ٹاپ پر واپس</string>
+    <string name="launcher_all_apps_swipe_action_expand">تمام ایپس پھیلائیں</string>
+    <string name="launcher_all_apps_swipe_explain_back_to_desktop">ایپ کی فہرست بند کرکے اس کے نیچے کا ڈیسک ٹاپ دکھاتا ہے۔</string>
+    <string name="launcher_all_apps_swipe_explain_expand">حروف تہجی کے حصوں کی جگہ مکمل ایپ فہرست دکھاتا ہے۔</string>
+    <string name="launcher_welcome_toggle_subtitle">ہوم بٹن سے FastMediaSorter کھولیں۔ سیٹ اپ کے بعد سسٹم تصدیق مانگتا ہے، اور آپ کسی بھی وقت ترتیبات میں واپس جا سکتے ہیں۔</string>
 </resources>

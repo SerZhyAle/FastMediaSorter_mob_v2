@@ -294,9 +294,11 @@ class SettingsViewModel @Inject constructor(
         // reappear pointing at a lens they no longer chose.
         updateSettings(
             current.copy(
-                launcherWallpaperMode = mode,
-                launcherWallpaperImagePath = "",
-                launcherWallpaperCameraId = "",
+                launcher = current.launcher.copy(
+                    wallpaperMode = mode,
+                    wallpaperImagePath = "",
+                    wallpaperCameraId = "",
+                ),
             )
         )
         viewModelScope.launch { storeLauncherWallpaperUseCase.clear() }
@@ -312,9 +314,11 @@ class SettingsViewModel @Inject constructor(
         val current = settings.value
         updateSettings(
             current.copy(
-                launcherWallpaperMode = AppSettings.LAUNCHER_WALLPAPER_CAMERA,
-                launcherWallpaperImagePath = "",
-                launcherWallpaperCameraId = cameraId,
+                launcher = current.launcher.copy(
+                    wallpaperMode = AppSettings.LAUNCHER_WALLPAPER_CAMERA,
+                    wallpaperImagePath = "",
+                    wallpaperCameraId = cameraId,
+                ),
             )
         )
         viewModelScope.launch { storeLauncherWallpaperUseCase.clear() }
@@ -327,9 +331,11 @@ class SettingsViewModel @Inject constructor(
         val current = settings.value
         updateSettings(
             current.copy(
-                launcherWallpaperMode = AppSettings.LAUNCHER_WALLPAPER_INSTANT_PHOTO,
-                launcherWallpaperImagePath = "",
-                launcherWallpaperCameraId = cameraId,
+                launcher = current.launcher.copy(
+                    wallpaperMode = AppSettings.LAUNCHER_WALLPAPER_INSTANT_PHOTO,
+                    wallpaperImagePath = "",
+                    wallpaperCameraId = cameraId,
+                ),
             )
         )
         viewModelScope.launch { storeLauncherWallpaperUseCase.clear() }
@@ -344,8 +350,10 @@ class SettingsViewModel @Inject constructor(
             when (val stored = storeLauncherWallpaperUseCase(uri)) {
                 is LauncherWallpaperImport.Stored -> updateSettings(
                     settings.value.copy(
-                        launcherWallpaperMode = AppSettings.LAUNCHER_WALLPAPER_IMAGE,
-                        launcherWallpaperImagePath = stored.absolutePath,
+                        launcher = settings.value.launcher.copy(
+                            wallpaperMode = AppSettings.LAUNCHER_WALLPAPER_IMAGE,
+                            wallpaperImagePath = stored.absolutePath,
+                        ),
                     )
                 )
 

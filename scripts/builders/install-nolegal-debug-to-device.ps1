@@ -23,12 +23,13 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$adb = 'C:\Users\serzh\AppData\Local\Android\Sdk\platform-tools\adb.exe'
+$adb = Get-ToolPath -Tool Adb
 if (-not (Test-Path -Path $adb)) {
     $adb = 'adb'
 }
 
 . "$PSScriptRoot\..\utils\find-build-artifact.ps1"
+. "$PSScriptRoot\..\utils\project-paths.ps1"
 . "$PSScriptRoot\..\utils\get-device-abi.ps1"
 
 $projectRoot = Resolve-Path "$PSScriptRoot\..\.."

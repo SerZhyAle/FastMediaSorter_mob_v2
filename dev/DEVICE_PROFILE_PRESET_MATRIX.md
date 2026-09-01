@@ -179,3 +179,28 @@ are needed; neither makes the other redundant.
 Broad categories currently registered: credentials, install-local pointers (resource ids, URIs,
 paths), consent flags, session and migration state, one-shot hints, and the locale-derived
 translation languages.
+
+## 7. The launcher desktop is not a preset (S2309)
+
+The starter desktop the launcher seeds - which sections exist, in which order, how many items each
+holds and how many screens they fill - is **not** driven by the CSV matrix and will not be.
+
+It has a second axis the CSV cannot express: the device's screen class. A profile says what belongs
+on the device; the screen class says how much of it reaches the first screen, and it is derived from
+the running device rather than chosen by anyone. A 20:9 phone and a 4:3 tablet can carry the same
+profile and still want different layouts, so a layout stated per profile would be wrong on one of
+them whichever way it was written.
+
+Adding layout columns to the CSV would also mean one column per section per screen class, which is a
+grid nobody can read and a coverage gate nobody can satisfy - and the CSV's promise is that every
+row is one `AppSettings` field, which a section order is not.
+
+Where the rules actually live, for a reader who came here looking for them:
+
+- `app_v2/src/main/java/com/sza/fastmediasorter/core/launcher/LauncherStarterLayoutRules.kt` - the
+  section order, the per-section item budget and the screen count, per profile and screen class.
+- `app_v2/src/main/java/com/sza/fastmediasorter/core/launcher/LauncherScreenClassifier.kt` - how a
+  screen configuration becomes the screen class those rules are keyed on.
+
+The launcher's own numeric settings - the screen count among them - remain ordinary `AppSettings`
+fields and stay presettable through the CSV as before. Only the composed layout is outside it.

@@ -24,6 +24,7 @@ $maxRetries = 2
 $retryCount = 0
 $buildSuccess = $false
 . "$PSScriptRoot\..\utils\build-version-stamp.ps1"
+. "$PSScriptRoot\..\utils\project-paths.ps1"
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
 # S2109: builds every flavor AND the watch module, so it genuinely holds both build domains.
@@ -191,7 +192,7 @@ foreach ($variant in $builtVariants) {
     $zipPath = "$gdDir\$zipName"
 
     # Use 7-Zip to create password-protected archive
-    $7zipPath = "C:\Program Files\7-Zip\7z.exe"
+    $7zipPath = Get-ToolPath -Tool SevenZip
     if (Test-Path -Path $7zipPath) {
         & $7zipPath a -tzip -p1 "$zipPath" "$destPath" | Out-Null
         # Write-Host "  -> Google Drive: $zipName (password: 1)" -ForegroundColor Cyan
@@ -246,7 +247,7 @@ if (Test-Path $wearApkRoot) {
         $gdDir = "c:\GD\WORK\FastMediaSorter"
         if (!(Test-Path $gdDir)) { New-Item -ItemType Directory -Path $gdDir | Out-Null }
         Copy-Item -Path $wearDest -Destination "$gdDir\$wearBaseName.apk" -Force
-        $7zipPath = "C:\Program Files\7-Zip\7z.exe"
+        $7zipPath = Get-ToolPath -Tool SevenZip
         if (Test-Path $7zipPath) {
             & $7zipPath a -tzip -p1 "$gdDir\$wearBaseName.zip" "$wearDest" | Out-Null
         }

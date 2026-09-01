@@ -29,49 +29,97 @@
 
                 <LinearLayout android:id="@+id/containerInterface" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/settings_margin_standard" android:paddingEnd="@dimen/settings_margin_standard" android:paddingBottom="@dimen/settings_margin_standard">
 
-                    <!-- Language | Color theme share one landscape row as inline dropdowns (label left of field, S0618 R6). -->
-                    <LinearLayout
+                    <!-- S0644 + owner ruling 2026-09-01: the four value rows share one label column,
+                         sized by the longest caption, so their values line up AND each value stays right
+                         beside the caption it belongs to. A value right-aligned to the row's far edge
+                         aligned just as well and was unreadable on a landscape phone, where the card is
+                         over 2000 px wide. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsValueRowGroup
+                        android:id="@+id/groupInterfaceValueRows"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/resource_field_margin_top"
-                        android:layout_marginBottom="@dimen/margin_small"
-                        android:baselineAligned="false"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:layout_height="wrap_content">
 
                         <!-- Language (S1190: SettingsDropdownRow -> SettingsSelectionRow; the row opens the
-                             searchable picker). Wrap width keeps it packed to the left beside the theme row. -->
+                             searchable picker).
+                             The landscape pair that used to hold Language beside Color theme on one line
+                             (S0618 R6) is unfolded: owner ruling 2026-09-01, on a screenshot of this section,
+                             is that the four value rows read as one column in BOTH orientations. A pair packed
+                             as wrap_content cannot join that column - a stretched label column would swallow
+                             the whole line - so the density of R6 is what gives way, not the alignment. -->
                         <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
                             android:id="@+id/rowLanguage"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginEnd="@dimen/margin_large"
+                            android:layout_marginTop="@dimen/margin_tiny"
+                            android:layout_marginBottom="@dimen/margin_tiny"
                             app:ssr_inline="true"
                             app:ssr_title="@string/language" />
 
-                        <!-- Color theme (S0328). Value text mode, parity with the Language row it
-                             shares this landscape line with. -->
+                        <!-- Color theme (S0328). Value text mode, parity with the Language row above it. -->
                         <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
                             android:id="@+id/spinnerColorTheme"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_tiny"
+                            android:layout_marginBottom="@dimen/margin_tiny"
                             app:sdr_valueAsText="true"
                             app:sdr_title="@string/color_theme"
                             app:sdr_entries="@array/color_theme_options" />
 
-                    </LinearLayout>
+                        <!-- Device Profile Row (S0327; S0567 unified to SettingsSelectionRow).
+                             Landscape: inline (chevron right after the value, no tall band) to cut wasted vertical space. -->
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                            android:id="@+id/rowDeviceProfile"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_tiny"
+                            android:layout_marginBottom="@dimen/margin_tiny"
+                            app:ssr_inline="true"
+                            app:ssr_title="@string/settings_profile_title"
+                            app:ssr_value="@string/welcome_profile_other_title" />
 
-                    <!-- Device Profile Row (S0327; S0567 unified to SettingsSelectionRow).
-                         Landscape: inline (chevron right after the value, no tall band) to cut wasted vertical space. -->
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
-                        android:id="@+id/rowDeviceProfile"
+                        <!-- S1285/S2288: cell size of the main-window resource grid. Orientation parity with
+                             portrait - kept full width rather than folded into a weighted pair, and follows the
+                             device profile because both settle the geometry of the same main window. -->
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                            android:id="@+id/rowResourceGridCellSize"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_tiny"
+                            android:layout_marginBottom="@dimen/margin_tiny"
+                            app:sdr_valueAsText="true"
+                            app:sdr_title="@string/pref_resource_grid_cell_size_title" />
+                    </com.sza.fastmediasorter.ui.common.widget.SettingsValueRowGroup>
+
+
+                    <!-- S1088: System launcher enable toggle + entry to the launcher-settings dialog.
+                         GeneralSettingsLauncherHelper hides both on builds without the launcher surface
+                         (launcherModeContract.isAvailableInBuild) and keeps the entry button disabled until
+                         the launcher is enabled.
+                         S2288: orientation parity with portrait - the pair follows the grid-cell row and the
+                         entry is a content-width button, so it reads as subordinate to the toggle. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowLauncherModeEnabled"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/margin_tiny"
                         android:layout_marginBottom="@dimen/margin_tiny"
-                        app:ssr_inline="true"
-                        app:ssr_title="@string/settings_profile_title"
-                        app:ssr_value="@string/welcome_profile_other_title" />
+                        app:str_icon="@drawable/ic_launcher_mode"
+                        app:str_title="@string/launcher_settings_enable_title"
+                        app:str_subtitle="@string/launcher_settings_enable_desc"
+                        app:str_showHelp="true"
+                        app:str_helpTitle="@string/launcher_settings_enable_help_title"
+                        app:str_helpMessage="@string/launcher_settings_enable_help_message" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/rowLauncherSettings"
+                        style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/margin_large"
+                        android:layout_marginBottom="@dimen/margin_tiny"
+                        android:text="@string/launcher_settings_dialog_title"
+                        app:icon="@drawable/ic_launcher_mode"
+                        app:iconGravity="textStart" />
 
                     <!-- Global scaling (compact elements). Orientation parity with portrait (S0616). -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
@@ -93,17 +141,6 @@
                         android:layout_marginBottom="@dimen/margin_tiny"
                         app:str_title="@string/pref_disable_animations_title"
                         app:str_subtitle="@string/pref_disable_animations_desc" />
-
-                    <!-- S1285: cell size of the main-window resource grid. Orientation parity with
-                         portrait - kept full width rather than folded into a weighted pair, so it
-                         stays adjacent to the compact toggle it is most easily confused with. -->
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-                        android:id="@+id/rowResourceGridCellSize"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/margin_tiny"
-                        app:sdr_valueAsText="true"
-                        app:sdr_title="@string/pref_resource_grid_cell_size_title" />
 
                     <!-- Row: Allow new windows (S0028) | Enable Favorites.
                          Two compact toggles share one landscape row to cut vertical scroll (S0618 R2).
@@ -142,31 +179,6 @@
                         </LinearLayout>
 
                     </LinearLayout>
-
-                    <!-- S1088: System launcher enable toggle + entry to the launcher-settings dialog.
-                         GeneralSettingsLauncherHelper hides both on builds without the launcher surface
-                         (launcherModeContract.isAvailableInBuild) and keeps the entry row disabled until
-                         the launcher is enabled. -->
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                        android:id="@+id/rowLauncherModeEnabled"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/margin_tiny"
-                        app:str_icon="@drawable/ic_launcher_mode"
-                        app:str_title="@string/launcher_settings_enable_title"
-                        app:str_subtitle="@string/launcher_settings_enable_desc"
-                        app:str_showHelp="true"
-                        app:str_helpTitle="@string/launcher_settings_enable_help_title"
-                        app:str_helpMessage="@string/launcher_settings_enable_help_message" />
-
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
-                        android:id="@+id/rowLauncherSettings"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/margin_tiny"
-                        app:ssr_icon="@drawable/ic_launcher_mode"
-                        app:ssr_navMode="true"
-                        app:ssr_title="@string/launcher_settings_dialog_title" />
 
                 </LinearLayout>
             </LinearLayout>

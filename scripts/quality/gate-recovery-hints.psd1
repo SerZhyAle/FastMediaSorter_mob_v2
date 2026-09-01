@@ -38,6 +38,11 @@
         Fix   = 'A documentation page carries a typographic dash in prose. Replace it with the house-style hyphen: pwsh -NoProfile -File scripts/utils/fix-house-style.ps1 -Area Prose -Rules long-dash -Path <page> -Apply. The generated FEATURES_noLegal pages are a parked draft, not an excuse.'
     }
 
+    'memory-budget-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-memory-budget.ps1 -Gate'
+        Fix   = 'The always-loaded agent-memory index is over its ceiling, and every turn of every session pays for the overshoot. Split the biggest SECTION into a second-level .claude/agent-memory/android-rd-specialist/INDEX_<topic>.md and leave one pointer line behind - measure first (bytes per section), never trim a hook mid-sentence, because a squeezed pointer costs its bytes while saying nothing. Raising the ceiling is refused by the gate itself.'
+    }
+
     'doc-script-references' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-script-references.ps1 -Docs'
         Fix   = 'A document names a .ps1 that does not exist. Correct the path, or say so on its line: External: for a script shipped outside this repository, Historical: for a retired one. Adding the line to doc-script-reference-baseline.txt is not a fix.'
@@ -141,6 +146,21 @@
     'howto-settings-paths-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-howto-settings-paths.ps1 -Gate'
         Fix   = 'A guide names a settings path that no longer exists - correct the path to the one the settings manifest records, in every locale of that guide.'
+    }
+
+    'ctor-arg-slots-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-ctor-arg-slots.ps1'
+        Fix   = 'A primary constructor is at or near the JVM ceiling of 255 descriptor slots, which no compiler reports and the device verifier refuses at class load - the app dies in Application.onCreate with a VerifyError and every copy(..) of that class is equally dead. Move a cohesive group of properties into a nested data class held as one field (see LauncherSettings in AppSettings), which costs one slot instead of one per field. Never buy a single slot back: the next ordinary field addition crosses the line again.'
+    }
+
+    'migration-schema-conformance-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-migration-schema-conformance.ps1 -List'
+        Fix   = 'A Room migration disagrees with the exported schema Room validates the upgraded database against, and that comparison happens on the user device during the first launch after an update - a mismatch there deletes the database (S2251 cost the owner 20 resources, 26 network credentials, 7 favourites and a 139-cell desktop on 2026-09-01). Read the named dimension: column-name means the ALTER TABLE column is spelled differently from the entity property (Room is case- and underscore-exact); column-default means the entity declares an @ColumnInfo(defaultValue = ..) the SQL does not write; not-null means the nullability differs or a NOT NULL column was added without a DEFAULT, which SQLite refuses outright; registration means a migration exists but DatabaseModule.addMigrations() never lists it, so the hop throws. Fix the SQL or the entity so both say the same thing, rebuild to regenerate app_v2/schemas/<version>.json, then re-run. Never baseline a migration that has not shipped.'
+    }
+
+    'migration-test-pairing-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-migration-test-pairing.ps1 -List'
+        Fix   = 'A Room migration has no instrumented migration test. Add app_v2/src/androidTest/java/com/sza/fastmediasorter/data/local/db/AppDatabaseMigration<N>To<M>Test.kt beside its siblings: create the database at <N>, seed a row, call helper.runMigrationsAndValidate(TEST_DB, <M>, true, MIGRATION_<N>_<M>) - that call is the same schema comparison the device performs on update - and assert the seeded row survived. Verify it compiles with .\a.ps1 fa.'
     }
 
     'gson-persistence-contract-gate' = @{

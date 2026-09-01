@@ -61,7 +61,7 @@ class GesturePickerRowBuilderTest {
     fun `the launcher route leads its group`() {
         val rows = builder.build(
             items = listOf(item("assistant", GestureActionGroup.LAUNCH)),
-            launcherRoute = item("all-apps", GestureActionGroup.LAUNCH),
+            launcherRoutes = listOf(item("all-apps", GestureActionGroup.LAUNCH)),
         )
 
         assertEquals(listOf("all-apps", "assistant"), rows.entryKeys())
@@ -71,7 +71,7 @@ class GesturePickerRowBuilderTest {
     fun `a launcher route the host also listed renders once`() {
         val rows = builder.build(
             items = listOf(item("all-apps", GestureActionGroup.LAUNCH), item("url", GestureActionGroup.LAUNCH)),
-            launcherRoute = item("all-apps", GestureActionGroup.LAUNCH),
+            launcherRoutes = listOf(item("all-apps", GestureActionGroup.LAUNCH)),
         )
 
         assertEquals(listOf("all-apps", "url"), rows.entryKeys())

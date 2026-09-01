@@ -1,3 +1,5 @@
+. "$PSScriptRoot\..\..\utils\project-paths.ps1"
+
 # --- S0668 favicon sprite-atlas (offline tooling) -----------------------------------------------
 # Geometry is a SHARED CONTRACT with the app's atlas slicer (PHASE_01 / strategic spec). The app
 # reconstructs each tile rect as col = index % 16, row = index / 16, rect = (col*32, row*32, 32, 32).
@@ -494,22 +496,20 @@ $script:PreviewMaxSheetPx = 16383
 # usual install roots; -FfmpegPath overrides everything. Cached for the run.
 function Get-FfmpegExe {
     if ($script:FfmpegExe) { return $script:FfmpegExe }
-    $candidates = [System.Collections.Generic.List[string]]::new()
-    if ($FfmpegPath) { $candidates.Add($FfmpegPath) }
-    $onPath = (Get-Command ffmpeg -ErrorAction SilentlyContinue).Source
-    if ($onPath) { $candidates.Add($onPath) }
-    foreach ($root in @($env:ProgramFiles, ${env:ProgramFiles(x86)}) | Where-Object { $_ }) {
-        $candidates.Add((Join-Path $root 'ffmpeg\bin\ffmpeg.exe'))
-        # Fallback for a dev box without a standalone ffmpeg: Virtual Desktop Streamer ships a full
-        # n7.x build (https/hls/libwebp all enabled), which is exactly what the capture needs.
-        $candidates.Add((Join-Path $root 'Virtual Desktop Streamer\ffmpeg.exe'))
+    # -FfmpegPath still wins over everything; past that, discovery is shared with every other tool
+    # in the repository (S2326), including the Virtual Desktop Streamer and chocolatey locations
+    # that used to be known only here.
+    if ($FfmpegPath -and (Test-Path $FfmpegPath)) {
+        $script:FfmpegExe = (Resolve-Path $FfmpegPath).Path
+        return $script:FfmpegExe
     }
-    $candidates.Add('C:\ffmpeg\bin\ffmpeg.exe')
-    if ($env:ProgramData) { $candidates.Add((Join-Path $env:ProgramData 'chocolatey\bin\ffmpeg.exe')) }
-    foreach ($c in $candidates) {
-        if ($c -and (Test-Path $c)) { $script:FfmpegExe = (Resolve-Path $c).Path; return $script:FfmpegExe }
+    try {
+        $script:FfmpegExe = Get-ToolPath -Tool Ffmpeg -Quiet
     }
-    throw 'ffmpeg not found on PATH or in the standard install roots - pass -FfmpegPath <ffmpeg.exe> (needed to capture channel frames and encode the WebP sheet).'
+    catch {
+        throw 'ffmpeg not found on PATH or in the standard install roots - pass -FfmpegPath <ffmpeg.exe> (needed to capture channel frames and encode the WebP sheet).'
+    }
+    return $script:FfmpegExe
 }
 
 # gh is often installed but absent from PATH on the dev machine (e.g. C:\Program Files\GitHub CLI),

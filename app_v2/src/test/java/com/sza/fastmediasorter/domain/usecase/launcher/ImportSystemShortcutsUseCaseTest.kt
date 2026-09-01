@@ -57,6 +57,13 @@ class ImportSystemShortcutsUseCaseTest {
         }
 
         override suspend fun removeCell(id: Long) = Unit
+
+        override suspend fun moveCellToScreen(
+            orientation: LauncherOrientation,
+            cellId: Long,
+            screenIndex: Int,
+            columns: Int,
+        ): Boolean = false
         override suspend fun normalizeSectionSpans() = Unit
         override suspend fun moveCell(id: Long, rowIndex: Int, colIndex: Int): Boolean = true
         override suspend fun resizeCell(id: Long, spanW: Int, spanH: Int): Boolean = true

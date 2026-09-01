@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.core.launcher
 
+import com.sza.fastmediasorter.core.launcher.LauncherStarterLayoutRules.StarterSectionGroup
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
@@ -278,95 +279,187 @@ object LauncherStarterSets {
         googleServicesAvailable: Boolean = false,
         importedShortcuts: List<StarterItem> = emptyList(),
         thirdPartyApps: List<String> = emptyList(),
+        screenClass: LauncherScreenClass,
     ): List<StarterItem> {
+        val rule = LauncherStarterLayoutRules.ruleFor(screenClass)
+        val groups = contentGroups(
+            profile = profile,
+            resources = resources,
+            routeAvailableInBuild = routeAvailableInBuild,
+            installedPackages = installedPackages,
+            googleServicesAvailable = googleServicesAvailable,
+            importedShortcuts = importedShortcuts,
+            thirdPartyApps = thirdPartyApps,
+        )
+        return unsectionedTop(profile) + emitGroups(groups, rule)
+    }
+
+    /**
+     * The unsectioned head of every desktop, ahead of the first header and always on screen 0.
+     *
+     * It is not a group and so never reorders: section membership is positional, so anything placed
+     * above the first header belongs to no section and stays where the eye lands first.
+     */
+    private fun unsectionedTop(profile: DeviceProfileType): List<StarterItem> = buildList {
+        add(clock())
+        add(gadget(GADGET_SEARCH))
+        weatherOrNull(profile)?.let(::add)
+    }
+
+    /**
+     * Every content group the profile earns, unordered and unbudgeted - [emitGroups] applies the rule.
+     *
+     * Splitting composition from ordering is what lets S2309 vary the order per device without a second
+     * copy of the table: a group is built once here and placed once there.
+     */
+    @Suppress("LongParameterList") // the same seed inputs itemsFor takes, forwarded whole
+    private fun contentGroups(
+        profile: DeviceProfileType,
+        resources: StarterResources,
+        routeAvailableInBuild: Map<String, Boolean>,
+        installedPackages: Set<String>,
+        googleServicesAvailable: Boolean,
+        importedShortcuts: List<StarterItem>,
+        thirdPartyApps: List<String>,
+    ): Map<StarterSectionGroup, List<StarterItem>> {
         val streamsAvailable = routeAvailableInBuild[InternalRouteCatalog.KEY_STREAMS] == true
-        val items = mutableListOf<StarterItem>()
 
-        // 1. Unsectioned top items ("все")
-        items += clock()
-        items += gadget(GADGET_SEARCH)
-        weatherOrNull(profile)?.let { items += it }
-
-        // 2. Widgets section
-        val widgets = buildList {
-            addAll(profileGadgets(profile, resources, streamsAvailable))
-            if (profile in LOCATION_TILE_PROFILES) {
-                add(gadget(GADGET_COMPASS))
-            }
-            if (profile == DeviceProfileType.CAR_HEAD_UNIT) {
-                add(gadget(GADGET_SPEED))
-            }
-            if (profile in NOW_PLAYING_PROFILES) {
-                add(gadget(GADGET_AUDIO_NOW_PLAYING))
-            }
-            mediaWindowOrNull(profile, resources)?.let(::add)
-        }
-        if (widgets.isNotEmpty()) {
-            items += section(LauncherCellCommand.SECTION_WIDGETS)
-            items += widgets
-        }
-
-        // 3. Resources section
-        val resItems = buildList {
-            addAll(commonResources(resources))
-            addAll(importedShortcuts)
-        }
-        if (resItems.isNotEmpty()) {
-            items += section(LauncherCellCommand.SECTION_RESOURCES)
-            items += resItems
-        }
-
-        // 4. App functions section
-        val appFuncs = buildList {
-            addAll(commonFeatures(routeAvailableInBuild))
-            addAll(launcherActions(profile))
-            addAll(commonTail())
-        }
-        if (appFuncs.isNotEmpty()) {
-            items += section(LauncherCellCommand.SECTION_APP_FUNCTIONS)
-            items += appFuncs
-        }
-
-        // 5. Android apps section. S2015: the Google membership is resolved before this section is built,
-        // never after, because the section subtracts it (see the KDoc and strategic ADR-1).
+        // S2015: the Google membership is resolved before the Android-apps group is built, never after,
+        // because that group subtracts it (see the itemsFor KDoc and strategic ADR-1).
         val googleOwned = googleSectionPackages(googleServicesAvailable, installedPackages)
-        val androidApps = androidAppsSection(profile, installedPackages, googleOwned, thirdPartyApps)
-        if (androidApps.isNotEmpty()) {
-            items += section(LauncherCellCommand.SECTION_ANDROID_APPS)
-            items += androidApps
+
+        return mapOf(
+            StarterSectionGroup.PROFILE_GADGETS to profileGadgetGroup(profile, resources, streamsAvailable),
+            StarterSectionGroup.RESOURCES to commonResources(resources) + importedShortcuts,
+            StarterSectionGroup.APP_FUNCTIONS to commonFeatures(routeAvailableInBuild),
+            StarterSectionGroup.LAUNCHER_ACTIONS to launcherActionGroup(profile),
+            StarterSectionGroup.ANDROID_APPS to
+                androidAppsSection(profile, installedPackages, googleOwned, thirdPartyApps),
+            StarterSectionGroup.GOOGLE_APPS to googleOwned.map { shortcut(LauncherCellCommand.App(it)) },
+            StarterSectionGroup.UTILITY_WIDGETS to utilityWidgetGroup(routeAvailableInBuild),
+            StarterSectionGroup.MEDIA_WINDOWS to mediaWindowGroup(resources),
+            StarterSectionGroup.STREAMS to streamGroup(streamsAvailable),
+        )
+    }
+
+    /**
+     * Turns the built groups into a flat item list: the rule's order, its per-group budget and its
+     * screen assignment, in that sequence.
+     *
+     * An empty group is dropped before anything else is decided, header included - membership is
+     * positional (see [LauncherSectionMembership]), so a header with nothing under it would not merely
+     * look wrong, it would swallow every cell of the section below it.
+     *
+     * Groups that share a screen AND a section key are emitted under a single header. A section is
+     * addressed by its target and nothing else - foldedness is stored per (orientation, target) and the
+     * packing pass keys its positions by target - so two headers carrying one key on one screen would
+     * fold as one and overwrite each other's packed position. Two groups may legitimately map to one
+     * key (widgets, resources); which screen they land on is the rule's decision, so the collision has
+     * to be resolved here rather than by forbidding the mapping.
+     */
+    private fun emitGroups(
+        groups: Map<StarterSectionGroup, List<StarterItem>>,
+        rule: LauncherStarterLayoutRules.Rule,
+    ): List<StarterItem> {
+        val present = rule.sectionOrder.filter { groups[it]?.isNotEmpty() == true }
+        val screenOf = assignScreens(present, rule)
+        return present
+            .groupBy { screenOf.getValue(it) to it.sectionKey }
+            .flatMap { (slot, members) ->
+                val (screenIndex, sectionKey) = slot
+                listOf(section(sectionKey, screenIndex)) + members.flatMap { group ->
+                    val budget = rule.itemBudget[group] ?: Int.MAX_VALUE
+                    groups.getValue(group).take(budget).map { it.copy(screenIndex = screenIndex) }
+                }
+            }
+    }
+
+    /**
+     * Which screen each present group lands on: the rule's leading entries stay on screen 0 and the rest
+     * spread as evenly as they divide over the screens the rule allows.
+     *
+     * The cut is a position in [LauncherStarterLayoutRules.Rule.sectionOrder], never a position among
+     * the groups that happen to be non-empty. Counting the present ones instead would let an absent
+     * group promote a later one: a device with no resources and no media windows would seed the utility
+     * widgets onto screen 0, which is the layout this ticket exists to stop happening by accident.
+     *
+     * The remainder is spread rather than piled onto screen 1, because a rule that earned a third screen
+     * did so to hold whole sections - leaving them all on the second one would make the extra screen a
+     * setting the user sees and a screen they never reach.
+     */
+    private fun assignScreens(
+        present: List<StarterSectionGroup>,
+        rule: LauncherStarterLayoutRules.Rule,
+    ): Map<StarterSectionGroup, Int> {
+        val later = present.filter { rule.sectionOrder.indexOf(it) >= rule.firstScreenSections }
+        val laterScreens = (rule.screenCount - 1).coerceAtLeast(0)
+        val perScreen = if (laterScreens > 0) {
+            ((later.size + laterScreens - 1) / laterScreens).coerceAtLeast(1)
+        } else {
+            1
         }
+        return present.associateWith { group ->
+            val laterIndex = later.indexOf(group)
+            if (laterIndex < 0 || laterScreens == 0) {
+                0
+            } else {
+                1 + (laterIndex / perScreen).coerceAtMost(laterScreens - 1)
+            }
+        }
+    }
 
-        // 6. Google section (conditional)
-        items += googleSection(googleOwned)
+    private fun profileGadgetGroup(
+        profile: DeviceProfileType,
+        resources: StarterResources,
+        streamsAvailable: Boolean,
+    ): List<StarterItem> = buildList {
+        addAll(profileGadgets(profile, resources, streamsAvailable))
+        if (profile in LOCATION_TILE_PROFILES) {
+            add(gadget(GADGET_COMPASS))
+        }
+        if (profile == DeviceProfileType.CAR_HEAD_UNIT) {
+            add(gadget(GADGET_SPEED))
+        }
+        if (profile in NOW_PLAYING_PROFILES) {
+            add(gadget(GADGET_AUDIO_NOW_PLAYING))
+        }
+        mediaWindowOrNull(profile, resources)?.let(::add)
+    }
 
-        // 7. S2251 Screen 1 Widget Groups ("Утилиты", "Обзор", "Трансляции")
-        items += section(LauncherCellCommand.SECTION_WIDGETS, screenIndex = 1)
+    /**
+     * The launcher's own actions plus the tail every desktop closes with.
+     *
+     * A separate group from the feature tiles it shares a section with, so a budget can shorten those
+     * without ever reaching these: a subset of "open the settings, leave launcher mode" is not a smaller
+     * app-functions section, it is a desktop with no way out of the launcher.
+     */
+    private fun launcherActionGroup(profile: DeviceProfileType): List<StarterItem> = buildList {
+        addAll(launcherActions(profile))
+        addAll(commonTail())
+    }
+
+    /** S2251: the utility tiles - a game, the speed readout and the network monitor. */
+    private fun utilityWidgetGroup(routeAvailableInBuild: Map<String, Boolean>): List<StarterItem> = buildList {
         if (routeAvailableInBuild[InternalRouteCatalog.KEY_GAME] == true) {
-            items += shortcut(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_GAME), screenIndex = 1)
+            add(shortcut(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_GAME)))
         }
-        items += gadget(GADGET_SPEED, screenIndex = 1)
+        add(gadget(GADGET_SPEED))
         if (routeAvailableInBuild[InternalRouteCatalog.KEY_NETWORK_MONITOR] == true) {
-            items += shortcut(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_NETWORK_MONITOR), screenIndex = 1)
+            add(shortcut(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_NETWORK_MONITOR)))
         }
+    }
 
-        items += section(LauncherCellCommand.SECTION_RESOURCES, screenIndex = 1)
-        (resources.allImagesId ?: resources.lastResourceId)?.let {
-            items += gadget(GADGET_MEDIA_IMAGE_WINDOW, it, screenIndex = 1)
-        }
-        (resources.allVideoId ?: resources.lastResourceId)?.let {
-            items += gadget(GADGET_MEDIA_VIDEO_WINDOW, it, screenIndex = 1)
-        }
-        resources.allAudioId?.let {
-            items += gadget(GADGET_MEDIA_AUDIO_WINDOW, it, screenIndex = 1)
-        }
+    /** S1886: the media windows, each falling back to the last resource when its own is absent. */
+    private fun mediaWindowGroup(resources: StarterResources): List<StarterItem> = buildList {
+        (resources.allImagesId ?: resources.lastResourceId)?.let { add(gadget(GADGET_MEDIA_IMAGE_WINDOW, it)) }
+        (resources.allVideoId ?: resources.lastResourceId)?.let { add(gadget(GADGET_MEDIA_VIDEO_WINDOW, it)) }
+        resources.allAudioId?.let { add(gadget(GADGET_MEDIA_AUDIO_WINDOW, it)) }
+    }
 
-        items += section(LauncherCellCommand.SECTION_MAIN, screenIndex = 1)
-        if (streamsAvailable) {
-            items += streams(screenIndex = 1)
-            items += streams(screenIndex = 1)
-        }
-
-        return items
+    private fun streamGroup(streamsAvailable: Boolean): List<StarterItem> = if (streamsAvailable) {
+        listOf(streams(), streams())
+    } else {
+        emptyList()
     }
 
     /**
@@ -421,25 +514,6 @@ object LauncherStarterSets {
     } else {
         emptySet()
     }
-
-    /**
-     * S1644: the conditional Google section - its header and the installed members of
-     * [GOOGLE_APP_PACKAGES], in catalogue order. The header is emitted only alongside at least one app,
-     * because a header with nothing under it would own every cell below it: section membership is
-     * positional (see [LauncherSectionMembership]), so an empty section is not merely ugly, it swallows
-     * the section that follows. Every installed candidate is seeded - strategic §6.4 rules there is no
-     * cap and the desktop scrolls instead.
-     *
-     * S2015: membership moved out to [googleSectionPackages] so the Android-apps section can subtract it;
-     * this now only turns that ordered set into a header plus its cells.
-     */
-    private fun googleSection(googleOwned: Set<String>): List<StarterItem> =
-        if (googleOwned.isEmpty()) {
-            emptyList()
-        } else {
-            listOf(section(LauncherCellCommand.SECTION_GOOGLE)) +
-                googleOwned.map { shortcut(LauncherCellCommand.App(it)) }
-        }
 
     /**
      * The third party apps assigned to profiles, conditional on being installed. S2015: [excluded] names

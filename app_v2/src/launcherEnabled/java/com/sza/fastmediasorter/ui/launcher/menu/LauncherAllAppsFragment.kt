@@ -8,6 +8,7 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.PopupMenu
@@ -19,16 +20,25 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
+import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
 import com.sza.fastmediasorter.databinding.FragmentLauncherAllAppsBinding
+import com.sza.fastmediasorter.domain.model.LauncherAllAppsSwipeDirection
 import com.sza.fastmediasorter.domain.model.launcher.InstalledApp
 import com.sza.fastmediasorter.domain.model.launcher.InstalledAppSortOrder
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAllAppsGestureManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAllAppsSwipeActionHandler
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAppActionMenuManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import timber.log.Timber
+import javax.inject.Inject
 
 /**
  * S1401: the full-screen list of every installed app - search, order picker, grid, action menu.
@@ -44,8 +54,20 @@ class LauncherAllAppsFragment : DialogFragment() {
     /** Shared with the desktop: launching, placing and pinning all belong to the home surface. */
     private val homeViewModel: LauncherHomeViewModel by activityViewModels()
 
+    @Inject
+    lateinit var screenshotGestureActionDispatcher: ScreenshotGestureActionDispatcher
+
+    @Inject
+    lateinit var menuScreenshotLaunchers: Set<@JvmSuppressWildcards MenuScreenshotLauncher>
+
     private var _binding: FragmentLauncherAllAppsBinding? = null
     private val binding get() = _binding!!
+
+    /** S2304: null outside the view lifecycle, which is what the swipe listener is bound to. */
+    private var swipeActionHandler: LauncherAllAppsSwipeActionHandler? = null
+
+    /** Detached in onDestroyView: the RecyclerView outlives this fragment's view on a re-inflate. */
+    private var swipeTouchListener: RecyclerView.OnItemTouchListener? = null
 
     private val systemDialogsReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -113,6 +135,7 @@ class LauncherAllAppsFragment : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setUpGrid()
+        attachSwipeGestures()
         binding.allAppsHome.setOnClickListener { dismiss() }
         ContextCompat.registerReceiver(
             requireContext(),
@@ -135,6 +158,9 @@ class LauncherAllAppsFragment : DialogFragment() {
         // The popup anchors inside this screen and must not outlive it.
         actionMenuManager.dismiss()
         requireContext().unregisterReceiver(systemDialogsReceiver)
+        swipeTouchListener?.let { binding.allAppsGrid.removeOnItemTouchListener(it) }
+        swipeTouchListener = null
+        swipeActionHandler = null
         _binding = null
     }
 
@@ -150,6 +176,65 @@ class LauncherAllAppsFragment : DialogFragment() {
         binding.allAppsGrid.layoutManager = layoutManager
         binding.allAppsGrid.adapter = appsAdapter
         layoutManager.spanSizeLookup = appsAdapter.getSpanSizeLookup(desktopColumns())
+    }
+
+    /**
+     * S2304: the recognizer reads the grid's own event stream through an item-touch listener that never
+     * claims it, so taps, long presses and scrolling keep their normal dispatch. A vertical direction
+     * still fires only at the matching scroll boundary, which is what keeps an ordinary scroll from
+     * reading as a swipe.
+     */
+    private fun attachSwipeGestures() {
+        swipeActionHandler = LauncherAllAppsSwipeActionHandler(
+            activity = requireActivity(),
+            actionDispatcher = screenshotGestureActionDispatcher,
+            screenshotLaunchers = menuScreenshotLaunchers,
+            onBackToDesktop = ::dismiss,
+            onExpandAllApps = ::expandFullAppList,
+        )
+        val gestureManager = LauncherAllAppsGestureManager(
+            container = binding.allAppsGrid,
+            viewport = binding.allAppsGrid,
+            isEnabled = { true },
+            // The whole grid is swipeable: on a full-screen list of cells there is almost no free space
+            // to start from, and the recognizer already separates a fling from a tap by slop and velocity.
+            isTouchOnInteractiveCell = { false },
+            onSwipe = ::dispatchSwipe,
+        )
+        val listener = object : RecyclerView.SimpleOnItemTouchListener() {
+            override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+                gestureManager.onTouchEvent(e)
+                return false
+            }
+        }
+        swipeTouchListener = listener
+        binding.allAppsGrid.addOnItemTouchListener(listener)
+    }
+
+    private fun dispatchSwipe(direction: LauncherAllAppsGestureManager.DesktopSwipeDirection) {
+        val handler = swipeActionHandler ?: return
+        val slot = when (direction) {
+            LauncherAllAppsGestureManager.DesktopSwipeDirection.UP -> LauncherAllAppsSwipeDirection.UP
+            LauncherAllAppsGestureManager.DesktopSwipeDirection.DOWN -> LauncherAllAppsSwipeDirection.DOWN
+            LauncherAllAppsGestureManager.DesktopSwipeDirection.LEFT -> LauncherAllAppsSwipeDirection.LEFT
+            LauncherAllAppsGestureManager.DesktopSwipeDirection.RIGHT -> LauncherAllAppsSwipeDirection.RIGHT
+        }
+        Timber.d("S2304: all apps swipe recognized direction=%s", slot)
+        val settings = viewModel.appSettings.value
+        viewLifecycleOwner.lifecycleScope.launch {
+            handler.handle(slot.actionOf(settings), slot.payloadOf(settings))
+        }
+    }
+
+    /**
+     * Expands the preview section into the full app list. One-way on purpose: the section header tap
+     * stays the way back to the alphabetical view, so a repeated swipe cannot flip the list under the
+     * finger.
+     */
+    private fun expandFullAppList() {
+        if (expandedGroupKeys.add(LauncherAlphabeticalAppGroupManager.KEY_PREVIEW)) {
+            renderGroups()
+        }
     }
 
     private fun renderGroups() {

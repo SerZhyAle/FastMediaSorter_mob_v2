@@ -48,6 +48,11 @@ Measured on this host, 2026-08-01, warm daemon, configuration cache reused:
 | `a.ps1 fc` | 18.6 s | foreground |
 | `a.ps1 dq` | 18.4 s | foreground |
 | `a.ps1 d` / `dav` / `r` / `fu` | not measured | background |
+| `a.ps1 fam` (S2306, migration tests ON a device) | not measured | background |
+
+`fam` is the only target here that needs a connected device, and it is the only one that executes a Room
+migration anywhere outside a user's phone. `fa` compiles the same source set and runs nothing, so a green
+`fa` is not evidence about an upgrade - see `docs/DEV_OPS.md` "Database upgrade proof".
 
 The script-suite runner splits across the threshold, which is why it has two call sites rather than one (S2122, measured 2026-08-27, 39 suites in the tree):
 

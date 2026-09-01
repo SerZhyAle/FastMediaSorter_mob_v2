@@ -42,6 +42,7 @@ class LauncherEditModeManager(
     private val addCellButton: View,
     private val snackbarAnchor: View,
     private val viewModel: LauncherHomeViewModel,
+    private val activeScreenIndex: () -> Int,
     private val actions: LauncherDesktopActions,
 ) {
 
@@ -89,9 +90,14 @@ class LauncherEditModeManager(
      * finger is short by the height of every collapsed section above it until it is translated back.
      */
     private fun showQuickMenu() {
+        val screenIndex = activeScreenIndex()
+        val cells = viewModel.cells.value.filter { it.cell.screenIndex == screenIndex }
         val slot = desktop.slotAt(desktop.lastPressX, desktop.lastPressY)?.let {
-            LauncherGridGeometry.storedSlotFor(it, viewModel.cells.value, viewModel.sections.collapsed.value)
+            // S2317: one derivation with the render path - the folded targets are read off the same cell
+            // list the projection runs against, so the two directions cannot disagree about a fold.
+            LauncherGridGeometry.storedSlotFor(it, cells, viewModel.sections.collapsedTargetsFor(cells))
         }
+        Timber.d("S2318: quick-menu activeScreen=%d cellCount=%d", screenIndex, cells.size)
         Timber.d("S2033: showQuickMenu slot=%s", slot)
         // Each gesture builds a fresh menu, so the popup's own replace-on-show guard never sees the
         // previous instance - closing it here is what keeps two modal windows off the desktop.

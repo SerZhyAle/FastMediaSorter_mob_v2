@@ -56,7 +56,7 @@ class DeviceProfilePresetApplier @Inject constructor(
             "enableSystemInfo" -> settings.copy(enableSystemInfo = raw.toBool())
             "enableWearCompanion" -> settings.copy(enableWearCompanion = raw.toBool())
             "disableAnimations" -> settings.copy(disableAnimations = raw.toBool())
-            "launcherTrayShowSpeed" -> settings.copy(launcherTrayShowSpeed = raw.toBool())
+            "launcherTrayShowSpeed" -> settings.withLauncher { copy(trayShowSpeed = raw.toBool()) }
             "isCacheSizeUserModified" -> settings.copy(isCacheSizeUserModified = raw.toBool())
             "enableBackgroundSync" -> settings.copy(enableBackgroundSync = raw.toBool())
             "enableStreams" -> settings.copy(enableStreams = raw.toBool())
@@ -144,7 +144,9 @@ class DeviceProfilePresetApplier @Inject constructor(
             "linkAutoDownloadEnabled" -> settings.copy(linkAutoDownloadEnabled = raw.toBool())
             "linkAutoDownloadOpenInPlayer" -> settings.copy(linkAutoDownloadOpenInPlayer = raw.toBool())
             "linkDownloadAudioOnly" -> settings.copy(linkDownloadAudioOnly = raw.toBool())
-            "linkDownloadLoginWallHeuristicEnabled" -> settings.copy(linkDownloadLoginWallHeuristicEnabled = raw.toBool())
+            "linkDownloadLoginWallHeuristicEnabled" -> settings.copy(
+                linkDownloadLoginWallHeuristicEnabled = raw.toBool()
+            )
             "vrAutoImmersive" -> settings.copy(vrAutoImmersive = raw.toBool())
             "vrPlayerEntryPromptDismissed" -> settings.copy(vrPlayerEntryPromptDismissed = raw.toBool())
             "disable3dVr" -> settings.copy(disable3dVr = raw.toBool())
@@ -337,60 +339,65 @@ class DeviceProfilePresetApplier @Inject constructor(
 
             // ── S1216 Launcher family: applied only where the home surface is compiled in ───
             "launcherDensityFactor" -> applyLauncherField(field, raw, settings) { s ->
-                raw.trim().toFloatOrNull()?.let { s.copy(launcherDensityFactor = it) }
+                raw.trim().toFloatOrNull()?.let { s.withLauncher { copy(densityFactor = it) } }
             }
             "launcherTaskbarPlacement" -> applyLauncherField(field, raw, settings) { s ->
                 raw.trim().takeIf { it in AppSettings.LAUNCHER_TASKBAR_PLACEMENT_OPTIONS }
-                    ?.let { s.copy(launcherTaskbarPlacement = it) }
+                    ?.let { s.withLauncher { copy(taskbarPlacement = it) } }
             }
             "launcherTaskbarShowRecents" -> applyLauncherField(field, raw, settings) { s ->
-                s.copy(launcherTaskbarShowRecents = raw.toBool())
+                s.withLauncher { copy(taskbarShowRecents = raw.toBool()) }
             }
             "launcherTaskbarShowPinned" -> applyLauncherField(field, raw, settings) { s ->
-                s.copy(launcherTaskbarShowPinned = raw.toBool())
+                s.withLauncher { copy(taskbarShowPinned = raw.toBool()) }
             }
             "launcherTaskbarShowTray" -> applyLauncherField(field, raw, settings) { s ->
-                s.copy(launcherTaskbarShowTray = raw.toBool())
+                s.withLauncher { copy(taskbarShowTray = raw.toBool()) }
             }
             "launcherReplaceSystemStatusArea" -> applyLauncherField(field, raw, settings) { s ->
-                s.copy(launcherReplaceSystemStatusArea = raw.toBool())
+                s.withLauncher { copy(replaceSystemStatusArea = raw.toBool()) }
             }
             "launcherTopStatusStripMode" -> applyLauncherField(field, raw, settings) { s ->
-                s.copy(launcherTopStatusStripMode = raw.toBool())
+                s.withLauncher { copy(topStatusStripMode = raw.toBool()) }
             }
             "launcherForeignNotificationsEnabled" -> applyLauncherField(field, raw, settings) { s ->
-                s.copy(launcherForeignNotificationsEnabled = raw.toBool())
+                s.withLauncher { copy(foreignNotificationsEnabled = raw.toBool()) }
             }
             "launcherTrayShowClock" -> applyLauncherField(field, raw, settings) { s ->
-                s.copy(launcherTrayShowClock = raw.toBool())
+                s.withLauncher { copy(trayShowClock = raw.toBool()) }
             }
             "launcherTrayShowBluetooth" -> applyLauncherField(field, raw, settings) { s ->
-                s.copy(launcherTrayShowBluetooth = raw.toBool())
+                s.withLauncher { copy(trayShowBluetooth = raw.toBool()) }
             }
             "launcherTrayShowSim1" -> applyLauncherField(field, raw, settings) { s ->
-                s.copy(launcherTrayShowSim1 = raw.toBool())
+                s.withLauncher { copy(trayShowSim1 = raw.toBool()) }
             }
             "launcherTrayShowSim2" -> applyLauncherField(field, raw, settings) { s ->
-                s.copy(launcherTrayShowSim2 = raw.toBool())
+                s.withLauncher { copy(trayShowSim2 = raw.toBool()) }
             }
             "launcherTrayShowNetwork" -> applyLauncherField(field, raw, settings) { s ->
-                s.copy(launcherTrayShowNetwork = raw.toBool())
+                s.withLauncher { copy(trayShowNetwork = raw.toBool()) }
             }
             "launcherTrayShowBattery" -> applyLauncherField(field, raw, settings) { s ->
-                s.copy(launcherTrayShowBattery = raw.toBool())
+                s.withLauncher { copy(trayShowBattery = raw.toBool()) }
             }
             "launcherDesktopLocked" -> applyLauncherField(field, raw, settings) { s ->
-                s.copy(launcherDesktopLocked = raw.toBool())
+                s.withLauncher { copy(desktopLocked = raw.toBool()) }
             }
             "launcherWallpaperMode" -> applyLauncherField(field, raw, settings) { s ->
                 raw.trim().takeIf { it in AppSettings.LAUNCHER_WALLPAPER_MODES }
-                    ?.let { s.copy(launcherWallpaperMode = it) }
+                    ?.let { s.withLauncher { copy(wallpaperMode = it) } }
             }
             "launcherScreenBlackoutTimeoutSeconds" -> applyLauncherField(field, raw, settings) { s ->
-                raw.trim().toIntOrNull()?.coerceAtLeast(0)?.let { s.copy(launcherScreenBlackoutTimeoutSeconds = it) }
+                raw.trim().toIntOrNull()?.coerceAtLeast(
+                    0
+                )?.let { s.withLauncher { copy(screenBlackoutTimeoutSeconds = it) } }
             }
             "launcherWidgetBackdropAlpha" -> applyLauncherField(field, raw, settings) { s ->
-                raw.trim().toFloatOrNull()?.coerceIn(0.0f, 1.0f)?.let { s.copy(launcherWidgetBackdropAlpha = it) }
+                raw.trim().toFloatOrNull()?.coerceIn(
+                    0.0f,
+                    1.0f
+                )?.let { s.withLauncher { copy(widgetBackdropAlpha = it) } }
             }
 
             // ── String set fields (delimiter: comma, semicolon or pipe) ───
@@ -399,7 +406,9 @@ class DeviceProfilePresetApplier @Inject constructor(
 
             // ── String fields stored verbatim ─────────────────────────────
             // colorTheme accepts AUTO/LIGHT/DARK; the CSV authored BLACK as the dark variant.
-            "colorTheme" -> settings.copy(colorTheme = if (raw.trim().equals("BLACK", ignoreCase = true)) "DARK" else raw.trim())
+            "colorTheme" -> settings.copy(
+                colorTheme = if (raw.trim().equals("BLACK", ignoreCase = true)) "DARK" else raw.trim()
+            )
             "textReaderTheme" -> settings.copy(textReaderTheme = raw.trim())
             "pdfColorMode" -> settings.copy(pdfColorMode = raw.trim())
             "audioEmptyStateMode" -> settings.copy(audioEmptyStateMode = raw.trim())

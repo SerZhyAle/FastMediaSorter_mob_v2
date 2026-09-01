@@ -1585,7 +1585,7 @@
       "sectionId": "general",
       "destination": "GENERAL",
       "layout": "fragment_settings_general",
-      "kind": "SELECTION_ROW",
+      "kind": "BUTTON",
       "titleEn": "System launcher settings",
       "titleRu": "Настройки системного лаунчера",
       "titleUk": "Налаштування системного лаунчера"
@@ -2226,9 +2226,9 @@
       "destination": "GENERAL",
       "layout": "dialog_launcher_settings",
       "kind": "SECTION_HEADER",
-      "titleEn": "Desktop gestures",
-      "titleRu": "Жесты рабочего стола",
-      "titleUk": "Жести робочого столу"
+      "titleEn": "Gestures",
+      "titleRu": "Жесты",
+      "titleUk": "Жести"
     },
     {
       "key": "headerLauncherSystem",
@@ -2269,6 +2269,86 @@
       "titleEn": "System tray",
       "titleRu": "Системный трей",
       "titleUk": "Системний трей"
+    },
+    {
+      "key": "rowLauncherAllAppsSwipeDown",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "SELECTION_ROW",
+      "titleEn": "All apps: swipe down",
+      "titleRu": "Все приложения: свайп вниз",
+      "titleUk": "Усі застосунки: свайп вниз"
+    },
+    {
+      "key": "rowLauncherAllAppsSwipeDownTarget",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "SELECTION_ROW",
+      "titleEn": "App to launch",
+      "titleRu": "Программа для запуска",
+      "titleUk": "Програма для запуску"
+    },
+    {
+      "key": "rowLauncherAllAppsSwipeLeft",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "SELECTION_ROW",
+      "titleEn": "All apps: swipe left",
+      "titleRu": "Все приложения: свайп влево",
+      "titleUk": "Усі застосунки: свайп ліворуч"
+    },
+    {
+      "key": "rowLauncherAllAppsSwipeLeftTarget",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "SELECTION_ROW",
+      "titleEn": "App to launch",
+      "titleRu": "Программа для запуска",
+      "titleUk": "Програма для запуску"
+    },
+    {
+      "key": "rowLauncherAllAppsSwipeRight",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "SELECTION_ROW",
+      "titleEn": "All apps: swipe right",
+      "titleRu": "Все приложения: свайп вправо",
+      "titleUk": "Усі застосунки: свайп праворуч"
+    },
+    {
+      "key": "rowLauncherAllAppsSwipeRightTarget",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "SELECTION_ROW",
+      "titleEn": "App to launch",
+      "titleRu": "Программа для запуска",
+      "titleUk": "Програма для запуску"
+    },
+    {
+      "key": "rowLauncherAllAppsSwipeUp",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "SELECTION_ROW",
+      "titleEn": "All apps: swipe up",
+      "titleRu": "Все приложения: свайп вверх",
+      "titleUk": "Усі застосунки: свайп вгору"
+    },
+    {
+      "key": "rowLauncherAllAppsSwipeUpTarget",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "SELECTION_ROW",
+      "titleEn": "App to launch",
+      "titleRu": "Программа для запуска",
+      "titleUk": "Програма для запуску"
     },
     {
       "key": "rowLauncherDensity",
@@ -2409,6 +2489,16 @@
       "titleEn": "Hide system status bar",
       "titleRu": "Скрывать системную строку состояния",
       "titleUk": "Приховувати системний рядок стану"
+    },
+    {
+      "key": "rowLauncherScreenCount",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Number of screens",
+      "titleRu": "Количество экранов",
+      "titleUk": "Кількість екранів"
     },
     {
       "key": "rowLauncherScreenTimeout",

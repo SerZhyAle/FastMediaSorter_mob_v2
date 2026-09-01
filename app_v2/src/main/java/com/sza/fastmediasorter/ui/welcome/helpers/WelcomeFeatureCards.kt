@@ -15,11 +15,34 @@ import com.sza.fastmediasorter.ui.welcome.FeatureCard
  * files and sorts - so no card is ever dropped. What varies is the second line: it names only the
  * media types, protocols and services this build can actually open, so the pitch cannot promise
  * what the flavor gates away (S1389).
+ *
+ * S2310: the home-screen role is the exception - it exists only where the build ships the launcher
+ * surface, so it is added conditionally and leads the list, because a build that can replace the
+ * device shell is pitching that first and the media roles second.
+ *
+ * S2310 (owner review): streams and the watch companion are separate products of the app, not
+ * footnotes of the umbrella card. Both are flavor-gated, so each is added only where its surface
+ * is compiled in, and the umbrella card's second line no longer names streams - a build without
+ * them must not advertise them, and a build with them shows the role itself.
  */
 object WelcomeFeatureCards {
 
-    fun build(capabilities: MediaCapabilities): List<FeatureCard> {
+    fun build(
+        capabilities: MediaCapabilities,
+        launcherAvailable: Boolean,
+        streamsAvailable: Boolean,
+        wearAvailable: Boolean,
+    ): List<FeatureCard> {
         val cards = buildList {
+            if (launcherAvailable) {
+                add(
+                    FeatureCard(
+                        R.drawable.ic_launcher_mode,
+                        R.string.welcome_role_home_screen,
+                        R.string.welcome_role_home_screen_detail
+                    )
+                )
+            }
             add(
                 FeatureCard(
                     R.drawable.ic_folder_open_24,
@@ -41,6 +64,15 @@ object WelcomeFeatureCards {
                     sourcesDetail(capabilities)
                 )
             )
+            if (streamsAvailable) {
+                add(
+                    FeatureCard(
+                        R.drawable.ic_cast,
+                        R.string.welcome_role_streams,
+                        R.string.welcome_role_streams_detail
+                    )
+                )
+            }
             add(
                 FeatureCard(
                     R.drawable.ic_swap_horizontal,
@@ -48,6 +80,15 @@ object WelcomeFeatureCards {
                     R.string.welcome_role_sorting_detail
                 )
             )
+            if (wearAvailable) {
+                add(
+                    FeatureCard(
+                        R.drawable.ic_watch,
+                        R.string.welcome_role_wear,
+                        R.string.welcome_role_wear_detail
+                    )
+                )
+            }
             add(
                 FeatureCard(
                     R.drawable.ic_apps,

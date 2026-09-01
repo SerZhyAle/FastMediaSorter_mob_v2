@@ -1,43 +1,36 @@
 #requires -Version 7.0
 <#
 .SYNOPSIS
-    S1540: every launcher field of AppSettings is restored by the launcher reset, or excused by name.
+    S1540: every launcher setting is restored by the launcher reset, or excused by name.
 
 .DESCRIPTION
     Adding one launcher setting takes four coordinated edits. Three of them are held by a gate; the
-    fourth - the field list inside `ResetLauncherToDefaultsUseCase.restoreLauncherSettings()` - was held
-    by nothing. A forgotten line there compiles, passes every other gate, and reaches the user as a
-    reset that silently leaves one setting untouched: the toggle it belongs with goes back to default
-    while it stays on, which is an inconsistent state in the store rather than a cosmetic miss.
+    fourth - what `ResetLauncherToDefaultsUseCase.restoreLauncherSettings()` writes - was held by
+    nothing. A forgotten field there compiles, passes every other gate, and reaches the user as a reset
+    that silently leaves one setting untouched: the toggle it belongs with goes back to default while it
+    stays on, which is an inconsistent state in the store rather than a cosmetic miss.
 
-    This gate compares two lists that are both derivable from source:
+    S2300 changed the shape the reset can take. The launcher group left `AppSettings` for the nested
+    `LauncherSettings` (the class had crossed the JVM's 255 descriptor-slot ceiling), so the reset now
+    assigns the whole group at once and coverage of a NEW field is structural - a field added to
+    `LauncherSettings` is reset by construction, and no list can fall behind it.
 
-      * the `launcher*` properties declared in `AppSettings`;
-      * the assignments inside `restoreLauncherSettings()`, in either accepted form.
+    What still needs a gate is the opposite direction: the exceptions. The reset deliberately carries
+    three values across, by copying them off the current group, and each of those is a product claim
+    that nothing else watches. So this gate now checks that:
 
-    Two assignment forms count as coverage:
-
-      * `<name> = defaults.<name>` - the ordinary form, restoring the factory value;
-      * `<name> = <identifier>` - the parameter form, restoring a value the caller supplied instead of
-        the factory one. S1886 introduced it: the launcher reset writes the icon density chosen in the
-        reset dialog, so for that one field `AppSettings()` is not the value the reset restores.
-
-    The parameter form is accepted only for a field named in `$ParameterRestoredFields` below. An
-    undeclared one fails: silently counting any bare assignment as coverage would let `launcherFoo = x`
-    stand in for a real restore, which is the hole this gate exists to close.
-
-    A field in the first list and not the second fails, unless it is named in `$ExcusedFields` below
-    with the reason it must survive a reset. A name in the second list that no longer exists in
-    `AppSettings` fails too - a stale line is how a rename hides an uncovered field.
+      * the reset really does assign the whole group (`launcher = <defaults>.copy(..)`), because a
+        return to a field-by-field list would silently restore the old defect class;
+      * every field the reset preserves (`<name> = current.launcher.<name>`) is excused below with the
+        reason it must survive a reset;
+      * every excused field is actually preserved - an excusal whose line was dropped is a claim the
+        code no longer honours;
+      * every name on either side still exists in `LauncherSettings`, since a rename is how a field
+        stops being covered without anything failing.
 
     Deliberately lexical: it reads the two files as text rather than compiling them, so it costs
     milliseconds and runs inside `post-change.ps1` on every change, which is the only cadence at which
     it would have caught the case it was written for.
-
-    Why the launcher prefix is the rule here and nowhere else: the launcher reset is the one call site
-    whose contract is "all of this feature's settings". Its siblings - enable-all, backup restore,
-    gesture seeding - are deliberate subsets chosen per field, so completeness is not derivable for
-    them and a prefix rule would produce false failures.
 
 .PARAMETER Gate
     Gate framing: exit 1 on any violation, print a one-line verdict.
@@ -47,11 +40,10 @@
 
 .NOTES
     Exit codes (CLAUDE.md Rule 7 / S1070 contract):
-      0  PASS - every launcher field is restored or excused.
-      1  FAIL - a launcher field is not restored, a restored name no longer exists, a field is
-         written from a parameter without being declared in $ParameterRestoredFields, or a field
-         excused from the reset is restored by it anyway (S2213 - the two claims contradict).
-      2  CANNOT VERIFY - a source file is missing or no launcher field could be parsed at all.
+      0  PASS - the reset assigns the whole group and its exceptions match the registry below.
+      1  FAIL - the reset no longer assigns the group wholesale, a preserved field is not excused, an
+         excused field is not preserved, or either side names a field LauncherSettings does not declare.
+      2  CANNOT VERIFY - a source file is missing, or no field could be parsed at all.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-launcher-reset-coverage.ps1 -Gate
@@ -66,23 +58,24 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-$settingsFile = Join-Path $repoRoot 'app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt'
+$groupFile = Join-Path $repoRoot 'app_v2/src/main/java/com/sza/fastmediasorter/domain/model/launcher/LauncherSettings.kt'
 $resetFile = Join-Path $repoRoot 'app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/launcher/ResetLauncherToDefaultsUseCase.kt'
 
-# A launcher field that must NOT be restored, keyed by field name, valued by the reason it survives a
+# A launcher field the reset must NOT clear, keyed by field name, valued by the reason it survives a
 # reset. An entry here is a claim about product behaviour, so it needs a sentence a later reader can
-# judge - not a name on its own. Every other launcher field belongs in the reset, including the
-# one-shot hint flag (a fresh install has not shown the hint either).
+# judge - not a name on its own. Every other launcher field is reset, including the one-shot hint flag
+# (a fresh install has not shown the hint either).
 $ExcusedFields = @{
-    launcherWeatherLastLocation = 'S2213: the city the user picked for a weather gadget. The reset clears the desktop and the launcher then re-seeds the starter set, which brings a weather cell back with no place of its own; a cleared value would hand the user back an empty block and make him search for his city again after every reset. Restoring the desktop layout is what the reset promises - discarding a choice the user made is not. Re-judge this only if the weather cell leaves the starter set, which is what makes the value observable after a reset at all.'
+    weatherLastLocation = 'S2213: the city the user picked for a weather gadget. The reset clears the desktop and the launcher then re-seeds the starter set, which brings a weather cell back with no place of its own; a cleared value would hand the user back an empty block and make him search for his city again after every reset. Restoring the desktop layout is what the reset promises - discarding a choice the user made is not. Re-judge this only if the weather cell leaves the starter set, which is what makes the value observable after a reset at all.'
+    allAppsSortOrder = 'S1401: the order of the all-apps list is a reading preference for a screen the desktop reset does not touch. It sits in the launcher group because it is launcher-owned state, not because it is desktop layout, and it was never part of the field-by-field reset that preceded S2300.'
+    allAppsSortDescending = 'S1401: the direction half of the all-apps order above, and it must move with it - resetting one of the pair alone would leave the list sorted in a way the user never chose.'
 }
 
-# A launcher field the reset restores from a caller-supplied parameter rather than from `AppSettings()`,
-# keyed by field name, valued by the reason. Like an excusal, an entry here is a claim about product
-# behaviour: it says the factory value is deliberately not what this reset writes. Anything assigned in
-# that shape without an entry here fails, so the shape cannot quietly become a way around the gate.
+# A launcher field the reset writes from a caller-supplied parameter rather than from the group's own
+# default, keyed by field name, valued by the reason. Like an excusal, an entry here is a claim about
+# product behaviour: it says the factory value is deliberately not what this reset writes.
 $ParameterRestoredFields = @{
-    launcherDensityFactor = 'S1886: the launcher reset writes the icon density chosen in the reset dialog, so the value comes from that choice rather than from AppSettings().'
+    densityFactor = 'S1886: the launcher reset writes the icon density chosen in the reset dialog, so the value comes from that choice rather than from the group default.'
 }
 
 function Fail-CannotVerify([string]$message) {
@@ -90,107 +83,104 @@ function Fail-CannotVerify([string]$message) {
     exit 2
 }
 
-foreach ($path in @($settingsFile, $resetFile)) {
+foreach ($path in @($groupFile, $resetFile)) {
     if (-not (Test-Path -LiteralPath $path)) {
         Fail-CannotVerify "source file not found: $path"
     }
 }
 
-$settingsText = Get-Content -LiteralPath $settingsFile -Raw
+$groupText = Get-Content -LiteralPath $groupFile -Raw
 $resetText = Get-Content -LiteralPath $resetFile -Raw
 
-# `    val launcherFoo: Boolean = false,` - the declaration form AppSettings uses for every field.
-$declared = [regex]::Matches($settingsText, '(?m)^\s*val\s+(launcher[A-Za-z0-9_]*)\s*:') |
+# `    val wallpaperMode: String = ..,` - the declaration form LauncherSettings uses for every field.
+$declared = @([regex]::Matches($groupText, '(?m)^\s*val\s+([A-Za-z][A-Za-z0-9_]*)\s*:') |
     ForEach-Object { $_.Groups[1].Value } |
-    Sort-Object -Unique
+    Sort-Object -Unique)
 
 if ($declared.Count -eq 0) {
-    Fail-CannotVerify 'no launcher field parsed from AppSettings - the declaration shape changed, so this gate is blind and must be fixed rather than trusted'
+    Fail-CannotVerify 'no field parsed from LauncherSettings - the declaration shape changed, so this gate is blind and must be fixed rather than trusted'
 }
 
-# `                launcherFoo = defaults.launcherFoo,` - the restore form, and it must be that form:
-# a copy that does not read `defaults` is not a restore.
-$defaultRestored = @([regex]::Matches($resetText, '(?m)^\s*(launcher[A-Za-z0-9_]*)\s*=\s*defaults\.\1\s*,?\s*$') |
+# `            launcher = defaults.copy(` - the whole-group assignment. Without it the reset is back to a
+# per-field list, which is the shape that produced the defect this gate was written for.
+$groupAssigned = [regex]::IsMatch($resetText, '(?m)^\s*launcher\s*=\s*[A-Za-z_][A-Za-z0-9_]*(\.copy\()?')
+if (-not $groupAssigned) {
+    Fail-CannotVerify 'the launcher reset does not assign the launcher group as a whole - the restore shape changed, so this gate is blind and must be fixed rather than trusted'
+}
+
+# `                    weatherLastLocation = current.launcher.weatherLastLocation,` - the preserve form.
+$preserved = @([regex]::Matches($resetText, '(?m)^\s*([A-Za-z][A-Za-z0-9_]*)\s*=\s*[A-Za-z_][A-Za-z0-9_]*\.launcher\.\1\s*,?\s*$') |
     ForEach-Object { $_.Groups[1].Value } |
     Sort-Object -Unique)
 
-# `                launcherFoo = densityFactor,` - the parameter form. The identifier is deliberately
-# dot-free, so `defaults.launcherFoo` cannot match here and be counted twice.
-$parameterRestored = @([regex]::Matches($resetText, '(?m)^\s*(launcher[A-Za-z0-9_]*)\s*=\s*[A-Za-z_][A-Za-z0-9_]*\s*,?\s*$') |
+# `        val defaults = LauncherSettings(densityFactor = densityFactor)` - the parameter form. The
+# identifier is deliberately dot-free, so a preserve line cannot match here and be counted twice.
+$parameterWritten = @([regex]::Matches($resetText, '(?m)([A-Za-z][A-Za-z0-9_]*)\s*=\s*(?!current\b)[A-Za-z_][A-Za-z0-9_]*\s*[,)]') |
     ForEach-Object { $_.Groups[1].Value } |
+    Where-Object { $_ -in $declared } |
     Sort-Object -Unique)
 
-$restored = @(@($defaultRestored) + @($parameterRestored) | Sort-Object -Unique)
-
-if ($restored.Count -eq 0) {
-    Fail-CannotVerify 'no restored field parsed from ResetLauncherToDefaultsUseCase - the restore shape changed, so this gate is blind and must be fixed rather than trusted'
-}
-
-$undeclaredParameter = @($parameterRestored | Where-Object { -not $ParameterRestoredFields.ContainsKey($_) })
-$missing = @($declared | Where-Object { $_ -notin $restored -and -not $ExcusedFields.ContainsKey($_) })
-$stale = @($restored | Where-Object { $_ -notin $declared })
-$excused = @($declared | Where-Object { $ExcusedFields.ContainsKey($_) })
-# S2213: an excusal says "the reset must NOT clear this", so the same name appearing in the restore list
-# is a contradiction, and the half of the excusal that matters is the one no other check watches. Without
-# this the registry only ever asks "is every field accounted for" - a later edit could add the restore
-# line back and both lists would still be satisfied, silently undoing the excusal it contradicts.
-$contradicted = @($excused | Where-Object { $_ -in $restored })
+$undeclaredParameter = @($parameterWritten | Where-Object { -not $ParameterRestoredFields.ContainsKey($_) })
+$unexcusedPreserved = @($preserved | Where-Object { -not $ExcusedFields.ContainsKey($_) })
+$excused = @($ExcusedFields.Keys | Sort-Object)
+$droppedExcusal = @($excused | Where-Object { $_ -notin $preserved })
+$stale = @(@($preserved) + @($excused) | Sort-Object -Unique | Where-Object { $_ -notin $declared })
 
 if (-not $Quiet) {
-    Write-Host ("launcher-reset-coverage: {0} launcher field(s), {1} restored, {2} excused." -f
-        $declared.Count, $restored.Count, $excused.Count)
+    Write-Host ("launcher-reset-coverage: {0} launcher field(s), {1} preserved, {2} excused." -f
+        $declared.Count, $preserved.Count, $excused.Count)
     foreach ($name in $excused) {
         Write-Host ("  excused: {0} - {1}" -f $name, $ExcusedFields[$name])
     }
-    foreach ($name in $parameterRestored) {
+    foreach ($name in $parameterWritten) {
         if ($ParameterRestoredFields.ContainsKey($name)) {
-            Write-Host ("  parameter-restored: {0} - {1}" -f $name, $ParameterRestoredFields[$name])
+            Write-Host ("  parameter-written: {0} - {1}" -f $name, $ParameterRestoredFields[$name])
         }
     }
 }
 
 if ($undeclaredParameter.Count -gt 0) {
-    Write-Host 'Launcher fields restored from a parameter without being declared as such:'
+    Write-Host 'Launcher fields written from a parameter without being declared as such:'
     foreach ($name in $undeclaredParameter) {
         Write-Host ("  {0}" -f $name)
     }
     Write-Host ('Declare it in $ParameterRestoredFields in this script with the reason the reset does not ' +
-        'write the AppSettings() value, or restore it as `<name> = defaults.<name>`.')
+        'write the group default.')
 }
 
-if ($missing.Count -gt 0) {
-    Write-Host 'Launcher fields not restored by the launcher reset:'
-    foreach ($name in $missing) {
+if ($unexcusedPreserved.Count -gt 0) {
+    Write-Host 'Launcher fields the reset carries across without an excusal:'
+    foreach ($name in $unexcusedPreserved) {
         Write-Host ("  {0}" -f $name)
     }
-    Write-Host ('Add `<name> = defaults.<name>` to ResetLauncherToDefaultsUseCase.restoreLauncherSettings(), ' +
-        'or excuse it in this script with the reason it must survive a reset.')
+    Write-Host ('Drop the `<name> = current.launcher.<name>` line so the reset restores the default, or ' +
+        'excuse it in this script with the reason it must survive a reset.')
+}
+
+if ($droppedExcusal.Count -gt 0) {
+    Write-Host 'Launcher fields excused from the reset that the reset now clears anyway:'
+    foreach ($name in $droppedExcusal) {
+        Write-Host ("  {0} - excused because: {1}" -f $name, $ExcusedFields[$name])
+    }
+    Write-Host ('Restore the `<name> = current.launcher.<name>` line, or drop the excusal in this script ' +
+        'if the reason above no longer holds. A field cannot be both.')
 }
 
 if ($stale.Count -gt 0) {
-    Write-Host 'Restored names that no longer exist in AppSettings:'
+    Write-Host 'Names that no longer exist in LauncherSettings:'
     foreach ($name in $stale) {
         Write-Host ("  {0}" -f $name)
     }
-    Write-Host 'Remove or rename the line - a stale entry is how a renamed field stops being covered.'
+    Write-Host 'Remove or rename it - a stale entry is how a renamed field stops being covered.'
 }
 
-if ($contradicted.Count -gt 0) {
-    Write-Host 'Launcher fields excused from the reset that the reset restores anyway:'
-    foreach ($name in $contradicted) {
-        Write-Host ("  {0} - excused because: {1}" -f $name, $ExcusedFields[$name])
-    }
-    Write-Host ('Remove the `<name> = ..` line from ResetLauncherToDefaultsUseCase.restoreLauncherSettings(), ' +
-        'or drop the excusal in this script if the reason above no longer holds. A field cannot be both.')
-}
-
-if ($missing.Count -gt 0 -or $stale.Count -gt 0 -or $undeclaredParameter.Count -gt 0 -or $contradicted.Count -gt 0) {
-    Write-Error ('assert-launcher-reset-coverage: FAIL - {0} field(s) not restored, {1} stale name(s), {2} undeclared parameter assignment(s), {3} contradicted excusal(s).' -f
-        $missing.Count, $stale.Count, $undeclaredParameter.Count, $contradicted.Count) -ErrorAction Continue
+if ($unexcusedPreserved.Count -gt 0 -or $droppedExcusal.Count -gt 0 -or $stale.Count -gt 0 -or $undeclaredParameter.Count -gt 0) {
+    Write-Error ('assert-launcher-reset-coverage: FAIL - {0} unexcused preserved field(s), {1} dropped excusal(s), {2} stale name(s), {3} undeclared parameter assignment(s).' -f
+        $unexcusedPreserved.Count, $droppedExcusal.Count, $stale.Count, $undeclaredParameter.Count) -ErrorAction Continue
     exit 1
 }
 
 if ($Gate -or -not $Quiet) {
-    Write-Host 'assert-launcher-reset-coverage: PASS (every launcher field is restored or excused).'
+    Write-Host 'assert-launcher-reset-coverage: PASS (the reset assigns the whole launcher group; every exception is excused).'
 }
 exit 0

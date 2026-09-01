@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeAction
 import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeDirection
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
+import com.sza.fastmediasorter.domain.model.launcher.LauncherSettings
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -26,36 +27,49 @@ class LauncherSettingsStoreTest {
     fun `absent keys resolve to the documented defaults`() {
         val values = LauncherSettingsStore.read(mutablePreferencesOf())
 
-        assertEquals(1.0f, values.launcherDensityFactor, 0.0f)
-        assertTrue(values.launcherTaskbarShowRecents)
-        assertTrue(values.launcherTrayShowBattery)
+        // S2320: dense is the shipped grid density; literal for the same reason as the alpha below.
+        assertEquals(1.25f, values.densityFactor, 0.0f)
+        assertTrue(values.taskbarShowRecents)
+        assertTrue(values.trayShowBattery)
         // S2017: the tray clock is the one taskbar exception - off by default, duplicates the top bar clock.
-        assertFalse(values.launcherTrayShowClock)
+        assertFalse(values.trayShowClock)
         // S2017: system status bar hidden by default.
-        assertTrue(values.launcherReplaceSystemStatusArea)
+        assertTrue(values.replaceSystemStatusArea)
         // S2017 ADR-1: default flipped to ON, superseding S1465 ADR-4's off-by-default rationale.
-        assertTrue(values.launcherForeignNotificationsEnabled)
-        assertFalse(values.launcherDesktopLocked)
-        assertTrue(values.launcherDesktopDoubleTapLockEnabled)
+        assertTrue(values.foreignNotificationsEnabled)
+        assertFalse(values.desktopLocked)
+        assertTrue(values.desktopDoubleTapLockEnabled)
         assertFalse(values.allAppsSortDescending)
-        assertEquals("", values.launcherWallpaperImagePath)
-        assertEquals(0, values.launcherScreenBlackoutTimeoutSeconds)
-        // S2253 ADR: the shared launcher backdrop starts fully transparent, so a fresh install shows
-        // the wallpaper through every plate. Pinned as a literal - reading the constant the store
+        assertEquals("", values.wallpaperImagePath)
+        assertEquals(0, values.screenBlackoutTimeoutSeconds)
+        // S2320: the shared launcher backdrop starts at 25% opacity, so a fresh install reads its
+        // surfaces as plates over the wallpaper. Pinned as a literal - reading the constant the store
         // itself reads would compare it with itself and pin nothing.
-        assertEquals(0.0f, values.launcherWidgetBackdropAlpha, 0.0f)
-        assertEquals(AppSettings.LAUNCHER_TASKBAR_PLACEMENT_BOTTOM, values.launcherTaskbarPlacement)
-        assertEquals(AppSettings.LAUNCHER_WALLPAPER_BRANDED, values.launcherWallpaperMode)
+        assertEquals(0.25f, values.widgetBackdropAlpha, 0.0f)
+        assertEquals(AppSettings.LAUNCHER_TASKBAR_PLACEMENT_BOTTOM, values.taskbarPlacement)
+        assertEquals(AppSettings.LAUNCHER_WALLPAPER_BRANDED, values.wallpaperMode)
         // S2213: no saved place yet is the state a fresh install is in, and the branch a device pass is
         // least likely to reach - the tester has picked a city before he thinks to test this.
-        assertEquals("", values.launcherWeatherLastLocation)
+        assertEquals("", values.weatherLastLocation)
+    }
+
+    @Test
+    fun `a stored backdrop alpha outside the option list reads back as the nearest option`() {
+        val prefs = mutablePreferencesOf()
+
+        // 0.02f was the shipped default until S2320 removed that option, so it is the value an
+        // upgraded install actually carries. ADR-2 keeps such an install looking as it did: the read
+        // resolves to the nearest option rather than to the new 25% default.
+        LauncherSettingsStore.write(prefs, AppSettings(launcher = LauncherSettings(widgetBackdropAlpha = 0.02f)))
+
+        assertEquals(0.0f, LauncherSettingsStore.read(prefs).widgetBackdropAlpha, 0.0f)
     }
 
     @Test
     fun `all-apps sort direction round-trips`() {
         val prefs = mutablePreferencesOf()
 
-        LauncherSettingsStore.write(prefs, AppSettings(allAppsSortDescending = true))
+        LauncherSettingsStore.write(prefs, AppSettings(launcher = LauncherSettings(allAppsSortDescending = true)))
 
         assertTrue(LauncherSettingsStore.read(prefs).allAppsSortDescending)
     }
@@ -63,10 +77,12 @@ class LauncherSettingsStoreTest {
     @Test
     fun `desktop swipe keeps a shared edge-gesture action`() {
         val settings = AppSettings(
-            launcherDesktopSwipeLeftAction = LauncherDesktopSwipeAction.EdgeGestureAction(
-                ScreenshotGestureAction.TOGGLE_FLASHLIGHT,
+            launcher = LauncherSettings(
+                desktopSwipeLeftAction = LauncherDesktopSwipeAction.EdgeGestureAction(
+                    ScreenshotGestureAction.TOGGLE_FLASHLIGHT,
+                ),
+                desktopSwipeLeftPayload = "com.example.flashlight",
             ),
-            launcherDesktopSwipeLeftPayload = "com.example.flashlight",
         )
         val prefs = mutablePreferencesOf()
 
@@ -74,11 +90,11 @@ class LauncherSettingsStoreTest {
 
         assertEquals(
             settings.launcherDesktopSwipeLeftAction,
-            LauncherSettingsStore.read(prefs).launcherDesktopSwipeLeftAction,
+            LauncherSettingsStore.read(prefs).desktopSwipeLeftAction,
         )
         assertEquals(
             settings.launcherDesktopSwipeLeftPayload,
-            LauncherSettingsStore.read(prefs).launcherDesktopSwipeLeftPayload,
+            LauncherSettingsStore.read(prefs).desktopSwipeLeftPayload,
         )
     }
 
@@ -90,19 +106,42 @@ class LauncherSettingsStoreTest {
      */
     @Test
     fun `desktop swipe resolves the shared all-apps token to the launcher-local value`() {
-        val settings = AppSettings(launcherDesktopSwipeUpAction = LauncherDesktopSwipeAction.OpenAllApps)
+        val settings = AppSettings(
+            launcher = LauncherSettings(desktopSwipeUpAction = LauncherDesktopSwipeAction.OpenAllApps)
+        )
         val prefs = mutablePreferencesOf()
 
         LauncherSettingsStore.write(prefs, settings)
 
         assertEquals(
             LauncherDesktopSwipeAction.OpenAllApps,
-            LauncherSettingsStore.read(prefs).launcherDesktopSwipeUpAction,
+            LauncherSettingsStore.read(prefs).desktopSwipeUpAction,
         )
         assertEquals(
             ScreenshotGestureAction.OPEN_ALL_APPS.name,
             LauncherDesktopSwipeAction.OpenAllApps.persistedName,
         )
+    }
+
+    /**
+     * S2301: the two paging routes are launcher-local values with no enum constant behind them, so a
+     * slot holding one round-trips only while the parser resolves its token before the enum scan.
+     */
+    @Test
+    fun `desktop swipe round-trips the screen paging routes`() {
+        val settings = AppSettings(
+            launcher = LauncherSettings(
+                desktopSwipeLeftAction = LauncherDesktopSwipeAction.NextScreen,
+                desktopSwipeRightAction = LauncherDesktopSwipeAction.PreviousScreen,
+            )
+        )
+        val prefs = mutablePreferencesOf()
+
+        LauncherSettingsStore.write(prefs, settings)
+
+        val read = LauncherSettingsStore.read(prefs)
+        assertEquals(LauncherDesktopSwipeAction.NextScreen, read.desktopSwipeLeftAction)
+        assertEquals(LauncherDesktopSwipeAction.PreviousScreen, read.desktopSwipeRightAction)
     }
 
     @Test
@@ -169,90 +208,92 @@ class LauncherSettingsStoreTest {
     @Test
     fun `every persisted launcher field round-trips through write then read`() {
         val settings = AppSettings(
-            launcherDensityFactor = 1.5f,
-            launcherTaskbarShowRecents = false,
-            launcherTaskbarShowPinned = false,
-            launcherTaskbarShowTray = false,
-            launcherTrayShowClock = false,
-            launcherTrayShowBluetooth = false,
-            launcherTrayShowSim1 = false,
-            launcherTrayShowSim2 = false,
-            launcherTrayShowNetwork = false,
-            launcherTrayShowBattery = false,
-            launcherReplaceSystemStatusArea = true,
-            launcherTopStatusStripMode = true,
-            launcherForeignNotificationsEnabled = true,
-            launcherRotationHintShown = true,
-            launcherDesktopLocked = true,
-            launcherDesktopDoubleTapLockEnabled = false,
-            launcherDesktopSwipeUpPayload = "https://example.com",
-            launcherDesktopSwipeDownPayload = "com.example.app",
-            launcherDesktopSwipeLeftPayload = "https://example.org",
-            launcherDesktopSwipeRightPayload = "com.example.other",
-            launcherWallpaperImagePath = "/storage/emulated/0/wall.png",
-            allAppsSortDescending = true,
-            launcherScreenBlackoutTimeoutSeconds = 45,
-            launcherWidgetBackdropAlpha = 0.25f,
-            launcherWeatherLastLocation = "50.45,30.52,Kyiv",
+            launcher = LauncherSettings(
+                densityFactor = 1.5f,
+                taskbarShowRecents = false,
+                taskbarShowPinned = false,
+                taskbarShowTray = false,
+                trayShowClock = false,
+                trayShowBluetooth = false,
+                trayShowSim1 = false,
+                trayShowSim2 = false,
+                trayShowNetwork = false,
+                trayShowBattery = false,
+                replaceSystemStatusArea = true,
+                topStatusStripMode = true,
+                foreignNotificationsEnabled = true,
+                rotationHintShown = true,
+                desktopLocked = true,
+                desktopDoubleTapLockEnabled = false,
+                desktopSwipeUpPayload = "https://example.com",
+                desktopSwipeDownPayload = "com.example.app",
+                desktopSwipeLeftPayload = "https://example.org",
+                desktopSwipeRightPayload = "com.example.other",
+                wallpaperImagePath = "/storage/emulated/0/wall.png",
+                allAppsSortDescending = true,
+                screenBlackoutTimeoutSeconds = 45,
+                widgetBackdropAlpha = 0.25f,
+                weatherLastLocation = "50.45,30.52,Kyiv",
+            ),
         )
 
         val prefs = mutablePreferencesOf()
         LauncherSettingsStore.write(prefs, settings)
         val values = LauncherSettingsStore.read(prefs)
 
-        assertEquals(settings.launcherDensityFactor, values.launcherDensityFactor, 0.0f)
-        assertEquals(settings.launcherTaskbarShowRecents, values.launcherTaskbarShowRecents)
-        assertEquals(settings.launcherTaskbarShowPinned, values.launcherTaskbarShowPinned)
-        assertEquals(settings.launcherTaskbarShowTray, values.launcherTaskbarShowTray)
-        assertEquals(settings.launcherTrayShowClock, values.launcherTrayShowClock)
-        assertEquals(settings.launcherTrayShowBluetooth, values.launcherTrayShowBluetooth)
-        assertEquals(settings.launcherTrayShowSim1, values.launcherTrayShowSim1)
-        assertEquals(settings.launcherTrayShowSim2, values.launcherTrayShowSim2)
-        assertEquals(settings.launcherTrayShowNetwork, values.launcherTrayShowNetwork)
-        assertEquals(settings.launcherTrayShowBattery, values.launcherTrayShowBattery)
-        assertEquals(settings.launcherReplaceSystemStatusArea, values.launcherReplaceSystemStatusArea)
-        assertEquals(settings.launcherTopStatusStripMode, values.launcherTopStatusStripMode)
+        assertEquals(settings.launcherDensityFactor, values.densityFactor, 0.0f)
+        assertEquals(settings.launcherTaskbarShowRecents, values.taskbarShowRecents)
+        assertEquals(settings.launcherTaskbarShowPinned, values.taskbarShowPinned)
+        assertEquals(settings.launcherTaskbarShowTray, values.taskbarShowTray)
+        assertEquals(settings.launcherTrayShowClock, values.trayShowClock)
+        assertEquals(settings.launcherTrayShowBluetooth, values.trayShowBluetooth)
+        assertEquals(settings.launcherTrayShowSim1, values.trayShowSim1)
+        assertEquals(settings.launcherTrayShowSim2, values.trayShowSim2)
+        assertEquals(settings.launcherTrayShowNetwork, values.trayShowNetwork)
+        assertEquals(settings.launcherTrayShowBattery, values.trayShowBattery)
+        assertEquals(settings.launcherReplaceSystemStatusArea, values.replaceSystemStatusArea)
+        assertEquals(settings.launcherTopStatusStripMode, values.topStatusStripMode)
         assertEquals(
             settings.launcherForeignNotificationsEnabled,
-            values.launcherForeignNotificationsEnabled,
+            values.foreignNotificationsEnabled,
         )
-        assertEquals(settings.launcherRotationHintShown, values.launcherRotationHintShown)
-        assertEquals(settings.launcherDesktopLocked, values.launcherDesktopLocked)
-        assertEquals(settings.launcherDesktopDoubleTapLockEnabled, values.launcherDesktopDoubleTapLockEnabled)
-        assertEquals(settings.launcherDesktopSwipeUpPayload, values.launcherDesktopSwipeUpPayload)
-        assertEquals(settings.launcherDesktopSwipeDownPayload, values.launcherDesktopSwipeDownPayload)
-        assertEquals(settings.launcherDesktopSwipeLeftPayload, values.launcherDesktopSwipeLeftPayload)
-        assertEquals(settings.launcherDesktopSwipeRightPayload, values.launcherDesktopSwipeRightPayload)
-        assertEquals(settings.launcherWallpaperImagePath, values.launcherWallpaperImagePath)
+        assertEquals(settings.launcherRotationHintShown, values.rotationHintShown)
+        assertEquals(settings.launcherDesktopLocked, values.desktopLocked)
+        assertEquals(settings.launcherDesktopDoubleTapLockEnabled, values.desktopDoubleTapLockEnabled)
+        assertEquals(settings.launcherDesktopSwipeUpPayload, values.desktopSwipeUpPayload)
+        assertEquals(settings.launcherDesktopSwipeDownPayload, values.desktopSwipeDownPayload)
+        assertEquals(settings.launcherDesktopSwipeLeftPayload, values.desktopSwipeLeftPayload)
+        assertEquals(settings.launcherDesktopSwipeRightPayload, values.desktopSwipeRightPayload)
+        assertEquals(settings.launcherWallpaperImagePath, values.wallpaperImagePath)
         assertEquals(settings.allAppsSortDescending, values.allAppsSortDescending)
         assertEquals(
             settings.launcherScreenBlackoutTimeoutSeconds,
-            values.launcherScreenBlackoutTimeoutSeconds,
+            values.screenBlackoutTimeoutSeconds,
         )
-        assertEquals(settings.launcherWidgetBackdropAlpha, values.launcherWidgetBackdropAlpha, 0.0f)
-        assertEquals(settings.launcherTaskbarPlacement, values.launcherTaskbarPlacement)
-        assertEquals(settings.launcherWallpaperMode, values.launcherWallpaperMode)
+        assertEquals(settings.launcherWidgetBackdropAlpha, values.widgetBackdropAlpha, 0.0f)
+        assertEquals(settings.launcherTaskbarPlacement, values.taskbarPlacement)
+        assertEquals(settings.launcherWallpaperMode, values.wallpaperMode)
         assertEquals(settings.allAppsSortOrder, values.allAppsSortOrder)
-        assertEquals(settings.launcherWeatherLastLocation, values.launcherWeatherLastLocation)
+        assertEquals(settings.launcherWeatherLastLocation, values.weatherLastLocation)
     }
 
-    // `read` answers with the store's own `Values`, not `AppSettings`, so the production direction
-    // accessors cannot be reused on the read side. The write side still goes through them, which is the
+    // S2300: `read` answers with the launcher group itself, so these mirror the production direction
+    // accessors on the read side. The write side still goes through the production ones, which is the
     // mapping these tests are here to pin.
-    private fun LauncherSettingsStore.Values.payloadOf(direction: LauncherDesktopSwipeDirection): String =
+    private fun LauncherSettings.payloadOf(direction: LauncherDesktopSwipeDirection): String =
         when (direction) {
-            LauncherDesktopSwipeDirection.UP -> launcherDesktopSwipeUpPayload
-            LauncherDesktopSwipeDirection.DOWN -> launcherDesktopSwipeDownPayload
-            LauncherDesktopSwipeDirection.LEFT -> launcherDesktopSwipeLeftPayload
-            LauncherDesktopSwipeDirection.RIGHT -> launcherDesktopSwipeRightPayload
+            LauncherDesktopSwipeDirection.UP -> desktopSwipeUpPayload
+            LauncherDesktopSwipeDirection.DOWN -> desktopSwipeDownPayload
+            LauncherDesktopSwipeDirection.LEFT -> desktopSwipeLeftPayload
+            LauncherDesktopSwipeDirection.RIGHT -> desktopSwipeRightPayload
         }
 
-    private fun LauncherSettingsStore.Values.actionOf(
+    private fun LauncherSettings.actionOf(
         direction: LauncherDesktopSwipeDirection,
     ): LauncherDesktopSwipeAction = when (direction) {
-        LauncherDesktopSwipeDirection.UP -> launcherDesktopSwipeUpAction
-        LauncherDesktopSwipeDirection.DOWN -> launcherDesktopSwipeDownAction
-        LauncherDesktopSwipeDirection.LEFT -> launcherDesktopSwipeLeftAction
-        LauncherDesktopSwipeDirection.RIGHT -> launcherDesktopSwipeRightAction
+        LauncherDesktopSwipeDirection.UP -> desktopSwipeUpAction
+        LauncherDesktopSwipeDirection.DOWN -> desktopSwipeDownAction
+        LauncherDesktopSwipeDirection.LEFT -> desktopSwipeLeftAction
+        LauncherDesktopSwipeDirection.RIGHT -> desktopSwipeRightAction
     }
 }

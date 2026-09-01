@@ -26,6 +26,32 @@
 - **Domain (`domain/`)**: UseCases, domain models, and repository *interfaces* (their concrete implementations live in `data/repository`).
 - **Data (`data/`)**: Repository implementations, DB (Room), network/cloud clients, DTOs.
 
+### Database Schema Contract (MANDATORY, S2306)
+
+A Room migration and the entity it upgrades toward are **two halves of one statement**, and Room checks
+that they agree exactly once - on the user's device, during the first launch after an update. When they
+disagree it does not degrade: `DatabaseModule` catches the failed open, copies the database to
+`files/db-backups/<timestamp>`, records a user-visible notice and recreates it empty (S0731). There is no
+`fallbackToDestructiveMigration`; this recovery path is the only way the database is ever dropped, and it
+is a last resort, not a licence to ship an unverified migration.
+
+Every schema change therefore carries all four of these, and none substitutes for another:
+
+1. The migration's SQL names the column exactly as the entity declares it - `screenIndex` is not
+   `screen_index` - with the same nullability, and it writes any `@ColumnInfo(defaultValue = ..)` the
+   entity declares. A `NOT NULL` column added without a `DEFAULT` is refused by SQLite outright.
+2. The migration is listed in `DatabaseModule.addMigrations()`. An unregistered migration is not a
+   no-op: the hop throws and the recovery path deletes the database.
+3. An instrumented test `AppDatabaseMigration<N>To<M>Test` exists, and `AppDatabaseMigrationChainTest`
+   still names the current version so the whole chain stays covered.
+4. The migrations were **executed**, not only compiled - `.\a.ps1 fam`, and `/spec-prerelease` step 1.4
+   before a release. A green `.\a.ps1 fa` proves the tests parse and nothing more.
+
+Points 1-3 are gated in every closure by `assert-migration-schema-conformance.ps1` and
+`assert-migration-test-pairing.ps1`. They compare text; only point 4 runs SQL. The rule exists because on
+2026-09-01 a migration satisfying none of them shipped, and the first execution of Room's comparison
+anywhere was on the owner's phone, which lost its resources, credentials, favourites and desktop (S2251).
+
 ### Dependency Rule (accepted convention, read before "fixing")
 
 The **runtime call direction** is strictly one-way: `UI` → `ViewModel` → `UseCase` → `Repository` → `DataSource`. A lower layer never calls back up, and UI holds no business logic. This part is enforced.
@@ -139,8 +165,10 @@ inside the component.
 
 #### Selection/value row (`SettingsSelectionRow`)
 
-- The value (`app:ssr_value`) renders inline on the title line, right after the title/help, and the trailing chevron stays pinned to the row's right edge via the weighted text group - the value is never separated from its title by the full row width.
+- The value (`app:ssr_value`) renders inline on the title line, right after the title/help - it is **never** separated from its caption by the width of the row. This is the owner's standing rule for every caption/value pair in the app, not a detail of this widget (ruling 2026-09-01, on a landscape screenshot where a right-aligned value sat "meters" from its label across a 2000 px card): a value pushed to the far edge aligns beautifully and loses the reader on the way across. Align a column of values by the longest LABEL, never by the screen edge.
 - Navigation mode (`app:ssr_navMode="true"`): the trailing glyph becomes a real forward arrow (`@drawable/ic_arrow_forward`) instead of the value chevron and the content collapses to hug the left so the arrow sits right after the text (the row stays a full-width click target). Use it for rows that open another screen/activity/dialog; value-selection rows keep the chevron. Cross-batch glyph rule shared with S0644: arrow `->` = navigation, chevron `>` = value.
+- Shared label column (`SettingsValueRowGroup`): wrap a stack of value rows in that container and every row gets the same label width - the widest label among them - so their values start at one offset while each value still sits right beside its own caption. The column is sized by the longest LABEL, never by the group's width, and it is applied **only when every row still fits at full length**: a fixed label column plus a long value plus a glyph does not fit a portrait phone, and the first attempt wrapped one value onto a second line and pushed two chevrons off the screen. When it does not fit, each row keeps its own hug layout - alignment is worth having only while it costs nothing. Both row widgets implement `LabelColumnRow`, so a group may mix them.
+- A `SettingsDropdownRow` in value text mode (`app:sdr_valueAsText`) is a value row and carries the same chevron, not the field's drop-down caret: the two widget types sit in the same settings sections, and a differing glyph read as two different kinds of control where there is only one.
 
 ### Pattern B - Checkbox row (add-resource, cloud folder pickers)
 
@@ -370,7 +398,7 @@ Launcher Mode turns the app into an Android home screen: a cell desktop, a botto
 
 **Desktop model.** Cells live in one Room table, with `kind` and `orientation` stored as enum names and the command encoded into a single prefixed TEXT column, so a new command variant never forces a migration. Portrait and landscape are **two fully independent layouts**, not one layout re-flowed: every repository call is scoped to a `LauncherOrientation`, and the resolved column count is stored per orientation too. A cell is an anchor plus a span, so gaps between cells are meaningful and a gadget claims a rectangle.
 
-**First-run starter set.** An empty desktop is seeded once from `LauncherStarterSets`, the single profile table for what a detected device profile receives. Third-party app cells are conditional on the matching package being installed, so a first seed never leaves a dead app icon; existing desktops are not rewritten when the profile changes. The set is packed **per section, not across the whole grid**: a section header raises a packing floor to its own row, and nothing seeded after it may anchor above that row. The floor is a correctness rule before it is an aesthetic one, because section membership is positional - a cell that backfilled the gap a shorter group left behind would belong to the section above it and collapse with it. Content leads the set and the launcher's own actions close it, so the first screen of a phone carries the media resources rather than five service shortcuts; the actions stay reachable from the Start menu, which is what makes that order safe.
+**First-run starter set.** An empty desktop is seeded once from `LauncherStarterSets`, the table for what a detected device profile receives. Third-party app cells are conditional on the matching package being installed, so a first seed never leaves a dead app icon; existing desktops are not rewritten when the profile changes. The set is packed **per section, not across the whole grid**: a section header raises a packing floor to its own row, and nothing seeded after it may anchor above that row. The floor is a correctness rule before it is an aesthetic one, because section membership is positional - a cell that backfilled the gap a shorter group left behind would belong to the section above it and collapse with it. Content leads the set and the launcher's own actions close it, so the first screen of a phone carries the media resources rather than five service shortcuts; the actions stay reachable from the Start menu, which is what makes that order safe. **Composition has two axes (S2309).** The profile decides intent - which groups have anything in them at all - and the device's screen class decides capacity: the section order, how many items each section seeds, and how many screens the desktop fills, which is composed rather than fixed at two. The class is a discrete pair - size by smallest width in dp, shape by the long-to-short ratio - derived by `LauncherScreenClassifier` from the running device and independent of the current orientation, so rotating a phone cannot change what its desktop contains. The rules live in `LauncherStarterLayoutRules` and take the screen class alone: a layout stated per profile was measured wrong, because a 20:9 phone and a 4:3 tablet can carry one profile and want different first screens. Two groups may seed the same section key - the profile gadgets beside the utility widgets, the resource shortcuts beside the media windows - and when they land on one screen they are emitted under a single header, because a section is addressed by its key alone and two headers sharing one would fold together and collide in the packing pass.
 
 **Grid.** The desktop is a hand-written `ViewGroup`, deliberately not a `RecyclerView` (ADR-9): the persisted model is a canvas with 2D positions, spans and meaningful gaps, which no stock `LayoutManager` expresses - and a desktop is dozens of cells, not a feed, so recycling buys nothing while costing the model. Column count resolves from available width and a user density factor within a fixed range; height is the scroll axis. All footprint arithmetic funnels through one geometry helper precisely so layout, hit-testing and the free-slot sweep cannot disagree. Drag-to-move uses a container-level `OnDragListener` with `startDragAndDrop` rather than `ItemTouchHelper`, which is RecyclerView-only for the same ADR-9 reason.
 
@@ -382,7 +410,7 @@ Launcher Mode turns the app into an Android home screen: a cell desktop, a botto
 
 **Surface colours.** Every foreground on the taskbar and the Start panel comes from a launcher-scoped theme attribute - `launcherTaskbarStartText` and `launcherTaskbarAllAppsText` for the two taskbar buttons, which sit on `colorSurfaceVariant`, and `launcherStartRowGroup1`..`launcherStartRowGroup4` for the four semantic row groups, which sit on `colorSurface`. Three rules hold together. Each attribute has a value in **every** theme set: the base day and night themes define all six, and the six `ThemeOverlay.FastMediaSorter.*` colour themes inherit them, overriding one only where their own surfaces would fall short. Each M3 role the app actually paints with is defined **by the app** in both sets - `colorSurfaceVariant`, `colorTertiary` and `colorError` used to resolve from the library baseline, which is a colour nobody chose and a library upgrade can move. And the result is **measured, not eyeballed**: `scripts/quality/assert-launcher-contrast.ps1` (in the `.\a.ps1 fg` batch) resolves each attribute and its background out of the resource files for all eight themes and fails below 7:1, the owner's threshold, above WCAG's 4.5:1 for ordinary text. The attributes are launcher-scoped rather than plain M3 roles because those roles paint dozens of other surfaces, where the lightness this threshold demands would be an unrelated change; the check is a script because the previous pass over these same colours was signed off by looking at it and shipped the Start label at 4.22:1. A new colour theme, or a new Start-panel row, runs the gate rather than matching a value by eye.
 
-Related specs: S0404 (the founding ADR set, archived), S1103 (cell actions), S1170 (widget-to-gadget bridge), S1415 (tray composition), S1461 (this section), S1587 (per-section seeding floor and content-first order), S1895 (surface colours and the contrast gate), S1930 (per-instance widgets on the desktop), S2026 and S2215 (task placement). Launcher classes are indexed in the class catalog under the `launcher` sector.
+Related specs: S0404 (the founding ADR set, archived), S1103 (cell actions), S1170 (widget-to-gadget bridge), S1415 (tray composition), S1461 (this section), S1587 (per-section seeding floor and content-first order), S1895 (surface colours and the contrast gate), S1930 (per-instance widgets on the desktop), S2026 and S2215 (task placement), S2309 (starter layout composed per screen class). Launcher classes are indexed in the class catalog under the `launcher` sector.
 
 ## Performance & Resource Optimization
 
@@ -464,6 +492,28 @@ A watch content list is read in full and narrowed in memory. There is no page at
 - **What would reopen the question.** The resident cost is the row count of one listing, and `WearMediaRepositoryImpl.listing` already logs it per listing. Revisit when that number on a real watch stops fitting - on the measurement that is already collected, not on a re-argument.
 
 Watch module only. The phone's lists answer to different constraints and this section says nothing about them.
+
+## Settings Model Shape (MANDATORY, S2300)
+
+`AppSettings` is one data class with every default supplied, and that shape has a hard ceiling: a JVM
+method descriptor carries at most 255 slots including `this`, and Kotlin's synthetic default-argument
+constructor spends one slot per parameter (two per non-nullable `Long`), one bitmask int per 32
+parameters, and one marker. `copy$default` spends the same plus the receiver.
+
+- Crossing the ceiling is invisible until runtime. kotlinc and D8 emit the class without a warning, every
+  static gate passes, and ART refuses it at verification - `VerifyError .. invalid arg count (0) in
+  invoke-direct/range` - which kills the app in `Application.onCreate` and makes every `copy(..)` of that
+  class equally dead. It happened twice: S1470 and again on 2026-09-01 (S2300).
+- A cohesive group of settings therefore lives in its own nested data class, held by `AppSettings` as one
+  field: `LauncherSettings` (`domain/model/launcher/`) and `ScreenshotGestureSettings` are the pattern. A
+  group costs one slot instead of one per field.
+- Write to a nested group through its helper - `settings.withLauncher { copy(desktopLocked = true) }` -
+  rather than spelling out `copy(launcher = settings.launcher.copy(..))` at the call site.
+- The launcher group keeps read-through properties on `AppSettings` (`settings.launcherWallpaperMode`), so
+  a read needs no knowledge of the grouping and the device-profile preset CSV keeps naming fields as
+  before. Reads may use either form; writes go through the group.
+- `scripts/quality/assert-ctor-arg-slots.ps1` does the arithmetic and runs in every closure that changes a
+  `.kt`. It reports headroom in whole properties - when it warns, group a domain, never buy back one slot.
 
 ## Wear Settings Persistence (S2050)
 

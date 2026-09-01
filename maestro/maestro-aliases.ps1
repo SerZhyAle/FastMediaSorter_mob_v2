@@ -55,11 +55,12 @@ if (-not $maestroCmd) {
     exit 1
 }
 
-# Get ADB path
-$adbPath = "C:\Users\$env:USERNAME\AppData\Local\Android\Sdk\platform-tools\adb.exe"
+# Get ADB path (discovered, not assumed - S2326)
+. "$PSScriptRoot\..\scripts\utils\project-paths.ps1"
+$adbPath = try { Get-ToolPath -Tool Adb -Quiet } catch { $null }
 
-if (-not (Test-Path $adbPath)) {
-    Write-Host "⚠️  ADB not found at: $adbPath"
+if (-not $adbPath) {
+    Write-Host "⚠️  ADB not found on PATH or in the known SDK locations"
     Write-Host "This is optional but recommended for full functionality"
 }
 

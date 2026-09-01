@@ -2252,6 +2252,7 @@
     <string name="launcher_settings_show_pinned_title">إظهار التطبيقات المثبَّتة</string>
     <string name="launcher_settings_show_tray_title">إظهار شريط الحالة</string>
     <string name="launcher_settings_density_title">كثافة الشبكة</string>
+    <string name="launcher_settings_screen_count_title">عدد الشاشات</string>
     <string name="launcher_settings_density_sparse">متباعدة</string>
     <string name="launcher_settings_density_default">قياسية</string>
     <string name="launcher_settings_density_dense">كثيفة</string>
@@ -2860,7 +2861,8 @@
     <string name="launcher_section_android_apps">Apps</string>
     <string name="launcher_settings_widget_backdrop_alpha_title">عتامة خلفية الأداة</string>
     <string name="launcher_settings_widget_backdrop_alpha_0">0% (شفاف)</string>
-    <string name="launcher_settings_widget_backdrop_alpha_85">85% (افتراضي)</string>
+    <string name="launcher_settings_widget_backdrop_alpha_25">25% (افتراضي)</string>
+    <string name="launcher_settings_widget_backdrop_alpha_85">85%</string>
     <string name="launcher_settings_widget_backdrop_alpha_100">100% (معتم)</string>
     <string name="launcher_gadget_youtube">YouTube</string>
     <string name="launcher_gadget_youtube_music">YouTube Music</string>
@@ -3126,9 +3128,26 @@
     <string name="gesture_action_explain_open_all_apps">يفتح الشاشة الرئيسية مع قائمة جميع التطبيقات.</string>
     <string name="gesture_slot_url_none">غير مضبوط - انقر لإدخال عنوان</string>
     <string name="launcher_settings_group_tray">علبة النظام</string>
-    <string name="launcher_settings_group_gestures">إيماءات سطح المكتب</string>
+    <string name="launcher_settings_group_gestures">الإيماءات</string>
     <string name="launcher_settings_group_appearance">مظهر</string>
     <string name="launcher_taskbar_pinned_action_launch">تشغيل</string>
     <string name="launcher_taskbar_pinned_action_unpin">إلغاء التثبيت</string>
     <string name="s2283_apk_download_in_progress">تنزيل ملف APK جارٍ بالفعل</string>
+    <string name="launcher_gadget_google_keep_live">جوجل كيب لايف الإطار</string>
+    <string name="launcher_gadget_google_calendar_live">تقويم جوجل لايف الإطار</string>
+    <string name="launcher_desktop_swipe_action_next_screen">الشاشة التالية</string>
+    <string name="launcher_desktop_swipe_action_previous_screen">الشاشة السابقة</string>
+    <string name="launcher_desktop_swipe_explain_next_screen">يعرض الشاشة التالية للمشغّل ويتوقف عند الأخيرة.</string>
+    <string name="launcher_desktop_swipe_explain_previous_screen">يعرض الشاشة السابقة للمشغّل ويتوقف عند الأولى.</string>
+    <string name="launcher_edit_move_to_screen">النقل إلى الشاشة %1$d</string>
+    <string name="launcher_all_apps_swipe_picker_title">إيماءة السحب في كل التطبيقات</string>
+    <string name="launcher_all_apps_swipe_up_title">كل التطبيقات: سحب لأعلى</string>
+    <string name="launcher_all_apps_swipe_down_title">كل التطبيقات: سحب لأسفل</string>
+    <string name="launcher_all_apps_swipe_left_title">كل التطبيقات: سحب لليسار</string>
+    <string name="launcher_all_apps_swipe_right_title">كل التطبيقات: سحب لليمين</string>
+    <string name="launcher_all_apps_swipe_action_back_to_desktop">العودة إلى سطح المكتب</string>
+    <string name="launcher_all_apps_swipe_action_expand">توسيع كل التطبيقات</string>
+    <string name="launcher_all_apps_swipe_explain_back_to_desktop">يغلق قائمة التطبيقات ويعرض سطح المكتب تحتها.</string>
+    <string name="launcher_all_apps_swipe_explain_expand">يعرض قائمة التطبيقات كاملة بدل الأقسام الأبجدية.</string>
+    <string name="launcher_welcome_toggle_subtitle">افتح FastMediaSorter بزر الشاشة الرئيسية. يطلب النظام التأكيد بعد الإعداد، ويمكنك الرجوع في أي وقت من الإعدادات.</string>
 </resources>

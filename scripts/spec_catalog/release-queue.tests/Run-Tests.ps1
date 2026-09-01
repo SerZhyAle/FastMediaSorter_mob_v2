@@ -24,6 +24,14 @@ function Assert-Condition {
     if (-not $Condition) { throw $Message }
 }
 
+function New-MarkedQueueFixture {
+    # One-line release file in temp/, so the round trip is exercised without touching PLAN/.
+    param([Parameter(Mandatory)][string] $Line)
+    $path = Join-Path $fixtureDirectory "release-queue-marked-$PID.md"
+    [System.IO.File]::WriteAllLines($path, @($Line))
+    return $path
+}
+
 try {
     New-Item -ItemType Directory -Path $fixtureDirectory -Force | Out-Null
     $fixture = @(
@@ -47,6 +55,12 @@ try {
     $projectionText = $projection -join "`n"
     Assert-Condition ($projectionText -match 'active ticket leases') 'Lease projection header missing.'
     Assert-Condition ($projectionText -match "\[lease\] $fixtureId session=$fixtureSessionId") 'Fixture lease metadata missing.'
+    # The marker is the point of -WithLeases: occupancy has to be readable on the ticket's own
+    # row, not only in the block below it. The fixture carries no `mine` property on purpose -
+    # ticket-lease emits one, so a row rendered from the fixture also proves the marker survives
+    # StrictMode when that property is absent.
+    Assert-Condition ($projectionText -match "$fixtureId.*\[taken 1\.5m, S1518 release queue test fixture, session s1518-r") 'Inline lease marker missing on the taken row.'
+    Assert-Condition (($defaultOutput -join "`n") -notmatch '\[taken ') 'Default output grew a lease marker.'
     Assert-Condition ([System.IO.File]::ReadAllText($queuePath) -eq $before) 'Lease projection rewrote RELEASE_QUEUE.md.'
 
     # ── S1698: -Reconcile must collapse duplicate ticket lines ──────────────────────────────
@@ -55,6 +69,21 @@ try {
     # writes the real PLAN/ files - the regression is about what reconcile does to a FILE, and
     # reproducing it against the live queue would mean duplicating an owner-ordered line.
     . (Join-Path $repoRoot 'scripts\spec_catalog\_lib.ps1')
+
+    # ── The marker written INTO the release files (owner ruling 2026-09-01) ─────────────────
+    # The file is the surface the owner reads, so occupancy is rendered there too - which makes
+    # the round trip load-bearing: a marker must be stripped before the line is parsed, or it is
+    # read as part of the status column and drifts the whole file against the catalog. A stale
+    # marker (no live lease behind it) must disappear on the next write, since that is the whole
+    # "the process died, the ticket is free again" signal.
+    $markedLine = (Format-ReleaseQueueLine -Release '40' -Ticket 'S9004_delta' -Changed '2026-08-01' -Status 'In Progress') +
+        '   [taken 15:42, /spec-all, be08adb0]'
+    $parsed = @(Read-ReleaseFile -Path (New-MarkedQueueFixture -Line $markedLine)) |
+        Where-Object { $_.Kind -eq 'ticket' }
+    Assert-Condition ($parsed.Count -eq 1) 'A marked ticket line stopped parsing as a ticket.'
+    Assert-Condition ($parsed[0].Status -eq 'In Progress') "Marker leaked into the status column: $($parsed[0].Status)"
+    Assert-Condition ($parsed[0].Id -eq 'S9004') 'Marked line parsed the wrong id.'
+
 
     $sandbox = Join-Path $repoRoot "temp\S1698\queue-sandbox-$PID"
     New-Item -ItemType Directory -Path $sandbox -Force | Out-Null
@@ -117,6 +146,7 @@ finally {
         Remove-Item -LiteralPath $sandbox -Recurse -Force -ErrorAction SilentlyContinue
     }
     Remove-Item -LiteralPath $fixturePath -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath (Join-Path $fixtureDirectory "release-queue-marked-$PID.md") -Force -ErrorAction SilentlyContinue
     if ([string]::IsNullOrWhiteSpace($priorFixturePath)) {
         Remove-Item Env:\FMS_TICKET_LEASE_STATUS_FIXTURE -ErrorAction SilentlyContinue
     } else {

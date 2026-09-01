@@ -6,7 +6,7 @@ Canonical readiness contract for the **standard** Google Play production build (
 - **Flavor scope:** `standard` only (not vr / noLegal / lite / photos / legacy / wear-only).
 - **Wear-only releases:** covered by `docs/RELEASE_READINESS_WEAR.md`, which is the watch module's own contract (S1984). This document is unchanged by it and continues to describe the phone build alone.
 - **Distribution target:** Google Play production.
-- **Platform baseline:** minSdk 26, targetSdk 35.
+- **Platform baseline:** minSdk 26, targetSdk 36. Play enforces `App must target Android 16 (API level 36) or higher` since 2026-08-31, and `app_v2/build.gradle.kts` has met it since S1149 - this line said 35 until S2272 and told an operator the build targets exactly the level Play now rejects.
 - **Mechanical gate:** `scripts/release/standard-release-gate.ps1` folds the checks below into one PASS/FAIL/WAIVED verdict.
 
 Owner policy (S0553 §3.3, 2026-06-20):
@@ -74,9 +74,11 @@ Manual spot-checks on the release artifact for seams the launch smoke does not r
 
 `standard-release-smoke.ps1 -CheckSeams` statically asserts (no device): production Dropbox app key resolves for release, no debug `applicationIdSuffix` leaks into release (package stays `com.sza.fastmediasorter` so it matches production OAuth registrations), the debug Dropbox key never appears in release, and the MSAL (OneDrive) dependency is present. Manual operator check: release signing fingerprint matches the production OAuth / MSAL / Dropbox / AppAuth registrations and the Play upload key.
 
-### targetSdk 35 behavior checks
+### targetSdk 36 behavior checks
 
-- Background work: WorkManager / foreground-service starts comply with Android 14/15 restrictions; declared foreground-service types are correct.
+The checks below were written against API 35 and are still correct at 36 - the platform restrictions they name are cumulative. What is **not** here yet is the set of behaviour deltas API 36 adds on top; that enumeration is outstanding, so treat this section as level-correct and not yet content-complete.
+
+- Background work: WorkManager / foreground-service starts comply with Android 14/15/16 restrictions; declared foreground-service types are correct.
 - Permissions: photo/media access uses the selected-photos / granular media model; no legacy broad storage assumptions.
 - Permission parity (mechanical, blocks the release on failure). The manual permission audit this list used to carry is replaced by `PermissionRegistryManifestParityTest`, which compares the merged manifest against the permission registry in both directions and names the offending permission when they disagree. Run it on the four variants where the permission composition actually differs - the build-type axis, the flavor axis and the install-from-file axis:
 
@@ -99,6 +101,16 @@ Manual spot-checks on the release artifact for seams the launch smoke does not r
 - The release build emits the deobfuscation artifacts automatically: R8 `mapping.txt` (from `isMinifyEnabled`) and native symbols (`ndk.debugSymbolLevel = "FULL"`).
 - **Required:** `mapping.txt` and the native symbols are retained and keyed by `versionCode` for every production release (uploaded to Play Console / archived). Missing retention = operational loss (post-release triage capability).
 - **Implemented since S1695.** The release build does the retaining: `scripts/release/retain-deobfuscation.ps1` extracts `proguard.map` and the `.so.dbg` files out of the bundle it just produced - the bundle rather than `build/outputs`, so the archived payload cannot drift from what shipped - and stores them at `c:\GD\WORK\FastMediaSorter\deobfuscation\<versionCode>\<variant>-deobfuscation.zip` beside a `manifest.json`. Recovery is one command, `scripts/release/fetch-deobfuscation.ps1 -VersionCode <code>`. Enforcement is `scripts/quality/assert-deobfuscation-retained.ps1`, wired as the gating step 0.6 of `/spec-prerelease`, which reads the stored mapping back and recomputes its hash rather than accepting the file's presence. Measured cost, 2026-08-15: 1.7 s and 21.02 MB per release. Releases published before versionCode 260815000 predate the scheme and remain recoverable only from Play Console's copy of the bundle.
+
+### Database upgrade path (S2306)
+
+An update is the only moment the app can destroy data it has already stored, and it is the one release risk whose cost is not paid by a fix: the release is live, the migration has already run, and the rows are gone. Room decides it by comparing the migrated database against the exported schema, once, on the user's device, on the first launch after the update.
+
+- **Required, every release:** every registered Room migration executes and validates against its exported schema before the build ships. Evidence is `/spec-prerelease` step 1.4 (`.\a.ps1 fam`), which runs the instrumented tests in `com.sza.fastmediasorter.data.local.db` on the connected device - per-hop tests plus the whole-chain test that walks the oldest exported schema to the current one, which is the path a long-time user actually takes.
+- **Required, every closure that touches the database:** the migration's SQL agrees with the exported schema, and every migration has an instrumented test. Enforced by `assert-migration-schema-conformance.ps1` and `assert-migration-test-pairing.ps1`, both wired into `scripts/post-change.ps1` and `.\a.ps1 fg`. These judge text; they are the cheap half and they do not replace the run.
+- **A schema version that moved since the previous release is a release-risk item in its own right**, named on the step 1.4 report line. A release whose `AppDatabase.version` is unchanged still runs the step - the proof is that the chain works, not that this cycle edited it.
+- **Never accepted as a pass:** "the migration tests could not run" (no device, no verdict). That is exit 2 and aborts the sweep. The failure mode being guarded is validation being skipped, so an unrun check must not read as a clean one.
+- **What is already in place** if the guard is ever crossed anyway: `DatabaseModule` declares no `fallbackToDestructiveMigration`, and its own recovery path copies the database to `files/db-backups/<timestamp>` and records a user-visible notice before recreating it (S0731). That copy is what made the 2026-09-01 loss recoverable - it is a last resort, not a mitigation that licenses shipping an unverified migration.
 
 ### Release logging privacy line (research/03)
 
@@ -124,6 +136,7 @@ Per capability group: coverage status and the evidence level that backs it. Mach
 | Wear companion | partial | manual-device | best-effort waiver (§3.3) |
 | widgets + default-player | partial | manual-device | |
 | statistics + backup + settings search | covered | emulator-spine | |
+| database upgrade path | covered | emulator-spine | `/spec-prerelease` step 1.4 (`.\a.ps1 fam`) + two static gates in every closure |
 | R8 / shrink integrity | covered | release-build | `standard-release-smoke.ps1` |
 | surface vs baseline | covered | static | `standard-surface-snapshot.ps1 -CheckRegressions` |
 | VR immersive player | intentionally-excluded | static | `SUPPORT_VR_PLAYER=false` |

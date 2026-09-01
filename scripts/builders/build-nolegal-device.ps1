@@ -5,11 +5,12 @@
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151)
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
+. "$PSScriptRoot\..\utils\project-paths.ps1"
 Enter-BuildLockOrExit -Reason "build-nolegal-device.ps1" -Domain Build.Phone
 try {
 
 # ADB path
-$adb = "C:\Users\serzh\AppData\Local\Android\Sdk\platform-tools\adb.exe"
+$adb = Get-ToolPath -Tool Adb
 
 Write-Host "Building NoLegal Debug APK (auto-versioned)..." -ForegroundColor Cyan
 Write-Host "Features: Full standard + OpenXR VR + sideload-only (NewPipe, etc.)" -ForegroundColor Yellow
@@ -128,7 +129,7 @@ $zipName = [System.IO.Path]::ChangeExtension($destName, ".zip")
 $zipPath = "$gdDir\$zipName"
 
 # Use 7-Zip to create password-protected archive
-$7zipPath = "C:\Program Files\7-Zip\7z.exe"
+$7zipPath = Get-ToolPath -Tool SevenZip
 if (Test-Path -Path $7zipPath) {
     if (Test-Path -Path $zipPath) {
         Remove-Item -Path $zipPath -Force -ErrorAction SilentlyContinue

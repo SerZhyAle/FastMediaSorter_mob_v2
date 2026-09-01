@@ -21,10 +21,10 @@ import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
 import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
 import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
 import com.sza.fastmediasorter.core.screencapture.gesture.GestureAccessibilityActions
-import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityLauncherHomeBinding
 import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeAction
+import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherWallpaper
@@ -36,6 +36,7 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAddFlowManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAllAppsGestureManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAppActionMenuManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherCellActionMenuManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherCellScreenMenuManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherContactPickManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherContactStepState
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherDesktopActions
@@ -54,6 +55,7 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceCreateManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceOperations
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherScreenBlackoutManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherScreenLockManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherScreenPagingManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherScrollThumbManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherSectionActionsManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherSensorPermissionManager
@@ -192,6 +194,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // editModeManager is lateinit, but this lambda only fires on a long-press in edit mode - long
         // after setupViews() has created it.
         onCellDragStart = { view, cellUi -> editModeManager.startCellDrag(view, cellUi) },
+        onCellEditTap = { view, cellUi -> cellScreenMenuManager.show(view, cellUi) },
         // resizeManager is lateinit for the same reason: a resize handle only exists on a gadget cell in
         // edit mode, rendered after setupViews() has built the manager.
         onAttachResizeHandle = { handle, cellUi -> resizeManager.attachHandle(handle, cellUi) },
@@ -225,6 +228,21 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         LauncherSectionActionsManager(this, viewModel) { geometryManager.currentColumns() }
     }
 
+    /**
+     * S2301: the edit-mode menu of a single cell, built on the first tap while editing - a Home visit
+     * that never enters edit mode builds none of it.
+     */
+    private val cellScreenMenuManager by lazy {
+        LauncherCellScreenMenuManager(
+            screenCount = { viewModel.launcherDesktopSettings.value.launcherScreenCount },
+            // The column count belongs to the screen drawing the desktop, so it is read at the moment of
+            // the tap rather than captured when the menu was built.
+            onMoveToScreen = { cellId, screenIndex ->
+                viewModel.moveCellToScreen(cellId, screenIndex, geometryManager.currentColumns())
+            },
+        )
+    }
+
     /** S2268: the double-tap screen lock, with the desktop's own black screen as its fallback. */
     private val screenLockManager by lazy {
         LauncherScreenLockManager(gestureAccessibilityActions, ::showBlackScreen)
@@ -251,6 +269,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             pinToTaskbar = { packageName -> viewModel.pinAppToTaskbar(packageName) },
             appInfoIntent = { packageName -> viewModel.appInfoIntent(packageName) },
             uninstallIntent = { packageName -> viewModel.uninstallIntent(packageName) },
+            removeDesktopCell = { cellId -> viewModel.removeCell(cellId) },
         )
     }
 
@@ -432,12 +451,24 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         blackoutManager.onStart()
     }
 
+    /** S2301: the active launcher screen and its page dots, one owner for all four callers. */
+    // The type is spelled out because the render callback reads the property being declared.
+    private val pagingManager: LauncherScreenPagingManager by lazy {
+        LauncherScreenPagingManager(
+            indicatorContainer = binding.launcherPageIndicator,
+            screenCount = { viewModel.launcherDesktopSettings.value.launcherScreenCount },
+            onScreenChanged = { geometryManager.renderDesktop(pagingManager.activeScreenIndex) },
+        )
+    }
+
     private fun attachDesktopSwipeActions() {
         val swipeActionHandler = LauncherDesktopSwipeActionHandler(
             activity = this,
             actionDispatcher = screenshotGestureActionDispatcher,
             screenshotLaunchers = menuScreenshotLaunchers,
             onOpenAllApps = modalSurfaces::showAllApps,
+            onNextScreen = { pagingManager.next() },
+            onPreviousScreen = { pagingManager.previous() },
         )
         desktopGestureManager = LauncherAllAppsGestureManager(
             container = binding.launcherDesktop,
@@ -464,18 +495,13 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                         direction == LauncherAllAppsGestureManager.DesktopSwipeDirection.RIGHT
                     val isUnassigned = action is LauncherDesktopSwipeAction.EdgeGestureAction &&
                         action.action == ScreenshotGestureAction.DO_NOT_USE
-                    if (isLeftRight && isUnassigned && settings.launcherScreenCount > 1) {
-                        val maxScreenIndex = settings.launcherScreenCount - 1
-                        val isLeft = direction == LauncherAllAppsGestureManager.DesktopSwipeDirection.LEFT
-                        if (isLeft && activeScreenIndex < maxScreenIndex) {
-                            activeScreenIndex++
-                            geometryManager.renderDesktop(activeScreenIndex)
-                            updatePageIndicators(settings.launcherScreenCount)
-                        } else if (!isLeft && activeScreenIndex > 0) {
-                            activeScreenIndex--
-                            geometryManager.renderDesktop(activeScreenIndex)
-                            updatePageIndicators(settings.launcherScreenCount)
-                        }
+                    val isLeft = direction == LauncherAllAppsGestureManager.DesktopSwipeDirection.LEFT
+                    val screenCount = settings.launcherScreenCount
+                    // The pre-S2301 default: an unassigned horizontal swipe still pages, so a desktop
+                    // nobody configured keeps the behaviour it shipped with. Every assigned action,
+                    // paging included, goes through the handler.
+                    if (isLeftRight && isUnassigned && screenCount > SINGLE_SCREEN) {
+                        if (isLeft) pagingManager.next() else pagingManager.previous()
                     } else {
                         swipeActionHandler.handle(action, payload)
                     }
@@ -503,6 +529,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             addCellButton = binding.launcherTaskbar.launcherAddCell,
             snackbarAnchor = binding.launcherRoot,
             viewModel = viewModel,
+            activeScreenIndex = { pagingManager.activeScreenIndex },
             actions = LauncherDesktopActions(
                 addItem = {
                     addFlowManager.openContentPicker(
@@ -537,44 +564,6 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         ).attach()
     }
 
-    private var activeScreenIndex: Int = 0
-
-    private fun updatePageIndicators(screenCount: Int) {
-        val indicatorContainer = binding.launcherPageIndicator
-        if (screenCount <= 1) {
-            indicatorContainer.visibility = View.GONE
-            return
-        }
-        indicatorContainer.visibility = View.VISIBLE
-        indicatorContainer.removeAllViews()
-        val dotSizePx = (PAGE_INDICATOR_DOT_SIZE_DP * resources.displayMetrics.density).toInt()
-        val dotMarginPx = (PAGE_INDICATOR_DOT_MARGIN_DP * resources.displayMetrics.density).toInt()
-        val activeColor = androidx.core.content.ContextCompat.getColor(this, R.color.teal_700)
-        val inactiveColor = androidx.core.content.ContextCompat.getColor(this, R.color.m3_surface_variant)
-
-        for (i in 0 until screenCount) {
-            val dot = View(this).apply {
-                val params = android.widget.LinearLayout.LayoutParams(dotSizePx, dotSizePx).apply {
-                    setMargins(dotMarginPx, 0, dotMarginPx, 0)
-                }
-                layoutParams = params
-                val backgroundDrawable = android.graphics.drawable.GradientDrawable().apply {
-                    shape = android.graphics.drawable.GradientDrawable.OVAL
-                    setColor(if (i == activeScreenIndex) activeColor else inactiveColor)
-                }
-                background = backgroundDrawable
-                setOnClickListener {
-                    if (activeScreenIndex != i) {
-                        activeScreenIndex = i
-                        geometryManager.renderDesktop(activeScreenIndex)
-                        updatePageIndicators(screenCount)
-                    }
-                }
-            }
-            indicatorContainer.addView(dot)
-        }
-    }
-
     override fun observeData() {
         taskbarManager.bind(
             recents = viewModel.recentIcons,
@@ -582,15 +571,12 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             composition = viewModel.taskbarComposition,
         )
         placementManager.bind(viewModel.taskbarAtTop)
-        collectOnLifecycle(viewModel.launcherDesktopSettings) { settings ->
-            if (activeScreenIndex >= settings.launcherScreenCount) {
-                activeScreenIndex = (settings.launcherScreenCount - 1).coerceAtLeast(0)
-            }
-            updatePageIndicators(settings.launcherScreenCount)
-            geometryManager.renderDesktop(activeScreenIndex)
+        collectOnLifecycle(viewModel.launcherDesktopSettings) {
+            pagingManager.refresh()
+            geometryManager.renderDesktop(pagingManager.activeScreenIndex)
         }
         collectOnLifecycle(viewModel.cells) { cells ->
-            geometryManager.renderDesktop(activeScreenIndex)
+            geometryManager.renderDesktop(pagingManager.activeScreenIndex)
             // S1400: an empty desktop is the only signal this surface gets when a reset wipes the
             // cells underneath it. Which of the two empty states it is, the seed use case decides from
             // the persisted flags: a reset lowers them and the starter set comes back, while a desktop
@@ -600,7 +586,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // Entering/leaving edit mode adds or drops the empty slots and remove badges on the desktop and
         // the unpin "X" / trailing "+" on the taskbar, so re-render both.
         collectOnLifecycle(viewModel.editMode) { editMode ->
-            geometryManager.renderDesktop(activeScreenIndex)
+            geometryManager.renderDesktop(pagingManager.activeScreenIndex)
             taskbarManager.setEditMode(editMode)
         }
         collectOnLifecycle(viewModel.screenBlackoutTimeoutSeconds) { timeout ->
@@ -628,7 +614,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // binder's render key carries it and skips the rebuild when the value did not actually change.
         collectOnLifecycle(viewModel.widgetBackdropAlpha) { alpha ->
             Timber.d("S2253: launcher shared surfaces alpha=%s", alpha)
-            geometryManager.renderDesktop(activeScreenIndex)
+            geometryManager.renderDesktop(pagingManager.activeScreenIndex)
             taskbarManager.applyBackdropAlpha(alpha)
         }
         // The density factor changes the column count, so re-derive the grid when it lands.
@@ -638,7 +624,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // S1428: folding a section changes which rows are drawn and nothing that is stored, so it is a
         // render trigger like the two above rather than a desktop change.
         collectOnLifecycle(viewModel.sections.collapsed) {
-            geometryManager.renderDesktop(activeScreenIndex)
+            geometryManager.renderDesktop(pagingManager.activeScreenIndex)
         }
         collectOnLifecycle(viewModel.events) { event ->
             when (event) {
@@ -753,7 +739,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         if (viewModel.editMode.value) return false
         return when (val command = LauncherCellCommand.decode(cellUi.cell.target)) {
             is LauncherCellCommand.App -> {
-                shortcutMenuManager.show(view, command.packageName)
+                shortcutMenuManager.show(view, command.packageName, cellUi.cell.id)
                 true
             }
 
@@ -789,6 +775,8 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         shortcutMenuManager.dismiss()
         // S1424: same edge, same reason - the resource menu is anchored to a cell of this surface.
         cellActionMenuManager.dismiss()
+        // S2301: and so is the edit-mode menu.
+        cellScreenMenuManager.dismiss()
         // S1101: symmetric with onStart - an animated wallpaper must not keep drawing off-screen.
         if (::wallpaperManager.isInitialized) wallpaperManager.onStop()
         if (::blackoutManager.isInitialized) blackoutManager.onStop()
@@ -920,7 +908,8 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     companion object {
         private const val DIM_OVERLAY_ALPHA = 0.6f
         private const val DIM_ANIMATION_DURATION_MS = 4000L
-        private const val PAGE_INDICATOR_DOT_SIZE_DP = 8
-        private const val PAGE_INDICATOR_DOT_MARGIN_DP = 4
+
+        // S2301: a desktop of one screen has nothing to page to.
+        private const val SINGLE_SCREEN = 1
     }
 }

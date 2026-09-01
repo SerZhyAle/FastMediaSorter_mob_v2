@@ -2253,6 +2253,7 @@
     <string name="launcher_settings_show_pinned_title">Mostrar apps ancladas</string>
     <string name="launcher_settings_show_tray_title">Mostrar bandeja de estado</string>
     <string name="launcher_settings_density_title">Densidad de la cuadrícula</string>
+    <string name="launcher_settings_screen_count_title">Número de pantallas</string>
     <string name="launcher_settings_density_sparse">Dispersa</string>
     <string name="launcher_settings_density_default">Estándar</string>
     <string name="launcher_settings_density_dense">Densa</string>
@@ -2862,7 +2863,8 @@
     <string name="launcher_section_android_apps">Aplicaciones</string>
     <string name="launcher_settings_widget_backdrop_alpha_title">Opacidad del fondo del widget</string>
     <string name="launcher_settings_widget_backdrop_alpha_0">0% (Transparente)</string>
-    <string name="launcher_settings_widget_backdrop_alpha_85">85% (Predeterminado)</string>
+    <string name="launcher_settings_widget_backdrop_alpha_25">25% (Predeterminado)</string>
+    <string name="launcher_settings_widget_backdrop_alpha_85">85%</string>
     <string name="launcher_settings_widget_backdrop_alpha_100">100% (Opaco)</string>
     <string name="launcher_gadget_youtube">YouTube</string>
     <string name="launcher_gadget_youtube_music">YouTube Music</string>
@@ -3128,9 +3130,26 @@
     <string name="gesture_action_explain_open_all_apps">Opens the home screen with the All apps list.</string>
     <string name="gesture_slot_url_none">Not set - tap to enter an address</string>
     <string name="launcher_settings_group_tray">System tray</string>
-    <string name="launcher_settings_group_gestures">Desktop gestures</string>
+    <string name="launcher_settings_group_gestures">Gestos</string>
     <string name="launcher_settings_group_appearance">Apariencia</string>
     <string name="launcher_taskbar_pinned_action_launch">Abrir</string>
     <string name="launcher_taskbar_pinned_action_unpin">Desanclar</string>
     <string name="s2283_apk_download_in_progress">La descarga del APK ya está en curso</string>
+    <string name="launcher_gadget_google_keep_live">Google Keep Live Frame</string>
+    <string name="launcher_gadget_google_calendar_live">Google Calendar Live Frame</string>
+    <string name="launcher_desktop_swipe_action_next_screen">Pantalla siguiente</string>
+    <string name="launcher_desktop_swipe_action_previous_screen">Pantalla anterior</string>
+    <string name="launcher_desktop_swipe_explain_next_screen">Muestra la siguiente pantalla del lanzador y se detiene en la última.</string>
+    <string name="launcher_desktop_swipe_explain_previous_screen">Muestra la pantalla anterior del lanzador y se detiene en la primera.</string>
+    <string name="launcher_edit_move_to_screen">Mover a la pantalla %1$d</string>
+    <string name="launcher_all_apps_swipe_picker_title">Gesto de deslizamiento en todas las apps</string>
+    <string name="launcher_all_apps_swipe_up_title">Todas las apps: deslizar arriba</string>
+    <string name="launcher_all_apps_swipe_down_title">Todas las apps: deslizar abajo</string>
+    <string name="launcher_all_apps_swipe_left_title">Todas las apps: deslizar a la izquierda</string>
+    <string name="launcher_all_apps_swipe_right_title">Todas las apps: deslizar a la derecha</string>
+    <string name="launcher_all_apps_swipe_action_back_to_desktop">Volver al escritorio</string>
+    <string name="launcher_all_apps_swipe_action_expand">Ampliar todas las apps</string>
+    <string name="launcher_all_apps_swipe_explain_back_to_desktop">Cierra la lista de apps y muestra el escritorio que hay debajo.</string>
+    <string name="launcher_all_apps_swipe_explain_expand">Muestra la lista completa de apps en lugar de las secciones alfabéticas.</string>
+    <string name="launcher_welcome_toggle_subtitle">Abrir FastMediaSorter con el botón de inicio. El sistema te pedirá confirmación al terminar la configuración, y puedes volver atrás cuando quieras en Ajustes.</string>
 </resources>

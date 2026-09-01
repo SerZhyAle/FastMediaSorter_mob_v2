@@ -31,10 +31,9 @@ class ResetLauncherToDefaultsUseCaseTest {
     private val cleaner = mockk<ConfiguredWidgetInstanceCleaner>(relaxed = true)
 
     private val settings = FakeSettingsRepository(
-        AppSettings().copy(
-            launcherDensityFactor = STALE_DENSITY,
-            launcherDesktopLocked = true,
-        ),
+        AppSettings().withLauncher {
+            copy(densityFactor = STALE_DENSITY, desktopLocked = true)
+        },
     )
 
     private val useCase = ResetLauncherToDefaultsUseCase(

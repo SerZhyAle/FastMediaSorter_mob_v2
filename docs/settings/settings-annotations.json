@@ -1044,10 +1044,50 @@
     "ru": "Открывает список языков интерфейса с поиском. В сборке из Play выбранный язык сначала догружается; если загрузить не удалось, приложение остаётся на текущем языке.",
     "uk": "Відкриває список мов інтерфейсу з пошуком. У збірці з Play вибрана мова спочатку завантажується; якщо завантажити не вдалося, застосунок залишається поточною мовою."
   },
+  "rowLauncherAllAppsSwipeDown": {
+    "en": "Chooses what this swipe does on the All apps panel. The list is deliberately short: back to the desktop, expand all apps, launch a chosen app, lock the screen, or unused. Screen lock is offered only in builds that can perform it. This direction runs only at the top of the list; by default it closes the panel and returns to the desktop.",
+    "ru": "Выбирает, что делает этот свайп на экране «Все приложения». Список намеренно короткий: вернуться на рабочий стол, развернуть все приложения, запуск выбранного приложения, блокировка экрана, не используется. Блокировка экрана предлагается только в сборках, где она исполнима. Это направление срабатывает только в начале списка; по умолчанию закрывает панель и возвращает на рабочий стол.",
+    "uk": "Обирає, що робить цей свайп на екрані «Усі застосунки». Список навмисно короткий: повернутися на робочий стіл, розгорнути всі застосунки, запуск обраного застосунку, блокування екрана, не використовується. Блокування екрана пропонується лише у збірках, де воно здійсненне. Цей напрямок спрацьовує лише на початку списку; за замовчуванням закриває панель і повертає на робочий стіл."
+  },
+  "rowLauncherAllAppsSwipeDownTarget": {
+    "en": "The app this direction launches. Shown only while the direction is set to launch an app; the reset control beside it clears the choice without changing the action.",
+    "ru": "Приложение, которое запускает это направление. Показывается только пока направлению назначен запуск приложения; кнопка сброса рядом очищает выбор, не меняя действия.",
+    "uk": "Застосунок, який запускає цей напрямок. Показується лише поки напрямку призначено запуск застосунку; кнопка скидання поруч очищає вибір, не змінюючи дію."
+  },
+  "rowLauncherAllAppsSwipeLeft": {
+    "en": "Chooses what this swipe does on the All apps panel. The list is deliberately short: back to the desktop, expand all apps, launch a chosen app, lock the screen, or unused. Screen lock is offered only in builds that can perform it. This direction unassigned by default.",
+    "ru": "Выбирает, что делает этот свайп на экране «Все приложения». Список намеренно короткий: вернуться на рабочий стол, развернуть все приложения, запуск выбранного приложения, блокировка экрана, не используется. Блокировка экрана предлагается только в сборках, где она исполнима. Это направление по умолчанию не назначен.",
+    "uk": "Обирає, що робить цей свайп на екрані «Усі застосунки». Список навмисно короткий: повернутися на робочий стіл, розгорнути всі застосунки, запуск обраного застосунку, блокування екрана, не використовується. Блокування екрана пропонується лише у збірках, де воно здійсненне. Цей напрямок за замовчуванням не призначений."
+  },
+  "rowLauncherAllAppsSwipeLeftTarget": {
+    "en": "The app this direction launches. Shown only while the direction is set to launch an app; the reset control beside it clears the choice without changing the action.",
+    "ru": "Приложение, которое запускает это направление. Показывается только пока направлению назначен запуск приложения; кнопка сброса рядом очищает выбор, не меняя действия.",
+    "uk": "Застосунок, який запускає цей напрямок. Показується лише поки напрямку призначено запуск застосунку; кнопка скидання поруч очищає вибір, не змінюючи дію."
+  },
+  "rowLauncherAllAppsSwipeRight": {
+    "en": "Chooses what this swipe does on the All apps panel. The list is deliberately short: back to the desktop, expand all apps, launch a chosen app, lock the screen, or unused. Screen lock is offered only in builds that can perform it. This direction unassigned by default.",
+    "ru": "Выбирает, что делает этот свайп на экране «Все приложения». Список намеренно короткий: вернуться на рабочий стол, развернуть все приложения, запуск выбранного приложения, блокировка экрана, не используется. Блокировка экрана предлагается только в сборках, где она исполнима. Это направление по умолчанию не назначен.",
+    "uk": "Обирає, що робить цей свайп на екрані «Усі застосунки». Список навмисно короткий: повернутися на робочий стіл, розгорнути всі застосунки, запуск обраного застосунку, блокування екрана, не використовується. Блокування екрана пропонується лише у збірках, де воно здійсненне. Цей напрямок за замовчуванням не призначений."
+  },
+  "rowLauncherAllAppsSwipeRightTarget": {
+    "en": "The app this direction launches. Shown only while the direction is set to launch an app; the reset control beside it clears the choice without changing the action.",
+    "ru": "Приложение, которое запускает это направление. Показывается только пока направлению назначен запуск приложения; кнопка сброса рядом очищает выбор, не меняя действия.",
+    "uk": "Застосунок, який запускає цей напрямок. Показується лише поки напрямку призначено запуск застосунку; кнопка скидання поруч очищає вибір, не змінюючи дію."
+  },
+  "rowLauncherAllAppsSwipeUp": {
+    "en": "Chooses what this swipe does on the All apps panel. The list is deliberately short: back to the desktop, expand all apps, launch a chosen app, lock the screen, or unused. Screen lock is offered only in builds that can perform it. This direction runs only after the list is scrolled to its end; by default it expands the full app list instead of the alphabetical sections.",
+    "ru": "Выбирает, что делает этот свайп на экране «Все приложения». Список намеренно короткий: вернуться на рабочий стол, развернуть все приложения, запуск выбранного приложения, блокировка экрана, не используется. Блокировка экрана предлагается только в сборках, где она исполнима. Это направление срабатывает только когда список долистан до конца; по умолчанию разворачивает полный список приложений вместо алфавитных секций.",
+    "uk": "Обирає, що робить цей свайп на екрані «Усі застосунки». Список навмисно короткий: повернутися на робочий стіл, розгорнути всі застосунки, запуск обраного застосунку, блокування екрана, не використовується. Блокування екрана пропонується лише у збірках, де воно здійсненне. Цей напрямок спрацьовує лише коли список догорнуто до кінця; за замовчуванням розгортає повний список застосунків замість абеткових секцій."
+  },
+  "rowLauncherAllAppsSwipeUpTarget": {
+    "en": "The app this direction launches. Shown only while the direction is set to launch an app; the reset control beside it clears the choice without changing the action.",
+    "ru": "Приложение, которое запускает это направление. Показывается только пока направлению назначен запуск приложения; кнопка сброса рядом очищает выбор, не меняя действия.",
+    "uk": "Застосунок, який запускає цей напрямок. Показується лише поки напрямку призначено запуск застосунку; кнопка скидання поруч очищає вибір, не змінюючи дію."
+  },
   "rowLauncherDensity": {
-    "en": "Sets how many icons the launcher desktop grid fits per row and column.",
-    "ru": "Задаёт, сколько значков помещается по строкам и столбцам сетки рабочего стола лаунчера.",
-    "uk": "Задає, скільки піктограм вміщується в рядках і стовпцях сітки робочого столу лаунчера."
+    "en": "Sets how many icons the launcher desktop grid fits per row and column; dense by default.",
+    "ru": "Задаёт, сколько значков помещается по строкам и столбцам сетки рабочего стола лаунчера; по умолчанию плотная.",
+    "uk": "Задає, скільки піктограм вміщується в рядках і стовпцях сітки робочого столу лаунчера; типово щільна."
   },
   "rowLauncherDesktopDoubleTapLock": {
     "en": "Lets a double tap on empty desktop space lock the screen; where the device lock is out of reach the launcher blacks the screen out instead. On by default.",
@@ -1055,9 +1095,9 @@
     "uk": "Дозволяє подвійним дотиком по вільному місцю робочого стола блокувати екран; де блокування пристрою недоступне, лаунчер гасить екран у чорний. Типово ввімкнено."
   },
   "rowLauncherDesktopSwipeDown": {
-    "en": "Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. By default, it opens the notification shade when the system action is available.",
-    "ru": "Выбирает действие свайпа лаунчера из того же доступного набора, что и для жестов с края. При выборе «Открыть приложение» или «Открыть URL» затем задаётся цель. По умолчанию открывает шторку уведомлений, если системное действие доступно.",
-    "uk": "Вибирає дію свайпу лаунчера з того самого доступного набору, що й для жестів з краю. Після вибору «Відкрити програму» або «Відкрити URL» задається ціль. Типово відкриває шторку сповіщень, якщо системна дія доступна."
+    "en": "Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. By default, it opens the notification shade when the system action is available. The list also carries the launcher's own routes - All apps, and the next and previous desktop screen.",
+    "ru": "Выбирает действие свайпа лаунчера из того же доступного набора, что и для жестов с края. При выборе «Открыть приложение» или «Открыть URL» затем задаётся цель. По умолчанию открывает шторку уведомлений, если системное действие доступно. В списке есть и собственные маршруты лаунчера - «Все приложения», а также следующий и предыдущий экран рабочего стола.",
+    "uk": "Вибирає дію свайпу лаунчера з того самого доступного набору, що й для жестів з краю. Після вибору «Відкрити програму» або «Відкрити URL» задається ціль. Типово відкриває шторку сповіщень, якщо системна дія доступна. У списку є й власні маршрути лаунчера - «Усі програми», а також наступний і попередній екран робочого стола."
   },
   "rowLauncherDesktopSwipeDownTarget": {
     "en": "Sets the target of the downward swipe's action - the app it launches or the web address it opens. Shown only while the assigned action takes a target; tap to change it, and clear it from the address dialog. An empty target keeps the action's own fallback.",
@@ -1065,9 +1105,9 @@
     "uk": "Задає ціль дії свайпу вниз - програму, яку вона запускає, або адресу, яку відкриває. Рядок видно, лише поки призначена дія приймає ціль; натискання змінює ціль, а очистити її можна в діалозі адреси. Порожня ціль залишає запасну поведінку самої дії."
   },
   "rowLauncherDesktopSwipeLeft": {
-    "en": "Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. By default, no action is used.",
-    "ru": "Выбирает действие свайпа лаунчера из того же доступного набора, что и для жестов с края. При выборе «Открыть приложение» или «Открыть URL» затем задаётся цель. По умолчанию действие не используется.",
-    "uk": "Вибирає дію свайпу лаунчера з того самого доступного набору, що й для жестів з краю. Після вибору «Відкрити програму» або «Відкрити URL» задається ціль. Типово дія не використовується."
+    "en": "Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. By default no action is assigned, and on a multi-screen desktop an unassigned left or right swipe pages between screens. The list also carries the launcher's own routes - All apps, and the next and previous desktop screen.",
+    "ru": "Выбирает действие свайпа лаунчера из того же доступного набора, что и для жестов с края. При выборе «Открыть приложение» или «Открыть URL» затем задаётся цель. По умолчанию действие не назначено, а на многоэкранном рабочем столе незанятый свайп влево или вправо листает экраны. В списке есть и собственные маршруты лаунчера - «Все приложения», а также следующий и предыдущий экран рабочего стола.",
+    "uk": "Вибирає дію свайпу лаунчера з того самого доступного набору, що й для жестів з краю. Після вибору «Відкрити програму» або «Відкрити URL» задається ціль. Типово дію не призначено, а на багатоекранному робочому столі незайнятий свайп вліво або вправо гортає екрани. У списку є й власні маршрути лаунчера - «Усі програми», а також наступний і попередній екран робочого стола."
   },
   "rowLauncherDesktopSwipeLeftTarget": {
     "en": "Sets the target of the leftward swipe's action - the app it launches or the web address it opens. Shown only while the assigned action takes a target; tap to change it, and clear it from the address dialog. An empty target keeps the action's own fallback.",
@@ -1075,9 +1115,9 @@
     "uk": "Задає ціль дії свайпу вліво - програму, яку вона запускає, або адресу, яку відкриває. Рядок видно, лише поки призначена дія приймає ціль; натискання змінює ціль, а очистити її можна в діалозі адреси. Порожня ціль залишає запасну поведінку самої дії."
   },
   "rowLauncherDesktopSwipeRight": {
-    "en": "Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. By default, no action is used.",
-    "ru": "Выбирает действие свайпа лаунчера из того же доступного набора, что и для жестов с края. При выборе «Открыть приложение» или «Открыть URL» затем задаётся цель. По умолчанию действие не используется.",
-    "uk": "Вибирає дію свайпу лаунчера з того самого доступного набору, що й для жестів з краю. Після вибору «Відкрити програму» або «Відкрити URL» задається ціль. Типово дія не використовується."
+    "en": "Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. By default no action is assigned, and on a multi-screen desktop an unassigned left or right swipe pages between screens. The list also carries the launcher's own routes - All apps, and the next and previous desktop screen.",
+    "ru": "Выбирает действие свайпа лаунчера из того же доступного набора, что и для жестов с края. При выборе «Открыть приложение» или «Открыть URL» затем задаётся цель. По умолчанию действие не назначено, а на многоэкранном рабочем столе незанятый свайп влево или вправо листает экраны. В списке есть и собственные маршруты лаунчера - «Все приложения», а также следующий и предыдущий экран рабочего стола.",
+    "uk": "Вибирає дію свайпу лаунчера з того самого доступного набору, що й для жестів з краю. Після вибору «Відкрити програму» або «Відкрити URL» задається ціль. Типово дію не призначено, а на багатоекранному робочому столі незайнятий свайп вліво або вправо гортає екрани. У списку є й власні маршрути лаунчера - «Усі програми», а також наступний і попередній екран робочого стола."
   },
   "rowLauncherDesktopSwipeRightTarget": {
     "en": "Sets the target of the rightward swipe's action - the app it launches or the web address it opens. Shown only while the assigned action takes a target; tap to change it, and clear it from the address dialog. An empty target keeps the action's own fallback.",
@@ -1085,9 +1125,9 @@
     "uk": "Задає ціль дії свайпу вправо - програму, яку вона запускає, або адресу, яку відкриває. Рядок видно, лише поки призначена дія приймає ціль; натискання змінює ціль, а очистити її можна в діалозі адреси. Порожня ціль залишає запасну поведінку самої дії."
   },
   "rowLauncherDesktopSwipeUp": {
-    "en": "Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. Swipe up runs only after reaching the bottom; by default, it opens All apps.",
-    "ru": "Выбирает действие свайпа лаунчера из того же доступного набора, что и для жестов с края. При выборе «Открыть приложение» или «Открыть URL» затем задаётся цель. Свайп вверх срабатывает только после нижней границы; по умолчанию открывает «Все приложения».",
-    "uk": "Вибирає дію свайпу лаунчера з того самого доступного набору, що й для жестів з краю. Після вибору «Відкрити програму» або «Відкрити URL» задається ціль. Свайп угору спрацьовує лише після нижньої межі; типово відкриває «Усі програми»."
+    "en": "Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. Swipe up runs only after reaching the bottom; by default, it opens All apps. The list also carries the launcher's own routes - All apps, and the next and previous desktop screen.",
+    "ru": "Выбирает действие свайпа лаунчера из того же доступного набора, что и для жестов с края. При выборе «Открыть приложение» или «Открыть URL» затем задаётся цель. Свайп вверх срабатывает только после нижней границы; по умолчанию открывает «Все приложения». В списке есть и собственные маршруты лаунчера - «Все приложения», а также следующий и предыдущий экран рабочего стола.",
+    "uk": "Вибирає дію свайпу лаунчера з того самого доступного набору, що й для жестів з краю. Після вибору «Відкрити програму» або «Відкрити URL» задається ціль. Свайп угору спрацьовує лише після нижньої межі; типово відкриває «Усі програми». У списку є й власні маршрути лаунчера - «Усі програми», а також наступний і попередній екран робочого стола."
   },
   "rowLauncherDesktopSwipeUpTarget": {
     "en": "Sets the target of the upward swipe's action - the app it launches or the web address it opens. Shown only while the assigned action takes a target; tap to change it, and clear it from the address dialog. An empty target keeps the action's own fallback.",
@@ -1118,6 +1158,11 @@
     "en": "Replaces the system status bar with the launcher's own clock/status area; off keeps the Android status bar.",
     "ru": "Заменяет системную строку состояния собственной областью часов/статуса лаунчера; выключено - остаётся системная строка состояния.",
     "uk": "Замінює системний рядок стану власною областю годинника/статусу лаунчера; вимкнено - лишається системний рядок стану."
+  },
+  "rowLauncherScreenCount": {
+    "en": "Sets how many desktop screens the launcher has, so pinned icons and widgets can be spread across several pages instead of one.",
+    "ru": "Задаёт, сколько рабочих столов у лаунчера, чтобы закреплённые значки и виджеты можно было разложить по нескольким страницам, а не по одной.",
+    "uk": "Задає, скільки робочих столів має лаунчер, щоб закріплені піктограми та віджети можна було розкласти по кількох сторінках, а не по одній."
   },
   "rowLauncherScreenTimeout": {
     "en": "Turns the screen black after a chosen period of inactivity while on the launcher desktop: never (off), presets of 5 to 300 seconds, or a custom number of seconds.",
@@ -1195,9 +1240,9 @@
     "uk": "Вибирає заставку робочого стола лаунчера: фірмову анімацію, застиглий кадр у стилі смуг, що оновлюється після повернення до лаунчера, порожній фон, власне зображення, живий кадр з камери пристрою або миттєве фото, яке камера робить заново під час кожного повернення до лаунчера. Обидва пункти камери видно лише на пристроях із камерою, і під час вибору будь-якого з них запитується дозвіл на камеру, а потім пропонується обрати об'єктив. Живий кадр зупиняється, щойно робочий стіл зникає з екрана; миттєве фото звільняє камеру одразу після знімка і зберігає лише найсвіжіший кадр."
   },
   "rowLauncherWidgetBackdropAlpha": {
-    "en": "Controls the opacity of widget background cards on the launcher desktop (0% transparent to 100% opaque; 0% default).",
-    "ru": "Настраивает прозрачность подложки виджетов на рабочем столе лаунчера (от 0% прозрачно до 100% непрозрачно; по умолчанию 0%).",
-    "uk": "Налаштовує прозорість підкладки віджетів на робочому столі лаунчера (від 0% прозоро до 100% непрозоро; за замовчуванням 0%)."
+    "en": "Controls the opacity of widget background cards on the launcher desktop (0% transparent to 100% opaque; 25% default).",
+    "ru": "Настраивает прозрачность подложки виджетов на рабочем столе лаунчера (от 0% прозрачно до 100% непрозрачно; по умолчанию 25%).",
+    "uk": "Налаштовує прозорість підкладки віджетів на робочому столі лаунчера (від 0% прозоро до 100% непрозоро; за замовчуванням 25%)."
   },
   "rowLinkAutodownloadEnabled": {
     "en": "Automatically downloads a file when a link is shared into the app.",

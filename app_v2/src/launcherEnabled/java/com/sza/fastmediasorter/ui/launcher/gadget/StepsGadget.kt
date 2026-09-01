@@ -98,8 +98,10 @@ private class StepsGadgetView(
         activeScope?.launch {
             settingsRepository.updateSettings { currentSettings ->
                 currentSettings.copy(
-                    launcherStepsResetCount = current,
-                    launcherStepsResetTimestamp = now,
+                    launcher = currentSettings.launcher.copy(
+                        stepsResetCount = current,
+                        stepsResetTimestamp = now,
+                    ),
                 )
             }
         }

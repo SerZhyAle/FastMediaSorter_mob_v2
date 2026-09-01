@@ -41,6 +41,9 @@ class LauncherCellViewBinder(
     private val onEmptySlotClick: (row: Int, col: Int) -> Unit = { _, _ -> },
     private val onRemoveClick: (LauncherCellUi) -> Unit = {},
     private val onCellDragStart: (android.view.View, LauncherCellUi) -> Unit = { _, _ -> },
+    // S2301: a tap on a cell while editing. It opens that cell's edit menu; the drag stays on the long
+    // press, so the two gestures never compete.
+    private val onCellEditTap: (android.view.View, LauncherCellUi) -> Unit = { _, _ -> },
     // S0427: a resting shortcut cell's long press. Returns whether it was consumed, so a cell with
     // nothing to expand keeps behaving like an ordinary un-long-pressable cell.
     private val onCellLongPress: (View, LauncherCellUi) -> Boolean = { _, _ -> false },
@@ -278,14 +281,28 @@ class LauncherCellViewBinder(
             isClickable = true
             isLongClickable = true
             importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            setOnClickListener { /* swallow: cells do not launch while editing */ }
+            // The cell still never launches while editing - the tap opens its edit menu instead.
+            setOnClickListener { onCellEditTap(view, item) }
             setOnLongClickListener {
                 onCellDragStart(view, item)
                 true
             }
         }
+        // S2305: the section header is the one cell whose own content must outrank the scrim. A
+        // ViewGroup hit-tests its children in reverse index order at equal Z, so a scrim appended last
+        // takes every touch - including the actions button that is the only way to rename, reorder or
+        // delete a section while editing. First child instead: the header strip is then hit-tested
+        // above it, and since the strip itself is not clickable, every touch that misses the button
+        // still falls through to the scrim and keeps the cell's edit tap and drag.
+        val scrimIndex = if (item.cell.kind == LauncherCellKind.SECTION) {
+            Timber.d("S2305: section edit scrim placed below the header strip")
+            0
+        } else {
+            view.childCount
+        }
         view.addView(
             editScrim,
+            scrimIndex,
             FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT,

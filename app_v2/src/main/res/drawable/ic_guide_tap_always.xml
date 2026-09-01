@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S2322: schematic "pick the app, then tap Always" guide picture. Abstract and letter-free for the
+     same reason as ic_guide_tap_allow - the Open with sheet is the OS's own surface (spec ADR-3). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <!-- Bottom sheet outline. -->
+    <path
+        android:pathData="M6,12h36v30h-36z"
+        android:strokeColor="?attr/colorOnSurfaceVariant"
+        android:strokeWidth="1.6" />
+
+    <!-- Drag handle. -->
+    <path
+        android:pathData="M20,16h8"
+        android:strokeColor="?attr/colorOnSurfaceVariant"
+        android:strokeWidth="1.8" />
+
+    <!-- The selected app row: icon plus label line. -->
+    <path
+        android:fillColor="?attr/colorPrimary"
+        android:pathData="M11,21h6v6h-6z" />
+    <path
+        android:pathData="M21,24h16"
+        android:strokeColor="?attr/colorOnSurfaceVariant"
+        android:strokeWidth="1.6" />
+
+    <!-- The wide action in the Always position. -->
+    <path
+        android:fillColor="?attr/colorPrimary"
+        android:pathData="M11,32h26v6h-26z" />
+
+    <!-- Tap ring over that action. -->
+    <path
+        android:pathData="M17,35a7,7 0 1,0 14,0a7,7 0 1,0 -14,0"
+        android:strokeColor="?attr/colorPrimary"
+        android:strokeWidth="1.6" />
+</vector>

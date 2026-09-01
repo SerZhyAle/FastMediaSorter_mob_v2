@@ -65,6 +65,29 @@ interface LauncherDesktopRepository {
     suspend fun removeCell(id: Long)
 
     /**
+     * S2301: moves the cell [cellId] of [orientation] onto [screenIndex], which is what the edit-mode
+     * menu offers per screen. Returns whether anything moved - false for an unknown id, for a cell of
+     * another orientation, and for the screen the cell already occupies.
+     *
+     * A `SECTION` header takes its whole block with it (owner ruling 2026-09-01): the header alone would
+     * leave its cells behind, where the positional membership rule hands them to the section above.
+     * The block keeps its own rows and columns relative to its header and lands below everything already
+     * on the target screen - a group that arrives repacked is no longer the arrangement the user built.
+     *
+     * Any other cell takes the first free anchor of the target screen rather than its own coordinates:
+     * screens carry independent coordinates, so the old anchor is occupied on the target screen as often
+     * as not, and one predictable rule beats two (strategic ADR-3).
+     *
+     * [columns] belongs to the screen currently rendering the desktop, same contract as [addCell].
+     */
+    suspend fun moveCellToScreen(
+        orientation: LauncherOrientation,
+        cellId: Long,
+        screenIndex: Int,
+        columns: Int,
+    ): Boolean
+
+    /**
      * S1642: brings every stored section header to the one span a header is stored and drawn at.
      *
      * Not a Room migration and deliberately not one: no column changes, only values written by an earlier

@@ -103,17 +103,28 @@ function Read-JsonlFile {
     }
     $raw = Get-Content -LiteralPath $Path -Encoding UTF8 -ErrorAction Stop
     if (-not $raw) { return ,@() }
-    $records = New-Object System.Collections.Generic.List[object]
-    $lineNo = 0
     $fileName = Split-Path -Leaf $Path
-    foreach ($line in @($raw)) {
-        $lineNo++
-        $trim = "$line".Trim()
-        if (-not $trim) { continue }
-        try {
-            $records.Add(($trim | ConvertFrom-Json))
-        } catch {
-            throw "Catalog parse error in ${fileName} at line ${lineNo}: $($_.Exception.Message)"
+    $lines = @(@($raw) | ForEach-Object { "$_".Trim() } | Where-Object { $_ })
+    $records = New-Object System.Collections.Generic.List[object]
+    # One parse for the whole journal. A per-line ConvertFrom-Json costs ~8x more on a file this
+    # size, and every catalog script pays it before it can answer anything. The per-line loop is
+    # kept as the FALLBACK, because it is the only thing that can name the offending line number -
+    # a bulk failure reports an offset into a string nobody can look at.
+    try {
+        if ($lines.Count -gt 0) {
+            foreach ($record in @(('[' + ($lines -join ',') + ']') | ConvertFrom-Json)) { $records.Add($record) }
+        }
+    }
+    catch {
+        $records.Clear()
+        $lineNo = 0
+        foreach ($trim in $lines) {
+            $lineNo++
+            try {
+                $records.Add(($trim | ConvertFrom-Json))
+            } catch {
+                throw "Catalog parse error in ${fileName} at line ${lineNo}: $($_.Exception.Message)"
+            }
         }
     }
     $sorted = [object[]]@($records | Sort-Object -Property id)
@@ -320,6 +331,70 @@ function Get-TicketBaseName {
     return [System.IO.Path]::GetFileNameWithoutExtension($File)
 }
 
+# -- Live occupancy markers in the release files (owner ruling 2026-09-01) --------------------
+#
+# A ticket taken by a live agent session is marked on its own row, in the file the owner reads:
+# `[taken 15:42, /spec-all, be08adb0]`. The lease store under temp/ stays the source of truth -
+# this is a rendering of it, rewritten on every catalog mutation, so a session that died loses
+# its marker on the next write instead of sitting in the plan as work in progress.
+#
+# The marker carries a CLAIM TIME, never an age: an age is wrong the second after it is written,
+# and it would turn every sync into a diff on every taken row.
+$script:ReleaseQueueLeaseMarkerPattern = '\s*\[taken\s[^\]]*\]\s*$'
+$script:ReleaseQueueLeaseMap = $null
+
+function Remove-ReleaseQueueLeaseMarker {
+    # Strip before parsing: status is the LAST field on the line, so an unstripped marker is read
+    # as part of the status and drifts the whole file against the catalog.
+    param([Parameter(Mandatory)][AllowEmptyString()][string] $Line)
+    return ($Line -replace $script:ReleaseQueueLeaseMarkerPattern, '')
+}
+
+function Get-ReleaseQueueLeaseMap {
+    # Ticket id -> marker text, for leases a live session still holds. Read straight off the lease
+    # files: this runs inside every catalog write, and spawning ticket-lease.ps1 here would put a
+    # child process on the hot path of every single status change.
+    #
+    # Liveness is NOT decided here - Get-AgentTicketLiveness in scripts/utils/agent-lock.ps1 owns
+    # that rule and a second copy would drift from it. One refinement of ticket-lease.ps1 is
+    # deliberately not reproduced: it promotes a quiet session back to live while that session
+    # still holds a build or code lock. Missing it can only drop a marker, never invent one.
+    param([switch] $Refresh)
+    if ($null -ne $script:ReleaseQueueLeaseMap -and -not $Refresh) { return $script:ReleaseQueueLeaseMap }
+
+    $map = @{}
+    $script:ReleaseQueueLeaseMap = $map
+    $leaseDir = Join-Path $script:RepoRoot 'temp\SPEC-TICKET.LEASES'
+    if (-not (Test-Path -LiteralPath $leaseDir)) { return $map }
+
+    try {
+        . (Join-Path $script:RepoRoot 'scripts\utils\agent-lock.ps1')
+        $staleMinutes = [int] $Script:AgentLockTimings.SpecTicket.SessionStaleMinutes
+    } catch {
+        # No liveness rule available means no honest marker: render none rather than a guess.
+        return $map
+    }
+
+    foreach ($file in (Get-ChildItem -LiteralPath $leaseDir -Filter '*.json' -ErrorAction SilentlyContinue)) {
+        try { $lease = Get-Content -LiteralPath $file.FullName -Raw -Encoding utf8 | ConvertFrom-Json } catch { continue }
+        if ($null -eq $lease -or [string]::IsNullOrWhiteSpace([string] $lease.id)) { continue }
+        if ((Get-AgentTicketLiveness -Ticket $lease -StaleMinutes $staleMinutes) -eq 'foreign-stale') { continue }
+
+        $claimed = $file.LastWriteTime
+        if ($lease.PSObject.Properties['claimedAt'] -and $lease.claimedAt) {
+            try { $claimed = [DateTimeOffset]::FromUnixTimeMilliseconds([int64] $lease.claimedAt).LocalDateTime } catch { }
+        }
+        # The date shows only when the claim is not from today, so a marker left by yesterday's run
+        # reads as old at a glance instead of looking like this morning's work.
+        $when = if ($claimed.Date -eq (Get-Date).Date) { $claimed.ToString('HH:mm') } else { $claimed.ToString('MM-dd HH:mm') }
+        $reason = if ([string]::IsNullOrWhiteSpace([string] $lease.reason)) { 'unnamed run' } else { [string] $lease.reason }
+        $session = [string] $lease.sessionId
+        if ($session.Length -ge 8) { $session = $session.Substring(0, 8) }
+        $map[[string] $lease.id] = ('[taken {0}, {1}, {2}]' -f $when, $reason, $session)
+    }
+    return $map
+}
+
 function Format-ReleaseQueueLine {
     param(
         [Parameter(Mandatory)][string] $Release,
@@ -345,7 +420,8 @@ function Read-ReleaseFile {
     foreach ($line in @($raw)) {
         # A data line is: <release> <Sxxxx_slug> <yyyy-MM-dd> <Status>. Anchoring on the id
         # shape keeps prose and the column header from ever being mistaken for data.
-        if ("$line" -match '^\s*(\d+|--)\s+(S\d{4}_\S*)\s+(\d{4}-\d{2}-\d{2})\s+(\S.*?)\s*$') {
+        $parsable = Remove-ReleaseQueueLeaseMarker -Line "$line"
+        if ($parsable -match '^\s*(\d+|--)\s+(S\d{4}_\S*)\s+(\d{4}-\d{2}-\d{2})\s+(\S.*?)\s*$') {
             $result.Add([pscustomobject]@{
                 Kind    = 'ticket'
                 Release = $Matches[1]
@@ -372,11 +448,17 @@ function Write-ReleaseFile {
         [Parameter(Mandatory)][AllowEmptyCollection()] $Lines
     )
     $out = New-Object System.Collections.Generic.List[string]
+    $leaseMap = Get-ReleaseQueueLeaseMap
     # Iterate the List directly: @(..) around a List[object] of PSCustomObject throws
     # "Argument types do not match" (the array subexpression cannot build the PSObject[] copy).
     foreach ($l in $Lines) {
         if ($l.Kind -eq 'ticket') {
-            $out.Add((Format-ReleaseQueueLine -Release $l.Release -Ticket $l.Ticket -Changed $l.Changed -Status $l.Status))
+            $row = Format-ReleaseQueueLine -Release $l.Release -Ticket $l.Ticket -Changed $l.Changed -Status $l.Status
+            $marker = $leaseMap[[string] $l.Id]
+            # Padded to a fixed column: the status field is ragged ('Draft' against
+            # 'BlockNeedUserTest'), and an unpadded marker zig-zags down the block.
+            if ($marker) { $row = ('{0,-98}{1}' -f $row, $marker) }
+            $out.Add($row)
         } else {
             $out.Add($l.Text)
         }
@@ -687,7 +769,18 @@ function Assert-ClosingGates {
 
     # S1606 - a closed spec must not cite evidence under disposable temp/.
     # S1607 - a closed spec must not strand an open question nobody owns.
-    $checkers = @('check-evidence-durable.ps1', 'check-open-items-carried.ps1')
+    $checkers = New-Object System.Collections.Generic.List[string]
+    $checkers.Add('check-evidence-durable.ps1')
+    $checkers.Add('check-open-items-carried.ps1')
+
+    # S2298 - Verified only, and the asymmetry is the point: Verified asserts that an audit
+    # passed, and the audit's verdict exists in exactly one place, the spec's `## Last Audit`
+    # block. Implemented asserts only that the code is done, which is true before any audit
+    # has run, so demanding the block there would require a verdict ahead of the run that
+    # produces it. Kept a separate list rather than a flag inside the loop so "which statuses
+    # this checker guards" stays a property of the list a checker is in.
+    if ($NewStatus -eq 'Verified') { $checkers.Add('check-audit-recorded.ps1') }
+
     foreach ($name in $checkers) {
         $checker = Join-Path $PSScriptRoot $name
         # A missing checker is tolerated, matching how the owner-inputs gate call behaves:

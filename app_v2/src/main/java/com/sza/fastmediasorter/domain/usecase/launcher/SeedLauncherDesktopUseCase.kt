@@ -1,6 +1,9 @@
 package com.sza.fastmediasorter.domain.usecase.launcher
 
 import android.content.Context
+import com.sza.fastmediasorter.core.launcher.LauncherScreenClass
+import com.sza.fastmediasorter.core.launcher.LauncherScreenClassifier
+import com.sza.fastmediasorter.core.launcher.LauncherStarterLayoutRules
 import com.sza.fastmediasorter.core.launcher.LauncherStarterSets
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.data.launcher.AppShortcutDataSource
@@ -130,6 +133,11 @@ class SeedLauncherDesktopUseCase @Inject constructor(
             // whatever the table can place by name, cannot come back a second time through this list.
             val thirdPartyApps = queryThirdPartyApps(LauncherStarterSets.candidatePackages)
 
+            // S2309: read behind the same already-seeded early exit as every other probe above, so a
+            // desktop that will not be seeded never pays for it (strategic §3.2).
+            val screenClass = deviceScreenClass()
+            Timber.d("S2309: composing starter desktop for %s on %s", profile, screenClass)
+
             val items = LauncherStarterSets.itemsFor(
                 profile,
                 starterResources,
@@ -138,7 +146,12 @@ class SeedLauncherDesktopUseCase @Inject constructor(
                 googleServicesAvailable = googleServicesAvailable,
                 importedShortcuts = importedShortcuts,
                 thirdPartyApps = thirdPartyApps,
+                screenClass = screenClass,
             )
+            if (!state.seededPortrait && !state.seededLandscape) {
+                persistComposedScreenCount(screenClass)
+            }
+
             val ownPackage = context.packageName
             val now = System.currentTimeMillis()
 
@@ -150,6 +163,35 @@ class SeedLauncherDesktopUseCase @Inject constructor(
             }
         }.onFailure { Timber.w(it, "Launcher desktop seed failed; leaving desktop empty") }
         Unit
+    }
+
+    /**
+     * The screen class this device seeds for.
+     *
+     * Reads the configuration rather than taking it as an argument: the seed already holds the
+     * application context, so threading a second argument through the launcher surface would add a
+     * parameter to every caller for a value only this function uses (strategic §3.3).
+     */
+    private fun deviceScreenClass(): LauncherScreenClass {
+        val configuration = context.resources.configuration
+        return LauncherScreenClassifier.classify(
+            smallestWidthDp = configuration.smallestScreenWidthDp,
+            screenWidthDp = configuration.screenWidthDp,
+            screenHeightDp = configuration.screenHeightDp,
+        )
+    }
+
+    /**
+     * Writes the composed screen count, and only on a full seed.
+     *
+     * A partial re-seed touches one orientation of a desktop the user has already had in their hands,
+     * so overwriting the setting there would discard a number they may have chosen themselves. The
+     * rule's count is clamped to the same 1..5 the settings store clamps to on read, so this cannot
+     * persist a value the setting would silently change back.
+     */
+    private suspend fun persistComposedScreenCount(screenClass: LauncherScreenClass) {
+        val screenCount = LauncherStarterLayoutRules.ruleFor(screenClass).screenCount
+        settings.updateSettings { it.withLauncher { copy(screenCount = screenCount) } }
     }
 
     private suspend fun seedOrientation(

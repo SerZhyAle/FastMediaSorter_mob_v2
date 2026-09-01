@@ -24,16 +24,19 @@ class GesturePickerRowBuilder {
      * Emits one [GesturePickerRow.Header] per non-empty [GestureActionGroup] in declaration order,
      * followed by that group's items in the order [items] supplied them. Empty groups are skipped.
      *
-     * [launcherRoute] is the host's own launcher-panel action, which the launcher settings surface
-     * carries as a local value while the edge surface carries it as a shared enum constant. It leads its
-     * group, and a key already present in [items] is dropped so the route renders exactly once no matter
-     * which way the host supplied it.
+     * [launcherRoutes] are the host's own launcher-local actions, which the launcher settings surface
+     * carries as local values while the edge surface carries its one as a shared enum constant. They lead
+     * their group in the order given, and a key already present in [items] is dropped so a route renders
+     * exactly once no matter which way the host supplied it.
+     *
+     * S2301: a list rather than one nullable item - the launcher gained screen paging, which is local for
+     * the same reason All apps is, and a single slot had room for neither of the two.
      */
     fun <T : Any> build(
         items: List<GesturePickerItem<T>>,
-        launcherRoute: GesturePickerItem<T>? = null,
+        launcherRoutes: List<GesturePickerItem<T>> = emptyList(),
     ): List<GesturePickerRow<T>> {
-        val ordered = listOfNotNull(launcherRoute) + items
+        val ordered = launcherRoutes + items
         val unique = ordered.distinctBy { it.key }
         return GestureActionGroup.entries.flatMap { group ->
             val inGroup = unique.filter { it.meta.group == group }

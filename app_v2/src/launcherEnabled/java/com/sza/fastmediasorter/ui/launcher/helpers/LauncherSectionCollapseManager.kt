@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withTimeoutOrNull
+import timber.log.Timber
 
 /**
  * S1428: which launcher desktop sections are folded shut, and the tap that folds them (strategic §6.8).
@@ -23,7 +24,9 @@ import kotlinx.coroutines.withTimeoutOrNull
  * back rather than having to reconstruct it (strategic §5.1.6).
  *
  * A section is addressed by the encoded target of its header cell rather than by its row: a header the
- * user drags elsewhere is still the same section, and the row it left is not.
+ * user drags elsewhere is still the same section, and the row it left is not. S2317 pairs that target
+ * with the header's desktop screen, because the starter set seeds one `SECTION_WIDGETS` header on
+ * screen 0 and a second on screen 1 - the target alone folded both of them with one tap.
  *
  * Separate from [LauncherHomeViewModel][com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel]
  * because that class already sits at detekt's function ceiling, and because folded state is one
@@ -39,20 +42,53 @@ class LauncherSectionCollapseManager(
     /** Bumped by [toggle]: the store is a plain preferences file and emits nothing on its own. */
     private val revision = MutableStateFlow(0)
 
+    /** S2317: the identity of a section on one orientation - its desktop screen and its header target. */
+    data class SectionKey(val screenIndex: Int, val target: String)
+
     /**
-     * The folded sections right now, as the encoded targets of their header cells.
+     * The folded sections right now, as the screen and encoded target of their header cells.
      *
      * Derived rather than held: which sections exist is already a function of the desktop, and which of
      * them are folded is a function of the orientation on top of that.
+     *
+     * Collected as a render trigger, never read to decide a fold: the render path asks
+     * [collapsedTargetsFor] instead, which reads the store directly and so cannot see the empty set this
+     * shared flow reports while nothing collects it.
      */
-    val collapsed: StateFlow<Set<String>> =
+    val collapsed: StateFlow<Set<SectionKey>> =
         combine(cells, orientation, revision) { desktop, currentOrientation, _ ->
             desktop.map { it.cell }
                 .filter { it.kind == LauncherCellKind.SECTION }
-                .map { it.target }
-                .filter { visibility.isCollapsed(currentOrientation, it) }
+                .map { SectionKey(it.screenIndex, it.target) }
+                .filter { visibility.isCollapsed(currentOrientation, it.screenIndex, it.target) }
                 .toSet()
         }.stateIn(scope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS), emptySet())
+
+    /**
+     * S2317: which of the headers in [drawn] are folded, as the plain targets the geometry layer takes.
+     *
+     * The projection from this class's screen-qualified truth onto one screen's cells. It exists because
+     * [LauncherGridGeometry][com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry] and
+     * [LauncherSectionMembership][com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership]
+     * both run against the cells of a single screen, where a target is already unique - so handing them
+     * a target set costs nothing and keeps that pure arithmetic free of a screen it cannot use.
+     *
+     * Takes the exact list being drawn rather than a screen index, so the single-screen render path -
+     * which binds every cell regardless of its stored screen - is answered by the same function.
+     *
+     * Reads the repository rather than [collapsed], for the reason [revealIfCollapsed] records: that flow
+     * is shared `WhileSubscribed` and reports an empty set whenever nothing is collecting it.
+     */
+    fun collapsedTargetsFor(drawn: List<LauncherCellUi>): Set<String> {
+        val currentOrientation = orientation.value
+        val folded = drawn.map { it.cell }
+            .filter { it.kind == LauncherCellKind.SECTION }
+            .filter { visibility.isCollapsed(currentOrientation, it.screenIndex, it.target) }
+            .map { it.target }
+            .toSet()
+        Timber.d("S2317: folded targets on the drawn desktop: %s", folded)
+        return folded
+    }
 
     /**
      * Folds [cell]'s section shut, or opens it again. The header's only gesture - strategic §6.8 ruled it
@@ -61,8 +97,9 @@ class LauncherSectionCollapseManager(
     fun toggle(cell: LauncherCell) {
         if (cell.kind != LauncherCellKind.SECTION) return
         val currentOrientation = orientation.value
-        val nowExpanded = visibility.isCollapsed(currentOrientation, cell.target)
-        visibility.setExpanded(currentOrientation, cell.target, nowExpanded)
+        val nowExpanded = visibility.isCollapsed(currentOrientation, cell.screenIndex, cell.target)
+        Timber.d("S2317: toggle section %s on screen %d -> expanded=%s", cell.target, cell.screenIndex, nowExpanded)
+        visibility.setExpanded(currentOrientation, cell.screenIndex, cell.target, nowExpanded)
         revision.value += 1
     }
 
@@ -83,8 +120,11 @@ class LauncherSectionCollapseManager(
             cells.first { drawn -> drawn.any { it.cell.id == cellId } }
         }?.map { it.cell }.orEmpty()
         val placed = desktop.firstOrNull { it.id == cellId }
-        val owner = placed?.let {
-            LauncherSectionMembership.ownerOf(it, LauncherSectionMembership.sectionsInOrder(desktop))
+        val owner = placed?.let { cell ->
+            // S2317: membership is decided per screen. Ranking every screen's cells by row and column
+            // would let a header on an earlier screen own a cell it is not even drawn beside.
+            val sameScreen = desktop.filter { it.screenIndex == cell.screenIndex }
+            LauncherSectionMembership.ownerOf(cell, LauncherSectionMembership.sectionsInOrder(sameScreen))
         }
         return owner?.let { revealIfCollapsed(it) } ?: false
     }
@@ -103,9 +143,10 @@ class LauncherSectionCollapseManager(
      */
     private fun revealIfCollapsed(cell: LauncherCell): Boolean {
         val currentOrientation = orientation.value
-        val hidden = cell.kind == LauncherCellKind.SECTION && visibility.isCollapsed(currentOrientation, cell.target)
+        val hidden = cell.kind == LauncherCellKind.SECTION &&
+            visibility.isCollapsed(currentOrientation, cell.screenIndex, cell.target)
         if (hidden) {
-            visibility.reveal(currentOrientation, cell.target)
+            visibility.reveal(currentOrientation, cell.screenIndex, cell.target)
             revision.value += 1
         }
         return hidden
@@ -121,7 +162,7 @@ class LauncherSectionCollapseManager(
      */
     fun clear(cell: LauncherCell) {
         if (cell.kind != LauncherCellKind.SECTION) return
-        visibility.reveal(orientation.value, cell.target)
+        visibility.reveal(orientation.value, cell.screenIndex, cell.target)
         revision.value += 1
     }
 

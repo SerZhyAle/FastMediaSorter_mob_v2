@@ -172,5 +172,13 @@
     <string name="welcome_role_sources_detail_cloud_only">Device storage, Google Drive, OneDrive, Dropbox</string>
     <string name="welcome_role_sources_detail_local_only">Internal storage and SD card</string>
     <string name="welcome_role_sorting_detail">Send a file to its folder with a single tap</string>
-    <string name="welcome_role_more_detail">Streams, camera and more - one app instead of many</string>
+    <string name="welcome_role_more_detail">Camera, widgets, gadgets and more - one app instead of many</string>
+    <string name="welcome_description_1_shell">Not just a media app - a full shell for your device.\nHome screen, player, file manager, streams and remote storage in one place.</string>
+    <string name="welcome_description_1_details_shell">FastMediaSorter can run the whole device: a home screen with your apps, widgets and shortcuts, a player for photos, videos, music and books, a file manager for local, network and cloud storage, internet streams and a Wear OS companion app - and quick tap sorting on top of all of it.\n\nWant it as your home screen? Turn on the switch above and the system will ask you to confirm after setup. Everything you choose on this screen can be changed later in Settings, so there is no wrong choice here - just tap Next to keep going.</string>
+    <string name="welcome_role_home_screen">Home screen</string>
+    <string name="welcome_role_home_screen_detail">Runs the device instead of a launcher - apps, widgets and media at hand</string>
+    <string name="welcome_role_streams">Streams</string>
+    <string name="welcome_role_streams_detail">Internet radio, TV and video channels from a ready-made catalog</string>
+    <string name="welcome_role_wear">Watch app</string>
+    <string name="welcome_role_wear_detail">A Wear OS companion - browse and play right on your wrist</string>
 </resources>

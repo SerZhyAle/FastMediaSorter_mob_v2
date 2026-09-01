@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase.launcher
 
 import com.sza.fastmediasorter.domain.launcher.ConfiguredWidgetInstanceCleaner
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.launcher.LauncherSettings
 import com.sza.fastmediasorter.domain.repository.InstalledAppsRepository
 import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
 import com.sza.fastmediasorter.domain.repository.LauncherJournalRepository
@@ -92,47 +93,22 @@ class ResetLauncherToDefaultsUseCase @Inject constructor(
     }
 
     /**
-     * Copies back the launcher fields one by one instead of replacing the whole settings object,
-     * so nothing outside the launcher is touched.
+     * Replaces the launcher group with its defaults, leaving every other setting untouched.
+     *
+     * S2300: the group is one nested field, so the reset is a single assignment - it can no longer fall
+     * behind by missing a launcher setting added later.
      */
     private suspend fun restoreLauncherSettings(densityFactor: Float) {
-        val defaults = AppSettings().copy(launcherDensityFactor = densityFactor)
+        val defaults = LauncherSettings(densityFactor = densityFactor)
         settings.updateSettings { current ->
+            // S1401/S2213: the all-apps order and the remembered weather place survive a desktop reset -
+            // the first is not desktop state, the second must outlive the cell that displays it.
             current.copy(
-                launcherDensityFactor = defaults.launcherDensityFactor,
-                launcherScreenCount = defaults.launcherScreenCount,
-                launcherTaskbarShowRecents = defaults.launcherTaskbarShowRecents,
-                launcherTaskbarShowPinned = defaults.launcherTaskbarShowPinned,
-                launcherTaskbarShowTray = defaults.launcherTaskbarShowTray,
-                launcherReplaceSystemStatusArea = defaults.launcherReplaceSystemStatusArea,
-                launcherTopStatusStripMode = defaults.launcherTopStatusStripMode,
-                launcherForeignNotificationsEnabled = defaults.launcherForeignNotificationsEnabled,
-                launcherTaskbarPlacement = defaults.launcherTaskbarPlacement,
-                launcherTrayShowClock = defaults.launcherTrayShowClock,
-                launcherTrayShowBluetooth = defaults.launcherTrayShowBluetooth,
-                launcherTrayShowSim1 = defaults.launcherTrayShowSim1,
-                launcherTrayShowSim2 = defaults.launcherTrayShowSim2,
-                launcherTrayShowNetwork = defaults.launcherTrayShowNetwork,
-                launcherTrayShowBattery = defaults.launcherTrayShowBattery,
-                launcherTrayShowSpeed = defaults.launcherTrayShowSpeed,
-                launcherRotationHintShown = defaults.launcherRotationHintShown,
-                launcherDesktopLocked = defaults.launcherDesktopLocked,
-                launcherDesktopDoubleTapLockEnabled = defaults.launcherDesktopDoubleTapLockEnabled,
-                launcherDesktopSwipeUpAction = defaults.launcherDesktopSwipeUpAction,
-                launcherDesktopSwipeDownAction = defaults.launcherDesktopSwipeDownAction,
-                launcherDesktopSwipeLeftAction = defaults.launcherDesktopSwipeLeftAction,
-                launcherDesktopSwipeRightAction = defaults.launcherDesktopSwipeRightAction,
-                launcherDesktopSwipeUpPayload = defaults.launcherDesktopSwipeUpPayload,
-                launcherDesktopSwipeDownPayload = defaults.launcherDesktopSwipeDownPayload,
-                launcherDesktopSwipeLeftPayload = defaults.launcherDesktopSwipeLeftPayload,
-                launcherDesktopSwipeRightPayload = defaults.launcherDesktopSwipeRightPayload,
-                launcherWallpaperMode = defaults.launcherWallpaperMode,
-                launcherWallpaperImagePath = defaults.launcherWallpaperImagePath,
-                launcherWallpaperCameraId = defaults.launcherWallpaperCameraId,
-                launcherScreenBlackoutTimeoutSeconds = defaults.launcherScreenBlackoutTimeoutSeconds,
-                launcherWidgetBackdropAlpha = defaults.launcherWidgetBackdropAlpha,
-                launcherStepsResetCount = defaults.launcherStepsResetCount,
-                launcherStepsResetTimestamp = defaults.launcherStepsResetTimestamp,
+                launcher = defaults.copy(
+                    allAppsSortOrder = current.launcher.allAppsSortOrder,
+                    allAppsSortDescending = current.launcher.allAppsSortDescending,
+                    weatherLastLocation = current.launcher.weatherLastLocation,
+                ),
             )
         }
     }

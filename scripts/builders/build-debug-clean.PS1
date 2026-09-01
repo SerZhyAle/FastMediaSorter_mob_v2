@@ -16,6 +16,7 @@ param(
 )
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
+. "$PSScriptRoot\..\utils\project-paths.ps1"
 Enter-BuildLockOrExit -Reason "build-debug-clean.PS1" -Domain Build.Phone
 try {
 
@@ -149,7 +150,7 @@ if ($SkipZip) {
     Write-Host "SkipZip enabled: ZIP creation and Google Drive archive copy skipped." -ForegroundColor Yellow
 }
 else {
-    $7zipPath = "C:\Program Files\7-Zip\7z.exe"
+    $7zipPath = Get-ToolPath -Tool SevenZip
     if (Test-Path -Path $7zipPath) {
         if (Test-Path -Path $zipPath) {
             Remove-Item -Path $zipPath -Force -ErrorAction SilentlyContinue

@@ -455,6 +455,7 @@ scripts/builders/build-debug.PS1
     -Chaquopy            [SwitchParameter]
     -Quiet               [SwitchParameter]
     -Abi                 [String] = ''
+    -GradleArgs          [String[]]
 ```
 
 ### build-failure-digest.contract.ps1
@@ -658,13 +659,13 @@ scripts/builders/check-lint-rules.ps1
 ```
 
 ### check-standard-fast.ps1
-Fast per-module, per-flavor Gradle check - compile, resources, unit tests or assemble. Defaults to app_v2. Every module in scripts/utils/gradle-modules.ps1 is accepted, including one with no flavor dimension, whose task names carry no variant segment (:watchface:processDebugResources).
+Fast per-module, per-flavor Gradle check - compile, resources, unit tests, instrumented tests on a connected device (-Mode ConnectedAndroidTest, the only mode needing one) or assemble. Defaults to app_v2. Every module in scripts/utils/gradle-modules.ps1 is accepted, including one with no flavor dimension, whose task names carry no variant segment (:watchface:processDebugResources).
 
 ```
 scripts/builders/check-standard-fast.ps1
-  Fast per-module, per-flavor Gradle check - compile, resources, unit tests or assemble. Defaults to app_v2. Every module in scripts/utils/gradle-modules.ps1 is accepted, including one with no flavor dimension, whose task names carry no variant segment (:watchface:processDebugResources).
+  Fast per-module, per-flavor Gradle check - compile, resources, unit tests, instrumented tests on a connected device (-Mode ConnectedAndroidTest, the only mode needing one) or assemble. Defaults to app_v2. Every module in scripts/utils/gradle-modules.ps1 is accepted, including one with no flavor dimension, whose task names carry no variant segment (:watchface:processDebugResources).
   Params:
-    -Mode                   [String] = "CodeAndResources"  {Code|Resources|CodeAndResources|Unit|AndroidTest|Assemble}
+    -Mode                   [String] = "CodeAndResources"  {Code|Resources|CodeAndResources|Unit|AndroidTest|ConnectedAndroidTest|Assemble}
     -Flavor                 [String]
     -Module                 [String] = "app_v2"
     -BuildType              [String]
@@ -912,7 +913,7 @@ scripts/devtest/prerelease-configure.ps1
   Params:
     -DeviceId         [String]
     -Json             [SwitchParameter]
-  Exit: 0 - configuration applied (reachable resources + required adb settings OK); 1 - bad arguments / config or resources XML unreadable; 10 - a required configuration stage failed
+  Exit: 0 - configuration applied (reachable resources + required adb settings OK); 1 - bad arguments / config unreadable; 10 - a required configuration stage failed
 ```
 
 ### prerelease-log-audit.ps1
@@ -1989,7 +1990,8 @@ Guards against the Android 16 "Bad notification for startForeground" (CannotPost
 scripts/quality/assert-fgs-notifications.ps1
   Guards against the Android 16 "Bad notification for startForeground" (CannotPostForegroundServiceNotificationException) crash class.
   Params:
-    -Gate         [SwitchParameter]
+    -Gate                 [SwitchParameter]
+    -ChangedFiles         [String]
 ```
 
 ### assert-file-line-ceiling.ps1
@@ -2151,15 +2153,15 @@ scripts/quality/assert-launcher-contrast.ps1
 ```
 
 ### assert-launcher-reset-coverage.ps1
-S1540: every launcher field of AppSettings is restored by the launcher reset, or excused by name. .DESCRIPTION Adding one launcher setting takes four coordinated edits. Three of them are held by a gate; the fourth - the field list inside `ResetLauncherToDefaultsUseCase.restoreLauncherSettings()` - was held by nothing. A forgotten line there compiles, passes every other gate, and reaches the user as a reset that silently leaves one setting untouched: the toggle it belongs with goes back to default while it stays on, which is an inconsistent state in the store rather than a cosmetic miss. This gate compares two lists that are both derivable from source: * the `launcher*` properties declared in `AppSettings`; * the assignments inside `restoreLauncherSettings()`, in either accepted form. Two assignment forms count as coverage: * `<name> = defaults.<name>` - the ordinary form, restoring the factory value; * `<name> = <identifier>` - the parameter form, restoring a value the caller supplied instead of the factory one. S1886 introduced it: the launcher reset writes the icon density chosen in the reset dialog, so for that one field `AppSettings()` is not the value the reset restores. The parameter form is accepted only for a field named in `$ParameterRestoredFields` below. An undeclared one fails: silently counting any bare assignment as coverage would let `launcherFoo = x` stand in for a real restore, which is the hole this gate exists to close. A field in the first list and not the second fails, unless it is named in `$ExcusedFields` below with the reason it must survive a reset. A name in the second list that no longer exists in `AppSettings` fails too - a stale line is how a rename hides an uncovered field. Deliberately lexical: it reads the two files as text rather than compiling them, so it costs milliseconds and runs inside `post-change.ps1` on every change, which is the only cadence at which it would have caught the case it was written for. Why the launcher prefix is the rule here and nowhere else: the launcher reset is the one call site whose contract is "all of this feature's settings". Its siblings - enable-all, backup restore, gesture seeding - are deliberate subsets chosen per field, so completeness is not derivable for them and a prefix rule would produce false failures. .PARAMETER Gate Gate framing: exit 1 on any violation, print a one-line verdict. .PARAMETER Quiet Suppress the informational counters. Violations are always printed. .NOTES Exit codes (CLAUDE.md Rule 7 / S1070 contract): 0 PASS - every launcher field is restored or excused. 1 FAIL - a launcher field is not restored, a restored name no longer exists, a field is written from a parameter without being declared in $ParameterRestoredFields, or a field excused from the reset is restored by it anyway (S2213 - the two claims contradict). 2 CANNOT VERIFY - a source file is missing or no launcher field could be parsed at all. .EXAMPLE pwsh -NoProfile -File scripts/quality/assert-launcher-reset-coverage.ps1 -Gate
+S1540: every launcher setting is restored by the launcher reset, or excused by name.
 
 ```
 scripts/quality/assert-launcher-reset-coverage.ps1
-  S1540: every launcher field of AppSettings is restored by the launcher reset, or excused by name. .DESCRIPTION Adding one launcher setting takes four coordinated edits. Three of them are held by a gate; the fourth - the field list inside `ResetLauncherToDefaultsUseCase.restoreLauncherSettings()` - was held by nothing. A forgotten line there compiles, passes every other gate, and reaches the user as a reset that silently leaves one setting untouched: the toggle it belongs with goes back to default while it stays on, which is an inconsistent state in the store rather than a cosmetic miss. This gate compares two lists that are both derivable from source: * the `launcher*` properties declared in `AppSettings`; * the assignments inside `restoreLauncherSettings()`, in either accepted form. Two assignment forms count as coverage: * `<name> = defaults.<name>` - the ordinary form, restoring the factory value; * `<name> = <identifier>` - the parameter form, restoring a value the caller supplied instead of the factory one. S1886 introduced it: the launcher reset writes the icon density chosen in the reset dialog, so for that one field `AppSettings()` is not the value the reset restores. The parameter form is accepted only for a field named in `$ParameterRestoredFields` below. An undeclared one fails: silently counting any bare assignment as coverage would let `launcherFoo = x` stand in for a real restore, which is the hole this gate exists to close. A field in the first list and not the second fails, unless it is named in `$ExcusedFields` below with the reason it must survive a reset. A name in the second list that no longer exists in `AppSettings` fails too - a stale line is how a rename hides an uncovered field. Deliberately lexical: it reads the two files as text rather than compiling them, so it costs milliseconds and runs inside `post-change.ps1` on every change, which is the only cadence at which it would have caught the case it was written for. Why the launcher prefix is the rule here and nowhere else: the launcher reset is the one call site whose contract is "all of this feature's settings". Its siblings - enable-all, backup restore, gesture seeding - are deliberate subsets chosen per field, so completeness is not derivable for them and a prefix rule would produce false failures. .PARAMETER Gate Gate framing: exit 1 on any violation, print a one-line verdict. .PARAMETER Quiet Suppress the informational counters. Violations are always printed. .NOTES Exit codes (CLAUDE.md Rule 7 / S1070 contract): 0 PASS - every launcher field is restored or excused. 1 FAIL - a launcher field is not restored, a restored name no longer exists, a field is written from a parameter without being declared in $ParameterRestoredFields, or a field excused from the reset is restored by it anyway (S2213 - the two claims contradict). 2 CANNOT VERIFY - a source file is missing or no launcher field could be parsed at all. .EXAMPLE pwsh -NoProfile -File scripts/quality/assert-launcher-reset-coverage.ps1 -Gate
+  S1540: every launcher setting is restored by the launcher reset, or excused by name.
   Params:
     -Gate          [SwitchParameter]
     -Quiet         [SwitchParameter]
-  Exit: 0 PASS - every launcher field is restored or excused.; 1 FAIL - a launcher field is not restored, a restored name no longer exists, a field is
+  Exit: 0 PASS - the reset assigns the whole group and its exceptions match the registry below.; 1 FAIL - the reset no longer assigns the group wholesale, a preserved field is not excused, an
 ```
 
 ### assert-layout-variant-id-parity.ps1
@@ -2211,7 +2213,22 @@ scripts/quality/assert-memory-budget.ps1
     -TargetBytes            [Int32] = 9000
     -Gate                   [SwitchParameter]
     -UpdateBaseline         [SwitchParameter]
-  Exit: 0 at or below MaxBytes, or a report-only run.; 1 -Gate and the index is above MaxBytes.; 2 cannot verify - the index or the memory directory does not exist.
+  Exit: 0 at or below MaxBytes with every link resolving, or a report-only run.; 1 -Gate and the index is above MaxBytes, or -Gate and a `[[link]]` is unresolvable.; 2 cannot verify - the index or the memory directory does not exist.
+```
+
+### assert-migration-schema-conformance.ps1
+Ratchet gate: what a Room migration writes in SQL must match the exported schema Room validates the upgraded database against, and every migration must be registered.
+
+```
+scripts/quality/assert-migration-schema-conformance.ps1
+  Ratchet gate: what a Room migration writes in SQL must match the exported schema Room validates the upgraded database against, and every migration must be registered.
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -List                   [SwitchParameter]
+    -Quiet                  [SwitchParameter]
+    -Help                   [SwitchParameter]
+  Exit: 0 no unbaselined disagreement (or reporting only, without -Gate).; 1 an unbaselined disagreement was found, under -Gate.; 2 cannot verify - the migration directory, the schema directory, DatabaseModule.kt or
 ```
 
 ### assert-migration-test-pairing.ps1
@@ -2504,11 +2521,11 @@ scripts/quality/assert-script-described.ps1
 ```
 
 ### assert-script-references.ps1
-Gate: a repository script that nothing references is either deleted or declares itself a hand-run tool (S1872). .DESCRIPTION Before this gate the only way to learn a script was dead was to sweep the repository by hand - an answer that is true once and never re-checked. Fifteen scripts were found that way on 2026-08-21, including a twelve-script migration directory whose own README calls itself finished and two wrappers whose headers claim callers they do not have. HOW IT JUDGES. Every project-authored .ps1 under the script roots is collected BY PATH, then every file in the reference corpus is read once and scanned for .ps1-shaped tokens. Each token is resolved into the file it names by the ladder in lib/script-reference-resolution.ps1, and a script is UNREFERENCED when no corpus file other than itself resolves to it. A script quoting its own name in help text does not keep itself alive. THE KEY IS A PATH, NOT A FILE NAME (S2124). It was a name until 2026-08-27, and the tree holds 37 files called Run-Tests.ps1: they shared one entry, so three comments naming that bare word marked all 37 referenced, none of which is called from anywhere. The blindness was structural - any group of files sharing a name went unjudged the moment one of them was mentioned. Under the path key the verdict rose from 30 to 58, and the 28 added files are one homogeneous class. AN AMBIGUOUS BARE NAME IS NOT EVIDENCE. A token that is a bare file name carried by several scripts names none of them. -Report says how many scripts are held up by nothing better, which is the number that was silently zero before S2124. FILES THAT LIST SCRIPTS ARE EXCLUDED, AND THAT IS NOT A SETTING. docs/SCRIPT_CHEATSHEET.md is generated from every script in the repository, and the two baselines beside this script are lists of script paths it writes itself. A corpus containing any of them reports zero unreferenced scripts forever and the gate becomes a check that cannot fail - which is exactly what happened the moment the main baseline stopped being a count. THE BASELINE IS A LIST, NOT A COUNT (S2124). script-reference-baseline.txt holds one script path per known orphan, so repairing one cannot free a slot the next one occupies silently. This is only possible under the path key: with a name key the 37 Run-Tests.ps1 could not be told apart on a line. A baseline line matching nothing is printed as a prune hint, not a failure - the same contract the docs baseline has had since S1979. READ-ONLY ZONES ARE IN THE CORPUS. dev/archive, V1, v2_6 and spec_v2 may not be written, but they may be read, and a reference living only there is still a reference. THE ESCAPE HATCH. A script the owner runs by hand is unreferenced by definition and is the costliest class to delete, because the loss surfaces only when it is next needed. Such a script declares itself with a line in its comment-based help: Manual tool: <why it exists and who runs it> An empty reason does not count as a declaration. MEMORY MODE. -Memory checks the other direction: every .ps1 path token written in the agent memory must resolve to a real file, or carry a `Historical:` or `External:` marker on its line or the line above. The tokens include paths beginning with a dot - dropping that leading dot was the exact flaw in the manual pass this gate replaces. DOCS MODE. -Docs asks the memory question of the live documents: a document that names a .ps1 file which does not exist hands the reader a command that cannot run. S1978 found one such line and a sweep found thirteen, in three registered documents, alive for an unknown time because nothing ever re-asked (S1979). The corpus is docs/, dev/ minus its archive and changelog, .claude/ minus agent-memory (owned by -Memory above), and the four agent-rule files at the root. PLAN/, V1/, v2_6/ and spec_v2/ are excluded on the same live-versus-historical cut the main mode uses: a spec that described a script does not run it. RESOLUTION IS TREE-WIDE, JUDGING IS NOT. Both reverse modes resolve a token against every .ps1 in the repository, not against the three script roots the main mode judges - maestro/, .claude/hooks/ and dev/build-with-version.ps1 are real scripts, and resolving against the narrow set would report each of them as a phantom. THE DOCS BASELINE IS A LIST, NOT A COUNT. doc-script-reference-baseline.txt holds one `path :: token` line per known-bad reference, so a new phantom cannot hide behind a fixed one. A baseline line that no longer matches anything is printed as a prune hint, not a failure. .PARAMETER Gate Accepted for the fast-gate batch's uniform call shape; judging is already the default. .PARAMETER Report List the findings and exit 0 regardless of the baseline. Use when deciding, not when gating. .PARAMETER Memory Check agent-memory script paths instead of repository reference connectivity. .PARAMETER Docs Check that every .ps1 token in the live documents resolves to a real script. .PARAMETER ChangedFiles -Docs only: judge findings in these files alone, so one closure is not charged for another session's in-flight document. A .ps1 anywhere in the set widens the judgement back to the whole corpus, because a renamed or deleted script breaks documents that are not in the set. .PARAMETER Quiet Print the verdict line only. .PARAMETER RepoRoot Repository root. Defaults to the directory two levels above this script. .NOTES Exit codes: 0 - every finding is in the baseline, or -Report was given 1 - an unreferenced script that is not in the baseline appeared, a memory path resolves to nothing, or a document names a script that does not exist and is not in the docs baseline 2 - cannot verify: a script root, the agent memory, the document corpus or a baseline file is missing
+Gate: a repository script that nothing references is either deleted or declares itself a hand-run tool (S1872).
 
 ```
 scripts/quality/assert-script-references.ps1
-  Gate: a repository script that nothing references is either deleted or declares itself a hand-run tool (S1872). .DESCRIPTION Before this gate the only way to learn a script was dead was to sweep the repository by hand - an answer that is true once and never re-checked. Fifteen scripts were found that way on 2026-08-21, including a twelve-script migration directory whose own README calls itself finished and two wrappers whose headers claim callers they do not have. HOW IT JUDGES. Every project-authored .ps1 under the script roots is collected BY PATH, then every file in the reference corpus is read once and scanned for .ps1-shaped tokens. Each token is resolved into the file it names by the ladder in lib/script-reference-resolution.ps1, and a script is UNREFERENCED when no corpus file other than itself resolves to it. A script quoting its own name in help text does not keep itself alive. THE KEY IS A PATH, NOT A FILE NAME (S2124). It was a name until 2026-08-27, and the tree holds 37 files called Run-Tests.ps1: they shared one entry, so three comments naming that bare word marked all 37 referenced, none of which is called from anywhere. The blindness was structural - any group of files sharing a name went unjudged the moment one of them was mentioned. Under the path key the verdict rose from 30 to 58, and the 28 added files are one homogeneous class. AN AMBIGUOUS BARE NAME IS NOT EVIDENCE. A token that is a bare file name carried by several scripts names none of them. -Report says how many scripts are held up by nothing better, which is the number that was silently zero before S2124. FILES THAT LIST SCRIPTS ARE EXCLUDED, AND THAT IS NOT A SETTING. docs/SCRIPT_CHEATSHEET.md is generated from every script in the repository, and the two baselines beside this script are lists of script paths it writes itself. A corpus containing any of them reports zero unreferenced scripts forever and the gate becomes a check that cannot fail - which is exactly what happened the moment the main baseline stopped being a count. THE BASELINE IS A LIST, NOT A COUNT (S2124). script-reference-baseline.txt holds one script path per known orphan, so repairing one cannot free a slot the next one occupies silently. This is only possible under the path key: with a name key the 37 Run-Tests.ps1 could not be told apart on a line. A baseline line matching nothing is printed as a prune hint, not a failure - the same contract the docs baseline has had since S1979. READ-ONLY ZONES ARE IN THE CORPUS. dev/archive, V1, v2_6 and spec_v2 may not be written, but they may be read, and a reference living only there is still a reference. THE ESCAPE HATCH. A script the owner runs by hand is unreferenced by definition and is the costliest class to delete, because the loss surfaces only when it is next needed. Such a script declares itself with a line in its comment-based help: Manual tool: <why it exists and who runs it> An empty reason does not count as a declaration. MEMORY MODE. -Memory checks the other direction: every .ps1 path token written in the agent memory must resolve to a real file, or carry a `Historical:` or `External:` marker on its line or the line above. The tokens include paths beginning with a dot - dropping that leading dot was the exact flaw in the manual pass this gate replaces. DOCS MODE. -Docs asks the memory question of the live documents: a document that names a .ps1 file which does not exist hands the reader a command that cannot run. S1978 found one such line and a sweep found thirteen, in three registered documents, alive for an unknown time because nothing ever re-asked (S1979). The corpus is docs/, dev/ minus its archive and changelog, .claude/ minus agent-memory (owned by -Memory above), and the four agent-rule files at the root. PLAN/, V1/, v2_6/ and spec_v2/ are excluded on the same live-versus-historical cut the main mode uses: a spec that described a script does not run it. RESOLUTION IS TREE-WIDE, JUDGING IS NOT. Both reverse modes resolve a token against every .ps1 in the repository, not against the three script roots the main mode judges - maestro/, .claude/hooks/ and dev/build-with-version.ps1 are real scripts, and resolving against the narrow set would report each of them as a phantom. THE DOCS BASELINE IS A LIST, NOT A COUNT. doc-script-reference-baseline.txt holds one `path :: token` line per known-bad reference, so a new phantom cannot hide behind a fixed one. A baseline line that no longer matches anything is printed as a prune hint, not a failure. .PARAMETER Gate Accepted for the fast-gate batch's uniform call shape; judging is already the default. .PARAMETER Report List the findings and exit 0 regardless of the baseline. Use when deciding, not when gating. .PARAMETER Memory Check agent-memory script paths instead of repository reference connectivity. .PARAMETER Docs Check that every .ps1 token in the live documents resolves to a real script. .PARAMETER ChangedFiles -Docs only: judge findings in these files alone, so one closure is not charged for another session's in-flight document. A .ps1 anywhere in the set widens the judgement back to the whole corpus, because a renamed or deleted script breaks documents that are not in the set. .PARAMETER Quiet Print the verdict line only. .PARAMETER RepoRoot Repository root. Defaults to the directory two levels above this script. .NOTES Exit codes: 0 - every finding is in the baseline, or -Report was given 1 - an unreferenced script that is not in the baseline appeared, a memory path resolves to nothing, or a document names a script that does not exist and is not in the docs baseline 2 - cannot verify: a script root, the agent memory, the document corpus or a baseline file is missing
+  Gate: a repository script that nothing references is either deleted or declares itself a hand-run tool (S1872).
   Params:
     -Gate                 [SwitchParameter]
     -Report               [SwitchParameter]
@@ -2565,6 +2582,7 @@ scripts/quality/assert-settings-doc-sync.ps1
     -RepoRoot                 [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
     -SkipManifestTest         [SwitchParameter]
     -ChangedFiles             [String[]]
+    -SkipHowToStage           [SwitchParameter]
     -TimeoutSeconds           [Int32] = 600
   Exit: 0 - every stage passed.; 1 - a stage found real drift (the failing stage is named).; 2 - a stage could not be judged: either the manifest test never ran because the
 ```
@@ -2834,6 +2852,7 @@ scripts/quality/detekt-scoped.ps1
     -ConfigPath           [String]
     -CacheRoot            [String] = (Join-Path $env:USERPROFILE '.gradle/caches/modules-2/files-2.1')
     -Fix                  [SwitchParameter]
+    -VerdictPath          [String]
     -Json                 [SwitchParameter]
   Exit: 0 - the analyser ran and found nothing new in the named files (or there were none to check).; 1 - the analyser ran and found at least one new finding; each is printed. Never returned in
 ```
@@ -3017,6 +3036,16 @@ scripts/quality.tests/check-device-profile-presets.Tests.ps1
   (no param block)
 ```
 
+### gate-pool.Tests.ps1
+S2326: tests for scripts/quality/lib/gate-pool.ps1 - the closure's read-only gate pool.
+
+```
+scripts/quality.tests/gate-pool.Tests.ps1
+  S2326: tests for scripts/quality/lib/gate-pool.ps1 - the closure's read-only gate pool.
+  (no param block)
+  Exit: 0 every test passed.; 1 at least one test failed.
+```
+
 ### locale-fingerprints.Tests.ps1
 S1824: tests for English string fingerprinting and stale translation detection.
 
@@ -3034,6 +3063,16 @@ scripts/quality.tests/Run-Tests.ps1
   S2126: entry point for the quality.tests suite - runs each sibling *.Tests.ps1 in its own process.
   (no param block)
   Exit: 0 every test file passed, or the folder holds no test file.; 1 at least one test file failed.; 2 no test file failed, but at least one could not verify its environment.
+```
+
+### seed-locale-fingerprints.Tests.ps1
+S2327: tests that seed-locale-tranche.ps1 records provenance for the text it writes.
+
+```
+scripts/quality.tests/seed-locale-fingerprints.Tests.ps1
+  S2327: tests that seed-locale-tranche.ps1 records provenance for the text it writes.
+  (no param block)
+  Exit: 0 every assertion passed.; 1 at least one assertion failed.
 ```
 
 ### set-android-string-remove.Tests.ps1
@@ -3079,6 +3118,16 @@ scripts/quality/assert-hook-inventory.tests/run-tests.ps1
 
 ```
 scripts/quality/assert-listener-symmetry.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\quality\assert-migration-schema-conformance.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/assert-migration-schema-conformance.tests/Run-Tests.ps1
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
@@ -3244,6 +3293,15 @@ scripts/quality/lib/flavor-source-map.ps1
   (no param block)
 ```
 
+### gate-pool.ps1
+S2326: the gate pool - start read-only gate children together, consume them in the original order.
+
+```
+scripts/quality/lib/gate-pool.ps1
+  S2326: the gate pool - start read-only gate children together, consume them in the original order.
+  (no param block)
+```
+
 ### gate-telemetry.ps1
 
 ```
@@ -3397,6 +3455,20 @@ scripts/release/capture-play-screenshots.ps1
     -List                 [SwitchParameter]
 ```
 
+### clear-play-track-release.ps1
+Remove the release records from one Google Play track - a one-way write, gated by -Confirm.
+
+```
+scripts/release/clear-play-track-release.ps1
+  Remove the release records from one Google Play track - a one-way write, gated by -Confirm.
+  Params:
+    -Track          (req)  [String]
+    -Confirm               [SwitchParameter]
+    -AllowNonDraft         [SwitchParameter]
+    -Package               [String] = 'com.sza.fastmediasorter'
+  Exit: 0 - the track was cleared (or, without -Confirm, the dry run reported what it would clear); 1 - refused: the track carries a non-draft release and -AllowNonDraft was not given; 2 - could not verify: no virtual environment, no service-account key, or the API call failed; 3 - nothing to do: the track already holds no release records
+```
+
 ### extract-release-notes.ps1
 Extract the release-notes block for a given version from docs/WHATS_NEW.md.
 
@@ -3480,6 +3552,19 @@ scripts/release/publish-play-release.ps1
     -NotesVersionCode         [Int32]
 ```
 
+### read-play-public-serve.ps1
+Read the version the public Google Play store page actually serves - anonymous, credential-free.
+
+```
+scripts/release/read-play-public-serve.ps1
+  Read the version the public Google Play store page actually serves - anonymous, credential-free.
+  Params:
+    -Package                     [String] = 'com.sza.fastmediasorter'
+    -Json                        [SwitchParameter]
+    -RequireVersionAbove         [String]
+  Exit: 0 - the served version was read (and the -RequireVersionAbove assertion held, when given); 1 - the -RequireVersionAbove assertion failed: the page still serves that version or older; 2 - could not verify: the request failed, no version was found, or several candidates were
+```
+
 ### read-play-tracks.ps1
 Read the live Google Play track state - read-only, safe to run at any time.
 
@@ -3491,6 +3576,18 @@ scripts/release/read-play-tracks.ps1
     -RequireWearCodeBelow         [Int32]
     -Package                      [String] = 'com.sza.fastmediasorter'
   Exit: 0 - state read (and the -RequireWearCodeBelow assertion held, when given); 1 - the -RequireWearCodeBelow assertion failed: the Wear track already holds that code or higher; 2 - could not verify: no virtual environment, no service-account key, or the API call failed
+```
+
+### refresh-play-publishing-state.ps1
+Rewrite the measured half of docs/PLAY_PUBLISHING_STATE.md from live reads (S2272).
+
+```
+scripts/release/refresh-play-publishing-state.ps1
+  Rewrite the measured half of docs/PLAY_PUBLISHING_STATE.md from live reads (S2272).
+  Params:
+    -Check           [SwitchParameter]
+    -Package         [String] = 'com.sza.fastmediasorter'
+  Exit: 0 - both measured blocks refreshed, or -Check found both already current; 1 - -Check found at least one block out of date; nothing was written; 2 - could not verify: a reader failed, the document is missing, or a marker pair is absent
 ```
 
 ### retain-deobfuscation.ps1
@@ -3604,6 +3701,15 @@ scripts/spec_catalog/bulk-update.ps1
     -Id        (req)  [String[]]
     -Status           [String]  {Draft|Approved|Tactical|In Progress|Implemented|Verified|Partial|Broken|BlockByOtherTask|BlockNeedUserTest|BlockQuestions|BlockExternal|Archived}
     -Priority         [Int32] = -1  {range 0..100}
+```
+
+### check-audit-recorded.ps1
+
+```
+scripts/spec_catalog/check-audit-recorded.ps1
+  Params:
+    -Id  (req)  [String]
+  Exit: 2 = bad invocation, or catalog / spec unreadable.
 ```
 
 ### check-capability-recorded.ps1
@@ -3776,15 +3882,16 @@ Batch state writer for tactical-plan steps (S1596).
 scripts/spec_catalog/plan-tick.ps1
   Batch state writer for tactical-plan steps (S1596).
   Params:
-    -Id        (req)  [String]
-    -Phase            [String]
-    -Steps     (req)  [String]
-    -Checkbox  (req)  [String]
-    -Target           [String] = 'Phase'  {Phase|Index}
-    -State     (req)  [String]  {NotDone|InProgress|Done|Manual}
-    -Note             [String] = ''
-    -Log              [String] = ''
-    -Json             [SwitchParameter]
+    -Id         (req)  [String]
+    -Phase             [String]
+    -Steps      (req)  [String]
+    -Checkbox   (req)  [String]
+    -Target            [String] = 'Phase'  {Phase|Index}
+    -State      (req)  [String]  {NotDone|InProgress|Done|Manual}
+    -Note              [String] = ''
+    -Log               [String] = ''
+    -Json              [SwitchParameter]
+    -Reconcile         [SwitchParameter]
   Exit: 0 - every listed step was rewritten.; 1 - a listed step was not found, or a file could not be written.; 2 - usage error, or the plan folder or phase file does not exist.; 3 - INDEX.md and the phase file disagreed before the write; nothing was written at all.; 4 - a -Checkbox fragment matched no bullet, or matched more than one.
 ```
 
@@ -4013,6 +4120,16 @@ scripts/spec_catalog/update.ps1
 scripts/spec_catalog/validate.ps1
   Params:
     -Strict         [SwitchParameter]
+```
+
+## scripts\spec_catalog\check-audit-recorded.tests
+
+### Run-Tests.ps1
+
+```
+scripts/spec_catalog/check-audit-recorded.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared (no real spec on disk to anchor cases A-C).
 ```
 
 ## scripts\spec_catalog\close-and-log.tests
@@ -4366,6 +4483,19 @@ scripts/utils/check-typo-lint.ps1
     -FailOnActivityWarnings         [SwitchParameter]
     -TypoTool                       [String] = "auto"  {auto|typos|cspell}
     -LintTask                       [String] = ":app_v2:lintStandardDebug"
+```
+
+### clean-user-temp.ps1
+Deletes stale entries from the user-profile temp directory (%TEMP%).
+
+```
+scripts/utils/clean-user-temp.ps1
+  Deletes stale entries from the user-profile temp directory (%TEMP%).
+  Params:
+    -OlderThanDays         [Int32] = 7
+    -Path                  [String]
+    -DryRun                [SwitchParameter]
+  Exit: 0 - completed, or the dry run completed.; 2 - could not run: the age floor was violated, or the path is missing or outside the profile.
 ```
 
 ### clear-agent-lock.ps1
@@ -4723,6 +4853,20 @@ scripts/utils/monitor-spec-queue.ps1
   Exit: 2 - the repository layout could not be read (temp/ missing, journals unreadable).
 ```
 
+### post-release-cleanup.ps1
+Post-release housekeeping facade - prunes, archives and compresses every temp surface at once.
+
+```
+scripts/utils/post-release-cleanup.ps1
+  Post-release housekeeping facade - prunes, archives and compresses every temp surface at once.
+  Params:
+    -OlderThanDays                         [Int32] = 7
+    -CompressArchivesOlderThanDays         [Int32] = 30
+    -SkipUserTemp                          [SwitchParameter]
+    -DryRun                                [SwitchParameter]
+  Exit: 0 - every stage that ran completed.; 1 - at least one stage failed; the failing stage is named.; 2 - could not run: the repository root does not carry the stage scripts.
+```
+
 ### process-timeout.ps1
 Run an external process under a wall-clock ceiling (S1338).
 
@@ -4731,6 +4875,15 @@ scripts/utils/process-timeout.ps1
   Run an external process under a wall-clock ceiling (S1338).
   (no param block)
   Exit: 600 s: the observed tail is 5 gate runs over 300 s out of 311, so this never fires
+```
+
+### project-paths.ps1
+Resolve every path a repository script needs without naming a drive letter (S2326).
+
+```
+scripts/utils/project-paths.ps1
+  Resolve every path a repository script needs without naming a drive letter (S2326).
+  (no param block)
 ```
 
 ### prune-gradle-tmp.ps1
@@ -4861,15 +5014,16 @@ S1190: seeds one locale's copy of a strings file from a translation map.
 scripts/utils/seed-locale-tranche.ps1
   S1190: seeds one locale's copy of a strings file from a translation map.
   Params:
-    -Module             [String] = 'app_v2'
-    -SourceSet          [String] = 'main'
-    -SourceFile  (req)  [String]
-    -Locale             [String]
-    -MapPath            [String]
-    -KeyPrefix          [String]
-    -Merge              [SwitchParameter]
-    -DumpSource         [SwitchParameter]
-    -DryRun             [SwitchParameter]
+    -Module                   [String] = 'app_v2'
+    -SourceSet                [String] = 'main'
+    -SourceFile        (req)  [String]
+    -Locale                   [String]
+    -MapPath                  [String]
+    -KeyPrefix                [String]
+    -FingerprintsPath         [String]
+    -Merge                    [SwitchParameter]
+    -DumpSource               [SwitchParameter]
+    -DryRun                   [SwitchParameter]
   Exit: 0 - the locale file was written, or planned under -DryRun. An empty map writes an empty
 ```
 
@@ -5056,6 +5210,16 @@ Regression tests for the Gradle module registry (S2121).
 scripts/utils/gradle-modules.tests/Run-Tests.ps1
   Regression tests for the Gradle module registry (S2121).
   (no param block)
+```
+
+## scripts\utils\project-paths.tests
+
+### Run-Tests.ps1
+
+```
+scripts/utils/project-paths.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
 ## scripts\wear

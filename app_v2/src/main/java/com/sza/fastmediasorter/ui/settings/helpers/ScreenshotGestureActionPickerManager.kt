@@ -78,7 +78,7 @@ class ScreenshotGestureActionPickerManager(
             context = context,
             title = context.getString(R.string.setting_screenshot_gesture_action_dialog_title),
             lifecycleOwner = lifecycleOwner,
-            rows = GesturePickerRowBuilder().build(pickerItems(), launcherRouteItem()),
+            rows = GesturePickerRowBuilder().build(pickerItems(), listOfNotNull(launcherRouteItem())),
             selectedKey = current,
             onPicked = onPicked,
         ).showBoundTo(lifecycleOwner)

@@ -23,6 +23,15 @@ import org.junit.Test
 @Suppress("FunctionNaming", "LargeClass") // backtick test names, project convention (cf. LauncherGridGeometryTest)
 class LauncherStarterSetsTest {
 
+    /**
+     * S2309: the screen class these cases compose for unless they are about the class itself.
+     *
+     * Medium and wide is the pair the pre-S2309 hardcoded layout was written against, so a case
+     * that predates the second axis keeps asserting the desktop it was written to assert.
+     */
+    private val mediumWide =
+        LauncherScreenClass(LauncherScreenClass.Size.MEDIUM, LauncherScreenClass.Shape.WIDE)
+
     private val allPaddingAvailable = mapOf(
         InternalRouteCatalog.KEY_STREAMS to true,
         InternalRouteCatalog.KEY_QUICK_CAMERA to true,
@@ -94,7 +103,13 @@ class LauncherStarterSetsTest {
 
     @Test
     fun `every set opens with top unsectioned items and closes with the launcher actions`() {
-        val items = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap(), emptySet())
+        val items = LauncherStarterSets.itemsFor(
+            DeviceProfileType.OTHER,
+            StarterResources(),
+            emptyMap(),
+            emptySet(),
+            screenClass = mediumWide,
+        )
             .filter { it.screenIndex == 0 }
         assertEquals(
             listOf("clock", "search", "weather", "sec:app_functions") +
@@ -114,6 +129,7 @@ class LauncherStarterSetsTest {
                 StarterResources(recentId = 1),
                 allPaddingAvailable,
                 emptySet(),
+                screenClass = mediumWide,
             )
             .filter { it.screenIndex == 0 }
             .map { it.target }
@@ -133,6 +149,7 @@ class LauncherStarterSetsTest {
             StarterResources(allAudioId = 7),
             mapOf(InternalRouteCatalog.KEY_STREAMS to true),
             emptySet(),
+            screenClass = mediumWide,
         ).filter { it.screenIndex == 0 }
         val actionsHeaderIndex = items.indexOfFirst { it.target == "sec:app_functions" }
         assertFalse(items.drop(actionsHeaderIndex).any { it.kind == LauncherCellKind.GADGET })
@@ -152,6 +169,7 @@ class LauncherStarterSetsTest {
             ),
             allPaddingAvailable,
             emptySet(),
+            screenClass = mediumWide,
         ).filter { it.screenIndex == 0 }
         assertEquals(
             listOf(
@@ -181,6 +199,7 @@ class LauncherStarterSetsTest {
             StarterResources(recentId = 1),
             mapOf(InternalRouteCatalog.KEY_CALCULATOR to true), // only calculator compiled in
             emptySet(),
+            screenClass = mediumWide,
         ).filter { it.screenIndex == 0 }
         assertEquals(
             listOf(
@@ -202,6 +221,7 @@ class LauncherStarterSetsTest {
             StarterResources(lastResourceId = 5),
             emptyMap(),
             emptySet(),
+            screenClass = mediumWide,
         ).filter { it.screenIndex == 0 }
         assertEquals(
             listOf(
@@ -225,7 +245,13 @@ class LauncherStarterSetsTest {
     @Test
     fun `null id dependencies are skipped, never seeded as dangling cells`() {
         val items = LauncherStarterSets
-            .itemsFor(DeviceProfileType.PHOTO_FRAME, StarterResources(), emptyMap(), emptySet())
+            .itemsFor(
+                DeviceProfileType.PHOTO_FRAME,
+                StarterResources(),
+                emptyMap(),
+                emptySet(),
+                screenClass = mediumWide,
+            )
             .filter { it.screenIndex == 0 }
         assertEquals(
             listOf(
@@ -246,6 +272,7 @@ class LauncherStarterSetsTest {
             StarterResources(allAudioId = 7),
             mapOf(InternalRouteCatalog.KEY_STREAMS to true),
             emptySet(),
+            screenClass = mediumWide,
         ).filter { it.screenIndex == 0 }
         assertEquals(
             listOf(
@@ -264,6 +291,7 @@ class LauncherStarterSetsTest {
             StarterResources(allAudioId = 7),
             emptyMap(),
             emptySet(),
+            screenClass = mediumWide,
         )
         assertFalse(withoutStreams.any { it.target == "streams" })
         assertFalse(withoutStreams.any { it.target == "fn:streams" })
@@ -273,7 +301,7 @@ class LauncherStarterSetsTest {
     fun `no third-party app cell is seeded when nothing is installed`() {
         DeviceProfileType.entries.forEach { profile ->
             val targets = LauncherStarterSets
-                .itemsFor(profile, StarterResources(), allPaddingAvailable, emptySet())
+                .itemsFor(profile, StarterResources(), allPaddingAvailable, emptySet(), screenClass = mediumWide)
                 .map { it.target }
             LauncherStarterSets.candidatePackages.forEach { candidate ->
                 assertFalse("$profile seeded $candidate blind", targets.contains("app:$candidate"))
@@ -288,6 +316,7 @@ class LauncherStarterSetsTest {
             StarterResources(),
             allPaddingAvailable,
             setOf(LauncherStarterSets.PACKAGE_YOUTUBE),
+            screenClass = mediumWide,
         ).map { it.target }
         assertEquals(1, targets.count { it == "app:${LauncherStarterSets.PACKAGE_YOUTUBE}" })
         assertFalse(targets.contains("app:${LauncherStarterSets.PACKAGE_YOUTUBE_MUSIC}"))
@@ -301,12 +330,14 @@ class LauncherStarterSetsTest {
             StarterResources(),
             allPaddingAvailable,
             installed,
+            screenClass = mediumWide,
         ).filter { it.screenIndex == 0 }.map { it.target }.toSet()
         val smartphone = LauncherStarterSets.itemsFor(
             DeviceProfileType.PERSONAL_SMARTPHONE,
             StarterResources(),
             allPaddingAvailable,
             installed,
+            screenClass = mediumWide,
         ).filter { it.screenIndex == 0 }.map { it.target }.toSet()
 
         assertNotEquals(car, smartphone)
@@ -320,7 +351,7 @@ class LauncherStarterSetsTest {
         assertEquals(DeviceProfileType.entries.toSet(), profileGrid.keys)
         profileGrid.forEach { (profile, expected) ->
             val targets = LauncherStarterSets
-                .itemsFor(profile, StarterResources(), allPaddingAvailable, installed)
+                .itemsFor(profile, StarterResources(), allPaddingAvailable, installed, screenClass = mediumWide)
                 .filter { it.screenIndex == 0 }
                 .map { it.target }.toSet()
             assertEquals("$profile weather", profile != DeviceProfileType.AUDIO_PLAYER, "weather" in targets)
@@ -355,7 +386,13 @@ class LauncherStarterSetsTest {
     /** Targets between the widgets header and the next section header; empty when the group is absent. */
     private fun widgetTargets(profile: DeviceProfileType): List<String> {
         val res = StarterResources(allImagesId = 9, allDocsId = 9, lastResourceId = 9)
-        val targets = LauncherStarterSets.itemsFor(profile, res, emptyMap(), emptySet()).map { it.target }
+        val targets = LauncherStarterSets.itemsFor(
+            profile,
+            res,
+            emptyMap(),
+            emptySet(),
+            screenClass = mediumWide,
+        ).map { it.target }
         val start = targets.indexOf("sec:widgets")
         if (start < 0) return emptyList()
         val rest = targets.drop(start + 1)
@@ -372,6 +409,7 @@ class LauncherStarterSetsTest {
             StarterResources(allAudioId = 7),
             mapOf(InternalRouteCatalog.KEY_STREAMS to true),
             emptySet(),
+            screenClass = mediumWide,
         )
         val placed = LauncherStarterSets.place(items, columns = 4)
         assertNoOverlap(placed)
@@ -387,6 +425,7 @@ class LauncherStarterSetsTest {
             StarterResources(recentId = 1, allAudioId = 2, allImagesId = 3),
             allPaddingAvailable,
             emptySet(),
+            screenClass = mediumWide,
         )
         columnCounts.forEach { columns ->
             val placed = LauncherStarterSets.place(items, columns)
@@ -413,11 +452,36 @@ class LauncherStarterSetsTest {
             allPaddingAvailable,
             emptySet(),
             importedShortcuts = imported,
+            screenClass = mediumWide,
         )
         columnCounts.forEach { columns ->
             val placed = LauncherStarterSets.place(items, columns)
             assertNoOverlap(placed)
             placed.forEach { assertTrue("cell past right edge at $columns", it.colIndex + it.spanW <= columns) }
+        }
+    }
+
+    @Test
+    fun `every profile places its starter set intact on the dense-grid column count`() {
+        // S2320: the dense grid is the shipped density, and on a typical phone it resolves to five
+        // columns where the previous default resolved to four. Every profile is checked because the
+        // grid width applies to all of them at once, and a profile added later must not slip through.
+        val denseGridColumns = 5
+        DeviceProfileType.entries.forEach { profile ->
+            val items = LauncherStarterSets.itemsFor(
+                profile,
+                StarterResources(recentId = 1, allAudioId = 2, allImagesId = 3, allVideoId = 4, allDocsId = 5),
+                allPaddingAvailable,
+                emptySet(),
+                screenClass = mediumWide,
+            )
+            val placed = LauncherStarterSets.place(items, denseGridColumns)
+
+            assertEquals("item dropped for $profile", items.size, placed.size)
+            assertNoOverlap(placed)
+            placed.forEach {
+                assertTrue("cell past right edge for $profile", it.colIndex + it.spanW <= denseGridColumns)
+            }
         }
     }
 
@@ -430,6 +494,7 @@ class LauncherStarterSetsTest {
             allPaddingAvailable,
             emptySet(),
             importedShortcuts = imported,
+            screenClass = mediumWide,
         ).map { it.target }
         val contentHeaderIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_RESOURCES))
         val actionsHeaderIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_APP_FUNCTIONS))
@@ -451,6 +516,7 @@ class LauncherStarterSetsTest {
         allPaddingAvailable,
         installed,
         googleServicesAvailable = googleServicesAvailable,
+        screenClass = mediumWide,
     ).filter { it.screenIndex == 0 }
 
     @Test
@@ -541,6 +607,7 @@ class LauncherStarterSetsTest {
             LauncherStarterSets.candidatePackages,
             googleServicesAvailable = true,
             thirdPartyApps = thirdParty,
+            screenClass = mediumWide,
         ).map { it.target }
         val appsHeaderIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_ANDROID_APPS))
         val googleHeaderIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_GOOGLE))
@@ -563,6 +630,7 @@ class LauncherStarterSetsTest {
             allPaddingAvailable,
             setOf(LauncherStarterSets.PACKAGE_YOUTUBE),
             thirdPartyApps = listOf(LauncherStarterSets.PACKAGE_YOUTUBE, "com.whatsapp"),
+            screenClass = mediumWide,
         ).map { it.target }
         assertEquals(1, targets.count { it == "app:${LauncherStarterSets.PACKAGE_YOUTUBE}" })
         assertEquals(1, targets.count { it == "app:com.whatsapp" })
@@ -596,6 +664,7 @@ class LauncherStarterSetsTest {
             setOf("com.android.vending"),
             googleServicesAvailable = true,
             importedShortcuts = imported,
+            screenClass = mediumWide,
         ).map { it.target }
         // Once from the import, once from the GOOGLE section: the owner allows the same application to
         // hold as many cells as it has free positions.
@@ -621,7 +690,13 @@ class LauncherStarterSetsTest {
     fun `a header is packed at the one span it is stored at`() {
         // S1642: the packer's clamp to the seeded width used to narrow a header, which is why the seed
         // carried a second span. The compact span fits every grid, so the clamp is now a no-op on it.
-        val items = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap(), emptySet())
+        val items = LauncherStarterSets.itemsFor(
+            DeviceProfileType.OTHER,
+            StarterResources(),
+            emptyMap(),
+            emptySet(),
+            screenClass = mediumWide,
+        )
         val placed = LauncherStarterSets.place(items, columns = 4)
         val header = placed.first { it.item.kind == LauncherCellKind.SECTION }
         assertEquals(LauncherSectionMembership.HEADER_SPAN_W, header.spanW)
@@ -676,7 +751,13 @@ class LauncherStarterSetsTest {
 
     @Test
     fun `place preserves the own-app placeholder target for the use case to substitute`() {
-        val items = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap(), emptySet())
+        val items = LauncherStarterSets.itemsFor(
+            DeviceProfileType.OTHER,
+            StarterResources(),
+            emptyMap(),
+            emptySet(),
+            screenClass = mediumWide,
+        )
         val placed = LauncherStarterSets.place(items, columns = 4)
         assertTrue(placed.any { it.item.target == "app:__self__" })
     }
@@ -700,6 +781,7 @@ class LauncherStarterSetsTest {
                 LauncherStarterSets.PACKAGE_MAPS,
                 FM_RADIO_PACKAGE,
             ),
+            screenClass = mediumWide,
         )
         val placed = LauncherStarterSets.place(items, columns = MIN_COLUMNS)
         assertNoOverlap(placed)
@@ -766,6 +848,7 @@ class LauncherStarterSetsTest {
         ),
         allPaddingAvailable,
         setOf(LauncherStarterSets.PACKAGE_YOUTUBE, LauncherStarterSets.PACKAGE_MAPS),
+        screenClass = mediumWide,
     )
 
     /** S1613: pinned-shortcut items shaped exactly as the seed encodes what the platform hands back. */
@@ -795,6 +878,158 @@ class LauncherStarterSetsTest {
             }
         }
     }
+
+    // -- S2309 screen class ----------------------------------------------------------------------
+
+    @Test
+    fun `a compact elongated screen seeds fewer first-screen items than an expanded balanced one`() {
+        val compact = LauncherStarterSets.itemsFor(
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            fullResources(),
+            allPaddingAvailable,
+            setOf(LauncherStarterSets.PACKAGE_YOUTUBE, LauncherStarterSets.PACKAGE_MAPS),
+            screenClass = LauncherScreenClass(LauncherScreenClass.Size.COMPACT, LauncherScreenClass.Shape.ELONGATED),
+        ).count { it.screenIndex == 0 }
+        val expanded = LauncherStarterSets.itemsFor(
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            fullResources(),
+            allPaddingAvailable,
+            setOf(LauncherStarterSets.PACKAGE_YOUTUBE, LauncherStarterSets.PACKAGE_MAPS),
+            screenClass = LauncherScreenClass(LauncherScreenClass.Size.EXPANDED, LauncherScreenClass.Shape.BALANCED),
+        ).count { it.screenIndex == 0 }
+
+        assertTrue("compact seeded $compact first-screen items, expanded $expanded", compact < expanded)
+    }
+
+    @Test
+    fun `the seeded header order follows the rule section order`() {
+        val screenClass = LauncherScreenClass(LauncherScreenClass.Size.MEDIUM, LauncherScreenClass.Shape.WIDE)
+        val profile = DeviceProfileType.CAR_HEAD_UNIT
+        val rule = LauncherStarterLayoutRules.ruleFor(screenClass)
+
+        val headers = LauncherStarterSets.itemsFor(
+            profile,
+            fullResources(),
+            allPaddingAvailable,
+            setOf(LauncherStarterSets.PACKAGE_MAPS),
+            screenClass = screenClass,
+        ).filter { it.target.startsWith(LauncherCellCommand.PREFIX_SECTION) }
+
+        // Judged per screen, not over the flat list: a key recurring on ANOTHER screen is the layout the
+        // desktop has always had (widgets and resources lead screen 0 and open screen 1 again), while a
+        // key recurring on ONE screen is the collision ADR-7 exists to prevent. Comparing the flat list
+        // against a de-duplicated rule order would have called the first case a failure.
+        val ruleOrder = rule.sectionOrder.map { "${LauncherCellCommand.PREFIX_SECTION}${it.sectionKey}" }
+        for ((screen, onScreen) in headers.groupBy { it.screenIndex }) {
+            val targets = onScreen.map { it.target }
+
+            assertEquals("screen $screen seeded one section key twice: $targets", targets.size, targets.distinct().size)
+            val positions = targets.map { ruleOrder.indexOf(it) }
+            assertEquals("screen $screen ordered $targets against the rule", positions.sorted(), positions)
+        }
+    }
+
+    @Test
+    fun `no seeded item lands past the last screen the rule allows`() {
+        for (profile in DeviceProfileType.entries) {
+            for (size in LauncherScreenClass.Size.entries) {
+                for (shape in LauncherScreenClass.Shape.entries) {
+                    val screenClass = LauncherScreenClass(size, shape)
+                    val rule = LauncherStarterLayoutRules.ruleFor(screenClass)
+                    val items = LauncherStarterSets.itemsFor(
+                        profile,
+                        fullResources(),
+                        allPaddingAvailable,
+                        setOf(LauncherStarterSets.PACKAGE_MAPS),
+                        screenClass = screenClass,
+                    )
+
+                    val worst = items.maxOf { it.screenIndex }
+                    assertTrue(
+                        "$profile on $screenClass seeded screen $worst of ${rule.screenCount}",
+                        worst <= rule.screenCount - 1,
+                    )
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `a bare device still gets at least one section`() {
+        for (profile in DeviceProfileType.entries) {
+            val items = LauncherStarterSets.itemsFor(
+                profile,
+                StarterResources(),
+                emptyMap(),
+                emptySet(),
+                screenClass = LauncherScreenClass(
+                    LauncherScreenClass.Size.COMPACT,
+                    LauncherScreenClass.Shape.ELONGATED,
+                ),
+            )
+
+            assertTrue(
+                "$profile seeded no section on a bare device",
+                items.any { it.target.startsWith(LauncherCellCommand.PREFIX_SECTION) },
+            )
+        }
+    }
+
+    @Test
+    fun `no section header is seeded without an item under it`() {
+        val screenClass = LauncherScreenClass(LauncherScreenClass.Size.COMPACT, LauncherScreenClass.Shape.ELONGATED)
+
+        for (profile in DeviceProfileType.entries) {
+            val targets = LauncherStarterSets
+                .itemsFor(profile, StarterResources(), emptyMap(), emptySet(), screenClass = screenClass)
+                .map { it.target }
+
+            targets.forEachIndexed { index, target ->
+                if (target.startsWith(LauncherCellCommand.PREFIX_SECTION)) {
+                    val next = targets.getOrNull(index + 1)
+                    assertTrue(
+                        "$profile seeded empty header $target",
+                        next != null && !next.startsWith(LauncherCellCommand.PREFIX_SECTION),
+                    )
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `no two section headers share a screen and a target`() {
+        for (profile in DeviceProfileType.entries) {
+            for (size in LauncherScreenClass.Size.entries) {
+                for (shape in LauncherScreenClass.Shape.entries) {
+                    val headers = LauncherStarterSets.itemsFor(
+                        profile,
+                        fullResources(),
+                        allPaddingAvailable,
+                        setOf(LauncherStarterSets.PACKAGE_YOUTUBE, LauncherStarterSets.PACKAGE_MAPS),
+                        screenClass = LauncherScreenClass(size, shape),
+                    ).filter { it.target.startsWith(LauncherCellCommand.PREFIX_SECTION) }
+                        .map { it.screenIndex to it.target }
+
+                    assertEquals(
+                        "$profile on $size/$shape emitted a duplicate section header",
+                        headers.size,
+                        headers.distinct().size,
+                    )
+                }
+            }
+        }
+    }
+
+    /** A device with something in every media bucket, so a budget has something to cut. */
+    private fun fullResources() = StarterResources(
+        recentId = 1L,
+        allAudioId = 2L,
+        allImagesId = 3L,
+        allVideoId = 4L,
+        allDocsId = 5L,
+        cameraId = 6L,
+        lastResourceId = 7L,
+    )
 
     private companion object {
         const val FM_RADIO_PACKAGE = "com.android.fmradio"

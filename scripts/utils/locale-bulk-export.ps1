@@ -89,6 +89,10 @@ $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 . (Join-Path $PSScriptRoot 'locale-set.ps1')
+# ConvertFrom-ResourceBody comes from here rather than from a local copy: the `en` it produces is
+# what every recorded fingerprint is compared against, and seed-locale-tranche.ps1 now writes those
+# fingerprints too (S2327). Two copies of this normalizer would mark the corpus stale on any drift.
+. (Join-Path $repoRoot 'scripts/quality/lib/locale-fingerprints.ps1')
 
 if (-not $OutDir) { $OutDir = Join-Path $repoRoot 'temp/S1420/box' }
 
@@ -99,15 +103,6 @@ $SourceSet = @($SourceSet | ForEach-Object { $_ -split ',' } | Where-Object { $_
 $elementRx = [regex]'(?s)<(string|plurals|string-array)\s+name="([^"]+)"([^>]*)>(.*?)</\1>'
 $pluralItemRx = [regex]'(?s)<item\s+quantity="([^"]+)"[^>]*>(.*?)</item>'
 $arrayItemRx = [regex]'(?s)<item[^>]*>(.*?)</item>'
-
-# The service sees text, not resource syntax: entities are decoded and AAPT's backslash escapes for
-# quote and apostrophe are dropped. \n stays spelled as two characters on purpose - it is the line
-# break Android will render, and sending a real one would break the one-line-per-phrase contract.
-function ConvertFrom-ResourceBody([AllowEmptyString()][string]$Text) {
-    $plain = $Text -replace '\\([''"])', '$1'
-    $plain = $plain.Replace('&apos;', "'").Replace('&quot;', '"').Replace('&amp;', '&')
-    return ($plain -replace '[\r\n\t]+', ' ').Trim()
-}
 
 function Get-FormatSignature([AllowEmptyString()][string]$Text) {
     return (([regex]::Matches($Text, '%(\d+\$)?[a-zA-Z]') | ForEach-Object { $_.Value } | Sort-Object) -join '|')

@@ -89,8 +89,13 @@ function Find-ProbeSpans {
     return $spans
 }
 
-foreach ($sourceRoot in @('app_v2', 'wear')) {
+# Probes live only in authored sources. Walking a module root also enumerates `build/`, whose
+# generated files appear and vanish while a sibling build runs: the read then throws on a path the
+# enumeration had just listed, so the suite reports a defect that is only the state of `build/`
+# (S2295). Scoping to `src/` also removes any chance of rewriting generated output.
+foreach ($sourceRoot in @('app_v2/src', 'wear/src')) {
     $root = Join-Path $repoRoot $sourceRoot
+    if (-not (Test-Path -LiteralPath $root)) { continue }
     foreach ($file in Get-ChildItem -LiteralPath $root -Recurse -File -Filter '*.kt') {
         $before = [System.IO.File]::ReadAllText($file.FullName)
         $spans = @(Find-ProbeSpans -Content $before | Sort-Object Start -Descending)

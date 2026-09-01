@@ -195,7 +195,15 @@ class SftpClient @Inject constructor(
         try {
             val allFiles = mutableListOf<SftpFileListing>()
             if (recursive) {
-                listFilesRecursive(channel, remotePath, allFiles)
+                val skipped = mutableListOf<String>()
+                Timber.d("S2315: recursive SFTP walk entered for '$remotePath'")
+                listFilesRecursive(channel, remotePath, allFiles, skipped)
+                if (skipped.isNotEmpty()) {
+                    Timber.w(
+                        "SFTP: listed ${allFiles.size} file(s) under '$remotePath', " +
+                            "skipped ${skipped.size} unreadable director(y/ies): ${skipped.joinToString()}"
+                    )
+                }
             } else {
                 listFilesSingleLevel(channel, remotePath, allFiles, includeDirectories)
             }
@@ -244,11 +252,24 @@ class SftpClient @Inject constructor(
     private fun listFilesRecursive(
         channel: ChannelSftp,
         remotePath: String,
-        results: MutableList<SftpFileListing>
+        results: MutableList<SftpFileListing>,
+        skipped: MutableList<String>,
+        isRoot: Boolean = true
     ) {
         @Suppress("UNCHECKED_CAST")
-        val entries = channel.ls(remotePath) as Vector<ChannelSftp.LsEntry>
-        
+        val entries = try {
+            channel.ls(remotePath) as Vector<ChannelSftp.LsEntry>
+        } catch (e: SftpException) {
+            // S2315: one unreadable subdirectory used to abort the whole walk, so a share with a
+            // single ACL-broken folder reported zero files and read as an empty resource. The root
+            // is different: failing there means the resource itself is gone, which the caller must
+            // see as an error rather than as an empty folder.
+            if (isRoot) throw e
+            skipped.add(remotePath)
+            Timber.w("SFTP: skipping unreadable directory '$remotePath' - ${e.message}")
+            return
+        }
+
         entries.forEach { entry ->
             if (entry.filename != "." && entry.filename != "..") {
                 val fullPath = if (remotePath.endsWith("/")) {
@@ -259,7 +280,7 @@ class SftpClient @Inject constructor(
                 
                 if (entry.attrs.isDir) {
                     // Recursively scan subdirectory - directory itself is not added to results
-                    listFilesRecursive(channel, fullPath, results)
+                    listFilesRecursive(channel, fullPath, results, skipped, isRoot = false)
                 } else {
                     results.add(
                         SftpFileListing(

@@ -1,11 +1,13 @@
 package com.sza.fastmediasorter.ui.common.widget
 
 import android.content.Context
+import android.text.TextUtils
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -40,7 +42,7 @@ class SettingsDropdownRow @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
-) : LinearLayout(context, attrs, defStyleAttr) {
+) : LinearLayout(context, attrs, defStyleAttr), LabelColumnRow {
 
     private val binding = ViewSettingsDropdownRowBinding.inflate(LayoutInflater.from(context), this)
 
@@ -305,17 +307,21 @@ class SettingsDropdownRow @JvmOverloads constructor(
     }
 
     /**
-     * Value text mode: the outlined field is dropped and the chosen entry is drawn right after the
-     * title, so this row reads identically to the SettingsSelectionRow rows it sits beside.
-     * The whole row becomes the trigger, since there is no field left to click.
+     * Value text mode: the outlined field is dropped and the chosen entry is drawn on the title line,
+     * so this row reads identically to the SettingsSelectionRow rows it sits beside - same value style,
+     * same trailing chevron. The whole row becomes the trigger, since there is no field left to click.
      */
     private fun applyValueAsTextLayout() {
         orientation = HORIZONTAL
         gravity = android.view.Gravity.CENTER_VERTICAL
         textGroup.updateLayoutParams<LayoutParams> {
-            width = 0
-            weight = 1f
+            width = LayoutParams.WRAP_CONTENT
+            weight = 0f
         }
+        binding.sdrTitleLine.updateLayoutParams<ViewGroup.LayoutParams> {
+            width = ViewGroup.LayoutParams.WRAP_CONTENT
+        }
+        binding.sdrTitleLineSpacer.visibility = View.GONE
         inputLayout.visibility = View.GONE
         valueTextView.visibility = View.VISIBLE
         valueTextIcon.visibility = View.VISIBLE
@@ -330,6 +336,57 @@ class SettingsDropdownRow @JvmOverloads constructor(
         val background = TypedValue()
         context.theme.resolveAttribute(android.R.attr.selectableItemBackground, background, true)
         if (background.resourceId != 0) setBackgroundResource(background.resourceId)
+    }
+
+    /**
+     * Natural width of the title plus its help icon, measured unconstrained so an already applied
+     * column width is never fed back to [SettingsValueRowGroup].
+     */
+    override fun measureLabelNaturalWidth(): Int {
+        val unbounded = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
+        titleView.measure(unbounded, unbounded)
+        var width = titleView.measuredWidth
+        if (helpIcon.visibility == View.VISIBLE) {
+            helpIcon.measure(unbounded, unbounded)
+            width += helpIcon.measuredWidth + resources.getDimensionPixelSize(R.dimen.settings_help_icon_margin)
+        }
+        return width
+    }
+
+    /**
+     * Width of the value plus the trailing chevron and their gaps - what the row needs to the right
+     * of its label column.
+     */
+    override fun measureTrailingNaturalWidth(): Int {
+        val unbounded = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
+        var width = resources.getDimensionPixelSize(R.dimen.margin_medium)
+        if (valueTextView.visibility != View.GONE) {
+            valueTextView.measure(unbounded, unbounded)
+            width += valueTextView.measuredWidth
+        }
+        if (valueTextIcon.visibility != View.GONE) {
+            width += resources.getDimensionPixelSize(R.dimen.settings_help_icon_size) +
+                resources.getDimensionPixelSize(R.dimen.settings_help_icon_margin)
+        }
+        return width
+    }
+
+    /**
+     * Pins the label column so the value starts where its siblings' values start. The value still
+     * follows the label immediately - the column is sized by the longest caption, not by the row -
+     * and carries a readable gap, because on the longest row the column ends exactly where the
+     * caption does and the two texts would otherwise touch.
+     * Zero restores the row's own hug layout, for when the group decided a column does not fit.
+     */
+    override fun applyLabelColumnWidth(widthPx: Int) {
+        val column = widthPx > 0
+        titleView.maxLines = if (column) 1 else Int.MAX_VALUE
+        titleView.ellipsize = if (column) TextUtils.TruncateAt.END else null
+        binding.sdrTitleCluster.updateLayoutParams<LinearLayout.LayoutParams> {
+            width = if (column) widthPx else LayoutParams.WRAP_CONTENT
+            weight = 0f
+            marginEnd = if (column) resources.getDimensionPixelSize(R.dimen.margin_medium) else 0
+        }
     }
 
     private fun syncHelpVisibility() {

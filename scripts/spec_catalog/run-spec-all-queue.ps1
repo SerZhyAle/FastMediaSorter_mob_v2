@@ -75,7 +75,11 @@ $instanceLockPath = Join-Path $rootPath 'temp\spec-all-queue.lock'
 $pwshCommand = (Get-Command pwsh -ErrorAction Stop).Source
 $driverSessionId = "queue-driver-$PID"
 $terminalStatuses = @('Implemented', 'Verified')
-$ticketPattern = '^\s*(?<release>\d+|--)\s+(?<ticket>S\d{4}_[a-z0-9][a-z0-9-]*)\s+(?<changed>\d{4}-\d{2}-\d{2})\s+(?<status>\S(?:.*\S)?)\s*$'
+# The optional trailing group is the live-occupancy marker the release files carry since
+# 2026-09-01 ('[taken 15:42, /spec-all, be08adb0]'). Without it every taken row reads as a
+# malformed line and this runner exits 2 on the owner's own plan; the status group is lazy so
+# the marker cannot be swallowed into the status instead.
+$ticketPattern = '^\s*(?<release>\d+|--)\s+(?<ticket>S\d{4}_[a-z0-9][a-z0-9-]*)\s+(?<changed>\d{4}-\d{2}-\d{2})\s+(?<status>\S(?:.*?\S)?)(?:\s+\[taken\s[^\]]*\])?\s*$'
 
 function Get-CatalogRecord {
     param([Parameter(Mandatory)][string] $TicketId)

@@ -4,6 +4,7 @@ import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.AdaptiveIconDrawable
 import android.graphics.drawable.ColorDrawable
+import android.view.ContextThemeWrapper
 import android.widget.ImageView
 import com.sza.fastmediasorter.R
 import org.junit.Assert.assertEquals
@@ -66,8 +67,15 @@ class LauncherSignalIconBinderTest {
         assertEquals(LauncherSignalIconBinder.Resolved.FromResource(R.drawable.ic_apps), resolved)
     }
 
-    private fun imageView(padding: Int): ImageView = ImageView(RuntimeEnvironment.getApplication()).apply {
-        setPadding(padding, padding, padding, padding)
+    // Theme.FastMediaSorter and not merely "some Material theme": it is the <application> theme, and
+    // LauncherHomeActivity declares none of its own, so it is what the binder reads colorOnSurface from in
+    // the live launcher. The application context alone carries the system default theme, where that
+    // attribute does not exist and MaterialColors.getColor throws.
+    private fun imageView(padding: Int): ImageView {
+        val themed = ContextThemeWrapper(RuntimeEnvironment.getApplication(), R.style.Theme_FastMediaSorter)
+        return ImageView(themed).apply {
+            setPadding(padding, padding, padding, padding)
+        }
     }
 
     private companion object {

@@ -14,14 +14,31 @@
     bytes cost nothing per turn - deleting them saves nothing that is billed and loses the
     trap they record. That is why this gate has exactly one size rule.
 
-    Three advisory checks ride along, all correctness rather than cost, and all advisory on
-    purpose: a hard failure on any would train the operator to bypass the gate.
-      - dead paths   - a memory file naming a repo path that no longer exists.
-      - expired      - a memory file whose every `Sxxxx` reference is Archived or absent from
-                       the catalog. 52% of memory bytes are anchored to tickets that are gone.
+    Three correctness checks ride along beside the size rule.
+      - dead paths   - a memory file naming a repo path that no longer exists. ADVISORY: a path
+                       in prose can be an illustrative example rather than a claim about the tree.
+      - self-expiry  - a memory file whose own prose declares the condition under which it
+                       should be removed ("delete this memory when ..", "this snapshot decays").
+                       ADVISORY: only the reader can judge whether the stated condition is met.
       - broken links - a `[[target]]` cross-link that resolves to no other memory's frontmatter
                        `name:` value, even allowing the file-stem / kebab-stem / no-type-prefix
-                       fallbacks a human author actually writes (S1345).
+                       fallbacks a human author actually writes (S1345). FATAL under -Gate since
+                       S2308: unlike the two above this admits no judgement call - the target
+                       either exists or it does not - so its legitimate population is exactly
+                       zero and a ratchet would only record debt nobody is going to pay. The
+                       other two stay advisory precisely because they do produce false positives,
+                       and a gate that fails on those trains the operator to bypass it.
+
+    S2308 removed a fourth check - "references only dead tickets", every `Sxxxx` in the file
+    being Archived or absent. A memory is written precisely so its lesson outlives the ticket
+    that taught it, so ticket liveness measures the age of an anchor and not the decay of a
+    claim. Measured 2026-09-01 over this corpus: it fired on 269 of the 342 ticket-anchored
+    files and 3 of those were genuinely dead - about 1% precision - while printing 18090 B of
+    the run's 21206 B output into the context of every closure that touched memory. Narrowing
+    it did not rescue it (adding `type: project` plus unreachability reached 7%; a vanished
+    `temp/` path reached 11%). Self-expiry replaced it because it was the one criterion that
+    reached 100%, and it does so because the AUTHOR declares the expiry rather than the machine
+    inferring it from an anchor.
 
 .PARAMETER Path
     The memory index to judge. Defaults to the android-rd-specialist MEMORY.md.
@@ -38,12 +55,13 @@
     Soft target. Between it and MaxBytes the gate warns. Default 6000.
 
 .PARAMETER Gate
-    Exit 1 when the index is above MaxBytes. Without it the run only reports.
+    Exit 1 when the index is above MaxBytes, or when any `[[link]]` resolves to nothing.
+    Without it the run only reports.
 
 .NOTES
     Exit codes (CLAUDE.md Rule 7):
-      0  at or below MaxBytes, or a report-only run.
-      1  -Gate and the index is above MaxBytes.
+      0  at or below MaxBytes with every link resolving, or a report-only run.
+      1  -Gate and the index is above MaxBytes, or -Gate and a `[[link]]` is unresolvable.
       2  cannot verify - the index or the memory directory does not exist.
 
 .EXAMPLE
@@ -130,31 +148,36 @@ foreach ($file in Get-ChildItem -LiteralPath $memoryDir -Filter '*.md' -File) {
     }
 }
 
-# --- advisory 2: memory anchored only to tickets that are gone ---------------------------
-$liveIds = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
-$catalog = Join-Path $repoRoot 'PLAN/spec-catalog.jsonl'
-if (Test-Path -LiteralPath $catalog) {
-    foreach ($line in Get-Content -LiteralPath $catalog -Encoding UTF8) {
-        $t = "$line".Trim()
-        if (-not $t) { continue }
-        try { $rec = $t | ConvertFrom-Json } catch { continue }
-        if ($rec.status -ne 'Archived') { [void]$liveIds.Add([string]$rec.id) }
-    }
+# A memory file is allowed to WRITE ABOUT links and about expiry phrasing, and the file that
+# documents those two rules is the one most likely to quote them. Quoting is what a code span is
+# for, so both scans below read a copy with every fenced block and inline span blanked out - to
+# spaces, not removed, so match offsets still index the original text. Without this the checks
+# punish the only file that explains them, and the link check is fatal (S2308).
+function Get-TextOutsideCodeSpans {
+    param([string]$Text)
+    $blank = { param($m) ' ' * $m.Value.Length }
+    $t = [regex]::Replace($Text, '(?s)```.*?```', $blank)
+    return [regex]::Replace($t, '`[^`\r\n]*`', $blank)
 }
 
-$ticketRx = [regex]'\bS\d{4}\b'
-$expired = @()
+# --- advisory 2: memory that declared its own expiry condition (S2308) -------------------
+# Only the author knows whether a claim is durable or a snapshot, so this reads the declaration
+# instead of inferring one. The matched sentence is reported, so the reader can judge whether
+# the stated condition has been met without opening the file.
+$selfExpiryRx = [regex]'(?i)((?:delete|remove|drop|retire)\s+this\s+(?:memory|file|entry|note)|this\s+(?:snapshot|memory|list|note)\s+decays)'
+$selfExpiring = @()
 foreach ($file in Get-ChildItem -LiteralPath $memoryDir -Filter '*.md' -File) {
     if ($file.Name -eq 'MEMORY.md') { continue }
     $text = Get-Content -LiteralPath $file.FullName -Raw -ErrorAction SilentlyContinue
     if (-not $text) { continue }
-    $ids = @($ticketRx.Matches($text) | ForEach-Object { $_.Value } | Select-Object -Unique)
-    # No ticket id means the memory is not anchored to one - it cannot expire with a ticket.
-    if ($ids.Count -eq 0) { continue }
-    $aliveIds = @($ids | Where-Object { $liveIds.Contains($_) })
-    if ($aliveIds.Count -eq 0) {
-        $expired += [pscustomobject]@{ File = $file.Name; Ids = $ids }
-    }
+    $m = $selfExpiryRx.Match((Get-TextOutsideCodeSpans $text))
+    if (-not $m.Success) { continue }
+    # Quote the surrounding sentence rather than the trigger phrase - the condition is what the
+    # reader has to evaluate, and it sits next to the trigger, not inside it.
+    $from = [Math]::Max(0, $m.Index - 60)
+    $to = [Math]::Min($text.Length, $m.Index + $m.Length + 90)
+    $quote = ($text.Substring($from, $to - $from) -replace '\s+', ' ').Trim()
+    $selfExpiring += [pscustomobject]@{ File = $file.Name; Quote = $quote }
 }
 
 # --- advisory 3: [[link]] cross-references that resolve to no other memory (S1345) -------
@@ -187,7 +210,7 @@ foreach ($file in Get-ChildItem -LiteralPath $memoryDir -Filter '*.md' -File) {
     $text = Get-Content -LiteralPath $file.FullName -Raw -ErrorAction SilentlyContinue
     if (-not $text) { continue }
     $missing = @()
-    foreach ($m in $linkRx.Matches($text)) {
+    foreach ($m in $linkRx.Matches((Get-TextOutsideCodeSpans $text))) {
         $target = $m.Groups[1].Value -replace '\.md$', ''
         if (-not $resolvable.Contains($target)) { $missing += $m.Groups[1].Value }
     }
@@ -211,17 +234,23 @@ if ($deadPaths.Count -gt 0) {
     Write-Host ("  advisory: {0} memory file(s) name a path that no longer exists:" -f $deadPaths.Count) -ForegroundColor Yellow
     foreach ($d in $deadPaths) { Write-Host ("    {0} -> {1}" -f $d.File, ($d.Paths -join ', ')) -ForegroundColor Yellow }
 }
-if ($expired.Count -gt 0) {
-    Write-Host ("  advisory: {0} memory file(s) reference only dead tickets:" -f $expired.Count) -ForegroundColor Yellow
-    foreach ($e in $expired) { Write-Host ("    {0} -> {1}" -f $e.File, ($e.Ids -join ', ')) -ForegroundColor Yellow }
+if ($selfExpiring.Count -gt 0) {
+    Write-Host ("  advisory: {0} memory file(s) declare their own expiry condition - check whether it is met:" -f $selfExpiring.Count) -ForegroundColor Yellow
+    foreach ($e in $selfExpiring) { Write-Host ("    {0} -> ..{1}.." -f $e.File, $e.Quote) -ForegroundColor Yellow }
 }
 if ($brokenLinks.Count -gt 0) {
-    Write-Host ("  advisory: {0} memory file(s) carry an unresolvable [[link]]:" -f $brokenLinks.Count) -ForegroundColor Yellow
-    foreach ($b in $brokenLinks) { Write-Host ("    {0} -> {1}" -f $b.File, ($b.Targets -join ', ')) -ForegroundColor Yellow }
+    $linkColour = if ($Gate) { 'Red' } else { 'Yellow' }
+    Write-Host ("  {0}: {1} memory file(s) carry an unresolvable [[link]]:" -f $(if ($Gate) { 'FAIL' } else { 'advisory' }), $brokenLinks.Count) -ForegroundColor $linkColour
+    foreach ($b in $brokenLinks) { Write-Host ("    {0} -> {1}" -f $b.File, ($b.Targets -join ', ')) -ForegroundColor $linkColour }
 }
 
 if ($Gate -and $bytes -gt $MaxBytes) {
     Write-Error ("assert-memory-budget: FAIL - {0} B exceeds the {1} B ceiling by {2} B. MEMORY.md is billed on every turn of every session; merge or drop pointer lines." -f $bytes, $MaxBytes, $overshoot) -ErrorAction Continue
+    exit 1
+}
+
+if ($Gate -and $brokenLinks.Count -gt 0) {
+    Write-Error ("assert-memory-budget: FAIL - {0} memory file(s) point at a target that does not exist. Retarget the link to the memory the sentence means, name the governing rule instead, or drop the pointer and keep the prose - never add a memory file to satisfy a link." -f $brokenLinks.Count) -ErrorAction Continue
     exit 1
 }
 

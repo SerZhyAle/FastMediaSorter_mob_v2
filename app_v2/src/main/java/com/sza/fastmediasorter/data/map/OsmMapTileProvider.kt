@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.SystemClock
 import com.sza.fastmediasorter.domain.map.MapTileProvider
 import com.sza.fastmediasorter.domain.model.map.MapPoint
+import com.sza.fastmediasorter.util.WebMercatorTile
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -15,11 +16,6 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
-import kotlin.math.PI
-import kotlin.math.asinh
-import kotlin.math.floor
-import kotlin.math.pow
-import kotlin.math.tan
 
 /**
  * S1175: one static OpenStreetMap tile per cell, cached on disk.
@@ -55,8 +51,8 @@ class OsmMapTileProvider @Inject constructor(
     override val attribution: String = "© OpenStreetMap contributors"
 
     override suspend fun tileFor(point: MapPoint, zoom: Int): String? = withContext(Dispatchers.IO) {
-        val x = tileX(point.longitude, zoom)
-        val y = tileY(point.latitude, zoom)
+        val x = WebMercatorTile.tileX(point.longitude, zoom)
+        val y = WebMercatorTile.tileY(point.latitude, zoom)
         val cached = File(cacheDir(), "tile_${zoom}_${x}_$y.png")
         when {
             cached.isFile && isWithinRetention(cached, System.currentTimeMillis()) -> cached.absolutePath
@@ -139,22 +135,6 @@ class OsmMapTileProvider @Inject constructor(
     private fun isWithinRetention(file: File, nowMs: Long): Boolean =
         nowMs - file.lastModified() < RETENTION_MS
 
-    /** Web Mercator, the tile addressing every OSM-compatible source shares. */
-    private fun tileX(longitude: Double, zoom: Int): Int =
-        clamp((longitude + HALF_TURN_DEGREES) / FULL_TURN_DEGREES * tileCount(zoom), zoom)
-
-    private fun tileY(latitude: Double, zoom: Int): Int {
-        val radians = latitude * PI / HALF_TURN_DEGREES
-        val projected = asinh(tan(radians)) / PI
-        return clamp((1.0 - projected) / 2.0 * tileCount(zoom), zoom)
-    }
-
-    /** The antimeridian and the poles land exactly on the edge, where the index is one past the last. */
-    private fun clamp(raw: Double, zoom: Int): Int =
-        floor(raw).toInt().coerceIn(0, tileCount(zoom).toInt() - 1)
-
-    private fun tileCount(zoom: Int): Double = 2.0.pow(zoom)
-
     companion object {
         /** Wide enough to show the surrounding streets, narrow enough to stay one tile. */
         const val DEFAULT_ZOOM = 15
@@ -177,7 +157,5 @@ class OsmMapTileProvider @Inject constructor(
 
         /** One cell shows one tile; this many covers a long trip without unbounded growth. */
         private const val MAX_CACHED_TILES = 128
-        private const val HALF_TURN_DEGREES = 180.0
-        private const val FULL_TURN_DEGREES = 360.0
     }
 }

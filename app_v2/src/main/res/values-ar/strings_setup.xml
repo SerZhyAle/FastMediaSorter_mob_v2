@@ -170,5 +170,13 @@
     <string name="welcome_role_sources_detail_cloud_only">تخزين الجهاز، Google Drive، OneDrive، Dropbox</string>
     <string name="welcome_role_sources_detail_local_only">التخزين الداخلي وبطاقة SD</string>
     <string name="welcome_role_sorting_detail">أرسل الملف إلى مجلده بنقرة واحدة</string>
-    <string name="welcome_role_more_detail">بثوث وكاميرا وغيرها - تطبيق واحد بدل كثير</string>
+    <string name="welcome_role_more_detail">الكاميرا والأدوات المصغّرة والإضافات وأكثر - تطبيق واحد بدل كثير</string>
+    <string name="welcome_description_1_shell">ليس مجرد تطبيق وسائط - بل واجهة كاملة لجهازك.\nالشاشة الرئيسية والمشغّل ومدير الملفات والبثّ والتخزين البعيد في مكان واحد.</string>
+    <string name="welcome_description_1_details_shell">يستطيع FastMediaSorter إدارة الجهاز بالكامل: شاشة رئيسية بتطبيقاتك وأدواتك المصغّرة واختصاراتك، ومشغّل للصور والفيديو والموسيقى والكتب، ومدير ملفات للتخزين المحلي والشبكي والسحابي، وبثّ عبر الإنترنت وتطبيق مرافق لـ Wear OS - وفوق ذلك كله، فرز سريع بلمسة واحدة.\n\nهل تريده شاشتك الرئيسية؟ فعّل المفتاح أعلاه وسيطلب منك النظام التأكيد بعد الإعداد. كل ما تختاره في هذه الشاشة يمكن تغييره لاحقًا في الإعدادات، فلا يوجد خيار خاطئ هنا - اضغط التالي للمتابعة.</string>
+    <string name="welcome_role_home_screen">الشاشة الرئيسية</string>
+    <string name="welcome_role_home_screen_detail">يدير الجهاز بدل المشغّل - التطبيقات والأدوات والوسائط في متناول يدك</string>
+    <string name="welcome_role_streams">البثّ</string>
+    <string name="welcome_role_streams_detail">راديو وقنوات تلفزيون وفيديو عبر الإنترنت من دليل جاهز</string>
+    <string name="welcome_role_wear">تطبيق الساعة</string>
+    <string name="welcome_role_wear_detail">تطبيق مرافق لـ Wear OS - تصفّح وشغّل من معصمك مباشرة</string>
 </resources>

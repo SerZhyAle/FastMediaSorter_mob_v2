@@ -20,6 +20,7 @@
     { "field": "launcherWallpaperCameraId", "reason": "lens id enumerated by this device's own camera subsystem - a profile names a class of devices, so an id valid on one member is absent on the rest (S2076)" },
     { "field": "launcherWidgetBackdropAlpha", "reason": "launcher desktop tuning - user setting for widget backdrop opacity" },
     { "field": "launcherWeatherLastLocation", "reason": "the city the user picked for a weather block - a profile names a class of devices, and where someone lives is not a property of his phone model (S2213)" },
+    { "field": "launcherScreenCount", "reason": "how many desktop pages the person keeps - gadget and shortcut placements are stored per screen index, so a profile lowering the count would strand arrangements the user made himself (S2295)" },
     { "field": "frontFlashlightColor", "reason": "personal taste - the flashlight glow colour is the user's pick, and the default white is already what every device class wants (S1796)" },
 
     { "field": "screenCaptureDisclosureAccepted", "reason": "consent - only the user can give it" },
@@ -74,7 +75,16 @@
     { "field": "launcherDesktopSwipeUpAction", "reason": "launcher gesture action - personal gesture assignment rather than a device-class default" },
     { "field": "launcherDesktopSwipeDownAction", "reason": "launcher gesture action - personal gesture assignment rather than a device-class default" },
     { "field": "launcherDesktopSwipeLeftAction", "reason": "launcher gesture action - personal gesture assignment rather than a device-class default" },
-    { "field": "launcherDesktopSwipeRightAction", "reason": "launcher gesture action - personal gesture assignment rather than a device-class default" }
+    { "field": "launcherDesktopSwipeRightAction", "reason": "launcher gesture action - personal gesture assignment rather than a device-class default" },
+    { "field": "launcherAllAppsSwipeUpPayload", "reason": "gesture payload - a target path or package meaningful only on this install" },
+    { "field": "launcherAllAppsSwipeDownPayload", "reason": "gesture payload - a target path or package meaningful only on this install" },
+    { "field": "launcherAllAppsSwipeLeftPayload", "reason": "gesture payload - a target path or package meaningful only on this install" },
+    { "field": "launcherAllAppsSwipeRightPayload", "reason": "gesture payload - a target path or package meaningful only on this install" },
+    { "field": "launcherAllAppsSwipeUpAction", "reason": "launcher gesture action - personal gesture assignment rather than a device-class default, decided as one family with the desktop swipe rows above (S2304)" },
+    { "field": "launcherAllAppsSwipeDownAction", "reason": "launcher gesture action - personal gesture assignment rather than a device-class default, decided as one family with the desktop swipe rows above (S2304)" },
+    { "field": "launcherAllAppsSwipeLeftAction", "reason": "launcher gesture action - personal gesture assignment rather than a device-class default, decided as one family with the desktop swipe rows above (S2304)" },
+    { "field": "launcherAllAppsSwipeRightAction", "reason": "launcher gesture action - personal gesture assignment rather than a device-class default, decided as one family with the desktop swipe rows above (S2304)" },
+    { "field": "launcher", "reason": "container, not a setting - S2300 nested the launcher group to get AppSettings back under the JVM descriptor ceiling, and every member is still surfaced individually through a read-through property that carries its own decision here or in the CSV. A profile presets members, never the group object" }
   ],
 
   "reviewed": [
@@ -141,6 +151,7 @@
     { "field": "enableWearCompanion", "reason": "reviewed for release 35 - depends on a paired watch existing rather than on the device class, and the companion is flavor-gated (S1538)" },
     { "field": "enableSystemInfo", "reason": "reviewed for release 35 - a diagnostics surface opened deliberately; no device class needs it on by default (S1538)" },
     { "field": "launcherTrayShowSpeed", "reason": "reviewed for release 35 - launcher status tray toggle; shared default holds (S1538)" },
-    { "field": "disableAnimations", "reason": "reviewed for release 36 - motion sensitivity and power saving preference; false is the default across all device classes (S2209)" }
+    { "field": "disableAnimations", "reason": "reviewed for release 36 - motion sensitivity and power saving preference; false is the default across all device classes (S2209)" },
+    { "field": "launcherDensityFactor", "reason": "reviewed for release 36 - the dense grid became the shared default, so the four profiles that carried 1.25 were repeating it and the tablet's 1.0 only ever repeated the default before it; the row stays presettable and a profile that genuinely needs looser spacing fills its cell again (S2320)" }
   ]
 }

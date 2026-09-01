@@ -8,9 +8,11 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.LauncherAllAppsSwipeAction
 import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.launcher.InstalledAppSortOrder
+import com.sza.fastmediasorter.domain.model.launcher.LauncherSettings
 import timber.log.Timber
 
 /**
@@ -66,6 +68,22 @@ object LauncherSettingsStore {
         stringPreferencesKey("launcher_desktop_swipe_left_payload")
     private val KEY_LAUNCHER_DESKTOP_SWIPE_RIGHT_PAYLOAD =
         stringPreferencesKey("launcher_desktop_swipe_right_payload")
+    private val KEY_LAUNCHER_ALL_APPS_SWIPE_UP_ACTION =
+        stringPreferencesKey("launcher_all_apps_swipe_up_action")
+    private val KEY_LAUNCHER_ALL_APPS_SWIPE_DOWN_ACTION =
+        stringPreferencesKey("launcher_all_apps_swipe_down_action")
+    private val KEY_LAUNCHER_ALL_APPS_SWIPE_LEFT_ACTION =
+        stringPreferencesKey("launcher_all_apps_swipe_left_action")
+    private val KEY_LAUNCHER_ALL_APPS_SWIPE_RIGHT_ACTION =
+        stringPreferencesKey("launcher_all_apps_swipe_right_action")
+    private val KEY_LAUNCHER_ALL_APPS_SWIPE_UP_PAYLOAD =
+        stringPreferencesKey("launcher_all_apps_swipe_up_payload")
+    private val KEY_LAUNCHER_ALL_APPS_SWIPE_DOWN_PAYLOAD =
+        stringPreferencesKey("launcher_all_apps_swipe_down_payload")
+    private val KEY_LAUNCHER_ALL_APPS_SWIPE_LEFT_PAYLOAD =
+        stringPreferencesKey("launcher_all_apps_swipe_left_payload")
+    private val KEY_LAUNCHER_ALL_APPS_SWIPE_RIGHT_PAYLOAD =
+        stringPreferencesKey("launcher_all_apps_swipe_right_payload")
     private val KEY_LAUNCHER_WALLPAPER_MODE = stringPreferencesKey("launcher_wallpaper_mode")
     private val KEY_LAUNCHER_WALLPAPER_IMAGE_PATH = stringPreferencesKey("launcher_wallpaper_image_path")
     private val KEY_LAUNCHER_WALLPAPER_CAMERA_ID = stringPreferencesKey("launcher_wallpaper_camera_id")
@@ -79,172 +97,129 @@ object LauncherSettingsStore {
     private val KEY_LAUNCHER_STEPS_RESET_COUNT = longPreferencesKey("launcher_steps_reset_count")
     private val KEY_LAUNCHER_STEPS_RESET_TIMESTAMP = longPreferencesKey("launcher_steps_reset_timestamp")
 
-    /** Launcher desktop fields read from DataStore, ready for [AppSettings]. */
-    data class Values(
-        val launcherDensityFactor: Float,
-        val launcherScreenCount: Int,
-        val launcherTaskbarShowRecents: Boolean,
-        val launcherTaskbarShowPinned: Boolean,
-        val launcherTaskbarShowTray: Boolean,
-        val launcherTrayShowClock: Boolean,
-        val launcherTrayShowBluetooth: Boolean,
-        val launcherTrayShowSim1: Boolean,
-        val launcherTrayShowSim2: Boolean,
-        val launcherTrayShowNetwork: Boolean,
-        val launcherTrayShowBattery: Boolean,
-        val launcherTrayShowSpeed: Boolean,
-        val launcherReplaceSystemStatusArea: Boolean,
-        val launcherTopStatusStripMode: Boolean,
-        val launcherForeignNotificationsEnabled: Boolean,
-        val launcherTaskbarPlacement: String,
-        val launcherRotationHintShown: Boolean,
-        val launcherDesktopLocked: Boolean,
-        val launcherDesktopDoubleTapLockEnabled: Boolean,
-        val launcherDesktopSwipeUpAction: LauncherDesktopSwipeAction,
-        val launcherDesktopSwipeDownAction: LauncherDesktopSwipeAction,
-        val launcherDesktopSwipeLeftAction: LauncherDesktopSwipeAction,
-        val launcherDesktopSwipeRightAction: LauncherDesktopSwipeAction,
-        val launcherDesktopSwipeUpPayload: String,
-        val launcherDesktopSwipeDownPayload: String,
-        val launcherDesktopSwipeLeftPayload: String,
-        val launcherDesktopSwipeRightPayload: String,
-        val launcherWallpaperMode: String,
-        val launcherWallpaperImagePath: String,
-        val launcherWallpaperCameraId: String,
-        val allAppsSortOrder: String,
-        val allAppsSortDescending: Boolean,
-        val launcherScreenBlackoutTimeoutSeconds: Int,
-        val launcherWidgetBackdropAlpha: Float,
-        val launcherWeatherLastLocation: String,
-        val launcherStepsResetCount: Long,
-        val launcherStepsResetTimestamp: Long,
-    )
-
     // S0404: absent keys resolve to auto density + full taskbar (S2017: except the tray clock, off by
     // default), hidden system status bar and foreign-notification badges on (S2017 ADR-1).
-    fun read(preferences: Preferences): Values = Values(
-        launcherDensityFactor = preferences.getOrDefault(KEY_LAUNCHER_DENSITY_FACTOR, 1.0f),
-        launcherScreenCount = preferences.getOrDefault(
+    fun read(preferences: Preferences): LauncherSettings =
+        withAllAppsSwipes(readCore(preferences), preferences)
+
+    /**
+     * S2304: the All apps panel slots are applied here rather than inline, because [readCore] sits at the
+     * function-length ceiling and one more slot family would push it over.
+     */
+    private fun withAllAppsSwipes(base: LauncherSettings, preferences: Preferences): LauncherSettings =
+        base.copy(
+            allAppsSwipeUpAction = LauncherAllAppsSwipeAction.fromName(
+                preferences[KEY_LAUNCHER_ALL_APPS_SWIPE_UP_ACTION],
+                LauncherAllAppsSwipeAction.ExpandAllApps,
+            ),
+            allAppsSwipeDownAction = LauncherAllAppsSwipeAction.fromName(
+                preferences[KEY_LAUNCHER_ALL_APPS_SWIPE_DOWN_ACTION],
+                LauncherAllAppsSwipeAction.BackToDesktop,
+            ),
+            allAppsSwipeLeftAction = LauncherAllAppsSwipeAction.fromName(
+                preferences[KEY_LAUNCHER_ALL_APPS_SWIPE_LEFT_ACTION],
+                LauncherAllAppsSwipeAction.Unassigned,
+            ),
+            allAppsSwipeRightAction = LauncherAllAppsSwipeAction.fromName(
+                preferences[KEY_LAUNCHER_ALL_APPS_SWIPE_RIGHT_ACTION],
+                LauncherAllAppsSwipeAction.Unassigned,
+            ),
+            allAppsSwipeUpPayload = preferences.getOrDefault(KEY_LAUNCHER_ALL_APPS_SWIPE_UP_PAYLOAD, ""),
+            allAppsSwipeDownPayload = preferences.getOrDefault(KEY_LAUNCHER_ALL_APPS_SWIPE_DOWN_PAYLOAD, ""),
+            allAppsSwipeLeftPayload = preferences.getOrDefault(KEY_LAUNCHER_ALL_APPS_SWIPE_LEFT_PAYLOAD, ""),
+            allAppsSwipeRightPayload = preferences.getOrDefault(KEY_LAUNCHER_ALL_APPS_SWIPE_RIGHT_PAYLOAD, ""),
+        )
+
+    private fun readCore(preferences: Preferences): LauncherSettings = LauncherSettings(
+        // S2320: reads the canonical default rather than a literal - this line carried its own copy of
+        // the old 1.0f and would have kept a fresh install on the previous density after it moved.
+        densityFactor = preferences
+            .getOrDefault(KEY_LAUNCHER_DENSITY_FACTOR, AppSettings.DEFAULT_LAUNCHER_DENSITY_FACTOR),
+        screenCount = preferences.getOrDefault(
             KEY_LAUNCHER_SCREEN_COUNT,
             DEFAULT_LAUNCHER_SCREEN_COUNT
         ).coerceIn(MIN_LAUNCHER_SCREEN_COUNT, MAX_LAUNCHER_SCREEN_COUNT),
-        launcherTaskbarShowRecents = preferences.getOrDefault(KEY_LAUNCHER_TASKBAR_SHOW_RECENTS, true),
-        launcherTaskbarShowPinned = preferences.getOrDefault(KEY_LAUNCHER_TASKBAR_SHOW_PINNED, true),
-        launcherTaskbarShowTray = preferences.getOrDefault(KEY_LAUNCHER_TASKBAR_SHOW_TRAY, true),
+        taskbarShowRecents = preferences.getOrDefault(KEY_LAUNCHER_TASKBAR_SHOW_RECENTS, true),
+        taskbarShowPinned = preferences.getOrDefault(KEY_LAUNCHER_TASKBAR_SHOW_PINNED, true),
+        taskbarShowTray = preferences.getOrDefault(KEY_LAUNCHER_TASKBAR_SHOW_TRAY, true),
         // S2017: the one taskbar exception - duplicates the top bar's own clock once the status area is replaced.
-        launcherTrayShowClock = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_CLOCK, false),
-        launcherTrayShowBluetooth = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_BLUETOOTH, true),
-        launcherTrayShowSim1 = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_SIM1, true),
-        launcherTrayShowSim2 = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_SIM2, true),
-        launcherTrayShowNetwork = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_NETWORK, true),
-        launcherTrayShowBattery = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_BATTERY, true),
-        launcherTrayShowSpeed = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_SPEED, false),
+        trayShowClock = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_CLOCK, false),
+        trayShowBluetooth = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_BLUETOOTH, true),
+        trayShowSim1 = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_SIM1, true),
+        trayShowSim2 = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_SIM2, true),
+        trayShowNetwork = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_NETWORK, true),
+        trayShowBattery = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_BATTERY, true),
+        trayShowSpeed = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_SPEED, false),
         // S2017: hide the system status bar by default.
-        launcherReplaceSystemStatusArea = preferences.getOrDefault(KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA, true),
-        launcherTopStatusStripMode = preferences.getOrDefault(KEY_LAUNCHER_TOP_STATUS_STRIP_MODE, false),
+        replaceSystemStatusArea = preferences.getOrDefault(KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA, true),
+        topStatusStripMode = preferences.getOrDefault(KEY_LAUNCHER_TOP_STATUS_STRIP_MODE, false),
         // S2017 ADR-1: default flipped to ON, superseding S1465 ADR-4's off-by-default rationale.
-        launcherForeignNotificationsEnabled = preferences.getOrDefault(KEY_LAUNCHER_FOREIGN_NOTIFICATIONS, true),
+        foreignNotificationsEnabled = preferences.getOrDefault(KEY_LAUNCHER_FOREIGN_NOTIFICATIONS, true),
         // S1643: an unknown token (older/newer build, corrupted value) degrades to the bottom edge.
-        launcherTaskbarPlacement = preferences[KEY_LAUNCHER_TASKBAR_PLACEMENT]
+        taskbarPlacement = preferences[KEY_LAUNCHER_TASKBAR_PLACEMENT]
             ?.takeIf { it in AppSettings.LAUNCHER_TASKBAR_PLACEMENT_OPTIONS }
             ?: AppSettings.LAUNCHER_TASKBAR_PLACEMENT_BOTTOM,
-        launcherRotationHintShown = preferences.getOrDefault(KEY_LAUNCHER_ROTATION_HINT_SHOWN, false),
-        launcherDesktopLocked = preferences.getOrDefault(KEY_LAUNCHER_DESKTOP_LOCKED, false),
-        launcherDesktopDoubleTapLockEnabled = preferences.getOrDefault(
+        rotationHintShown = preferences.getOrDefault(KEY_LAUNCHER_ROTATION_HINT_SHOWN, false),
+        desktopLocked = preferences.getOrDefault(KEY_LAUNCHER_DESKTOP_LOCKED, false),
+        desktopDoubleTapLockEnabled = preferences.getOrDefault(
             KEY_LAUNCHER_DESKTOP_DOUBLE_TAP_LOCK_ENABLED,
             true,
         ),
-        launcherDesktopSwipeUpAction = LauncherDesktopSwipeAction.fromName(
+        desktopSwipeUpAction = LauncherDesktopSwipeAction.fromName(
             preferences[KEY_LAUNCHER_DESKTOP_SWIPE_UP_ACTION],
             LauncherDesktopSwipeAction.OpenAllApps,
         ),
-        launcherDesktopSwipeDownAction = LauncherDesktopSwipeAction.fromName(
+        desktopSwipeDownAction = LauncherDesktopSwipeAction.fromName(
             preferences[KEY_LAUNCHER_DESKTOP_SWIPE_DOWN_ACTION],
             LauncherDesktopSwipeAction.EdgeGestureAction(ScreenshotGestureAction.OPEN_NOTIFICATION_SHADE),
         ),
-        launcherDesktopSwipeLeftAction = LauncherDesktopSwipeAction.fromName(
+        desktopSwipeLeftAction = LauncherDesktopSwipeAction.fromName(
             preferences[KEY_LAUNCHER_DESKTOP_SWIPE_LEFT_ACTION],
             LauncherDesktopSwipeAction.EdgeGestureAction(ScreenshotGestureAction.DO_NOT_USE),
         ),
-        launcherDesktopSwipeRightAction = LauncherDesktopSwipeAction.fromName(
+        desktopSwipeRightAction = LauncherDesktopSwipeAction.fromName(
             preferences[KEY_LAUNCHER_DESKTOP_SWIPE_RIGHT_ACTION],
             LauncherDesktopSwipeAction.EdgeGestureAction(ScreenshotGestureAction.DO_NOT_USE),
         ),
-        launcherDesktopSwipeUpPayload = preferences.getOrDefault(KEY_LAUNCHER_DESKTOP_SWIPE_UP_PAYLOAD, ""),
-        launcherDesktopSwipeDownPayload = preferences.getOrDefault(KEY_LAUNCHER_DESKTOP_SWIPE_DOWN_PAYLOAD, ""),
-        launcherDesktopSwipeLeftPayload = preferences.getOrDefault(KEY_LAUNCHER_DESKTOP_SWIPE_LEFT_PAYLOAD, ""),
-        launcherDesktopSwipeRightPayload = preferences.getOrDefault(KEY_LAUNCHER_DESKTOP_SWIPE_RIGHT_PAYLOAD, ""),
+        desktopSwipeUpPayload = preferences.getOrDefault(KEY_LAUNCHER_DESKTOP_SWIPE_UP_PAYLOAD, ""),
+        desktopSwipeDownPayload = preferences.getOrDefault(KEY_LAUNCHER_DESKTOP_SWIPE_DOWN_PAYLOAD, ""),
+        desktopSwipeLeftPayload = preferences.getOrDefault(KEY_LAUNCHER_DESKTOP_SWIPE_LEFT_PAYLOAD, ""),
+        desktopSwipeRightPayload = preferences.getOrDefault(KEY_LAUNCHER_DESKTOP_SWIPE_RIGHT_PAYLOAD, ""),
         // S1101: an unknown token (older/newer build, corrupted value) degrades to the branded default.
-        launcherWallpaperMode = preferences[KEY_LAUNCHER_WALLPAPER_MODE]
+        wallpaperMode = preferences[KEY_LAUNCHER_WALLPAPER_MODE]
             ?.takeIf { it in AppSettings.LAUNCHER_WALLPAPER_MODES }
             ?: AppSettings.LAUNCHER_WALLPAPER_BRANDED,
-        launcherWallpaperImagePath = preferences.getOrDefault(KEY_LAUNCHER_WALLPAPER_IMAGE_PATH, ""),
-        launcherWallpaperCameraId = preferences.getOrDefault(KEY_LAUNCHER_WALLPAPER_CAMERA_ID, ""),
+        wallpaperImagePath = preferences.getOrDefault(KEY_LAUNCHER_WALLPAPER_IMAGE_PATH, ""),
+        wallpaperCameraId = preferences.getOrDefault(KEY_LAUNCHER_WALLPAPER_CAMERA_ID, ""),
         // S1401: stored as an enum name; an unknown one degrades to the default order.
         allAppsSortOrder = InstalledAppSortOrder
             .fromNameOrDefault(preferences[KEY_ALL_APPS_SORT_ORDER]).name,
         allAppsSortDescending = preferences.getOrDefault(KEY_ALL_APPS_SORT_DESCENDING, false),
         // S1741: non-negative seconds (0 = Off)
-        launcherScreenBlackoutTimeoutSeconds = preferences
+        screenBlackoutTimeoutSeconds = preferences
             .getOrDefault(KEY_LAUNCHER_SCREEN_BLACKOUT_TIMEOUT_SECONDS, 0)
             .coerceAtLeast(0),
         // S1748: the widget backdrop opacity stored as a float, with the default matching the app's
         // launcher setting rows and the last chosen value surviving a restart.
-        launcherWidgetBackdropAlpha = preferences
-            .getOrDefault(KEY_LAUNCHER_WIDGET_BACKDROP_ALPHA, AppSettings.DEFAULT_LAUNCHER_WIDGET_BACKDROP_ALPHA),
+        // S2320: snapped to the option list on read, so an install carrying an alpha S2320 removed
+        // paints what its settings row shows instead of the two disagreeing.
+        widgetBackdropAlpha = AppSettings.snapLauncherWidgetBackdropAlpha(
+            preferences
+                .getOrDefault(KEY_LAUNCHER_WIDGET_BACKDROP_ALPHA, AppSettings.DEFAULT_LAUNCHER_WIDGET_BACKDROP_ALPHA)
+        ),
         // S2213: empty means the user has never picked a place, which is what a fresh install reads.
-        launcherWeatherLastLocation = preferences.getOrDefault(KEY_LAUNCHER_WEATHER_LAST_LOCATION, ""),
-        launcherStepsResetCount = preferences.getOrDefault(KEY_LAUNCHER_STEPS_RESET_COUNT, 0L),
-        launcherStepsResetTimestamp = preferences.getOrDefault(KEY_LAUNCHER_STEPS_RESET_TIMESTAMP, 0L),
+        weatherLastLocation = preferences.getOrDefault(KEY_LAUNCHER_WEATHER_LAST_LOCATION, ""),
+        stepsResetCount = preferences.getOrDefault(KEY_LAUNCHER_STEPS_RESET_COUNT, 0L),
+        stepsResetTimestamp = preferences.getOrDefault(KEY_LAUNCHER_STEPS_RESET_TIMESTAMP, 0L),
     )
 
     /**
      * S2213: copies the launcher group onto [settings].
      *
-     * The assembly lives here rather than in the repository's `AppSettings(..)` call because this object
-     * already owns the group - the repository only knew the field names, and every launcher setting added
-     * since made that call longer without making it more informative. Keeping it here also means one more
-     * launcher field costs one line in this file instead of two across two.
+     * S2300: one field now - the group is a nested [LauncherSettings], so a new launcher setting costs a
+     * line in that class and nothing here.
      */
-    fun applyTo(settings: AppSettings, values: Values): AppSettings = settings.copy(
-        launcherDensityFactor = values.launcherDensityFactor,
-        launcherScreenCount = values.launcherScreenCount,
-        launcherTaskbarShowRecents = values.launcherTaskbarShowRecents,
-        launcherTaskbarShowPinned = values.launcherTaskbarShowPinned,
-        launcherTaskbarShowTray = values.launcherTaskbarShowTray,
-        launcherTrayShowClock = values.launcherTrayShowClock,
-        launcherTrayShowBluetooth = values.launcherTrayShowBluetooth,
-        launcherTrayShowSim1 = values.launcherTrayShowSim1,
-        launcherTrayShowSim2 = values.launcherTrayShowSim2,
-        launcherTrayShowNetwork = values.launcherTrayShowNetwork,
-        launcherTrayShowBattery = values.launcherTrayShowBattery,
-        launcherTrayShowSpeed = values.launcherTrayShowSpeed,
-        launcherReplaceSystemStatusArea = values.launcherReplaceSystemStatusArea,
-        launcherTopStatusStripMode = values.launcherTopStatusStripMode,
-        launcherForeignNotificationsEnabled = values.launcherForeignNotificationsEnabled,
-        launcherTaskbarPlacement = values.launcherTaskbarPlacement,
-        launcherRotationHintShown = values.launcherRotationHintShown,
-        launcherDesktopLocked = values.launcherDesktopLocked,
-        launcherDesktopDoubleTapLockEnabled = values.launcherDesktopDoubleTapLockEnabled,
-        launcherDesktopSwipeUpAction = values.launcherDesktopSwipeUpAction,
-        launcherDesktopSwipeDownAction = values.launcherDesktopSwipeDownAction,
-        launcherDesktopSwipeLeftAction = values.launcherDesktopSwipeLeftAction,
-        launcherDesktopSwipeRightAction = values.launcherDesktopSwipeRightAction,
-        launcherDesktopSwipeUpPayload = values.launcherDesktopSwipeUpPayload,
-        launcherDesktopSwipeDownPayload = values.launcherDesktopSwipeDownPayload,
-        launcherDesktopSwipeLeftPayload = values.launcherDesktopSwipeLeftPayload,
-        launcherDesktopSwipeRightPayload = values.launcherDesktopSwipeRightPayload,
-        launcherWallpaperMode = values.launcherWallpaperMode,
-        launcherWallpaperImagePath = values.launcherWallpaperImagePath,
-        launcherWallpaperCameraId = values.launcherWallpaperCameraId,
-        allAppsSortOrder = values.allAppsSortOrder,
-        allAppsSortDescending = values.allAppsSortDescending,
-        launcherScreenBlackoutTimeoutSeconds = values.launcherScreenBlackoutTimeoutSeconds,
-        launcherWidgetBackdropAlpha = values.launcherWidgetBackdropAlpha,
-        launcherWeatherLastLocation = values.launcherWeatherLastLocation,
-        launcherStepsResetCount = values.launcherStepsResetCount,
-        launcherStepsResetTimestamp = values.launcherStepsResetTimestamp,
-    )
+    fun applyTo(settings: AppSettings, values: LauncherSettings): AppSettings = settings.copy(launcher = values)
 
     fun write(preferences: MutablePreferences, settings: AppSettings) {
         preferences[KEY_LAUNCHER_DENSITY_FACTOR] = settings.launcherDensityFactor
@@ -275,6 +250,18 @@ object LauncherSettingsStore {
         preferences[KEY_LAUNCHER_DESKTOP_SWIPE_DOWN_PAYLOAD] = settings.launcherDesktopSwipeDownPayload
         preferences[KEY_LAUNCHER_DESKTOP_SWIPE_LEFT_PAYLOAD] = settings.launcherDesktopSwipeLeftPayload
         preferences[KEY_LAUNCHER_DESKTOP_SWIPE_RIGHT_PAYLOAD] = settings.launcherDesktopSwipeRightPayload
+        preferences[KEY_LAUNCHER_ALL_APPS_SWIPE_UP_ACTION] =
+            settings.launcherAllAppsSwipeUpAction.persistedName
+        preferences[KEY_LAUNCHER_ALL_APPS_SWIPE_DOWN_ACTION] =
+            settings.launcherAllAppsSwipeDownAction.persistedName
+        preferences[KEY_LAUNCHER_ALL_APPS_SWIPE_LEFT_ACTION] =
+            settings.launcherAllAppsSwipeLeftAction.persistedName
+        preferences[KEY_LAUNCHER_ALL_APPS_SWIPE_RIGHT_ACTION] =
+            settings.launcherAllAppsSwipeRightAction.persistedName
+        preferences[KEY_LAUNCHER_ALL_APPS_SWIPE_UP_PAYLOAD] = settings.launcherAllAppsSwipeUpPayload
+        preferences[KEY_LAUNCHER_ALL_APPS_SWIPE_DOWN_PAYLOAD] = settings.launcherAllAppsSwipeDownPayload
+        preferences[KEY_LAUNCHER_ALL_APPS_SWIPE_LEFT_PAYLOAD] = settings.launcherAllAppsSwipeLeftPayload
+        preferences[KEY_LAUNCHER_ALL_APPS_SWIPE_RIGHT_PAYLOAD] = settings.launcherAllAppsSwipeRightPayload
         preferences[KEY_LAUNCHER_WALLPAPER_MODE] = settings.launcherWallpaperMode
         preferences[KEY_LAUNCHER_WALLPAPER_IMAGE_PATH] = settings.launcherWallpaperImagePath
         preferences[KEY_LAUNCHER_WALLPAPER_CAMERA_ID] = settings.launcherWallpaperCameraId

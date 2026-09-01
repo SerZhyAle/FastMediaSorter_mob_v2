@@ -12,10 +12,11 @@ import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.ui.settings.LauncherSettingsDialogFragment
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 /**
  * S1088: owns the System-launcher entry in General -> Interface: the enable toggle (reflects the HOME
- * component state, launches the system role request) plus the row that opens
+ * component state, launches the system role request) plus the button that opens
  * [LauncherSettingsDialogFragment] for the launcher's own settings. The whole pair is hidden when the
  * build has no launcher surface ([LauncherModeContract.isAvailableInBuild]).
  *
@@ -50,9 +51,10 @@ class GeneralSettingsLauncherHelper(
             }
             updateOpenRowEnabled(isChecked)
         }
-        binding.rowLauncherSettings.setOnRowClickListener {
+        binding.rowLauncherSettings.setOnClickListener {
             LauncherSettingsDialogFragment().show(fragment.childFragmentManager, LauncherSettingsDialogFragment.TAG)
         }
+        Timber.d("S2288: launcher entry wired as button, enabled=${launcherRoleManager.isModeEnabled()}")
         refreshState()
     }
 
@@ -64,7 +66,7 @@ class GeneralSettingsLauncherHelper(
         updateOpenRowEnabled(enabled)
     }
 
-    // The launcher-settings row only makes sense once the launcher is enabled - keep it inert otherwise.
+    // The launcher-settings button only makes sense once the launcher is enabled - keep it inert otherwise.
     private fun updateOpenRowEnabled(enabled: Boolean) {
         binding.rowLauncherSettings.isEnabled = enabled
     }

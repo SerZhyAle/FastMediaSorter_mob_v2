@@ -22,30 +22,54 @@ class LauncherSectionVisibilityRepositoryImpl @Inject constructor(
     // Consolidated SharedPreferences storage for collapsible sections
     private val store: CollapsibleSectionStore = SharedPreferencesCollapsibleSectionStore(context)
 
-    override fun isCollapsed(orientation: LauncherOrientation, sectionTarget: String): Boolean {
-        return !store.isExpanded(keyFor(orientation, sectionTarget), EXPANDED_BY_DEFAULT)
+    override fun isCollapsed(orientation: LauncherOrientation, screenIndex: Int, sectionTarget: String): Boolean {
+        return !store.isExpanded(keyFor(orientation, screenIndex, sectionTarget), EXPANDED_BY_DEFAULT)
     }
 
-    override fun reveal(orientation: LauncherOrientation, sectionTarget: String) {
-        setExpanded(orientation, sectionTarget, true)
+    override fun reveal(orientation: LauncherOrientation, screenIndex: Int, sectionTarget: String) {
+        setExpanded(orientation, screenIndex, sectionTarget, true)
     }
 
-    override fun setExpanded(orientation: LauncherOrientation, sectionTarget: String, expanded: Boolean) {
-        store.setExpanded(keyFor(orientation, sectionTarget), expanded)
+    override fun setExpanded(
+        orientation: LauncherOrientation,
+        screenIndex: Int,
+        sectionTarget: String,
+        expanded: Boolean,
+    ) {
+        store.setExpanded(keyFor(orientation, screenIndex, sectionTarget), expanded)
     }
 
-    /**
-     * Portrait and landscape are two independent layouts (strategic §6.3), so the orientation is part of
-     * the key: a section folded in one says nothing about the same section in the other.
-     */
-    private fun keyFor(orientation: LauncherOrientation, target: String): String =
-        "$KEY_SCREEN${orientation.name}__$target"
-
-    private companion object {
+    internal companion object {
         /** `<screen>__<section>` is the store's own key shape; the orientation joins the screen half. */
         const val KEY_SCREEN = "launcher_desktop__"
 
         /** Strategic §6.8: a section is open until the user folds it, so "visible without a tap" holds. */
         const val EXPANDED_BY_DEFAULT = true
+
+        /** The desktop screen whose keys predate S2317 and therefore carry no screen segment. */
+        const val FIRST_SCREEN = 0
+
+        /** Distinguishes the screen segment from a target, which no section key may start with. */
+        const val SCREEN_SEGMENT_PREFIX = "s"
+
+        /**
+         * Portrait and landscape are two independent layouts (strategic §6.3), so the orientation is part
+         * of the key: a section folded in one says nothing about the same section in the other.
+         *
+         * S2317 adds the desktop screen for the same reason, because the starter set seeds one
+         * `SECTION_WIDGETS` header on screen 0 and another on screen 1 - one key for both folded them
+         * together. The first screen deliberately keeps the pre-S2317 spelling rather than gaining an
+         * `s0__` segment: every fold already stored was written under that exact string, and a screen
+         * that never had a state of its own starts at [EXPANDED_BY_DEFAULT] anyway, so shaping the key
+         * this way needs no migration and loses nothing.
+         */
+        fun keyFor(orientation: LauncherOrientation, screenIndex: Int, target: String): String {
+            val prefix = "$KEY_SCREEN${orientation.name}__"
+            return if (screenIndex <= FIRST_SCREEN) {
+                "$prefix$target"
+            } else {
+                "$prefix$SCREEN_SEGMENT_PREFIX${screenIndex}__$target"
+            }
+        }
     }
 }

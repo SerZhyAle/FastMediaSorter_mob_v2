@@ -1,8 +1,13 @@
 package com.sza.fastmediasorter.data.remote.sftp
 
+import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.JSchException
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -88,6 +93,64 @@ class SftpConnectionPoolTest {
         pool.applyHandshakeOutcomeForTest(info(), null)
 
         assertPasses(pool, info())
+    }
+
+    @Test
+    fun `a claimed playback slot is never handed to a second borrower`() {
+        val pool = SftpConnectionPool()
+        val slot = playbackSlot()
+
+        assertSame(slot, pool.claimIdlePlaybackChannel(listOf(slot)))
+        assertNull(pool.claimIdlePlaybackChannel(listOf(slot)))
+    }
+
+    @Test
+    fun `releasing a playback slot makes it claimable again`() {
+        val pool = SftpConnectionPool()
+        val slot = playbackSlot()
+
+        pool.claimIdlePlaybackChannel(listOf(slot))
+        pool.releasePlaybackClaim(listOf(slot), slot.channel)
+
+        assertSame(slot, pool.claimIdlePlaybackChannel(listOf(slot)))
+    }
+
+    @Test
+    fun `an overlapping borrow takes the second slot rather than the busy one`() {
+        val pool = SftpConnectionPool()
+        val outgoing = playbackSlot()
+        val spare = playbackSlot()
+
+        val first = pool.claimIdlePlaybackChannel(listOf(outgoing, spare))
+        val second = pool.claimIdlePlaybackChannel(listOf(outgoing, spare))
+
+        assertSame(outgoing, first)
+        assertSame(spare, second)
+    }
+
+    @Test
+    fun `a disconnected slot is skipped`() {
+        val pool = SftpConnectionPool()
+
+        assertNull(pool.claimIdlePlaybackChannel(listOf(playbackSlot(connected = false))))
+    }
+
+    @Test
+    fun `a file ops slot is never claimed for playback`() {
+        val pool = SftpConnectionPool()
+
+        assertNull(
+            pool.claimIdlePlaybackChannel(listOf(playbackSlot(purpose = ChannelPurpose.FILE_OPS)))
+        )
+    }
+
+    private fun playbackSlot(
+        connected: Boolean = true,
+        purpose: ChannelPurpose = ChannelPurpose.PLAYBACK
+    ): SftpConnectionPool.PooledChannel {
+        val channel = mockk<ChannelSftp>()
+        every { channel.isConnected } returns connected
+        return SftpConnectionPool.PooledChannel(channel, Mutex(), purpose)
     }
 
     /** Returns the throwable the guard rethrows, failing the test if it lets the handshake through. */

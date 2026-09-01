@@ -83,8 +83,12 @@ Write-Host "Drive: $destPath ($([math]::Round($source.Length / 1MB, 2)) MB)" -Fo
 
 if ($NoZip) { exit 0 }
 
-$sevenZip = 'C:\Program Files\7-Zip\7z.exe'
-if (-not (Test-Path -LiteralPath $sevenZip)) {
+. "$PSScriptRoot\project-paths.ps1"
+
+# The resolver raises when 7-Zip is nowhere to be found; this script's whole contract is that a
+# courtesy copy never fails a build, so the raise becomes $null and the existing skip runs (S2326).
+$sevenZip = try { Get-ToolPath -Tool SevenZip -Quiet } catch { $null }
+if (-not $sevenZip) {
     Write-Host "Drive: 7-Zip not found - raw copy only, no ZIP. Install from https://www.7-zip.org/" -ForegroundColor Yellow
     exit 0
 }

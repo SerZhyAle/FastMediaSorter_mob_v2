@@ -82,6 +82,7 @@ class LauncherScreenTimeoutSettingsManager(
     }
 
     private fun updateTimeout(seconds: Int) {
-        updateSettings(currentSettings().copy(launcherScreenBlackoutTimeoutSeconds = seconds))
+        val current = currentSettings()
+        updateSettings(current.withLauncher { copy(screenBlackoutTimeoutSeconds = seconds) })
     }
 }

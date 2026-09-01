@@ -170,5 +170,13 @@
     <string name="welcome_role_sources_detail_cloud_only">Memoria del dispositivo, Google Drive, OneDrive, Dropbox</string>
     <string name="welcome_role_sources_detail_local_only">Memoria interna e scheda SD</string>
     <string name="welcome_role_sorting_detail">Manda un file nella sua cartella con un solo tocco</string>
-    <string name="welcome_role_more_detail">Flussi, fotocamera e altro - un\'app al posto di tante</string>
+    <string name="welcome_role_more_detail">Fotocamera, widget, gadget e altro - una sola app invece di tante</string>
+    <string name="welcome_description_1_shell">Non solo un\'app multimediale - un ambiente completo per il tuo dispositivo.\nSchermata Home, lettore, gestore file, stream e archiviazione remota in un unico posto.</string>
+    <string name="welcome_description_1_details_shell">FastMediaSorter può governare l\'intero dispositivo: una schermata Home con le tue app, widget e scorciatoie, un lettore per foto, video, musica e libri, un gestore file per archiviazione locale, di rete e cloud, stream da internet e un\'app companion per Wear OS - e sopra tutto questo, l\'ordinamento rapido con un tocco.\n\nLa vuoi come schermata Home? Attiva l\'interruttore qui sopra e il sistema ti chiederà conferma al termine della configurazione. Tutto ciò che scegli in questa schermata si può cambiare dopo nelle Impostazioni, quindi qui non esiste una scelta sbagliata - tocca semplicemente Avanti per continuare.</string>
+    <string name="welcome_role_home_screen">Schermata Home</string>
+    <string name="welcome_role_home_screen_detail">Governa il dispositivo al posto di un launcher - app, widget e contenuti a portata di mano</string>
+    <string name="welcome_role_streams">Stream</string>
+    <string name="welcome_role_streams_detail">Radio internet, canali TV e video da un catalogo già pronto</string>
+    <string name="welcome_role_wear">App per l\'orologio</string>
+    <string name="welcome_role_wear_detail">Un companion per Wear OS - sfoglia e riproduci direttamente al polso</string>
 </resources>

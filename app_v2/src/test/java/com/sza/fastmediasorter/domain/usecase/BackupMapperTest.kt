@@ -280,17 +280,19 @@ class BackupMapperTest {
 
     @Test
     fun `launcher settings round-trip through backup mapper`() {
-        val current = createAppSettings().copy(
-            launcherDensityFactor = 1.25f,
-            launcherTaskbarPlacement = "TOP",
-            launcherTaskbarShowRecents = false,
-            launcherWallpaperMode = "STATIC_STRIPES",
-            launcherWallpaperImagePath = "/path/to/custom_wallpaper.png",
-            launcherDesktopLocked = true,
-            allAppsSortOrder = "USAGE_COUNT",
-            allAppsSortDescending = true,
-            launcherScreenBlackoutTimeoutSeconds = 60
-        )
+        val current = createAppSettings().withLauncher {
+            copy(
+                densityFactor = 1.25f,
+                taskbarPlacement = "TOP",
+                taskbarShowRecents = false,
+                wallpaperMode = "STATIC_STRIPES",
+                wallpaperImagePath = "/path/to/custom_wallpaper.png",
+                desktopLocked = true,
+                allAppsSortOrder = "USAGE_COUNT",
+                allAppsSortDescending = true,
+                screenBlackoutTimeoutSeconds = 60,
+            )
+        }
 
         val backup = BackupMapper.toBackupSettings(current)
         val restored = BackupMapper.toAppSettings(backup, createAppSettings(), BackupPayload.CURRENT_VERSION)
@@ -310,7 +312,7 @@ class BackupMapperTest {
     // deserializes as null - the restore must keep the current value, not force the gesture off.
     @Test
     fun `older backup without double-tap lock field preserves the current launcher setting`() {
-        val current = createAppSettings().copy(launcherDesktopDoubleTapLockEnabled = true)
+        val current = createAppSettings().withLauncher { copy(desktopDoubleTapLockEnabled = true) }
         val backup = BackupMapper.toBackupSettings(current).copy(launcherDesktopDoubleTapLockEnabled = null)
 
         val restored = BackupMapper.toAppSettings(backup, current, BackupPayload.CURRENT_VERSION)

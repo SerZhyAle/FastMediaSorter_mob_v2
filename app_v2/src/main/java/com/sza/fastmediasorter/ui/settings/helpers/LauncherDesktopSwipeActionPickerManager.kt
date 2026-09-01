@@ -35,10 +35,7 @@ class LauncherDesktopSwipeActionPickerManager(
             lifecycleOwner = lifecycleOwner,
             rows = GesturePickerRowBuilder().build(
                 items = wrappedEdgeActions(),
-                launcherRoute = GesturePickerItem(
-                    key = LauncherDesktopSwipeAction.OpenAllApps,
-                    meta = metaFor(LauncherDesktopSwipeAction.OpenAllApps),
-                ),
+                launcherRoutes = LOCAL_ROUTES.map { GesturePickerItem(it, metaFor(it)) },
             ),
             selectedKey = current,
             onPicked = onPicked,
@@ -55,11 +52,36 @@ class LauncherDesktopSwipeActionPickerManager(
             GesturePickerItem(LauncherDesktopSwipeAction.EdgeGestureAction(it.key), it.meta, it.enabled)
         }
 
-    private fun metaFor(action: LauncherDesktopSwipeAction): GestureActionMeta =
-        ScreenshotGestureActionCatalog.metaFor(
-            when (action) {
-                LauncherDesktopSwipeAction.OpenAllApps -> ScreenshotGestureAction.OPEN_ALL_APPS
-                is LauncherDesktopSwipeAction.EdgeGestureAction -> action.action
-            },
+    /**
+     * S2301: the two paging routes carry their metadata here rather than in the shared catalog, because
+     * that catalog is keyed by [ScreenshotGestureAction] and neither route has - or should have - an
+     * enum constant of its own.
+     */
+    private fun metaFor(action: LauncherDesktopSwipeAction): GestureActionMeta = when (action) {
+        LauncherDesktopSwipeAction.OpenAllApps ->
+            ScreenshotGestureActionCatalog.metaFor(ScreenshotGestureAction.OPEN_ALL_APPS)
+        LauncherDesktopSwipeAction.NextScreen -> GestureActionMeta(
+            GestureActionGroup.LAUNCH,
+            R.string.launcher_desktop_swipe_action_next_screen,
+            R.string.launcher_desktop_swipe_explain_next_screen,
+            R.drawable.ic_arrow_forward,
         )
+        LauncherDesktopSwipeAction.PreviousScreen -> GestureActionMeta(
+            GestureActionGroup.LAUNCH,
+            R.string.launcher_desktop_swipe_action_previous_screen,
+            R.string.launcher_desktop_swipe_explain_previous_screen,
+            R.drawable.ic_arrow_back,
+        )
+        is LauncherDesktopSwipeAction.EdgeGestureAction ->
+            ScreenshotGestureActionCatalog.metaFor(action.action)
+    }
+
+    private companion object {
+        /** The desktop's own routes, in the order they lead their group. */
+        val LOCAL_ROUTES = listOf(
+            LauncherDesktopSwipeAction.OpenAllApps,
+            LauncherDesktopSwipeAction.NextScreen,
+            LauncherDesktopSwipeAction.PreviousScreen,
+        )
+    }
 }

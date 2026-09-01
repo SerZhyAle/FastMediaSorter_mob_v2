@@ -2252,6 +2252,7 @@
     <string name="launcher_settings_show_pinned_title">পিন করা অ্যাপ দেখান</string>
     <string name="launcher_settings_show_tray_title">স্ট্যাটাস ট্রে দেখান</string>
     <string name="launcher_settings_density_title">গ্রিড ঘনত্ব</string>
+    <string name="launcher_settings_screen_count_title">স্ক্রিনের সংখ্যা</string>
     <string name="launcher_settings_density_sparse">বিরল</string>
     <string name="launcher_settings_density_default">স্ট্যান্ডার্ড</string>
     <string name="launcher_settings_density_dense">ঘন</string>
@@ -2861,7 +2862,8 @@
     <string name="launcher_section_android_apps">অ্যাপস</string>
     <string name="launcher_settings_widget_backdrop_alpha_title">উইজেট ব্যাকড্রপ অস্বচ্ছতা</string>
     <string name="launcher_settings_widget_backdrop_alpha_0">0% (স্বচ্ছ)</string>
-    <string name="launcher_settings_widget_backdrop_alpha_85">85% (ডিফল্ট)</string>
+    <string name="launcher_settings_widget_backdrop_alpha_25">25% (ডিফল্ট)</string>
+    <string name="launcher_settings_widget_backdrop_alpha_85">85%</string>
     <string name="launcher_settings_widget_backdrop_alpha_100">100% (অস্বচ্ছ)</string>
     <string name="launcher_gadget_youtube">YouTube</string>
     <string name="launcher_gadget_youtube_music">YouTube Music</string>
@@ -3127,9 +3129,26 @@
     <string name="gesture_action_explain_open_all_apps">সমস্ত অ্যাপ তালিকা সহ হোম স্ক্রীন খোলে।</string>
     <string name="gesture_slot_url_none">সেট করা নেই - একটি ঠিকানা লিখতে আলতো চাপুন</string>
     <string name="launcher_settings_group_tray">সিস্টেম ট্রে</string>
-    <string name="launcher_settings_group_gestures">ডেস্কটপ অঙ্গভঙ্গি</string>
+    <string name="launcher_settings_group_gestures">জেসচার</string>
     <string name="launcher_settings_group_appearance">চেহারা</string>
     <string name="launcher_taskbar_pinned_action_launch">চালু করুন</string>
     <string name="launcher_taskbar_pinned_action_unpin">পিন খুলুন</string>
     <string name="s2283_apk_download_in_progress">APK ডাউনলোড ইতিমধ্যেই চলছে</string>
+    <string name="launcher_gadget_google_keep_live">গুগল কিপ লাইভ ফ্রেম</string>
+    <string name="launcher_gadget_google_calendar_live">গুগল ক্যালেন্ডার লাইভ ফ্রেম</string>
+    <string name="launcher_desktop_swipe_action_next_screen">পরবর্তী স্ক্রিন</string>
+    <string name="launcher_desktop_swipe_action_previous_screen">আগের স্ক্রিন</string>
+    <string name="launcher_desktop_swipe_explain_next_screen">লঞ্চারের পরবর্তী স্ক্রিন দেখায়, শেষটিতে থেমে যায়।</string>
+    <string name="launcher_desktop_swipe_explain_previous_screen">লঞ্চারের আগের স্ক্রিন দেখায়, প্রথমটিতে থেমে যায়।</string>
+    <string name="launcher_edit_move_to_screen">%1$d নম্বর স্ক্রিনে সরান</string>
+    <string name="launcher_all_apps_swipe_picker_title">সব অ্যাপে সোয়াইপ ক্রিয়া</string>
+    <string name="launcher_all_apps_swipe_up_title">সব অ্যাপ: উপরে সোয়াইপ</string>
+    <string name="launcher_all_apps_swipe_down_title">সব অ্যাপ: নিচে সোয়াইপ</string>
+    <string name="launcher_all_apps_swipe_left_title">সব অ্যাপ: বাঁয়ে সোয়াইপ</string>
+    <string name="launcher_all_apps_swipe_right_title">সব অ্যাপ: ডানে সোয়াইপ</string>
+    <string name="launcher_all_apps_swipe_action_back_to_desktop">ডেস্কটপে ফিরুন</string>
+    <string name="launcher_all_apps_swipe_action_expand">সব অ্যাপ বড় করুন</string>
+    <string name="launcher_all_apps_swipe_explain_back_to_desktop">অ্যাপের তালিকা বন্ধ করে তার নিচের ডেস্কটপ দেখায়।</string>
+    <string name="launcher_all_apps_swipe_explain_expand">বর্ণানুক্রমিক বিভাগের বদলে পুরো অ্যাপ তালিকা দেখায়।</string>
+    <string name="launcher_welcome_toggle_subtitle">হোম বোতাম দিয়ে FastMediaSorter খুলুন। সেটআপের পরে সিস্টেম নিশ্চিতকরণ চায়, আর আপনি যেকোনো সময় সেটিংসে ফিরে যেতে পারেন।</string>
 </resources>

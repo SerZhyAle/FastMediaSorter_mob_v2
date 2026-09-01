@@ -25,7 +25,7 @@
       1  at least one test file failed.
       2  no test file failed, but at least one could not verify its environment.
 #>
-# Subject: scripts/utils/set-android-string.ps1, scripts/utils/locale-set.ps1
+# Subject: scripts/utils/set-android-string.ps1, scripts/utils/locale-set.ps1, scripts/utils/seed-locale-tranche.ps1, scripts/utils/locale-bulk-export.ps1
 #
 # Path arithmetic gives this folder `scripts/quality`, which covers four of the five files. The fifth,
 # set-android-string-remove.Tests.ps1, tests a tool in scripts/utils and reaches locale-set.ps1

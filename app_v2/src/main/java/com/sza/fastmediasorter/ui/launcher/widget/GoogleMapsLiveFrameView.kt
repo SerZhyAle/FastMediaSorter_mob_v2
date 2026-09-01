@@ -17,6 +17,7 @@ import android.widget.ImageButton
 import android.widget.ProgressBar
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.util.WebMercatorTile
 import com.sza.fastmediasorter.util.resolveActivityCompat
 import timber.log.Timber
 
@@ -55,7 +56,7 @@ class GoogleMapsLiveFrameView @JvmOverloads constructor(
         with(webView.settings) {
             javaScriptEnabled = true
             domStorageEnabled = true
-            setGeolocationEnabled(true)
+            setGeolocationEnabled(false)
             builtInZoomControls = true
             displayZoomControls = false
             useWideViewPort = true
@@ -63,12 +64,18 @@ class GoogleMapsLiveFrameView @JvmOverloads constructor(
         }
 
         webView.webChromeClient = object : WebChromeClient() {
+            /**
+             * S2292: the embedded page never polls GPS on its own schedule. `setGeolocationEnabled`
+             * above already disables the API, so this should never fire - it stays as the explicit
+             * denial that keeps a later edit of that settings block from silently restoring the
+             * grant. Centring does not depend on it: [updateLocation] loads an already-centred URL.
+             */
             override fun onGeolocationPermissionsShowPrompt(
                 origin: String?,
                 callback: GeolocationPermissions.Callback?,
             ) {
-                // Grant geolocation prompt automatically so live map centres on GPS position.
-                callback?.invoke(origin, true, false)
+                Timber.d("S2292: geolocation prompt denied for $origin")
+                callback?.invoke(origin, false, false)
             }
         }
 
@@ -108,12 +115,24 @@ class GoogleMapsLiveFrameView @JvmOverloads constructor(
         }
     }
 
+    /**
+     * S2292: the position is coarsened to the centre of its [DEFAULT_ZOOM] Web Mercator tile before
+     * anything stores or publishes it - the same precision class the static map gadget already ships
+     * through `OsmMapTileProvider`. The precise value is deliberately never written to a field: the
+     * recenter button reads [lastLatitude] and [lastLongitude], so keeping it would give the exact
+     * coordinate a second route into a Google URL.
+     */
     fun updateLocation(latitude: Double, longitude: Double) {
-        lastLatitude = latitude
-        lastLongitude = longitude
-        val mapUrl = "https://www.google.com/maps/@$latitude,$longitude,${DEFAULT_ZOOM}z"
-        loadMapUrl(mapUrl)
+        val tileLatitude = WebMercatorTile.coarseLatitude(latitude, DEFAULT_ZOOM)
+        val tileLongitude = WebMercatorTile.coarseLongitude(longitude, DEFAULT_ZOOM)
+        lastLatitude = tileLatitude
+        lastLongitude = tileLongitude
+        Timber.d("S2292: live map centred on tile $tileLatitude,$tileLongitude")
+        loadMapUrl(mapUrlFor(tileLatitude, tileLongitude))
     }
+
+    private fun mapUrlFor(latitude: Double, longitude: Double): String =
+        "https://www.google.com/maps/@$latitude,$longitude,${DEFAULT_ZOOM}z"
 
     private fun injectCustomMapStyles(view: WebView?) {
         val js = """
@@ -188,7 +207,7 @@ class GoogleMapsLiveFrameView @JvmOverloads constructor(
             val lat = lastLatitude
             val lng = lastLongitude
             if (lat != null && lng != null) {
-                loadMapUrl("https://www.google.com/maps/@$lat,$lng,${DEFAULT_ZOOM}z")
+                loadMapUrl(mapUrlFor(lat, lng))
             } else {
                 loadMapUrl(DEFAULT_MAP_URL)
             }

@@ -196,7 +196,7 @@ class SettingsRepositoryImplTest {
         )
 
         val current = realRepo.getSettings().first()
-        realRepo.updateSettings(current.copy(launcherReplaceSystemStatusArea = false))
+        realRepo.updateSettings(current.withLauncher { copy(replaceSystemStatusArea = false) })
 
         assertFalse(
             "saved false must load back as false",

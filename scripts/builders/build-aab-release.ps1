@@ -55,6 +55,7 @@ $gradlew = "$projectRoot\gradlew.bat"
 # "sibling fallback" search was a band-aid that hid exactly this bug - after
 # the Push-Location below, outputs are guaranteed to be under $projectRoot.
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
+. "$PSScriptRoot\..\utils\project-paths.ps1"
 Enter-BuildLockOrExit -Reason "build-aab-release.ps1" -Domain Build.Phone
 
 Push-Location $projectRoot
@@ -186,7 +187,7 @@ if ($gdPath) {
         }
 
         # Then attempt password-protected ZIP.
-        $sevenZipPath = "C:\Program Files\7-Zip\7z.exe"
+        $sevenZipPath = Get-ToolPath -Tool SevenZip
         if (Test-Path -Path $sevenZipPath) {
             $zipPath = Join-Path $gdPath "FastMediaSorter_standard_release.zip"
             # Remove old ZIP first to guarantee fresh archive (7z 'a' updates in-place

@@ -22,10 +22,10 @@ enum class LauncherDesktopSwipeDirection {
     }
 
     fun withAction(settings: AppSettings, action: LauncherDesktopSwipeAction): AppSettings = when (this) {
-        UP -> settings.copy(launcherDesktopSwipeUpAction = action)
-        DOWN -> settings.copy(launcherDesktopSwipeDownAction = action)
-        LEFT -> settings.copy(launcherDesktopSwipeLeftAction = action)
-        RIGHT -> settings.copy(launcherDesktopSwipeRightAction = action)
+        UP -> settings.withLauncher { copy(desktopSwipeUpAction = action) }
+        DOWN -> settings.withLauncher { copy(desktopSwipeDownAction = action) }
+        LEFT -> settings.withLauncher { copy(desktopSwipeLeftAction = action) }
+        RIGHT -> settings.withLauncher { copy(desktopSwipeRightAction = action) }
     }
 
     fun payloadOf(settings: AppSettings): String = when (this) {
@@ -36,9 +36,9 @@ enum class LauncherDesktopSwipeDirection {
     }
 
     fun withPayload(settings: AppSettings, value: String): AppSettings = when (this) {
-        UP -> settings.copy(launcherDesktopSwipeUpPayload = value)
-        DOWN -> settings.copy(launcherDesktopSwipeDownPayload = value)
-        LEFT -> settings.copy(launcherDesktopSwipeLeftPayload = value)
-        RIGHT -> settings.copy(launcherDesktopSwipeRightPayload = value)
+        UP -> settings.withLauncher { copy(desktopSwipeUpPayload = value) }
+        DOWN -> settings.withLauncher { copy(desktopSwipeDownPayload = value) }
+        LEFT -> settings.withLauncher { copy(desktopSwipeLeftPayload = value) }
+        RIGHT -> settings.withLauncher { copy(desktopSwipeRightPayload = value) }
     }
 }
