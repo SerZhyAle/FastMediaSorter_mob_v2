@@ -1,7 +1,7 @@
 appId: com.sza.fastmediasorter.debug
 ---
 # Test: Large-media edge case opens without crash (S0551 Phase 05, matrix 15).
-# Precondition: auto-injected (or OWNER_TRIGGER-imported) "Загрузки" LOCAL resource over the
+# Precondition: clean preparation exposes the standard "Загрузки" LOCAL resource over the
 #   seeded tree, which includes DCIM/video_large.mp4 (~112 MB, ~3 min).
 # Oracle: a large (>100 MB) video opens into the player surface (playerView) and the crash prompt
 #   never appears - the S0550-class "big media must not crash" edge case. This is distinct from

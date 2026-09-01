@@ -554,6 +554,21 @@ class LauncherHomeViewModel @Inject constructor(
         }
     }
 
+    /** Pins a recents entry through the same slot-allocation path as every other taskbar pin. */
+    fun pinRecentToTaskbar(command: LauncherCellCommand) {
+        addPin(command)
+        viewModelScope.launch {
+            _events.send(LauncherHomeEvent.Message(R.string.launcher_app_action_pinned))
+        }
+    }
+
+    /** Hides the command from recents until it is launched again. */
+    fun removeRecentCommand(command: LauncherCellCommand) {
+        viewModelScope.launch {
+            taskbarDependencies.removeRecentCommand(command)
+        }
+    }
+
     /**
      * S2210: publishes the frame a capture just wrote, so the desktop swaps to it.
      *

@@ -183,6 +183,7 @@
 "showProgramsPanelInMainWindow","","","","","","","","","","",""
 "showStreamsPanelInMainWindow","","","TRUE","TRUE","TRUE","","TRUE","TRUE","","",""
 "cameraGeotagEnabled","","","","","","","","","","",""
+"cameraGridEnabled","","","","","","","","","","",""
 "screenRecordingEnabled","","","","","","","","","","",""
 "screenRecordingDestinationResourceId","","","","","","","","","","",""
 "screenRecordingDisclosureAccepted","","","","","","","","","","",""

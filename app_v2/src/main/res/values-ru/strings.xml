@@ -249,7 +249,6 @@
     <string name="filter_label_name_short">Имя</string>
     <string name="filter_label_size_short">Размер</string>
     <string name="filter_label_date_short">Дата</string>
-    <string name="filter_by_name">Фильтр по имени (без учёта регистра)</string>
     <string name="filter_by_date">Фильтр по дате создания</string>
     <string name="filter_by_type">Фильтр по типу медиафайлов</string>
     <string name="media_type_image">Изображения</string>
@@ -2608,7 +2607,7 @@
     <string name="launcher_taskbar_start">Пуск</string>
     <string name="launcher_menu_open_app">Открыть FastMediaSorter</string>
     <string name="launcher_menu_resources">Мои ресурсы</string>
-    <string name="launcher_menu_all_apps">Все приложения</string>
+    <string name="launcher_menu_all_apps">Все программы</string>
     <string name="launcher_menu_android_settings">Настройки Android</string>
     <string name="launcher_menu_app_settings">Настройки приложения</string>
     <string name="launcher_menu_exit_mode">Выйти из режима лаунчера</string>
@@ -2927,6 +2926,7 @@
     <string name="launcher_app_action_launch">Открыть</string>
     <string name="launcher_app_action_to_desktop">На рабочий стол</string>
     <string name="launcher_app_action_pin_taskbar">Закрепить на панели задач</string>
+    <string name="launcher_recent_action_remove">Убрать с панели задач</string>
     <string name="launcher_app_action_app_info">Сведения о приложении</string>
     <string name="launcher_app_action_uninstall">Удалить</string>
     <string name="launcher_app_action_desktop_full">На рабочем столе нет места. Освободите клетку или поверните экран - у второй раскладки своё место.</string>
@@ -3026,7 +3026,7 @@
     <string name="streams_media_filter_audio">Показывать только аудио</string>
     <string name="streams_media_filter_video">Показывать только видео</string>
     <string name="streams_media_filter_clear">Показывать все трансляции</string>
-    <string name="launcher_section_app_functions">Функции приложения</string>
+    <string name="launcher_section_app_functions">Функции</string>
     <string name="launcher_edit_kind_section">Раздел</string>
     <string name="launcher_gadget_network">Сеть</string>
     <string name="launcher_gadget_battery">Батарея</string>
@@ -3542,7 +3542,6 @@
     <string name="launcher_gadget_open_external">Открыть в браузере</string>
     <string name="launcher_gadget_steps_since_date">С %1$s</string>
     <string name="launcher_gadget_google_maps_live">Живой фрейм Google Maps</string>
-    <string name="launcher_gadget_google_maps_live_desc">Интерактивное окно живой карты Google Maps</string>
     <string name="launcher_translator_language_settings">Открыть настройки перевода</string>
     <string name="launcher_section_action_delete">Удалить секцию</string>
     <string name="launcher_section_action_resort">Пересортировать секцию</string>
@@ -3561,4 +3560,15 @@
     <string name="physical_flashlight_unavailable">Фонарик камеры сейчас недоступен. Попробуйте ещё раз.</string>
     <string name="gesture_action_explain_open_all_apps">Открывает рабочий стол со списком всех программ.</string>
     <string name="gesture_slot_url_none">Не задан - нажмите, чтобы ввести адрес</string>
+    <string name="launcher_settings_group_tray">Системный трей</string>
+    <string name="launcher_settings_group_gestures">Жесты рабочего стола</string>
+    <string name="launcher_settings_group_appearance">Оформление</string>
+    <string name="launcher_taskbar_pinned_action_launch">Запустить</string>
+    <string name="launcher_taskbar_pinned_action_unpin">Открепить</string>
+    <string name="s2283_apk_download_in_progress">Загрузка APK уже выполняется</string>
+    <string name="launcher_gadget_google_keep_live">Живой фрейм Google Keep</string>
+    <string name="launcher_gadget_google_keep_live_desc">Интерактивный фрейм заметок Google Keep</string>
+    <string name="launcher_gadget_google_calendar_live">Живой фрейм Google Calendar</string>
+    <string name="launcher_gadget_google_calendar_live_desc">Интерактивный фрейм календаря Google Calendar</string>
+    <string name="launcher_settings_screen_count_title">Количество экранов</string>
 </resources>

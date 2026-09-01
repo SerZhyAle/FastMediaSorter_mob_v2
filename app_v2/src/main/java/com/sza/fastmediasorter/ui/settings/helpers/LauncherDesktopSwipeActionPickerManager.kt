@@ -5,6 +5,7 @@ import androidx.lifecycle.LifecycleOwner
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
+import com.sza.fastmediasorter.util.showBoundTo
 import timber.log.Timber
 
 /**
@@ -41,7 +42,7 @@ class LauncherDesktopSwipeActionPickerManager(
             ),
             selectedKey = current,
             onPicked = onPicked,
-        ).show()
+        ).showBoundTo(lifecycleOwner)
     }
 
     /**

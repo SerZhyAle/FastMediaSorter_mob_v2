@@ -789,6 +789,7 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         target = target,
         labelOverride = labelOverride,
         addedAt = addedAt,
+        screenIndex = screenIndex,
     )
 
     /** A row written by a newer build (unknown orientation/kind) is skipped, never a crash. */
@@ -810,6 +811,7 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
             target = target,
             labelOverride = labelOverride,
             addedAt = addedAt,
+            screenIndex = screenIndex,
         )
     }
 

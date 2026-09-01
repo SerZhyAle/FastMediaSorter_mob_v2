@@ -61,6 +61,4 @@ the `Android/media/com.test.prerelease` protected path.
 
 ## Resources
 
-Exercise all resource classes from `app_v2/src/main/res/xml/sza_resources.xml`: LOCAL, SMB, SFTP,
-FTP, Cloud. On an emulator behind NAT, LAN-only endpoints (SMB `test_media`) are register-only;
-public SFTP is reachable. `/spec-prerelease` enforces this split automatically.
+The automated clean-emulator sweep exercises the seeded standard Downloads resource. Network-resource checks require an owner-supplied share configuration and are not a prerequisite for the credential-free pre-release gate.

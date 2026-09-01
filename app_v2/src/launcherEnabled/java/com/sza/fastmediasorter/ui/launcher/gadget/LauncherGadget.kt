@@ -119,6 +119,7 @@ abstract class LauncherGadgetView @JvmOverloads constructor(
                 // as HOME, which crash-loops the whole device until the desktop is edited - and the
                 // desktop cannot be edited while the launcher keeps dying (S2207 did exactly that).
                 try {
+                    Timber.d("S2261: gadget active loop started for ${javaClass.simpleName}")
                     onActive()
                 } catch (cancellation: CancellationException) {
                     throw cancellation
@@ -134,6 +135,7 @@ abstract class LauncherGadgetView @JvmOverloads constructor(
     }
 
     override fun onDetachedFromWindow() {
+        Timber.d("S2261: gadget active loop stopped for ${javaClass.simpleName}")
         activeJob?.cancel()
         activeJob = null
         super.onDetachedFromWindow()

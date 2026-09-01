@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- S0404: the Start menu. Every row is static and declared here rather than adapter-driven.
-     S1401: the "All apps" row and its expanding grid are gone - the app list is its own screen now. -->
+<!-- S0404: the Start menu. Every row is static and declared here rather than adapter-driven. -->
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/startMenuRoot"
-    android:layout_width="match_parent"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:paddingTop="@dimen/margin_medium"
     android:paddingBottom="@dimen/margin_medium">
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
@@ -18,7 +17,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/rowOpenApp"
             style="@style/Widget.FastMediaSorter.Button.Text"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:focusable="true"
             android:foreground="@drawable/focus_button_background"
@@ -32,7 +31,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/rowResources"
             style="@style/Widget.FastMediaSorter.Button.Text"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:focusable="true"
             android:foreground="@drawable/focus_button_background"
@@ -46,7 +45,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/rowCreateResource"
             style="@style/Widget.FastMediaSorter.Button.Text"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:focusable="true"
             android:foreground="@drawable/focus_button_background"
@@ -57,14 +56,28 @@
             app:iconGravity="start"
             app:iconTint="?attr/launcherStartRowGroup1" />
 
-        <!-- S1401: the "All apps" row and the grid it expanded are gone (ADR-2). One app list, reached
-             from the taskbar button beside Start or by swiping up on the desktop. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/rowAllApps"
+            style="@style/Widget.FastMediaSorter.Button.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:gravity="start|center_vertical"
+            android:nextFocusDown="@id/rowAndroidSettings"
+            android:nextFocusUp="@id/rowCreateResource"
+            android:text="@string/launcher_menu_all_apps"
+            android:textColor="?attr/launcherStartRowGroup1"
+            app:icon="@drawable/ic_launcher_all_apps"
+            app:iconGravity="start"
+            app:iconTint="@null" />
 
         <!-- Group 2: Settings & Configuration (Secondary color group) -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/rowAndroidSettings"
             style="@style/Widget.FastMediaSorter.Button.Text"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:focusable="true"
             android:foreground="@drawable/focus_button_background"
@@ -78,7 +91,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/rowAppSettings"
             style="@style/Widget.FastMediaSorter.Button.Text"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:focusable="true"
             android:foreground="@drawable/focus_button_background"
@@ -93,7 +106,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/rowLauncherSettings"
             style="@style/Widget.FastMediaSorter.Button.Text"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:focusable="true"
             android:foreground="@drawable/focus_button_background"
@@ -107,7 +120,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/rowEditDesktop"
             style="@style/Widget.FastMediaSorter.Button.Text"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:focusable="true"
             android:foreground="@drawable/focus_button_background"
@@ -129,7 +142,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/rowReboot"
             style="@style/Widget.FastMediaSorter.Button.Text"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:focusable="true"
             android:foreground="@drawable/focus_button_background"
@@ -143,7 +156,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/rowShutdown"
             style="@style/Widget.FastMediaSorter.Button.Text"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:focusable="true"
             android:foreground="@drawable/focus_button_background"
@@ -157,7 +170,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/rowExitMode"
             style="@style/Widget.FastMediaSorter.Button.Text"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:focusable="true"
             android:foreground="@drawable/focus_button_background"

@@ -85,6 +85,15 @@
                         app:str_helpTitle="@string/tooltip_compact_elements_title"
                         app:str_helpMessage="@string/tooltip_compact_elements_message" />
 
+                    <!-- S2209: keep the global animation policy reachable in landscape too. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowDisableAnimations"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_tiny"
+                        app:str_title="@string/pref_disable_animations_title"
+                        app:str_subtitle="@string/pref_disable_animations_desc" />
+
                     <!-- S1285: cell size of the main-window resource grid. Orientation parity with
                          portrait - kept full width rather than folded into a weighted pair, so it
                          stays adjacent to the compact toggle it is most easily confused with. -->

@@ -19,6 +19,7 @@ Status: active S0551 capability-regression suite.
 - `features/settings/` - settings search empty-state (negative half) and search-to-section navigation (positive half, S1612).
 - `features/statistics/` - usage dashboard opens from its opt-in-gated settings row (S1612).
 - `features/text/` - `.txt` renders in the dedicated text viewer, asserted on the text views rather than the generic player container (S1612).
+- `features/launcher/` - launcher mode controls, launcher settings dialog round-trip, and collapsible section navigation (S2263).
 - `features/player/` - video, image, audio lyrics, documents, resume, info dialog.
 - `features/slideshow/` - slideshow start/stop regression.
 - `features/edge/` - no-extension and large-video edge cases, back-from-every-screen.

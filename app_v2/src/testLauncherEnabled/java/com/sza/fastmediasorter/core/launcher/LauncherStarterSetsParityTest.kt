@@ -111,6 +111,7 @@ class LauncherStarterSetsParityTest {
             LauncherGadgetRegistry.KEY_MEDIA_VIDEO_WINDOW,
             LauncherGadgetRegistry.KEY_MEDIA_DOCUMENT_WINDOW,
             LauncherGadgetRegistry.KEY_BATTERY,
+            LauncherGadgetRegistry.KEY_GOOGLE_MAPS_LIVE,
         )
         assertEquals(registryKeys, LauncherStarterSets.gadgetKeys)
     }

@@ -46,10 +46,17 @@ class LauncherDesktopGeometryManager(
      * re-derive on rotation/density - funnel here so edit mode is never dropped by one of them binding
      * without it. The binder's own (cells, columns, editMode) guard makes redundant calls free.
      */
-    fun renderDesktop() {
+    fun renderDesktop(screenIndex: Int = 0) {
+        val screenCount = viewModel.launcherDesktopSettings.value.launcherScreenCount
+        val allCells = viewModel.cells.value
+        val screenCells = if (screenCount > 1) {
+            allCells.filter { it.cell.screenIndex == screenIndex }
+        } else {
+            allCells
+        }
         cellBinder.bind(
             desktop,
-            viewModel.cells.value,
+            screenCells,
             currentColumns(),
             viewModel.editMode.value,
             currentViewportRows(),

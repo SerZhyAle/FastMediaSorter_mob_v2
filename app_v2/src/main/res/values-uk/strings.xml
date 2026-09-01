@@ -244,7 +244,6 @@
     <string name="filter_label_name_short">Назва</string>
     <string name="filter_label_size_short">Розмір</string>
     <string name="filter_label_date_short">Дата</string>
-    <string name="filter_by_name">Фільтр за іменем (без урахування регістру)</string>
     <string name="filter_by_date">Фільтр за датою створення</string>
     <string name="filter_by_type">Фільтр за типом медіафайлів</string>
     <string name="media_type_image">Зображення</string>
@@ -2912,6 +2911,7 @@
     <string name="launcher_app_action_launch">Відкрити</string>
     <string name="launcher_app_action_to_desktop">На робочий стіл</string>
     <string name="launcher_app_action_pin_taskbar">Закріпити на панелі задач</string>
+    <string name="launcher_recent_action_remove">Прибрати з панелі задач</string>
     <string name="launcher_app_action_app_info">Відомості про застосунок</string>
     <string name="launcher_app_action_uninstall">Видалити</string>
     <string name="launcher_app_action_desktop_full">На робочому столі немає місця. Звільніть клітинку або поверніть екран - у другого розкладу своє місце.</string>
@@ -3011,7 +3011,7 @@
     <string name="streams_media_filter_audio">Показувати лише аудіо</string>
     <string name="streams_media_filter_video">Показувати лише відео</string>
     <string name="streams_media_filter_clear">Показувати всі трансляції</string>
-    <string name="launcher_section_app_functions">Функції застосунку</string>
+    <string name="launcher_section_app_functions">Функції</string>
     <string name="launcher_edit_kind_section">Розділ</string>
     <string name="launcher_gadget_network">Мережа</string>
     <string name="launcher_gadget_battery">Батарея</string>
@@ -3527,7 +3527,6 @@
     <string name="launcher_gadget_open_external">Відкрити в браузері</string>
     <string name="launcher_gadget_steps_since_date">З %1$s</string>
     <string name="launcher_gadget_google_maps_live">Живий фрейм Google Maps</string>
-    <string name="launcher_gadget_google_maps_live_desc">Інтерактивне вікно живої карти Google Maps</string>
     <string name="launcher_translator_language_settings">Відкрити налаштування перекладу</string>
     <string name="launcher_section_action_delete">Видалити секцію</string>
     <string name="launcher_section_action_resort">Пересортувати секцію</string>
@@ -3546,4 +3545,15 @@
     <string name="physical_flashlight_unavailable">Ліхтарик камери зараз недоступний. Спробуйте ще раз.</string>
     <string name="gesture_action_explain_open_all_apps">Відкриває робочий стіл зі списком усіх програм.</string>
     <string name="gesture_slot_url_none">Не задано - натисніть, щоб ввести адресу</string>
+    <string name="launcher_settings_group_tray">Системний трей</string>
+    <string name="launcher_settings_group_gestures">Жести робочого столу</string>
+    <string name="launcher_settings_group_appearance">Оформлення</string>
+    <string name="launcher_taskbar_pinned_action_launch">Запустити</string>
+    <string name="launcher_taskbar_pinned_action_unpin">Відкріпити</string>
+    <string name="s2283_apk_download_in_progress">Завантаження APK вже виконується</string>
+    <string name="launcher_gadget_google_keep_live">Живий фрейм Google Keep</string>
+    <string name="launcher_gadget_google_keep_live_desc">Інтерактивний фрейм нотаток Google Keep</string>
+    <string name="launcher_gadget_google_calendar_live">Живий фрейм Google Calendar</string>
+    <string name="launcher_gadget_google_calendar_live_desc">Інтерактивний фрейм календаря Google Calendar</string>
+    <string name="launcher_settings_screen_count_title">Кількість екранів</string>
 </resources>

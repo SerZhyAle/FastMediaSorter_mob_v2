@@ -209,6 +209,7 @@ object LauncherStarterSets {
         val target: String,
         val spanW: Int = 1,
         val spanH: Int = 1,
+        val screenIndex: Int = 0,
     )
 
     data class PlacedStarterItem(
@@ -217,6 +218,7 @@ object LauncherStarterSets {
         val colIndex: Int,
         val spanW: Int,
         val spanH: Int,
+        val screenIndex: Int = 0,
     )
 
     /** Resolved ids the seed hands in; each null id is skipped so the desktop never gets a dead cell. */
@@ -336,6 +338,33 @@ object LauncherStarterSets {
 
         // 6. Google section (conditional)
         items += googleSection(googleOwned)
+
+        // 7. S2251 Screen 1 Widget Groups ("Утилиты", "Обзор", "Трансляции")
+        items += section(LauncherCellCommand.SECTION_WIDGETS, screenIndex = 1)
+        if (routeAvailableInBuild[InternalRouteCatalog.KEY_GAME] == true) {
+            items += shortcut(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_GAME), screenIndex = 1)
+        }
+        items += gadget(GADGET_SPEED, screenIndex = 1)
+        if (routeAvailableInBuild[InternalRouteCatalog.KEY_NETWORK_MONITOR] == true) {
+            items += shortcut(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_NETWORK_MONITOR), screenIndex = 1)
+        }
+
+        items += section(LauncherCellCommand.SECTION_RESOURCES, screenIndex = 1)
+        (resources.allImagesId ?: resources.lastResourceId)?.let {
+            items += gadget(GADGET_MEDIA_IMAGE_WINDOW, it, screenIndex = 1)
+        }
+        (resources.allVideoId ?: resources.lastResourceId)?.let {
+            items += gadget(GADGET_MEDIA_VIDEO_WINDOW, it, screenIndex = 1)
+        }
+        resources.allAudioId?.let {
+            items += gadget(GADGET_MEDIA_AUDIO_WINDOW, it, screenIndex = 1)
+        }
+
+        items += section(LauncherCellCommand.SECTION_MAIN, screenIndex = 1)
+        if (streamsAvailable) {
+            items += streams(screenIndex = 1)
+            items += streams(screenIndex = 1)
+        }
 
         return items
     }
@@ -552,52 +581,76 @@ object LauncherStarterSets {
      */
     fun place(items: List<StarterItem>, columns: Int): List<PlacedStarterItem> {
         val cols = columns.coerceAtLeast(1)
-        val occupied = mutableSetOf<Long>()
-        var sectionFloor = 0
-        return items.map { item ->
-            val spanW = item.spanW.coerceIn(1, cols)
-            val spanH = item.spanH.coerceAtLeast(1)
-            val isSection = item.kind == LauncherCellKind.SECTION
-            val (row, col) = if (isSection) {
-                firstEmptyRow(occupied, cols, sectionFloor) to 0
-            } else {
-                firstFreeAnchor(occupied, cols, spanW, spanH, sectionFloor)
+        val result = mutableListOf<PlacedStarterItem>()
+        val itemsByScreen = items.groupBy { it.screenIndex }
+        for ((screenIndex, screenItems) in itemsByScreen) {
+            val occupied = mutableSetOf<Long>()
+            var sectionFloor = 0
+            for (item in screenItems) {
+                val spanW = item.spanW.coerceIn(1, cols)
+                val spanH = item.spanH.coerceAtLeast(1)
+                val isSection = item.kind == LauncherCellKind.SECTION
+                val (row, col) = if (isSection) {
+                    firstEmptyRow(occupied, cols, sectionFloor) to 0
+                } else {
+                    firstFreeAnchor(occupied, cols, spanW, spanH, sectionFloor)
+                }
+                for (r in row until row + spanH) {
+                    for (c in col until col + spanW) occupied += cellKey(r, c)
+                }
+                if (isSection) sectionFloor = row
+                result += PlacedStarterItem(item, row, col, spanW, spanH, screenIndex)
             }
-            for (r in row until row + spanH) {
-                for (c in col until col + spanW) occupied += cellKey(r, c)
-            }
-            if (isSection) sectionFloor = row
-            PlacedStarterItem(item, row, col, spanW, spanH)
         }
+        return result
     }
 
-    private fun clock() =
-        StarterItem(LauncherCellKind.GADGET, GADGET_CLOCK, spanW = CLOCK_SEED_W, spanH = CLOCK_SEED_H)
+    private fun clock(screenIndex: Int = 0) =
+        StarterItem(
+            LauncherCellKind.GADGET,
+            GADGET_CLOCK,
+            spanW = CLOCK_SEED_W,
+            spanH = CLOCK_SEED_H,
+            screenIndex = screenIndex
+        )
 
-    private fun streams() =
-        StarterItem(LauncherCellKind.GADGET, GADGET_STREAMS, spanW = SPAN_WIDE, spanH = SPAN_WIDE)
+    private fun streams(screenIndex: Int = 0) =
+        StarterItem(
+            LauncherCellKind.GADGET,
+            GADGET_STREAMS,
+            spanW = SPAN_WIDE,
+            spanH = SPAN_WIDE,
+            screenIndex = screenIndex
+        )
 
     // Mirrors LauncherGadgetRegistry.encodeTarget(key, param): "<key>:<param>".
-    private fun gadget(key: String, resourceId: Long) =
-        StarterItem(LauncherCellKind.GADGET, "$key:$resourceId", spanW = SPAN_WIDE, spanH = SPAN_WIDE)
+    private fun gadget(key: String, resourceId: Long, screenIndex: Int = 0) =
+        StarterItem(
+            LauncherCellKind.GADGET,
+            "$key:$resourceId",
+            spanW = SPAN_WIDE,
+            spanH = SPAN_WIDE,
+            screenIndex = screenIndex
+        )
 
     // S1560: sensor gadgets (speed, altitude, satellites, weather) carry no param - the cell is just
     // the key. Default span is 2x1 to match the existing sensor-tile form factor.
-    private fun gadget(key: String) =
-        StarterItem(LauncherCellKind.GADGET, key, spanW = SPAN_WIDE)
+    private fun gadget(key: String, screenIndex: Int = 0) =
+        StarterItem(LauncherCellKind.GADGET, key, spanW = SPAN_WIDE, screenIndex = screenIndex)
 
-    private fun resourceShortcut(id: Long, mode: LauncherResourceMode) =
-        shortcut(LauncherCellCommand.Resource(id, mode))
+    private fun resourceShortcut(id: Long, mode: LauncherResourceMode, screenIndex: Int = 0) =
+        shortcut(LauncherCellCommand.Resource(id, mode), screenIndex = screenIndex)
 
     /**
      * S1642: a header is seeded at [LauncherSectionMembership.HEADER_SPAN_W], the one span it is stored and
      * drawn at. [place] packs it at that width unchanged - the value is below the narrowest grid the
      * desktop resolves, so the packer's clamp to the seeded width can never narrow it.
      */
-    private fun section(key: String) = StarterItem(
+    private fun section(key: String, screenIndex: Int = 0) = StarterItem(
         LauncherCellKind.SECTION,
         LauncherCellCommand.Section(key).encode(),
         spanW = LauncherSectionMembership.HEADER_SPAN_W,
+        screenIndex = screenIndex,
     )
 
     /**
@@ -605,20 +658,20 @@ object LauncherStarterSets {
      * chose (strategic §3.1.1, §6.5). S1560: black_screen remains in this action section only for
      * [BLACK_SCREEN_PROFILES] (strategic §6.4).
      */
-    private fun launcherActions(profile: DeviceProfileType): List<StarterItem> =
+    private fun launcherActions(profile: DeviceProfileType, screenIndex: Int = 0): List<StarterItem> =
         LauncherActionCatalog.all
             .filter { it.key != LauncherActionCatalog.KEY_BLACK_SCREEN || profile in BLACK_SCREEN_PROFILES }
-            .map { shortcut(LauncherCellCommand.LauncherAction(it.key)) }
+            .map { shortcut(LauncherCellCommand.LauncherAction(it.key), screenIndex = screenIndex) }
 
     /** The utilities every profile closes with, below the second header. */
-    private fun commonTail(): List<StarterItem> = listOf(
-        shortcut(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_FAVORITES)),
-        shortcut(LauncherCellCommand.OsShortcut(OsShortcutCatalog.KEY_SETTINGS)),
-        shortcut(LauncherCellCommand.App(OWN_APP_TOKEN)),
+    private fun commonTail(screenIndex: Int = 0): List<StarterItem> = listOf(
+        shortcut(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_FAVORITES), screenIndex = screenIndex),
+        shortcut(LauncherCellCommand.OsShortcut(OsShortcutCatalog.KEY_SETTINGS), screenIndex = screenIndex),
+        shortcut(LauncherCellCommand.App(OWN_APP_TOKEN), screenIndex = screenIndex),
     )
 
-    private fun shortcut(command: LauncherCellCommand) =
-        StarterItem(LauncherCellKind.SHORTCUT, command.encode())
+    private fun shortcut(command: LauncherCellCommand, screenIndex: Int = 0) =
+        StarterItem(LauncherCellKind.SHORTCUT, command.encode(), screenIndex = screenIndex)
 
     /**
      * S1560 Phase 04 step 04.2: the weather gadget is seeded to every profile except [AUDIO_PLAYER]

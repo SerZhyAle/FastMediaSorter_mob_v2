@@ -10,6 +10,7 @@ import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.media3.common.Player
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.AnimationPolicy
 import timber.log.Timber
 
 /**
@@ -53,6 +54,14 @@ class SleepTimerManager(
     fun startVinylAnimation() {
         vinylView.isVisible = true
         vinylView.setImageResource(R.drawable.ic_vinyl_record)
+
+        if (!AnimationPolicy.isAnimationAllowed) {
+            rotationAnimator?.cancel()
+            rotationAnimator = null
+            vinylView.rotation = 0f
+            Timber.d("S2250: vinyl rotation skipped")
+            return
+        }
 
         if (rotationAnimator == null) {
             rotationAnimator = ObjectAnimator.ofFloat(vinylView, View.ROTATION, 0f, 360f).apply {
@@ -169,6 +178,16 @@ class SleepTimerManager(
     private fun fadeOutAndPause() {
         val player = playerProvider() ?: run {
             sleepTimerBadge?.isVisible = false
+            return
+        }
+
+        if (!AnimationPolicy.isAnimationAllowed) {
+            player.volume = 0f
+            player.pause()
+            player.volume = 1.0f
+            sleepTimerBadge?.isVisible = false
+            sleepTimer = null
+            Timber.d("S2250: sleep fade skipped")
             return
         }
 

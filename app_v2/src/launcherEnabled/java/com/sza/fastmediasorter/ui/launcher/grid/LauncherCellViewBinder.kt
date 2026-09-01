@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
+import timber.log.Timber
 import kotlin.math.roundToInt
 
 /**
@@ -444,6 +445,7 @@ class LauncherCellViewBinder(
         val title = item.visual?.label
             ?: container.context.getString(R.string.launcher_home_cell_unavailable)
         binding.sectionTitle.text = title
+        Timber.d("S2284: outlined section title bound")
         // S1664: set, never animated. [bind] rebuilds every cell view on each emission, so there is no
         // previous chevron to turn - it is inflated fresh and simply arrives already at its state. An
         // animation here would play on a view the user has not seen yet, on every unrelated rebind.

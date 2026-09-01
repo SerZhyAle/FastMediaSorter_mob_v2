@@ -39,6 +39,11 @@ class CameraCaptureHelperFactory @Inject constructor(
         settingsRepository.updateSettings { it.copy(cameraLensSettings = encoded) }
     }
 
+    /** Persist the preview grid overlay toggle state. */
+    suspend fun rememberGridEnabled(enabled: Boolean) {
+        settingsRepository.updateSettings { it.copy(cameraGridEnabled = enabled) }
+    }
+
     @Suppress("LongParameterList") // Mirrors the manager's host-supplied surface one-to-one.
     fun createResultManager(
         activity: FragmentActivity,

@@ -171,6 +171,7 @@ class SeedLauncherDesktopUseCase @Inject constructor(
                 target = placed.item.target.replace(LauncherStarterSets.OWN_APP_TOKEN, ownPackage),
                 labelOverride = null,
                 addedAt = now,
+                screenIndex = placed.screenIndex,
             )
         }
         desktop.seedIfEmpty(orientation, cells)

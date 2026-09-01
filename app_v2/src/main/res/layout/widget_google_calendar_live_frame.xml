@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_google_calendar_live_frame_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:contentDescription="@string/launcher_gadget_google_calendar_live"
+    android:padding="@dimen/padding_tiny">
+
+    <WebView
+        android:id="@+id/webViewLiveCalendar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@string/launcher_gadget_google_calendar_live" />
+
+    <ProgressBar
+        android:id="@+id/progressLiveCalendarLoading"
+        style="?android:attr/progressBarStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+    <ImageButton
+        android:id="@+id/btnReloadCalendar"
+        android:layout_width="@dimen/button_height_small"
+        android:layout_height="@dimen/button_height_small"
+        android:layout_gravity="top|end"
+        android:layout_margin="@dimen/padding_small"
+        android:background="@drawable/widget_background"
+        android:contentDescription="@string/launcher_gadget_google_calendar_live"
+        android:padding="@dimen/padding_small"
+        android:src="@drawable/ic_refresh"
+        android:tint="@color/blue_500" />
+
+</FrameLayout>

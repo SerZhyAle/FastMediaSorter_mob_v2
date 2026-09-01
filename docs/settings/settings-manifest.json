@@ -1781,7 +1781,7 @@
       "titleUk": "Дія жесту вниз"
     },
     {
-      "key": "rowGestureLeftBottomDownApp",
+      "key": "rowGestureLeftBottomDownTarget",
       "sectionId": "gestures",
       "destination": "OPERATIONS",
       "layout": "dialog_edge_gesture_config",
@@ -1801,7 +1801,7 @@
       "titleUk": "Дія жесту праворуч"
     },
     {
-      "key": "rowGestureLeftBottomRightApp",
+      "key": "rowGestureLeftBottomRightTarget",
       "sectionId": "gestures",
       "destination": "OPERATIONS",
       "layout": "dialog_edge_gesture_config",
@@ -1821,7 +1821,7 @@
       "titleUk": "Дія жесту вгору"
     },
     {
-      "key": "rowGestureLeftBottomUpApp",
+      "key": "rowGestureLeftBottomUpTarget",
       "sectionId": "gestures",
       "destination": "OPERATIONS",
       "layout": "dialog_edge_gesture_config",
@@ -1841,7 +1841,7 @@
       "titleUk": "Дія жесту вниз"
     },
     {
-      "key": "rowGestureLeftTopDownApp",
+      "key": "rowGestureLeftTopDownTarget",
       "sectionId": "gestures",
       "destination": "OPERATIONS",
       "layout": "dialog_edge_gesture_config",
@@ -1861,7 +1861,7 @@
       "titleUk": "Дія жесту праворуч"
     },
     {
-      "key": "rowGestureLeftTopRightApp",
+      "key": "rowGestureLeftTopRightTarget",
       "sectionId": "gestures",
       "destination": "OPERATIONS",
       "layout": "dialog_edge_gesture_config",
@@ -1881,7 +1881,7 @@
       "titleUk": "Дія жесту вгору"
     },
     {
-      "key": "rowGestureLeftTopUpApp",
+      "key": "rowGestureLeftTopUpTarget",
       "sectionId": "gestures",
       "destination": "OPERATIONS",
       "layout": "dialog_edge_gesture_config",
@@ -1901,7 +1901,7 @@
       "titleUk": "Дія жесту вниз"
     },
     {
-      "key": "rowGestureRightBottomDownApp",
+      "key": "rowGestureRightBottomDownTarget",
       "sectionId": "gestures",
       "destination": "OPERATIONS",
       "layout": "dialog_edge_gesture_config",
@@ -1921,7 +1921,7 @@
       "titleUk": "Дія жесту праворуч"
     },
     {
-      "key": "rowGestureRightBottomRightApp",
+      "key": "rowGestureRightBottomRightTarget",
       "sectionId": "gestures",
       "destination": "OPERATIONS",
       "layout": "dialog_edge_gesture_config",
@@ -1941,7 +1941,7 @@
       "titleUk": "Дія жесту вгору"
     },
     {
-      "key": "rowGestureRightBottomUpApp",
+      "key": "rowGestureRightBottomUpTarget",
       "sectionId": "gestures",
       "destination": "OPERATIONS",
       "layout": "dialog_edge_gesture_config",
@@ -1961,7 +1961,7 @@
       "titleUk": "Дія жесту вниз"
     },
     {
-      "key": "rowGestureRightTopDownApp",
+      "key": "rowGestureRightTopDownTarget",
       "sectionId": "gestures",
       "destination": "OPERATIONS",
       "layout": "dialog_edge_gesture_config",
@@ -1981,7 +1981,7 @@
       "titleUk": "Дія жесту праворуч"
     },
     {
-      "key": "rowGestureRightTopRightApp",
+      "key": "rowGestureRightTopRightTarget",
       "sectionId": "gestures",
       "destination": "OPERATIONS",
       "layout": "dialog_edge_gesture_config",
@@ -2001,7 +2001,7 @@
       "titleUk": "Дія жесту вгору"
     },
     {
-      "key": "rowGestureRightTopUpApp",
+      "key": "rowGestureRightTopUpTarget",
       "sectionId": "gestures",
       "destination": "OPERATIONS",
       "layout": "dialog_edge_gesture_config",
@@ -2201,6 +2201,16 @@
       "titleUk": "Скидання налаштувань лаунчера"
     },
     {
+      "key": "headerLauncherAppearance",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "SECTION_HEADER",
+      "titleEn": "Appearance",
+      "titleRu": "Оформление",
+      "titleUk": "Оформлення"
+    },
+    {
       "key": "headerLauncherDesktop",
       "sectionId": "launcher",
       "destination": "GENERAL",
@@ -2209,6 +2219,16 @@
       "titleEn": "Desktop",
       "titleRu": "Рабочий стол лаунчера",
       "titleUk": "Робочий стіл лаунчера"
+    },
+    {
+      "key": "headerLauncherGestures",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "SECTION_HEADER",
+      "titleEn": "Desktop gestures",
+      "titleRu": "Жесты рабочего стола",
+      "titleUk": "Жести робочого столу"
     },
     {
       "key": "headerLauncherSystem",
@@ -2239,6 +2259,16 @@
       "titleEn": "Top bar",
       "titleRu": "Верхняя полоса",
       "titleUk": "Верхня смуга"
+    },
+    {
+      "key": "headerLauncherTray",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "SECTION_HEADER",
+      "titleEn": "System tray",
+      "titleRu": "Системный трей",
+      "titleUk": "Системний трей"
     },
     {
       "key": "rowLauncherDensity",

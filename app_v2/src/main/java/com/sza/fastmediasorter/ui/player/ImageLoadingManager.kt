@@ -16,6 +16,7 @@ import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.logging.LoggingHelper
+import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.core.util.HeifSupportUtils
 import com.sza.fastmediasorter.core.util.MemoryTier
 import com.sza.fastmediasorter.core.util.errorUnlessCancellation
@@ -728,7 +729,8 @@ class ImageLoadingManager(
         }
 
         // In slideshow mode skip crossfade so image and edge-strips appear simultaneously.
-        val cloudTransition = if (isSlideshowActive) {
+        if (!AnimationPolicy.isAnimationAllowed) Timber.d("S2250: cloud image crossfade skipped")
+        val cloudTransition = if (isSlideshowActive || !AnimationPolicy.isAnimationAllowed) {
             DrawableTransitionOptions.withCrossFade(0)
         } else {
             DrawableTransitionOptions.withCrossFade(150)
@@ -846,7 +848,8 @@ class ImageLoadingManager(
         }
 
         // In slideshow mode skip crossfade so image and edge-strips appear simultaneously.
-        val networkTransition = if (isSlideshowActive) {
+        if (!AnimationPolicy.isAnimationAllowed) Timber.d("S2250: network image crossfade skipped")
+        val networkTransition = if (isSlideshowActive || !AnimationPolicy.isAnimationAllowed) {
             DrawableTransitionOptions.withCrossFade(0)
         } else {
             DrawableTransitionOptions.withCrossFade(150)
@@ -965,7 +968,8 @@ class ImageLoadingManager(
         }
 
         // In slideshow mode skip crossfade so image and edge-strips appear simultaneously.
-        val localTransition = if (isSlideshowActive) {
+        if (!AnimationPolicy.isAnimationAllowed) Timber.d("S2250: local image crossfade skipped")
+        val localTransition = if (isSlideshowActive || !AnimationPolicy.isAnimationAllowed) {
             DrawableTransitionOptions.withCrossFade(0)
         } else {
             DrawableTransitionOptions.withCrossFade(150)

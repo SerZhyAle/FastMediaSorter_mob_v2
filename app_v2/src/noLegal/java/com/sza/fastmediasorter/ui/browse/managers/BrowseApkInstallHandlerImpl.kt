@@ -17,11 +17,15 @@ import androidx.lifecycle.withStarted
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 import com.sza.fastmediasorter.domain.model.MediaFile
+import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
+import com.sza.fastmediasorter.domain.usecase.FileOperationProgress
+import com.sza.fastmediasorter.ui.dialog.FileOperationProgressDialog
 import com.sza.fastmediasorter.util.ApkInstallFailure
 import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -38,7 +42,8 @@ import javax.inject.Singleton
  *
  * S0183: APK install from Browse (noLegal only).
  * S0266: cloud APK paths are downloaded into the cache directory under their real `.apk` name
- *        before the system installer is invoked - no FileOperationProgressDialog, only a Toast.
+ *        before the system installer is invoked.
+ * S2283: download progress dialog, single-active-download guard, and cleanup on cancellation.
  */
 @Singleton
 class BrowseApkInstallHandlerImpl @Inject constructor(
@@ -56,6 +61,11 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
 
     // File waiting for permission grant from Settings.
     private var pendingFile: MediaFile? = null
+
+    // S2283: Active download tracking and progress dialog
+    private var activeDownloadJob: Job? = null
+    private var activeDownloadPath: String? = null
+    private var progressDialog: FileOperationProgressDialog? = null
 
     override fun registerLaunchers(activity: ComponentActivity) {
         activityRef = WeakReference(activity)
@@ -151,47 +161,107 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
     }
 
     /**
-     * S0266: noLegal-only cloud APK install. Downloads the APK silently into cacheDir under its
-     * real `.apk` name and immediately invokes the system installer. Single Toast at start, no
-     * FileOperationProgressDialog. Operations occur on lifecycleScope of the current Activity.
+     * S0266/S2283: noLegal-only cloud APK install with progress dialog and duplicate download guard.
+     * Downloads the APK into cacheDir under its real `.apk` name while updating FileOperationProgressDialog.
      */
     private fun downloadAndInstallFromCloud(file: MediaFile) {
         val act = activityRef.get()
         if (act == null || act.isFinishing || act.isDestroyed) {
             return
         }
-        Toast.makeText(act, R.string.s0266_apk_download_preparing, Toast.LENGTH_SHORT).show()
+
+        // S2283: Guard against concurrent duplicate download operations
+        if (activeDownloadJob?.isActive == true) {
+            Timber.w("cloud APK download already in progress for $activeDownloadPath")
+            Toast.makeText(act, R.string.s2283_apk_download_in_progress, Toast.LENGTH_SHORT).show()
+            return
+        }
+        Timber.d("S2283: start download for %s", file.name)
 
         val cacheApkDir = File(context.cacheDir, "apk_install").apply { mkdirs() }
         val cacheApkFile = File(cacheApkDir, file.name)
+        if (cacheApkFile.exists()) {
+            cacheApkFile.delete()
+        }
 
-        act.lifecycleScope.launch {
+        var downloadJob: Job? = null
+        val dialog = FileOperationProgressDialog.show(
+            context = act,
+            operationType = act.getString(R.string.s0266_apk_download_preparing),
+            onCancel = {
+                Timber.d("S2283: User cancelled cloud APK download for ${file.name}")
+                downloadJob?.cancel()
+                if (cacheApkFile.exists()) {
+                    cacheApkFile.delete()
+                }
+            },
+            onBackground = {
+                Timber.d("S2283: User backgrounded cloud APK download for ${file.name}")
+                Toast.makeText(act, R.string.browse_transfer_sent_to_background, Toast.LENGTH_SHORT).show()
+            },
+            showImmediately = true,
+        )
+        progressDialog = dialog
+        activeDownloadPath = file.path
+
+        val progressCallback = object : ByteProgressCallback {
+            override suspend fun onProgress(bytesTransferred: Long, totalBytes: Long, speedBytesPerSecond: Long) {
+                withContext(Dispatchers.Main) {
+                    val progress = FileOperationProgress.Processing(
+                        currentFile = file.name,
+                        currentIndex = 0,
+                        totalFiles = 1,
+                        bytesTransferred = bytesTransferred,
+                        totalBytes = if (totalBytes > 0L) totalBytes else file.size,
+                        speedBytesPerSecond = speedBytesPerSecond,
+                        completedOperationBytes = bytesTransferred,
+                    )
+                    progressDialog?.updateProgress(progress)
+                }
+            }
+        }
+
+        downloadJob = act.lifecycleScope.launch {
             val downloaded = withContext(Dispatchers.IO) {
                 runCatching {
                     cloudFileOperationHandler.downloadFromCloudToPublic(
                         cloudPath = file.path,
                         destPath = cacheApkDir.absolutePath,
                         fileName = file.name,
+                        progressCallback = progressCallback,
                     )
                 }.getOrElse { e ->
-                    // S1212: leaving the screen cancels this scope - normal teardown, not a download
-                    // failure. Swallowing it logged an E-level stack and degraded to `false`, which
-                    // then reported "install failed" for an operation the user simply walked away from.
-                    if (e is CancellationException) throw e
+                    if (e is CancellationException) {
+                        if (cacheApkFile.exists()) {
+                            cacheApkFile.delete()
+                        }
+                        throw e
+                    }
                     Timber.e(e, "cloud APK download threw")
                     false
                 }
             }
-            // The installer is an activity start, so it must not fire while the host is stopped.
+
+            withContext(Dispatchers.Main) {
+                progressDialog?.dismiss()
+                progressDialog = null
+            }
+
             act.lifecycle.withStarted {
+                activeDownloadJob = null
+                activeDownloadPath = null
                 if (downloaded && cacheApkFile.exists() && cacheApkFile.length() > 0L) {
                     launchSystemInstaller(cacheApkFile, file.name)
                 } else {
+                    if (cacheApkFile.exists()) {
+                        cacheApkFile.delete()
+                    }
                     Timber.w("cloud APK download reported failure for ${file.name}")
                     Toast.makeText(act, R.string.s0183_apk_install_failed, Toast.LENGTH_SHORT).show()
                 }
             }
         }
+        activeDownloadJob = downloadJob
     }
 
     private fun launchSystemInstaller(apkFile: File, fileName: String) {
@@ -200,7 +270,7 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
             val uri = FileProvider.getUriForFile(
                 context,
                 "${context.packageName}.fileprovider",
-                apkFile
+                apkFile,
             )
             // ACTION_INSTALL_PACKAGE is deprecated since API 25 and has no handler on Android 14+.
             // Modern path: ACTION_VIEW with the APK MIME type - the system PackageInstaller activity

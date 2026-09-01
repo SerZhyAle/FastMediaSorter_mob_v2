@@ -5,6 +5,7 @@ import androidx.lifecycle.LifecycleOwner
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
+import com.sza.fastmediasorter.util.showBoundTo
 import timber.log.Timber
 
 /**
@@ -80,6 +81,6 @@ class ScreenshotGestureActionPickerManager(
             rows = GesturePickerRowBuilder().build(pickerItems(), launcherRouteItem()),
             selectedKey = current,
             onPicked = onPicked,
-        ).show()
+        ).showBoundTo(lifecycleOwner)
     }
 }

@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLensEnumerationMan
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraLensEntry
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -35,6 +36,7 @@ class LauncherCameraBackgroundManager(
 
     private val lensEnumeration = CameraLensEnumerationManager()
     private var cameraProvider: ProcessCameraProvider? = null
+    private var startJob: Job? = null
 
     // The lens this manager is bound to, or is on its way to binding. Set before the provider is awaited
     // so a second call arriving during that await is recognised as a repeat rather than a new request.
@@ -52,24 +54,29 @@ class LauncherCameraBackgroundManager(
      * Awaits the provider instead of registering a listener on its future: a future listener has no
      * removal counterpart, so it would outlive a desktop the user already left.
      */
+    @Suppress("TooGenericExceptionCaught")
     fun start(cameraId: String) {
         if (requestedCameraId == cameraId) return
         requestedCameraId = cameraId
+        startJob?.cancel()
         Timber.d("S2076: launcher camera backdrop start requested for lens $cameraId")
-        lifecycleOwner.lifecycleScope.launch {
-            runCatching {
+        startJob = lifecycleOwner.lifecycleScope.launch {
+            try {
                 val context = previewView.context
                 // get() blocks until CameraX is up, so it waits off the main thread; the bind itself
                 // goes back to the main thread because CameraX requires it.
                 val provider = withContext(Dispatchers.IO) {
                     ProcessCameraProvider.getInstance(context).get()
                 }
+                if (requestedCameraId != cameraId) return@launch
                 cameraProvider = provider
                 bind(provider, cameraId)
-            }.onFailure { error ->
+            } catch (error: CancellationException) {
+                requestedCameraId = null
+                throw error
+            } catch (error: Throwable) {
                 // Clear the claim so the next foreground edge may retry this lens.
                 requestedCameraId = null
-                if (error is CancellationException) throw error
                 // The desktop keeps whatever it is already showing; a toast here would fire on a screen
                 // the user opens dozens of times a day.
                 Timber.e(error, "Launcher camera backdrop could not start")
@@ -80,10 +87,12 @@ class LauncherCameraBackgroundManager(
     /** Releases the camera. Symmetric with [start]; safe to call when nothing is bound. */
     fun stop() {
         Timber.d("S2076: launcher camera backdrop released, bound=${cameraProvider != null}")
+        startJob?.cancel()
+        startJob = null
+        requestedCameraId = null
         runCatching { cameraProvider?.unbindAll() }
             .onFailure { Timber.e(it, "Launcher camera backdrop could not stop") }
         cameraProvider = null
-        requestedCameraId = null
     }
 
     private fun bind(provider: ProcessCameraProvider, cameraId: String) {

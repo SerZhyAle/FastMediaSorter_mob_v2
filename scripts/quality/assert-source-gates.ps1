@@ -81,6 +81,64 @@ if ($Explain) {
     $repoRootNorm = ($repoRoot -replace '\\', '/').TrimEnd('/')
     $cannotVerify = $false
 
+    $commitCache = @{}
+    $workCache = @{}
+
+    function Get-ExplainCommitFileMap([string]$repoRoot, [string]$refCommit, [string[]]$roots) {
+        $rawCacheKey = "$refCommit`:;$($roots -join ';')"
+        if ($commitCache.ContainsKey($rawCacheKey)) {
+            return $commitCache[$rawCacheKey]
+        }
+
+        $validRoots = @(& git -C $repoRoot ls-tree --name-only $refCommit -- @roots 2>$null)
+        if ($validRoots.Count -eq 0) {
+            $commitCache[$rawCacheKey] = @{}
+            return @{}
+        }
+
+        $map = @{}
+        $ms = [System.IO.MemoryStream]::new()
+        $psi = [System.Diagnostics.ProcessStartInfo]::new()
+        $psi.FileName = 'git'
+        $psi.Arguments = "-C ""$repoRoot"" archive --format=zip $refCommit $($validRoots -join ' ')"
+        $psi.UseShellExecute = $false
+        $psi.RedirectStandardOutput = $true
+        $psi.RedirectStandardError = $true
+
+        $proc = [System.Diagnostics.Process]::Start($psi)
+        $proc.StandardOutput.BaseStream.CopyTo($ms)
+        $proc.WaitForExit()
+
+        if ($proc.ExitCode -eq 0 -and $ms.Length -gt 0) {
+            $ms.Position = 0
+            $zip = [System.IO.Compression.ZipArchive]::new($ms)
+            foreach ($entry in $zip.Entries) {
+                if ($entry.FullName.EndsWith('/')) { continue }
+                $reader = [System.IO.StreamReader]::new($entry.Open(), [System.Text.Encoding]::UTF8)
+                $map[$entry.FullName] = $reader.ReadToEnd()
+                $reader.Close()
+            }
+            $zip.Dispose()
+        }
+        $ms.Dispose()
+
+        $commitCache[$rawCacheKey] = $map
+        return $map
+    }
+
+    function Get-ExplainWorkFileText([string]$repoRoot, [string]$relativePath) {
+        if ($workCache.ContainsKey($relativePath)) {
+            return $workCache[$relativePath]
+        }
+        $abs = Join-Path $repoRoot $relativePath
+        $text = ''
+        if ([System.IO.File]::Exists($abs)) {
+            $text = [System.IO.File]::ReadAllText($abs)
+        }
+        $workCache[$relativePath] = $text
+        return $text
+    }
+
     foreach ($rule in $rules) {
         $baselineRel = ((Join-Path $PSScriptRoot $rule.Baseline) -replace '\\', '/')
         if ($baselineRel.ToLower().StartsWith($repoRootNorm.ToLower() + '/')) {
@@ -113,19 +171,14 @@ if ($Explain) {
         $refTotal = 0
         $workTotal = 0
         $drifted = [System.Collections.Generic.List[object]]::new()
+        $refMap = Get-ExplainCommitFileMap $repoRoot $refCommit $roots
 
         foreach ($p in $paths) {
-            $refText = (& git -C $repoRoot show "${refCommit}:$p" 2>$null | Out-String)
-            # Absent at the reference commit means it contributed nothing then - the same
-            # fail-closed reading delta mode gives a file missing from HEAD.
-            if ($LASTEXITCODE -ne 0 -or $null -eq $refText) { $refText = '' }
+            $refText = if ($refMap.ContainsKey($p)) { $refMap[$p] } else { '' }
+            $workText = Get-ExplainWorkFileText $repoRoot $p
 
-            $abs = Join-Path $repoRoot $p
-            $workText = ''
-            if (Test-Path -LiteralPath $abs) {
-                $workText = Get-Content -LiteralPath $abs -Raw
-                if ($null -eq $workText) { $workText = '' }
-            }
+            # Fast path: if reference text matches working tree text, count cannot change.
+            if ($refText -eq $workText) { continue }
 
             $refCount = [int](& $rule.CountInText $refText)
             $workCount = [int](& $rule.CountInText $workText)

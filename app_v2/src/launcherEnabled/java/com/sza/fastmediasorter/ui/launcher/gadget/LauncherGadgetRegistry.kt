@@ -95,6 +95,11 @@ class LauncherGadgetRegistry @Inject constructor(
         // S1175: same contract - the key is what a cell's `target` column stores, so it is never renamed.
         const val KEY_MAP = "map"
 
+        // S2241 & S2285: Google interactive live frame desktop gadgets
+        const val KEY_GOOGLE_MAPS_LIVE = "google_maps_live"
+        const val KEY_GOOGLE_KEEP_LIVE = "google_keep_live"
+        const val KEY_GOOGLE_CALENDAR_LIVE = "google_calendar_live"
+
         // S1177: same contract once more - this key is the stored `target` of a translator cell.
         const val KEY_TRANSLATOR = "translator"
 

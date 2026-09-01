@@ -1,7 +1,7 @@
 appId: com.sza.fastmediasorter.debug
 ---
 # Test: Rename a seeded file in Ops/src (S0551 Phase 03).
-# Precondition: OWNER_TRIGGER import registered "Загрузки" LOCAL resource and seeded
+# Precondition: clean preparation exposes the standard "Загрузки" LOCAL resource and seeds
 #   Ops/src/ops_rename_me.png under /storage/emulated/0/Download.
 # Oracle: renamed file appears and the old name disappears. Rename has no completion marker.
 

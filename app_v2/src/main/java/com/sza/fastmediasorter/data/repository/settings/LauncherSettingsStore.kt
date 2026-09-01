@@ -23,7 +23,12 @@ import timber.log.Timber
  */
 object LauncherSettingsStore {
 
+    private const val DEFAULT_LAUNCHER_SCREEN_COUNT = 2
+    private const val MIN_LAUNCHER_SCREEN_COUNT = 1
+    private const val MAX_LAUNCHER_SCREEN_COUNT = 5
+
     private val KEY_LAUNCHER_DENSITY_FACTOR = floatPreferencesKey("launcher_density_factor")
+    private val KEY_LAUNCHER_SCREEN_COUNT = intPreferencesKey("launcher_screen_count")
     private val KEY_LAUNCHER_TASKBAR_SHOW_RECENTS = booleanPreferencesKey("launcher_taskbar_show_recents")
     private val KEY_LAUNCHER_TASKBAR_SHOW_PINNED = booleanPreferencesKey("launcher_taskbar_show_pinned")
     private val KEY_LAUNCHER_TASKBAR_SHOW_TRAY = booleanPreferencesKey("launcher_taskbar_show_tray")
@@ -77,6 +82,7 @@ object LauncherSettingsStore {
     /** Launcher desktop fields read from DataStore, ready for [AppSettings]. */
     data class Values(
         val launcherDensityFactor: Float,
+        val launcherScreenCount: Int,
         val launcherTaskbarShowRecents: Boolean,
         val launcherTaskbarShowPinned: Boolean,
         val launcherTaskbarShowTray: Boolean,
@@ -118,6 +124,10 @@ object LauncherSettingsStore {
     // default), hidden system status bar and foreign-notification badges on (S2017 ADR-1).
     fun read(preferences: Preferences): Values = Values(
         launcherDensityFactor = preferences.getOrDefault(KEY_LAUNCHER_DENSITY_FACTOR, 1.0f),
+        launcherScreenCount = preferences.getOrDefault(
+            KEY_LAUNCHER_SCREEN_COUNT,
+            DEFAULT_LAUNCHER_SCREEN_COUNT
+        ).coerceIn(MIN_LAUNCHER_SCREEN_COUNT, MAX_LAUNCHER_SCREEN_COUNT),
         launcherTaskbarShowRecents = preferences.getOrDefault(KEY_LAUNCHER_TASKBAR_SHOW_RECENTS, true),
         launcherTaskbarShowPinned = preferences.getOrDefault(KEY_LAUNCHER_TASKBAR_SHOW_PINNED, true),
         launcherTaskbarShowTray = preferences.getOrDefault(KEY_LAUNCHER_TASKBAR_SHOW_TRAY, true),
@@ -198,6 +208,7 @@ object LauncherSettingsStore {
      */
     fun applyTo(settings: AppSettings, values: Values): AppSettings = settings.copy(
         launcherDensityFactor = values.launcherDensityFactor,
+        launcherScreenCount = values.launcherScreenCount,
         launcherTaskbarShowRecents = values.launcherTaskbarShowRecents,
         launcherTaskbarShowPinned = values.launcherTaskbarShowPinned,
         launcherTaskbarShowTray = values.launcherTaskbarShowTray,
@@ -237,6 +248,7 @@ object LauncherSettingsStore {
 
     fun write(preferences: MutablePreferences, settings: AppSettings) {
         preferences[KEY_LAUNCHER_DENSITY_FACTOR] = settings.launcherDensityFactor
+        preferences[KEY_LAUNCHER_SCREEN_COUNT] = settings.launcherScreenCount
         preferences[KEY_LAUNCHER_TASKBAR_SHOW_RECENTS] = settings.launcherTaskbarShowRecents
         preferences[KEY_LAUNCHER_TASKBAR_SHOW_PINNED] = settings.launcherTaskbarShowPinned
         preferences[KEY_LAUNCHER_TASKBAR_SHOW_TRAY] = settings.launcherTaskbarShowTray

@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.activityViewModels
@@ -30,6 +31,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.ResourcePickerDialogFragment
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherModalSurfaceManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceCreateManager
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.settings.LauncherSettingsDialogFragment
@@ -81,7 +83,7 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
             window?.let { panel ->
                 panel.setGravity(Gravity.TOP or Gravity.START)
                 panel.setLayout(
-                    WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.WRAP_CONTENT,
                     WindowManager.LayoutParams.WRAP_CONTENT,
                 )
                 panel.attributes = panel.attributes.apply { y = startButtonBottom() }
@@ -121,6 +123,10 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
         binding.rowResources.setOnClickListener { openResourcePicker() }
         binding.rowCreateResource.setOnClickListener {
             resourceCreateManager.startCreateResource(requireContext())
+            dismiss()
+        }
+        binding.rowAllApps.setOnClickListener {
+            LauncherModalSurfaceManager(parentFragmentManager).showAllApps()
             dismiss()
         }
         binding.rowAndroidSettings.setOnClickListener {
@@ -172,8 +178,26 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
         super.onStart()
         dialog?.let { DialogKeyboardDelegate.applyToDialogFragment(it, onConfirm = {}) }
         expandSheet()
+        wrapPanelToContentWidth()
         capTopPanelToAvailableHeight()
         binding.rowOpenApp.requestFocus()
+    }
+
+    /** Keeps the Start panel only as wide as its longest row in either taskbar placement. */
+    private fun wrapPanelToContentWidth() {
+        val currentDialog = dialog ?: return
+        if (currentDialog is BottomSheetDialog) {
+            currentDialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+                ?.updateLayoutParams<CoordinatorLayout.LayoutParams> {
+                    width = WindowManager.LayoutParams.WRAP_CONTENT
+                    gravity = Gravity.BOTTOM or Gravity.START
+                }
+            return
+        }
+        currentDialog.window?.setLayout(
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.WRAP_CONTENT,
+        )
     }
 
     // S1588: left collapsed, the sheet's visible height is Material's auto-peek formula
@@ -181,9 +205,16 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
     // accident and collapses to a single row in landscape. Expanding explicitly drops that dependency
     // on screen geometry; skipCollapsed keeps a downward swipe from parking at the peek height.
     private fun expandSheet() {
-        val behavior = (dialog as? BottomSheetDialog)?.behavior ?: return
+        val bottomSheetDialog = dialog as? BottomSheetDialog ?: return
+        val behavior = bottomSheetDialog.behavior
         behavior.skipCollapsed = true
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        // BottomSheetDialog can restore its initial state while it completes the first layout pass.
+        // Re-applying after that pass prevents the Start panel from waiting for a user drag to expand.
+        bottomSheetDialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+            ?.post {
+                if (isAdded) behavior.state = BottomSheetBehavior.STATE_EXPANDED
+            }
     }
 
     /**

@@ -1,7 +1,7 @@
 appId: com.sza.fastmediasorter.debug
 ---
 # Test: Copy and move files from Ops/src to Ops/dst (S0551 Phase 03).
-# Precondition: OWNER_TRIGGER import registered "Загрузки" LOCAL resource and seeded
+# Precondition: clean preparation exposes the standard "Загрузки" LOCAL resource and seeds
 #   Ops/src + Ops/dst under /storage/emulated/0/Download. Required files:
 #   Ops/src/IMG_copy_01.png, Ops/src/IMG_move_01.png.
 # Oracle: copy leaves the source visible and creates the destination entry; move creates

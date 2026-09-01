@@ -392,6 +392,14 @@
         <item name="buttonBarNeutralButtonStyle">@style/Widget.FastMediaSorter.Button.DialogCancel</item>
     </style>
 
+    <!-- S2252: full-screen dialog overlay that removes floating and background borders while keeping system bars visible. -->
+    <style name="ThemeOverlay.FastMediaSorter.Dialog.FullScreen" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowBackground">?attr/colorSurface</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowSoftInputMode">adjustResize</item>
+    </style>
+
     <style name="Widget.FastMediaSorter.Calculator.Button" parent="Widget.MaterialComponents.Button.OutlinedButton">
         <item name="android:textSize">@dimen/calculator_button_text_size</item>
         <item name="android:textStyle">bold</item>

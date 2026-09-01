@@ -165,6 +165,14 @@ try {
     Assert-That -Case 'E' -What 'names both counts' -Condition ($e.text -match '2/3' -and $e.text -match '1/3') -Detail $e.text
     Assert-That -Case 'E' -What 'phase file untouched' -Condition (([IO.File]::ReadAllText($phaseFile)) -eq $beforePhase)
     Assert-That -Case 'E' -What 'index untouched' -Condition (([IO.File]::ReadAllText($indexFile)) -eq $beforeIndex)
+
+    $reconciled = Invoke-Tick -Arguments @('-Id', 'S9991', '-Phase', '01', '-Steps', '2', '-State', 'Done', '-Reconcile')
+    $reconciledIndex = [IO.File]::ReadAllText($indexFile)
+    $reconciledPhase = [IO.File]::ReadAllText($phaseFile)
+    Assert-That -Case 'E' -What 'explicit reconcile succeeds' -Condition ($reconciled.exitCode -eq 0) -Detail $reconciled.text
+    Assert-That -Case 'E' -What 'reconcile writes the true counters' -Condition (
+        $reconciledIndex -match '\|\s*2/3\s*\|' -and $reconciledPhase -match '\*\*Steps done:\*\* 2 / 3'
+    )
     $cases++
 
     # ---- case F: an ambiguous checkbox fragment refuses ----------------------

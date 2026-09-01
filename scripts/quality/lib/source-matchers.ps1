@@ -449,6 +449,28 @@ function Measure-LoneResourceBackslashes([string]$Text) {
     return $n
 }
 
+# S2250: a policy check can be hoisted or expressed as an early return, so a lexical gate cannot
+# reliably prove that an individual animator consulted it. Count the animation vocabulary instead:
+# adding any new primitive makes the review explicit, while the baseline never hides that growth.
+$script:UnpolicedAnimationRx = [regex]'\boverridePendingTransition\b|\boverrideActivityTransition\b|\bbeginDelayedTransition\b|\bLayoutTransition\b|\bsetPageTransformer\b|\bObjectAnimator\b|\bValueAnimator\b|\bAnimatorSet\b|\bAnimationUtils\.loadAnimation\b|\bwithCrossFade\s*\(\s*(?!0(?:\.0+)?(?:[fFdD])?\s*[,)])|\bAnimatedVisibility\b'
+
+function Find-UnpolicedAnimationLines([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return @() }
+    $hits = @()
+    $lines = $Text -split "`r?`n"
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        foreach ($match in $script:UnpolicedAnimationRx.Matches($lines[$i])) {
+            $hits += ($i + 1)
+        }
+    }
+    return $hits
+}
+
+function Measure-UnpolicedAnimationText([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return 0 }
+    return $script:UnpolicedAnimationRx.Matches($Text).Count
+}
+
 function New-RegexRule {
     param(
         [Parameter(Mandatory)][string]$Name,
@@ -746,6 +768,30 @@ function Get-SourceRules {
             CountInText  = { param($t) Measure-SwallowedCancellationText $t }
             LocateInText = { param($t) Find-SwallowedCancellationLines $t }
             FailMessage  = 'new catch in wear coroutine code that swallows CancellationException - a broad arm, or an IllegalStateException/RuntimeException arm, both of which are its supertypes. Add `catch (e: CancellationException) { throw e }` as the first arm of the chain (S1363/S1889/S1910).'
+        },
+        # S2250: phone and Wear counts stay separate. A new animator in one module cannot hide
+        # behind a cleanup in the other, and the fail message names the policy the new site must use.
+        [pscustomobject]@{
+            Name         = 'unpoliced-animation'
+            Extensions   = @('.kt')
+            Roots        = @('app_v2/src/main')
+            PathFilter   = 'app_v2/src/main/'
+            Baseline     = 'unpoliced-animation-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-UnpolicedAnimationText $t }
+            LocateInText = { param($t) Find-UnpolicedAnimationLines $t }
+            FailMessage  = 'new animation primitive in the phone app (S2250). Re-judge the site and consult AnimationPolicy before creating the transition or animator.'
+        },
+        [pscustomobject]@{
+            Name         = 'unpoliced-animation-wear'
+            Extensions   = @('.kt')
+            Roots        = @('wear/src')
+            PathFilter   = 'wear/src/'
+            Baseline     = 'unpoliced-animation-wear-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-UnpolicedAnimationText $t }
+            LocateInText = { param($t) Find-UnpolicedAnimationLines $t }
+            FailMessage  = 'new animation primitive in Wear (S2250). Re-judge the site and consult VideoPlayerUiState.animationsDisabled before creating it.'
         },
         [pscustomobject]@{
             Name         = 'activity-logic'

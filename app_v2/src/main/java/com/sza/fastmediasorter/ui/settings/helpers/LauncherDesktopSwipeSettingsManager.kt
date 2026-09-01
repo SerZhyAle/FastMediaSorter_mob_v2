@@ -77,12 +77,12 @@ class LauncherDesktopSwipeSettingsManager(
         if (kind == null) return
         val payload = direction.payloadOf(settings)
         when (kind) {
-            LauncherSwipePayloadPickerManager.TargetKind.APP -> {
+            GestureTargetKind.APP -> {
                 row.setTitle(host.getString(R.string.gesture_slot_app_label))
                 row.setValue(host.getString(R.string.gesture_slot_app_none))
                 if (payload.isNotEmpty()) resolveAppLabel(payload) { row.setValue(it) }
             }
-            LauncherSwipePayloadPickerManager.TargetKind.URL -> {
+            GestureTargetKind.URL -> {
                 row.setTitle(host.getString(R.string.gesture_url_input_title))
                 row.setValue(payload.ifEmpty { host.getString(R.string.gesture_slot_url_none) })
             }

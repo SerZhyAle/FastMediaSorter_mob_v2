@@ -64,7 +64,17 @@
     { "field": "screenshotGesturePayloadRightTopUp", "reason": "gesture payload - a target path or package meaningful only on this install" },
     { "field": "screenshotGesturePayloadRightBottomDown", "reason": "gesture payload - a target path or package meaningful only on this install" },
     { "field": "screenshotGesturePayloadRightBottomRight", "reason": "gesture payload - a target path or package meaningful only on this install" },
-    { "field": "screenshotGesturePayloadRightBottomUp", "reason": "gesture payload - a target path or package meaningful only on this install" }
+    { "field": "screenshotGesturePayloadRightBottomUp", "reason": "gesture payload - a target path or package meaningful only on this install" },
+    { "field": "launcherDesktopSwipeUpPayload", "reason": "gesture payload - a target path or package meaningful only on this install" },
+    { "field": "launcherDesktopSwipeDownPayload", "reason": "gesture payload - a target path or package meaningful only on this install" },
+    { "field": "launcherDesktopSwipeLeftPayload", "reason": "gesture payload - a target path or package meaningful only on this install" },
+    { "field": "launcherDesktopSwipeRightPayload", "reason": "gesture payload - a target path or package meaningful only on this install" },
+    { "field": "launcherStepsResetCount", "reason": "session state - tracking counter for pedometer step reset" },
+    { "field": "launcherStepsResetTimestamp", "reason": "session state - tracking timestamp for pedometer step reset" },
+    { "field": "launcherDesktopSwipeUpAction", "reason": "launcher gesture action - personal gesture assignment rather than a device-class default" },
+    { "field": "launcherDesktopSwipeDownAction", "reason": "launcher gesture action - personal gesture assignment rather than a device-class default" },
+    { "field": "launcherDesktopSwipeLeftAction", "reason": "launcher gesture action - personal gesture assignment rather than a device-class default" },
+    { "field": "launcherDesktopSwipeRightAction", "reason": "launcher gesture action - personal gesture assignment rather than a device-class default" }
   ],
 
   "reviewed": [
@@ -114,6 +124,7 @@
     { "field": "streamsDefaultSubtitleLanguage", "reason": "reviewed for release 35 - see streamsDefaultAudioLanguage: follows the app language, not the device (S1538)" },
     { "field": "showProgramsPanelInMainWindow", "reason": "reviewed for release 35 - a layout preference for the main window; streaming is absent from several flavors, so no single value holds across builds (S1538)" },
     { "field": "cameraAspectRatio", "reason": "reviewed for release 35 - the useful ratio follows the sensor and the shot, not the device class the profile names (S1538)" },
+    { "field": "cameraGridEnabled", "reason": "framing grid in camera preview is a user preference, not a device class property" },
     { "field": "cameraCaptureCopyToClipboard", "reason": "reviewed for release 35 - copying on capture is a working habit; decided together with the other two clipboard rows (S1538)" },
     { "field": "videoFrameCopyToClipboard", "reason": "reviewed for release 35 - see cameraCaptureCopyToClipboard: decided as one family (S1538)" },
     { "field": "copyScreenshotToClipboard", "reason": "reviewed for release 35 - see cameraCaptureCopyToClipboard: decided as one family (S1538)" },

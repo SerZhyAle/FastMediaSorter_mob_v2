@@ -333,6 +333,7 @@ class DeviceProfilePresetApplier @Inject constructor(
             // may drop the guard because capture is one of its declared functions.
             "secureSensitiveScreens" -> settings.copy(secureSensitiveScreens = raw.toBool())
             "cameraAspectRatio" -> raw.toIntOrSkip(field) { settings.copy(cameraAspectRatio = it) } ?: settings
+            "cameraGridEnabled" -> settings.copy(cameraGridEnabled = raw.toBool())
 
             // ── S1216 Launcher family: applied only where the home surface is compiled in ───
             "launcherDensityFactor" -> applyLauncherField(field, raw, settings) { s ->

@@ -95,6 +95,7 @@ class LauncherStarterSetsTest {
     @Test
     fun `every set opens with top unsectioned items and closes with the launcher actions`() {
         val items = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap(), emptySet())
+            .filter { it.screenIndex == 0 }
         assertEquals(
             listOf("clock", "search", "weather", "sec:app_functions") +
                 actionTargets(DeviceProfileType.OTHER) +
@@ -114,6 +115,7 @@ class LauncherStarterSetsTest {
                 allPaddingAvailable,
                 emptySet(),
             )
+            .filter { it.screenIndex == 0 }
             .map { it.target }
         val widgetsHeaderIndex = targets.indexOf("sec:widgets")
         val actionsHeaderIndex = targets.indexOf("sec:app_functions")
@@ -131,7 +133,7 @@ class LauncherStarterSetsTest {
             StarterResources(allAudioId = 7),
             mapOf(InternalRouteCatalog.KEY_STREAMS to true),
             emptySet(),
-        )
+        ).filter { it.screenIndex == 0 }
         val actionsHeaderIndex = items.indexOfFirst { it.target == "sec:app_functions" }
         assertFalse(items.drop(actionsHeaderIndex).any { it.kind == LauncherCellKind.GADGET })
     }
@@ -150,7 +152,7 @@ class LauncherStarterSetsTest {
             ),
             allPaddingAvailable,
             emptySet(),
-        )
+        ).filter { it.screenIndex == 0 }
         assertEquals(
             listOf(
                 "clock", "search", "weather",
@@ -179,7 +181,7 @@ class LauncherStarterSetsTest {
             StarterResources(recentId = 1),
             mapOf(InternalRouteCatalog.KEY_CALCULATOR to true), // only calculator compiled in
             emptySet(),
-        )
+        ).filter { it.screenIndex == 0 }
         assertEquals(
             listOf(
                 "clock", "search", "weather",
@@ -200,7 +202,7 @@ class LauncherStarterSetsTest {
             StarterResources(lastResourceId = 5),
             emptyMap(),
             emptySet(),
-        )
+        ).filter { it.screenIndex == 0 }
         assertEquals(
             listOf(
                 "clock", "search", "weather",
@@ -224,6 +226,7 @@ class LauncherStarterSetsTest {
     fun `null id dependencies are skipped, never seeded as dangling cells`() {
         val items = LauncherStarterSets
             .itemsFor(DeviceProfileType.PHOTO_FRAME, StarterResources(), emptyMap(), emptySet())
+            .filter { it.screenIndex == 0 }
         assertEquals(
             listOf(
                 "clock", "search", "weather",
@@ -243,7 +246,7 @@ class LauncherStarterSetsTest {
             StarterResources(allAudioId = 7),
             mapOf(InternalRouteCatalog.KEY_STREAMS to true),
             emptySet(),
-        )
+        ).filter { it.screenIndex == 0 }
         assertEquals(
             listOf(
                 "clock", "search",
@@ -298,13 +301,13 @@ class LauncherStarterSetsTest {
             StarterResources(),
             allPaddingAvailable,
             installed,
-        ).map { it.target }.toSet()
+        ).filter { it.screenIndex == 0 }.map { it.target }.toSet()
         val smartphone = LauncherStarterSets.itemsFor(
             DeviceProfileType.PERSONAL_SMARTPHONE,
             StarterResources(),
             allPaddingAvailable,
             installed,
-        ).map { it.target }.toSet()
+        ).filter { it.screenIndex == 0 }.map { it.target }.toSet()
 
         assertNotEquals(car, smartphone)
         assertTrue("car needs speed", "speed" in car)
@@ -318,6 +321,7 @@ class LauncherStarterSetsTest {
         profileGrid.forEach { (profile, expected) ->
             val targets = LauncherStarterSets
                 .itemsFor(profile, StarterResources(), allPaddingAvailable, installed)
+                .filter { it.screenIndex == 0 }
                 .map { it.target }.toSet()
             assertEquals("$profile weather", profile != DeviceProfileType.AUDIO_PLAYER, "weather" in targets)
             assertEquals("$profile Wi-Fi", expected.wifi, "os:wifi" in targets)
@@ -447,7 +451,7 @@ class LauncherStarterSetsTest {
         allPaddingAvailable,
         installed,
         googleServicesAvailable = googleServicesAvailable,
-    )
+    ).filter { it.screenIndex == 0 }
 
     @Test
     fun `google section holds the installed candidates in catalogue order`() {
@@ -707,10 +711,13 @@ class LauncherStarterSetsTest {
         val items = smartphoneFullSet()
         intArrayOf(3, 4, 8).forEach { columns ->
             val placed = LauncherStarterSets.place(items, columns)
-            var floor = 0
-            placed.forEach { cell ->
-                assertTrue("${cell.item.target} above its header at $columns", cell.rowIndex >= floor)
-                if (cell.item.kind == LauncherCellKind.SECTION) floor = cell.rowIndex
+            val placedByScreen = placed.groupBy { it.screenIndex }
+            for ((_, screenPlaced) in placedByScreen) {
+                var floor = 0
+                screenPlaced.forEach { cell ->
+                    assertTrue("${cell.item.target} above its header at $columns", cell.rowIndex >= floor)
+                    if (cell.item.kind == LauncherCellKind.SECTION) floor = cell.rowIndex
+                }
             }
         }
     }
@@ -720,17 +727,20 @@ class LauncherStarterSetsTest {
         // S1428 reads membership off the rows, so a cell that packs above its own header belongs to the
         // section before it - the defect S1587 recorded on the device.
         val placed = LauncherStarterSets.place(smartphoneFullSet(), columns = 4)
-        var seededUnder: String? = null
-        placed.forEach { cell ->
-            if (cell.item.kind == LauncherCellKind.SECTION) {
-                seededUnder = cell.item.target
-                return@forEach
+        val placedByScreen = placed.groupBy { it.screenIndex }
+        for ((_, screenPlaced) in placedByScreen) {
+            var seededUnder: String? = null
+            screenPlaced.forEach { cell ->
+                if (cell.item.kind == LauncherCellKind.SECTION) {
+                    seededUnder = cell.item.target
+                    return@forEach
+                }
+                val ownedBy = screenPlaced
+                    .filter { it.item.kind == LauncherCellKind.SECTION && it.rowIndex <= cell.rowIndex }
+                    .maxByOrNull { it.rowIndex }
+                    ?.item?.target
+                assertEquals("${cell.item.target} drifted out of its section", seededUnder, ownedBy)
             }
-            val ownedBy = placed
-                .filter { it.item.kind == LauncherCellKind.SECTION && it.rowIndex <= cell.rowIndex }
-                .maxByOrNull { it.rowIndex }
-                ?.item?.target
-            assertEquals("${cell.item.target} drifted out of its section", seededUnder, ownedBy)
         }
     }
 
@@ -776,11 +786,11 @@ class LauncherStarterSetsTest {
     )
 
     private fun assertNoOverlap(placed: List<LauncherStarterSets.PlacedStarterItem>) {
-        val occupied = mutableSetOf<Pair<Int, Int>>()
+        val occupied = mutableSetOf<Triple<Int, Int, Int>>()
         for (p in placed) {
             for (r in p.rowIndex until p.rowIndex + p.spanH) {
                 for (c in p.colIndex until p.colIndex + p.spanW) {
-                    assertTrue("overlap at ($r, $c)", occupied.add(r to c))
+                    assertTrue("overlap at screen ${p.screenIndex} ($r, $c)", occupied.add(Triple(p.screenIndex, r, c)))
                 }
             }
         }

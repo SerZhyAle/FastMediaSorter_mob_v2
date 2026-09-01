@@ -472,6 +472,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     cameraCaptureOpenForEditing = capture.cameraCaptureOpenForEditing,
                     cameraCaptureCopyToClipboard = capture.cameraCaptureCopyToClipboard,
                     cameraGeotagEnabled = capture.cameraGeotagEnabled,
+                    cameraGridEnabled = capture.cameraGridEnabled,
                     cameraAspectRatio = capture.cameraAspectRatio,
                     cameraLensSettings = capture.cameraLensSettings,
                     disableVideoCapture = preferences[KEY_DISABLE_VIDEO_CAPTURE] ?: false,

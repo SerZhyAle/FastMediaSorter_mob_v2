@@ -100,6 +100,7 @@ class ResetLauncherToDefaultsUseCase @Inject constructor(
         settings.updateSettings { current ->
             current.copy(
                 launcherDensityFactor = defaults.launcherDensityFactor,
+                launcherScreenCount = defaults.launcherScreenCount,
                 launcherTaskbarShowRecents = defaults.launcherTaskbarShowRecents,
                 launcherTaskbarShowPinned = defaults.launcherTaskbarShowPinned,
                 launcherTaskbarShowTray = defaults.launcherTaskbarShowTray,

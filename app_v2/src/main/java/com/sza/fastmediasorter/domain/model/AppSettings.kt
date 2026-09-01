@@ -209,6 +209,7 @@ data class AppSettings(
     val cameraCaptureOpenForEditing: Boolean = false, // Open the captured photo in the drawing editor after saving
     val cameraCaptureCopyToClipboard: Boolean = false, // Also place a captured photo on the system clipboard (S0469)
     val cameraGeotagEnabled: Boolean = false, // S0766: opt-in GPS geotag of in-app camera photos (default off)
+    val cameraGridEnabled: Boolean = false, // Opt-in persistent 3x3 framing grid in camera preview
     // S1658: remembered in-app camera frame shape - 0 = 4:3, 1 = 16:9 (default), 2 = full screen.
     // Decoded by CameraAspectSelection, which owns what each value asks the capture pipeline for.
     val cameraAspectRatio: Int = 1,
@@ -382,6 +383,8 @@ data class AppSettings(
     // because head units and TV boxes report unreliable densities. Desktop content itself lives in
     // Room, not here - a device profile seeds it once and never re-applies (ADR-4).
     val launcherDensityFactor: Float = 1.0f,
+    // S2251: number of desktop screens in launcher mode (1..5, default 2).
+    val launcherScreenCount: Int = 2,
     // S1643: which screen edge the whole taskbar composition is anchored to, one of
     // [LAUNCHER_TASKBAR_PLACEMENT_OPTIONS]. Stored as a token (like [launcherWallpaperMode]) so an
     // unknown value from a newer build degrades to the bottom edge. Defaults to the bottom edge

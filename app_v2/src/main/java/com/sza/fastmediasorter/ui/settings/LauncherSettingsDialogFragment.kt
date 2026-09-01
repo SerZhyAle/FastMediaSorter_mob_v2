@@ -28,6 +28,7 @@ import com.sza.fastmediasorter.databinding.DialogLauncherResetConfirmBinding
 import com.sza.fastmediasorter.databinding.DialogLauncherSettingsBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeDirection
 import com.sza.fastmediasorter.domain.usecase.launcher.IsCameraWallpaperAvailableUseCase
 import com.sza.fastmediasorter.domain.usecase.panel.QueryLaunchableAppsUseCase
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
@@ -104,6 +105,13 @@ class LauncherSettingsDialogFragment : DialogFragment() {
     private var wallpaperSettingsManager: LauncherWallpaperSettingsManager? = null
     private var screenTimeoutSettingsManager: LauncherScreenTimeoutSettingsManager? = null
 
+    // S2256: the direction the swipe app picker is currently choosing for. Held here rather than in
+    // LauncherSwipePayloadPickerManager, which is rebuilt on every re-inflate, and saved because losing it
+    // mid-pick (the host process can die while the child app picker is open) would write the chosen
+    // package into no direction at all - the same trap and fix as EdgeGestureConfigDialogFragment's
+    // pendingAppSlot.
+    private var pendingSwipeAppDirection: LauncherDesktopSwipeDirection? = null
+
     /**
      * S1101: picks the desktop wallpaper image. The file is copied into private storage right away, so
      * no persistable Uri grant is taken - the picked document is read once and never referenced again.
@@ -126,6 +134,19 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             wallpaperSettingsManager?.onCameraPermissionResult(granted)
         }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setStyle(STYLE_NORMAL, R.style.ThemeOverlay_FastMediaSorter_Dialog_FullScreen)
+        pendingSwipeAppDirection = savedInstanceState
+            ?.getString(STATE_PENDING_SWIPE_DIRECTION)
+            ?.let { runCatching { LauncherDesktopSwipeDirection.valueOf(it) }.getOrNull() }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        pendingSwipeAppDirection?.let { outState.putString(STATE_PENDING_SWIPE_DIRECTION, it.name) }
+    }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dialog = super.onCreateDialog(savedInstanceState)
@@ -158,6 +179,8 @@ class LauncherSettingsDialogFragment : DialogFragment() {
                 host = this,
                 currentSettings = { viewModel.settings.value },
                 updateSettings = viewModel::updateSettings,
+                pendingDirection = { pendingSwipeAppDirection },
+                setPendingDirection = { pendingSwipeAppDirection = it },
             ),
             queryLaunchableApps = queryLaunchableApps,
         )
@@ -192,9 +215,10 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         observeSettings()
     }
 
-    /** S1422: only the top bar starts expanded - it is the group the launcher work keeps changing. */
+    /** S1422/S2252: seven collapsible groups - only top bar starts expanded by default. */
     private fun setupCollapsibleSections() {
         sectionsManager.register(binding.headerLauncherTaskbar, binding.containerLauncherTaskbar, "launcher__taskbar")
+        sectionsManager.register(binding.headerLauncherTray, binding.containerLauncherTray, "launcher__tray")
         sectionsManager.register(
             binding.headerLauncherTopBar,
             binding.containerLauncherTopBar,
@@ -202,18 +226,28 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             defaultExpanded = true,
         )
         sectionsManager.register(binding.headerLauncherDesktop, binding.containerLauncherDesktop, "launcher__desktop")
+        sectionsManager.register(
+            binding.headerLauncherGestures,
+            binding.containerLauncherGestures,
+            "launcher__gestures"
+        )
+        sectionsManager.register(
+            binding.headerLauncherAppearance,
+            binding.containerLauncherAppearance,
+            "launcher__appearance"
+        )
         sectionsManager.register(binding.headerLauncherSystem, binding.containerLauncherSystem, "launcher__system")
         expandRequestedSection()
     }
 
     /**
-     * S1466: unfolds the group the caller asked for, after every section restored its stored state -
-     * the request has to win over that state, or a user who once folded the desktop group would open the
+     * S1466/S2252: unfolds the group the caller asked for, after every section restored its stored state -
+     * the request has to win over that state, or a user who once folded the appearance group would open the
      * dialog from "Wallpaper" and see no wallpaper row.
      */
     private fun expandRequestedSection() {
-        if (arguments?.getString(ARG_EXPAND_SECTION) != SECTION_DESKTOP) return
-        binding.headerLauncherDesktop.setExpanded(true, notify = true)
+        if (arguments?.getString(ARG_EXPAND_SECTION) != SECTION_APPEARANCE) return
+        binding.headerLauncherAppearance.setExpanded(true, notify = true)
     }
 
     private fun setupRows() {
@@ -273,6 +307,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             val factor = options.getOrElse(index) { options[DENSITY_DEFAULT_INDEX] }
             viewModel.updateSettings(viewModel.settings.value.copy(launcherDensityFactor = factor))
         }
+        setupScreenCountRow()
         requireNotNull(wallpaperSettingsManager).setupRow()
         binding.rowLauncherLockDesktop.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
@@ -332,6 +367,15 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             val options = AppSettings.LAUNCHER_WIDGET_BACKDROP_ALPHA_OPTIONS
             val alpha = options.getOrElse(index) { options[BACKDROP_ALPHA_DEFAULT_INDEX] }
             viewModel.updateSettings(viewModel.settings.value.copy(launcherWidgetBackdropAlpha = alpha))
+        }
+    }
+
+    private fun setupScreenCountRow() {
+        binding.rowLauncherScreenCount.setEntries(listOf("1", "2", "3", "4", "5"))
+        binding.rowLauncherScreenCount.setOnItemSelectedListener { index ->
+            if (isUpdatingFromSettings) return@setOnItemSelectedListener
+            val count = index + 1
+            viewModel.updateSettings(viewModel.settings.value.copy(launcherScreenCount = count))
         }
     }
 
@@ -435,6 +479,8 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             )
             val densityIndex = AppSettings.LAUNCHER_DENSITY_OPTIONS.indexOf(settings.launcherDensityFactor)
             binding.rowLauncherDensity.setSelection(if (densityIndex >= 0) densityIndex else DENSITY_DEFAULT_INDEX)
+            val screenCountIndex = (settings.launcherScreenCount - 1).coerceIn(0, MAX_SCREEN_COUNT_INDEX)
+            binding.rowLauncherScreenCount.setSelection(screenCountIndex)
             wallpaperSettingsManager?.render(settings)
             screenTimeoutSettingsManager?.render(settings)
             renderWidgetBackdropAlphaRow(settings)
@@ -562,7 +608,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         super.onStart()
         dialog?.window?.setLayout(
             ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.MATCH_PARENT,
         )
         // Settings panel: every control applies immediately, so there is no positive action - a no-op
         // confirm keeps Esc-dismiss and focus traversal without a false Enter-confirm.
@@ -591,13 +637,16 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         const val TAG = "LauncherSettingsDialogFragment"
 
         /**
-         * S1466: the desktop group holds the wallpaper row, and the quick menu's "Wallpaper" item has no
+         * S1466/S2252: the appearance group holds the wallpaper row, and the quick menu's "Wallpaper" item has no
          * other home - wallpaper is a row of this dialog, not a screen of its own. Opening the dialog with
          * that group already unfolded is what keeps the two menu items from landing in the same place.
          */
-        const val SECTION_DESKTOP = "desktop"
+        const val SECTION_APPEARANCE = "appearance"
 
         private const val ARG_EXPAND_SECTION = "expand_section"
+
+        // S2256: survives the same process-death-while-app-picker-is-open window pendingSwipeAppDirection guards.
+        private const val STATE_PENDING_SWIPE_DIRECTION = "pending_swipe_app_direction"
 
         /** [expandSection] unfolds one group on open regardless of its stored state; null keeps them as they were. */
         fun newInstance(expandSection: String? = null): LauncherSettingsDialogFragment =
@@ -607,6 +656,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
 
         // Standard density (1.0f) sits at index 1 of AppSettings.LAUNCHER_DENSITY_OPTIONS.
         private const val DENSITY_DEFAULT_INDEX = 1
+        private const val MAX_SCREEN_COUNT_INDEX = 4
 
         // The stored alpha is a float, so the row matches it by proximity rather than by equality.
         private const val ALPHA_MATCH_EPSILON = 0.01f

@@ -67,6 +67,28 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/launcherGridPager"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/launcherPageIndicator"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/launcherStatusStrip" />
+
+    <LinearLayout
+        android:id="@+id/launcherPageIndicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/launcherTaskbar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
     <!-- One screen plus downward scroll, no desktop pages (strategic §3.3). fillViewport is what makes
          a desktop shorter than the screen still fill it, so the grid is not a floating strip on top. -->
     <androidx.core.widget.NestedScrollView
@@ -77,7 +99,7 @@
         android:fillViewport="true"
         android:paddingStart="@dimen/launcher_grid_side_padding"
         android:paddingEnd="@dimen/launcher_grid_side_padding"
-        app:layout_constraintBottom_toTopOf="@+id/launcherTaskbar"
+        app:layout_constraintBottom_toTopOf="@+id/launcherPageIndicator"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/launcherStatusStrip">

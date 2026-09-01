@@ -52,6 +52,7 @@ FastMedia Launcher gives you full control over your device's home screen layout:
 
 - **Custom Folder Shortcuts:** One-tap shortcuts to local folders, USB drives, NAS shares, or cloud storage.
 - **Built-in Application Drawer:** Quickly open any installed Android application directly from the launcher taskbar.
+- **Taskbar Recents:** Hold a recent taskbar icon to open it, pin it, or remove it from the recent list.
 - **Desktop Locking:** Lock desktop editing to prevent accidental changes during daily driving or photo frame operation.
 - **Clock Display Gestures:** On the Clock widget, swipe right to hide seconds and left to show them. Swipe up for a random readable clock colour and a new time font, or down to restore the standard theme colour. The date keeps its font, shares the colour, and the choices stay after restarting the launcher.
 - **Live Camera Background:** Set the desktop wallpaper to a live frame from one of the device's cameras. The entry appears in the wallpaper list only on devices that have a camera; choosing it asks for the camera permission and then lets you pick which lens to use. The stream stops the moment the desktop leaves the screen, so nothing runs in the background, and a device without a camera or with the permission refused keeps the branded wallpaper instead of a black screen.

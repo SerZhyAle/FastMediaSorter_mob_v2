@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -296,6 +297,9 @@ private fun VideoPlayerContent(
         // Controls overlay.
         // S2250: the setting removes the fade, not the panel - the plain branch reaches the same
         // visible state in one frame, and hiding it still hides VideoControls with it.
+        LaunchedEffect(uiState.animationsDisabled) {
+            if (uiState.animationsDisabled) Timber.d("S2250: Wear video controls transition skipped")
+        }
         when {
             !uiState.animationsDisabled -> AnimatedVisibility(
                 visible = uiState.showControls,

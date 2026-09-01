@@ -26,7 +26,8 @@ data class LauncherCellEntity(
     val kind: String,
     val target: String,
     val labelOverride: String?,
-    val addedAt: Long
+    val addedAt: Long,
+    val screenIndex: Int = 0
 )
 
 @Dao

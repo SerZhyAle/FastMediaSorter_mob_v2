@@ -9,10 +9,10 @@ import android.graphics.Typeface
 import android.net.Uri
 import android.view.KeyEvent
 import android.view.View
-import androidx.appcompat.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.widget.PopupMenu
 import androidx.camera.view.PreviewView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
@@ -232,6 +232,8 @@ class CameraCaptureActivity :
             // S1658: seeded before anything can save, so a switch never persists an empty memory
             // over the stored one - the flow manager refuses to write until this has run.
             flowManager.seedLensMemory(settings.cameraLensSettings)
+            flowManager.setGridEnabled(settings.cameraGridEnabled)
+            renderGridOverlay()
             sessionManager.setAspectRatioAndResolution(
                 CameraAspectSelection.fromStored(settings.cameraAspectRatio),
                 sessionManager.currentResolution,
@@ -830,6 +832,7 @@ class CameraCaptureActivity :
 
     private fun renderGridOverlay() {
         binding.cameraGridOverlay.visibility = if (flowManager.gridEnabled) View.VISIBLE else View.GONE
+        lifecycleScope.launch { helperFactory.rememberGridEnabled(flowManager.gridEnabled) }
     }
 
     /**

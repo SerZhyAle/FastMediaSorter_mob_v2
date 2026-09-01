@@ -54,7 +54,7 @@
 
         <!-- S1743: no minimum height of its own any more. The 48dp target lives on the root, which keeps
              the whole square tappable, so repeating it here would only stop the plate from being thin. -->
-        <TextView
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/sectionTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -65,6 +65,7 @@
             android:textAppearance="?attr/textAppearanceLabelLarge"
             android:textColor="?attr/colorOnSurface"
             android:textStyle="bold"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:text="App functions" />
 
         <!-- S1742: visible actions button in edit mode so section management is focusable and gesture-free. -->

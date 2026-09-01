@@ -1,7 +1,7 @@
 appId: com.sza.fastmediasorter.debug
 ---
 # Test: Document renderers for PDF, EPUB, and TXT (S0551 Phase 04).
-# Precondition: OWNER_TRIGGER import registered "Загрузки" LOCAL resource and seeded
+# Precondition: clean preparation exposes the standard "Загрузки" LOCAL resource and seeds
 #   Docs/test_doc_romcom.pdf, test_book.epub, and readme.txt.
 # Oracle: each document-specific surface renders and no crash prompt appears. The default PDF
 #   view mode is page mode, which renders the page into photoView (pdfScrollRecyclerView is only

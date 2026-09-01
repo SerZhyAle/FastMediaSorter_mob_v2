@@ -4,23 +4,20 @@
 
 .DESCRIPTION
   Owns the parts of /spec-prerelease configuration that adb can drive without UI:
-    1. Endpoint reachability pre-check (probe-and-list vs register-only SKIP).
+    1. Credential-free clean-emulator resource fixture declaration.
     2. Theme + language settings via SharedPreferences / cmd locale (step 02.4).
 
-  Resource import is NOT adb-scriptable (S0492): the importer reads the APK-bundled
-  res/xml/sza_resources.xml directly and is triggered only by committing the OWNER_TRIGGER
-  value into the Settings "Default User" field. On minSdk 26 a raw file:// Uri handed to
-  ResourceImportActivity by an external caller is not openable (FileProvider isolation), so the
-  former intent-push import stage always failed and was removed. The import, the DataStore-backed
-  setting toggles, and per-resource listing verification are UI-driven and belong to the skill
-  scenario (Phase 05).
+  S1666 removed bundled owner resources and credentials from every APK. The clean setup's seeded
+  standard Downloads resource is therefore the automated browsing fixture; owner-only network
+  resources are reported as unavailable rather than read from a private checkout file. DataStore-
+  backed setting toggles remain UI-driven and belong to the skill scenario (Phase 05).
 
-  Resource picks, reachability classes and setting channels come from prerelease.config.psd1.
-  Endpoints/credentials are resolved by predefined-resource NAME from res/xml/sza_resources.xml.
+  Setting channels come from prerelease.config.psd1. No endpoint or credential is carried by this
+  runner, so it stays reproducible on every clean checkout.
 
   Exit codes:
     0  - configuration applied (reachable resources + required adb settings OK)
-    1  - bad arguments / config or resources XML unreadable
+    1  - bad arguments / config unreadable
     10 - a required configuration stage failed
 
 .PARAMETER DeviceId
@@ -45,7 +42,6 @@ $ErrorActionPreference = 'Stop'
 $RepoRoot      = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $DebugPackage  = 'com.sza.fastmediasorter.debug'
 $ConfigPath    = Join-Path $PSScriptRoot 'prerelease.config.psd1'
-$ResourcesXml  = Join-Path $RepoRoot 'app_v2/src/main/res/xml/sza_resources.xml'
 
 $result = [ordered]@{
     ok        = $false
@@ -70,61 +66,17 @@ function Complete-Run {
     exit $Code
 }
 
-if (-not (Test-Path $ConfigPath))   { Add-Stage 'load-config' 'FAIL' "config not found: $ConfigPath"; Complete-Run 1 }
-if (-not (Test-Path $ResourcesXml)) { Add-Stage 'load-config' 'FAIL' "resources XML not found: $ResourcesXml"; Complete-Run 1 }
+if (-not (Test-Path $ConfigPath)) { Add-Stage 'load-config' 'FAIL' "config not found: $ConfigPath"; Complete-Run 1 }
 $config = Import-PowerShellDataFile $ConfigPath
-[xml]$resXml = Get-Content -Raw -Path $ResourcesXml
-
-# Resolve a predefined resource path (e.g. sftp://host:port/..) by its name.
-function Resolve-Endpoint {
-    param([string]$Name)
-    $node = $resXml.SelectNodes('//resource') | Where-Object { $_.name -eq $Name } | Select-Object -First 1
-    if ($node) { return $node.path }
-    return $null
+$script:result.resources += [ordered]@{
+    name = 'owner-network-fixtures'
+    type = 'OWNER_ONLY'
+    reachability = 'not-shipped'
+    status = 'SKIP'
 }
+Add-Stage 'resources' 'SKIP' 'owner-only network fixtures are not shipped; seeded Downloads covers clean-emulator browsing'
 
-# TCP reachability probe (host proxy for emulator NAT: public endpoints share the host's route).
-function Test-Endpoint {
-    param([string]$DhHost, [int]$Port)
-    try {
-        $client = [System.Net.Sockets.TcpClient]::new()
-        $iar = $client.BeginConnect($DhHost, $Port, $null, $null)
-        $ok = $iar.AsyncWaitHandle.WaitOne(4000)
-        if ($ok -and $client.Connected) { $client.Close(); return $true }
-        $client.Close(); return $false
-    } catch { return $false }
-}
-
-# ---------- stage 1: reachability pre-check ----------
-foreach ($key in $config.Resources.Keys) {
-    $res   = $config.Resources[$key]
-    $entry = [ordered]@{ name = $res.Name; type = $res.Type; reachability = $res.Reachability; status = $null }
-
-    if ($res.Reachability -eq 'register-only') {
-        # LAN endpoints are unreachable from the emulator NAT; register the row, never probe/list.
-        $entry.status = 'SKIP'
-        Add-Stage "reach:$($res.Name)" 'SKIP' "register-only ($($res.Type)) - LAN unreachable from emulator NAT"
-    } elseif ($res.Type -eq 'LOCAL') {
-        $entry.status = 'reachable'
-        Add-Stage "reach:$($res.Name)" 'OK' 'LOCAL - on-device path'
-    } else {
-        $path = Resolve-Endpoint -Name $res.Name
-        $m = [regex]::Match("$path", '^[a-z]+://([^/:]+):(\d+)')
-        if (-not $m.Success) {
-            $entry.status = 'SKIP'
-            Add-Stage "reach:$($res.Name)" 'SKIP' "could not parse endpoint from '$path'"
-        } elseif (Test-Endpoint -DhHost $m.Groups[1].Value -Port ([int]$m.Groups[2].Value)) {
-            $entry.status = 'reachable'
-            Add-Stage "reach:$($res.Name)" 'OK' "reachable $($m.Groups[1].Value):$($m.Groups[2].Value)"
-        } else {
-            $entry.status = 'SKIP'
-            Add-Stage "reach:$($res.Name)" 'SKIP' "unreachable $($m.Groups[1].Value):$($m.Groups[2].Value)"
-        }
-    }
-    $script:result.resources += $entry
-}
-
-# ---------- adb resolution (shared by settings + import stages) ----------
+# ---------- adb resolution (shared by settings stages) ----------
 # Resolve adb (not on PATH on the dev machine), mirroring device-ready.ps1.
 function Get-Adb {
     foreach ($root in @($env:ANDROID_HOME, $env:ANDROID_SDK_ROOT)) {
@@ -184,14 +136,5 @@ foreach ($name in $config.Settings.Keys) {
         Add-Stage "set:$name" 'SKIP' 'no adb apply method for this key'
     }
 }
-
-# ---------- stage 3: import delegation (step 02.3) ----------
-# Resource import cannot be driven by adb (S0492): the importer reads the APK-bundled
-# res/xml/sza_resources.xml and is triggered only by the OWNER_TRIGGER Settings-field commit,
-# a UI action. The previous intent-push to ResourceImportActivity always failed because a raw
-# file:// Uri from an external caller is not openable on minSdk 26. The skill scenario performs
-# the import via mobile-mcp (Phase 05); record the delegation so the JSON contract stays explicit.
-$script:result.settings += [ordered]@{ name = 'resource-import'; channel = 'ui'; status = 'delegated-ui' }
-Add-Stage 'import' 'SKIP' 'not adb-scriptable - OWNER_TRIGGER UI path delegated to skill scenario'
 
 Complete-Run 0

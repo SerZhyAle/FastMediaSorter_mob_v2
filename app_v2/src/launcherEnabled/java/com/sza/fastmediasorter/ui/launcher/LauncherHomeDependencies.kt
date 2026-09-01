@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.domain.usecase.companion.ExportCompanionConfigUse
 import com.sza.fastmediasorter.domain.usecase.launcher.PickContactShortcutUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.QueryAppShortcutsUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.QueryRecentLauncherCommandsUseCase
+import com.sza.fastmediasorter.domain.usecase.launcher.RemoveRecentLauncherCommandUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.ResolveLauncherCommandLabelUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.ResolveLauncherDesktopUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.SeedLauncherDesktopUseCase
@@ -43,6 +44,7 @@ class LauncherDesktopDependencies @Inject constructor(
 /** Serves the taskbar strips - the recents row, the pinned row and what each icon renders as. */
 class LauncherTaskbarDependencies @Inject constructor(
     val queryRecentCommands: QueryRecentLauncherCommandsUseCase,
+    val removeRecentCommand: RemoveRecentLauncherCommandUseCase,
     val pinsRepository: LauncherPinsRepository,
     val resolveVisual: ResolveLauncherCommandLabelUseCase,
 )

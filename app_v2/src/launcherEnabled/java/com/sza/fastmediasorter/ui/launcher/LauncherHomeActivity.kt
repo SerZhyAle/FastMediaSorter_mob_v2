@@ -21,8 +21,10 @@ import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
 import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
 import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
 import com.sza.fastmediasorter.core.screencapture.gesture.GestureAccessibilityActions
+import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityLauncherHomeBinding
+import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherWallpaper
@@ -458,7 +460,25 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                         LauncherAllAppsGestureManager.DesktopSwipeDirection.RIGHT ->
                             settings.launcherDesktopSwipeRightAction to settings.launcherDesktopSwipeRightPayload
                     }
-                    swipeActionHandler.handle(action, payload)
+                    val isLeftRight = direction == LauncherAllAppsGestureManager.DesktopSwipeDirection.LEFT ||
+                        direction == LauncherAllAppsGestureManager.DesktopSwipeDirection.RIGHT
+                    val isUnassigned = action is LauncherDesktopSwipeAction.EdgeGestureAction &&
+                        action.action == ScreenshotGestureAction.DO_NOT_USE
+                    if (isLeftRight && isUnassigned && settings.launcherScreenCount > 1) {
+                        val maxScreenIndex = settings.launcherScreenCount - 1
+                        val isLeft = direction == LauncherAllAppsGestureManager.DesktopSwipeDirection.LEFT
+                        if (isLeft && activeScreenIndex < maxScreenIndex) {
+                            activeScreenIndex++
+                            geometryManager.renderDesktop(activeScreenIndex)
+                            updatePageIndicators(settings.launcherScreenCount)
+                        } else if (!isLeft && activeScreenIndex > 0) {
+                            activeScreenIndex--
+                            geometryManager.renderDesktop(activeScreenIndex)
+                            updatePageIndicators(settings.launcherScreenCount)
+                        }
+                    } else {
+                        swipeActionHandler.handle(action, payload)
+                    }
                 }
             },
             onDoubleTap = {
@@ -492,7 +512,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                 },
                 // S1466: the same picker, told which square the user pointed at (owner's ruling 2026-08-17).
                 addItemAtSlot = { row, col -> addFlowManager.openContentPicker(row, col) },
-                wallpaper = { showLauncherSettings(LauncherSettingsDialogFragment.SECTION_DESKTOP) },
+                wallpaper = { showLauncherSettings(LauncherSettingsDialogFragment.SECTION_APPEARANCE) },
                 launcherSettings = { showLauncherSettings() },
             ),
         )
@@ -517,6 +537,44 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         ).attach()
     }
 
+    private var activeScreenIndex: Int = 0
+
+    private fun updatePageIndicators(screenCount: Int) {
+        val indicatorContainer = binding.launcherPageIndicator
+        if (screenCount <= 1) {
+            indicatorContainer.visibility = View.GONE
+            return
+        }
+        indicatorContainer.visibility = View.VISIBLE
+        indicatorContainer.removeAllViews()
+        val dotSizePx = (PAGE_INDICATOR_DOT_SIZE_DP * resources.displayMetrics.density).toInt()
+        val dotMarginPx = (PAGE_INDICATOR_DOT_MARGIN_DP * resources.displayMetrics.density).toInt()
+        val activeColor = androidx.core.content.ContextCompat.getColor(this, R.color.teal_700)
+        val inactiveColor = androidx.core.content.ContextCompat.getColor(this, R.color.m3_surface_variant)
+
+        for (i in 0 until screenCount) {
+            val dot = View(this).apply {
+                val params = android.widget.LinearLayout.LayoutParams(dotSizePx, dotSizePx).apply {
+                    setMargins(dotMarginPx, 0, dotMarginPx, 0)
+                }
+                layoutParams = params
+                val backgroundDrawable = android.graphics.drawable.GradientDrawable().apply {
+                    shape = android.graphics.drawable.GradientDrawable.OVAL
+                    setColor(if (i == activeScreenIndex) activeColor else inactiveColor)
+                }
+                background = backgroundDrawable
+                setOnClickListener {
+                    if (activeScreenIndex != i) {
+                        activeScreenIndex = i
+                        geometryManager.renderDesktop(activeScreenIndex)
+                        updatePageIndicators(screenCount)
+                    }
+                }
+            }
+            indicatorContainer.addView(dot)
+        }
+    }
+
     override fun observeData() {
         taskbarManager.bind(
             recents = viewModel.recentIcons,
@@ -524,8 +582,15 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             composition = viewModel.taskbarComposition,
         )
         placementManager.bind(viewModel.taskbarAtTop)
+        collectOnLifecycle(viewModel.launcherDesktopSettings) { settings ->
+            if (activeScreenIndex >= settings.launcherScreenCount) {
+                activeScreenIndex = (settings.launcherScreenCount - 1).coerceAtLeast(0)
+            }
+            updatePageIndicators(settings.launcherScreenCount)
+            geometryManager.renderDesktop(activeScreenIndex)
+        }
         collectOnLifecycle(viewModel.cells) { cells ->
-            geometryManager.renderDesktop()
+            geometryManager.renderDesktop(activeScreenIndex)
             // S1400: an empty desktop is the only signal this surface gets when a reset wipes the
             // cells underneath it. Which of the two empty states it is, the seed use case decides from
             // the persisted flags: a reset lowers them and the starter set comes back, while a desktop
@@ -535,7 +600,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // Entering/leaving edit mode adds or drops the empty slots and remove badges on the desktop and
         // the unpin "X" / trailing "+" on the taskbar, so re-render both.
         collectOnLifecycle(viewModel.editMode) { editMode ->
-            geometryManager.renderDesktop()
+            geometryManager.renderDesktop(activeScreenIndex)
             taskbarManager.setEditMode(editMode)
         }
         collectOnLifecycle(viewModel.screenBlackoutTimeoutSeconds) { timeout ->
@@ -563,7 +628,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // binder's render key carries it and skips the rebuild when the value did not actually change.
         collectOnLifecycle(viewModel.widgetBackdropAlpha) { alpha ->
             Timber.d("S2253: launcher shared surfaces alpha=%s", alpha)
-            geometryManager.renderDesktop()
+            geometryManager.renderDesktop(activeScreenIndex)
             taskbarManager.applyBackdropAlpha(alpha)
         }
         // The density factor changes the column count, so re-derive the grid when it lands.
@@ -573,7 +638,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // S1428: folding a section changes which rows are drawn and nothing that is stored, so it is a
         // render trigger like the two above rather than a desktop change.
         collectOnLifecycle(viewModel.sections.collapsed) {
-            geometryManager.renderDesktop()
+            geometryManager.renderDesktop(activeScreenIndex)
         }
         collectOnLifecycle(viewModel.events) { event ->
             when (event) {
@@ -855,5 +920,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     companion object {
         private const val DIM_OVERLAY_ALPHA = 0.6f
         private const val DIM_ANIMATION_DURATION_MS = 4000L
+        private const val PAGE_INDICATOR_DOT_SIZE_DP = 8
+        private const val PAGE_INDICATOR_DOT_MARGIN_DP = 4
     }
 }

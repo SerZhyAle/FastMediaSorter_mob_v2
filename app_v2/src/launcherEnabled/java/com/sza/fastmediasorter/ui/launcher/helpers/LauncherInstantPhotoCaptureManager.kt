@@ -10,6 +10,7 @@ import androidx.lifecycle.LifecycleOwner
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLensEnumerationManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -29,9 +30,12 @@ class LauncherInstantPhotoCaptureManager(
     @Suppress("TooGenericExceptionCaught")
     suspend fun captureSingleFrame(cameraId: String, lifecycleOwner: LifecycleOwner): String? =
         withContext(Dispatchers.IO) {
+            var provider: ProcessCameraProvider? = null
+            var bound = false
             try {
                 Timber.d("Instant photo capture requested for camera %s", cameraId)
                 val cameraProvider = ProcessCameraProvider.getInstance(context).get()
+                provider = cameraProvider
                 val selector = resolveCameraSelector(cameraProvider, cameraId) ?: run {
                     Timber.w("Could not resolve camera selector for %s", cameraId)
                     return@withContext null
@@ -44,6 +48,7 @@ class LauncherInstantPhotoCaptureManager(
                 withContext(Dispatchers.Main) {
                     cameraProvider.unbindAll()
                     cameraProvider.bindToLifecycle(lifecycleOwner, selector, imageCapture)
+                    bound = true
                 }
 
                 val outputFile = File(context.filesDir, INSTANT_PHOTO_FILENAME)
@@ -68,10 +73,6 @@ class LauncherInstantPhotoCaptureManager(
                     )
                 }
 
-                withContext(Dispatchers.Main) {
-                    cameraProvider.unbindAll()
-                }
-
                 if (success && outputFile.isFile) {
                     outputFile.absolutePath
                 } else {
@@ -82,6 +83,13 @@ class LauncherInstantPhotoCaptureManager(
             } catch (e: Exception) {
                 Timber.e(e, "Instant photo capture failed with exception")
                 null
+            } finally {
+                if (bound) {
+                    withContext(NonCancellable + Dispatchers.Main) {
+                        runCatching { provider?.unbindAll() }
+                            .onFailure { Timber.w(it, "Instant photo unbind failed") }
+                    }
+                }
             }
         }
 

@@ -81,4 +81,6 @@
     <string name="widget_network_monitor_direct_connection">सीधा कनेक्शन</string>
     <string name="launcher_gadget_network_indicator">नेटवर्क संकेतक</string>
     <string name="launcher_gadget_network_indicator_pick_title">कौन सा संकेतक दिखाना है</string>
+    <string name="widget_front_flashlight_label">सामने टॉर्च</string>
+    <string name="widget_front_flashlight_description">Turns the screen into a lamp in one tap</string>
 </resources>

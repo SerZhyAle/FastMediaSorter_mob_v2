@@ -3,9 +3,11 @@ package com.sza.fastmediasorter.ui.main.helpers
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.domain.model.isAllFilesPredefined
-import com.sza.fastmediasorter.ui.main.ResourceAdapter
 import com.sza.fastmediasorter.ui.main.MainViewModel
+import com.sza.fastmediasorter.ui.main.ResourceAdapter
+import timber.log.Timber
 
 /**
  * ItemTouchHelper.Callback for drag-to-reorder in the main resource list.
@@ -75,10 +77,18 @@ class ResourceItemTouchCallback(
         super.onSelectedChanged(viewHolder, actionState)
         if (actionState == ItemTouchHelper.ACTION_STATE_DRAG) {
             viewHolder?.itemView?.apply {
-                animate().setDuration(ANIM_DURATION_MS)
-                    .scaleX(DRAG_SCALE)
-                    .scaleY(DRAG_SCALE)
-                    .alpha(DRAG_ALPHA)
+                if (AnimationPolicy.isAnimationAllowed) {
+                    animate().setDuration(ANIM_DURATION_MS)
+                        .scaleX(DRAG_SCALE)
+                        .scaleY(DRAG_SCALE)
+                        .alpha(DRAG_ALPHA)
+                } else {
+                    animate().cancel()
+                    scaleX = DRAG_SCALE
+                    scaleY = DRAG_SCALE
+                    alpha = DRAG_ALPHA
+                    Timber.d("S2250: drag selection animation skipped")
+                }
             }
         }
     }
@@ -86,10 +96,18 @@ class ResourceItemTouchCallback(
     override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
         super.clearView(recyclerView, viewHolder)
         viewHolder.itemView.apply {
-            animate().setDuration(ANIM_DURATION_MS)
-                .scaleX(1f)
-                .scaleY(1f)
-                .alpha(1f)
+            if (AnimationPolicy.isAnimationAllowed) {
+                animate().setDuration(ANIM_DURATION_MS)
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .alpha(1f)
+            } else {
+                animate().cancel()
+                scaleX = 1f
+                scaleY = 1f
+                alpha = 1f
+                Timber.d("S2250: drag restore animation skipped")
+            }
         }
         // Persist the new order and update DiffUtil snapshot (ADR-2)
         val newOrder = adapter.getDragOrderedList()

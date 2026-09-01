@@ -15,6 +15,9 @@ interface LauncherJournalRepository {
      */
     fun recentCommands(limit: Int): Flow<List<LauncherCellCommand>>
 
+    /** Removes one command from the recents history without affecting the command itself. */
+    suspend fun remove(target: LauncherCellCommand)
+
     /** Drops the whole journal, leaving the recent strip in the state a fresh install has. */
     suspend fun clearJournal()
 }

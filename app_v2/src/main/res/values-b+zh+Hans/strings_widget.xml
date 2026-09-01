@@ -81,4 +81,6 @@
     <string name="widget_network_monitor_direct_connection">直接连接</string>
     <string name="launcher_gadget_network_indicator">网络指示器</string>
     <string name="launcher_gadget_network_indicator_pick_title">显示哪个指示器</string>
+    <string name="widget_front_flashlight_label">前置手电筒</string>
+    <string name="widget_front_flashlight_description">一键将屏幕变成一盏灯</string>
 </resources>

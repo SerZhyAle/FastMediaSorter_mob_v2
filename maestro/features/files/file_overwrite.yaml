@@ -1,7 +1,7 @@
 appId: com.sza.fastmediasorter.debug
 ---
 # Test: Copy conflict / overwrite guidance for Ops/src -> Ops/dst (S0551 Phase 03).
-# Precondition: OWNER_TRIGGER import registered "Загрузки" LOCAL resource and seeded
+# Precondition: clean preparation exposes the standard "Загрузки" LOCAL resource and seeds
 #   Ops/src/ops_overwrite_A.png plus Ops/dst/ops_overwrite_A.png.
 # Oracle: copying an existing destination filename surfaces the overwrite/conflict dialog.
 

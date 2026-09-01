@@ -1,7 +1,7 @@
 appId: com.sza.fastmediasorter.debug
 ---
 # Test: Audio playback with lyrics viewer (S0551 Phase 04).
-# Precondition: OWNER_TRIGGER import registered "Загрузки" LOCAL resource and seeded
+# Precondition: clean preparation exposes the standard "Загрузки" LOCAL resource and seeds
 #   Audio/frank_sinatra_My_way.mp3 with a sibling .lrc file.
 # Oracle: audio controls render, lyrics command opens lyricsViewerContainer.
 

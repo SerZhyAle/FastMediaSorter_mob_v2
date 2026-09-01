@@ -1,24 +1,15 @@
 # S0484 /spec-prerelease run configuration.
 #
 # Populated by phases:
-#   Resources  - Phase 02 (predefined LOCAL / network-SMB / SFTP picks + reachability class)
 #   Settings   - Phase 02 (significant settings + target values + apply channel)
 #   Thresholds - Phase 03 (per-checkpoint PASS limits)
 #
-# Endpoints and credentials are referenced by predefined-resource NAME only
-# (see app_v2/src/main/res/xml/sza_resources.xml); never duplicate secrets here.
+# The clean emulator covers browsing through its seeded standard Downloads resource. Owner-only
+# network resources and their credentials are intentionally not part of this checkout.
 #
-# Reachability class: 'probe-and-list' = reachable endpoint, probe then verify listing;
-#                     'register-only'  = LAN-unreachable from emulator NAT, register row only.
 # Apply channel:      'adb' = scriptable (theme SharedPrefs / cmd locale);
 #                     'ui'  = DataStore-backed, applied via mobile-mcp in the skill scenario.
 @{
-    Resources = @{
-        Local   = @{ Name = 'Downloads';  Type = 'LOCAL'; Reachability = 'probe-and-list' }
-        Network = @{ Name = 'test_media'; Type = 'SMB';   Reachability = 'register-only' }
-        Sftp    = @{ Name = 'SFTP';       Type = 'SFTP';  Reachability = 'probe-and-list' }
-    }
-
     Settings = @{
         Theme        = @{ Key = 'color_theme';       Value = 'DARK';     Channel = 'ui' }
         Language     = @{ Locale = 'ru';                                 Channel = 'adb' }

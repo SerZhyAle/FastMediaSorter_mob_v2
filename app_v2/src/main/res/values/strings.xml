@@ -194,7 +194,6 @@
     <string name="filter_label_name_short">Name</string>
     <string name="filter_label_size_short">Size</string>
     <string name="filter_label_date_short">Date</string>
-    <string name="filter_by_name">Filter by name (case-insensitive)</string>
     <string name="filter_by_date">Filter by creation date</string>
     <string name="filter_by_type">Filter by media type</string>
     <string name="media_type_image">Images</string>
@@ -2705,6 +2704,7 @@
     <string name="launcher_settings_show_pinned_title">Show pinned apps</string>
     <string name="launcher_settings_show_tray_title">Show status tray</string>
     <string name="launcher_settings_density_title">Grid density</string>
+    <string name="launcher_settings_screen_count_title">Number of screens</string>
     <string name="launcher_settings_density_sparse">Sparse</string>
     <string name="launcher_settings_density_default">Standard</string>
     <string name="launcher_settings_density_dense">Dense</string>
@@ -2964,6 +2964,7 @@
     <string name="launcher_app_action_launch">Open</string>
     <string name="launcher_app_action_to_desktop">Put on desktop</string>
     <string name="launcher_app_action_pin_taskbar">Pin to taskbar</string>
+    <string name="launcher_recent_action_remove">Remove from taskbar</string>
     <string name="launcher_app_action_app_info">App info</string>
     <string name="launcher_app_action_uninstall">Uninstall</string>
     <string name="launcher_app_action_desktop_full">The desktop is full. Free a square, or rotate the screen to use the other layout.</string>
@@ -3582,7 +3583,6 @@
     <string name="launcher_gadget_open_external">Open in browser</string>
     <string name="launcher_gadget_steps_since_date">Since %1$s</string>
     <string name="launcher_gadget_google_maps_live">Google Maps Live Frame</string>
-    <string name="launcher_gadget_google_maps_live_desc">Interactive live Google Maps window</string>
     <string name="launcher_translator_language_settings">Open translation settings</string>
     <string name="launcher_section_action_delete">Delete Section</string>
     <string name="launcher_section_action_resort">Re-sort Section</string>
@@ -3601,4 +3601,14 @@
     <string name="physical_flashlight_unavailable">Camera flashlight is unavailable. Try again.</string>
     <string name="gesture_action_explain_open_all_apps">Opens the home screen with the All apps list.</string>
     <string name="gesture_slot_url_none">Not set - tap to enter an address</string>
+    <string name="launcher_settings_group_tray">System tray</string>
+    <string name="launcher_settings_group_gestures">Desktop gestures</string>
+    <string name="launcher_settings_group_appearance">Appearance</string>
+    <string name="launcher_taskbar_pinned_action_launch">Launch</string>
+    <string name="launcher_taskbar_pinned_action_unpin">Unpin</string>
+    <string name="s2283_apk_download_in_progress">APK download is already in progress</string>
+    <string name="launcher_gadget_google_keep_live">Google Keep Live Frame</string>
+    <string name="launcher_gadget_google_keep_live_desc">Interactive Google Keep notes frame</string>
+    <string name="launcher_gadget_google_calendar_live">Google Calendar Live Frame</string>
+    <string name="launcher_gadget_google_calendar_live_desc">Interactive Google Calendar frame</string>
 </resources>

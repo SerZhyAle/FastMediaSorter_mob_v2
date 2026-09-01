@@ -2,9 +2,13 @@ package com.sza.fastmediasorter.ui.launcher.widget
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.MotionEvent
+import android.webkit.GeolocationPermissions
+import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -13,13 +17,14 @@ import android.widget.ImageButton
 import android.widget.ProgressBar
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.util.resolveActivityCompat
+import timber.log.Timber
 
 /**
  * S2241: Interactive live Google Maps frame view for the Launcher desktop.
  *
- * Enforces touch gesture disallowance on the parent scroll container so map panning and zooming
- * do not trigger launcher desktop page swipes. Handles lifecycle pause/resume for lazy resource
- * optimization.
+ * Disallows parent scroll interception for panning/zooming, configures HTML5 geolocation
+ * and JS auto-dismiss for "Keep using web" app promotion modals on automotive head units.
  */
 class GoogleMapsLiveFrameView @JvmOverloads constructor(
     context: Context,
@@ -30,6 +35,9 @@ class GoogleMapsLiveFrameView @JvmOverloads constructor(
     private val webView: WebView
     private val progressBar: ProgressBar
     private val btnRecenter: ImageButton
+
+    private var lastLatitude: Double? = null
+    private var lastLongitude: Double? = null
 
     init {
         LayoutInflater.from(context).inflate(R.layout.widget_google_maps_live_frame, this, true)
@@ -47,10 +55,21 @@ class GoogleMapsLiveFrameView @JvmOverloads constructor(
         with(webView.settings) {
             javaScriptEnabled = true
             domStorageEnabled = true
+            setGeolocationEnabled(true)
             builtInZoomControls = true
             displayZoomControls = false
             useWideViewPort = true
             loadWithOverviewMode = true
+        }
+
+        webView.webChromeClient = object : WebChromeClient() {
+            override fun onGeolocationPermissionsShowPrompt(
+                origin: String?,
+                callback: GeolocationPermissions.Callback?,
+            ) {
+                // Grant geolocation prompt automatically so live map centres on GPS position.
+                callback?.invoke(origin, true, false)
+            }
         }
 
         webView.webViewClient = object : WebViewClient() {
@@ -60,10 +79,18 @@ class GoogleMapsLiveFrameView @JvmOverloads constructor(
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 progressBar.isVisible = false
+                injectCustomMapStyles(view)
             }
 
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-                return false
+                val url = request?.url?.toString().orEmpty()
+                return when {
+                    url.startsWith("intent://") -> handleIntentUrl(view, url)
+                    url.isNotEmpty() && !url.startsWith("http://") && !url.startsWith("https://") -> {
+                        handleExternalScheme(url)
+                    }
+                    else -> false
+                }
             }
         }
 
@@ -81,9 +108,90 @@ class GoogleMapsLiveFrameView @JvmOverloads constructor(
         }
     }
 
+    fun updateLocation(latitude: Double, longitude: Double) {
+        lastLatitude = latitude
+        lastLongitude = longitude
+        val mapUrl = "https://www.google.com/maps/@$latitude,$longitude,${DEFAULT_ZOOM}z"
+        loadMapUrl(mapUrl)
+    }
+
+    private fun injectCustomMapStyles(view: WebView?) {
+        val js = """
+            (function() {
+                var style = document.getElementById('fms-map-style');
+                if (!style) {
+                    style = document.createElement('style');
+                    style.id = 'fms-map-style';
+                    style.type = 'text/css';
+                    style.innerHTML = `
+                        .ml-app-promo, #app-promo, .app-promo,
+                        div[aria-label*="Open in app"], div[aria-label*="Открыть в приложении"],
+                        button[aria-label*="Open in app"], button[aria-label*="Открыть в приложении"],
+                        .section-hero-header-app-promo, div[data-section-id="mb"],
+                        .promoted-app-banner {
+                            display: none !important;
+                            visibility: hidden !important;
+                            height: 0 !important;
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+                var autoClick = function() {
+                    var buttons = document.querySelectorAll('button, a, div[role="button"]');
+                    for (var i = 0; i < buttons.length; i++) {
+                        var txt = (buttons[i].innerText || buttons[i].textContent || '').trim().toLowerCase();
+                        if (txt === 'keep using web' || txt === 'stay on web' ||
+                            txt.indexOf('keep using web') !== -1 || txt.indexOf('stay on web') !== -1 ||
+                            txt.indexOf('продолжить в браузере') !== -1 || txt.indexOf('использовать веб-версию') !== -1) {
+                            buttons[i].click();
+                            break;
+                        }
+                    }
+                };
+                autoClick();
+                setTimeout(autoClick, 600);
+                setTimeout(autoClick, 1800);
+            })();
+        """.trimIndent()
+        view?.evaluateJavascript(js, null)
+    }
+
+    private fun handleIntentUrl(view: WebView?, url: String): Boolean {
+        runCatching {
+            val intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
+            val fallbackUrl = intent.getStringExtra("browser_fallback_url")
+            if (!fallbackUrl.isNullOrEmpty()) {
+                view?.loadUrl(fallbackUrl)
+            } else {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                if (context.packageManager.resolveActivityCompat(intent) != null) {
+                    context.startActivity(intent)
+                }
+            }
+        }.onFailure { Timber.w(it, "Failed to handle intent URL in live frame: $url") }
+        return true
+    }
+
+    private fun handleExternalScheme(url: String): Boolean {
+        runCatching {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            if (context.packageManager.resolveActivityCompat(intent) != null) {
+                context.startActivity(intent)
+            }
+        }.onFailure { Timber.w(it, "Failed to handle custom scheme in live frame: $url") }
+        return true
+    }
+
     private fun setupListeners() {
         btnRecenter.setOnClickListener {
-            loadMapUrl(DEFAULT_MAP_URL)
+            val lat = lastLatitude
+            val lng = lastLongitude
+            if (lat != null && lng != null) {
+                loadMapUrl("https://www.google.com/maps/@$lat,$lng,${DEFAULT_ZOOM}z")
+            } else {
+                loadMapUrl(DEFAULT_MAP_URL)
+            }
         }
     }
 
@@ -105,5 +213,6 @@ class GoogleMapsLiveFrameView @JvmOverloads constructor(
 
     companion object {
         const val DEFAULT_MAP_URL = "https://www.google.com/maps"
+        private const val DEFAULT_ZOOM = 15
     }
 }

@@ -46,6 +46,7 @@ import com.sza.fastmediasorter.domain.networkmonitor.NetworkMonitorContract
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
 import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorAprilFoolsPrankManager
+import com.sza.fastmediasorter.ui.common.AppUpdateNoticeManager
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.InputHelpFirstRunHint
 import com.sza.fastmediasorter.ui.common.input.UiSurface
@@ -1138,33 +1139,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // Load resources after UI is ready (deferred from onCreate via BaseActivity)
         viewModel.refreshResources()
 
-        // Log app version in background and show update Toast if needed
-        lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-            try {
-                val packageInfo = packageManager.getPackageInfoCompat(packageName)
-                val versionName = packageInfo.versionName
-                val versionCode = PackageInfoCompat.getLongVersionCode(packageInfo)
-
-                val prefs = getSharedPreferences("app_update_prefs", android.content.Context.MODE_PRIVATE)
-                val lastSeenVersionName = prefs.getString("last_seen_version_name", null)
-
-                if (lastSeenVersionName != null && lastSeenVersionName != versionName) {
-                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                        Toast.makeText(
-                            this@MainActivity,
-                            getString(R.string.app_updated_to, versionName),
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                }
-
-                if (lastSeenVersionName != versionName) {
-                    prefs.edit().putString("last_seen_version_name", versionName).apply()
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to get app version")
-            }
-        }
+        // Check for app update and show Toast if needed (S2270)
+        AppUpdateNoticeManager.checkForUpdate(this)
     }
 
     override fun observeData() {

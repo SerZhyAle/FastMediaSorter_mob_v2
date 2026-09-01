@@ -167,6 +167,7 @@ class CameraLaunchWidgetManager(
 
     private fun toastAndFinish(msgRes: Int) {
         toast(activity.getString(msgRes))
+        clearPending()
         finish()
     }
 }

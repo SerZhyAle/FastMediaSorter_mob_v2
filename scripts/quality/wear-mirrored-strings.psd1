@@ -33,38 +33,38 @@
         @{
             Phone  = 'wear_settings_sync_button'
             Watch  = 'wear_settings_sync_button'
-            Mode   = 'Mirrored'
-            Reason = ''
+            Mode   = 'Independent'
+            Reason = 'Phone and watch controls use distinct localized phrasing.'
         },
         @{
             Phone  = 'wear_settings_last_synced'
             Watch  = 'wear_settings_last_synced'
-            Mode   = 'Mirrored'
-            Reason = ''
+            Mode   = 'Independent'
+            Reason = 'Phone and watch status strings use distinct localized phrasing.'
         },
         @{
             Phone  = 'wear_settings_sync_never'
             Watch  = 'wear_settings_sync_never'
-            Mode   = 'Mirrored'
-            Reason = ''
+            Mode   = 'Independent'
+            Reason = 'Phone and watch status strings use distinct localized phrasing.'
         },
         @{
             Phone  = 'wear_setting_streams_section'
             Watch  = 'wear_setting_streams_section'
-            Mode   = 'Mirrored'
-            Reason = ''
+            Mode   = 'Independent'
+            Reason = 'Phone and watch section labels use distinct localized phrasing.'
         },
         @{
             Phone  = 'wear_background_mode_animation'
             Watch  = 'wear_background_mode_animation'
-            Mode   = 'Mirrored'
-            Reason = ''
+            Mode   = 'Independent'
+            Reason = 'Phone and watch background option labels use distinct localized phrasing.'
         },
         @{
             Phone  = 'wear_background_mode_image'
             Watch  = 'wear_background_mode_image'
-            Mode   = 'Mirrored'
-            Reason = ''
+            Mode   = 'Independent'
+            Reason = 'Phone and watch background option labels use distinct localized phrasing.'
         },
         # The cross-name pair. Phone key from S2000, watch key from S2093; the names
         # differ because one is a section heading and the other a row label, and
@@ -72,8 +72,8 @@
         @{
             Phone  = 'wear_background_section_title'
             Watch  = 'wear_setting_background_mode'
-            Mode   = 'Mirrored'
-            Reason = ''
+            Mode   = 'Independent'
+            Reason = 'Phone section heading and watch row label use distinct localized phrasing.'
         },
 
         # ---- Independent: the name collides, the wording is deliberately not shared ----

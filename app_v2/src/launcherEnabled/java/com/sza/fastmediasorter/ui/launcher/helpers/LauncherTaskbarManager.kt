@@ -24,6 +24,7 @@ class LauncherTaskbarManager(
     private val onCommand: (LauncherCellCommand) -> Unit,
     private val onStartClick: () -> Unit,
     private val onAllAppsClick: () -> Unit = {},
+    private val onRecentLongClick: (View, LauncherCellCommand) -> Boolean = { _, _ -> false },
     private val onAddPin: () -> Unit = {},
     private val onRemovePin: (position: Int) -> Unit = {},
     private val onRecentsCapacity: (Int) -> Unit = {},
@@ -50,12 +51,24 @@ class LauncherTaskbarManager(
     // rerun it, exactly like the pinned strip, instead of assuming an app package.
     private val recentsAdapter = LauncherTaskbarIconAdapter(
         onIconClick = { icon -> LauncherCellCommand.decode(icon.id)?.let(onCommand) },
+        onIconLongClick = { anchor, icon ->
+            LauncherCellCommand.decode(icon.id)?.let { onRecentLongClick(anchor, it) } ?: false
+        },
+    )
+
+    private val pinnedAppMenuManager = LauncherTaskbarPinnedAppMenuManager(
+        launchCommand = onCommand,
+        unpin = onRemovePin,
     )
 
     // Only the pinned strip edits: its icons carry a pin position, so unpin routes by position and the
-    // trailing "+" pins one more. Recents cannot be pinned/unpinned, so its adapter takes no edit hooks.
+    // trailing "+" pins one more. Outside edit mode, installed apps also expose their narrow launch/unpin menu.
     private val pinnedAdapter = LauncherTaskbarIconAdapter(
         onIconClick = { icon -> LauncherCellCommand.decode(icon.id)?.let(onCommand) },
+        onIconLongClick = { anchor, icon ->
+            val command = LauncherCellCommand.decode(icon.id) as? LauncherCellCommand.App
+            if (command == null) false else pinnedAppMenuManager.show(anchor, command, icon.position)
+        },
         onRemoveClick = { icon -> onRemovePin(icon.position) },
         onAddClick = onAddPin,
     )
@@ -83,6 +96,7 @@ class LauncherTaskbarManager(
     /** Symmetric with the listener [bind] attaches - the bar outlives no window, but nothing here relies on it. */
     override fun onDestroy(owner: LifecycleOwner) {
         binding.taskbarRecents.removeOnLayoutChangeListener(recentsLayoutListener)
+        pinnedAppMenuManager.dismiss()
     }
 
     /**

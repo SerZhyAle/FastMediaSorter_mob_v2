@@ -14,13 +14,21 @@ import com.sza.fastmediasorter.ui.launcher.menu.LauncherStartMenuFragment
 class LauncherModalSurfaceManager(private val fragmentManager: FragmentManager) {
 
     fun showStartMenu() {
-        if (isShowing(LauncherStartMenuFragment.TAG)) return
+        if (fragmentManager.isStateSaved || isShowing(LauncherStartMenuFragment.TAG)) return
         LauncherStartMenuFragment().show(fragmentManager, LauncherStartMenuFragment.TAG)
     }
 
-    /** S1401: the app list, reached from the taskbar button and from the swipe-up gesture alike. */
+    /**
+     * S1401: the app list, reached from the taskbar button and from the swipe-up gesture alike.
+     *
+     * S2256: also reached asynchronously now - an edge gesture starts or brings forward the home activity,
+     * and this runs from `BaseActivity`'s deferred `post { }` setup hook, which can land after the activity
+     * was already stopped (screen off, another activity on top) and its FragmentManager saved state. Adding
+     * a fragment past that point throws, so this is a skip rather than a queued retry: by the time the
+     * activity is interactive again the user has moved on, and the gesture can simply be repeated.
+     */
     fun showAllApps() {
-        if (isShowing(LauncherAllAppsFragment.TAG)) return
+        if (fragmentManager.isStateSaved || isShowing(LauncherAllAppsFragment.TAG)) return
         LauncherAllAppsFragment().show(fragmentManager, LauncherAllAppsFragment.TAG)
     }
 

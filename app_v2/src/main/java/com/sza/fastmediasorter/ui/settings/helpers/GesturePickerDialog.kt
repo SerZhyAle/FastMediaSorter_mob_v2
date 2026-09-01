@@ -11,6 +11,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.sza.fastmediasorter.databinding.DialogListSelectionBinding
+import com.sza.fastmediasorter.util.bindTo
 import kotlinx.coroutines.launch
 
 /**
@@ -35,6 +36,7 @@ class GesturePickerDialog<T : Any>(
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        bindTo(lifecycleOwner)
         val binding = DialogListSelectionBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
