@@ -66,11 +66,17 @@ appId: com.sza.fastmediasorter.debug
           visible:
             id: "com.sza.fastmediasorter.debug:id/btnDownload"
           timeout: 8000
+      # The button is the LAST child of the dialog's scroll container, so it can never be centred and
+      # never reaches 100% visibility - the sheet runs out of scroll under it. Asking for either
+      # failed on a screen where the button was plainly on display (measured 2026-09-02, the failure
+      # screenshot shows it fully drawn). Judge it the way a user does: mostly visible, wherever it
+      # ends up.
       - scrollUntilVisible:
           element:
             id: "com.sza.fastmediasorter.debug:id/btnBrowseWithSAF"
           timeout: 10000
-          centerElement: true
+          visibilityPercentage: 60
+          centerElement: false
       - tapOn:
           id: "com.sza.fastmediasorter.debug:id/btnBrowseWithSAF"
 
