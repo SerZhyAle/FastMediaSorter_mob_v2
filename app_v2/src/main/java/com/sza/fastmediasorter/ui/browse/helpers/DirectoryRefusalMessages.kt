@@ -33,7 +33,7 @@ fun refusalMessage(context: Context, refusal: DirectoryOperationRefusal): String
         context.getString(
             R.string.error_destination_insufficient_space,
             label,
-            formatFileSize(missingBytes)
+            formatFileSize(context, missingBytes)
         )
     } else {
         context.getString(refusalMessageRes(refusal.reason))

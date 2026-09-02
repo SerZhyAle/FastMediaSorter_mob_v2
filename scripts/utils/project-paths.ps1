@@ -141,6 +141,14 @@ $script:FmsToolTable = @{
         Leaf     = 'npm.cmd'
         Probes   = @('APPDATA\npm', 'ProgramFiles\nodejs')
     }
+    Maestro  = @{
+        Override = 'FMS_MAESTRO'
+        Command  = 'maestro'
+        Leaf     = 'maestro.bat'
+        # MAESTRO_HOME is Maestro's own variable and maestro/run-tests.ps1 already honours it;
+        # the per-user install directory is where its Windows installer puts the launcher.
+        Probes   = @('MAESTRO_HOME\bin', 'USERPROFILE\.maestro\bin')
+    }
     Ffmpeg   = @{
         Override = 'FMS_FFMPEG'
         Command  = 'ffmpeg'
@@ -160,7 +168,7 @@ function Get-ToolPath {
     .SYNOPSIS
         Absolute path of an external tool, discovered rather than hardcoded.
     .PARAMETER Tool
-        Key into the tool table: Adb, SevenZip, Pwsh, Node, Npm, Ffmpeg.
+        Key into the tool table: Adb, SevenZip, Pwsh, Node, Npm, Maestro, Ffmpeg.
     .PARAMETER Quiet
         Suppress the one-time line naming the resolved path.
     #>

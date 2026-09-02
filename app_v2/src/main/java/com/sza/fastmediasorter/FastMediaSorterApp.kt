@@ -31,6 +31,7 @@ import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.domain.model.SensitiveSetting
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.usecase.PushWearStreamPinsUseCase
 import com.sza.fastmediasorter.worker.DeferredStartupWorker
 import com.sza.fastmediasorter.worker.WorkManagerScheduler
 import dagger.hilt.android.HiltAndroidApp
@@ -138,6 +139,12 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
 
     @Inject
     lateinit var startupInitializer: dagger.Lazy<AppStartupInitializer>
+
+    // S2149: publishes the phone's pinned stream set to the watch for the life of the process.
+    // Field-injected here rather than added to AppStartupInitializer, whose constructor already sits
+    // at detekt's parameter ceiling with twelve arguments.
+    @Inject
+    lateinit var pushWearStreamPins: dagger.Lazy<PushWearStreamPinsUseCase>
 
     @Inject
     lateinit var screenGestureOverlayStartupCoordinator: dagger.Lazy<ScreenGestureOverlayStartupCoordinator>
@@ -287,6 +294,16 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         // Keep only the genuinely early startup work here. Heavier maintenance tasks move behind
         // the shared first-frame/deferred-worker gate so cold start stays off the critical path.
         startupInitializer.get().initialize()
+
+        // S2149: the watch raises phone-pinned streams, which only works while the phone republishes
+        // the set as it changes. Started from here rather than from a screen because pinning happens
+        // on several screens and none of them should have to know a watch exists. Dereferenced inside
+        // the coroutine so a phone with no watch paired never builds the Data Layer graph on the main
+        // thread at startup.
+        applicationScope.launch {
+            runCatching { pushWearStreamPins.get().observeAndPush(applicationScope) }
+                .onFailure { Timber.e(it, "Wear stream-pins publisher not started") }
+        }
 
         // S1650: build Glide off the main thread. Deliberately NOT gated on firstFrameSignal, unlike
         // every launch below it - the first image load can happen on the very first screen, and that

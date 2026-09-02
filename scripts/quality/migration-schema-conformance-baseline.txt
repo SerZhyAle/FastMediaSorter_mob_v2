@@ -1,8 +1,11 @@
-# S2306 - accepted migration/schema disagreements, one "<migration>|<dimension>|<subject>" per line.
+# S2306 - accepted migration/schema disagreements, one
+# "<module>|<migration>|<dimension>|<subject>" per line. S2355 added the leading module field: two
+# databases both begin at version 1, so an unprefixed key cannot say which one it suppresses.
 #
 # This file is EMPTY on purpose and should stay that way. Every migration from 36 onward was compared
 # against its exported schema on 2026-09-01 and all of them agree; the hops below 36 have no exported
-# schema to compare against and are skipped by the gate rather than baselined here.
+# schema to compare against and are skipped by the gate rather than baselined here. The wear database
+# is at version 1 with no migration at all, so it contributes nothing to compare.
 #
 # A line added here says "this migration ships a database Room will refuse to validate, and we accept
 # that". The only defensible reason is a migration that ALREADY shipped, whose SQL is now history on

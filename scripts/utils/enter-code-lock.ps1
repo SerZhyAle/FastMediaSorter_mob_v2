@@ -9,8 +9,16 @@
     to avoid, and serialised editing is the accepted price of not having separate trees.
 
     Queued is not idle: while you wait, do the work that needs no lock - reading, research,
-    specs, catalog, documentation, log analysis. Take the lock immediately before an edit and
-    release it right after, never for a whole ticket.
+    specs, catalog, log analysis. Take the lock immediately before an edit and release it right
+    after, never for a whole ticket.
+
+    S2338: "documentation" used to appear in that list and was wrong - a docs/ or dev/ edit does
+    take Code.Scripts, because those are hand-edited with no finer mechanism over them. Specs are
+    genuinely free, and for a stronger reason than "they are not code": PLAN/ is already exclusive
+    per ticket (ticket-lease.ps1) and per journal (the catalog mutex), so the domain map exempts it
+    outright and a PLAN-only set acquires nothing. Keep this list and that table in agreement -
+    this message is read at the exact moment a queued session is looking for something to do, so a
+    wrong item here is acted on rather than merely read.
 
     Release is automatic via scripts/post-change.ps1 (its finally block calls Exit-AgentLock),
     and that release is owner-checked, so it can never take a lock belonging to another session.
@@ -25,7 +33,14 @@
 
 .NOTES
     Exit codes:
-    0 - the domains are acquired, start editing. Also returned when this session ALREADY holds
+    0 - start editing. Three different states share this code, and only the first leaves you
+        holding something to release.
+        (a) The domains are acquired.
+        (b) S2338: the changed set needs NO domain - every path in it is exempt (PLAN/, already
+            exclusive per ticket lease and per catalog mutex). Nothing was enqueued, nothing was
+            acquired, and there is nothing to release afterwards. The banner says "none".
+        (c) The re-entrant cases below.
+        Also returned when this session ALREADY holds
         every domain of the requested set (re-entrant call): nothing is enqueued and the existing
         locks stay yours (S1448). Holding only PART of the set tops up the missing domains
         directly when that is safe (S2200: every missing domain outranks every held one in
@@ -79,6 +94,17 @@ else {
     $domains = @(Resolve-AgentLockDomains -Name 'Code')
     $derivedFrom = 'no file set given - taking the full code set'
 }
+# S2338: an empty set is a real answer, not a resolution failure - every path in it is exempt
+# (PLAN/, which ticket-lease.ps1 and the catalog mutex already serialise). Handle it before the
+# acquisition path below, which indexes $acquireDomains[0] and assumes at least one domain.
+# Nothing is enqueued and nothing is acquired, so there is also nothing for the caller to release.
+if ($domains.Count -eq 0) {
+    Write-Host "Code domains: none  ($derivedFrom)" -ForegroundColor Green
+    Write-Host "  This change set needs no code lock - every path in it is already exclusive by ticket lease or catalog mutex (S2338)." -ForegroundColor Green
+    Write-Host "  Edit now; there is no lock to release afterwards." -ForegroundColor Gray
+    exit 0
+}
+
 Write-Host "Code domains: $($domains -join ', ')  ($derivedFrom)" -ForegroundColor Cyan
 
 foreach ($buildDomain in @(Resolve-AgentLockDomains -Name 'Build')) {
@@ -168,5 +194,6 @@ else {
 }
 Write-Host "  Your ticket: #$($ticket.seq). Wait for the signal in the background:" -ForegroundColor Yellow
 Write-Host "    pwsh -NoProfile -File scripts/utils/wait-for-lock-turn.ps1 -Name $blocked -Reason '$Reason'" -ForegroundColor Gray
-Write-Host "  Meanwhile do lock-free work: reading, research, specs, catalog, docs, log analysis." -ForegroundColor Gray
+Write-Host "  Meanwhile do lock-free work: reading, research, specs, catalog, log analysis." -ForegroundColor Gray
+Write-Host "  A docs/ or dev/ edit is NOT lock-free - it needs Code.Scripts (S2338)." -ForegroundColor Gray
 exit 4

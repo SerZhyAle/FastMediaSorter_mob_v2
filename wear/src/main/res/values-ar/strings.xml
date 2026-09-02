@@ -214,7 +214,6 @@
     <string name="wear_streams_filter_all">كل القنوات</string>
     <string name="wear_streams_filter_audio">صوت فقط</string>
     <string name="wear_streams_filter_video">فيديو فقط</string>
-    <string name="wear_streams_sort_default">الترتيب الافتراضي</string>
     <string name="wear_streams_sort_name_asc">الاسم (أ-ي)</string>
     <string name="wear_streams_sort_name_desc">الاسم (ي-أ)</string>
     <string name="wear_streams_sort_kind">حسب نوع الوسائط</string>
@@ -256,8 +255,6 @@
     <string name="wear_game_continue">متابعة</string>
     <string name="wear_game_board_description">لوحة اللعب. مرر عليها للتحرك.</string>
     <string name="wear_game_player_description">قطعتك على اللوحة</string>
-    <string name="wear_streams_sort_topic">حسب الموضوع</string>
-    <string name="wear_streams_sort_language">حسب اللغة</string>
     <string name="wear_streams_filter_topic_all">جميع المواضيع</string>
     <string name="wear_streams_filter_language_all">جميع اللغات</string>
     <string name="wear_streams_filter_topic_header">عنوان</string>
@@ -380,4 +377,37 @@
     <string name="phone_resource_no_resource_for_type">لم يتم إعداد أي مورد هاتف لاستيعاب هذا النوع.</string>
     <string name="wear_folder_load_more">عرض المزيد</string>
     <string name="wear_file_op_outcome_needs_consent">لم يتم تأكيده - لم يتغير شيء</string>
+    <!-- S2146: mirrored verbatim from :app_v2 (S1477). Declared in wear-mirrored-strings.psd1. -->
+    <string name="streams_rubric_general">عام</string>
+    <string name="streams_rubric_news">أخبار</string>
+    <string name="streams_rubric_pop">بوب</string>
+    <string name="streams_rubric_religious">ديني</string>
+    <string name="streams_rubric_kids">أطفال</string>
+    <string name="streams_rubric_oldies">أغانٍ قديمة</string>
+    <string name="streams_rubric_movies_series">أفلام ومسلسلات</string>
+    <string name="streams_rubric_country_folk">كانتري وفولك</string>
+    <string name="streams_rubric_rock">روك</string>
+    <string name="streams_rubric_sports">رياضة</string>
+    <string name="streams_rubric_world">موسيقى عالمية</string>
+    <string name="streams_rubric_jazz_blues">جاز وبلوز</string>
+    <string name="streams_rubric_chillout">استرخاء</string>
+    <string name="streams_rubric_electronic">إلكترونية</string>
+    <string name="streams_rubric_hip_hop">هيب هوب</string>
+    <string name="streams_rubric_talk">حوارية</string>
+    <string name="streams_rubric_local_radio">إذاعة محلية</string>
+    <string name="streams_rubric_comedy">كوميديا</string>
+    <string name="streams_rubric_classical">كلاسيكية</string>
+    <string name="streams_rubric_latin">لاتينية</string>
+    <string name="streams_rubric_documentary">وثائقي</string>
+    <string name="streams_rubric_education">تعليم</string>
+    <string name="streams_rubric_test">اختبار</string>
+    <string name="streams_rubric_rnb_soul">آر أند بي وسول</string>
+    <string name="streams_rubric_metal">ميتال</string>
+    <string name="streams_rubric_webcam">كاميرا ويب</string>
+    <string name="streams_rubric_reggae">ريغي</string>
+    <string name="streams_rubric_shopping">تسوّق</string>
+    <string name="streams_rubric_business">أعمال</string>
+    <string name="streams_rubric_lifestyle">أسلوب حياة</string>
+    <string name="streams_rubric_adult">للكبار</string>
+    <string name="streams_rubric_traffic_cams">كاميرات المرور</string>
 </resources>

@@ -279,7 +279,11 @@ foreach ($rule in $rules) {
     }
 
     $delta = $current - $baseline
-    Write-Host ("{0} in src/main: baseline {1} | actual {2} | delta {3}" -f $rule.Name, $baseline, $current, $delta)
+    # The scope is the rule's own roots, not a fixed 'src/main': rules already walk wear/src and
+    # app_v2/src, and hardcoded-drive-path walks scripts/, maestro/ and dev/. A banner naming a
+    # tree the run never opened is the S1807 hazard - a verdict quoted against the wrong module.
+    $scope = if ($rule.Roots) { ($rule.Roots -join ', ') } else { 'the repository' }
+    Write-Host ("{0} in {1}: baseline {2} | actual {3} | delta {4}" -f $rule.Name, $scope, $baseline, $current, $delta)
     if ($current -gt $baseline) {
         Write-Host ("FAIL: {0}" -f $rule.FailMessage)
         $failed.Add($rule.Name)

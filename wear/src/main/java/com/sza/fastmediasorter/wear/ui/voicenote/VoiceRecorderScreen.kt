@@ -33,6 +33,7 @@ import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
+import androidx.wear.compose.material.LocalContentColor
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
@@ -45,6 +46,7 @@ import com.sza.fastmediasorter.wear.domain.recorder.VoiceRecordingState
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
+import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
 
 private val SECTION_GAP = 6.dp
 private val STATUS_ICON_SIZE = 32.dp
@@ -133,9 +135,14 @@ private fun recorderPermissions(): List<String> = buildList {
 /**
  * Section 3.2 requires every state to be legible without colour, so the glyph never carries the
  * state alone - it is always paired with the words below it, and the two are one accessibility stop.
+ *
+ * S2161 tints the dot and the counter while recording. The tone is a THIRD signal added on top of
+ * the glyph swap and the words, never a replacement for either: a watch with a colour filter on, or
+ * a user listening to TalkBack, still gets the state from the two signals that were already here.
  */
 @Composable
 private fun RecorderStatus(state: VoiceRecordingState) {
+    val recording = state is VoiceRecordingState.Recording
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -147,6 +154,7 @@ private fun RecorderStatus(state: VoiceRecordingState) {
             // Null on purpose: the label directly beneath says the same thing, and describing the
             // glyph as well would make TalkBack read the state twice.
             contentDescription = null,
+            tint = if (recording) WearAppTheme.colors.recording else LocalContentColor.current,
             modifier = Modifier.size(STATUS_ICON_SIZE)
         )
         Text(
@@ -161,6 +169,7 @@ private fun RecorderStatus(state: VoiceRecordingState) {
             Text(
                 text = formatVoiceNoteDuration(state.elapsedMillis),
                 style = MaterialTheme.typography.title2,
+                color = WearAppTheme.colors.recording,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )

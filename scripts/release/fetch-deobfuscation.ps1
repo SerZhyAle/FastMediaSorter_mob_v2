@@ -66,7 +66,7 @@ param(
     [switch] $List,
     [switch] $Verify,
     [switch] $Json,
-    [string] $ArchiveRoot = 'c:\GD\WORK\FastMediaSorter\deobfuscation',
+    [string] $ArchiveRoot,
     [switch] $Help
 )
 
@@ -87,10 +87,17 @@ function Exit-Fetch {
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
-if (-not (Test-Path -LiteralPath $ArchiveRoot)) {
+. "$PSScriptRoot\..\utils\project-paths.ps1"
+
+if (-not $ArchiveRoot) {
+    $ArchiveRoot = Get-ArtifactSink -Kind Deobfuscation -Quiet
+}
+
+if (-not $ArchiveRoot -or -not (Test-Path -LiteralPath $ArchiveRoot)) {
     # Not exit 1: an absent archive root says nothing about whether any given
     # release was retained, only that the archive could not be consulted.
-    Exit-Fetch -Message "archive root not found: $ArchiveRoot" -Code 2
+    $named = if ($ArchiveRoot) { $ArchiveRoot } else { 'the Deobfuscation sink (set FMS_SINK_DEOBFUSCATION)' }
+    Exit-Fetch -Message "archive root not found: $named" -Code 2
 }
 
 # ----------------------------------------------------------------------

@@ -27,15 +27,20 @@ appId: com.sza.fastmediasorter.debug
     timeout: 15000
 
 # Copy: source stays in Ops/src, destination gains a copy.
+# S2171 moved the name filter into the live search overlay; dialog_filter.xml keeps only type,
+# date and size. Both write FileFilter.nameContains, so the narrowing below is unchanged.
 - tapOn:
-    id: "com.sza.fastmediasorter.debug:id/btnFilter"
+    id: "com.sza.fastmediasorter.debug:id/btnSearch"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/etSearchQuery"
+    timeout: 10000
 - tapOn:
-    id: "com.sza.fastmediasorter.debug:id/etFilterName"
+    id: "com.sza.fastmediasorter.debug:id/etSearchQuery"
 - inputText: "IMG_copy_01"
-# S1065: hide the IME so it does not cover btnApplyFilter (rendered below the input).
+# The overlay narrows live - no Apply button. Drop the IME so it does not cover the list rows.
 - hideKeyboard
-- tapOn:
-    id: "com.sza.fastmediasorter.debug:id/btnApplyFilter"
+- waitForAnimationToEnd
 - extendedWaitUntil:
     visible:
       text: "IMG_copy_01.png"
@@ -80,23 +85,26 @@ appId: com.sza.fastmediasorter.debug
     text: "IMG_copy_01.png"
 
 # Move: destination gains the file and source listing no longer shows it.
+# Closing the search overlay clears the query, which resets nameContains - the equivalent of the
+# old btnClearFilter round-trip through the dialog.
 - tapOn:
-    id: "com.sza.fastmediasorter.debug:id/btnFilter"
-- tapOn:
-    id: "com.sza.fastmediasorter.debug:id/btnClearFilter"
+    id: "com.sza.fastmediasorter.debug:id/btnSearchClose"
 - extendedWaitUntil:
     visible:
       id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
     timeout: 10000
 - tapOn:
-    id: "com.sza.fastmediasorter.debug:id/btnFilter"
+    id: "com.sza.fastmediasorter.debug:id/btnSearch"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/etSearchQuery"
+    timeout: 10000
 - tapOn:
-    id: "com.sza.fastmediasorter.debug:id/etFilterName"
+    id: "com.sza.fastmediasorter.debug:id/etSearchQuery"
 - inputText: "IMG_move_01"
-# S1065: hide the IME so it does not cover btnApplyFilter (rendered below the input).
+# The overlay narrows live - no Apply button. Drop the IME so it does not cover the list rows.
 - hideKeyboard
-- tapOn:
-    id: "com.sza.fastmediasorter.debug:id/btnApplyFilter"
+- waitForAnimationToEnd
 - extendedWaitUntil:
     visible:
       text: "IMG_move_01.png"
@@ -133,5 +141,22 @@ appId: com.sza.fastmediasorter.debug
 - assertVisible:
     text: "IMG_move_01.png"
 - back
+
+# Drop the narrowing before the final oracle. With the query still set, "IMG_move_01.png is not in
+# the source listing" holds for the wrong reason - the query hides everything else too, so the
+# assertion would pass even if the move had not happened. Closing the overlay also stops the query
+# leaking into the next flow that opens this resource.
+- runFlow:
+    when:
+      visible:
+        id: "com.sza.fastmediasorter.debug:id/btnSearchClose"
+    commands:
+      - tapOn:
+          id: "com.sza.fastmediasorter.debug:id/btnSearchClose"
+      - waitForAnimationToEnd
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+    timeout: 10000
 - assertNotVisible:
     text: "IMG_move_01.png"

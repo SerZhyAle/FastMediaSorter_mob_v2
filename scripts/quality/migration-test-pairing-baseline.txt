@@ -1,12 +1,22 @@
-31To32
-32To33
-33To34
-34To35
-35To36
-36To37
-37To38
-38To39
-39To40
-40To41
-41To42
-42To43
+# S1844 - Room migrations accepted as untested debt, one "<module>:NNToMM" token per line.
+#
+# S2355 added the module prefix. Without it a frozen row of one module suppresses a live finding
+# carrying the same hop number in another - and the hop numbers of two databases collide from the
+# start, because every database begins at 1. An unprefixed line is NOT read by the gate: a line
+# hand-added in the old format suppresses nothing rather than silently meaning whichever module the
+# reader assumed.
+#
+# Every line below predates the testing habit and has already shipped; their SQL is history on users'
+# devices. A migration added from now on needs its test - do not add a line here for one.
+app_v2:31To32
+app_v2:32To33
+app_v2:33To34
+app_v2:34To35
+app_v2:35To36
+app_v2:36To37
+app_v2:37To38
+app_v2:38To39
+app_v2:39To40
+app_v2:40To41
+app_v2:41To42
+app_v2:42To43

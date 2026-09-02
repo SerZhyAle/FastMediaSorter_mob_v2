@@ -20,19 +20,26 @@ appId: com.sza.fastmediasorter.debug
       id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
     timeout: 15000
 
-# Open the filter dialog and filter by name.
+# Filter by name through the live search overlay.
+#
+# S2171 moved the name filter out of the extended filter dialog (btnFilter -> dialog_filter.xml,
+# which now carries only type, date and size) into an overlay opened by btnSearch. Both write the
+# same FileFilter.nameContains, so the oracle below is unchanged; only the input surface moved.
+# Measured 2026-09-02: etFilterName exists in no layout and no source file, so the old path could
+# never pass again.
 - tapOn:
-    id: "com.sza.fastmediasorter.debug:id/btnFilter"
-- assertVisible:
-    id: "com.sza.fastmediasorter.debug:id/etFilterName"
+    id: "com.sza.fastmediasorter.debug:id/btnSearch"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/etSearchQuery"
+    timeout: 10000
 - tapOn:
-    id: "com.sza.fastmediasorter.debug:id/etFilterName"
+    id: "com.sza.fastmediasorter.debug:id/etSearchQuery"
 - inputText: "IMG"
-# S1065: dismiss the IME so it does not cover btnApplyFilter (rendered below the input) - a soft
-# keyboard left up makes the Apply button unhittable ("element not found") on the emulator.
+# The overlay narrows live on every keystroke - no Apply button. Drop the IME so it does not cover
+# the list rows the oracle asserts on.
 - hideKeyboard
-- tapOn:
-    id: "com.sza.fastmediasorter.debug:id/btnApplyFilter"
+- waitForAnimationToEnd
 
 # Oracle: IMG_* included, non-IMG (photo_001.jpg) excluded.
 - extendedWaitUntil:
@@ -43,3 +50,9 @@ appId: com.sza.fastmediasorter.debug
     text: "IMG_001_green.png"
 - assertNotVisible:
     text: "photo_001.jpg"
+
+# Cleanup: closing the overlay clears the query, which resets nameContains - otherwise the narrowed
+# listing leaks into every later flow that opens this resource.
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnSearchClose"
+- waitForAnimationToEnd

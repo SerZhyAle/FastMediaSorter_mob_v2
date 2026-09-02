@@ -35,9 +35,20 @@ object LauncherStarterLayoutRules {
      * groups only so that a budget can shorten the feature tiles without ever reaching the launcher's
      * own actions, which have no meaning as a subset (an "exit launcher mode" the budget cut leaves the
      * user inside a launcher they cannot leave).
+     *
+     * S2321: [CORE_RESOURCES] and [RESOURCES] are the same pairing for content. The aggregates are the
+     * only entry point the desktop offers to a whole content type, so a budget that drops "All documents"
+     * does not shorten a list, it removes documents from the launcher.
      */
     enum class StarterSectionGroup(val sectionKey: String) {
         PROFILE_GADGETS(LauncherCellCommand.SECTION_WIDGETS),
+
+        /**
+         * The closed set of content aggregates - recent, the four media types, the camera and "All
+         * files". Unbounded for the same reason as [LAUNCHER_ACTIONS], and safely so: it cannot grow
+         * without an edit to this file, unlike the open user tail in [RESOURCES].
+         */
+        CORE_RESOURCES(LauncherCellCommand.SECTION_RESOURCES),
         RESOURCES(LauncherCellCommand.SECTION_RESOURCES),
         APP_FUNCTIONS(LauncherCellCommand.SECTION_APP_FUNCTIONS),
         LAUNCHER_ACTIONS(LauncherCellCommand.SECTION_APP_FUNCTIONS),
@@ -66,9 +77,11 @@ object LauncherStarterLayoutRules {
 
     private const val DEFAULT_SCREEN_COUNT = 2
 
-    // Six groups on screen 0 - through GOOGLE_APPS - which is the set the desktop carried before S2309
-    // on the medium-wide class every adjustment below is stated relative to.
-    private const val DEFAULT_FIRST_SCREEN_SECTIONS = 6
+    // Seven groups on screen 0 - through GOOGLE_APPS - which is the set the desktop carried before S2309
+    // on the medium-wide class every adjustment below is stated relative to. S2321 raised it from six
+    // with the CORE_RESOURCES split: the cut counts entries of sectionOrder, so a new entry ahead of
+    // GOOGLE_APPS would otherwise push that group off screen 0 and turn a capacity fix into a redesign.
+    private const val DEFAULT_FIRST_SCREEN_SECTIONS = 7
 
     // Budgets of the base rule. Named because a bare number in a map literal says nothing about which
     // group it caps, and because detekt reads every one of them as a magic number.
@@ -168,7 +181,7 @@ object LauncherStarterLayoutRules {
         return base.copy(
             sectionOrder = sectionOrder,
             itemBudget = base.itemBudget.mapValues { (_, budget) -> scaleBudget(budget, size.budgetPercent) },
-            firstScreenSections = keepActionsWithFeatures(sectionOrder, cut),
+            firstScreenSections = keepSameKeyGroupsTogether(sectionOrder, cut),
             screenCount = (base.screenCount + screenCountDelta).coerceIn(MIN_SCREEN_COUNT, MAX_SCREEN_COUNT),
         )
     }
@@ -191,16 +204,25 @@ object LauncherStarterLayoutRules {
     }
 
     /**
-     * Pushes the screen cut past [StarterSectionGroup.LAUNCHER_ACTIONS] when it would otherwise fall
-     * between it and the feature tiles it shares a section with.
+     * Pushes the screen cut past any group that shares the section key of the group before it.
      *
-     * Splitting that pair across screens would put one section key on two screens, and a section is
+     * Splitting such a pair across screens would put one section key on two screens, and a section is
      * addressed by its key alone - the two halves would fold as one and collide in the packing map. The
-     * current adjustments cannot reach that cut, so this is a guard rather than a live branch; it exists
-     * because the alternative is an invariant that only holds while nobody edits the numbers above.
+     * current adjustments cannot reach either pair's cut, so this is a guard rather than a live branch;
+     * it exists because the alternative is an invariant that only holds while nobody edits the numbers
+     * above.
+     *
+     * S2321 generalised it from the single [StarterSectionGroup.LAUNCHER_ACTIONS] test: the split of the
+     * resources into a core group and a user tail created a second same-key pair, and a guard naming one
+     * pair by hand is a guard that stops covering the file the next time a group is added.
      */
-    private fun keepActionsWithFeatures(order: List<StarterSectionGroup>, cut: Int): Int =
-        if (order.getOrNull(cut) == StarterSectionGroup.LAUNCHER_ACTIONS) cut + 1 else cut
+    private fun keepSameKeyGroupsTogether(order: List<StarterSectionGroup>, cut: Int): Int {
+        var at = cut
+        while (at in 1 until order.size && order[at].sectionKey == order[at - 1].sectionKey) {
+            at++
+        }
+        return at
+    }
 
     private fun scaleBudget(budget: Int, percent: Int): Int =
         (budget * percent / PERCENT_BASE).coerceAtLeast(MIN_BUDGET)
@@ -216,6 +238,7 @@ object LauncherStarterLayoutRules {
     private fun baseRule() = Rule(
         sectionOrder = listOf(
             StarterSectionGroup.PROFILE_GADGETS,
+            StarterSectionGroup.CORE_RESOURCES,
             StarterSectionGroup.RESOURCES,
             StarterSectionGroup.APP_FUNCTIONS,
             StarterSectionGroup.LAUNCHER_ACTIONS,
@@ -234,6 +257,10 @@ object LauncherStarterLayoutRules {
      * [StarterSectionGroup.LAUNCHER_ACTIONS] deliberately has no entry: it is unbounded. Every item in it
      * is a way out of the launcher or into its settings, and a subset of those is not a smaller version
      * of the group, it is a desktop missing an exit.
+     *
+     * S2321: [StarterSectionGroup.CORE_RESOURCES] is unbounded for the same reason. Under the single
+     * budgeted resources group it had, the compact scale of [BUDGET_RESOURCES] cut the list at four and
+     * dropped "All documents", the camera and "All files" off every phone.
      */
     private fun defaultBudget(): Map<StarterSectionGroup, Int> = mapOf(
         StarterSectionGroup.PROFILE_GADGETS to BUDGET_GADGETS,

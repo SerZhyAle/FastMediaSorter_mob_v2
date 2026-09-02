@@ -62,10 +62,21 @@
     root. PLAN/, V1/, v2_6/ and spec_v2/ are excluded on the same live-versus-historical cut the
     main mode uses: a spec that described a script does not run it.
 
-    RESOLUTION IS TREE-WIDE, JUDGING IS NOT. Both reverse modes resolve a token against every .ps1
-    in the repository, not against the three script roots the main mode judges - maestro/,
-    .claude/hooks/ and dev/build-with-version.ps1 are real scripts, and resolving against the
-    narrow set would report each of them as a phantom.
+    RESOLUTION IS TREE-WIDE, JUDGING IS NOT - IN ALL THREE MODES (S2336). Real scripts live outside
+    the three roots the main mode judges: maestro/, .claude/hooks/ and the version-stamping builder
+    under dev/. Every mode therefore matches a token against every .ps1 in the repository. The two
+    reverse modes do it by asking whether the name exists at all; the main mode hands those paths to
+    the ladder and then narrows the answer back to the scripts it judges.
+
+    That narrowing is the point. Until 2026-09-02 the main mode built its index from the judged
+    roots alone, so a token addressing a file outside them matched nothing, shortened to its bare
+    leaf, and credited whichever homonym happened to be inside - seven files addressed the builder
+    in dev/ and between them kept an unrelated copy under scripts/builders/ alive. The gate reported
+    no ambiguity while doing it, because the second carrier was outside the index it counted.
+
+    ONE WALK, THREE CONSUMERS. Get-KnownScriptPaths collects every .ps1 once. The name check reads
+    it whole; the resolver reads it minus the nested-worktree copies, which are second carriers of
+    every name in the repository and would make the entire tree ambiguous.
 
     THE DOCS BASELINE IS A LIST, NOT A COUNT. doc-script-reference-baseline.txt holds one
     `path :: token` line per known-bad reference, so a new phantom cannot hide behind a fixed one.
@@ -119,6 +130,8 @@ param(
 $ErrorActionPreference = 'Stop'
 
 . (Join-Path $PSScriptRoot 'lib/script-reference-resolution.ps1')
+. (Join-Path $PSScriptRoot 'lib/nested-worktrees.ps1')
+$nestedWorktrees = Get-NestedWorktreeRelativePath -RepoRoot $RepoRoot
 
 $scriptRoots = @('scripts', 'dev/CATALOG/scripts', 'dev/ACTIVITY_CATALOG/scripts')
 # A mention is not a reference. A spec that once described a script, or a changelog row recording
@@ -163,12 +176,11 @@ $excusePattern = '(?i)\b(Historical|External|placeholder|example)\b'
 function Test-Excluded {
     param([string] $Relative)
     if ($Relative -match '(^|[\\/])node_modules([\\/]|$)') { return $true }
-    # A git worktree under .claude/worktrees is another agent's isolated checkout of this same
-    # repository, not this tree's content. Every document in it is a copy, so scanning it doubles
-    # every finding and judges files the working tree is not responsible for. Observed 2026-08-27
-    # while closing S2194: a sibling agent's worktree appeared mid-ticket and added 505 phantom
-    # document references, failing the closure of a change that had touched none of them.
-    if ($Relative.Replace('\', '/') -like '.claude/worktrees/*') { return $true }
+    # Another agent's checkout of this same repository. The rule, its evidence and the reason the
+    # list comes from git rather than a literal path now live in lib/nested-worktrees.ps1, shared
+    # with the three other repo-wide walks - S2333 found that this exclusion had existed here alone
+    # since S2194 while those three still scanned the copy.
+    if (Test-InNestedWorktree -RelativePath $Relative -Prefixes $nestedWorktrees) { return $true }
     foreach ($e in $corpusExclusions) {
         if ($Relative.Replace('\', '/') -ieq $e) { return $true }
     }
@@ -178,6 +190,40 @@ function Test-Excluded {
 function Get-Relative {
     param([string] $Full)
     return $Full.Substring($RepoRoot.Length).TrimStart('\', '/')
+}
+
+# ---------------------------------------------------------------- every script in the tree
+# One walk, three consumers: the two reverse modes ask "does this name exist anywhere", and the main
+# mode hands the paths to the resolver so a token can be matched against a file it may not judge
+# (S2336). Pruned rather than -Recurse: the excluded directories are the build outputs and the git
+# object store, and descending into them costs more than the rest of the repository together.
+function Get-KnownScriptPaths {
+    $paths = New-Object System.Collections.Generic.List[string]
+    $stack = New-Object System.Collections.Generic.Stack[string]
+    $stack.Push($RepoRoot)
+    while ($stack.Count -gt 0) {
+        $dir = $stack.Pop()
+        foreach ($sub in [IO.Directory]::EnumerateDirectories($dir)) {
+            if ($knownScriptExclusions -contains (Split-Path $sub -Leaf)) { continue }
+            $stack.Push($sub)
+        }
+        foreach ($f in [IO.Directory]::EnumerateFiles($dir, '*.ps1')) {
+            $paths.Add((Get-Relative $f).Replace('\', '/'))
+        }
+    }
+    return $paths
+}
+
+$knownScriptPaths = Get-KnownScriptPaths
+# Nested worktrees are dropped for the resolver and NOT for the name check. A worktree is a second
+# copy of this repository, so every script in it is a second carrier of its own name: fed to the
+# resolver, that makes every name in the tree ambiguous and reports the whole repository as
+# unreferenced. The name check is unharmed by the duplicates - a name either exists or it does not -
+# and narrowing it would be a behaviour change this ticket did not scope.
+$treeScriptPaths = New-Object System.Collections.Generic.List[string]
+foreach ($p in $knownScriptPaths) {
+    if (Test-Excluded $p) { continue }
+    $treeScriptPaths.Add($p)
 }
 
 # ---------------------------------------------------------------- collect scripts
@@ -199,27 +245,18 @@ foreach ($root in $scriptRoots) {
 foreach ($name in @('a.ps1')) {
     if (Test-Path -LiteralPath (Join-Path $RepoRoot $name)) { $scriptPaths.Add($name) }
 }
-$scriptIndex = New-ScriptPathIndex -RelativePaths $scriptPaths.ToArray()
+$scriptIndex = New-ScriptPathIndex -RelativePaths $scriptPaths.ToArray() -TreePaths $treeScriptPaths.ToArray()
 
 # ---------------------------------------------------------------- reverse-direction helpers
-# Every script in the tree, by file name. The main mode judges only $scriptRoots, but a token in a
-# document naming maestro/run-tests.ps1 or .claude/hooks/observe-empty-grep.ps1 resolves perfectly
-# well - judging those against the narrow set would invent phantoms (S1979).
+# Every script in the tree, by file name, folded from the one walk above. The main mode judges only
+# $scriptRoots, but a token in a document naming maestro/run-tests.ps1 or
+# .claude/hooks/observe-empty-grep.ps1 resolves perfectly well - judging those against the narrow
+# set would invent phantoms (S1979).
 function Get-KnownScriptNames {
+    param([Parameter(Mandatory)] [System.Collections.Generic.List[string]] $Paths)
     $known = @{}
-    # Pruned walk rather than -Recurse: the excluded directories are the build outputs and the git
-    # object store, and descending into them costs more than the rest of the repository together.
-    $stack = New-Object System.Collections.Generic.Stack[string]
-    $stack.Push($RepoRoot)
-    while ($stack.Count -gt 0) {
-        $dir = $stack.Pop()
-        foreach ($sub in [IO.Directory]::EnumerateDirectories($dir)) {
-            if ($knownScriptExclusions -contains (Split-Path $sub -Leaf)) { continue }
-            $stack.Push($sub)
-        }
-        foreach ($f in [IO.Directory]::EnumerateFiles($dir, '*.ps1')) {
-            $known[[IO.Path]::GetFileName($f)] = $true
-        }
+    foreach ($p in $Paths) {
+        $known[$p.Substring($p.LastIndexOf('/') + 1)] = $true
     }
     return $known
 }
@@ -262,7 +299,7 @@ if ($Memory) {
         Write-Host "assert-script-references: cannot verify - no agent memory at .claude/agent-memory" -ForegroundColor Yellow
         exit 2
     }
-    $knownScripts = Get-KnownScriptNames
+    $knownScripts = Get-KnownScriptNames -Paths $knownScriptPaths
     $memoryFiles = @(Get-ChildItem -LiteralPath $memoryRoot -Recurse -File -Filter *.md | ForEach-Object { $_.FullName })
     $unresolved = New-Object System.Collections.Generic.List[string]
     foreach ($finding in (Find-UnresolvedTokens -Files $memoryFiles -Known $knownScripts)) {
@@ -286,7 +323,7 @@ if ($Memory) {
 
 if ($Docs) {
     # ------------------------------------------------------------ docs mode
-    $knownScripts = Get-KnownScriptNames
+    $knownScripts = Get-KnownScriptNames -Paths $knownScriptPaths
     $docFiles = New-Object System.Collections.Generic.List[string]
     foreach ($root in $docRoots) {
         $full = Join-Path $RepoRoot ($root -replace '/', [IO.Path]::DirectorySeparatorChar)

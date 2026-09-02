@@ -97,6 +97,7 @@ private class TechnicalGadgetView(
                 InternalRouteCatalog.KEY_SYSTEM_INFO to ""
             else -> InternalRouteCatalog.KEY_SYSTEM_INFO to ""
         }
+        Timber.d("S2238: technical gadget key=%s routes to %s", key, routeKey)
         host.run(
             LauncherCellCommand.FeatureSection(
                 routeKey = routeKey,

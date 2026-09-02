@@ -159,6 +159,87 @@ Assert-Resolves -Name 'case: a path suffix matches regardless of the token spell
 Assert-Resolves -Name 'a name no script in the set carries resolves to nothing' `
     -Token 'tree/nowhere/fx-imaginary.ps1' -From 'docs' -Expected @()
 
+# --- the split index: matching is tree-wide, the answer is judged-only (S2336) -------------------
+# Real shape: the gate judges three script roots, but real scripts live outside them. A token
+# addressing one of those - the version-stamping builder under dev/ is the case that opened S2336 -
+# found nothing to match in the judged index, shortened to its bare leaf, and credited an unrelated
+# file that merely shared the name. Seven files addressed the one outside; none addressed the one
+# they kept alive, and the gate reported zero ambiguity throughout.
+$treeOnly = @(
+    'outer/fx-solo.ps1',    # homonym of the judged tree/tools file, on the far side of the boundary
+    'outer/fx-judge.ps1'    # homonym of the judged pair, reachable as a bare sibling from outer/
+)
+$split = New-ScriptPathIndex -RelativePaths $fixture -TreePaths ($fixture + $treeOnly)
+
+function Assert-SplitResolves {
+    param(
+        [string] $Name,
+        [string] $Token,
+        [string] $From,
+        [string[]] $Expected,
+        [bool] $ExpectAmbiguous = $false
+    )
+    $script:Cases++
+    $r = Resolve-ScriptTokenPaths -Token $Token -MentionDirectory $From -Index $split
+    $actual = @($r.Paths) -join ', '
+    $want = @($Expected) -join ', '
+    if ($actual -ne $want) {
+        Write-Host "FAIL $Name : expected [$want], got [$actual]" -ForegroundColor Red
+        $script:Failures++
+        return
+    }
+    if ($r.Ambiguous -ne $ExpectAmbiguous) {
+        Write-Host "FAIL $Name : expected Ambiguous=$ExpectAmbiguous, got $($r.Ambiguous)" -ForegroundColor Red
+        $script:Failures++
+        return
+    }
+    Write-Host "  ok  $Name" -ForegroundColor DarkGray
+}
+
+# THE DEFECT ITSELF. Without the split this token credits the judged homonym, because the suffix
+# walk shortens past a file it cannot see.
+Assert-SplitResolves -Name 'split: a path naming a tree-only file credits no homonym' `
+    -Token 'outer/fx-solo.ps1' -From 'docs' -Expected @()
+
+Assert-SplitResolves -Name 'split: the same path written with backslashes credits no homonym' `
+    -Token '.\outer\fx-solo.ps1' -From 'docs' -Expected @()
+
+# Ambiguity is a property of the tree, not of the index - the number that read zero in the very
+# case that had it.
+Assert-SplitResolves -Name 'split: a bare name carried on both sides of the boundary is ambiguous' `
+    -Token 'fx-solo.ps1' -From 'docs' `
+    -Expected @('tree/tools/fx-solo.ps1') -ExpectAmbiguous $true
+
+# The sibling rule matches tree-wide too, so a bare mention beside a tree-only file names that file
+# and stops, instead of falling through to the judged carriers of the same name.
+Assert-SplitResolves -Name 'split: a bare sibling that is tree-only resolves to nothing' `
+    -Token 'fx-judge.ps1' -From 'outer' -Expected @()
+
+# The anchored walk obeys the same stop: landing on a real file ends resolution.
+Assert-SplitResolves -Name 'split: an anchored token landing on a tree-only file stops there' `
+    -Token 'PSScriptRoot/../fx-solo.ps1' -From 'outer/sub' -Expected @()
+
+# An anchored walk landing on NO file must still fall through, or rule 1 would swallow every token
+# that merely starts with a directory variable.
+Assert-SplitResolves -Name 'split: an anchored miss still falls through to the suffix rules' `
+    -Token 'PSScriptRoot/../../tree/probe/fx-driver.ps1' -From 'tree/alpha' `
+    -Expected @('tree/probe/fx-driver.ps1')
+
+# Regression guard: everything the judged set does carry must resolve exactly as it did before.
+Assert-SplitResolves -Name 'split: a judged file is still selected by its own path' `
+    -Token 'tree/alpha.suite/Fx-Suite.ps1' -From 'docs' `
+    -Expected @('tree/alpha.suite/Fx-Suite.ps1')
+
+Assert-SplitResolves -Name 'split: a judged bare sibling still wins over its homonyms' `
+    -Token 'fx-shared.ps1' -From 'tree/alpha' `
+    -Expected @('tree/alpha/fx-shared.ps1')
+
+Assert-SplitResolves -Name 'split: a wholly judged homonym class is still ambiguous' `
+    -Token 'Fx-Suite.ps1' -From 'tree/probe' `
+    -Expected @('tree/alpha.suite/Fx-Suite.ps1',
+    'tree/beta.suite/Fx-Suite.ps1',
+    'tree/gamma.suite/fx-suite.ps1') -ExpectAmbiguous $true
+
 if ($script:Failures -gt 0) {
     Write-Host "assert-script-references token resolution: FAIL ($script:Failures of $script:Cases case(s))" -ForegroundColor Red
     exit 1

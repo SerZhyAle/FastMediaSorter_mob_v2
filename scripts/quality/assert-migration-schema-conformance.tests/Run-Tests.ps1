@@ -23,6 +23,7 @@ $ErrorActionPreference = 'Stop'
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..' '..' '..')).Path
 $gateSource = Join-Path $repoRoot 'scripts/quality/assert-migration-schema-conformance.ps1'
+$registrySource = Join-Path $repoRoot 'scripts/quality/lib/room-databases.ps1'
 $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") { "$env:ProgramFiles\PowerShell\7\pwsh.exe" } else { 'pwsh' }
 
 $script:pass = 0
@@ -39,6 +40,96 @@ function Assert-That([string]$name, [bool]$ok, [string]$detail) {
     }
 }
 
+# S2355: the second registered database. By default it reproduces the watch as the tree really
+# carries it - version 1, no migration, a Room builder with no .addMigrations(..) - which is the
+# state the gate must call clean rather than unverifiable. Passing -MigrationSql grows it to version
+# 2 with one hop, which is how the wear-specific cases plant their defect.
+function New-WearHalf {
+    param(
+        [string]$Sandbox,
+        [string]$MigrationSql,
+        [string]$SchemaColumnName,
+        [bool]$Register,
+        [bool]$OmitSchemaDir
+    )
+    $wearDbDir = Join-Path $Sandbox 'wear/src/main/java/com/sza/fastmediasorter/wear/data/db'
+    $wearDiDir = Join-Path $Sandbox 'wear/src/main/java/com/sza/fastmediasorter/wear/di'
+    $wearSchemaDir = Join-Path $Sandbox 'wear/schemas/com.sza.fastmediasorter.wear.data.db.WearVoiceNoteDatabase'
+    New-Item -ItemType Directory -Force -Path $wearDbDir, $wearDiDir | Out-Null
+    if (-not $OmitSchemaDir) { New-Item -ItemType Directory -Force -Path $wearSchemaDir | Out-Null }
+
+    $hasMigration = -not [string]::IsNullOrWhiteSpace($MigrationSql)
+    $wearVersion = if ($hasMigration) { 2 } else { 1 }
+
+    Set-Content -Path (Join-Path $wearDbDir 'WearVoiceNoteDatabase.kt') -Encoding utf8NoBOM -Value @"
+package com.sza.fastmediasorter.wear.data.db
+
+@Database(entities = [VoiceNoteEntity::class], version = $wearVersion, exportSchema = true)
+abstract class WearVoiceNoteDatabase
+"@
+
+    $wearRegistration = ''
+    if ($hasMigration) {
+        Set-Content -Path (Join-Path $wearDbDir 'Migration1To2.kt') -Encoding utf8NoBOM -Value @"
+package com.sza.fastmediasorter.wear.data.db
+
+val MIGRATION_1_2 = object : Migration(1, 2) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("$MigrationSql")
+    }
+}
+"@
+        if ($Register) { $wearRegistration = ".addMigrations(`n                MIGRATION_1_2,`n            )" }
+
+        $chainDir = Join-Path $Sandbox 'wear/src/androidTest/java/com/sza/fastmediasorter/wear/data/db'
+        New-Item -ItemType Directory -Force -Path $chainDir | Out-Null
+        Set-Content -Path (Join-Path $chainDir 'WearVoiceNoteDatabaseMigrationChainTest.kt') -Encoding utf8NoBOM -Value @'
+package com.sza.fastmediasorter.wear.data.db
+
+class WearVoiceNoteDatabaseMigrationChainTest {
+    fun run() {
+        helper.runMigrationsAndValidate(TEST_DB, CURRENT_SCHEMA, true, MIGRATION_1_2)
+    }
+
+    private companion object {
+        const val CURRENT_SCHEMA = 2
+    }
+}
+'@
+    }
+
+    Set-Content -Path (Join-Path $wearDiDir 'WearAppModule.kt') -Encoding utf8NoBOM -Value @"
+package com.sza.fastmediasorter.wear.di
+
+object WearAppModule {
+    fun provideWearVoiceNoteDatabase(context: Context): WearVoiceNoteDatabase =
+        Room.databaseBuilder(context, WearVoiceNoteDatabase::class.java, DB_NAME)
+            $wearRegistration
+            .build()
+}
+"@
+
+    if ($OmitSchemaDir) { return }
+
+    $wearFields = @([pscustomobject]@{ fieldPath = 'id'; columnName = 'id'; affinity = 'INTEGER'; notNull = $true })
+    Set-Content -Path (Join-Path $wearSchemaDir '1.json') -Encoding utf8NoBOM -Value (
+        [pscustomobject]@{ formatVersion = 1; database = [pscustomobject]@{
+                version = 1; identityHash = 'w1'
+                entities = @([pscustomobject]@{ tableName = 'voice_notes'; fields = $wearFields })
+            }
+        } | ConvertTo-Json -Depth 12)
+
+    if (-not $hasMigration) { return }
+
+    $wearAdded = [pscustomobject]@{ fieldPath = $SchemaColumnName; columnName = $SchemaColumnName; affinity = 'INTEGER'; notNull = $false }
+    Set-Content -Path (Join-Path $wearSchemaDir '2.json') -Encoding utf8NoBOM -Value (
+        [pscustomobject]@{ formatVersion = 1; database = [pscustomobject]@{
+                version = 2; identityHash = 'w2'
+                entities = @([pscustomobject]@{ tableName = 'voice_notes'; fields = @($wearFields + $wearAdded) })
+            }
+        } | ConvertTo-Json -Depth 12)
+}
+
 # Builds a sandbox holding one migration, one exported schema and a DatabaseModule that either
 # registers the migration or does not.
 function New-Sandbox {
@@ -50,20 +141,37 @@ function New-Sandbox {
         [bool]$Register = $true,
         [bool]$WriteTargetSchema = $true,
         [bool]$IncludeUnexportedOlderMigration = $false,
-        [int]$ChainTestVersion = 0,
-        [string]$BaselineText
+        # S2355 made a missing chain test a finding for any database that HAS a migration, so the
+        # default sandbox writes a correct one - otherwise every case testing an SQL dimension also
+        # trips chain-test and stops testing what it was written for. 0 omits it deliberately.
+        [int]$ChainTestVersion = 54,
+        [string]$BaselineText,
+        # S2355: the wear half of the sandbox. Defaults reproduce the real tree - database version 1,
+        # no migration, a Room builder with no .addMigrations(..) at all - so every pre-existing case
+        # keeps testing exactly what it tested before, with a second database merely present.
+        [string]$WearMigrationSql,
+        [string]$WearSchemaColumnName = 'transferState',
+        [bool]$WearRegister = $true,
+        [bool]$OmitWearSchemaDir = $false
     )
     $sandbox = Join-Path ([System.IO.Path]::GetTempPath()) ('s2306-' + [System.IO.Path]::GetRandomFileName())
     $qualityDir = Join-Path $sandbox 'scripts/quality'
+    $libDir = Join-Path $qualityDir 'lib'
     $dbDir = Join-Path $sandbox 'app_v2/src/main/java/com/sza/fastmediasorter/data/local/db'
     $diDir = Join-Path $sandbox 'app_v2/src/main/java/com/sza/fastmediasorter/core/di'
     $schemaDir = Join-Path $sandbox 'app_v2/schemas/com.sza.fastmediasorter.data.local.db.AppDatabase'
-    New-Item -ItemType Directory -Force -Path $qualityDir, $dbDir, $diDir, $schemaDir | Out-Null
+    New-Item -ItemType Directory -Force -Path $qualityDir, $libDir, $dbDir, $diDir, $schemaDir | Out-Null
 
     Copy-Item $gateSource (Join-Path $qualityDir 'assert-migration-schema-conformance.ps1')
+    # The gate reads the database list from this library (S2355), so the sandbox is not a working
+    # copy of the gate without it.
+    Copy-Item $registrySource (Join-Path $libDir 'room-databases.ps1')
     if ($PSBoundParameters.ContainsKey('BaselineText')) {
         Set-Content -Path (Join-Path $qualityDir 'migration-schema-conformance-baseline.txt') -Value $BaselineText -Encoding utf8NoBOM
     }
+
+    New-WearHalf -Sandbox $sandbox -MigrationSql $WearMigrationSql -SchemaColumnName $WearSchemaColumnName `
+        -Register $WearRegister -OmitSchemaDir $OmitWearSchemaDir
 
     Set-Content -Path (Join-Path $dbDir 'AppDatabase.kt') -Encoding utf8NoBOM -Value @'
 package com.sza.fastmediasorter.data.local.db
@@ -210,7 +318,7 @@ $cases = @(
             SchemaColumnName = 'screenIndex'; SchemaNotNull = $true; SchemaDefault = '0'; Register = $false
         }
         Expect  = 1
-        Contain = 'not in DatabaseModule'
+        Contain = 'is not registered in'
     },
     @{
         Name    = 'the declared version shipping without an exported schema is itself a finding'
@@ -249,10 +357,67 @@ $cases = @(
         Name    = 'a baselined disagreement does not fail the gate'
         Args    = @{ MigrationSql = 'ALTER TABLE `launcher_cells` ADD COLUMN `screen_index` INTEGER NOT NULL DEFAULT 0'
             SchemaColumnName = 'screenIndex'; SchemaNotNull = $true; SchemaDefault = '0'
-            BaselineText = '53To54|column-name|launcher_cells.screen_index'
+            BaselineText = 'app_v2|53To54|column-name|launcher_cells.screen_index'
         }
         Expect  = 0
         Contain = 'PASS'
+    },
+    @{
+        Name    = 'a database with migrations and no chain test at all is a finding'
+        Args    = @{ MigrationSql = 'ALTER TABLE `launcher_cells` ADD COLUMN `screenIndex` INTEGER NOT NULL DEFAULT 0'
+            SchemaColumnName = 'screenIndex'; SchemaNotNull = $true; SchemaDefault = '0'; ChainTestVersion = 0
+        }
+        Expect  = 1
+        Contain = 'nothing walks the whole migration chain'
+    },
+    # ---- S2355: the second database ---------------------------------------------------------
+    @{
+        Name    = 'wear at version 1 with no migration and no addMigrations is clean'
+        Args    = @{ MigrationSql = 'ALTER TABLE `launcher_cells` ADD COLUMN `screenIndex` INTEGER NOT NULL DEFAULT 0'
+            SchemaColumnName = 'screenIndex'; SchemaNotNull = $true; SchemaDefault = '0'
+        }
+        Expect  = 0
+        Contain = 'wear version 1: no migration yet'
+    },
+    @{
+        Name    = 'a column-name disagreement in the wear database is found and names wear'
+        Args    = @{ MigrationSql = 'ALTER TABLE `launcher_cells` ADD COLUMN `screenIndex` INTEGER NOT NULL DEFAULT 0'
+            SchemaColumnName = 'screenIndex'; SchemaNotNull = $true; SchemaDefault = '0'
+            WearMigrationSql = 'ALTER TABLE `voice_notes` ADD COLUMN `transfer_state` INTEGER'
+            WearSchemaColumnName = 'transferState'
+        }
+        Expect  = 1
+        Contain = 'wear: ADD COLUMN "transfer_state"'
+    },
+    @{
+        Name    = 'an app_v2 baseline key does not suppress the same finding in wear'
+        Args    = @{ MigrationSql = 'ALTER TABLE `launcher_cells` ADD COLUMN `screenIndex` INTEGER NOT NULL DEFAULT 0'
+            SchemaColumnName = 'screenIndex'; SchemaNotNull = $true; SchemaDefault = '0'
+            WearMigrationSql = 'ALTER TABLE `voice_notes` ADD COLUMN `transfer_state` INTEGER'
+            WearSchemaColumnName = 'transferState'
+            BaselineText = 'app_v2|1To2|column-name|voice_notes.transfer_state'
+        }
+        Expect  = 1
+        Contain = 'wear: ADD COLUMN "transfer_state"'
+    },
+    @{
+        Name    = 'a wear migration file the wear builder never registers is found'
+        Args    = @{ MigrationSql = 'ALTER TABLE `launcher_cells` ADD COLUMN `screenIndex` INTEGER NOT NULL DEFAULT 0'
+            SchemaColumnName = 'screenIndex'; SchemaNotNull = $true; SchemaDefault = '0'
+            WearMigrationSql = 'ALTER TABLE `voice_notes` ADD COLUMN `transferState` INTEGER'
+            WearRegister = $false
+        }
+        Expect  = 2
+        Contain = 'wear: 1 migration file(s) exist but no MIGRATION_N_M reference'
+    },
+    @{
+        Name    = 'a missing wear schema directory exits 2 and names wear'
+        Args    = @{ MigrationSql = 'ALTER TABLE `launcher_cells` ADD COLUMN `screenIndex` INTEGER NOT NULL DEFAULT 0'
+            SchemaColumnName = 'screenIndex'; SchemaNotNull = $true; SchemaDefault = '0'
+            OmitWearSchemaDir = $true
+        }
+        Expect  = 2
+        Contain = 'wear: registry SchemaDir does not exist'
     }
 )
 

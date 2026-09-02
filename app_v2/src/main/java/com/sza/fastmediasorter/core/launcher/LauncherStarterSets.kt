@@ -230,6 +230,10 @@ object LauncherStarterSets {
         val allVideoId: Long? = null,
         val allDocsId: Long? = null,
         val cameraId: Long? = null,
+        // S2321: the predefined "All files" resource, named separately from [userResourceIds] because it
+        // sits at a real storage path rather than a virtual one and so is indistinguishable from a user
+        // resource by path alone - which is how it ended up in the budgeted tail and off every phone.
+        val allFilesId: Long? = null,
         val lastResourceId: Long? = null,
         val userResourceIds: List<Long> = emptyList(),
     )
@@ -330,7 +334,8 @@ object LauncherStarterSets {
 
         return mapOf(
             StarterSectionGroup.PROFILE_GADGETS to profileGadgetGroup(profile, resources, streamsAvailable),
-            StarterSectionGroup.RESOURCES to commonResources(resources) + importedShortcuts,
+            StarterSectionGroup.CORE_RESOURCES to coreResources(resources),
+            StarterSectionGroup.RESOURCES to userResources(resources) + importedShortcuts,
             StarterSectionGroup.APP_FUNCTIONS to commonFeatures(routeAvailableInBuild),
             StarterSectionGroup.LAUNCHER_ACTIONS to launcherActionGroup(profile),
             StarterSectionGroup.ANDROID_APPS to
@@ -541,18 +546,22 @@ object LauncherStarterSets {
     }
 
     // The unified resource set every profile opens with (owner decision S1091): one BROWSE shortcut per
-    // existing virtual resource that resolved to an id. "All files" is the Recent resource (allFiles=true).
-    private fun commonResources(resources: StarterResources): List<StarterItem> = buildList {
+    // existing aggregate resource that resolved to an id. S2321: a closed set, seeded unbudgeted, because
+    // each entry is the desktop's only way into a whole content type.
+    private fun coreResources(resources: StarterResources): List<StarterItem> = buildList {
         resources.recentId?.let { add(resourceShortcut(it, LauncherResourceMode.BROWSE)) }
         resources.allAudioId?.let { add(resourceShortcut(it, LauncherResourceMode.BROWSE)) }
         resources.allImagesId?.let { add(resourceShortcut(it, LauncherResourceMode.BROWSE)) }
         resources.allVideoId?.let { add(resourceShortcut(it, LauncherResourceMode.BROWSE)) }
         resources.allDocsId?.let { add(resourceShortcut(it, LauncherResourceMode.BROWSE)) }
         resources.cameraId?.let { add(resourceShortcut(it, LauncherResourceMode.BROWSE)) }
-        resources.userResourceIds.forEach { id ->
-            add(resourceShortcut(id, LauncherResourceMode.BROWSE))
-        }
+        resources.allFilesId?.let { add(resourceShortcut(it, LauncherResourceMode.BROWSE)) }
     }
+
+    // S2321: the open tail - whatever the user made or imported. Budgeted, because it can grow without
+    // limit and a shortened list of one's own folders is a shorter list, not a missing capability.
+    private fun userResources(resources: StarterResources): List<StarterItem> =
+        resources.userResourceIds.map { resourceShortcut(it, LauncherResourceMode.BROWSE) }
 
     // S2019: every toggleable program the "Programs and scenarios" strip (MainProgramsMenuCoordinator)
     // also offers, in that strip's order - App Launch Panel (no on/off state) and VR Cinema (no static

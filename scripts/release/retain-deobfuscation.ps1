@@ -51,9 +51,9 @@
     directory of <abi>/<lib>.so.dbg files, or an AGP native-debug-symbols.zip.
 
 .PARAMETER ArchiveRoot
-    Root of the archive. Defaults to the cloud folder the build scripts already
-    publish APKs into, so it syncs without human action and survives a machine
-    reinstall.
+    Root of the archive. Defaults to the resolved Deobfuscation artifact sink - the cloud
+    folder the build scripts already publish APKs into, so it syncs without human action
+    and survives a machine reinstall.
 
 .PARAMETER Force
     Overwrite an already-stored payload whose mapping differs from the incoming
@@ -78,7 +78,7 @@ param(
     [string] $Bundle,
     [string] $Mapping,
     [string] $NativeSymbols,
-    [string] $ArchiveRoot = 'c:\GD\WORK\FastMediaSorter\deobfuscation',
+    [string] $ArchiveRoot,
     [switch] $Force,
     [switch] $DryRun,
     [switch] $Help
@@ -103,6 +103,16 @@ function Exit-Retain {
 
 if ($VersionCode -le 0) {
     Exit-Retain -Message "-VersionCode must be a positive integer (got $VersionCode)." -Code 2
+}
+
+. "$PSScriptRoot\..\utils\project-paths.ps1"
+
+if (-not $ArchiveRoot) {
+    $ArchiveRoot = Get-ArtifactSink -Kind Deobfuscation -Quiet
+    if (-not $ArchiveRoot) {
+        Exit-Retain -Message ("deobfuscation archive not reachable on this machine - " +
+            "set FMS_SINK_DEOBFUSCATION or pass -ArchiveRoot.") -Code 2
+    }
 }
 
 # ----------------------------------------------------------------------

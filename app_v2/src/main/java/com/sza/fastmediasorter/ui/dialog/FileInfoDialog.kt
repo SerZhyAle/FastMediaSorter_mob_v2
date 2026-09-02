@@ -6,7 +6,9 @@ import android.os.Bundle
 import android.text.format.DateFormat
 import android.view.View
 import android.widget.TextView
+import androidx.exifinterface.media.ExifInterface
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.formatBitrate
 import com.sza.fastmediasorter.databinding.DialogFileInfoBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -18,7 +20,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.util.*
+
+private const val BITS_PER_MBIT = 1_000_000.0
 
 /**
  * Dialog to display detailed file information including EXIF and video metadata
@@ -255,10 +260,12 @@ class FileInfoDialog(
 
         // Bitrate
         if (mediaFile.videoBitrate != null) {
+            // video_bitrate_label carries the unit itself, so it takes a bare number.
             binding.tvVideoBitrate.text = context.getString(
                 R.string.video_bitrate_label,
-                formatBitrate(mediaFile.videoBitrate)
+                String.format(Locale.getDefault(), "%.2f", mediaFile.videoBitrate / BITS_PER_MBIT)
             )
+            Timber.d("S2349: video bitrate row -> '${binding.tvVideoBitrate.text}'")
             binding.tvVideoBitrate.visibility = View.VISIBLE
         } else {
             binding.tvVideoBitrate.visibility = View.GONE
@@ -423,7 +430,8 @@ class FileInfoDialog(
         
         // Audio Bitrate
         if (details.audioBitrate != null) {
-            binding.tvAudioBitrate.text = context.getString(R.string.audio_bitrate_label, formatBitrate(details.audioBitrate))
+            binding.tvAudioBitrate.text =
+                context.getString(R.string.audio_bitrate_label, formatBitrate(context, details.audioBitrate))
             binding.tvAudioBitrate.visibility = View.VISIBLE
         }
 
@@ -452,7 +460,8 @@ class FileInfoDialog(
 
         // Audio bitrate for video
         if (details.audioBitrate != null && mediaFile.type == MediaType.VIDEO) {
-            binding.tvVideoAudioBitrate.text = context.getString(R.string.video_audio_bitrate_label, formatBitrate(details.audioBitrate))
+            binding.tvVideoAudioBitrate.text =
+                context.getString(R.string.video_audio_bitrate_label, formatBitrate(context, details.audioBitrate))
             binding.tvVideoAudioBitrate.visibility = View.VISIBLE
         }
         
@@ -491,7 +500,7 @@ class FileInfoDialog(
         
         // Video Bitrate
         if (details.bitrate != null) {
-            val bitrateMbps = details.bitrate / 1_000_000.0
+            val bitrateMbps = details.bitrate / BITS_PER_MBIT
             binding.tvVideoBitrate.text = context.getString(R.string.video_bitrate_label, String.format(Locale.getDefault(), "%.2f", bitrateMbps))
             binding.tvVideoBitrate.visibility = View.VISIBLE
         }
@@ -667,48 +676,46 @@ class FileInfoDialog(
         }
     }
 
-    /** Maps EXIF orientation integer to a human-readable rotation/flip label. */
-    private fun formatOrientation(orientation: Int): String {
-        return when (orientation) {
-            1 -> "Normal"
-            2 -> "Flip horizontal"
-            3 -> "Rotate 180°"
-            4 -> "Flip vertical"
-            5 -> "Transpose"
-            6 -> "Rotate 90° CW"
-            7 -> "Transverse"
-            8 -> "Rotate 270° CW"
-            else -> "Unknown ($orientation)"
-        }
-    }
+    /**
+     * Maps an EXIF orientation value to a localised description of the transform. S2354.
+     *
+     * Values 5 and 7 are spelled out as "mirrored and rotated" instead of the EXIF specification's
+     * own `Transpose` / `Transverse`: those name the transform without describing it, so they are
+     * unreadable in every locale including English (`docs/COMMUNICATION_POLICY.md` section 1).
+     */
+    private fun formatOrientation(orientation: Int): String = when (orientation) {
+        ExifInterface.ORIENTATION_NORMAL -> context.getString(R.string.exif_orientation_normal)
+        ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> context.getString(R.string.exif_orientation_mirror_horizontal)
+        ExifInterface.ORIENTATION_ROTATE_180 -> context.getString(R.string.exif_orientation_rotate_180)
+        ExifInterface.ORIENTATION_FLIP_VERTICAL -> context.getString(R.string.exif_orientation_mirror_vertical)
+        ExifInterface.ORIENTATION_TRANSPOSE -> context.getString(R.string.exif_orientation_mirror_rotate_270)
+        ExifInterface.ORIENTATION_ROTATE_90 -> context.getString(R.string.exif_orientation_rotate_90)
+        ExifInterface.ORIENTATION_TRANSVERSE -> context.getString(R.string.exif_orientation_mirror_rotate_90)
+        ExifInterface.ORIENTATION_ROTATE_270 -> context.getString(R.string.exif_orientation_rotate_270)
+        else -> context.getString(R.string.exif_orientation_unknown, orientation)
+    }.also { Timber.d("S2354: formatOrientation($orientation) -> '$it' (locale=${Locale.getDefault()})") }
 
     /**
-     * Format GPS coordinates to readable string
+     * Format GPS coordinates for display. S2352.
+     *
+     * Display-only: the maps intent is built from the raw doubles in [FileInfoLaunchManager],
+     * so the hemisphere designation is safe to localise - RU/UK write "с. ш." / "пн. ш."
+     * rather than a single letter. The sign is carried by that designation, hence [Math.abs].
      */
     private fun formatGPS(latitude: Double, longitude: Double): String {
-        val latDirection = if (latitude >= 0) "N" else "S"
-        val lonDirection = if (longitude >= 0) "E" else "W"
-        return String.format(
-            Locale.getDefault(),
-            "%.6f° %s, %.6f° %s",
-            Math.abs(latitude),
-            latDirection,
-            Math.abs(longitude),
-            lonDirection
+        val latDirection = context.getString(
+            if (latitude >= 0) R.string.gps_hemisphere_north else R.string.gps_hemisphere_south
         )
-    }
-
-    /**
-     * Format bitrate to readable format (Kbps, Mbps)
-     */
-    private fun formatBitrate(bitrate: Int): String {
-        val kbps = bitrate / 1000.0
-        return if (kbps < 1000) {
-            String.format(Locale.getDefault(), "%.1f Kbps", kbps)
-        } else {
-            val mbps = kbps / 1000.0
-            String.format(Locale.getDefault(), "%.2f Mbps", mbps)
-        }
+        val lonDirection = context.getString(
+            if (longitude >= 0) R.string.gps_hemisphere_east else R.string.gps_hemisphere_west
+        )
+        return context.getString(
+            R.string.gps_coordinates_format,
+            String.format(Locale.getDefault(), "%.6f", Math.abs(latitude)),
+            latDirection,
+            String.format(Locale.getDefault(), "%.6f", Math.abs(longitude)),
+            lonDirection
+        ).also { Timber.d("S2352: formatGPS -> '$it' (locale=${Locale.getDefault()})") }
     }
 
     /** Euclid GCD - used to simplify aspect ratio (e.g. 1920x1080 → 16:9) */

@@ -25,8 +25,9 @@ import com.sza.fastmediasorter.core.clipboard.copyTextToClipboard
 import com.sza.fastmediasorter.core.logging.LogExportHelper
 import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
 import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
+import com.sza.fastmediasorter.util.applicationScope
+import com.sza.fastmediasorter.util.launchBoundToHost
 import com.sza.fastmediasorter.util.showBoundToHost
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -237,15 +238,16 @@ object ScrollableTextDialog {
                     append(fullText)
                 }
                 val subject = context.getString(R.string.crash_report_email_subject)
-                CoroutineScope(Dispatchers.IO).launch {
-                    val zipUri = LogExportHelper.buildLogsZipUri(context)
-                    withContext(Dispatchers.Main) {
-                        // Email-first with share-sheet fallback; previously createChooser stripped the
-                        // mailto selector and silently dropped the recipient for non-email targets.
-                        val delivered = SupportIntentFactory.launchCrashReport(context, subject, body, zipUri)
-                        if (!delivered) {
-                            Toast.makeText(context, R.string.crash_report_no_share_target, Toast.LENGTH_LONG).show()
-                        }
+                // S2358: bound to the host - a destroyed activity has nowhere to receive the intent,
+                // so packaging the ZIP for it is wasted work that also outlives its own context.
+                context.launchBoundToHost {
+                    Timber.d("S2358: dialog crash-report send started on the host lifecycle")
+                    val zipUri = withContext(Dispatchers.IO) { LogExportHelper.buildLogsZipUri(context) }
+                    // Email-first with share-sheet fallback; previously createChooser stripped the
+                    // mailto selector and silently dropped the recipient for non-email targets.
+                    val delivered = SupportIntentFactory.launchCrashReport(context, subject, body, zipUri)
+                    if (!delivered) {
+                        Toast.makeText(context, R.string.crash_report_no_share_target, Toast.LENGTH_LONG).show()
                     }
                 }
             }
@@ -281,7 +283,12 @@ object ScrollableTextDialog {
     }
 
     private fun saveErrorToFile(context: Context, text: String) {
-        CoroutineScope(Dispatchers.IO).launch {
+        // S2358: the application owns this one. The user asked for the file, so dismissing the dialog
+        // must not truncate the write and leave an IS_PENDING row behind in Downloads; the app context
+        // also keeps the host activity out of the reference held for the duration.
+        val appContext = context.applicationContext
+        Timber.d("S2358: saveErrorToFile entered - write goes to the application scope")
+        appContext.applicationScope().launch {
             try {
                 val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
                 val fileName = "fms_text_$timestamp.txt"
@@ -292,7 +299,7 @@ object ScrollableTextDialog {
                         put(MediaStore.Downloads.MIME_TYPE, "text/plain")
                         put(MediaStore.Downloads.IS_PENDING, 1)
                     }
-                    val resolver = context.contentResolver
+                    val resolver = appContext.contentResolver
                     val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
                     if (uri != null) {
                         resolver.openOutputStream(uri)?.use { stream ->
@@ -310,12 +317,12 @@ object ScrollableTextDialog {
                 }
 
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, R.string.error_saved_to_downloads, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(appContext, R.string.error_saved_to_downloads, Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 Timber.e(e, "ScrollableTextDialog: saveToFile failed")
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, R.string.error_log_save_failed, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(appContext, R.string.error_log_save_failed, Toast.LENGTH_SHORT).show()
                 }
             }
         }

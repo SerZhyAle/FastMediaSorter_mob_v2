@@ -186,7 +186,7 @@ class StatisticsAdapter(
             textValue: String?,
         ): String = when (format) {
             MetricFormat.COUNT -> StatisticsRowFormatter.formatCount(value)
-            MetricFormat.BYTES -> StatisticsRowFormatter.formatBytes(value)
+            MetricFormat.BYTES -> StatisticsRowFormatter.formatBytes(view.context, value)
             MetricFormat.DURATION_MS -> StatisticsRowFormatter.formatDuration(view.context, value)
             MetricFormat.DATE -> StatisticsRowFormatter.formatDate(value)
             MetricFormat.TEXT -> textValue.orEmpty()

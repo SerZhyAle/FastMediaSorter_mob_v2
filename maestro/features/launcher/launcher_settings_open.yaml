@@ -11,6 +11,12 @@ appId: com.sza.fastmediasorter.debug
 - tapOn:
     id: "com.sza.fastmediasorter.debug:id/btnSettings"
 - runFlow: ../../_shared/dismiss_settings_dialogs.yaml
+# S1043: SettingsActivity restores the last-active tab, and headerInterface / rowLauncherModeEnabled
+# / rowLauncherSettings live only on "Общие". Run after a flow that ended on Медиа, Плеер or
+# Управление and they are simply not in the view tree - the failure surfaces further down as a
+# scroll timeout rather than at the tab, which is how it read as a launcher regression during the
+# release-35 sweep. The shared fragment is idempotent, so it is called unconditionally.
+- runFlow: ../../_shared/settings_select_general_tab.yaml
 
 # Scroll to Interface section header and expand if collapsed
 - scrollUntilVisible:

@@ -286,6 +286,14 @@ private fun PhoneResourceStateBranch(
             onRetry = viewModel::retry,
             onBack = { navController.popBackStack() }
         )
+
+        // S2275: no Retry. Nothing is connected to ask, so the button would repeat the same answer -
+        // the reason the NoResourceForType branch above refuses one too.
+        is PhoneResourceUiState.NotPaired -> WearStateBlock(
+            kind = WearStateKind.UNAVAILABLE,
+            message = stringResource(R.string.phone_resource_not_paired),
+            onBack = { navController.popBackStack() }
+        )
     }
 }
 

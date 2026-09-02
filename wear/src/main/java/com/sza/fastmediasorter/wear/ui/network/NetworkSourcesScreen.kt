@@ -134,7 +134,7 @@ fun NetworkSourcesScreen(
                 // A failed sync is reported as the state's own message rather than stacked under the
                 // hint: the two never describe the same situation, and the hint explains an emptiness
                 // the failure has already superseded.
-                val syncFailure = (syncState as? SyncState.Error)?.message
+                val syncFailure = (syncState as? SyncState.Error)?.let { stringResource(it.messageRes) }
                 WearStateBlock(
                     kind = if (syncFailure != null) WearStateKind.ERROR else WearStateKind.EMPTY,
                     message = syncFailure ?: stringResource(R.string.wear_resources_empty_hint),
@@ -406,7 +406,7 @@ private fun SourcesListContent(
             if (syncState is SyncState.Error) {
                 item {
                     Text(
-                        text = syncState.message,
+                        text = stringResource(syncState.messageRes),
                         style = MaterialTheme.typography.caption2,
                         color = MaterialTheme.colors.error,
                         textAlign = TextAlign.Center,

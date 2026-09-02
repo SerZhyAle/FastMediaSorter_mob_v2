@@ -21,6 +21,13 @@
 
 .EXAMPLE
     .\scripts\add_to_dev_log.ps1 "AGENTS.md" "AGENTS.md" "Added mandatory dev changelog logging rule"
+
+.NOTES
+    Exit codes:
+    0 - the entry was appended, or skipped as a recent duplicate (both are success: the row the
+        caller asked for is present either way).
+    1 - the changelog lock could not be taken within the timeout, so nothing was written. A row
+        that was silently dropped reads exactly like a closure that never ran, so this fails loud.
 #>
 param(
     [Parameter(Mandatory = $true, Position = 0)]
@@ -61,6 +68,65 @@ if (-not $repoRoot -or -not (Test-Path (Join-Path $repoRoot "settings.gradle.kts
     $repoRoot = (Get-Location).Path
 }
 $logFile = Join-Path (Join-Path $repoRoot "dev") "CHANGELOG.md"
+
+# S2338: the changelog is appended by a READ-MODIFY-WRITE - the dedup scan below reads every row,
+# decides, and only then appends - so two concurrent closures can both read a log without the
+# other's row and both append, or both create the header. Until this ticket the only thing
+# serialising that was the Code.Scripts domain lock, taken incidentally because dev/ is in its
+# prefix list; S2338 removes PLAN/ from that domain, and 55% of recent closures touch PLAN/ and
+# nothing else, so the incidental cover was about to disappear for the majority of writers.
+#
+# Same shape and same reason as scripts/spec_catalog/_lib.ps1 (S1437) and scripts/all_features/
+# _lib.ps1 (S1537), which measured eight concurrent unlocked writers landing four records. A
+# system mutex, not a lock file: an append is milliseconds, while the BUILD/CODE lock family is
+# sized for edits and builds (3-60 min windows, queue directories, reservations). The mutex also
+# dies with its process, so a crashed holder cannot wedge the changelog - that is what the
+# AbandonedMutexException branch is for.
+$script:DevLogMutex = $null
+
+function Get-DevLogMutexName {
+    # Per-checkout, so two clones on one machine do not serialize against each other. Mutex names
+    # cannot contain '\' beyond the Global\ prefix, hence the hash rather than the path.
+    param([Parameter(Mandatory = $true)][string]$RepoRoot)
+    $hash = [System.BitConverter]::ToString(
+        [System.Security.Cryptography.MD5]::HashData([System.Text.Encoding]::UTF8.GetBytes($RepoRoot.ToLowerInvariant()))
+    ).Replace('-', '')
+    return "Global\FMS-DevLog-$hash"
+}
+
+function Enter-DevLogLock {
+    param([int]$TimeoutSeconds = 30)
+
+    if ($script:DevLogMutex) { return }   # re-entrant within one process
+    $mutex = New-Object System.Threading.Mutex($false, (Get-DevLogMutexName -RepoRoot $repoRoot))
+    $acquired = $false
+    try {
+        $acquired = $mutex.WaitOne([TimeSpan]::FromSeconds($TimeoutSeconds))
+    }
+    catch [System.Threading.AbandonedMutexException] {
+        # The previous holder died mid-append. The mutex is ours; the changelog itself is intact
+        # because Add-Content either wrote a whole line or none. Proceeding is correct - refusing
+        # would wedge every closure in the repository until a reboot.
+        $acquired = $true
+    }
+    if (-not $acquired) {
+        $mutex.Dispose()
+        throw "dev/CHANGELOG.md is locked by another process (waited ${TimeoutSeconds}s). Log: $logFile"
+    }
+    $script:DevLogMutex = $mutex
+}
+
+function Exit-DevLogLock {
+    # Safe to call unconditionally from a finally, including when the lock was never taken.
+    if (-not $script:DevLogMutex) { return }
+    try { $script:DevLogMutex.ReleaseMutex() } catch { }
+    $script:DevLogMutex.Dispose()
+    $script:DevLogMutex = $null
+}
+
+Enter-DevLogLock
+
+try {
 
 # Create log file with header if it doesn't exist
 if (-not (Test-Path $logFile)) {
@@ -118,6 +184,9 @@ $setSuffixInDesc = '\s*\[set of \d+:[^\]]*\]\s*$'
 $setSuffixInRow  = '\s*\[set of \d+:[^\]]*\](?=\s*\[branch:)'
 $coreDesc = $safeDesc -replace $setSuffixInDesc, ''
 $signature = "``$safeTarget`` | $coreDesc [branch:"
+# The scan and the append are one critical section: deciding "not a duplicate" against a log that
+# a sibling appends to a moment later is the same lost update as two blind appends.
+$isDuplicate = $false
 if (-not $AllowDuplicate) {
     $dataRows = @(Get-Content -Path $logFile -Encoding UTF8 | Where-Object { $_ -match '^\|\s\d{4}-\d{2}-\d{2}' })
     if ($dataRows.Count -gt 0) {
@@ -125,8 +194,8 @@ if (-not $AllowDuplicate) {
         $recent = $dataRows[$windowStart..($dataRows.Count - 1)]
         foreach ($row in $recent) {
             if (($row -replace $setSuffixInRow, '').Contains($signature)) {
-                Write-Host "[DEV_LOG] SKIP duplicate (identical to a recent entry): $safeFile | $safeTarget | $safeDesc" -ForegroundColor Yellow
-                exit 0
+                $isDuplicate = $true
+                break
             }
         }
     }
@@ -134,7 +203,19 @@ if (-not $AllowDuplicate) {
 
 # Append entry
 $branchTag = "[branch: $Branch]"
-$entry = "| $timestamp | ``$safeFile`` | ``$safeTarget`` | $safeDesc $branchTag |"
-Add-Content -Path $logFile -Value $entry -Encoding UTF8
+if (-not $isDuplicate) {
+    $entry = "| $timestamp | ``$safeFile`` | ``$safeTarget`` | $safeDesc $branchTag |"
+    Add-Content -Path $logFile -Value $entry -Encoding UTF8
+}
+
+}
+finally {
+    Exit-DevLogLock
+}
+
+if ($isDuplicate) {
+    Write-Host "[DEV_LOG] SKIP duplicate (identical to a recent entry): $safeFile | $safeTarget | $safeDesc" -ForegroundColor Yellow
+    exit 0
+}
 
 Write-Host "[DEV_LOG] $timestamp | $safeFile | $safeTarget | $safeDesc $branchTag" -ForegroundColor Green

@@ -46,7 +46,7 @@
     Identity list to subtract. Default scripts/quality/locale-untranslated-baseline.txt.
 
 .PARAMETER OutDir
-    Directory for the produced files. Default temp/S1627.
+    Directory for the produced files. Default temp/S1627/<module>.
 
 .PARAMETER Quiet
     Print the summary line only, without the per-key breakdown.
@@ -85,7 +85,7 @@ $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 # element with a comma in it.
 $SourceSet = @($SourceSet | ForEach-Object { $_ -split ',' } | Where-Object { $_ } | ForEach-Object { $_.Trim() })
 
-if (-not $OutDir) { $OutDir = Join-Path $repoRoot 'temp/S1627' }
+if (-not $OutDir) { $OutDir = Join-Path $repoRoot "temp/S1627/$Module" }
 if (-not $BaselinePath) { $BaselinePath = Join-Path $repoRoot 'scripts/quality/locale-untranslated-baseline.txt' }
 if (-not $FingerprintsPath) { $FingerprintsPath = Join-Path $repoRoot 'scripts/quality/locale-source-fingerprints.json' }
 $corpusDir = Join-Path $OutDir 'corpus'

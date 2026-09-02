@@ -3151,4 +3151,6 @@
     <string name="launcher_all_apps_swipe_explain_back_to_desktop">অ্যাপের তালিকা বন্ধ করে তার নিচের ডেস্কটপ দেখায়।</string>
     <string name="launcher_all_apps_swipe_explain_expand">বর্ণানুক্রমিক বিভাগের বদলে পুরো অ্যাপ তালিকা দেখায়।</string>
     <string name="launcher_welcome_toggle_subtitle">হোম বোতাম দিয়ে FastMediaSorter খুলুন। সেটআপের পরে সিস্টেম নিশ্চিতকরণ চায়, আর আপনি যেকোনো সময় সেটিংসে ফিরে যেতে পারেন।</string>
+    <string name="unit_bitrate_kbps">%1$s kbit/s</string>
+    <string name="unit_bitrate_mbps">%1$s এমবিপিএস</string>
 </resources>

@@ -221,6 +221,7 @@ class LauncherTrayManager(
     }
 
     private fun applySpeed(enabled: Boolean) {
+        Timber.d("S2023: tray speed indicator enabled=%s", enabled)
         if (!enabled) {
             speedJob?.cancel()
             speedJob = null

@@ -368,6 +368,13 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     override val browseContentTypes: Flow<Set<WearContentType>> = MutableStateFlow(browseContentTypesValue)
     override val browseSortOrder: Flow<BrowseSortOrder> = MutableStateFlow(browseSortOrderValue)
 
+    // S2146: the streams screen's stored selection. Nothing in this file's subject reads it - the
+    // members exist because the interface declares them.
+    override val streamsSortOrderName: Flow<String?> = MutableStateFlow(null)
+    override val streamsFilterKindName: Flow<String?> = MutableStateFlow(null)
+    override val streamsSelectedTopic: Flow<String?> = MutableStateFlow(null)
+    override val streamsSelectedLanguage: Flow<String?> = MutableStateFlow(null)
+
     override suspend fun setAnimationsDisabled(disabled: Boolean) {
         animationsDisabledValue = disabled
     }
@@ -379,6 +386,14 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     override suspend fun setBrowseSortOrder(order: BrowseSortOrder) {
         browseSortOrderValue = order
     }
+
+    override suspend fun setStreamsSortOrderName(name: String?) = Unit
+
+    override suspend fun setStreamsFilterKindName(name: String?) = Unit
+
+    override suspend fun setStreamsSelectedTopic(topic: String?) = Unit
+
+    override suspend fun setStreamsSelectedLanguage(language: String?) = Unit
 
     override suspend fun setNotificationPermissionAsked(asked: Boolean) {
         notificationPermissionAskedValue = asked

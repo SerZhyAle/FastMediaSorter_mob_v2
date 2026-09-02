@@ -42,7 +42,7 @@ listing stopped reading as a file organizer.
 
 ### Step 1: Build Release APK
 ```powershell
-cd c:\GIT\FastMediaSorter_mob_v2
+cd <your FastMediaSorter_mob_v2 checkout>
 .\build-release.ps1
 ```
 

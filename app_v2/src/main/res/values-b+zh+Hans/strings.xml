@@ -3148,4 +3148,6 @@
     <string name="launcher_all_apps_swipe_explain_back_to_desktop">关闭应用列表，显示其下方的桌面。</string>
     <string name="launcher_all_apps_swipe_explain_expand">显示完整应用列表，而不是按字母分组。</string>
     <string name="launcher_welcome_toggle_subtitle">用主屏幕按钮打开 FastMediaSorter。系统会在设置完成后请你确认，你随时可以在设置中切换回去。</string>
+    <string name="unit_bitrate_kbps">%1$s kbit/s</string>
+    <string name="unit_bitrate_mbps">%1$s Mbps</string>
 </resources>

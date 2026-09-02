@@ -56,6 +56,7 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceOperations
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherScreenBlackoutManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherScreenLockManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherScreenPagingManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherScreenTransitionManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherScrollThumbManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherSectionActionsManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherSensorPermissionManager
@@ -169,7 +170,9 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     private val contactPickManager = LauncherContactPickManager(
         activity = this,
         pickIntent = { action -> viewModel.contactPickIntent(action) },
-        resolvePick = { action, picked -> viewModel.resolveContactPick(action, picked) },
+        resolvePick = { action, picked, messenger ->
+            viewModel.resolveContactPick(action, picked, messenger)
+        },
         onTargetPicked = { target -> addFlowManager.addShortcut(LauncherCellCommand.Contact(target)) },
         // S2099: the in-flight action lives in saved state next to the target square, so both halves of
         // an unfinished add survive a process kill together. Lambdas for the same reason as the four
@@ -184,7 +187,14 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             writeStep = { action -> viewModel.pendingContactStep = action },
             readChannels = { viewModel.pendingContactChannels },
             writeChannels = { channels -> viewModel.pendingContactChannels = channels },
+            // S2240: the messenger chosen before the contact, stored beside the other two legs so the
+            // whole MESSAGE flow survives a kill behind the system picker as one piece.
+            readMessenger = { viewModel.pendingContactMessenger },
+            writeMessenger = { packageName -> viewModel.pendingContactMessenger = packageName },
         ),
+        // Wrapped in a lambda rather than handed over directly: reading the property would dereference
+        // viewModel here, which this initialiser must not do.
+        listMessengers = { viewModel.listInstalledMessengers() },
     )
 
     private val cellBinder = LauncherCellViewBinder(
@@ -457,8 +467,24 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         LauncherScreenPagingManager(
             indicatorContainer = binding.launcherPageIndicator,
             screenCount = { viewModel.launcherDesktopSettings.value.launcherScreenCount },
-            onScreenChanged = { geometryManager.renderDesktop(pagingManager.activeScreenIndex) },
+            // S2323: the only render call that changes which screen is drawn, so the only one that shows
+            // a transition. The five others below rebind the screen already showing.
+            onScreenChanged = { direction ->
+                screenTransitionManager.transition(direction) {
+                    geometryManager.renderDesktop(pagingManager.activeScreenIndex)
+                }
+            },
         )
+    }
+
+    /** S2323: the directional slide, or the screen number when the user turned animations off. */
+    private val screenTransitionManager: LauncherScreenTransitionManager by lazy {
+        LauncherScreenTransitionManager(
+            lifecycleOwner = this,
+            content = binding.launcherGridScroll,
+            badge = binding.launcherScreenNumberBadge,
+            screenIndex = { pagingManager.activeScreenIndex },
+        ).apply { attach() }
     }
 
     private fun attachDesktopSwipeActions() {
@@ -508,7 +534,9 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                 }
             },
             onDoubleTap = {
-                if (viewModel.launcherDesktopSettings.value.launcherDesktopDoubleTapLockEnabled) {
+                val lockEnabled = viewModel.launcherDesktopSettings.value.launcherDesktopDoubleTapLockEnabled
+                Timber.d("S2249: desktop double-tap, lock setting enabled=%s", lockEnabled)
+                if (lockEnabled) {
                     screenLockManager.lockScreen()
                 }
             },

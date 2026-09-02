@@ -96,6 +96,7 @@ class WearFileSenderRepositoryImpl @Inject constructor(
             announce(nodeId, file, size)
             copyToPhone(nodeId, file)
             val ack = withTimeoutOrNull(WEAR_MESSAGE_ACK_TIMEOUT_MS) { ackDeferred.await() }
+            Timber.d("S2087: watch send ack received=%s", ack != null)
             if (ack == null) {
                 WearFileSendResult(WearFileSendOutcome.UNCONFIRMED)
             } else {

@@ -19,6 +19,7 @@ import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.text.NumberFormat
 import java.util.Date
 import java.util.Locale
@@ -95,6 +96,7 @@ private class StepsGadgetView(
         val current = latestStepsSinceBoot
         if (current <= 0L) return
         val now = System.currentTimeMillis()
+        Timber.d("S2239: steps gadget reset stepsSinceBoot=%s", current)
         activeScope?.launch {
             settingsRepository.updateSettings { currentSettings ->
                 currentSettings.copy(

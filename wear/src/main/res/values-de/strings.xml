@@ -214,7 +214,6 @@
     <string name="wear_streams_filter_all">Alle Sender</string>
     <string name="wear_streams_filter_audio">Nur Audio</string>
     <string name="wear_streams_filter_video">Nur Video</string>
-    <string name="wear_streams_sort_default">Standardreihenfolge</string>
     <string name="wear_streams_sort_name_asc">Name (A-Z)</string>
     <string name="wear_streams_sort_name_desc">Name (Z-A)</string>
     <string name="wear_streams_sort_kind">Nach Medientyp</string>
@@ -256,8 +255,6 @@
     <string name="wear_game_continue">Weiter</string>
     <string name="wear_game_board_description">Spielfeld. Wischen Sie darüber, um zu ziehen.</string>
     <string name="wear_game_player_description">Ihre Figur auf dem Feld</string>
-    <string name="wear_streams_sort_topic">Nach Thema</string>
-    <string name="wear_streams_sort_language">Nach Sprache</string>
     <string name="wear_streams_filter_topic_all">Alle Themen</string>
     <string name="wear_streams_filter_language_all">Alle Sprachen</string>
     <string name="wear_streams_filter_topic_header">Thema</string>
@@ -380,4 +377,37 @@
     <string name="phone_resource_no_resource_for_type">Für diesen Typ ist keine Telefonressource eingerichtet.</string>
     <string name="wear_folder_load_more">Mehr anzeigen</string>
     <string name="wear_file_op_outcome_needs_consent">Nicht bestätigt - es hat sich nichts geändert</string>
+    <!-- S2146: mirrored verbatim from :app_v2 (S1477). Declared in wear-mirrored-strings.psd1. -->
+    <string name="streams_rubric_general">Allgemein</string>
+    <string name="streams_rubric_news">Nachrichten</string>
+    <string name="streams_rubric_pop">Pop</string>
+    <string name="streams_rubric_religious">Religiös</string>
+    <string name="streams_rubric_kids">Kinder</string>
+    <string name="streams_rubric_oldies">Oldies</string>
+    <string name="streams_rubric_movies_series">Filme &amp; Serien</string>
+    <string name="streams_rubric_country_folk">Country &amp; Folk</string>
+    <string name="streams_rubric_rock">Rock</string>
+    <string name="streams_rubric_sports">Sport</string>
+    <string name="streams_rubric_world">Weltmusik</string>
+    <string name="streams_rubric_jazz_blues">Jazz &amp; Blues</string>
+    <string name="streams_rubric_chillout">Chillout</string>
+    <string name="streams_rubric_electronic">Electronic</string>
+    <string name="streams_rubric_hip_hop">Hip-Hop</string>
+    <string name="streams_rubric_talk">Talk</string>
+    <string name="streams_rubric_local_radio">Lokalradio</string>
+    <string name="streams_rubric_comedy">Comedy</string>
+    <string name="streams_rubric_classical">Klassik</string>
+    <string name="streams_rubric_latin">Latin</string>
+    <string name="streams_rubric_documentary">Dokumentation</string>
+    <string name="streams_rubric_education">Bildung</string>
+    <string name="streams_rubric_test">Test</string>
+    <string name="streams_rubric_rnb_soul">R&amp;B &amp; Soul</string>
+    <string name="streams_rubric_metal">Metal</string>
+    <string name="streams_rubric_webcam">Webcam</string>
+    <string name="streams_rubric_reggae">Reggae</string>
+    <string name="streams_rubric_shopping">Shopping</string>
+    <string name="streams_rubric_business">Wirtschaft</string>
+    <string name="streams_rubric_lifestyle">Lifestyle</string>
+    <string name="streams_rubric_adult">Erwachsene</string>
+    <string name="streams_rubric_traffic_cams">Verkehrskameras</string>
 </resources>

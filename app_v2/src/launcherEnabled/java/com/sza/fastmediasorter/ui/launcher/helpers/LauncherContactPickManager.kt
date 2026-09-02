@@ -15,18 +15,21 @@ import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.withStarted
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.PermissionTask
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactChannel
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactTarget
+import com.sza.fastmediasorter.domain.model.launcher.LauncherMessengerApp
 import com.sza.fastmediasorter.domain.usecase.launcher.PickContactShortcutUseCase
 import com.sza.fastmediasorter.ui.common.permissions.canRequestPermission
 import com.sza.fastmediasorter.ui.common.permissions.markPermissionRequested
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherPhoneNumberDialogFragment
+import com.sza.fastmediasorter.util.getApplicationInfoCompat
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -57,15 +60,26 @@ import timber.log.Timber
  * this, a listener was installed inside the method that opened its dialog, so the rebuilt manager
  * claimed none of the three keys after a process kill. The same ticket replaced the closure that used
  * to be re-run after the contacts answer, which the rebuild lost for the same reason.
+ *
+ * S2240: the MESSAGE action asks which messaging app first, then opens the system contact picker, and
+ * narrows the channel read to that app. The step is offered, never forced - an "any app" row reproduces
+ * the contact-first behaviour exactly, and a device with fewer than two messengers skips the question
+ * altogether rather than presenting a choice of one.
  */
 class LauncherContactPickManager(
     private val activity: FragmentActivity,
     private val pickIntent: (LauncherContactAction) -> Intent,
-    private val resolvePick: suspend (LauncherContactAction, Uri) -> PickContactShortcutUseCase.Outcome,
+    private val resolvePick: suspend (
+        LauncherContactAction,
+        Uri,
+        String?,
+    ) -> PickContactShortcutUseCase.Outcome,
     private val onTargetPicked: (LauncherContactTarget) -> Unit,
     private val readPendingAction: () -> LauncherContactAction?,
     private val writePendingAction: (LauncherContactAction?) -> Unit,
     private val stepState: LauncherContactStepState,
+    /** S2240: lazy like every operation above - nothing may be dereferenced at construction. */
+    private val listMessengers: suspend () -> List<LauncherMessengerApp>,
 ) {
 
     private val systemPicker = activity.registerForActivityResult(
@@ -107,6 +121,9 @@ class LauncherContactPickManager(
         }
         manager.setFragmentResultListener(KEY_CHANNEL, activity) { _, bundle ->
             onChannelPicked(bundle.getString(SearchableOptionPickerDialog.RESULT_OPTION_ID))
+        }
+        manager.setFragmentResultListener(KEY_MESSENGER, activity) { _, bundle ->
+            onMessengerPicked(bundle.getString(SearchableOptionPickerDialog.RESULT_OPTION_ID))
         }
     }
 
@@ -150,7 +167,7 @@ class LauncherContactPickManager(
         // duplicate-open guard would skip the re-open - leaving the flow as dead as before the fix.
         manager.executePendingTransactions()
         if (!restoreChannelPicker(manager)) {
-            restoreSourcePicker(manager)
+            restoreStepPicker(manager)
         }
         // Registered last, so the self-dismissal flushed above is never read as the user leaving.
         observeDialogDismissals()
@@ -171,17 +188,41 @@ class LauncherContactPickManager(
         return channels != null
     }
 
+    /** Whichever dialog the durable step slot stands for - one per branch, and never two at once. */
+    private fun restoreStepPicker(manager: FragmentManager) {
+        when (stepState.readStep()) {
+            LauncherContactAction.DIAL, LauncherContactAction.SMS -> restoreSourcePicker(manager)
+            LauncherContactAction.MESSAGE -> restoreMessengerPicker(manager)
+            // PROFILE hands straight to the system picker and holds no dialog of its own, and a null
+            // step is a cold start with nothing in flight.
+            LauncherContactAction.PROFILE, null -> Unit
+        }
+    }
+
     private fun restoreSourcePicker(manager: FragmentManager) {
-        val action = stepState.readStep()
-        val isNumberBranch = action == LauncherContactAction.DIAL || action == LauncherContactAction.SMS
         // The manual-entry dialog restores itself perfectly well, so a source picker re-opened on top of
         // it would ask again a question the user has already answered and moved past.
         val nothingUp = manager.findFragmentByTag(TAG_SOURCE) == null &&
             manager.findFragmentByTag(LauncherPhoneNumberDialogFragment.TAG) == null
-        if (isNumberBranch && nothingUp) {
-            Timber.d("S2102: reopening source picker step=${action?.name}")
+        if (nothingUp) {
+            Timber.d("S2102: reopening source picker")
             askNumberSource()
         }
+    }
+
+    /**
+     * S2240: unlike the channel list, the messenger list is re-queried rather than restored.
+     *
+     * The two look alike and are not. A channel list comes from a contacts read under a one-time grant on
+     * a record this process no longer holds, so it cannot be taken again and has to be carried; the
+     * messenger list is a package-manager query that needs no grant and answers the same way every time.
+     * Asking again is therefore both cheaper than storing it and more correct - an app installed or
+     * removed while the process was dead shows up.
+     */
+    private fun restoreMessengerPicker(manager: FragmentManager) {
+        if (manager.findFragmentByTag(TAG_MESSENGER) != null) return
+        Timber.d("S2240: reopening messenger picker")
+        askMessenger()
     }
 
     /**
@@ -212,6 +253,15 @@ class LauncherContactPickManager(
 
                         LauncherPhoneNumberDialogFragment.TAG -> stepState.writeStep(null)
                         TAG_CHANNEL -> stepState.writeChannels(null)
+
+                        // S2240: a delivered messenger pick has already launched the system picker and
+                        // stamped the pending action, and the package it stored is what that pick will be
+                        // read with - so only a dismissal with no pick in flight is the user leaving.
+                        TAG_MESSENGER ->
+                            if (readPendingAction() == null) {
+                                stepState.writeStep(null)
+                                stepState.writeMessenger(null)
+                            }
                     }
                 }
             },
@@ -266,8 +316,87 @@ class LauncherContactPickManager(
         stepState.writeStep(action)
         when (action) {
             LauncherContactAction.DIAL, LauncherContactAction.SMS -> askNumberSource()
-            LauncherContactAction.PROFILE, LauncherContactAction.MESSAGE -> launchSystemPicker(action)
+            LauncherContactAction.PROFILE -> launchSystemPicker(action)
+            // S2240: the messenger comes before the contact now.
+            LauncherContactAction.MESSAGE -> askMessenger()
         }
+    }
+
+    /**
+     * S2240: offers the installed messaging apps before the system contact picker opens.
+     *
+     * Reading the list needs no contacts permission, so this runs whatever the user answered to the
+     * rationale above - the question is about apps on the device, not about the address book.
+     */
+    private fun askMessenger() {
+        activity.lifecycleScope.launch {
+            val messengers = listMessengers()
+            // Reading the list suspends, and `lifecycleScope` is cancelled at DESTROYED rather than at
+            // STOPPED - so a user who leaves while the query is in flight would otherwise resume here
+            // against an Activity past onSaveInstanceState, where showing a dialog throws. That is the
+            // crash restorePendingPicker documents, reached through the one suspension point this flow
+            // has. Waiting for STARTED holds the question until there is a screen to put it on; dropping
+            // it instead would be unrecoverable, since restorePendingPicker registers its observer once
+            // per Activity creation and nothing would ask again.
+            activity.lifecycle.withStarted { presentMessengerStep(messengers) }
+        }
+    }
+
+    private fun presentMessengerStep(messengers: List<LauncherMessengerApp>) {
+        // One row is not a choice and none is not either. Both skip straight to the system picker with
+        // no filter, which is the pre-S2240 flow exactly - that is what keeps strategic acceptance
+        // criterion 3 true on a device carrying no messenger at all.
+        if (messengers.size < MIN_MESSENGERS_TO_ASK) {
+            Timber.d("S2240: messenger step skipped count=${messengers.size}")
+            launchSystemPicker(LauncherContactAction.MESSAGE)
+            return
+        }
+        Timber.d("S2240: asking messenger count=${messengers.size}")
+        showPicker(
+            R.string.launcher_contact_messenger_title,
+            messengerOptions(messengers),
+            TAG_MESSENGER,
+            KEY_MESSENGER,
+        )
+    }
+
+    /**
+     * The "any app" row comes first and is not a messenger: it is how the user declines the narrowing and
+     * gets the contact-first flow this ticket left reachable on purpose.
+     */
+    private fun messengerOptions(
+        messengers: List<LauncherMessengerApp>,
+    ): List<SearchableOptionPickerDialog.Option> {
+        val packageManager = activity.packageManager
+        val anyApp = SearchableOptionPickerDialog.Option(
+            id = MESSENGER_ANY,
+            label = activity.getString(R.string.launcher_contact_messenger_any),
+        )
+        // The icon is fetched, never stored, for the same reason channelOptions gives: a Drawable does
+        // not go into saved state, and the package is enough to ask for it again.
+        return listOf(anyApp) + messengers.map { messenger ->
+            val appIcon = runCatching {
+                packageManager.getApplicationIcon(messenger.packageName)
+            }.getOrNull()
+            SearchableOptionPickerDialog.Option(
+                id = messenger.packageName,
+                label = messenger.label,
+                leading = appIcon?.let { SearchableOptionPickerDialog.LeadingVisual.IconDrawable(it) },
+            )
+        }
+    }
+
+    private fun onMessengerPicked(pickedId: String?) {
+        val action = stepState.readStep()
+        if (pickedId == null || action != LauncherContactAction.MESSAGE) {
+            Timber.d("S2240: messenger pick dropped hasId=${pickedId != null} step=${action?.name}")
+            return
+        }
+        // "Any app" is stored as no filter at all - absent and "do not narrow" are the same answer.
+        val chosen = pickedId.takeIf { it != MESSENGER_ANY }
+        Timber.d("S2240: messenger pick narrowed=${chosen != null}")
+        stepState.writeMessenger(chosen)
+        launchSystemPicker(action)
     }
 
     /**
@@ -348,7 +477,7 @@ class LauncherContactPickManager(
             // A device with no contacts app at all: nothing to recover, so say so and drop the flow.
             Timber.i(error, "Launcher contacts: no picker for action %s", action.name)
             writePendingAction(null)
-            toast(R.string.launcher_contact_no_app)
+            toast(activity.getString(R.string.launcher_contact_no_app))
         }
     }
 
@@ -368,7 +497,7 @@ class LauncherContactPickManager(
             // flight - a result delivered to a registry key nothing claimed. Say it was lost rather than
             // silently placing a cell in a square nobody pointed at.
             Timber.i("Launcher contacts: pick result arrived with no in-flight action")
-            toast(R.string.launcher_contact_read_failed)
+            toast(activity.getString(R.string.launcher_contact_read_failed))
             return
         }
         activity.lifecycleScope.launch { resolveAndPlace(action, picked) }
@@ -389,12 +518,16 @@ class LauncherContactPickManager(
     @Suppress("TooGenericExceptionCaught")
     private suspend fun resolveAndPlace(action: LauncherContactAction, picked: Uri) {
         try {
+            val messenger = stepState.readMessenger()
             // The authority, never the record: which provider answered the pick is the one fact that
             // separates "read the wrong URI" from "read it and got nothing", and it names no person.
             Timber.d("S2107: resolving pick action=${action.name} authority=${picked.authority}")
-            val outcome = resolvePick(action, picked)
+            val outcome = resolvePick(action, picked, messenger)
             Timber.d("S2107: pick outcome ${outcome::class.simpleName}")
-            dispatchOutcome(action, outcome)
+            // S2240: the filter has done its work by here. Left in place it would silently narrow the
+            // NEXT message cell the user pins to an app they chose for a different contact.
+            stepState.writeMessenger(null)
+            dispatchOutcome(action, outcome, messenger)
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (error: Exception) {
@@ -409,6 +542,7 @@ class LauncherContactPickManager(
     private fun dispatchOutcome(
         action: LauncherContactAction,
         outcome: PickContactShortcutUseCase.Outcome,
+        messengerPackage: String?,
     ) {
         when (outcome) {
             is PickContactShortcutUseCase.Outcome.Ready -> {
@@ -423,7 +557,18 @@ class LauncherContactPickManager(
 
             PickContactShortcutUseCase.Outcome.Unavailable -> {
                 Timber.d("S2107: pick unavailable for action=${action.name}")
-                toast(unavailableMessage(action))
+                // S2240: naming the chosen app separates "this person is not on that messenger" from
+                // "this person is in no messenger at all" - different facts, different things to do next.
+                if (messengerPackage == null) {
+                    toast(activity.getString(unavailableMessage(action)))
+                } else {
+                    toast(
+                        activity.getString(
+                            R.string.launcher_contact_messenger_no_channel,
+                            appLabel(messengerPackage),
+                        ),
+                    )
+                }
             }
         }
     }
@@ -494,20 +639,40 @@ class LauncherContactPickManager(
         LauncherContactAction.MESSAGE -> R.string.launcher_contact_no_channel
     }
 
-    private fun toast(@StringRes messageRes: Int) {
-        Toast.makeText(activity, messageRes, Toast.LENGTH_LONG).show()
+    /**
+     * S2240: the app's own name, for a message the user reads. The package name is a fallback nobody
+     * should ever see - it means the app was uninstalled between the choice and the pick.
+     */
+    private fun appLabel(packageName: String): String = runCatching {
+        val packageManager = activity.packageManager
+        packageManager.getApplicationInfoCompat(packageName).loadLabel(packageManager).toString()
+    }.getOrDefault(packageName)
+
+    private fun toast(message: String) {
+        Toast.makeText(activity, message, Toast.LENGTH_LONG).show()
     }
 
     private companion object {
         const val TAG_CHANNEL = "LauncherContactChannel"
         const val TAG_SOURCE = "LauncherContactNumberSource"
+        const val TAG_MESSENGER = "LauncherContactMessenger"
 
         // One key per dialog this manager can open, so a pick never lands in another step's listener.
         const val KEY_CHANNEL = "launcher_contact_channel_pick"
         const val KEY_SOURCE = "launcher_contact_source_pick"
         const val KEY_NUMBER = "launcher_contact_number_entry"
+        const val KEY_MESSENGER = "launcher_contact_messenger_pick"
 
         const val SOURCE_PICK = "pick"
         const val SOURCE_MANUAL = "manual"
+
+        /**
+         * S2240: the row id that declines the narrowing. Not a package name, so it can never collide with
+         * one - every real row carries the app's own package as its id.
+         */
+        const val MESSENGER_ANY = "any"
+
+        /** Below this the question has one answer, so it is not asked. */
+        const val MIN_MESSENGERS_TO_ASK = 2
     }
 }

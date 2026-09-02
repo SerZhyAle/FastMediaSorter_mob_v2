@@ -1,0 +1,68 @@
+{
+  "_comment": [
+    "S2273 - the watch screen shapes the app is verified on, as data rather than as a remembered",
+    "AVD name. Play's Wear quality criterion WO-V16 ('Watch shapes') requires content to fit the",
+    "physical display, to overlap nothing, to be cut off by no edge, and to work on a circle no",
+    "smaller than 192 dp. The guideline names the two emulators a reviewer uses, and both carry",
+    "reviewedByPlay=true below.",
+    "",
+    "Why this file exists: until 2026-09-02 the project owned exactly one watch AVD, Wear_OS_XL_Round",
+    "at 240 dp - larger than BOTH reviewer devices - and nothing in the repository recorded that. The",
+    "app was rejected on 2026-08-31 for a defect that is invisible at 240 dp and blocks first launch",
+    "at 192 dp. A bench nobody can check is a bench nobody notices is wrong.",
+    "",
+    "contentBoxDp is what wearScreenInsets() leaves for content: the round inset takes 0.10 of the",
+    "shorter edge on each side, so the usable box is 0.8 of the diameter. Size a fixed-width row",
+    "against the SMALLEST reviewed value, not against the device on the desk. A row wider than that",
+    "cannot fit at any scroll position, because scrolling moves content vertically.",
+    "",
+    "densityDpi is the AVD's hw.lcd.density; dp = widthPx / densityDpi * 160.",
+    "Consumed by scripts/devtest/wear-shape-bench.ps1 and the watch pre-release sweep."
+  ],
+  "criterion": "WO-V16",
+  "criterionUrl": "https://developer.android.com/docs/quality-guidelines/wear-app-quality",
+  "profiles": [
+    {
+      "id": "small-round",
+      "avdName": "Wear_OS_Small_Round",
+      "deviceProfile": "wearos_small_round",
+      "playName": "Wear OS small round 1.2\"",
+      "widthPx": 384,
+      "heightPx": 384,
+      "densityDpi": 320,
+      "dp": 192,
+      "contentBoxDp": 153.6,
+      "round": true,
+      "reviewedByPlay": true,
+      "note": "The floor WO-V16 names. Smallest content box, so every fixed-width row is sized against this one."
+    },
+    {
+      "id": "large-round",
+      "avdName": "Wear_OS_Large_Round",
+      "deviceProfile": "wearos_large_round",
+      "playName": "Wear OS large round 1.39\"",
+      "widthPx": 454,
+      "heightPx": 454,
+      "densityDpi": 320,
+      "dp": 227,
+      "contentBoxDp": 181.6,
+      "round": true,
+      "reviewedByPlay": true,
+      "note": "The owner's physical watch is close to this size, which is why measurements taken on it read as safe."
+    },
+    {
+      "id": "xl-round",
+      "avdName": "Wear_OS_XL_Round",
+      "deviceProfile": "wearos_xl_round",
+      "playName": null,
+      "widthPx": 480,
+      "heightPx": 480,
+      "densityDpi": 320,
+      "dp": 240,
+      "contentBoxDp": 192.0,
+      "round": true,
+      "reviewedByPlay": false,
+      "note": "Not a reviewer device. Kept as the regression control: a fix for 192 dp must not break this one."
+    }
+  ]
+}

@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.domain.repository.InstalledAppsRepository
 import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
 import com.sza.fastmediasorter.domain.repository.LauncherJournalRepository
 import com.sza.fastmediasorter.domain.repository.LauncherPinsRepository
+import com.sza.fastmediasorter.domain.repository.LauncherShortcutSyncRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -30,6 +31,9 @@ import javax.inject.Inject
  * 7. S2217: the stored instances behind configurable widget cells, cleared through
  *    [ConfiguredWidgetInstanceCleaner] - the gadget codec lives in the launcher flavor source set,
  *    so the delete hands its removed rows' targets to a seam instead of reading them here.
+ * 8. S2330: the shortcut-sync baseline - the set of routes the desktop has already accounted for.
+ *    Cleared to absent rather than to empty, so the re-seeded desktop is adopted silently the way a
+ *    fresh install adopts it, instead of every launchable route reading as newly enabled.
  *
  * A ticket that introduces a new launcher-owned store must extend this list, otherwise the reset goes
  * silently incomplete.
@@ -68,6 +72,7 @@ class ResetLauncherToDefaultsUseCase @Inject constructor(
     private val settings: SettingsRepository,
     private val storeLauncherWallpaperUseCase: StoreLauncherWallpaperUseCase,
     private val configuredWidgetInstances: ConfiguredWidgetInstanceCleaner,
+    private val shortcutSyncBaseline: LauncherShortcutSyncRepository,
 ) {
 
     /** Returns whether the reset completed, so the caller can tell the user it did not happen. */
@@ -82,6 +87,8 @@ class ResetLauncherToDefaultsUseCase @Inject constructor(
             pins.clearPins()
             journal.clearJournal()
             installedApps.clearLaunchStats()
+            shortcutSyncBaseline.clearSyncedRoutes()
+            Timber.d("S2330: launcher reset cleared the shortcut sync baseline")
 
             restoreLauncherSettings(densityFactor)
             storeLauncherWallpaperUseCase.clear()

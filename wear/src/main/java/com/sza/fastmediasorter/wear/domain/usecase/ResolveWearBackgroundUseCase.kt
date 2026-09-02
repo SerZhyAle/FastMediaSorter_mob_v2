@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -35,7 +36,7 @@ class ResolveWearBackgroundUseCase @Inject constructor(
             WearBackgroundMode.BRANDED_ANIMATION -> WearBackground.BrandedAnimation
             WearBackgroundMode.IMAGE -> deliveredFrame() ?: WearBackground.BrandedAnimation
         }
-
+        Timber.d("S2000: watch background mode=%s resolved=%s", mode, resolved::class.simpleName)
         return resolved
     }
 

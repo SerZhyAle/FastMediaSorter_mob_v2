@@ -6,7 +6,11 @@ import androidx.room.Room
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.google.gson.Gson
+import com.sza.fastmediasorter.wear.data.db.MediaMetadataVoiceNoteDurationReader
 import com.sza.fastmediasorter.wear.data.db.VoiceNoteDao
+import com.sza.fastmediasorter.wear.data.db.VoiceNoteDurationReader
+import com.sza.fastmediasorter.wear.data.db.VoiceNoteIndexRebuilder
+import com.sza.fastmediasorter.wear.data.db.WearDatabaseResetNotice
 import com.sza.fastmediasorter.wear.data.db.WearVoiceNoteDatabase
 import com.sza.fastmediasorter.wear.data.network.StreamNetworkHoldManager
 import com.sza.fastmediasorter.wear.data.network.WearNetworkChannelMonitorImpl
@@ -51,6 +55,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import timber.log.Timber
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
@@ -286,17 +291,73 @@ object WearAppModule {
     @Singleton
     fun provideStreamNetworkHold(impl: StreamNetworkHoldManager): StreamNetworkHold = impl
 
-    // S1862: the voice-note store. Room, version 1 - no installed watch database predates this
-    // build, so no migration branch exists to fall back to.
+    // S2146: the play counter behind the list's default order. Singleton because it owns the scope
+    // its fire-and-forget write runs on - a per-injection instance would leak one scope per caller.
     @Provides
     @Singleton
+    fun provideWearStreamUsageRepository(
+        impl: com.sza.fastmediasorter.wear.data.repository.WearStreamUsageRepositoryImpl
+    ): com.sza.fastmediasorter.wear.domain.repository.WearStreamUsageRepository = impl
+
+    // S2356: the rebuild's duration seam. Bound here rather than constructed inside the rebuilder
+    // so a JVM test can supply its own reader - MediaMetadataRetriever is an android.jar stub
+    // outside an instrumented run.
+    @Provides
+    @Singleton
+    fun provideVoiceNoteDurationReader(): VoiceNoteDurationReader = MediaMetadataVoiceNoteDurationReader()
+
+    // S1862: the voice-note store. Room, version 1 - no migration exists yet; S2161 introduces the
+    // first one.
+    //
+    // S2356/ADR-2: the open is forced HERE instead of left lazy. Room's builder opens nothing, so a
+    // validation failure would otherwise land on whichever caller reached the DAO first - today the
+    // pending-note drain at application start, which runs in a scope with no exception handler and
+    // takes the whole watch process down on every launch. This provider is the only place that owns
+    // both the failure and the ability to recreate the database.
+    @Provides
+    @Singleton
+    @Suppress("TooGenericExceptionCaught")
     fun provideWearVoiceNoteDatabase(
-        @ApplicationContext context: Context
-    ): WearVoiceNoteDatabase = Room.databaseBuilder(
-        context,
-        WearVoiceNoteDatabase::class.java,
-        WearVoiceNoteDatabase.DATABASE_NAME
-    ).build()
+        @ApplicationContext context: Context,
+        rebuilder: VoiceNoteIndexRebuilder
+    ): WearVoiceNoteDatabase = try {
+        buildWearVoiceNoteDatabase(context).also { it.openHelper.writableDatabase }
+    } catch (e: RuntimeException) {
+        // Every Room open failure - a missing migration, a migration that left the schema wrong, a
+        // corrupt file - surfaces as an unchecked exception. Narrowing this would re-open the hole
+        // the ticket closes, because the one that escapes is the one that kills the process.
+        Timber.e(e, "Wear voice-note database failed to open - recreating it and rebuilding the index")
+        recreateAndRebuild(context, rebuilder, e)
+    }
+
+    /**
+     * Recreates the store once and refills it from the recordings on disk. Once, never in a loop:
+     * strategic 7 requires a database that cannot be opened even when empty to still return, so the
+     * caller ends up with a usable object rather than a retry that never terminates.
+     */
+    private fun recreateAndRebuild(
+        context: Context,
+        rebuilder: VoiceNoteIndexRebuilder,
+        failure: Throwable
+    ): WearVoiceNoteDatabase {
+        Timber.d("S2356: database open failed, recreating the store and rebuilding the index")
+        context.deleteDatabase(WearVoiceNoteDatabase.DATABASE_NAME)
+        val database = buildWearVoiceNoteDatabase(context)
+        val recovered = rebuilder.rebuildInto(database.openHelper.writableDatabase)
+        WearDatabaseResetNotice.recordReset(context, failure, recovered)
+        return database
+    }
+
+    // Deliberately no migration list and no destructive fallback. The migration list belongs to
+    // S2161, which introduces the 1 -> 2 transition; a destructive fallback would let Room drop the
+    // table on its own instead of routing the failure through the recovery above - and the recovery
+    // is what puts the recordings back, which a silent internal drop would not.
+    private fun buildWearVoiceNoteDatabase(context: Context): WearVoiceNoteDatabase =
+        Room.databaseBuilder(
+            context,
+            WearVoiceNoteDatabase::class.java,
+            WearVoiceNoteDatabase.DATABASE_NAME
+        ).build()
 
     @Provides
     @Singleton

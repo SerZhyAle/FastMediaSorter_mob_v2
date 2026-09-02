@@ -6,6 +6,7 @@ import androidx.core.view.isVisible
 import com.bumptech.glide.Glide
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.AudioMetadataLoader
+import com.sza.fastmediasorter.core.util.formatBitrate
 import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import com.sza.fastmediasorter.databinding.DialogFileInfoBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -90,10 +91,12 @@ class FileInfoAudioDisplayHelper(
         val bps = metadata.bitrateBps
             ?: if (durationSec != null && durationSec > 0.0) {
                 (file.size * 8 / durationSec).toInt()
-            } else null
+            } else {
+                null
+            }
         if (bps != null) {
             binding.tvAudioBitrate.text = context.getString(
-                R.string.audio_bitrate_label, formatBitrate(bps)
+                R.string.audio_bitrate_label, formatBitrate(context, bps)
             )
             binding.tvAudioBitrate.visibility = View.VISIBLE
         } else {
@@ -154,10 +157,5 @@ class FileInfoAudioDisplayHelper(
         } else {
             String.format("%02d:%02d", minutes, seconds)
         }
-    }
-
-    private fun formatBitrate(bps: Int): String {
-        val kbps = bps / 1000
-        return "$kbps kbps"
     }
 }

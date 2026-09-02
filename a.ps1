@@ -105,8 +105,13 @@ $Rest = $args
 
 $ErrorActionPreference = "Stop"
 
-# Get project root directory
+# Get project root directory. This one file keeps the literal answer: a.ps1 IS one of the three
+# marker files the resolver walks for, so asking the resolver here would make the marker depend on
+# what it identifies (S2326 step 04.2).
 $ProjectRoot = $PSScriptRoot
+
+# Sibling directories (the release worktree below) resolve through the shared resolver.
+. "$PSScriptRoot\scripts\utils\project-paths.ps1"
 
 # Script mapping.
 #
@@ -307,7 +312,7 @@ if (-not (Test-Path $scriptPath)) {
 #   git worktree add ../FastMediaSorter_release main
 $releaseCommands = @('r', 'nl', 'vr')
 if ($releaseCommands -contains $Command) {
-    $worktreePath = Join-Path (Split-Path $ProjectRoot -Parent) "FastMediaSorter_release"
+    $worktreePath = Get-SiblingPath -Name "FastMediaSorter_release"
     if (Test-Path $worktreePath) {
         Write-Host "Release build - delegating to release worktree [main]" -ForegroundColor Cyan
         Write-Host "  $worktreePath" -ForegroundColor DarkGray

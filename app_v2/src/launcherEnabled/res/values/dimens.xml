@@ -105,4 +105,11 @@
     <dimen name="launcher_scroll_thumb_track_width">4dp</dimen>
     <dimen name="launcher_scroll_thumb_touch_width">24dp</dimen>
     <dimen name="launcher_scroll_thumb_min_height">32dp</dimen>
+
+    <!-- S2323: the screen-number badge that stands in for the transition when animations are off. The
+         glyph is sized in sp rather than dp because the owner asked for a large FONT, so a user who
+         scaled text up gets a badge that scales with everything else they read. -->
+    <dimen name="launcher_screen_badge_text_size">96sp</dimen>
+    <dimen name="launcher_screen_badge_margin">12dp</dimen>
+    <dimen name="launcher_screen_badge_shadow_radius">6dp</dimen>
 </resources>

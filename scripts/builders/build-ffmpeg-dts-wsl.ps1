@@ -1,14 +1,23 @@
-﻿# build-ffmpeg-dts-wsl.ps1
+﻿<#
+.SYNOPSIS
+    PowerShell launcher for the WSL2 FFmpeg DTS build (NDK r27c, 16 KB compliant).
+
+.NOTES
+    Exit codes:
+      0  the AAR was built, or the build script succeeded.
+      1  WSL2 is unavailable, or Phase 1 setup has not been run.
+      *  any other code is the WSL build script's own, forwarded unchanged.
+#>
+
+# build-ffmpeg-dts-wsl.ps1
 # ══════════════════════════════════════════════════════════════════════════════
-# PowerShell launcher for the WSL2 FFmpeg DTS build (NDK r27c, 16 KB compliant).
-#
 # Usage (from project root):
 #   .\scripts\builders\build-ffmpeg-dts-wsl.ps1
 #
 # Prerequisites:
 #   1. Run Phase 1 ONCE in a WSL2 terminal to prepare the Linux NDK r27c
-#      environment and clone media3 / FFmpeg:
-#        wsl bash /mnt/p/ANDROID/FastMediaSorter_mob_v2/temp/wsl2-phase1-setup.sh
+#      environment and clone media3 / FFmpeg. This script prints the exact command with the
+#      mount path already resolved for wherever the tree currently lives.
 #   2. This script handles Phases 2-3 (FFmpeg configure+build, JNI bridge, AAR packaging).
 #
 # Output:
@@ -18,10 +27,17 @@
 # ══════════════════════════════════════════════════════════════════════════════
 
 $ErrorActionPreference = "Stop"
-$ProjectRoot = $PSScriptRoot | Split-Path | Split-Path   # ..\..\  from scripts\builders\
+. "$PSScriptRoot\..\utils\project-paths.ps1"
+$ProjectRoot = Get-ProjectRoot
 
-# Convert Windows project path to WSL path
-$WslProjectRoot = wsl wslpath -a $ProjectRoot.Replace('\', '/')
+# Convert Windows project path to WSL path. wslpath is authoritative when WSL answers, but it is
+# also the thing being launched, so a local /mnt/<letter>/<rest> translation is computed first and
+# used as the fallback - the mount path has to exist in the error messages printed when WSL is
+# missing, which is exactly when wslpath cannot be asked (S2326 step 04.3).
+$MountPath = '/mnt/' + $ProjectRoot.Substring(0, 1).ToLower() + ($ProjectRoot.Substring(2) -replace '\\', '/')
+$WslProjectRoot = wsl wslpath -a $ProjectRoot.Replace('\', '/') 2>$null
+if (-not $WslProjectRoot) { $WslProjectRoot = $MountPath }
+$Phase1Script = "${MountPath}/temp/wsl2-phase1-setup.sh"
 $BuildScript = "${WslProjectRoot}/scripts/builders/build-ffmpeg-dts.sh"
 $OutDir = Join-Path $ProjectRoot "app_v2\libs"
 
@@ -47,12 +63,12 @@ $WorkDirCheck = wsl bash -c "test -d ~/ffmpeg-android-build/media && echo ok || 
 $NdkCheck = wsl bash -c "test -d ~/android-ndk-r27c && echo ok || echo missing_ndk" 2>&1
 if ($WorkDirCheck -ne "ok") {
     Write-Host "[ERROR] Phase 1 not complete - media3 not cloned. Run this first in a WSL2 terminal:" -ForegroundColor Red
-    Write-Host "  wsl bash /mnt/p/ANDROID/FastMediaSorter_mob_v2/temp/wsl2-phase1-setup.sh" -ForegroundColor Yellow
+    Write-Host "  wsl bash $Phase1Script" -ForegroundColor Yellow
     exit 1
 }
 if ($NdkCheck -ne "ok") {
     Write-Host "[ERROR] Phase 1 not complete - Linux NDK r27c missing at ~/android-ndk-r27c. Run:" -ForegroundColor Red
-    Write-Host "  wsl bash /mnt/p/ANDROID/FastMediaSorter_mob_v2/temp/wsl2-phase1-setup.sh" -ForegroundColor Yellow
+    Write-Host "  wsl bash $Phase1Script" -ForegroundColor Yellow
     exit 1
 }
 
@@ -60,10 +76,12 @@ if ($NdkCheck -ne "ok") {
 New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 
 # Run the build script in WSL2 (interactive output)
-Write-Host "[RUN] bash $BuildScript" -ForegroundColor Green
+Write-Host "[RUN] bash $BuildScript $MountPath" -ForegroundColor Green
 Write-Host ""
 $exitCode = 0
-wsl bash -c "bash '$BuildScript' 2>&1"
+# The mount path goes in as an argument: this side already knows where the tree lives, the shell
+# side would have to guess it back from a literal (S2326 step 04.4).
+wsl bash -c "bash '$BuildScript' '$MountPath' 2>&1"
 $exitCode = $LASTEXITCODE
 
 Write-Host ""

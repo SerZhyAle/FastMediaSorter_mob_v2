@@ -228,7 +228,7 @@ class LauncherStarterSetsTest {
                 "clock", "search", "weather",
                 // S1913: no sec:resources header here. profileGadgets seeds the PHOTO_FRAME
                 // slideshow shortcut into the widgets bucket beside its folder-preview gadget, the
-                // way EBOOK_READER seeds its PLAY shortcut, while commonResources is scoped to one
+                // way EBOOK_READER seeds its PLAY shortcut, while coreResources is scoped to one
                 // BROWSE shortcut per virtual resource and never reads lastResourceId. resItems is
                 // therefore empty, and an empty section must not print a header - a header with
                 // nothing under it swallows the section below it, section membership being positional.
@@ -1020,20 +1020,110 @@ class LauncherStarterSetsTest {
         }
     }
 
+    // -- S2321 the content aggregates are not budget fodder ---------------------------------------
+
+    @Test
+    fun `the content aggregates reach a compact desktop whatever the budget`() {
+        for (shape in LauncherScreenClass.Shape.entries) {
+            val screenClass = LauncherScreenClass(LauncherScreenClass.Size.COMPACT, shape)
+            val targets = LauncherStarterSets.itemsFor(
+                DeviceProfileType.PERSONAL_SMARTPHONE,
+                fullResources(),
+                allPaddingAvailable,
+                emptySet(),
+                screenClass = screenClass,
+            ).map { it.target }
+
+            // The three the reported clean install lost: documents, camera and "All files" sat at
+            // positions 5, 6 and 7 of one budgeted group a compact screen cut at four.
+            listOf(ALL_DOCS_ID, CAMERA_ID, ALL_FILES_ID).forEach { id ->
+                assertTrue(
+                    "compact/$shape dropped res:$id, the desktop's only way into that content type",
+                    "res:$id:BROWSE" in targets,
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `the user resource tail is still cut to budget on a compact screen`() {
+        val screenClass =
+            LauncherScreenClass(LauncherScreenClass.Size.COMPACT, LauncherScreenClass.Shape.ELONGATED)
+        val userIds = (USER_RESOURCE_FIRST_ID until USER_RESOURCE_FIRST_ID + USER_RESOURCE_COUNT).toList()
+        val targets = LauncherStarterSets.itemsFor(
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            fullResources().copy(userResourceIds = userIds),
+            allPaddingAvailable,
+            emptySet(),
+            screenClass = screenClass,
+        ).map { it.target }
+        val budget = LauncherStarterLayoutRules.ruleFor(screenClass)
+            .itemBudget
+            .getValue(LauncherStarterLayoutRules.StarterSectionGroup.RESOURCES)
+
+        val seeded = userIds.count { "res:$it:BROWSE" in targets }
+        assertEquals("the open tail lost its budget with the split", budget, seeded)
+        assertTrue("the fixture gave the budget nothing to cut", seeded < userIds.size)
+    }
+
+    @Test
+    fun `the predefined all files resource is seeded exactly once`() {
+        val targets = LauncherStarterSets.itemsFor(
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            fullResources().copy(userResourceIds = listOf(USER_RESOURCE_FIRST_ID)),
+            allPaddingAvailable,
+            emptySet(),
+            screenClass = LauncherScreenClass(LauncherScreenClass.Size.COMPACT, LauncherScreenClass.Shape.ELONGATED),
+        ).map { it.target }
+
+        // The seed excludes it from userResourceIds; a caller that forgot to would put it in both groups.
+        assertEquals(1, targets.count { it == "res:$ALL_FILES_ID:BROWSE" })
+    }
+
+    @Test
+    fun `the resource split leaves the google section on the medium-wide first screen`() {
+        val screenZero = LauncherStarterSets.itemsFor(
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            fullResources(),
+            allPaddingAvailable,
+            setOf(LauncherStarterSets.PACKAGE_YOUTUBE, LauncherStarterSets.PACKAGE_MAPS),
+            googleServicesAvailable = true,
+            screenClass = mediumWide,
+        ).filter { it.screenIndex == 0 }.map { it.target }
+
+        // The split adds an entry to sectionOrder and the screen cut counts entries, so without the
+        // matching firstScreenSections bump this group would silently move to screen 1.
+        assertTrue(
+            "the google section left screen 0",
+            sectionTarget(LauncherCellCommand.SECTION_GOOGLE) in screenZero,
+        )
+    }
+
     /** A device with something in every media bucket, so a budget has something to cut. */
     private fun fullResources() = StarterResources(
         recentId = 1L,
         allAudioId = 2L,
         allImagesId = 3L,
         allVideoId = 4L,
-        allDocsId = 5L,
-        cameraId = 6L,
+        allDocsId = ALL_DOCS_ID,
+        cameraId = CAMERA_ID,
+        allFilesId = ALL_FILES_ID,
         lastResourceId = 7L,
     )
 
     private companion object {
         const val FM_RADIO_PACKAGE = "com.android.fmradio"
         const val MIN_COLUMNS = 3
+
+        // S2321: the three aggregates a compact screen used to drop, named so the assertions read as
+        // the symptom rather than as three bare numbers.
+        const val ALL_DOCS_ID = 5L
+        const val CAMERA_ID = 6L
+        const val ALL_FILES_ID = 8L
+
+        /** A user tail comfortably longer than any scaled RESOURCES budget. */
+        const val USER_RESOURCE_FIRST_ID = 10L
+        const val USER_RESOURCE_COUNT = 16L
 
         /** The reference phone of S1587: 384dp wide at density factor 1.0, so four 96dp columns. */
         const val PHONE_COLUMNS = 4

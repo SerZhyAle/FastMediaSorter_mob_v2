@@ -8,10 +8,9 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.logging.LogExportHelper
 import com.sza.fastmediasorter.core.logging.LoggingHelper
 import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
+import com.sza.fastmediasorter.util.launchBoundToHost
 import com.sza.fastmediasorter.util.showBoundToHost
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
@@ -50,31 +49,35 @@ class CrashReportPromptManager(private val activity: Activity) {
 
     private fun sendReport(crashFile: File) {
         val subject = activity.getString(R.string.crash_report_email_subject)
-        CoroutineScope(Dispatchers.IO).launch {
-            val zipUri = LogExportHelper.buildLogsZipUri(activity)
-            val body = buildString {
-                append(activity.getString(R.string.crash_report_email_body_intro))
-                // The crash text already travels inside the attached log ZIP; only inline it when
-                // packaging produced no attachment, so the email body stays small.
-                if (zipUri == null) {
-                    val crashText = try {
-                        crashFile.readText()
-                    } catch (e: Exception) {
-                        Timber.w(e, "CrashReportPromptManager: could not read crash file")
-                        ""
-                    }
-                    if (crashText.isNotBlank()) {
-                        append("\n\n")
-                        append(crashText)
+        // S2358: bound to the host - this is the same send path as the error dialog's, and a destroyed
+        // activity has nowhere to receive the intent. Packaging and reading run off the main thread
+        // explicitly, because a lifecycle scope dispatches to Main.
+        activity.launchBoundToHost {
+            Timber.d("S2358: prompt crash-report send started on the host lifecycle")
+            val (zipUri, body) = withContext(Dispatchers.IO) {
+                val uri = LogExportHelper.buildLogsZipUri(activity)
+                uri to buildString {
+                    append(activity.getString(R.string.crash_report_email_body_intro))
+                    // The crash text already travels inside the attached log ZIP; only inline it when
+                    // packaging produced no attachment, so the email body stays small.
+                    if (uri == null) {
+                        val crashText = try {
+                            crashFile.readText()
+                        } catch (e: Exception) {
+                            Timber.w(e, "CrashReportPromptManager: could not read crash file")
+                            ""
+                        }
+                        if (crashText.isNotBlank()) {
+                            append("\n\n")
+                            append(crashText)
+                        }
                     }
                 }
             }
-            withContext(Dispatchers.Main) {
-                // Email-first with share-sheet fallback so a missing mail app does not drop the report.
-                val delivered = SupportIntentFactory.launchCrashReport(activity, subject, body, zipUri)
-                if (!delivered) {
-                    Toast.makeText(activity, R.string.crash_report_no_share_target, Toast.LENGTH_LONG).show()
-                }
+            // Email-first with share-sheet fallback so a missing mail app does not drop the report.
+            val delivered = SupportIntentFactory.launchCrashReport(activity, subject, body, zipUri)
+            if (!delivered) {
+                Toast.makeText(activity, R.string.crash_report_no_share_target, Toast.LENGTH_LONG).show()
             }
         }
     }

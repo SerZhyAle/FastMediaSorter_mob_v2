@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.networkmonitor
 
 import com.sza.fastmediasorter.domain.networkmonitor.HostProbe
 import com.sza.fastmediasorter.domain.networkmonitor.HostProbeResult
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -19,6 +20,7 @@ class FallbackHostProbe @Inject constructor(
 
     override suspend fun probe(host: String, timeoutMillis: Long, ttl: Int?): HostProbeResult {
         val primary = systemPing.probe(host, timeoutMillis, ttl)
+        Timber.d("S1617: host probe ping=%s", primary::class.simpleName)
         return when (primary) {
             is HostProbeResult.NotMeasurable -> tcpConnect.probe(host, timeoutMillis, ttl)
             else -> primary

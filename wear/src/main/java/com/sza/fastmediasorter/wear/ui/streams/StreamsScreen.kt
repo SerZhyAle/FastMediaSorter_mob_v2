@@ -32,6 +32,7 @@ import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -76,6 +77,8 @@ import com.sza.fastmediasorter.wear.ui.common.wearChoiceRows
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionScroll
+import com.sza.fastmediasorter.wear.ui.streams.helpers.WearStreamLanguageLabels
+import com.sza.fastmediasorter.wear.ui.streams.helpers.WearStreamRubricCatalog
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
 
@@ -122,8 +125,11 @@ private data class StreamsFilterDialogState(
     val selectedFilter: StreamFilterKind,
     val selectedTopic: String?,
     val selectedLanguage: String?,
-    val availableTopics: List<String>,
-    val availableLanguages: List<String>
+    // S2146: the facet values carry their channel count, because the dialog both orders and labels by
+    // it. Selection stays a raw id above, so a count that changes on the next catalogue import cannot
+    // invalidate what the owner picked.
+    val availableTopics: List<StreamFacetValue>,
+    val availableLanguages: List<StreamFacetValue>
 )
 
 private data class StreamsFilterDialogActions(
@@ -146,7 +152,7 @@ fun StreamsScreen(
     // S1954: the player is the other place a channel can be marked, and coming back from it does not
     // re-emit the catalogue - so the pinned order is re-read here rather than only on a catalogue change.
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-        viewModel.refreshPinnedStreams()
+        viewModel.refreshPinsAndUsage()
     }
 
     val searchHint = stringResource(R.string.wear_streams_search_hint)
@@ -558,7 +564,8 @@ private fun StreamsControlHeader(
         RectangularButton(
             onClick = onSortClick,
             modifier = Modifier.size(TOOLBAR_BUTTON_SIZE),
-            colors = if (state.sortOrder != StreamSortOrder.DEFAULT) {
+            // S2146: MOST_USED is the resting order now, so it is what an unhighlighted button means.
+            colors = if (state.sortOrder != StreamSortOrder.MOST_USED) {
                 ButtonDefaults.primaryButtonColors()
             } else {
                 ButtonDefaults.secondaryButtonColors()
@@ -717,13 +724,35 @@ private fun ScalingLazyListScope.streamTopicFilterChoices(
             textAlign = TextAlign.Center
         )
     }
+    // Built once per list build rather than searched per row: the lambda below runs for every chip.
+    val countById = state.availableTopics.associate { it.id to it.channelCount }
     wearChoiceRows(
-        options = listOf<String?>(null) + state.availableTopics,
+        options = listOf<String?>(null) + state.availableTopics.map { it.id },
         selected = state.selectedTopic,
-        labelOf = { topic -> topic ?: stringResource(R.string.wear_streams_filter_topic_all) },
+        // S2146: only the LABEL is localized and counted. `options` and `selected` stay the raw
+        // catalogue ids, because that is what the projection filters on - matching a translated label
+        // would break selection in every locale but English.
+        labelOf = { topic ->
+            topic?.let {
+                facetLabelWithCount(WearStreamRubricCatalog.label(LocalContext.current, it) ?: it, countById[it])
+            } ?: stringResource(R.string.wear_streams_filter_topic_all)
+        },
         onSelected = { actions.onTopicSelected(it) },
         gridFit = gridFit.copy(fixedEnumeration = false)
     )
+}
+
+/**
+ * S2146: a facet row's text - the localized name, then how many channels carry it.
+ *
+ * The number is TEXT on the row rather than a colour or a bar, which strategic §3.2 requires so the
+ * row stays readable to anyone who does not distinguish the colour. A null count means the value is
+ * not in the current facet list, which the "all" row and only it can be - it gets the bare label.
+ */
+@Composable
+private fun facetLabelWithCount(label: String, count: Int?): String {
+    if (count == null) return label
+    return stringResource(R.string.wear_streams_facet_with_count, label, count)
 }
 
 private fun ScalingLazyListScope.streamLanguageFilterChoices(
@@ -740,10 +769,15 @@ private fun ScalingLazyListScope.streamLanguageFilterChoices(
             textAlign = TextAlign.Center
         )
     }
+    val countById = state.availableLanguages.associate { it.id to it.channelCount }
     wearChoiceRows(
-        options = listOf<String?>(null) + state.availableLanguages,
+        options = listOf<String?>(null) + state.availableLanguages.map { it.id },
         selected = state.selectedLanguage,
-        labelOf = { language -> language ?: stringResource(R.string.wear_streams_filter_language_all) },
+        // S2146: as above - the label is translated by the system locale table, the id is not.
+        labelOf = { language ->
+            language?.let { facetLabelWithCount(WearStreamLanguageLabels.label(it), countById[it]) }
+                ?: stringResource(R.string.wear_streams_filter_language_all)
+        },
         onSelected = { actions.onLanguageSelected(it) },
         gridFit = gridFit.copy(fixedEnumeration = false)
     )
@@ -786,12 +820,10 @@ private fun StreamSortDialog(
                     selected = selectedSort,
                     labelOf = { sort ->
                         val res = when (sort) {
-                            StreamSortOrder.DEFAULT -> R.string.wear_streams_sort_default
+                            StreamSortOrder.MOST_USED -> R.string.wear_streams_sort_most_used
                             StreamSortOrder.NAME_ASC -> R.string.wear_streams_sort_name_asc
                             StreamSortOrder.NAME_DESC -> R.string.wear_streams_sort_name_desc
                             StreamSortOrder.KIND -> R.string.wear_streams_sort_kind
-                            StreamSortOrder.TOPIC -> R.string.wear_streams_sort_topic
-                            StreamSortOrder.LANGUAGE -> R.string.wear_streams_sort_language
                         }
                         stringResource(res)
                     },
@@ -818,7 +850,10 @@ private fun ScalingLazyListScope.streamItems(
             )
         }
     } else {
-        items(channels.chunked(columns)) { rowChannels ->
+        // S2149: keyed by the row's first address, matching the single-column branch above. Without a
+        // key a change in the middle of a nineteen-thousand-row catalogue re-lays-out every row after
+        // it - and the phone's pinned set arriving is exactly such a change, since it reorders.
+        items(channels.chunked(columns), key = { row -> row.first().url }) { rowChannels ->
             StreamRow(
                 channels = rowChannels,
                 columns = columns,

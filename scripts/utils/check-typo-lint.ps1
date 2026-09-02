@@ -22,6 +22,10 @@ $scriptsPath = Split-Path -Parent $utilsPath
 $projectRoot = Split-Path -Parent $scriptsPath
 $tempDir = Join-Path $projectRoot "temp"
 . (Join-Path $projectRoot "scripts/utils/agent-lock.ps1")
+# The global scan below walks the repository root, which contains nested agent worktrees - full
+# copies of this repository. Same rule, same definition as the three repo-wide quality gates.
+. (Join-Path $projectRoot "scripts/quality/lib/nested-worktrees.ps1")
+$nestedWorktrees = Get-NestedWorktreeRelativePath -RepoRoot $projectRoot
 
 if (-not (Test-Path $tempDir)) {
     New-Item -ItemType Directory -Path $tempDir | Out-Null
@@ -197,8 +201,19 @@ try {
         Write-Section "GLOBAL CODE QUALITY CHECKS"
         
         $excludePaths = @("build", "temp", "V1", "v2_6", "spec_v2", "dev", ".git", ".gradle", ".idea")
+        # Script scope, not local: a Where-Object scriptblock runs in a child scope, so a bare
+        # $worktreeSkipped++ would increment a copy and always report zero.
+        $script:worktreeSkipped = 0
         $allCodeFiles = Get-ChildItem -Path "." -Recurse -Include "*.kt", "*.java" | Where-Object {
             $path = $_.FullName.Replace($projectRoot, "")
+            # Checked before $excludePaths because a nested worktree carries a full app_v2/src of
+            # its own: without this every source file is counted twice and the forbidden-pattern
+            # totals below silently double.
+            $rel = $_.FullName.Substring($projectRoot.Length).TrimStart('\', '/')
+            if (Test-InNestedWorktree -RelativePath $rel -Prefixes $nestedWorktrees) {
+                $script:worktreeSkipped++
+                return $false
+            }
             $isExcluded = $false
             foreach ($ex in $excludePaths) {
                 if ($path -match "\\$ex\\") {
@@ -208,6 +223,9 @@ try {
             }
             -not $isExcluded
         }
+
+        $worktreeNotice = Get-NestedWorktreeSkipNotice -SkippedFileCount $script:worktreeSkipped -Prefixes $nestedWorktrees
+        if ($worktreeNotice) { Write-Host "check-typo-lint: $worktreeNotice" -ForegroundColor DarkGray }
 
         Write-Host "Scanning $($allCodeFiles.Count) code files for forbidden patterns..." -ForegroundColor Yellow
         Write-Report "Global code scan: $($allCodeFiles.Count) files"

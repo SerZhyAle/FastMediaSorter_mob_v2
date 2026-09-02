@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.network.viewmodel
 
 import android.content.Context
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.wearable.Wearable
@@ -29,7 +30,13 @@ sealed class SyncState {
     data object Idle : SyncState()
     data object Pending : SyncState()
     data class Success(val added: Int, val updated: Int) : SyncState()
-    data class Error(val message: String) : SyncState()
+
+    /**
+     * S2275: a resource id rather than a String. The two failures this state carried were an English
+     * literal and a raw exception message, and both reached the watch screen untranslated - the screen
+     * a Play reviewer lands on when no phone answers.
+     */
+    data class Error(@StringRes val messageRes: Int) : SyncState()
 }
 
 /** S1833: the outcome of checking a source that is already saved, shown over the list. */
@@ -124,7 +131,8 @@ class NetworkSourcesViewModel @Inject constructor(
             try {
                 val nodes = Wearable.getNodeClient(context).connectedNodes.await()
                 if (nodes.isEmpty()) {
-                    _syncState.value = SyncState.Error("No phone connected")
+                    Timber.d("S2275: sync refused - no connected node, showing localized reason")
+                    _syncState.value = SyncState.Error(R.string.wear_sync_no_phone_paired)
                     Timber.w("requestSyncFromPhone: no connected nodes")
                     return@launch
                 }
@@ -135,7 +143,7 @@ class NetworkSourcesViewModel @Inject constructor(
                 Timber.d("Sync request sent to node $nodeId")
             } catch (e: Exception) {
                 Timber.e(e, "Failed to request sync from phone")
-                _syncState.value = SyncState.Error(e.message ?: "Sync request failed")
+                _syncState.value = SyncState.Error(R.string.wear_sync_request_failed)
             }
         }
     }

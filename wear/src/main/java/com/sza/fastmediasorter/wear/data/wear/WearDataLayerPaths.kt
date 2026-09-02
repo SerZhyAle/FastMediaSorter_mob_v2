@@ -57,6 +57,18 @@ object WearDataLayerPaths {
     const val STREAM_TRANSFER_ACK = "/fms/watch/stream_transfer_ack"
 
     /**
+     * Data Item, phone → watch. Carries the whole set of pinned stream identities (S2149).
+     *
+     * A Data Item rather than a Message because the set is state, not an event: a watch switched on a
+     * day later must see the current set rather than have missed the moment it changed. The set is
+     * always sent whole - never a delta and never skipped when empty - because replacing it is the only
+     * thing that lets an unpin on the phone withdraw the channel from this watch's top group.
+     *
+     * Mirrored verbatim from the phone module's copy of this object - the two must not drift.
+     */
+    const val STREAM_PINS = "/fms/phone/stream_pins"
+
+    /**
      * Channel, either direction. Carries the bytes of one transferred file (S1861).
      *
      * The file name rides as the trailing segment ("$FILE_TRANSFER/photo.jpg") - the Data Layer gives
@@ -130,4 +142,7 @@ object WearDataLayerPaths {
 
     /** eventType value for STREAM_TRANSFER envelopes. */
     const val EVENT_STREAM_TRANSFER = "STREAM_TRANSFER"
+
+    /** eventType value for STREAM_PINS envelopes (S2149). */
+    const val EVENT_STREAM_PINS = "STREAM_PINS"
 }

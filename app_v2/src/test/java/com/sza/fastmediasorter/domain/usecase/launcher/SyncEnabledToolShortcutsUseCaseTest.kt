@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellPlacement
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
 import com.sza.fastmediasorter.domain.repository.LauncherDesktopState
+import com.sza.fastmediasorter.domain.repository.LauncherShortcutSyncRepository
 import com.sza.fastmediasorter.domain.usecase.panel.ResolvePanelRouteAvailabilityUseCase
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -40,7 +41,11 @@ class SyncEnabledToolShortcutsUseCaseTest {
         override suspend fun addCellInSection(cell: LauncherCell, columns: Int, sectionKey: String): Long? =
             addCellInFirstFreeSlot(cell, columns)
 
-        override suspend fun removeCell(id: Long) = Unit
+        val removedIds = mutableListOf<Long>()
+
+        override suspend fun removeCell(id: Long) {
+            removedIds.add(id)
+        }
 
         override suspend fun moveCellToScreen(
             orientation: LauncherOrientation,
@@ -81,14 +86,33 @@ class SyncEnabledToolShortcutsUseCaseTest {
         override suspend fun updateColumns(orientation: LauncherOrientation, columns: Int) = Unit
     }
 
+    private class FakeLauncherShortcutSyncRepository(
+        var routes: Set<String>?,
+    ) : LauncherShortcutSyncRepository {
+        override suspend fun syncedRoutes(): Set<String>? = routes
+
+        override suspend fun setSyncedRoutes(routeKeys: Set<String>) {
+            routes = routeKeys
+        }
+
+        override suspend fun clearSyncedRoutes() {
+            routes = null
+        }
+    }
+
     /**
      * S1736: the use case no longer reads settings itself - it asks the availability chain, the one
      * place that folds the build axis and the user axis together. [enabled] names the routes that
      * answer launchable; every other registry route answers compiled-out and switched-off.
+     *
+     * S2330: [baseline] defaults to present-and-empty rather than to absent, because that is the
+     * state in which the transition rule and the old reconcile rule agree - which is what lets the
+     * six tests above go on pinning the S1736 contract without their bodies moving.
      */
     private fun useCaseWith(
         desktop: LauncherDesktopRepository,
         enabled: Set<String>,
+        baseline: FakeLauncherShortcutSyncRepository = FakeLauncherShortcutSyncRepository(emptySet()),
     ): SyncEnabledToolShortcutsUseCase = SyncEnabledToolShortcutsUseCase(
         desktop = desktop,
         resolveRouteAvailability = mockk<ResolvePanelRouteAvailabilityUseCase> {
@@ -100,6 +124,7 @@ class SyncEnabledToolShortcutsUseCaseTest {
                 )
             }
         },
+        syncBaseline = baseline,
     )
 
     private fun launcherEntryKeys(): List<String> =
@@ -200,6 +225,75 @@ class SyncEnabledToolShortcutsUseCaseTest {
         val placed = desktopRepo.addedCells.map { it.first.target }.toSet()
         val missing = keys.filterNot { "fn:$it" in placed }
         assertEquals("registry entries that reached no desktop cell: $missing", emptyList<String>(), missing)
+    }
+
+    // S2330 strategic 11 criterion 2. Eight of the nine registry routes missing from the starter set
+    // are launchable by default, so an install that meets this mechanism for the first time must be
+    // adopted, not corrected - otherwise an update alone hands the user those eight cells.
+    @Test
+    fun `an absent baseline places nothing and adopts the launchable set`() = runBlocking {
+        val desktopRepo = FakeLauncherDesktopRepository()
+        val baseline = FakeLauncherShortcutSyncRepository(routes = null)
+
+        useCaseWith(desktopRepo, setOf(CALCULATOR_KEY), baseline)()
+
+        assertEquals(
+            "an install that never ran the sync was handed cells anyway",
+            emptyList<String>(),
+            desktopRepo.addedCells.map { it.first.target },
+        )
+        assertEquals(setOf(CALCULATOR_KEY), baseline.routes)
+    }
+
+    // S2330 strategic 11 criterion 3: the comparison is against the baseline, never against the
+    // desktop, so a cell the user deleted by hand stays deleted.
+    @Test
+    fun `a route already in the baseline is not replaced after the user deletes its cell`() = runBlocking {
+        val desktopRepo = FakeLauncherDesktopRepository()
+        val baseline = FakeLauncherShortcutSyncRepository(setOf(CALCULATOR_KEY))
+
+        useCaseWith(desktopRepo, setOf(CALCULATOR_KEY), baseline)()
+
+        assertEquals(
+            "a cell the user removed came back because the desktop, not the baseline, was consulted",
+            emptyList<String>(),
+            desktopRepo.addedCells.map { it.first.target },
+        )
+    }
+
+    // S2330 strategic 11 criterion 1 - the ticket's whole point: a tool switched on after seeding
+    // reaches both desktops and is recorded so the next pass leaves it alone.
+    @Test
+    fun `a route missing from the baseline is placed on both orientations and joins it`() = runBlocking {
+        val desktopRepo = FakeLauncherDesktopRepository()
+        val baseline = FakeLauncherShortcutSyncRepository(emptySet())
+
+        useCaseWith(desktopRepo, setOf(CALCULATOR_KEY), baseline)()
+
+        val orientations = desktopRepo.addedCells
+            .filter { it.first.target == CALCULATOR_TARGET }
+            .map { it.first.orientation }
+            .toSet()
+        assertEquals(
+            setOf(LauncherOrientation.PORTRAIT, LauncherOrientation.LANDSCAPE),
+            orientations,
+        )
+        assertTrue("the placed route did not join the baseline", CALCULATOR_KEY in baseline.routes.orEmpty())
+    }
+
+    // S2330 strategic 11 criterion 4 and strategic 5.2: switching a tool off keeps its cell, and the
+    // baseline never shrinks - a shrinking one would let a re-enable restore a hand-deleted cell.
+    @Test
+    fun `a route that stops being launchable keeps its cell and its baseline entry`() = runBlocking {
+        val desktopRepo = FakeLauncherDesktopRepository()
+        desktopRepo.addCellInFirstFreeSlot(cellAt(LauncherOrientation.PORTRAIT, CALCULATOR_TARGET), COLUMNS)
+        desktopRepo.addedCells.clear()
+        val baseline = FakeLauncherShortcutSyncRepository(setOf(CALCULATOR_KEY))
+
+        useCaseWith(desktopRepo, enabled = emptySet(), baseline = baseline)()
+
+        assertEquals("a switched-off tool had its cell removed", emptyList<Long>(), desktopRepo.removedIds)
+        assertEquals(setOf(CALCULATOR_KEY), baseline.routes)
     }
 
     private companion object {

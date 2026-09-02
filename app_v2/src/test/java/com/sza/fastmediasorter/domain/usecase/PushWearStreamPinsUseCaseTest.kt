@@ -2,9 +2,11 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.google.gson.Gson
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.domain.model.WearNode
 import com.sza.fastmediasorter.domain.model.WearStreamPinsPayload
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
 import com.sza.fastmediasorter.domain.usecase.streams.ObservePinnedStreamSourcesUseCase
 import com.sza.fastmediasorter.service.WearDataLayerPaths
@@ -16,23 +18,32 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 
 /**
- * S2149: the empty-set publish is the case a reader is most likely to optimise away, and it is the only
- * thing that carries an unpin on the phone across to the watch - so it is pinned here first.
+ * S2149 / S2366: tests stream pin publishing and gating on enableWearCompanion.
  */
 class PushWearStreamPinsUseCaseTest {
 
     private val wearRepository = mockk<WearableDataLayerRepository>()
     private val observePinned = mockk<ObservePinnedStreamSourcesUseCase>()
+    private val settingsRepository = mockk<SettingsRepository>()
     private val gson = Gson()
 
-    private fun useCase() = PushWearStreamPinsUseCase(wearRepository, gson, observePinned)
+    @Before
+    fun setUp() {
+        every { settingsRepository.getSettings() } returns flowOf(AppSettings(enableWearCompanion = true))
+    }
+
+    private fun useCase() = PushWearStreamPinsUseCase(wearRepository, gson, observePinned, settingsRepository)
 
     private fun source(id: String, url: String, identityKey: String = "") = StreamSourceEntity(
         id = id,
@@ -109,4 +120,18 @@ class PushWearStreamPinsUseCaseTest {
         assertTrue(result.isFailure)
         coVerify(exactly = 0) { wearRepository.putEnvelopeDataItem(any(), any()) }
     }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `observeAndPush does nothing when enableWearCompanion is false`() = runTest {
+        every { settingsRepository.getSettings() } returns flowOf(AppSettings(enableWearCompanion = false))
+        every { observePinned() } returns flowOf(listOf(source("a", "https://host.tv/one")))
+
+        val job = useCase().observeAndPush(this)
+        advanceUntilIdle()
+
+        coVerify(exactly = 0) { wearRepository.putEnvelopeDataItem(any(), any()) }
+        job.cancel()
+    }
 }
+

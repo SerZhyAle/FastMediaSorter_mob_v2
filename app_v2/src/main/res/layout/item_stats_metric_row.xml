@@ -23,18 +23,18 @@
 
     <TextView
         android:id="@+id/tvMetricLabel"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
         android:textColor="?attr/colorOnSurface"
         android:textSize="@dimen/text_size_small"
         tools:text="Copied" />
 
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/margin_normal"
-        android:gravity="end"
+        android:layout_weight="1"
+        android:gravity="start"
         android:orientation="vertical">
 
         <TextView

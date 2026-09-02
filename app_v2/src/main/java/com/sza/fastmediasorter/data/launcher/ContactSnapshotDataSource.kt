@@ -3,12 +3,15 @@ package com.sza.fastmediasorter.data.launcher
 import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
 import android.provider.ContactsContract
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactChannel
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactTarget
+import com.sza.fastmediasorter.domain.model.launcher.LauncherMessengerApp
 import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -88,14 +91,59 @@ class ContactSnapshotDataSource @Inject constructor(
     }
 
     /**
+     * S2240: the messaging apps installed on this device, for choosing one before a contact is picked.
+     *
+     * This reads the package manager, never the address book, so it needs no `READ_CONTACTS` at all and
+     * returns the same list whether or not the user ever granted it - which is what lets the messenger
+     * step run ahead of the system contact picker.
+     *
+     * An app qualifies on the same fact [readMessageChannels] resolves a picked row with: it declares a
+     * VIEW activity for a contact data row of its own MIME type. Asking one question two ways would let
+     * enumeration and resolution disagree about what counts as a messenger; asking it once cannot.
+     */
+    suspend fun readInstalledMessengers(): List<LauncherMessengerApp> = withContext(Dispatchers.IO) {
+        val packageManager = context.packageManager
+        val probe = Intent(Intent.ACTION_VIEW)
+            .setDataAndType(ContactsContract.Data.CONTENT_URI, ANY_CONTACT_ITEM_MIME_TYPE)
+        runCatching {
+            packageManager.queryIntentActivitiesCompat(probe, PackageManager.GET_RESOLVED_FILTER)
+                .filter { declaresMessengerMimeType(it.filter.declaredDataTypes()) }
+                .map { resolved ->
+                    LauncherMessengerApp(
+                        packageName = resolved.activityInfo.packageName,
+                        // The application's label, not the activity's: an activity may be named for what
+                        // it does ("New message"), while the user picks the app they know by name.
+                        label = resolved.activityInfo.applicationInfo
+                            .loadLabel(packageManager)
+                            .toString(),
+                    )
+                }
+                .distinctBy { it.packageName }
+                .sortedBy { it.label.lowercase() }
+        }.getOrElse { error ->
+            // Same contract as queryOrNull: a lookup that cannot answer degrades to "none found", so the
+            // messenger step simply does not appear and the flow stays exactly the pre-S2240 one.
+            Timber.i("Launcher contacts: messenger lookup unavailable (%s)", error.javaClass.simpleName)
+            emptyList()
+        }
+    }
+
+    /**
      * The messaging channels this contact carries, as their own apps registered them.
      *
      * No messenger is hardcoded and none is discovered by package name: a channel exists because some
      * app wrote a data row of its own MIME type onto this contact, and that same MIME type is what
      * resolves back to the app. An app since uninstalled therefore resolves to nothing and drops out,
      * which is the "only offer channels whose app is installed" rule falling out of the lookup itself.
+     *
+     * S2240: a non-null [filterPackage] keeps only the channels that app registered. The caller has then
+     * already asked which messenger the user wants, so a contact carrying rows for three of them yields
+     * the one that was asked for instead of a choice the user has just made.
      */
-    suspend fun readMessageChannels(contactUri: Uri): List<LauncherContactChannel> =
+    suspend fun readMessageChannels(
+        contactUri: Uri,
+        filterPackage: String? = null,
+    ): List<LauncherContactChannel> =
         withContext(Dispatchers.IO) {
             val entityUri = Uri.withAppendedPath(
                 contactUri,
@@ -107,7 +155,9 @@ class ContactSnapshotDataSource @Inject constructor(
                     channelFrom(cursor)?.let(channels::add)
                 }
             }
-            channels.distinctBy { it.target.messageDataId }
+            channels
+                .filter { filterPackage == null || it.target.messagePackage == filterPackage }
+                .distinctBy { it.target.messageDataId }
         }
 
     private fun channelFrom(cursor: Cursor): LauncherContactChannel? {
@@ -179,36 +229,81 @@ class ContactSnapshotDataSource @Inject constructor(
         const val INDEX_ENTITY_LABEL = 2
         const val INDEX_ENTITY_LOOKUP_KEY = 3
         const val INDEX_ENTITY_NAME = 4
-
-        /**
-         * Spelled out rather than read from `Im` / `SipAddress`, whose constants are deprecated. The
-         * strings are not a copy of an API - they are what is written in the contacts database, so a
-         * row created years ago still carries them and still has to be skipped.
-         */
-        const val LEGACY_IM_MIME_TYPE = "vnd.android.cursor.item/im"
-        const val LEGACY_SIP_MIME_TYPE = "vnd.android.cursor.item/sip_address"
-
-        /**
-         * Rows the platform itself defines. A messaging channel is by definition a row nobody but its
-         * own app understands, so the filter is "not one of these" rather than a list of known
-         * messengers - which would have to grow with every app the user installs.
-         */
-        val BUILT_IN_MIME_TYPES = setOf(
-            ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE,
-            ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE,
-            ContactsContract.CommonDataKinds.GroupMembership.CONTENT_ITEM_TYPE,
-            ContactsContract.CommonDataKinds.Identity.CONTENT_ITEM_TYPE,
-            LEGACY_IM_MIME_TYPE,
-            ContactsContract.CommonDataKinds.Nickname.CONTENT_ITEM_TYPE,
-            ContactsContract.CommonDataKinds.Note.CONTENT_ITEM_TYPE,
-            ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE,
-            ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE,
-            ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE,
-            ContactsContract.CommonDataKinds.Relation.CONTENT_ITEM_TYPE,
-            LEGACY_SIP_MIME_TYPE,
-            ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE,
-            ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE,
-            ContactsContract.CommonDataKinds.Website.CONTENT_ITEM_TYPE,
-        )
     }
+}
+
+/**
+ * Spelled out rather than read from `Im` / `SipAddress`, whose constants are deprecated. The strings are
+ * not a copy of an API - they are what is written in the contacts database, so a row created years ago
+ * still carries them and still has to be skipped.
+ */
+private const val LEGACY_IM_MIME_TYPE = "vnd.android.cursor.item/im"
+private const val LEGACY_SIP_MIME_TYPE = "vnd.android.cursor.item/sip_address"
+
+/** The contact-data MIME family every channel row and every messenger activity declares a member of. */
+private const val CONTACT_ITEM_MIME_PREFIX = "vnd.android.cursor.item/"
+
+/** The subtype that names nothing specific - what a wildcard type pattern reduces to. */
+private const val MIME_WILDCARD = "*"
+
+/** Matches any contact data row, so one probe intent reaches every messenger's VIEW activity at once. */
+private const val ANY_CONTACT_ITEM_MIME_TYPE = CONTACT_ITEM_MIME_PREFIX + MIME_WILDCARD
+
+/**
+ * Rows the platform itself defines. A messaging channel is by definition a row nobody but its own app
+ * understands, so the filter is "not one of these" rather than a list of known messengers - which would
+ * have to grow with every app the user installs.
+ *
+ * S2240 moved this out of the class's companion so [declaresMessengerMimeType] can read it: a top-level
+ * function cannot see a class's private companion, and the alternative - two copies of the platform list
+ * - is exactly the disagreement between enumeration and resolution this file exists to prevent.
+ */
+private val BUILT_IN_MIME_TYPES = setOf(
+    ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE,
+    ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE,
+    ContactsContract.CommonDataKinds.GroupMembership.CONTENT_ITEM_TYPE,
+    ContactsContract.CommonDataKinds.Identity.CONTENT_ITEM_TYPE,
+    LEGACY_IM_MIME_TYPE,
+    ContactsContract.CommonDataKinds.Nickname.CONTENT_ITEM_TYPE,
+    ContactsContract.CommonDataKinds.Note.CONTENT_ITEM_TYPE,
+    ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE,
+    ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE,
+    ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE,
+    ContactsContract.CommonDataKinds.Relation.CONTENT_ITEM_TYPE,
+    LEGACY_SIP_MIME_TYPE,
+    ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE,
+    ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE,
+    ContactsContract.CommonDataKinds.Website.CONTENT_ITEM_TYPE,
+)
+
+/**
+ * S2240: whether a resolved intent filter's declared data types mark its app as a messenger.
+ *
+ * Top-level and pure so the decision is testable without a `PackageManager`, an `IntentFilter` or any
+ * other Android class - the caller hands over the types the filter declares, which is the only fact the
+ * rule reads.
+ *
+ * The rule itself is [ContactSnapshotDataSource]'s own, applied one level up: a messaging channel is a
+ * row nobody but its own app understands, so an app is a messenger when it claims at least one contact
+ * data type the platform does not define. Claiming only the whole family is not enough - the system
+ * contacts app matches that way, and it is not a messenger.
+ */
+internal fun declaresMessengerMimeType(declaredTypes: List<String>): Boolean =
+    declaredTypes.any { it.isConcreteMessengerMimeType() }
+
+private fun String.isConcreteMessengerMimeType(): Boolean {
+    if (!startsWith(CONTACT_ITEM_MIME_PREFIX)) return false
+    val subtype = removePrefix(CONTACT_ITEM_MIME_PREFIX)
+    return subtype.isNotEmpty() && subtype != MIME_WILDCARD && this !in BUILT_IN_MIME_TYPES
+}
+
+/**
+ * The types a filter declares, as a plain list.
+ *
+ * A null filter means the resolution carried none - `GET_RESOLVED_FILTER` was refused or the activity
+ * declares no data types - which is not a messenger by the same rule that an empty list is not.
+ */
+private fun IntentFilter?.declaredDataTypes(): List<String> {
+    val filter = this ?: return emptyList()
+    return List(filter.countDataTypes(), filter::getDataType)
 }

@@ -3152,4 +3152,6 @@
     <string name="launcher_all_apps_swipe_explain_back_to_desktop">Schließt die App-Liste und zeigt den Startbildschirm darunter.</string>
     <string name="launcher_all_apps_swipe_explain_expand">Zeigt die vollständige App-Liste statt der alphabetischen Abschnitte.</string>
     <string name="launcher_welcome_toggle_subtitle">FastMediaSorter mit der Home-Taste öffnen. Das System fragt nach der Einrichtung nach Ihrer Bestätigung, und Sie können jederzeit in den Einstellungen zurückwechseln.</string>
+    <string name="unit_bitrate_kbps">%1$s kbit/s</string>
+    <string name="unit_bitrate_mbps">%1$s Mbps</string>
 </resources>

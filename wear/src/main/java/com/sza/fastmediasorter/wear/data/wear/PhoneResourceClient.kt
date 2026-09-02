@@ -124,6 +124,15 @@ class PhoneResourceClient @Inject constructor(
         }
 
         return when {
+            // S2275: "no watch-phone pair at all" and "the pair exists but our app is not answering"
+            // are different problems with different fixes, and collapsing them made the screen tell a
+            // reviewer to reconnect a phone that was already connected. The distinction is free here -
+            // a null nodeId is exactly the first case, and it is also why the timeout above was never
+            // entered for it.
+            nodeId == null -> {
+                Timber.d("S2275: no connected node - answering PhoneNotPaired without a wait")
+                PhoneResourceOutcome.PhoneNotPaired
+            }
             page == null -> PhoneResourceOutcome.PhoneUnavailable
             page.status in ANSWERED_STATUSES -> PhoneResourceOutcome.Page(page)
             else -> PhoneResourceOutcome.Rejected(page.status)
@@ -256,8 +265,11 @@ sealed interface PhoneResourceOutcome {
     /** A completed transfer, already written to [file]. */
     data class Transferred(val file: File) : PhoneResourceOutcome
 
-    /** No phone answered - the paired device is absent, asleep or out of range. */
+    /** A phone is paired and reachable, but nothing answered - the app there is absent or asleep. */
     data object PhoneUnavailable : PhoneResourceOutcome
+
+    /** No phone is connected to this watch at all, so there is nothing to ask. */
+    data object PhoneNotPaired : PhoneResourceOutcome
 
     /** The phone answered and said no, with a reason the UI can phrase for the user. */
     data class Rejected(val status: WearPhoneResourceResponseStatus) : PhoneResourceOutcome

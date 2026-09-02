@@ -68,7 +68,7 @@ class AudioInfoDisplayHelper(
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val fileSize = file.size
-                audioFileSizeStr = if (fileSize > 0) formatFileSize(fileSize) else ""
+                audioFileSizeStr = if (fileSize > 0) formatFileSize(binding.root.context, fileSize) else ""
                 audioDurationStr = file.duration?.let { if (it > 0) formatDuration(it) else "" } ?: ""
                 withContext(Dispatchers.Main) { safeViews.audioFileInfo.text = buildAudioInfoLine(null) }
             } catch (e: Exception) {

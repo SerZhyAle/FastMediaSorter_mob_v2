@@ -482,6 +482,10 @@ class PhoneResourceViewModelTest {
         viewModel.requestThumbnail("1:file2.jpg")
         viewModel.requestThumbnail("1:file3.jpg")
         viewModel.requestThumbnail("1:file4.jpg")
+        // S2266: the cap is enforced synchronously, but the client call it guards is queued on
+        // viewModelScope, and StandardTestDispatcher runs nothing until the scheduler is advanced.
+        // Verifying before this line reads an empty mock and proves nothing about the cap.
+        advanceUntilIdle()
 
         coVerify(exactly = 3) { client.requestThumbnail(any()) }
     }

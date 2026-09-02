@@ -159,6 +159,15 @@ sealed interface PhoneResourceUiState {
      * screen turns it into copy - the raw status never reaches the user.
      */
     data class Unavailable(val reason: WearPhoneResourceResponseStatus?) : PhoneResourceUiState
+
+    /**
+     * S2275: no phone is connected to this watch at all, so nothing was ever asked.
+     *
+     * Apart from [Unavailable] for the reason [NoResourceForType] is apart from [Empty] - the two send
+     * the wearer somewhere different. [Unavailable] means the pair exists and the app on the phone is
+     * silent; this means there is no pair, and the Retry that state offers would ask nobody.
+     */
+    data object NotPaired : PhoneResourceUiState
 }
 
 /**
@@ -257,6 +266,7 @@ class PhoneResourceViewModel @Inject constructor(
         if (inFlightThumbnails.size >= MAX_IN_FLIGHT_THUMBNAILS) return
 
         inFlightThumbnails.add(itemToken)
+        Timber.d("S2129: on-demand thumbnail requested, inFlight=%s", inFlightThumbnails.size)
         _thumbnails.update { current -> current + (itemToken to WearThumbnail.Loading) }
 
         viewModelScope.launch {
@@ -483,6 +493,7 @@ class PhoneResourceViewModel @Inject constructor(
         inFlightThumbnails.clear()
         _thumbnails.value = emptyMap()
         val isFlat = BrowseCategoryCatalog.shapeForToken(categoryToken) == WearListShape.FLAT_MEDIA
+        Timber.d("S2130: browse category=%s isFlat=%s", categoryToken, isFlat)
         viewModelScope.launch {
             val outcome = phoneResourceClient.browse(parentToken, mediaType = mediaType, isFlat = isFlat)
             _uiState.value = when (outcome) {
@@ -498,6 +509,7 @@ class PhoneResourceViewModel @Inject constructor(
                 } else {
                     PhoneResourceUiState.Unavailable(outcome.status)
                 }
+                is PhoneResourceOutcome.PhoneNotPaired -> PhoneResourceUiState.NotPaired
                 else -> {
                     Timber.d("Paired phone did not answer a browse request")
                     PhoneResourceUiState.Unavailable(null)

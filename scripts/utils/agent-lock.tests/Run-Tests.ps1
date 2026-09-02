@@ -146,6 +146,76 @@ try {
         -Ok ((@(Resolve-CodeDomainsForPaths -Path @('wear/src/A.kt,app_v2/src/B.kt')) -join ',') -eq 'Code.Phone,Code.Wear') `
         -Detail "got '$(@(Resolve-CodeDomainsForPaths -Path @('wear/src/A.kt,app_v2/src/B.kt')) -join ',')' - a collapsed list must not narrow the set"
 
+    # S2338: PLAN/ is the table's one exemption - it resolves to NO domain, because every path
+    # under it is already exclusive by ticket lease (a spec file belongs to one ticket) or by the
+    # catalog mutex (the journals and both release files). Measured 2026-09-02: 55% of recent
+    # closures touched PLAN/ and nothing else, so before the exemption the majority of them took a
+    # domain that protected nothing while serialising every other scripts/docs edit in the repo.
+    $planSet = @(Resolve-CodeDomainsForPaths -Path @('PLAN/S2338_lock-domain-claims-specs-and-docs.md'))
+    $planQueueSet = @(Resolve-CodeDomainsForPaths -Path @('PLAN/RELEASE_QUEUE.md'))
+    Assert-Case -Name 'a PLAN-only set resolves to no code domain at all' `
+        -Ok ($planSet.Count -eq 0 -and $planQueueSet.Count -eq 0) `
+        -Detail "spec file=$($planSet.Count) domain(s), RELEASE_QUEUE=$($planQueueSet.Count) domain(s) - both must be 0"
+    # The exemption must not leak into a mixed set: a change that also touches a module still takes
+    # that module's domain, and the PLAN path simply contributes nothing to it.
+    Assert-Case -Name 'a PLAN path mixed with a module path resolves to the module domain only' `
+        -Ok ((@(Resolve-CodeDomainsForPaths -Path @('PLAN/S2338_x.md', 'app_v2/src/B.kt')) -join ',') -eq 'Code.Phone') `
+        -Detail "got '$(@(Resolve-CodeDomainsForPaths -Path @('PLAN/S2338_x.md','app_v2/src/B.kt')) -join ',')'"
+    # docs/ and dev/ are deliberately NOT exempt. They are hand-edited prose with no finer
+    # mechanism over them, so a concurrent edit there is an ordinary lost update. Narrowing them
+    # out along with PLAN/ is the tempting mistake this case exists to catch.
+    Assert-Case -Name 'docs/ and dev/ still resolve to Code.Scripts' `
+        -Ok ((@(Resolve-CodeDomainsForPaths -Path @('docs/ARCHITECTURE.md')) -join ',') -eq 'Code.Scripts' -and
+             (@(Resolve-CodeDomainsForPaths -Path @('dev/CHANGELOG.md')) -join ',') -eq 'Code.Scripts') `
+        -Detail "docs=$(@(Resolve-CodeDomainsForPaths -Path @('docs/ARCHITECTURE.md')) -join ','), dev=$(@(Resolve-CodeDomainsForPaths -Path @('dev/CHANGELOG.md')) -join ',')"
+    # S2342: content with no code in it resolves to Code.Scripts instead of failing closed. None of
+    # these paths compiles, links or packs into an APK, so the full set protected nothing and
+    # serialised phone and watch work against a store-listing edit. Measured 2026-09-02: of the 11
+    # recent changed sets that took the full code set, 8 were content only.
+    $contentTrees = @(
+        'play/listing/README.md', 'fastlane/metadata/android/en-US/title.txt',
+        'store_assets/design_brief.md', 'delivery/INVENTORY.md', 'maestro/README.md'
+    )
+    $widerTree = @($contentTrees | Where-Object {
+        (@(Resolve-CodeDomainsForPaths -Path @($_)) -join ',') -ne 'Code.Scripts' })
+    Assert-Case -Name 'a store/content tree resolves to Code.Scripts, not the full set' `
+        -Ok ($widerTree.Count -eq 0) -Detail "still wider than Code.Scripts: $($widerTree -join ', ')"
+
+    $rootContent = @(
+        'index.html', 'index-ru.html', 'nolegal-uk.html', 'styles.css', 'sitemap.xml', 'robots.txt',
+        '_config.yml', '_typos.toml', 'GEMINI.md', 'LICENSE', 'THIRD_PARTY_LICENSES.md',
+        'favicon.ico', 'favicon-32x32.png', 'icon.png', 'apple-touch-icon.png'
+    )
+    $widerRoot = @($rootContent | Where-Object {
+        (@(Resolve-CodeDomainsForPaths -Path @($_)) -join ',') -ne 'Code.Scripts' })
+    Assert-Case -Name 'a root site page, document or icon resolves to Code.Scripts' `
+        -Ok ($widerRoot.Count -eq 0) -Detail "still wider than Code.Scripts: $($widerRoot -join ', ')"
+
+    # The motivating call (S2340 phase 03): one repository script plus one listing file used to take
+    # all three domains and queue behind a wear session it could not possibly conflict with.
+    $motivating = @(Resolve-CodeDomainsForPaths -Path @('scripts/release/publish-play-listing.py,play/listing/README.md'))
+    Assert-Case -Name 'a script plus a listing file resolves to Code.Scripts alone' `
+        -Ok (($motivating -join ',') -eq 'Code.Scripts') -Detail "got '$($motivating -join ',')'"
+
+    # The fail-closed remainder is the point of the branch, so it is asserted rather than assumed:
+    # naming content trees must not become a habit of naming any directory that shows up. corex/ is
+    # unrecognised source, and benchmark/ and watchface/ are real Gradle modules with no Build.*
+    # domain of their own - all three must keep taking every code domain.
+    $stillClosed = @(
+        'corex/androidx/core/content/ContextCompat.java', 'benchmark/src/A.kt', 'watchface/src/A.kt'
+    )
+    $narrowed = @($stillClosed | Where-Object { @(Resolve-CodeDomainsForPaths -Path @($_)).Count -ne 3 })
+    Assert-Case -Name 'unrecognised source and the domain-less modules still fail closed' `
+        -Ok ($narrowed.Count -eq 0) -Detail "narrowed instead of failing closed: $($narrowed -join ', ')"
+
+    # "Every path was exempt" and "there were no paths" are different questions with opposite safe
+    # answers. Collapsing them would send every PLAN-only closure back to the full set, silently
+    # undoing the exemption while every test above still passed.
+    Assert-Case -Name 'an empty input still fails closed to the full code set' `
+        -Ok ((@(Resolve-CodeDomainsForPaths -Path @()).Count -eq 3) -and
+             (@(Resolve-CodeDomainsForPaths -Path @('')).Count -eq 3)) `
+        -Detail "empty array=$(@(Resolve-CodeDomainsForPaths -Path @()).Count), empty string=$(@(Resolve-CodeDomainsForPaths -Path @('')).Count) - both must be 3"
+
     # Deliberately table-only. Proving disjointness by actually TAKING the two sets belongs in
     # test-agent-lock-queue.ps1 (case 11), which runs in a throwaway sandbox: this file resolves
     # against the real repository root, so acquiring here would contend with whatever sibling

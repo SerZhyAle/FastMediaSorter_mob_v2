@@ -257,6 +257,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             "launcher__appearance"
         )
         sectionsManager.register(binding.headerLauncherSystem, binding.containerLauncherSystem, "launcher__system")
+        Timber.d("S2252: launcher settings full-screen dialog registered 7 collapsible groups")
         expandRequestedSection()
     }
 

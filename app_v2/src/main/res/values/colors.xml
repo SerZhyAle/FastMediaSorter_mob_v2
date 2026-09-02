@@ -469,6 +469,20 @@
     <color name="launcher_start_row_group3">#FF633B48</color>
     <color name="launcher_start_row_group4">#FF8C1D18</color>
 
+    <!-- S2323: the screen-number badge shown when animations are off, one hue per desktop screen up to
+         MAX_LAUNCHER_SCREEN_COUNT. Deliberately outside assert-launcher-contrast.ps1's pair list: that
+         gate measures a foreground against a theme surface, and this glyph lands on the wallpaper - a
+         user photo or a live camera feed - so no theme colour describes what is underneath it. The halo
+         below carries the legibility instead, and it inverts per theme: a light halo under the day set's
+         dark glyphs, a dark one under the night set's light glyphs, so the outline reads on either
+         backdrop rather than only on the one matching the theme (strategic §6 item 4). -->
+    <color name="launcher_screen_badge_1">#FF1565C0</color>
+    <color name="launcher_screen_badge_2">#FF2E7D32</color>
+    <color name="launcher_screen_badge_3">#FFEF6C00</color>
+    <color name="launcher_screen_badge_4">#FF6A1B9A</color>
+    <color name="launcher_screen_badge_5">#FFC62828</color>
+    <color name="launcher_screen_badge_shadow">#B3FFFFFF</color>
+
     <!-- S1549: portrait keeps the pressed/focused accent of the shared player selector; the landscape
          scroll buttons are flat white (see values-land/values-w600dp). An alias rather than a copied
          selector, so the portrait state list stays defined in exactly one place. -->

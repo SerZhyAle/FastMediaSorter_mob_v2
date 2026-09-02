@@ -6,8 +6,10 @@ import com.sza.fastmediasorter.domain.repository.InstalledAppsRepository
 import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
 import com.sza.fastmediasorter.domain.repository.LauncherJournalRepository
 import com.sza.fastmediasorter.domain.repository.LauncherPinsRepository
+import com.sza.fastmediasorter.domain.repository.LauncherShortcutSyncRepository
 import com.sza.fastmediasorter.testing.fakes.FakeSettingsRepository
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.runBlocking
@@ -24,11 +26,15 @@ import org.junit.Test
  *
  * S2217: the reset also walks every target the desktop delete returns through the instance-cleanup
  * seam - the only point where a dropped target would leak a configured widget's stored instance.
+ *
+ * S2330: and it clears the shortcut-sync baseline, which the inventory KDoc lists as launcher-owned
+ * state - a store forgotten there makes the reset silently incomplete rather than visibly broken.
  */
 class ResetLauncherToDefaultsUseCaseTest {
 
     private val desktop = mockk<LauncherDesktopRepository>(relaxed = true)
     private val cleaner = mockk<ConfiguredWidgetInstanceCleaner>(relaxed = true)
+    private val shortcutSyncBaseline = mockk<LauncherShortcutSyncRepository>(relaxed = true)
 
     private val settings = FakeSettingsRepository(
         AppSettings().withLauncher {
@@ -44,6 +50,7 @@ class ResetLauncherToDefaultsUseCaseTest {
         settings = settings,
         storeLauncherWallpaperUseCase = mockk<StoreLauncherWallpaperUseCase>(relaxed = true),
         configuredWidgetInstances = cleaner,
+        shortcutSyncBaseline = shortcutSyncBaseline,
     )
 
     @Test
@@ -89,6 +96,16 @@ class ResetLauncherToDefaultsUseCaseTest {
         useCase(CHOSEN_DENSITY)
 
         verify(exactly = 0) { cleaner.clearInstanceOf(any()) }
+    }
+
+    // S2330 strategic 11 criterion 6: after a reset the mechanism must behave as on a clean install,
+    // and only clearing to absent does that - an empty baseline would read the whole launchable set
+    // as newly enabled and bury the re-seeded desktop.
+    @Test
+    fun `reset clears the shortcut sync baseline`() = runBlocking {
+        useCase(CHOSEN_DENSITY)
+
+        coVerify(exactly = 1) { shortcutSyncBaseline.clearSyncedRoutes() }
     }
 
     private companion object {

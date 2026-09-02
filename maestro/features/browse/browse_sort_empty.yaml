@@ -48,16 +48,22 @@ appId: com.sza.fastmediasorter.debug
 - assertNotVisible:
     text: "Отправить отчёт о сбое?"
 
-# (b) Empty-state via a no-match name filter.
+# (b) Empty-state via a no-match name query.
+#
+# S2171 moved the name filter from the extended filter dialog into the live search overlay
+# (btnSearch -> etSearchQuery); dialog_filter.xml keeps only type, date and size. Same
+# FileFilter.nameContains underneath, so the empty-state oracle is unchanged.
 - tapOn:
-    id: "com.sza.fastmediasorter.debug:id/btnFilter"
+    id: "com.sza.fastmediasorter.debug:id/btnSearch"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/etSearchQuery"
+    timeout: 10000
 - tapOn:
-    id: "com.sza.fastmediasorter.debug:id/etFilterName"
+    id: "com.sza.fastmediasorter.debug:id/etSearchQuery"
 - inputText: "zzqq_nomatch_xyz"
-# S1065: dismiss the IME so it does not cover btnApplyFilter (rendered below the input).
+# The overlay narrows live - no Apply button. Drop the IME so it does not cover the empty state.
 - hideKeyboard
-- tapOn:
-    id: "com.sza.fastmediasorter.debug:id/btnApplyFilter"
 - extendedWaitUntil:
     visible:
       id: "com.sza.fastmediasorter.debug:id/emptyStateView"
@@ -67,11 +73,11 @@ appId: com.sza.fastmediasorter.debug
 - assertVisible:
     id: "com.sza.fastmediasorter.debug:id/tvEmptyStateMessage"
 
-# Cleanup: clear the persisted filter and restore name-asc so Загрузки is pristine for other flows.
+# Cleanup: closing the overlay clears the query (which resets nameContains) and restoring name-asc
+# leaves Загрузки pristine. Both matter - player_documents.yaml and text_viewer_renders.yaml open
+# this same resource and scroll down only, so a leaked query or a leaked date sort strands them.
 - tapOn:
-    id: "com.sza.fastmediasorter.debug:id/btnFilter"
-- tapOn:
-    id: "com.sza.fastmediasorter.debug:id/btnClearFilter"
+    id: "com.sza.fastmediasorter.debug:id/btnSearchClose"
 - extendedWaitUntil:
     visible:
       id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"

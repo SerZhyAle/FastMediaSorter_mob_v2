@@ -26,7 +26,7 @@ object StatisticsRowFormatter {
         String.format(Locale.getDefault(), "%,d", value)
 
     /** Human-readable size via the shared project formatter (KB/MB/GB or exact bytes for small files). */
-    fun formatBytes(value: Long): String = formatFileSize(value)
+    fun formatBytes(context: Context, value: Long): String = formatFileSize(context, value)
 
     /**
      * Compact duration. Above an hour -> "Hh Mm" (e.g. "12h 30m"); below -> "Mm Ss" (e.g. "4m 05s").

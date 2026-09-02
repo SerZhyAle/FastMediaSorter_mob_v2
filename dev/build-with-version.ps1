@@ -9,6 +9,7 @@ $ErrorActionPreference = "Stop"
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $projectRoot = Split-Path -Parent $scriptDir
 Set-Location $projectRoot
+. "$PSScriptRoot\..\scripts\utils\project-paths.ps1"
 Write-Host "Working directory: $projectRoot" -ForegroundColor Gray
 
 # Branch awareness: warn when building from main
@@ -220,33 +221,20 @@ if ($buildResult.ExitCode -eq 0) {
     # ==========================================
     # Updated path with 'standard' flavor
     $apkPath = "app_v2\build\outputs\apk\standard\debug\FastMediaSorter_debug.apk"
-    $distFolder = "c:\GD\i\APK\"
-    
-    if (Test-Path $apkPath) {
-        if (-not (Test-Path $distFolder)) {
-            New-Item -ItemType Directory -Path $distFolder -Force | Out-Null
-        }
-        
-        Write-Host "`nCopying APK to distribution folder..." -ForegroundColor Cyan
-        Copy-Item $apkPath $distFolder -Force
-        Write-Host "APK copied to: $distFolder" -ForegroundColor Green
-        
-        # Copy to Google Drive (FastMediaSorter store)
-        $gdDir = "c:\GD\WORK\FastMediaSorter"
-        if (-not (Test-Path $gdDir)) {
-            New-Item -ItemType Directory -Path $gdDir -Force | Out-Null
-        }
-        $apkName = Split-Path $apkPath -Leaf
-        Copy-Item $apkPath "$gdDir\$apkName" -Force
-        Write-Host "APK copied to Google Drive: $gdDir\$apkName" -ForegroundColor Cyan
+    $distFolder = Get-ArtifactSink -Kind Apk
 
-        # Copy to tc folder
-        $tcDir = "c:\GD\tc\SZA\_APP"
-        if (-not (Test-Path $tcDir)) {
-            New-Item -ItemType Directory -Path $tcDir -Force | Out-Null
+    if (Test-Path $apkPath) {
+        $apkName = Split-Path $apkPath -Leaf
+
+        if ($distFolder) {
+            Write-Host "`nCopying APK to distribution folder..." -ForegroundColor Cyan
+            Copy-Item $apkPath $distFolder -Force
+            Write-Host "APK copied to: $distFolder" -ForegroundColor Green
         }
-        Copy-Item $apkPath "$tcDir\$apkName" -Force
-        Write-Host "APK copied to tc folder: $tcDir\$apkName" -ForegroundColor Green
+
+        # -NoZip: this path has never produced the password archive its siblings do, and adding one
+        # here would change what a recipient of this builder's output finds on Drive.
+        & "$PSScriptRoot\..\scripts\utils\publish-artifact.ps1" -Path $apkPath -Name $apkName -NoZip
     }
     
     # ==========================================

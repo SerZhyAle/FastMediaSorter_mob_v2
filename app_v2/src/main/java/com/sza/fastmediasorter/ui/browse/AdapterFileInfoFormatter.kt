@@ -1,12 +1,17 @@
 package com.sza.fastmediasorter.ui.browse
 
+import android.content.Context
 import com.sza.fastmediasorter.core.util.formatFileSize
 import com.sza.fastmediasorter.core.util.formatMediaDuration
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import timber.log.Timber
 
-/** Pure formatting helpers for MediaFileAdapter list items. No state, no Android context. */
+/**
+ * Pure formatting helpers for MediaFileAdapter list items. Still stateless - the object holds no fields.
+ * The size-bearing builders take a [Context] because the unit label is a localized resource (S2351), not
+ * because the formatter caches anything from it.
+ */
 object AdapterFileInfoFormatter {
 
     // Per-bind formatting hot path: cache one SimpleDateFormat per thread instead of re-parsing the
@@ -46,15 +51,15 @@ object AdapterFileInfoFormatter {
     }
 
     /** "size • date • duration" for the bottom line in audio-only mode. */
-    fun buildAudioDetailLine(file: MediaFile): String {
-        val size = if (file.size > 0) formatFileSize(file.size) else null
+    fun buildAudioDetailLine(context: Context, file: MediaFile): String {
+        val size = if (file.size > 0) formatFileSize(context, file.size) else null
         val date = if (file.createdDate > 0) formatTimestamp(file.createdDate) else null
         val duration = formatDuration(file.duration)
         return listOfNotNull(size, date, duration).joinToString(" • ")
     }
 
     /** Rich info line: resolution/duration for media, item count for folders, size+date otherwise. */
-    fun buildFileInfo(file: MediaFile): String {
+    fun buildFileInfo(context: Context, file: MediaFile): String {
         if (file.isDirectory) {
             val count = file.childCount ?: 0
             return when {
@@ -64,9 +69,9 @@ object AdapterFileInfoFormatter {
             }
         }
 
-        val legacyInfo = buildLegacyFileInfo(file)
+        val legacyInfo = buildLegacyFileInfo(context, file)
         // S0210: trailing size segment for rich rows; hidden when size unknown (FTP, partial metadata).
-        val sizeSegment = if (file.size > 0) formatFileSize(file.size) else null
+        val sizeSegment = if (file.size > 0) formatFileSize(context, file.size) else null
 
         return when (file.type) {
             MediaType.AUDIO -> {
@@ -103,9 +108,9 @@ object AdapterFileInfoFormatter {
         }
     }
 
-    private fun buildLegacyFileInfo(file: MediaFile): String {
+    private fun buildLegacyFileInfo(context: Context, file: MediaFile): String {
         // Hide invalid FTP metadata (size=0 or date=1970-01-01)
-        val size = if (file.size > 0) formatFileSize(file.size) else "-"
+        val size = if (file.size > 0) formatFileSize(context, file.size) else "-"
         val date = if (file.createdDate > 0) formatTimestamp(file.createdDate) else "-"
         return "$size • $date"
     }

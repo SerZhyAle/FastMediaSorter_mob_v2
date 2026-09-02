@@ -1,21 +1,28 @@
-# Run-Tests.ps1 (S2326) - regression suite for scripts/utils/project-paths.ps1, the resolver every
-# repository script dot-sources instead of writing a drive-letter path.
-#
-# Three of its properties are behavioural claims that reading the source cannot settle:
-#   * the marker walk stops at the FIRST directory carrying the triple, so a tree nested inside
-#     another tree resolves to its own root and not to the outer one (strategic S2326 section 7);
-#   * a tree with no marker triple raises rather than returning a wrong answer;
-#   * an unreachable artifact sink returns $null and never throws, which is what lets phases 02-04
-#     skip a copy instead of failing a build (strategic S2326 ADR-3).
-#
-# Hermetic except for the two cases that deliberately read the live tree: every synthesized tree is
-# built under temp/S2326/ and removed at the end. Nothing outside temp/ is written.
-#
-# Usage:  pwsh -NoProfile -File scripts/utils/project-paths.tests/Run-Tests.ps1
-#
-# Exit codes:
-#   0   all cases pass.
-#   1   at least one case failed.
+<#
+.SYNOPSIS
+    S2326: regression suite for scripts/utils/project-paths.ps1, the path resolver.
+
+.DESCRIPTION
+    Covers the resolver every repository script dot-sources instead of writing a drive-letter path.
+
+    Three of its properties are behavioural claims that reading the source cannot settle:
+      * the marker walk stops at the FIRST directory carrying the triple, so a tree nested inside
+        another tree resolves to its own root and not to the outer one (strategic S2326 section 7);
+      * a tree with no marker triple raises rather than returning a wrong answer;
+      * an unreachable artifact sink returns $null and never throws, which is what lets phases
+        02-04 skip a copy instead of failing a build (strategic S2326 ADR-3).
+
+    Hermetic except for the two cases that deliberately read the live tree: every synthesized tree
+    is built under temp/S2326/ and removed at the end. Nothing outside temp/ is written.
+
+.NOTES
+    Exit codes:
+      0  all cases pass.
+      1  at least one case failed.
+
+.EXAMPLE
+    pwsh -NoProfile -File scripts/utils/project-paths.tests/Run-Tests.ps1
+#>
 
 [CmdletBinding()]
 param()

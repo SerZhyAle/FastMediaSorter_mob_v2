@@ -38,6 +38,10 @@
 .PARAMETER Quiet
     Same output reduction as -Gate, for a caller that wants the terse report without the gate framing.
 
+.PARAMETER RepoRoot
+    Repository root to scan. Defaults to the root this script sits in. A test suite hands a synthetic tree
+    here, which is the only way to exercise a shape the real repository does not currently contain.
+
 .OUTPUTS
     Exit 0 - scan completed, no violation raised.
     Exit 1 - at least one durable model is unpinned, partially pinned, or has an unresolvable type.
@@ -57,13 +61,23 @@ param(
 
     [switch]$Gate,
 
-    [switch]$Quiet
+    [switch]$Quiet,
+
+    [string]$RepoRoot
 )
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
-$repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+# PowerShell variable names are case-insensitive, so the parameter above and the $repoRoot every function
+# below reads are one variable. The default is therefore assigned in place rather than copied into a
+# second name that would only look separate.
+if (-not $repoRoot) {
+    $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+}
+# Normalised because a relative or trailing-separator root handed in by a test would throw off the
+# Substring that turns each scanned file into a repo-relative path.
+$repoRoot = (Resolve-Path -LiteralPath $repoRoot).Path.TrimEnd('\', '/')
 
 # Sink signatures live in one table so a new kind of storage is a data edit, not a logic edit (strategic
 # S1639 section 5.3). Order matters only in that the first match wins and is reported as the reason.
@@ -84,13 +98,23 @@ $TransientSinks = @(
 )
 
 $ClassDecl = '^\s*(?:@\w+(?:\([^)]*\))?\s*)*(?:public |internal |private )?(?:abstract |open |sealed |final )?(data class|enum class|value class|annotation class|class|object|interface)\s+([A-Za-z_]\w*)'
-$PropDecl = '(?:^|[,(])\s*(?:@[\w.]+(?:\([^)]*\))?\s*)*(?:override |private |internal |public |protected )*va[lr]\s+([A-Za-z_]\w*)\s*:\s*([^=,)]+)'
+# The type is deliberately not captured here. A type argument list carries commas of its own, so any
+# character class that stops at ',' reads `Map<String, Foo>` as `Map<String` - which names no model, so the
+# walk never enqueues Foo and the gate silently stops judging it (S2341). The match ends at the colon and
+# Get-TypeExpression reads the type from there by bracket depth. The lookahead keeps the old requirement
+# that some type actually follows.
+$PropDecl = '(?:^|[,(])\s*(?:@[\w.]+(?:\([^)]*\))?\s*)*(?:override |private |internal |public |protected )*va[lr]\s+([A-Za-z_]\w*)\s*:\s*(?=[^\s,=)])'
 # Gson field reflection carries state, and in this codebase state is declared as a data class or an enum.
 # A service reached through the same identifier chain - a repository, a use case - is not a model, and
 # admitting one would drag its whole injected graph into the report as fictional durable models.
 $ModelKinds = @('data class', 'enum class', 'value class')
 $EnumConstantMessage = 'Gson writes an enum by the constant name itself, so pinning the containing model - by @SerializedName on its properties or by a keep rule on the model - does not cover these constants. Annotate the constants or keep the enum by its own rule.'
-$GsonCall = '\.toJson\s*\(|\.fromJson\s*\('
+# Gson declares no nullary overload of either method - every one of them takes the value, the reader or
+# the type. A `x.toJson()` is therefore always some other type's own writer, in this tree a model that
+# hand-builds an org.json.JSONObject. Admitting it invented a serialization point whose type was the
+# receiver rather than an argument, which the resolver could not read and reported as unresolvable; the
+# exemption registry then carried the invented point instead of the gate declining it (S2325).
+$GsonCall = '\.toJson\s*\(\s*(?!\))|\.fromJson\s*\(\s*(?!\))'
 $GsonArgs = '\.(?:toJson|fromJson)\s*\('
 # Container names carry no wire names of their own - only their element type does.
 $Containers = '^(List|MutableList|ArrayList|Set|MutableSet|Collection|Array|Map|MutableMap|Iterable|Sequence|Pair)$'
@@ -154,6 +178,30 @@ function Test-ModelName {
     return $null -ne $declaration -and $ModelKinds -contains $declaration.kind
 }
 
+function Get-TypeExpression {
+    param([string]$Text, [int]$Start)
+
+    # A generic type argument list carries commas of its own, so the type ends at the first ',', '=' or ')'
+    # that sits OUTSIDE every angle bracket. Reading it with a character class instead returned `Map<String`
+    # for `Map<String, WearStreamUsage>`: a fully pinned model was reported as a point with an unresolvable
+    # type, and behind a model's property the same truncation dropped the value model from the walk without
+    # saying anything (S2341). Nesting needs no recursion here - Get-TypeName lifts every identifier out of
+    # whatever this returns, so `Map<String, List<Foo>>` yields Foo in the same single pass.
+    #
+    # Round brackets are deliberately not tracked: a function type reads as `(Foo` both before and after this
+    # change, and Gson does not serialize a lambda, so widening the parser there would be risk without gain.
+    $depth = 0
+    $builder = [System.Text.StringBuilder]::new()
+    for ($k = $Start; $k -lt $Text.Length; $k++) {
+        $char = $Text[$k]
+        if ($char -eq '<') { $depth++ }
+        elseif ($char -eq '>') { if ($depth -gt 0) { $depth-- } }
+        elseif ($depth -eq 0 -and ($char -eq ',' -or $char -eq '=' -or $char -eq ')')) { break }
+        [void]$builder.Append($char)
+    }
+    return $builder.ToString().Trim()
+}
+
 function Resolve-Identifier {
     param([string[]]$FileLines, [string]$Name)
 
@@ -161,7 +209,13 @@ function Resolve-Identifier {
         if ($line -notmatch "(?:va[lr]\s+|[,(]\s*)$Name\s*(?::|=)") { continue }
         # A named Gson type token holds the element type the declared type (`Type`) hides.
         if ($line -match 'TypeToken\s*<(.+)>\s*\(') { return $Matches[1] }
-        if ($line -match "$Name\s*:\s*([^=,)]+)") { return $Matches[1] }
+        $declared = [regex]::Match($line, "$Name\s*:\s*")
+        if ($declared.Success) {
+            $type = Get-TypeExpression -Text $line -Start ($declared.Index + $declared.Length)
+            # An empty result means the colon was the last thing on the line, so the constructor branch
+            # below is still the better answer rather than a type of nothing.
+            if ($type) { return $type }
+        }
         if ($line -match "$Name\s*=\s*([A-Za-z_]\w*)\s*\(") { return $Matches[1] }
     }
     return $null
@@ -285,6 +339,15 @@ function Resolve-CallModel {
                 if ($self) { $names.Add($self) }
                 continue
             }
+            # A model constructed inside the call - `toJson(Payload(items))` - names its type at the call
+            # site, so there is no identifier anywhere to look up. Falling through to the declaration search
+            # reported a fully annotated model as unresolvable, which is the same false red the receiver
+            # case produced (S2325). Restricted to a declared model of this module: the constructor form is
+            # the only shape where a bare token is the type itself rather than a value.
+            if ($argument.Trim() -match "^(?:\w+\s*=\s*)?$token\s*\(" -and (Test-ModelName -ModuleName $ModuleName -Name $token)) {
+                $names.Add($token)
+                continue
+            }
             $declared = Resolve-Identifier -FileLines $FileLines -Name $token
             if (-not $declared) { continue }
             $candidates = @(Get-TypeName $declared)
@@ -382,7 +445,7 @@ function Get-ModelProperty {
             if ($carried -match '@Transient') { continue }
             $properties.Add([pscustomobject]@{
                     name      = $match.Groups[1].Value
-                    type      = $match.Groups[2].Value.Trim()
+                    type      = Get-TypeExpression -Text $text -Start ($match.Index + $match.Length)
                     annotated = $carried -match '@SerializedName'
                 })
         }

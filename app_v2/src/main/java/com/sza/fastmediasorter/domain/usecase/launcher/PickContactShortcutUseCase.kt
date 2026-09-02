@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.data.launcher.ContactSnapshotDataSource
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactChannel
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactTarget
+import com.sza.fastmediasorter.domain.model.launcher.LauncherMessengerApp
 import javax.inject.Inject
 
 /**
@@ -45,13 +46,34 @@ class PickContactShortcutUseCase @Inject constructor(
     /** The system picker to launch for [action]; its result is what [invoke] consumes. */
     fun pickIntent(action: LauncherContactAction): Intent = contacts.pickIntent(action)
 
-    suspend operator fun invoke(action: LauncherContactAction, picked: Uri): Outcome = when (action) {
+    /**
+     * S2240: the messaging apps installed on this device, for offering the messenger before the contact.
+     *
+     * Needs no picked record and no permission, which is what allows it to run before the system contact
+     * picker opens at all.
+     */
+    suspend fun installedMessengers(): List<LauncherMessengerApp> = contacts.readInstalledMessengers()
+
+    /**
+     * S2240: [messengerPackage] narrows a MESSAGE pick to the app the user already chose, and is ignored
+     * by the other three actions, which have no channel to narrow.
+     *
+     * Narrowing happens here rather than at the caller so the result stays one [Outcome] whatever order
+     * the two choices were made in (strategic ADR-1): a contact-first pick passes null and behaves as it
+     * always did, a messenger-first pick passes the package, and both end at the same three outcomes.
+     */
+    suspend operator fun invoke(
+        action: LauncherContactAction,
+        picked: Uri,
+        messengerPackage: String? = null,
+    ): Outcome = when (action) {
         LauncherContactAction.PROFILE -> contacts.readProfile(picked).asOutcome()
 
         LauncherContactAction.DIAL, LauncherContactAction.SMS ->
             contacts.readPhoneTarget(picked, action).asOutcome()
 
-        LauncherContactAction.MESSAGE -> channelOutcome(contacts.readMessageChannels(picked))
+        LauncherContactAction.MESSAGE ->
+            channelOutcome(contacts.readMessageChannels(picked, messengerPackage))
     }
 
     private fun LauncherContactTarget?.asOutcome(): Outcome =

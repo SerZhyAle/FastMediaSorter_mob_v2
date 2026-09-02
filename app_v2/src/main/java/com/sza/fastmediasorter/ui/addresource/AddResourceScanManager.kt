@@ -208,7 +208,7 @@ internal class AddResourceScanManager(
         dialog: Dialog,
         useSafOnly: Boolean,
     ): com.google.android.material.button.MaterialButton {
-        val freeSpace = formatFileSize(volume.availableBytes)
+        val freeSpace = formatFileSize(activity, volume.availableBytes)
         // Styled through a ContextThemeWrapper rather than the plain Material attribute: these
         // buttons sit next to the quick-folder ones and have to carry the project's own outlined
         // style, which only a themed context applies to a view built in code.

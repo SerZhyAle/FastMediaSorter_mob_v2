@@ -8,12 +8,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
-import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
@@ -49,11 +49,29 @@ data class CalculatorMenuActions(
     val onDismiss: () -> Unit
 )
 
+/**
+ * S2152: the memory cell's four actions as one enumeration, so they can be laid out as a group.
+ *
+ * Each carries the calculator notation for what it does. The marker leads the label rather than
+ * trailing it because a grid cell truncates at its end, so the one part that must survive a narrow
+ * column is the part drawn first - and it is what tells the group apart with the colour filter on or
+ * for a reader who does not separate the two tints (S2003).
+ */
+private enum class CalculatorMemoryAction(val marker: String) {
+    ADD("M+"),
+    SUBTRACT("M-"),
+    RECALL("MR"),
+    CLEAR("MC")
+}
+
+/** S2152: history and close, gridded together so the menu ends in a row rather than in two chips. */
+private enum class CalculatorMenuUtility { HISTORY, CLOSE }
+
 @Composable
 fun CalculatorMenuSheet(
     memoryOccupied: Boolean,
     actions: CalculatorMenuActions,
-    viewMode: WearViewMode = WearViewMode.GRID_3
+    viewMode: WearViewMode
 ) {
     val listState = rememberScalingLazyListState()
 
@@ -66,6 +84,17 @@ fun CalculatorMenuSheet(
             viewMode = viewMode,
             availableWidthDp = maxWidth.value.toInt(),
             fixedEnumeration = true
+        )
+        // S2152 ADR-2: the memory group's own warm tone, declared as its own resource. S2007 ADR-4
+        // holds - the theme's error colour still means a destructive action and nothing else, and no
+        // row here is drawn from it.
+        val memoryColors = ChipDefaults.chipColors(
+            backgroundColor = colorResource(R.color.wear_calc_memory_tint),
+            contentColor = MaterialTheme.colors.onSurface
+        )
+        val functionColors = ChipDefaults.chipColors(
+            backgroundColor = colorResource(R.color.wear_calc_function_tint),
+            contentColor = MaterialTheme.colors.onSurface
         )
         ScalingLazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -88,47 +117,67 @@ fun CalculatorMenuSheet(
                 selected = null,
                 labelOf = { stringResource(labelResFor(it)) },
                 onSelected = actions.onFunction,
-                gridFit = gridFit
+                gridFit = gridFit,
+                unselectedColors = functionColors
             )
 
-            item { MenuRow(label = stringResource(R.string.wear_calc_memory_add), onClick = actions.onMemoryAdd) }
-            item {
-                MenuRow(
-                    label = stringResource(R.string.wear_calc_memory_subtract),
-                    onClick = actions.onMemorySubtract
-                )
-            }
-            // Recall and clear are offered only when the cell holds something: an empty memory has
-            // nothing to recall, and offering it would promise a value that is not there.
-            if (memoryOccupied) {
-                item {
-                    MenuRow(
-                        label = stringResource(R.string.wear_calc_memory_recall),
-                        onClick = actions.onMemoryRecall
-                    )
-                }
-                item {
-                    MenuRow(
-                        label = stringResource(R.string.wear_calc_memory_clear),
-                        onClick = actions.onMemoryClear
-                    )
-                }
-            }
+            wearChoiceRows(
+                options = memoryActionsFor(memoryOccupied),
+                selected = null,
+                labelOf = { action -> "${action.marker} ${stringResource(memoryLabelResFor(action))}" },
+                onSelected = { action -> actions.run(action) },
+                gridFit = gridFit,
+                unselectedColors = memoryColors
+            )
 
-            item { MenuRow(label = stringResource(R.string.wear_calc_history), onClick = actions.onHistory) }
-            item { MenuRow(label = stringResource(R.string.wear_calc_close), onClick = actions.onDismiss) }
+            wearChoiceRows(
+                options = CalculatorMenuUtility.entries,
+                selected = null,
+                labelOf = { stringResource(utilityLabelResFor(it)) },
+                onSelected = { utility -> actions.run(utility) },
+                gridFit = gridFit
+            )
         }
     }
 }
 
-@Composable
-private fun MenuRow(label: String, onClick: () -> Unit) {
-    Chip(
-        onClick = onClick,
-        label = { Text(text = label) },
-        modifier = Modifier.fillMaxWidth(),
-        colors = ChipDefaults.secondaryChipColors()
-    )
+/**
+ * Recall and clear are offered only when the cell holds something: an empty memory has nothing to
+ * recall, and offering it would promise a value that is not there.
+ */
+private fun memoryActionsFor(memoryOccupied: Boolean): List<CalculatorMemoryAction> =
+    if (memoryOccupied) {
+        CalculatorMemoryAction.entries
+    } else {
+        listOf(CalculatorMemoryAction.ADD, CalculatorMemoryAction.SUBTRACT)
+    }
+
+private fun CalculatorMenuActions.run(action: CalculatorMemoryAction) {
+    when (action) {
+        CalculatorMemoryAction.ADD -> onMemoryAdd()
+        CalculatorMemoryAction.SUBTRACT -> onMemorySubtract()
+        CalculatorMemoryAction.RECALL -> onMemoryRecall()
+        CalculatorMemoryAction.CLEAR -> onMemoryClear()
+    }
+}
+
+private fun CalculatorMenuActions.run(utility: CalculatorMenuUtility) {
+    when (utility) {
+        CalculatorMenuUtility.HISTORY -> onHistory()
+        CalculatorMenuUtility.CLOSE -> onDismiss()
+    }
+}
+
+private fun memoryLabelResFor(action: CalculatorMemoryAction): Int = when (action) {
+    CalculatorMemoryAction.ADD -> R.string.wear_calc_memory_add
+    CalculatorMemoryAction.SUBTRACT -> R.string.wear_calc_memory_subtract
+    CalculatorMemoryAction.RECALL -> R.string.wear_calc_memory_recall
+    CalculatorMemoryAction.CLEAR -> R.string.wear_calc_memory_clear
+}
+
+private fun utilityLabelResFor(utility: CalculatorMenuUtility): Int = when (utility) {
+    CalculatorMenuUtility.HISTORY -> R.string.wear_calc_history
+    CalculatorMenuUtility.CLOSE -> R.string.wear_calc_close
 }
 
 private fun labelResFor(function: WearCalculatorFunction): Int = when (function) {

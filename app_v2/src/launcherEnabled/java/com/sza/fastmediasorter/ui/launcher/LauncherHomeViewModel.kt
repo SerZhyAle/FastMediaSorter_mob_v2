@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellPlacement
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactChannel
+import com.sza.fastmediasorter.domain.model.launcher.LauncherMessengerApp
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.model.launcher.LauncherWallpaper
 import com.sza.fastmediasorter.domain.repository.LauncherSectionVisibilityRepository
@@ -105,6 +106,9 @@ class LauncherHomeViewModel @Inject constructor(
     // Rotation swaps which layout is observed. The collection itself is never torn down: the
     // orientation is an input to the stream, not a reason to restart it.
     private val _orientation = MutableStateFlow(LauncherOrientation.PORTRAIT)
+
+    /** S2330: guards [startShortcutSyncObservation] - see the note there on why a rotation must not restart it. */
+    private var shortcutSyncObservationStarted = false
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val cells: StateFlow<List<LauncherCellUi>> = _orientation
@@ -883,7 +887,38 @@ class LauncherHomeViewModel @Inject constructor(
                 landscapeColumns,
             )
             desktopDependencies.seedLauncherDesktop(portraitColumns, landscapeColumns)
+            startShortcutSyncObservation()
         }
+    }
+
+    /**
+     * S2330: keeps the desktop current for a tool switched on after the starter set was laid out.
+     *
+     * Started here, after the seed use case returns, and never before it: the sync's first
+     * pass records what the desktop already accounts for, so running it ahead of the seed would file
+     * the starter set as accounted-for while its cells do not exist yet (strategic 5.1).
+     *
+     * The trigger is the launchable ROUTE SET, not the settings object. Any settings write emits, and
+     * `distinctUntilChanged` over the derived set is what turns those emissions back into the one
+     * event that matters - a route becoming launchable (strategic 3.2). The use case itself is safe to
+     * call on every distinct value: it places a cell only for what is missing from its own baseline.
+     *
+     * The boolean is not a re-entrancy nicety - [seedDesktopIfNeeded] is called again on every
+     * rotation, and each call would otherwise leave another collector on this flow for the lifetime
+     * of the ViewModel.
+     */
+    private suspend fun startShortcutSyncObservation() {
+        if (shortcutSyncObservationStarted) return
+        shortcutSyncObservationStarted = true
+        Timber.d("S2330: shortcut sync observation started after seeding")
+
+        settingsRepository.getSettings()
+            .map { desktopDependencies.syncEnabledToolShortcuts.launchableShortcutRoutes() }
+            .distinctUntilChanged()
+            .collect { routes ->
+                Timber.d("S2330: launchable shortcut route set changed, size=%d", routes.size)
+                desktopDependencies.syncEnabledToolShortcuts()
+            }
     }
 
     /**
@@ -943,11 +978,31 @@ class LauncherHomeViewModel @Inject constructor(
     fun contactPickIntent(action: LauncherContactAction): Intent =
         shortcutDependencies.pickContactShortcut.pickIntent(action)
 
-    /** S1176: reads the [picked] contact into the snapshot to pin, or reports why it cannot be pinned. */
+    /**
+     * S1176: reads the [picked] contact into the snapshot to pin, or reports why it cannot be pinned.
+     *
+     * S2240: [messengerPackage] is the app the user chose before the contact, and null whenever the pick
+     * was not narrowed - every non-MESSAGE action, the "any app" row, and a device with too few
+     * messengers to be worth asking about.
+     */
     suspend fun resolveContactPick(
         action: LauncherContactAction,
         picked: Uri,
-    ): PickContactShortcutUseCase.Outcome = shortcutDependencies.pickContactShortcut(action, picked)
+        messengerPackage: String? = null,
+    ): PickContactShortcutUseCase.Outcome =
+        shortcutDependencies.pickContactShortcut(action, picked, messengerPackage)
+
+    /**
+     * S2240: the messaging apps installed on this device, for the step that now runs ahead of the system
+     * contact picker.
+     *
+     * A property holding the operation rather than a named suspend function, for the reason [pendingSlot],
+     * [recentsCapacity] and `decodePendingChannels` each record: this class sits exactly at detekt's
+     * `TooManyFunctions` ceiling of 40, and the 41st named function would trip it. Nothing is lost, since
+     * `LauncherContactPickManager` takes its domain operations as functions anyway (S1195).
+     */
+    val listInstalledMessengers: suspend () -> List<LauncherMessengerApp>
+        get() = { shortcutDependencies.pickContactShortcut.installedMessengers() }
 
     /**
      * S1431 ADR-4: the recents row's own measurement of how many icons it fits, written by the row after
@@ -1066,6 +1121,25 @@ class LauncherHomeViewModel @Inject constructor(
         }
 
     /**
+     * S2240: the messaging app picked before the contact, or null for "any app" and for every flow that
+     * never asked.
+     *
+     * In [SavedStateHandle] for a sharper version of the reason [pendingContactChannels] above gives: it
+     * is written immediately before the system contact picker launches and read when that picker's result
+     * arrives, so its whole life is the one window in which the OS is most likely to kill this process. A
+     * plain field lost there would not fail - the restored pick would read every channel instead of the
+     * chosen app's, and quietly pin a row from a different messenger.
+     *
+     * A plain string, so unlike [pendingContactChannels] there is nothing to decode and no partial value
+     * to reject: absent and "any app" are deliberately the same answer, because both mean "do not narrow".
+     */
+    var pendingContactMessenger: String?
+        get() = savedStateHandle[KEY_PENDING_CONTACT_MESSENGER]
+        set(value) {
+            savedStateHandle[KEY_PENDING_CONTACT_MESSENGER] = value
+        }
+
+    /**
      * S1930: the gadget key and minted token of the configurable widget whose configuration screen is
      * in front, or null when none is. In [SavedStateHandle] for the same reason as the two above -
      * that screen is a separate Activity, which is precisely when the OS is free to kill this one, and
@@ -1097,6 +1171,7 @@ class LauncherHomeViewModel @Inject constructor(
         const val KEY_PENDING_CONTACT_STEP = "launcher_pending_contact_step"
         const val KEY_PENDING_CHANNEL_LABELS = "launcher_pending_channel_labels"
         const val KEY_PENDING_CHANNEL_TARGETS = "launcher_pending_channel_targets"
+        const val KEY_PENDING_CONTACT_MESSENGER = "launcher_pending_contact_messenger"
         const val KEY_PENDING_WIDGET_KEY = "launcher_pending_widget_key"
         const val KEY_PENDING_WIDGET_TOKEN = "launcher_pending_widget_token"
     }

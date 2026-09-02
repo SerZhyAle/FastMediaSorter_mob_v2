@@ -257,6 +257,7 @@ class ReceiveWatchFileUseCase @Inject constructor(
             path.startsWith("ftp://") ||
             path.startsWith("cloud://")
 
+        Timber.d("S2044: watch-file destination isRemote=%s name=%s", isRemote, name)
         return if (isRemote) {
             WatchFileDestination.Remote(resource.id, path, name)
         } else {

@@ -214,7 +214,6 @@
     <string name="wear_streams_filter_all">सभी चैनल</string>
     <string name="wear_streams_filter_audio">केवल ऑडियो</string>
     <string name="wear_streams_filter_video">केवल वीडियो</string>
-    <string name="wear_streams_sort_default">डिफ़ॉल्ट क्रम</string>
     <string name="wear_streams_sort_name_asc">नाम (A-Z)</string>
     <string name="wear_streams_sort_name_desc">नाम (Z-A)</string>
     <string name="wear_streams_sort_kind">मीडिया प्रकार के अनुसार</string>
@@ -256,8 +255,6 @@
     <string name="wear_game_continue">जारी रखें</string>
     <string name="wear_game_board_description">गेम बोर्ड। चलने के लिए इस पर स्वाइप करें।</string>
     <string name="wear_game_player_description">बोर्ड पर आपकी गोटी</string>
-    <string name="wear_streams_sort_topic">विषय के अनुसार</string>
-    <string name="wear_streams_sort_language">भाषा से</string>
     <string name="wear_streams_filter_topic_all">सभी विषय</string>
     <string name="wear_streams_filter_language_all">सभी भाषाएँ</string>
     <string name="wear_streams_filter_topic_header">विषय</string>
@@ -380,4 +377,37 @@
     <string name="phone_resource_no_resource_for_type">इस प्रकार को धारण करने के लिए कोई फ़ोन संसाधन सेट नहीं किया गया है।</string>
     <string name="wear_folder_load_more">और दिखाएँ</string>
     <string name="wear_file_op_outcome_needs_consent">पुष्टि नहीं हुई - कुछ भी नहीं बदला</string>
+    <!-- S2146: mirrored verbatim from :app_v2 (S1477). Declared in wear-mirrored-strings.psd1. -->
+    <string name="streams_rubric_general">सामान्य</string>
+    <string name="streams_rubric_news">समाचार</string>
+    <string name="streams_rubric_pop">पॉप</string>
+    <string name="streams_rubric_religious">धार्मिक</string>
+    <string name="streams_rubric_kids">बच्चे</string>
+    <string name="streams_rubric_oldies">पुराने गाने</string>
+    <string name="streams_rubric_movies_series">फ़िल्में और सीरीज़</string>
+    <string name="streams_rubric_country_folk">कंट्री और लोक</string>
+    <string name="streams_rubric_rock">रॉक</string>
+    <string name="streams_rubric_sports">खेल</string>
+    <string name="streams_rubric_world">वर्ल्ड</string>
+    <string name="streams_rubric_jazz_blues">जैज़ और ब्लूज़</string>
+    <string name="streams_rubric_chillout">चिलआउट</string>
+    <string name="streams_rubric_electronic">इलेक्ट्रॉनिक</string>
+    <string name="streams_rubric_hip_hop">हिप-हॉप</string>
+    <string name="streams_rubric_talk">टॉक</string>
+    <string name="streams_rubric_local_radio">स्थानीय रेडियो</string>
+    <string name="streams_rubric_comedy">कॉमेडी</string>
+    <string name="streams_rubric_classical">शास्त्रीय</string>
+    <string name="streams_rubric_latin">लैटिन</string>
+    <string name="streams_rubric_documentary">वृत्तचित्र</string>
+    <string name="streams_rubric_education">शिक्षा</string>
+    <string name="streams_rubric_test">टेस्ट</string>
+    <string name="streams_rubric_rnb_soul">R&amp;B और सोल</string>
+    <string name="streams_rubric_metal">मेटल</string>
+    <string name="streams_rubric_webcam">वेबकैम</string>
+    <string name="streams_rubric_reggae">रेगे</string>
+    <string name="streams_rubric_shopping">शॉपिंग</string>
+    <string name="streams_rubric_business">बिज़नेस</string>
+    <string name="streams_rubric_lifestyle">लाइफ़स्टाइल</string>
+    <string name="streams_rubric_adult">वयस्क</string>
+    <string name="streams_rubric_traffic_cams">ट्रैफ़िक कैम</string>
 </resources>

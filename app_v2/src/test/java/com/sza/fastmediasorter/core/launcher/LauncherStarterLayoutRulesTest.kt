@@ -188,6 +188,58 @@ class LauncherStarterLayoutRulesTest {
     }
 
     @Test
+    fun `the medium-wide first screen still holds the same groups after the resources split`() {
+        // S2321: the cut counts entries of sectionOrder, so adding CORE_RESOURCES ahead of GOOGLE_APPS
+        // would have pushed that group to screen 1 unless DEFAULT_FIRST_SCREEN_SECTIONS rose with it.
+        // This pins the resulting membership, which is what the S2309 behavioural assertions compose
+        // against - a bump left out or overdone is a silent redesign of what a fresh desktop shows.
+        val rule = LauncherStarterLayoutRules.ruleFor(
+            LauncherScreenClass(LauncherScreenClass.Size.MEDIUM, LauncherScreenClass.Shape.WIDE),
+        )
+
+        assertEquals(
+            listOf(
+                StarterSectionGroup.PROFILE_GADGETS,
+                StarterSectionGroup.CORE_RESOURCES,
+                StarterSectionGroup.RESOURCES,
+                StarterSectionGroup.APP_FUNCTIONS,
+                StarterSectionGroup.LAUNCHER_ACTIONS,
+                StarterSectionGroup.ANDROID_APPS,
+                StarterSectionGroup.GOOGLE_APPS,
+            ),
+            rule.sectionOrder.take(rule.firstScreenSections),
+        )
+    }
+
+    @Test
+    fun `no screen cut splits two groups that share a section key`() {
+        for (screenClass in allScreenClasses) {
+            val rule = LauncherStarterLayoutRules.ruleFor(screenClass)
+            val cut = rule.firstScreenSections
+            val before = rule.sectionOrder.getOrNull(cut - 1)
+            val after = rule.sectionOrder.getOrNull(cut)
+
+            assertNotEquals(
+                "$screenClass split one section key across the screen cut",
+                before?.sectionKey,
+                after?.sectionKey,
+            )
+        }
+    }
+
+    @Test
+    fun `the core resources group is unbounded on every screen class`() {
+        for (screenClass in allScreenClasses) {
+            val rule = LauncherStarterLayoutRules.ruleFor(screenClass)
+
+            assertTrue(
+                "$screenClass budgeted CORE_RESOURCES, which drops a whole content type when it bites",
+                StarterSectionGroup.CORE_RESOURCES !in rule.itemBudget,
+            )
+        }
+    }
+
+    @Test
     fun `an unknown profile still resolves to a usable desktop`() {
         val screenClass = LauncherScreenClass(LauncherScreenClass.Size.COMPACT, LauncherScreenClass.Shape.ELONGATED)
 

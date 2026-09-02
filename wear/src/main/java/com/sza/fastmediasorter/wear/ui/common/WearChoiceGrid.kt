@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.material.Chip
+import androidx.wear.compose.material.ChipColors
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.Text
@@ -60,6 +61,10 @@ data class WearChoiceGridFit(
  * The chosen row is marked twice over, in both the list and the grid shape: a check glyph, and a
  * `selected` semantics flag. Colour alone would not carry the choice on a grid cell either (strategic
  * 3.1).
+ *
+ * [unselectedColors] is for a caller that lays several groups of rows into one list and needs them to
+ * read apart (S2152). Left null it is the secondary chip every other caller already draws, so a group
+ * has to ask for a tone rather than inherit one.
  */
 fun <T> ScalingLazyListScope.wearChoiceRows(
     options: List<T>,
@@ -67,7 +72,8 @@ fun <T> ScalingLazyListScope.wearChoiceRows(
     labelOf: @Composable (T) -> String,
     onSelected: (T) -> Unit,
     gridFit: WearChoiceGridFit,
-    key: ((T) -> Any)? = null
+    key: ((T) -> Any)? = null,
+    unselectedColors: ChipColors? = null
 ) {
     val columns = if (gridFit.fixedEnumeration) {
         GridColumnFit.columnsFor(gridFit.viewMode, gridFit.availableWidthDp)
@@ -80,7 +86,8 @@ fun <T> ScalingLazyListScope.wearChoiceRows(
             WearChoiceListChip(
                 label = labelOf(option),
                 isSelected = option == selected,
-                onClick = { onSelected(option) }
+                onClick = { onSelected(option) },
+                unselectedColors = unselectedColors
             )
         }
     } else {
@@ -90,14 +97,20 @@ fun <T> ScalingLazyListScope.wearChoiceRows(
                 columns = columns,
                 selected = selected,
                 labelOf = labelOf,
-                onSelected = onSelected
+                onSelected = onSelected,
+                unselectedColors = unselectedColors
             )
         }
     }
 }
 
 @Composable
-private fun WearChoiceListChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
+private fun WearChoiceListChip(
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    unselectedColors: ChipColors?
+) {
     Chip(
         onClick = onClick,
         label = { Text(text = label, maxLines = GRID_LABEL_MAX_LINES, overflow = TextOverflow.Ellipsis) },
@@ -117,7 +130,7 @@ private fun WearChoiceListChip(label: String, isSelected: Boolean, onClick: () -
         modifier = Modifier
             .fillMaxWidth()
             .semantics { this.selected = isSelected },
-        colors = if (isSelected) ChipDefaults.primaryChipColors() else ChipDefaults.secondaryChipColors()
+        colors = chipColorsFor(isSelected, unselectedColors)
     )
 }
 
@@ -128,7 +141,8 @@ private fun <T> WearChoiceGridRow(
     columns: Int,
     selected: T?,
     labelOf: @Composable (T) -> String,
-    onSelected: (T) -> Unit
+    onSelected: (T) -> Unit,
+    unselectedColors: ChipColors?
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -160,11 +174,19 @@ private fun <T> WearChoiceGridRow(
                     .weight(1f)
                     .height(GRID_CELL_HEIGHT)
                     .semantics { this.selected = isSelected },
-                colors = if (isSelected) ChipDefaults.primaryChipColors() else ChipDefaults.secondaryChipColors()
+                colors = chipColorsFor(isSelected, unselectedColors)
             )
         }
         repeat(columns - options.size) {
             Spacer(modifier = Modifier.weight(1f))
         }
     }
+}
+
+/** The selected row keeps the primary chip in every group - a group's tone marks it, not its choice. */
+@Composable
+private fun chipColorsFor(isSelected: Boolean, unselectedColors: ChipColors?): ChipColors = when {
+    isSelected -> ChipDefaults.primaryChipColors()
+    unselectedColors != null -> unselectedColors
+    else -> ChipDefaults.secondaryChipColors()
 }

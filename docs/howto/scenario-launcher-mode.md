@@ -106,6 +106,8 @@ Your desktop layout is kept either way, so switching launcher mode back on bring
 
 > **Wall tablet or car head unit?** Pair launcher mode with **Prevent Sleep** in **Settings → General** so the desktop stays visible while the device is on a charger.
 
+> **Left on all day?** **Settings → General → System launcher settings → Desktop → Screen timeout** sets how long the desktop waits while nobody touches it. It does not go dark at once: first comes a slow dimming, then the blackout - an app-private black overlay rather than the device switching itself off, so any touch brings the desktop straight back. Set it to **Off (never)** to keep the desktop lit.
+
 > **Want the full reference?** Every option, table and corner case lives in the [Use the App as Your Home Screen](../HOW_TO.md#how-to-use-the-app-as-your-home-screen) section of the user manual. This guide covers switching it on and the first steps; that section covers the rest.
 
 > **Other apps can put their own shortcuts here**, exactly as they would on any other home screen.

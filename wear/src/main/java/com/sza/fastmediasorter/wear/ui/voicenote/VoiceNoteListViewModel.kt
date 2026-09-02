@@ -1,12 +1,16 @@
 package com.sza.fastmediasorter.wear.ui.voicenote
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.wear.data.db.WearDatabaseResetNotice
 import com.sza.fastmediasorter.wear.domain.model.VoiceNote
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendResult
 import com.sza.fastmediasorter.wear.domain.repository.VoiceNoteRepository
 import com.sza.fastmediasorter.wear.domain.usecase.SendVoiceNoteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -29,7 +33,9 @@ data class VoiceNoteListUiState(
     val notes: List<VoiceNote> = emptyList(),
     val isLoading: Boolean = true,
     val sendingNoteId: Long? = null,
-    val lastSendResult: VoiceNoteSendResult? = null
+    val lastSendResult: VoiceNoteSendResult? = null,
+    /** S2356: set once after a database recovery, cleared as soon as the user has seen it. */
+    val resetNotice: WearDatabaseResetNotice.PendingReset? = null
 )
 
 /**
@@ -41,23 +47,38 @@ data class VoiceNoteListUiState(
  */
 @HiltViewModel
 class VoiceNoteListViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val noteRepository: VoiceNoteRepository,
     private val sendVoiceNote: SendVoiceNoteUseCase
 ) : ViewModel() {
 
     private val sendingNoteId = MutableStateFlow<Long?>(null)
     private val lastSendResult = MutableStateFlow<VoiceNoteSendResult?>(null)
+    private val resetNotice = MutableStateFlow<WearDatabaseResetNotice.PendingReset?>(null)
+
+    // S2356: read here rather than in the provider that wrote it, because consuming the notice is
+    // what marks it seen, and this list is the surface strategic 3.3 chose to show it on. Off the
+    // main thread: it is a SharedPreferences read on the path to the first frame.
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            val pending = WearDatabaseResetNotice.consumePending(context)
+            Timber.d("S2356: note list consumed reset notice: %s", pending ?: "none pending")
+            resetNotice.value = pending
+        }
+    }
 
     val uiState: StateFlow<VoiceNoteListUiState> = combine(
         noteRepository.observeNotes(),
         sendingNoteId,
-        lastSendResult
-    ) { notes, sending, result ->
+        lastSendResult,
+        resetNotice
+    ) { notes, sending, result, notice ->
         VoiceNoteListUiState(
             notes = notes,
             isLoading = false,
             sendingNoteId = sending,
-            lastSendResult = result
+            lastSendResult = result,
+            resetNotice = notice
         )
     }.stateIn(
         scope = viewModelScope,
@@ -90,5 +111,10 @@ class VoiceNoteListViewModel @Inject constructor(
 
     fun acknowledgeSendResult() {
         lastSendResult.value = null
+    }
+
+    /** The record was already cleared on read; this only takes the dialog off the screen. */
+    fun acknowledgeResetNotice() {
+        resetNotice.value = null
     }
 }

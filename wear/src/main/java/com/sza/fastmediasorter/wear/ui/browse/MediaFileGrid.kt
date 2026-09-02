@@ -41,6 +41,7 @@ import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WearRowDensity
 import com.sza.fastmediasorter.wear.ui.common.rowDensityFor
 import com.sza.fastmediasorter.wear.util.GridColumnFit
+import com.sza.fastmediasorter.wear.util.fileSizeParts
 import java.util.Locale
 
 private const val SINGLE_COLUMN = 1
@@ -51,7 +52,6 @@ private const val IMAGE_PREFIX = "image/"
 private const val VIDEO_PREFIX = "video/"
 private const val AUDIO_PREFIX = "audio/"
 
-private const val BYTES_PER_UNIT = 1024.0
 private const val SECONDS_PER_MINUTE = 60
 private const val MINUTES_PER_HOUR = 60
 private const val MILLIS_PER_SECOND = 1000
@@ -298,12 +298,12 @@ private fun formatDuration(durationMs: Long): String {
     }
 }
 
+/**
+ * Composable so the unit is read through the composition's configuration rather than a context's: the
+ * label has to follow the watch's language, which the arithmetic behind it never sees (S2353).
+ */
+@Composable
 private fun formatFileSize(bytes: Long): String {
-    val kilobytes = bytes / BYTES_PER_UNIT
-    val megabytes = kilobytes / BYTES_PER_UNIT
-    return when {
-        megabytes >= 1 -> String.format(Locale.US, "%.1f MB", megabytes)
-        kilobytes >= 1 -> String.format(Locale.US, "%.1f KB", kilobytes)
-        else -> "$bytes B"
-    }
+    val parts = fileSizeParts(bytes)
+    return stringResource(parts.unitRes, parts.value)
 }

@@ -3721,7 +3721,6 @@
     <ID>MaxLineLength:DuplicateGroupAdapter.kt$DuplicateGroupAdapter.GroupViewHolder$binding.headerGroup.setExpandCollapseContentDescriptions(R.string.cd_expand_group, R.string.cd_collapse_group)</ID>
     <ID>MaxLineLength:DuplicatesActivity.kt$DuplicatesActivity$val duplicatesList = binding.fragmentContainer.findViewById&lt;androidx.recyclerview.widget.RecyclerView&gt;(R.id.rvDuplicates)</ID>
     <ID>MaxLineLength:DuplicatesFragment.kt$DuplicatesFragment$.</ID>
-    <ID>MaxLineLength:DuplicatesFragment.kt$DuplicatesFragment$binding.fabDeleteSelected.text = getString(R.string.duplicate_fab_delete, selectedCount, formatFileSize(selectedSize))</ID>
     <ID>MaxLineLength:DuplicatesFragment.kt$DuplicatesFragment$binding.tvScanFiles.text = getString(R.string.scan_files_progress, progress.filesProcessed, progress.totalFiles)</ID>
     <ID>MaxLineLength:DuplicatesFragment.kt$DuplicatesFragment$is DuplicatesEvent.FileDeleted -&gt; Toast.makeText(requireContext(), R.string.friendly_copy_success_generic, Toast.LENGTH_SHORT).show()</ID>
     <ID>MaxLineLength:DuplicatesFragment.kt$DuplicatesFragment$MaterialAlertDialogBuilder(requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)</ID>

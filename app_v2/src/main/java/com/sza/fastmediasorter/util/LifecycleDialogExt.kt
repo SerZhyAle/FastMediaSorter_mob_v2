@@ -160,8 +160,11 @@ fun <T : Dialog> T.showBoundToHost(context: Context): T? {
 /**
  * First [LifecycleOwner] in this context's wrapper chain, or `null` when the chain reaches the
  * application context without passing one.
+ *
+ * S2358 opened this up to the package so `launchBoundToHost` resolves the host the same way: with two
+ * copies, the window binding and the work raised behind it could disagree on who the host is.
  */
-private fun Context.findLifecycleOwner(): LifecycleOwner? {
+internal fun Context.findLifecycleOwner(): LifecycleOwner? {
     var current: Context? = this
     while (current != null) {
         if (current is LifecycleOwner) return current

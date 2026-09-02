@@ -36,7 +36,7 @@ permalink: /docs/WEAR_OS_STATUS.html
   - Hilt Navigation Compose (for hiltViewModel)
   - Accompanist Permissions (for runtime permissions)
 - ✅ Configured `AndroidManifest.xml` (Standalone app + Media permissions)
-- ✅ Startup splash (S1706): the module owns `values/themes.xml` and a `values-v31` redefinition carrying the splash attributes, so a cold start opens on the brand logo instead of a bare system background. Android 12 and newer only, matching the phone. The drawable is generated - see `docs/DEV_OPS.md` "Generated splash drawables".
+- ✅ Startup splash (S1706, corrected by S2274): the module owns `values/themes.xml` and a `values-v31` redefinition carrying `windowSplashScreenBackground` only, so a cold start opens on the **launcher icon** over black instead of a bare system background. Android 12 and newer only, matching the phone. `windowSplashScreenAnimatedIcon` is deliberately unset - the platform then draws the launcher icon itself, which is what Wear App Quality rule WO-V15 requires ("the splash screen icon must match the app launcher icon"). S1706 had pointed it at the generated brand glyph, and Play rejected the watch on 2026-08-31 with `Missing app icon in splash screen`; setting it again re-opens that rejection. The brand mark now lives only in `BrandFrameScreen`, which runs after the splash.
 
 ### 2. Architecture
 
@@ -329,6 +329,31 @@ command, gated on the Wear Companion option AND `MediaCapabilities.supportsWearC
 - Catalog refresh (`ImportWearStreamCatalogUseCase`) replaces catalog rows only: stored rows with
   `origin = "PHONE"` survive unless the fresh catalog carries the same url, in which case the
   catalog row supersedes.
+
+---
+
+## 📌 Pinned-stream ranking from the Phone (S2149)
+
+Streams the owner pinned on the phone are raised into the watch's top group, beside the marks made on
+the watch itself. Phone → watch only: a mark made on the watch does not travel back by this path.
+
+- Path `STREAM_PINS` (`/fms/phone/stream_pins`), phone → watch, **Data Item** carrying a
+  `WearEventEnvelope` whose `data` is `WearStreamPinsPayload {identities}`. A Data Item rather than a
+  message because the set is state: a watch switched on a day later must see the current set rather
+  than have missed the moment it changed. It rides the `/fms/phone` prefix the watch manifest already
+  declares, so it needed no manifest edit.
+- The set is always published **whole**, including when empty. A delta or a skipped empty publish
+  would leave the last pin stuck on the watch with no way for the phone to withdraw it.
+- `identities` are folded channel identities (`web://host/path`, `http` and `https` collapsed into one
+  token), never raw addresses - so the watch never has to reconcile two catalogs. The phone folds with
+  `StreamChannelIdentity`; the watch compares with `foldWearStreamIdentity`, which is a comparison rule
+  only and never the key a favourite is stored under.
+- Phone side: `PushWearStreamPinsUseCase.observeAndPush` collects the pinned sources and republishes on
+  every change, started once per process from `AppStartupInitializer`.
+- Watch side: `WatchWearListenerService` → `WearPhonePinsRepository.replaceAll`, persisted to
+  `filesDir/streams/phone_pins.json` and kept **separate** from the watch's own favourites store, so
+  the star still means "I marked this here" and the phone can withdraw only what the phone sent. A
+  payload that fails to parse is dropped, leaving the previously stored set in place.
 
 ---
 

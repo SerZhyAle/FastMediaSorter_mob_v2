@@ -3153,4 +3153,6 @@
     <string name="launcher_all_apps_swipe_explain_back_to_desktop">Ferme la liste des applis et affiche le bureau en dessous.</string>
     <string name="launcher_all_apps_swipe_explain_expand">Affiche la liste complète des applis au lieu des sections alphabétiques.</string>
     <string name="launcher_welcome_toggle_subtitle">Ouvrir FastMediaSorter avec le bouton Accueil. Le système vous demandera de confirmer après la configuration, et vous pourrez revenir en arrière à tout moment dans les Paramètres.</string>
+    <string name="unit_bitrate_kbps">%1$s kbit/s</string>
+    <string name="unit_bitrate_mbps">%1$s Mbps</string>
 </resources>

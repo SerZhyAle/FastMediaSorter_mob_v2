@@ -4,6 +4,7 @@ import android.content.Context
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.capture.CameraHardwareDataSource
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -65,5 +66,12 @@ class GatherSystemInfoUseCaseTest {
 
         assertTrue("masked must equal full when no contributor is present", report.maskedText == report.fullText)
         assertTrue("hasSensitive must be false when no contributor is present", !report.hasSensitive)
+    }
+
+    @Test
+    fun `invoke benchmark section formats throughput without stray tilde brackets`() {
+        val summary = useCase().maskedText
+
+        assertFalse("summary must not contain stray tilde in brackets '(~)'", summary.contains("(~)"))
     }
 }

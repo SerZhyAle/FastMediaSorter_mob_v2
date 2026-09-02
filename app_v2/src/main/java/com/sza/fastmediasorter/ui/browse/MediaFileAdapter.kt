@@ -636,7 +636,7 @@ class MediaFileAdapter(
 
             // In audio-only mode update info line with detail / cache progress; in other modes leave tvFileInfo as-is
             if (isAudioOnlyMode) {
-                val baseInfo = AdapterFileInfoFormatter.buildAudioDetailLine(file)
+                val baseInfo = AdapterFileInfoFormatter.buildAudioDetailLine(itemView.context, file)
                 if (isDownloading) {
                     val progress = state.downloadProgressPercent.coerceIn(0, 100)
                     binding.tvFileInfo.text = if (progress > 0) "$baseInfo • Cache $progress%" else "$baseInfo • Cache..."
@@ -677,10 +677,10 @@ class MediaFileAdapter(
             val audioOnlyFile = isAudioOnlyMode && !file.isDirectory
             if (audioOnlyFile) {
                 binding.tvFileName.text = AdapterFileInfoFormatter.buildAudioDisplayName(file)
-                binding.tvFileInfo.text = AdapterFileInfoFormatter.buildAudioDetailLine(file)
+                binding.tvFileInfo.text = AdapterFileInfoFormatter.buildAudioDetailLine(itemView.context, file)
             } else {
                 // Non audio-only mode: filename stays, but info line may include duration
-                binding.tvFileInfo.text = AdapterFileInfoFormatter.buildFileInfo(file)
+                binding.tvFileInfo.text = AdapterFileInfoFormatter.buildFileInfo(itemView.context, file)
             }
         }
 
@@ -788,10 +788,10 @@ class MediaFileAdapter(
                 val displayFile = resolveAudioMetadata(file)
                 if (audioOnlyFile) {
                     tvFileName.text = AdapterFileInfoFormatter.buildAudioDisplayName(displayFile)
-                    tvFileInfo.text = AdapterFileInfoFormatter.buildAudioDetailLine(displayFile)
+                    tvFileInfo.text = AdapterFileInfoFormatter.buildAudioDetailLine(itemView.context, displayFile)
                 } else {
                     tvFileName.text = file.name
-                    tvFileInfo.text = AdapterFileInfoFormatter.buildFileInfo(file)
+                    tvFileInfo.text = AdapterFileInfoFormatter.buildFileInfo(itemView.context, file)
                 }
 
                 // Load thumbnail or folder icon

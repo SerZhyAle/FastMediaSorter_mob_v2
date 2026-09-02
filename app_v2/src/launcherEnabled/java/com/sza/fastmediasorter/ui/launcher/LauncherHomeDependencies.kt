@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.domain.usecase.launcher.ResolveLauncherCommandLab
 import com.sza.fastmediasorter.domain.usecase.launcher.ResolveLauncherDesktopUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.SeedLauncherDesktopUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.StartAppShortcutUseCase
+import com.sza.fastmediasorter.domain.usecase.launcher.SyncEnabledToolShortcutsUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.PinStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.RemoveStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
@@ -35,6 +36,9 @@ class LauncherDesktopDependencies @Inject constructor(
     val resolveDesktop: ResolveLauncherDesktopUseCase,
     val desktopRepository: LauncherDesktopRepository,
     val seedLauncherDesktop: SeedLauncherDesktopUseCase,
+    // S2330: joins the seeding it must never precede - the sync keeps the desktop current for tools
+    // switched on after the starter set was laid out, and both describe the same surface.
+    val syncEnabledToolShortcuts: SyncEnabledToolShortcutsUseCase,
     val resourceRepository: ResourceRepository,
     // S1930: removing a configured widget cell has to throw its stored instance away, and the cell is
     // the only thing that still knows which one - so the cleanup joins the surface that owns removal.

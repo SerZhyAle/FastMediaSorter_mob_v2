@@ -167,6 +167,20 @@ function Resolve-CodeDomainsForPaths {
           - A path the table does not recognise, including a module added later. A new module is
             then over-protected rather than unprotected, which is the safe direction to be wrong.
           - An empty set, which asks about nothing and so cannot be narrowed.
+
+        S2338 adds the one exemption: a PLAN/ path resolves to NO domain, so a PLAN-only set
+        returns an empty array and its caller takes no code lock. That is not a hole in ADR-2 -
+        it is ADR-2's own test applied one level down. The lock exists to serialise what nothing
+        else serialises, and PLAN/ is already exclusive per ticket (ticket-lease.ps1) and per
+        journal (Enter-CatalogLock). Callers must therefore handle an EMPTY result, which before
+        this ticket was unreachable.
+
+        S2342 narrows the second fail-closed case, and is likewise not a hole in ADR-2. Fail-closed
+        exists for a path that MIGHT belong to a module: over-protecting an unknown one is the safe
+        direction to be wrong. A store-listing file, a site page or a root licence cannot belong to
+        a module in principle - none of them compiles, links or packs into an APK - so the branch
+        below names those trees rather than guessing at them, and `return $full` stays untouched for
+        everything genuinely unrecognised, corex/, benchmark/ and watchface/ included.
     #>
     param([string[]]$Path)
 
@@ -186,6 +200,9 @@ function Resolve-CodeDomainsForPaths {
     if ($expanded.Count -eq 0) { return $full }
 
     $matched = @{}
+    # Counts paths that resolve to no domain BY DESIGN (S2338), so an all-exempt set can be told
+    # apart from a set that matched nothing because it was empty.
+    $exempt = 0
     foreach ($raw in $expanded) {
         if ([string]::IsNullOrWhiteSpace($raw)) { continue }
         # Normalise to repo-relative forward slashes: callers pass a mix of both separators, and a
@@ -215,9 +232,45 @@ function Resolve-CodeDomainsForPaths {
 
         if ($normalised -match '^app_v2/') { $matched['Code.Phone'] = $true; continue }
         if ($normalised -match '^wear/') { $matched['Code.Wear'] = $true; continue }
-        if ($normalised -match '^(scripts|dev|docs|PLAN|\.claude|\.github)/' -or
+
+        # S2338: PLAN/ contributes NO domain, and is the one exemption in this table. The test is
+        # not "is it source" but "is this path already serialised by a finer mechanism", and every
+        # path under PLAN/ is, twice over:
+        #   - PLAN/Sxxxx_*.md and PLAN/Sxxxx_<slug>/ belong to exactly one ticket, and a ticket is
+        #     held exclusively by scripts/spec_catalog/ticket-lease.ps1 (atomic claim, exit 3 to
+        #     the loser), so two sessions cannot reach one spec file at all.
+        #   - the journals and both release files are written only through the catalog mutators,
+        #     which all hold Enter-CatalogLock (scripts/spec_catalog/_lib.ps1, S1437).
+        # docs/ and dev/ are deliberately NOT exempt: they are hand-edited prose with no finer
+        # mechanism over them, so a concurrent edit there is an ordinary lost update.
+        # Measured 2026-09-02 over the last 397 dev-log rows: 217 (55%) touched PLAN/ and nothing
+        # else, so before this branch the majority of closures took a domain that protected
+        # nothing while serialising every scripts/, docs/ and .claude/ edit in the repository.
+        if ($normalised -match '^PLAN/') { $exempt++; continue }
+
+        if ($normalised -match '^(scripts|dev|docs|\.claude|\.github)/' -or
             $normalised -match '^(CLAUDE|AGENTS|README)\.md$' -or
             $normalised -match '^a\.ps1$') {
+            $matched['Code.Scripts'] = $true; continue
+        }
+
+        # S2342: content with no code in it joins Code.Scripts rather than failing closed. These
+        # trees and root files cannot belong to a module - nothing under them compiles, links or
+        # packs into an APK - so the full set bought no protection while serialising phone and watch
+        # work against a store-listing edit. Measured 2026-09-02 over the last 400 dev-log rows: the
+        # full code set was taken 11 times, 9 of those sets touched content and 8 were content ONLY.
+        # They still need a lock, of exactly the shape docs/ has above: hand-edited files with no
+        # finer mechanism over them, so a concurrent edit is an ordinary lost update.
+        # Read off a full listing of the repository root, not enumerated one directory per finding -
+        # that drift is what this branch exists to avoid repeating.
+        # Deliberately NOT here: corex/, benchmark/ and watchface/. The last two are real Gradle
+        # modules (settings.gradle.kts) with no Build.* domain of their own, so giving them a code
+        # domain is a boundary decision, not a content one, and they keep failing closed until it.
+        if ($normalised -match '^(play|fastlane|store_assets|delivery|maestro)/' -or
+            $normalised -match '^(index|nolegal)[^/]*\.html$' -or
+            $normalised -match '^(styles\.css|sitemap\.xml|robots\.txt|_config\.yml|_typos\.toml)$' -or
+            $normalised -match '^(GEMINI\.md|LICENSE|THIRD_PARTY_LICENSES\.md)$' -or
+            $normalised -match '^(favicon[^/]*|icon\.png|apple-touch-icon\.png)$') {
             $matched['Code.Scripts'] = $true; continue
         }
 
@@ -225,6 +278,10 @@ function Resolve-CodeDomainsForPaths {
         return $full
     }
 
+    # An all-exempt set needs no code domain, and that is NOT the same answer as the empty input
+    # handled at the top, which still fails closed to the full set. Collapsing the two would send
+    # every PLAN-only closure back to taking all three domains - the defect this branch removes.
+    if ($matched.Count -eq 0 -and $exempt -gt 0) { return @() }
     if ($matched.Count -eq 0) { return $full }
     return @(Get-AgentLockDomainTable |
         Where-Object { $_.Type -eq 'Code' -and $matched.ContainsKey($_.Domain) } |

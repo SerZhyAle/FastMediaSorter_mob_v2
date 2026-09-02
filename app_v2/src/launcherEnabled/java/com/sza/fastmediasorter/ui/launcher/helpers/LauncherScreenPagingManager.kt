@@ -20,7 +20,10 @@ import timber.log.Timber
 class LauncherScreenPagingManager(
     private val indicatorContainer: LinearLayout,
     private val screenCount: () -> Int,
-    private val onScreenChanged: () -> Unit,
+    // S2323: the sign of travel, +1 forward and -1 back. The caller animates towards one edge, and a
+    // dot click can jump several screens at once, so the direction cannot be read off the gesture -
+    // only off the index difference, which is known here and nowhere else.
+    private val onScreenChanged: (Int) -> Unit,
 ) {
 
     var activeScreenIndex: Int = 0
@@ -48,9 +51,10 @@ class LauncherScreenPagingManager(
     fun show(screenIndex: Int) {
         val count = screenCount()
         if (screenIndex == activeScreenIndex || screenIndex !in 0 until count) return
+        val direction = if (screenIndex > activeScreenIndex) FORWARD else BACKWARD
         activeScreenIndex = screenIndex
         Timber.d("S2301: launcher active screen %d of %d", activeScreenIndex, count)
-        onScreenChanged()
+        onScreenChanged(direction)
         renderIndicators()
     }
 

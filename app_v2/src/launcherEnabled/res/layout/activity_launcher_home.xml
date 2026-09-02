@@ -67,15 +67,9 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/launcherGridPager"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@+id/launcherPageIndicator"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/launcherStatusStrip" />
+    <!-- S2323 removed a ViewPager2 that sat here permanently GONE with no Kotlin reference in the whole
+         source set. It was never the paging vehicle - the desktop is one hand-written ViewGroup rebound
+         per screen (ADR-9) - and this ticket's transition animates that container instead. -->
 
     <LinearLayout
         android:id="@+id/launcherPageIndicator"
@@ -145,5 +139,28 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- S2323: the screen number, shown for half a second when the user turned animations off and the
+         slide that would otherwise mark the page change cannot run. Declared last so it draws above
+         every layer, including the idle dim. Anchored to the scroll container rather than to the parent
+         because that container already sits below the status strip and is already re-constrained for a
+         top or bottom taskbar (S1430), so both corrections are inherited instead of recomputed here
+         (strategic ADR-4). Colour and shadow are applied in code - the colour varies per screen index,
+         and android:shadowRadius takes a float, not a dimension. -->
+    <TextView
+        android:id="@+id/launcherScreenNumberBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:alpha="0.55"
+        android:clickable="false"
+        android:focusable="false"
+        android:importantForAccessibility="no"
+        android:layout_marginTop="@dimen/launcher_screen_badge_margin"
+        android:layout_marginEnd="@dimen/launcher_screen_badge_margin"
+        android:textSize="@dimen/launcher_screen_badge_text_size"
+        android:textStyle="bold"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="@+id/launcherGridScroll"
+        app:layout_constraintTop_toTopOf="@+id/launcherGridScroll" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

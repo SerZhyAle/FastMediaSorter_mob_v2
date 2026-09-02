@@ -28,6 +28,16 @@
     <color name="launcher_start_row_group3">#FFEFB8C8</color>
     <color name="launcher_start_row_group4">#FFF2B8B5</color>
 
+    <!-- S2323: night half of the screen-number badge. The glyphs lighten and the halo flips to dark, so
+         the outline keeps working over a bright wallpaper the way the day set's light halo does over a
+         dark one. -->
+    <color name="launcher_screen_badge_1">#FF90CAF9</color>
+    <color name="launcher_screen_badge_2">#FFA5D6A7</color>
+    <color name="launcher_screen_badge_3">#FFFFCC80</color>
+    <color name="launcher_screen_badge_4">#FFCE93D8</color>
+    <color name="launcher_screen_badge_5">#FFEF9A9A</color>
+    <color name="launcher_screen_badge_shadow">#B3000000</color>
+
     <!-- Basic colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>

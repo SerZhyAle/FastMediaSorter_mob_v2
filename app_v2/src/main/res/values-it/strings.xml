@@ -3153,4 +3153,6 @@
     <string name="launcher_all_apps_swipe_explain_back_to_desktop">Chiude l\'elenco delle app e mostra la scrivania sottostante.</string>
     <string name="launcher_all_apps_swipe_explain_expand">Mostra l\'elenco completo delle app invece delle sezioni alfabetiche.</string>
     <string name="launcher_welcome_toggle_subtitle">Apri FastMediaSorter con il pulsante Home. Il sistema ti chiederà conferma al termine della configurazione e potrai tornare indietro in qualsiasi momento nelle Impostazioni.</string>
+    <string name="unit_bitrate_kbps">%1$s kbit/s</string>
+    <string name="unit_bitrate_mbps">%1$s Mbps</string>
 </resources>

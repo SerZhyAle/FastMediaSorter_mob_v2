@@ -14,6 +14,17 @@
          here, so that decision re-points it in one line. -->
     <color name="wear_calc_display_value">#FFFFD54F</color>
 
+    <!-- S2152 ADR-2: the calculator menu's two tinted groups. Memory is warm, which is the family
+         the owner named, but it is NOT the theme's error colour: S2007 ADR-4 gave that colour to a
+         destructive action and stated no other control is drawn that way, so borrowing it would
+         leave one tone carrying two meanings on one screen. The warm brown sits far enough from the
+         translucent red plate the clear and backspace keys wear to stay a different statement.
+         Functions take a cool slate so the two tinted groups read apart from each other and from the
+         plain surface chip that history and close keep. Reversible: the owner asking for literally
+         the same red is one value here. -->
+    <color name="wear_calc_memory_tint">#FF5D4037</color>
+    <color name="wear_calc_function_tint">#FF26343F</color>
+
     <!-- S2003 ADR-3: the semantic tone of a content type, mirrored from the phone's icon-tinting
          scheme so one entity wears one colour across both apps. Names match the phone's on purpose -
          the lineage stays greppable from either module when S2046 folds its four schemes into one.

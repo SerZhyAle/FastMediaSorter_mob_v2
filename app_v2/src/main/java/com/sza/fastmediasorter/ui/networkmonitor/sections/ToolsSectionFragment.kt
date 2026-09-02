@@ -11,6 +11,8 @@ import com.google.android.material.chip.Chip
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.clipboard.copyTextToClipboard
 import com.sza.fastmediasorter.databinding.FragmentNetworkMonitorToolsBinding
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.renderToolsConsole
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.renderToolsProgressLabel
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -82,14 +84,15 @@ class ToolsSectionFragment : Fragment() {
         }
 
         binding.toolsProgressGroup.isVisible = state.isRunning
-        if (state.isRunning && state.runningActionLabel != null) {
-            binding.toolsProgressLabel.text = state.runningActionLabel
+        val runningOperation = state.runningOperation
+        if (state.isRunning && runningOperation != null) {
+            binding.toolsProgressLabel.text = requireContext().renderToolsProgressLabel(runningOperation)
         }
 
-        binding.toolsConsoleOutput.text = if (state.consoleOutput.isEmpty()) {
+        binding.toolsConsoleOutput.text = if (state.consoleLines.isEmpty()) {
             getString(R.string.network_monitor_console_empty)
         } else {
-            state.consoleOutput
+            requireContext().renderToolsConsole(state.consoleLines)
         }
 
         renderTargetChips(state.targets)
@@ -115,7 +118,8 @@ class ToolsSectionFragment : Fragment() {
     private fun copyConsoleToClipboard() {
         val text = binding.toolsConsoleOutput.text.toString()
         if (text.isNotBlank()) {
-            requireContext().copyTextToClipboard("Diagnostic Output", text)
+            // Android 13+ shows this label in the system copy preview, so it is user-visible text.
+            requireContext().copyTextToClipboard(getString(R.string.network_monitor_console_heading), text)
         }
     }
 

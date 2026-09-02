@@ -1420,7 +1420,7 @@ In the order they appear:
 - **Quick capture** - take a photo straight into the app.
 - **Voice recording** - record a voice note.
 - **Calculator** - a scientific calculator with history and memory slots.
-- **Network Monitor** - live readings for the active link, Wi-Fi, mobile, Bluetooth and location.
+- **Network Monitor** - live readings for the active link, Wi-Fi, mobile, Bluetooth and location, plus a traceroute that walks the route to a host hop by hop and keeps counting when a hop answers nothing.
 - **Photo OCR translate** - shoot text and translate it.
 - **Screen video recording** - record the screen.
 - **Download by link** - fetch a file from a pasted link.

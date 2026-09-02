@@ -107,6 +107,13 @@ fun VoiceNoteListScreen(viewModel: VoiceNoteListViewModel = hiltViewModel()) {
     uiState.lastSendResult?.let { result ->
         SendResultDialog(result = result, onDismiss = viewModel::acknowledgeSendResult)
     }
+
+    uiState.resetNotice?.let { notice ->
+        ResetNoticeDialog(
+            recoveredNotes = notice.recoveredNotes,
+            onDismiss = viewModel::acknowledgeResetNotice
+        )
+    }
 }
 
 @Composable
@@ -270,6 +277,33 @@ private fun SendResultDialog(
         title = {
             Text(
                 text = stringResource(sendResultLabelOf(result)),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.body2
+            )
+        }
+    ) {
+        item {
+            DialogChip(labelRes = android.R.string.ok, onClick = onDismiss, primary = true)
+        }
+    }
+}
+
+/**
+ * S2356: shown once after the note index had to be rebuilt.
+ *
+ * It lives on this screen because the list is the only place the consequence is visible - every
+ * delivery badge has gone back to "not sent", which without a word reads as lost data rather than
+ * as a recovery (strategic 3.3).
+ */
+@Composable
+private fun ResetNoticeDialog(
+    recoveredNotes: Int,
+    onDismiss: () -> Unit
+) {
+    Alert(
+        title = {
+            Text(
+                text = stringResource(R.string.wear_database_reset_notice, recoveredNotes),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.body2
             )

@@ -214,7 +214,6 @@
     <string name="wear_streams_filter_all">全部频道</string>
     <string name="wear_streams_filter_audio">仅音频</string>
     <string name="wear_streams_filter_video">仅视频</string>
-    <string name="wear_streams_sort_default">默认顺序</string>
     <string name="wear_streams_sort_name_asc">名称（A-Z）</string>
     <string name="wear_streams_sort_name_desc">名称（Z-A）</string>
     <string name="wear_streams_sort_kind">按媒体类型</string>
@@ -256,8 +255,6 @@
     <string name="wear_game_continue">继续</string>
     <string name="wear_game_board_description">游戏面板。在上面滑动即可移动。</string>
     <string name="wear_game_player_description">你在面板上的棋子</string>
-    <string name="wear_streams_sort_topic">按主题</string>
-    <string name="wear_streams_sort_language">按语言</string>
     <string name="wear_streams_filter_topic_all">所有主题</string>
     <string name="wear_streams_filter_language_all">所有语言</string>
     <string name="wear_streams_filter_topic_header">话题</string>
@@ -380,4 +377,37 @@
     <string name="phone_resource_no_resource_for_type">没有设置电话资源来保存此类型。</string>
     <string name="wear_folder_load_more">显示更多</string>
     <string name="wear_file_op_outcome_needs_consent">未确认 - 没有任何改变</string>
+    <!-- S2146: mirrored verbatim from :app_v2 (S1477). Declared in wear-mirrored-strings.psd1. -->
+    <string name="streams_rubric_general">综合</string>
+    <string name="streams_rubric_news">新闻</string>
+    <string name="streams_rubric_pop">流行</string>
+    <string name="streams_rubric_religious">宗教</string>
+    <string name="streams_rubric_kids">少儿</string>
+    <string name="streams_rubric_oldies">怀旧金曲</string>
+    <string name="streams_rubric_movies_series">电影与剧集</string>
+    <string name="streams_rubric_country_folk">乡村与民谣</string>
+    <string name="streams_rubric_rock">摇滚</string>
+    <string name="streams_rubric_sports">体育</string>
+    <string name="streams_rubric_world">世界音乐</string>
+    <string name="streams_rubric_jazz_blues">爵士与蓝调</string>
+    <string name="streams_rubric_chillout">放松音乐</string>
+    <string name="streams_rubric_electronic">电子</string>
+    <string name="streams_rubric_hip_hop">嘻哈</string>
+    <string name="streams_rubric_talk">谈话</string>
+    <string name="streams_rubric_local_radio">本地电台</string>
+    <string name="streams_rubric_comedy">喜剧</string>
+    <string name="streams_rubric_classical">古典</string>
+    <string name="streams_rubric_latin">拉丁</string>
+    <string name="streams_rubric_documentary">纪录片</string>
+    <string name="streams_rubric_education">教育</string>
+    <string name="streams_rubric_test">测试</string>
+    <string name="streams_rubric_rnb_soul">R&amp;B 与灵魂乐</string>
+    <string name="streams_rubric_metal">金属</string>
+    <string name="streams_rubric_webcam">网络摄像头</string>
+    <string name="streams_rubric_reggae">雷鬼</string>
+    <string name="streams_rubric_shopping">购物</string>
+    <string name="streams_rubric_business">财经</string>
+    <string name="streams_rubric_lifestyle">生活</string>
+    <string name="streams_rubric_adult">成人</string>
+    <string name="streams_rubric_traffic_cams">交通摄像头</string>
 </resources>

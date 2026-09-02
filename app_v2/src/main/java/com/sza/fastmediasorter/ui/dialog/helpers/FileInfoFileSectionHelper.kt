@@ -24,7 +24,9 @@ class FileInfoFileSectionHelper(
             val decomposition = MediaFilePathDescriptor.decompose(file.path, file.cloudDisplayPath)
 
             binding.tvFileName.text = context.getString(R.string.file_name_label, file.name)
-            binding.tvFileSize.text = context.getString(R.string.file_size_label, formatFileSize(file.size))
+            val sizeText = formatFileSize(context, file.size)
+            Timber.d("S2351: file info size rendered as '$sizeText'")
+            binding.tvFileSize.text = context.getString(R.string.file_size_label, sizeText)
             binding.tvFileDate.text = context.getString(R.string.file_date_label, formatDate(file.createdDate))
             binding.tvFileType.text = context.getString(R.string.file_type_label, file.type.name)
 

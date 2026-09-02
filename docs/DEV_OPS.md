@@ -326,7 +326,14 @@ A coordination resource is a **pair: type plus domain**, not one global word. Bo
 | `Build.Wear` | gradle work on `wear` | the module the entry point builds |
 | `Code.Phone` | edits under `app_v2/` | the changed path set |
 | `Code.Wear` | edits under `wear/` | the changed path set |
-| `Code.Scripts` | edits to `scripts/`, `dev/`, `docs/`, `PLAN/`, `.claude/`, `.github/`, the root agent files and `a.ps1` | the changed path set |
+| `Code.Scripts` | edits to `scripts/`, `dev/`, `docs/`, `.claude/`, `.github/`, the root agent files and `a.ps1`; plus the content trees `play/`, `fastlane/`, `store_assets/`, `delivery/`, `maestro/` and the root site pages, documents and icons (S2342) | the changed path set |
+| *(no domain)* | edits under `PLAN/` - the one exemption, S2338 | the changed path set |
+
+**The test is "is this path already serialised by something finer", not "is it source"** (S2338). The domain lock exists to order what nothing else orders, so a path some other mechanism already makes exclusive does not need it - and `PLAN/` is exclusive twice over. A spec file and its phase folder belong to exactly one ticket, and a ticket is held exclusively by `ticket-lease.ps1` (atomic claim, exit 3 to the loser), so two sessions cannot reach one spec file at all; the journals and both release files are written only through the catalog mutators, every one of which holds `Enter-CatalogLock`. `docs/` and `dev/` are deliberately **not** exempt by the same test: they are hand-edited prose with nothing finer over them, so a concurrent edit there is an ordinary lost update. A PLAN-only changed set therefore resolves to no domain at all, and `enter-code-lock.ps1` reports that and exits 0 with nothing to release. Measured 2026-09-02 over the last 397 dev-log rows: 217 (55%) touched `PLAN/` and nothing else, so before the exemption the majority of closures took a domain that protected nothing while serialising every other `scripts/` and `docs/` edit in the repository. Callers must handle the empty set, which was unreachable before this ticket.
+
+**Content with no code in it takes `Code.Scripts`, not the full set** (S2342). Fail-closed exists for a path that *might* belong to a module - over-protecting an unknown one is the safe direction to be wrong. A store listing, a site page, a Fastlane metadata file or a root licence cannot belong to a module in principle: none of them compiles, links or packs into an APK. Until this ticket they all fell through to `return $full`, so a one-line edit to the Play listing serialised phone and watch work it could not conflict with - observed in S2340 phase 03, where a set of one repository script plus one listing file queued behind a wear session. Measured 2026-09-02 over the last 400 dev-log rows: the full code set was taken 11 times, 9 of those sets touched content and 8 were content **only**, so the expensive serialisation was spent almost entirely on paths with nothing to serialise. The branch was read off a full listing of the repository root rather than extended one directory per finding, and the remainder is asserted rather than assumed: `corex/` (unrecognised source) and the modules `benchmark/` and `watchface/` still take every code domain. Those two are real Gradle modules with no `Build.*` domain of their own, so giving them a code domain is a boundary decision - a table row plus its own build lock - and is deliberately not made here.
+
+**`dev/CHANGELOG.md` carries its own mutex, not the domain lock** (S2338). `scripts/add_to_dev_log.ps1` appends by read-modify-write - it scans recent rows for a duplicate, decides, then appends - and until this ticket that critical section was covered only incidentally, by the `Code.Scripts` lock a closure happened to hold because `dev/` is in the prefix list. With PLAN-only closures no longer taking any domain, the cover would have vanished for most writers, so the script now takes a per-checkout `Global\FMS-DevLog-<hash>` mutex around the scan and the append. Same shape and same reason as the spec catalog (S1437) and the feature inventory (S1537), which measured eight concurrent unlocked writers landing four records; verified here at 8 of 8. A system mutex rather than a lock file, because an append is milliseconds while the BUILD/CODE family is sized for 3-60 minute edit windows with queue directories and reservations.
 
 Two sessions contend only where their domains overlap. A watch edit, a phone edit and a scripts edit therefore proceed at the same time, and so do `.\a.ps1 fw` and `.\a.ps1 fk` - measured 2026-08-27 at 12 s wall for both, with no queue wait and no cache-contention message in either log.
 
@@ -1050,7 +1057,7 @@ The app declares thirteen interface locales in `app_v2/src/main/res/xml/locales_
 
 1. Writing a key with `set-android-string.ps1 -Action add` names the locales the call left empty and prints a ready-to-paste `-Translations` fragment. A hint, not a refusal.
 2. Closing a ticket that touched a strings file prints the `new-lexeme-count` advisory. Also not a refusal.
-3. The pre-release sweep runs step `0.8`, which **is** the refusal. `list-new-lexemes.ps1` writes `temp/S1627/new_lexemes_en.txt`; that file goes to the external translation service, each returned file comes back through `locale-bulk-import.ps1`, and the step is re-run until it is 0.
+3. The pre-release sweep runs step `0.8`, which **is** the refusal. Each module keeps its own translator-ready file: `temp/S1627/app_v2/new_lexemes_en.txt` for the phone and `temp/S1627/wear/new_lexemes_en.txt` for the watch. Send each non-empty file to the external translation service, import the phone result with `locale-bulk-import.ps1` and the watch result with the same command plus `-Module wear`, then re-run the step until it is 0.
 
 Five facts a reader cannot derive from the commands:
 
@@ -1059,6 +1066,27 @@ Five facts a reader cannot derive from the commands:
 - **Provenance is tracked per module, and the gate runs once per module (S1858).** `scripts/quality/locale-source-fingerprints.json` addresses a unit as `module|set|file|key[|slot]`. It has to: `app_v2` and `wear` each ship `src/main/res/values/strings.xml` and share 14 key names, 6 of them with different English text, so an unqualified identity gave the two modules one slot with room for one hash. Whichever module imported last won it, and the gate then measured the other module's text against the wrong hash and called six translated keys untranslated - unfixable by re-importing, because re-importing only moved the red to the other module. A registry written before that split declares no schema version, reads as v1 and is refused with exit 2 until `scripts/quality/migrate-locale-fingerprints-module.ps1` rewrites it; a v1 store read as v2 would reproduce the same false report with nothing left to explain it.
 - **Provenance is written by whoever writes the text, so a direct seed is self-sufficient (S2327).** `scripts/utils/seed-locale-tranche.ps1` stamps the registry for every unit it translated from the supplied map, and `locale-bulk-import.ps1` no longer does it after the fact. A run that writes a locale file and no fingerprint produces a key the producer still reports as untranslated, however complete the file is - measured on S2320, where adding 20 registry entries by hand removed the key from the report without touching one byte of locale text. The importer could not get this right from where it stood: the accept-or-reject decision is per key and it saw one exit code per source file, so it stamped keys the seeder had rejected - and under `-Merge` a rejected replacement leaves the previously shipped translation in place, which turned the stamp into fresh provenance for stale text. Nothing is stamped for a `-Merge` passthrough, a rejected key or a `-DryRun`: none of them produced new text.
 - **`scripts/quality/locale-untranslated-baseline.txt` holds identities, not a count.** It froze the keys already untranslated on 2026-08-14 - all of them `S1626`'s placeholder-misread phrasings - so a pre-existing gap cannot be reported as new. A count would let a new key slip in behind an old one cleared in the same release. Its entries are module-qualified for the same reason the registry's are. Entries leave the file as `S1626` clears them, and the producer reports a cleared entry as stale; do not expect that soon, since `S1626` is `BlockExternal` - the rule that looked obvious (placeholder at a string edge) was measured over all 307 placeholder-bearing strings and does not discriminate, so the set clears through a probe in a future bulk round rather than through an edit anyone can make today.
+
+### Play listing locales - S2340
+
+```powershell
+# THE PARITY GATE (0 clean, 1 violation, 2 cannot verify)
+pwsh -NoProfile -File scripts/quality/assert-play-listing-locales.ps1
+
+# IT ALSO RUNS FROM THE RELEASE-SCOPE BATCH, WHICH /spec-prerelease STEP 0.4 REACHES
+pwsh -NoProfile -File scripts/quality/assert-release-scope-gates.ps1
+```
+
+**Scope class: release, not per ticket.** Its subject is the whole listing tree against the whole locale declaration, so it must not be wired into `post-change.ps1` or `.\a.ps1 fg` - there it would redden whichever session closed next over debt that session neither created nor can repair (Rule 33; the class S1939 measured at 68 of 191 red lines).
+
+The same thirteen-locale set as the section above, judged for a different surface: `assert-new-lexemes-translated.ps1` asks whether `strings.xml` reaches every declared locale, this one asks whether the Play listing does. Wear App Quality Guidelines WO-G2 requires the listing to be "localized in languages offered by the app", and non-compliance is grounds for rejecting a submission.
+
+Four facts a reader cannot derive from the commands:
+
+- **The language set is declared twice, and this gate is the only thing comparing the copies.** `app_v2/src/main/res/xml/locales_config.xml` is the authority (S1190: a language is added there and nowhere else); the second copy is the `LOCALES` dict in `scripts/release/publish-play-listing.py`. Nothing compared them, so the first grew to thirteen while the second sat at three, and the drift was found by reading Google's guideline rather than by any check here.
+- **A missing dict row fails silently, which is why the gate is needed at all.** The publisher iterates its dict, never the directory listing, so a locale folder without a row is skipped without a message. The only previous observer was publication itself - and `publish-play-listing.ps1 -Mode commit` is owner-gated and rare, so the gap could widen indefinitely between two runs.
+- **The app-locale-to-Play-code table inside the gate is data, not a derivation.** Play's listing languages are a fixed list, not free-form BCP-47: `uk` takes no region, `de-DE` and `hi-IN` require one, `ar` and `ur` forbid one, and Chinese has no script-only code, so the app's `zh-Hans` maps onto `zh-CN`. A derived mapping is wrong for five of the thirteen. Adding a language to the app therefore means adding a row to the gate as well, and it refuses until the listing follows.
+- **Three failure kinds, because they call for different repairs.** `PARITY` - a declared locale no folder serves, or a published folder no locale maps to. `COMPLETE` - a folder in the dict missing one of the three text files; the publisher exits 1 for *every* locale on this, not just the incomplete one. `LIMIT` - a text over 30 / 80 / 4000, counted in code points on the trimmed string, which is what Python's `len()` reports on the value Play receives.
 
 ### Maestro oracle convention - S1612
 
@@ -1116,6 +1144,64 @@ Two facts a reader cannot derive from the commands:
 - **Documentation prose carries no gate on purpose.** Measured 2026-08-14 (S1544): 134 of 137 files under `docs/` were clean without one, and the three that were not are the gitignored `FEATURES_noLegal*` showcases, which are never published. A gate would cost every run and defend a surface where nothing accumulates. S1340 §5 forbids growing the `assert-*` inventory for cosmetics, and this ticket shrank the script count by four rather than adding to it.
 - **The `ResourceValue` area skips values that are wholly machine-readable** - a URL, a path, a bare format placeholder - because a literal `...` inside an address is part of the address. That path test demands printable ASCII end to end: Chinese and Japanese set no spaces between words, so "no whitespace and contains a slash" on its own matched whole CJK sentences and left them unfixed.
 
+## PORTABLE PATHS (S2326)
+
+`scripts/utils/project-paths.ps1` is the one place a repository script learns where anything is. Dot-source it (`. "$PSScriptRoot\..\utils\project-paths.ps1"`) and ask by role; do not write a path literal. Moving the tree to another drive letter or another directory name must require editing no script - the working case is a RAM disk, where `P:\ANDROID\FastMediaSorter_mob_v2` becomes `M:\FastMediaSorter_mob_v2`.
+
+**The root is found by a marker, not by counting `..`.** The walk goes upward until one directory carries `settings.gradle.kts`, `a.ps1` and `CLAUDE.md` **together**. All three are required: `settings.gradle.kts` alone also sits in the release worktree next door, and `a.ps1` alone would match a copied launcher. A `..` count is a property of where a file happens to sit, so it stops being true the moment the file moves between subdirectories - the marker is a property of the tree and survives both moves. The walk starts from the module's own directory, so every caller gets the same answer regardless of its depth.
+
+**Four roles, five functions.**
+
+- `Get-ProjectRoot` - the tree's own root.
+- `Get-ProjectPath -Relative 'DOWNLOADS/x.apk'` - a location inside the tree, either separator style.
+- `Get-SiblingPath -Name 'FastMediaSorter_release'` - a directory beside the root. Only the release worktree needs this; `FastMediaSorter_credentials` is not read by any script, because signing resolves on the Gradle side relative to the root.
+- `Get-ToolPath -Tool Adb` - an external tool. Resolution order: the override variable, then `PATH`, then the known install locations, then a refusal naming the tool.
+- `Get-ArtifactSink -Kind Drive` - a delivery destination, or `$null` when it is not reachable here.
+
+**A missing tool fails by name; a missing sink warns and skips.** Without `adb` an install is impossible, so `Get-ToolPath` throws and names both the tool and the variable that would fix it. Without the Google Drive directory a build is still a build, so `Get-ArtifactSink` returns `$null`, writes a warning, and the caller skips its copy - delivery must never become a build blocker. `Get-ToolPath` also prints the path it picked, because a second SDK's `adb` is otherwise invisible until an install lands on the wrong device.
+
+**Override variables.** Every one of them beats discovery.
+
+| Variable | Overrides |
+| --- | --- |
+| `FMS_ADB` | `adb` |
+| `FMS_SEVENZIP` | `7z` |
+| `FMS_PWSH` | `pwsh` |
+| `FMS_NODE` | `node` |
+| `FMS_NPM` | `npm` |
+| `FMS_MAESTRO` | `maestro` |
+| `FMS_FFMPEG` | `ffmpeg` |
+| `FMS_SINK_DRIVE` | artifact sink (Google Drive work directory) |
+| `FMS_SINK_COMMANDER` | artifact sink (Total Commander drop) |
+| `FMS_SINK_APK` | artifact sink (APK archive) |
+| `FMS_SINK_DEOBFUSCATION` | artifact sink (mapping retention) |
+| `FMS_SINK_REMOTE_LOGS` | artifact sink (remote-log intake) |
+| `FMS_PROJECT_MOUNT` | the repository's Linux mount path, for `scripts/builders/build-ffmpeg-dts.sh` when it is run by hand instead of through its PowerShell launcher |
+
+**Adding a tool or a sink is one row**, in `$script:FmsToolTable` or `$script:FmsSinkTable` - never an edit at a call site.
+
+**The sink table is the only place in the repository allowed to name a machine path literally**, which is why the gate below excludes that file by name: a default that lives nowhere would silently stop delivering artifacts on the machine that has those directories.
+
+**The gate: `hardcoded-drive-path`**, a rule in `scripts/quality/lib/source-matchers.ps1`, run by `assert-source-gates.ps1` from both `post-change.ps1` and `.\a.ps1 fg`, baseline `scripts/quality/hardcoded-drive-path-baseline.txt` seeded at **0**. It judges `.ps1`, `.psm1`, `.cmd`, `.bat` and `.sh` under `scripts/`, `maestro/`, `dev/` and `a.ps1`, and refuses a new literal drive path. It deliberately does not fire on a URL scheme, a `$env:`-derived path, a whole-line comment (a comment binds nothing, and `clean-user-temp.ps1` names `C:\Windows\Temp` precisely as a directory it refuses to touch), or a regex character class such as `[\s:\-|]`, which puts a letter, a colon and a separator side by side and read as a drive in the rule's first draft.
+
+## DELIVERING A BUILT ARTIFACT (S1707, S2332)
+
+**One script delivers, and a builder calls it: `scripts/utils/publish-artifact.ps1`.** It puts the artifact raw into the Google Drive share, adds a password ZIP for recipients whose mail or security policy refuses a bare `.apk`, and copies it into the Total Commander staging folder. It delegates the Drive half to `scripts/utils/copy-to-drive.ps1`, which stays scoped to that one sink because two callers already read it that way.
+
+- `-Path` takes **several artifacts**, which land as several raw copies and go into **one** archive. That is what `build-aab-release.ps1` needs: the AAB and its APK travel as a unit.
+- `-Name` renames a single artifact; with a set it names the **archive** only, because renaming one member would silently decide which of them is the real artifact.
+- `-CommanderPath` picks which artifact reaches the Commander folder. It defaults to the first, and a release names the APK explicitly - that folder is a sideload staging area and nobody sideloads an AAB.
+- `-NoZip` and `-NoCommander` are for a path that legitimately delivers less. Five builders mirror to Drive alone and pass `-NoCommander`; `build-with-version.ps1` has never produced the archive and passes `-NoZip`.
+- **It never fails a build.** An unreachable sink or a missing 7-Zip is reported and skipped: the artifact is already built, so its courtesy copy cannot throw it away.
+- Invoke it with the **call operator**, never `pwsh -File` - `-File` binds a comma-separated value as one string and never produces an array, so a two-artifact delivery would look like one missing file.
+- Regression suite: `scripts/utils/publish-artifact.tests/Run-Tests.ps1`, hermetic through `-DriveDir` / `-CommanderDir`.
+
+**The gate: `inline-delivery-block`**, a rule in the same `source-matchers.ps1`, run by `assert-source-gates.ps1` from both `post-change.ps1` and `.\a.ps1 fg`, baseline `scripts/quality/inline-delivery-block-baseline.txt` seeded at **0**. Under `scripts/builders/`, `scripts/release/` and `dev/` it refuses `Get-ArtifactSink -Kind Drive`, `-Kind Commander` and `Get-ToolPath -Tool SevenZip` - the three calls a build path stops needing once it delegates. Other sinks are untouched, so `build-with-version.ps1` keeps resolving `Kind Apk` for its distribution folder. `scripts/utils/` sits outside the filter rather than in an exclusion list, because that is where the implementation lives and naming the two files by hand would let a third hand-written copy appear beside them unjudged.
+
+**Why `dev/` is in that list (S2337).** The builder the owner actually runs is `dev/build-with-version.ps1`, launched by `dev/build-with-version.bat` - not the same-named file under `scripts/builders/`, which is the orphan S2331 deletes. While the scope was the two `scripts/` directories alone, the **0** baseline meant "zero among the files walked", not "zero in the tree": the live builder kept its hand-written block through S2332's entire conversion and was never counted. The directory is named rather than the one file, for the same reason `scripts/utils/` is a filter and not an exclusion list. `dev/archive/` is excluded as a read-only zone, matching `hardcoded-drive-path`, which already walks `dev/`.
+
+**Why the gate exists rather than a convention.** S1707 extracted this block into `copy-to-drive.ps1` for exactly this reason, and then nothing was converted: measured 2026-09-02, the block was still hand-written in 26 places across 25 builders while the shared script had two callers. The cost is in S1707's own record - the watch shipped in release 2.60.8232.251 while its Drive copy stayed at the 15 August build, looking current and being a month stale.
+
 ## SCRIPT HYGIENE (S1872)
 
 Three checks keep the repository's ~370 PowerShell scripts findable, described and alive. All three are ratcheted: their ceilings may fall, never rise, so existing debt never blocks an unrelated ticket while a new script must be correct on the day it is written.
@@ -1125,6 +1211,8 @@ Three checks keep the repository's ~370 PowerShell scripts findable, described a
 - Judges **live wiring only**. A mention in an archived spec, a `dev/CHANGELOG.md` row or a read-only zone remembers a script; it does not call one. The repository holds over 6000 such documents, enough to make every dead script look wired - with them in the corpus the check reported 0 orphans out of 340 and could not fail.
 - Judges **a path, not a file name** (S2124). Until 2026-08-27 the key was the bare file name, so the 37 files called `Run-Tests.ps1` shared one entry and three comments naming that word vouched for all 37 - none of which is called from anywhere. Any group of files sharing a name went unjudged the moment one member was mentioned. Re-keying raised the verdict from 30 to 58; the 28 added files are Pester runners with no launcher, owned by S2122.
 - A token is resolved into the file it names by the ladder in `scripts/quality/lib/script-reference-resolution.ps1`: a `$PSScriptRoot`-anchored path, a bare name matching a sibling, the longest resolving path suffix, a unique bare name - and then a bare name several scripts carry, which is **evidence about none of them**. The first four rules are the price of the path key: without them the re-keying reported three scripts that run every day as dead.
+- The ladder **matches against every script in the tree and answers only with the judged ones** (S2336). Until 2026-09-02 it matched against the judged roots alone, so a token naming a real file outside them - `maestro/`, `.claude/hooks/`, the version-stamping builder under `dev/` - matched nothing, shortened to its bare leaf, and credited whichever homonym was inside the index. Seven files addressed the builder in `dev/` and between them kept an unrelated copy under `scripts/builders/` alive; the ambiguity counter read 0 throughout, because it counted carriers in the index and the second carrier was outside it. A rule that now matches a real file **stops** instead of shortening past it, even when the answer narrows to nothing, and ambiguity is counted tree-wide. Surfaced exactly one script, which S2331 owns.
+- The tree walk feeding that match **drops nested worktree copies, and the name checks below keep them**. A worktree is a second copy of the repository, so it carries a second file for every name: measured 2026-09-02, 911 `.ps1` files walked against 490 after the exclusion. Fed to the resolver, those 421 duplicates would make every name in the tree ambiguous and report the whole repository as unreferenced.
 - The baseline is a **list of paths, not a count**: repairing one orphan cannot free a slot the next one occupies silently. A line matching nothing prints a prune hint rather than failing.
 - `docs/SCRIPT_CHEATSHEET.md` and the two baseline files are excluded **by definition, not by setting**: each names scripts by construction. The main baseline joined that list the moment it stopped being a count - as a list of 58 paths inside `scripts/`, it vouched for every orphan it recorded and drove the verdict to zero.
 - A Pester suite beside a `Run-Tests.ps1` is reached by discovery, not by name, and is excused automatically.

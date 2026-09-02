@@ -34,7 +34,7 @@ For every screen and input:
 • Full keyboard, TV remote / D-pad and gamepad navigation.
 • Home-screen widgets - resource launch, continue reading, random music, camera photos.
 • Quick Settings tile for background audio. Search across every settings entry.
-• Wear OS support - browse local media and play from network shares transferred from your phone directly on your watch, without requiring a constant phone connection.
+• Wear OS - a standalone watch app: browse media stored on the watch, play internet radio and TV, three tiles and three watch-face complications, plus calculator, network monitor and voice recorder. Network shares and files arrive from the phone app.
 
 Free, open and private - the app source code is published under Apache License 2.0, and local, SMB, FTP and SFTP browsing plus the image, video, audio, PDF and EPUB viewers all work fully offline, without any account.
 

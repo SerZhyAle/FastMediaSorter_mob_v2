@@ -730,7 +730,10 @@ $runsOssNoticesGate = (
 # resource it will release at the end rather than leaving it to be inferred from the file list.
 . (Join-Path $root "scripts/utils/agent-lock-domains.ps1")
 $closureDomains = @(Resolve-CodeDomainsForPaths -Path ($changedFiles + $deletedFiles))
-Write-Host "post-change: $resolvedChangeType | $File -> $Target | domains: $($closureDomains -join ', ')" -ForegroundColor Yellow
+# S2338: an empty set is now reachable - a PLAN-only closure takes no code domain at all. Print
+# that in words: a bare "domains: " reads as a resolver that failed, not as a set that needs none.
+$closureDomainLabel = if ($closureDomains.Count -eq 0) { 'none (no code lock required)' } else { $closureDomains -join ', ' }
+Write-Host "post-change: $resolvedChangeType | $File -> $Target | domains: $closureDomainLabel" -ForegroundColor Yellow
 
 # S1372: keyed on the whole set - a resource file is rarely the first path a caller names, and
 # resolving the source set from $File alone judges the wrong flavor in a mixed close.

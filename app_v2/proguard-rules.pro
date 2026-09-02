@@ -351,3 +351,17 @@
 -keepclassmembernames enum com.sza.fastmediasorter.ui.streams.SortMode {
     <fields>;
 }
+# S2363-adjacent, found by assert-enum-persistence-contract during the release-35 sweep.
+# DeviceProfileType.name is written into the Room column DeviceProfileEntity.type and read back
+# with valueOf in DeviceProfileLocalDataSource.toDomain(), which carries no runCatching - so a
+# row written under one R8 mapping and read under the next would throw rather than degrade.
+-keepclassmembernames enum com.sza.fastmediasorter.data.model.DeviceProfileType {
+    <fields>;
+}
+# The welcome explainer passes its mode as mode.name through a Bundle and resolves it with
+# valueOf. That round trip stays inside one build, so it cannot break across an update the way
+# the Room column can - the rule is here because the contract is lexical: an enum resolved by
+# name carries the rule, and arguing the exception per call site is how the Room case was missed.
+-keepclassmembernames enum com.sza.fastmediasorter.ui.welcome.WelcomeEnableAllExplainerDialogFragment$Mode {
+    <fields>;
+}

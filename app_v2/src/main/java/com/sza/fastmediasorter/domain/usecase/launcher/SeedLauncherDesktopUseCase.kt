@@ -8,6 +8,8 @@ import com.sza.fastmediasorter.core.launcher.LauncherStarterSets
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.data.launcher.AppShortcutDataSource
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
+import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.isAllFilesPredefined
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
@@ -76,30 +78,7 @@ class SeedLauncherDesktopUseCase @Inject constructor(
             // Only seed resource-backed cells for ids that still exist, so a stale last-used id (its
             // resource since deleted) never becomes a permanently-dead tile.
             val lastResourceId = settings.getLastUsedResourceId().takeIf { it > 0L && it in resourceIds }
-            fun idOf(path: String): Long? = allResources.firstOrNull { it.path == path }?.id
-
-            val virtualPaths = setOf(
-                LocalMediaScanner.VIRTUAL_PATH_RECENT,
-                LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO,
-                LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES,
-                LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO,
-                LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS,
-                LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS,
-            )
-            val userResourceIds = allResources
-                .filterNot { it.path in virtualPaths }
-                .map { it.id }
-
-            val starterResources = LauncherStarterSets.StarterResources(
-                recentId = idOf(LocalMediaScanner.VIRTUAL_PATH_RECENT),
-                allAudioId = idOf(LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO),
-                allImagesId = idOf(LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES),
-                allVideoId = idOf(LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO),
-                allDocsId = idOf(LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS),
-                cameraId = idOf(LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS),
-                lastResourceId = lastResourceId,
-                userResourceIds = userResourceIds,
-            )
+            val starterResources = starterResourcesFrom(allResources, lastResourceId)
             val routeAvailableInBuild = routeAvailability.all()
                 .mapValues { (_, availability) -> availability.availableInBuild }
             // Behind the already-seeded early-exit above, so a desktop that will not be seeded never pays
@@ -137,6 +116,7 @@ class SeedLauncherDesktopUseCase @Inject constructor(
             // desktop that will not be seeded never pays for it (strategic §3.2).
             val screenClass = deviceScreenClass()
             Timber.d("S2309: composing starter desktop for %s on %s", profile, screenClass)
+            logCoreResourceProbe(starterResources)
 
             val items = LauncherStarterSets.itemsFor(
                 profile,
@@ -163,6 +143,63 @@ class SeedLauncherDesktopUseCase @Inject constructor(
             }
         }.onFailure { Timber.w(it, "Launcher desktop seed failed; leaving desktop empty") }
         Unit
+    }
+
+    /**
+     * The resolved ids the starter table seeds from, split into the closed core set and the open tail.
+     *
+     * S2321: that division is a rule of its own, not a step of the seed - the six virtual aggregates and
+     * the predefined "All files" resource are the entry points the desktop offers to whole content types,
+     * and everything else is the user tail the layout budget may legitimately shorten.
+     */
+    private fun starterResourcesFrom(
+        allResources: List<MediaResource>,
+        lastResourceId: Long?,
+    ): LauncherStarterSets.StarterResources {
+        fun idOf(path: String): Long? = allResources.firstOrNull { it.path == path }?.id
+
+        val virtualPaths = setOf(
+            LocalMediaScanner.VIRTUAL_PATH_RECENT,
+            LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO,
+            LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES,
+            LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO,
+            LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS,
+            LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS,
+        )
+        // S2321: "All files" lives at a real storage path, so the virtual-path filter below cannot see
+        // it and it used to reach the desktop only through the budgeted user tail - where a compact
+        // screen always cut it. Named here and excluded there, so the core group seeds it exactly once.
+        val allFilesId = allResources.firstOrNull { it.isAllFilesPredefined }?.id
+        val userResourceIds = allResources
+            .filterNot { it.path in virtualPaths || it.id == allFilesId }
+            .map { it.id }
+
+        return LauncherStarterSets.StarterResources(
+            recentId = idOf(LocalMediaScanner.VIRTUAL_PATH_RECENT),
+            allAudioId = idOf(LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO),
+            allImagesId = idOf(LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES),
+            allVideoId = idOf(LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO),
+            allDocsId = idOf(LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS),
+            cameraId = idOf(LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS),
+            allFilesId = allFilesId,
+            lastResourceId = lastResourceId,
+            userResourceIds = userResourceIds,
+        )
+    }
+
+    /**
+     * S2321 probe: the ids the core-resource group received, so a device log separates "the aggregates
+     * were resolved and seeded" from "the seed never reached them" - the distinction the reported clean
+     * install turned on, since a truncated desktop and an unseeded one look identical on screen.
+     */
+    private fun logCoreResourceProbe(resources: LauncherStarterSets.StarterResources) {
+        Timber.d(
+            "S2321: core resources docs=%s camera=%s allFiles=%s userTail=%d",
+            resources.allDocsId,
+            resources.cameraId,
+            resources.allFilesId,
+            resources.userResourceIds.size,
+        )
     }
 
     /**

@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.wear.domain.calculator.WearCalculatorEngine
 import com.sza.fastmediasorter.wear.domain.calculator.WearCalculatorFunction
 import com.sza.fastmediasorter.wear.domain.calculator.WearCalculatorHistory
 import com.sza.fastmediasorter.wear.domain.calculator.WearCalculatorHistoryEntry
+import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +34,12 @@ class CalculatorViewModel @Inject constructor(
 
     private var memory: BigDecimal? = null
 
+    /**
+     * S2152: the watch's display-mode setting, kept here so [publish] can hand it to the state
+     * alongside everything the engine owns.
+     */
+    private var currentViewMode: WearViewMode = WearViewMode.LIST
+
     private val _uiState = MutableStateFlow(CalculatorUiState())
     val uiState: StateFlow<CalculatorUiState> = _uiState.asStateFlow()
 
@@ -41,6 +48,14 @@ class CalculatorViewModel @Inject constructor(
             history.restore(preferencesRepository.calculatorHistory.first())
             memory = preferencesRepository.calculatorMemory.first()?.toBigDecimalOrNull()
             publish()
+        }
+        // A collection rather than a first(): the setting can be changed while the calculator is open,
+        // and the menu is expected to be laid out the way the watch is set at the moment it opens.
+        viewModelScope.launch {
+            preferencesRepository.viewMode.collect { mode ->
+                currentViewMode = mode
+                publish()
+            }
         }
     }
 
@@ -114,12 +129,15 @@ class CalculatorViewModel @Inject constructor(
     }
 
     private fun publish() {
+        val display = engine.display()
         _uiState.value = CalculatorUiState(
-            display = engine.display(),
+            display = display,
             memoryOccupied = memory != null,
             history = history.entries(),
             isError = engine.isError,
-            operation = shownOperation()
+            operation = shownOperation(),
+            viewMode = currentViewMode,
+            copyableValue = display.takeUnless { engine.isError }
         )
     }
 

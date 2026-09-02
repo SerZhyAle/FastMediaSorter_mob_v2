@@ -108,6 +108,104 @@ function Test-UnsafeLaunchBody([string]$text, [int]$openBrace) {
     return $false
 }
 
+# S2326: a literal Windows drive path binds a script to one machine's disk layout, so moving the
+# tree to another drive letter or directory name silently breaks it. Two project roots declared
+# `c:\GIT\FastMediaSorter_mob_v2` while the tree lived on `P:` and nobody noticed, because nothing
+# looked. Resolve through scripts/utils/project-paths.ps1 instead.
+#
+# The lookbehind spares three shapes that are not drives:
+#   - a word character, so a URL scheme (`https://`) and `$env:LOCALAPPDATA\..` do not read as one;
+#   - a dot, so `foo.C:/bar` does not;
+#   - a BACKSLASH, which is the one that actually bit. A regex character class written
+#     `[\s:\-|]` puts a letter, a colon and a separator side by side, and two live gate scripts
+#     carry exactly that - they were reported as hardcoded paths by the first draft of this rule.
+# The character after the separator excludes `-` for the same reason: a real path segment does not
+# begin with a hyphen, but the escaped `\-` inside a character class does.
+$script:DrivePathRx = [regex]'(?<![\w$.\\])[A-Za-z]:[\\/][\w.$]'
+
+<#
+.SYNOPSIS
+    Code lines of a script, with comment text blanked out but line numbers preserved.
+.DESCRIPTION
+    A comment cannot bind a path, so it cannot make a script non-portable - and judging comments
+    would force deleting legitimate prose, such as clean-user-temp.ps1 naming `C:\Windows\Temp` as
+    an example of a directory it REFUSES to touch. Rewriting that to satisfy a gate makes the
+    document worse while changing no behaviour.
+
+    Only a whole-line comment is blanked, never a trailing one: `$dst = "d:\out"  # sink` must stay
+    judged, and dropping everything after the first `#` would also drop a literal that a string on
+    the same line legitimately contains.
+#>
+function Get-DrivePathCodeLines([string]$Text) {
+    $lines = $Text -split "`r?`n"
+    $out = New-Object 'string[]' $lines.Count
+    $inBlock = $false
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        $line = $lines[$i]
+        if ($inBlock) {
+            if ($line -match '#>') { $inBlock = $false; $line = $line -replace '^.*?#>', '' }
+            else { $out[$i] = ''; continue }
+        }
+        if ($line -match '<#') {
+            if ($line -match '<#.*?#>') { $line = $line -replace '<#.*?#>', '' }
+            else { $inBlock = $true; $line = $line -replace '<#.*$', '' }
+        }
+        if ($line -match '^\s*#') { $line = '' }
+        $out[$i] = $line
+    }
+    return $out
+}
+
+function Measure-HardcodedDrivePathText([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return 0 }
+    $count = 0
+    foreach ($line in (Get-DrivePathCodeLines $Text)) {
+        if ($line) { $count += $script:DrivePathRx.Matches($line).Count }
+    }
+    return $count
+}
+
+# Line numbers of the offending literals, so -List and the failure output name the site.
+function Find-HardcodedDrivePathLines([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return @() }
+    $codeLines = Get-DrivePathCodeLines $Text
+    $hits = @()
+    for ($i = 0; $i -lt $codeLines.Count; $i++) {
+        if ($codeLines[$i] -and $script:DrivePathRx.IsMatch($codeLines[$i])) { $hits += ($i + 1) }
+    }
+    return $hits
+}
+
+# S2332: the three calls a builder stops needing the moment it delegates delivery. Judged rather than
+# the whole block's shape because a hand-written copy is recognisable by what it reaches for, not by
+# how it is worded - the 26 occurrences this rule was written against carried six different textual
+# forms of one behaviour, and a shape-matching rule would have missed the three worded differently.
+#
+# Only the two DELIVERY sinks. Other sinks stay unjudged: build-with-version.ps1 legitimately resolves
+# `Kind Apk` for a distribution folder that is not part of this block, and flagging it would push a
+# correct caller into an exemption list, which is how exemption lists start.
+$script:InlineDeliveryRx =
+    [regex]'Get-ArtifactSink\s+-Kind\s+(Drive|Commander)\b|Get-ToolPath\s+-Tool\s+SevenZip\b'
+
+function Measure-InlineDeliveryBlockText([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return 0 }
+    $count = 0
+    foreach ($line in (Get-DrivePathCodeLines $Text)) {
+        if ($line) { $count += $script:InlineDeliveryRx.Matches($line).Count }
+    }
+    return $count
+}
+
+function Find-InlineDeliveryBlockLines([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return @() }
+    $codeLines = Get-DrivePathCodeLines $Text
+    $hits = @()
+    for ($i = 0; $i -lt $codeLines.Count; $i++) {
+        if ($codeLines[$i] -and $script:InlineDeliveryRx.IsMatch($codeLines[$i])) { $hits += ($i + 1) }
+    }
+    return $hits
+}
+
 $script:InsetsListenerRx = [regex]'ViewCompat\.setOnApplyWindowInsetsListener\s*\('
 $script:InsetsCutoutRx = [regex]'displayCutout\s*\(\)'
 # The one compliant helper in the repo (utils/ViewExtensions.kt). It already takes
@@ -471,6 +569,160 @@ function Measure-UnpolicedAnimationText([string]$Text) {
     return $script:UnpolicedAnimationRx.Matches($Text).Count
 }
 
+# S2328: the caption/value split - a label that takes the row's free width while its value sits at
+# the far edge. Structural, not lexical, and deliberately so: the reference settings row carries the
+# SAME attributes as the defect (a weight, an end gravity) and differs only in WHERE they sit, so a
+# regex cannot separate them. The discriminator is order - in the reference the weighted spacer comes
+# AFTER the value, so the slack falls at the row's end instead of between the pair.
+$script:CaptionValueControlRx = [regex]'(?:^|\.)(?:Switch|MaterialSwitch|SwitchCompat|SwitchMaterial|Button|MaterialButton|CheckBox|MaterialCheckBox|AppCompatCheckBox|Slider|SeekBar|RangeSlider|ImageButton|EditText|TextInputEditText|RadioButton|Spinner)$'
+$script:CaptionValueTextRx = [regex]'(?:^|\.)(?:TextView|MaterialTextView|AppCompatTextView|Chronometer)$'
+
+function Get-CaptionValueSimpleName([System.Xml.Linq.XElement]$Element) {
+    $n = $Element.Name.LocalName
+    $i = $n.LastIndexOf('.')
+    if ($i -ge 0) { $n = $n.Substring($i + 1) }
+    return $n
+}
+
+# Namespace-agnostic on purpose: `layout_constraint*` arrives in the res-auto namespace and
+# `layout_weight` in the android one, and no layout attribute shares a local name across the two.
+function Get-CaptionValueAttr([System.Xml.Linq.XElement]$Element, [string]$LocalName) {
+    foreach ($a in $Element.Attributes()) {
+        if ($a.Name.LocalName -eq $LocalName) { return $a.Value }
+    }
+    return $null
+}
+
+function Test-CaptionValueGravityEnd([string]$Value) {
+    if ([string]::IsNullOrWhiteSpace($Value)) { return $false }
+    foreach ($part in ($Value -split '\|')) {
+        if ($part.Trim() -in @('end', 'right')) { return $true }
+    }
+    return $false
+}
+
+function Test-CaptionValueIsText([System.Xml.Linq.XElement]$Element) {
+    $script:CaptionValueTextRx.IsMatch((Get-CaptionValueSimpleName $Element))
+}
+
+function Test-CaptionValueIsControl([System.Xml.Linq.XElement]$Element) {
+    $script:CaptionValueControlRx.IsMatch((Get-CaptionValueSimpleName $Element))
+}
+
+# A value is "text-like" when it is a TextView, or a wrapper carrying text and no control. The
+# wrapper case is what makes a primary+secondary value column count; the control case is what keeps
+# the reference settings row - caption, then a switch or a chevron at the end - passing.
+function Test-CaptionValueTextLike([System.Xml.Linq.XElement]$Element) {
+    if (Test-CaptionValueIsControl $Element) { return $false }
+    if (Test-CaptionValueIsText $Element) { return $true }
+    $desc = @($Element.Descendants())
+    if ($desc.Count -eq 0) { return $false }
+    foreach ($d in $desc) { if (Test-CaptionValueIsControl $d) { return $false } }
+    foreach ($d in $desc) { if (Test-CaptionValueIsText $d) { return $true } }
+    return $false
+}
+
+function Test-CaptionValueHorizontalRow([System.Xml.Linq.XElement]$Element) {
+    if ((Get-CaptionValueSimpleName $Element) -ne 'LinearLayout') { return $false }
+    $o = Get-CaptionValueAttr $Element 'orientation'
+    return ([string]::IsNullOrWhiteSpace($o) -or $o -eq 'horizontal')
+}
+
+# The one definition of the violation. Measure- and Find- both read it, so the count the gate
+# enforces and the lines `-List` prints can never disagree (S1621).
+function Get-CaptionValueSplitHits([string]$Text) {
+    $hits = @()
+    if ([string]::IsNullOrEmpty($Text)) { return $hits }
+    # Cheap text gate before the parse: most layout files carry none of this vocabulary, and the
+    # XML parse is the expensive half of the rule.
+    if ($Text -notmatch 'layout_weight|layout_constraintEnd_toEndOf|gravity') { return $hits }
+
+    $doc = $null
+    try {
+        $doc = [System.Xml.Linq.XDocument]::Parse($Text, [System.Xml.Linq.LoadOptions]::SetLineInfo)
+    }
+    catch {
+        # A malformed file is the XML parser's finding, not this rule's - turning it into a
+        # violation count would blame the wrong gate for the wrong defect.
+        return $hits
+    }
+    if ($null -eq $doc -or $null -eq $doc.Root) { return $hits }
+
+    foreach ($el in $doc.Descendants()) {
+        $name = Get-CaptionValueSimpleName $el
+        $line = ([System.Xml.IXmlLineInfo]$el).LineNumber
+
+        # Form 1 - weighted caption in a horizontal row with the value after it.
+        if (Test-CaptionValueHorizontalRow $el) {
+            $kids = @($el.Elements())
+            for ($i = 0; $i -lt $kids.Count; $i++) {
+                $kid = $kids[$i]
+                if (-not (Test-CaptionValueIsText $kid)) { continue }
+                $wv = 0.0
+                if (-not [double]::TryParse((Get-CaptionValueAttr $kid 'layout_weight'), [ref]$wv)) { continue }
+                if ($wv -le 0) { continue }
+                for ($j = $i + 1; $j -lt $kids.Count; $j++) {
+                    if (Test-CaptionValueTextLike $kids[$j]) {
+                        $hits += [pscustomobject]@{ Line = ([System.Xml.IXmlLineInfo]$kid).LineNumber; Form = 'weighted-caption' }
+                        break
+                    }
+                }
+            }
+        }
+
+        # Form 2 - the value pushed to the row's far end by its own gravity.
+        if ((Test-CaptionValueIsText $el) -and $null -ne $el.Parent -and (Test-CaptionValueHorizontalRow $el.Parent)) {
+            $g = Get-CaptionValueAttr $el 'gravity'
+            $lg = Get-CaptionValueAttr $el 'layout_gravity'
+            $ta = Get-CaptionValueAttr $el 'textAlignment'
+            if ((Test-CaptionValueGravityEnd $g) -or (Test-CaptionValueGravityEnd $lg) -or ($ta -eq 'viewEnd')) {
+                $prior = $false
+                foreach ($sib in $el.ElementsBeforeSelf()) { if (Test-CaptionValueIsText $sib) { $prior = $true } }
+                if ($prior) { $hits += [pscustomobject]@{ Line = $line; Form = 'end-aligned-value' } }
+            }
+        }
+
+        # Form 3 - the split declared in a style, which hands it to every consumer at once. This is
+        # the form that reached seven network monitor screens from two style blocks.
+        if ($name -eq 'style') {
+            $hasWeight = $false
+            $endGravity = $false
+            foreach ($item in $el.Elements()) {
+                if ((Get-CaptionValueSimpleName $item) -ne 'item') { continue }
+                $itemName = Get-CaptionValueAttr $item 'name'
+                if ($itemName -eq 'android:layout_weight') { $hasWeight = $true }
+                if ($itemName -eq 'android:gravity' -and (Test-CaptionValueGravityEnd $item.Value)) { $endGravity = $true }
+            }
+            if ($hasWeight -and $endGravity) { $hits += [pscustomobject]@{ Line = $line; Form = 'style-declared-split' } }
+        }
+
+        # Form 4 - the constraint spelling: value pinned to the parent's end and anchored to a
+        # sibling's top, with nothing tying its start to the caption, so the gap is the screen.
+        if (Test-CaptionValueIsText $el) {
+            if ((Get-CaptionValueAttr $el 'layout_constraintEnd_toEndOf') -eq 'parent') {
+                $hasStart = $false
+                foreach ($a in $el.Attributes()) {
+                    if ($a.Name.LocalName -like 'layout_constraintStart_*') { $hasStart = $true }
+                }
+                $topTo = Get-CaptionValueAttr $el 'layout_constraintTop_toTopOf'
+                if (-not $hasStart -and -not [string]::IsNullOrWhiteSpace($topTo) -and $topTo -ne 'parent') {
+                    $hits += [pscustomobject]@{ Line = $line; Form = 'unanchored-end-constraint' }
+                }
+            }
+        }
+    }
+
+    return $hits
+}
+
+function Measure-CaptionValueSplit([string]$Text) {
+    return @(Get-CaptionValueSplitHits $Text).Count
+}
+
+function Find-CaptionValueSplitLines([string]$Text) {
+    return @(Get-CaptionValueSplitHits $Text | ForEach-Object { $_.Line } | Sort-Object -Unique)
+}
+
 function New-RegexRule {
     param(
         [Parameter(Mandatory)][string]$Name,
@@ -646,6 +898,30 @@ function Get-SourceRules {
                 -PathFilter 'app_v2/src/main/res/layout(-land|-sw480dp|-sw720dp|-w600dp)?/' `
                 -ExcludeNames @('view_form_checkbox_row.xml') `
                 -FailMessage 'new raw MaterialCheckBox outside the canonical wrapper (S2193). Use com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow (docs/ARCHITECTURE.md Pattern B - subtitle is optional) instead of a hand-rolled checkbox.'),
+        # S2328: the caption/value split. The only structural rule in this family - see the four
+        # forms in Get-CaptionValueSplitHits above and ADR-4 in PLAN/S2328 for why a regex cannot
+        # do it. Roots add the values directory for the style form, and PathFilter pins that half to
+        # themes.xml alone: applicability is tested before the file is read, so naming the file in
+        # the filter keeps the rest of values/ out of the walk entirely rather than parsing and
+        # discarding it. The baseline is NOT all one defect - it carries a known ambiguity class
+        # (two co-equal data columns, e.g. a player's position|duration pair or a source -> target
+        # row) that the four forms cannot tell from a caption and its value; those entries are named
+        # in PLAN/S2328_bugfix-caption-value-opposite-edges/PHASE_05__caption-value-gate.md rather
+        # than excluded by name, because excluding the file would also blind the rule to a real new
+        # split appearing in it.
+        [pscustomobject]@{
+            Name         = 'caption-value-split'
+            Extensions   = @('.xml')
+            Roots        = @('app_v2/src/main/res/layout', 'app_v2/src/main/res/layout-land',
+                             'app_v2/src/main/res/layout-sw480dp', 'app_v2/src/main/res/layout-sw720dp',
+                             'app_v2/src/main/res/layout-w600dp', 'app_v2/src/main/res/values')
+            PathFilter   = 'app_v2/src/main/res/(layout(-land|-sw480dp|-sw720dp|-w600dp)?/|values/themes\.xml$)'
+            Baseline     = 'caption-value-split-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-CaptionValueSplit $t }
+            LocateInText = { param($t) Find-CaptionValueSplitLines $t }
+            FailMessage  = 'new caption/value split in a layout (S2328). The caption must hug its own text and carry no layout_weight; the value takes the remaining width and stays start-aligned, so the row''s slack falls after the value and never between the pair - see view_settings_selection_row.xml and docs/ARCHITECTURE.md "Caption and Value Proximity". A control at the row''s end (switch, chevron, icon button) is not a value and is not counted. If the new row is genuinely two co-equal data columns rather than a caption and its value, justify it in review instead of raising the baseline.'
+        },
         [pscustomobject]@{
             Name        = 'unsafe-collect'
             Extensions  = @('.kt')
@@ -954,6 +1230,57 @@ function Get-SourceRules {
                 return $missingCount
             }
             FailMessage  = 'new field added to AppSettings without persistence in settings stores or SettingsRepositoryImpl (S2243).'
+        },
+        # S2326: the repository-script layer, judged for literal drive paths. This is the only rule
+        # here that walks scripts rather than app sources, so it names its own roots and extensions.
+        # Two files are spared by name rather than by the path filter:
+        #   - project-paths.ps1 IS the resolver, and its sink table is the deliberate single place a
+        #     machine default is written down - a default that lives nowhere would stop delivering
+        #     artifacts on the machine that has those directories;
+        #   - test-agent-lock-queue.ps1 feeds `Z:\no-such-transcript\missing.jsonl` to the liveness
+        #     checker on purpose. Strategic section 2 lists synthetic fixtures as a non-goal: the
+        #     path has to be literal, because what it tests is the handling of a path that is not
+        #     there. It sits in scripts/utils/ rather than a *.tests/ directory, so the path filter
+        #     below does not reach it.
+        [pscustomobject]@{
+            Name         = 'hardcoded-drive-path'
+            Extensions   = @('.ps1', '.psm1', '.cmd', '.bat', '.sh')
+            Roots        = @('scripts', 'maestro', 'dev', 'a.ps1')
+            PathFilter   = '^(?!dev/archive/)(?!.*\.tests/)(?!.*/\.venv/)(?:scripts/|maestro/|dev/|a\.ps1$)'
+            Baseline     = 'hardcoded-drive-path-baseline.txt'
+            ExcludeNames = @('project-paths.ps1', 'test-agent-lock-queue.ps1')
+            CountInText  = { param($t) Measure-HardcodedDrivePathText $t }
+            LocateInText = { param($t) Find-HardcodedDrivePathLines $t }
+            FailMessage  = 'new literal drive path in a repository script. It binds the script to one machine, so moving the tree to another drive letter or directory name breaks it silently. Dot-source scripts/utils/project-paths.ps1 and ask for the path by role - Get-ProjectRoot, Get-ProjectPath, Get-SiblingPath, Get-ToolPath, Get-ArtifactSink - or override through the matching FMS_* environment variable (S2326).'
+        },
+        # S2332: a build path that writes the delivery block itself instead of calling the script that
+        # holds it. S1707 extracted that block into copy-to-drive.ps1 precisely so it would be written
+        # once, and then nothing was converted: on 2026-09-02 it was still hand-written in 26 places
+        # across 25 builders while the shared script had two callers. Without a gate the next builder
+        # writes it again, which is what happened after S1707.
+        #
+        # scripts/utils is outside the path filter rather than listed in ExcludeNames: that directory is
+        # where the shared implementation lives, and naming the two files by hand would let a THIRD
+        # hand-written copy appear beside them unjudged. Test directories are filtered out for the same
+        # reason project-paths.tests exercises Get-ArtifactSink on purpose.
+        #
+        # dev/ is in scope because the builder the owner actually runs lives there, not under
+        # scripts/builders/ (S2337). While the scope was the two scripts/ directories alone, a zero
+        # baseline meant "zero among the files walked" rather than "zero in the tree": dev/build-with-
+        # version.ps1 kept the hand-written block through S2332's whole conversion, and the launcher
+        # dev/build-with-version.bat invokes it. The directory is named rather than the file, for the
+        # same reason scripts/utils is: a by-name list lets the next copy appear beside it unjudged.
+        # dev/archive/ is excluded as a read-only zone, matching hardcoded-drive-path above.
+        [pscustomobject]@{
+            Name         = 'inline-delivery-block'
+            Extensions   = @('.ps1', '.psm1')
+            Roots        = @('scripts', 'dev')
+            PathFilter   = '^(?!dev/archive/)(?!.*\.tests/)(?:scripts/(builders|release)/|dev/)'
+            Baseline     = 'inline-delivery-block-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-InlineDeliveryBlockText $t }
+            LocateInText = { param($t) Find-InlineDeliveryBlockLines $t }
+            FailMessage  = 'a build path resolving a delivery sink or the archiver itself instead of calling the one script that holds the delivery block. Repeating it means the next change to delivery is either made 26 times or diverges - which is how the watch shipped while its Drive copy stayed a month stale and looked current (S1707). Call scripts/utils/publish-artifact.ps1 with -Path and -Name; it covers both sinks, takes several artifacts for one archive, and skips a sink it cannot reach without failing the build. Use -NoZip / -NoCommander for a path that legitimately delivers less (S2332).'
         }
     )
 }

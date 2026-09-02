@@ -16,6 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -42,6 +43,7 @@ abstract class BaseWearTileService : TileService() {
         serviceScope.launch {
             try {
                 val content = loadWearTileContentUseCase(kind)
+                Timber.d("S1955: tile request kind=%s content=%s", kind, content::class.simpleName)
                 val layout = tileLayoutBuilder.build(content, requestParams.deviceConfiguration)
                 val rootElement = layout.root ?: return@launch
                 val timeline = TimelineBuilders.Timeline.fromLayoutElement(rootElement)

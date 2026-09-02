@@ -33,7 +33,11 @@
 $ErrorActionPreference = "Stop"
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-$LocalMediaDir = "c:\Common\test_media"
+. "$PSScriptRoot\project-paths.ps1"
+
+# The corpus is hand-assembled and machine-local, so it gets its own override rather than a
+# sink row; without one it falls inside the tree, where CLAUDE.md Rule 1 puts scratch data.
+$LocalMediaDir = if ($env:FMS_TEST_MEDIA) { $env:FMS_TEST_MEDIA } else { Get-ProjectPath -Relative 'temp/test_media' }
 $DeviceDestDir = "/sdcard/Download/FastMediaSorter_Test"
 $AndroidMediaDir = "/sdcard/Android/media/com.test.prerelease"
 
@@ -268,11 +272,11 @@ Write-Host "  Edge/        -> 'LOCAL - Edge'    (Block 15.3, 15.5)"
 Write-Host "  S0029/       -> 'LOCAL - S0029'  (R1-R4 resume position)"
 Write-Host "  S0048/       -> 'LOCAL - S0048'  (I1-I6 info-dialog metadata)"
 Write-Host ""
-Write-Host " S0029 prerequisites (SKIP files in c:\Common\test_media if missing):" -ForegroundColor White
+Write-Host " S0029 prerequisites (SKIP files in $LocalMediaDir if missing):" -ForegroundColor White
 Write-Host "  long.mp4  - duration > 100 s (R1 STATE_ENDED, R2 near-end 5 s, R3 50%)"
 Write-Host "  short.mp4 - duration <= 60 s  (R4 near-end 5% ~= 3 s)"
 Write-Host ""
-Write-Host " S0047/S0048 prerequisites (SKIP files in c:\Common\test_media if missing):" -ForegroundColor White
+Write-Host " S0047/S0048 prerequisites (SKIP files in $LocalMediaDir if missing):" -ForegroundColor White
 Write-Host "  test.flac    - FLAC with artist/album/year tags + embedded cover (I1)"
 Write-Host "  test_cbr.mp3 - CBR MP3, ID3v2, LAME header, exact bitrate      (I2)"
 Write-Host "  test_vbr.mp3 - VBR MP3, no Xing/LAME header, bitrate must hide  (I3)"

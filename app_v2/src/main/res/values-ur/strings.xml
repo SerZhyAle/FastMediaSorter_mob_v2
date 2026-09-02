@@ -3153,4 +3153,6 @@
     <string name="launcher_all_apps_swipe_explain_back_to_desktop">ایپ کی فہرست بند کرکے اس کے نیچے کا ڈیسک ٹاپ دکھاتا ہے۔</string>
     <string name="launcher_all_apps_swipe_explain_expand">حروف تہجی کے حصوں کی جگہ مکمل ایپ فہرست دکھاتا ہے۔</string>
     <string name="launcher_welcome_toggle_subtitle">ہوم بٹن سے FastMediaSorter کھولیں۔ سیٹ اپ کے بعد سسٹم تصدیق مانگتا ہے، اور آپ کسی بھی وقت ترتیبات میں واپس جا سکتے ہیں۔</string>
+    <string name="unit_bitrate_kbps">%1$s kbit/s</string>
+    <string name="unit_bitrate_mbps">%1$s Mbps</string>
 </resources>

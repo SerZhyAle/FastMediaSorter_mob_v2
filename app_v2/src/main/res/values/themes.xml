@@ -545,21 +545,21 @@
     </style>
 
     <style name="Widget.FastMediaSorter.NetworkMonitor.RowLabel" parent="">
-        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_weight">1</item>
         <item name="android:textSize">@dimen/text_size_small</item>
         <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
     </style>
 
-    <!-- Values are end-aligned against start-aligned labels: the pairs read as two columns without a table,
-         which a ScrollView of cards cannot give and a landscape split would otherwise break. -->
+    <!-- The value sits next to its label: the label hugs its own text, the value takes the remaining
+         width and stays start-aligned inside it, so the row's slack falls after the value and never
+         between the pair. On a landscape phone the previous end-alignment put the value a screen away
+         from the caption it belongs to. -->
     <style name="Widget.FastMediaSorter.NetworkMonitor.RowValue" parent="">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_marginStart">@dimen/margin_normal</item>
         <item name="android:layout_weight">1</item>
-        <item name="android:gravity">end</item>
         <item name="android:textSize">@dimen/text_size_small</item>
         <item name="android:textColor">?attr/colorOnSurface</item>
     </style>

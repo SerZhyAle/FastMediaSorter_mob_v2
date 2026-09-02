@@ -1,0 +1,1 @@
+Gestionnaire : triez photos, vidéos, musique et documents - local et cloud.

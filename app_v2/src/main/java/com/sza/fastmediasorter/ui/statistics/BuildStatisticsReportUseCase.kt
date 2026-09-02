@@ -198,7 +198,7 @@ class BuildStatisticsReportUseCase @Inject constructor(
     }
 
     private fun formatCount(value: Long): String = StatisticsRowFormatter.formatCount(value)
-    private fun formatBytes(value: Long): String = StatisticsRowFormatter.formatBytes(value)
+    private fun formatBytes(value: Long): String = StatisticsRowFormatter.formatBytes(context, value)
     private fun formatDuration(value: Long): String = StatisticsRowFormatter.formatDuration(context, value)
 
     private fun string(resId: Int): String = context.getString(resId)

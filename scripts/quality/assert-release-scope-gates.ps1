@@ -29,6 +29,7 @@
     stage - which would have made the whole relocation a downgrade (S1939 ADR-1).
 
     Gates (in order):
+      - assert-play-listing-locales    (S2340 Play listing locales vs locales_config.xml)
       - assert-unreferenced-strings    (S1568 string keys nothing under <module>/src references)
       - assert-splash-brand-sync       (S1706 generated splash drawables vs strings and template)
       - assert-icon-inventory-sync     (S0815 icon docs vs the settings icon/title sources)
@@ -90,6 +91,14 @@ else {
 
 # name -> extra args (beyond -Gate). Cheapest first, so a missing script surfaces early.
 $gates = [ordered]@{
+    # S2340. Reads two declarations - locales_config.xml and the LOCALES dict in
+    # publish-play-listing.py - plus 39 small text files, so it is the cheapest member and goes first.
+    # Rule 33 puts it in release scope on all four criteria (strategic S2340 "Гейт"): the listing
+    # reaches a user only when the owner publishes it; its subject is the whole listing tree against
+    # the whole locale declaration; each finding names its own locale and folder; and adding the
+    # missing locales is one batch either way. Deliberately NOT passed -Quiet - that switch suppresses
+    # the per-violation lines, and "which locale" is the whole content of this gate's report.
+    'assert-play-listing-locales.ps1'  = @()
     'assert-unreferenced-strings.ps1'  = @('-Quiet')
     'assert-splash-brand-sync.ps1'     = @('-Quiet')
     'assert-icon-inventory-sync.ps1'   = @()

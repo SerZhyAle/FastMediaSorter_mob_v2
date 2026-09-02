@@ -16,6 +16,7 @@ import com.google.android.gms.wearable.WearableListenerService
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import com.sza.fastmediasorter.wear.core.notification.WearOpenOnWatchNotifier
+import com.sza.fastmediasorter.wear.data.repository.WearPhonePinsRepository
 import com.sza.fastmediasorter.wear.domain.model.ImportResult
 import com.sza.fastmediasorter.wear.domain.model.WearEventEnvelopeCodec
 import com.sza.fastmediasorter.wear.domain.model.WearFileOpenRequest
@@ -27,6 +28,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.wear.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
+import com.sza.fastmediasorter.wear.domain.model.WearStreamPinsPayload
 import com.sza.fastmediasorter.wear.domain.model.WearStreamTransferAck
 import com.sza.fastmediasorter.wear.domain.model.WearStreamTransferPayload
 import com.sza.fastmediasorter.wear.domain.model.WearSyncPayload
@@ -91,6 +93,10 @@ class WatchWearListenerService : WearableListenerService() {
     @Inject lateinit var uploadOutcomeNotifier: com.sza.fastmediasorter.wear.core.notification.WearUploadOutcomeNotifier
 
     @Inject lateinit var gson: Gson
+
+    // S2149: the phone's pinned-stream set. Kept apart from the watch's own favourites so the star
+    // still means "I marked this here" and the phone can withdraw only what the phone sent.
+    @Inject lateinit var wearPhonePinsRepository: WearPhonePinsRepository
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -216,6 +222,10 @@ class WatchWearListenerService : WearableListenerService() {
                 WearDataLayerPaths.FILE_UPLOAD_OUTCOME -> {
                     val payloadBytes = dataMap.getByteArray("payload") ?: continue
                     handleFileUploadOutcome(payloadBytes, event.dataItem.uri)
+                }
+                WearDataLayerPaths.STREAM_PINS -> {
+                    val payloadBytes = dataMap.getByteArray("payload") ?: continue
+                    handleStreamPinsPush(payloadBytes)
                 }
             }
         }
@@ -368,6 +378,29 @@ class WatchWearListenerService : WearableListenerService() {
             } catch (e: Exception) {
                 Timber.e(e, "Failed to apply settings push")
                 WatchSyncEvents.settingsErrorFlow.emit(e.message ?: "Settings apply failed")
+            }
+        }
+    }
+
+    /**
+     * S2149: stores the phone's pinned-stream set so the streams list can raise those channels.
+     *
+     * A payload that fails to parse is dropped rather than applied as an empty set: losing one bad
+     * message must not silently clear a set the owner can only restore by re-pinning on the phone.
+     */
+    private fun handleStreamPinsPush(payloadBytes: ByteArray) {
+        serviceScope.launch {
+            try {
+                val envelope = envelopeCodec.decode(payloadBytes)
+                val payload = gson.fromJson(envelope.data.decodeToString(), WearStreamPinsPayload::class.java)
+                Timber.d("S2149: received ${payload.identities.size} phone-pinned identities")
+                wearPhonePinsRepository.replaceAll(payload.identities)
+            } catch (e: CancellationException) {
+                // The service scope was torn down; swallowing this would leave the coroutine machinery
+                // believing the job is still live (S1363/S1889/S1910).
+                throw e
+            } catch (e: Exception) {
+                Timber.w(e, "Failed to apply stream pins push - keeping the previously stored set")
             }
         }
     }

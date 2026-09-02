@@ -6,9 +6,11 @@ Regenerate after adding or changing any script parameter block.
 ## dev\ACTIVITY_CATALOG\scripts
 
 ### query.ps1
+Filters ACTIVITY_CATALOG JSONL records by keyword, tag, module, or flags.
 
 ```
 dev/ACTIVITY_CATALOG/scripts/query.ps1
+  Filters ACTIVITY_CATALOG JSONL records by keyword, tag, module, or flags.
   Params:
     -Module       (req)  [String]
     -Root                [String]
@@ -23,9 +25,11 @@ dev/ACTIVITY_CATALOG/scripts/query.ps1
 ```
 
 ### render.ps1
+Renders ACTIVITY_CATALOG JSONL into a human-readable Markdown file.
 
 ```
 dev/ACTIVITY_CATALOG/scripts/render.ps1
+  Renders ACTIVITY_CATALOG JSONL into a human-readable Markdown file.
   Params:
     -Module   (req)  [String]  {app_v2|wear}
     -Root            [String]
@@ -35,9 +39,11 @@ dev/ACTIVITY_CATALOG/scripts/render.ps1
 ```
 
 ### scan.ps1
+Scans AndroidManifest.xml source sets for a module and produces/updates the ACTIVITY_CATALOG JSONL.
 
 ```
 dev/ACTIVITY_CATALOG/scripts/scan.ps1
+  Scans AndroidManifest.xml source sets for a module and produces/updates the ACTIVITY_CATALOG JSONL.
   Params:
     -Module   (req)  [String]  {app_v2|wear}
     -Root            [String]
@@ -46,9 +52,11 @@ dev/ACTIVITY_CATALOG/scripts/scan.ps1
 ```
 
 ### set.ps1
+Updates manual fields for a single Activity record in the ACTIVITY_CATALOG JSONL.
 
 ```
 dev/ACTIVITY_CATALOG/scripts/set.ps1
+  Updates manual fields for a single Activity record in the ACTIVITY_CATALOG JSONL.
   Params:
     -Module    (req)  [String]  {app_v2|wear}
     -Class     (req)  [String]
@@ -65,9 +73,11 @@ dev/ACTIVITY_CATALOG/scripts/set.ps1
 ## dev\CATALOG\scripts
 
 ### apply-role-drafts.ps1
+Applies owner-reviewed role drafts (from generate-role-drafts.ps1) back into the catalogue.
 
 ```
 dev/CATALOG/scripts/apply-role-drafts.ps1
+  Applies owner-reviewed role drafts (from generate-role-drafts.ps1) back into the catalogue.
   Params:
     -Module           [String] = 'app_v2'
     -File             [String] = 'temp/scratch/role-drafts.tsv'
@@ -77,9 +87,11 @@ dev/CATALOG/scripts/apply-role-drafts.ps1
 ```
 
 ### generate-role-drafts.ps1
+Generates DRAFT `role` strings for catalogue classes whose role is empty, into a review TSV.
 
 ```
 dev/CATALOG/scripts/generate-role-drafts.ps1
+  Generates DRAFT `role` strings for catalogue classes whose role is empty, into a review TSV.
   Params:
     -Module             [String] = 'app_v2'
     -OutFile            [String] = 'temp/scratch/role-drafts.tsv'
@@ -90,9 +102,11 @@ dev/CATALOG/scripts/generate-role-drafts.ps1
 ```
 
 ### query.ps1
+Queries the catalogue by filters. Combine filters freely (all are AND'd).
 
 ```
 dev/CATALOG/scripts/query.ps1
+  Queries the catalogue by filters. Combine filters freely (all are AND'd).
   Params:
     -Module                [String] = 'app_v2'  {app_v2|wear}
     -Layer                 [String]
@@ -120,9 +134,11 @@ dev/CATALOG/scripts/query.ps1
 ```
 
 ### remove.ps1
+Removes a record from the catalogue.
 
 ```
 dev/CATALOG/scripts/remove.ps1
+  Removes a record from the catalogue.
   Params:
     -Module    (req)  [String]
     -Path      (req)  [String]
@@ -131,9 +147,11 @@ dev/CATALOG/scripts/remove.ps1
 ```
 
 ### render.ps1
+Renders a JSONL catalogue into a human-readable Markdown view.
 
 ```
 dev/CATALOG/scripts/render.ps1
+  Renders a JSONL catalogue into a human-readable Markdown view.
   Params:
     -Module   (req)  [String]
     -Root            [String]
@@ -143,9 +161,11 @@ dev/CATALOG/scripts/render.ps1
 ```
 
 ### scan.ps1
+Scans a module's Kotlin sources and produces/updates a JSONL catalogue.
 
 ```
 dev/CATALOG/scripts/scan.ps1
+  Scans a module's Kotlin sources and produces/updates a JSONL catalogue.
   Params:
     -Module        (req)  [String]
     -Root                 [String]
@@ -155,9 +175,11 @@ dev/CATALOG/scripts/scan.ps1
 ```
 
 ### set.ps1
+Updates manual fields on a catalogue record (role, status, noFlavors, function description).
 
 ```
 dev/CATALOG/scripts/set.ps1
+  Updates manual fields on a catalogue record (role, status, noFlavors, function description).
   Params:
     -Module       (req)  [String]
     -Path         (req)  [String]
@@ -184,6 +206,7 @@ scripts/add_to_dev_log.ps1
     -Description     (req)  [String]
     -Branch                 [String] = ""
     -AllowDuplicate         [SwitchParameter]
+  Exit: 0 - the entry was appended, or skipped as a recent duplicate (both are success: the row the
 ```
 
 ### add_to_functionality_log.ps1
@@ -199,9 +222,11 @@ scripts/add_to_functionality_log.ps1
 ```
 
 ### catalog_sync.ps1
+One-shot Catalogue sync: scan + render in a single PowerShell process.
 
 ```
 scripts/catalog_sync.ps1
+  One-shot Catalogue sync: scan + render in a single PowerShell process.
   Params:
     -Module        (req)  [String]  {app_v2|wear}
     -ChangedFiles         [String[]]
@@ -245,9 +270,11 @@ scripts/check_strings_localized.ps1
 ```
 
 ### check-doc-vs-gradle.ps1
+documentation-vs-Gradle drift checker (S0271).
 
 ```
 scripts/check-doc-vs-gradle.ps1
+  documentation-vs-Gradle drift checker (S0271).
   Params:
     -Doc                        [String]
     -Pin                        [String]
@@ -268,9 +295,11 @@ scripts/disable-watchdog-find.ps1
 ```
 
 ### post-change.ps1
+Combined post-change runner.
 
 ```
 scripts/post-change.ps1
+  Combined post-change runner.
   Params:
     -File                [String]
     -Files               [String[]]
@@ -288,9 +317,11 @@ scripts/post-change.ps1
 ```
 
 ### test-compatibility.ps1
+K.5: install and smoke-test FastMediaSorter across several Android API levels sequentially.
 
 ```
 scripts/test-compatibility.ps1
+  K.5: install and smoke-test FastMediaSorter across several Android API levels sequentially.
   Params:
     -ApiLevel         [String] = "all"  {28|29|30|33|35|all}
 ```
@@ -298,9 +329,11 @@ scripts/test-compatibility.ps1
 ## scripts\all_features
 
 ### _lib.ps1
+_lib.ps1 (S1537) - shared state for the ALL_FEATURES inventory mutators.
 
 ```
 scripts/all_features/_lib.ps1
+  _lib.ps1 (S1537) - shared state for the ALL_FEATURES inventory mutators.
   (no param block)
 ```
 
@@ -420,16 +453,20 @@ scripts/builders/build-aab-release.ps1
 ```
 
 ### build-and-push-all.ps1
+Master Build and Push Script
 
 ```
 scripts/builders/build-and-push-all.ps1
+  Master Build and Push Script
   (no param block)
 ```
 
 ### build-debug-clean.PS1
+Quick debug build script with auto-versioning and CLEAN BUILD
 
 ```
 scripts/builders/build-debug-clean.PS1
+  Quick debug build script with auto-versioning and CLEAN BUILD
   Params:
     -SkipZip             [SwitchParameter]
     -AutoVersion         [SwitchParameter] = $true
@@ -437,17 +474,21 @@ scripts/builders/build-debug-clean.PS1
 ```
 
 ### build-debug-device.ps1
+Build, install, and launch debug build on connected device
 
 ```
 scripts/builders/build-debug-device.ps1
+  Build, install, and launch debug build on connected device
   Params:
     -AutoVersion         [SwitchParameter] = $true
 ```
 
 ### build-debug.PS1
+Quick debug build script with auto-versioning
 
 ```
 scripts/builders/build-debug.PS1
+  Quick debug build script with auto-versioning
   Params:
     -SkipZip             [SwitchParameter]
     -Task                [String] = ":app_v2:assembleStandardDebug"
@@ -482,102 +523,131 @@ scripts/builders/build-failure-digest.ps1
 ```
 
 ### build-ffmpeg-dts-wsl.ps1
+PowerShell launcher for the WSL2 FFmpeg DTS build (NDK r27c, 16 KB compliant).
 
 ```
 scripts/builders/build-ffmpeg-dts-wsl.ps1
+  PowerShell launcher for the WSL2 FFmpeg DTS build (NDK r27c, 16 KB compliant).
   (no param block)
+  Exit: 0 the AAR was built, or the build script succeeded.; 1 WSL2 is unavailable, or Phase 1 setup has not been run.
 ```
 
 ### build-legacy-debug.ps1
+Build Legacy Debug APK
 
 ```
 scripts/builders/build-legacy-debug.ps1
+  Build Legacy Debug APK
   (no param block)
 ```
 
 ### build-legacy-device.ps1
+Build Legacy Debug APK and Install on Device
 
 ```
 scripts/builders/build-legacy-device.ps1
+  Build Legacy Debug APK and Install on Device
   (no param block)
 ```
 
 ### build-legacy-release.ps1
+Build Legacy Release APK
 
 ```
 scripts/builders/build-legacy-release.ps1
+  Build Legacy Release APK
   (no param block)
 ```
 
 ### build-lite-debug.ps1
+Build Lite Debug APK
 
 ```
 scripts/builders/build-lite-debug.ps1
+  Build Lite Debug APK
   (no param block)
 ```
 
 ### build-lite-device.ps1
+Build Lite Debug APK and Install on Device
 
 ```
 scripts/builders/build-lite-device.ps1
+  Build Lite Debug APK and Install on Device
   (no param block)
 ```
 
 ### build-lite-release.ps1
+Build Lite Release APK
 
 ```
 scripts/builders/build-lite-release.ps1
+  Build Lite Release APK
   (no param block)
 ```
 
 ### build-nolegal-debug.ps1
+Build NoLegal Debug APK
 
 ```
 scripts/builders/build-nolegal-debug.ps1
+  Build NoLegal Debug APK
   Params:
     -AutoVersion         [SwitchParameter] = $true
     -Abi                 [String] = ''
 ```
 
 ### build-nolegal-device.ps1
+Build NoLegal Debug APK and Install on Device (phone or Quest via ADB)
 
 ```
 scripts/builders/build-nolegal-device.ps1
+  Build NoLegal Debug APK and Install on Device (phone or Quest via ADB)
   (no param block)
 ```
 
 ### build-nolegal-release.ps1
+Build NoLegal Release APK
 
 ```
 scripts/builders/build-nolegal-release.ps1
+  Build NoLegal Release APK
   (no param block)
 ```
 
 ### build-photos-debug.ps1
+Build Photos Debug APK
 
 ```
 scripts/builders/build-photos-debug.ps1
+  Build Photos Debug APK
   (no param block)
 ```
 
 ### build-photos-device.ps1
+Build Photos Debug APK and Install on Device
 
 ```
 scripts/builders/build-photos-device.ps1
+  Build Photos Debug APK and Install on Device
   (no param block)
 ```
 
 ### build-photos-release.ps1
+Build Photos Release APK
 
 ```
 scripts/builders/build-photos-release.ps1
+  Build Photos Release APK
   (no param block)
 ```
 
 ### build-release.ps1
+Release build script
 
 ```
 scripts/builders/build-release.ps1
+  Release build script
   (no param block)
 ```
 
@@ -591,23 +661,29 @@ scripts/builders/build-standard-debug.ps1
 ```
 
 ### build-standard-device.ps1
+Build Standard Debug APK and Install on Device
 
 ```
 scripts/builders/build-standard-device.ps1
+  Build Standard Debug APK and Install on Device
   (no param block)
 ```
 
 ### build-standard-release.ps1
+Build Standard Release APK
 
 ```
 scripts/builders/build-standard-release.ps1
+  Build Standard Release APK
   (no param block)
 ```
 
 ### build-universal.ps1
+Universal Build Script for FastMediaSorter Flavors
 
 ```
 scripts/builders/build-universal.ps1
+  Universal Build Script for FastMediaSorter Flavors
   Params:
     -Flavor     (req)  [String]  {standard|lite|photos|legacy}
     -BuildType  (req)  [String]  {debug|release}
@@ -615,28 +691,32 @@ scripts/builders/build-universal.ps1
 ```
 
 ### build-vr-release.ps1
-Build the FastMediaSorter VR release APK using the current release version. .DESCRIPTION This script intentionally does not bump versionCode or versionName. Run it after build-aab-release.ps1 / .\a.ps1 r in the release worktree so the VR GitHub Store asset uses the same version as the standard release. .PARAMETER DryRun Validate paths and print the current version without invoking Gradle.
+Build the FastMediaSorter VR release APK using the current release version.
 
 ```
 scripts/builders/build-vr-release.ps1
-  Build the FastMediaSorter VR release APK using the current release version. .DESCRIPTION This script intentionally does not bump versionCode or versionName. Run it after build-aab-release.ps1 / .\a.ps1 r in the release worktree so the VR GitHub Store asset uses the same version as the standard release. .PARAMETER DryRun Validate paths and print the current version without invoking Gradle.
+  Build the FastMediaSorter VR release APK using the current release version.
   Params:
     -DryRun         [SwitchParameter]
 ```
 
 ### build-wear-debug.PS1
+Quick debug build script for Wear OS
 
 ```
 scripts/builders/build-wear-debug.PS1
+  Quick debug build script for Wear OS
   Params:
     -AutoVersion         [SwitchParameter] = $true
     -Flavor              [String] = 'standard'  {standard|noLegal}
 ```
 
 ### build-wear-release.PS1
+Release build script for Wear OS
 
 ```
 scripts/builders/build-wear-release.PS1
+  Release build script for Wear OS
   Params:
     -NoDistribute         [SwitchParameter]
     -Artifact             [String] = 'Apk'  {Apk|Aab|Both}
@@ -675,9 +755,11 @@ scripts/builders/check-standard-fast.ps1
 ```
 
 ### clean-gradle-caches.ps1
+Gradle caches clean script (project-level)
 
 ```
 scripts/builders/clean-gradle-caches.ps1
+  Gradle caches clean script (project-level)
   (no param block)
 ```
 
@@ -709,35 +791,43 @@ scripts/builders/gradle-run-verdict.ps1
 ```
 
 ### install-nolegal-debug-to-device.ps1
+Install noLegal DEBUG APK on connected device WITHOUT launching it.
 
 ```
 scripts/builders/install-nolegal-debug-to-device.ps1
+  Install noLegal DEBUG APK on connected device WITHOUT launching it.
   Params:
     -ApkPath         [String] = $null
 ```
 
 ### install-standard-debug-to-device.ps1
+Install Standard DEBUG APK on connected device WITHOUT launching it.
 
 ```
 scripts/builders/install-standard-debug-to-device.ps1
+  Install Standard DEBUG APK on connected device WITHOUT launching it.
   Params:
     -ApkPath          [String] = $null
     -DeviceId         [String] = $env:ANDROID_SERIAL
 ```
 
 ### publish-ffmpeg-dts-aar.ps1
+publish-ffmpeg-dts-aar.ps1
 
 ```
 scripts/builders/publish-ffmpeg-dts-aar.ps1
+  publish-ffmpeg-dts-aar.ps1
   Params:
     -AarPath         [String] = 'app_v2/libs/fms-ffmpeg-dts.aar'
     -Tag             [String] = 'delivery-so-v1'
 ```
 
 ### publish-libvlc-so.ps1
+publish-libvlc-so.ps1
 
 ```
 scripts/builders/publish-libvlc-so.ps1
+  publish-libvlc-so.ps1
   Params:
     -Version         [String] = '3.7.5'
     -Abi             [String] = 'arm64-v8a'
@@ -758,9 +848,11 @@ scripts/builders/run-standard-macrobenchmark.ps1
 ## scripts\builders\gradle-run-verdict.tests
 
 ### Run-Tests.ps1
+Run-Tests.ps1 (S1463) - regression suite for scripts/builders/gradle-run-verdict.ps1.
 
 ```
 scripts/builders/gradle-run-verdict.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S1463) - regression suite for scripts/builders/gradle-run-verdict.ps1.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
@@ -806,11 +898,11 @@ scripts/devtest/adb.ps1
 ```
 
 ### camera-wysiwyg-selftest.ps1
-S1920: check that camera_fov_compare.py can actually FAIL before its PASS is believed. .DESCRIPTION camera-wysiwyg-sweep.ps1 answers "does the saved photo match the viewfinder". A run of it that cannot fail says nothing, and the 2026-08-21 sweep returned PASS on every measured cell while the owner was still seeing a cropped frame - so the comparator itself needs a control. Two cases are put through the comparator: positive - a pair that agrees -> must report keep 1.0/1.0 and exit 0 negative - the same pair, photo centre-cropped to 0.74 on both axes -> must report FAIL, exit 1, and recover 0.74 The negative case is the whole point: the injected crop is known exactly, so the comparator has to both refuse the pair AND name the crop it was given. A tool that fails for the wrong reason passes a bare FAIL check. By default the pair is synthesised, so this runs on any checkout with no device and no stored artifacts. Point -Screenshot and -Photo at a real captured pair to run the same two cases against device data instead; a named pair that is missing is an error, never a silent fall back to synthetic. .PARAMETER Screenshot Viewfinder screenshot PNG. Requires -Photo. Omit both to synthesise the pair. .PARAMETER Photo The JPEG the shutter produced. Requires -Screenshot. .PARAMETER OutDir Where the synthesised pair and the cropped negative land. Default temp/S1920/selftest. .EXITCODES 0 - both cases behaved: the comparator passed the matching pair and failed the cropped one 1 - the comparator misbehaved on at least one case (it is the harness that is broken, not the app) 2 - could not run: no usable Python, comparator missing, or a named pair that does not exist
+S1920: check that camera_fov_compare.py can actually FAIL before its PASS is believed.
 
 ```
 scripts/devtest/camera-wysiwyg-selftest.ps1
-  S1920: check that camera_fov_compare.py can actually FAIL before its PASS is believed. .DESCRIPTION camera-wysiwyg-sweep.ps1 answers "does the saved photo match the viewfinder". A run of it that cannot fail says nothing, and the 2026-08-21 sweep returned PASS on every measured cell while the owner was still seeing a cropped frame - so the comparator itself needs a control. Two cases are put through the comparator: positive - a pair that agrees -> must report keep 1.0/1.0 and exit 0 negative - the same pair, photo centre-cropped to 0.74 on both axes -> must report FAIL, exit 1, and recover 0.74 The negative case is the whole point: the injected crop is known exactly, so the comparator has to both refuse the pair AND name the crop it was given. A tool that fails for the wrong reason passes a bare FAIL check. By default the pair is synthesised, so this runs on any checkout with no device and no stored artifacts. Point -Screenshot and -Photo at a real captured pair to run the same two cases against device data instead; a named pair that is missing is an error, never a silent fall back to synthetic. .PARAMETER Screenshot Viewfinder screenshot PNG. Requires -Photo. Omit both to synthesise the pair. .PARAMETER Photo The JPEG the shutter produced. Requires -Screenshot. .PARAMETER OutDir Where the synthesised pair and the cropped negative land. Default temp/S1920/selftest. .EXITCODES 0 - both cases behaved: the comparator passed the matching pair and failed the cropped one 1 - the comparator misbehaved on at least one case (it is the harness that is broken, not the app) 2 - could not run: no usable Python, comparator missing, or a named pair that does not exist
+  S1920: check that camera_fov_compare.py can actually FAIL before its PASS is believed.
   Params:
     -Screenshot         [String]
     -Photo              [String]
@@ -1018,6 +1110,24 @@ scripts/devtest/wear-prerelease-walk.ps1
   Exit: 0 every declared screen was observed, and the log audit found nothing; 1 at least one screen failed, or the log audit reported a finding; 2 could not verify: the screen list is missing or unreadable, no device, or a called script
 ```
 
+### wear-shape-bench.ps1
+S2273 - provision and assert the watch screen shapes Play reviews on.
+
+```
+scripts/devtest/wear-shape-bench.ps1
+  S2273 - provision and assert the watch screen shapes Play reviews on.
+  Params:
+    -Profile              [String]
+    -Ensure               [SwitchParameter]
+    -Assert               [SwitchParameter]
+    -List                 [SwitchParameter]
+    -ReviewedOnly         [SwitchParameter]
+    -DeviceId             [String]
+    -SystemImage          [String] = 'system-images;android-37.0;android-wear-signed;x86_64'
+    -Json                 [SwitchParameter]
+  Exit: 0 - the verb succeeded: -List printed, -Ensure left a usable AVD, or -Assert matched.; 1 - -Assert ran and the device does NOT match the declared profile, or the arguments are
+```
+
 ## scripts\devtest\adb-clip-check.tests
 
 ### Run-Tests.ps1
@@ -1069,9 +1179,11 @@ scripts/devtest/adb.tests/Run-Tests.ps1
 ## scripts\devtest\adb.tests\stub
 
 ### adb-stub.ps1
+Stub `adb` for scripts/devtest/adb.tests/Run-Tests.ps1 (S2088).
 
 ```
 scripts/devtest/adb.tests/stub/adb-stub.ps1
+  Stub `adb` for scripts/devtest/adb.tests/Run-Tests.ps1 (S2088).
   (no param block)
   Exit: 0 - the call matched the table; 99 - the call matched nothing; the signature is appended to $FMS_STUB_HOME/stub-misses.txt
 ```
@@ -1103,9 +1215,11 @@ scripts/devtest/devtest-encoding.tests/Run-Tests.ps1
 ## scripts\devtest\lib
 
 ### adb-log-filter.ps1
+S1332: the whole line-selection decision for `adb.ps1 log`, with no adb call and no device
 
 ```
 scripts/devtest/lib/adb-log-filter.ps1
+  S1332: the whole line-selection decision for `adb.ps1 log`, with no adb call and no device
   (no param block)
 ```
 
@@ -1155,58 +1269,74 @@ scripts/doc-drift/check-rule-prompt-drift.ps1
 ```
 
 ### Comparator.ps1
+classifies (pin, doc) mentions against canonical Gradle pins.
 
 ```
 scripts/doc-drift/Comparator.ps1
+  classifies (pin, doc) mentions against canonical Gradle pins.
   (no param block)
 ```
 
 ### DocParser.ps1
+extracts pin mentions from documentation files per manifest.
 
 ```
 scripts/doc-drift/DocParser.ps1
+  extracts pin mentions from documentation files per manifest.
   (no param block)
 ```
 
 ### GradleParser.ps1
+extracts canonical pin versions from Gradle sources.
 
 ```
 scripts/doc-drift/GradleParser.ps1
+  extracts canonical pin versions from Gradle sources.
   (no param block)
 ```
 
 ### Output.ps1
+formats Comparator records per DECISIONS.md D-5 output grammar.
 
 ```
 scripts/doc-drift/Output.ps1
+  formats Comparator records per DECISIONS.md D-5 output grammar.
   (no param block)
 ```
 
 ### RulePromptDetectors.ps1
+executable-mismatch detectors for the rule/prompt drift audit (S0315).
 
 ```
 scripts/doc-drift/RulePromptDetectors.ps1
+  executable-mismatch detectors for the rule/prompt drift audit (S0315).
   (no param block)
 ```
 
 ### RulePromptOutput.ps1
+record renderer for the rule/prompt drift audit (S0315).
 
 ```
 scripts/doc-drift/RulePromptOutput.ps1
+  record renderer for the rule/prompt drift audit (S0315).
   (no param block)
 ```
 
 ### RulePromptRecord.ps1
+executable-mismatch record contract for the rule/prompt drift audit (S0315).
 
 ```
 scripts/doc-drift/RulePromptRecord.ps1
+  executable-mismatch record contract for the rule/prompt drift audit (S0315).
   (no param block)
 ```
 
 ### RulePromptSources.ps1
+source discovery for the rule/prompt executable drift audit (S0315).
 
 ```
 scripts/doc-drift/RulePromptSources.ps1
+  source discovery for the rule/prompt executable drift audit (S0315).
   (no param block)
 ```
 
@@ -1250,9 +1380,11 @@ scripts/doc-drift.tests/Test-Helpers.ps1
 ## scripts\doc-drift\tests
 
 ### Run-Tests.ps1
+regression coverage for documentation drift pins (S1381).
 
 ```
 scripts/doc-drift/tests/Run-Tests.ps1
+  regression coverage for documentation drift pins (S1381).
   (no param block)
   Exit: 0 = all scenarios passed; 1 = one or more scenarios failed
 ```
@@ -1476,23 +1608,29 @@ scripts/githooks/activate-hooks.ps1
 ## scripts\guard
 
 ### ChangeSource.ps1
+ChangeSource.ps1 (S0313) - exports Get-ChangedMainKotlin.
 
 ```
 scripts/guard/ChangeSource.ps1
+  ChangeSource.ps1 (S0313) - exports Get-ChangedMainKotlin.
   (no param block)
 ```
 
 ### Classifier.ps1
+Classifier.ps1 (S0313) - exports Get-LineClassification.
 
 ```
 scripts/guard/Classifier.ps1
+  Classifier.ps1 (S0313) - exports Get-LineClassification.
   (no param block)
 ```
 
 ### flavor-isolation-guard.ps1
+flavor-isolation-guard.ps1 (S0313) - diff-aware flavor-isolation guard.
 
 ```
 scripts/guard/flavor-isolation-guard.ps1
+  flavor-isolation-guard.ps1 (S0313) - diff-aware flavor-isolation guard.
   Params:
     -Path                [String[]]
     -Ref                 [String]
@@ -1504,25 +1642,31 @@ scripts/guard/flavor-isolation-guard.ps1
 ```
 
 ### FlavorTokens.ps1
+FlavorTokens.ps1 (S0313) - exports Get-FlavorTokenPatterns.
 
 ```
 scripts/guard/FlavorTokens.ps1
+  FlavorTokens.ps1 (S0313) - exports Get-FlavorTokenPatterns.
   (no param block)
 ```
 
 ### ViolationRecord.ps1
+ViolationRecord.ps1 (S0313) - exports New-FlavorViolation.
 
 ```
 scripts/guard/ViolationRecord.ps1
+  ViolationRecord.ps1 (S0313) - exports New-FlavorViolation.
   (no param block)
 ```
 
 ## scripts\guard.tests
 
 ### Run-Tests.ps1
+Run-Tests.ps1 (S0313) - fixture self-test for the flavor-isolation guard.
 
 ```
 scripts/guard.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S0313) - fixture self-test for the flavor-isolation guard.
   (no param block)
   Exit: 0 all fixture cases pass.; 1 at least one case failed.
 ```
@@ -1530,18 +1674,22 @@ scripts/guard.tests/Run-Tests.ps1
 ## scripts\layout-dimen-migration
 
 ### 0-backup-layouts.ps1
+Backup all Layout files before dimension migration
 
 ```
 scripts/layout-dimen-migration/0-backup-layouts.ps1
+  Backup all Layout files before dimension migration
   Params:
     -LayoutDir         [String] = "app_v2\src\main\res\layout"
     -BackupDir         [String] = "temp\layout_backups"
 ```
 
 ### 1-extract-all-resources-v2.ps1
+Extract ALL attribute values from Layout files with SEMANTIC CONSOLIDATION
 
 ```
 scripts/layout-dimen-migration/1-extract-all-resources-v2.ps1
+  Extract ALL attribute values from Layout files with SEMANTIC CONSOLIDATION
   Params:
     -LayoutDir                    [String] = "app_v2\src\main\res\layout"
     -OutputFile                   [String] = "temp\resources_library.json"
@@ -1549,27 +1697,33 @@ scripts/layout-dimen-migration/1-extract-all-resources-v2.ps1
 ```
 
 ### 1-extract-all-resources.ps1
+Extract ALL attribute values from Layout files (dimensions, colors, drawables, strings, etc.)
 
 ```
 scripts/layout-dimen-migration/1-extract-all-resources.ps1
+  Extract ALL attribute values from Layout files (dimensions, colors, drawables, strings, etc.)
   Params:
     -LayoutDir          [String] = "app_v2\src\main\res\layout"
     -OutputFile         [String] = "temp\resources_library.json"
 ```
 
 ### 1-extract-dimensions.ps1
+Extract ALL attribute values from Layout files (dimensions, colors, drawables, strings, etc.)
 
 ```
 scripts/layout-dimen-migration/1-extract-dimensions.ps1
+  Extract ALL attribute values from Layout files (dimensions, colors, drawables, strings, etc.)
   Params:
     -LayoutDir          [String] = "app_v2\src\main\res\layout"
     -OutputFile         [String] = "temp\resources_library.json"
 ```
 
 ### 2-generate-dimens.ps1
+Generate resource XMLs from extracted resources library
 
 ```
 scripts/layout-dimen-migration/2-generate-dimens.ps1
+  Generate resource XMLs from extracted resources library
   Params:
     -InputFile             [String] = "temp\resources_library.json"
     -OutputDir             [String] = "temp\generated_resources"
@@ -1579,9 +1733,11 @@ scripts/layout-dimen-migration/2-generate-dimens.ps1
 ```
 
 ### 2-generate-resources.ps1
+Generate resource XMLs from extracted resources library
 
 ```
 scripts/layout-dimen-migration/2-generate-resources.ps1
+  Generate resource XMLs from extracted resources library
   Params:
     -InputFile                    [String] = "temp\resources_library.json"
     -OutputDir                    [String] = "temp\generated_resources"
@@ -1593,9 +1749,11 @@ scripts/layout-dimen-migration/2-generate-resources.ps1
 ```
 
 ### 3-replace-with-dimens.ps1
+Replace hardcoded dimension values with @dimen references
 
 ```
 scripts/layout-dimen-migration/3-replace-with-dimens.ps1
+  Replace hardcoded dimension values with @dimen references
   Params:
     -LibraryFile         [String] = "temp\dimensions_library.json"
     -LayoutDir           [String] = "app_v2\src\main\res\layout"
@@ -1604,9 +1762,11 @@ scripts/layout-dimen-migration/3-replace-with-dimens.ps1
 ```
 
 ### 3-replace-with-resources.ps1
+Replace hardcoded resource values with resource references (@dimen, @color, @string, etc.)
 
 ```
 scripts/layout-dimen-migration/3-replace-with-resources.ps1
+  Replace hardcoded resource values with resource references (@dimen, @color, @string, etc.)
   Params:
     -LibraryFile         [String] = "temp\resources_library.json"
     -LayoutDir           [String] = "app_v2\src\main\res\layout"
@@ -1616,18 +1776,22 @@ scripts/layout-dimen-migration/3-replace-with-resources.ps1
 ```
 
 ### 4-unify-dimensions.ps1
+Unify duplicate dimension values into semantic base resources
 
 ```
 scripts/layout-dimen-migration/4-unify-dimensions.ps1
+  Unify duplicate dimension values into semantic base resources
   Params:
     -InputFile          [String] = "temp\generated_resources\dimens.xml"
     -OutputFile         [String] = "temp\generated_resources\dimens_unified.xml"
 ```
 
 ### analyze-duplicates.ps1
+Analyze duplicate values in generated resources
 
 ```
 scripts/layout-dimen-migration/analyze-duplicates.ps1
+  Analyze duplicate values in generated resources
   Params:
     -InputFile             [String] = "temp\resources_library.json"
     -OutputFile            [String] = "temp\duplicate_analysis.txt"
@@ -1635,18 +1799,22 @@ scripts/layout-dimen-migration/analyze-duplicates.ps1
 ```
 
 ### run-migration.ps1
+Master script for full layout dimension migration
 
 ```
 scripts/layout-dimen-migration/run-migration.ps1
+  Master script for full layout dimension migration
   Params:
     -SkipBackup         [SwitchParameter] = $false
     -AutoApply          [SwitchParameter] = $false
 ```
 
 ### sort-resources-semantic.ps1
+Sort generated resource XMLs by semantic priority
 
 ```
 scripts/layout-dimen-migration/sort-resources-semantic.ps1
+  Sort generated resource XMLs by semantic priority
   Params:
     -InputFile           [String] = "temp\generated_resources\dimens.xml"
     -OutputFile          [String] = ""
@@ -1763,11 +1931,11 @@ scripts/quality/assert-activity-logic-not-growing.ps1
 ```
 
 ### assert-allfeatures-sync.ps1
-Keep docs/ALL_FEATURES.jsonl well-formed and from silently shrinking (S0489). .DESCRIPTION Two checks on the developer feature inventory: 1. Schema validity - delegates to scripts/all_features/validate.ps1 (-Gate): JSON well-formed, required fields, flavor enum, id uniqueness, EN-only. 2. Ratchet - the public inventory record count must not drop below the committed baseline (scripts/quality/allfeatures-sync-baseline.txt). A drop means records were lost; it fails the gate unless -UpdateBaseline is used. Default mode reports and exits 0 (audit). With -Gate it fails closed (exit 1) on either a validation error or an unexplained record-count drop. Exit codes (S1070): 0 - clean (or audit mode). 1 - substantive failure: validation error or record-count regression. 2 - the gate itself cannot run (inventory or validate.ps1 missing). Distinct from 1 on purpose: "the gate is broken" is not "the code is bad". .PARAMETER Gate Fail-closed: exit 1 on validation failure or record-count regression. .PARAMETER Quiet Print only the expected/actual summary line. .PARAMETER UpdateBaseline Rewrite the baseline file with the current record count, then exit 0. .EXAMPLE pwsh -NoProfile -File scripts/quality/assert-allfeatures-sync.ps1 pwsh -NoProfile -File scripts/quality/assert-allfeatures-sync.ps1 -Gate pwsh -NoProfile -File scripts/quality/assert-allfeatures-sync.ps1 -UpdateBaseline
+Keep docs/ALL_FEATURES.jsonl well-formed and from silently shrinking (S0489).
 
 ```
 scripts/quality/assert-allfeatures-sync.ps1
-  Keep docs/ALL_FEATURES.jsonl well-formed and from silently shrinking (S0489). .DESCRIPTION Two checks on the developer feature inventory: 1. Schema validity - delegates to scripts/all_features/validate.ps1 (-Gate): JSON well-formed, required fields, flavor enum, id uniqueness, EN-only. 2. Ratchet - the public inventory record count must not drop below the committed baseline (scripts/quality/allfeatures-sync-baseline.txt). A drop means records were lost; it fails the gate unless -UpdateBaseline is used. Default mode reports and exits 0 (audit). With -Gate it fails closed (exit 1) on either a validation error or an unexplained record-count drop. Exit codes (S1070): 0 - clean (or audit mode). 1 - substantive failure: validation error or record-count regression. 2 - the gate itself cannot run (inventory or validate.ps1 missing). Distinct from 1 on purpose: "the gate is broken" is not "the code is bad". .PARAMETER Gate Fail-closed: exit 1 on validation failure or record-count regression. .PARAMETER Quiet Print only the expected/actual summary line. .PARAMETER UpdateBaseline Rewrite the baseline file with the current record count, then exit 0. .EXAMPLE pwsh -NoProfile -File scripts/quality/assert-allfeatures-sync.ps1 pwsh -NoProfile -File scripts/quality/assert-allfeatures-sync.ps1 -Gate pwsh -NoProfile -File scripts/quality/assert-allfeatures-sync.ps1 -UpdateBaseline
+  Keep docs/ALL_FEATURES.jsonl well-formed and from silently shrinking (S0489).
   Params:
     -Gate                   [SwitchParameter]
     -Quiet                  [SwitchParameter]
@@ -1831,7 +1999,7 @@ S1695 - assert that the most recently published release's deobfuscation payload 
 scripts/quality/assert-deobfuscation-retained.ps1
   S1695 - assert that the most recently published release's deobfuscation payload is retained and reads back intact.
   Params:
-    -ArchiveRoot         [String] = 'c:\GD\WORK\FastMediaSorter\deobfuscation'
+    -ArchiveRoot         [String]
     -VersionName         [String]
     -Quiet               [SwitchParameter]
     -Json                [SwitchParameter]
@@ -2086,6 +2254,7 @@ scripts/quality/assert-gson-persistence-contract.ps1
     -ChangedFiles         [String]
     -Gate                 [SwitchParameter]
     -Quiet                [SwitchParameter]
+    -RepoRoot             [String]
 ```
 
 ### assert-guide-coverage.ps1
@@ -2217,31 +2386,33 @@ scripts/quality/assert-memory-budget.ps1
 ```
 
 ### assert-migration-schema-conformance.ps1
-Ratchet gate: what a Room migration writes in SQL must match the exported schema Room validates the upgraded database against, and every migration must be registered.
+Ratchet gate: what a Room migration writes in SQL must match the exported schema Room validates the upgraded database against, and every migration must be registered - in every module that owns a Room database.
 
 ```
 scripts/quality/assert-migration-schema-conformance.ps1
-  Ratchet gate: what a Room migration writes in SQL must match the exported schema Room validates the upgraded database against, and every migration must be registered.
+  Ratchet gate: what a Room migration writes in SQL must match the exported schema Room validates the upgraded database against, and every migration must be registered - in every module that owns a Room database.
   Params:
     -Gate                   [SwitchParameter]
     -UpdateBaseline         [SwitchParameter]
     -List                   [SwitchParameter]
     -Quiet                  [SwitchParameter]
+    -Module                 [String]
     -Help                   [SwitchParameter]
-  Exit: 0 no unbaselined disagreement (or reporting only, without -Gate).; 1 an unbaselined disagreement was found, under -Gate.; 2 cannot verify - the migration directory, the schema directory, DatabaseModule.kt or
+  Exit: 0 no unbaselined disagreement (or reporting only, without -Gate).; 1 an unbaselined disagreement was found, under -Gate.; 2 cannot verify - a registry row's migration directory, schema directory or registration
 ```
 
 ### assert-migration-test-pairing.ps1
-Ratchet gate: every Room migration must have an instrumented migration test, and the set of migrations without one may never grow. .DESCRIPTION S1844. A Room migration is the only thing standing between a user and a destroyed database on update, and until now the pairing between MigrationNNToMM.kt and AppDatabaseMigrationNNToMMTest.kt was held together by habit alone. Nothing failed when a migration shipped untested, and nothing failed when a test was deleted. The gate is a RATCHET, not an absolute rule, because the tree already carries migrations that predate the testing habit (31..42 at the time this gate was written). Demanding tests for those retroactively would either block every closure or invite a blanket suppression; both are worse than freezing the debt and refusing to let it grow. A migration added from now on needs its test. Pairing is by number only: Migration<N>To<M>.kt requires a test file whose name contains "Migration<N>To<M>". The test's content is not inspected here - that a test compiles is the job of `.\a.ps1 fa`, and that it passes is the job of running it on a device. Baseline file: migration-test-pairing-baseline.txt, one "NNToMM" token per line. Regenerate with -UpdateBaseline only when deliberately accepting a new untested migration, which should be never. .PARAMETER Gate Exit 1 when an unbaselined migration has no test. Without it the script only reports. .PARAMETER UpdateBaseline Rewrite the baseline from the current tree. .PARAMETER List Print every migration and its test status. .NOTES Exit codes: 0 no unbaselined gap (or reporting only), 1 unbaselined gap under -Gate, 2 cannot verify (migration or test directory missing).
+Ratchet gate: every Room migration must have an instrumented migration test, in every module that owns a Room database, and the set of migrations without one may never grow.
 
 ```
 scripts/quality/assert-migration-test-pairing.ps1
-  Ratchet gate: every Room migration must have an instrumented migration test, and the set of migrations without one may never grow. .DESCRIPTION S1844. A Room migration is the only thing standing between a user and a destroyed database on update, and until now the pairing between MigrationNNToMM.kt and AppDatabaseMigrationNNToMMTest.kt was held together by habit alone. Nothing failed when a migration shipped untested, and nothing failed when a test was deleted. The gate is a RATCHET, not an absolute rule, because the tree already carries migrations that predate the testing habit (31..42 at the time this gate was written). Demanding tests for those retroactively would either block every closure or invite a blanket suppression; both are worse than freezing the debt and refusing to let it grow. A migration added from now on needs its test. Pairing is by number only: Migration<N>To<M>.kt requires a test file whose name contains "Migration<N>To<M>". The test's content is not inspected here - that a test compiles is the job of `.\a.ps1 fa`, and that it passes is the job of running it on a device. Baseline file: migration-test-pairing-baseline.txt, one "NNToMM" token per line. Regenerate with -UpdateBaseline only when deliberately accepting a new untested migration, which should be never. .PARAMETER Gate Exit 1 when an unbaselined migration has no test. Without it the script only reports. .PARAMETER UpdateBaseline Rewrite the baseline from the current tree. .PARAMETER List Print every migration and its test status. .NOTES Exit codes: 0 no unbaselined gap (or reporting only), 1 unbaselined gap under -Gate, 2 cannot verify (migration or test directory missing).
+  Ratchet gate: every Room migration must have an instrumented migration test, in every module that owns a Room database, and the set of migrations without one may never grow.
   Params:
     -Gate                   [SwitchParameter]
     -UpdateBaseline         [SwitchParameter]
     -List                   [SwitchParameter]
-  Exit: 2 cannot verify (migration or test directory missing).
+    -Module                 [String]
+  Exit: 2 cannot verify (a registry row's migration directory, schema directory or registration file is
 ```
 
 ### assert-module-version-parity.ps1
@@ -2297,11 +2468,11 @@ scripts/quality/assert-no-orphan-merged-resources.ps1
 ```
 
 ### assert-no-ticket-logs.ps1
-Audit permanent Timber logs for embedded Sxxxx ticket ids. .DESCRIPTION Scans app_v2 and wear Kotlin sources for `Sxxxx` ticket ids inside log messages. Per CLAUDE.md "Debug Verification Tags", a ticket id may appear in log text ONLY as a temporary probe of the exact form Timber.d("Sxxxx: ..") whose ticket is currently in status BlockNeedUserTest. Every other occurrence is a forbidden permanent-log ticket id: - any Sxxxx inside Timber.i / Timber.w / Timber.e; - any Sxxxx inside Timber.d that is not the "Sxxxx:" probe prefix; - a "Sxxxx:" probe whose ticket is NOT currently BlockNeedUserTest (stale). Exit codes (S1070): 0 - clean (or audit mode). 1 - substantive failure: a forbidden permanent-log ticket id remains. 2 - the gate itself cannot run (spec-catalog.jsonl missing - without it no probe's status can be resolved). Distinct from 1 on purpose. 3 - only the catalog-state half failed: some ticket is BlockNeedUserTest with no probe, and -ChangedFiles was supplied, so the caller asked to be judged on its own files. Distinct from 1 because the caller cannot fix it - the probe belongs at the entry of ANOTHER ticket's changed flow (S1912). Allowed-probe status is resolved against PLAN/spec-catalog.jsonl. Default mode reports findings and exits 0 (audit). With -Gate the script exits 1 when any forbidden occurrence remains (fail-closed hygiene gate). .PARAMETER Gate Fail-closed: exit 1 if any forbidden permanent-log ticket id is found. .PARAMETER Quiet Suppress the per-finding list; print only the expected/actual summary. .PARAMETER ChangedFiles Repo-relative paths of the files the caller changed, comma-joined. Supplying it narrows the forbidden-log half to those files and downgrades the missing-probe half to exit 3, because that half reads catalog state and belongs to no file set. Omit it - as assert-fast-gates.ps1 and the release path do - and both halves stay project-wide and fatal. .EXAMPLE pwsh -NoProfile -File scripts/quality/assert-no-ticket-logs.ps1 pwsh -NoProfile -File scripts/quality/assert-no-ticket-logs.ps1 -Gate
+Audit permanent Timber logs for embedded Sxxxx ticket ids.
 
 ```
 scripts/quality/assert-no-ticket-logs.ps1
-  Audit permanent Timber logs for embedded Sxxxx ticket ids. .DESCRIPTION Scans app_v2 and wear Kotlin sources for `Sxxxx` ticket ids inside log messages. Per CLAUDE.md "Debug Verification Tags", a ticket id may appear in log text ONLY as a temporary probe of the exact form Timber.d("Sxxxx: ..") whose ticket is currently in status BlockNeedUserTest. Every other occurrence is a forbidden permanent-log ticket id: - any Sxxxx inside Timber.i / Timber.w / Timber.e; - any Sxxxx inside Timber.d that is not the "Sxxxx:" probe prefix; - a "Sxxxx:" probe whose ticket is NOT currently BlockNeedUserTest (stale). Exit codes (S1070): 0 - clean (or audit mode). 1 - substantive failure: a forbidden permanent-log ticket id remains. 2 - the gate itself cannot run (spec-catalog.jsonl missing - without it no probe's status can be resolved). Distinct from 1 on purpose. 3 - only the catalog-state half failed: some ticket is BlockNeedUserTest with no probe, and -ChangedFiles was supplied, so the caller asked to be judged on its own files. Distinct from 1 because the caller cannot fix it - the probe belongs at the entry of ANOTHER ticket's changed flow (S1912). Allowed-probe status is resolved against PLAN/spec-catalog.jsonl. Default mode reports findings and exits 0 (audit). With -Gate the script exits 1 when any forbidden occurrence remains (fail-closed hygiene gate). .PARAMETER Gate Fail-closed: exit 1 if any forbidden permanent-log ticket id is found. .PARAMETER Quiet Suppress the per-finding list; print only the expected/actual summary. .PARAMETER ChangedFiles Repo-relative paths of the files the caller changed, comma-joined. Supplying it narrows the forbidden-log half to those files and downgrades the missing-probe half to exit 3, because that half reads catalog state and belongs to no file set. Omit it - as assert-fast-gates.ps1 and the release path do - and both halves stay project-wide and fatal. .EXAMPLE pwsh -NoProfile -File scripts/quality/assert-no-ticket-logs.ps1 pwsh -NoProfile -File scripts/quality/assert-no-ticket-logs.ps1 -Gate
+  Audit permanent Timber logs for embedded Sxxxx ticket ids.
   Params:
     -Gate                 [SwitchParameter]
     -Quiet                [SwitchParameter]
@@ -2345,11 +2516,11 @@ scripts/quality/assert-orientation-implied-feature.ps1
 ```
 
 ### assert-orientation-layout-pairing.ps1
-S1549: pairs an <activity> that absorbs orientation via android:configChanges with ownership of a landscape layout, so the pair is caught mechanically instead of by a third accidental discovery. .DESCRIPTION A screen that declares android:configChanges with 'orientation' is never recreated on rotation, so it never re-inflates its res/layout-land/*.xml - that variant only applies on a landscape cold start. The same defect was already fixed pointwise twice (S0692 Streams, S1377 Welcome) without anyone inventorying the project. This gate is that inventory: it walks every AndroidManifest.xml under app_v2/src, extracts each <activity> element, and flags one whose configChanges contains the word 'orientation' while a landscape layout exists for it. Landscape ownership is resolved from the resource tree, not a name list (strategic sec.5.3): the activity's simple class name maps to its activity_*.xml by the project's naming convention, and an explicit 'layout:' line in the exception file covers an indirect owner whose landscape layout belongs to a hosted fragment/page rather than to the activity itself. Landscape ownership lines in the exception file map an activity to a landscape layout its simple name cannot reach by convention: a layout shared across several activities ('layout:activity_player_unified=PlayerActivity,StandalonePlayerActivity'), a layout whose name breaks the activity_* convention ('layout:activity_standalone_photo_video=PhotoVideoStandaloneActivity'), or a layout owned indirectly through a hosted fragment/page ('layout:fragment_auth_sessions_list=AuthSessionsActivity', 'layout:page_welcome.*=WelcomeActivity'). The '.*' suffix is a prefix wildcard over layout base names. A layout line whose named layout has no landscape file is inert - it maps nothing until such a file exists. Two skips make the finding precise (strategic sec.6.3): - an activity pinned by android:screenOrientation cannot rotate, so absorption is inert; - an activity listed in the exception file was fixed by the keep-absorption branch and re-applies its landscape layout in code. This phase ships the gate in REPORT mode only. It is wired into a runner in phase 08, once the exception file holds only real exceptions. .PARAMETER Gate Fail (exit 1) when at least one activity pairs absorption with a landscape layout. .PARAMETER List Print every defective activity, one per line, then exit 0. This is the authoritative defect set every later phase verifies against. .NOTES Exit codes (CLAUDE.md Rule 7): 0 every activity clean, or a non-gate report/-List run. 1 -Gate and at least one activity absorbs orientation while owning a landscape layout. 2 cannot verify - no manifest found, or the source root does not exist.
+S1549: pairs an <activity> that absorbs orientation via android:configChanges with ownership of a landscape layout, so the pair is caught mechanically instead of by a third accidental discovery.
 
 ```
 scripts/quality/assert-orientation-layout-pairing.ps1
-  S1549: pairs an <activity> that absorbs orientation via android:configChanges with ownership of a landscape layout, so the pair is caught mechanically instead of by a third accidental discovery. .DESCRIPTION A screen that declares android:configChanges with 'orientation' is never recreated on rotation, so it never re-inflates its res/layout-land/*.xml - that variant only applies on a landscape cold start. The same defect was already fixed pointwise twice (S0692 Streams, S1377 Welcome) without anyone inventorying the project. This gate is that inventory: it walks every AndroidManifest.xml under app_v2/src, extracts each <activity> element, and flags one whose configChanges contains the word 'orientation' while a landscape layout exists for it. Landscape ownership is resolved from the resource tree, not a name list (strategic sec.5.3): the activity's simple class name maps to its activity_*.xml by the project's naming convention, and an explicit 'layout:' line in the exception file covers an indirect owner whose landscape layout belongs to a hosted fragment/page rather than to the activity itself. Landscape ownership lines in the exception file map an activity to a landscape layout its simple name cannot reach by convention: a layout shared across several activities ('layout:activity_player_unified=PlayerActivity,StandalonePlayerActivity'), a layout whose name breaks the activity_* convention ('layout:activity_standalone_photo_video=PhotoVideoStandaloneActivity'), or a layout owned indirectly through a hosted fragment/page ('layout:fragment_auth_sessions_list=AuthSessionsActivity', 'layout:page_welcome.*=WelcomeActivity'). The '.*' suffix is a prefix wildcard over layout base names. A layout line whose named layout has no landscape file is inert - it maps nothing until such a file exists. Two skips make the finding precise (strategic sec.6.3): - an activity pinned by android:screenOrientation cannot rotate, so absorption is inert; - an activity listed in the exception file was fixed by the keep-absorption branch and re-applies its landscape layout in code. This phase ships the gate in REPORT mode only. It is wired into a runner in phase 08, once the exception file holds only real exceptions. .PARAMETER Gate Fail (exit 1) when at least one activity pairs absorption with a landscape layout. .PARAMETER List Print every defective activity, one per line, then exit 0. This is the authoritative defect set every later phase verifies against. .NOTES Exit codes (CLAUDE.md Rule 7): 0 every activity clean, or a non-gate report/-List run. 1 -Gate and at least one activity absorbs orientation while owning a landscape layout. 2 cannot verify - no manifest found, or the source root does not exist.
+  S1549: pairs an <activity> that absorbs orientation via android:configChanges with ownership of a landscape layout, so the pair is caught mechanically instead of by a third accidental discovery.
   Params:
     -Gate         [SwitchParameter]
     -List         [SwitchParameter]
@@ -2392,6 +2563,19 @@ scripts/quality/assert-packaging-excludes-parity.ps1
     -Gate          [SwitchParameter]
     -Quiet         [SwitchParameter]
   Exit: 0 - clean, every module carrying a shared library repeats its payload exclusions; 1 - a module is missing an exclusion, or an unknown payload prefix appeared; 2 - cannot verify: a build file is missing, or has no packaging/resources block to read
+```
+
+### assert-play-listing-locales.ps1
+S2340 parity gate: the Play store listing carries every locale the app declares.
+
+```
+scripts/quality/assert-play-listing-locales.ps1
+  S2340 parity gate: the Play store listing carries every locale the app declares.
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+    -Help          [SwitchParameter]
+  Exit: 0 - every declared locale is served, every mapped folder is complete and inside its limits.; 1 - a parity, completeness or character-limit violation.; 2 - cannot verify: locales_config.xml or publish-play-listing.py is missing or unreadable.
 ```
 
 ### assert-prerelease-content-gates.ps1
@@ -2858,11 +3042,11 @@ scripts/quality/detekt-scoped.ps1
 ```
 
 ### generate-toolchain-pins.ps1
-Generate canonical toolchain version pins from the build configuration. .DESCRIPTION Reads SDK levels and key dependency versions directly from the Gradle build files (the single source of truth - there is no version catalog) and renders a normalized pin list. Canonical documents carry this list inside a delimited managed block so doc-vs-build drift becomes structurally impossible. Every version is READ from the build files; no version literal is embedded in this script. Exit codes (S1070): 0 - clean (pins in sync, or a successful -Write). 1 - substantive failure: doc-vs-build pin drift under -Check. 2 - the tool itself cannot run: a build file or target document is missing, a version could not be read, or the managed-block markers are absent. Distinct from 1 on purpose - "cannot check" is not "drift found". Modes: (default) Print the generated managed block to stdout. -Write Replace the managed block in each target document in place. -Check Regenerate and compare against each target's managed block; exit 1 on any drift or missing block (fail-closed gate). .EXAMPLE pwsh -NoProfile -File scripts/quality/generate-toolchain-pins.ps1 pwsh -NoProfile -File scripts/quality/generate-toolchain-pins.ps1 -Write pwsh -NoProfile -File scripts/quality/generate-toolchain-pins.ps1 -Check
+Generate canonical toolchain version pins from the build configuration.
 
 ```
 scripts/quality/generate-toolchain-pins.ps1
-  Generate canonical toolchain version pins from the build configuration. .DESCRIPTION Reads SDK levels and key dependency versions directly from the Gradle build files (the single source of truth - there is no version catalog) and renders a normalized pin list. Canonical documents carry this list inside a delimited managed block so doc-vs-build drift becomes structurally impossible. Every version is READ from the build files; no version literal is embedded in this script. Exit codes (S1070): 0 - clean (pins in sync, or a successful -Write). 1 - substantive failure: doc-vs-build pin drift under -Check. 2 - the tool itself cannot run: a build file or target document is missing, a version could not be read, or the managed-block markers are absent. Distinct from 1 on purpose - "cannot check" is not "drift found". Modes: (default) Print the generated managed block to stdout. -Write Replace the managed block in each target document in place. -Check Regenerate and compare against each target's managed block; exit 1 on any drift or missing block (fail-closed gate). .EXAMPLE pwsh -NoProfile -File scripts/quality/generate-toolchain-pins.ps1 pwsh -NoProfile -File scripts/quality/generate-toolchain-pins.ps1 -Write pwsh -NoProfile -File scripts/quality/generate-toolchain-pins.ps1 -Check
+  Generate canonical toolchain version pins from the build configuration.
   Params:
     -Write         [SwitchParameter]
     -Check         [SwitchParameter]
@@ -3016,23 +3200,29 @@ scripts/quality/split-detekt-baseline.ps1
 ## scripts\quality.tests
 
 ### android-string-liveness.Tests.ps1
+android-string-liveness.Tests.ps1 (S1568) - regression tests for the shared liveness library.
 
 ```
 scripts/quality.tests/android-string-liveness.Tests.ps1
+  android-string-liveness.Tests.ps1 (S1568) - regression tests for the shared liveness library.
   (no param block)
 ```
 
 ### changed-files-normalizer.Tests.ps1
+Run-Tests.ps1 (S1184) - regression tests for the shared -ChangedFiles CSV normalizer.
 
 ```
 scripts/quality.tests/changed-files-normalizer.Tests.ps1
+  Run-Tests.ps1 (S1184) - regression tests for the shared -ChangedFiles CSV normalizer.
   (no param block)
 ```
 
 ### check-device-profile-presets.Tests.ps1
+check-device-profile-presets.Tests.ps1 (S1216) - regression tests for the preset coverage gate.
 
 ```
 scripts/quality.tests/check-device-profile-presets.Tests.ps1
+  check-device-profile-presets.Tests.ps1 (S1216) - regression tests for the preset coverage gate.
   (no param block)
 ```
 
@@ -3047,11 +3237,11 @@ scripts/quality.tests/gate-pool.Tests.ps1
 ```
 
 ### locale-fingerprints.Tests.ps1
-S1824: tests for English string fingerprinting and stale translation detection.
+requires -Version 7.0
 
 ```
 scripts/quality.tests/locale-fingerprints.Tests.ps1
-  S1824: tests for English string fingerprinting and stale translation detection.
+  requires -Version 7.0
   (no param block)
 ```
 
@@ -3076,18 +3266,22 @@ scripts/quality.tests/seed-locale-fingerprints.Tests.ps1
 ```
 
 ### set-android-string-remove.Tests.ps1
+set-android-string-remove.Tests.ps1 (S1568) - regression tests for the removal branch.
 
 ```
 scripts/quality.tests/set-android-string-remove.Tests.ps1
+  set-android-string-remove.Tests.ps1 (S1568) - regression tests for the removal branch.
   (no param block)
 ```
 
 ## scripts\quality\assert-detekt.tests
 
 ### Run-Tests.ps1
+Run-Tests.ps1 (S1077) - regression suite for Get-DetektFindingFiles, the report reader behind
 
 ```
 scripts/quality/assert-detekt.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S1077) - regression suite for Get-DetektFindingFiles, the report reader behind
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
@@ -3095,9 +3289,23 @@ scripts/quality/assert-detekt.tests/Run-Tests.ps1
 ## scripts\quality\assert-exit-contract.tests
 
 ### Run-Tests.ps1
+Run-Tests.ps1 (S1070) - regression suite for scripts/quality/assert-exit-contract.ps1.
 
 ```
 scripts/quality/assert-exit-contract.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S1070) - regression suite for scripts/quality/assert-exit-contract.ps1.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\quality\assert-gson-persistence-contract.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S2341) - regression suite for the Gson persistence contract gate's type parsing.
+
+```
+scripts/quality/assert-gson-persistence-contract.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S2341) - regression suite for the Gson persistence contract gate's type parsing.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
@@ -3115,9 +3323,11 @@ scripts/quality/assert-hook-inventory.tests/run-tests.ps1
 ## scripts\quality\assert-listener-symmetry.tests
 
 ### Run-Tests.ps1
+Run-Tests.ps1 (S1559) - regression suite for the listener-symmetry gate.
 
 ```
 scripts/quality/assert-listener-symmetry.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S1559) - regression suite for the listener-symmetry gate.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
@@ -3125,19 +3335,47 @@ scripts/quality/assert-listener-symmetry.tests/Run-Tests.ps1
 ## scripts\quality\assert-migration-schema-conformance.tests
 
 ### Run-Tests.ps1
+Run-Tests.ps1 (S2306) - regression suite for the migration/schema conformance gate.
 
 ```
 scripts/quality/assert-migration-schema-conformance.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S2306) - regression suite for the migration/schema conformance gate.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\quality\assert-migration-test-pairing.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S2355) - regression suite for the migration/test pairing gate.
+
+```
+scripts/quality/assert-migration-test-pairing.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S2355) - regression suite for the migration/test pairing gate.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\quality\assert-new-lexemes-translated.tests
+
+### Run-Tests.ps1
+Regression tests for module-isolated new-lexeme remedy artifacts (S2362).
+
+```
+scripts/quality/assert-new-lexemes-translated.tests/Run-Tests.ps1
+  Regression tests for module-isolated new-lexeme remedy artifacts (S2362).
+  (no param block)
+  Exit: 0 - every case passed; 1 - at least one case failed
 ```
 
 ## scripts\quality\assert-no-ticket-logs.tests
 
 ### Run-Tests.ps1
+Run-Tests.ps1 (S1912) - regression suite for the -ChangedFiles scoping of
 
 ```
 scripts/quality/assert-no-ticket-logs.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S1912) - regression suite for the -ChangedFiles scoping of
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the suite could not run (the gate under test is missing).
 ```
@@ -3145,9 +3383,11 @@ scripts/quality/assert-no-ticket-logs.tests/Run-Tests.ps1
 ## scripts\quality\assert-orientation-layout-pairing.tests
 
 ### Run-Tests.ps1
+Run-Tests.ps1 (S1549) - regression suite for the orientation/layout pairing gate.
 
 ```
 scripts/quality/assert-orientation-layout-pairing.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S1549) - regression suite for the orientation/layout pairing gate.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
@@ -3167,9 +3407,11 @@ scripts/quality/assert-script-references.tests/Run-Tests.ps1
 ## scripts\quality\assert-shared-test-flavor-scope.tests
 
 ### Run-Tests.ps1
+Run-Tests.ps1 (S1453) - regression suite for the flavor/source-set mount map and the gate on it.
 
 ```
 scripts/quality/assert-shared-test-flavor-scope.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S1453) - regression suite for the flavor/source-set mount map and the gate on it.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
@@ -3177,9 +3419,11 @@ scripts/quality/assert-shared-test-flavor-scope.tests/Run-Tests.ps1
 ## scripts\quality\assert-swallowed-cancellation.tests
 
 ### Run-Tests.ps1
+Run-Tests.ps1 (S1363) - regression suite proving the swallowed-cancellation gate actually fires.
 
 ```
 scripts/quality/assert-swallowed-cancellation.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S1363) - regression suite proving the swallowed-cancellation gate actually fires.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 could not verify - the baseline file is missing.
 ```
@@ -3196,9 +3440,11 @@ scripts/quality/assert-ticket-acceptance-probes.tests/Run-Tests.ps1
 ## scripts\quality\assert-window-insets.tests
 
 ### Run-Tests.ps1
+Run-Tests.ps1 (S1347) - regression suite proving Rule 17's window-insets gate actually fires.
 
 ```
 scripts/quality/assert-window-insets.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S1347) - regression suite proving Rule 17's window-insets gate actually fires.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 could not acquire the Code.Phone domain for the end-to-end case - re-run once the lock is free.
 ```
@@ -3206,9 +3452,11 @@ scripts/quality/assert-window-insets.tests/Run-Tests.ps1
 ## scripts\quality\detekt-scoped.tests
 
 ### Run-Tests.ps1
+Run-Tests.ps1 (S1595) - contract suite for detekt-scoped.ps1.
 
 ```
 scripts/quality/detekt-scoped.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S1595) - contract suite for detekt-scoped.ps1.
   Params:
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
   Exit: 0 - every case passed.; 1 - at least one case failed.; 2 - the suite could not build a fixture it needs, so it never judged anything.
@@ -3241,6 +3489,15 @@ scripts/quality/lib/android-string-liveness.ps1
   (no param block)
 ```
 
+### blockneedusertest-probes.ps1
+One definition of what a BlockNeedUserTest debug probe is, shared by the tree gate and the closing gate.
+
+```
+scripts/quality/lib/blockneedusertest-probes.ps1
+  One definition of what a BlockNeedUserTest debug probe is, shared by the tree gate and the closing gate.
+  (no param block)
+```
+
 ### changed-files-delta.ps1
 S0848 Phase 04: shared changed-files delta for count-vs-baseline ratchet gates.
 
@@ -3260,20 +3517,20 @@ scripts/quality/lib/changed-files.ps1
 ```
 
 ### detekt-classpath.ps1
-Read the detekt version pin out of the root build.gradle.kts.
+S2112: assembling the detekt CLI classpath out of the gradle dependency cache, split out of
 
 ```
 scripts/quality/lib/detekt-classpath.ps1
-  Read the detekt version pin out of the root build.gradle.kts.
+  S2112: assembling the detekt CLI classpath out of the gradle dependency cache, split out of
   (no param block)
 ```
 
 ### detekt-report.ps1
-Collect the files detekt reported NEW findings in, for the given modules.
+S1077: reading detekt's Checkstyle XML report, split out of assert-detekt.ps1 so it can be tested.
 
 ```
 scripts/quality/lib/detekt-report.ps1
-  Collect the files detekt reported NEW findings in, for the given modules.
+  S1077: reading detekt's Checkstyle XML report, split out of assert-detekt.ps1 so it can be tested.
   (no param block)
 ```
 
@@ -3310,9 +3567,11 @@ scripts/quality/lib/gate-telemetry.ps1
 ```
 
 ### house-text-style.ps1
+shared house text style normalizer (S1544).
 
 ```
 scripts/quality/lib/house-text-style.ps1
+  shared house text style normalizer (S1544).
   (no param block)
 ```
 
@@ -3326,12 +3585,31 @@ scripts/quality/lib/listener-symmetry-count.ps1
 ```
 
 ### locale-fingerprints.ps1
-S1824: shared library for English string fingerprinting and translation freshness tracking.
+requires -Version 7.0
 
 ```
 scripts/quality/lib/locale-fingerprints.ps1
-  S1824: shared library for English string fingerprinting and translation freshness tracking.
+  requires -Version 7.0
   (no param block)
+```
+
+### nested-worktrees.ps1
+One definition of "this path belongs to another agent's checkout, not to this tree", shared by every repository-wide file walk.
+
+```
+scripts/quality/lib/nested-worktrees.ps1
+  One definition of "this path belongs to another agent's checkout, not to this tree", shared by every repository-wide file walk.
+  (no param block)
+```
+
+### room-databases.ps1
+Dot-source library: the registry of every Room database in the repository, one row per database.
+
+```
+scripts/quality/lib/room-databases.ps1
+  Dot-source library: the registry of every Room database in the repository, one row per database.
+  (no param block)
+  Exit: 0 dot-sourced successfully (this file has no command-line interface and returns nothing else).; 2 invoked as a script instead of being dot-sourced - see the guard below.
 ```
 
 ### script-reference-resolution.ps1
@@ -3370,12 +3648,38 @@ scripts/quality/lib/ticket-acceptance-probes.ps1
   (no param block)
 ```
 
+## scripts\quality\lib\room-databases.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S2355) - regression suite for the Room database registry.
+
+```
+scripts/quality/lib/room-databases.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S2355) - regression suite for the Room database registry.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\quality\nested-worktrees.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/quality/lib/nested-worktrees.ps1 (S2333).
+
+```
+scripts/quality/nested-worktrees.tests/Run-Tests.ps1
+  Contract tests for scripts/quality/lib/nested-worktrees.ps1 (S2333).
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed
+```
+
 ## scripts\quality\prune-detekt-baseline.tests
 
 ### Run-Tests.ps1
+Run-Tests.ps1 (S2112) - contract suite for prune-detekt-baseline.ps1.
 
 ```
 scripts/quality/prune-detekt-baseline.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S2112) - contract suite for prune-detekt-baseline.ps1.
   Params:
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
   Exit: 0 - every case passed.; 1 - at least one case failed.
@@ -3428,11 +3732,11 @@ scripts/release/apply-github-store-metadata.ps1
 ```
 
 ### build-release-spectrum.ps1
-Build the full release spectrum at ONE uniform version for GitHub Release publication (S0394). .DESCRIPTION Stamps a single version into BOTH app_v2 and wear, then builds every release flavor + the wear release in the established two-pass (Chaquopy) order, so all artifacts share one version and the publisher can upload them under one tag. Flavors built (release only): standard, lite, photos, legacy, vr (pass 1, Chaquopy disabled) wear (:wear:assembleRelease + :wear:bundleRelease) (pass 1) noLegal (pass 2, Chaquopy enabled) Out of scope (kept in the existing per-flavor builders / build-and-push-all): debug variants, git operations, Google Drive + tc-folder mirrors. Run from the release worktree on main so the follow-up publisher (scripts/release/publish-github-release.ps1) passes its branch guard. .PARAMETER SkipBuild Stamp the uniform version into app_v2 + wear build.gradle.kts and exit without building. Useful to inspect the version reconciliation in isolation. .PARAMETER ReuseVersion Do NOT compute a fresh version. Reuse the version already stamped in app_v2/build.gradle.kts (e.g. by a prior `a.ps1 r`) and align wear to it. This keeps the GitHub Release APKs aligned with the Google Play AAB produced by `a.ps1 r` in the same release window - used by the /skill-release flow. .PARAMETER Flavors Subset of the spectrum to build. Accepts any of: standard, lite, photos, legacy, vr, wear, noLegal plus the alias 'all' (== 'full' == 'spectrum') for every flavor. Case-insensitive; order-independent; de-duplicated. Omitted / empty => the full spectrum (backward-compatible default for direct invocation). The /skill-release flow passes 'standard' by default so a plateau release builds only the standard edition unless extra flavors are requested. .PARAMETER WearFlavor Which watch variant the 'wear' entry of -Flavors resolves to: 'standard' (default, the one Play accepts) or 'noLegal' (sideload). S2090 gave the wear module its own flavor dimension; ADR-6 of that ticket fixes the release default at the store variant, because building the sideload one on every release costs a full watch build for a difference no user of the release sees.
+Build the full release spectrum at ONE uniform version for GitHub Release publication (S0394).
 
 ```
 scripts/release/build-release-spectrum.ps1
-  Build the full release spectrum at ONE uniform version for GitHub Release publication (S0394). .DESCRIPTION Stamps a single version into BOTH app_v2 and wear, then builds every release flavor + the wear release in the established two-pass (Chaquopy) order, so all artifacts share one version and the publisher can upload them under one tag. Flavors built (release only): standard, lite, photos, legacy, vr (pass 1, Chaquopy disabled) wear (:wear:assembleRelease + :wear:bundleRelease) (pass 1) noLegal (pass 2, Chaquopy enabled) Out of scope (kept in the existing per-flavor builders / build-and-push-all): debug variants, git operations, Google Drive + tc-folder mirrors. Run from the release worktree on main so the follow-up publisher (scripts/release/publish-github-release.ps1) passes its branch guard. .PARAMETER SkipBuild Stamp the uniform version into app_v2 + wear build.gradle.kts and exit without building. Useful to inspect the version reconciliation in isolation. .PARAMETER ReuseVersion Do NOT compute a fresh version. Reuse the version already stamped in app_v2/build.gradle.kts (e.g. by a prior `a.ps1 r`) and align wear to it. This keeps the GitHub Release APKs aligned with the Google Play AAB produced by `a.ps1 r` in the same release window - used by the /skill-release flow. .PARAMETER Flavors Subset of the spectrum to build. Accepts any of: standard, lite, photos, legacy, vr, wear, noLegal plus the alias 'all' (== 'full' == 'spectrum') for every flavor. Case-insensitive; order-independent; de-duplicated. Omitted / empty => the full spectrum (backward-compatible default for direct invocation). The /skill-release flow passes 'standard' by default so a plateau release builds only the standard edition unless extra flavors are requested. .PARAMETER WearFlavor Which watch variant the 'wear' entry of -Flavors resolves to: 'standard' (default, the one Play accepts) or 'noLegal' (sideload). S2090 gave the wear module its own flavor dimension; ADR-6 of that ticket fixes the release default at the store variant, because building the sideload one on every release costs a full watch build for a difference no user of the release sees.
+  Build the full release spectrum at ONE uniform version for GitHub Release publication (S0394).
   Params:
     -SkipBuild            [SwitchParameter]
     -ReuseVersion         [SwitchParameter]
@@ -3496,17 +3800,17 @@ scripts/release/fetch-deobfuscation.ps1
     -List                [SwitchParameter]
     -Verify              [SwitchParameter]
     -Json                [SwitchParameter]
-    -ArchiveRoot         [String] = 'c:\GD\WORK\FastMediaSorter\deobfuscation'
+    -ArchiveRoot         [String]
     -Help                [SwitchParameter]
   Exit: 0 - request answered: payload extracted, verification passed, or -List
 ```
 
 ### gen_fastlane_changelog.ps1
-Generate fastlane changelog files from docs/WHATS_NEW*.md for IzzyOnDroid / F-Droid. .DESCRIPTION Spec S0215 - fdroid-publish-research, Phase 04 Step 04.1. Reads docs/WHATS_NEW.md, docs/WHATS_NEW_RU.md, docs/WHATS_NEW_UK.md and writes per-locale fastlane changelog files at: fastlane/metadata/android/<locale>/changelogs/<VersionCode>.txt Locale mapping: en-US <- docs/WHATS_NEW.md ru-RU <- docs/WHATS_NEW_RU.md uk-UA <- docs/WHATS_NEW_UK.md Section extraction: Locates the "Current release" block bounded by: Start: **Current release: <versionName>** (or first **Current release:** line if -VersionName omitted) End: first "## Previous Release:" heading OR first stand-alone "---" separator that follows the start marker, whichever comes first. Markdown stripping (output is plain text for fastlane): **bold** -> bold *italic* -> italic [text](url) -> text Leading "- " or "* " bullets -> "• " Headings (## ...) lines preserved without leading hashes Length cap: Trim to <= 500 chars. If exceeded, drop trailing bullets one at a time until within budget; if a single bullet exceeds 500 chars, truncate at word boundary and append ".." (project author style). .PARAMETER VersionCode Required. Integer matching the project's versionCode (e.g. 260515201). Used as the output filename "<VersionCode>.txt". .PARAMETER VersionName Optional. If supplied, the extractor matches "**Current release: <VersionName>**" instead of the first "Current release:" marker. Useful when WHATS_NEW.md has been advanced past the build but the recipe still references an earlier versionName. .PARAMETER WhatsNewRoot Optional. Default: <repo>/docs .PARAMETER FastlaneRoot Optional. Default: <repo>/fastlane/metadata/android .EXAMPLE pwsh -File scripts/release/gen_fastlane_changelog.ps1 -VersionCode 260515201 .EXAMPLE pwsh -File scripts/release/gen_fastlane_changelog.ps1 -VersionCode 260515201 -VersionName 2.60.5152.017
+Generate fastlane changelog files from docs/WHATS_NEW*.md for IzzyOnDroid / F-Droid.
 
 ```
 scripts/release/gen_fastlane_changelog.ps1
-  Generate fastlane changelog files from docs/WHATS_NEW*.md for IzzyOnDroid / F-Droid. .DESCRIPTION Spec S0215 - fdroid-publish-research, Phase 04 Step 04.1. Reads docs/WHATS_NEW.md, docs/WHATS_NEW_RU.md, docs/WHATS_NEW_UK.md and writes per-locale fastlane changelog files at: fastlane/metadata/android/<locale>/changelogs/<VersionCode>.txt Locale mapping: en-US <- docs/WHATS_NEW.md ru-RU <- docs/WHATS_NEW_RU.md uk-UA <- docs/WHATS_NEW_UK.md Section extraction: Locates the "Current release" block bounded by: Start: **Current release: <versionName>** (or first **Current release:** line if -VersionName omitted) End: first "## Previous Release:" heading OR first stand-alone "---" separator that follows the start marker, whichever comes first. Markdown stripping (output is plain text for fastlane): **bold** -> bold *italic* -> italic [text](url) -> text Leading "- " or "* " bullets -> "• " Headings (## ...) lines preserved without leading hashes Length cap: Trim to <= 500 chars. If exceeded, drop trailing bullets one at a time until within budget; if a single bullet exceeds 500 chars, truncate at word boundary and append ".." (project author style). .PARAMETER VersionCode Required. Integer matching the project's versionCode (e.g. 260515201). Used as the output filename "<VersionCode>.txt". .PARAMETER VersionName Optional. If supplied, the extractor matches "**Current release: <VersionName>**" instead of the first "Current release:" marker. Useful when WHATS_NEW.md has been advanced past the build but the recipe still references an earlier versionName. .PARAMETER WhatsNewRoot Optional. Default: <repo>/docs .PARAMETER FastlaneRoot Optional. Default: <repo>/fastlane/metadata/android .EXAMPLE pwsh -File scripts/release/gen_fastlane_changelog.ps1 -VersionCode 260515201 .EXAMPLE pwsh -File scripts/release/gen_fastlane_changelog.ps1 -VersionCode 260515201 -VersionName 2.60.5152.017
+  Generate fastlane changelog files from docs/WHATS_NEW*.md for IzzyOnDroid / F-Droid.
   Params:
     -VersionCode   (req)  [Int32]
     -VersionName          [String]
@@ -3515,11 +3819,11 @@ scripts/release/gen_fastlane_changelog.ps1
 ```
 
 ### publish-github-release.ps1
-Publish the full FastMediaSorter release spectrum to GitHub Releases so that GitHub Store (OpenHub-Store/GitHub-Store) and IzzyOnDroid can index it. .DESCRIPTION Spec: S0214 - github-store-publication; extended to the full spectrum by S0394. Operator flow (invoke from the release worktree, FastMediaSorter_release, checked out to main): 1. .\scripts\release\build-release-spectrum.ps1 # build all release flavors + wear at one version 2. .\scripts\release\publish-github-release.ps1 # publish all assets under one tag The script: - Reads versionName from app_v2/build.gradle.kts - Resolves each spectrum release APK (standard, vr, lite, photos, legacy, noLegal, wear) through scripts/utils/find-build-artifact.ps1, which refuses to guess rather than picking the newest file (S1972) - Stages each in a temp dir as FastMediaSorter-<flavor>-<version>.apk (versioned names - IzzyOnDroid globs the pattern) - Verifies signing fingerprint matches the single pinned value (shared key) - Extracts release notes for the version from docs/WHATS_NEW.md - Creates a GitHub Release tag v{version} from main with the notes - Uploads every staged APK as a release asset and verifies all are present Author hooks: -DryRun for safe parsing / discovery, -Force to allow republishing the same version (skips "tag already exists" guard). .PARAMETER DryRun Resolve everything, verify guards, print the publish plan, but skip every credential / git / API mutation. .PARAMETER Force Allow publishing when a release with the same tag already exists. Default: false. .PARAMETER Owner GitHub repo owner. Default: SerZhyAle. .PARAMETER Repo GitHub repo name. Default: FastMediaSorter_mob_v2. .PARAMETER Flavors Subset of the spectrum to publish. Accepts any of: standard, lite, photos, legacy, vr, wear, noLegal plus the alias 'all' (== 'full' == 'spectrum'). Case-insensitive, order-independent, de-duplicated. Omitted / empty => the full spectrum (backward-compatible default). Must match the flavors actually built by build-release-spectrum.ps1; missing APKs abort the publish. The /skill-release flow passes 'standard' by default. .EXAMPLE pwsh -File scripts/release/publish-github-release.ps1 -DryRun .EXAMPLE pwsh -File scripts/release/publish-github-release.ps1 -Flavors standard
+Publish the full FastMediaSorter release spectrum to GitHub Releases so that GitHub Store (OpenHub-Store/GitHub-Store) and IzzyOnDroid can index it.
 
 ```
 scripts/release/publish-github-release.ps1
-  Publish the full FastMediaSorter release spectrum to GitHub Releases so that GitHub Store (OpenHub-Store/GitHub-Store) and IzzyOnDroid can index it. .DESCRIPTION Spec: S0214 - github-store-publication; extended to the full spectrum by S0394. Operator flow (invoke from the release worktree, FastMediaSorter_release, checked out to main): 1. .\scripts\release\build-release-spectrum.ps1 # build all release flavors + wear at one version 2. .\scripts\release\publish-github-release.ps1 # publish all assets under one tag The script: - Reads versionName from app_v2/build.gradle.kts - Resolves each spectrum release APK (standard, vr, lite, photos, legacy, noLegal, wear) through scripts/utils/find-build-artifact.ps1, which refuses to guess rather than picking the newest file (S1972) - Stages each in a temp dir as FastMediaSorter-<flavor>-<version>.apk (versioned names - IzzyOnDroid globs the pattern) - Verifies signing fingerprint matches the single pinned value (shared key) - Extracts release notes for the version from docs/WHATS_NEW.md - Creates a GitHub Release tag v{version} from main with the notes - Uploads every staged APK as a release asset and verifies all are present Author hooks: -DryRun for safe parsing / discovery, -Force to allow republishing the same version (skips "tag already exists" guard). .PARAMETER DryRun Resolve everything, verify guards, print the publish plan, but skip every credential / git / API mutation. .PARAMETER Force Allow publishing when a release with the same tag already exists. Default: false. .PARAMETER Owner GitHub repo owner. Default: SerZhyAle. .PARAMETER Repo GitHub repo name. Default: FastMediaSorter_mob_v2. .PARAMETER Flavors Subset of the spectrum to publish. Accepts any of: standard, lite, photos, legacy, vr, wear, noLegal plus the alias 'all' (== 'full' == 'spectrum'). Case-insensitive, order-independent, de-duplicated. Omitted / empty => the full spectrum (backward-compatible default). Must match the flavors actually built by build-release-spectrum.ps1; missing APKs abort the publish. The /skill-release flow passes 'standard' by default. .EXAMPLE pwsh -File scripts/release/publish-github-release.ps1 -DryRun .EXAMPLE pwsh -File scripts/release/publish-github-release.ps1 -Flavors standard
+  Publish the full FastMediaSorter release spectrum to GitHub Releases so that GitHub Store (OpenHub-Store/GitHub-Store) and IzzyOnDroid can index it.
   Params:
     -DryRun          [SwitchParameter]
     -Force           [SwitchParameter]
@@ -3536,6 +3840,7 @@ scripts/release/publish-play-listing.ps1
   Publish the FastMediaSorter Google Play store listing (texts + images) from play/listing/.
   Params:
     -Mode         [String] = 'validate'  {validate|commit}
+  Exit: 0 - the listing was validated, or committed in commit mode.; 1 - the listing is at fault: a missing text file, a text over its Play limit, or a payload
 ```
 
 ### publish-play-release.ps1
@@ -3550,6 +3855,7 @@ scripts/release/publish-play-release.ps1
     -Aab                      [String]
     -VersionCode              [Int32]
     -NotesVersionCode         [Int32]
+  Exit: 0 - the bundle is on the track and the edit was committed.; 1 - the release is at fault: the AAB is missing, an argument contradicts the artifact, or
 ```
 
 ### read-play-public-serve.ps1
@@ -3603,7 +3909,7 @@ scripts/release/retain-deobfuscation.ps1
     -Bundle                [String]
     -Mapping               [String]
     -NativeSymbols         [String]
-    -ArchiveRoot           [String] = 'c:\GD\WORK\FastMediaSorter\deobfuscation'
+    -ArchiveRoot           [String]
     -Force                 [SwitchParameter]
     -DryRun                [SwitchParameter]
     -Help                  [SwitchParameter]
@@ -3649,6 +3955,30 @@ scripts/release/standard-surface-snapshot.ps1
   Exit: 0 - snapshot emitted (default) / no regression candidates (-CheckRegressions); 1 - regression candidate(s) found (only with -CheckRegressions); 2 - infrastructure abort (source files missing / unreadable)
 ```
 
+## scripts\release\publish-play-listing.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S2345) - regression suite for the exit-code contract of the Play listing publisher.
+
+```
+scripts/release/publish-play-listing.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S2345) - regression suite for the exit-code contract of the Play listing publisher.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 the suite could not run (a subject is missing, or the project virtual environment is absent).
+```
+
+## scripts\release\publish-play-release.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S2346) - regression suite for the exit-code contract of the Play AAB uploader.
+
+```
+scripts/release/publish-play-release.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S2346) - regression suite for the exit-code contract of the Play AAB uploader.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 the suite could not run (a subject is missing, or the project virtual environment is absent).
+```
+
 ## scripts\site
 
 ### ping-indexnow.ps1
@@ -3665,23 +3995,38 @@ scripts/site/ping-indexnow.ps1
 ## scripts\spec_catalog
 
 ### _lib.ps1
+Shared helpers for spec_catalog scripts.
 
 ```
 scripts/spec_catalog/_lib.ps1
+  Shared helpers for spec_catalog scripts.
   (no param block)
 ```
 
 ### _research-items.ps1
+Shared parser for a spec's research / open-questions section.
 
 ```
 scripts/spec_catalog/_research-items.ps1
+  Shared parser for a spec's research / open-questions section.
   (no param block)
 ```
 
 ### _status-sets.ps1
+Shared lifecycle-status sets for spec_catalog scripts.
 
 ```
 scripts/spec_catalog/_status-sets.ps1
+  Shared lifecycle-status sets for spec_catalog scripts.
+  (no param block)
+```
+
+### _task-fingerprint.ps1
+Shared fingerprint of a spec's TASK TEXT - the thing an audit claims to have judged (S2367).
+
+```
+scripts/spec_catalog/_task-fingerprint.ps1
+  Shared fingerprint of a spec's TASK TEXT - the thing an audit claims to have judged (S2367).
   (no param block)
 ```
 
@@ -3703,13 +4048,26 @@ scripts/spec_catalog/bulk-update.ps1
     -Priority         [Int32] = -1  {range 0..100}
 ```
 
+### check-audit-current.ps1
+Gate: the recorded audit judged the task text the spec carries NOW (S2367).
+
+```
+scripts/spec_catalog/check-audit-current.ps1
+  Gate: the recorded audit judged the task text the spec carries NOW (S2367).
+  Params:
+    -Id  (req)  [String]
+  Exit: 0 - the audit block stamps the current task text.; 1 - no stamp, or the stamp names a different task text than the file now carries.; 2 - bad invocation (malformed id, or an id no record carries), or catalog / spec
+```
+
 ### check-audit-recorded.ps1
+Gate: a spec handed on as Verified or BlockNeedUserTest carries a written verdict (S2298, S2367).
 
 ```
 scripts/spec_catalog/check-audit-recorded.ps1
+  Gate: a spec handed on as Verified or BlockNeedUserTest carries a written verdict (S2298, S2367).
   Params:
     -Id  (req)  [String]
-  Exit: 2 = bad invocation, or catalog / spec unreadable.
+  Exit: 0 - the spec carries a non-empty `## Last Audit` block.; 1 - the block is absent, or present with nothing under it.; 2 - bad invocation (malformed id, or an id no record carries), or catalog / spec unreadable.
 ```
 
 ### check-capability-recorded.ps1
@@ -3731,6 +4089,15 @@ scripts/spec_catalog/check-evidence-durable.ps1
     -Id  (req)  [String]
 ```
 
+### check-headings-unique.ps1
+
+```
+scripts/spec_catalog/check-headings-unique.ps1
+  Params:
+    -Id  (req)  [String]
+  Exit: 2 = bad invocation, or catalog / spec unreadable.
+```
+
 ### check-open-items-carried.ps1
 
 ```
@@ -3747,10 +4114,21 @@ scripts/spec_catalog/check-owner-inputs.ps1
     -Id  (req)  [String]
 ```
 
+### check-probe-present.ps1
+
+```
+scripts/spec_catalog/check-probe-present.ps1
+  Params:
+    -Id  (req)  [String]
+  Exit: 1 = neither - the transition must not proceed.; 2 = bad invocation (malformed id, or an id no record carries), or catalog /
+```
+
 ### close-and-log.ps1
+Batch-finalize a spec in one pwsh invocation
 
 ```
 scripts/spec_catalog/close-and-log.ps1
+  Batch-finalize a spec in one pwsh invocation
   Params:
     -Id               (req)  [String]
     -Status           (req)  [String]  {Draft|Approved|Tactical|In Progress|Implemented|Verified|Partial|Broken|BlockByOtherTask|BlockNeedUserTest|BlockQuestions|BlockExternal|Archived}
@@ -3799,9 +4177,11 @@ scripts/spec_catalog/delete.ps1
 ```
 
 ### drift-check.ps1
+Detect "fix already in code" drift for a spec
 
 ```
 scripts/spec_catalog/drift-check.ps1
+  Detect "fix already in code" drift for a spec
   Params:
     -Id      (req)  [String]
     -Format         [String] = 'table'  {table|json}
@@ -3826,11 +4206,11 @@ scripts/spec_catalog/insert.ps1
 ```
 
 ### list-blockneedusertest.ps1
-Read-only snapshot of the BlockNeedUserTest backlog. .DESCRIPTION Lists every ticket currently in status BlockNeedUserTest from PLAN/spec-catalog.jsonl, sorted by priority (desc) then id, with file path and last-updated timestamp. Prints an `expected: 0 | actual: N` count so the backlog size is visible before and after a /spec-sweep pass. Never mutates the journal. Exit codes (S1070): 0 - listed successfully (an empty backlog is still 0 - this is a report, not a gate, so "no tickets" is not a failure). 2 - cannot run: PLAN/spec-catalog.jsonl not found. .PARAMETER MinPriority Optional: only list tickets with priority >= this value. .EXAMPLE pwsh -NoProfile -File scripts/spec_catalog/list-blockneedusertest.ps1 pwsh -NoProfile -File scripts/spec_catalog/list-blockneedusertest.ps1 -MinPriority 90
+Read-only snapshot of the BlockNeedUserTest backlog.
 
 ```
 scripts/spec_catalog/list-blockneedusertest.ps1
-  Read-only snapshot of the BlockNeedUserTest backlog. .DESCRIPTION Lists every ticket currently in status BlockNeedUserTest from PLAN/spec-catalog.jsonl, sorted by priority (desc) then id, with file path and last-updated timestamp. Prints an `expected: 0 | actual: N` count so the backlog size is visible before and after a /spec-sweep pass. Never mutates the journal. Exit codes (S1070): 0 - listed successfully (an empty backlog is still 0 - this is a report, not a gate, so "no tickets" is not a failure). 2 - cannot run: PLAN/spec-catalog.jsonl not found. .PARAMETER MinPriority Optional: only list tickets with priority >= this value. .EXAMPLE pwsh -NoProfile -File scripts/spec_catalog/list-blockneedusertest.ps1 pwsh -NoProfile -File scripts/spec_catalog/list-blockneedusertest.ps1 -MinPriority 90
+  Read-only snapshot of the BlockNeedUserTest backlog.
   Params:
     -MinPriority         [Int32] = 0
   Exit: 0 - listed successfully (an empty backlog is still 0 - this is a report, not
@@ -3860,9 +4240,11 @@ scripts/spec_catalog/next-id.ps1
 ```
 
 ### plan-form-metrics.ps1
+Pilot measurement recorder for S1343 (robo-english tactical form)
 
 ```
 scripts/spec_catalog/plan-form-metrics.ps1
+  Pilot measurement recorder for S1343 (robo-english tactical form)
   Params:
     -Action       (req)  [String]  {add|list|summary}
     -Kind                [String]  {selection|measurement|verdict}
@@ -3896,9 +4278,11 @@ scripts/spec_catalog/plan-tick.ps1
 ```
 
 ### preview.ps1
+One-shot Stage 3 metadata extractor for a spec
 
 ```
 scripts/spec_catalog/preview.ps1
+  One-shot Stage 3 metadata extractor for a spec
   Params:
     -Id      (req)  [String]
     -Format         [String] = 'json'  {table|json}
@@ -3917,9 +4301,11 @@ scripts/spec_catalog/purge-probe-records.ps1
 ```
 
 ### release-plan.ps1
+Ordered release command-sequence generator for /spec-next --plan
 
 ```
 scripts/spec_catalog/release-plan.ps1
+  Ordered release command-sequence generator for /spec-next --plan
   Params:
     -Format              [String] = 'text'  {text|json}
     -Flavors             [String] = ''
@@ -3927,9 +4313,11 @@ scripts/spec_catalog/release-plan.ps1
 ```
 
 ### release-queue.ps1
+operator CLI for PLAN/RELEASE_QUEUE.md, the owner's release plan.
 
 ```
 scripts/spec_catalog/release-queue.ps1
+  operator CLI for PLAN/RELEASE_QUEUE.md, the owner's release plan.
   Params:
     -Reconcile          [SwitchParameter]
     -Validate           [SwitchParameter]
@@ -4020,9 +4408,11 @@ scripts/spec_catalog/session-bootstrap.ps1
 ```
 
 ### skip-cache.ps1
+Persistent skip cache for /spec-next between sessions
 
 ```
 scripts/spec_catalog/skip-cache.ps1
+  Persistent skip cache for /spec-next between sessions
   Params:
     -Action  (req)  [String]  {add|remove|list|check|reset}
     -Id             [String]
@@ -4032,9 +4422,11 @@ scripts/spec_catalog/skip-cache.ps1
 ```
 
 ### spec-next-preflight.ps1
+One-shot selection preflight for /spec-next
 
 ```
 scripts/spec_catalog/spec-next-preflight.ps1
+  One-shot selection preflight for /spec-next
   Params:
     -Exclude                   [String[]] = @()
     -NoDrift                   [SwitchParameter]
@@ -4045,9 +4437,11 @@ scripts/spec_catalog/spec-next-preflight.ps1
 ```
 
 ### spec-next-session.ps1
+Persistent round state for /spec-next and /spec-do (S1339)
 
 ```
 scripts/spec_catalog/spec-next-session.ps1
+  Persistent round state for /spec-next and /spec-do (S1339)
   Params:
     -Verb            (req)  [String]  {Init|Record|Device|CheckContext|Resume|Report|Handoff}
     -Id                     [String]
@@ -4066,6 +4460,19 @@ scripts/spec_catalog/spec-next-session.ps1
 scripts/spec_catalog/stats.ps1
   Params:
     -Format         [String] = 'table'  {table|json}
+```
+
+### task-fingerprint.ps1
+Print the task-text fingerprint of a spec, for stamping into its `## Last Audit` block (S2367).
+
+```
+scripts/spec_catalog/task-fingerprint.ps1
+  Print the task-text fingerprint of a spec, for stamping into its `## Last Audit` block (S2367).
+  Params:
+    -Id           [String]
+    -Path         [String]
+    -Line         [SwitchParameter]
+  Exit: 0 - fingerprint printed.; 2 - bad invocation (neither or both selectors, malformed id, id no record carries),
 ```
 
 ### ticket-lease.ps1
@@ -4100,9 +4507,11 @@ scripts/spec_catalog/unverified-backlog.ps1
 ```
 
 ### update.ps1
+PositionalBinding = $false (S1504): a stray unnamed token is never intentional here, and the
 
 ```
 scripts/spec_catalog/update.ps1
+  PositionalBinding = $false (S1504): a stray unnamed token is never intentional here, and the
   Params:
     -Id                 [String]
     -Status             [String]  {Draft|Approved|Tactical|In Progress|Implemented|Verified|Partial|Broken|BlockByOtherTask|BlockNeedUserTest|BlockQuestions|BlockExternal|Archived}
@@ -4122,22 +4531,62 @@ scripts/spec_catalog/validate.ps1
     -Strict         [SwitchParameter]
 ```
 
+## scripts\spec_catalog\check-audit-current.tests
+
+### Run-Tests.ps1
+Regression suite for check-audit-current.ps1 and the task fingerprint it reads (S2367).
+
+```
+scripts/spec_catalog/check-audit-current.tests/Run-Tests.ps1
+  Regression suite for check-audit-current.ps1 and the task fingerprint it reads (S2367).
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared.
+```
+
 ## scripts\spec_catalog\check-audit-recorded.tests
 
 ### Run-Tests.ps1
+Run-Tests.ps1 (S2298) - regression suite for scripts/spec_catalog/check-audit-recorded.ps1,
 
 ```
 scripts/spec_catalog/check-audit-recorded.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S2298) - regression suite for scripts/spec_catalog/check-audit-recorded.ps1,
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared (no real spec on disk to anchor cases A-C).
+```
+
+## scripts\spec_catalog\check-headings-unique.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S2357) - regression suite for scripts/spec_catalog/check-headings-unique.ps1,
+
+```
+scripts/spec_catalog/check-headings-unique.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S2357) - regression suite for scripts/spec_catalog/check-headings-unique.ps1,
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared (no live spec on disk to anchor cases A-B).
+```
+
+## scripts\spec_catalog\check-probe-present.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S2324) - regression suite for scripts/spec_catalog/check-probe-present.ps1 and the
+
+```
+scripts/spec_catalog/check-probe-present.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S2324) - regression suite for scripts/spec_catalog/check-probe-present.ps1 and the
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared.
 ```
 
 ## scripts\spec_catalog\close-and-log.tests
 
 ### Run-Tests.ps1
+Run-Tests.ps1 (S1063) - regression suite for scripts/spec_catalog/close-and-log.ps1.
 
 ```
 scripts/spec_catalog/close-and-log.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S1063) - regression suite for scripts/spec_catalog/close-and-log.ps1.
   Params:
     -SubjectId         [String] = 'S1063'
   Exit: 0 all cases pass.; 1 at least one case failed.
@@ -4146,9 +4595,11 @@ scripts/spec_catalog/close-and-log.tests/Run-Tests.ps1
 ## scripts\spec_catalog\drift-check.tests
 
 ### Run-Tests.ps1
+Run-Tests.ps1 (S1800) - regression suite for the marker scan in scripts/spec_catalog/drift-check.ps1.
 
 ```
 scripts/spec_catalog/drift-check.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S1800) - regression suite for the marker scan in scripts/spec_catalog/drift-check.ps1.
   Params:
     -SubjectId         [String] = 'S1800'
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 cannot verify - the subject id did not resolve, or rg is absent so only one backend exists
@@ -4169,9 +4620,11 @@ scripts/spec_catalog/plan-tick.tests/Run-Tests.ps1
 ## scripts\spec_catalog\preview.tests
 
 ### Run-Tests.ps1
+Run-Tests.ps1 (S1073, extended S1482) - regression suite for scripts/spec_catalog/preview.ps1's
 
 ```
 scripts/spec_catalog/preview.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S1073, extended S1482) - regression suite for scripts/spec_catalog/preview.ps1's
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
@@ -4200,9 +4653,11 @@ scripts/spec_catalog/session-bootstrap.tests/Run-Tests.ps1
 ## scripts\spec_catalog\update.tests
 
 ### Run-Tests.ps1
+Run-Tests.ps1 (S1504) - regression suite for argument binding in scripts/spec_catalog/update.ps1
 
 ```
 scripts/spec_catalog/update.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S1504) - regression suite for argument binding in scripts/spec_catalog/update.ps1
   Params:
     -SubjectId         [String] = 'S1504'
   Exit: 0 all cases pass.; 1 at least one case failed, or the subject id could not be resolved.
@@ -4211,11 +4666,11 @@ scripts/spec_catalog/update.tests/Run-Tests.ps1
 ## scripts\streams
 
 ### collect-stream-candidates.ps1
-Collect, validate, and maintain delivery/stream-catalog/streams.csv. .DESCRIPTION Default mode discovers public broadcaster streams from direct official feeds and an approved subset of the iptv-org index, normalizes them to the 17-column catalog schema, de-duplicates against the existing catalog, runs a fast liveness probe, writes review artifacts to the output dir, and appends the kept rows directly to delivery/stream-catalog/streams.csv. Preview mode keeps the old safe workflow: write artifacts only, do not touch streams.csv. Catalog-only mode replaces the old standalone liveness checker: probe the current catalog, write a maintenance report, and optionally prune confirmed-dead rows. Probe behavior (header liveness, default): - Uses .NET HttpClient with ResponseHeadersRead, so endless live bodies are NOT downloaded. - HEAD first, then GET fallback for media servers that reject HEAD. - Shows console progress with done/total, elapsed time, and ETA. Deep-signal probe (-DeepSignal, catalog-only): pulls a few KB of REAL media body instead of trusting a 2xx on the playlist. For HLS it walks master -> media playlist -> first segment and reads bytes off the segment, so a channel that advertises a live playlist but serves no segments is reported 'dead'. This catches "declared but not playing" streams that the header probe marks alive. Runs many more concurrent runspaces (default -Throttle 48); each fetch is CancellationToken-bounded. Region-locked verdict (S1117): a playlist/segment/manifest/body that returns HTTP 403 or 451 is classified 'geo' (region-restricted from this network - may still play for a user in-region), a separate verdict from 'dead'/'unknown'. On an un-pinned deep-signal -PruneDead run the prune widens to 'dead','unknown' (non-geo failures) and 'geo' rows are kept and stamped access='geo' in the catalog. Header-only prune stays conservative ('dead' only). Discovery append gate (S0805): in the default discovery mode the same deep-signal verification runs as a SECOND stage after the header probe - only header-alive candidates are re-probed for real media bytes, and only signal-verified rows are appended to streams.csv. This stops "pseudo-alive" channels (playlist 2xx but no segment) from entering the shipped catalog. Opt out with -SkipDeepSignal for a fast prowl; -SkipLiveness (no probing at all) skips both stages. Sources by axis: official : curated direct HLS feeds published by broadcasters and public institutions. livetv : approved iptv-org channels only; each channel id AND stream host must match the official-source policy. Header-gated (referrer/UA) streams are dropped. genres : radio-browser community DB by exact tag (AUDIO), top by clickcount. geo : radio-browser by country + iptv-org by country (under-represented regions). webcam : curated public 24/7 HLS webcams (weather, wildlife, beaches, zoo animals), liveness-filtered. Inclusion policy: retain only a reachable stream whose broadcaster provenance is explicit: direct broadcaster/public-institution feed, or an iptv-org record that passes the maintained official channel-and-host allowlist. Liveness confirms playback but never proves provenance. .EXAMPLE pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -PreviewOnly pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -Axis genres,geo -PerQuery 30 pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -DeepSignal pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -DeepSignal -Throttle 80 pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -DeepSignal -Limit 50 pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -DeepSignal -PruneDead pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -DeepSignal -PruneDead -Publish pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -Publish # just (re)upload current streams.csv pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithChannelPreviews -PreviewLimit 40 # S1154 atlas smoke run pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithChannelPreviews -PublishPreviewAtlas # full atlas build + upload pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithChannelPreviews -PreviewFromCacheOnly # S1831 repack from cached frames, no network pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithStreamLogos # S1201 logo atlas from the artwork cache pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithStreamLogos -PublishStreamLogoAtlas # logo atlas build + upload
+Collect, validate, and maintain delivery/stream-catalog/streams.csv.
 
 ```
 scripts/streams/collect-stream-candidates.ps1
-  Collect, validate, and maintain delivery/stream-catalog/streams.csv. .DESCRIPTION Default mode discovers public broadcaster streams from direct official feeds and an approved subset of the iptv-org index, normalizes them to the 17-column catalog schema, de-duplicates against the existing catalog, runs a fast liveness probe, writes review artifacts to the output dir, and appends the kept rows directly to delivery/stream-catalog/streams.csv. Preview mode keeps the old safe workflow: write artifacts only, do not touch streams.csv. Catalog-only mode replaces the old standalone liveness checker: probe the current catalog, write a maintenance report, and optionally prune confirmed-dead rows. Probe behavior (header liveness, default): - Uses .NET HttpClient with ResponseHeadersRead, so endless live bodies are NOT downloaded. - HEAD first, then GET fallback for media servers that reject HEAD. - Shows console progress with done/total, elapsed time, and ETA. Deep-signal probe (-DeepSignal, catalog-only): pulls a few KB of REAL media body instead of trusting a 2xx on the playlist. For HLS it walks master -> media playlist -> first segment and reads bytes off the segment, so a channel that advertises a live playlist but serves no segments is reported 'dead'. This catches "declared but not playing" streams that the header probe marks alive. Runs many more concurrent runspaces (default -Throttle 48); each fetch is CancellationToken-bounded. Region-locked verdict (S1117): a playlist/segment/manifest/body that returns HTTP 403 or 451 is classified 'geo' (region-restricted from this network - may still play for a user in-region), a separate verdict from 'dead'/'unknown'. On an un-pinned deep-signal -PruneDead run the prune widens to 'dead','unknown' (non-geo failures) and 'geo' rows are kept and stamped access='geo' in the catalog. Header-only prune stays conservative ('dead' only). Discovery append gate (S0805): in the default discovery mode the same deep-signal verification runs as a SECOND stage after the header probe - only header-alive candidates are re-probed for real media bytes, and only signal-verified rows are appended to streams.csv. This stops "pseudo-alive" channels (playlist 2xx but no segment) from entering the shipped catalog. Opt out with -SkipDeepSignal for a fast prowl; -SkipLiveness (no probing at all) skips both stages. Sources by axis: official : curated direct HLS feeds published by broadcasters and public institutions. livetv : approved iptv-org channels only; each channel id AND stream host must match the official-source policy. Header-gated (referrer/UA) streams are dropped. genres : radio-browser community DB by exact tag (AUDIO), top by clickcount. geo : radio-browser by country + iptv-org by country (under-represented regions). webcam : curated public 24/7 HLS webcams (weather, wildlife, beaches, zoo animals), liveness-filtered. Inclusion policy: retain only a reachable stream whose broadcaster provenance is explicit: direct broadcaster/public-institution feed, or an iptv-org record that passes the maintained official channel-and-host allowlist. Liveness confirms playback but never proves provenance. .EXAMPLE pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -PreviewOnly pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -Axis genres,geo -PerQuery 30 pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -DeepSignal pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -DeepSignal -Throttle 80 pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -DeepSignal -Limit 50 pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -DeepSignal -PruneDead pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -DeepSignal -PruneDead -Publish pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -Publish # just (re)upload current streams.csv pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithChannelPreviews -PreviewLimit 40 # S1154 atlas smoke run pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithChannelPreviews -PublishPreviewAtlas # full atlas build + upload pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithChannelPreviews -PreviewFromCacheOnly # S1831 repack from cached frames, no network pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithStreamLogos # S1201 logo atlas from the artwork cache pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithStreamLogos -PublishStreamLogoAtlas # logo atlas build + upload
+  Collect, validate, and maintain delivery/stream-catalog/streams.csv.
   Params:
     -Axis                             [String[]] = @('official', 'livetv', 'genres', 'geo', 'webcam')  {official|livetv|genres|geo|webcam|iptvcam|tfl|webradiodb|radioparadise|akc|lautfm|xiph}
     -LautFmImageBudget                [Int32] = 0
@@ -4451,11 +4906,11 @@ scripts/utils/batch-set-android-string.ps1
 ```
 
 ### build-research-dossier.ps1
-Builds a markdown research dossier under temp/scratch/ for repeatable investigation loops. .DESCRIPTION Collects the first-pass research context for a topic across the documented routing stack, class catalogue, Activity catalogue, spec catalogue, and docs/dev markdown files. .PARAMETER Topic Research topic, feature name, error string, or question fragment. .PARAMETER Module Target module: app_v2, wear, or all. Default: all. .PARAMETER Flavor Optional flavor note to keep build-specific context visible in the dossier. .PARAMETER OutFile Optional output path. Must stay inside temp/. .EXAMPLE pwsh -File scripts/utils/build-research-dossier.ps1 -Topic "player startup" -Module app_v2 .EXAMPLE pwsh -File scripts/utils/build-research-dossier.ps1 -Topic "cloud auth" -Module all -OutFile "temp/research/cloud_auth.md"
+Builds a markdown research dossier under temp/scratch/ for repeatable investigation loops.
 
 ```
 scripts/utils/build-research-dossier.ps1
-  Builds a markdown research dossier under temp/scratch/ for repeatable investigation loops. .DESCRIPTION Collects the first-pass research context for a topic across the documented routing stack, class catalogue, Activity catalogue, spec catalogue, and docs/dev markdown files. .PARAMETER Topic Research topic, feature name, error string, or question fragment. .PARAMETER Module Target module: app_v2, wear, or all. Default: all. .PARAMETER Flavor Optional flavor note to keep build-specific context visible in the dossier. .PARAMETER OutFile Optional output path. Must stay inside temp/. .EXAMPLE pwsh -File scripts/utils/build-research-dossier.ps1 -Topic "player startup" -Module app_v2 .EXAMPLE pwsh -File scripts/utils/build-research-dossier.ps1 -Topic "cloud auth" -Module all -OutFile "temp/research/cloud_auth.md"
+  Builds a markdown research dossier under temp/scratch/ for repeatable investigation loops.
   Params:
     -Topic    (req)  [String]
     -Module          [String] = 'all'  {app_v2|wear|all}
@@ -4473,9 +4928,11 @@ scripts/utils/build-version-stamp.ps1
 ```
 
 ### check-typo-lint.ps1
+Typo + Lint + Activity Checks Runner
 
 ```
 scripts/utils/check-typo-lint.ps1
+  Typo + Lint + Activity Checks Runner
   Params:
     -SkipTypo                       [SwitchParameter]
     -SkipLint                       [SwitchParameter]
@@ -4511,20 +4968,22 @@ scripts/utils/clear-agent-lock.ps1
 ```
 
 ### commit-push.ps1
+Commit and Push Script for FastMediaSorter v2
 
 ```
 scripts/utils/commit-push.ps1
+  Commit and Push Script for FastMediaSorter v2
   Params:
     -Message         [String]
     -NoPush          [SwitchParameter]
 ```
 
 ### convert-log.ps1
-Converts Android log files of any supported format to unified standard logcat text. .DESCRIPTION Supports three input formats produced by Android Studio and device tools: FORMAT 1 - LOGCAT (standard) Produced by: Android Studio Logcat copy-paste or adb logcat Pattern: YYYY-MM-DD HH:MM:SS.mmm PID-TID TAG PKG LVL MESSAGE Example: 2026-04-20 00:52:13.639 25733-25733 ApplicationLoaders com.example D text FORMAT 2 - JSON (.logcat) Produced by: Android Studio "Export to File" → saves as .logcat (JSON) Structure: { "metadata": {...}, "logcatMessages": [ { "header": {...}, "message": "..." } ] } header fields: logLevel (DEBUG/INFO/WARN/ERROR/VERBOSE/FATAL), pid, tid, applicationId, processName, tag, timestamp { seconds, nanos } FORMAT 3 - TIMBER (app device export) Produced by: Timber FileTree or app's own log export to /sdcard/ Pattern: YYYY-MM-DD HH:MM:SS.mmm LVL/TAG: MESSAGE Example: 2026-04-19 21:17:55.057 I/App: Starting network monitor Output is always FORMAT 1 (standard logcat text), compatible with search-log.ps1. .PARAMETER InputFile Path to source log file (any format). Auto-detected. .PARAMETER OutputFile Path to write normalized logcat text. Defaults to temp/<name>.normalized.log .PARAMETER AppId Package name to inject as PKG for Timber logs (default: com.sza.fastmediasorter). .EXAMPLES # Convert .logcat JSON → standard text .\scripts\utils\convert-log.ps1 -InputFile "logs/export.logcat" # Convert Timber log → standard text .\scripts\utils\convert-log.ps1 -InputFile "logs/fastmediasorter_20260419.log" # Specify output path .\scripts\utils\convert-log.ps1 -InputFile "logs/export.logcat" -OutputFile "temp/converted.log" # Then analyse with search-log.ps1 .\scripts\utils\search-log.ps1 -LogFile "temp/converted.log" -Errors
+Converts Android log files of any supported format to unified standard logcat text.
 
 ```
 scripts/utils/convert-log.ps1
-  Converts Android log files of any supported format to unified standard logcat text. .DESCRIPTION Supports three input formats produced by Android Studio and device tools: FORMAT 1 - LOGCAT (standard) Produced by: Android Studio Logcat copy-paste or adb logcat Pattern: YYYY-MM-DD HH:MM:SS.mmm PID-TID TAG PKG LVL MESSAGE Example: 2026-04-20 00:52:13.639 25733-25733 ApplicationLoaders com.example D text FORMAT 2 - JSON (.logcat) Produced by: Android Studio "Export to File" → saves as .logcat (JSON) Structure: { "metadata": {...}, "logcatMessages": [ { "header": {...}, "message": "..." } ] } header fields: logLevel (DEBUG/INFO/WARN/ERROR/VERBOSE/FATAL), pid, tid, applicationId, processName, tag, timestamp { seconds, nanos } FORMAT 3 - TIMBER (app device export) Produced by: Timber FileTree or app's own log export to /sdcard/ Pattern: YYYY-MM-DD HH:MM:SS.mmm LVL/TAG: MESSAGE Example: 2026-04-19 21:17:55.057 I/App: Starting network monitor Output is always FORMAT 1 (standard logcat text), compatible with search-log.ps1. .PARAMETER InputFile Path to source log file (any format). Auto-detected. .PARAMETER OutputFile Path to write normalized logcat text. Defaults to temp/<name>.normalized.log .PARAMETER AppId Package name to inject as PKG for Timber logs (default: com.sza.fastmediasorter). .EXAMPLES # Convert .logcat JSON → standard text .\scripts\utils\convert-log.ps1 -InputFile "logs/export.logcat" # Convert Timber log → standard text .\scripts\utils\convert-log.ps1 -InputFile "logs/fastmediasorter_20260419.log" # Specify output path .\scripts\utils\convert-log.ps1 -InputFile "logs/export.logcat" -OutputFile "temp/converted.log" # Then analyse with search-log.ps1 .\scripts\utils\search-log.ps1 -LogFile "temp/converted.log" -Errors
+  Converts Android log files of any supported format to unified standard logcat text.
   Params:
     -InputFile   (req)  [String]
     -OutputFile         [String] = ""
@@ -4538,18 +4997,20 @@ Mirror one built artifact to the Google Drive share, raw and as a password ZIP.
 scripts/utils/copy-to-drive.ps1
   Mirror one built artifact to the Google Drive share, raw and as a password ZIP.
   Params:
-    -Path         (req)  [String]
+    -Path         (req)  [String[]]
     -Name                [String]
-    -DriveDir            [String] = 'c:\GD\WORK\FastMediaSorter'
+    -DriveDir            [String]
     -ZipPassword         [String] = '1'
     -NoZip               [SwitchParameter]
-  Exit: 0 - the raw copy landed (the ZIP may have been skipped, and says so); 1 - -Path does not exist, or the raw copy itself failed
+  Exit: 0 - every raw copy landed (the ZIP may have been skipped, and says so), or the Drive sink
 ```
 
 ### create-release-candidate.ps1
+create-release-candidate.ps1
 
 ```
 scripts/utils/create-release-candidate.ps1
+  create-release-candidate.ps1
   Params:
     -SkipBuild         [SwitchParameter]
     -Push              [SwitchParameter]
@@ -4557,9 +5018,11 @@ scripts/utils/create-release-candidate.ps1
 ```
 
 ### create-run-configs.ps1
+Script to create Android Studio run configurations for all flavors
 
 ```
 scripts/utils/create-run-configs.ps1
+  Script to create Android Studio run configurations for all flavors
   (no param block)
 ```
 
@@ -4575,7 +5038,7 @@ scripts/utils/enter-code-lock.ps1
     -Domain                     [String]
     -Wait                       [SwitchParameter]
     -WaitTimeoutSeconds         [Int32] = 1200
-  Exit: 0 - the domains are acquired, start editing. Also returned when this session ALREADY holds
+  Exit: 0 - start editing. Three different states share this code, and only the first leaves you
 ```
 
 ### exit-code-lock.ps1
@@ -4588,9 +5051,11 @@ scripts/utils/exit-code-lock.ps1
 ```
 
 ### extract-device-logs.ps1
+Extract device logs for FastMediaSorter debugging
 
 ```
 scripts/utils/extract-device-logs.ps1
+  Extract device logs for FastMediaSorter debugging
   Params:
     -OutputDir           [String] = "temp"
     -PackageName         [String] = "com.sza.fastmediasorter"
@@ -4632,9 +5097,11 @@ scripts/utils/format-kotlin-imports.ps1
 ```
 
 ### generate-changelog.ps1
+generate-changelog.ps1
 
 ```
 scripts/utils/generate-changelog.ps1
+  generate-changelog.ps1
   Params:
     -From               [String] = ""
     -To                 [String] = "HEAD"
@@ -4718,7 +5185,7 @@ Imports the newest diagnostic-log archive dropped by an externally-tested device
 scripts/utils/import-remote-logs.ps1
   Imports the newest diagnostic-log archive dropped by an externally-tested device into logs/.
   Params:
-    -SourceDir             [String] = 'C:\GD\temp'
+    -SourceDir             [String]
     -DestDir               [String] = 'logs'
     -ArchivePath           [String]
     -MaxCandidates         [Int32] = 25
@@ -4727,16 +5194,20 @@ scripts/utils/import-remote-logs.ps1
 ```
 
 ### init-ramdisk.ps1
+init-ramdisk.ps1
 
 ```
 scripts/utils/init-ramdisk.ps1
+  init-ramdisk.ps1
   (no param block)
 ```
 
 ### Install_release_on_adb_connected_device.ps1
+Install Release APK on ADB Connected Device
 
 ```
 scripts/utils/Install_release_on_adb_connected_device.ps1
+  Install Release APK on ADB Connected Device
   Params:
     -Launch            [SwitchParameter]
     -NoReplace         [SwitchParameter]
@@ -4897,28 +5368,52 @@ scripts/utils/prune-gradle-tmp.ps1
     -Path                [String]
 ```
 
+### publish-artifact.ps1
+Deliver one built artifact to every sink a builder hands it to: Google Drive and Total Commander.
+
+```
+scripts/utils/publish-artifact.ps1
+  Deliver one built artifact to every sink a builder hands it to: Google Drive and Total Commander.
+  Params:
+    -Path           (req)  [String[]]
+    -Name                  [String]
+    -CommanderPath         [String]
+    -DriveDir              [String]
+    -CommanderDir          [String]
+    -ZipPassword           [String] = '1'
+    -NoZip                 [SwitchParameter]
+    -NoCommander           [SwitchParameter]
+  Exit: 0 - the artifact was delivered, or a sink is not reachable on this machine and that half was
+```
+
 ### recover-kapt-stall.ps1
+Targeted recovery for KAPT stalls on standardDebug (and friends).
 
 ```
 scripts/utils/recover-kapt-stall.ps1
+  Targeted recovery for KAPT stalls on standardDebug (and friends).
   Params:
     -Task              [String]
     -SkipRetry         [SwitchParameter]
 ```
 
 ### run-maestro-smoke.ps1
+Run Maestro tests
 
 ```
 scripts/utils/run-maestro-smoke.ps1
+  Run Maestro tests
   Params:
     -Suite          [String] = "smoke"  {smoke|critical|all}
     -Stress         [SwitchParameter]
 ```
 
 ### run-maestro-stress.ps1
+Maestro Stress Test Runner with Live Monitoring
 
 ```
 scripts/utils/run-maestro-stress.ps1
+  Maestro Stress Test Runner with Live Monitoring
   Params:
     -Suite             [String] = "all"  {monkey|navigation|lifecycle|all}
     -Monitor           [SwitchParameter]
@@ -4955,9 +5450,11 @@ scripts/utils/run-spec-queue.ps1
 ```
 
 ### run-stress.ps1
+Quick Stress Test Runner
 
 ```
 scripts/utils/run-stress.ps1
+  Quick Stress Test Runner
   Params:
     -Test              [String] = "all"  {monkey|navigation|lifecycle|all}
     -NoMonitor         [SwitchParameter]
@@ -4973,11 +5470,11 @@ scripts/utils/script-help-text.ps1
 ```
 
 ### search-log.ps1
-Android logcat analysis utility for FastMediaSorter v2. .DESCRIPTION Parses Android logcat files (format: YYYY-MM-DD HH:MM:SS.mmm PID-TID TAG PKG LEVEL MESSAGE) and provides filtering, searching, context display, crash detection, flow tracing, and stats. .PARAMETER LogFile Path to the log file. Default: temp\current.log. Accepts ALL five log formats - auto-detected at load time: FORMAT 1 LOGCAT - standard adb/AS copy-paste: YYYY-MM-DD TIME PID-TID TAG PKG LVL MSG FORMAT 2 JSON - Android Studio "Export to File" (.logcat JSON) FORMAT 3 TIMBER - app device export: YYYY-MM-DD TIME LVL/TAG: MSG FORMAT 4 THREADTIME - raw `adb logcat -v threadtime` capture (S1353): MM-DD TIME PID TID LVL TAG: MSG (no year, PID/TID as separate fields, no package field - the format scripts/builders/build-standard-device.ps1's background capture writes) FORMAT 5 TIME - raw `adb logcat -v time` capture (S1353): MM-DD TIME LVL/TAG(PID): MSG (no year, no package field, PID inside parens, no separate TID) Use .\scripts\utils\extract-device-logs.ps1 to pull a fresh log from a connected device. Use .\scripts\utils\convert-log.ps1 to pre-convert any format to standard logcat text. .EXAMPLES # ── Basic filters ────────────────────────────────────────────── .\scripts\utils\search-log.ps1 -Errors .\scripts\utils\search-log.ps1 -Warnings .\scripts\utils\search-log.ps1 -Errors -From "01:20:00" -To "01:25:00" .\scripts\utils\search-log.ps1 -Level I -AppOnly # ── Pattern search ───────────────────────────────────────────── .\scripts\utils\search-log.ps1 -Pattern "SMB video metadata" .\scripts\utils\search-log.ps1 -Pattern "SMB video metadata" -Context 5 -Top 30 .\scripts\utils\search-log.ps1 -Pattern "timeout|refused|failed" -Context 3 .\scripts\utils\search-log.ps1 -Pattern "SORT_DEBUG" -Last 30 .\scripts\utils\search-log.ps1 -Pattern "thumbnail" -Top 30 -CaseSensitive .\scripts\utils\search-log.ps1 -Pattern "Exception|crash" -Context 5 -OutFile "temp/errors.txt" # ── Tag search ───────────────────────────────────────────────── .\scripts\utils\search-log.ps1 -Tag "BrowseViewModel" .\scripts\utils\search-log.ps1 -Tag "ImageLoad" -Level E .\scripts\utils\search-log.ps1 -Tag "BrowseViewModel" -Exclude "updateLayout|scrollTo" # ── Thread/PID filter ────────────────────────────────────────── .\scripts\utils\search-log.ps1 -Thread "4823" -Errors .\scripts\utils\search-log.ps1 -ProcessFilter "1234-5678" # ── Crash / exception detection ──────────────────────────────── .\scripts\utils\search-log.ps1 -Exceptions .\scripts\utils\search-log.ps1 -Exceptions -OutFile "temp/crashes.txt" .\scripts\utils\search-log.ps1 -Exceptions -Count # machine: "Match count: N" .\scripts\utils\search-log.ps1 -Exceptions -Json # machine: {"count":N,"blocks":[{block,line,trigger,lines,text}]} # ── Deduplication ────────────────────────────────────────────── .\scripts\utils\search-log.ps1 -Pattern "failed" -Unique .\scripts\utils\search-log.ps1 -Errors -Unique -Stats # ── Overview & stats ─────────────────────────────────────────── .\scripts\utils\search-log.ps1 -Summary .\scripts\utils\search-log.ps1 -Spam -Top 20 .\scripts\utils\search-log.ps1 -Pattern "SMB" -Stats .\scripts\utils\search-log.ps1 -Errors -Count # ── Flow trace (multi-tag correlation) ───────────────────────── .\scripts\utils\search-log.ps1 -Flow "BrowseViewModel","GoogleDrive","MediaFileAdapter" # ── Save output ──────────────────────────────────────────────── .\scripts\utils\search-log.ps1 -Errors -OutFile "temp/errors.txt" .\scripts\utils\search-log.ps1 -Pattern "SMB" -Context 3 -OutFile "temp/smb_debug.txt" # ── Custom log file ──────────────────────────────────────────── .\scripts\utils\search-log.ps1 -LogFile "temp/build_err7.txt" -Errors
+Android logcat analysis utility for FastMediaSorter v2.
 
 ```
 scripts/utils/search-log.ps1
-  Android logcat analysis utility for FastMediaSorter v2. .DESCRIPTION Parses Android logcat files (format: YYYY-MM-DD HH:MM:SS.mmm PID-TID TAG PKG LEVEL MESSAGE) and provides filtering, searching, context display, crash detection, flow tracing, and stats. .PARAMETER LogFile Path to the log file. Default: temp\current.log. Accepts ALL five log formats - auto-detected at load time: FORMAT 1 LOGCAT - standard adb/AS copy-paste: YYYY-MM-DD TIME PID-TID TAG PKG LVL MSG FORMAT 2 JSON - Android Studio "Export to File" (.logcat JSON) FORMAT 3 TIMBER - app device export: YYYY-MM-DD TIME LVL/TAG: MSG FORMAT 4 THREADTIME - raw `adb logcat -v threadtime` capture (S1353): MM-DD TIME PID TID LVL TAG: MSG (no year, PID/TID as separate fields, no package field - the format scripts/builders/build-standard-device.ps1's background capture writes) FORMAT 5 TIME - raw `adb logcat -v time` capture (S1353): MM-DD TIME LVL/TAG(PID): MSG (no year, no package field, PID inside parens, no separate TID) Use .\scripts\utils\extract-device-logs.ps1 to pull a fresh log from a connected device. Use .\scripts\utils\convert-log.ps1 to pre-convert any format to standard logcat text. .EXAMPLES # ── Basic filters ────────────────────────────────────────────── .\scripts\utils\search-log.ps1 -Errors .\scripts\utils\search-log.ps1 -Warnings .\scripts\utils\search-log.ps1 -Errors -From "01:20:00" -To "01:25:00" .\scripts\utils\search-log.ps1 -Level I -AppOnly # ── Pattern search ───────────────────────────────────────────── .\scripts\utils\search-log.ps1 -Pattern "SMB video metadata" .\scripts\utils\search-log.ps1 -Pattern "SMB video metadata" -Context 5 -Top 30 .\scripts\utils\search-log.ps1 -Pattern "timeout|refused|failed" -Context 3 .\scripts\utils\search-log.ps1 -Pattern "SORT_DEBUG" -Last 30 .\scripts\utils\search-log.ps1 -Pattern "thumbnail" -Top 30 -CaseSensitive .\scripts\utils\search-log.ps1 -Pattern "Exception|crash" -Context 5 -OutFile "temp/errors.txt" # ── Tag search ───────────────────────────────────────────────── .\scripts\utils\search-log.ps1 -Tag "BrowseViewModel" .\scripts\utils\search-log.ps1 -Tag "ImageLoad" -Level E .\scripts\utils\search-log.ps1 -Tag "BrowseViewModel" -Exclude "updateLayout|scrollTo" # ── Thread/PID filter ────────────────────────────────────────── .\scripts\utils\search-log.ps1 -Thread "4823" -Errors .\scripts\utils\search-log.ps1 -ProcessFilter "1234-5678" # ── Crash / exception detection ──────────────────────────────── .\scripts\utils\search-log.ps1 -Exceptions .\scripts\utils\search-log.ps1 -Exceptions -OutFile "temp/crashes.txt" .\scripts\utils\search-log.ps1 -Exceptions -Count # machine: "Match count: N" .\scripts\utils\search-log.ps1 -Exceptions -Json # machine: {"count":N,"blocks":[{block,line,trigger,lines,text}]} # ── Deduplication ────────────────────────────────────────────── .\scripts\utils\search-log.ps1 -Pattern "failed" -Unique .\scripts\utils\search-log.ps1 -Errors -Unique -Stats # ── Overview & stats ─────────────────────────────────────────── .\scripts\utils\search-log.ps1 -Summary .\scripts\utils\search-log.ps1 -Spam -Top 20 .\scripts\utils\search-log.ps1 -Pattern "SMB" -Stats .\scripts\utils\search-log.ps1 -Errors -Count # ── Flow trace (multi-tag correlation) ───────────────────────── .\scripts\utils\search-log.ps1 -Flow "BrowseViewModel","GoogleDrive","MediaFileAdapter" # ── Save output ──────────────────────────────────────────────── .\scripts\utils\search-log.ps1 -Errors -OutFile "temp/errors.txt" .\scripts\utils\search-log.ps1 -Pattern "SMB" -Context 3 -OutFile "temp/smb_debug.txt" # ── Custom log file ──────────────────────────────────────────── .\scripts\utils\search-log.ps1 -LogFile "temp/build_err7.txt" -Errors
+  Android logcat analysis utility for FastMediaSorter v2.
   Params:
     -LogFile               [String] = "temp\current.log"
     -Pattern               [String] = ""
@@ -5083,25 +5580,30 @@ scripts/utils/setup_test_media.ps1
 ```
 
 ### setup_test_vr.ps1
+setup_test_vr.ps1
 
 ```
 scripts/utils/setup_test_vr.ps1
+  setup_test_vr.ps1
   (no param block)
 ```
 
 ### setup-alias.ps1
-Setup PowerShell alias for 'a' command .DESCRIPTION Adds a function to PowerShell profile to enable 'a <command>' syntax
+Setup PowerShell alias for 'a' command
 
 ```
 scripts/utils/setup-alias.ps1
-  Setup PowerShell alias for 'a' command .DESCRIPTION Adds a function to PowerShell profile to enable 'a <command>' syntax
+  Setup PowerShell alias for 'a' command
   (no param block)
+  Exit: 0 the alias was added, or one was already present in the profile.
 ```
 
 ### setup-avd-for-tests.ps1
+Setup AVD for Maestro Tests
 
 ```
 scripts/utils/setup-avd-for-tests.ps1
+  Setup AVD for Maestro Tests
   Params:
     -SkipPermissions         [SwitchParameter]
 ```
@@ -5132,9 +5634,11 @@ scripts/utils/test-agent-lock-queue.ps1
 ```
 
 ### update_docs_frontmatter.ps1
+Script to add Jekyll Frontmatter to documentation files
 
 ```
 scripts/utils/update_docs_frontmatter.ps1
+  Script to add Jekyll Frontmatter to documentation files
   (no param block)
 ```
 
@@ -5215,11 +5719,37 @@ scripts/utils/gradle-modules.tests/Run-Tests.ps1
 ## scripts\utils\project-paths.tests
 
 ### Run-Tests.ps1
+S2326: regression suite for scripts/utils/project-paths.ps1, the path resolver.
 
 ```
 scripts/utils/project-paths.tests/Run-Tests.ps1
+  S2326: regression suite for scripts/utils/project-paths.ps1, the path resolver.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\utils\publish-artifact.tests
+
+### Run-Tests.ps1
+Regression suite for scripts/utils/publish-artifact.ps1 (S2332).
+
+```
+scripts/utils/publish-artifact.tests/Run-Tests.ps1
+  Regression suite for scripts/utils/publish-artifact.ps1 (S2332).
+  (no param block)
+  Exit: 0 - all cases pass; 1 - at least one case failed
+```
+
+## scripts\utils\script-help-text.tests
+
+### Run-Tests.ps1
+S2335: regression suite for scripts/utils/script-help-text.ps1, the header reader.
+
+```
+scripts/utils/script-help-text.tests/Run-Tests.ps1
+  S2335: regression suite for scripts/utils/script-help-text.ps1, the header reader.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 cannot verify - the module under test is missing.
 ```
 
 ## scripts\wear

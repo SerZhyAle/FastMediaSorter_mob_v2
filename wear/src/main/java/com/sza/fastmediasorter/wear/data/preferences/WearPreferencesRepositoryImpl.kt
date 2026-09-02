@@ -74,6 +74,12 @@ class WearPreferencesRepositoryImpl @Inject constructor(
         val LAST_USED_RESOURCES = stringPreferencesKey("wear_last_used_resources")
         val STREAMS_SECTION_ENABLED = booleanPreferencesKey("wear_streams_section_enabled")
 
+        // S2146: the streams screen's own filter and sort memory. Named per screen, not shared.
+        val STREAMS_SORT_ORDER = stringPreferencesKey("wear_streams_sort_order")
+        val STREAMS_FILTER_KIND = stringPreferencesKey("wear_streams_filter_kind")
+        val STREAMS_SELECTED_TOPIC = stringPreferencesKey("wear_streams_selected_topic")
+        val STREAMS_SELECTED_LANGUAGE = stringPreferencesKey("wear_streams_selected_language")
+
         val CALCULATOR_HISTORY = stringPreferencesKey("wear_calculator_history")
         val CALCULATOR_MEMORY = stringPreferencesKey("wear_calculator_memory")
         val GAME_STATE = stringPreferencesKey("wear_game_state")
@@ -265,6 +271,51 @@ class WearPreferencesRepositoryImpl @Inject constructor(
     override suspend fun setBrowseSortOrder(order: BrowseSortOrder) {
         context.dataStore.edit { prefs ->
             prefs[PreferencesKeys.BROWSE_SORT_ORDER] = order.name
+        }
+    }
+
+    // S2146: stored and returned as written, with no parsing here - the enums these two names belong
+    // to are UI types, and the screen is where they are read back. A null clears the key rather than
+    // writing an empty string, so "never chosen" and "chosen, then cleared" leave the same state.
+    override val streamsSortOrderName: Flow<String?> = context.dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.STREAMS_SORT_ORDER]
+    }
+
+    override suspend fun setStreamsSortOrderName(name: String?) {
+        writeNullableString(PreferencesKeys.STREAMS_SORT_ORDER, name)
+    }
+
+    override val streamsFilterKindName: Flow<String?> = context.dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.STREAMS_FILTER_KIND]
+    }
+
+    override suspend fun setStreamsFilterKindName(name: String?) {
+        writeNullableString(PreferencesKeys.STREAMS_FILTER_KIND, name)
+    }
+
+    override val streamsSelectedTopic: Flow<String?> = context.dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.STREAMS_SELECTED_TOPIC]
+    }
+
+    override suspend fun setStreamsSelectedTopic(topic: String?) {
+        writeNullableString(PreferencesKeys.STREAMS_SELECTED_TOPIC, topic)
+    }
+
+    override val streamsSelectedLanguage: Flow<String?> = context.dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.STREAMS_SELECTED_LANGUAGE]
+    }
+
+    override suspend fun setStreamsSelectedLanguage(language: String?) {
+        writeNullableString(PreferencesKeys.STREAMS_SELECTED_LANGUAGE, language)
+    }
+
+    private suspend fun writeNullableString(key: Preferences.Key<String>, value: String?) {
+        context.dataStore.edit { prefs ->
+            if (value == null) {
+                prefs.remove(key)
+            } else {
+                prefs[key] = value
+            }
         }
     }
 

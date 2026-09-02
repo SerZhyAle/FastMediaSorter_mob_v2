@@ -3150,4 +3150,6 @@
     <string name="launcher_all_apps_swipe_explain_back_to_desktop">يغلق قائمة التطبيقات ويعرض سطح المكتب تحتها.</string>
     <string name="launcher_all_apps_swipe_explain_expand">يعرض قائمة التطبيقات كاملة بدل الأقسام الأبجدية.</string>
     <string name="launcher_welcome_toggle_subtitle">افتح FastMediaSorter بزر الشاشة الرئيسية. يطلب النظام التأكيد بعد الإعداد، ويمكنك الرجوع في أي وقت من الإعدادات.</string>
+    <string name="unit_bitrate_kbps">%1$s كيلوبت/ثانية</string>
+    <string name="unit_bitrate_mbps">%1$s ميجابت في الثانية</string>
 </resources>

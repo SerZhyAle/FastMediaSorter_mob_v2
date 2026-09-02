@@ -45,7 +45,7 @@
     A registry declaring an identity schema below v2 is exit 2, not exit 1 - see S1858.
 
 .PARAMETER OutDir
-    Where the producer writes the translator-ready files. Default temp/S1627.
+    Where the producer writes the translator-ready files. Default temp/S1627/<module>.
 
 .PARAMETER Quiet
     Print the expected/actual summary line only.
@@ -77,7 +77,7 @@ $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 . (Join-Path $repoRoot 'scripts/quality/lib/locale-fingerprints.ps1')
 $SourceSet = @($SourceSet | ForEach-Object { $_ -split ',' } | Where-Object { $_ } | ForEach-Object { $_.Trim() })
 
-if (-not $OutDir) { $OutDir = Join-Path $repoRoot 'temp/S1627' }
+if (-not $OutDir) { $OutDir = Join-Path $repoRoot "temp/S1627/$Module" }
 if (-not $BaselinePath) { $BaselinePath = Join-Path $repoRoot 'scripts/quality/locale-untranslated-baseline.txt' }
 if (-not $FingerprintsPath) { $FingerprintsPath = Join-Path $repoRoot 'scripts/quality/locale-source-fingerprints.json' }
 

@@ -161,6 +161,203 @@
             Watch  = 'save'
             Mode   = 'Independent'
             Reason = 'Generic verb translated per module; pt already differs as European against Brazilian phrasing.'
+        },
+
+        # ---- Mirrored: the stream rubric vocabulary, copied into :wear by S2146 ----
+        # One closed set published by scripts/streams/collect-stream-candidates.ps1 and shown by
+        # both modules. The watch copies are lifted verbatim from the phone, so a reworded rubric
+        # that lands on one side only is a defect this gate is meant to catch.
+        @{
+            Phone  = 'streams_rubric_adult'
+            Watch  = 'streams_rubric_adult'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_business'
+            Watch  = 'streams_rubric_business'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_chillout'
+            Watch  = 'streams_rubric_chillout'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_classical'
+            Watch  = 'streams_rubric_classical'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_comedy'
+            Watch  = 'streams_rubric_comedy'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_country_folk'
+            Watch  = 'streams_rubric_country_folk'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_documentary'
+            Watch  = 'streams_rubric_documentary'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_education'
+            Watch  = 'streams_rubric_education'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_electronic'
+            Watch  = 'streams_rubric_electronic'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_general'
+            Watch  = 'streams_rubric_general'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_hip_hop'
+            Watch  = 'streams_rubric_hip_hop'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_jazz_blues'
+            Watch  = 'streams_rubric_jazz_blues'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_kids'
+            Watch  = 'streams_rubric_kids'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_latin'
+            Watch  = 'streams_rubric_latin'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_lifestyle'
+            Watch  = 'streams_rubric_lifestyle'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_local_radio'
+            Watch  = 'streams_rubric_local_radio'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_metal'
+            Watch  = 'streams_rubric_metal'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_movies_series'
+            Watch  = 'streams_rubric_movies_series'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_news'
+            Watch  = 'streams_rubric_news'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_oldies'
+            Watch  = 'streams_rubric_oldies'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_pop'
+            Watch  = 'streams_rubric_pop'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_reggae'
+            Watch  = 'streams_rubric_reggae'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_religious'
+            Watch  = 'streams_rubric_religious'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_rnb_soul'
+            Watch  = 'streams_rubric_rnb_soul'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_rock'
+            Watch  = 'streams_rubric_rock'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_shopping'
+            Watch  = 'streams_rubric_shopping'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_sports'
+            Watch  = 'streams_rubric_sports'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_talk'
+            Watch  = 'streams_rubric_talk'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_test'
+            Watch  = 'streams_rubric_test'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_traffic_cams'
+            Watch  = 'streams_rubric_traffic_cams'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_webcam'
+            Watch  = 'streams_rubric_webcam'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'streams_rubric_world'
+            Watch  = 'streams_rubric_world'
+            Mode   = 'Mirrored'
+            Reason = ''
         }
     )
 }

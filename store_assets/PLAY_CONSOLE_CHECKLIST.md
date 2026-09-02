@@ -5,10 +5,17 @@
 Complete this checklist in Play Console → App content / Store listing before publishing to production.
 Check each item only after the change is confirmed in the Console UI.
 
-## A. Listing Texts (all three locales: EN / RU / UK)
+## A. Listing Texts (every locale the app declares)
 
-Source of truth is `play/listing/<locale>/` - `en-US`, `ru-RU`, `uk-UA`. Publish with
-`scripts/release/publish-play-listing.ps1 -Mode commit`; never retype the texts into the Console.
+Source of truth is `play/listing/<locale>/`, one folder per language declared in
+`app_v2/src/main/res/xml/locales_config.xml` - thirteen of them since S2340, not the three this
+checklist used to name. Publish with `scripts/release/publish-play-listing.ps1 -Mode commit`; never
+retype the texts into the Console.
+
+The boxes below are per locale and the publisher pushes all of them in one edit, so tick each line
+once the Console shows the set complete. Ten of the thirteen carry text only and inherit their
+graphics from the default language, which is why section C still lists screenshots for three locales
+and not for thirteen.
 
 - [ ] Title updated - source: `play/listing/<locale>/title.txt`
 - [ ] Short description updated - source: `play/listing/<locale>/short_description.txt`

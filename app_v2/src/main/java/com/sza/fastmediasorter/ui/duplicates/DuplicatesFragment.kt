@@ -149,7 +149,10 @@ class DuplicatesFragment : Fragment() {
                 adapter.selectedFilePaths = state.selectedFilePaths
                 adapter.submitList(result.groups)
                 
-                val wastedText = getString(R.string.duplicate_wasted_bytes, formatFileSize(result.totalWastedBytes))
+                val wastedText = getString(
+                    R.string.duplicate_wasted_bytes,
+                    formatFileSize(requireContext(), result.totalWastedBytes)
+                )
                 binding.tvSummary.text = getString(R.string.duplicate_groups_summary, result.groups.size, wastedText)
                 
                 val selectedCount = state.selectedFilePaths.size
@@ -158,7 +161,11 @@ class DuplicatesFragment : Fragment() {
                     val selectedSize = result.groups.flatMap { it.files }
                         .filter { it.path in state.selectedFilePaths }
                         .sumOf { it.size }
-                    binding.fabDeleteSelected.text = getString(R.string.duplicate_fab_delete, selectedCount, formatFileSize(selectedSize))
+                    binding.fabDeleteSelected.text = getString(
+                        R.string.duplicate_fab_delete,
+                        selectedCount,
+                        formatFileSize(requireContext(), selectedSize)
+                    )
                 } else {
                     binding.fabDeleteSelected.visibility = View.GONE
                 }

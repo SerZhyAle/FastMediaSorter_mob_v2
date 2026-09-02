@@ -4,10 +4,12 @@ import com.sza.fastmediasorter.data.repository.LauncherDesktopRepositoryImpl
 import com.sza.fastmediasorter.data.repository.LauncherJournalRepositoryImpl
 import com.sza.fastmediasorter.data.repository.LauncherPinsRepositoryImpl
 import com.sza.fastmediasorter.data.repository.LauncherSectionVisibilityRepositoryImpl
+import com.sza.fastmediasorter.data.repository.LauncherShortcutSyncRepositoryImpl
 import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
 import com.sza.fastmediasorter.domain.repository.LauncherJournalRepository
 import com.sza.fastmediasorter.domain.repository.LauncherPinsRepository
 import com.sza.fastmediasorter.domain.repository.LauncherSectionVisibilityRepository
+import com.sza.fastmediasorter.domain.repository.LauncherShortcutSyncRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -42,4 +44,10 @@ abstract class LauncherDesktopModule {
     abstract fun bindLauncherSectionVisibilityRepository(
         impl: LauncherSectionVisibilityRepositoryImpl
     ): LauncherSectionVisibilityRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindLauncherShortcutSyncRepository(
+        impl: LauncherShortcutSyncRepositoryImpl
+    ): LauncherShortcutSyncRepository
 }

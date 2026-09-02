@@ -176,37 +176,7 @@ foreach ($variant in $builtVariants) {
     $logEntry = "$timestamp | $flavor-$buildType-batch | $newName"
     Add-Content -Path $journalPath -Value $logEntry
     
-    # Copy raw APK to Google Drive AND create password-protected ZIP.
-    # Both raw .apk and .zip (password=1) must live on GD:
-    #   - raw .apk for recipients with normal security
-    #   - .zip for recipients whose security policy blocks .apk downloads
-    $gdDir = "c:\GD\WORK\FastMediaSorter"
-    if (!(Test-Path -Path $gdDir)) {
-        New-Item -ItemType Directory -Path $gdDir | Out-Null
-    }
-
-    Copy-Item -Path $destPath -Destination "$gdDir\$newName" -Force
-    Write-Host "  -> Google Drive (raw): $newName" -ForegroundColor Gray
-
-    $zipName = [System.IO.Path]::ChangeExtension($newName, ".zip")
-    $zipPath = "$gdDir\$zipName"
-
-    # Use 7-Zip to create password-protected archive
-    $7zipPath = Get-ToolPath -Tool SevenZip
-    if (Test-Path -Path $7zipPath) {
-        & $7zipPath a -tzip -p1 "$zipPath" "$destPath" | Out-Null
-        # Write-Host "  -> Google Drive: $zipName (password: 1)" -ForegroundColor Cyan
-    }
-    else {
-        Write-Host "  -> Warning: 7-Zip not found. ZIP step skipped (raw APK still copied)." -ForegroundColor Yellow
-    }
-
-    # Copy APK to tc folder
-    $tcDir = "c:\GD\tc\SZA\_APP"
-    if (!(Test-Path -Path $tcDir)) {
-        New-Item -ItemType Directory -Path $tcDir | Out-Null
-    }
-    Copy-Item -Path $destPath -Destination "$tcDir\$newName" -Force
+    & "$PSScriptRoot\..\utils\publish-artifact.ps1" -Path $destPath -Name $newName
 }
 
 Write-Host "`nArtifacts copied to $downloadsDir" -ForegroundColor Green
@@ -243,19 +213,7 @@ if (Test-Path $wearApkRoot) {
         $logEntry = "$timestamp | wear-$wearFlavor-$buildType-batch | $wearBaseName.apk"
         Add-Content -Path $journalPath -Value $logEntry
 
-        # Copy raw APK to Google Drive AND create password-protected ZIP.
-        $gdDir = "c:\GD\WORK\FastMediaSorter"
-        if (!(Test-Path $gdDir)) { New-Item -ItemType Directory -Path $gdDir | Out-Null }
-        Copy-Item -Path $wearDest -Destination "$gdDir\$wearBaseName.apk" -Force
-        $7zipPath = Get-ToolPath -Tool SevenZip
-        if (Test-Path $7zipPath) {
-            & $7zipPath a -tzip -p1 "$gdDir\$wearBaseName.zip" "$wearDest" | Out-Null
-        }
-
-        # Copy to tc folder
-        $tcDir = "c:\GD\tc\SZA\_APP"
-        if (!(Test-Path $tcDir)) { New-Item -ItemType Directory -Path $tcDir | Out-Null }
-        Copy-Item -Path $wearDest -Destination "$tcDir\$wearBaseName.apk" -Force
+        & "$PSScriptRoot\..\utils\publish-artifact.ps1" -Path $wearDest -Name "$wearBaseName.apk"
     }
     }
 } else {
