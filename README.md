@@ -58,10 +58,13 @@ FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. O
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.60.8241.708 (August 2026) - Fix Release
+## What's New in v2.60.9021.951 (September 2026)
+
+**New:**
+Reconnect a folder through the system chooser, honest wording when a connection cannot reach documents, camera shooting modes with tap-to-focus, a watch that browses its own storage and carries tiles, two-way watch settings sync, live map / world clock / YouTube desktop gadgets, launcher paging and edge gestures, picture-in-picture from every host, host ping and hop-by-hop traceroute, grouped and translated stream rubrics, a resource list that remembers its filter and sort.
 
 **Fixed:**
-Granting All files access no longer leaves the Permissions required dialog on screen.
+Document previews on a folder connected through the system chooser, the search overlay hiding under the status bar, stale file counts after an operation, the reconnect dialog lost on rotation, an empty stream catalog showing nothing, cancelled watch playback logged as an error, the watch database reset on upgrade, launcher shortcut import and alignment.
 
 [Full release notes →](docs/WHATS_NEW.md)
 
