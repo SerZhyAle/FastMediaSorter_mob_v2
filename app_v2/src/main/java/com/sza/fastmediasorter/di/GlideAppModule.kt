@@ -167,14 +167,14 @@ class GlideAppModule : AppGlideModule() {
         registry.prepend(
             File::class.java,
             Bitmap::class.java,
-            PdfPageDecoder()
+            PdfPageDecoder(context)
         )
 
         // Register EPUB cover decoder for local EPUB e-book covers
         registry.prepend(
             File::class.java,
             Bitmap::class.java,
-            EpubCoverDecoder()
+            EpubCoverDecoder(context)
         )
 
         // Register network PDF thumbnail loader for SMB/SFTP/FTP PDFs

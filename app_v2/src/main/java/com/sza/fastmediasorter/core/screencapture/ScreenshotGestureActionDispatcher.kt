@@ -175,10 +175,27 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
         ScreenshotGestureAction.SET_ALARM,
         ScreenshotGestureAction.SET_TIMER,
         ScreenshotGestureAction.NEW_CALENDAR_EVENT -> launchActionHandler.handle(context, action, payload = "")
-        // S1038: SYSTEM actions run through the noLegal accessibility seam. Always handled (skip capture);
-        // the performer degrades internally when the service is off, and the set is empty on other flavors.
+        // S1038 / S2386: SYSTEM actions (status bar panels + accessibility global actions).
         ScreenshotGestureAction.OPEN_NOTIFICATION_SHADE,
         ScreenshotGestureAction.OPEN_QUICK_SETTINGS,
+        ScreenshotGestureAction.LOCK_SCREEN,
+        ScreenshotGestureAction.TOGGLE_SPLIT_SCREEN,
+        ScreenshotGestureAction.PREVIOUS_APP -> handleSystemAction(context, action)
+        else -> false
+    }
+
+    /**
+     * S2386: status-bar expansion is attempted via StatusBarManager reflection first (all flavors),
+     * falling back to accessibility action if unhandled.
+     * S1038: SYSTEM actions run through the noLegal accessibility seam. Always handled (skip capture);
+     * the performer degrades internally when the service is off, and the set is empty on other flavors.
+     */
+    private fun handleSystemAction(context: Context, action: ScreenshotGestureAction): Boolean = when (action) {
+        ScreenshotGestureAction.OPEN_NOTIFICATION_SHADE,
+        ScreenshotGestureAction.OPEN_QUICK_SETTINGS -> {
+            val handled = deviceActionHandler.handle(context, action)
+            if (!handled) performAccessibilityAction(action) else true
+        }
         ScreenshotGestureAction.LOCK_SCREEN,
         ScreenshotGestureAction.TOGGLE_SPLIT_SCREEN,
         ScreenshotGestureAction.PREVIOUS_APP -> performAccessibilityAction(action)

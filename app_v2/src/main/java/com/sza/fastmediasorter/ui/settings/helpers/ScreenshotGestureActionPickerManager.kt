@@ -36,8 +36,6 @@ class ScreenshotGestureActionPickerManager(
                 ScreenshotGestureAction.TAKE_PHOTO_OCR_TRANSLATE ->
                     capabilityAvailability.isTranslationAvailable()
                 ScreenshotGestureAction.START_SCREEN_RECORDING -> screenRecordingAvailable
-                ScreenshotGestureAction.OPEN_NOTIFICATION_SHADE,
-                ScreenshotGestureAction.OPEN_QUICK_SETTINGS,
                 ScreenshotGestureAction.LOCK_SCREEN,
                 ScreenshotGestureAction.TOGGLE_SPLIT_SCREEN,
                 ScreenshotGestureAction.PREVIOUS_APP -> systemActionsAvailable

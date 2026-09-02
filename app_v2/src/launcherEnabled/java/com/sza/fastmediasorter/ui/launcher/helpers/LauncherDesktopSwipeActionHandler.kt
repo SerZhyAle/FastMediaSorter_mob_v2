@@ -23,6 +23,7 @@ class LauncherDesktopSwipeActionHandler(
 
     suspend fun handle(action: LauncherDesktopSwipeAction, payload: String) {
         Timber.d("S2221: execute desktop swipe action=%s", action)
+        Timber.d("S2386: execute desktop swipe action=%s", action)
         when (action) {
             LauncherDesktopSwipeAction.OpenAllApps -> onOpenAllApps()
             LauncherDesktopSwipeAction.NextScreen -> onNextScreen()

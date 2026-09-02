@@ -17,16 +17,14 @@ param(
     [string]$DeviceId = $env:ANDROID_SERIAL
 )
 
-$ErrorActionPreference = 'Stop'
+. "$PSScriptRoot\..\utils\project-paths.ps1"
+. "$PSScriptRoot\..\utils\find-build-artifact.ps1"
+. "$PSScriptRoot\..\utils\get-device-abi.ps1"
 
 $adb = Get-ToolPath -Tool Adb
 if (-not (Test-Path -Path $adb)) {
     $adb = 'adb'
 }
-
-. "$PSScriptRoot\..\utils\find-build-artifact.ps1"
-. "$PSScriptRoot\..\utils\project-paths.ps1"
-. "$PSScriptRoot\..\utils\get-device-abi.ps1"
 
 $projectRoot = Resolve-Path "$PSScriptRoot\..\.."
 $variant = 'debug'

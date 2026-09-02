@@ -163,7 +163,7 @@ object SafHelper {
      * @return true if path starts with content:/ or content://
      */
     fun isContentUri(path: String): Boolean {
-        return path.startsWith("content:/")
+        return path.startsWith("content:/") || path.startsWith("content:\\")
     }
 
     /**
@@ -173,10 +173,11 @@ object SafHelper {
      * @return Normalized URI string with content:// prefix
      */
     fun normalizeContentUri(path: String): String {
-        return if (path.startsWith("content://")) {
-            path
+        val forwardPath = path.replace('\\', '/')
+        return if (forwardPath.startsWith("content://")) {
+            forwardPath
         } else {
-            path.replaceFirst("content:/", "content://")
+            forwardPath.replaceFirst("content:/", "content://")
         }
     }
 
@@ -188,10 +189,11 @@ object SafHelper {
      * @return Parsed and sanitized Uri object
      */
     fun parseUri(uriString: String): Uri {
-        val normalized = if (uriString.startsWith("content:") && !uriString.startsWith("content://")) {
-            uriString.replaceFirst("content:/", "content://")
+        val forwardPath = uriString.replace('\\', '/')
+        val normalized = if (forwardPath.startsWith("content:") && !forwardPath.startsWith("content://")) {
+            forwardPath.replaceFirst("content:/", "content://")
         } else {
-            uriString
+            forwardPath
         }
         return Uri.parse(normalized)
     }

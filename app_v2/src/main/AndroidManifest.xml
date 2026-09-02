@@ -93,6 +93,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <!-- S0349: microphone foreground service type for the Quick Audio Recorder widget (API 34+) -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <!-- S2386: expand/collapse status bar panels (notification shade / quick settings) without accessibility service -->
+    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <!-- Screen sizes and densities supported -->

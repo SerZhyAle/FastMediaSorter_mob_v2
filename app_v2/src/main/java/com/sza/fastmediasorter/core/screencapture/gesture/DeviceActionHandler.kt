@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.core.screencapture.gesture
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
@@ -15,6 +16,7 @@ import javax.inject.Singleton
  * (via [Settings.System], gated on `WRITE_SETTINGS`). Singleton so the best-effort torch state survives
  * across gestures. [handle] returns false for actions it does not own so the dispatcher can try the
  * next handler.
+ * S2386: expands status bar panels (notification shade / quick settings) via StatusBarManager reflection.
  */
 @Singleton
 class DeviceActionHandler @Inject constructor() {
@@ -28,16 +30,18 @@ class DeviceActionHandler @Inject constructor() {
     /** Returns true when [action] is a device-control action this handler owns (performed or degraded). */
     fun handle(context: Context, action: ScreenshotGestureAction): Boolean {
         return when (action) {
-        ScreenshotGestureAction.TOGGLE_FLASHLIGHT -> toggleFlashlight(context)
-        ScreenshotGestureAction.BRIGHTNESS_MAX -> {
-            setBrightness(context, BRIGHTNESS_MAX_VALUE)
-            true
-        }
-        ScreenshotGestureAction.BRIGHTNESS_NORMAL -> {
-            setBrightness(context, BRIGHTNESS_NORMAL_VALUE)
-            true
-        }
-        else -> false
+            ScreenshotGestureAction.TOGGLE_FLASHLIGHT -> toggleFlashlight(context)
+            ScreenshotGestureAction.BRIGHTNESS_MAX -> {
+                setBrightness(context, BRIGHTNESS_MAX_VALUE)
+                true
+            }
+            ScreenshotGestureAction.BRIGHTNESS_NORMAL -> {
+                setBrightness(context, BRIGHTNESS_NORMAL_VALUE)
+                true
+            }
+            ScreenshotGestureAction.OPEN_NOTIFICATION_SHADE -> expandNotificationShade(context)
+            ScreenshotGestureAction.OPEN_QUICK_SETTINGS -> expandQuickSettings(context)
+            else -> false
         }
     }
 
@@ -86,6 +90,33 @@ class DeviceActionHandler @Inject constructor() {
             )
             Settings.System.putInt(context.contentResolver, Settings.System.SCREEN_BRIGHTNESS, value)
         }.onFailure { Timber.w(it, "DeviceActionHandler: failed to set brightness") }
+    }
+
+    private fun expandNotificationShade(context: Context): Boolean {
+        Timber.d("S2386: expanding notification shade via StatusBarManager")
+        return expandStatusBarPanel(context, "expandNotificationsPanel")
+    }
+
+    private fun expandQuickSettings(context: Context): Boolean {
+        Timber.d("S2386: expanding quick settings via StatusBarManager")
+        return expandStatusBarPanel(context, "expandSettingsPanel")
+    }
+
+    @SuppressLint("WrongConstant")
+    private fun expandStatusBarPanel(context: Context, methodName: String): Boolean {
+        return runCatching {
+            val statusBarService = context.getSystemService("statusbar")
+            if (statusBarService == null) {
+                Timber.w("DeviceActionHandler: statusbar service unavailable")
+                return false
+            }
+            val statusBarManagerClass = Class.forName("android.app.StatusBarManager")
+            val method = statusBarManagerClass.getMethod(methodName)
+            method.invoke(statusBarService)
+            true
+        }.onFailure {
+            Timber.w(it, "DeviceActionHandler: %s failed", methodName)
+        }.getOrDefault(false)
     }
 
     private companion object {
