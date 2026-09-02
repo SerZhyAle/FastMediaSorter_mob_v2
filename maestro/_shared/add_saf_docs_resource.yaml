@@ -125,9 +125,12 @@ appId: com.sza.fastmediasorter.debug
           text: "Локальные"
           index: 0
 
-# Leave the caller with the row on screen and centred, so it can tap it without scrolling itself.
+# Leave the caller with the row on screen, so it can tap it without scrolling itself. Not centred and
+# not at 100%: a newly registered resource lands LAST in the list, and the list stops scrolling with
+# it at the bottom edge - the same oracle that failed on btnBrowseWithSAF above, for the same reason.
 - scrollUntilVisible:
     element:
       text: "Docs"
     timeout: 15000
-    centerElement: true
+    visibilityPercentage: 60
+    centerElement: false
