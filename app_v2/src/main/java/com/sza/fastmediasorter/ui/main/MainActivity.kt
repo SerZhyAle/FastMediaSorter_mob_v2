@@ -31,6 +31,7 @@ import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.ui.UiState
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.core.util.StoragePermissionRule
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
@@ -67,6 +68,7 @@ import com.sza.fastmediasorter.ui.main.helpers.MainPanelItemActionsManager
 import com.sza.fastmediasorter.ui.main.helpers.MainProgramsMenuCoordinator
 import com.sza.fastmediasorter.ui.main.helpers.MainProgramsPanelManager
 import com.sza.fastmediasorter.ui.main.helpers.MainQuickCaptureMenuManager
+import com.sza.fastmediasorter.ui.main.helpers.MainResourceReconnectManager
 import com.sza.fastmediasorter.ui.main.helpers.MainResourceTabsManager
 import com.sza.fastmediasorter.ui.main.helpers.MainResumePlaybackHelper
 import com.sza.fastmediasorter.ui.main.helpers.MainScreenRecordingManager
@@ -137,6 +139,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var streamsPanelManager: MainStreamsPanelManager
     private lateinit var collapsedChipsPlacement: MainCollapsedChipsPlacementManager
 
+    // S2370: owns the reconnect picker round trip - grant, same-folder check, mismatch confirmation.
+    private lateinit var reconnectManager: MainResourceReconnectManager
+
     // S1443: last free width the command bar reported; a chip visibility change re-places against it
     // instead of forcing a fresh measurement pass that the bar has not been asked for.
     private var controlBarFreeWidthPx = 0
@@ -199,6 +204,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private val quickCaptureCameraLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result -> if (::cameraCaptureManager.isInitialized) cameraCaptureManager.handleResult(result) }
+
+    // S2370: the reconnect folder picker. Registered pre-STARTED as a field for the same reason the
+    // capture launchers are; the manager it delegates to is built in setupViews, hence the guard.
+    private val reconnectTreePickerLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocumentTree()
+    ) { uri -> if (::reconnectManager.isInitialized) reconnectManager.onFolderPicked(uri) }
 
     // S0774: screen-recording permission launchers - registered pre-STARTED, delegated to the manager.
     private val screenRecordingRecordAudioLauncher = registerForActivityResult(
@@ -300,6 +311,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // so this runs before the pending Activity result is dispatched (onStart) - mirrors BrowseActivity.
         savedInstanceState?.let {
             if (::cameraCaptureManager.isInitialized) cameraCaptureManager.restoreState(it)
+            // S2374: same window, same reason - a recreation while the system folder picker is
+            // foreground would otherwise hand the result to a manager with nothing to apply it to.
+            if (::reconnectManager.isInitialized) reconnectManager.restoreState(it)
         }
 
         // S0207 Phase 01: post the MAIN_DRAWN measurement once the first frame is on screen. BaseActivity.onCreate has already called setContentView(binding.root) by the time we return from super.onCreate(), so binding.root is attached and post() runs after layout.
@@ -715,6 +729,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // S0564: persist the pending quick-capture target so a kill while the camera host is
         // foreground does not abandon the captured file (restored in onCreate, see below).
         if (::cameraCaptureManager.isInitialized) cameraCaptureManager.saveState(outState)
+        // S2374: the reconnect picker's pending target survives the same way (restored in onCreate).
+        if (::reconnectManager.isInitialized) reconnectManager.saveState(outState)
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
@@ -978,6 +994,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         val mainAllowSeparateWindow =
             com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector.isMultiWindowActiveNow(this)
 
+        reconnectManager = MainResourceReconnectManager(
+            activity = this,
+            launchPicker = { initial -> reconnectTreePickerLauncher.launch(initial) },
+            onReconnect = { resourceId, uri ->
+                viewModel.reconnectResource(resourceId, uri.toString())
+            },
+        )
+
         resourceAdapter = ResourceAdapter(
             onItemClick = { resource ->
                 // Simple click = select and open Browse
@@ -1047,7 +1071,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             onOpenInNewWindowClick = { resource -> panelItemActions.openResourceInNewWindow(resource.id) },
             // S0963 (Pillar 2): resource "Open in VR Cinema" entry; visibility mirrors XR availability.
             isOpenInVrCinemaVisible = panelItemActions.isVrCinemaAvailable(),
-            onOpenInVrCinemaClick = { resource -> panelItemActions.openResourceInVrCinema(resource) }
+            onOpenInVrCinemaClick = { resource -> panelItemActions.openResourceInVrCinema(resource) },
+            // S2370: offered only where the direct file route to shared storage is out of reach for
+            // good - false on noLegal and below API 30, where the raw path still works.
+            isDirectPathReconnectCandidate = StoragePermissionRule.isDirectFileAccessUnobtainable(this),
+            onReconnectClick = { resource -> reconnectManager.request(resource) }
         )
 
         binding.rvResources.adapter = resourceAdapter

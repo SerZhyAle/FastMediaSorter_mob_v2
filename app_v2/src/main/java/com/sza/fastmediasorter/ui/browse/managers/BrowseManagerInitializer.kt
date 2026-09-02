@@ -63,6 +63,7 @@ import com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager
 import com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
+import com.sza.fastmediasorter.util.LimitedStorageReach
 import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.UserActionLogger
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -529,7 +530,8 @@ class BrowseManagerInitializer(
 
         buttonCallbacks = object : BrowseButtonSetupHelper.ButtonCallbacks {
             override fun onFilterClicked() =
-                dialogHelper.showFilterDialog(viewModel.state.value.filter, viewModel.state.value.resource?.supportedMediaTypes)
+                dialogHelper.showFilterDialog(viewModel.state.value.filter, allowedFilterTypes())
+
             // S2171 §5.2: live in-memory narrowing on the value already used by the extended
             // filter dialog - one input, no second re-read of the resource (BrowseSortFilterManager
             // fast-paths setFilter through the in-memory cache).
@@ -606,6 +608,22 @@ class BrowseManagerInitializer(
         }
         viewModel.setOpenDrawingCallback { createdPath ->
             viewModel.openDrawingInEditor(createdPath)
+        }
+    }
+
+    /**
+     * S2369: the types the extended filter dialog may offer for the open resource. A folder reached
+     * through the permission-narrowed provider cannot return documents at all, so offering their boxes
+     * - ticked, as the dialog does by default - makes the control promise what the list then denies.
+     */
+    private fun allowedFilterTypes(): Set<MediaType>? {
+        val resource = viewModel.state.value.resource ?: return null
+        return when {
+            LimitedStorageReach.isReachLimited(activity, resource) -> {
+                Timber.d("S2369: filter dialog narrowed to the reachable types for ${resource.path}")
+                LimitedStorageReach.narrowToReachable(resource.supportedMediaTypes)
+            }
+            else -> resource.supportedMediaTypes
         }
     }
 

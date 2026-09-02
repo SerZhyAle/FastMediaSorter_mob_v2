@@ -171,6 +171,14 @@ try {
     $f = Invoke-Gate 'S9989'
     Assert-That "C2. a separator added with the block does not fire the gate" ($f.Code -eq 0) "exit $($f.Code): $($f.Text)"
 
+    # C3. the block is markdown, so a writer wraps the hash in a code span as a reflex. That line
+    # records exactly the right value, and the gate used to answer "records no task fingerprint"
+    # to it - a refusal aimed at the one shape a careful writer is most likely to produce.
+    $stampG = Get-Stamp 'S9989'
+    Set-Fixture 'S9989' (New-SpecBody -Stamp ('`{0}`' -f $stampG))
+    $g2 = Invoke-Gate 'S9989'
+    Assert-That "C3. a backticked stamp is read, not refused" ($g2.Code -eq 0) "exit $($g2.Code): $($g2.Text)"
+
     # E. block present, never stamped.
     $e = Invoke-Gate 'S9994'
     Assert-That "E. an unstamped audit block fails" ($e.Code -eq 1) "exit $($e.Code): $($e.Text)"

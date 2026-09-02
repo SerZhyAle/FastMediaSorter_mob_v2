@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -42,4 +43,14 @@ interface FavoritesDao {
 
     @Query("SELECT COUNT(*) FROM favorites")
     suspend fun getFavoritesCount(): Int
+
+    // S2370: a resource's favorites carry per-file absolute addresses; when the resource's own
+    // address changes scheme (reconnect to a system folder tree) these rows are the ones whose
+    // addresses must be rewritten. Stream rows carry a channel URL, not a file address, and stay
+    // out of that rewrite.
+    @Query("SELECT * FROM favorites WHERE resourceId = :resourceId AND kind = 'FILE'")
+    suspend fun getFavoritesForResource(resourceId: Long): List<FavoritesEntity>
+
+    @Update
+    suspend fun updateFavorites(entities: List<FavoritesEntity>)
 }

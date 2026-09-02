@@ -90,6 +90,20 @@ class FakeResourceRepository : ResourceRepository {
         publish()
     }
 
+    // S2370: the address-only write clears the state the old address owned, exactly as the DAO
+    // statement does - a fake that kept the last opened file would hide that half of the contract.
+    override suspend fun updateResourceAddress(resourceId: Long, newPath: String) {
+        val index = resources.indexOfFirst { it.id == resourceId }
+        if (index >= 0) {
+            resources[index] = resources[index].copy(
+                path = newPath,
+                lastViewedFile = null,
+                lastScrollPosition = 0,
+            )
+        }
+        publish()
+    }
+
     override suspend fun swapResourceDisplayOrders(resource1: MediaResource, resource2: MediaResource) {
         val i1 = resources.indexOfFirst { it.id == resource1.id }
         val i2 = resources.indexOfFirst { it.id == resource2.id }

@@ -17,7 +17,6 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.DedupAuthAccountsUseCase
 import com.sza.fastmediasorter.domain.usecase.DeleteResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.ExportResourcesToFileUseCase
@@ -29,6 +28,7 @@ import com.sza.fastmediasorter.domain.usecase.MigrateS0059UseCase
 import com.sza.fastmediasorter.domain.usecase.ProvisionDefaultResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.ProvisionDownloadsDestinationUseCase
 import com.sza.fastmediasorter.domain.usecase.ReadMainListSessionUseCase
+import com.sza.fastmediasorter.domain.usecase.ReconnectResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.RefreshResourceFileCountsUseCase
 import com.sza.fastmediasorter.domain.usecase.ResolveResourceIconUseCase
 import com.sza.fastmediasorter.domain.usecase.SaveCapturedMediaUseCase
@@ -39,6 +39,7 @@ import com.sza.fastmediasorter.domain.usecase.companion.ExportCompanionConfigUse
 import com.sza.fastmediasorter.domain.usecase.streams.ObservePinnedStreamSourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.UnpinStreamSourceUseCase
 import com.sza.fastmediasorter.ui.main.helpers.MainListSessionManager
+import com.sza.fastmediasorter.ui.main.helpers.MainReconnectOutcomeMapper
 import com.sza.fastmediasorter.ui.main.helpers.ResourceFilterManager
 import com.sza.fastmediasorter.ui.main.helpers.ResourceNavigationCoordinator
 import com.sza.fastmediasorter.ui.main.helpers.ResourceOrderManager
@@ -138,7 +139,6 @@ sealed class MainEvent {
 class MainViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val getResourcesUseCase: GetResourcesUseCase,
-    private val addResourceUseCase: AddResourceUseCase,
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val deleteResourceUseCase: DeleteResourceUseCase,
     private val exportResourcesToFileUseCase: ExportResourcesToFileUseCase,
@@ -167,6 +167,8 @@ class MainViewModel @Inject constructor(
     private val saveCapturedMediaUseCase: SaveCapturedMediaUseCase,
     private val observePinnedStreamSourcesUseCase: ObservePinnedStreamSourcesUseCase,
     private val unpinStreamSourceUseCase: UnpinStreamSourceUseCase,
+    // S2370: swap a direct-path resource's address for a picked folder tree, identity preserved.
+    private val reconnectResourceUseCase: ReconnectResourceUseCase,
     // S2199: last-session sort and filters for this list.
     private val readMainListSessionUseCase: ReadMainListSessionUseCase,
     private val saveMainListSessionUseCase: SaveMainListSessionUseCase,
@@ -797,28 +799,6 @@ class MainViewModel @Inject constructor(
         sendEvent(MainEvent.NavigateToAddResourceCopy(selected.id))
     }
 
-    /**
-     * Generate a unique copy name by appending " (copy)" or " (copy N)"
-     */
-    private fun generateCopyName(originalName: String): String {
-        val resources = state.value.resources
-        val existingNames = resources.map { it.name }.toSet()
-
-        // Try "Name (copy)" first
-        var copyName = "$originalName (copy)"
-        if (!existingNames.contains(copyName)) {
-            return copyName
-        }
-
-        // If it exists, try "Name (copy 2)", "Name (copy 3)", etc.
-        var counter = 2
-        while (existingNames.contains("$originalName (copy $counter)")) {
-            counter++
-        }
-
-        return "$originalName (copy $counter)"
-    }
-
     fun toggleResourceViewMode() {
         viewModelScope.launch(ioDispatcher) {
             // Get current value from settings (source of truth)
@@ -875,6 +855,20 @@ class MainViewModel @Inject constructor(
                     // the resource-list observer refreshes the UI automatically.
                 }
             }
+        }
+    }
+
+    // S2370: the rescan rides the existing single-resource path because the refreshed counter must
+    // include the documents the direct address could never return, and nothing else produces it.
+    fun reconnectResource(resourceId: Long, treeUriString: String) {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            val result = reconnectResourceUseCase(resourceId, treeUriString)
+            result.onSuccess {
+                resourceRepository.get().getResourceById(resourceId)?.let { scanSingleResource(it) }
+            }
+            result.exceptionOrNull()?.let { Timber.w(it, "Resource reconnect failed") }
+            Timber.d("S2374: reconnect outcome reported, resource=%d", resourceId)
+            sendEvent(MainReconnectOutcomeMapper.toEvent(result))
         }
     }
 

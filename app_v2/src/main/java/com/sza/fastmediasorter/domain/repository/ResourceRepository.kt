@@ -80,6 +80,13 @@ interface ResourceRepository {
     suspend fun updateLastScrollPosition(resourceId: Long, position: Int)
 
     /**
+     * S2370: swaps a resource's address in place (reconnect to a system folder tree) and resets
+     * the per-file view state the old address derived - same S1001 discipline as the two writers
+     * above: a full-entity update from a stale copy would clobber concurrent stats writes.
+     */
+    suspend fun updateResourceAddress(resourceId: Long, newPath: String)
+
+    /**
      * Assigns icons to all resources that currently have [iconId] == null.
      * Called once on startup after DB migration to 26; safe to call multiple times.
      * Returns the number of resources that were updated.

@@ -3646,4 +3646,9 @@
     <string name="exif_orientation_mirror_rotate_90">Отражено и повёрнуто на 90° по часовой стрелке</string>
     <string name="exif_orientation_rotate_270">Повёрнуто на 270° по часовой стрелке</string>
     <string name="exif_orientation_unknown">Неизвестно (%1$d)</string>
+    <string name="storage_reach_limited_browse">Эта папка подключена старым способом - через него читаются только фото, видео и звук. Чтобы увидеть документы, добавьте папку заново и выберите её в системном окне.</string>
+    <string name="file_count_reach_limited">%1$s - только фото, видео и звук</string>
+    <string name="reach_limited_nothing_readable">Документы не читаются</string>
+    <string name="storage_reach_limited_virtual">Документы и другие файлы на этом устройстве приложению не видны. Чтобы открыть их, добавьте нужную папку через системное окно выбора.</string>
+    <string name="storage_reach_limited_browse_reconnect">Эта папка подключена старым способом - через него читаются только фото, видео и звук. Чтобы увидеть документы, задержите палец на папке на главном экране и выберите «Переподключить ресурс».</string>
 </resources>

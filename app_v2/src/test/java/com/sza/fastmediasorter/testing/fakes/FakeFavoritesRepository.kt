@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.testing.fakes
 
 import com.sza.fastmediasorter.data.local.db.FavoritesEntity
+import com.sza.fastmediasorter.domain.model.FavoritesRemapOutcome
 import com.sza.fastmediasorter.domain.repository.FavoritesRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -63,5 +64,35 @@ class FakeFavoritesRepository : FavoritesRepository {
     override suspend fun removeFavoriteById(id: Long) {
         removedIds.add(id)
         favoritesFlow.value = favoritesFlow.value.filterNot { it.id == id }
+    }
+
+    /**
+     * S2370: the real remap resolves each rewritten address against the picked tree, which needs a
+     * platform document provider. This fake rewrites the prefix and reports every row as remapped -
+     * enough for a caller assertion, and never a stand-in for the existence half of the contract.
+     */
+    override suspend fun remapResourceFavoritesToTree(
+        resourceId: Long,
+        oldPathPrefix: String,
+        treeUriString: String,
+    ): FavoritesRemapOutcome {
+        val rows = favoritesFlow.value.filter { it.resourceId == resourceId }
+        val matching = rows.filter { it.uri.startsWith(oldPathPrefix) }
+        favoritesFlow.value = favoritesFlow.value.map { row ->
+            if (row in matching) {
+                row.copy(
+                    uri = treeUriString + row.uri.removePrefix(oldPathPrefix),
+                    lastKnownPath = row.uri,
+                )
+            } else {
+                row
+            }
+        }
+        return FavoritesRemapOutcome(
+            total = rows.size,
+            remapped = matching.size,
+            keptMissing = 0,
+            untouched = rows.size - matching.size,
+        )
     }
 }

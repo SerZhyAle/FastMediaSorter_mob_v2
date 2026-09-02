@@ -92,10 +92,11 @@ If a feature is marked with "✗", choose the **Standard** or **XR / noLegal** b
 34. [Find and Delete Duplicate Files](#how-to-find-and-delete-duplicate-files)
 35. [View Your Usage Statistics](#how-to-view-your-usage-statistics)
 36. [Use an SD Card or Connected Drive](#how-to-use-an-sd-card-or-connected-drive)
-37. [Use the App as Your Home Screen](#how-to-use-the-app-as-your-home-screen)
-38. [Choose Where Captures and Downloads Are Saved](#how-to-choose-where-captures-and-downloads-are-saved)
-39. [Receive Files Shared from Another App](#how-to-receive-files-shared-from-another-app)
-40. [Use the Built-In Programs](#how-to-use-the-built-in-programs)
+37. [Reconnect a Folder Added by Direct Path](#how-to-reconnect-a-folder-added-by-direct-path)
+38. [Use the App as Your Home Screen](#how-to-use-the-app-as-your-home-screen)
+39. [Choose Where Captures and Downloads Are Saved](#how-to-choose-where-captures-and-downloads-are-saved)
+40. [Receive Files Shared from Another App](#how-to-receive-files-shared-from-another-app)
+41. [Use the Built-In Programs](#how-to-use-the-built-in-programs)
 
 ---
 
@@ -1352,6 +1353,23 @@ A memory card or a USB drive the phone has mounted holds resources exactly like 
 **When the medium is ejected:** its resources are marked unavailable rather than removed. Connect the card again and they work without being set up a second time.
 
 **On Android 6:** the system does not report mounted volumes to apps, so the removable section stays empty on those devices.
+
+---
+
+## How to Reconnect a Folder Added by Direct Path
+
+A folder you added by typing or browsing its path can show your photos, videos and music but none of your documents. That is not a scan that missed them: a store build reads text files, PDFs and e-books only through a folder you connected with the system chooser. Reconnecting points the same resource at the same folder through that chooser, and the documents appear.
+
+**Steps:**
+
+1. Tap the three-dot menu on the folder's card in the main list.
+2. Choose **Reconnect resource**. The system folder chooser opens, already in that folder where the phone allows it.
+3. Pick the same folder and confirm.
+4. If you pick a different folder, the app names both folders and asks before changing anything.
+
+**What stays:** the name, the position in your list, the PIN, the icon, the Quick Sort role, your favourites and your schedules all survive - the resource is re-addressed, not created again.
+
+**Where you will not see it:** on builds that still read folders by path directly, and on Android 10 and older, the entry is absent because nothing is missing there.
 
 ---
 

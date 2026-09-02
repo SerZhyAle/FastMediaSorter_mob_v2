@@ -75,6 +75,23 @@ class ResourceActionCatalogTest {
     }
 
     @Test
+    fun `reconnect is offered only to a direct-path candidate`() {
+        assertFalse(
+            ResourceActionCatalog
+                .actionsFor(MenuActionSurface.MAIN_WINDOW, plainLocalFolder)
+                .contains(ResourceMenuAction.RECONNECT_RESOURCE),
+        )
+        assertTrue(
+            ResourceActionCatalog
+                .actionsFor(
+                    MenuActionSurface.MAIN_WINDOW,
+                    plainLocalFolder.copy(isDirectPathReconnectCandidate = true),
+                )
+                .contains(ResourceMenuAction.RECONNECT_RESOURCE),
+        )
+    }
+
+    @Test
     fun `desktop never offers a reorder row or a separate window whatever the resource is`() {
         allFactCombinations().forEach { facts ->
             val actions = ResourceActionCatalog.actionsFor(MenuActionSurface.LAUNCHER_DESKTOP, facts)
@@ -114,7 +131,7 @@ class ResourceActionCatalogTest {
         assertTrue(actions.contains(ResourceMenuAction.OPEN))
     }
 
-    /** Every combination of the five booleans, so a leak cannot hide behind one untested flag. */
+    /** Every combination of the six booleans, so a leak cannot hide behind one untested flag. */
     private fun allFactCombinations(): List<ResourceActionCatalog.Facts> =
         (0 until COMBINATIONS).map { mask ->
             ResourceActionCatalog.Facts(
@@ -123,6 +140,7 @@ class ResourceActionCatalogTest {
                 isQuickSlideshowEligible = mask and FLAG_SLIDESHOW != 0,
                 isNewWindowAvailable = mask and FLAG_WINDOW != 0,
                 isVrCinemaAvailable = mask and FLAG_VR != 0,
+                isDirectPathReconnectCandidate = mask and FLAG_RECONNECT != 0,
             )
         }
 
@@ -132,9 +150,10 @@ class ResourceActionCatalogTest {
         const val FLAG_SLIDESHOW = 4
         const val FLAG_WINDOW = 8
         const val FLAG_VR = 16
+        const val FLAG_RECONNECT = 32
 
-        /** Two states for each of the five flags. */
-        const val COMBINATIONS = 32
+        /** Two states for each of the six flags. */
+        const val COMBINATIONS = 64
 
         val DESKTOP_EXCLUDED = setOf(
             ResourceMenuAction.MOVE_UP,
@@ -142,6 +161,7 @@ class ResourceActionCatalogTest {
             ResourceMenuAction.MOVE_TO_TOP,
             ResourceMenuAction.MOVE_TO_BOTTOM,
             ResourceMenuAction.OPEN_IN_SEPARATE_WINDOW,
+            ResourceMenuAction.RECONNECT_RESOURCE,
         )
     }
 }

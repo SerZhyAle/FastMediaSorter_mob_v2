@@ -143,6 +143,15 @@ abstract class ResourceDao {
     @Query("UPDATE resources SET lastViewedFile = :path WHERE id = :resourceId")
     abstract suspend fun updateLastViewedFile(resourceId: Long, path: String?)
 
+    // S2370: a reconnect swaps the address in place, and the per-file state that was derived from
+    // the old addressing scheme (last opened file, scroll offset, removable-volume binding) must
+    // not survive the swap, so they fall back to their defaults in the same statement.
+    @Query(
+        "UPDATE resources SET path = :newPath, lastViewedFile = NULL, lastScrollPosition = 0, " +
+            "storage_volume_id = NULL WHERE id = :resourceId"
+    )
+    abstract suspend fun updateResourceAddress(resourceId: Long, newPath: String)
+
     @Query("UPDATE resources SET lastScrollPosition = :position WHERE id = :resourceId")
     abstract suspend fun updateLastScrollPosition(resourceId: Long, position: Int)
 

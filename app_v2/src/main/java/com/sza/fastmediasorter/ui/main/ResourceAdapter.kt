@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.main
 
+import android.content.Context
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.text.SpannableString
@@ -30,6 +31,7 @@ import com.sza.fastmediasorter.domain.model.isAllFilesPredefined
 import com.sza.fastmediasorter.ui.common.MediaColorCategory
 import com.sza.fastmediasorter.ui.common.MediaTypeColorCatalog
 import com.sza.fastmediasorter.ui.icon.ResourceIconComposer
+import com.sza.fastmediasorter.util.LimitedStorageReach
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import com.sza.fastmediasorter.utils.setOnLongClickListenerDebounced
@@ -40,6 +42,12 @@ interface DragStartListener {
 }
 
 @android.annotation.SuppressLint("SetTextI18n")
+// S2370: the constructor was already past the threshold and absorbed by a detekt baseline entry that
+// quotes the whole parameter list, so any addition invalidates the suppression and re-fires the rule
+// on a declaration nobody widened on purpose. Suppressed at the source the way MainViewModel is,
+// rather than re-generated into the baseline (S1356 forbids that). Bundling these into typed
+// dependency objects is the real fix and belongs to a ticket that owns this constructor.
+@Suppress("LongParameterList")
 class ResourceAdapter(
     private val onItemClick: (MediaResource) -> Unit,
     private val onIconClick: (MediaResource) -> Unit,
@@ -67,7 +75,12 @@ class ResourceAdapter(
     // S0963 (Pillar 2): per-resource "Open in VR Cinema" entry. Optional - when null the item is
     // hidden; visibility is also gated by isOpenInVrCinemaVisible (XR availability mirror).
     private val onOpenInVrCinemaClick: ((MediaResource) -> Unit)? = null,
-    private var isOpenInVrCinemaVisible: Boolean = false
+    private var isOpenInVrCinemaVisible: Boolean = false,
+    // S2370: reconnect a direct-path resource onto a system folder tree. Optional - a null callback
+    // hides the row, and the flag is the build-level half of the candidate test (the resource-level
+    // half is evaluated per row in applyActionVisibility).
+    private val onReconnectClick: ((MediaResource) -> Unit)? = null,
+    private val isDirectPathReconnectCandidate: Boolean = false
 ) : ListAdapter<MediaResource, RecyclerView.ViewHolder>(ResourceDiffCallback()) {
 
     /**
@@ -76,7 +89,7 @@ class ResourceAdapter(
      * copy is what lets the main window and the launcher desktop drift apart about what a resource
      * offers (strategic ADR-1).
      */
-    private fun applyActionVisibility(menu: Menu, resource: MediaResource) {
+    private fun applyActionVisibility(menu: Menu, resource: MediaResource, context: Context) {
         val facts = ResourceActionCatalog.Facts(
             isPredefinedVirtual = resource.path in VirtualPathUtils.ALL_VIRTUAL_PATHS,
             isSftp = resource.type == ResourceType.SFTP,
@@ -85,12 +98,42 @@ class ResourceAdapter(
             // absent: without it the row would have nothing to call.
             isNewWindowAvailable = isOpenInNewWindowVisible && onOpenInNewWindowClick != null,
             isVrCinemaAvailable = isOpenInVrCinemaVisible && onOpenInVrCinemaClick != null,
+            isDirectPathReconnectCandidate = isReconnectCandidate(context, resource),
         )
         val visible = ResourceActionCatalog.actionsFor(MenuActionSurface.MAIN_WINDOW, facts).toSet()
         ResourceMenuAction.entries.forEach { action ->
             menu.findItem(action.menuItemId)?.isVisible = action in visible
         }
     }
+
+    /**
+     * S2370: the resource half of the reconnect candidate test. Only a LOCAL resource still addressed
+     * by a file path has anything to reconnect - one already on a tree address, and a virtual
+     * aggregate that points at no folder at all, would swap an address they do not own.
+     * S2375: offered only when the resource reach is actually limited (e.g. all-files or documents
+     * requested on a build where direct file access is unobtainable).
+     */
+    internal fun isReconnectCandidate(context: Context, resource: MediaResource): Boolean =
+        isReconnectCandidate(
+            resource = resource,
+            isDirectPathReconnectCandidate = isDirectPathReconnectCandidate,
+            hasReconnectCallback = onReconnectClick != null,
+            isReachLimited = LimitedStorageReach.isReachLimited(context, resource),
+        )
+
+    internal fun isReconnectCandidate(
+        resource: MediaResource,
+        isDirectPathReconnectCandidate: Boolean,
+        hasReconnectCallback: Boolean,
+        isReachLimited: Boolean,
+    ): Boolean =
+        isDirectPathReconnectCandidate &&
+            hasReconnectCallback &&
+            isReachLimited &&
+            resource.type == ResourceType.LOCAL &&
+            resource.path.isNotBlank() &&
+            !resource.path.startsWith(CONTENT_URI_SCHEME_PREFIX) &&
+            resource.path !in VirtualPathUtils.ALL_VIRTUAL_PATHS
 
     /**
      * S1424: one routing table for both view holders, replacing two hand-kept `when` blocks.
@@ -116,6 +159,7 @@ class ResourceAdapter(
             ResourceMenuAction.EXPORT -> onExportClick(resource)
             ResourceMenuAction.SHARE_SFTP_ACCESS -> onShareSftpAccessClick(resource)
             ResourceMenuAction.SCAN -> onScanClick(resource)
+            ResourceMenuAction.RECONNECT_RESOURCE -> onReconnectClick?.invoke(resource)
             ResourceMenuAction.MOVE_UP -> onMoveUpClick(resource)
             ResourceMenuAction.MOVE_DOWN -> onMoveDownClick(resource)
             ResourceMenuAction.MOVE_TO_TOP -> onMoveToTopClick(resource)
@@ -128,6 +172,9 @@ class ResourceAdapter(
     companion object {
         const val VIEW_TYPE_LIST = 0
         const val VIEW_TYPE_GRID = 1
+
+        // S2370: a resource path already on this scheme is a document tree, not a raw file path.
+        private const val CONTENT_URI_SCHEME_PREFIX = "content://"
 
         // C-213: partial-rebind payload to refresh only the selection visual on a selection change.
         private const val PAYLOAD_SELECTION = "payload_selection"
@@ -188,6 +235,34 @@ class ResourceAdapter(
             val iconRes: Int,
             val color: Int
         )
+
+        /** Above this the tile stops printing an exact number and says "over a thousand" instead. */
+        private const val FILE_COUNT_SHOWN_EXACTLY_BELOW = 1000
+
+        /**
+         * S2369: a bare count is a claim about the whole folder. A resource read through the
+         * permission-narrowed provider cannot see its documents, so printing the number alone would
+         * present a partial listing as a complete one - the tile has to name what the number covers.
+         * Where the narrowing leaves no readable type at all, as on the "all documents" aggregate,
+         * there is no honest number to print and the tile says so instead of showing a zero.
+         */
+        fun formatFileCount(context: android.content.Context, resource: MediaResource): CharSequence {
+            val exact = when {
+                resource.fileCount >= FILE_COUNT_SHOWN_EXACTLY_BELOW ->
+                    context.getString(R.string.file_count_over_1000)
+                else -> context.resources.getQuantityString(
+                    R.plurals.file_count_format_plural,
+                    resource.fileCount,
+                    resource.fileCount
+                )
+            }
+            val reachable = LimitedStorageReach.narrowToReachable(LimitedStorageReach.promisedTypes(resource))
+            return when {
+                !LimitedStorageReach.isReachLimited(context, resource) -> exact
+                reachable.isEmpty() -> context.getString(R.string.reach_limited_nothing_readable)
+                else -> context.getString(R.string.file_count_reach_limited, exact)
+            }
+        }
 
         /** Formats supported media types as colored IVAGTPE string, or "ALL" for allFiles mode. */
         fun formatMediaTypes(context: android.content.Context, types: Set<MediaType>, allFiles: Boolean): CharSequence {
@@ -517,7 +592,7 @@ class ResourceAdapter(
                     btnMoreActions.setOnClickListener { view ->
                         val popup = androidx.appcompat.widget.PopupMenu(view.context, view)
                         popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)
-                        applyActionVisibility(popup.menu, resource)
+                        applyActionVisibility(popup.menu, resource, view.context)
                         popup.setForceShowIcon(true)
                         tintPopupMenuIcons(view.context, popup.menu)
                         popup.setOnMenuItemClickListener { item -> onActionSelected(item.itemId, resource) }
@@ -661,12 +736,7 @@ class ResourceAdapter(
 
                 tvFileCount.text = when {
                     resource.id == -100L -> "" // Don't show count for now, or show "Favorites"
-                    resource.fileCount >= 1000 -> root.context.getString(R.string.file_count_over_1000)
-                    else -> root.resources.getQuantityString(
-                        R.plurals.file_count_format_plural,
-                        resource.fileCount,
-                        resource.fileCount
-                    )
+                    else -> formatFileCount(root.context, resource)
                 }
 
                 if (useCompactElements) {
@@ -873,7 +943,7 @@ class ResourceAdapter(
                         btnMoreActions.setOnClickListenerDebounced { view ->
                             val popup = androidx.appcompat.widget.PopupMenu(view.context, view)
                             popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)
-                            applyActionVisibility(popup.menu, resource)
+                            applyActionVisibility(popup.menu, resource, view.context)
                             popup.setForceShowIcon(true)
                             tintPopupMenuIcons(view.context, popup.menu)
                             popup.setOnMenuItemClickListener { item ->

@@ -5,4 +5,10 @@
     <string name="setting_resource_ops_in_overflow_menu_desc">Collapses inline action buttons into a ⋮ overflow menu on each resource card</string>
     <string name="action_refresh_resource">Refresh</string>
     <string name="resource_unavailable_name">Resource \"%1$s\" is unavailable</string>
+    <string name="resource_menu_reconnect_resource">Reconnect resource</string>
+    <string name="reconnect_different_folder_title">Different folder selected</string>
+    <string name="reconnect_different_folder_message">You picked %1$s, but this resource is connected to %2$s. Reconnect anyway? The resource will point to the folder you picked.</string>
+    <string name="reconnect_success">Resource reconnected.</string>
+    <string name="reconnect_failed">Couldn\'t reconnect - pick the folder and try again.</string>
+    <string name="reconnect_success_partial_favorites">Reconnected. Favorites moved: %1$d of %2$d.</string>
 </resources>

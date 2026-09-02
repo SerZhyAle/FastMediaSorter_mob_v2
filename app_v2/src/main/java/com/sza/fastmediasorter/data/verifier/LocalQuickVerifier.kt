@@ -1,6 +1,9 @@
 package com.sza.fastmediasorter.data.verifier
 
+import android.content.Context
 import com.sza.fastmediasorter.domain.verifier.QuickVerifier
+import com.sza.fastmediasorter.utils.SafHelper
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -9,24 +12,40 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * S0242 Phase 04 - local filesystem probe.
+ * S0242 Phase 04 / S2373 - local filesystem and SAF tree probe.
  *
- * The cheapest of the four - `File.exists()` is a stat() syscall, no network, no
- * connection budget. No throttling needed (`ProtocolLimits.LOCAL` is a no-op anyway).
- *
- * Files Touched: only this file. Tested-via: BrowseActivity.onResume() → Reconciler
- * → QuickVerifierDispatcher.probe(resourceId, …) for LOCAL resources.
+ * Local filesystem files are checked via `File.exists()` (stat() syscall).
+ * SAF content:// URIs are checked via [SafHelper.getDocumentFileFromUri] and `.exists()`.
  */
 @Singleton
-class LocalQuickVerifier @Inject constructor() : QuickVerifier {
+class LocalQuickVerifier @Inject constructor(
+    @ApplicationContext private val context: Context
+) : QuickVerifier {
 
     override suspend fun missingFiles(resourceId: Long, paths: List<String>): List<String> =
         withContext(Dispatchers.IO) {
             try {
-                paths.filter { !File(it).exists() }
+                Timber.d("S2373: LocalQuickVerifier probing %d paths for resource=%d", paths.size, resourceId)
+                paths.filter { path -> !fileExists(path) }
             } catch (e: Exception) {
                 Timber.w(e, "QuickVerifier(LOCAL): probe error for resource=%d, returning no-op", resourceId)
                 emptyList()
             }
         }
+
+    private fun fileExists(path: String): Boolean {
+        return if (SafHelper.isContentUri(path)) {
+            try {
+                val uri = SafHelper.parseUri(path)
+                SafHelper.getDocumentFileFromUri(context, uri)?.exists() ?: false
+            } catch (e: Exception) {
+                Timber.w(e, "LocalQuickVerifier: Failed to check SAF URI existence: %s", path)
+                // Fail-safe: assume file exists to prevent false-positive deletion from journal
+                true
+            }
+        } else {
+            File(path).exists()
+        }
+    }
 }
+

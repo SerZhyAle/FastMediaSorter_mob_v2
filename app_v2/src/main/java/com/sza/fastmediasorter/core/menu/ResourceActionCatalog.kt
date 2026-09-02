@@ -42,6 +42,11 @@ enum class ResourceMenuAction(
         R.id.action_share_sftp_access,
     ),
     SCAN(R.string.action_refresh_resource, R.drawable.ic_refresh, R.id.action_scan),
+    RECONNECT_RESOURCE(
+        R.string.resource_menu_reconnect_resource,
+        R.drawable.ic_folder_open_24,
+        R.id.action_reconnect_resource,
+    ),
     MOVE_UP(R.string.move_up, R.drawable.ic_arrow_upward, R.id.action_move_up),
     MOVE_DOWN(R.string.move_down, R.drawable.ic_arrow_downward, R.id.action_move_down),
     MOVE_TO_TOP(
@@ -95,12 +100,20 @@ object ResourceActionCatalog {
         val isQuickSlideshowEligible: Boolean = false,
         val isNewWindowAvailable: Boolean = false,
         val isVrCinemaAvailable: Boolean = false,
+        /**
+         * S2370: a device-plus-resource fact - a LOCAL resource addressed by a file path, on a build
+         * whose direct file access is unobtainable for good. Only such a resource has something to
+         * gain from being reconnected through the system folder picker.
+         */
+        val isDirectPathReconnectCandidate: Boolean = false,
     )
 
     /**
      * Strategic 5.2. Reordering needs the whole ordered list rather than one identifier, and moving an
      * element inside a list the user cannot see at that moment gives no feedback; "open in a separate
-     * window" means "beside the window I am in", and a desktop cell is in no window.
+     * window" means "beside the window I am in", and a desktop cell is in no window. S2370: a launcher
+     * desktop cell cannot host the system folder-picker round trip either - it has no activity result
+     * to come back to.
      */
     private val DESKTOP_EXCLUDED = setOf(
         ResourceMenuAction.MOVE_UP,
@@ -108,6 +121,7 @@ object ResourceActionCatalog {
         ResourceMenuAction.MOVE_TO_TOP,
         ResourceMenuAction.MOVE_TO_BOTTOM,
         ResourceMenuAction.OPEN_IN_SEPARATE_WINDOW,
+        ResourceMenuAction.RECONNECT_RESOURCE,
     )
 
     /**
@@ -129,13 +143,14 @@ object ResourceActionCatalog {
     private fun isOfferedOn(surface: MenuActionSurface, action: ResourceMenuAction): Boolean =
         surface != MenuActionSurface.LAUNCHER_DESKTOP || action !in DESKTOP_EXCLUDED
 
-    /** The main window's six existing visibility rules, moved here unchanged. */
+    /** The main window's visibility rules - the six S1424 moved here unchanged, plus S2370's. */
     private fun isRelevant(action: ResourceMenuAction, facts: Facts): Boolean = when (action) {
         ResourceMenuAction.COPY, ResourceMenuAction.EXPORT -> !facts.isPredefinedVirtual
         ResourceMenuAction.SHARE_SFTP_ACCESS -> facts.isSftp
         ResourceMenuAction.LAUNCH_PLAYER -> facts.isQuickSlideshowEligible
         ResourceMenuAction.OPEN_IN_SEPARATE_WINDOW -> facts.isNewWindowAvailable
         ResourceMenuAction.OPEN_IN_VR_CINEMA -> facts.isVrCinemaAvailable
+        ResourceMenuAction.RECONNECT_RESOURCE -> facts.isDirectPathReconnectCandidate
         else -> true
     }
 }

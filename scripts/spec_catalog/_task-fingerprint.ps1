@@ -37,7 +37,10 @@ function Get-TaskFingerprintLinePattern {
     # Bold marker optional and the label case-insensitive: the block is hand-maintained
     # by /spec-check and by the pre-handoff writers, and a stamp that is readable to a
     # human but not to the gate would refuse a ticket that did everything asked.
-    return '(?im)^\s*\*{0,2}Task\s+fingerprint:?\*{0,2}\s*[:\-]?\s*([0-9a-f]{12})\b'
+    # Backticks around the hash are optional for that same reason: the block is markdown,
+    # a bare hash reads as a code span to anyone writing one, and the gate used to answer
+    # "records no task fingerprint" to a line that recorded exactly the right one.
+    return '(?im)^\s*\*{0,2}Task\s+fingerprint:?\*{0,2}\s*[:\-]?\s*`?([0-9a-f]{12})\b`?'
 }
 
 function Resolve-TaskSpecPath {

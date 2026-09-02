@@ -36,6 +36,11 @@
         android:id="@+id/action_scan"
         android:title="@string/action_refresh_resource"
         android:icon="@drawable/ic_refresh" />
+    <!-- S2370: reconnect a direct-path resource onto the same folder picked through the system. -->
+    <item
+        android:id="@+id/action_reconnect_resource"
+        android:title="@string/resource_menu_reconnect_resource"
+        android:icon="@drawable/ic_folder_open_24" />
     <item
         android:id="@+id/action_move_up"
         android:title="@string/move_up"

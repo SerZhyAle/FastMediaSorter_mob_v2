@@ -3686,4 +3686,9 @@
     <string name="exif_orientation_mirror_rotate_90">Mirrored and rotated 90° clockwise</string>
     <string name="exif_orientation_rotate_270">Rotated 270° clockwise</string>
     <string name="exif_orientation_unknown">Unknown (%1$d)</string>
+    <string name="storage_reach_limited_browse">This folder is connected the old way - only photos, video and audio can be read through it. To see documents, add the folder again and pick it in the system folder window.</string>
+    <string name="file_count_reach_limited">%1$s - photos, video and audio only</string>
+    <string name="reach_limited_nothing_readable">Documents cannot be read</string>
+    <string name="storage_reach_limited_virtual">Documents and other files on this device are not visible to the app. To open them, add the folder you need through the system folder window.</string>
+    <string name="storage_reach_limited_browse_reconnect">This folder is connected the old way - only photos, video and audio can be read through it. To see documents, hold the folder on the main screen and pick Reconnect resource.</string>
 </resources>

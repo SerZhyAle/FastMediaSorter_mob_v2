@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.repository
 
+import android.content.Context
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
 import com.sza.fastmediasorter.data.local.db.FavoritesEntity
 import io.mockk.coEvery
@@ -23,7 +24,9 @@ class FavoritesRepositoryImplTest {
     @Before
     fun setUp() {
         dao = mockk(relaxed = true)
-        repo = FavoritesRepositoryImpl(dao)
+        // S2370: the repository took an application Context for the SAF existence probe the favorites
+        // remap needs. Nothing exercised here reaches it, so a relaxed mock keeps these cases device-free.
+        repo = FavoritesRepositoryImpl(mockk<Context>(relaxed = true), dao)
     }
 
     @Test

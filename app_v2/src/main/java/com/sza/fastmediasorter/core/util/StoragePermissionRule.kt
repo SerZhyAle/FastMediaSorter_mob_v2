@@ -81,6 +81,23 @@ object StoragePermissionRule {
         sdkInt >= Build.VERSION_CODES.R && !declaresAllFilesAccess
 
     /**
+     * S2369: whether shared storage can be read whole RIGHT NOW. Deliberately not the negation of
+     * [isDirectFileAccessUnobtainable], which answers "for good": a build that declares the permission
+     * but has not been granted it reads through the same narrowed MediaProvider as one that can never
+     * ask, and a screen keyed off the declaration alone would stay silent on exactly that install.
+     * Below API 30 the runtime read permission still opens the whole volume, so nothing is narrowed.
+     *
+     * The declaration is asked first and it is cached, so a build that declares nothing - every store
+     * flavor - never reaches the AppOps call behind `isExternalStorageManager`.
+     */
+    fun isAllFilesAccessHeld(context: Context): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            return true
+        }
+        return AllFilesAccessDeclaration.isDeclared(context) && Environment.isExternalStorageManager()
+    }
+
+    /**
      * Whether every storage permission this SDK level needs is currently held. The platform check
      * is written against `Build.VERSION_CODES.R` rather than [requiresAllFilesAccess] because
      * `Environment.isExternalStorageManager()` is an API 30 call lint resolves only through the
