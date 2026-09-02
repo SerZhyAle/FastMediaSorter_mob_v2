@@ -1,0 +1,3 @@
+• Reconnect a folder through the system chooser - a folder added by typing its path can be reconnected through Android's own folder window, keeping its name, place in the list, PIN, icon and favourites, and gaining the documents a typed path can never read.
+• The app says what a folder cannot show - when a connection can only reach photos, video and audio, the list says so instead of quietly leaving documents out.
+..
