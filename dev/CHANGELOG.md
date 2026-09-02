@@ -30079,3 +30079,13 @@ Format: | datetime | file | target | description |
 | 2026-09-02 17:25:52 | `PLAN/S2382_enable-all-settings-coverage.md` | `spec` | Scaffold strategic spec skeleton S2382 [branch: DEBUG-v035] |
 | 2026-09-02 17:36:58 | `PLAN/RELEASE_QUEUE.md` | `release-plan` | Re-scope release packages on owner ruling 2026-09-02: 35 closed and ships as-is, 36 is Wear-only behind three organizational tickets, everything else moves to a new package 37 [branch: DEBUG-v035] |
 | 2026-09-02 18:12:23 | `maestro/_shared/add_saf_docs_resource.yaml` | `maestro` | Maestro: SAF fragment stops demanding a centred 100%-visible last button; run-tests resolves a single flow under maestro/ as its own help promises [set of 2: maestro/run-tests.ps1] [branch: DEBUG-v035] |
+| 2026-09-02 18:15:27 | `PLAN/S2384_launcher-screen-off-lock-parity.md` | `spec` | Scaffold strategic spec skeleton S2384 [branch: DEBUG-v035] |
+| 2026-09-02 18:20:39 | `PLAN/RELEASE_QUEUE.md` | `release-plan` | Split package 37 on owner ruling 2026-09-02: 37 keeps Android defects, small improvements and the whole VR band, 38 takes everything that opens something new; 37 order rebuilt against the file's seven rules [branch: DEBUG-v035] |
+| 2026-09-02 18:24:08 | `PLAN/S2385_launcher-desktop-content-by-profile.md` | `spec` | Scaffold strategic spec skeleton S2385 [branch: DEBUG-v035] |
+| 2026-09-02 18:27:57 | `PLAN/S2386_bugfix-launcher-shade-gesture-dead.md` | `spec` | Scaffold three compact bugfix skeletons S2386/S2387/S2388 from one launcher defect report [branch: DEBUG-v035] |
+| 2026-09-02 18:33:44 | `PLAN/S2389_settings-caption-value-column-emphasis.md` | `spec` | Scaffold strategic spec skeleton S2389 [branch: DEBUG-v035] |
+| 2026-09-02 18:38:20 | `PLAN/S2390_share-targets-settings-placement-and-list.md` | `spec` | Scaffold strategic spec skeleton S2390 [branch: DEBUG-v035] |
+| 2026-09-02 18:49:18 | `PLAN/S2391_bugfix-taskbar-recents-longpress-unwired.md` | `spec` | Scaffold spec skeletons S2391 and S2392 for the launcher long-press menus [branch: DEBUG-v035] |
+| 2026-09-02 18:50:57 | `PLAN/S2393_bugfix-taskbar-recents-newest-offscreen.md` | `spec` | Scaffold compact bugfix skeleton S2393 [branch: DEBUG-v035] |
+| 2026-09-02 18:53:00 | `PLAN/S2394_bugfix-prerelease-toast-counter-observes-nothing.md` | `spec` | Scaffold strategic spec skeleton S2394 [branch: DEBUG-v035] |
+| 2026-09-02 18:59:46 | `PLAN/S2395_bugfix-document-thumbnails-absent-on-saf-resource.md` | `spec` | Scaffold spec skeletons S2395 (SAF document thumbnails) and S2396 (maestro flakiness) [branch: DEBUG-v035] |
