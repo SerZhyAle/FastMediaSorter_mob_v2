@@ -104,7 +104,7 @@
     <string name="phone_resource_loading">Caricamento dal telefono..</string>
     <string name="phone_resource_retry">Riprova</string>
     <string name="phone_resource_empty">Il telefono non ha nulla da mostrare qui. Apri un\'altra cartella o riprova.</string>
-    <string name="phone_resource_unavailable">Il telefono è fuori portata. Riconnettilo, poi riprova.</string>
+    <string name="phone_resource_unavailable">FastMediaSorter non risponde sul telefono. Aprila lì e tieni il telefono vicino.</string>
     <string name="phone_resource_access_denied">Il telefono non condivide questa cartella con l\'orologio.</string>
     <string name="phone_resource_unsupported">L\'orologio non può aprire questo tipo di file.</string>
     <string name="phone_resource_transfer_rejected">Questo file è troppo grande per essere inviato all\'orologio.</string>
@@ -253,7 +253,7 @@
     <string name="wear_game_level_lost">Preso</string>
     <string name="wear_game_restart">Ricomincia</string>
     <string name="wear_game_continue">Continua</string>
-    <string name="wear_game_board_description">Tabellone di gioco. Scorri sul tabellone per muoverti.</string>
+    <string name="wear_game_board_description">Tabellone di gioco. Scorri sul tabellone per muoverti, tieni premuto per il menu.</string>
     <string name="wear_game_player_description">La tua pedina sul tabellone</string>
     <string name="wear_streams_filter_topic_all">Tutti gli argomenti</string>
     <string name="wear_streams_filter_language_all">Tutte le lingue</string>
@@ -377,7 +377,10 @@
     <string name="phone_resource_no_resource_for_type">Nessuna risorsa telefonica è configurata per contenere questo tipo.</string>
     <string name="wear_folder_load_more">Mostra di più</string>
     <string name="wear_file_op_outcome_needs_consent">Non confermato: non è cambiato nulla</string>
-    <!-- S2146: mirrored verbatim from :app_v2 (S1477). Declared in wear-mirrored-strings.psd1. -->
+    <string name="wear_sync_no_phone_paired">Nessun telefono connesso. Abbina il telefono e installa FastMediaSorter su di esso.</string>
+    <string name="wear_sync_request_failed">Richiesta al telefono non riuscita. Riprova.</string>
+    <string name="phone_resource_not_paired">Nessun telefono connesso a questo orologio. Abbinane uno e installa FastMediaSorter su di esso.</string>
+    <string name="wear_streams_sort_most_used">Più usati</string>
     <string name="streams_rubric_general">Generale</string>
     <string name="streams_rubric_news">Notizie</string>
     <string name="streams_rubric_pop">Pop</string>
@@ -410,4 +413,13 @@
     <string name="streams_rubric_lifestyle">Lifestyle</string>
     <string name="streams_rubric_adult">Adulti</string>
     <string name="streams_rubric_traffic_cams">Telecamere del traffico</string>
+    <string name="wear_game_score_description">Punteggio: %1$d</string>
+    <string name="wear_game_level_description">Livello: %1$d</string>
+    <string name="wear_game_turns_description">Mosse: %1$d</string>
+    <string name="wear_game_menu_skip_turn">Salta turno</string>
+    <string name="wear_game_menu_restart_level">Riavvia livello</string>
+    <string name="wear_game_menu_exit">Esci</string>
+    <string name="wear_calc_copied">Copiato</string>
+    <string name="wear_calc_value_copyable">%1$s, tocca per copiare</string>
+    <string name="wear_database_reset_notice">Errore di archiviazione - l\'elenco delle note è stato ricostruito dai file sull\'orologio. Recuperate: %1$d. Lo stato di invio è stato ripristinato.</string>
 </resources>

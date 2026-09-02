@@ -104,7 +104,7 @@
     <string name="phone_resource_loading">আপনার ফোন থেকে লোড হচ্ছে..</string>
     <string name="phone_resource_retry">পুনরায় চেষ্টা করুন</string>
     <string name="phone_resource_empty">আপনার ফোনে এখানে দেখানোর কিছু নেই। অন্য ফোল্ডার খুলুন বা পুনরায় চেষ্টা করুন।</string>
-    <string name="phone_resource_unavailable">আপনার ফোন নাগালের বাইরে। এটি পুনরায় সংযুক্ত করুন, তারপর পুনরায় চেষ্টা করুন।</string>
+    <string name="phone_resource_unavailable">FastMediaSorter আপনার ফোনে সাড়া দিচ্ছে না। সেখানে এটি খুলুন, এবং ফোনটি কাছে রাখুন।</string>
     <string name="phone_resource_access_denied">আপনার ফোন এই ফোল্ডারটি ওয়াচের সাথে শেয়ার করে না।</string>
     <string name="phone_resource_unsupported">ওয়াচ এই ধরনের ফাইল খুলতে পারে না।</string>
     <string name="phone_resource_transfer_rejected">এই ফাইলটি ওয়াচে পাঠানোর জন্য খুব বড়।</string>
@@ -253,7 +253,7 @@
     <string name="wear_game_level_lost">ধরা পড়েছেন</string>
     <string name="wear_game_restart">আবার শুরু করুন</string>
     <string name="wear_game_continue">চালিয়ে যান</string>
-    <string name="wear_game_board_description">গেম বোর্ড। নড়তে এর উপর সোয়াইপ করুন।</string>
+    <string name="wear_game_board_description">গেম বোর্ড। নড়তে এর উপর সোয়াইপ করুন, মেনুর জন্য চেপে ধরুন।</string>
     <string name="wear_game_player_description">বোর্ডে আপনার ঘুঁটি</string>
     <string name="wear_streams_filter_topic_all">সব বিষয়</string>
     <string name="wear_streams_filter_language_all">সব ভাষা</string>
@@ -377,7 +377,10 @@
     <string name="phone_resource_no_resource_for_type">এই ধরনের ধারণ করার জন্য কোনো ফোন রিসোর্স সেট আপ করা হয়নি।</string>
     <string name="wear_folder_load_more">আরও দেখান</string>
     <string name="wear_file_op_outcome_needs_consent">নিশ্চিত করা হয়নি - কিছুই পরিবর্তন হয়নি</string>
-    <!-- S2146: mirrored verbatim from :app_v2 (S1477). Declared in wear-mirrored-strings.psd1. -->
+    <string name="wear_sync_no_phone_paired">কোনো ফোন সংযুক্ত নেই। আপনার ফোন পেয়ার করুন এবং তাতে FastMediaSorter ইনস্টল করুন।</string>
+    <string name="wear_sync_request_failed">ফোনকে জিজ্ঞাসা করা যায়নি। আবার চেষ্টা করুন।</string>
+    <string name="phone_resource_not_paired">এই ঘড়ির সাথে কোনো ফোন সংযুক্ত নেই। একটি ফোন পেয়ার করুন এবং তাতে FastMediaSorter ইনস্টল করুন।</string>
+    <string name="wear_streams_sort_most_used">সর্বাধিক ব্যবহৃত</string>
     <string name="streams_rubric_general">সাধারণ</string>
     <string name="streams_rubric_news">সংবাদ</string>
     <string name="streams_rubric_pop">পপ</string>
@@ -410,4 +413,13 @@
     <string name="streams_rubric_lifestyle">লাইফস্টাইল</string>
     <string name="streams_rubric_adult">প্রাপ্তবয়স্ক</string>
     <string name="streams_rubric_traffic_cams">ট্রাফিক ক্যাম</string>
+    <string name="wear_game_score_description">স্কোর: %1$d</string>
+    <string name="wear_game_level_description">স্তর: %1$d</string>
+    <string name="wear_game_turns_description">চাল: %1$d</string>
+    <string name="wear_game_menu_skip_turn">চাল বাদ দিন</string>
+    <string name="wear_game_menu_restart_level">স্তর আবার শুরু করুন</string>
+    <string name="wear_game_menu_exit">প্রস্থান করুন</string>
+    <string name="wear_calc_copied">কপি হয়েছে</string>
+    <string name="wear_calc_value_copyable">%1$s, কপি করতে ট্যাপ করুন</string>
+    <string name="wear_database_reset_notice">স্টোরেজ ত্রুটি - নোটের তালিকা ঘড়িতে থাকা ফাইল থেকে আবার তৈরি করা হয়েছে। পুনরুদ্ধার হয়েছে: %1$d। পাঠানোর অবস্থা রিসেট করা হয়েছে।</string>
 </resources>

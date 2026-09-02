@@ -13,7 +13,7 @@ This document outlines the current technical constraints, functional limitations
 ## 📱 System Requirements
 - **Android Version:** Android 8.0 (API 26) or newer is required for Standard / Lite / Photos. The Legacy flavor extends support down to Android 6.0 (API 23) or newer. XR / noLegal builds require supported headset hardware and the current OpenXR / sideload runtime path for your build.
 - **Hardware:** Performance may vary based on device CPU and RAM, especially for large collections (5000+ files).
-- **Storage Access:** Full functionality requires the "All Files Access" (MANAGE_EXTERNAL_STORAGE) permission on newer Android versions.
+- **Storage Access:** Full functionality requires the "All Files Access" (MANAGE_EXTERNAL_STORAGE) permission on newer Android versions. Without it, a folder added by direct path still shows your photos, videos and music, but not documents - the browse list, the filter dialog and the resource count now say so on screen instead of quietly showing an incomplete listing.
 
 ---
 

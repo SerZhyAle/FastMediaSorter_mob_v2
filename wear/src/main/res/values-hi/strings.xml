@@ -104,7 +104,7 @@
     <string name="phone_resource_loading">आपके फ़ोन से लोड हो रहा है..</string>
     <string name="phone_resource_retry">फिर से कोशिश करें</string>
     <string name="phone_resource_empty">आपके फ़ोन में यहां दिखाने के लिए कुछ नहीं है. दूसरा फ़ोल्डर खोलें या फिर से कोशिश करें.</string>
-    <string name="phone_resource_unavailable">आपका फ़ोन पहुंच से बाहर है. इसे फिर से कनेक्ट करें, फिर कोशिश करें.</string>
+    <string name="phone_resource_unavailable">FastMediaSorter आपके फ़ोन पर जवाब नहीं दे रहा. उसे वहां खोलें, और फ़ोन को पास रखें.</string>
     <string name="phone_resource_access_denied">आपका फ़ोन यह फ़ोल्डर वॉच के साथ साझा नहीं करता.</string>
     <string name="phone_resource_unsupported">वॉच इस तरह की फ़ाइल नहीं खोल सकती.</string>
     <string name="phone_resource_transfer_rejected">यह फ़ाइल वॉच पर भेजने के लिए बहुत बड़ी है.</string>
@@ -253,7 +253,7 @@
     <string name="wear_game_level_lost">पकड़े गए</string>
     <string name="wear_game_restart">फिर से शुरू करें</string>
     <string name="wear_game_continue">जारी रखें</string>
-    <string name="wear_game_board_description">गेम बोर्ड। चलने के लिए इस पर स्वाइप करें।</string>
+    <string name="wear_game_board_description">गेम बोर्ड. चलने के लिए इस पर स्वाइप करें, मेनू के लिए दबाकर रखें.</string>
     <string name="wear_game_player_description">बोर्ड पर आपकी गोटी</string>
     <string name="wear_streams_filter_topic_all">सभी विषय</string>
     <string name="wear_streams_filter_language_all">सभी भाषाएँ</string>
@@ -377,7 +377,10 @@
     <string name="phone_resource_no_resource_for_type">इस प्रकार को धारण करने के लिए कोई फ़ोन संसाधन सेट नहीं किया गया है।</string>
     <string name="wear_folder_load_more">और दिखाएँ</string>
     <string name="wear_file_op_outcome_needs_consent">पुष्टि नहीं हुई - कुछ भी नहीं बदला</string>
-    <!-- S2146: mirrored verbatim from :app_v2 (S1477). Declared in wear-mirrored-strings.psd1. -->
+    <string name="wear_sync_no_phone_paired">कोई फ़ोन कनेक्ट नहीं है. अपने फ़ोन को पेयर करें और उस पर FastMediaSorter इंस्टॉल करें.</string>
+    <string name="wear_sync_request_failed">फ़ोन से नहीं पूछा जा सका. फिर से कोशिश करें.</string>
+    <string name="phone_resource_not_paired">इस घड़ी से कोई फ़ोन कनेक्ट नहीं है. एक फ़ोन पेयर करें और उस पर FastMediaSorter इंस्टॉल करें.</string>
+    <string name="wear_streams_sort_most_used">सबसे ज़्यादा इस्तेमाल किए गए</string>
     <string name="streams_rubric_general">सामान्य</string>
     <string name="streams_rubric_news">समाचार</string>
     <string name="streams_rubric_pop">पॉप</string>
@@ -410,4 +413,13 @@
     <string name="streams_rubric_lifestyle">लाइफ़स्टाइल</string>
     <string name="streams_rubric_adult">वयस्क</string>
     <string name="streams_rubric_traffic_cams">ट्रैफ़िक कैम</string>
+    <string name="wear_game_score_description">स्कोर: %1$d</string>
+    <string name="wear_game_level_description">स्तर: %1$d</string>
+    <string name="wear_game_turns_description">चालें: %1$d</string>
+    <string name="wear_game_menu_skip_turn">चाल छोड़ें</string>
+    <string name="wear_game_menu_restart_level">स्तर फिर से शुरू करें</string>
+    <string name="wear_game_menu_exit">बाहर निकलें</string>
+    <string name="wear_calc_copied">कॉपी हो गया</string>
+    <string name="wear_calc_value_copyable">%1$s, कॉपी करने के लिए टैप करें</string>
+    <string name="wear_database_reset_notice">संग्रहण त्रुटि - नोट सूची घड़ी पर मौजूद फ़ाइलों से फिर से बनाई गई. पुनर्प्राप्त: %1$d. भेजने की स्थिति रीसेट कर दी गई.</string>
 </resources>

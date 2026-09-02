@@ -6,4 +6,10 @@
     <string name="setting_resource_ops_in_overflow_menu_desc">ہر وسیلہ کارڈ پر ان لائن ایکشن بٹنز کو ⋮ اوور فلو مینو میں سمیٹ دیتا ہے</string>
     <string name="action_refresh_resource">ریفریش کریں۔</string>
     <string name="resource_unavailable_name">وسیلہ \"%1$s\" دستیاب نہیں ہے۔</string>
+    <string name="resource_menu_reconnect_resource">وسائل کو دوبارہ منسلک کریں</string>
+    <string name="reconnect_different_folder_title">مختلف فولڈر منتخب کیا گیا</string>
+    <string name="reconnect_different_folder_message">آپ نے %1$s منتخب کیا، لیکن یہ وسیلہ %2$s سے منسلک ہے۔ پھر بھی دوبارہ منسلک کریں؟ وسیلہ اس فولڈر کی طرف اشارہ کرے گا جو آپ نے منتخب کیا۔</string>
+    <string name="reconnect_success">وسیلہ دوبارہ منسلک ہو گیا۔</string>
+    <string name="reconnect_failed">دوبارہ منسلک نہیں ہو سکا - فولڈر منتخب کریں اور دوبارہ کوشش کریں۔</string>
+    <string name="reconnect_success_partial_favorites">دوبارہ منسلک ہو گیا۔ پسندیدہ منتقل ہوئے: %1$d از %2$d۔</string>
 </resources>

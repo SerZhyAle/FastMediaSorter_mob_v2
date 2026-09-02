@@ -337,9 +337,10 @@ Detailed guides are available in multiple languages:
 
 ## Wear OS Companion ⌚
 
-FastMediaSorter includes a Wear OS companion app designed for quick access on smartwatch form factors.
+FastMediaSorter includes a Wear OS companion app that has grown from a local-media viewer into a real second screen for your library.
 
-- Browse and play local media directly on Wear OS devices
+- Browse and play your paired phone's folders and favourites, or the watch's own local storage, directly on Wear OS devices
+- Send files between phone and watch, play live streams straight from the watch, and reach small built-in tools (calculator, network monitor, mini-game) without opening the app on your phone
 - UI and runtime behavior optimized for small circular/compact screens
 - Dedicated setup, build, and troubleshooting documentation for watch workflows
 

@@ -6,4 +6,10 @@
     <string name="setting_resource_ops_in_overflow_menu_desc">Regroupe les boutons d\'action en ligne dans un menu ⋮ sur chaque carte de ressource</string>
     <string name="action_refresh_resource">Rafraîchir</string>
     <string name="resource_unavailable_name">La ressource « %1$s » est indisponible</string>
+    <string name="resource_menu_reconnect_resource">Reconnecter la ressource</string>
+    <string name="reconnect_different_folder_title">Dossier différent sélectionné</string>
+    <string name="reconnect_different_folder_message">Vous avez choisi %1$s, mais cette ressource est connectée à %2$s. Reconnecter quand même ? La ressource pointera vers le dossier que vous avez choisi.</string>
+    <string name="reconnect_success">Ressource reconnectée.</string>
+    <string name="reconnect_failed">Impossible de se reconnecter - choisissez le dossier et réessayez.</string>
+    <string name="reconnect_success_partial_favorites">Reconnecté. Favoris déplacés : %1$d sur %2$d.</string>
 </resources>

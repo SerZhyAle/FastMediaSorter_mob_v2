@@ -104,7 +104,7 @@
     <string name="phone_resource_loading">جارٍ التحميل من هاتفك..</string>
     <string name="phone_resource_retry">إعادة المحاولة</string>
     <string name="phone_resource_empty">ليس لدى هاتفك ما يعرضه هنا. افتح مجلدًا آخر أو أعد المحاولة.</string>
-    <string name="phone_resource_unavailable">هاتفك خارج النطاق. أعد الاتصال به، ثم أعد المحاولة.</string>
+    <string name="phone_resource_unavailable">لا يستجيب FastMediaSorter على هاتفك. افتحه هناك، وأبقِ الهاتف قريبًا.</string>
     <string name="phone_resource_access_denied">هاتفك لا يشارك هذا المجلد مع الساعة.</string>
     <string name="phone_resource_unsupported">لا يمكن للساعة فتح هذا النوع من الملفات.</string>
     <string name="phone_resource_transfer_rejected">هذا الملف كبير جدًا لإرساله إلى الساعة.</string>
@@ -253,7 +253,7 @@
     <string name="wear_game_level_lost">تم الإمساك بك</string>
     <string name="wear_game_restart">البدء من جديد</string>
     <string name="wear_game_continue">متابعة</string>
-    <string name="wear_game_board_description">لوحة اللعب. مرر عليها للتحرك.</string>
+    <string name="wear_game_board_description">لوحة اللعبة. اسحب عليها للتحرك، واضغط مطولاً لفتح القائمة.</string>
     <string name="wear_game_player_description">قطعتك على اللوحة</string>
     <string name="wear_streams_filter_topic_all">جميع المواضيع</string>
     <string name="wear_streams_filter_language_all">جميع اللغات</string>
@@ -377,7 +377,10 @@
     <string name="phone_resource_no_resource_for_type">لم يتم إعداد أي مورد هاتف لاستيعاب هذا النوع.</string>
     <string name="wear_folder_load_more">عرض المزيد</string>
     <string name="wear_file_op_outcome_needs_consent">لم يتم تأكيده - لم يتغير شيء</string>
-    <!-- S2146: mirrored verbatim from :app_v2 (S1477). Declared in wear-mirrored-strings.psd1. -->
+    <string name="wear_sync_no_phone_paired">لا يوجد هاتف متصل. اقرن هاتفك وثبّت FastMediaSorter عليه.</string>
+    <string name="wear_sync_request_failed">تعذّر سؤال الهاتف. حاول مرة أخرى.</string>
+    <string name="phone_resource_not_paired">لا يوجد هاتف متصل بهذه الساعة. اقرن هاتفًا وثبّت FastMediaSorter عليه.</string>
+    <string name="wear_streams_sort_most_used">الأكثر استخدامًا</string>
     <string name="streams_rubric_general">عام</string>
     <string name="streams_rubric_news">أخبار</string>
     <string name="streams_rubric_pop">بوب</string>
@@ -410,4 +413,13 @@
     <string name="streams_rubric_lifestyle">أسلوب حياة</string>
     <string name="streams_rubric_adult">للكبار</string>
     <string name="streams_rubric_traffic_cams">كاميرات المرور</string>
+    <string name="wear_game_score_description">النتيجة: %1$d</string>
+    <string name="wear_game_level_description">المستوى: %1$d</string>
+    <string name="wear_game_turns_description">الأدوار: %1$d</string>
+    <string name="wear_game_menu_skip_turn">تخطي الدور</string>
+    <string name="wear_game_menu_restart_level">إعادة تشغيل المستوى</string>
+    <string name="wear_game_menu_exit">خروج</string>
+    <string name="wear_calc_copied">تم النسخ</string>
+    <string name="wear_calc_value_copyable">%1$s، اضغط للنسخ</string>
+    <string name="wear_database_reset_notice">خطأ في التخزين - أُعيد بناء قائمة الملاحظات من الملفات الموجودة على الساعة. تم الاسترداد: %1$d. تمت إعادة تعيين حالة الإرسال.</string>
 </resources>

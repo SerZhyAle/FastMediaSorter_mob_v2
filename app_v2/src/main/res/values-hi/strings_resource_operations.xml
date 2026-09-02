@@ -6,4 +6,10 @@
     <string name="setting_resource_ops_in_overflow_menu_desc">हर संसाधन कार्ड पर इनलाइन एक्शन बटन को ⋮ ओवरफ़्लो मेनू में समेटता है</string>
     <string name="action_refresh_resource">ताज़ा करना</string>
     <string name="resource_unavailable_name">संसाधन \"%1$s\" अनुपलब्ध है</string>
+    <string name="resource_menu_reconnect_resource">संसाधन फिर से कनेक्ट करें</string>
+    <string name="reconnect_different_folder_title">अलग फ़ोल्डर चुना गया</string>
+    <string name="reconnect_different_folder_message">आपने %1$s चुना, लेकिन यह संसाधन %2$s से जुड़ा है. फिर भी फिर से कनेक्ट करें? संसाधन अब आपके चुने हुए फ़ोल्डर की ओर इशारा करेगा.</string>
+    <string name="reconnect_success">संसाधन फिर से कनेक्ट हो गया.</string>
+    <string name="reconnect_failed">फिर से कनेक्ट नहीं हो सका - फ़ोल्डर चुनें और फिर से कोशिश करें.</string>
+    <string name="reconnect_success_partial_favorites">फिर से कनेक्ट हो गया. पसंदीदा स्थानांतरित: %2$d में से %1$d.</string>
 </resources>

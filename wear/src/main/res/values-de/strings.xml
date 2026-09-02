@@ -104,7 +104,7 @@
     <string name="phone_resource_loading">Wird von deinem Telefon geladen..</string>
     <string name="phone_resource_retry">Erneut versuchen</string>
     <string name="phone_resource_empty">Dein Telefon hat hier nichts zu zeigen. Öffne einen anderen Ordner oder versuche es erneut.</string>
-    <string name="phone_resource_unavailable">Dein Telefon ist außer Reichweite. Verbinde es erneut und versuche es dann noch einmal.</string>
+    <string name="phone_resource_unavailable">FastMediaSorter antwortet nicht auf deinem Telefon. Öffne es dort und halte das Telefon in der Nähe.</string>
     <string name="phone_resource_access_denied">Dein Telefon teilt diesen Ordner nicht mit der Uhr.</string>
     <string name="phone_resource_unsupported">Die Uhr kann diese Art von Datei nicht öffnen.</string>
     <string name="phone_resource_transfer_rejected">Diese Datei ist zu groß, um sie an die Uhr zu senden.</string>
@@ -253,7 +253,7 @@
     <string name="wear_game_level_lost">Erwischt</string>
     <string name="wear_game_restart">Neu starten</string>
     <string name="wear_game_continue">Weiter</string>
-    <string name="wear_game_board_description">Spielfeld. Wischen Sie darüber, um zu ziehen.</string>
+    <string name="wear_game_board_description">Spielfeld. Wischen Sie darüber, um zu ziehen, und halten Sie gedrückt für das Menü.</string>
     <string name="wear_game_player_description">Ihre Figur auf dem Feld</string>
     <string name="wear_streams_filter_topic_all">Alle Themen</string>
     <string name="wear_streams_filter_language_all">Alle Sprachen</string>
@@ -377,7 +377,10 @@
     <string name="phone_resource_no_resource_for_type">Für diesen Typ ist keine Telefonressource eingerichtet.</string>
     <string name="wear_folder_load_more">Mehr anzeigen</string>
     <string name="wear_file_op_outcome_needs_consent">Nicht bestätigt - es hat sich nichts geändert</string>
-    <!-- S2146: mirrored verbatim from :app_v2 (S1477). Declared in wear-mirrored-strings.psd1. -->
+    <string name="wear_sync_no_phone_paired">Kein Telefon verbunden. Koppel dein Telefon und installiere FastMediaSorter darauf.</string>
+    <string name="wear_sync_request_failed">Anfrage an das Telefon fehlgeschlagen. Versuche es erneut.</string>
+    <string name="phone_resource_not_paired">Mit dieser Uhr ist kein Telefon verbunden. Koppel eines und installiere FastMediaSorter darauf.</string>
+    <string name="wear_streams_sort_most_used">Meistgenutzt</string>
     <string name="streams_rubric_general">Allgemein</string>
     <string name="streams_rubric_news">Nachrichten</string>
     <string name="streams_rubric_pop">Pop</string>
@@ -410,4 +413,13 @@
     <string name="streams_rubric_lifestyle">Lifestyle</string>
     <string name="streams_rubric_adult">Erwachsene</string>
     <string name="streams_rubric_traffic_cams">Verkehrskameras</string>
+    <string name="wear_game_score_description">Punkte: %1$d</string>
+    <string name="wear_game_level_description">Level: %1$d</string>
+    <string name="wear_game_turns_description">Züge: %1$d</string>
+    <string name="wear_game_menu_skip_turn">Zug überspringen</string>
+    <string name="wear_game_menu_restart_level">Level neu starten</string>
+    <string name="wear_game_menu_exit">Beenden</string>
+    <string name="wear_calc_copied">Kopiert</string>
+    <string name="wear_calc_value_copyable">%1$s, zum Kopieren tippen</string>
+    <string name="wear_database_reset_notice">Speicherfehler - die Notizliste wurde aus Dateien auf der Uhr neu erstellt. Wiederhergestellt: %1$d. Sendestatus wurde zurückgesetzt.</string>
 </resources>

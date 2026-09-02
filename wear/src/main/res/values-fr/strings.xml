@@ -104,7 +104,7 @@
     <string name="phone_resource_loading">Chargement depuis votre téléphone..</string>
     <string name="phone_resource_retry">Réessayer</string>
     <string name="phone_resource_empty">Votre téléphone n\'a rien à afficher ici. Ouvrez un autre dossier ou réessayez.</string>
-    <string name="phone_resource_unavailable">Votre téléphone est hors de portée. Reconnectez-le, puis réessayez.</string>
+    <string name="phone_resource_unavailable">FastMediaSorter ne répond pas sur votre téléphone. Ouvrez l\'app là-bas et gardez le téléphone à proximité.</string>
     <string name="phone_resource_access_denied">Votre téléphone ne partage pas ce dossier avec la montre.</string>
     <string name="phone_resource_unsupported">La montre ne peut pas ouvrir ce type de fichier.</string>
     <string name="phone_resource_transfer_rejected">Ce fichier est trop volumineux pour être envoyé à la montre.</string>
@@ -253,7 +253,7 @@
     <string name="wear_game_level_lost">Attrapé</string>
     <string name="wear_game_restart">Recommencer</string>
     <string name="wear_game_continue">Continuer</string>
-    <string name="wear_game_board_description">Plateau de jeu. Balayez dessus pour vous déplacer.</string>
+    <string name="wear_game_board_description">Plateau de jeu. Balayez dessus pour vous déplacer, restez appuyé pour le menu.</string>
     <string name="wear_game_player_description">Votre figurine sur le plateau</string>
     <string name="wear_streams_filter_topic_all">Tous les sujets</string>
     <string name="wear_streams_filter_language_all">Toutes les langues</string>
@@ -377,7 +377,10 @@
     <string name="phone_resource_no_resource_for_type">Aucune ressource téléphonique n\'est configurée pour contenir ce type.</string>
     <string name="wear_folder_load_more">Afficher plus</string>
     <string name="wear_file_op_outcome_needs_consent">Non confirmé - rien n\'a changé</string>
-    <!-- S2146: mirrored verbatim from :app_v2 (S1477). Declared in wear-mirrored-strings.psd1. -->
+    <string name="wear_sync_no_phone_paired">Aucun téléphone n\'est connecté. Jumelez votre téléphone et installez FastMediaSorter dessus.</string>
+    <string name="wear_sync_request_failed">Impossible d\'interroger le téléphone. Réessayez.</string>
+    <string name="phone_resource_not_paired">Aucun téléphone n\'est connecté à cette montre. Jumelez-en un et installez FastMediaSorter dessus.</string>
+    <string name="wear_streams_sort_most_used">Plus utilisés</string>
     <string name="streams_rubric_general">Général</string>
     <string name="streams_rubric_news">Actualités</string>
     <string name="streams_rubric_pop">Pop</string>
@@ -410,4 +413,13 @@
     <string name="streams_rubric_lifestyle">Lifestyle</string>
     <string name="streams_rubric_adult">Adulte</string>
     <string name="streams_rubric_traffic_cams">Caméras trafic</string>
+    <string name="wear_game_score_description">Score : %1$d</string>
+    <string name="wear_game_level_description">Niveau : %1$d</string>
+    <string name="wear_game_turns_description">Coups : %1$d</string>
+    <string name="wear_game_menu_skip_turn">Passer un coup</string>
+    <string name="wear_game_menu_restart_level">Redémarrer le niveau</string>
+    <string name="wear_game_menu_exit">Quitter</string>
+    <string name="wear_calc_copied">Copié</string>
+    <string name="wear_calc_value_copyable">%1$s, appuyez pour copier</string>
+    <string name="wear_database_reset_notice">Erreur de stockage - la liste des notes a été reconstruite à partir des fichiers sur la montre. Récupérées : %1$d. Le statut d\'envoi a été réinitialisé.</string>
 </resources>

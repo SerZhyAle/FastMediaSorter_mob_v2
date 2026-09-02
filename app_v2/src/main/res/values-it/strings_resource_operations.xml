@@ -6,4 +6,10 @@
     <string name="setting_resource_ops_in_overflow_menu_desc">Comprime i pulsanti di azione in linea in un menu ⋮ su ogni scheda risorsa</string>
     <string name="action_refresh_resource">Rinfrescato</string>
     <string name="resource_unavailable_name">La risorsa \"%1$s\" non è disponibile</string>
+    <string name="resource_menu_reconnect_resource">Riconnetti risorsa</string>
+    <string name="reconnect_different_folder_title">Cartella diversa selezionata</string>
+    <string name="reconnect_different_folder_message">Hai selezionato %1$s, ma questa risorsa è collegata a %2$s. Vuoi comunque riconnetterla? La risorsa punterà alla cartella selezionata.</string>
+    <string name="reconnect_success">Risorsa riconnessa.</string>
+    <string name="reconnect_failed">Riconnessione non riuscita - seleziona la cartella e riprova.</string>
+    <string name="reconnect_success_partial_favorites">Riconnessa. Preferiti spostati: %1$d di %2$d.</string>
 </resources>

@@ -104,7 +104,7 @@
     <string name="phone_resource_loading">A carregar a partir do telemóvel..</string>
     <string name="phone_resource_retry">Tentar novamente</string>
     <string name="phone_resource_empty">O seu telemóvel não tem nada para mostrar aqui. Abra outra pasta ou tente novamente.</string>
-    <string name="phone_resource_unavailable">O seu telemóvel está fora de alcance. Volte a ligá-lo e tente novamente.</string>
+    <string name="phone_resource_unavailable">O FastMediaSorter não está a responder no seu telemóvel. Abra-o lá e mantenha o telemóvel por perto.</string>
     <string name="phone_resource_access_denied">O seu telemóvel não partilha esta pasta com o relógio.</string>
     <string name="phone_resource_unsupported">O relógio não consegue abrir este tipo de ficheiro.</string>
     <string name="phone_resource_transfer_rejected">Este ficheiro é demasiado grande para enviar ao relógio.</string>
@@ -253,7 +253,7 @@
     <string name="wear_game_level_lost">Apanhado</string>
     <string name="wear_game_restart">Recomeçar</string>
     <string name="wear_game_continue">Continuar</string>
-    <string name="wear_game_board_description">Tabuleiro de jogo. Deslize sobre ele para se mover.</string>
+    <string name="wear_game_board_description">Tabuleiro de jogo. Deslize sobre ele para se mover, mantenha premido para abrir o menu.</string>
     <string name="wear_game_player_description">A sua peça no tabuleiro</string>
     <string name="wear_streams_filter_topic_all">Todos os tópicos</string>
     <string name="wear_streams_filter_language_all">Todos os idiomas</string>
@@ -377,7 +377,10 @@
     <string name="phone_resource_no_resource_for_type">Nenhum recurso telefônico está configurado para conter esse tipo.</string>
     <string name="wear_folder_load_more">Mostrar mais</string>
     <string name="wear_file_op_outcome_needs_consent">Não confirmado - nada mudou</string>
-    <!-- S2146: mirrored verbatim from :app_v2 (S1477). Declared in wear-mirrored-strings.psd1. -->
+    <string name="wear_sync_no_phone_paired">Nenhum telemóvel ligado. Emparelhe o seu telemóvel e instale o FastMediaSorter nele.</string>
+    <string name="wear_sync_request_failed">Não foi possível contactar o telemóvel. Tente novamente.</string>
+    <string name="phone_resource_not_paired">Nenhum telemóvel ligado a este relógio. Emparelhe um e instale o FastMediaSorter nele.</string>
+    <string name="wear_streams_sort_most_used">Mais usados</string>
     <string name="streams_rubric_general">Geral</string>
     <string name="streams_rubric_news">Notícias</string>
     <string name="streams_rubric_pop">Pop</string>
@@ -410,4 +413,13 @@
     <string name="streams_rubric_lifestyle">Estilo de vida</string>
     <string name="streams_rubric_adult">Adulto</string>
     <string name="streams_rubric_traffic_cams">Câmaras de trânsito</string>
+    <string name="wear_game_score_description">Pontuação: %1$d</string>
+    <string name="wear_game_level_description">Nível: %1$d</string>
+    <string name="wear_game_turns_description">Jogadas: %1$d</string>
+    <string name="wear_game_menu_skip_turn">Saltar jogada</string>
+    <string name="wear_game_menu_restart_level">Reiniciar nível</string>
+    <string name="wear_game_menu_exit">Sair</string>
+    <string name="wear_calc_copied">Copiado</string>
+    <string name="wear_calc_value_copyable">%1$s, toque para copiar</string>
+    <string name="wear_database_reset_notice">Erro de armazenamento - a lista de notas foi reconstruída a partir dos ficheiros no relógio. Recuperadas: %1$d. O estado de envio foi reposto.</string>
 </resources>

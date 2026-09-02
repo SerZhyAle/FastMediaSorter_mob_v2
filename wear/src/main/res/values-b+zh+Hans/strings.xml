@@ -104,7 +104,7 @@
     <string name="phone_resource_loading">正在从手机加载..</string>
     <string name="phone_resource_retry">重试</string>
     <string name="phone_resource_empty">你的手机在此处没有可显示的内容。请打开其他文件夹或重试。</string>
-    <string name="phone_resource_unavailable">无法连接到你的手机。请重新连接后重试。</string>
+    <string name="phone_resource_unavailable">FastMediaSorter 未响应您的手机。请在手机上打开它，并让手机保持在附近。</string>
     <string name="phone_resource_access_denied">你的手机未将此文件夹共享给手表。</string>
     <string name="phone_resource_unsupported">手表无法打开此类文件。</string>
     <string name="phone_resource_transfer_rejected">此文件过大，无法发送到手表。</string>
@@ -253,7 +253,7 @@
     <string name="wear_game_level_lost">被抓住</string>
     <string name="wear_game_restart">重新开始</string>
     <string name="wear_game_continue">继续</string>
-    <string name="wear_game_board_description">游戏面板。在上面滑动即可移动。</string>
+    <string name="wear_game_board_description">游戏棋盘。滑动棋盘可移动，长按可打开菜单。</string>
     <string name="wear_game_player_description">你在面板上的棋子</string>
     <string name="wear_streams_filter_topic_all">所有主题</string>
     <string name="wear_streams_filter_language_all">所有语言</string>
@@ -377,7 +377,10 @@
     <string name="phone_resource_no_resource_for_type">没有设置电话资源来保存此类型。</string>
     <string name="wear_folder_load_more">显示更多</string>
     <string name="wear_file_op_outcome_needs_consent">未确认 - 没有任何改变</string>
-    <!-- S2146: mirrored verbatim from :app_v2 (S1477). Declared in wear-mirrored-strings.psd1. -->
+    <string name="wear_sync_no_phone_paired">未连接手机。请配对手机并在其上安装 FastMediaSorter。</string>
+    <string name="wear_sync_request_failed">无法联系手机，请重试。</string>
+    <string name="phone_resource_not_paired">此手表未连接任何手机。请配对一部手机并在其上安装 FastMediaSorter。</string>
+    <string name="wear_streams_sort_most_used">常用</string>
     <string name="streams_rubric_general">综合</string>
     <string name="streams_rubric_news">新闻</string>
     <string name="streams_rubric_pop">流行</string>
@@ -410,4 +413,13 @@
     <string name="streams_rubric_lifestyle">生活</string>
     <string name="streams_rubric_adult">成人</string>
     <string name="streams_rubric_traffic_cams">交通摄像头</string>
+    <string name="wear_game_score_description">得分: %1$d</string>
+    <string name="wear_game_level_description">关卡: %1$d</string>
+    <string name="wear_game_turns_description">回合: %1$d</string>
+    <string name="wear_game_menu_skip_turn">跳过回合</string>
+    <string name="wear_game_menu_restart_level">重新开始关卡</string>
+    <string name="wear_game_menu_exit">退出</string>
+    <string name="wear_calc_copied">已复制</string>
+    <string name="wear_calc_value_copyable">%1$s，点击复制</string>
+    <string name="wear_database_reset_notice">存储错误 - 便签列表已根据手表上的文件重建。已恢复: %1$d。发送状态已重置。</string>
 </resources>

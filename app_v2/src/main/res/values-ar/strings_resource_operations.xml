@@ -6,4 +6,10 @@
     <string name="setting_resource_ops_in_overflow_menu_desc">يطوي أزرار الإجراءات المضمّنة في قائمة فائضة ⋮ على كل بطاقة مورد</string>
     <string name="action_refresh_resource">ينعش</string>
     <string name="resource_unavailable_name">المورد \"%1$s\" غير متاح</string>
+    <string name="resource_menu_reconnect_resource">إعادة توصيل المورد</string>
+    <string name="reconnect_different_folder_title">تم اختيار مجلد مختلف</string>
+    <string name="reconnect_different_folder_message">لقد اخترت %1$s، لكن هذا المورد متصل بـ %2$s. هل تريد إعادة التوصيل رغم ذلك؟ سيشير المورد إلى المجلد الذي اخترته.</string>
+    <string name="reconnect_success">تم إعادة توصيل المورد.</string>
+    <string name="reconnect_failed">تعذّرت إعادة التوصيل - اختر المجلد وحاول مرة أخرى.</string>
+    <string name="reconnect_success_partial_favorites">تمت إعادة التوصيل. تم نقل المفضلة: %1$d من %2$d.</string>
 </resources>
