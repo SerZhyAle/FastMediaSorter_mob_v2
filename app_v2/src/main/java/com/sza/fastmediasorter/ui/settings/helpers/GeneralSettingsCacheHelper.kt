@@ -6,6 +6,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.core.util.formatFileSize
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
@@ -17,7 +18,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.util.Locale
 
 class GeneralSettingsCacheHelper(
     private val binding: FragmentSettingsGeneralBinding,
@@ -72,7 +72,8 @@ class GeneralSettingsCacheHelper(
                 val cacheDir = fragment.requireContext().cacheDir
                 val audioMetaCacheDir = java.io.File(fragment.requireContext().filesDir, AudioMetadataCacheRepository.CACHE_DIR_NAME)
                 val totalSize = calculateDirectorySize(cacheDir) + calculateDirectorySize(audioMetaCacheDir)
-                val formattedSize = formatFileSize(totalSize)
+                val formattedSize = formatFileSize(fragment.requireContext(), totalSize)
+                Timber.d("S2351: settings cache size rendered as '$formattedSize'")
                 val audioMetaCacheSize = audioMetadataCacheRepository.getCacheSize()
                 withContext(Dispatchers.Main) {
                     binding.tvCacheSize.text = fragment.getString(R.string.cache_size_format, formattedSize)
@@ -236,15 +237,6 @@ class GeneralSettingsCacheHelper(
             Timber.e(e, "Error calculating directory size: ${directory.absolutePath}")
         }
         return size
-    }
-
-    private fun formatFileSize(size: Long): String {
-        return when {
-            size < 1024 -> "$size B"
-            size < 1024 * 1024 -> String.format(Locale.getDefault(), "%.2f KB", size / 1024.0)
-            size < 1024 * 1024 * 1024 -> String.format(Locale.getDefault(), "%.2f MB", size / (1024.0 * 1024.0))
-            else -> String.format(Locale.getDefault(), "%.2f GB", size / (1024.0 * 1024.0 * 1024.0))
-        }
     }
 
     private fun deleteRecursive(fileOrDirectory: java.io.File): Boolean {

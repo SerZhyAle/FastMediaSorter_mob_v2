@@ -73,7 +73,7 @@ class BrowseViewModelTest {
         val fileMutation = mockk<BrowseFileMutationDependencies>(relaxed = true)
 
         every { fileMutation.settingsRepository.getSettings() } returns flowOf(AppSettings())
-        every { persistedState.browseStateDataStore.filter } returns flowOf(null)
+        every { persistedState.browseStateDataStore.filter(any()) } returns flowOf(null)
 
         return BrowseViewModel(
             context = context,

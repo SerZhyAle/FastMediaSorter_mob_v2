@@ -129,10 +129,42 @@ fun android.app.AlertDialog.showBoundToHost(context: Context): android.app.Alert
 }
 
 /**
+ * S2276: [showBoundTo] for a generic created [Dialog] (such as [com.sza.fastmediasorter.ui.settings.helpers.GesturePickerDialog]
+ * or [com.sza.fastmediasorter.ui.dialog.ListSelectionDialog]).
+ */
+fun <T : Dialog> T.showBoundTo(owner: LifecycleOwner): T? {
+    if (owner.lifecycle.currentState == Lifecycle.State.DESTROYED) return null
+    show()
+    return bindTo(owner)
+}
+
+/**
+ * S2276: [showBoundTo] for a generic created [Dialog] raised from a fragment view.
+ */
+fun <T : Dialog> T.showBoundTo(fragment: Fragment): T? =
+    showBoundTo(fragment.viewLifecycleOwnerLiveData.value ?: fragment)
+
+/**
+ * S2276: [showBoundToHost] for a generic created [Dialog].
+ */
+fun <T : Dialog> T.showBoundToHost(context: Context): T? {
+    val owner = context.findLifecycleOwner()
+    if (owner == null) {
+        Timber.w("showBoundToHost: no LifecycleOwner behind ${context.javaClass.simpleName}, dialog stays unbound")
+        show()
+        return this
+    }
+    return showBoundTo(owner)
+}
+
+/**
  * First [LifecycleOwner] in this context's wrapper chain, or `null` when the chain reaches the
  * application context without passing one.
+ *
+ * S2358 opened this up to the package so `launchBoundToHost` resolves the host the same way: with two
+ * copies, the window binding and the work raised behind it could disagree on who the host is.
  */
-private fun Context.findLifecycleOwner(): LifecycleOwner? {
+internal fun Context.findLifecycleOwner(): LifecycleOwner? {
     var current: Context? = this
     while (current != null) {
         if (current is LifecycleOwner) return current
@@ -147,7 +179,7 @@ private fun Context.findLifecycleOwner(): LifecycleOwner? {
  * Generic over [Dialog] rather than written twice: the AppCompat dialog and the platform one share
  * no supertype below it, and the observer needs nothing either adds.
  */
-private fun <T : Dialog> T.bindTo(owner: LifecycleOwner): T {
+internal fun <T : Dialog> T.bindTo(owner: LifecycleOwner): T {
     val lifecycle = owner.lifecycle
     // Deregistration happens in onDestroy rather than from an OnDismissListener: a listener set here
     // would silently overwrite the caller's own, which several settings helpers rely on to revert

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="file_count_format_plural"><item quantity="one">%1$d Datei</item><item quantity="other">%1$d Dateien</item></plurals>
+    <plurals name="copying_n_files_from_folder_plural"><item quantity="one">%1$d Datei wird von %2$s kopiert..</item><item quantity="other">%1$d Dateien werden von %2$s kopiert..</item></plurals>
+    <plurals name="archiving_n_files_from_folder_plural"><item quantity="one">%1$d Datei von %2$s wird archiviert</item><item quantity="other">%1$d Dateien von %2$s werden archiviert</item></plurals>
+    <plurals name="moving_n_files_from_folder_plural"><item quantity="one">%1$d Datei wird von %2$s verschoben..</item><item quantity="other">%1$d Dateien werden von %2$s verschoben..</item></plurals>
+    <plurals name="renaming_n_files_from_folder_plural"><item quantity="one">%1$d Datei wird von %2$s umbenannt..</item><item quantity="other">%1$d Dateien werden von %2$s umbenannt..</item></plurals>
+</resources>

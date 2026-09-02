@@ -1,0 +1,78 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Launcher Settings dialog open and close round-trip.
+# Description: Opens Launcher Settings dialog from General Settings and verifies headers and Apply button.
+
+- launchApp
+- runFlow: ../../_shared/permissions.yaml
+- runFlow: ../../_shared/go_home.yaml
+
+# Open Settings
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnSettings"
+- runFlow: ../../_shared/dismiss_settings_dialogs.yaml
+# S1043: SettingsActivity restores the last-active tab, and headerInterface / rowLauncherModeEnabled
+# / rowLauncherSettings live only on "Общие". Run after a flow that ended on Медиа, Плеер or
+# Управление and they are simply not in the view tree - the failure surfaces further down as a
+# scroll timeout rather than at the tab, which is how it read as a launcher regression during the
+# release-35 sweep. The shared fragment is idempotent, so it is called unconditionally.
+- runFlow: ../../_shared/settings_select_general_tab.yaml
+
+# Scroll to Interface section header and expand if collapsed
+- scrollUntilVisible:
+    element:
+      id: "com.sza.fastmediasorter.debug:id/headerInterface"
+    timeout: 15000
+
+- runFlow:
+    when:
+      notVisible:
+        id: "com.sza.fastmediasorter.debug:id/rowLauncherModeEnabled"
+    commands:
+      - tapOn:
+          id: "com.sza.fastmediasorter.debug:id/headerInterface"
+      - waitForAnimationToEnd
+
+# Enable launcher mode toggle if disabled so rowLauncherSettings becomes active
+- runFlow:
+    when:
+      notVisible:
+        id: "com.sza.fastmediasorter.debug:id/rowLauncherSettings"
+        enabled: true
+    commands:
+      - tapOn:
+          id: "com.sza.fastmediasorter.debug:id/rowLauncherModeEnabled"
+      - waitForAnimationToEnd
+
+# Scroll down to launcher settings row
+- scrollUntilVisible:
+    element:
+      id: "com.sza.fastmediasorter.debug:id/rowLauncherSettings"
+    timeout: 10000
+
+# Open Launcher Settings dialog
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/rowLauncherSettings"
+
+# Verify dialog header and close/apply button
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/btnClose"
+    timeout: 10000
+
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/headerLauncherTaskbar"
+
+# Close dialog
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnClose"
+
+# Verify returning to General Settings
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rowLauncherSettings"
+    timeout: 8000
+
+# Crash guard
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"

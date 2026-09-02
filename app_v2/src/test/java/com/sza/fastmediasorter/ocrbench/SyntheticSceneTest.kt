@@ -13,14 +13,18 @@ import org.robolectric.annotation.Config
  * S1716: a scene that drifts between runs turns every later measurement into noise, so its stability is the
  * first thing the bench has to prove about itself (strategic §11 criterion 4).
  *
- * **What this class can and cannot assert today.** Robolectric runs here in its default legacy graphics
- * mode, which records drawing calls without rasterising them: shapes come back described, and a scene built
- * only from text comes back byte-identical to a blank bitmap. Switching the class to
- * `@GraphicsMode(NATIVE)` was tried on 2026-08-16 and failed at class-init with
- * `NoClassDefFoundError: android.graphics.ColorSpace` - the native runtime is not on this project's test
- * classpath. Until that is decided (strategic §6.1 is re-opened with the measurement), the pixel-level
- * assertion that a scene is not blank cannot be made from a unit test, and it is deliberately absent rather
- * than weakened into something that would pass on an empty canvas.
+ * **What this class asserts, and why it stays on legacy graphics.** Robolectric runs here in its default
+ * legacy mode, which records drawing calls without rasterising them: a scene built only from text comes back
+ * byte-identical to a blank bitmap. That is exactly why the assertions here are about *stability* - the same
+ * description twice - and not about pixels.
+ *
+ * The class-init failure this comment used to describe is fixed and the note is kept only so nobody re-files
+ * it: `@GraphicsMode(NATIVE)` failed on 2026-08-16 under `robolectric:4.11.1`, whose native-runtime
+ * distribution ships no Windows binary at all. S1782 raised the pin to **4.16.1**, which does, and
+ * `OverlayRasterizerTest` and `ConcealmentMetricTest` in this package now run NATIVE and rasterise for real.
+ * Strategic §6.1 is resolved, not re-opened. This class is deliberately left on legacy graphics: a
+ * reproducibility check does not need a rasteriser, and running it without one keeps it honest about what it
+ * is proving.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -98,6 +102,36 @@ class SyntheticSceneTest {
             assertEquals(built.annotation.sceneId, built.annotation.widthPx, built.bitmap.width)
             assertEquals(built.annotation.sceneId, built.annotation.heightPx, built.bitmap.height)
         }
+    }
+
+    /**
+     * S2036: an authoring slip here would surface in the report as an implausible height ratio and be read
+     * as a property of the material, so containment is asserted rather than eyeballed.
+     */
+    @Test
+    fun `the varied-height scene keeps every word inside its own line`() {
+        val area = SyntheticScene.lineWithVariedWordHeights().annotation.textAreas.single()
+
+        assertTrue("the scene must annotate several words", area.words.size > 1)
+        for (word in area.words) {
+            assertTrue("word '${word.text}' escapes its line box", area.box.contains(word.box))
+        }
+        assertTrue(
+            "the line box must be taller than every word, the way a real line box is",
+            area.words.all { it.box.height() < area.box.height() }
+        )
+        assertTrue(
+            "the words must differ in height or the axes have nothing to separate",
+            area.words.map { it.box.height() }.distinct().size > 1
+        )
+    }
+
+    /** S2036: an area nobody annotated at word level must stay distinguishable from one holding no word. */
+    @Test
+    fun `scenes annotated before word geometry carry no words`() {
+        val area = SyntheticScene.uniformMultilineText().annotation.textAreas.first()
+
+        assertTrue("this scene is line-only by construction", area.words.isEmpty())
     }
 
     @Test

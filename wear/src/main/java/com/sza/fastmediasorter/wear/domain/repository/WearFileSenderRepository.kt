@@ -11,8 +11,13 @@ import java.io.File
  * settled here is that either side may open the channel; the screens that call it arrive with the
  * recorder (S1862) and the watch-side file operations (S1863).
  */
+data class WearFileSendResult(
+    val outcome: WearFileSendOutcome,
+    val destination: String? = null
+)
+
 interface WearFileSenderRepository {
 
     /** Sends [file] to the paired phone, refusing before the channel is opened if it is too large. */
-    suspend fun sendFile(file: File): WearFileSendOutcome
+    suspend fun sendFile(file: File): WearFileSendResult
 }

@@ -170,5 +170,13 @@
     <string name="welcome_role_sources_detail_cloud_only">Almacenamiento del dispositivo, Google Drive, OneDrive, Dropbox</string>
     <string name="welcome_role_sources_detail_local_only">Almacenamiento interno y tarjeta SD</string>
     <string name="welcome_role_sorting_detail">Envíe un archivo a su carpeta con un solo toque</string>
-    <string name="welcome_role_more_detail">Emisiones, cámara y más: una aplicación en lugar de muchas</string>
+    <string name="welcome_role_more_detail">Cámara, widgets, gadgets y más - una sola app en lugar de muchas</string>
+    <string name="welcome_description_1_shell">No solo una app multimedia - un entorno completo para tu dispositivo.\nPantalla de inicio, reproductor, gestor de archivos, streams y almacenamiento remoto en un mismo lugar.</string>
+    <string name="welcome_description_1_details_shell">FastMediaSorter puede gobernar todo el dispositivo: una pantalla de inicio con tus apps, widgets y accesos directos, un reproductor de fotos, vídeos, música y libros, un gestor de archivos para almacenamiento local, de red y en la nube, streams de internet y una app complementaria para Wear OS - y encima de todo ello, ordenación rápida con un toque.\n\n¿La quieres como pantalla de inicio? Activa el interruptor de arriba y el sistema te pedirá confirmación al terminar la configuración. Todo lo que elijas en esta pantalla se puede cambiar después en Ajustes, así que aquí no hay elección equivocada - solo toca Siguiente para continuar.</string>
+    <string name="welcome_role_home_screen">Pantalla de inicio</string>
+    <string name="welcome_role_home_screen_detail">Gobierna el dispositivo en lugar de un lanzador - apps, widgets y multimedia a mano</string>
+    <string name="welcome_role_streams">Streams</string>
+    <string name="welcome_role_streams_detail">Radio por internet, canales de TV y vídeo desde un catálogo ya preparado</string>
+    <string name="welcome_role_wear">App del reloj</string>
+    <string name="welcome_role_wear_detail">Un complemento para Wear OS - explora y reproduce desde tu muñeca</string>
 </resources>

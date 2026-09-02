@@ -21,6 +21,10 @@ enum class StreamMenuAction(@param:DrawableRes val iconRes: Int) {
     MOVE_TO_TOP(R.drawable.ic_arrow_upward),
     TOGGLE_FAVORITE(R.drawable.ic_favorite),
     ADD_SHORTCUT(R.drawable.ic_widget_resource_launch),
+
+    // S2247: desktop-only counterpart of ADD_SHORTCUT - places the channel's stream window cell on
+    // the launcher desktop instead of pinning a shortcut. Offered only on the desktop surface.
+    ADD_DESKTOP_WINDOW(R.drawable.ic_widget_resource_launch),
     EDIT(R.drawable.ic_edit_20),
 
     // S1799: sits by EDIT - both are manual-channel-only commands.
@@ -90,6 +94,12 @@ object StreamActionCatalog {
     )
 
     /**
+     * S2247: the inverse gate - rows that exist only on the launcher desktop. The streams screen has
+     * no desktop to place a window on, so it must never see the row.
+     */
+    private val DESKTOP_ONLY = setOf(StreamMenuAction.ADD_DESKTOP_WINDOW)
+
+    /**
      * Items [surface] offers for a channel described by [facts], in menu order.
      *
      * [canRun] is the caller's own veto over a row it will not serve - either because it cannot yet
@@ -114,6 +124,7 @@ object StreamActionCatalog {
         StreamMenuAction.MOVE_TO_TOP -> R.string.streams_move_to_top
         StreamMenuAction.TOGGLE_FAVORITE -> favoriteLabelRes(facts)
         StreamMenuAction.ADD_SHORTCUT -> R.string.streams_add_to_home_screen
+        StreamMenuAction.ADD_DESKTOP_WINDOW -> R.string.launcher_stream_add_desktop_window
         StreamMenuAction.EDIT -> R.string.streams_edit
         StreamMenuAction.SEND_TO_WATCH -> R.string.stream_action_send_to_watch
         StreamMenuAction.OPEN_ON_WATCH -> R.string.stream_action_open_on_watch
@@ -129,8 +140,10 @@ object StreamActionCatalog {
         R.string.streams_add_to_favorites
     }
 
-    private fun isOfferedOn(surface: MenuActionSurface, action: StreamMenuAction): Boolean =
-        surface != MenuActionSurface.LAUNCHER_DESKTOP || action !in DESKTOP_EXCLUDED
+    private fun isOfferedOn(surface: MenuActionSurface, action: StreamMenuAction): Boolean {
+        if (surface != MenuActionSurface.LAUNCHER_DESKTOP && action in DESKTOP_ONLY) return false
+        return surface != MenuActionSurface.LAUNCHER_DESKTOP || action !in DESKTOP_EXCLUDED
+    }
 
     /** The streams screen's existing gates, moved here unchanged. */
     private fun isRelevant(action: StreamMenuAction, facts: Facts): Boolean = when (action) {

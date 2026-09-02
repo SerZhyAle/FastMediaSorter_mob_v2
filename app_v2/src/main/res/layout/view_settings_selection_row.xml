@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   Layout for SettingsSelectionRow compound view.
-  Canonical pattern: optional leading icon + text group (title + inline helper + value, subtitle below) +
+  Canonical pattern: optional leading icon + text group (title + inline helper, value, subtitle below) +
   trailing slot + chevron.
   Value sits inline next to the title (S0618, R3); the text group keeps weight so the chevron stays
-  pinned at the row's right edge and long titles never crowd it.
+  pinned at the row's right edge when the row does not collapse to hug its content.
+  Title and helper share the ssr_titleCluster wrapper so value-end mode can stretch the label column
+  without ever detaching the helper icon from the title it explains.
   See docs/ARCHITECTURE.md § "UI Patterns - Trigger Row".
 -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
@@ -28,7 +30,7 @@
         android:layout_weight="1"
         android:orientation="vertical">
 
-        <!-- Title line: title + inline helper + value, all hugging the left. Value sits next to the
+        <!-- Title line: title cluster + value, all hugging the left. Value sits next to the
              title (S0618 R3); the trailing weighted spacer fills the rest so they never drift apart. -->
         <LinearLayout
             android:id="@+id/ssr_titleLine"
@@ -37,32 +39,42 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/ssr_title"
+            <LinearLayout
+                android:id="@+id/ssr_titleCluster"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="@dimen/toggler_title_text_size" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-            <ImageButton
-                android:id="@+id/ssr_iconHelp"
-                android:layout_width="@dimen/settings_help_icon_size"
-                android:layout_height="@dimen/settings_help_icon_size"
-                android:layout_marginStart="@dimen/settings_help_icon_margin"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:contentDescription=""
-                android:focusable="true"
-                android:src="@drawable/ic_help_outline_24"
-                app:tint="@color/text_color_secondary"
-                android:visibility="gone" />
+                <TextView
+                    android:id="@+id/ssr_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/toggler_title_text_size" />
+
+                <ImageButton
+                    android:id="@+id/ssr_iconHelp"
+                    android:layout_width="@dimen/settings_help_icon_size"
+                    android:layout_height="@dimen/settings_help_icon_size"
+                    android:layout_marginStart="@dimen/settings_help_icon_margin"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:contentDescription=""
+                    android:focusable="true"
+                    android:src="@drawable/ic_help_outline_24"
+                    app:tint="@color/text_color_secondary"
+                    android:visibility="gone" />
+
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/ssr_value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/settings_help_icon_margin"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                android:textSize="@dimen/toggler_desc_text_size"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="@dimen/settings_row_value_text_size"
+                android:textStyle="bold"
                 android:visibility="gone" />
 
             <View

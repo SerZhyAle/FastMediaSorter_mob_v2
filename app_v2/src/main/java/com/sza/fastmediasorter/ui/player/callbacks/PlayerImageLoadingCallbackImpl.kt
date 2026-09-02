@@ -61,6 +61,12 @@ class PlayerImageLoadingCallbackImpl(
 
     override fun getCurrentResource(): MediaResource? = viewModel.state.value.resource
 
+    override suspend fun getCredentialsIdForResource(resourceId: Long): String? =
+        viewModel.getCredentialsIdForResource(resourceId)
+
+    override fun onNetworkMediaLoadFailed(candidates: List<Throwable>): Boolean =
+        viewModel.onMediaLoadFailed(candidates, viewModel.state.value.currentFile?.name.orEmpty())
+
     override fun getExoPlayer(): ExoPlayer? =
         if (activity._videoPlayerManager != null) activity.videoPlayerManager.getPlayer() else null
 

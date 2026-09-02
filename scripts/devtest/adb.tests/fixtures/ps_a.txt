@@ -1,0 +1,7 @@
+  PID NAME
+    1 init
+ 1122 system_server
+ 2087 /system/bin/surfaceflinger
+ 3099 com.android.launcher3
+ 4711 com.sza.fastmediasorter.debug
+ 4802 com.sza.fastmediasorter.debug:scan

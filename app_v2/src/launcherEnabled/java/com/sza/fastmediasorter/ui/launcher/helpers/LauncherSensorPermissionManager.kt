@@ -81,6 +81,10 @@ class LauncherSensorPermissionManager(private val activity: FragmentActivity) {
             // S1175: the map tile asks here and nowhere else - strategic §3.2 forbids requesting
             // location at startup, and a refusal still places the cell in its no-permission state.
             LauncherGadgetRegistry.KEY_MAP to Manifest.permission.ACCESS_FINE_LOCATION,
+            // S2292: the live frame asks for its own grant instead of riding one another gadget
+            // obtained - a desktop carrying only this tile otherwise read location with no dialog
+            // the user ever saw. Same permission and same placement moment as KEY_MAP above.
+            LauncherGadgetRegistry.KEY_GOOGLE_MAPS_LIVE to Manifest.permission.ACCESS_FINE_LOCATION,
         )
     }
 }

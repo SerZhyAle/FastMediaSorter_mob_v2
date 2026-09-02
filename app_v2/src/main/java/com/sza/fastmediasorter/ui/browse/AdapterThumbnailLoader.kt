@@ -45,6 +45,7 @@ import java.io.File
  * Extracted from MediaFileAdapter.ListViewHolder and GridViewHolder (Wave 3 - IV.1).
  * Both ViewHolders share this single implementation parameterised by [isListMode].
  */
+@Suppress("LargeClass", "LongMethod")
 class AdapterThumbnailLoader(
     private val getIsScrolling: () -> Boolean,
     private val getDisableThumbnails: () -> Boolean,
@@ -74,18 +75,44 @@ class AdapterThumbnailLoader(
     companion object {
         const val CACHED_THUMBNAIL_SIZE = 300
         private const val VIDEO_PRIORITY_THUMBNAIL_SUSPEND_MESSAGE = "Video player priority - thumbnail loading suspended"
+
         // PDF thumbnail size limits for network resources when "Large PDF Thumbnails" is ENABLED (bytes)
         private const val SMB_PDF_LARGE_MAX_SIZE = 50 * 1024 * 1024L
         private const val NETWORK_PDF_LARGE_MAX_SIZE = 10 * 1024 * 1024L
+
         // PDF thumbnail size limits when "Large PDF Thumbnails" is DISABLED
         private const val SMB_PDF_NORMAL_MAX_SIZE = 3 * 1024 * 1024L
         private const val NETWORK_PDF_NORMAL_MAX_SIZE = 1 * 1024 * 1024L
+
         // EPUB cover size limits for network resources
         private const val SMB_EPUB_MAX_SIZE = 50 * 1024 * 1024L
         private const val NETWORK_EPUB_MAX_SIZE = 10 * 1024 * 1024L
+
         // S1317: decode-capability failure fragment - Glide's required-transform throw on an
         // AnimatedImageDrawable it cannot convert, not a broken source file.
         private const val BITMAP_CONVERSION_FRAGMENT = "to a bitmap"
+
+        /**
+         * True when [file] is drawn with the generated extension tile rather than a picture of its own.
+         *
+         * Mirrors the branches of [load] that return before any Glide request is issued, and lives
+         * here for that reason: a type that later gains a real preview then moves this answer and the
+         * loading path together instead of leaving a second copy of the list to drift (S2177).
+         *
+         * Deliberately synchronous and type-only. An image whose decode fails also ends on the
+         * extension tile, but only after the cell is already on screen, and flipping the caption then
+         * would reflow the row under a scrolling finger.
+         */
+        fun rendersGroupIcon(file: MediaFile): Boolean {
+            val hasOwnPicture = file.resourceId == SyntheticResourceIds.STREAM || file.isDirectory
+            return !hasOwnPicture &&
+                (
+                    file.type == MediaType.AUDIO ||
+                        file.type == MediaType.TEXT ||
+                        file.type == MediaType.OFFICE_DOCUMENT ||
+                        file.type.isBinaryFile()
+                    )
+        }
     }
 
     // ─── Public entry point ───────────────────────────────────────────────────
@@ -129,7 +156,7 @@ class AdapterThumbnailLoader(
         if (file.type == MediaType.AUDIO) {
             val ext = file.name.substringAfterLast('.', "").uppercase()
             imageView.setImageBitmap(createExtensionBitmap(ext))
-            applyPlaceholderStyle(imageView, file.type)
+            applyPlaceholderStyle(imageView)
             Timber.v("loadThumbnail: AUDIO extension bitmap for ${file.name} ($ext)")
             return newKey
         }
@@ -138,7 +165,7 @@ class AdapterThumbnailLoader(
         if (file.type == MediaType.TEXT || file.type == MediaType.OFFICE_DOCUMENT) {
             val ext = file.name.substringAfterLast('.', "").uppercase()
             imageView.setImageBitmap(createExtensionBitmap(ext))
-            applyPlaceholderStyle(imageView, file.type)
+            applyPlaceholderStyle(imageView)
             return newKey
         }
 
@@ -151,7 +178,7 @@ class AdapterThumbnailLoader(
                 Timber.v("Binary file thumbnail generated for ${file.name}")
             } ?: run {
                 imageView.setImageBitmap(createExtensionBitmap(ext.uppercase()))
-                applyPlaceholderStyle(imageView, file.type)
+                applyPlaceholderStyle(imageView)
             }
             return newKey
         }
@@ -179,20 +206,55 @@ class AdapterThumbnailLoader(
         // already ends in .error(generatedPlaceholder), so a missing file paints the same placeholder,
         // decided by Glide on its own thread.
         when (file.type) {
-            MediaType.EPUB -> loadEpub(imageView, file, context, isNetworkPath, isCloudPath, generatedPlaceholder, isListMode, isScrolling)
-            MediaType.PDF -> loadPdf(imageView, file, context, isNetworkPath, isCloudPath, generatedPlaceholder, isListMode, isScrolling)
-            MediaType.IMAGE, MediaType.GIF -> loadImage(imageView, file, context, isNetworkPath, isCloudPath, generatedPlaceholder, isScrolling)
-            MediaType.VIDEO -> loadVideo(imageView, file, context, isNetworkPath, isCloudPath, generatedPlaceholder, isListMode, isScrolling)
+            MediaType.EPUB -> loadEpub(
+                imageView,
+                file,
+                context,
+                isNetworkPath,
+                isCloudPath,
+                generatedPlaceholder,
+                isListMode,
+                isScrolling
+            )
+            MediaType.PDF -> loadPdf(
+                imageView,
+                file,
+                context,
+                isNetworkPath,
+                isCloudPath,
+                generatedPlaceholder,
+                isListMode,
+                isScrolling
+            )
+            MediaType.IMAGE, MediaType.GIF -> loadImage(
+                imageView,
+                file,
+                context,
+                isNetworkPath,
+                isCloudPath,
+                generatedPlaceholder,
+                isScrolling
+            )
+            MediaType.VIDEO -> loadVideo(
+                imageView,
+                file,
+                context,
+                isNetworkPath,
+                isCloudPath,
+                generatedPlaceholder,
+                isListMode,
+                isScrolling
+            )
             MediaType.AUDIO -> {
                 val ext = file.name.substringAfterLast('.', "").uppercase()
                 imageView.setImageBitmap(createExtensionBitmap(ext))
-                applyPlaceholderStyle(imageView, file.type)
+                applyPlaceholderStyle(imageView)
             }
             MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,
             MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> {
                 val ext = file.name.substringAfterLast('.', "").uppercase()
                 imageView.setImageBitmap(getBinaryGenerator()?.generateThumbnail(ext, file.type))
-                applyPlaceholderStyle(imageView, file.type)
+                applyPlaceholderStyle(imageView)
             }
             else -> {} // TEXT handled above
         }
@@ -218,7 +280,7 @@ class AdapterThumbnailLoader(
         imageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
         val kindIcon = if (file.type == MediaType.AUDIO) R.drawable.ic_audio else R.drawable.ic_video
         imageView.setImageResource(kindIcon)
-        applyPlaceholderStyle(imageView, file.type)
+        applyPlaceholderStyle(imageView)
         val scope = faviconScope ?: return
         val index = faviconResolver(file.path) ?: return
         faviconJobs[imageView] = scope.launch {
@@ -230,14 +292,20 @@ class AdapterThumbnailLoader(
 
     // ─── Style utilities (formerly companion object / ViewHolder statics) ─────
 
-    fun applyPlaceholderStyle(imageView: ImageView, type: MediaType) {
-        val colorRes = when (type) {
-            MediaType.VIDEO -> R.color.thumbnail_video_bg
-            MediaType.AUDIO -> R.color.thumbnail_audio_bg
-            MediaType.TEXT, MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT -> R.color.thumbnail_doc_bg
-            else -> R.color.thumbnail_image_bg
+    fun applyPlaceholderStyle(imageView: ImageView) {
+        val typedValue = android.util.TypedValue()
+        val theme = imageView.context.theme
+        val color = if (theme.resolveAttribute(
+                com.google.android.material.R.attr.colorSurfaceVariant,
+                typedValue,
+                true
+            )
+        ) {
+            typedValue.data
+        } else {
+            ContextCompat.getColor(imageView.context, R.color.color_media_other)
         }
-        imageView.setBackgroundColor(ContextCompat.getColor(imageView.context, colorRes))
+        imageView.setBackgroundColor(color)
     }
 
     fun resetThumbnailStyle(imageView: ImageView) {
@@ -253,7 +321,7 @@ class AdapterThumbnailLoader(
 
     fun showGeneratedPlaceholder(imageView: ImageView, file: MediaFile) {
         imageView.setImageBitmap(createExtensionBitmap(getPlaceholderExtension(file)))
-        applyPlaceholderStyle(imageView, file.type)
+        applyPlaceholderStyle(imageView)
     }
 
     private fun getPlaceholderExtension(file: MediaFile): String {
@@ -336,9 +404,13 @@ class AdapterThumbnailLoader(
     }
 
     private fun loadEpub(
-        imageView: ImageView, file: MediaFile, context: Context,
-        isNetworkPath: Boolean, isCloudPath: Boolean,
-        generatedPlaceholder: BitmapDrawable, isListMode: Boolean,
+        imageView: ImageView,
+        file: MediaFile,
+        context: Context,
+        isNetworkPath: Boolean,
+        isCloudPath: Boolean,
+        generatedPlaceholder: BitmapDrawable,
+        isListMode: Boolean,
         isScrolling: Boolean
     ) {
         if (!isCloudPath && !isNetworkPath) {
@@ -367,7 +439,11 @@ class AdapterThumbnailLoader(
                     showGeneratedPlaceholder(imageView, file)
                     return
                 }
-                val networkData = NetworkFileData(path = file.path, size = file.size, credentialsId = getCredentialsId())
+                val networkData = NetworkFileData(
+                    path = file.path,
+                    size = file.size,
+                    credentialsId = getCredentialsId()
+                )
                 val builder = Glide.with(context)
                     .asBitmap()
                     .load(networkData)
@@ -381,7 +457,12 @@ class AdapterThumbnailLoader(
                 // S0110: skip failure-marking listener during scroll - cache miss is expected, not a real error
                 if (isListMode && !isScrolling) {
                     builder.listener(object : RequestListener<Bitmap> {
-                        override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Bitmap>, isFirstResource: Boolean): Boolean {
+                        override fun onLoadFailed(
+                            e: GlideException?,
+                            model: Any?,
+                            target: Target<Bitmap>,
+                            isFirstResource: Boolean
+                        ): Boolean {
                             if (isVideoPriorityThumbnailSuspension(e)) {
                                 Timber.v("EPUB cover load suspended by video priority: ${file.name}")
                             } else if (isDecodeCapabilityFailure(e)) {
@@ -392,7 +473,13 @@ class AdapterThumbnailLoader(
                             }
                             return false
                         }
-                        override fun onResourceReady(resource: Bitmap, model: Any, target: Target<Bitmap>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                        override fun onResourceReady(
+                            resource: Bitmap,
+                            model: Any,
+                            target: Target<Bitmap>?,
+                            dataSource: DataSource,
+                            isFirstResource: Boolean
+                        ): Boolean {
                             resetThumbnailStyle(imageView)
                             return false
                         }
@@ -412,9 +499,13 @@ class AdapterThumbnailLoader(
     }
 
     private fun loadPdf(
-        imageView: ImageView, file: MediaFile, context: Context,
-        isNetworkPath: Boolean, isCloudPath: Boolean,
-        generatedPlaceholder: BitmapDrawable, isListMode: Boolean,
+        imageView: ImageView,
+        file: MediaFile,
+        context: Context,
+        isNetworkPath: Boolean,
+        isCloudPath: Boolean,
+        generatedPlaceholder: BitmapDrawable,
+        isListMode: Boolean,
         isScrolling: Boolean
     ) {
         val largePdfThumbnails = getShowPdfThumbnails()
@@ -442,8 +533,11 @@ class AdapterThumbnailLoader(
                 if (isSmbPath) SMB_PDF_NORMAL_MAX_SIZE else NETWORK_PDF_NORMAL_MAX_SIZE
             }
             if (file.size > maxSize) {
-                if (isListMode) showGeneratedPlaceholder(imageView, file)
-                else imageView.setImageBitmap(createExtensionBitmap("PDF"))
+                if (isListMode) {
+                    showGeneratedPlaceholder(imageView, file)
+                } else {
+                    imageView.setImageBitmap(createExtensionBitmap("PDF"))
+                }
             } else {
                 if (isListMode && NetworkFileDataFetcher.isThumbnailFailed(file.path)) {
                     Timber.v("Skipping PDF thumbnail load for ${file.name} (cached as failed)")
@@ -452,18 +546,22 @@ class AdapterThumbnailLoader(
                 }
                 val builder = Glide.with(context)
                     .asBitmap()
-                    .load(NetworkFileData(
-                        path = file.path,
-                        credentialsId = getCredentialsId(),
-                        loadFullImage = false,
-                        size = file.size,
-                        createdDate = file.createdDate
-                    ))
+                    .load(
+                        NetworkFileData(
+                            path = file.path,
+                            credentialsId = getCredentialsId(),
+                            loadFullImage = false,
+                            size = file.size,
+                            createdDate = file.createdDate
+                        )
+                    )
                     .format(decodeFormatResolver.decodeFormat())
-                    .apply(RequestOptions().set(
-                        com.sza.fastmediasorter.data.glide.NetworkPdfThumbnailLoader.OPTION_FULL_PDF_DOWNLOAD,
-                        largePdfThumbnails
-                    ))
+                    .apply(
+                        RequestOptions().set(
+                            com.sza.fastmediasorter.data.glide.NetworkPdfThumbnailLoader.OPTION_FULL_PDF_DOWNLOAD,
+                            largePdfThumbnails
+                        )
+                    )
                     .placeholder(generatedPlaceholder)
                     .error(generatedPlaceholder)
                     .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
@@ -472,7 +570,12 @@ class AdapterThumbnailLoader(
                 // S0110: skip failure-marking listener during scroll - cache miss is expected, not a real error
                 if (isListMode && !isScrolling) {
                     builder.listener(object : RequestListener<Bitmap> {
-                        override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Bitmap>, isFirstResource: Boolean): Boolean {
+                        override fun onLoadFailed(
+                            e: GlideException?,
+                            model: Any?,
+                            target: Target<Bitmap>,
+                            isFirstResource: Boolean
+                        ): Boolean {
                             if (isVideoPriorityThumbnailSuspension(e)) {
                                 Timber.v("PDF thumbnail load suspended by video priority: ${file.name}")
                             } else if (isDecodeCapabilityFailure(e)) {
@@ -483,7 +586,13 @@ class AdapterThumbnailLoader(
                             }
                             return false
                         }
-                        override fun onResourceReady(resource: Bitmap, model: Any, target: Target<Bitmap>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                        override fun onResourceReady(
+                            resource: Bitmap,
+                            model: Any,
+                            target: Target<Bitmap>?,
+                            dataSource: DataSource,
+                            isFirstResource: Boolean
+                        ): Boolean {
                             resetThumbnailStyle(imageView)
                             return false
                         }
@@ -496,24 +605,36 @@ class AdapterThumbnailLoader(
             // Cloud PDF
             val maxSize = if (largePdfThumbnails) NETWORK_PDF_LARGE_MAX_SIZE else NETWORK_PDF_NORMAL_MAX_SIZE
             if (file.size > maxSize) {
-                if (isListMode) showGeneratedPlaceholder(imageView, file)
-                else imageView.setImageBitmap(createExtensionBitmap("PDF"))
+                if (isListMode) {
+                    showGeneratedPlaceholder(imageView, file)
+                } else {
+                    imageView.setImageBitmap(createExtensionBitmap("PDF"))
+                }
             } else {
-                if (isListMode) showGeneratedPlaceholder(imageView, file)
-                else imageView.setImageBitmap(createExtensionBitmap("PDF"))
+                if (isListMode) {
+                    showGeneratedPlaceholder(imageView, file)
+                } else {
+                    imageView.setImageBitmap(createExtensionBitmap("PDF"))
+                }
             }
         }
     }
 
     private fun loadImage(
-        imageView: ImageView, file: MediaFile, context: Context,
-        isNetworkPath: Boolean, isCloudPath: Boolean,
+        imageView: ImageView,
+        file: MediaFile,
+        context: Context,
+        isNetworkPath: Boolean,
+        isCloudPath: Boolean,
         generatedPlaceholder: BitmapDrawable,
         isScrolling: Boolean
     ) {
         val fileExt = file.name.substringAfterLast('.', "").lowercase()
         if (!HeifSupportUtils.isSupported(fileExt)) {
-            Timber.w("loadThumbnail: ${fileExt.uppercase()} not supported on this device - showing placeholder for ${file.name}")
+            Timber.w(
+                "loadThumbnail: ${fileExt.uppercase()} not supported on this device - " +
+                    "showing placeholder for ${file.name}"
+            )
             showGeneratedPlaceholder(imageView, file)
             return
         }
@@ -522,12 +643,14 @@ class AdapterThumbnailLoader(
                 val provider = detectCloudProvider(file.path)
                 val fileId = extractCloudFileId(file.path, provider)
                 Glide.with(context)
-                    .load(CloudThumbnailData(
-                        thumbnailUrl = file.thumbnailUrl ?: "",
-                        fileId = fileId,
-                        loadFullImage = false,
-                        cloudProvider = provider
-                    ))
+                    .load(
+                        CloudThumbnailData(
+                            thumbnailUrl = file.thumbnailUrl ?: "",
+                            fileId = fileId,
+                            loadFullImage = false,
+                            cloudProvider = provider
+                        )
+                    )
                     .format(decodeFormatResolver.decodeFormat())
                     .priority(Priority.HIGH)
                     .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
@@ -544,13 +667,15 @@ class AdapterThumbnailLoader(
                     return
                 }
                 val imageBuilder = Glide.with(context)
-                    .load(NetworkFileData(
-                        path = file.path,
-                        credentialsId = getCredentialsId(),
-                        loadFullImage = false,
-                        size = file.size,
-                        createdDate = file.createdDate
-                    ))
+                    .load(
+                        NetworkFileData(
+                            path = file.path,
+                            credentialsId = getCredentialsId(),
+                            loadFullImage = false,
+                            size = file.size,
+                            createdDate = file.createdDate
+                        )
+                    )
                     .format(decodeFormatResolver.decodeFormat())
                     .priority(Priority.HIGH)
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
@@ -563,7 +688,12 @@ class AdapterThumbnailLoader(
                 // S0110: skip failure-marking listener during scroll - cache miss is expected, not a real error
                 if (!isScrolling) {
                     imageBuilder.listener(object : RequestListener<android.graphics.drawable.Drawable> {
-                        override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<android.graphics.drawable.Drawable>, isFirstResource: Boolean): Boolean {
+                        override fun onLoadFailed(
+                            e: GlideException?,
+                            model: Any?,
+                            target: Target<android.graphics.drawable.Drawable>,
+                            isFirstResource: Boolean
+                        ): Boolean {
                             if (isVideoPriorityThumbnailSuspension(e)) {
                                 Timber.v("Network image load suspended by video priority: ${file.name}")
                             } else if (isDecodeCapabilityFailure(e)) {
@@ -572,10 +702,16 @@ class AdapterThumbnailLoader(
                                 Timber.w("Network image load failed: ${file.name}, ${e.message}")
                                 NetworkFileDataFetcher.markThumbnailAsFailed(file.path)
                             }
-                            applyPlaceholderStyle(imageView, file.type)
+                            applyPlaceholderStyle(imageView)
                             return false
                         }
-                        override fun onResourceReady(resource: android.graphics.drawable.Drawable, model: Any, target: Target<android.graphics.drawable.Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                        override fun onResourceReady(
+                            resource: android.graphics.drawable.Drawable,
+                            model: Any,
+                            target: Target<android.graphics.drawable.Drawable>?,
+                            dataSource: DataSource,
+                            isFirstResource: Boolean
+                        ): Boolean {
                             GlideCacheStats.recordLoad(dataSource)
                             resetThumbnailStyle(imageView)
                             return false
@@ -623,12 +759,23 @@ class AdapterThumbnailLoader(
         // S0110: no error/stats listener during scroll - cache miss triggers .error() placeholder naturally
         if (!isScrolling) {
             localImageBuilder.listener(object : RequestListener<android.graphics.drawable.Drawable> {
-                override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<android.graphics.drawable.Drawable>, isFirstResource: Boolean): Boolean {
+                override fun onLoadFailed(
+                    e: GlideException?,
+                    model: Any?,
+                    target: Target<android.graphics.drawable.Drawable>,
+                    isFirstResource: Boolean
+                ): Boolean {
                     if (e != null) Timber.w("Local image load failed: ${file.name}, ${e.message}")
-                    applyPlaceholderStyle(imageView, file.type)
+                    applyPlaceholderStyle(imageView)
                     return false
                 }
-                override fun onResourceReady(resource: android.graphics.drawable.Drawable, model: Any, target: Target<android.graphics.drawable.Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                override fun onResourceReady(
+                    resource: android.graphics.drawable.Drawable,
+                    model: Any,
+                    target: Target<android.graphics.drawable.Drawable>?,
+                    dataSource: DataSource,
+                    isFirstResource: Boolean
+                ): Boolean {
                     GlideCacheStats.recordLoad(dataSource)
                     resetThumbnailStyle(imageView)
                     return false
@@ -683,9 +830,13 @@ class AdapterThumbnailLoader(
     }
 
     private fun loadVideo(
-        imageView: ImageView, file: MediaFile, context: Context,
-        isNetworkPath: Boolean, isCloudPath: Boolean,
-        generatedPlaceholder: BitmapDrawable, isListMode: Boolean,
+        imageView: ImageView,
+        file: MediaFile,
+        context: Context,
+        isNetworkPath: Boolean,
+        isCloudPath: Boolean,
+        generatedPlaceholder: BitmapDrawable,
+        isListMode: Boolean,
         isScrolling: Boolean
     ) {
         when {
@@ -693,12 +844,14 @@ class AdapterThumbnailLoader(
                 val provider = detectCloudProvider(file.path)
                 val fileId = extractCloudFileId(file.path, provider)
                 Glide.with(context)
-                    .load(CloudThumbnailData(
-                        thumbnailUrl = file.thumbnailUrl ?: "",
-                        fileId = fileId,
-                        loadFullImage = false,
-                        cloudProvider = provider
-                    ))
+                    .load(
+                        CloudThumbnailData(
+                            thumbnailUrl = file.thumbnailUrl ?: "",
+                            fileId = fileId,
+                            loadFullImage = false,
+                            cloudProvider = provider
+                        )
+                    )
                     .format(decodeFormatResolver.decodeFormat())
                     .priority(Priority.NORMAL)
                     .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
@@ -718,7 +871,8 @@ class AdapterThumbnailLoader(
                 // Avoids wasting a 10-second MediaMetadataRetriever timeout slot per file.
                 val ext = file.name.substringAfterLast('.', "").lowercase()
                 if (com.sza.fastmediasorter.data.network.glide.NetworkThumbnailExtractionPolicy
-                        .shouldSkipNetworkExtraction(ext)) {
+                        .shouldSkipNetworkExtraction(ext)
+                ) {
                     Timber.d("[scope=thumbnail] Blocked network format '$ext' - showing placeholder: ${file.name}")
                     showGeneratedPlaceholder(imageView, file)
                     imageView.contentDescription = context.getString(
@@ -733,13 +887,15 @@ class AdapterThumbnailLoader(
                     return
                 }
                 val videoBuilder = Glide.with(context)
-                    .load(NetworkFileData(
-                        path = file.path,
-                        credentialsId = getCredentialsId(),
-                        loadFullImage = false,
-                        size = file.size,
-                        createdDate = file.createdDate
-                    ))
+                    .load(
+                        NetworkFileData(
+                            path = file.path,
+                            credentialsId = getCredentialsId(),
+                            loadFullImage = false,
+                            size = file.size,
+                            createdDate = file.createdDate
+                        )
+                    )
                     .format(decodeFormatResolver.decodeFormat())
                     .priority(Priority.NORMAL)
                     .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
@@ -752,7 +908,12 @@ class AdapterThumbnailLoader(
                 // S0110: skip failure-marking listener during scroll - cache miss is expected, not a real error
                 if (!isScrolling) {
                     videoBuilder.listener(object : RequestListener<android.graphics.drawable.Drawable> {
-                        override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<android.graphics.drawable.Drawable>, isFirstResource: Boolean): Boolean {
+                        override fun onLoadFailed(
+                            e: GlideException?,
+                            model: Any?,
+                            target: Target<android.graphics.drawable.Drawable>,
+                            isFirstResource: Boolean
+                        ): Boolean {
                             if (isVideoPriorityThumbnailSuspension(e)) {
                                 Timber.v("Video thumbnail load suspended by video priority: ${file.name}")
                             } else if (isVideoDecoderException(e)) {
@@ -761,10 +922,16 @@ class AdapterThumbnailLoader(
                             } else if (e != null) {
                                 Timber.w("Thumbnail load failed: ${file.name}, ${e.message}")
                             }
-                            if (isListMode) applyPlaceholderStyle(imageView, file.type)
+                            if (isListMode) applyPlaceholderStyle(imageView)
                             return false
                         }
-                        override fun onResourceReady(resource: android.graphics.drawable.Drawable, model: Any, target: Target<android.graphics.drawable.Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                        override fun onResourceReady(
+                            resource: android.graphics.drawable.Drawable,
+                            model: Any,
+                            target: Target<android.graphics.drawable.Drawable>?,
+                            dataSource: DataSource,
+                            isFirstResource: Boolean
+                        ): Boolean {
                             GlideCacheStats.recordLoad(dataSource)
                             resetThumbnailStyle(imageView)
                             return false
@@ -826,17 +993,28 @@ class AdapterThumbnailLoader(
         // S0110: no failure-marking listener during scroll - cache miss triggers .error() placeholder naturally
         if (!isScrolling) {
             localVideoBuilder.listener(object : RequestListener<android.graphics.drawable.Drawable> {
-                override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<android.graphics.drawable.Drawable>, isFirstResource: Boolean): Boolean {
+                override fun onLoadFailed(
+                    e: GlideException?,
+                    model: Any?,
+                    target: Target<android.graphics.drawable.Drawable>,
+                    isFirstResource: Boolean
+                ): Boolean {
                     // S1968: remember it, so a frame this device cannot extract is attempted once a
                     // session rather than once a rebind. Back-pressure cancellations are not failures.
                     if (!isVideoPriorityThumbnailSuspension(e)) {
                         NetworkFileDataFetcher.markVideoAsFailed(file.path)
                         Timber.v("Local video thumbnail failed: ${file.name} (cached, not retried)")
                     }
-                    if (isListMode) applyPlaceholderStyle(imageView, file.type)
+                    if (isListMode) applyPlaceholderStyle(imageView)
                     return false
                 }
-                override fun onResourceReady(resource: android.graphics.drawable.Drawable, model: Any, target: Target<android.graphics.drawable.Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                override fun onResourceReady(
+                    resource: android.graphics.drawable.Drawable,
+                    model: Any,
+                    target: Target<android.graphics.drawable.Drawable>?,
+                    dataSource: DataSource,
+                    isFirstResource: Boolean
+                ): Boolean {
                     GlideCacheStats.recordLoad(dataSource)
                     resetThumbnailStyle(imageView)
                     return false
@@ -855,7 +1033,8 @@ class AdapterThumbnailLoader(
         if (e.rootCauses.any { cause ->
                 cause is CancellationException &&
                     cause.message?.contains(VIDEO_PRIORITY_THUMBNAIL_SUSPEND_MESSAGE) == true
-            }) {
+            }
+        ) {
             return true
         }
 
@@ -879,7 +1058,8 @@ class AdapterThumbnailLoader(
         if (e.rootCauses.any { cause ->
                 cause is IllegalArgumentException &&
                     cause.message?.lowercase()?.contains(BITMAP_CONVERSION_FRAGMENT) == true
-            }) {
+            }
+        ) {
             return true
         }
 
@@ -909,7 +1089,9 @@ class AdapterThumbnailLoader(
             val className = current.javaClass.simpleName.lowercase()
             if (className.contains("videodecoder") || className.contains("videodecoderexception") ||
                 msg.contains("mediametadataretriever") || msg.contains("failed to retrieve a frame")
-            ) return true
+            ) {
+                return true
+            }
             current = current.cause
             depth++
         }

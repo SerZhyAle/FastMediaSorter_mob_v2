@@ -69,7 +69,7 @@ jobs:
       # what lintStandardDebug enforces, so a detector regression must fail the same job that runs
       # lint. Before S1195 the suite was reachable from no job and no script and had never run.
       - name: Lint + unit tests + detector tests + standard debug build (single invocation)
-        run: ./gradlew lintStandardDebug testStandardDebugUnitTest assembleStandardDebug :lint-rules:test --continue --stacktrace
+        run: ./gradlew :app_v2:lintStandardDebug :app_v2:testStandardDebugUnitTest :app_v2:assembleStandardDebug :wear:lintStandardDebug :wear:testStandardDebugUnitTest :wear:assembleStandardDebug :lint-rules:test --continue --stacktrace
         env:
           DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY || 'dpy64e70kqobr6x' }}
 
@@ -195,7 +195,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
 
       - name: Build standard release (unsigned)
-        run: ./gradlew assembleStandardRelease --stacktrace
+        run: ./gradlew :app_v2:assembleStandardRelease :wear:assembleStandardRelease --stacktrace
         env:
           SKIP_SIGNING: true
 

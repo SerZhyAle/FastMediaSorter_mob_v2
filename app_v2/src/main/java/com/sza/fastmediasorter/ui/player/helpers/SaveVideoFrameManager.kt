@@ -6,6 +6,8 @@ import android.os.Environment
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -70,7 +72,6 @@ class SaveVideoFrameManager(
                     CaptureFileNamer.CaptureKind.VIDEO_FRAME,
                     extension,
                 )
-                Timber.d("S1882: video frame output $fileName")
                 val tempFile = writeTempFile(bitmap, fileName, useJpeg)
 
                 val resourceId = settings.videoSnapshotResourceId
@@ -136,6 +137,7 @@ class SaveVideoFrameManager(
                 }
 
             } catch (t: Throwable) {
+                t.rethrowIfCancellation()
                 if (t is OutOfMemoryError) {
                     Timber.e(t, "SaveVideoFrameManager: OutOfMemoryError during save")
                     showToast(activity.getString(R.string.save_frame_error), Toast.LENGTH_LONG)
@@ -219,7 +221,7 @@ class SaveVideoFrameManager(
                 }
             }
         } catch (e: Exception) {
-            Timber.e(e, "SaveVideoFrameManager: exception copying to '${resource.name}'")
+            e.errorUnlessCancellation("SaveVideoFrameManager: exception copying to '${resource.name}'")
             null
         }
     }
@@ -242,6 +244,7 @@ class SaveVideoFrameManager(
         try {
             FileInputStream(tempFile).use { input -> input.copyTo(sink.outputStream) }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             sink.abort()
             Timber.e(e, "SaveVideoFrameManager: failed to write frame to Downloads")
             throw e

@@ -5,4 +5,10 @@
     <string name="setting_resource_ops_in_overflow_menu_desc">Сворачивает инлайн-кнопки в меню «⋮» на каждой планке ресурса</string>
     <string name="action_refresh_resource">Обновить</string>
     <string name="resource_unavailable_name">Ресурс «%1$s» недоступен</string>
+    <string name="resource_menu_reconnect_resource">Переподключить ресурс</string>
+    <string name="reconnect_different_folder_title">Выбрана другая папка</string>
+    <string name="reconnect_different_folder_message">Вы выбрали %1$s, а ресурс подключён к %2$s. Всё равно переподключить? Ресурс будет указывать на выбранную папку.</string>
+    <string name="reconnect_success">Ресурс переподключён.</string>
+    <string name="reconnect_failed">Не удалось переподключить - выберите папку ещё раз.</string>
+    <string name="reconnect_success_partial_favorites">Переподключено. Избранное перенесено: %1$d из %2$d.</string>
 </resources>

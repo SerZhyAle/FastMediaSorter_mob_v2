@@ -81,4 +81,6 @@
     <string name="widget_network_monitor_direct_connection">Conexión directa</string>
     <string name="launcher_gadget_network_indicator">Indicador de red</string>
     <string name="launcher_gadget_network_indicator_pick_title">Qué indicador mostrar</string>
+    <string name="widget_front_flashlight_label">Linterna frontal</string>
+    <string name="widget_front_flashlight_description">Convierte la pantalla en una lámpara con un solo toque</string>
 </resources>

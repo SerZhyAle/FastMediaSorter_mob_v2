@@ -92,7 +92,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnInstallAll"
-            style="@style/Widget.Material3.Button"
+            style="@style/Widget.FastMediaSorter.Button.Filled"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
@@ -100,7 +100,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnUninstallAll"
-            style="@style/Widget.Material3.Button.OutlinedButton"
+            style="@style/Widget.FastMediaSorter.Button.Destructive"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"

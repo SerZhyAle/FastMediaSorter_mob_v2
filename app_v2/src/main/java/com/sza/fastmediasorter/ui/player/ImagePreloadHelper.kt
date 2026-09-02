@@ -5,13 +5,14 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.signature.ObjectKey
-import com.sza.fastmediasorter.di.memoryPressureDecodeFormatResolver
 import com.sza.fastmediasorter.core.util.MemoryTier
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.glide.CloudThumbnailData
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.glide.NetworkFileData
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
+import com.sza.fastmediasorter.di.memoryPressureDecodeFormatResolver
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.ui.player.render.PrefetchQueue
@@ -20,10 +21,10 @@ import com.sza.fastmediasorter.ui.player.render.PriorityPrefetchQueue
 import com.sza.fastmediasorter.ui.player.render.RenderModeHint
 import com.sza.fastmediasorter.ui.player.render.RenderPriority
 import com.sza.fastmediasorter.ui.player.render.RenderTarget
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.Dispatchers
 import timber.log.Timber
 import java.io.File
 
@@ -177,6 +178,7 @@ class ImagePreloadHelper(
             }
             Timber.d("ImagePreloadHelper: Preload completed for ${file.name}")
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.d("ImagePreloadHelper: Preload failed for ${file.name}: ${e.message}")
         }
     }
@@ -214,6 +216,7 @@ class ImagePreloadHelper(
             }
             Timber.d("ImagePreloadHelper: Preload completed for ${file.name}")
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.d("ImagePreloadHelper: Preload failed for ${file.name}: ${e.message}")
         }
     }
@@ -239,6 +242,7 @@ class ImagePreloadHelper(
             }
             Timber.d("ImagePreloadHelper: Preload completed for ${file.name}")
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.d("ImagePreloadHelper: Preload failed for ${file.name}: ${e.message}")
         }
     }

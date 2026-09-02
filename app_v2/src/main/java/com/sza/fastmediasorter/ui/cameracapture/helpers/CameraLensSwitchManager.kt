@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.cameracapture.helpers
 import android.view.View
 import android.widget.TextView
 import com.sza.fastmediasorter.R
-import timber.log.Timber
 
 /**
  * S1987: owns what the lens-switch control shows while the session rebinds to another physical
@@ -30,7 +29,6 @@ class CameraLensSwitchManager(
 
     /** Handles a switch request; one arriving while the previous rebind still runs is refused. */
     fun onRequested() {
-        Timber.d("S1987: lens switch requested, inFlight=$inFlight")
         if (inFlight) return
         inFlight = true
         switchButton.isEnabled = false

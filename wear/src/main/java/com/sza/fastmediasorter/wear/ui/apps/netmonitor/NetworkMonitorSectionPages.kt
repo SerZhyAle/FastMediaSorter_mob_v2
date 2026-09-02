@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.apps.netmonitor
 
+import android.text.format.DateFormat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -7,16 +8,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.wear.compose.material.Chip
+import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkSection
 import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkSnapshot
+import timber.log.Timber
+import java.util.Date
 
 private val ROW_SPACING = 4.dp
 
@@ -25,17 +32,14 @@ private val ROW_SPACING = 4.dp
 fun NetworkMonitorSectionPage(
     section: WearNetworkSection,
     state: NetworkMonitorUiState,
+    canRequestPermissions: Boolean,
+    onRequestPermissions: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val snapshot = state.snapshot
     SectionColumn(titleRes = section.titleRes(), modifier = modifier) {
         if (state.permissionsMissing) {
-            Text(
-                text = stringResource(R.string.wear_netmon_permission_missing),
-                style = MaterialTheme.typography.caption2,
-                color = MaterialTheme.colors.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
+            PermissionNotice(canRequest = canRequestPermissions, onRequest = onRequestPermissions)
         }
         when (section) {
             WearNetworkSection.Summary -> SummaryFields(snapshot)
@@ -57,6 +61,48 @@ private fun WearNetworkSection.titleRes(): Int = when (this) {
     WearNetworkSection.Gnss -> R.string.wear_netmon_gnss
     WearNetworkSection.Internet -> R.string.wear_netmon_internet
     WearNetworkSection.History -> R.string.wear_netmon_history
+}
+
+/**
+ * The notice is the control wherever the platform can still raise the dialog.
+ *
+ * A caption that names a missing permission and cannot ask for it leaves the program unrecoverable
+ * from inside itself, which is what every page read before S2008. Where the API level offers nothing
+ * to request, the plain caption stays: a tap that raises no dialog is worse than a sentence.
+ */
+@Composable
+private fun PermissionNotice(canRequest: Boolean, onRequest: () -> Unit) {
+    Timber.d("S2080: netmon permission notice, canRequest=$canRequest")
+    if (!canRequest) {
+        NoticeCaption(stringResource(R.string.wear_netmon_permission_missing))
+        return
+    }
+    // A wear Chip has a fixed height that fits two lines, so the caption cannot live inside its
+    // label - a third line is cut through the glyphs (S2080). The chip carries the action alone.
+    NoticeCaption(stringResource(R.string.wear_netmon_permission_request))
+    Chip(
+        onClick = onRequest,
+        colors = ChipDefaults.secondaryChipColors(),
+        label = {
+            Text(
+                text = stringResource(R.string.permission_grant_button),
+                style = MaterialTheme.typography.button,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+private fun NoticeCaption(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.caption2,
+        color = MaterialTheme.colors.onSurfaceVariant,
+        textAlign = TextAlign.Center
+    )
 }
 
 @Composable
@@ -141,9 +187,29 @@ private fun HistoryFields(history: List<WearNetworkSnapshot>) {
         return
     }
     history.asReversed().forEach { entry ->
-        LabelValue(
-            R.string.wear_netmon_field_transport,
-            entry.activeTransport?.name
+        HistoryRow(entry)
+    }
+}
+
+/** The transition's own time, in the watch's clock format (same call as VoiceNoteListScreen). */
+@Composable
+private fun HistoryRow(entry: WearNetworkSnapshot) {
+    val context = LocalContext.current
+    val timeFormat = remember(context) { DateFormat.getTimeFormat(context) }
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = ROW_SPACING),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = timeFormat.format(Date(entry.recordedAtMillis)),
+            style = MaterialTheme.typography.caption2,
+            color = MaterialTheme.colors.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+        Text(
+            text = entry.activeTransport?.name ?: stringResource(R.string.wear_netmon_unavailable),
+            style = MaterialTheme.typography.body2,
+            textAlign = TextAlign.Center
         )
     }
 }

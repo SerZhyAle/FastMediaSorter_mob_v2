@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.launcher
 import android.Manifest
 import android.content.Intent
 import android.content.res.Configuration
+import android.os.Build
 import android.view.View
 import android.widget.Toast
 import androidx.activity.addCallback
@@ -17,28 +18,47 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
 import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
+import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
+import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
+import com.sza.fastmediasorter.core.screencapture.gesture.GestureAccessibilityActions
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityLauncherHomeBinding
+import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeAction
+import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
+import com.sza.fastmediasorter.domain.model.launcher.LauncherWallpaper
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetHost
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherCellViewBinder
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAddFlowHostActions
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAddFlowManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAllAppsGestureManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAppActionMenuManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherCellActionMenuManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherCellScreenMenuManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherContactPickManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherContactStepState
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherDesktopActions
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherDesktopGeometryManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherDesktopSwipeActionHandler
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherEditModeManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherGadgetRenderManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherIdleManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherIdleState
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherInstantPhotoCaptureManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherModalSurfaceManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherOpenAllAppsRequest
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResizeManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceActionManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceCreateManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceOperations
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherScreenBlackoutManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherScreenLockManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherScreenPagingManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherScreenTransitionManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherScrollThumbManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherSectionActionsManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherSensorPermissionManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherStatusStripManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherStreamActionManager
@@ -46,10 +66,6 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarPlacementManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTrayManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherWallpaperManager
-import com.sza.fastmediasorter.ui.launcher.menu.LauncherAllAppsFragment
-import com.sza.fastmediasorter.ui.launcher.menu.LauncherStartMenuFragment
-import com.sza.fastmediasorter.ui.launcher.picker.LauncherSectionNameDialogFragment
-import com.sza.fastmediasorter.ui.launcher.section.LauncherSectionActionsSheet
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayCallbacks
 import com.sza.fastmediasorter.ui.main.helpers.ResourceVrCinemaLaunchManager
 import com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager
@@ -61,6 +77,8 @@ import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.lang.ref.WeakReference
 import javax.inject.Inject
@@ -79,8 +97,22 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
     private val viewModel: LauncherHomeViewModel by viewModels()
 
+    private val modalSurfaces by lazy { LauncherModalSurfaceManager(supportFragmentManager) }
+
+    private var desktopGestureManager: LauncherAllAppsGestureManager? = null
+
     @Inject
     lateinit var gadgetRegistry: LauncherGadgetRegistry
+
+    @Inject
+    lateinit var screenshotGestureActionDispatcher: ScreenshotGestureActionDispatcher
+
+    /** S2268: empty on every flavor but noLegal - the double-tap lock falls back to the black screen. */
+    @Inject
+    lateinit var gestureAccessibilityActions: Set<@JvmSuppressWildcards GestureAccessibilityActions>
+
+    @Inject
+    lateinit var menuScreenshotLaunchers: Set<@JvmSuppressWildcards MenuScreenshotLauncher>
 
     // S1421: the one node that owns the freed status band (ADR-2). Injected rather than built here because
     // it needs the singleton signal registry; the activity only hands it the view and the lifecycle.
@@ -91,6 +123,9 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     // is this manager's job - the same one the Start menu row uses.
     @Inject
     lateinit var roleManager: LauncherRoleManager
+
+    @Inject
+    lateinit var idleManager: LauncherIdleManager
 
     // S1423: the one shared launch every home-screen entry point uses; this host never builds the
     // Add Resource intent itself.
@@ -113,10 +148,21 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     private val requestPhoneStatePermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
+    private val requestBluetoothPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
+
     // S1179: a field initialiser for the same reason as the two above - it registers a permission
     // contract. Which gadget needs which permission, and whether to ask at all, is the manager's
     // decision (Rule 3); the activity only owns where the cell goes.
     private val sensorPermissionManager = LauncherSensorPermissionManager(this)
+
+    // S1930: a field initialiser for the same reason again - a widget's configuration screen is an
+    // Activity, and its contract must be registered before this one is STARTED. What the answer means,
+    // and whether a cell is placed because of it, is the add flow's decision (Rule 3). addFlowManager
+    // is lazy and is only dereferenced when a result actually arrives, long after it exists.
+    private val widgetConfiguration = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { result -> addFlowManager.onWidgetConfigured(result.resultCode == RESULT_OK) }
 
     // A field initialiser, not setupViews(): BaseActivity posts that call, so it runs after the Activity
     // is STARTED and an activity-result contract registered there would throw. The operations are passed
@@ -124,8 +170,31 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     private val contactPickManager = LauncherContactPickManager(
         activity = this,
         pickIntent = { action -> viewModel.contactPickIntent(action) },
-        resolvePick = { action, picked -> viewModel.resolveContactPick(action, picked) },
+        resolvePick = { action, picked, messenger ->
+            viewModel.resolveContactPick(action, picked, messenger)
+        },
         onTargetPicked = { target -> addFlowManager.addShortcut(LauncherCellCommand.Contact(target)) },
+        // S2099: the in-flight action lives in saved state next to the target square, so both halves of
+        // an unfinished add survive a process kill together. Lambdas for the same reason as the four
+        // above - viewModel must not be touched while this initialiser runs.
+        readPendingAction = { viewModel.pendingContactAction },
+        writePendingAction = { action -> viewModel.pendingContactAction = action },
+        // S2102: the same arrangement for the step that runs before the system picker, plus the channel
+        // list the messenger choice needs. Bundled rather than four more parameters, which would put
+        // this constructor at detekt's LongParameterList ceiling.
+        stepState = LauncherContactStepState(
+            readStep = { viewModel.pendingContactStep },
+            writeStep = { action -> viewModel.pendingContactStep = action },
+            readChannels = { viewModel.pendingContactChannels },
+            writeChannels = { channels -> viewModel.pendingContactChannels = channels },
+            // S2240: the messenger chosen before the contact, stored beside the other two legs so the
+            // whole MESSAGE flow survives a kill behind the system picker as one piece.
+            readMessenger = { viewModel.pendingContactMessenger },
+            writeMessenger = { packageName -> viewModel.pendingContactMessenger = packageName },
+        ),
+        // Wrapped in a lambda rather than handed over directly: reading the property would dereference
+        // viewModel here, which this initialiser must not do.
+        listMessengers = { viewModel.listInstalledMessengers() },
     )
 
     private val cellBinder = LauncherCellViewBinder(
@@ -135,12 +204,13 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // editModeManager is lateinit, but this lambda only fires on a long-press in edit mode - long
         // after setupViews() has created it.
         onCellDragStart = { view, cellUi -> editModeManager.startCellDrag(view, cellUi) },
+        onCellEditTap = { view, cellUi -> cellScreenMenuManager.show(view, cellUi) },
         // resizeManager is lateinit for the same reason: a resize handle only exists on a gadget cell in
         // edit mode, rendered after setupViews() has built the manager.
         onAttachResizeHandle = { handle, cellUi -> resizeManager.attachHandle(handle, cellUi) },
         onCellLongPress = { view, cellUi -> showCellActions(view, cellUi) },
         onSectionClick = { cellUi -> viewModel.sections.toggle(cellUi.cell) },
-        onSectionLongClick = { _, cellUi -> showSectionActions(cellUi) },
+        onSectionLongClick = { _, cellUi -> sectionActionsManager.show(cellUi) },
     )
 
     private lateinit var taskbarManager: LauncherTaskbarManager
@@ -152,10 +222,41 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     // S1101: created in setupViews() like the other managers; onStart/onStop forward the foreground edges.
     private lateinit var wallpaperManager: LauncherWallpaperManager
 
+    // S2210: one-shot photo capture manager for instant photo wallpaper mode. Built lazily - only the
+    // instant-photo wallpaper mode ever reaches it, and most launcher sessions run another backdrop.
+    private val instantPhotoCaptureManager by lazy { LauncherInstantPhotoCaptureManager(this) }
+
+    private var instantPhotoCaptureJob: Job? = null
+
     private lateinit var resizeManager: LauncherResizeManager
 
     // S1741: manages the app-private screen blackout overlay and inactivity timeout.
     private lateinit var blackoutManager: LauncherScreenBlackoutManager
+
+    /** S2268: the section long-press menu and its dialogs, lifted out of this class unchanged. */
+    private val sectionActionsManager by lazy {
+        LauncherSectionActionsManager(this, viewModel) { geometryManager.currentColumns() }
+    }
+
+    /**
+     * S2301: the edit-mode menu of a single cell, built on the first tap while editing - a Home visit
+     * that never enters edit mode builds none of it.
+     */
+    private val cellScreenMenuManager by lazy {
+        LauncherCellScreenMenuManager(
+            screenCount = { viewModel.launcherDesktopSettings.value.launcherScreenCount },
+            // The column count belongs to the screen drawing the desktop, so it is read at the moment of
+            // the tap rather than captured when the menu was built.
+            onMoveToScreen = { cellId, screenIndex ->
+                viewModel.moveCellToScreen(cellId, screenIndex, geometryManager.currentColumns())
+            },
+        )
+    }
+
+    /** S2268: the double-tap screen lock, with the desktop's own black screen as its fallback. */
+    private val screenLockManager by lazy {
+        LauncherScreenLockManager(gestureAccessibilityActions, ::showBlackScreen)
+    }
 
     // S1560: one overlay per Activity, built on the first black-screen tap - a fresh manager per tap
     // would leak the previous overlay view on the decor view instead of reusing its hide path.
@@ -178,6 +279,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             pinToTaskbar = { packageName -> viewModel.pinAppToTaskbar(packageName) },
             appInfoIntent = { packageName -> viewModel.appInfoIntent(packageName) },
             uninstallIntent = { packageName -> viewModel.uninstallIntent(packageName) },
+            removeDesktopCell = { cellId -> viewModel.removeCell(cellId) },
         )
     }
 
@@ -213,6 +315,11 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             togglePin = { source -> viewModel.toggleStreamPin(source) },
             removeStream = { source -> viewModel.removeStream(source) },
             streamEdit = viewModel.streamEditDependencies,
+            // S2247: the menu's "add window to desktop" row lands in the add flow, which owns the
+            // placement write for every gadget.
+            placeDesktopWindow = { identityKey, mediaKind, onResult ->
+                addFlowManager.placeStreamWindowFromMenu(identityKey, mediaKind, onResult)
+            },
         )
     }
 
@@ -228,6 +335,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     // so neither can be built in a field initialiser without the other existing first.
     private val addFlowManager: LauncherAddFlowManager by lazy {
         LauncherAddFlowManager(
+            context = this,
             fragmentManager = supportFragmentManager,
             lifecycleOwner = this,
             viewModel = viewModel,
@@ -235,7 +343,10 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             contactPickManager = contactPickManager,
             sensorPermissionManager = sensorPermissionManager,
             currentColumns = { geometryManager.currentColumns() },
-            onCreateResource = { resourceCreateManager.startCreateResource(this) },
+            hostActions = LauncherAddFlowHostActions(
+                createResource = { resourceCreateManager.startCreateResource(this) },
+                startWidgetConfiguration = { intent -> widgetConfiguration.launch(intent) },
+            ),
         )
     }
 
@@ -244,6 +355,8 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             gadgetRegistry = gadgetRegistry,
             gadgetHost = gadgetHost,
             onWeatherReconfigure = { cellId -> addFlowManager.openWeatherLocationPicker(cellId) },
+            onWorldClockReconfigure = { cellId -> addFlowManager.openWorldClockZonePicker(cellId) },
+            savedWeatherLocation = { viewModel.weatherLastLocation.value.takeIf { it.isNotEmpty() } },
         )
     }
 
@@ -305,8 +418,8 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             lifecycleOwner = this,
             binding = binding.launcherTaskbar,
             onCommand = { viewModel.run(it) },
-            onStartClick = { showStartMenu() },
-            onAllAppsClick = { showAllApps() },
+            onStartClick = { modalSurfaces.showStartMenu() },
+            onAllAppsClick = { modalSurfaces.showAllApps() },
             onAddPin = { addFlowManager.openPinAppPicker() },
             onRemovePin = { viewModel.removePin(it) },
             onRecentsCapacity = { viewModel.recentsCapacity = it },
@@ -321,6 +434,8 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             lifecycleOwner = this,
             imageLayer = binding.launcherWallpaperImage,
             wavesLayer = binding.launcherWallpaperWaves,
+            cameraLayer = binding.launcherWallpaperCamera,
+            cameraScrim = binding.launcherWallpaperCameraScrim,
             viewModel = viewModel,
         )
         wallpaperManager.attach()
@@ -333,17 +448,99 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             gadgetRegistry = gadgetRegistry,
             viewModel = viewModel,
         )
-        LauncherAllAppsGestureManager(
+        attachDesktopSwipeActions()
+        geometryManager.syncOrientation()
+        addFlowManager.registerAddFlowListeners()
+        // S2102: the contact branch's three keys, claimed for the Activity's lifetime rather than at the
+        // moment each dialog opens - a restored dialog re-runs no such method.
+        contactPickManager.registerContactPickListeners()
+        // Order matters: the re-opened picker delivers to the listener registered on the line above, so
+        // registering second would drop the very pick this call exists to enable.
+        contactPickManager.restorePendingPicker()
+        blackoutManager = LauncherScreenBlackoutManager(WeakReference(this))
+        blackoutManager.onStart()
+    }
+
+    /** S2301: the active launcher screen and its page dots, one owner for all four callers. */
+    // The type is spelled out because the render callback reads the property being declared.
+    private val pagingManager: LauncherScreenPagingManager by lazy {
+        LauncherScreenPagingManager(
+            indicatorContainer = binding.launcherPageIndicator,
+            screenCount = { viewModel.launcherDesktopSettings.value.launcherScreenCount },
+            // S2323: the only render call that changes which screen is drawn, so the only one that shows
+            // a transition. The five others below rebind the screen already showing.
+            onScreenChanged = { direction ->
+                screenTransitionManager.transition(direction) {
+                    geometryManager.renderDesktop(pagingManager.activeScreenIndex)
+                }
+            },
+        )
+    }
+
+    /** S2323: the directional slide, or the screen number when the user turned animations off. */
+    private val screenTransitionManager: LauncherScreenTransitionManager by lazy {
+        LauncherScreenTransitionManager(
+            lifecycleOwner = this,
+            content = binding.launcherGridScroll,
+            badge = binding.launcherScreenNumberBadge,
+            screenIndex = { pagingManager.activeScreenIndex },
+        ).apply { attach() }
+    }
+
+    private fun attachDesktopSwipeActions() {
+        val swipeActionHandler = LauncherDesktopSwipeActionHandler(
+            activity = this,
+            actionDispatcher = screenshotGestureActionDispatcher,
+            screenshotLaunchers = menuScreenshotLaunchers,
+            onOpenAllApps = modalSurfaces::showAllApps,
+            onNextScreen = { pagingManager.next() },
+            onPreviousScreen = { pagingManager.previous() },
+        )
+        desktopGestureManager = LauncherAllAppsGestureManager(
             container = binding.launcherDesktop,
             viewport = binding.launcherGridScroll,
             // Edit mode is for arranging the desktop; a swipe there belongs to the drag, not to us.
             isEnabled = { !viewModel.editMode.value },
-            onOpen = { showAllApps() },
-        ).attach()
-        geometryManager.syncOrientation()
-        addFlowManager.registerAddFlowListeners()
-        blackoutManager = LauncherScreenBlackoutManager(WeakReference(this))
-        blackoutManager.onStart()
+            isTouchOnInteractiveCell = { event ->
+                binding.launcherDesktop.hasChildAtScreenPosition(event.rawX, event.rawY)
+            },
+            onSwipe = { direction ->
+                val settings = viewModel.launcherDesktopSettings.value
+                lifecycleScope.launch {
+                    val (action, payload) = when (direction) {
+                        LauncherAllAppsGestureManager.DesktopSwipeDirection.UP ->
+                            settings.launcherDesktopSwipeUpAction to settings.launcherDesktopSwipeUpPayload
+                        LauncherAllAppsGestureManager.DesktopSwipeDirection.DOWN ->
+                            settings.launcherDesktopSwipeDownAction to settings.launcherDesktopSwipeDownPayload
+                        LauncherAllAppsGestureManager.DesktopSwipeDirection.LEFT ->
+                            settings.launcherDesktopSwipeLeftAction to settings.launcherDesktopSwipeLeftPayload
+                        LauncherAllAppsGestureManager.DesktopSwipeDirection.RIGHT ->
+                            settings.launcherDesktopSwipeRightAction to settings.launcherDesktopSwipeRightPayload
+                    }
+                    val isLeftRight = direction == LauncherAllAppsGestureManager.DesktopSwipeDirection.LEFT ||
+                        direction == LauncherAllAppsGestureManager.DesktopSwipeDirection.RIGHT
+                    val isUnassigned = action is LauncherDesktopSwipeAction.EdgeGestureAction &&
+                        action.action == ScreenshotGestureAction.DO_NOT_USE
+                    val isLeft = direction == LauncherAllAppsGestureManager.DesktopSwipeDirection.LEFT
+                    val screenCount = settings.launcherScreenCount
+                    // The pre-S2301 default: an unassigned horizontal swipe still pages, so a desktop
+                    // nobody configured keeps the behaviour it shipped with. Every assigned action,
+                    // paging included, goes through the handler.
+                    if (isLeftRight && isUnassigned && screenCount > SINGLE_SCREEN) {
+                        if (isLeft) pagingManager.next() else pagingManager.previous()
+                    } else {
+                        swipeActionHandler.handle(action, payload)
+                    }
+                }
+            },
+            onDoubleTap = {
+                val lockEnabled = viewModel.launcherDesktopSettings.value.launcherDesktopDoubleTapLockEnabled
+                Timber.d("S2249: desktop double-tap, lock setting enabled=%s", lockEnabled)
+                if (lockEnabled) {
+                    screenLockManager.lockScreen()
+                }
+            },
+        )
     }
 
     /**
@@ -360,6 +557,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             addCellButton = binding.launcherTaskbar.launcherAddCell,
             snackbarAnchor = binding.launcherRoot,
             viewModel = viewModel,
+            activeScreenIndex = { pagingManager.activeScreenIndex },
             actions = LauncherDesktopActions(
                 addItem = {
                     addFlowManager.openContentPicker(
@@ -369,11 +567,20 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                 },
                 // S1466: the same picker, told which square the user pointed at (owner's ruling 2026-08-17).
                 addItemAtSlot = { row, col -> addFlowManager.openContentPicker(row, col) },
-                wallpaper = { showLauncherSettings(LauncherSettingsDialogFragment.SECTION_DESKTOP) },
+                wallpaper = { showLauncherSettings(LauncherSettingsDialogFragment.SECTION_APPEARANCE) },
                 launcherSettings = { showLauncherSettings() },
             ),
         )
         editModeManager.attach()
+        // S2256: setupViews is BaseActivity's post-inflate hook, so the fragment manager is ready here
+        // and this activity declares no onCreate of its own.
+        if (LauncherOpenAllAppsRequest.consume(intent)) modalSurfaces.showAllApps()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        if (LauncherOpenAllAppsRequest.consume(intent)) modalSurfaces.showAllApps()
     }
 
     /** S1430: the desktop's own scroll thumb - the system bar it replaces could not be dragged. */
@@ -392,8 +599,12 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             composition = viewModel.taskbarComposition,
         )
         placementManager.bind(viewModel.taskbarAtTop)
+        collectOnLifecycle(viewModel.launcherDesktopSettings) {
+            pagingManager.refresh()
+            geometryManager.renderDesktop(pagingManager.activeScreenIndex)
+        }
         collectOnLifecycle(viewModel.cells) { cells ->
-            geometryManager.renderDesktop()
+            geometryManager.renderDesktop(pagingManager.activeScreenIndex)
             // S1400: an empty desktop is the only signal this surface gets when a reset wipes the
             // cells underneath it. Which of the two empty states it is, the seed use case decides from
             // the persisted flags: a reset lowers them and the starter set comes back, while a desktop
@@ -403,17 +614,36 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // Entering/leaving edit mode adds or drops the empty slots and remove badges on the desktop and
         // the unpin "X" / trailing "+" on the taskbar, so re-render both.
         collectOnLifecycle(viewModel.editMode) { editMode ->
-            geometryManager.renderDesktop()
+            geometryManager.renderDesktop(pagingManager.activeScreenIndex)
             taskbarManager.setEditMode(editMode)
         }
         collectOnLifecycle(viewModel.screenBlackoutTimeoutSeconds) { timeout ->
             blackoutManager.updateTimeout(timeout)
         }
+        collectOnLifecycle(idleManager.idleState) { state ->
+            when (state) {
+                LauncherIdleState.ACTIVE -> {
+                    binding.launcherIdleDimOverlay.visibility = View.GONE
+                    binding.launcherIdleDimOverlay.alpha = 0f
+                }
+                LauncherIdleState.DIMMING -> {
+                    binding.launcherIdleDimOverlay.visibility = View.VISIBLE
+                    binding.launcherIdleDimOverlay.animate().alpha(
+                        DIM_OVERLAY_ALPHA
+                    ).setDuration(DIM_ANIMATION_DURATION_MS).start()
+                }
+                LauncherIdleState.BLACKOUT -> {
+                    binding.launcherIdleDimOverlay.visibility = View.VISIBLE
+                    binding.launcherIdleDimOverlay.alpha = 1.0f
+                }
+            }
+        }
         // S1904: the backdrop is part of what a cell looks like, so a new opacity is a re-render - the
         // binder's render key carries it and skips the rebuild when the value did not actually change.
-        collectOnLifecycle(viewModel.widgetBackdropAlpha) {
-            Timber.d("S1904: gadget backdrop alpha applied to desktop render")
-            geometryManager.renderDesktop()
+        collectOnLifecycle(viewModel.widgetBackdropAlpha) { alpha ->
+            Timber.d("S2253: launcher shared surfaces alpha=%s", alpha)
+            geometryManager.renderDesktop(pagingManager.activeScreenIndex)
+            taskbarManager.applyBackdropAlpha(alpha)
         }
         // The density factor changes the column count, so re-derive the grid when it lands.
         collectOnLifecycle(viewModel.densityFactor) {
@@ -422,7 +652,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // S1428: folding a section changes which rows are drawn and nothing that is stored, so it is a
         // render trigger like the two above rather than a desktop change.
         collectOnLifecycle(viewModel.sections.collapsed) {
-            geometryManager.renderDesktop()
+            geometryManager.renderDesktop(pagingManager.activeScreenIndex)
         }
         collectOnLifecycle(viewModel.events) { event ->
             when (event) {
@@ -431,7 +661,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                 LauncherHomeEvent.OpenStreamPicker ->
                     addFlowManager.openStreamPicker()
                 LauncherHomeEvent.OpenStreamsSettings -> {
-                    startActivity(SettingsActivity.openStreamsSectionIntent(this))
+                    startActivity(inOwnTask(SettingsActivity.openStreamsSectionIntent(this)))
                     Toast.makeText(this, R.string.launcher_edit_streams_enable_first, Toast.LENGTH_LONG).show()
                 }
                 is LauncherHomeEvent.PerformLauncherAction -> performLauncherAction(event.actionKey)
@@ -453,7 +683,31 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
     override fun onResumeWithViews() {
         viewModel.onHomeResumed()
+        val currentWallpaper = viewModel.wallpaper.value
+        // A capture still in flight owns the camera and the single output file; a second one would unbind
+        // it mid-write and both would fail, so a fast resume-pause-resume waits for the frame it started.
+        if (currentWallpaper is LauncherWallpaper.InstantPhoto && instantPhotoCaptureJob?.isActive != true) {
+            Timber.d("S2210: instant photo wallpaper resume trigger for camera %s", currentWallpaper.cameraId)
+            instantPhotoCaptureJob = lifecycleScope.launch {
+                val capturedPath = instantPhotoCaptureManager.captureSingleFrame(
+                    cameraId = currentWallpaper.cameraId,
+                    lifecycleOwner = this@LauncherHomeActivity,
+                )
+                if (capturedPath != null) {
+                    viewModel.onInstantPhotoCaptured(capturedPath)
+                }
+            }
+        }
     }
+
+    /**
+     * S2026: this activity is the root of the device's home task, and Android refuses
+     * Picture-in-Picture to anything running in a home-type task. Every app screen opened from here
+     * therefore starts its own task, so a player reached further down that stack can still enter PiP.
+     * The flag needs LauncherHomeActivity's separate taskAffinity to have any effect - while both share
+     * the app's default affinity, NEW_TASK matches the home task and changes nothing.
+     */
+    private fun inOwnTask(intent: Intent): Intent = intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
     /**
      * S1402: a launcher-action cell does exactly what its namesake row in the Start menu does - same
@@ -462,11 +716,11 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     private fun performLauncherAction(actionKey: String) {
         when (actionKey) {
             LauncherActionCatalog.KEY_APP_SETTINGS ->
-                startActivity(Intent(this, SettingsActivity::class.java))
+                startActivity(inOwnTask(Intent(this, SettingsActivity::class.java)))
 
             LauncherActionCatalog.KEY_LAUNCHER_SETTINGS -> showLauncherSettings()
 
-            LauncherActionCatalog.KEY_ALL_APPS -> showAllApps()
+            LauncherActionCatalog.KEY_ALL_APPS -> modalSurfaces.showAllApps()
 
             LauncherActionCatalog.KEY_BLACK_SCREEN -> showBlackScreen()
 
@@ -513,7 +767,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         if (viewModel.editMode.value) return false
         return when (val command = LauncherCellCommand.decode(cellUi.cell.target)) {
             is LauncherCellCommand.App -> {
-                shortcutMenuManager.show(view, command.packageName)
+                shortcutMenuManager.show(view, command.packageName, cellUi.cell.id)
                 true
             }
 
@@ -529,39 +783,6 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
             else -> false
         }
-    }
-
-    private fun showSectionActions(cellUi: LauncherCellUi): Boolean {
-        val sheet = LauncherSectionActionsSheet()
-        sheet.items = listOf(
-            LauncherSectionActionsSheet.ActionItem(
-                action = LauncherSectionActionsSheet.Action.RENAME,
-                label = getString(R.string.launcher_section_action_rename),
-                iconResId = R.drawable.ic_rename,
-            ),
-        )
-        sheet.onItemClick = { action ->
-            when (action) {
-                LauncherSectionActionsSheet.Action.RENAME -> {
-                    openRenameSectionDialog(cellUi)
-                }
-            }
-        }
-        sheet.show(supportFragmentManager, "LauncherSectionActionsSheet")
-        return true
-    }
-
-    private fun openRenameSectionDialog(cellUi: LauncherCellUi) {
-        val requestKey = "rename_section_${cellUi.cell.id}"
-        val initialName = cellUi.visual?.label?.toString().orEmpty()
-        supportFragmentManager.setFragmentResultListener(requestKey, this) { _, bundle ->
-            val newName = bundle.getString(LauncherSectionNameDialogFragment.RESULT_NAME)
-            if (!newName.isNullOrBlank()) {
-                viewModel.renameSection(cellUi.cell.id, newName)
-            }
-        }
-        LauncherSectionNameDialogFragment.newInstance(requestKey, initialName)
-            .show(supportFragmentManager, LauncherSectionNameDialogFragment.TAG)
     }
 
     override fun onStart() {
@@ -582,6 +803,8 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         shortcutMenuManager.dismiss()
         // S1424: same edge, same reason - the resource menu is anchored to a cell of this surface.
         cellActionMenuManager.dismiss()
+        // S2301: and so is the edit-mode menu.
+        cellScreenMenuManager.dismiss()
         // S1101: symmetric with onStart - an animated wallpaper must not keep drawing off-screen.
         if (::wallpaperManager.isInitialized) wallpaperManager.onStop()
         if (::blackoutManager.isInitialized) blackoutManager.onStop()
@@ -605,10 +828,18 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         onRequestPhoneStatePermission = {
             requestPhoneStatePermission.launch(Manifest.permission.READ_PHONE_STATE)
         },
+        onRequestBluetoothPermission = {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                requestBluetoothPermission.launch(Manifest.permission.BLUETOOTH_CONNECT)
+            }
+        },
         // Screen-only: an indicator reports on a section and opens it, never toggling the radio the
         // shared OsShortcut path would try first (ticket ADR-1).
         onOpenSystemScreen = { key ->
             viewModel.run(LauncherCellCommand.OsShortcut(key), screenOnly = true)
+        },
+        onOpenNetworkSurface = { sectionKey, osShortcutKey ->
+            viewModel.openNetworkSurface(sectionKey, osShortcutKey)
         },
     )
 
@@ -621,13 +852,23 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     }
 
     override fun dispatchTouchEvent(ev: android.view.MotionEvent?): Boolean {
+        if (ev != null && ::idleManager.isInitialized) {
+            idleManager.onUserInteraction()
+        }
         if (ev != null && ::blackoutManager.isInitialized && blackoutManager.onDispatchTouchEvent(ev)) {
+            Timber.d("S2267: blackout consumed touch action=%d", ev.actionMasked)
             return true
+        }
+        if (ev != null) {
+            desktopGestureManager?.onTouchEvent(ev)
         }
         return super.dispatchTouchEvent(ev)
     }
 
     override fun dispatchGenericMotionEvent(event: android.view.MotionEvent): Boolean {
+        if (::idleManager.isInitialized) {
+            idleManager.onUserInteraction()
+        }
         if (::blackoutManager.isInitialized && blackoutManager.onDispatchGenericMotionEvent(event)) {
             return true
         }
@@ -635,6 +876,9 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     }
 
     override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
+        if (::idleManager.isInitialized) {
+            idleManager.onUserInteraction()
+        }
         if (::blackoutManager.isInitialized && blackoutManager.onDispatchKeyEvent(event)) {
             return true
         }
@@ -674,7 +918,6 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     private fun statusBarController() = WindowCompat.getInsetsController(window, binding.launcherRoot)
 
     override fun onLayoutConfigurationChanged(newConfig: Configuration) {
-        Timber.d("S1549: LauncherHomeActivity onLayoutConfigurationChanged - grid padding re-read on rotation")
         // S1549: this screen absorbs the configuration change to keep an unfinished widget placement, so the
         // grid padding has to be re-read by hand - resources already resolve to the new orientation here.
         val gridPadding = resources.getDimensionPixelSize(R.dimen.launcher_grid_side_padding)
@@ -690,17 +933,11 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         }
     }
 
-    private fun showStartMenu() {
-        // The sheet is modal; a second tap while it is up must not stack another one.
-        if (supportFragmentManager.findFragmentByTag(LauncherStartMenuFragment.TAG) != null) return
-        LauncherStartMenuFragment().show(supportFragmentManager, LauncherStartMenuFragment.TAG)
-    }
+    companion object {
+        private const val DIM_OVERLAY_ALPHA = 0.6f
+        private const val DIM_ANIMATION_DURATION_MS = 4000L
 
-    /** S1401: the app list, reached from the taskbar button and from the swipe-up gesture alike. */
-    private fun showAllApps() {
-        // The desktop stays touchable behind the screen, so the button and the gesture must not each
-        // open their own instance - the same guard the Start menu carries.
-        if (supportFragmentManager.findFragmentByTag(LauncherAllAppsFragment.TAG) != null) return
-        LauncherAllAppsFragment().show(supportFragmentManager, LauncherAllAppsFragment.TAG)
+        // S2301: a desktop of one screen has nothing to page to.
+        private const val SINGLE_SCREEN = 1
     }
 }

@@ -30,6 +30,16 @@
 .PARAMETER FromTs
   Optional HH:MM:SS lower bound to scope log queries to the run window.
 
+.PARAMETER ArtifactManifest
+  S1984. `artifact.json` written by wear-prerelease-prepare.ps1. Present: the verdict opens by naming
+  the file and version it judged, so a report cannot be read as being about another build. Absent:
+  the phone sweep, unchanged.
+
+.PARAMETER WalkResults
+  S1984. `walk.json` written by wear-prerelease-walk.ps1. Present: each declared screen is listed and
+  a `manual` screen - one nothing could be decided about - blocks the PASS without counting as a
+  failure. Absent: the phone sweep, unchanged.
+
 .PARAMETER Json
   Emit a single JSON verdict object instead of human-readable lines.
 
@@ -43,10 +53,14 @@ param(
     [string]$ScreensDir,
     [string]$MaestroResults,
     [string]$FromTs,
+    [string]$ArtifactManifest,
+    [string]$WalkResults,
     [switch]$Json
 )
 
 $ErrorActionPreference = 'Stop'
+
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
 $SearchLog = Join-Path $PSScriptRoot '..\utils\search-log.ps1'
 
@@ -204,20 +218,79 @@ if ($ScreensDir -and (Test-Path $ScreensDir)) {
 }
 $screenshotBreakdown = [ordered]@{ count = $screenshotCount; evidenceOnly = $true }
 
-$pass = $logPass -and $perfPass -and $maestroPass
+# artifact: identity of the thing this run judged (S1984). Absent parameter = the phone sweep, whose
+# inputs are unchanged; present = the caller recorded which file and version it installed, so the
+# verdict cannot be read as being about a different day's build.
+$artifactBreakdown = $null
+$artifactLine = ''
+if ($ArtifactManifest) {
+    if (-not (Test-Path $ArtifactManifest)) {
+        if ($Json) { '{"pass":false,"error":"artifact manifest not found"}' } else { Write-Host 'artifact manifest not found' }
+        exit 2
+    }
+    try { $manifest = Get-Content -Path $ArtifactManifest -Raw | ConvertFrom-Json }
+    catch {
+        if ($Json) { '{"pass":false,"error":"artifact manifest unreadable"}' } else { Write-Host 'artifact manifest unreadable' }
+        exit 2
+    }
+    $artifactBreakdown = [ordered]@{
+        apk = if ($manifest.apk) { "$($manifest.apk.name) $($manifest.apk.versionName) ($($manifest.apk.versionCode))" } else { $null }
+        aab = if ($manifest.aab) { "$($manifest.aab.name) $($manifest.aab.versionName) ($($manifest.aab.versionCode))" } else { $null }
+    }
+    $artifactLine = "ARTIFACT $($artifactBreakdown.apk) | $($artifactBreakdown.aab)"
+}
+
+# walk: per-screen outcomes of a declared walk (S1984). A `manual` screen is not a failure and not a
+# pass - nothing was decided about it - so it blocks the PASS instead of being counted either way.
+$walkBreakdown = $null
+$manualOpen = 0
+if ($WalkResults) {
+    if (-not (Test-Path $WalkResults)) {
+        if ($Json) { '{"pass":false,"error":"walk results not found"}' } else { Write-Host 'walk results not found' }
+        exit 2
+    }
+    try { $walk = Get-Content -Path $WalkResults -Raw | ConvertFrom-Json }
+    catch {
+        if ($Json) { '{"pass":false,"error":"walk results unreadable"}' } else { Write-Host 'walk results unreadable' }
+        exit 2
+    }
+    $walkScreens = @($walk.screens)
+    $manualOpen = @($walkScreens | Where-Object { $_.outcome -eq 'manual' }).Count
+    $walkBreakdown = [ordered]@{
+        observed = @($walkScreens | Where-Object { $_.outcome -eq 'observed' }).Count
+        failed   = @($walkScreens | Where-Object { $_.outcome -eq 'failed' }).Count
+        manual   = $manualOpen
+        screens  = @($walkScreens | ForEach-Object { [ordered]@{ id = $_.id; outcome = $_.outcome; detail = $_.detail } })
+    }
+}
+
+$walkPass = (-not $walkBreakdown) -or ($walkBreakdown.failed -eq 0)
+$pass = $logPass -and $perfPass -and $maestroPass -and $walkPass
 
 # ---------- emit verdict (step 04.3) ----------
 $verdict = [ordered]@{
-    pass      = [bool]$pass
+    pass      = [bool]($pass -and $manualOpen -eq 0)
+    blocked   = [bool]($pass -and $manualOpen -gt 0)
     breakdown = [ordered]@{
         log        = $logBreakdown
         perf       = $perfBreakdown
         maestro    = $maestroBreakdown
         screenshot = $screenshotBreakdown
+        artifact   = $artifactBreakdown
+        walk       = $walkBreakdown
     }
 }
 
 if ($Json) { $verdict | ConvertTo-Json -Depth 6 -Compress }
-else { Write-Host ("VERDICT {0} - log={1} perf={2} maestro={3} screenshots={4}" -f $(if ($pass) { 'PASS' } else { 'FAIL' }), $logPass, $perfPass, $maestroPass, $screenshotCount) }
+else {
+    if ($artifactLine) { Write-Host $artifactLine -ForegroundColor Cyan }
+    if ($walkBreakdown) {
+        foreach ($s in $walkBreakdown.screens) { Write-Host ("  screen {0,-24} {1}{2}" -f $s.id, $s.outcome, $(if ($s.detail) { " - $($s.detail)" } else { '' })) }
+    }
+    $word = if (-not $pass) { 'FAIL' } elseif ($manualOpen -gt 0) { 'BLOCKED - manual observation open' } else { 'PASS' }
+    Write-Host ("VERDICT {0} - log={1} perf={2} maestro={3} walk={4} screenshots={5}" -f $word, $logPass, $perfPass, $maestroPass, $walkPass, $screenshotCount)
+}
 
-exit $(if ($pass) { 0 } else { 1 })
+# A run with nothing broken but something unobserved is not a pass: strategic S1984 criterion 6
+# refuses a PASS while a step a machine could not run is still open.
+exit $(if ($pass -and $manualOpen -eq 0) { 0 } else { 1 })

@@ -114,6 +114,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
 function Expand-ListArg {
     <#
       S1986: `pwsh -NoProfile -File` hands every token to the binder as its own verbatim string, so

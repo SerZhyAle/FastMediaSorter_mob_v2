@@ -15,4 +15,11 @@ interface LauncherModeContract {
 
     /** ComponentName of the HOME-filter activity, or null when unavailable in this build. */
     fun homeComponent(context: Context): ComponentName?
+
+    /**
+     * S2256: brings the home surface forward with its All apps list open, and reports whether the route
+     * ran. False on builds without the launcher, so a shared gesture action degrades to a silent no-op
+     * instead of reaching for a surface that is not compiled in.
+     */
+    fun openAllApps(context: Context): Boolean
 }

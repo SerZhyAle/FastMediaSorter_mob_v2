@@ -665,6 +665,7 @@ class LocalOperationStrategy @Inject constructor(
                     "${android.provider.MediaStore.MediaColumns.DATA} = ?",
                     arrayOf(filePath)
                 )
+                android.media.MediaScannerConnection.scanFile(context, arrayOf(filePath), null, null)
             } catch (e: Exception) {
                 Timber.w(e, "Failed to remove from MediaStore index, but file deleted")
             }

@@ -1,4 +1,4 @@
-﻿# Script to create Android Studio run configurations for all flavors
+# Script to create Android Studio run configurations for all flavors
 $runConfigsDir = ".idea\runConfigurations"
 
 # Ensure directory exists
@@ -86,20 +86,20 @@ function Create-RunConfig {
 Write-Host "Creating Android Studio run configurations..." -ForegroundColor Green
 
 # Standard flavor
-Create-RunConfig -FlavorName "standard" -BuildType "Debug" -GradleTask "assembleStandardDebug"
-Create-RunConfig -FlavorName "standard" -BuildType "Release" -GradleTask "assembleStandardRelease"
+Create-RunConfig -FlavorName "standard" -BuildType "Debug" -GradleTask ":app_v2:assembleStandardDebug"
+Create-RunConfig -FlavorName "standard" -BuildType "Release" -GradleTask ":app_v2:assembleStandardRelease"
 
 # Lite flavor
-Create-RunConfig -FlavorName "lite" -BuildType "Debug" -GradleTask "assembleLiteDebug"
-Create-RunConfig -FlavorName "lite" -BuildType "Release" -GradleTask "assembleLiteRelease"
+Create-RunConfig -FlavorName "lite" -BuildType "Debug" -GradleTask ":app_v2:assembleLiteDebug"
+Create-RunConfig -FlavorName "lite" -BuildType "Release" -GradleTask ":app_v2:assembleLiteRelease"
 
 # Photos flavor
-Create-RunConfig -FlavorName "photos" -BuildType "Debug" -GradleTask "assemblePhotosDebug"
-Create-RunConfig -FlavorName "photos" -BuildType "Release" -GradleTask "assemblePhotosRelease"
+Create-RunConfig -FlavorName "photos" -BuildType "Debug" -GradleTask ":app_v2:assemblePhotosDebug"
+Create-RunConfig -FlavorName "photos" -BuildType "Release" -GradleTask ":app_v2:assemblePhotosRelease"
 
 # Legacy flavor
-Create-RunConfig -FlavorName "legacy" -BuildType "Debug" -GradleTask "assembleLegacyDebug"
-Create-RunConfig -FlavorName "legacy" -BuildType "Release" -GradleTask "assembleLegacyRelease"
+Create-RunConfig -FlavorName "legacy" -BuildType "Debug" -GradleTask ":app_v2:assembleLegacyDebug"
+Create-RunConfig -FlavorName "legacy" -BuildType "Release" -GradleTask ":app_v2:assembleLegacyRelease"
 
 Write-Host "`n✅ Done! Created 8 run configurations." -ForegroundColor Green
 Write-Host "Restart Android Studio to see them in the run configuration dropdown." -ForegroundColor Yellow

@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.wear.core.util
 
 import android.app.LocaleManager
 import android.content.Context
-import android.content.res.Configuration
 import android.os.Build
 import android.os.LocaleList
 import timber.log.Timber
@@ -11,30 +10,21 @@ import java.util.Locale
 /**
  * Manages locale resolution, validation, and runtime application on Wear OS.
  *
- * S1814: Wear UI language follows the active phone app language.
- * The watch resolves incoming codes against its supported set [SUPPORTED_LANGUAGE_TAGS].
- * If a language is unsupported, it is gracefully ignored (ADR-2).
+ * S1814: Wear UI language follows the active phone app language. If a language is unsupported, it is
+ * gracefully ignored (ADR-2).
+ *
+ * S2054: the supported set is no longer restated here - it comes from [WearLanguageCatalog], which reads
+ * `res/xml/locales_config.xml`. That file is also what Android's per-app language settings read on API
+ * 33+, so both paths into the watch's language now agree by construction rather than by coincidence.
  */
 object WearLocaleManager {
 
-    val SUPPORTED_LANGUAGE_TAGS: Set<String> = setOf("en", "ru", "uk")
-
     /**
-     * Resolves incoming language code or tag (e.g. "ru", "ru-RU", "uk", "en-US") to a supported tag.
-     * Returns null if the language is blank or unsupported.
+     * Resolves incoming language code or tag (e.g. "ru", "ru-RU", "de", "zh-Hans") to a declared tag.
+     * Returns null if the language is blank or not declared.
      */
-    fun resolveSupportedTag(languageCode: String?): String? {
-        val trimmed = languageCode?.trim()
-        if (trimmed.isNullOrEmpty()) return null
-
-        val lower = trimmed.lowercase(Locale.ROOT)
-        val baseLang = Locale.forLanguageTag(trimmed).language.lowercase(Locale.ROOT)
-        return when {
-            SUPPORTED_LANGUAGE_TAGS.contains(lower) -> lower
-            SUPPORTED_LANGUAGE_TAGS.contains(baseLang) -> baseLang
-            else -> null
-        }
-    }
+    fun resolveSupportedTag(context: Context, languageCode: String?): String? =
+        WearLanguageCatalog.resolveTag(context, languageCode)
 
     /**
      * Applies the specified language tag to the application environment.
@@ -43,9 +33,10 @@ object WearLocaleManager {
      */
     @Suppress("TooGenericExceptionCaught")
     fun applyLocale(context: Context, languageTag: String?) {
-        val resolvedTag = resolveSupportedTag(languageTag) ?: return
+        val resolvedTag = resolveSupportedTag(context, languageTag) ?: return
 
         Timber.d("WearLocaleManager: applying locale tag '%s'", resolvedTag)
+        Timber.d("S2054: '%s' resolved from %d declared", resolvedTag, WearLanguageCatalog.supportedTags(context).size)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             try {
@@ -62,17 +53,5 @@ object WearLocaleManager {
             @Suppress("DEPRECATION")
             context.resources.updateConfiguration(config, context.resources.displayMetrics)
         }
-    }
-
-    /**
-     * Wraps the given context with a configuration matching the resolved language tag.
-     * Used in [android.app.Activity.attachBaseContext] on API < 33.
-     */
-    fun wrapContext(base: Context, languageTag: String?): Context {
-        val resolvedTag = resolveSupportedTag(languageTag) ?: return base
-        val locale = Locale.forLanguageTag(resolvedTag)
-        val config = Configuration(base.resources.configuration)
-        config.setLocales(LocaleList(locale))
-        return base.createConfigurationContext(config)
     }
 }

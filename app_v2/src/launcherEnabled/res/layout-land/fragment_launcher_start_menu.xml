@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Landscape splits the Start menu into two compact columns, keeping every action visible at once. -->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/startMenuRoot"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:paddingTop="@dimen/margin_medium"
+    android:paddingBottom="@dimen/margin_medium">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/rowOpenApp"
+            style="@style/Widget.FastMediaSorter.Button.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:gravity="start|center_vertical"
+            android:text="@string/launcher_menu_open_app"
+            android:textColor="?attr/launcherStartRowGroup1"
+            app:icon="@drawable/ic_app_logo"
+            app:iconGravity="start"
+            app:iconTint="?attr/launcherStartRowGroup1" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/rowResources"
+            style="@style/Widget.FastMediaSorter.Button.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:gravity="start|center_vertical"
+            android:text="@string/launcher_menu_resources"
+            android:textColor="?attr/launcherStartRowGroup1"
+            app:icon="@drawable/ic_resource_local"
+            app:iconGravity="start"
+            app:iconTint="?attr/launcherStartRowGroup1" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/rowCreateResource"
+            style="@style/Widget.FastMediaSorter.Button.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:gravity="start|center_vertical"
+            android:text="@string/launcher_create_resource_menu_row"
+            android:textColor="?attr/launcherStartRowGroup1"
+            app:icon="@drawable/ic_add"
+            app:iconGravity="start"
+            app:iconTint="?attr/launcherStartRowGroup1" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/rowAllApps"
+            style="@style/Widget.FastMediaSorter.Button.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:gravity="start|center_vertical"
+            android:nextFocusDown="@id/rowAndroidSettings"
+            android:nextFocusUp="@id/rowCreateResource"
+            android:text="@string/launcher_menu_all_apps"
+            android:textColor="?attr/launcherStartRowGroup1"
+            app:icon="@drawable/ic_launcher_all_apps"
+            app:iconGravity="start"
+            app:iconTint="@null" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/rowAndroidSettings"
+            style="@style/Widget.FastMediaSorter.Button.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:gravity="start|center_vertical"
+            android:text="@string/launcher_menu_android_settings"
+            android:textColor="?attr/launcherStartRowGroup2"
+            app:icon="@drawable/ic_android"
+            app:iconGravity="start"
+            app:iconTint="?attr/launcherStartRowGroup2" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/rowAppSettings"
+            style="@style/Widget.FastMediaSorter.Button.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:gravity="start|center_vertical"
+            android:text="@string/launcher_menu_app_settings"
+            android:textColor="?attr/launcherStartRowGroup2"
+            app:icon="@drawable/ic_settings"
+            app:iconGravity="start"
+            app:iconTint="?attr/launcherStartRowGroup2" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/rowLauncherSettings"
+            style="@style/Widget.FastMediaSorter.Button.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:gravity="start|center_vertical"
+            android:text="@string/launcher_menu_launcher_settings"
+            android:textColor="?attr/launcherStartRowGroup2"
+            app:icon="@drawable/ic_launcher_mode"
+            app:iconGravity="start"
+            app:iconTint="?attr/launcherStartRowGroup2" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/rowEditDesktop"
+            style="@style/Widget.FastMediaSorter.Button.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:gravity="start|center_vertical"
+            android:text="@string/launcher_edit_enter"
+            android:textColor="?attr/launcherStartRowGroup2"
+            app:icon="@drawable/ic_tune"
+            app:iconGravity="start"
+            app:iconTint="?attr/launcherStartRowGroup2" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="@dimen/margin_small"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:background="?attr/colorOutlineVariant" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/rowReboot"
+            style="@style/Widget.FastMediaSorter.Button.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:gravity="start|center_vertical"
+            android:text="@string/launcher_menu_reboot"
+            android:textColor="?attr/launcherStartRowGroup3"
+            app:icon="@drawable/ic_refresh"
+            app:iconGravity="start"
+            app:iconTint="?attr/launcherStartRowGroup3" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/rowShutdown"
+            style="@style/Widget.FastMediaSorter.Button.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:gravity="start|center_vertical"
+            android:text="@string/launcher_menu_shutdown"
+            android:textColor="?attr/launcherStartRowGroup4"
+            app:icon="@drawable/ic_power"
+            app:iconGravity="start"
+            app:iconTint="?attr/launcherStartRowGroup4" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/rowExitMode"
+            style="@style/Widget.FastMediaSorter.Button.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:gravity="start|center_vertical"
+            android:text="@string/launcher_menu_exit_mode"
+            android:textColor="?attr/launcherStartRowGroup3"
+            app:icon="@drawable/ic_exit_to_app"
+            app:iconGravity="start"
+            app:iconTint="?attr/launcherStartRowGroup3" />
+
+    </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>

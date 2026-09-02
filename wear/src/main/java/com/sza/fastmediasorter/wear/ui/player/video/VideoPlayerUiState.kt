@@ -1,12 +1,8 @@
 package com.sza.fastmediasorter.wear.ui.player.video
 
 import com.sza.fastmediasorter.wear.domain.model.StreamChannelReason
+import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
-
-enum class VideoScaleMode {
-    FIT,
-    CROP_PAN
-}
 
 /**
  * UI state for the video player screen.
@@ -18,6 +14,7 @@ data class VideoPlayerUiState(
     val currentPositionMs: Long = 0,
     val durationMs: Long = 0,
     val showControls: Boolean = true,
+    val isShuffleEnabled: Boolean = false,
     val showBatteryWarning: Boolean = false,
     val error: String? = null,
     // S1683: position inside the browsed set. Paging wraps around, so without a visible marker an
@@ -28,13 +25,32 @@ data class VideoPlayerUiState(
     val panOffsetX: Float = 0f,
     val panOffsetY: Float = 0f,
     /**
+     * S1954: whether the open item carries the shared favourite mark - for a stream this is what
+     * "pinned" means, because the list orders by the same mark rather than by a second store.
+     */
+    val isFavorite: Boolean = false,
+    /**
      * S1728: why the network channel affected this stream, or null for "say nothing".
      *
      * Null is the normal case by design - the owner's ruling is that the player speaks only when the
      * channel actually stopped or disturbed a stream. A reason rather than a message, because the
      * screen owns the wording and the locale.
      */
-    val channelReason: StreamChannelReason? = null
+    val channelReason: StreamChannelReason? = null,
+    /**
+     * S2140: the system media volume, read back after each change rather than counted here - same
+     * invariant the audio player already keeps (S1701). The player owns no scale of its own: anything
+     * else on the watch may move the same stream, and a private copy would drift from what is heard.
+     */
+    val volumeLevel: Int = 0,
+    val volumeMax: Int = 0,
+    /** True only while the bezel is being turned, plus the short tail after it stops. */
+    val isVolumeVisible: Boolean = false,
+    /**
+     * S2250: the synced disable-animations preference. Until now the watch stored and synced this
+     * flag without a single consumer in rendering, so the switch changed nothing the user could see.
+     */
+    val animationsDisabled: Boolean = false
 ) {
     val positionText: String
         get() = if (setSize > 0) "${setIndex + 1}/$setSize" else ""
@@ -45,13 +61,13 @@ data class VideoPlayerUiState(
 
     val progress: Float
         get() = if (durationMs > 0) currentPositionMs.toFloat() / durationMs else 0f
-    
+
     val currentPositionFormatted: String
         get() = formatTime(currentPositionMs)
-    
+
     val durationFormatted: String
         get() = formatTime(durationMs)
-    
+
     private fun formatTime(ms: Long): String {
         val totalSeconds = ms / 1000
         val minutes = totalSeconds / 60

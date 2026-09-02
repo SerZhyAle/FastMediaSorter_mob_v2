@@ -14,6 +14,10 @@ Why the app asks for access to all files:
 
 Sorting has to reach the folders you pick, not only the app's own private storage - a file organizer that cannot write into your destination folder does nothing at all. That is why the all-files permission is requested, and it is the permission the main workflow depends on. Nothing leaves your device because of it: there is no account and no telemetry.
 
+Why the app asks for location:
+
+Location is optional and only used by the features that need it: it writes coordinates into the photos and videos you shoot with the built-in camera, it draws the compass, speed, altitude and map gadgets on the launcher desktop, and it fills the GNSS and Wi-Fi sections of the network monitor. It is never read in the background, and the map gadgets load their map imagery over the network to show where you are. Deny it and captures simply carry no coordinates, and those gadgets stay idle.
+
 Because you have to see a file before deciding about it, the viewers and players are built in:
 
 • Photo & image viewer - rotate, color filters, crop, draw annotations, OCR text extraction and AR-style translation overlay, save a compressed copy.
@@ -30,7 +34,7 @@ For every screen and input:
 • Full keyboard, TV remote / D-pad and gamepad navigation.
 • Home-screen widgets - resource launch, continue reading, random music, camera photos.
 • Quick Settings tile for background audio. Search across every settings entry.
-• Wear OS support - browse local media and play from network shares transferred from your phone directly on your watch, without requiring a constant phone connection.
+• Wear OS - a standalone watch app: browse media stored on the watch, play internet radio and TV, three tiles and three watch-face complications, plus calculator, network monitor and voice recorder. Network shares and files arrive from the phone app.
 
 Free, open and private - the app source code is published under Apache License 2.0, and local, SMB, FTP and SFTP browsing plus the image, video, audio, PDF and EPUB viewers all work fully offline, without any account.
 

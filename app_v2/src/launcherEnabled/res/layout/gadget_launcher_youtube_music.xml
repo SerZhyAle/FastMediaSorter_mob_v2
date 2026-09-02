@@ -1,36 +1,90 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- S1755: YouTube Music launcher gadget layout -->
+<!-- S2235: YouTube Music launcher frame widget layout -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:parentTag="android.widget.FrameLayout">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:padding="@dimen/margin_small">
+        android:orientation="vertical"
+        android:padding="@dimen/margin_tiny">
 
-        <ImageView
-            android:id="@+id/gadgetYouTubeMusicIcon"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:contentDescription="@null"
-            android:src="@drawable/ic_youtube_music" />
-
-        <TextView
-            android:id="@+id/gadgetYouTubeMusicTitle"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:paddingStart="@dimen/margin_small"
-            android:paddingEnd="@dimen/margin_small"
-            android:text="@string/launcher_gadget_youtube_music"
-            android:textColor="?attr/colorOnSurface"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/margin_tiny"
+            android:paddingEnd="@dimen/margin_tiny"
+            android:paddingBottom="@dimen/margin_tiny">
+
+            <ImageView
+                android:id="@+id/gadgetYouTubeMusicIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_youtube_music" />
+
+            <TextView
+                android:id="@+id/gadgetYouTubeMusicTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:paddingStart="@dimen/margin_small"
+                android:paddingEnd="@dimen/margin_small"
+                android:text="@string/launcher_gadget_youtube_music"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/gadgetYouTubeMusicRefresh"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/refresh"
+                android:focusable="true"
+                android:foreground="@drawable/focus_button_background"
+                android:padding="4dp"
+                android:src="@drawable/ic_refresh"
+                app:tint="?attr/colorControlNormal" />
+
+            <ImageButton
+                android:id="@+id/gadgetYouTubeMusicOpen"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/launcher_gadget_open_external"
+                android:focusable="true"
+                android:foreground="@drawable/focus_button_background"
+                android:padding="4dp"
+                android:src="@drawable/ic_open_in_browse"
+                app:tint="?attr/colorControlNormal" />
+
+        </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <WebView
+                android:id="@+id/gadgetYouTubeMusicWebView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <ProgressBar
+                android:id="@+id/gadgetYouTubeMusicProgress"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="center"
+                android:visibility="gone" />
+
+        </FrameLayout>
 
     </LinearLayout>
 

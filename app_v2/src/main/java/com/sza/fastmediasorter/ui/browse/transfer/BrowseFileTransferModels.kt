@@ -18,6 +18,7 @@ data class BrowseFileTransferRequest(
     @SerializedName("currentBrowsePath") val currentBrowsePath: String?,
     @SerializedName("destinationPath") val destinationPath: String,
     @SerializedName("destinationName") val destinationName: String,
+    @SerializedName("destinationResourceId") val destinationResourceId: Long? = null,
     @SerializedName("overwriteFiles") val overwriteFiles: Boolean,
     @SerializedName("sources") val sources: List<BrowseFileTransferSource>,
     @SerializedName("softDelete") val softDelete: Boolean = false,

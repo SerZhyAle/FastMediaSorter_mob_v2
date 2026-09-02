@@ -6,9 +6,10 @@
     android:layout_height="match_parent"
     android:background="?attr/colorSurface">
 
-    <!-- S1101: wallpaper layers, behind the grid. At most one is visible; both stay GONE for the "empty"
-         mode, and neither allocates anything until it is sized, so the idle cost of the unused layer is a
-         view object. -->
+    <!-- S1101: wallpaper layers, behind the grid. At most one is visible; all stay GONE for the "empty"
+         mode, and none allocates anything until it is sized, so the idle cost of an unused layer is a
+         view object. S2076 added the third backdrop - the camera preview, which carries a scrim above it
+         and is therefore the only one that raises two views instead of one. -->
     <ImageView
         android:id="@+id/launcherWallpaperImage"
         android:layout_width="0dp"
@@ -31,6 +32,29 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <androidx.camera.view.PreviewView
+        android:id="@+id/launcherWallpaperCamera"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:contentDescription="@null"
+        android:visibility="gone"
+        app:implementationMode="performance"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <View
+        android:id="@+id/launcherWallpaperCameraScrim"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/launcher_camera_scrim"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <!-- S1421: the band the system status bar leaves behind. GONE unless the launcher replaces the status
          area, and a GONE include collapses onto its own anchor, so the grid below lands at the parent top
          exactly as it did before this strip existed. -->
@@ -43,6 +67,22 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- S2323 removed a ViewPager2 that sat here permanently GONE with no Kotlin reference in the whole
+         source set. It was never the paging vehicle - the desktop is one hand-written ViewGroup rebound
+         per screen (ADR-9) - and this ticket's transition animates that container instead. -->
+
+    <LinearLayout
+        android:id="@+id/launcherPageIndicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/launcherTaskbar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
     <!-- One screen plus downward scroll, no desktop pages (strategic §3.3). fillViewport is what makes
          a desktop shorter than the screen still fill it, so the grid is not a floating strip on top. -->
     <androidx.core.widget.NestedScrollView
@@ -53,7 +93,7 @@
         android:fillViewport="true"
         android:paddingStart="@dimen/launcher_grid_side_padding"
         android:paddingEnd="@dimen/launcher_grid_side_padding"
-        app:layout_constraintBottom_toTopOf="@+id/launcherTaskbar"
+        app:layout_constraintBottom_toTopOf="@+id/launcherPageIndicator"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/launcherStatusStrip">
@@ -88,5 +128,39 @@
 
     <!-- S1412: the "done" button lives on the taskbar (launcher_taskbar.xml), not here - floating over
          the grid's top-right corner covered up to two cells that edit mode then could not reach. -->
+
+    <View
+        android:id="@+id/launcherIdleDimOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#80000000"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- S2323: the screen number, shown for half a second when the user turned animations off and the
+         slide that would otherwise mark the page change cannot run. Declared last so it draws above
+         every layer, including the idle dim. Anchored to the scroll container rather than to the parent
+         because that container already sits below the status strip and is already re-constrained for a
+         top or bottom taskbar (S1430), so both corrections are inherited instead of recomputed here
+         (strategic ADR-4). Colour and shadow are applied in code - the colour varies per screen index,
+         and android:shadowRadius takes a float, not a dimension. -->
+    <TextView
+        android:id="@+id/launcherScreenNumberBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:alpha="0.55"
+        android:clickable="false"
+        android:focusable="false"
+        android:importantForAccessibility="no"
+        android:layout_marginTop="@dimen/launcher_screen_badge_margin"
+        android:layout_marginEnd="@dimen/launcher_screen_badge_margin"
+        android:textSize="@dimen/launcher_screen_badge_text_size"
+        android:textStyle="bold"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="@+id/launcherGridScroll"
+        app:layout_constraintTop_toTopOf="@+id/launcherGridScroll" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -11,6 +11,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.databinding.FragmentNetworkMonitorGnssBinding
 import com.sza.fastmediasorter.domain.model.networkmonitor.GnssConstellation
 import com.sza.fastmediasorter.domain.model.networkmonitor.GnssSatellite
@@ -20,6 +21,7 @@ import com.sza.fastmediasorter.ui.networkmonitor.helpers.ChartValueUnit
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.NetworkMonitorPermissionManager
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.SignalChartBinder
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.formatChartValue
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.startSystemSurfaceFor
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.toReasonRes
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -67,6 +69,10 @@ class GnssSectionFragment : Fragment() {
             onResetRequested = viewModel::onChartResetRequested,
         )
         binding.gnssChart.chartHeading.setText(R.string.network_monitor_gnss_chart_heading)
+        val openLocation = { requireContext().startSystemSurfaceFor(OsShortcutCatalog.KEY_LOCATION) }
+        binding.gnssSectionHeading.setOnClickListener { openLocation() }
+        binding.gnssVisibleRow.setOnClickListener { openLocation() }
+        binding.gnssUsedRow.setOnClickListener { openLocation() }
         trackRow().setOnCheckedChangeListener { enabled -> viewModel.onRecordTrackChanged(enabled) }
         binding.btnGnssShareTrack.setOnClickListener { viewModel.onShareTrackRequested() }
         collectOnLifecycle(viewModel.uiState) { render(it) }

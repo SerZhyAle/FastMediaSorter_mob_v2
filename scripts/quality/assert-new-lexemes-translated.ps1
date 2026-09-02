@@ -9,6 +9,12 @@
     the release. This gate is where "allowed to lag" ends: it refuses while any string added since
     the rule was introduced is missing from a declared locale.
 
+    "Missing" covers a reworded string, not only an absent key: a locale holding the key against a
+    superseded English source is reported too (S1824, provenance in locale-source-fingerprints.json).
+    That case is invisible to the eye - all thirteen files carry the key and look filled in - so the
+    registry is the only thing standing between a re-worded label and shipping the old sentence in
+    ten languages.
+
     It owns no logic of its own. scripts/utils/list-new-lexemes.ps1 computes the set and writes the
     file the translator takes; this gate turns that command's exit 3 into a release blocker and
     prints what to do about it. Keeping the producer separate is what lets the same set be reported
@@ -39,7 +45,7 @@
     A registry declaring an identity schema below v2 is exit 2, not exit 1 - see S1858.
 
 .PARAMETER OutDir
-    Where the producer writes the translator-ready files. Default temp/S1627.
+    Where the producer writes the translator-ready files. Default temp/S1627/<module>.
 
 .PARAMETER Quiet
     Print the expected/actual summary line only.
@@ -71,7 +77,7 @@ $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 . (Join-Path $repoRoot 'scripts/quality/lib/locale-fingerprints.ps1')
 $SourceSet = @($SourceSet | ForEach-Object { $_ -split ',' } | Where-Object { $_ } | ForEach-Object { $_.Trim() })
 
-if (-not $OutDir) { $OutDir = Join-Path $repoRoot 'temp/S1627' }
+if (-not $OutDir) { $OutDir = Join-Path $repoRoot "temp/S1627/$Module" }
 if (-not $BaselinePath) { $BaselinePath = Join-Path $repoRoot 'scripts/quality/locale-untranslated-baseline.txt' }
 if (-not $FingerprintsPath) { $FingerprintsPath = Join-Path $repoRoot 'scripts/quality/locale-source-fingerprints.json' }
 

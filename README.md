@@ -58,10 +58,13 @@ FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. O
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.60.8241.708 (August 2026) - Fix Release
+## What's New in v2.60.9021.951 (September 2026)
+
+**New:**
+Reconnect a folder through the system chooser, honest wording when a connection cannot reach documents, camera shooting modes with tap-to-focus, a watch that browses its own storage and carries tiles, two-way watch settings sync, live map / world clock / YouTube desktop gadgets, launcher paging and edge gestures, picture-in-picture from every host, host ping and hop-by-hop traceroute, grouped and translated stream rubrics, a resource list that remembers its filter and sort.
 
 **Fixed:**
-Granting All files access no longer leaves the Permissions required dialog on screen.
+Document previews on a folder connected through the system chooser, the search overlay hiding under the status bar, stale file counts after an operation, the reconnect dialog lost on rotation, an empty stream catalog showing nothing, cancelled watch playback logged as an error, the watch database reset on upgrade, launcher shortcut import and alignment.
 
 [Full release notes →](docs/WHATS_NEW.md)
 
@@ -337,9 +340,10 @@ Detailed guides are available in multiple languages:
 
 ## Wear OS Companion ⌚
 
-FastMediaSorter includes a Wear OS companion app designed for quick access on smartwatch form factors.
+FastMediaSorter includes a Wear OS companion app that has grown from a local-media viewer into a real second screen for your library.
 
-- Browse and play local media directly on Wear OS devices
+- Browse and play your paired phone's folders and favourites, or the watch's own local storage, directly on Wear OS devices
+- Send files between phone and watch, play live streams straight from the watch, and reach small built-in tools (calculator, network monitor, mini-game) without opening the app on your phone
 - UI and runtime behavior optimized for small circular/compact screens
 - Dedicated setup, build, and troubleshooting documentation for watch workflows
 

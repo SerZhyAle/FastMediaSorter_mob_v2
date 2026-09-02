@@ -45,6 +45,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
     private val fileOperationUseCase: FileOperationUseCase,
     private val appendToScheduledLogUseCase: AppendToScheduledLogUseCase,
     private val checkLocalFolderWritableUseCase: CheckLocalFolderWritableUseCase,
+    private val refreshResourceFileCountsUseCase: RefreshResourceFileCountsUseCase,
     private val statsSink: StatsSink,
 ) {
     private val logDateFormat = object : ThreadLocal<SimpleDateFormat>() {
@@ -216,6 +217,15 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
             // Count one run once the work loop executed; config-failure early returns above and the
             // exception path below are not runs. filesProcessed carries the successfully handled count.
             statsSink.record(StatsEvent.ScheduledRun(filesProcessed = successCount.toLong()))
+            if (successCount > 0) {
+                refreshResourceFileCountsUseCase(
+                    listOfNotNull(sourceResource.id, targetResource?.id),
+                )
+                Timber.d(
+                    "S1995: refreshed resource counts after scheduled operation, processed=%d",
+                    successCount,
+                )
+            }
             ScheduledExecutionResult(operationId, successCount, errors, permissionRequired = permissionStop)
 
         } catch (e: CancellationException) {

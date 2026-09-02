@@ -144,7 +144,32 @@ object SubProgramCatalog {
         SubProgramEntry(
             routeKey = InternalRouteCatalog.KEY_FRONT_FLASHLIGHT,
             order = 100,
-            surfaces = setOf(SubProgramSurface.QUICK_ACCESS_PANEL, SubProgramSurface.LAUNCHER_SHORTCUT),
+            surfaces = setOf(
+                SubProgramSurface.PROGRAMS_MENU,
+                SubProgramSurface.QUICK_ACCESS_PANEL,
+                SubProgramSurface.LAUNCHER_SHORTCUT,
+                SubProgramSurface.WIDGET,
+            ),
+            widgetKey = "front_flashlight",
+            disable = { it.copy(frontFlashlightEnabled = false) },
+        ),
+        SubProgramEntry(
+            routeKey = InternalRouteCatalog.KEY_PHYSICAL_FLASHLIGHT,
+            order = 101,
+            surfaces = setOf(
+                SubProgramSurface.PROGRAMS_MENU,
+                SubProgramSurface.QUICK_ACCESS_PANEL,
+                SubProgramSurface.LAUNCHER_SHORTCUT,
+            ),
+        ),
+        SubProgramEntry(
+            routeKey = InternalRouteCatalog.KEY_BLACK_SCREEN,
+            order = 105,
+            surfaces = setOf(
+                SubProgramSurface.PROGRAMS_MENU,
+                SubProgramSurface.QUICK_ACCESS_PANEL,
+                SubProgramSurface.LAUNCHER_SHORTCUT,
+            ),
         ),
         SubProgramEntry(
             routeKey = InternalRouteCatalog.KEY_TAKE_PHOTO_SEND_TO,

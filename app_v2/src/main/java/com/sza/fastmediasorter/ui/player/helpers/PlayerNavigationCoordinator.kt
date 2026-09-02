@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
@@ -446,7 +447,7 @@ class PlayerNavigationCoordinator(
                 resourceRepository.updateResource(resource.copy(lastViewedFile = filePath))
                 Timber.d("Saved lastViewedFile=$filePath for resource: ${resource.name}")
             } catch (e: Exception) {
-                Timber.e(e, "Failed to save lastViewedFile")
+                e.errorUnlessCancellation("Failed to save lastViewedFile")
             }
         }
     }
@@ -460,7 +461,7 @@ class PlayerNavigationCoordinator(
                 resourceRepository.updateResource(resource.copy(lastViewedFile = filePath))
                 Timber.d("Saved lastViewedFile=$filePath for resource: ${resource.name}")
             } catch (e: Exception) {
-                Timber.e(e, "Failed to save lastViewedFile")
+                e.errorUnlessCancellation("Failed to save lastViewedFile")
             }
         }
     }

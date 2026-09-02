@@ -8,9 +8,12 @@ import android.view.inputmethod.EditorInfo
 import android.widget.FrameLayout
 import androidx.core.content.getSystemService
 import androidx.core.view.isVisible
+import androidx.lifecycle.findViewTreeLifecycleOwner
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.GadgetLauncherTranslatorBinding
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.dialog.TranslationSettingsDialog
 import com.sza.fastmediasorter.ui.player.helpers.TextTranslationFacade
 import com.sza.fastmediasorter.ui.player.helpers.TextTranslationFacadeFactory
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
@@ -18,6 +21,7 @@ import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -35,6 +39,7 @@ import javax.inject.Inject
  */
 class TranslatorGadget @Inject constructor(
     private val facadeFactory: Lazy<TextTranslationFacadeFactory>,
+    private val settingsRepository: Lazy<SettingsRepository>,
 ) : LauncherGadget {
 
     override val key: String = LauncherGadgetRegistry.KEY_TRANSLATOR
@@ -47,7 +52,7 @@ class TranslatorGadget @Inject constructor(
     override val requiresResourceParam: Boolean = false
 
     override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View =
-        TranslatorGadgetView(container.context, facadeFactory)
+        TranslatorGadgetView(container.context, facadeFactory, settingsRepository)
 }
 
 /**
@@ -102,6 +107,7 @@ fun decideTranslatorState(
 private class TranslatorGadgetView(
     context: Context,
     private val facadeFactory: Lazy<TextTranslationFacadeFactory>,
+    private val settingsRepository: Lazy<SettingsRepository>,
 ) : LauncherGadgetView(context), TranslationManager.TranslationCallback {
 
     private val binding = GadgetLauncherTranslatorBinding.inflate(LayoutInflater.from(context), this)
@@ -139,17 +145,69 @@ private class TranslatorGadgetView(
             translate(pasted)
         }
         binding.gadgetTranslatorSwap.setOnClickListener { swapDirection() }
+        binding.gadgetTranslatorDirection.setOnClickListener { openLanguageSettings() }
         renderState(TranslatorState.EMPTY_INPUT)
     }
 
     override suspend fun CoroutineScope.onActive() {
         scope = this
+        renderPairCaption()
         try {
             awaitCancellation()
         } finally {
             scope = null
             facade?.release()
             facade = null
+        }
+    }
+
+    /** The caption is the settings entry, so it carries the saved pair before any input exists. */
+    private suspend fun renderPairCaption() {
+        val (source, target) = effectivePair()
+        showPair(source, target)
+    }
+
+    /**
+     * The pair the next translation runs in: the user's swap, else the program translation settings -
+     * the single source the owner ruled by (2026-08-29). "auto" passes through verbatim because the
+     * engine branch that detects is keyed on that literal, and the mapper would flatten it to "en".
+     */
+    private suspend fun effectivePair(): Pair<String, String> =
+        forcedSource?.let { source -> source to (forcedTarget ?: FALLBACK_LANG) } ?: run {
+            val settings = settingsRepository.get().getSettings().first()
+            val rawSource = settings.translationSourceLanguage
+            val source = if (rawSource == AUTO_LANG) {
+                AUTO_LANG
+            } else {
+                TranslationManager.languageCodeToMLKit(rawSource)
+            }
+            source to TranslationManager.languageCodeToMLKit(settings.translationTargetLanguage)
+        }
+
+    private fun showPair(source: String, target: String) {
+        binding.gadgetTranslatorDirection.text = context.getString(
+            R.string.launcher_translator_direction,
+            source,
+            target,
+        )
+    }
+
+    /**
+     * The caption opens the dialog where the pair lives and where the translation engine gets
+     * enabled - the surface a pair-less or engine-less cell was missing. Applying settings there
+     * drops the session swap, so what the user just saved is what runs next.
+     */
+    private fun openLanguageSettings() {
+        Timber.d("S2237: language settings requested")
+        val owner = findViewTreeLifecycleOwner() ?: return
+        TranslationSettingsDialog.show(
+            context = context,
+            lifecycleOwner = owner,
+            settingsRepository = settingsRepository.get(),
+        ) {
+            forcedSource = null
+            forcedTarget = null
+            scope?.launch { renderPairCaption() }
         }
     }
 
@@ -173,13 +231,9 @@ private class TranslatorGadgetView(
         failed = false
         activeScope.launch {
             val engine = facade ?: facadeFactory.get().create(this@TranslatorGadgetView).also { facade = it }
-            val source = forcedSource ?: runCatching { engine.detectLanguage(text) }.getOrDefault(FALLBACK_LANG)
-            val target = forcedTarget ?: engine.getTargetLanguageCode() ?: FALLBACK_LANG
-            binding.gadgetTranslatorDirection.text = context.getString(
-                R.string.launcher_translator_direction,
-                source,
-                target,
-            )
+            val (source, target) = effectivePair()
+            Timber.d("S2237: translate pair %s to %s", source, target)
+            showPair(source, target)
             val translated = runCatching { engine.translate(text, source, target) }
                 .onFailure {
                     failed = true
@@ -190,24 +244,23 @@ private class TranslatorGadgetView(
                 binding.gadgetTranslatorResult.text = translated
             }
             val state = decideTranslatorState(text, translated, modelMissing, failed)
-            Timber.d("S1177: translator cell %s to %s, state=%s", source, target, state)
             renderState(state)
         }
     }
 
     /**
-     * Swaps the direction for the next translation. The last result stays on screen: it is still a true
-     * translation of what was typed, and blanking it would punish a mis-tap.
+     * Swaps the pair for the session. The last result stays on screen: it is still a true translation
+     * of what was typed, and blanking it would punish a mis-tap.
      */
     private fun swapDirection() {
-        val current = forcedSource
-        forcedSource = forcedTarget
-        forcedTarget = current
-        binding.gadgetTranslatorDirection.text = context.getString(
-            R.string.launcher_translator_direction,
-            forcedSource ?: AUTO_LANG,
-            forcedTarget ?: AUTO_LANG,
-        )
+        Timber.d("S2237: swap requested")
+        val activeScope = scope ?: return
+        activeScope.launch {
+            val (source, target) = effectivePair()
+            forcedSource = target
+            forcedTarget = source
+            showPair(target, source)
+        }
     }
 
     /**
@@ -261,7 +314,7 @@ private class TranslatorGadgetView(
     }
 
     private companion object {
-        /** What the direction line shows before anything has been detected. */
+        /** The settings' auto-detect value: passed through to the engine and shown as-is. */
         const val AUTO_LANG = "auto"
 
         /** The engine's own default axis - every pair it supports translates through English. */

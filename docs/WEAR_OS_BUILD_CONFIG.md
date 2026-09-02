@@ -36,7 +36,9 @@ permalink: /docs/WEAR_OS_BUILD_CONFIG.html
 Available in `scripts/builders/`:
 
 - `scripts/builders/build-wear-debug.PS1` - Quick debug build
-- `scripts/builders/build-wear-release.PS1` - Release build
+- `scripts/builders/build-wear-release.PS1` - Release build of this module alone. `-Artifact Apk|Aab|Both` selects `:wear:assembleRelease`, `:wear:bundleRelease` or both in one gradle call. It carries the version already checked into `wear/build.gradle.kts` unless `-VersionName`/`-VersionCode` pin one.
+
+For a release that ships the watch, the artifacts come from `scripts/release/build-release-spectrum.ps1` instead, with `wear` in `-Flavors`. That script stamps one version into both `app_v2` and `wear` first, then builds `:wear:assembleRelease` and `:wear:bundleRelease` in the same invocation, so the sideload APK and the Play bundle cannot disagree about what they are (S2040). It refuses to finish if either artifact is missing.
 
 Fast checks live on the `a.ps1` launcher. The phone targets do not cover this module: `fk`, `fkn`,
 `fr`, `fc` and `fu` all check `app_v2` and exit 0 without compiling a single watch file.
@@ -67,7 +69,7 @@ BUILD SUCCESSFUL in 11s
 40 actionable tasks: 14 executed, 26 up-to-date
 ```
 
-**APK Generated**: `wear/build/outputs/apk/debug/wear-debug.apk`
+**APK Generated**: `wear/build/outputs/apk/standard/debug/wear-standard-debug.apk` (S2090 added the `standard`/`noLegal` flavor dimension; pass `-Flavor noLegal` to the builder for the sideload variant)
 
 Size, measured 2026-08-15 (S1679). Compare a new build against the **release** number - the debug one is not minified and is misleading by a factor of seven:
 

@@ -103,17 +103,28 @@ function Read-JsonlFile {
     }
     $raw = Get-Content -LiteralPath $Path -Encoding UTF8 -ErrorAction Stop
     if (-not $raw) { return ,@() }
-    $records = New-Object System.Collections.Generic.List[object]
-    $lineNo = 0
     $fileName = Split-Path -Leaf $Path
-    foreach ($line in @($raw)) {
-        $lineNo++
-        $trim = "$line".Trim()
-        if (-not $trim) { continue }
-        try {
-            $records.Add(($trim | ConvertFrom-Json))
-        } catch {
-            throw "Catalog parse error in ${fileName} at line ${lineNo}: $($_.Exception.Message)"
+    $lines = @(@($raw) | ForEach-Object { "$_".Trim() } | Where-Object { $_ })
+    $records = New-Object System.Collections.Generic.List[object]
+    # One parse for the whole journal. A per-line ConvertFrom-Json costs ~8x more on a file this
+    # size, and every catalog script pays it before it can answer anything. The per-line loop is
+    # kept as the FALLBACK, because it is the only thing that can name the offending line number -
+    # a bulk failure reports an offset into a string nobody can look at.
+    try {
+        if ($lines.Count -gt 0) {
+            foreach ($record in @(('[' + ($lines -join ',') + ']') | ConvertFrom-Json)) { $records.Add($record) }
+        }
+    }
+    catch {
+        $records.Clear()
+        $lineNo = 0
+        foreach ($trim in $lines) {
+            $lineNo++
+            try {
+                $records.Add(($trim | ConvertFrom-Json))
+            } catch {
+                throw "Catalog parse error in ${fileName} at line ${lineNo}: $($_.Exception.Message)"
+            }
         }
     }
     $sorted = [object[]]@($records | Sort-Object -Property id)
@@ -320,6 +331,70 @@ function Get-TicketBaseName {
     return [System.IO.Path]::GetFileNameWithoutExtension($File)
 }
 
+# -- Live occupancy markers in the release files (owner ruling 2026-09-01) --------------------
+#
+# A ticket taken by a live agent session is marked on its own row, in the file the owner reads:
+# `[taken 15:42, /spec-all, be08adb0]`. The lease store under temp/ stays the source of truth -
+# this is a rendering of it, rewritten on every catalog mutation, so a session that died loses
+# its marker on the next write instead of sitting in the plan as work in progress.
+#
+# The marker carries a CLAIM TIME, never an age: an age is wrong the second after it is written,
+# and it would turn every sync into a diff on every taken row.
+$script:ReleaseQueueLeaseMarkerPattern = '\s*\[taken\s[^\]]*\]\s*$'
+$script:ReleaseQueueLeaseMap = $null
+
+function Remove-ReleaseQueueLeaseMarker {
+    # Strip before parsing: status is the LAST field on the line, so an unstripped marker is read
+    # as part of the status and drifts the whole file against the catalog.
+    param([Parameter(Mandatory)][AllowEmptyString()][string] $Line)
+    return ($Line -replace $script:ReleaseQueueLeaseMarkerPattern, '')
+}
+
+function Get-ReleaseQueueLeaseMap {
+    # Ticket id -> marker text, for leases a live session still holds. Read straight off the lease
+    # files: this runs inside every catalog write, and spawning ticket-lease.ps1 here would put a
+    # child process on the hot path of every single status change.
+    #
+    # Liveness is NOT decided here - Get-AgentTicketLiveness in scripts/utils/agent-lock.ps1 owns
+    # that rule and a second copy would drift from it. One refinement of ticket-lease.ps1 is
+    # deliberately not reproduced: it promotes a quiet session back to live while that session
+    # still holds a build or code lock. Missing it can only drop a marker, never invent one.
+    param([switch] $Refresh)
+    if ($null -ne $script:ReleaseQueueLeaseMap -and -not $Refresh) { return $script:ReleaseQueueLeaseMap }
+
+    $map = @{}
+    $script:ReleaseQueueLeaseMap = $map
+    $leaseDir = Join-Path $script:RepoRoot 'temp\SPEC-TICKET.LEASES'
+    if (-not (Test-Path -LiteralPath $leaseDir)) { return $map }
+
+    try {
+        . (Join-Path $script:RepoRoot 'scripts\utils\agent-lock.ps1')
+        $staleMinutes = [int] $Script:AgentLockTimings.SpecTicket.SessionStaleMinutes
+    } catch {
+        # No liveness rule available means no honest marker: render none rather than a guess.
+        return $map
+    }
+
+    foreach ($file in (Get-ChildItem -LiteralPath $leaseDir -Filter '*.json' -ErrorAction SilentlyContinue)) {
+        try { $lease = Get-Content -LiteralPath $file.FullName -Raw -Encoding utf8 | ConvertFrom-Json } catch { continue }
+        if ($null -eq $lease -or [string]::IsNullOrWhiteSpace([string] $lease.id)) { continue }
+        if ((Get-AgentTicketLiveness -Ticket $lease -StaleMinutes $staleMinutes) -eq 'foreign-stale') { continue }
+
+        $claimed = $file.LastWriteTime
+        if ($lease.PSObject.Properties['claimedAt'] -and $lease.claimedAt) {
+            try { $claimed = [DateTimeOffset]::FromUnixTimeMilliseconds([int64] $lease.claimedAt).LocalDateTime } catch { }
+        }
+        # The date shows only when the claim is not from today, so a marker left by yesterday's run
+        # reads as old at a glance instead of looking like this morning's work.
+        $when = if ($claimed.Date -eq (Get-Date).Date) { $claimed.ToString('HH:mm') } else { $claimed.ToString('MM-dd HH:mm') }
+        $reason = if ([string]::IsNullOrWhiteSpace([string] $lease.reason)) { 'unnamed run' } else { [string] $lease.reason }
+        $session = [string] $lease.sessionId
+        if ($session.Length -ge 8) { $session = $session.Substring(0, 8) }
+        $map[[string] $lease.id] = ('[taken {0}, {1}, {2}]' -f $when, $reason, $session)
+    }
+    return $map
+}
+
 function Format-ReleaseQueueLine {
     param(
         [Parameter(Mandatory)][string] $Release,
@@ -345,7 +420,8 @@ function Read-ReleaseFile {
     foreach ($line in @($raw)) {
         # A data line is: <release> <Sxxxx_slug> <yyyy-MM-dd> <Status>. Anchoring on the id
         # shape keeps prose and the column header from ever being mistaken for data.
-        if ("$line" -match '^\s*(\d+|--)\s+(S\d{4}_\S*)\s+(\d{4}-\d{2}-\d{2})\s+(\S.*?)\s*$') {
+        $parsable = Remove-ReleaseQueueLeaseMarker -Line "$line"
+        if ($parsable -match '^\s*(\d+|--)\s+(S\d{4}_\S*)\s+(\d{4}-\d{2}-\d{2})\s+(\S.*?)\s*$') {
             $result.Add([pscustomobject]@{
                 Kind    = 'ticket'
                 Release = $Matches[1]
@@ -372,11 +448,17 @@ function Write-ReleaseFile {
         [Parameter(Mandatory)][AllowEmptyCollection()] $Lines
     )
     $out = New-Object System.Collections.Generic.List[string]
+    $leaseMap = Get-ReleaseQueueLeaseMap
     # Iterate the List directly: @(..) around a List[object] of PSCustomObject throws
     # "Argument types do not match" (the array subexpression cannot build the PSObject[] copy).
     foreach ($l in $Lines) {
         if ($l.Kind -eq 'ticket') {
-            $out.Add((Format-ReleaseQueueLine -Release $l.Release -Ticket $l.Ticket -Changed $l.Changed -Status $l.Status))
+            $row = Format-ReleaseQueueLine -Release $l.Release -Ticket $l.Ticket -Changed $l.Changed -Status $l.Status
+            $marker = $leaseMap[[string] $l.Id]
+            # Padded to a fixed column: the status field is ragged ('Draft' against
+            # 'BlockNeedUserTest'), and an unpadded marker zig-zags down the block.
+            if ($marker) { $row = ('{0,-98}{1}' -f $row, $marker) }
+            $out.Add($row)
         } else {
             $out.Add($l.Text)
         }
@@ -666,8 +748,12 @@ function Resolve-SpecPath {
 }
 
 function Assert-ClosingGates {
-    # Run every gate that guards a transition INTO a closed status, from the one place
-    # both status-change paths can reach.
+    # Run every gate that guards a transition INTO a gated status, from the one place
+    # all three status-change paths reach (update.ps1, close.ps1, bulk-update.ps1).
+    #
+    # The name says "Closing" for the statuses it originally guarded; since S2324 the set
+    # also holds BlockNeedUserTest, which closes nothing. Kept rather than renamed because
+    # the name appears in three call sites and in the gate output operators already read.
     #
     # Why here and not in update.ps1: the canonical closure path is /spec-check, which
     # runs close-and-log.ps1 -> close.ps1, and close.ps1 invoked no gate at all. A gate
@@ -682,12 +768,65 @@ function Assert-ClosingGates {
         [string] $OldStatus,
         [Parameter(Mandatory)][string] $NewStatus
     )
-    $gatedStatuses = @('Implemented', 'Verified')
+    # S2324 - BlockNeedUserTest joins the gated set. It is NOT a closed status, and the
+    # difference decides which checkers run: the two contracts below ask what a FINISHED
+    # ticket left behind, which is not a question about one still waiting to be observed.
+    # It brings exactly one checker of its own, and the transition is gated because that is
+    # the moment the probe invariant becomes violable - measured 2026-09-02, 20 tickets sat
+    # in this status with no probe, and the set had turned over in a day rather than sitting
+    # still, so a sweep alone would refill.
+    $gatedStatuses = @('Implemented', 'Verified', 'BlockNeedUserTest')
     if ($gatedStatuses -notcontains $NewStatus -or $OldStatus -eq $NewStatus) { return }
 
-    # S1606 - a closed spec must not cite evidence under disposable temp/.
-    # S1607 - a closed spec must not strand an open question nobody owns.
-    $checkers = @('check-evidence-durable.ps1', 'check-open-items-carried.ps1')
+    $checkers = New-Object System.Collections.Generic.List[string]
+
+    # S2357 - added before the split because it is the one check here that does not ask what
+    # the ticket achieved: it asks whether its files contradict themselves, which is equally
+    # true of a finished ticket and of one parked for a human. A section written twice is
+    # invisible to every other gate - the shared parser stops at the next '## ', so all of
+    # them read the first copy - and it can invert their verdict rather than merely add
+    # noise: measured 2026-09-02, S1884's split audit block made check-audit-recorded.ps1
+    # answer PASS on a three-line stub carrying no '**Outcome:**' at all.
+    $checkers.Add('check-headings-unique.ps1')
+
+    if ($NewStatus -eq 'BlockNeedUserTest') {
+        # S2324 - a ticket parked for a human to watch must carry the probe that lets the
+        # human tell "the scenario ran the new code" from "it never got there", or name in
+        # the baseline why no executable path exists to carry one.
+        $checkers.Add('check-probe-present.ps1')
+
+        # S2367 - and it must carry a verdict as well as a probe. This is the moment work is
+        # handed to the owner, and until now nothing asked whether anyone had compared the
+        # result against the task: measured 2026-09-02, 72 of the 158 tickets sitting in this
+        # status carried no audit block at all. That is not forgetfulness - /spec-code step 4
+        # forbids running /spec-check before parking, because it would flip the ticket out of
+        # the status and delete the probes the pending device test needs. The parking command
+        # therefore writes the block itself (mode pre-handoff), which touches neither.
+        $checkers.Add('check-audit-recorded.ps1')
+        $checkers.Add('check-audit-current.ps1')
+    }
+    else {
+        # S1606 - a closed spec must not cite evidence under disposable temp/.
+        # S1607 - a closed spec must not strand an open question nobody owns.
+        $checkers.Add('check-evidence-durable.ps1')
+        $checkers.Add('check-open-items-carried.ps1')
+
+        # S2298 - Verified only, and the asymmetry is the point: Verified asserts that an audit
+        # passed, and the audit's verdict exists in exactly one place, the spec's `## Last Audit`
+        # block. Implemented asserts only that the code is done, which is true before any audit
+        # has run, so demanding the block there would require a verdict ahead of the run that
+        # produces it. Kept a separate list rather than a flag inside the loop so "which statuses
+        # this checker guards" stays a property of the list a checker is in.
+        if ($NewStatus -eq 'Verified') { $checkers.Add('check-audit-recorded.ps1') }
+
+        # S2367 - and that block must have judged the task the file carries NOW. A verdict is a
+        # claim about a task, and the task is edited under a running pipeline: by the owner, by
+        # /spec-quiz writing an answer in, by a sibling session. The pipeline reads the spec once
+        # at Stage 0, so without this the audit can be a true statement about words nobody kept.
+        # Verified only, for the same asymmetry: Implemented expects no audit to have run.
+        if ($NewStatus -eq 'Verified') { $checkers.Add('check-audit-current.ps1') }
+    }
+
     foreach ($name in $checkers) {
         $checker = Join-Path $PSScriptRoot $name
         # A missing checker is tolerated, matching how the owner-inputs gate call behaves:
@@ -697,10 +836,10 @@ function Assert-ClosingGates {
         # Exit 2 fails too: "could not look" is not "found nothing".
         if ($LASTEXITCODE -ne 0) {
             Write-Host ""
-            Write-Host ("Closing gate blocked {0} -> {1} ({2}):" -f $Id, $NewStatus, $name) -ForegroundColor Yellow
+            Write-Host ("Status gate blocked {0} -> {1} ({2}):" -f $Id, $NewStatus, $name) -ForegroundColor Yellow
             $output | ForEach-Object { Write-Host $_ }
             Write-Host ""
-            throw ("Cannot close '{0}': {1} reported exit {2}. Fix what it names, then re-run." -f $Id, $name, $LASTEXITCODE)
+            throw ("Cannot set '{0}' to '{1}': {2} reported exit {3}. Fix what it names, then re-run." -f $Id, $NewStatus, $name, $LASTEXITCODE)
         }
     }
 
@@ -713,7 +852,11 @@ function Assert-ClosingGates {
     # something user-facing, and the closing path cannot tell that apart from a tooling or documentation
     # ticket without reading intent. Refusing on a guess would make those tickets unclosable, which is a
     # worse failure than the reminder being ignored.
-    $advisories = @('check-capability-recorded.ps1')
+    #
+    # S2324 - closing statuses only. A capability record answers "what did this ticket ship",
+    # which a ticket entering BlockNeedUserTest has not finished doing; printing the reminder
+    # there would train the operator to scroll past it at the one moment it means nothing.
+    $advisories = if ($NewStatus -eq 'BlockNeedUserTest') { @() } else { @('check-capability-recorded.ps1') }
     foreach ($name in $advisories) {
         $checker = Join-Path $PSScriptRoot $name
         if (-not (Test-Path -LiteralPath $checker)) { continue }

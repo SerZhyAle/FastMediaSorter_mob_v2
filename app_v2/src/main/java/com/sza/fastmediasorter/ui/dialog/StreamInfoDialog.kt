@@ -1,8 +1,6 @@
 package com.sza.fastmediasorter.ui.dialog
 
 import android.app.Dialog
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.os.Bundle
 import android.text.format.DateFormat
@@ -10,12 +8,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.annotation.StringRes
-import androidx.core.content.getSystemService
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.clipboard.copyTextToClipboard
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.databinding.DialogStreamInfoBinding
 import com.sza.fastmediasorter.ui.dialog.helpers.StreamFormatProbeManager
@@ -155,11 +152,7 @@ class StreamInfoDialog(
 
     private fun copyReadout() {
         val text = formatter.asPlainText(StreamInfoReadout.Resolved(shownGroups))
-        val clipboard = context.getSystemService<ClipboardManager>() ?: return
-        clipboard.setPrimaryClip(ClipData.newPlainText(infoResources.string(R.string.stream_info_window_title), text))
-        // A toast rather than an accessibility announcement: the announcement API is deprecated, and a
-        // toast is already read aloud by the screen reader, so one call serves both readers.
-        Toast.makeText(context, R.string.stream_info_copied, Toast.LENGTH_SHORT).show()
+        context.copyTextToClipboard(infoResources.string(R.string.stream_info_window_title), text)
     }
 
     private fun addRows(container: ViewGroup, properties: List<StreamInfoProperty>) {

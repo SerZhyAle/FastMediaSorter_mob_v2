@@ -1,0 +1,152 @@
+{
+  "_comment": [
+    "S1984 - the declared watch pre-release walk, in the order it is taken.",
+    "Every entry is a destination the navigation graph reaches WITHOUT route arguments.",
+    "expect: a token that is on the destination and NOT on the screen it was opened from. Most watch",
+    "screens repeat their parent chip's label as their own title, so a title is usually not a marker.",
+    "label: matched against text AND content-description, which is what the Home and Apps chips carry;",
+    "the wear module declares no testTag anywhere, so no entry can name a resource-id.",
+    "backAfter: BACK presses after the check. 0 keeps the walk inside a section it just opened.",
+    "Regenerate the reasoning, not this file, from wear/.../navigation/WearRoutes.kt and MainActivity.kt."
+  ],
+  "screens": [
+    {
+      "id": "permission-gate",
+      "name": "Permission gate (first launch only)",
+      "label": "Grant",
+      "expect": "FastMedia Wear",
+      "optional": true,
+      "backAfter": 0,
+      "note": "A fresh install asks for media permissions before the home list exists; a second run does not show this."
+    },
+    {
+      "id": "home",
+      "name": "Home",
+      "expect": "FastMedia Wear",
+      "backAfter": 0,
+      "note": "Start destination. No tap: the app is already here after launch."
+    },
+    {
+      "id": "resources",
+      "name": "Resources (network sources)",
+      "label": "Resources",
+      "expect": "Sync from Phone",
+      "backAfter": 1,
+      "note": "The screen title repeats the Home chip label, so the sync action is the marker instead."
+    },
+    {
+      "id": "phone",
+      "name": "Phone home",
+      "label": "Phone",
+      "expect": "Recents",
+      "backAfter": 1
+    },
+    {
+      "id": "local",
+      "name": "Local home",
+      "label": "Local",
+      "expect": "Music",
+      "backAfter": 1,
+      "note": "Music, Videos and Photos are each gated by their media-type switch; all three ship enabled."
+    },
+    {
+      "id": "streams",
+      "name": "Streams",
+      "label": "Streams",
+      "expect": "Search streams",
+      "stateDependent": true,
+      "backAfter": 1,
+      "note": "The Home entry disappears when the Streams switch is turned off, which is a setting rather than a defect."
+    },
+    {
+      "id": "favourites",
+      "name": "Favourites",
+      "label": "Favourites",
+      "expect": "Nothing marked yet",
+      "stateDependent": true,
+      "backAfter": 1,
+      "note": "A clean install shows the empty hint; a device with favourites shows a list instead, which a human judges."
+    },
+    {
+      "id": "apps",
+      "name": "Apps",
+      "label": "Apps",
+      "expect": "Calculator",
+      "backAfter": 0
+    },
+    {
+      "id": "apps-calculator",
+      "name": "Calculator",
+      "label": "Calculator",
+      "expect": "Clear",
+      "backAfter": 1
+    },
+    {
+      "id": "apps-network-monitor",
+      "name": "Network Monitor",
+      "label": "Network Monitor",
+      "expect": "Summary",
+      "backAfter": 1
+    },
+    {
+      "id": "apps-game",
+      "name": "Mini-game",
+      "label": "Mini-game",
+      "expect": "Score",
+      "backAfter": 2,
+      "note": "Two levels back: out of the game and out of the Apps section, so the next entry starts from Home."
+    },
+    {
+      "id": "settings",
+      "name": "Settings",
+      "label": "Settings",
+      "expect": "Media Types",
+      "backAfter": 0,
+      "note": "Reached from the Home command bar, whose button is icon-only and carries the label as its content-description."
+    },
+    {
+      "id": "settings-media-types",
+      "name": "Settings - Media Types",
+      "label": "Media Types",
+      "expect": "Enable Audio",
+      "backAfter": 1
+    },
+    {
+      "id": "settings-slideshow",
+      "name": "Settings - Slideshow",
+      "label": "Slideshow",
+      "expect": "Enable Slideshow",
+      "backAfter": 1
+    },
+    {
+      "id": "settings-screen",
+      "name": "Settings - Screen",
+      "label": "Screen",
+      "expect": "Screens view",
+      "backAfter": 1
+    },
+    {
+      "id": "settings-other",
+      "name": "Settings - Other",
+      "label": "Other",
+      "expect": "Download Album Art",
+      "backAfter": 1
+    },
+    {
+      "id": "settings-about",
+      "name": "Settings - About",
+      "label": "About",
+      "expect": "Web Portal",
+      "backAfter": 1
+    },
+    {
+      "id": "settings-system-info",
+      "name": "Settings - System information",
+      "label": "System information",
+      "expect": "Reading device",
+      "stateDependent": true,
+      "backAfter": 2,
+      "note": "The marker is the loading line, which is gone once the read completes - a dump taken later legitimately misses it."
+    }
+  ]
+}

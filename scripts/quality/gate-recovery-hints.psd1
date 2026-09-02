@@ -33,6 +33,16 @@
         Fix   = 'A version pin quoted in the docs no longer matches the build files - update the doc line to the value the report names, never the other way round.'
     }
 
+    'doc-house-style' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-doc-house-style.ps1'
+        Fix   = 'A documentation page carries a typographic dash in prose. Replace it with the house-style hyphen: pwsh -NoProfile -File scripts/utils/fix-house-style.ps1 -Area Prose -Rules long-dash -Path <page> -Apply. The generated FEATURES_noLegal pages are a parked draft, not an excuse.'
+    }
+
+    'memory-budget-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-memory-budget.ps1 -Gate'
+        Fix   = 'The always-loaded agent-memory index is over its ceiling, and every turn of every session pays for the overshoot. Split the biggest SECTION into a second-level .claude/agent-memory/android-rd-specialist/INDEX_<topic>.md and leave one pointer line behind - measure first (bytes per section), never trim a hook mid-sentence, because a squeezed pointer costs its bytes while saying nothing. Raising the ceiling is refused by the gate itself.'
+    }
+
     'doc-script-references' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-script-references.ps1 -Docs'
         Fix   = 'A document names a .ps1 that does not exist. Correct the path, or say so on its line: External: for a script shipped outside this repository, Historical: for a retired one. Adding the line to doc-script-reference-baseline.txt is not a fix.'
@@ -123,6 +133,11 @@
         Fix   = 'An activity absorbs orientation in configChanges while owning a landscape layout, so that layout never applies on rotation - stop absorbing it, re-apply the variant in code and record the exemption with its reason in scripts/quality/orientation-layout-pairing-exceptions.txt, or delete the layout if it encodes no difference.'
     }
 
+    'layout-variant-id-parity-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-layout-variant-id-parity.ps1 -Gate'
+        Fix   = 'One copy of a layout dropped a view id its sibling declares - re-declare it. [config-variant] means layout-land and layout-w600dp disagree, and both must match. [flavor-override] means a flavor copy lost an id that src/main declares and shared code binds, so add it back; the reverse is allowed and extra ids in an override are never a finding.'
+    }
+
     'all-features-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/all_features/validate.ps1'
         Fix   = 'The capability inventory is invalid or lost records - fix the JSONL row; add capabilities through scripts/all_features/add.ps1, never by hand.'
@@ -133,6 +148,21 @@
         Fix   = 'A guide names a settings path that no longer exists - correct the path to the one the settings manifest records, in every locale of that guide.'
     }
 
+    'ctor-arg-slots-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-ctor-arg-slots.ps1'
+        Fix   = 'A primary constructor is at or near the JVM ceiling of 255 descriptor slots, which no compiler reports and the device verifier refuses at class load - the app dies in Application.onCreate with a VerifyError and every copy(..) of that class is equally dead. Move a cohesive group of properties into a nested data class held as one field (see LauncherSettings in AppSettings), which costs one slot instead of one per field. Never buy a single slot back: the next ordinary field addition crosses the line again.'
+    }
+
+    'migration-schema-conformance-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-migration-schema-conformance.ps1 -List'
+        Fix   = 'A Room migration disagrees with the exported schema Room validates the upgraded database against, and that comparison happens on the user device during the first launch after an update - a mismatch there deletes the database (S2251 cost the owner 20 resources, 26 network credentials, 7 favourites and a 139-cell desktop on 2026-09-01). Read the named dimension: column-name means the ALTER TABLE column is spelled differently from the entity property (Room is case- and underscore-exact); column-default means the entity declares an @ColumnInfo(defaultValue = ..) the SQL does not write; not-null means the nullability differs or a NOT NULL column was added without a DEFAULT, which SQLite refuses outright; registration means a migration exists but DatabaseModule.addMigrations() never lists it, so the hop throws. Fix the SQL or the entity so both say the same thing, rebuild to regenerate app_v2/schemas/<version>.json, then re-run. Never baseline a migration that has not shipped.'
+    }
+
+    'migration-test-pairing-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-migration-test-pairing.ps1 -List'
+        Fix   = 'A Room migration has no instrumented migration test. Add app_v2/src/androidTest/java/com/sza/fastmediasorter/data/local/db/AppDatabaseMigration<N>To<M>Test.kt beside its siblings: create the database at <N>, seed a row, call helper.runMigrationsAndValidate(TEST_DB, <M>, true, MIGRATION_<N>_<M>) - that call is the same schema comparison the device performs on update - and assert the seeded row survived. Verify it compiles with .\a.ps1 fa.'
+    }
+
     'gson-persistence-contract-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-gson-persistence-contract.ps1'
         Fix   = 'A model whose Gson JSON outlives the process has no pinned wire names - annotate every property with @SerializedName, or keep its fields by name in that module''s proguard-rules.pro. An enum reported separately needs its constants pinned, which neither form on the containing model covers. If the model genuinely does not need pinning, add a line with a written justification to scripts/quality/gson-persistence-exemptions-baseline.txt.'
@@ -141,6 +171,16 @@
     'launcher-reset-coverage-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-launcher-reset-coverage.ps1 -Gate'
         Fix   = 'A launcher preference is not covered by the reset path - add it there so a reset leaves no stale state behind.'
+    }
+
+    'wear-settings-parity-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-wear-settings-parity.ps1 -Gate'
+        Fix   = 'A watch setting exists on one side of the phone/watch pair and not the other. The message names the missing side: add the field to that WearSettingsPayload copy, the key to the watch DataStore, the entry to the other WearSettingsRegistry copy, or the row to SettingsDocScopeCatalog.wearEntries. A setting that is deliberately one-sided is legal, but only with a written exceptionReason on its registry entry - without one it is indistinguishable from a forgotten side.'
+    }
+
+    'wear-mirrored-strings-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-wear-mirrored-strings.ps1 -Gate'
+        Fix   = 'A string the phone and the watch are declared to share stopped reading the same, or a key now present in both modules is unclassified. The message names the key, the locale and both texts: bring the two copies back into line, or - if the two sides are meant to word it differently - move the pair to Mode = Independent in scripts/quality/wear-mirrored-strings.psd1 with a Reason. A new colliding key must be declared Mirrored or Independent there, because only the author who added it knows which it was meant to be.'
     }
 
     # S1939: hints for icon-inventory-sync, doc-icons-sync and device-profile-matrix were removed
@@ -163,7 +203,22 @@
 
     'resource-link-gate' = @{
         Repro = 'pwsh -NoProfile -File ./a.ps1 fr'
-        Fix   = 'A changed resource or manifest does not link. The aapt line above names the file and the reference it could not resolve - fix that, because nothing else in the facade runs aapt and fk stays green on a broken layout. Exit 2 is a DIFFERENT answer: the target never started (most often JAVA_HOME pointing at a JDK that no longer exists), so nothing was checked and the resource is still unproven.'
+        Fix   = 'A changed resource or manifest does not link. The aapt line above names the file and the reference it could not resolve - fix that, because nothing else in the facade runs aapt and fk stays green on a broken layout. Exit 2 is a DIFFERENT answer: the target never started (most often JAVA_HOME pointing at a JDK that no longer exists), so nothing was checked and the resource is still unproven. A THIRD shape (S2121): the gate names resource paths belonging to no registered Gradle module and refuses without linking anything - add the module row in scripts/utils/gradle-modules.ps1 rather than passing -Module, which this gate deliberately ignores.'
+    }
+
+    'detekt-baseline-split-sync' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/split-detekt-baseline.ps1 -Gate'
+        Fix   = 'The format/signal view files derived from the detekt baseline are stale against the baseline you changed - regenerate them with -Update on the same script. Exit 2 is a different answer: the operational baseline or config/detekt/rule-categories.txt is missing, unparseable, or names a rule the table does not classify, so nothing was compared. Staleness matters between releases because agents read these views to decide how much debt of each kind exists (S2105).'
+    }
+
+    'detekt-format' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/detekt-scoped.ps1 -ChangedFiles "<your,files>" -AutoCorrect'
+        Fix   = 'The formatting pass rewrote your files before they were judged; nothing is wrong unless the step itself failed, in which case ktlint could not parse a file - read the error above and fix the syntax. Never widen the pass to files you did not change: its own rewrap trips LargeClass on untouched code (S2116).'
+    }
+
+    'script-suite-regression' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/run-script-suites.ps1 -ChangedFiles "<your,files>"'
+        Fix   = 'A regression suite guarding a script you changed is red - read its output above and fix the script, not the suite. Run -ListOnly to see which suite claims your file as its subject. Exit 2 is a different answer: the suite could not run for want of an environment tool (rg, for instance), which is advisory here and fatal only before a release (S2122).'
     }
 
     'androidtest-compile-gate' = @{

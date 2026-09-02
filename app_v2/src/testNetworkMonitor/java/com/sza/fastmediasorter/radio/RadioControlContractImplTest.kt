@@ -35,7 +35,7 @@ import org.robolectric.annotation.Config
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34]) // Robolectric 4.11.1 maxSdkVersion=34; targetSdkVersion=36 needs an explicit pin.
+@Config(sdk = [34]) // Robolectric 4.16.1 maxSdkVersion=34; targetSdkVersion=36 needs an explicit pin.
 class RadioControlContractImplTest {
 
     private val context: Application get() = RuntimeEnvironment.getApplication()

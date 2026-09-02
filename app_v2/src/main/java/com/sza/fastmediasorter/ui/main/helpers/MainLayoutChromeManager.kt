@@ -373,7 +373,6 @@ class MainLayoutChromeManager(
             // S1285: the user's step scales the count the configuration already picked, so every width
             // and orientation qualifier keeps working; MEDIUM is the identity and changes nothing.
             val spanCount = resourceGridCellSize().spanFor(baseSpan)
-            Timber.d("S1285: span base=%d step=%s -> %d", baseSpan, resourceGridCellSize(), spanCount)
             val current = binding.rvResources.layoutManager
             if (current !is GridLayoutManager || current.spanCount != spanCount) {
                 binding.rvResources.layoutManager = GridLayoutManager(activity, spanCount)

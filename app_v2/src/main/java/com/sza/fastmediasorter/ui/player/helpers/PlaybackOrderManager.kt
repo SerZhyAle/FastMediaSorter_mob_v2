@@ -9,7 +9,6 @@ import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.ui.player.PlaybackControlPreferences
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
-import timber.log.Timber
 
 /**
  * Owns the player's playback-order mode: where it is persisted and how it reaches whichever
@@ -68,7 +67,6 @@ class PlaybackOrderManager(private val activity: PlayerActivity) {
                 .putString(PlaybackControlPreferences.globalKeyFor(mediaType), newMode.toPrefsString())
                 .apply()
         }
-        Timber.d("S1963: playback order clicked, new mode $newMode, resource $resourceId")
         applyToActivePlayer(newMode)
         activity.exoPlayerControlsManager.updatePlaybackOrderButtonState()
         val label = activity.getString(newMode.toPlaybackOrderUiState().labelResId)
@@ -88,7 +86,6 @@ class PlaybackOrderManager(private val activity: PlayerActivity) {
         contextKey = key
 
         val resolvedMode = resolveMode(resourceId, mediaType)
-        Timber.d("S1963: playback order resolved to $resolvedMode for resource $resourceId")
         applyToActivePlayer(resolvedMode)
         activity.exoPlayerControlsManager.updatePlaybackOrderButtonState()
 

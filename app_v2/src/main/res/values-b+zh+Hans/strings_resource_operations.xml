@@ -6,4 +6,10 @@
     <string name="setting_resource_ops_in_overflow_menu_desc">将每张资源卡片上的内联操作按钮折叠为 ⋮ 溢出菜单</string>
     <string name="action_refresh_resource">刷新</string>
     <string name="resource_unavailable_name">资源“%1$s”不可用</string>
+    <string name="resource_menu_reconnect_resource">重新连接资源</string>
+    <string name="reconnect_different_folder_title">已选择其他文件夹</string>
+    <string name="reconnect_different_folder_message">您选择了 %1$s，但此资源当前连接到 %2$s。仍要重新连接吗？资源将指向您选择的文件夹。</string>
+    <string name="reconnect_success">资源已重新连接。</string>
+    <string name="reconnect_failed">无法重新连接 - 请选择文件夹后重试。</string>
+    <string name="reconnect_success_partial_favorites">已重新连接。收藏已迁移: %1$d/%2$d。</string>
 </resources>

@@ -36,6 +36,20 @@
 .EXAMPLE
     pwsh -File scripts/release/publish-play-release.ps1 -Track 'wear:production' `
         -Aab DOWNLOADS/FastMediaSorter_wear_release.aab -VersionCode 26082322 -NotesVersionCode 260823225
+
+.NOTES
+    Exit codes (mirrors publish-play-release.py, S2346):
+      0 - the bundle is on the track and the edit was committed.
+      1 - the release is at fault: the AAB is missing, an argument contradicts the artifact, or
+          Play rejected the payload. The Foreground-service-permissions 403 on commit lands here
+          on purpose - it names an owner action and must stay visible as a finding.
+      2 - could not verify: the virtual environment is absent, or a sustained transient failure
+          (5xx, rate limit, network). The release is NOT implicated - re-run later.
+
+    Code 2 must survive the trip out of Python. Under $ErrorActionPreference = 'Stop' a `throw`
+    kills the process with 1, so wrapping the child's exit code in one collapses the distinction
+    the Python side just made and no caller - including /skill-release, which files a non-zero
+    code as a failed publication - can ever see it.
 #>
 
 [CmdletBinding()]
@@ -54,7 +68,9 @@ $venvPython = Join-Path $repoRoot ".venv\Scripts\python.exe"
 $pyScript = Join-Path $PSScriptRoot "publish-play-release.py"
 
 if (-not (Test-Path $venvPython)) {
-    throw "Virtual environment not found at $venvPython. Configure the project virtual environment first."
+    Write-Warning "Virtual environment not found at $venvPython. Configure the project virtual environment first."
+    Write-Warning "CANNOT VERIFY the publication without it - this says nothing about the release itself."
+    exit 2
 }
 
 $extraArgs = @()
@@ -67,9 +83,20 @@ if ($NotesVersionCode -gt 0) { $extraArgs += @('--notes-code', "$NotesVersionCod
 
 Write-Host "Invoking Google Play Console uploader (Track: $Track, Status: $Status)..." -ForegroundColor Cyan
 & $venvPython $pyScript $Track $Status @extraArgs
+$pyExit = $LASTEXITCODE
 
-if ($LASTEXITCODE -ne 0) {
-    throw "Google Play Console publication failed."
+# The child already distinguishes "the release is at fault" from "could not verify"; this only has
+# to carry the distinction outward intact. Anything unexpected is reported as a fault rather than
+# silently promoted to "could not verify" - an unknown code is not evidence of innocence.
+if ($pyExit -eq 2) {
+    Write-Warning "Google Play publication could NOT be verified (Track: $Track). The release is not implicated - read the uploader's output above before re-running."
+    exit 2
+}
+
+if ($pyExit -ne 0) {
+    Write-Error "Google Play Console publication failed (Track: $Track, uploader exit $pyExit)." -ErrorAction Continue
+    exit 1
 }
 
 Write-Host "Google Play Console publication completed." -ForegroundColor Green
+exit 0

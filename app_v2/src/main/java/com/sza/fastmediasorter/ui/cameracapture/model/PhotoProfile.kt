@@ -12,6 +12,7 @@ import android.hardware.camera2.CameraMetadata
  */
 enum class PhotoProfile {
     NORMAL,
+    DOCUMENT,
     NIGHT,
     PORTRAIT,
     SELFIE,
@@ -20,6 +21,7 @@ enum class PhotoProfile {
 
     fun isAvailable(capabilities: CameraRuntimeCapabilities): Boolean = when (this) {
         NORMAL -> true
+        DOCUMENT -> true
         NIGHT -> capabilities.supportsNightMode
         PORTRAIT -> capabilities.supportsBokehExtension
         SELFIE -> CameraMetadata.LENS_FACING_FRONT in capabilities.availableLensFacings

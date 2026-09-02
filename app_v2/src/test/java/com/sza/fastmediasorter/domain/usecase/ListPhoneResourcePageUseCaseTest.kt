@@ -233,18 +233,16 @@ class ListPhoneResourcePageUseCaseTest {
      * the resulting page looks identical either way.
      */
     @Test
-    fun `a page decodes only the pictures it can carry, not the whole window`() = runTest {
-        val affordable = ListPhoneResourcePageUseCase.MAX_PAGE_THUMBNAIL_CHARS / MAX_ENCODED_CHARS
+    fun `a page carries no embedded pictures for CHILDREN listing`() = runTest {
         coEvery { resourceRepository.getResourceById(1L) } returns resource(id = 1, name = "Photos")
         coEvery { scanner.listDirectoryContents(any(), any(), any(), any(), any()) } returns
             (1..ListPhoneResourcePageUseCase.PAGE_SIZE).map { file(name = "shot$it.jpg") }
-        coEvery { buildWatchThumbnail(any()) } returns "x".repeat(MAX_ENCODED_CHARS)
 
         val page = useCase(request(WearPhoneResourceRequestKind.CHILDREN, parentToken = "1:"))
 
         assertEquals(ListPhoneResourcePageUseCase.PAGE_SIZE, page.items.size)
-        assertEquals(affordable, page.items.count { it.thumbnailBase64 != null })
-        coVerify(exactly = affordable) { buildWatchThumbnail(any()) }
+        assertEquals(0, page.items.count { it.thumbnailBase64 != null })
+        coVerify(exactly = 0) { buildWatchThumbnail(any()) }
     }
 
     /**

@@ -36,13 +36,16 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearApp
 import com.sza.fastmediasorter.wear.domain.model.WearAppId
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
+import com.sza.fastmediasorter.wear.ui.common.CellCaption
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.util.GridColumnFit
+import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
+private const val APP_LABEL_MAX_LINES = 2
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
 private val CELL_ICON_SIZE = 24.dp
 private val TITLE_VERTICAL_PADDING = 16.dp
@@ -101,6 +104,7 @@ private fun ScalingLazyListScope.appItems(
             AppChip(app = app, onClick = { onAppClick(app) })
         }
     } else {
+        Timber.d("S2082: apps grid, columns=$columns, caption wraps to $APP_LABEL_MAX_LINES lines")
         items(apps.chunked(columns)) { rowApps ->
             AppRow(apps = rowApps, columns = columns, onAppClick = onAppClick)
         }
@@ -165,12 +169,18 @@ private fun AppCell(
         thumbnail = WearThumbnail.Unavailable,
         caption = label,
         onClick = onClick,
-        modifier = modifier
-    ) {
+        modifier = modifier,
+        // Wrap, never ellipsize: strategic S2082, the rule S2042 set for the settings menu. A program
+        // name is a fixed label the user has to read, unlike the arbitrary-length file name the cell
+        // defaults to, so this screen asks for the second line the default deliberately withholds.
+        // Stays under the icon: each program has its own glyph, so covering it would lose the very
+        // distinction S2177 exists to preserve.
+        captionLayout = CellCaption(maxLines = APP_LABEL_MAX_LINES)
+    ) { glyphModifier ->
         Icon(
             painter = painterResource(iconFor(app.id)),
             contentDescription = null,
-            modifier = Modifier.size(CELL_ICON_SIZE)
+            modifier = glyphModifier
         )
     }
 }
@@ -181,11 +191,14 @@ private fun AppCell(
  *
  * The network monitor reuses the Wi-Fi glyph the home screen already gives to Resources, because on a
  * watch both mean the same thing to look at - the radio - and inventing a second one would tell the
- * user they are different.
+ * user they are different. System information takes the watch glyph for the same reason: a report
+ * about this watch is what that glyph already means, and the module ships no information drawable.
  */
 @DrawableRes
 private fun iconFor(id: WearAppId): Int = when (id) {
     WearAppId.CALCULATOR -> R.drawable.ic_app_calculator
     WearAppId.NETWORK_MONITOR -> R.drawable.ic_wifi
     WearAppId.GAME -> R.drawable.ic_app_game
+    WearAppId.VOICE_RECORDER -> R.drawable.ic_voice_note
+    WearAppId.SYSTEM_INFO -> R.drawable.ic_watch
 }

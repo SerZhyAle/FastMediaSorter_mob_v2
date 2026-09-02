@@ -81,4 +81,6 @@
     <string name="widget_network_monitor_direct_connection">Пряме підключення</string>
     <string name="launcher_gadget_network_indicator">Мережевий показник</string>
     <string name="launcher_gadget_network_indicator_pick_title">Який показник показувати</string>
+    <string name="widget_front_flashlight_label">Екранний ліхтарик</string>
+    <string name="widget_front_flashlight_description">Вмикає екранний ліхтарик в один дотик</string>
 </resources>

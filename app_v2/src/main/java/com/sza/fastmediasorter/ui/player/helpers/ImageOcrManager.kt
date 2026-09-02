@@ -7,11 +7,11 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import com.bumptech.glide.load.resource.gif.GifDrawable
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -100,7 +100,7 @@ class ImageOcrManager(
                     }
                 }
             } catch (e: Exception) {
-                if (e is CancellationException) throw e
+                e.rethrowIfCancellation()
                 Timber.e(e, "ImageOcrManager OCR pipeline failed")
                 withContext(Dispatchers.Main) {
                     loadingIndicatorCoordinator.hide(LoadingSource.OCR)

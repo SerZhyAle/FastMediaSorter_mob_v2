@@ -86,4 +86,6 @@ private fun NetworkMeasurementKind.toLabelRes(): Int = when (this) {
     NetworkMeasurementKind.RESOURCE_CHECK -> R.string.network_monitor_history_kind_resource_check
     NetworkMeasurementKind.EXTERNAL_IP -> R.string.network_monitor_history_kind_external_ip
     NetworkMeasurementKind.SUBNET_SCAN -> R.string.network_monitor_history_kind_subnet_scan
+    NetworkMeasurementKind.PING -> R.string.network_monitor_history_kind_ping
+    NetworkMeasurementKind.TRACEROUTE -> R.string.network_monitor_history_kind_traceroute
 }

@@ -23,6 +23,7 @@ import javax.inject.Inject
 class AcceptPinnedShortcutUseCase @Inject constructor(
     private val dataSource: AppShortcutDataSource,
     private val desktopRepository: LauncherDesktopRepository,
+    private val revealLauncherSection: RevealLauncherSectionUseCase,
 ) {
 
     /**
@@ -62,6 +63,10 @@ class AcceptPinnedShortcutUseCase @Inject constructor(
             labelOverride = null,
             addedAt = addedAt,
         )
-        desktopRepository.addCellInFirstFreeSlot(cell, columns) != null
+        val placedId = desktopRepository.addCellInFirstFreeSlot(cell, columns)
+        if (placedId != null) {
+            revealLauncherSection(placedId, orientation)
+        }
+        placedId != null
     }
 }

@@ -14,7 +14,13 @@
         only place that decides what counts as translatable text at all. A value marked
         translatable="false", a glyph, a layout literal such as "1/1" or "3D", a value carrying
         escaped markup - none of those reach the export, so none of them can be reported here.
-      - A unit is untranslated when at least one best-effort locale's resource file lacks its key.
+      - A unit is untranslated in a locale on any of three counts: that locale's resource file
+        lacks the key; it carries the key but the fingerprint registry has no provenance for it; or
+        the provenance it does carry names a different English source text than the one in the tree
+        today. The third count is what makes a REWORDED string visible (S1824) - the key is present
+        in all ten locales and every value looks filled in, yet each one translates a sentence the
+        English no longer says. Judging presence alone would ship that stale wording silently, which
+        is what the whole registry exists to prevent; do not re-describe this check as a key check.
         Ten locales are checked rather than one reference locale, because the rule being enforced
         says thirteen: a key that landed in German and nowhere else is still untranslated.
       - Everything named in the baseline is subtracted. That file holds the identities already
@@ -40,7 +46,7 @@
     Identity list to subtract. Default scripts/quality/locale-untranslated-baseline.txt.
 
 .PARAMETER OutDir
-    Directory for the produced files. Default temp/S1627.
+    Directory for the produced files. Default temp/S1627/<module>.
 
 .PARAMETER Quiet
     Print the summary line only, without the per-key breakdown.
@@ -79,7 +85,7 @@ $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 # element with a comma in it.
 $SourceSet = @($SourceSet | ForEach-Object { $_ -split ',' } | Where-Object { $_ } | ForEach-Object { $_.Trim() })
 
-if (-not $OutDir) { $OutDir = Join-Path $repoRoot 'temp/S1627' }
+if (-not $OutDir) { $OutDir = Join-Path $repoRoot "temp/S1627/$Module" }
 if (-not $BaselinePath) { $BaselinePath = Join-Path $repoRoot 'scripts/quality/locale-untranslated-baseline.txt' }
 if (-not $FingerprintsPath) { $FingerprintsPath = Join-Path $repoRoot 'scripts/quality/locale-source-fingerprints.json' }
 $corpusDir = Join-Path $OutDir 'corpus'
@@ -103,7 +109,7 @@ if ($records.Count -eq 0) {
     exit 1
 }
 
-$bestEffort = @(Get-SupportedLocales | Where-Object { -not (Test-StrictLocale -Tag $_) })
+$bestEffort = @(Get-SupportedLocales -Module $Module | Where-Object { -not (Test-StrictLocale -Tag $_) })
 $keyRx = [regex]'<(?:string|plurals|string-array)\s+name="([^"]+)"'
 $presentCache = @{}
 

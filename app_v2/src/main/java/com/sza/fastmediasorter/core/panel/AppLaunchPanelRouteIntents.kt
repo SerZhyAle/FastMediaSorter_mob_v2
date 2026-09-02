@@ -8,10 +8,12 @@ import com.sza.fastmediasorter.ui.applaunchpanel.AppLaunchPanelActivity
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.calculator.CalculatorActivity
 import com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity
+import com.sza.fastmediasorter.ui.flashlight.FlashlightToggleActivity
 import com.sza.fastmediasorter.ui.flashlight.FrontFlashlightActivity
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorActivity
 import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorSection
+import com.sza.fastmediasorter.ui.networkmonitor.putNetworkMonitorLauncherOrigin
 import com.sza.fastmediasorter.ui.player.standalone.PhotoVideoStandaloneActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
@@ -49,7 +51,9 @@ object AppLaunchPanelRouteIntents {
     fun networkMonitor(
         context: Context,
         section: NetworkMonitorSection = NetworkMonitorSection.Summary,
-    ): Intent = NetworkMonitorActivity.createIntent(context, section).withPanelFlags()
+    ): Intent = NetworkMonitorActivity.createIntent(context, section)
+        .putNetworkMonitorLauncherOrigin()
+        .withPanelFlags()
 
     fun networkMonitor(context: Context, sectionKey: String): Intent =
         networkMonitor(context, NetworkMonitorSection.fromKey(sectionKey))
@@ -124,6 +128,13 @@ object AppLaunchPanelRouteIntents {
         Intent(context, SettingsActivity::class.java)
             .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS)
             .withPanelFlags()
+
+    fun physicalFlashlight(context: Context): Intent =
+        Intent(context, FlashlightToggleActivity::class.java).withPanelFlags()
+
+    // S2211: black screen as an autonomous sub-program.
+    fun blackScreen(context: Context): Intent =
+        Intent(context, com.sza.fastmediasorter.ui.blackscreen.BlackScreenActivity::class.java).withPanelFlags()
 
     // S0978: reuse the same standalone camera/photo trampolines the left-edge gesture dispatcher uses
     // (PhotoCaptureLaunchActivity auto-captures then routes; CameraLaunchActivity.videoIntent opens the

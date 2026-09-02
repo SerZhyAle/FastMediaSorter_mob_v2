@@ -72,7 +72,7 @@ class StreamsFilterTest {
     fun `multi-language cell matches single-language filter`() {
         val result = StreamsViewModel.applyFilter(
             listOf(
-                source("multi", language = "russian,ukrainian"),
+                source("multi", language = "english,ukrainian"),
                 source("eng", language = "english"),
             ),
             StreamsFilter(language = "ukrainian"),

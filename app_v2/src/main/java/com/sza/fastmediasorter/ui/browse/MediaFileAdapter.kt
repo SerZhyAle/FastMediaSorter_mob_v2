@@ -312,6 +312,17 @@ class MediaFileAdapter(
         private const val PAYLOAD_AUDIO_METADATA = MediaFileDiffCallback.PAYLOAD_AUDIO_METADATA
         private const val AUDIO_ONLY_THUMBNAIL_DP = 48
 
+        private const val COMPACT_CAPTION_SP = 11f
+        private const val NORMAL_CAPTION_SP = 13f
+
+        // S2177: TextView's default line spacing, used to answer "how many lines does this tile hold".
+        private const val CAPTION_LINE_SPACING = 1.25f
+
+        // S2177: the tile height left over is what still shows the colour identifying the file type,
+        // which the owner asked the icon to keep doing once the name is written on it.
+        private const val MAX_OVERLAY_CAPTION_LINES = 5
+        private const val BELOW_TILE_CAPTION_LINES = 3
+
         // Payloads onBindViewHolder handles as partial binds; anything else falls back to a full bind.
         private val KNOWN_PAYLOADS = setOf(
             "LOAD_THUMBNAILS",
@@ -625,7 +636,7 @@ class MediaFileAdapter(
 
             // In audio-only mode update info line with detail / cache progress; in other modes leave tvFileInfo as-is
             if (isAudioOnlyMode) {
-                val baseInfo = AdapterFileInfoFormatter.buildAudioDetailLine(file)
+                val baseInfo = AdapterFileInfoFormatter.buildAudioDetailLine(itemView.context, file)
                 if (isDownloading) {
                     val progress = state.downloadProgressPercent.coerceIn(0, 100)
                     binding.tvFileInfo.text = if (progress > 0) "$baseInfo • Cache $progress%" else "$baseInfo • Cache..."
@@ -666,10 +677,10 @@ class MediaFileAdapter(
             val audioOnlyFile = isAudioOnlyMode && !file.isDirectory
             if (audioOnlyFile) {
                 binding.tvFileName.text = AdapterFileInfoFormatter.buildAudioDisplayName(file)
-                binding.tvFileInfo.text = AdapterFileInfoFormatter.buildAudioDetailLine(file)
+                binding.tvFileInfo.text = AdapterFileInfoFormatter.buildAudioDetailLine(itemView.context, file)
             } else {
                 // Non audio-only mode: filename stays, but info line may include duration
-                binding.tvFileInfo.text = AdapterFileInfoFormatter.buildFileInfo(file)
+                binding.tvFileInfo.text = AdapterFileInfoFormatter.buildFileInfo(itemView.context, file)
             }
         }
 
@@ -777,10 +788,10 @@ class MediaFileAdapter(
                 val displayFile = resolveAudioMetadata(file)
                 if (audioOnlyFile) {
                     tvFileName.text = AdapterFileInfoFormatter.buildAudioDisplayName(displayFile)
-                    tvFileInfo.text = AdapterFileInfoFormatter.buildAudioDetailLine(displayFile)
+                    tvFileInfo.text = AdapterFileInfoFormatter.buildAudioDetailLine(itemView.context, displayFile)
                 } else {
                     tvFileName.text = file.name
-                    tvFileInfo.text = AdapterFileInfoFormatter.buildFileInfo(file)
+                    tvFileInfo.text = AdapterFileInfoFormatter.buildFileInfo(itemView.context, file)
                 }
 
                 // Load thumbnail or folder icon
@@ -1046,12 +1057,10 @@ class MediaFileAdapter(
                     ivThumbnail.layoutParams = imgParams
                 }
 
+                val captionSp = if (useCompactElements) COMPACT_CAPTION_SP else NORMAL_CAPTION_SP
                 tvFileName.text = file.name
-                if (useCompactElements) {
-                    tvFileName.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 11f)
-                } else {
-                    tvFileName.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 13f)
-                }
+                tvFileName.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, captionSp)
+                placeCaption(file, sizeInPx, captionSp)
 
                 // Load thumbnail or folder icon
                 if (isFolder) {
@@ -1095,6 +1104,58 @@ class MediaFileAdapter(
                 // Flavor-specific tile chrome must bind after the holder's own visibility state is stable.
                 apkTileBadgeBinder.bind(root, file)
             }
+        }
+
+        /**
+         * Put the file name over the tile, or under it, per S2177.
+         *
+         * Over it only when the picture is the extension tile shared by every file of that type, so
+         * covering it loses nothing; a real preview, a folder icon and a channel favicon all keep the
+         * caption below, because there the picture is what identifies the item.
+         *
+         * Both branches assign both views. A recycled holder that previously showed the overlay would
+         * otherwise arrive with `tvFileName` still hidden and render a nameless cell.
+         *
+         * [tileHeightPx] is the live container height, which follows the user's icon-size setting -
+         * hence the line count is measured here rather than fixed in the layout.
+         *
+         * A flavor badge along the top edge (S2202) is subtracted from that height and the plate is shifted
+         * down by half of it, because the corner controls above clear a centred plate on their own while a
+         * full-width badge does not.
+         */
+        private fun placeCaption(file: MediaFile, tileHeightPx: Int, captionSp: Float) {
+            val density = binding.root.context.resources.displayMetrics.density
+            val lineHeightPx = captionSp * CAPTION_LINE_SPACING * density
+            val topBandPx = apkTileBadgeBinder.reservedTopBandPx(file)
+            val captionHeightPx = (tileHeightPx - topBandPx).coerceAtLeast(0)
+            val lines = (captionHeightPx / lineHeightPx).toInt()
+                .coerceIn(1, MAX_OVERLAY_CAPTION_LINES)
+            val showOverlay = AdapterThumbnailLoader.rendersGroupIcon(file) &&
+                lines > BELOW_TILE_CAPTION_LINES
+            binding.tvFileName.isVisible = !showOverlay
+            binding.tvNameOverlay.isVisible = showOverlay
+            if (!showOverlay) return
+
+            Timber.d("S2202: plate tile=$tileHeightPx band=$topBandPx lines=$lines name=${file.name}")
+            // FrameLayout lays a centred child out at (parentHeight - childHeight) / 2 + topMargin, so half
+            // the reserved band is exactly the offset that re-centres the plate in the strip left below it.
+            applyCaptionTopMargin(topBandPx / 2)
+            binding.tvNameOverlay.apply {
+                text = file.name
+                setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, captionSp)
+                maxLines = lines
+            }
+        }
+
+        /**
+         * Assigning layoutParams schedules a layout pass, so the write is guarded - a grid fling rebinds
+         * every visible holder and the margin is unchanged for all but the badge-bearing ones.
+         */
+        private fun applyCaptionTopMargin(topMarginPx: Int) {
+            val params = binding.tvNameOverlay.layoutParams as? ViewGroup.MarginLayoutParams ?: return
+            if (params.topMargin == topMarginPx) return
+            params.topMargin = topMarginPx
+            binding.tvNameOverlay.layoutParams = params
         }
 
         /**

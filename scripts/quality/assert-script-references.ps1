@@ -10,14 +10,33 @@
     2026-08-21, including a twelve-script migration directory whose own README calls itself
     finished and two wrappers whose headers claim callers they do not have.
 
-    HOW IT JUDGES. Every project-authored .ps1 under the script roots is collected, then every file
-    in the reference corpus is read once and scanned for .ps1-shaped tokens. A script is
-    UNREFERENCED when every file mentioning its basename is itself a file of that basename - a
-    script quoting its own name in help text does not keep itself alive.
+    HOW IT JUDGES. Every project-authored .ps1 under the script roots is collected BY PATH, then
+    every file in the reference corpus is read once and scanned for .ps1-shaped tokens. Each token
+    is resolved into the file it names by the ladder in lib/script-reference-resolution.ps1, and a
+    script is UNREFERENCED when no corpus file other than itself resolves to it. A script quoting
+    its own name in help text does not keep itself alive.
 
-    THE CHEATSHEET IS EXCLUDED, AND THAT IS NOT A SETTING. docs/SCRIPT_CHEATSHEET.md is generated
-    from every script in the repository, so a corpus containing it reports zero unreferenced
-    scripts forever and the gate becomes a check that cannot fail.
+    THE KEY IS A PATH, NOT A FILE NAME (S2124). It was a name until 2026-08-27, and the tree holds
+    37 files called Run-Tests.ps1: they shared one entry, so three comments naming that bare word
+    marked all 37 referenced, none of which is called from anywhere. The blindness was structural -
+    any group of files sharing a name went unjudged the moment one of them was mentioned. Under the
+    path key the verdict rose from 30 to 58, and the 28 added files are one homogeneous class.
+
+    AN AMBIGUOUS BARE NAME IS NOT EVIDENCE. A token that is a bare file name carried by several
+    scripts names none of them. -Report says how many scripts are held up by nothing better, which
+    is the number that was silently zero before S2124.
+
+    FILES THAT LIST SCRIPTS ARE EXCLUDED, AND THAT IS NOT A SETTING. docs/SCRIPT_CHEATSHEET.md is
+    generated from every script in the repository, and the two baselines beside this script are
+    lists of script paths it writes itself. A corpus containing any of them reports zero
+    unreferenced scripts forever and the gate becomes a check that cannot fail - which is exactly
+    what happened the moment the main baseline stopped being a count.
+
+    THE BASELINE IS A LIST, NOT A COUNT (S2124). script-reference-baseline.txt holds one script
+    path per known orphan, so repairing one cannot free a slot the next one occupies silently. This
+    is only possible under the path key: with a name key the 37 Run-Tests.ps1 could not be told
+    apart on a line. A baseline line matching nothing is printed as a prune hint, not a failure -
+    the same contract the docs baseline has had since S1979.
 
     READ-ONLY ZONES ARE IN THE CORPUS. dev/archive, V1, v2_6 and spec_v2 may not be written, but
     they may be read, and a reference living only there is still a reference.
@@ -43,10 +62,21 @@
     root. PLAN/, V1/, v2_6/ and spec_v2/ are excluded on the same live-versus-historical cut the
     main mode uses: a spec that described a script does not run it.
 
-    RESOLUTION IS TREE-WIDE, JUDGING IS NOT. Both reverse modes resolve a token against every .ps1
-    in the repository, not against the three script roots the main mode judges - maestro/,
-    .claude/hooks/ and dev/build-with-version.ps1 are real scripts, and resolving against the
-    narrow set would report each of them as a phantom.
+    RESOLUTION IS TREE-WIDE, JUDGING IS NOT - IN ALL THREE MODES (S2336). Real scripts live outside
+    the three roots the main mode judges: maestro/, .claude/hooks/ and the version-stamping builder
+    under dev/. Every mode therefore matches a token against every .ps1 in the repository. The two
+    reverse modes do it by asking whether the name exists at all; the main mode hands those paths to
+    the ladder and then narrows the answer back to the scripts it judges.
+
+    That narrowing is the point. Until 2026-09-02 the main mode built its index from the judged
+    roots alone, so a token addressing a file outside them matched nothing, shortened to its bare
+    leaf, and credited whichever homonym happened to be inside - seven files addressed the builder
+    in dev/ and between them kept an unrelated copy under scripts/builders/ alive. The gate reported
+    no ambiguity while doing it, because the second carrier was outside the index it counted.
+
+    ONE WALK, THREE CONSUMERS. Get-KnownScriptPaths collects every .ps1 once. The name check reads
+    it whole; the resolver reads it minus the nested-worktree copies, which are second carriers of
+    every name in the repository and would make the entire tree ambiguous.
 
     THE DOCS BASELINE IS A LIST, NOT A COUNT. doc-script-reference-baseline.txt holds one
     `path :: token` line per known-bad reference, so a new phantom cannot hide behind a fixed one.
@@ -77,9 +107,9 @@
 
 .NOTES
     Exit codes:
-      0 - at or below the baseline, or -Report was given
-      1 - above the baseline: an unreferenced script appeared, a memory path resolves to nothing,
-          or a document names a script that does not exist and is not in the docs baseline
+      0 - every finding is in the baseline, or -Report was given
+      1 - an unreferenced script that is not in the baseline appeared, a memory path resolves to
+          nothing, or a document names a script that does not exist and is not in the docs baseline
       2 - cannot verify: a script root, the agent memory, the document corpus or a baseline file
           is missing
 #>
@@ -99,6 +129,10 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+. (Join-Path $PSScriptRoot 'lib/script-reference-resolution.ps1')
+. (Join-Path $PSScriptRoot 'lib/nested-worktrees.ps1')
+$nestedWorktrees = Get-NestedWorktreeRelativePath -RepoRoot $RepoRoot
+
 $scriptRoots = @('scripts', 'dev/CATALOG/scripts', 'dev/ACTIVITY_CATALOG/scripts')
 # A mention is not a reference. A spec that once described a script, or a changelog row recording
 # the day it was edited, keeps no script alive - and the repository holds over 1500 such documents,
@@ -113,8 +147,16 @@ $historicalRoots = @('PLAN', 'V1', 'v2_6', 'spec_v2')
 $devLiveExclusions = @('dev/archive', 'dev/CHANGELOG.md')
 $corpusExtensions = @('.ps1', '.psm1', '.psd1', '.md', '.json', '.jsonl', '.txt', '.yml', '.yaml', '.sh', '.bat', '.cmd')
 $rootFiles = @('a.ps1', 'CLAUDE.md', 'AGENTS.md', 'GEMINI.md', 'README.md')
-# Generated from every script in the repository - including it would keep every dead script alive.
-$corpusExclusions = @('docs/SCRIPT_CHEATSHEET.md')
+# Files that list scripts rather than call them. Including one keeps every script it names alive,
+# which turns this gate into a check that cannot fail. The cheatsheet is generated from every
+# script in the repository; the two baselines are lists of script paths this gate itself writes -
+# once the main baseline became a list of paths (S2124) it vouched for all 58 of its own entries
+# and the verdict went to zero.
+$corpusExclusions = @(
+    'docs/SCRIPT_CHEATSHEET.md',
+    'scripts/quality/script-reference-baseline.txt',
+    'scripts/quality/doc-script-reference-baseline.txt'
+)
 $baselinePath = Join-Path $PSScriptRoot 'script-reference-baseline.txt'
 $docsBaselinePath = Join-Path $PSScriptRoot 'doc-script-reference-baseline.txt'
 # The documents an agent or a developer is expected to act on. agent-memory is excluded because
@@ -134,6 +176,11 @@ $excusePattern = '(?i)\b(Historical|External|placeholder|example)\b'
 function Test-Excluded {
     param([string] $Relative)
     if ($Relative -match '(^|[\\/])node_modules([\\/]|$)') { return $true }
+    # Another agent's checkout of this same repository. The rule, its evidence and the reason the
+    # list comes from git rather than a literal path now live in lib/nested-worktrees.ps1, shared
+    # with the three other repo-wide walks - S2333 found that this exclusion had existed here alone
+    # since S2194 while those three still scanned the copy.
+    if (Test-InNestedWorktree -RelativePath $Relative -Prefixes $nestedWorktrees) { return $true }
     foreach ($e in $corpusExclusions) {
         if ($Relative.Replace('\', '/') -ieq $e) { return $true }
     }
@@ -145,37 +192,13 @@ function Get-Relative {
     return $Full.Substring($RepoRoot.Length).TrimStart('\', '/')
 }
 
-# ---------------------------------------------------------------- collect scripts
-$scripts = @{}
-foreach ($root in $scriptRoots) {
-    $full = Join-Path $RepoRoot ($root -replace '/', [IO.Path]::DirectorySeparatorChar)
-    if (-not (Test-Path -LiteralPath $full)) {
-        Write-Host "assert-script-references: cannot verify - script root missing: $root" -ForegroundColor Yellow
-        exit 2
-    }
-    foreach ($f in Get-ChildItem -LiteralPath $full -Recurse -File -Filter *.ps1) {
-        $rel = Get-Relative $f.FullName
-        if (Test-Excluded $rel) { continue }
-        if (-not $scripts.ContainsKey($f.Name)) { $scripts[$f.Name] = New-Object System.Collections.Generic.List[string] }
-        $scripts[$f.Name].Add($rel)
-    }
-}
-foreach ($name in @('a.ps1')) {
-    $full = Join-Path $RepoRoot $name
-    if (Test-Path -LiteralPath $full) {
-        if (-not $scripts.ContainsKey($name)) { $scripts[$name] = New-Object System.Collections.Generic.List[string] }
-        $scripts[$name].Add($name)
-    }
-}
-
-# ---------------------------------------------------------------- reverse-direction helpers
-# Every script in the tree, by file name. The main mode judges only $scriptRoots, but a token in a
-# document naming maestro/run-tests.ps1 or .claude/hooks/observe-empty-grep.ps1 resolves perfectly
-# well - judging those against the narrow set would invent phantoms (S1979).
-function Get-KnownScriptNames {
-    $known = @{}
-    # Pruned walk rather than -Recurse: the excluded directories are the build outputs and the git
-    # object store, and descending into them costs more than the rest of the repository together.
+# ---------------------------------------------------------------- every script in the tree
+# One walk, three consumers: the two reverse modes ask "does this name exist anywhere", and the main
+# mode hands the paths to the resolver so a token can be matched against a file it may not judge
+# (S2336). Pruned rather than -Recurse: the excluded directories are the build outputs and the git
+# object store, and descending into them costs more than the rest of the repository together.
+function Get-KnownScriptPaths {
+    $paths = New-Object System.Collections.Generic.List[string]
     $stack = New-Object System.Collections.Generic.Stack[string]
     $stack.Push($RepoRoot)
     while ($stack.Count -gt 0) {
@@ -185,8 +208,55 @@ function Get-KnownScriptNames {
             $stack.Push($sub)
         }
         foreach ($f in [IO.Directory]::EnumerateFiles($dir, '*.ps1')) {
-            $known[[IO.Path]::GetFileName($f)] = $true
+            $paths.Add((Get-Relative $f).Replace('\', '/'))
         }
+    }
+    return $paths
+}
+
+$knownScriptPaths = Get-KnownScriptPaths
+# Nested worktrees are dropped for the resolver and NOT for the name check. A worktree is a second
+# copy of this repository, so every script in it is a second carrier of its own name: fed to the
+# resolver, that makes every name in the tree ambiguous and reports the whole repository as
+# unreferenced. The name check is unharmed by the duplicates - a name either exists or it does not -
+# and narrowing it would be a behaviour change this ticket did not scope.
+$treeScriptPaths = New-Object System.Collections.Generic.List[string]
+foreach ($p in $knownScriptPaths) {
+    if (Test-Excluded $p) { continue }
+    $treeScriptPaths.Add($p)
+}
+
+# ---------------------------------------------------------------- collect scripts
+# Keyed by path, not by file name (S2124). The tree carries 37 files called Run-Tests.ps1; under a
+# name key they shared one entry, and one comment naming that word marked all 37 referenced.
+$scriptPaths = New-Object System.Collections.Generic.List[string]
+foreach ($root in $scriptRoots) {
+    $full = Join-Path $RepoRoot ($root -replace '/', [IO.Path]::DirectorySeparatorChar)
+    if (-not (Test-Path -LiteralPath $full)) {
+        Write-Host "assert-script-references: cannot verify - script root missing: $root" -ForegroundColor Yellow
+        exit 2
+    }
+    foreach ($f in Get-ChildItem -LiteralPath $full -Recurse -File -Filter *.ps1) {
+        $rel = Get-Relative $f.FullName
+        if (Test-Excluded $rel) { continue }
+        $scriptPaths.Add($rel.Replace('\', '/'))
+    }
+}
+foreach ($name in @('a.ps1')) {
+    if (Test-Path -LiteralPath (Join-Path $RepoRoot $name)) { $scriptPaths.Add($name) }
+}
+$scriptIndex = New-ScriptPathIndex -RelativePaths $scriptPaths.ToArray() -TreePaths $treeScriptPaths.ToArray()
+
+# ---------------------------------------------------------------- reverse-direction helpers
+# Every script in the tree, by file name, folded from the one walk above. The main mode judges only
+# $scriptRoots, but a token in a document naming maestro/run-tests.ps1 or
+# .claude/hooks/observe-empty-grep.ps1 resolves perfectly well - judging those against the narrow
+# set would invent phantoms (S1979).
+function Get-KnownScriptNames {
+    param([Parameter(Mandatory)] [System.Collections.Generic.List[string]] $Paths)
+    $known = @{}
+    foreach ($p in $Paths) {
+        $known[$p.Substring($p.LastIndexOf('/') + 1)] = $true
     }
     return $known
 }
@@ -197,10 +267,16 @@ function Find-UnresolvedTokens {
     param([string[]] $Files, [hashtable] $Known)
     $out = New-Object System.Collections.Generic.List[object]
     foreach ($file in $Files) {
-        $lines = @(Get-Content -LiteralPath $file)
+        # ReadAllLines rather than Get-Content, a literal pre-filter before the token regex, and
+        # substring rather than Split-Path: the corpus is ~340 documents and the token appears on a
+        # small fraction of their lines, so the per-line cmdlet calls were the scan's dominant cost.
+        $lines = [System.IO.File]::ReadAllLines($file)
         for ($i = 0; $i -lt $lines.Count; $i++) {
+            if ($lines[$i] -notlike '*.ps1*') { continue }
             foreach ($m in $tokenPattern.Matches($lines[$i])) {
-                $leaf = Split-Path $m.Value -Leaf
+                $token = $m.Value
+                $cut = $token.LastIndexOfAny([char[]]@('/', '\'))
+                $leaf = if ($cut -lt 0) { $token } else { $token.Substring($cut + 1) }
                 if ($Known.ContainsKey($leaf)) { continue }
                 $context = $lines[$i]
                 if ($i -gt 0) { $context += "`n" + $lines[$i - 1] }
@@ -223,7 +299,7 @@ if ($Memory) {
         Write-Host "assert-script-references: cannot verify - no agent memory at .claude/agent-memory" -ForegroundColor Yellow
         exit 2
     }
-    $knownScripts = Get-KnownScriptNames
+    $knownScripts = Get-KnownScriptNames -Paths $knownScriptPaths
     $memoryFiles = @(Get-ChildItem -LiteralPath $memoryRoot -Recurse -File -Filter *.md | ForEach-Object { $_.FullName })
     $unresolved = New-Object System.Collections.Generic.List[string]
     foreach ($finding in (Find-UnresolvedTokens -Files $memoryFiles -Known $knownScripts)) {
@@ -247,7 +323,7 @@ if ($Memory) {
 
 if ($Docs) {
     # ------------------------------------------------------------ docs mode
-    $knownScripts = Get-KnownScriptNames
+    $knownScripts = Get-KnownScriptNames -Paths $knownScriptPaths
     $docFiles = New-Object System.Collections.Generic.List[string]
     foreach ($root in $docRoots) {
         $full = Join-Path $RepoRoot ($root -replace '/', [IO.Path]::DirectorySeparatorChar)
@@ -334,9 +410,18 @@ if ($Docs) {
 }
 
 # ---------------------------------------------------------------- build the corpus
+# Two ledgers per script. PRECISE holds mentions that name this exact file; AMBIGUOUS holds bare
+# names several scripts carry, which are evidence about none of them (S2124) but are still counted
+# so -Report can say how many files are held up by nothing better.
 $mentions = @{}
-foreach ($name in $scripts.Keys) { $mentions[$name] = New-Object System.Collections.Generic.List[string] }
-$namePattern = [regex]'(?i)[\w.][\w.\-]*\.ps1'
+$ambiguous = @{}
+foreach ($p in $scriptIndex.ByPath.Keys) {
+    $mentions[$p] = New-Object System.Collections.Generic.List[string]
+    $ambiguous[$p] = New-Object System.Collections.Generic.List[string]
+}
+# Path-shaped, unlike the reverse modes' token pattern only in that both separators are kept: the
+# resolver needs the directory segments the old name-only pattern threw away.
+$namePattern = [regex]'(?i)[\w.][\w.\-/\\]*\.ps1'
 
 function Get-CorpusFiles {
     param([string[]] $Roots, [string[]] $ExtraFiles = @(), [string[]] $Skip = @())
@@ -362,65 +447,83 @@ function Get-CorpusFiles {
 }
 
 function Add-Mentions {
-    param([System.Collections.Generic.List[string]] $Files, [hashtable] $Into)
+    param(
+        [System.Collections.Generic.List[string]] $Files,
+        [hashtable] $Into,
+        [hashtable] $IntoAmbiguous
+    )
     foreach ($file in $Files) {
         $text = [IO.File]::ReadAllText($file)
         if ($text -notmatch '(?i)\.ps1') { continue }
-        $rel = Get-Relative $file
+        $rel = (Get-Relative $file).Replace('\', '/')
+        $slash = $rel.LastIndexOf('/')
+        $dir = if ($slash -lt 0) { '' } else { $rel.Substring(0, $slash) }
         $seen = @{}
         foreach ($m in $namePattern.Matches($text)) {
-            $leaf = Split-Path $m.Value -Leaf
-            if (-not $Into.ContainsKey($leaf)) { continue }
-            if ($seen.ContainsKey($leaf)) { continue }
-            $seen[$leaf] = $true
-            $Into[$leaf].Add($rel)
+            if ($seen.ContainsKey($m.Value)) { continue }
+            $seen[$m.Value] = $true
+            $resolved = Resolve-ScriptTokenPaths -Token $m.Value -MentionDirectory $dir -Index $scriptIndex
+            foreach ($p in $resolved.Paths) {
+                # A script quoting its own name in help text does not keep itself alive.
+                if ($p -ieq $rel) { continue }
+                if ($resolved.Ambiguous) { $IntoAmbiguous[$p].Add($rel) } else { $Into[$p].Add($rel) }
+            }
         }
     }
 }
 
 $historical = @{}
-foreach ($name in $scripts.Keys) { $historical[$name] = New-Object System.Collections.Generic.List[string] }
+$historicalAmbiguous = @{}
+foreach ($p in $scriptIndex.ByPath.Keys) {
+    $historical[$p] = New-Object System.Collections.Generic.List[string]
+    $historicalAmbiguous[$p] = New-Object System.Collections.Generic.List[string]
+}
 
 $liveFiles = Get-CorpusFiles -Roots ($liveRoots + @('dev')) `
     -ExtraFiles ($rootFiles + @('PLAN/RELEASE_QUEUE.md', 'PLAN/RELEASE_READY.md')) `
     -Skip $devLiveExclusions
 $historicalFiles = Get-CorpusFiles -Roots $historicalRoots -ExtraFiles @('dev/CHANGELOG.md')
 
-Add-Mentions -Files $liveFiles -Into $mentions
-Add-Mentions -Files $historicalFiles -Into $historical
+Add-Mentions -Files $liveFiles -Into $mentions -IntoAmbiguous $ambiguous
+Add-Mentions -Files $historicalFiles -Into $historical -IntoAmbiguous $historicalAmbiguous
 
 # ---------------------------------------------------------------- judge
 $unreferenced = New-Object System.Collections.Generic.List[string]
+$unreferencedPaths = New-Object System.Collections.Generic.List[string]
 $excused = New-Object System.Collections.Generic.List[string]
 
-foreach ($name in ($scripts.Keys | Sort-Object)) {
-    $ownPaths = $scripts[$name]
-    $others = @($mentions[$name] | Where-Object { $ownPaths -notcontains $_ })
-    if ($others.Count -gt 0) { continue }
+$heldByAmbiguityOnly = 0
+
+foreach ($own in ($scriptIndex.ByPath.Keys | Sort-Object)) {
+    if ($mentions[$own].Count -gt 0) { continue }
 
     # A Pester suite is reached by discovery, not by name: its runner globs *.Tests.ps1 in its own
     # directory, so no file ever writes the suite's filename. Naming each one would be the only way
     # to satisfy a by-name check, which is a worse convention than the one already in use.
-    $byConvention = $false
-    foreach ($own in $ownPaths) {
-        if ($own -notmatch '(?i)\.Tests\.ps1$') { continue }
+    if ($own -match '(?i)\.Tests\.ps1$') {
         $dir = Split-Path (Join-Path $RepoRoot $own) -Parent
-        if (Test-Path -LiteralPath (Join-Path $dir 'Run-Tests.ps1')) { $byConvention = $true }
+        if (Test-Path -LiteralPath (Join-Path $dir 'Run-Tests.ps1')) { continue }
     }
-    if ($byConvention) { continue }
 
-    $declared = $false
-    foreach ($own in $ownPaths) {
-        $text = [IO.File]::ReadAllText((Join-Path $RepoRoot $own))
-        if ($text -match '(?im)^\s*#?\s*Manual tool:\s*\S+') { $declared = $true }
-    }
-    if ($declared) {
-        $excused.Add(($ownPaths -join ', '))
+    # S2122: a suite entry point is reached the same way, one level up. Since the run site exists,
+    # scripts/quality/run-script-suites.ps1 discovers every Run-Tests.ps1 under a <name>.tests/ or a
+    # <name>/tests/ directory by walking the tree, so nothing writes these filenames either. Before
+    # the run site they were genuinely unreferenced and 27 of them sit in the baseline saying so;
+    # that is now the wrong answer, and excusing them here is what makes "wired" and "baselined as
+    # dead weight" different states again. Only the entry point qualifies - a helper dropped beside
+    # it still has to be reached by name from the suite.
+    if ($own -match '(?i)(^|/)[^/]+(\.tests|/tests)/[Rr]un-[Tt]ests\.ps1$') { continue }
+
+    $text = [IO.File]::ReadAllText((Join-Path $RepoRoot $own))
+    if ($text -match '(?im)^\s*#?\s*Manual tool:\s*\S+') {
+        $excused.Add($own)
         continue
     }
-    $onlyHistory = @($historical[$name] | Where-Object { $ownPaths -notcontains $_ })
+    if ($ambiguous[$own].Count -gt 0) { $heldByAmbiguityOnly++ }
+    $onlyHistory = @($historical[$own])
     $suffix = if ($onlyHistory.Count -gt 0) { "  (mentioned only historically, e.g. $($onlyHistory[0]))" } else { '' }
-    $unreferenced.Add((($ownPaths -join ', ') + $suffix))
+    $unreferencedPaths.Add($own)
+    $unreferenced.Add($own + $suffix)
 }
 
 if (-not $Quiet) {
@@ -429,23 +532,42 @@ if (-not $Quiet) {
 }
 
 if ($Report) {
-    Write-Host "assert-script-references: $($unreferenced.Count) unreferenced, $($excused.Count) excused, $($scripts.Count) scripts, $($liveFiles.Count) live corpus files, $($historicalFiles.Count) historical - report mode."
+    Write-Host ("assert-script-references: {0} unreferenced ({1} held up today by nothing but an ambiguous bare name), {2} excused, {3} scripts, {4} live corpus files, {5} historical - report mode." -f `
+            $unreferenced.Count, $heldByAmbiguityOnly, $excused.Count, $scriptIndex.ByPath.Count, $liveFiles.Count, $historicalFiles.Count)
     exit 0
 }
 
 if (-not (Test-Path -LiteralPath $baselinePath)) {
     Write-Host "assert-script-references: cannot verify - baseline file missing: $baselinePath" -ForegroundColor Yellow
-    Write-Host "  Create it with the current count from: assert-script-references.ps1 -Report"
+    Write-Host "  Create it with the current paths from: assert-script-references.ps1 -Report"
     exit 2
 }
-$baseline = [int](Get-Content -LiteralPath $baselinePath -Raw).Trim()
+# A list, not a count (S2124). Under a count, repairing one orphan frees a slot the next one
+# occupies silently - the exact invisibility this gate was built against, and the reason the docs
+# baseline beside it has been a list since S1979. A path key is what makes the list possible: with
+# a name key the 37 files called Run-Tests.ps1 could not be told apart on a line.
+$baselinePaths = @{}
+foreach ($line in (Get-Content -LiteralPath $baselinePath)) {
+    $trimmed = $line.Trim()
+    if ($trimmed -eq '' -or $trimmed.StartsWith('#')) { continue }
+    $baselinePaths[$trimmed.Replace('\', '/')] = $true
+}
 
-if ($unreferenced.Count -gt $baseline) {
-    Write-Host ("assert-script-references: FAIL - {0} unreferenced script(s), baseline {1}." -f $unreferenced.Count, $baseline) -ForegroundColor Red
-    Write-Host "  Delete it, or declare it with a 'Manual tool: <reason>' line in its comment-based help."
+$new = @($unreferencedPaths | Where-Object { -not $baselinePaths.ContainsKey($_) })
+$stale = @($baselinePaths.Keys | Where-Object { $unreferencedPaths -notcontains $_ } | Sort-Object)
+
+if (-not $Quiet) {
+    foreach ($s in $stale) { Write-Host "  baseline line no longer matches anything - prune it: $s" -ForegroundColor DarkGray }
+}
+
+if ($new.Count -gt 0) {
+    Write-Host ("assert-script-references: FAIL - {0} unreferenced script(s) not in the baseline." -f $new.Count) -ForegroundColor Red
+    foreach ($n in $new) { Write-Host "  new: $n" -ForegroundColor Red }
+    Write-Host "  Delete it, wire it, or declare it with a 'Manual tool: <reason>' line in its comment-based help."
+    Write-Host "  Baselining it instead is a decision to keep dead weight: $baselinePath"
     exit 1
 }
 
-Write-Host ("assert-script-references: PASS - {0} unreferenced (baseline {1}), {2} excused." -f `
-    $unreferenced.Count, $baseline, $excused.Count) -ForegroundColor Green
+Write-Host ("assert-script-references: PASS - {0} unreferenced, all baselined ({1} stale line(s)), {2} excused." -f `
+        $unreferenced.Count, $stale.Count, $excused.Count) -ForegroundColor Green
 exit 0

@@ -101,7 +101,7 @@ This is a fast self-review, not a substitute for the deeper end-of-task audit (e
 
 Check these first:
 
-- UI -> ViewModel -> UseCase -> Repository -> DataSource is preserved
+- UI -> ViewModel -> UseCase -> Repository -> DataSource is preserved. Partly ratcheted since S2103 by four rules under the neuroslop umbrella - `ui-imports-data`, `ui-imports-room`, `ui-imports-impl`, `viewmodel-imports-repository` - which stop the `src/main` counts from growing but say nothing about the leaks already frozen in the baselines, so read the layering by eye as well
 - no business logic is introduced into Activities
 - singleton classes do not retain `Activity`, `Fragment`, `View`, `Dialog`, or adapter instances
 - manager classes own a clear release point
@@ -247,6 +247,9 @@ Check:
 - no N+1 pattern - one query per row inside a loop becomes a single join or `IN (..)` query
 - `Flow` queries are deduplicated (`distinctUntilChanged`) so an unrelated table write does not re-emit and re-render
 - every schema change ships a migration and a migration test; no destructive fallback in release
+- the migration's SQL says what the exported schema says - column NAME character for character (`screenIndex` is not `screen_index`), nullability, and any `@ColumnInfo(defaultValue = ..)` the entity declares. Room compares these on the user's device on the first launch after the update, and a mismatch there destroys the database (S2251). Gated by `assert-migration-schema-conformance.ps1` in every closure; read its finding rather than re-deriving the comparison
+- the migration is listed in `DatabaseModule.addMigrations()`. A migration file that exists but is not registered is not a no-op - the hop throws and the recovery path deletes the database
+- the upgrade was **executed**, not only compiled. `.\a.ps1 fa` proves the instrumented tests parse; only `.\a.ps1 fam` runs `runMigrationsAndValidate`, which is the same comparison the device performs. A database change whose evidence is a green compile has not been audited
 
 Review questions:
 
@@ -254,6 +257,7 @@ Review questions:
 - is the result bounded, or can it grow with the library size
 - is this read consistent under concurrent writes
 - does a write to an unrelated row wake this Flow
+- what happens to an existing install that upgrades to this schema - which migration runs, and against which exported schema was it verified
 
 ## Layer 5 - Main-thread and startup audit
 

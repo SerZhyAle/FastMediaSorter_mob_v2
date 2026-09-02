@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearStreamTransferAck
 import com.sza.fastmediasorter.wear.domain.model.WearStreamTransferPayload
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
+import io.mockk.mockk
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
@@ -46,7 +47,11 @@ class StoreTransferredStreamUseCaseTest {
     }
 
     private fun useCase(repository: FakeRepository) =
-        StoreTransferredStreamUseCase(repository, ClassifyWearStreamMediaKindUseCase())
+        StoreTransferredStreamUseCase(
+            repository = repository,
+            classifier = ClassifyWearStreamMediaKindUseCase(),
+            requestWearTileRefreshUseCase = mockk(relaxed = true)
+        )
 
     private fun payload(
         url: String = "https://radio.example/stream",

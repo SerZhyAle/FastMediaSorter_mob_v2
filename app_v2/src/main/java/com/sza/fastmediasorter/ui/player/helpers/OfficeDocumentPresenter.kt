@@ -85,7 +85,6 @@ class OfficeDocumentPresenter(
 
     fun display(mediaFile: MediaFile) {
         val session = viewerProvider.resolve(mediaFile)
-        Timber.d("S1960: office display ${mediaFile.name} outcome=${session.outcome}")
         when (session.outcome) {
             OfficeDocumentViewerOutcome.DISPLAY_INTERNALLY ->
                 displayInternally(mediaFile)

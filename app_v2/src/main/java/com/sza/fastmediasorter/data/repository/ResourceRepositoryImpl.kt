@@ -352,6 +352,10 @@ class ResourceRepositoryImpl @Inject constructor(
         resourceDao.updateLastScrollPosition(resourceId, position)
     }
 
+    override suspend fun updateResourceAddress(resourceId: Long, newPath: String) {
+        resourceDao.updateResourceAddress(resourceId, newPath)
+    }
+
     override suspend fun backfillMissingIcons(
         resolveIcon: (path: String, profileName: String, typeName: String) -> String?
     ): Int {

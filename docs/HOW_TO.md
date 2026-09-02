@@ -92,10 +92,11 @@ If a feature is marked with "✗", choose the **Standard** or **XR / noLegal** b
 34. [Find and Delete Duplicate Files](#how-to-find-and-delete-duplicate-files)
 35. [View Your Usage Statistics](#how-to-view-your-usage-statistics)
 36. [Use an SD Card or Connected Drive](#how-to-use-an-sd-card-or-connected-drive)
-37. [Use the App as Your Home Screen](#how-to-use-the-app-as-your-home-screen)
-38. [Choose Where Captures and Downloads Are Saved](#how-to-choose-where-captures-and-downloads-are-saved)
-39. [Receive Files Shared from Another App](#how-to-receive-files-shared-from-another-app)
-40. [Use the Built-In Programs](#how-to-use-the-built-in-programs)
+37. [Reconnect a Folder Added by Direct Path](#how-to-reconnect-a-folder-added-by-direct-path)
+38. [Use the App as Your Home Screen](#how-to-use-the-app-as-your-home-screen)
+39. [Choose Where Captures and Downloads Are Saved](#how-to-choose-where-captures-and-downloads-are-saved)
+40. [Receive Files Shared from Another App](#how-to-receive-files-shared-from-another-app)
+41. [Use the Built-In Programs](#how-to-use-the-built-in-programs)
 
 ---
 
@@ -1162,7 +1163,7 @@ On a brand-new install there is a shortcut: tick **Use as home screen** on the f
 - Prefer it along the top? **Settings → General → System launcher settings → Taskbar → Taskbar position** switches between **Bottom** and **Top**. The Start menu follows the bar and drops down from above when the bar is up there.
 - The Start button opens the menu: open FastMediaSorter, your resources, add a resource, Android settings, app settings, launcher settings, edit desktop contents, and at the end restart, power off and **Exit launcher mode**. Restart and power off only work if your device lets an ordinary app do that - on most phones they will simply do nothing.
 
-**Your apps:** the app grid groups apps into sections, each with a small header. Tap a header to collapse a section you rarely open; collapsed headers tuck in next to each other, so the desktop gets shorter instead of leaving gaps. A fresh desktop also gets a **GOOGLE** section holding the Google apps you already have installed. Long-press any app in the list for **Put on desktop** and **Pin to taskbar**.
+**Your apps:** the app grid groups apps into sections, each with a small header. Tap a header to collapse a section you rarely open; collapsed headers tuck in next to each other, so the desktop gets shorter instead of leaving gaps. A fresh desktop splits the apps it seeds in two: a **Google** section for the Google apps you already have installed, and an **Apps** section for your own - messengers, games and whatever else you put on the device. No app lands in both. Long-press any app in the list for **Put on desktop** and **Pin to taskbar**.
 
 **Rearranging it:**
 
@@ -1279,11 +1280,12 @@ FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia
 2. Switch between **Photo** and **Video** right on the camera screen if you change your mind.
 3. Set your zoom with a preset chip (0.5x/1x/2x..) or the slider underneath - both stay in sync.
 4. Tap the aspect button to shape the frame - **4:3**, **16:9** or **Full screen**. The viewfinder itself changes, so what you see is what the saved photo will be, and the choice is remembered next time you open the camera (16:9 until you change it).
-5. Tap the shooting-scenario button to pick how the shot is taken - normal, night, portrait, selfie, macro or sport. Macro jumps to the dedicated close-focus lens, selfie flips to the front camera, sport keeps the exposure short so motion freezes. Only the scenarios your device can actually deliver are listed, the active one is named on the button, and changing the lens by hand returns the camera to normal.
+5. Tap the shooting-scenario button to pick how the shot is taken - normal, night, portrait, selfie, macro, sport or document. Macro jumps to the dedicated close-focus lens, selfie flips to the front camera, sport keeps the exposure short so motion freezes, and document is tuned for photographing flat pages and screens. Only the scenarios your device can actually deliver are listed, the active one is named on the button, and changing the lens by hand returns the camera to normal.
 6. Tap the shutter (or the record button) to capture. The result saves straight to the resource - local or network - you were browsing.
 
 **Tips:**
 
+- Tap anywhere in the viewfinder to focus and set exposure on that spot - a small ring marks where.
 - The edge gesture's **Start video recording** action opens the camera already in Video mode and starts recording as soon as the preview is ready - quick, but that particular shortcut saves to your device's Movies folder rather than the browsed resource.
 - Turn on **Geotag photos** next to the camera settings to embed the GPS location into each captured JPEG - it is off until you enable it. **File Info** then shows the capture date and the photo's EXIF GPS spot as a tappable link that opens in your maps app or browser.
 
@@ -1355,6 +1357,23 @@ A memory card or a USB drive the phone has mounted holds resources exactly like 
 
 ---
 
+## How to Reconnect a Folder Added by Direct Path
+
+A folder you added by typing or browsing its path can show your photos, videos and music but none of your documents. That is not a scan that missed them: a store build reads text files, PDFs and e-books only through a folder you connected with the system chooser. Reconnecting points the same resource at the same folder through that chooser, and the documents appear.
+
+**Steps:**
+
+1. Tap the three-dot menu on the folder's card in the main list.
+2. Choose **Reconnect resource**. The system folder chooser opens, already in that folder where the phone allows it.
+3. Pick the same folder and confirm.
+4. If you pick a different folder, the app names both folders and asks before changing anything.
+
+**What stays:** the name, the position in your list, the PIN, the icon, the Quick Sort role, your favourites and your schedules all survive - the resource is re-addressed, not created again.
+
+**Where you will not see it:** on builds that still read folders by path directly, and on Android 10 and older, the entry is absent because nothing is missing there.
+
+---
+
 ## How to Choose Where Captures and Downloads Are Saved
 
 Photos from the in-app camera, screenshots, snapshots and auto-downloaded files each write to a folder you pick, and that folder does not have to be one of your resources.
@@ -1420,7 +1439,7 @@ In the order they appear:
 - **Quick capture** - take a photo straight into the app.
 - **Voice recording** - record a voice note.
 - **Calculator** - a scientific calculator with history and memory slots.
-- **Network Monitor** - live readings for the active link, Wi-Fi, mobile, Bluetooth and location.
+- **Network Monitor** - live readings for the active link, Wi-Fi, mobile, Bluetooth and location, plus a traceroute that walks the route to a host hop by hop and keeps counting when a hop answers nothing.
 - **Photo OCR translate** - shoot text and translate it.
 - **Screen video recording** - record the screen.
 - **Download by link** - fetch a file from a pasted link.

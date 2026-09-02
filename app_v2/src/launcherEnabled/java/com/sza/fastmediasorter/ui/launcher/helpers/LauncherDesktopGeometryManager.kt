@@ -9,7 +9,6 @@ import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherCellViewBinder
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherDesktopLayout
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
-import timber.log.Timber
 
 /**
  * S1541: the desktop's geometry answers - column count, viewport rows, current orientation - plus the
@@ -35,7 +34,6 @@ class LauncherDesktopGeometryManager(
      * the trap the RecyclerView renderer had, where requestLayout() never re-ran a bind (ADR-9).
      */
     fun applyGridGeometry() {
-        Timber.d("S1541: geometry manager applying grid")
         val orientation = currentOrientation()
         val columns = currentColumns()
         viewModel.setOrientation(orientation)
@@ -48,14 +46,23 @@ class LauncherDesktopGeometryManager(
      * re-derive on rotation/density - funnel here so edit mode is never dropped by one of them binding
      * without it. The binder's own (cells, columns, editMode) guard makes redundant calls free.
      */
-    fun renderDesktop() {
+    fun renderDesktop(screenIndex: Int = 0) {
+        val screenCount = viewModel.launcherDesktopSettings.value.launcherScreenCount
+        val allCells = viewModel.cells.value
+        val screenCells = if (screenCount > 1) {
+            allCells.filter { it.cell.screenIndex == screenIndex }
+        } else {
+            allCells
+        }
         cellBinder.bind(
             desktop,
-            viewModel.cells.value,
+            screenCells,
             currentColumns(),
             viewModel.editMode.value,
             currentViewportRows(),
-            viewModel.sections.collapsed.value,
+            // S2317: the targets folded on the cells actually being drawn. The whole set would fold a
+            // header on this screen because its twin on another screen is shut.
+            viewModel.sections.collapsedTargetsFor(screenCells),
             viewModel.widgetBackdropAlpha.value,
         )
     }

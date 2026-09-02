@@ -474,6 +474,11 @@ class PlayerActivity :
     internal lateinit var altEngineFallbackManager:
         com.sza.fastmediasorter.ui.player.helpers.AltEngineFallbackManager
 
+    // S1971: offers the download when an alt engine could play the file but its payload is not here yet
+    @Inject
+    internal lateinit var deliveryEnableInterceptor:
+        com.sza.fastmediasorter.ui.delivery.DeliveryEnableInterceptor
+
     @Inject lateinit var mediaFilesCacheManager: MediaFilesCacheManager
 
     @Inject lateinit var gamepadInputManager: GamepadInputManager
@@ -608,6 +613,22 @@ class PlayerActivity :
         updateSystemBarsForPlayer(viewModel.state.value.showCommandPanel)
     }
 
+    /**
+     * S2230: the PiP-on-ready entry, called from [PlayerPlaybackCallbackImpl.onPlaybackReady].
+     * One-shot per activity instance; if the system refuses the entry (or the shell lacks PiP) the
+     * player simply stays fullscreen - no error surface (strategic §7 risk row 2 of S2230).
+     */
+    fun enterPipOnPlaybackReadyIfNeeded() {
+        if (pipOnReadyFired) return
+        if (!intent.getBooleanExtra(EXTRA_ENTER_PIP_ON_READY, false)) return
+        pipOnReadyFired = true
+        Timber.d("S2230: pip-on-ready requested, entering picture-in-picture")
+        Timber.i("PlayerActivity: entering picture-in-picture on playback ready")
+        pipManager?.enterPictureInPicture()
+    }
+
+    private var pipOnReadyFired = false
+
     /** Initialize all helper managers - delegates to PlayerManagerInitializer. */
     private fun initializeManagers() {
         playerManagerInitializer = PlayerManagerInitializer(this)
@@ -683,7 +704,6 @@ class PlayerActivity :
      * strategic §6 item 5, variant A) and re-wires the listeners that died with the old tree.
      */
     private fun rebindLayoutForOrientation() {
-        Timber.d("S1549: PlayerActivity rebindLayoutForOrientation - layout re-inflated without a recreate")
         rebindContentView()
         invalidateSafeViews()
         playerLayoutRebindManager.rebindDocumentViewers(
@@ -717,6 +737,9 @@ class PlayerActivity :
         // Re-create the binding-bound graph against the fresh tree, then re-point the media
         // loader at the two helpers it drives.
         playerManagerInitializer.constructBindingBoundManagers()
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N && isInPictureInPictureMode) {
+            pipManager?.onPictureInPictureModeChanged(true)
+        }
         mediaLoaderManager.rebind(activityBinding, imageLoadingManager, exoPlayerControlsManager)
         // Re-wire the listeners that were bound to the discarded tree.
         setupGestureDetector()
@@ -1190,9 +1213,11 @@ class PlayerActivity :
         startPositionMs: Long
     ): Boolean {
         val ready = ::altEngineFallbackManager.isInitialized && altEngineFallbackManager.canFallback(file)
-        if (!ready) return false
+        if (!ready) {
+            offerAltEngineDownload(file, uri, startPositionMs)
+            return false
+        }
 
-        timber.log.Timber.d("S1060: PlayerActivity: attempting alt engine fallback for file=%s", file.name)
         stopExoPlayerForAltEngineFallback()
         binding.playerView.visibility = android.view.View.GONE
 
@@ -1206,6 +1231,35 @@ class PlayerActivity :
             },
             onError = { msg ->
                 timber.log.Timber.e("PlayerActivity: alt engine fallback error: %s", msg)
+            }
+        )
+    }
+
+    /**
+     * S1971: the one moment the user can be told the module exists.
+     *
+     * The alt engine has no settings toggle - it is reached only here, after the primary player has
+     * already failed - so a file it would play after a download is otherwise reported as a plain
+     * playback error and the capability stays invisible forever.
+     */
+    private fun offerAltEngineDownload(
+        file: com.sza.fastmediasorter.domain.model.MediaFile,
+        uri: android.net.Uri,
+        startPositionMs: Long
+    ) {
+        if (!::altEngineFallbackManager.isInitialized || !::deliveryEnableInterceptor.isInitialized) return
+        val set = altEngineFallbackManager.pendingInstallSetFor(file) ?: return
+        timber.log.Timber.d("S1971: offering delivery download for alt engine set %s", set)
+        deliveryEnableInterceptor.requireInstalled(
+            activity = this,
+            set = set,
+            // Re-ask the manager instead of calling tryAltEngineFallback unconditionally: that method
+            // routes an unavailable engine straight back here, and a capability that reports installed
+            // while the engine still refuses the file would loop between the two forever.
+            onReady = {
+                if (altEngineFallbackManager.canFallback(file)) {
+                    tryAltEngineFallback(file, uri, startPositionMs)
+                }
             }
         )
     }
@@ -1408,6 +1462,11 @@ class PlayerActivity :
         // S0694: open a live video stream straight into fullscreen. Set by the Streams launch path;
         // honoured once on first layout (see initEnterFullscreenOnLaunch).
         const val EXTRA_ENTER_FULLSCREEN = "extra_enter_fullscreen"
+
+        // S2230: enter Picture-in-Picture once playback first reaches READY. Set by the launcher
+        // stream window's PiP overlay button - the cell is a view, not an activity, so the system
+        // PiP window must be hosted by the player activity it opens.
+        const val EXTRA_ENTER_PIP_ON_READY = "extra_enter_pip_on_ready"
         const val EXTRA_STREAM_THUMBNAIL_URL = "extra_stream_thumbnail_url"
 
         fun createIntent(

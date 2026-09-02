@@ -74,7 +74,6 @@ class StreamTilePackReader(
         } catch (e: CancellationException) {
             // A cancelled read is not a closed container: answering null here caches "no tile" for
             // an index that was never actually read (S1889).
-            Timber.d("S1889: tile pack read cancelled - rethrowing instead of caching no tile")
             throw e
         } catch (e: IllegalStateException) {
             Timber.i(e, "Stream tile pack closed while reading index=$index")

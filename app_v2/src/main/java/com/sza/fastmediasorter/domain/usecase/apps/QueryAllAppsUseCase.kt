@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 /**
@@ -19,6 +20,11 @@ import javax.inject.Inject
 class QueryAllAppsUseCase @Inject constructor(
     private val repository: InstalledAppsRepository
 ) {
+
+    data class AppGroup(
+        val title: String,
+        val items: List<String>
+    )
 
     operator fun invoke(
         query: String,
@@ -32,6 +38,32 @@ class QueryAllAppsUseCase @Inject constructor(
             // Without this the filter and the sort run wherever the collector lives - the main thread for
             // a UI subscriber - and every recorded launch re-sorts the whole installed-app list on it.
             .flowOn(Dispatchers.Default)
+
+    fun groupedApps(
+        query: String,
+        order: InstalledAppSortOrder,
+        descending: Boolean
+    ): Flow<List<AppGroup>> =
+        invoke(query, order, descending)
+            .map { apps ->
+                val ordered = if (descending) apps.reversed() else apps
+                val fullList = ordered.map { it.label }
+                val groups = ordered
+                    .groupBy { it.firstLetterLabel() }
+                    .toSortedMap(String.CASE_INSENSITIVE_ORDER)
+                    .mapValues { (_, items) -> items.map { it.label } }
+
+                buildList {
+                    if (fullList.isNotEmpty()) {
+                        add(AppGroup(title = ALL_GROUP_TITLE, items = fullList))
+                    }
+                    groups.forEach { (letter, items) ->
+                        if (items.isNotEmpty()) {
+                            add(AppGroup(title = letter, items = items))
+                        }
+                    }
+                }
+            }
 
     /**
      * The package name is matched as well as the label, so a user who knows what an app is called
@@ -90,9 +122,15 @@ class QueryAllAppsUseCase @Inject constructor(
     private fun statsOf(app: InstalledApp, stats: Map<String, LaunchStats>): LaunchStats? =
         stats[LauncherCellCommand.App(app.packageName).encode()]
 
+    private fun InstalledApp.firstLetterLabel(): String {
+        val candidate = label.trim().firstOrNull { it.isLetter() } ?: '#'
+        return candidate.uppercaseChar().toString()
+    }
+
     private companion object {
         /** `ApplicationInfo.CATEGORY_UNDEFINED`, spelled out so the domain layer stays Android-free. */
         const val CATEGORY_UNDEFINED = -1
+        const val ALL_GROUP_TITLE = "All"
 
         /** Every order ends on this, so identical inputs can never produce two different lists. */
         val byLabel: Comparator<InstalledApp> =

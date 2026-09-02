@@ -8,6 +8,7 @@ import androidx.media3.common.MimeTypes
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultDataSource
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.data.network.datasource.TsPacketFormat
 import com.sza.fastmediasorter.data.network.datasource.TsPacketFormatDetector
@@ -83,7 +84,7 @@ internal suspend fun VideoPlayerManager.playLocalVideoInternal(path: String, pla
                     TsPacketFormatDetector.detect(if (read > 0) probe.copyOf(read) else probe)
                 }
             } catch (e: Exception) {
-                Timber.w(e, "VideoPlayerManager: BD-TS probe failed for $normalizedPath")
+                e.warnUnlessCancellation("VideoPlayerManager: BD-TS probe failed for $normalizedPath")
                 TsPacketFormat.UNKNOWN
             }
         }
@@ -95,7 +96,6 @@ internal suspend fun VideoPlayerManager.playLocalVideoInternal(path: String, pla
             // mediaSourceFactory override instead of being built by hand.
             val playerView = currentPlayerView
             if (playerView != null) {
-                Timber.d("S1776: local BD-TS playback via DefaultDataSource.Factory")
                 val localFactory: DataSource.Factory = DefaultDataSource.Factory(context)
                 createPlayer(
                     playerView,
@@ -146,7 +146,7 @@ internal suspend fun VideoPlayerManager.resolveContentUriForPath(filePath: Strin
                 } else null
             }
         } catch (e: Exception) {
-            Timber.w(e, "VideoPlayerManager: Failed to resolve content URI for $filePath")
+            e.warnUnlessCancellation("VideoPlayerManager: Failed to resolve content URI for $filePath")
             null
         }
     }

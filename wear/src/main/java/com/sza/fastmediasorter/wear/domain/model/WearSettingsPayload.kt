@@ -18,5 +18,25 @@ data class WearSettingsPayload(
     // S1730: the file list keeps its own view, separate from the navigation screens above.
     val fileListViewMode: String? = null,
     // S1814: active interface language of the phone, nullable so older phones do not clear watch locale.
-    val appLanguage: String? = null
+    val appLanguage: String? = null,
+    // S2000: name of a WearBackgroundMode. Only the choice rides here - the picture itself goes over
+    // the file-transfer channel, because this payload is Gson-encoded and a ByteArray would serialize
+    // as an array of numbers, pushing the data item past the size where it is dropped in silence.
+    val backgroundMode: String? = null,
+    // S2093: the watch row that had no phone control until this ticket.
+    val streamsSectionEnabled: Boolean? = null,
+    // S2130: the fourth allowed-type switch. Nullable unlike its three siblings above for the S1781
+    // reason - a phone that predates it omits it, and only a nullable field lets this side keep its
+    // own stored value instead of reading the absence as "documents switched off".
+    val documentsEnabled: Boolean? = null,
+    // S2209: disable animations toggle synced from/to phone.
+    val disableAnimations: Boolean? = null,
+    // S2093: contract field name to epoch-millis of that field's last edit on the sending side. One map
+    // rather than a companion field per setting, so a later registry entry needs no new contract field
+    // and no new storage key. Absent entirely on a side that predates the two-way exchange, which the
+    // merge reads as "apply the incoming value", preserving today's one-way behaviour.
+    val fieldTimestamps: Map<String, Long>? = null,
+    // S2093: device traits the other side cannot infer, keyed by
+    // WearSettingsRegistry.CAPABILITY_AUTO_ROTATION_SENSOR and its future peers.
+    val capabilities: Map<String, Boolean>? = null
 )

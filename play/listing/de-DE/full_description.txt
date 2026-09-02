@@ -1,0 +1,41 @@
+Fast Media Sorter ist ein Dateimanager für Android. Sie öffnen einen Quellordner, sehen sich jede Datei einmal an und schicken sie dorthin, wo sie hingehört - eine Entscheidung pro Datei, bis der Ordner leer ist.
+
+Sortieren ist der Zweck der App:
+
+• Sie wählen die Ordner auf beiden Seiten - DCIM, Downloads, Chat-Medien, SD-Karte, USB, SMB/CIFS-, FTP- und SFTP-Freigaben, Google Drive, OneDrive und Dropbox.
+• Entscheiden und weiter - kopieren, verschieben, umbenennen oder löschen, dann direkt zur nächsten Datei.
+• Alle Dateitypen, nicht nur Medien - Fotos, Videos, Musik, PDF, EPUB, Text und Archive.
+• Stapelverarbeitung über Ordner und Protokolle hinweg, auch von Cloud zu Cloud, mit Fortschritt und Restzeit.
+• Geplante Vorgänge - eine Übertragung zwischen zwei Ordnern einmal einrichten, danach läuft sie von selbst.
+• Papierkorb mit 5 Minuten Wiederherstellung, Miniaturen, Sortierung und Filter, Mehrfachauswahl und Umsortieren per Ziehen.
+• Netzwerkordner als QR-Code teilen: ein anderes Gerät tritt durch Scannen bei.
+
+Warum die App Zugriff auf alle Dateien benötigt:
+
+Das Sortieren muss die Ordner erreichen, die Sie auswählen, und nicht nur den privaten Speicher der App - ein Dateimanager, der nicht in Ihren Zielordner schreiben kann, tut überhaupt nichts. Deshalb wird die Berechtigung für alle Dateien angefragt, und auf ihr beruht der gesamte Hauptablauf. Nichts verlässt deswegen Ihr Gerät: Es gibt kein Konto und keine Telemetrie.
+
+Warum die App den Standort benötigt:
+
+Der Standort ist optional und wird nur von den Funktionen genutzt, die ihn brauchen: Er schreibt Koordinaten in Fotos und Videos der eingebauten Kamera, zeichnet die Gadgets für Kompass, Geschwindigkeit, Höhe und Karte auf dem Launcher-Desktop und füllt die GNSS- und WLAN-Abschnitte des Netzwerkmonitors. Im Hintergrund wird er nie gelesen, und die Karten-Gadgets laden ihr Kartenbild über das Netz, um Ihren Standort zu zeigen. Lehnen Sie ab, bleiben Aufnahmen einfach ohne Koordinaten und diese Gadgets ruhen.
+
+Weil man eine Datei sehen muss, bevor man über sie entscheidet, sind Betrachter und Player eingebaut:
+
+• Bildbetrachter - Drehen, Farbfilter, Zuschnitt, Anmerkungen, OCR-Texterkennung, AR-Übersetzung und komprimierte Kopie.
+• Videoplayer auf ExoPlayer (Media3) - Bild-in-Bild, Sleeptimer, Fortsetzen pro Datei, 3D- und 360°-Erkennung.
+• Musikplayer - Wiedergabe im Hintergrund, Songtextsuche, Albumcover, Visualisierungen und Chromecast.
+• PDF- und EPUB-Reader - Vorlesen, Themes, Suche und Übersetzung im Text.
+• Texteditor - automatische Zeichensatzerkennung, Markdown-Darstellung, Syntaxhervorhebung.
+• Diashow - Hintergrundmusik, Intervall pro Objekt, Video bis zum Ende, einstellbare Übergänge.
+• Eingebaute Kamera - Objektive, Zoom und Fotogrößen passend zum Gerät, direkt in den gewählten Ordner.
+• Live-TV und Radio - Tausende Internetsender mit Suche, Themenfiltern, angehefteten Favoriten, Senderbildern und Titelanzeige.
+
+Für jeden Bildschirm und jede Eingabe:
+
+• Vollständige Bedienung per Tastatur, TV-Fernbedienung / D-Pad und Gamepad.
+• Startbildschirm-Widgets - Ressource öffnen, Weiterlesen, Zufallsmusik, Kamerafotos.
+• Schnelleinstellungs-Kachel für Hintergrundaudio. Suche über alle Einstellungen.
+• Wear OS - eine eigenständige Uhren-App: Medien auf der Uhr durchsehen, Internetradio und TV hören, drei Kacheln und drei Zifferblatt-Komplikationen, dazu Taschenrechner, Netzwerkmonitor und Diktiergerät. Netzwerkfreigaben und Dateien kommen von der Telefon-App.
+
+Frei, offen und privat - der Quellcode erscheint unter der Apache License 2.0, und lokales, SMB-, FTP- und SFTP-Browsen sowie die Betrachter für Bild, Video, Audio, PDF und EPUB funktionieren vollständig offline, ganz ohne Konto.
+
+Source and issues: https://github.com/SerZhyAle/FastMediaSorter_mob_v2

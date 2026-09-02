@@ -49,7 +49,23 @@ function Add-Failure([string]$Case, [string]$Detail) {
 function Add-Pass([string]$Case) { Write-Host "  ok   $Case" -ForegroundColor DarkGray }
 
 # rg's own directory, so it can be removed from PATH to force the fallback branch.
+# Resolve ripgrep even when PATH (notably under -NoProfile) omits its install directory:
+# the same shell-dependent absence that made this suite's verdict differ between shells, and
+# the same remedy publish-github-release.ps1 uses for gh.
 $rgCmd = Get-Command rg -ErrorAction SilentlyContinue
+if (-not $rgCmd) {
+    foreach ($rgDirCandidate in @(
+        (Join-Path ${env:LOCALAPPDATA} 'Microsoft\WinGet\Links'),
+        (Join-Path ${env:ProgramFiles} 'ripgrep'),
+        (Join-Path ${env:ProgramW6432} 'ripgrep')
+    )) {
+        if ($rgDirCandidate -and (Test-Path -LiteralPath (Join-Path $rgDirCandidate 'rg.exe'))) {
+            $env:PATH = "$rgDirCandidate;$env:PATH"
+            break
+        }
+    }
+    $rgCmd = Get-Command rg -ErrorAction SilentlyContinue
+}
 if (-not $rgCmd) {
     Write-Error "drift-check tests: rg is not on PATH, so only one backend exists here and the comparison cannot be made." -ErrorAction Continue
     exit 2

@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter.di
 
+import com.sza.fastmediasorter.data.networkmonitor.FallbackHostProbe
 import com.sza.fastmediasorter.data.repository.NetworkMeasurementHistoryRepositoryImpl
 import com.sza.fastmediasorter.data.repository.NetworkMonitorRepositoryImpl
+import com.sza.fastmediasorter.domain.networkmonitor.HostProbe
 import com.sza.fastmediasorter.domain.repository.NetworkMeasurementHistoryRepository
 import com.sza.fastmediasorter.domain.repository.NetworkMonitorRepository
 import dagger.Binds
@@ -33,4 +35,13 @@ abstract class NetworkMonitorDataModule {
     abstract fun bindNetworkMeasurementHistoryRepository(
         impl: NetworkMeasurementHistoryRepositoryImpl,
     ): NetworkMeasurementHistoryRepository
+
+    /**
+     * S1617: one reachability role for the whole Monitor. The composite injects the two mechanisms
+     * as concrete types, so no caller needs a qualifier to say which one it wants - and none may
+     * choose, because which mechanism can run is a property of the firmware, not of the caller.
+     */
+    @Binds
+    @Singleton
+    abstract fun bindHostProbe(impl: FallbackHostProbe): HostProbe
 }

@@ -66,4 +66,15 @@
 
     </LinearLayout>
 
+    <!-- CC-BY 4.0 obliges us to name the source; shown here, at the point the user actively picks a
+         place for the Open-Meteo-backed gadget, rather than persistently on the small desktop card. -->
+    <TextView
+        android:id="@+id/tvWeatherLocationAttribution"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:text="@string/launcher_gadget_weather_attribution"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:textSize="9sp" />
+
 </LinearLayout>

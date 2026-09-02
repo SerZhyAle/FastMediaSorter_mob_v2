@@ -28,6 +28,15 @@ import org.junit.Test
 @Suppress("FunctionNaming") // backtick test names, project convention (cf. LauncherGridGeometryTest)
 class LauncherStarterSetsParityTest {
 
+    /**
+     * S2309: the screen class these cases compose for unless they are about the class itself.
+     *
+     * Medium and wide is the pair the pre-S2309 hardcoded layout was written against, so a case
+     * that predates the second axis keeps asserting the desktop it was written to assert.
+     */
+    private val mediumWide =
+        LauncherScreenClass(LauncherScreenClass.Size.MEDIUM, LauncherScreenClass.Shape.WIDE)
+
     @Test
     fun `the header span fits the narrowest grid the renderer can resolve`() {
         // S1642: the header is stored and drawn at one span, so the only way it can fail to fit is by
@@ -40,17 +49,35 @@ class LauncherStarterSetsParityTest {
     @Test
     fun `starter gadget target keys match the registry consts`() {
         // Clock: the one gadget every profile seeds, whose bare target is the key itself.
-        val clock = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap(), emptySet())
+        val clock = LauncherStarterSets.itemsFor(
+            DeviceProfileType.OTHER,
+            StarterResources(),
+            emptyMap(),
+            emptySet(),
+            screenClass = mediumWide,
+        )
             .first { it.kind == LauncherCellKind.GADGET }
         assertEquals(LauncherGadgetRegistry.KEY_CLOCK, clock.target)
 
         val folderPreview = LauncherStarterSets
-            .itemsFor(DeviceProfileType.PHOTO_FRAME, StarterResources(lastResourceId = 1L), emptyMap(), emptySet())
+            .itemsFor(
+                DeviceProfileType.PHOTO_FRAME,
+                StarterResources(lastResourceId = 1L),
+                emptyMap(),
+                emptySet(),
+                screenClass = mediumWide,
+            )
             .first { it.target.startsWith(LauncherGadgetRegistry.KEY_FOLDER_PREVIEW) }
         assertEquals("${LauncherGadgetRegistry.KEY_FOLDER_PREVIEW}:1", folderPreview.target)
 
         val playlist = LauncherStarterSets
-            .itemsFor(DeviceProfileType.AUDIO_PLAYER, StarterResources(allAudioId = 2L), emptyMap(), emptySet())
+            .itemsFor(
+                DeviceProfileType.AUDIO_PLAYER,
+                StarterResources(allAudioId = 2L),
+                emptyMap(),
+                emptySet(),
+                screenClass = mediumWide,
+            )
             .first { it.target.startsWith(LauncherGadgetRegistry.KEY_PLAYLIST) }
         assertEquals("${LauncherGadgetRegistry.KEY_PLAYLIST}:2", playlist.target)
 
@@ -60,6 +87,7 @@ class LauncherStarterSetsParityTest {
                 StarterResources(allAudioId = 2L),
                 mapOf(InternalRouteCatalog.KEY_STREAMS to true),
                 emptySet(),
+                screenClass = mediumWide,
             )
             .first { it.target == LauncherGadgetRegistry.KEY_STREAMS }
         assertEquals(LauncherGadgetRegistry.KEY_STREAMS, streams.target)
@@ -69,6 +97,7 @@ class LauncherStarterSetsParityTest {
             StarterResources(),
             emptyMap(),
             emptySet(),
+            screenClass = mediumWide,
         ).map { it.target }.toSet()
         assertEquals(true, LauncherGadgetRegistry.KEY_WEATHER in sensors)
         assertEquals(true, LauncherGadgetRegistry.KEY_SPEED in sensors)
@@ -83,12 +112,24 @@ class LauncherStarterSetsParityTest {
         // that drops the seed shows up here as an empty group rather than as a silently plainer desktop.
         // The image window carries its resource id, so the assertion is on the `key:id` prefix.
         val tabletWindow = LauncherStarterSets
-            .itemsFor(DeviceProfileType.HOME_TABLET, StarterResources(allImagesId = 3L), emptyMap(), emptySet())
+            .itemsFor(
+                DeviceProfileType.HOME_TABLET,
+                StarterResources(allImagesId = 3L),
+                emptyMap(),
+                emptySet(),
+                screenClass = mediumWide,
+            )
             .first { it.target.startsWith(LauncherGadgetRegistry.KEY_MEDIA_IMAGE_WINDOW) }
         assertEquals("${LauncherGadgetRegistry.KEY_MEDIA_IMAGE_WINDOW}:3", tabletWindow.target)
 
         val headsetTargets = LauncherStarterSets
-            .itemsFor(DeviceProfileType.VR_HEADSET, StarterResources(), emptyMap(), emptySet())
+            .itemsFor(
+                DeviceProfileType.VR_HEADSET,
+                StarterResources(),
+                emptyMap(),
+                emptySet(),
+                screenClass = mediumWide,
+            )
             .map { it.target }
             .toSet()
         assertEquals(true, LauncherGadgetRegistry.KEY_BATTERY in headsetTargets)
@@ -111,6 +152,7 @@ class LauncherStarterSetsParityTest {
             LauncherGadgetRegistry.KEY_MEDIA_VIDEO_WINDOW,
             LauncherGadgetRegistry.KEY_MEDIA_DOCUMENT_WINDOW,
             LauncherGadgetRegistry.KEY_BATTERY,
+            LauncherGadgetRegistry.KEY_GOOGLE_MAPS_LIVE,
         )
         assertEquals(registryKeys, LauncherStarterSets.gadgetKeys)
     }

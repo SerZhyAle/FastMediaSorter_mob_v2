@@ -1,14 +1,18 @@
 package com.sza.fastmediasorter.wear.ui.home
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.ButtonDefaults
@@ -19,31 +23,64 @@ import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 private val BAR_VERTICAL_PADDING = 8.dp
 private val COMMAND_BUTTON_SIZE = 48.dp
 private val COMMAND_ICON_SIZE = 24.dp
+private val COMMAND_GAP = 8.dp
 
 /**
  * Screen-wide commands of the home screen, drawn under the section content.
  *
- * Settings lives here rather than among the sections so it neither competes with content for space
- * nor moves when the view mode changes - the owner ruling recorded in the strategic spec.
+ * They live here rather than among the sections so they neither compete with content for space nor
+ * move when the view mode changes - the owner ruling recorded in the strategic spec.
+ *
+ * S1975: the order and the spacing are decided in this row, never at the call site, so a third
+ * command stays a one-line change and cannot silently reorder the two that already exist. Settings
+ * keeps the first position because focus traversal follows the row and the frequent command has to
+ * be met before the terminal one (ADR-2). Both wear the same secondary colours: making the terminal
+ * command the loudest target of the row is precisely the accidental tap the risk register asks not
+ * to invite (ADR-4).
  */
 @Composable
-fun HomeCommandBar(onSettingsClick: () -> Unit) {
+fun HomeCommandBar(
+    onSettingsClick: () -> Unit,
+    onCloseClick: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = BAR_VERTICAL_PADDING),
-        horizontalArrangement = Arrangement.Center
+        horizontalArrangement = Arrangement.spacedBy(COMMAND_GAP, Alignment.CenterHorizontally)
     ) {
-        RectangularButton(
-            onClick = onSettingsClick,
-            modifier = Modifier.size(COMMAND_BUTTON_SIZE),
-            colors = ButtonDefaults.secondaryButtonColors()
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Settings,
-                contentDescription = stringResource(R.string.settings),
-                modifier = Modifier.size(COMMAND_ICON_SIZE)
-            )
-        }
+        CommandButton(
+            icon = Icons.Filled.Settings,
+            labelRes = R.string.settings,
+            onClick = onSettingsClick
+        )
+        CommandButton(
+            icon = Icons.Filled.Close,
+            labelRes = R.string.wear_close_app,
+            onClick = onCloseClick
+        )
+    }
+}
+
+/**
+ * One command of the bar. Extracted so size, colours and the label-as-description rule are stated
+ * once: two copies are how the commands would drift into different targets and different weights.
+ */
+@Composable
+private fun CommandButton(
+    icon: ImageVector,
+    @StringRes labelRes: Int,
+    onClick: () -> Unit
+) {
+    RectangularButton(
+        onClick = onClick,
+        modifier = Modifier.size(COMMAND_BUTTON_SIZE),
+        colors = ButtonDefaults.secondaryButtonColors()
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = stringResource(labelRes),
+            modifier = Modifier.size(COMMAND_ICON_SIZE)
+        )
     }
 }

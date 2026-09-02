@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.player.video
 
 import android.content.Context
+import android.media.AudioManager
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -10,17 +11,24 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.wear.data.wear.WatchPlaybackCommandEvents
 import com.sza.fastmediasorter.wear.domain.model.MediaType
+import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_STREAM
+import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackStatePayload
+import com.sza.fastmediasorter.wear.domain.model.favoriteSourceId
+import com.sza.fastmediasorter.wear.domain.model.normalizeWearStreamUrl
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearNowPlayingRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ClassifyWearStreamMediaKindUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.DownloadNetworkFileUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PublishPlaybackStateUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.ToggleFavoriteUseCase
+import com.sza.fastmediasorter.wear.ui.player.common.awaitPanelHide
 import com.sza.fastmediasorter.wear.ui.player.helpers.StreamPlaybackSessionFactory
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -29,7 +37,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -40,6 +50,9 @@ private const val KEY_BATTERY_WARNING_SHOWN = "battery_warning_shown"
 
 /** S1683: same step the audio player uses, so one bezel detent means the same thing in both. */
 private const val SEEK_STEP_MS = 10_000L
+
+/** S2140: how long the volume readout stays after the last bezel step - same value audio uses. */
+private const val VOLUME_VISIBLE_MS = 1_500L
 
 /**
  * ViewModel for the video player screen.
@@ -57,6 +70,8 @@ class VideoPlayerViewModel @Inject constructor(
     private val exoPlayer: ExoPlayer,
     private val publishPlaybackStateUseCase: PublishPlaybackStateUseCase,
     private val streamPlaybackSessionFactory: StreamPlaybackSessionFactory,
+    private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
+    private val nowPlayingRepository: WearNowPlayingRepository,
     savedStateHandle: SavedStateHandle,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -68,6 +83,7 @@ class VideoPlayerViewModel @Inject constructor(
     private var progressUpdateJob: Job? = null
 
     private var controlsHideJob: Job? = null
+    private var volumeHideJob: Job? = null
 
     /**
      * S1683: the selection this screen was opened with, kept only when it is a network one, so paging
@@ -80,6 +96,12 @@ class VideoPlayerViewModel @Inject constructor(
      * rather than read at STATE_ENDED, because that branch is a player callback and cannot suspend.
      */
     private var isSlideshowEnabled = false
+
+    /**
+     * S1948: true once the scale button has decided the mode for this screen, which stops the stored
+     * value seeded in [init] from landing on top of a choice the user already made.
+     */
+    private var scaleModeChosen = false
 
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -120,7 +142,6 @@ class VideoPlayerViewModel @Inject constructor(
                     // S0902 removed below.
                     val setSize = playbackSetManager.currentSet.value?.files?.size ?: 0
                     if (isSlideshowEnabled && setSize > 1) {
-                        Timber.d("S1838: video ended, advancing within the set of $setSize")
                         skipToNext()
                     } else {
                         streamPlaybackSession.stop()
@@ -183,20 +204,54 @@ class VideoPlayerViewModel @Inject constructor(
             }
         }
 
+        // S1948: read once rather than collect. A subscription would route this screen's own write
+        // back into the state and undo the pan reset that toggleScaleMode makes in the same press.
+        viewModelScope.launch {
+            val storedMode = preferencesRepository.videoScaleMode.first()
+            // The controls are on screen before this disk read returns, so a press can beat it. The
+            // seed is the older value by then and would silently undo the choice just made.
+            if (!scaleModeChosen) {
+                _uiState.update { it.copy(scaleMode = storedMode) }
+            }
+        }
+
+        // S2006: the same collector the audio player has had since S1701. The stored flag is the one
+        // source of truth, so this screen shows it and asks for a change rather than keeping its own.
+        viewModelScope.launch {
+            preferencesRepository.isShuffleEnabled.collect { enabled ->
+                playbackSetManager.shuffleEnabled = enabled
+                _uiState.update { it.copy(isShuffleEnabled = enabled) }
+            }
+        }
+
+        // S2250: the stored flag is the watch's own path to the policy - the phone keeps a separate
+        // holder in its own module, and the two modules share no sources.
+        viewModelScope.launch {
+            preferencesRepository.isAnimationsDisabled.collect { disabled ->
+                _uiState.update { it.copy(animationsDisabled = disabled) }
+            }
+        }
+
         // Subscribe to remote playback commands from phone
         viewModelScope.launch {
             WatchPlaybackCommandEvents.commandFlow.collect { command ->
                 when (command) {
                     WearPlaybackCommand.PLAY_PAUSE -> togglePlayPause()
-                    WearPlaybackCommand.NEXT       -> exoPlayer.seekToNextMediaItem()
-                    WearPlaybackCommand.PREVIOUS   -> exoPlayer.seekToPreviousMediaItem()
-                    WearPlaybackCommand.STOP       -> {
+                    WearPlaybackCommand.NEXT -> exoPlayer.seekToNextMediaItem()
+                    WearPlaybackCommand.PREVIOUS -> exoPlayer.seekToPreviousMediaItem()
+                    WearPlaybackCommand.STOP -> {
                         exoPlayer.stop()
                         streamPlaybackSession.stop()
                     }
                 }
             }
         }
+    }
+
+    fun toggleShuffle() {
+        Timber.d("S2006: shuffle toggled on video player, was=${_uiState.value.isShuffleEnabled}")
+        val enabled = !_uiState.value.isShuffleEnabled
+        viewModelScope.launch { preferencesRepository.setShuffleEnabled(enabled) }
     }
 
     private fun loadVideoFile() {
@@ -258,6 +313,7 @@ class VideoPlayerViewModel @Inject constructor(
             playLocalFile(file)
         }
         syncSetPosition()
+        refreshFavoriteState()
     }
 
     /** S1683: keeps the position marker in step with the set on first open and on every page. */
@@ -277,23 +333,27 @@ class VideoPlayerViewModel @Inject constructor(
 
     private fun loadMediaFile() {
         viewModelScope.launch {
-            // First, check if we have a selected file from SelectedMediaManager (network source)
+            // S1884: check if SelectedMediaManager holds the file (network source or phone-delivered file)
             val selectedMedia = selectedMediaManager.getSelectedFileById(fileId)
 
-            if (selectedMedia != null && selectedMedia.isNetworkSource) {
-                // S1684: same omission as the audio player. Beyond the on-screen title, the empty
-                // name also reached the phone - publishPlaybackState below sends
-                // `mediaFile?.name ?: ""`, so the phone's remote-control card was blank too.
+            if (selectedMedia != null) {
                 _uiState.update { it.copy(mediaFile = selectedMedia.file) }
-                // S1683: remembered so paging can re-enter the download path with the same source id.
-                networkSelection = selectedMedia
-                Timber.d("Loading network video: ${selectedMedia.file.name}")
-                loadNetworkVideo(selectedMedia)
+                refreshFavoriteState()
+                if (selectedMedia.isNetworkSource) {
+                    // S1683: remembered so paging can re-enter the download path with the same source id.
+                    networkSelection = selectedMedia
+                    Timber.d("Loading network video: ${selectedMedia.file.name}")
+                    loadNetworkVideo(selectedMedia)
+                } else {
+                    Timber.d("Loading local video from SelectedMediaManager: ${selectedMedia.file.name}")
+                    playLocalFile(selectedMedia.file)
+                }
             } else {
                 // Local file - use MediaStore
                 val file = mediaRepository.getMediaFileById(fileId, MediaType.VIDEO)
                 if (file != null) {
                     _uiState.update { it.copy(mediaFile = file) }
+                    refreshFavoriteState()
                     playLocalFile(file)
                 } else {
                     _uiState.update { it.copy(isLoading = false, error = "File not found") }
@@ -309,7 +369,6 @@ class VideoPlayerViewModel @Inject constructor(
      */
     private suspend fun loadNetworkVideo(selected: SelectedMedia) {
         if (selected.isDirectStream) {
-            Timber.d("S1708: direct video stream playback uri=${selected.streamUri}")
             val mediaKind = ClassifyWearStreamMediaKindUseCase.VIDEO
             if (!streamPlaybackSession.prepare(mediaKind)) {
                 _uiState.update { it.copy(isLoading = false) }
@@ -325,7 +384,6 @@ class VideoPlayerViewModel @Inject constructor(
             }
             return
         }
-        Timber.d("S1687: network video entry sourceId=${selected.sourceId} uri=${selected.streamUri}")
         _uiState.update { it.copy(isLoading = true) }
 
         downloadNetworkFile(selected, DownloadNetworkFileUseCase.Kind.VIDEO).fold(
@@ -390,8 +448,45 @@ class VideoPlayerViewModel @Inject constructor(
     private fun scheduleHideControls() {
         controlsHideJob?.cancel()
         controlsHideJob = viewModelScope.launch {
-            delay(3000)
-            _uiState.update { it.copy(showControls = false) }
+            if (awaitPanelHide(isActive = exoPlayer.isPlaying)) {
+                _uiState.update { it.copy(showControls = false) }
+            }
+        }
+    }
+
+    /**
+     * S2140: one bezel step, on the system media stream - the same mapping S1701 gave the audio player.
+     *
+     * Unlike [onScreenTap] this never hides an already-visible panel: it only ever reveals one that was
+     * hidden, so the readout below is visible whenever a step actually changes something. Reusing
+     * [showControls]/[scheduleHideControls] instead of routing through the tap toggle is what keeps that
+     * one-directional guarantee - going through the toggle would hide the panel on every other step.
+     */
+    fun onVolumeStep(up: Boolean) {
+        Timber.d("S2140: video bezel volume step, up=$up")
+        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return
+        audioManager.adjustStreamVolume(
+            AudioManager.STREAM_MUSIC,
+            if (up) AudioManager.ADJUST_RAISE else AudioManager.ADJUST_LOWER,
+            0,
+        )
+        _uiState.update {
+            it.copy(
+                volumeLevel = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC),
+                volumeMax = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC),
+                isVolumeVisible = true,
+            )
+        }
+        hideVolumeAfterDelay()
+        showControls()
+        scheduleHideControls()
+    }
+
+    private fun hideVolumeAfterDelay() {
+        volumeHideJob?.cancel()
+        volumeHideJob = viewModelScope.launch {
+            delay(VOLUME_VISIBLE_MS)
+            _uiState.update { it.copy(isVolumeVisible = false) }
         }
     }
 
@@ -401,6 +496,7 @@ class VideoPlayerViewModel @Inject constructor(
     }
 
     fun seekForward() {
+        Timber.d("S2140: video long-press seek forward")
         val target = exoPlayer.currentPosition + SEEK_STEP_MS
         // ExoPlayer reports C.TIME_UNSET, a large negative, while the duration is still unknown -
         // clamping to it would send playback backwards past the start on the first turn of the bezel.
@@ -409,6 +505,7 @@ class VideoPlayerViewModel @Inject constructor(
     }
 
     fun seekBackward() {
+        Timber.d("S2140: video long-press seek backward")
         val newPosition = (exoPlayer.currentPosition - SEEK_STEP_MS).coerceAtLeast(0)
         seekTo(newPosition)
     }
@@ -426,9 +523,15 @@ class VideoPlayerViewModel @Inject constructor(
     }
 
     fun toggleScaleMode() {
-        _uiState.update { current ->
-            val nextMode = if (current.scaleMode == VideoScaleMode.FIT) VideoScaleMode.CROP_PAN else VideoScaleMode.FIT
-            current.copy(scaleMode = nextMode, panOffsetX = 0f, panOffsetY = 0f)
+        scaleModeChosen = true
+        val nextMode = _uiState.updateAndGet { current ->
+            val mode = if (current.scaleMode == VideoScaleMode.FIT) VideoScaleMode.CROP_PAN else VideoScaleMode.FIT
+            current.copy(scaleMode = mode, panOffsetX = 0f, panOffsetY = 0f)
+        }.scaleMode
+        // S1948: the state moves first so the frame answers the press at once; the store catches up
+        // after, and is what carries the choice to the next file or stream.
+        viewModelScope.launch {
+            preferencesRepository.setVideoScaleMode(nextMode)
         }
     }
 
@@ -466,16 +569,72 @@ class VideoPlayerViewModel @Inject constructor(
             durationMs = state.durationMs,
             mediaType = "VIDEO"
         )
-        viewModelScope.launch { publishPlaybackStateUseCase(payload) }
+        val title = state.mediaFile?.name ?: ""
+        viewModelScope.launch {
+            publishPlaybackStateUseCase(payload)
+            if (title.isNotBlank()) {
+                nowPlayingRepository.setNowPlaying(title, null)
+                nowPlayingRepository.setPlaying(state.isPlaying)
+            }
+        }
     }
+
+    fun toggleFavorite() {
+        Timber.d("S1954: video player favourite toggled")
+        val identity = currentFavoriteIdentity() ?: return
+        viewModelScope.launch {
+            val marked = toggleFavoriteUseCase.toggle(
+                identity.sourceId,
+                identity.filePath,
+                _uiState.value.isFavorite
+            )
+            _uiState.update { it.copy(isFavorite = marked) }
+        }
+    }
+
+    /** Re-reads the mark for whatever is open now, so paging to another file cannot show a stale star. */
+    private fun refreshFavoriteState() {
+        val identity = currentFavoriteIdentity()
+        if (identity == null) {
+            _uiState.update { it.copy(isFavorite = false) }
+            return
+        }
+        viewModelScope.launch {
+            val marked = toggleFavoriteUseCase.isFavorite(identity.sourceId, identity.filePath)
+            _uiState.update { it.copy(isFavorite = marked) }
+        }
+    }
+
+    /**
+     * S1954: a direct stream is addressed by its normalized url under the reserved stream source id,
+     * because the catalog row it was opened from does not survive a re-import while the address does.
+     * A file keeps the identity the audio player and the image viewer already write, so one file is
+     * not marked twice under two spellings.
+     */
+    private fun currentFavoriteIdentity(): FavoriteIdentity? {
+        val selected = selectedMediaManager.getSelectedFileById(fileId) ?: networkSelection
+        if (selected != null && selected.isDirectStream) {
+            return FavoriteIdentity(SOURCE_ID_STREAM, normalizeWearStreamUrl(selected.streamUri))
+        }
+        val path = selected?.streamUri ?: _uiState.value.mediaFile?.uri?.toString()
+        return path?.let {
+            FavoriteIdentity(favoriteSourceId(selected?.isNetworkSource == true, selected?.sourceId), it)
+        }
+    }
+
+    private data class FavoriteIdentity(val sourceId: String, val filePath: String)
 
     override fun onCleared() {
         super.onCleared()
         Timber.d("VideoPlayerViewModel cleared")
         stopProgressUpdates()
         controlsHideJob?.cancel()
+        volumeHideJob?.cancel()
         streamPlaybackSession.clear()
         exoPlayer.removeListener(playerListener)
+        viewModelScope.launch {
+            nowPlayingRepository.clearPlayingFlag()
+        }
         // S0725: this VM owns its ExoPlayer (no longer a process singleton) - release native resources
         // instead of just stop()+clearMediaItems(); pairs with PlayerView.player = null in the screen's
         // onDispose so neither the player nor the disposed PlayerView/Context survives screen exit.

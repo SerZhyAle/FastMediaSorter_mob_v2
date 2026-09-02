@@ -25,8 +25,6 @@ class FtpDataSource @Inject constructor() {
 
                 val files = client.listFiles(path)
                     ?: error("FTP listFiles returned null for path=$path")
-                Timber.d("S1688: FTP listing decoded ${files.size} name(s), first=${files.firstOrNull()?.name}")
-
                 files.mapIndexed { index, ftpFile ->
                     val filePath = if (path.trimEnd('/').isEmpty()) {
                         "/${ftpFile.name}"

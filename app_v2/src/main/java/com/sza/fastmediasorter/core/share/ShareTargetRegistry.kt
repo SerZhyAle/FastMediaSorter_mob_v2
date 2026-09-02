@@ -59,6 +59,7 @@ class ShareTargetRegistry @Inject constructor(
             // Device utilities.
             "open_in",
             "print",
+            "watch",
         )
     }
 }

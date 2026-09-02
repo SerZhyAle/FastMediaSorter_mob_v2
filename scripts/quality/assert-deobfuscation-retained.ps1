@@ -32,6 +32,7 @@
 
 .PARAMETER ArchiveRoot
     Root of the retention archive. Must match what retain-deobfuscation.ps1 wrote.
+    Defaults to the resolved Deobfuscation artifact sink.
 
 .PARAMETER VersionName
     Judge this release instead of the newest tag. Diagnostic: lets an operator ask
@@ -47,7 +48,7 @@
 
 [CmdletBinding()]
 param(
-    [string] $ArchiveRoot = 'c:\GD\WORK\FastMediaSorter\deobfuscation',
+    [string] $ArchiveRoot,
     [string] $VersionName,
     [switch] $Quiet,
     [switch] $Json,
@@ -74,6 +75,18 @@ function Exit-Gate {
 # day the scheme shipped; the last pre-scheme release is 260812203
 # (tag release/v2.60.8122.034).
 $RetentionBaselineVersionCode = 260815000
+
+. "$PSScriptRoot\..\utils\project-paths.ps1"
+
+if (-not $ArchiveRoot) {
+    # An unreachable archive is the gate's own exit 2, not a pass: it means the evidence was
+    # never consulted, which is a different answer from "this release is not retained".
+    $ArchiveRoot = Get-ArtifactSink -Kind Deobfuscation -Quiet
+    if (-not $ArchiveRoot) {
+        Exit-Gate -Message ("deobfuscation archive not reachable on this machine - " +
+            "set FMS_SINK_DEOBFUSCATION or pass -ArchiveRoot.") -Code 2
+    }
+}
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $fetchScript = Join-Path $repoRoot 'scripts\release\fetch-deobfuscation.ps1'

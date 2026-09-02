@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.local.db
 
+import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Entity
 import androidx.room.Insert
@@ -26,7 +27,13 @@ data class LauncherCellEntity(
     val kind: String,
     val target: String,
     val labelOverride: String?,
-    val addedAt: Long
+    val addedAt: Long,
+    // S2251: the SQL default must be declared here, not only as a Kotlin default. Room compares
+    // the column's default against the live table, and `ALTER TABLE .. ADD COLUMN .. NOT NULL` cannot
+    // run without one - a mismatch here is not a warning, it fails validation and the destructive
+    // fallback wipes the user's database.
+    @ColumnInfo(defaultValue = "0")
+    val screenIndex: Int = 0
 )
 
 @Dao
@@ -60,25 +67,45 @@ interface LauncherCellDao {
     suspend fun getAllCellsSync(): List<LauncherCellEntity>
 
     /**
-     * The first row index strictly below every cell in [orientation] - i.e. the top of the empty band
-     * under the desktop, and 0 when the desktop is empty. A free-slot scan uses it as its upper bound:
-     * that row overlaps nothing by construction, so the search is guaranteed to terminate there.
+     * S2018: the section headers of one screen of one orientation, in reading order.
+     *
+     * Narrow on purpose. Locating a section used to go through [getAllCellsSync], which a bulk import
+     * calls once per placed cell - so the read grew with the very import that was doing the asking,
+     * while the answer only ever comes from the handful of rows this returns.
      */
-    @Query("SELECT COALESCE(MAX(rowIndex + spanH), 0) FROM launcher_cells WHERE orientation = :orientation")
-    suspend fun firstRowBelowAll(orientation: String): Int
+    @Query(
+        "SELECT * FROM launcher_cells WHERE orientation = :orientation AND screenIndex = :screenIndex " +
+            "AND kind = :kind ORDER BY rowIndex ASC, colIndex ASC"
+    )
+    suspend fun sectionHeaders(orientation: String, screenIndex: Int, kind: String): List<LauncherCellEntity>
 
     /**
-     * S1428: the rows carrying a section header, ascending. [kind] is passed rather than written into
-     * the SQL so the enum name has one home in Kotlin.
+     * The first row index strictly below every cell of [screenIndex] in [orientation] - i.e. the top of
+     * the empty band under that screen, and 0 when it is empty. A free-slot scan uses it as its upper
+     * bound: that row overlaps nothing by construction, so the search terminates there.
+     *
+     * S2301: scoped to one screen like every other placement query - screens carry independent row
+     * coordinates (each is packed from row 0), so the desktop-wide maximum would push a placement on
+     * screen 1 below the tail of screen 0.
+     */
+    @Query(
+        "SELECT COALESCE(MAX(rowIndex + spanH), 0) FROM launcher_cells " +
+            "WHERE orientation = :orientation AND screenIndex = :screenIndex"
+    )
+    suspend fun firstRowBelowAll(orientation: String, screenIndex: Int): Int
+
+    /**
+     * S1428: the rows of [screenIndex] carrying a section header, ascending. [kind] is passed rather
+     * than written into the SQL so the enum name has one home in Kotlin.
      *
      * A section boundary is horizontal - a header spans its whole row - so the row alone answers which
      * section owns a cell, and the placement layer never needs the headers' columns.
      */
     @Query(
         "SELECT DISTINCT rowIndex FROM launcher_cells WHERE orientation = :orientation " +
-            "AND kind = :kind ORDER BY rowIndex ASC"
+            "AND screenIndex = :screenIndex AND kind = :kind ORDER BY rowIndex ASC"
     )
-    suspend fun sectionHeaderRows(orientation: String, kind: String): List<Int>
+    suspend fun sectionHeaderRows(orientation: String, screenIndex: Int, kind: String): List<Int>
 
     /**
      * S1642: narrows every stored section header to [spanW], returning how many rows changed.
@@ -96,45 +123,53 @@ interface LauncherCellDao {
     suspend fun narrowSectionSpans(kind: String, spanW: Int): Int
 
     /**
-     * The first cell whose footprint overlaps the rect at ([rowIndex], [colIndex]) sized
+     * S1772: moves the whole tail of one screen down, so a widget can be seated where the user pointed.
+     *
+     * Every row at or below [fromRow] on [screenIndex] moves by the same [delta], which is what keeps
+     * section membership intact: a section owns the cells below its header down to the next one, so a
+     * selective shift would re-parent cells between sections. Shifting a contiguous tail cannot.
+     */
+    @Query(
+        "UPDATE launcher_cells SET rowIndex = rowIndex + :delta " +
+            "WHERE orientation = :orientation AND screenIndex = :screenIndex AND rowIndex >= :fromRow"
+    )
+    suspend fun pushRowsDown(orientation: String, screenIndex: Int, fromRow: Int, delta: Int): Int
+
+    /**
+     * Every cell of [screenIndex] whose footprint reaches into rows [fromRow, fromRow + spanH), whatever
+     * column it sits in.
+     *
+     * Column-blind on purpose: the push moves whole rows, so what matters is which rows are involved, not
+     * whether a particular square collides.
+     */
+    @Query(
+        "SELECT * FROM launcher_cells WHERE orientation = :orientation AND screenIndex = :screenIndex " +
+            "AND rowIndex < :fromRow + :spanH AND rowIndex + spanH > :fromRow"
+    )
+    suspend fun findInRowBand(
+        orientation: String,
+        screenIndex: Int,
+        fromRow: Int,
+        spanH: Int,
+    ): List<LauncherCellEntity>
+
+    /**
+     * The first cell of [screenIndex] whose footprint overlaps the rect at ([rowIndex], [colIndex]) sized
      * [spanW] x [spanH], ignoring [excludeId] (the cell being moved).
      *
      * Standard rect intersection, NOT an anchor match: a 2x2 gadget anchored at (0,0) also occupies
      * (0,1), (1,0) and (1,1), so a query keyed on the anchor alone reports those three as free and the
      * caller happily writes a cell on top of the gadget.
      */
-    /**
-     * S1772: moves the whole tail of a desktop down, so a widget can be seated where the user pointed.
-     *
-     * Every row at or below [fromRow] moves by the same [delta], which is what keeps section membership
-     * intact: a section owns the cells below its header down to the next one, so a selective shift would
-     * re-parent cells between sections. Shifting a contiguous tail cannot.
-     */
     @Query(
-        "UPDATE launcher_cells SET rowIndex = rowIndex + :delta " +
-            "WHERE orientation = :orientation AND rowIndex >= :fromRow"
-    )
-    suspend fun pushRowsDown(orientation: String, fromRow: Int, delta: Int): Int
-
-    /**
-     * Every cell whose footprint reaches into rows [fromRow, fromRow + spanH), whatever column it sits in.
-     *
-     * Column-blind on purpose: the push moves whole rows, so what matters is which rows are involved, not
-     * whether a particular square collides.
-     */
-    @Query(
-        "SELECT * FROM launcher_cells WHERE orientation = :orientation " +
-            "AND rowIndex < :fromRow + :spanH AND rowIndex + spanH > :fromRow"
-    )
-    suspend fun findInRowBand(orientation: String, fromRow: Int, spanH: Int): List<LauncherCellEntity>
-
-    @Query(
-        "SELECT * FROM launcher_cells WHERE orientation = :orientation AND id != :excludeId " +
+        "SELECT * FROM launcher_cells WHERE orientation = :orientation AND screenIndex = :screenIndex " +
+            "AND id != :excludeId " +
             "AND :colIndex < colIndex + spanW AND colIndex < :colIndex + :spanW " +
             "AND :rowIndex < rowIndex + spanH AND rowIndex < :rowIndex + :spanH LIMIT 1"
     )
     suspend fun findOverlapping(
         orientation: String,
+        screenIndex: Int,
         rowIndex: Int,
         colIndex: Int,
         spanW: Int,

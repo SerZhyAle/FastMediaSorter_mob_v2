@@ -7,8 +7,12 @@
     tools:parentTag="android.widget.FrameLayout">
 
     <LinearLayout
+        android:id="@+id/gadgetStepsBody"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@drawable/focus_button_background"
+        android:clickable="true"
+        android:focusable="true"
         android:gravity="center_vertical"
         android:orientation="vertical"
         android:padding="@dimen/margin_small">

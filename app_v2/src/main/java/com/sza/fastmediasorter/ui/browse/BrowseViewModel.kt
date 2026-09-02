@@ -9,9 +9,7 @@ import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.ui.BaseViewModel
 import com.sza.fastmediasorter.core.ui.UiState
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
-import com.sza.fastmediasorter.data.network.exceptions.WifiRequiredException
-import com.sza.fastmediasorter.data.remote.sftp.SftpFailureCategory
-import com.sza.fastmediasorter.data.remote.sftp.SftpOperationFailure
+import com.sza.fastmediasorter.data.network.exceptions.BrowseFriendlyErrorResolver
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.FileFilter
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -498,7 +496,8 @@ class BrowseViewModel @Inject constructor(
         browseStateDataStore = persistedState.browseStateDataStore,
         unifiedCache = contentDiscovery.unifiedCache,
         hasActiveTransfer = { cleanupUseCases.browseTransferCoordinator.hasActiveTransfer() },
-        cleanupTrash = { resource -> refreshManager.cleanupTrashOnBackground(resource) }
+        cleanupTrash = { resource -> refreshManager.cleanupTrashOnBackground(resource) },
+        resourceId = resourceId
     )
 
     // --- Manual-order ordering (delegated to BrowseManualOrderCoordinator) ---
@@ -548,62 +547,10 @@ class BrowseViewModel @Inject constructor(
 
     override fun getInitialState() = BrowseState()
 
+    // S2196: heuristic itself lives in BrowseFriendlyErrorResolver (shared with
+    // BrowseLoadingAuxManager) - was a private duplicate here that had drifted.
     private fun getFriendlyBrowseErrorMessage(throwable: Throwable): String =
-        context.getString(resolveFriendlyBrowseErrorRes(throwable))
-
-    private fun resolveFriendlyBrowseErrorRes(throwable: Throwable): Int {
-        // Checked by type before the message-based heuristics: WifiRequiredException is a Wi-Fi
-        // gate rejection (not a generic outage), and SFTP protocol status is locale-independent
-        // unlike the server's text (Windows OpenSSH sends "cannot find the file specified", which
-        // no message rule below matches). Folded into one `when` to keep a single return. S1000.
-        val sftpCategory = SftpOperationFailure.fromThrowable(throwable).category
-        val message = throwable.message.orEmpty()
-        return when {
-            throwable is WifiRequiredException -> R.string.error_wifi_required_smb
-            sftpCategory == SftpFailureCategory.NOT_FOUND -> R.string.friendly_copy_error_not_found
-            sftpCategory == SftpFailureCategory.PERMISSION_DENIED ->
-                R.string.friendly_copy_error_access_denied
-
-            message.contains("Authentication", ignoreCase = true) ||
-                message.contains("LOGON_FAILURE", ignoreCase = true) ||
-                message.contains("Not authenticated", ignoreCase = true) ->
-                R.string.friendly_copy_error_auth_failed
-
-            (message.contains("permission", ignoreCase = true) &&
-                message.contains("denied", ignoreCase = true)) ||
-                message.contains("STATUS_ACCESS_DENIED", ignoreCase = true) ||
-                message.contains("access denied", ignoreCase = true) ->
-                R.string.friendly_copy_error_access_denied
-
-            message.contains("STATUS_BAD_NETWORK_NAME", ignoreCase = true) ||
-                message.contains("STATUS_OBJECT_NAME_NOT_FOUND", ignoreCase = true) ||
-                message.contains("STATUS_OBJECT_PATH_NOT_FOUND", ignoreCase = true) ||
-                message.contains("not found", ignoreCase = true) ->
-                R.string.friendly_copy_error_not_found
-
-            message.contains("unreachable", ignoreCase = true) ||
-                message.contains("Cannot resolve host", ignoreCase = true) ||
-                message.contains("Unknown host", ignoreCase = true) ->
-                R.string.friendly_copy_error_no_connection
-
-            message.contains("Connection reset", ignoreCase = true) ||
-                message.contains("connection closed", ignoreCase = true) ||
-                message.contains("broken pipe", ignoreCase = true) ||
-                message.contains("connection lost", ignoreCase = true) ->
-                R.string.error_network_connection_lost
-
-            message.contains("timed out", ignoreCase = true) ||
-                message.contains("timeout", ignoreCase = true) ||
-                message.contains("SocketTimeoutException", ignoreCase = true) ->
-                R.string.error_network_timeout
-
-            message.contains("Connection", ignoreCase = true) ||
-                message.contains("Network", ignoreCase = true) ->
-                R.string.error_network_connection
-
-            else -> R.string.friendly_copy_error_generic
-        }
-    }
+        BrowseFriendlyErrorResolver.message(context, throwable)
 
     /**
      * Map raw exception messages to concise, resource-backed user-facing strings.

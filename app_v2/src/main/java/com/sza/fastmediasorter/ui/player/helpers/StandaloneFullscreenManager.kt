@@ -29,6 +29,20 @@ class StandaloneFullscreenManager(private val activity: Activity) {
     private var fullscreenEnteredAtMs = 0L
     private var selfInitiatedBarsAnimation = false
 
+    /** Whether this manager currently claims the window is in its own immersive fullscreen. */
+    val isFullscreenActive: Boolean get() = fullscreenActive
+
+    /**
+     * S2026: drops the fullscreen claim without touching the window, for the case where the system
+     * took the window out of immersive mode on its own - entering Picture-in-Picture does exactly
+     * that. Leaving the claim set makes the "system bars are back" dispatch that follows the PiP exit
+     * indistinguishable from a user swipe, so the transient-bars callback fired and restored the
+     * command panel over a state that never had it (measured on SM-G996U1, Android 15).
+     */
+    fun releaseFullscreenClaim() {
+        fullscreenActive = false
+    }
+
     fun toggleFullscreen() {
         val decorView = activity.window.decorView
         val insets = WindowInsetsCompat.toWindowInsetsCompat(decorView.rootWindowInsets, decorView)

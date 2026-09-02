@@ -1,13 +1,14 @@
 package com.sza.fastmediasorter.ui.launcher
 
-import android.content.Context
 import android.content.Intent
 import android.graphics.Rect
 import android.net.Uri
 import androidx.annotation.StringRes
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.domain.model.AppSettings
@@ -20,14 +21,19 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellPlacement
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
+import com.sza.fastmediasorter.domain.model.launcher.LauncherContactChannel
+import com.sza.fastmediasorter.domain.model.launcher.LauncherMessengerApp
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.model.launcher.LauncherWallpaper
+import com.sza.fastmediasorter.domain.repository.LauncherSectionVisibilityRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.ExecuteScheduledOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.ExportResourcesToFileUseCase
 import com.sza.fastmediasorter.domain.usecase.companion.ExportCompanionConfigUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.ExecuteLauncherCommandUseCase
+import com.sza.fastmediasorter.domain.usecase.launcher.IsCameraWallpaperAvailableUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.PickContactShortcutUseCase
+import com.sza.fastmediasorter.domain.usecase.panel.ResolvePanelRouteAvailabilityUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherSectionCollapseManager
@@ -36,7 +42,6 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarIcon
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayComposition
 import com.sza.fastmediasorter.ui.main.helpers.ResourceScanCoordinator
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -44,6 +49,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -78,9 +84,10 @@ sealed interface LauncherHomeEvent {
     data class PerformLauncherAction(val actionKey: String) : LauncherHomeEvent
 }
 
+@Suppress("LongParameterList", "TooManyFunctions")
 @HiltViewModel
 class LauncherHomeViewModel @Inject constructor(
-    @ApplicationContext appContext: Context,
+    private val visibility: LauncherSectionVisibilityRepository,
     private val desktopDependencies: LauncherDesktopDependencies,
     private val taskbarDependencies: LauncherTaskbarDependencies,
     private val shortcutDependencies: LauncherShortcutDependencies,
@@ -90,11 +97,18 @@ class LauncherHomeViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val observeStreams: ObserveStreamSourcesUseCase,
     private val executeScheduledOperation: ExecuteScheduledOperationUseCase,
+    // S2076: the camera wallpaper's own precondition - hardware plus a live CAMERA grant.
+    private val isCameraWallpaperAvailable: IsCameraWallpaperAvailableUseCase,
+    private val savedStateHandle: SavedStateHandle,
+    private val resolveRouteAvailability: ResolvePanelRouteAvailabilityUseCase,
 ) : ViewModel() {
 
     // Rotation swaps which layout is observed. The collection itself is never torn down: the
     // orientation is an input to the stream, not a reason to restart it.
     private val _orientation = MutableStateFlow(LauncherOrientation.PORTRAIT)
+
+    /** S2330: guards [startShortcutSyncObservation] - see the note there on why a rotation must not restart it. */
+    private var shortcutSyncObservationStarted = false
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val cells: StateFlow<List<LauncherCellUi>> = _orientation
@@ -102,7 +116,7 @@ class LauncherHomeViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS), emptyList())
 
     /** S1428: folded sections and the tap that folds them - see [LauncherSectionCollapseManager]. */
-    val sections = LauncherSectionCollapseManager(appContext, viewModelScope, cells, _orientation)
+    val sections = LauncherSectionCollapseManager(visibility, viewModelScope, cells, _orientation)
 
     /**
      * S1680: the seed every settings-derived flow below starts from, so a seed and the model's default
@@ -110,6 +124,9 @@ class LauncherHomeViewModel @Inject constructor(
      * this replaced were measured equal to these defaults.
      */
     private val settingsDefaults = AppSettings()
+
+    val launcherDesktopSettings: StateFlow<AppSettings> = settingsRepository.getSettings()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, settingsDefaults)
 
     val densityFactor: StateFlow<Float> = settingsRepository.getSettings()
         .map { it.launcherDensityFactor }
@@ -123,6 +140,16 @@ class LauncherHomeViewModel @Inject constructor(
         .map { it.launcherWidgetBackdropAlpha }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, settingsDefaults.launcherWidgetBackdropAlpha)
+
+    /**
+     * S2213: the place last picked for a weather gadget, handed to a cell that has none of its own.
+     * Seeded from [settingsDefaults] rather than a literal so the seed cannot drift from the model
+     * default - the reason that shared defaults object exists.
+     */
+    val weatherLastLocation: StateFlow<String> = settingsRepository.getSettings()
+        .map { it.launcherWeatherLastLocation }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, settingsDefaults.launcherWeatherLastLocation)
 
     val taskbarComposition: Flow<LauncherTaskbarComposition> = settingsRepository.getSettings()
         .map {
@@ -197,32 +224,54 @@ class LauncherHomeViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, settingsDefaults.launcherDesktopLocked)
 
     /**
+     * S2210: the frame the last instant-photo capture produced, held only for this process.
+     *
+     * Deliberately not a setting: the frame is a transient camera capture, and the one persisted wallpaper
+     * path belongs to the image the user picked. Storing it there would overwrite that pick the first time
+     * instant-photo mode ran, and would carry a dead capture path into backup and restore.
+     */
+    private val instantPhotoFrame = MutableStateFlow<InstantPhotoFrame?>(null)
+
+    /**
      * S1101: what the desktop draws behind its cells. Image mode degrades to the branded animation when
      * the stored copy is gone (cleared app data, manual delete): a desktop that silently turns blank
      * reads as a bug, and the branded default is always available. The existence probe is disk I/O, so
      * the mapping runs off the main thread.
      */
-    val wallpaper: StateFlow<LauncherWallpaper> = settingsRepository.getSettings()
-        .map { settings ->
-            val imageAvailable = settings.launcherWallpaperMode == AppSettings.LAUNCHER_WALLPAPER_IMAGE &&
-                settings.launcherWallpaperImagePath.isNotBlank() && File(settings.launcherWallpaperImagePath).isFile
-            resolveLauncherWallpaper(
-                mode = settings.launcherWallpaperMode,
-                imagePath = settings.launcherWallpaperImagePath,
-                imageAvailable = imageAvailable,
-            )
-        }
+    val wallpaper: StateFlow<LauncherWallpaper> = combine(
+        settingsRepository.getSettings(),
+        instantPhotoFrame,
+    ) { settings, instantPhoto ->
+        val imageAvailable = settings.launcherWallpaperMode == AppSettings.LAUNCHER_WALLPAPER_IMAGE &&
+            settings.launcherWallpaperImagePath.isNotBlank() && File(settings.launcherWallpaperImagePath).isFile
+        val cameraAvailable = (
+            settings.launcherWallpaperMode == AppSettings.LAUNCHER_WALLPAPER_CAMERA ||
+                settings.launcherWallpaperMode == AppSettings.LAUNCHER_WALLPAPER_INSTANT_PHOTO
+            ) &&
+            isCameraWallpaperAvailable()
+        resolveLauncherWallpaper(
+            mode = settings.launcherWallpaperMode,
+            imagePath = settings.launcherWallpaperImagePath,
+            imageAvailable = imageAvailable,
+            cameraId = settings.launcherWallpaperCameraId,
+            cameraAvailable = cameraAvailable,
+            instantPhoto = instantPhoto,
+        )
+    }
         .distinctUntilChanged()
         .flowOn(Dispatchers.IO)
         .stateIn(
             viewModelScope,
             SharingStarted.Eagerly,
             // imageAvailable is false because a seed must not probe the disk on the main thread; the
-            // default mode is not IMAGE, so the probe would decide nothing anyway.
+            // default mode is not IMAGE, so the probe would decide nothing anyway. cameraAvailable is
+            // false for the same reason (S2076): the default mode is not CAMERA either.
             resolveLauncherWallpaper(
                 mode = settingsDefaults.launcherWallpaperMode,
                 imagePath = settingsDefaults.launcherWallpaperImagePath,
                 imageAvailable = false,
+                cameraId = settingsDefaults.launcherWallpaperCameraId,
+                cameraAvailable = false,
             ),
         )
 
@@ -381,10 +430,12 @@ class LauncherHomeViewModel @Inject constructor(
         // S1742: a user-created section carries its name from the moment it is placed - it has no preset
         // label to fall back on, so a header written without one would draw as unavailable.
         labelOverride: String? = null,
+        // S2247: answers whether a slot was found, so a programmatic placement can speak its refusal.
+        onPlaced: (Boolean) -> Unit = {},
     ) {
         viewModelScope.launch {
             rememberResourceFileList(rememberFileListResourceId)
-            desktopDependencies.desktopRepository.addCellInFirstFreeSlot(
+            val id = desktopDependencies.desktopRepository.addCellInFirstFreeSlot(
                 LauncherCell(
                     id = 0,
                     orientation = _orientation.value,
@@ -400,6 +451,12 @@ class LauncherHomeViewModel @Inject constructor(
                 ),
                 columns,
             )
+            // S2033: the repository scans row-major and knows nothing about folding (strategic ADR-2), so
+            // the first free square it finds can sit inside a collapsed section - where the render plan
+            // drops the cell and the user is left with an item that was written and cannot be seen.
+            id?.let { sections.revealSectionHolding(it) }
+            Timber.d("S2033: addCellInFirstFreeSlot id=%s", id)
+            onPlaced(id != null)
         }
     }
 
@@ -450,7 +507,52 @@ class LauncherHomeViewModel @Inject constructor(
             if (cell != null && cell.kind == LauncherCellKind.SECTION) {
                 sections.clear(cell)
             }
+            // S1930: a configured widget cell owns a stored instance, and the row is the only thing
+            // that still knows its token - reading it after the delete would find nothing, and the
+            // snapshot would sit in prefs forever with no cell pointing at it (strategic §11.4). The
+            // clear runs here rather than in LauncherDesktopRepository because that repository lives
+            // in src/main and knows nothing about gadgets (Rule 14).
+            if (cell != null && cell.kind == LauncherCellKind.GADGET) {
+                desktopDependencies.configuredWidgetInstances.clearInstanceOf(cell.target)
+            }
             desktopDependencies.desktopRepository.removeCell(id)
+        }
+    }
+
+    /**
+     * S2301: moves the cell - or, for a section header, the whole group - onto another screen.
+     *
+     * [columns] is read at the moment of the tap for the same reason the app menu reads it there: the
+     * column count belongs to the screen drawing the desktop, not to the stored desktop.
+     */
+    fun moveCellToScreen(cellId: Long, screenIndex: Int, columns: Int) {
+        viewModelScope.launch {
+            val moved = desktopDependencies.desktopRepository.moveCellToScreen(
+                orientation = _orientation.value,
+                cellId = cellId,
+                screenIndex = screenIndex,
+                columns = columns,
+            )
+            Timber.d("S2301: moveCellToScreen id=%s screen=%d moved=%s", cellId, screenIndex, moved)
+        }
+    }
+
+    fun deleteSection(cellId: Long) {
+        viewModelScope.launch {
+            val header = cells.value.find { it.cell.id == cellId }?.cell
+            val removed = desktopDependencies.desktopRepository.removeSection(_orientation.value, cellId)
+            removed.forEach(desktopDependencies.configuredWidgetInstances::clearInstanceOf)
+            header?.let(sections::clear)
+            Timber.d("S2222: deleteSection id=%s removed=%d", cellId, removed.size)
+        }
+    }
+
+    fun resortSection(cellId: Long, columns: Int) {
+        viewModelScope.launch {
+            val header = cells.value.find { it.cell.id == cellId }?.cell ?: return@launch
+            sections.reveal(header)
+            val moved = desktopDependencies.desktopRepository.resortSection(_orientation.value, cellId, columns)
+            Timber.d("S2222: resortSection id=%s columns=%d moved=%s", cellId, columns, moved)
         }
     }
 
@@ -474,10 +576,50 @@ class LauncherHomeViewModel @Inject constructor(
         }
     }
 
+    /** Pins a recents entry through the same slot-allocation path as every other taskbar pin. */
+    fun pinRecentToTaskbar(command: LauncherCellCommand) {
+        addPin(command)
+        viewModelScope.launch {
+            _events.send(LauncherHomeEvent.Message(R.string.launcher_app_action_pinned))
+        }
+    }
+
+    /** Hides the command from recents until it is launched again. */
+    fun removeRecentCommand(command: LauncherCellCommand) {
+        viewModelScope.launch {
+            taskbarDependencies.removeRecentCommand(command)
+        }
+    }
+
+    /**
+     * S2210: publishes the frame a capture just wrote, so the desktop swaps to it.
+     *
+     * Stamped with the file's own mtime rather than a wall clock: every capture reuses one path, so the
+     * timestamp is the only thing that distinguishes this frame from the previous one downstream of
+     * `distinctUntilChanged`.
+     */
+    fun onInstantPhotoCaptured(path: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val capturedAtMillis = File(path).lastModified()
+            instantPhotoFrame.value = InstantPhotoFrame(path, capturedAtMillis)
+        }
+    }
+
+    /**
+     * S2213: remembers the place the user just picked, outside the desktop cell that holds it, so a
+     * launcher reset cannot carry it away with the cell it clears.
+     */
+    fun rememberWeatherLocation(encoded: String) {
+        viewModelScope.launch {
+            Timber.d("S2213: weather place remembered outside the desktop cell")
+            settingsRepository.updateSettings { it.withLauncher { copy(weatherLastLocation = encoded) } }
+        }
+    }
+
     /** Remembers that the first-rotation hint has been shown, so it never appears again. */
     fun markRotationHintShown() {
         viewModelScope.launch {
-            settingsRepository.updateSettings { it.copy(launcherRotationHintShown = true) }
+            settingsRepository.updateSettings { it.withLauncher { copy(rotationHintShown = true) } }
         }
     }
 
@@ -550,6 +692,22 @@ class LauncherHomeViewModel @Inject constructor(
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * S2025: opens our Monitor section when available, else the Android settings screen the indicator reports on.
+     */
+    fun openNetworkSurface(sectionKey: String, osShortcutKey: String) {
+        viewModelScope.launch {
+            val availability = resolveRouteAvailability(InternalRouteCatalog.KEY_NETWORK_MONITOR)
+            val command = if (availability.isLaunchable) {
+                LauncherCellCommand.FeatureSection(InternalRouteCatalog.KEY_NETWORK_MONITOR, sectionKey)
+            } else {
+                LauncherCellCommand.OsShortcut(osShortcutKey)
+            }
+            val screenOnly = !availability.isLaunchable
+            run(command, screenOnly)
         }
     }
 
@@ -722,8 +880,45 @@ class LauncherHomeViewModel @Inject constructor(
             val heightColumns = LauncherGridGeometry.columns(heightDp, density)
             val portraitColumns = if (startedPortrait) widthColumns else heightColumns
             val landscapeColumns = if (startedPortrait) heightColumns else widthColumns
+            Timber.d(
+                "S2320: seeding desktop density=%s portraitColumns=%s landscapeColumns=%s",
+                density,
+                portraitColumns,
+                landscapeColumns,
+            )
             desktopDependencies.seedLauncherDesktop(portraitColumns, landscapeColumns)
+            startShortcutSyncObservation()
         }
+    }
+
+    /**
+     * S2330: keeps the desktop current for a tool switched on after the starter set was laid out.
+     *
+     * Started here, after the seed use case returns, and never before it: the sync's first
+     * pass records what the desktop already accounts for, so running it ahead of the seed would file
+     * the starter set as accounted-for while its cells do not exist yet (strategic 5.1).
+     *
+     * The trigger is the launchable ROUTE SET, not the settings object. Any settings write emits, and
+     * `distinctUntilChanged` over the derived set is what turns those emissions back into the one
+     * event that matters - a route becoming launchable (strategic 3.2). The use case itself is safe to
+     * call on every distinct value: it places a cell only for what is missing from its own baseline.
+     *
+     * The boolean is not a re-entrancy nicety - [seedDesktopIfNeeded] is called again on every
+     * rotation, and each call would otherwise leave another collector on this flow for the lifetime
+     * of the ViewModel.
+     */
+    private suspend fun startShortcutSyncObservation() {
+        if (shortcutSyncObservationStarted) return
+        shortcutSyncObservationStarted = true
+        Timber.d("S2330: shortcut sync observation started after seeding")
+
+        settingsRepository.getSettings()
+            .map { desktopDependencies.syncEnabledToolShortcuts.launchableShortcutRoutes() }
+            .distinctUntilChanged()
+            .collect { routes ->
+                Timber.d("S2330: launchable shortcut route set changed, size=%d", routes.size)
+                desktopDependencies.syncEnabledToolShortcuts()
+            }
     }
 
     /**
@@ -783,11 +978,31 @@ class LauncherHomeViewModel @Inject constructor(
     fun contactPickIntent(action: LauncherContactAction): Intent =
         shortcutDependencies.pickContactShortcut.pickIntent(action)
 
-    /** S1176: reads the [picked] contact into the snapshot to pin, or reports why it cannot be pinned. */
+    /**
+     * S1176: reads the [picked] contact into the snapshot to pin, or reports why it cannot be pinned.
+     *
+     * S2240: [messengerPackage] is the app the user chose before the contact, and null whenever the pick
+     * was not narrowed - every non-MESSAGE action, the "any app" row, and a device with too few
+     * messengers to be worth asking about.
+     */
     suspend fun resolveContactPick(
         action: LauncherContactAction,
         picked: Uri,
-    ): PickContactShortcutUseCase.Outcome = shortcutDependencies.pickContactShortcut(action, picked)
+        messengerPackage: String? = null,
+    ): PickContactShortcutUseCase.Outcome =
+        shortcutDependencies.pickContactShortcut(action, picked, messengerPackage)
+
+    /**
+     * S2240: the messaging apps installed on this device, for the step that now runs ahead of the system
+     * contact picker.
+     *
+     * A property holding the operation rather than a named suspend function, for the reason [pendingSlot],
+     * [recentsCapacity] and `decodePendingChannels` each record: this class sits exactly at detekt's
+     * `TooManyFunctions` ceiling of 40, and the 41st named function would trip it. Nothing is lost, since
+     * `LauncherContactPickManager` takes its domain operations as functions anyway (S1195).
+     */
+    val listInstalledMessengers: suspend () -> List<LauncherMessengerApp>
+        get() = { shortcutDependencies.pickContactShortcut.installedMessengers() }
 
     /**
      * S1431 ADR-4: the recents row's own measurement of how many icons it fits, written by the row after
@@ -805,24 +1020,231 @@ class LauncherHomeViewModel @Inject constructor(
             _recentsCapacity.value = value.coerceAtLeast(RECENTS_LIMIT)
         }
 
+    /**
+     * S2060: the add-flow's chosen target square, durable across process death via [SavedStateHandle].
+     * [LauncherAddFlowManager] held this as two plain fields and lost them whenever the OS killed the
+     * process mid-flow (a system contact/app/resource picker), landing the next cell at `(0, 0)`
+     * instead of the square the user tapped.
+     *
+     * One property pairing both coordinates rather than two, so a partial write can never pair a
+     * fresh row with a stale column - the manager reads and writes them together for the same reason.
+     * A property rather than a named function, like [recentsCapacity] above: this class sits exactly
+     * at detekt's `TooManyFunctions` ceiling.
+     */
+    var pendingSlot: Pair<Int, Int>
+        get() = (savedStateHandle[KEY_PENDING_ROW] ?: 0) to (savedStateHandle[KEY_PENDING_COL] ?: 0)
+        set(value) {
+            savedStateHandle[KEY_PENDING_ROW] = value.first
+            savedStateHandle[KEY_PENDING_COL] = value.second
+        }
+
+    /**
+     * S2099: which contact action the in-flight pick is for, durable across process death via
+     * [SavedStateHandle] for the same reason as [pendingSlot] above. `LauncherContactPickManager` held
+     * this as a plain field, but that manager is rebuilt by the Activity's field initialiser on every
+     * process restart - so a kill while the system contact or number picker was in front lost the
+     * action, and the restored result aborted on a toast instead of placing the cell.
+     *
+     * Stored by enum name and read back by matching the entries, so a value this build no longer knows
+     * reads as "no pick in flight" rather than throwing on a restored state bundle. A property rather
+     * than a named function, like [pendingSlot] and [recentsCapacity]: this class sits exactly at
+     * detekt's `TooManyFunctions` ceiling.
+     */
+    var pendingContactAction: LauncherContactAction?
+        get() {
+            val stored = savedStateHandle.get<String>(KEY_PENDING_CONTACT_ACTION)
+            return LauncherContactAction.entries.firstOrNull { it.name == stored }
+        }
+        set(value) {
+            savedStateHandle[KEY_PENDING_CONTACT_ACTION] = value?.name
+        }
+
+    /**
+     * S2102: the contact action of the step the branch is on **before** the system picker takes over -
+     * the pending `READ_CONTACTS` answer, the number-source picker, and the manual number dialog.
+     *
+     * Distinct from [pendingContactAction] above rather than merged into it, because the two have
+     * different lifetimes and the merge would silently re-open S2099: that one is written when the
+     * system picker launches and cleared when its result arrives, while this one is written on entry to
+     * the contact branch and handed over the moment the system picker starts. They never overlap -
+     * `launchSystemPicker` clears this as it writes that.
+     *
+     * `LauncherContactPickManager` used to hold both the action and a `pendingPick` closure in fields,
+     * and that manager is rebuilt by the Activity's field initialiser on every process restart, so the
+     * contacts answer arrived at a manager with nothing to resume and the flow ended without a word.
+     *
+     * Stored by enum name and read back by matching the entries, like [pendingContactAction], so a value
+     * this build no longer knows reads as "no step in flight" rather than throwing on a restored bundle.
+     * A property rather than a named function, like the three above: this class sits exactly at detekt's
+     * `TooManyFunctions` ceiling.
+     */
+    var pendingContactStep: LauncherContactAction?
+        get() {
+            val stored = savedStateHandle.get<String>(KEY_PENDING_CONTACT_STEP)
+            return LauncherContactAction.entries.firstOrNull { it.name == stored }
+        }
+        set(value) {
+            savedStateHandle[KEY_PENDING_CONTACT_STEP] = value?.name
+        }
+
+    /**
+     * S2102: the messaging channels the user is choosing between, durable across process death.
+     *
+     * The list is produced by a contacts query the restored process never repeats, and the picker
+     * showing it cannot restore itself - `SearchableOptionPickerDialog` keeps its options in a plain
+     * field because an option may carry a `Drawable`, so a restored instance closes itself in `onStart`.
+     * Both re-presenting the choice and mapping the answer back to a placeable target therefore depend
+     * on this value surviving.
+     *
+     * Stored as two parallel string lists rather than one joined list: the label is whatever the
+     * messaging app wrote on the contact's row and may contain anything at all, including the codec's
+     * separator, so joining it to the encoded target would need a second escaping layer over one that
+     * already percent-encodes every field (strategic ADR-3). The target itself rides in
+     * [LauncherCellCommand.Contact]'s existing cell encoding, which keeps the domain model a plain data
+     * class - a `@Parcelize` on it would drag an Android type into `domain/`.
+     *
+     * Reads back as null unless the whole list is intact: a half-decodable list would offer the user
+     * rows that cannot be placed, which is the failure this ticket exists to remove rather than reshape.
+     * The app icon beside each row is deliberately absent - it is re-fetched from `PackageManager` by
+     * the stored `messagePackage`, exactly as the first showing did.
+     */
+    var pendingContactChannels: List<LauncherContactChannel>?
+        get() = decodePendingChannels(
+            savedStateHandle.get<ArrayList<String>>(KEY_PENDING_CHANNEL_LABELS),
+            savedStateHandle.get<ArrayList<String>>(KEY_PENDING_CHANNEL_TARGETS),
+        )
+        set(value) {
+            savedStateHandle[KEY_PENDING_CHANNEL_LABELS] =
+                value?.mapTo(ArrayList()) { it.label }
+            savedStateHandle[KEY_PENDING_CHANNEL_TARGETS] =
+                value?.mapTo(ArrayList()) { LauncherCellCommand.Contact(it.target).encode() }
+        }
+
+    /**
+     * S2240: the messaging app picked before the contact, or null for "any app" and for every flow that
+     * never asked.
+     *
+     * In [SavedStateHandle] for a sharper version of the reason [pendingContactChannels] above gives: it
+     * is written immediately before the system contact picker launches and read when that picker's result
+     * arrives, so its whole life is the one window in which the OS is most likely to kill this process. A
+     * plain field lost there would not fail - the restored pick would read every channel instead of the
+     * chosen app's, and quietly pin a row from a different messenger.
+     *
+     * A plain string, so unlike [pendingContactChannels] there is nothing to decode and no partial value
+     * to reject: absent and "any app" are deliberately the same answer, because both mean "do not narrow".
+     */
+    var pendingContactMessenger: String?
+        get() = savedStateHandle[KEY_PENDING_CONTACT_MESSENGER]
+        set(value) {
+            savedStateHandle[KEY_PENDING_CONTACT_MESSENGER] = value
+        }
+
+    /**
+     * S1930: the gadget key and minted token of the configurable widget whose configuration screen is
+     * in front, or null when none is. In [SavedStateHandle] for the same reason as the two above -
+     * that screen is a separate Activity, which is precisely when the OS is free to kill this one, and
+     * a lost token would leave a written snapshot no cell ever points at.
+     *
+     * One property carrying both halves, like [pendingSlot]: a token without its key names no widget
+     * to place, and a key without its token names no instance to place it with.
+     */
+    var pendingConfiguredWidget: Pair<String, Int>?
+        get() {
+            val key = savedStateHandle.get<String>(KEY_PENDING_WIDGET_KEY)
+            val token = savedStateHandle.get<Int>(KEY_PENDING_WIDGET_TOKEN)
+            return if (key != null && token != null) key to token else null
+        }
+        set(value) {
+            savedStateHandle[KEY_PENDING_WIDGET_KEY] = value?.first
+            savedStateHandle[KEY_PENDING_WIDGET_TOKEN] = value?.second
+        }
+
     private companion object {
         const val SUBSCRIPTION_TIMEOUT_MS = 5_000L
 
         /** As many recents as fit a phone taskbar beside the Start button and the tray. */
         const val RECENTS_LIMIT = 6
+
+        const val KEY_PENDING_ROW = "launcher_pending_row"
+        const val KEY_PENDING_COL = "launcher_pending_col"
+        const val KEY_PENDING_CONTACT_ACTION = "launcher_pending_contact_action"
+        const val KEY_PENDING_CONTACT_STEP = "launcher_pending_contact_step"
+        const val KEY_PENDING_CHANNEL_LABELS = "launcher_pending_channel_labels"
+        const val KEY_PENDING_CHANNEL_TARGETS = "launcher_pending_channel_targets"
+        const val KEY_PENDING_CONTACT_MESSENGER = "launcher_pending_contact_messenger"
+        const val KEY_PENDING_WIDGET_KEY = "launcher_pending_widget_key"
+        const val KEY_PENDING_WIDGET_TOKEN = "launcher_pending_widget_token"
     }
 }
 
-/** Pure setting-to-render-model mapping; image availability is supplied because the file probe is I/O. */
+/**
+ * S2102: rebuilds what [LauncherHomeViewModel.pendingContactChannels] stored, or null when what came
+ * back cannot be trusted as a whole.
+ *
+ * Top-level rather than a member, so the round-trip is testable without constructing the ViewModel and
+ * every collaborator it injects, and so the class stays under detekt's `TooManyFunctions` ceiling.
+ *
+ * Every rejection is the same rejection. A caller handed a short list would present rows that place
+ * nothing - the exact failure this ticket removes - so a missing key, a length mismatch and one
+ * undecodable entry all yield null rather than a best effort. An empty list is nothing to choose
+ * between, so it reads as "no channel step in flight" too.
+ */
+internal fun decodePendingChannels(
+    labels: List<String>?,
+    encodedTargets: List<String>?,
+): List<LauncherContactChannel>? {
+    if (labels == null || encodedTargets == null || labels.size != encodedTargets.size) return null
+    val decoded = encodedTargets.map { LauncherCellCommand.decode(it) as? LauncherCellCommand.Contact }
+    val complete = decoded.filterNotNull()
+    return if (complete.isEmpty() || complete.size != decoded.size) {
+        null
+    } else {
+        complete.mapIndexed { index, command ->
+            LauncherContactChannel(target = command.target, label = labels[index])
+        }
+    }
+}
+
+/**
+ * Pure setting-to-render-model mapping; image and camera availability are supplied because probing either
+ * one is I/O - a disk stat for the image, a package-manager and permission read for the camera.
+ */
 internal fun resolveLauncherWallpaper(
     mode: String,
     imagePath: String,
     imageAvailable: Boolean,
+    cameraId: String,
+    cameraAvailable: Boolean,
+    instantPhoto: InstantPhotoFrame? = null,
 ): LauncherWallpaper = when (mode) {
     AppSettings.LAUNCHER_WALLPAPER_NONE -> LauncherWallpaper.None
     AppSettings.LAUNCHER_WALLPAPER_STATIC_STRIPES -> LauncherWallpaper.StaticStripes
     AppSettings.LAUNCHER_WALLPAPER_IMAGE ->
         imagePath.takeIf { imageAvailable }?.let { LauncherWallpaper.Image(it) } ?: LauncherWallpaper.Branded
 
+    // S2076: a revoked grant, a camera-less device or a lens that vanished all land here, and all degrade
+    // to the branded backdrop rather than to a black layer nobody can explain.
+    AppSettings.LAUNCHER_WALLPAPER_CAMERA ->
+        cameraId.takeIf { cameraAvailable && it.isNotBlank() }
+            ?.let { LauncherWallpaper.LiveCamera(it) }
+            ?: LauncherWallpaper.Branded
+
+    // S2210: the frame comes from this session's capture, never from the stored image path - that path is
+    // the user's own wallpaper pick, and reading it here would show their picture as if the camera had
+    // just taken it.
+    AppSettings.LAUNCHER_WALLPAPER_INSTANT_PHOTO ->
+        cameraId.takeIf { cameraAvailable && it.isNotBlank() }
+            ?.let {
+                LauncherWallpaper.InstantPhoto(
+                    cameraId = it,
+                    imagePath = instantPhoto?.path,
+                    capturedAtMillis = instantPhoto?.capturedAtMillis ?: 0L,
+                )
+            }
+            ?: LauncherWallpaper.Branded
+
     else -> LauncherWallpaper.Branded
 }
+
+/** S2210: one captured instant-photo frame - its file and the mtime that tells it from the previous one. */
+internal data class InstantPhotoFrame(val path: String, val capturedAtMillis: Long)

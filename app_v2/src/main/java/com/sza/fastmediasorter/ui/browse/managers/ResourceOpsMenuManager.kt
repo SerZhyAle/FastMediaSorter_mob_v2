@@ -317,7 +317,7 @@ class ResourceOpsMenuManager @Inject constructor(
             setPadding(dp16 * 2, dp16, dp16 * 2, dp16)
         }
 
-        val formattedSize = com.sza.fastmediasorter.core.util.formatFileSize(totalBytes)
+        val formattedSize = com.sza.fastmediasorter.core.util.formatFileSize(context, totalBytes)
         val messageText = activity.getString(R.string.delete_by_size_preview_result, count, formattedSize)
 
         val tvMessage = TextView(activity).apply {

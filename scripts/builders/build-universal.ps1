@@ -15,7 +15,8 @@ param(
 )
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
-Enter-BuildLockOrExit -Reason "build-universal.ps1"
+. "$PSScriptRoot\..\utils\project-paths.ps1"
+Enter-BuildLockOrExit -Reason "build-universal.ps1" -Domain Build.Phone
 try {
 
 Write-Host "=== FastMediaSorter Universal Build Script ===" -ForegroundColor Cyan
@@ -51,12 +52,12 @@ elseif ($Flavor -eq "legacy") {
     else { $apkPathRelative += ".apk"; $packageName = "com.sza.fastmediasorter.legacy" }
 }
 
-$apkPath = "$projectRoot\$apkPathRelative"
+$apkDir = Split-Path -Parent "$projectRoot\$apkPathRelative"
 
 Write-Host "Features: $features" -ForegroundColor Yellow
 
 # Build the APK
-$taskName = "assemble" + $Flavor.Substring(0, 1).ToUpper() + $Flavor.Substring(1) + $BuildType.Substring(0, 1).ToUpper() + $BuildType.Substring(1)
+$taskName = ":app_v2:assemble" + $Flavor.Substring(0, 1).ToUpper() + $Flavor.Substring(1) + $BuildType.Substring(0, 1).ToUpper() + $BuildType.Substring(1)
 . "$PSScriptRoot\..\utils\build-version-stamp.ps1"
 $stamp = Get-BuildVersionStamp
 Write-Host "`nBuilding $Flavor $BuildType APK..." -ForegroundColor Cyan
@@ -69,6 +70,18 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "`nBuild Successful!" -ForegroundColor Green
+
+# Ask the build what it produced instead of assembling a filename from a naming convention: the
+# convention names a file that stops existing the moment a variant emits more than one output, and
+# this script would then print a path to nothing and copy nothing (S1972).
+. "$PSScriptRoot\..\utils\find-build-artifact.ps1"
+$built = Find-BuildArtifact -Dir $apkDir
+if (-not $built) {
+    Write-Host "`nBuild reported success but no APK is present in $apkDir." -ForegroundColor Red
+    exit 1
+}
+$apkPath = $built.FullName
+
 Write-Host "APK location: $apkPath" -ForegroundColor Cyan
 Write-Host "Package name: $packageName" -ForegroundColor Cyan
 
@@ -88,44 +101,11 @@ $logEntry = "$timestamp | $Flavor-$BuildType | $destName"
 Add-Content -Path $journalPath -Value $logEntry
 Write-Host "Build logged to journal" -ForegroundColor Gray
 
-# Zip with password and copy to Google Drive
-$gdDir = "c:\GD\WORK\FastMediaSorter"
-if (!(Test-Path -Path $gdDir)) {
-    New-Item -ItemType Directory -Path $gdDir | Out-Null
-}
-
-# Copy raw APK to Google Drive (in addition to password-protected ZIP below).
-# Recipients with security policies that block APK downloads use the .zip copy;
-# the raw .apk lets fast paths skip the unzip step.
-Copy-Item -Path "$downloadsDir\$destName" -Destination "$gdDir\$destName" -Force
-Write-Host "APK copied to $gdDir\$destName" -ForegroundColor Green
-
-$zipName = [System.IO.Path]::ChangeExtension($destName, ".zip")
-$zipPath = "$gdDir\$zipName"
-
-# Use 7-Zip to create password-protected archive
-$7zipPath = "C:\Program Files\7-Zip\7z.exe"
-if (Test-Path -Path $7zipPath) {
-    & $7zipPath a -tzip -p1 "$zipPath" "$downloadsDir\$destName" | Out-Null
-    Write-Host "APK zipped with password and copied to Google Drive: $zipPath" -ForegroundColor Cyan
-    # Write-Host "Password: 1" -ForegroundColor Yellow
-}
-else {
-    Write-Host "Warning: 7-Zip not found. APK not copied to Google Drive." -ForegroundColor Yellow
-    Write-Host "Install 7-Zip from https://www.7-zip.org/ to enable Google Drive upload." -ForegroundColor Yellow
-}
-
-# Copy APK to tc folder
-$tcDir = "c:\GD\tc\SZA\_APP"
-if (!(Test-Path -Path $tcDir)) {
-    New-Item -ItemType Directory -Path $tcDir | Out-Null
-}
-Copy-Item -Path "$downloadsDir\$destName" -Destination "$tcDir\$destName" -Force
-Write-Host "APK copied to $tcDir\$destName" -ForegroundColor Green
+& "$PSScriptRoot\..\utils\publish-artifact.ps1" -Path "$downloadsDir\$destName" -Name $destName
 
 # Install on device if requested
 if ($Device) {
-    $adb = "C:\Users\serzh\AppData\Local\Android\Sdk\platform-tools\adb.exe"
+    $adb = Get-ToolPath -Tool Adb
 
     Write-Host "`nInstalling on device..." -ForegroundColor Yellow
     & $adb wait-for-device
@@ -141,5 +121,5 @@ if ($Device) {
 
 }
 finally {
-    Exit-AgentLock -Name Build
+    Exit-AgentLock -Name 'Build' -Domains @('Build.Phone')
 }

@@ -69,6 +69,8 @@ class GeneralSettingsObserversHelper(
                 binding.rowFileOpsInOverflowMenu.setCheckedSilently(settings.fileOpsInOverflowMenu)
             if (binding.rowCompactElements?.isChecked != settings.useCompactElements)
                 binding.rowCompactElements?.setCheckedSilently(settings.useCompactElements)
+            if (binding.rowDisableAnimations?.isChecked != settings.disableAnimations)
+                binding.rowDisableAnimations?.setCheckedSilently(settings.disableAnimations)
             // S0911: main-window programs panel toggle (moved from Operations > Additional Programs).
             if (binding.rowShowProgramsPanel.isChecked != settings.showProgramsPanelInMainWindow) {
                 binding.rowShowProgramsPanel.setCheckedSilently(settings.showProgramsPanelInMainWindow)

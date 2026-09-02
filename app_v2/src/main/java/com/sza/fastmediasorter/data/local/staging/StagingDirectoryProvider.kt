@@ -46,5 +46,6 @@ class StagingDirectoryProvider @Inject constructor(
     private fun subdirFor(kind: StagedKind): String = when (kind) {
         StagedKind.TEXT_NOTE -> "notes"
         StagedKind.DRAWING -> "drawings"
+        StagedKind.WATCH_RECEIVED -> "watch"
     }
 }

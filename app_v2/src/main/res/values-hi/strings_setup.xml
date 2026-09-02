@@ -170,5 +170,13 @@
     <string name="welcome_role_sources_detail_cloud_only">डिवाइस स्टोरेज, Google Drive, OneDrive, Dropbox</string>
     <string name="welcome_role_sources_detail_local_only">आंतरिक स्टोरेज और SD कार्ड</string>
     <string name="welcome_role_sorting_detail">एक ही टैप में फ़ाइल को उसके फ़ोल्डर में भेजें</string>
-    <string name="welcome_role_more_detail">स्ट्रीम, कैमरा और बहुत कुछ - कई ऐप की जगह एक</string>
+    <string name="welcome_role_more_detail">कैमरा, विजेट, गैजेट और बहुत कुछ - कई ऐप की जगह एक ही ऐप</string>
+    <string name="welcome_description_1_shell">सिर्फ़ एक मीडिया ऐप नहीं - आपके डिवाइस के लिए पूरा शेल।\nहोम स्क्रीन, प्लेयर, फ़ाइल मैनेजर, स्ट्रीम और रिमोट स्टोरेज एक ही जगह।</string>
+    <string name="welcome_description_1_details_shell">FastMediaSorter पूरे डिवाइस को चला सकता है: आपके ऐप, विजेट और शॉर्टकट वाली होम स्क्रीन, फ़ोटो, वीडियो, संगीत और किताबों का प्लेयर, लोकल, नेटवर्क और क्लाउड स्टोरेज के लिए फ़ाइल मैनेजर, इंटरनेट स्ट्रीम और एक Wear OS साथी ऐप - और इन सबके ऊपर, एक टैप से तेज़ छँटाई।\n\nइसे अपनी होम स्क्रीन बनाना चाहते हैं? ऊपर का स्विच चालू करें और सेटअप के बाद सिस्टम आपसे पुष्टि माँगेगा। इस स्क्रीन पर चुनी गई हर चीज़ बाद में सेटिंग्स में बदली जा सकती है, इसलिए यहाँ कोई ग़लत विकल्प नहीं है - आगे बढ़ने के लिए बस अगला दबाएँ।</string>
+    <string name="welcome_role_home_screen">होम स्क्रीन</string>
+    <string name="welcome_role_home_screen_detail">लॉन्चर की जगह डिवाइस चलाता है - ऐप, विजेट और मीडिया हाथ में</string>
+    <string name="welcome_role_streams">स्ट्रीम</string>
+    <string name="welcome_role_streams_detail">तैयार कैटलॉग से इंटरनेट रेडियो, टीवी और वीडियो चैनल</string>
+    <string name="welcome_role_wear">घड़ी ऐप</string>
+    <string name="welcome_role_wear_detail">Wear OS साथी ऐप - सीधे अपनी कलाई पर ब्राउज़ करें और चलाएँ</string>
 </resources>

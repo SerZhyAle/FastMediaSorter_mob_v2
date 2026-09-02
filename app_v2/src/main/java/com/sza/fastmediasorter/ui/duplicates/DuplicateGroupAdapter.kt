@@ -104,7 +104,7 @@ class DuplicateGroupAdapter(
         }
 
         fun bind(group: DuplicateGroup) {
-            val sizeText = formatFileSize(group.fileSize)
+            val sizeText = formatFileSize(itemView.context, group.fileSize)
             val countText = itemView.context.getString(R.string.duplicate_group_count, group.files.size)
             // S0535: title carries a representative file name; the size/count summary moves to the
             // unified summary slot so it stays informative when the group is collapsed.

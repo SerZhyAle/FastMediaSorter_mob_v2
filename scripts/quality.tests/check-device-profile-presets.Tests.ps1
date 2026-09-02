@@ -6,6 +6,14 @@
 #   - a CSV row with neither an applier branch nor a registry entry is an error;
 #   - a cell outside its Settings-screen range is an error.
 #
+# S1538 added the soft 'reviewed' category and its three rules, covered by cases 6-9 below:
+#   - a reviewed entry naming an unknown field is an error;
+#   - a reviewed entry without a reason is an error;
+#   - a field claimed by both registries at once is an error;
+#   - a well-formed reviewed entry keeps the gate at exit 0.
+#
+# S1538 also added rule 9 - every field carries a decision - covered by cases 10-12.
+#
 # The gate resolves its inputs from `Split-Path $PSScriptRoot -Parent`, so each case copies the
 # real script into a throwaway repo-shaped sandbox and feeds it four tiny fixtures. Nothing tracked
 # is read or written; the sandbox lives under temp/S1216/ and is removed at the end.
@@ -64,7 +72,7 @@ data class AppSettings(
 $deviceProfileSrc = 'enum class DeviceProfileType { PHONE, TV }'
 
 function New-Sandbox {
-    param([string[]]$CsvLines, [string[]]$RegistryFields, [string[]]$Branches)
+    param([string[]]$CsvLines, [string[]]$RegistryFields, [string[]]$Branches, [hashtable[]]$Reviewed)
 
     if (Test-Path $sandbox) { Remove-Item -Recurse -Force $sandbox }
     $kt = Join-Path $sandbox 'app_v2/src/main/java/com/sza/fastmediasorter'
@@ -87,7 +95,14 @@ function New-Sandbox {
     Set-Content -LiteralPath (Join-Path $sandbox 'app_v2/src/main/assets/device_profile_presets.csv') -Value $CsvLines
 
     $entries = $RegistryFields | ForEach-Object { [pscustomobject]@{ field = $_; reason = 'test fixture' } }
-    $json = [pscustomobject]@{ fields = @($entries) } | ConvertTo-Json -Depth 4
+    # A reviewed fixture omitting 'reason' is how case 7 reaches the missing-reason rule.
+    $reviewedEntries = @()
+    foreach ($rv in @($Reviewed)) {
+        if ($null -eq $rv) { continue }
+        if ($rv.ContainsKey('reason')) { $reviewedEntries += [pscustomobject]@{ field = $rv.field; reason = $rv.reason } }
+        else { $reviewedEntries += [pscustomobject]@{ field = $rv.field } }
+    }
+    $json = [pscustomobject]@{ fields = @($entries); reviewed = @($reviewedEntries) } | ConvertTo-Json -Depth 4
     Set-Content -LiteralPath (Join-Path $sandbox 'docs/settings/device-profile-nonpresettable.json') -Value $json
 
     $copied = Join-Path $sandbox 'scripts/check_device_profile_presets.ps1'
@@ -96,8 +111,8 @@ function New-Sandbox {
 }
 
 function Invoke-Gate {
-    param([string[]]$CsvLines, [string[]]$RegistryFields, [string[]]$Branches)
-    $script = New-Sandbox -CsvLines $CsvLines -RegistryFields $RegistryFields -Branches $Branches
+    param([string[]]$CsvLines, [string[]]$RegistryFields, [string[]]$Branches, [hashtable[]]$Reviewed)
+    $script = New-Sandbox -CsvLines $CsvLines -RegistryFields $RegistryFields -Branches $Branches -Reviewed $Reviewed
     $out = & $pwshExe -NoProfile -File $script 2>&1 | Out-String
     return @{ Exit = $LASTEXITCODE; Out = $out }
 }
@@ -136,6 +151,70 @@ $withOther = @('"option","phone","tv","Other"', '"alpha","true","",""', '"defaul
 $r = Invoke-Gate -CsvLines $withOther -RegistryFields $baselineRegistry -Branches $baselineBranches
 Assert-Equal 'non-empty Other column -> exit 1' 1 $r.Exit
 Assert-Match 'non-empty Other column is named' "'Other' column" $r.Out
+
+# --- Case 6: a reviewed entry naming an unknown field is an error (S1538) --------------------
+$r = Invoke-Gate -CsvLines $baselineCsv -RegistryFields $baselineRegistry -Branches $baselineBranches `
+    -Reviewed @(@{ field = 'zulu'; reason = 'no such field' })
+Assert-Equal 'reviewed names unknown field -> exit 1' 1 $r.Exit
+Assert-Match 'reviewed unknown field is named' 'reviewed fields NAMING an unknown AppSettings field.*zulu' $r.Out
+
+# --- Case 7: a reviewed entry without a reason is an error (S1538) ---------------------------
+# 'reviewed' promises a decision was made; without the reason nobody can re-judge it later.
+$r = Invoke-Gate -CsvLines ($baselineCsv + '"bravo","",""') -RegistryFields @('charlie', 'secretToken') `
+    -Branches $baselineBranches -Reviewed @(@{ field = 'bravo' })
+Assert-Equal 'reviewed without reason -> exit 1' 1 $r.Exit
+Assert-Match 'reviewed without reason is named' 'reviewed fields WITHOUT a reason.*bravo' $r.Out
+
+# --- Case 8: a field in both registries at once is an error (S1538) --------------------------
+# The two lists disagree on whether a future value is legal, so one of them has to be wrong.
+$r = Invoke-Gate -CsvLines $baselineCsv -RegistryFields $baselineRegistry -Branches $baselineBranches `
+    -Reviewed @(@{ field = 'bravo'; reason = 'contradicts the hard entry' })
+Assert-Equal 'field in both registries -> exit 1' 1 $r.Exit
+Assert-Match 'field in both registries is named' 'BOTH non-presettable and reviewed.*bravo' $r.Out
+
+# --- Case 9: a well-formed reviewed entry keeps the gate green (S1538) -----------------------
+# bravo keeps its CSV row and its applier branch; being reviewed only records that no profile
+# overrides it today, so a value added here later would be legitimate rather than an error.
+$r = Invoke-Gate -CsvLines ($baselineCsv + '"bravo","",""') -RegistryFields @('charlie', 'secretToken') `
+    -Branches $baselineBranches -Reviewed @(@{ field = 'bravo'; reason = 'reviewed, no override needed' })
+Assert-Equal 'well-formed reviewed entry -> exit 0' 0 $r.Exit
+
+# --- Case 10: a field with a row but no decision anywhere is an error (S1538 rule 9) ---------
+# 'bravo' has a CSV row, so rule 1 is satisfied and every pre-S1538 rule stays silent. Every cell
+# is empty and neither registry claims it, which is precisely the state rule 9 exists to surface.
+$undecidedCsv = $baselineCsv + '"bravo","",""'
+$r = Invoke-Gate -CsvLines $undecidedCsv -RegistryFields @('charlie', 'secretToken') `
+    -Branches $baselineBranches -Reviewed @()
+Assert-Equal 'field with a row but no decision -> exit 1' 1 $r.Exit
+Assert-Match 'undecided field is named' 'NO decision.*bravo' $r.Out
+
+# --- Case 11: each of the three decisions clears rule 9 --------------------------------------
+# a) a value in one profile column
+$r = Invoke-Gate -CsvLines ($baselineCsv + '"bravo","true",""') -RegistryFields @('charlie', 'secretToken') `
+    -Branches $baselineBranches -Reviewed @()
+Assert-Equal 'decision by value -> exit 0' 0 $r.Exit
+
+# b) a non-presettable entry
+$r = Invoke-Gate -CsvLines $undecidedCsv -RegistryFields @('bravo', 'charlie', 'secretToken') `
+    -Branches $baselineBranches -Reviewed @()
+Assert-Equal 'decision by non-presettable entry -> exit 0' 0 $r.Exit
+
+# c) a reviewed entry
+$r = Invoke-Gate -CsvLines $undecidedCsv -RegistryFields @('charlie', 'secretToken') `
+    -Branches $baselineBranches -Reviewed @(@{ field = 'bravo'; reason = 'reviewed, no override needed' })
+Assert-Equal 'decision by reviewed entry -> exit 0' 0 $r.Exit
+
+# --- Case 12: rule 9 ignores fields that are not AppSettings fields at all -------------------
+# A stale CSV row is already rule 4's business; rule 9 must not double-report it.
+$r = Invoke-Gate -CsvLines ($baselineCsv + '"ghostField","",""') -RegistryFields $baselineRegistry `
+    -Branches $baselineBranches -Reviewed @()
+Assert-Match 'stale row is reported as stale, not as undecided' 'NO matching AppSettings field.*ghostField' $r.Out
+if ($r.Out -match 'NO decision.*ghostField') {
+    Assert-Equal 'stale row must not also be reported undecided' 'not reported' 'reported'
+}
+else {
+    Assert-Equal 'stale row must not also be reported undecided' 'not reported' 'not reported'
+}
 
 if (Test-Path $sandbox) { Remove-Item -Recurse -Force $sandbox }
 

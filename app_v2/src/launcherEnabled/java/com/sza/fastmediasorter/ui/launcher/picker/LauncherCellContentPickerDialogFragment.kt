@@ -175,7 +175,7 @@ class LauncherCellContentPickerDialogFragment : DialogFragment() {
         Option(
             id = GADGET_PREFIX + gadget.key,
             label = getString(gadget.labelRes),
-            leading = LeadingVisual.IconRes(gadget.iconRes),
+            leading = LeadingVisual.IconRes(gadget.iconRes, tintIcon = gadget.iconTintable),
         )
     }
 

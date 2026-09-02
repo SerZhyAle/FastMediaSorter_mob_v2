@@ -1,8 +1,28 @@
 #!/usr/bin/env python
-import sys
+"""Publish a FastMediaSorter AAB to a Google Play track (bundle + track + commit).
+
+Separate from publish-play-listing.py, which pushes the store listing texts and images. This
+script uploads the bundle, attaches it to a track together with the fastlane changelogs, and
+commits the edit. Both reuse the same service-account key.
+
+Usage:
+    python publish-play-release.py [track] [status] [--aab PATH] [--version-code N] [--notes-code N]
+
+Exit codes:
+    0 - the bundle is on the track and the edit was committed (Play may route it via review).
+    1 - the release is at fault: the AAB is missing, or Play rejected the payload. That includes
+        the Foreground-service-permissions 403 on commit, which needs an owner action in the
+        Console and has to stay visible as a finding rather than as "could not verify".
+    2 - could not verify: a sustained transient failure (5xx, rate limit, network). The release is
+        NOT implicated - re-run when the API recovers.
+"""
 import os
 import re
 import socket
+import ssl
+import sys
+import httplib2
+from google.auth.exceptions import TransportError
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
@@ -11,6 +31,42 @@ from googleapiclient.http import MediaFileUpload
 socket.setdefaulttimeout(120)
 
 PACKAGE_NAME = 'com.sza.fastmediasorter'
+
+# Passed to every .execute() that is safe to repeat. google-api-python-client carries its own
+# randomized exponential backoff, but it engages only when the caller asks for it: with no
+# num_retries the first refusal is raised straight out. Which calls are excluded, and why the
+# commit is one of them, is written at the call sites (S2346).
+API_NUM_RETRIES = 5
+
+# A failure carrying one of these is Google's or the network's, never the release's, so it maps onto
+# exit 2 - "could not verify" - instead of exit 1. Deliberately narrow, and the narrowness earns its
+# keep here more than for the listing: 403 on commit is the Foreground-service-permissions gate, the
+# one step of a release the owner must take by hand, and demoting it to "could not verify" would
+# hide the only thing that run is asking for.
+TRANSIENT_STATUSES = frozenset((408, 429, 500, 502, 503, 504))
+
+
+def _is_transient(exc):
+    """True when a failure is the network's or Google's rather than the release's.
+
+    The local checks that can implicate the artifact - the AAB is missing, its versionCode cannot be
+    read - run and exit before the edit transaction opens, so what is raised inside the transaction
+    splits in two: payload Play rejected, which is a real finding, and infrastructure, which is not.
+
+    The status is read defensively: an exception with no `resp` must answer the question, not raise
+    a second one from inside the handler that is trying to describe the first.
+
+    ServerNotFoundError (the hostname did not resolve) and TransportError (the network dropped while
+    fetching the OAuth token) are named separately because neither derives from OSError, so the
+    socket-level tuple does not reach them (S2345).
+    """
+    network_level = (
+        socket.timeout, TimeoutError, ConnectionError, ssl.SSLError,
+        httplib2.ServerNotFoundError, TransportError,
+    )
+    if isinstance(exc, network_level):
+        return True
+    return getattr(getattr(exc, 'resp', None), 'status', None) in TRANSIENT_STATUSES
 
 # Resolve absolute paths relative to script location
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -102,9 +158,16 @@ def list_existing_bundle_codes(service, edit_id):
     try:
         response = service.edits().bundles().list(
             packageName=PACKAGE_NAME, editId=edit_id
-        ).execute()
+        ).execute(num_retries=API_NUM_RETRIES)
         return {int(b['versionCode']) for b in response.get('bundles', [])}
     except Exception as e:
+        # A transient refusal here means "the library is unreadable", not "the library is empty",
+        # and the two lead opposite ways: falling back to upload would push a versionCode that may
+        # already be published, and Play's refusal of the duplicate would then be reported against
+        # the artifact. Nothing has been uploaded at this point, so re-raising costs only an
+        # abandoned edit, which expires on its own (S2346).
+        if _is_transient(e):
+            raise
         print(f"Warning: Could not list existing bundles ({e}). Falling back to upload.")
         return set()
 
@@ -146,6 +209,11 @@ def main():
     print(f"Package name: {PACKAGE_NAME}")
     print(f"AAB Path: {aab_path} ({os.path.getsize(aab_path) / 1024 / 1024:.2f} MB)")
 
+    # Read by the handler below to tell "the run never got that far" from "the bundle is in the
+    # library and only the commit is unaccounted for" - two situations that need opposite first
+    # moves from the operator, and which one exit code alone cannot separate (S2346).
+    commit_started = False
+
     try:
         # 1. Initialize API Service
         creds = service_account.Credentials.from_service_account_file(
@@ -156,7 +224,8 @@ def main():
 
         # 2. Start Edit Transaction
         print("\nStarting new edit transaction...")
-        edit = service.edits().insert(packageName=PACKAGE_NAME, body={}).execute()
+        edit = service.edits().insert(packageName=PACKAGE_NAME, body={}).execute(
+            num_retries=API_NUM_RETRIES)
         edit_id = edit['id']
         print(f"Edit transaction created: {edit_id}")
 
@@ -175,24 +244,21 @@ def main():
         else:
             if expected_version_code is not None:
                 print(f"\nBundle {expected_version_code} not in library (have: {sorted(existing_codes) or 'none'}) - uploading.")
-            print("\nUploading AAB (resumable with retry guard)...")
+            print("\nUploading AAB (resumable, library-managed retry)...")
             media = MediaFileUpload(aab_path, mimetype='application/octet-stream', resumable=True)
             request = service.edits().bundles().upload(packageName=PACKAGE_NAME, editId=edit_id, media_body=media)
 
+            # The retry belongs to the library, not to this loop. A resumable upload addresses a
+            # repeated chunk by the byte offset the server confirms, so retrying one is safe - and
+            # next_chunk's own backoff is randomized and spread out. The hand-rolled loop this
+            # replaced retried ANY exception five times with no pause at all, which spent five extra
+            # requests on payload Play had already rejected and gave a real 5xx five instant
+            # attempts instead of spaced ones (S2346).
             response = None
             while response is None:
-                retries = 5
-                while retries > 0:
-                    try:
-                        status_progress, response = request.next_chunk()
-                        if status_progress:
-                            print(f"  Uploaded: {status_progress.progress() * 100:.1f}%")
-                        break
-                    except (socket.timeout, Exception) as chunk_error:
-                        retries -= 1
-                        print(f"  Warning: Chunk transfer error ({chunk_error}). Retrying block (attempts left: {retries})...")
-                        if retries == 0:
-                            raise chunk_error
+                status_progress, response = request.next_chunk(num_retries=API_NUM_RETRIES)
+                if status_progress:
+                    print(f"  Uploaded: {status_progress.progress() * 100:.1f}%")
 
             version_code = response['versionCode']
             print(f"SUCCESS: AAB uploaded. Version Code: {version_code}")
@@ -220,12 +286,12 @@ def main():
             'releases': [release_body]
         }
 
-        track_update = service.edits().tracks().update(
+        service.edits().tracks().update(
             packageName=PACKAGE_NAME,
             editId=edit_id,
             track=track_name,
             body=track_body
-        ).execute()
+        ).execute(num_retries=API_NUM_RETRIES)
         print("Track updated successfully.")
 
         # 6. Commit Edit
@@ -236,7 +302,13 @@ def main():
         # (S1989 - this was hardcoded to the automatic path and stopped working on 2026-08-24).
         print("\nCommitting changes to Google Play Console...")
         held = False
+        commit_started = True
         try:
+            # No num_retries on either commit, unlike every call above. The commit is the one
+            # one-way step: if a response is lost after Play has already accepted the edit, the
+            # retry arrives at an edit that no longer exists and comes back 4xx - which reads
+            # from outside as a rejected release. That is the same false accusation this ticket
+            # removes, entering through the other door (S2346).
             service.edits().commit(packageName=PACKAGE_NAME, editId=edit_id).execute()
         except Exception as exc:  # noqa: BLE001 - the API surfaces this as a generic HttpError
             if 'changesNotSentForReview' not in str(exc):
@@ -253,7 +325,20 @@ def main():
         else:
             print(f"SUCCESS: Edit transaction committed. AAB version {version_code} is now published on '{track_name}' track as '{status}'!")
         
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - surface the API error and pick the honest exit code
+        if _is_transient(e):
+            print(f"\nCANNOT VERIFY: the Play API refused the request transiently: {e}")
+            print(f"Already retried {API_NUM_RETRIES} times with backoff, so this is a sustained")
+            print("outage rather than one hiccup. The release itself is not implicated.")
+            if commit_started:
+                print("\nThe failure happened AT THE COMMIT, so the bundle is already in the")
+                print("App Bundle Explorer and only the edit's fate is unknown. Open Publishing")
+                print("overview in the Console before re-running: a re-run attaches the uploaded")
+                print("versionCode instead of uploading it again, but it cannot tell you whether")
+                print("the previous commit landed.")
+            else:
+                print("Nothing was committed - re-run when the API recovers.")
+            sys.exit(2)
         print(f"\nERROR: {e}")
         sys.exit(1)
 

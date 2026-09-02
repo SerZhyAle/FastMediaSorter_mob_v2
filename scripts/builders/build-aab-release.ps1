@@ -55,7 +55,8 @@ $gradlew = "$projectRoot\gradlew.bat"
 # "sibling fallback" search was a band-aid that hid exactly this bug - after
 # the Push-Location below, outputs are guaranteed to be under $projectRoot.
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
-Enter-BuildLockOrExit -Reason "build-aab-release.ps1"
+. "$PSScriptRoot\..\utils\project-paths.ps1"
+Enter-BuildLockOrExit -Reason "build-aab-release.ps1" -Domain Build.Phone
 
 Push-Location $projectRoot
 try {
@@ -67,9 +68,17 @@ $content = $content -replace '(versionCode\s*=\s*)\d+', "`${1}$versionCodeInt"
 $content = $content -replace '(versionName\s*=\s*)"[^"]*"', "`${1}`"$versionName`""
 Set-Content $buildGradlePath $content -NoNewline
 
+# This script only ever stamps app_v2 - wear is a separate module the caller may not even be
+# touching this run. A non-fatal warning here catches the drift at the moment this stamp is
+# created instead of leaving it for the next unrelated ticket's `fg` gate to trip over (S2117).
+& (Join-Path $PSScriptRoot "..\quality\assert-module-version-parity.ps1") -Quiet
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Warning: app_v2/build.gradle.kts and wear/build.gradle.kts now disagree on version - see scripts/quality/assert-module-version-parity.ps1. Align wear before the next release (S2117)." -ForegroundColor Yellow
+}
+
 # Start the Gradle build process for AAB (Release with R8 optimizations)
 Write-Host "Running: gradlew bundleStandardRelease" -ForegroundColor Yellow
-& $gradlew bundleStandardRelease "-Pchaquopy.enabled=false" --configuration-cache
+& $gradlew :app_v2:bundleStandardRelease "-Pchaquopy.enabled=false" --configuration-cache
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nAAB Build Failed! Exiting..." -ForegroundColor Red
@@ -80,7 +89,7 @@ Write-Host "`nAAB Build Successful!" -ForegroundColor Green
 
 # Build APK as well
 Write-Host "Running: gradlew assembleStandardRelease" -ForegroundColor Yellow
-& $gradlew assembleStandardRelease "-Pchaquopy.enabled=false" --configuration-cache
+& $gradlew :app_v2:assembleStandardRelease "-Pchaquopy.enabled=false" --configuration-cache
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nAPK Build Failed! Exiting..." -ForegroundColor Red
@@ -152,66 +161,14 @@ if (Test-Path $retainScript) {
     Write-Host "Note: retention script not found at $retainScript - skipping retention step." -ForegroundColor DarkGray
 }
 
-# Copy raw AAB+APK to Google Drive AND create password-protected ZIP.
-# Both raw files and the ZIP must be present on GD:
-#   - raw .aab/.apk for direct download by recipients with normal security
-#   - .zip with password=1 for recipients whose security policy blocks .apk downloads
-$gdPath = "c:\GD\WORK\FastMediaSorter"
-if (-not (Test-Path -Path $gdPath)) {
-    try {
-        New-Item -ItemType Directory -Path $gdPath | Out-Null
-    }
-    catch {
-        Write-Host "Warning: Google Drive folder not available ($gdPath) - GD copy + ZIP skipped." -ForegroundColor Yellow
-        $gdPath = $null
-    }
-}
+# The APK is optional here - an AAB-only run still has to deliver - and only the APK is sideloadable,
+# so it is the one that goes to the Commander folder and the Commander half is skipped without it.
+$hasApk = $destApkPath -and (Test-Path -Path $destApkPath)
+$deliverables = @($destAabPath)
+if ($hasApk) { $deliverables += $destApkPath }
 
-if ($gdPath) {
-    try {
-        # Always copy raw artifacts first - survives even if 7-Zip is missing.
-        Copy-Item -Path $destAabPath -Destination (Join-Path $gdPath "FastMediaSorter_standard_release.aab") -Force
-        Write-Host "AAB copied to $gdPath" -ForegroundColor Green
-        if ($destApkPath -and (Test-Path -Path $destApkPath)) {
-            Copy-Item -Path $destApkPath -Destination (Join-Path $gdPath "FastMediaSorter_standard_release.apk") -Force
-            Write-Host "APK copied to $gdPath" -ForegroundColor Green
-        }
-
-        # Then attempt password-protected ZIP.
-        $sevenZipPath = "C:\Program Files\7-Zip\7z.exe"
-        if (Test-Path -Path $sevenZipPath) {
-            $zipPath = Join-Path $gdPath "FastMediaSorter_standard_release.zip"
-            # Remove old ZIP first to guarantee fresh archive (7z 'a' updates in-place
-            # and may keep the old .aab entry if paths differ between runs)
-            if (Test-Path -Path $zipPath) {
-                Remove-Item -Path $zipPath -Force
-                Write-Host "Removed old ZIP (will recreate fresh)" -ForegroundColor Gray
-            }
-            Write-Host "Creating password-protected ZIP..." -ForegroundColor Yellow
-            # Push-Location into downloads dir so 7z receives relative filenames
-            # and stores them without full paths inside the archive
-            Push-Location -Path $downloadsDir
-            $filesToZip = @("FastMediaSorter_standard_release.aab")
-            if (Test-Path "FastMediaSorter_standard_release.apk") {
-                $filesToZip += "FastMediaSorter_standard_release.apk"
-            }
-            & $sevenZipPath a -tzip -p1 -mem=AES256 $zipPath @filesToZip | Out-Null
-            Pop-Location
-            if ($LASTEXITCODE -eq 0) {
-                Write-Host "AAB+APK zipped with password and copied to Google Drive: $zipPath" -ForegroundColor Green
-            }
-            else {
-                Write-Host "Warning: Failed to create password-protected ZIP (raw files still copied above)" -ForegroundColor Yellow
-            }
-        }
-        else {
-            Write-Host "Warning: 7-Zip not found. ZIP step skipped (raw files still copied above)." -ForegroundColor Yellow
-        }
-    }
-    catch {
-        Write-Host "Warning: Failed to publish to Google Drive: $_" -ForegroundColor Yellow
-    }
-}
+& "$PSScriptRoot\..\utils\publish-artifact.ps1" `
+    -Path $deliverables -CommanderPath $destApkPath -NoCommander:(-not $hasApk)
 
 # Generate fastlane changelogs for IzzyOnDroid / F-Droid (S0215 Phase 04).
 # Non-blocking - warnings on failure; does not abort the release flow.
@@ -235,21 +192,11 @@ $buildInfo = "AAB+APK Release - $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - AAB:
 Add-Content -Path $journalPath -Value $buildInfo
 Write-Host "Build logged to journal" -ForegroundColor Cyan
 
-# Copy APK to tc folder
-$tcDir = "c:\GD\tc\SZA\_APP"
-if (!(Test-Path -Path $tcDir)) {
-    New-Item -ItemType Directory -Path $tcDir | Out-Null
-}
-if (Test-Path -Path $destApkPath) {
-    Copy-Item -Path $destApkPath -Destination "$tcDir\FastMediaSorter_standard_release.apk" -Force
-    Write-Host "APK copied to $tcDir\FastMediaSorter_standard_release.apk" -ForegroundColor Green
-}
-
 Write-Host "`nAAB + APK build complete!" -ForegroundColor Green
 Write-Host "Ready for upload to Google Play Console" -ForegroundColor Cyan
 
 }
 finally {
     Pop-Location
-    Exit-AgentLock -Name Build
+    Exit-AgentLock -Name 'Build' -Domains @('Build.Phone')
 }

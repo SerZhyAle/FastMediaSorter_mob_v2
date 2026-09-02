@@ -9,7 +9,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -31,7 +30,6 @@ class StreamPlaybackSessionManager(
 
     fun prepare(mediaKind: String): Boolean {
         val verdict = evaluateStreamStart(mediaKind)
-        Timber.d("S1728: stream channel verdict=%s", verdict)
         onChannelReason(verdict.noticeReason())
         this.mediaKind = mediaKind
         return verdict !is StreamChannelVerdict.Refuse

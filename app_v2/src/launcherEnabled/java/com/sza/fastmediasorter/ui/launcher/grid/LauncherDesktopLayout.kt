@@ -143,6 +143,21 @@ class LauncherDesktopLayout @JvmOverloads constructor(
     /** The current cell edge in px - the one authoritative size the resize gesture reads (S1093). */
     fun currentCellSize(): Int = cellSize(width)
 
+    /** True when a screen coordinate lands on a rendered desktop cell or gadget. */
+    fun hasChildAtScreenPosition(screenX: Float, screenY: Float): Boolean {
+        val location = IntArray(2)
+        getLocationOnScreen(location)
+        val localX = screenX - location[0]
+        val localY = screenY - location[1]
+        return (0 until childCount).any { index ->
+            getChildAt(index).let { child ->
+                child.visibility == VISIBLE &&
+                    localX >= child.left && localX < child.right &&
+                    localY >= child.top && localY < child.bottom
+            }
+        }
+    }
+
     private fun cellSize(totalWidth: Int): Int =
         LauncherGridGeometry.cellSizePx(totalWidth - paddingLeft - paddingRight, columns)
 

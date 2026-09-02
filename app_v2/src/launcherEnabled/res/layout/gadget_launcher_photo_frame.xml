@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1930: the random photo frame as a launcher desktop cell - the same face its home-screen twin
+     wears, drawn by our own view instead of by RemoteViews.
+
+     Deliberately a near-copy of widget_random_photo_frame.xml rather than a shared file: that one is a
+     RemoteViews layout, so it may only use the handful of views the platform inflates remotely, while
+     this one is an ordinary view hierarchy. Keeping them apart is what lets either evolve without
+     breaking the other's inflater; keeping them the same shape is what makes the cell recognisable.
+
+     Orientation-neutral, hence no layout-land counterpart: the launcher stores spans per orientation
+     and LauncherDesktopLayout measures the cell exactly, so the layout itself never sees an
+     orientation. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <ImageView
+        android:id="@+id/gadgetPhotoFrameImage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@string/widget_random_photo_frame_label"
+        android:scaleType="centerCrop"
+        tools:src="@drawable/ic_image" />
+
+    <LinearLayout
+        android:id="@+id/gadgetPhotoFrameOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/launcher_camera_scrim"
+        android:orientation="vertical"
+        android:padding="@dimen/padding_small">
+
+        <TextView
+            android:id="@+id/gadgetPhotoFrameTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/white"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            tools:text="@string/widget_random_photo_frame_empty_title" />
+
+        <TextView
+            android:id="@+id/gadgetPhotoFrameSubtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/white"
+            android:textSize="11sp"
+            tools:text="@string/widget_random_photo_frame_empty_subtitle" />
+
+    </LinearLayout>
+
+</merge>

@@ -19,17 +19,17 @@
 
     <TextView
         android:id="@+id/tvLegendLabel"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
         android:textColor="?attr/colorOnSurface"
         android:textSize="@dimen/text_size_small"
         tools:text="Images" />
 
     <TextView
         android:id="@+id/tvLegendValue"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_weight="1"
         android:layout_marginStart="@dimen/margin_normal"
         android:textColor="?attr/colorOnSurfaceVariant"
         android:textSize="@dimen/text_size_small"

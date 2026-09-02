@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "sceneId": "fixture-version-two",
+  "widthPx": 800,
+  "heightPx": 600,
+  "textAreas": [
+    {
+      "text": "Big xx",
+      "box": [40, 40, 400, 88],
+      "words": [
+        { "text": "Big", "box": [40, 48, 130, 78] },
+        { "text": "xx", "box": [140, 56, 200, 74] }
+      ]
+    }
+  ],
+  "paintableAreas": [
+    { "box": [40, 40, 400, 88] }
+  ],
+  "readable": true,
+  "provenance": { "author": "S2036 reader fixture", "annotatedOn": "2026-08-26", "draft": false }
+}

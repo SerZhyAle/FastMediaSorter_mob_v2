@@ -6,6 +6,7 @@ import android.view.View
 import androidx.annotation.StringRes
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.StoragePermissionRule
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
@@ -19,10 +20,12 @@ import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.browse.MediaFileAdapter
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
 import com.sza.fastmediasorter.util.DrawingTargetPolicy
+import com.sza.fastmediasorter.util.LimitedStorageReach
 import com.sza.fastmediasorter.util.TextNoteTargetPolicy
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import com.sza.fastmediasorter.utils.clearBadge
 import com.sza.fastmediasorter.utils.setBadgeText
+import timber.log.Timber
 import java.util.Date
 
 /**
@@ -88,17 +91,42 @@ class BrowseStateUiUpdater(
         // S1685: `isUserFilter` already requires a non-null filter, so a second null check was dead code
         // the compiler reported on every build; carrying the value instead keeps the non-null type.
         val activeFilter = filter?.takeIf { isUserFilter }
+
+        // S2369: the strip is the only line above the list that can speak, and a folder reached through
+        // the narrowed provider has to say so even while a filter is on - the two statements are both
+        // true, and dropping either one leaves the screen claiming something it cannot deliver.
+        val lines = mutableListOf<String>()
+        if (resource != null && LimitedStorageReach.isReachLimited(activity, resource)) {
+            Timber.d("S2369: browse strip announced the narrowed connection for ${resource.path}")
+            // A virtual aggregate is not a folder the user connected, so it gets its own sentence -
+            // telling someone to "add this folder again" would name something they never added.
+            // For a real folder the advice has to name the cheapest route that exists on THIS build:
+            // where S2370's "Reconnect resource" row is offered, sending the user to add the folder
+            // again would cost them the favorites, schedules and PIN that reconnecting keeps. The row
+            // is keyed off `isDirectFileAccessUnobtainable`, so this asks the same question rather
+            // than its own - a warning that named an absent menu item would be the next lie.
+            lines.add(
+                when {
+                    VirtualPathUtils.isVirtualPath(resource.path) ->
+                        activity.getString(R.string.storage_reach_limited_virtual)
+                    StoragePermissionRule.isDirectFileAccessUnobtainable(activity) ->
+                        activity.getString(R.string.storage_reach_limited_browse_reconnect)
+                    else -> activity.getString(R.string.storage_reach_limited_browse)
+                }
+            )
+        }
         if (activeFilter != null) {
             // S1272: Browse spells the active filter out under the toolbar, the way Main already does.
             // The badge stays alongside it - a count at a glance, the detail underneath.
-            val summary = describeFilter(activeFilter)
-            binding.tvFilterWarning.text = activity.getString(R.string.filters_active, summary)
-            binding.tvFilterWarning.isVisible = summary.isNotEmpty()
+            describeFilter(activeFilter).takeIf { it.isNotEmpty() }?.let { summary ->
+                lines.add(activity.getString(R.string.filters_active, summary))
+            }
             binding.btnFilter.setBadgeText(activeFilter.activeFilterCount().toString())
         } else {
-            binding.tvFilterWarning.isVisible = false
             binding.btnFilter.clearBadge()
         }
+        binding.tvFilterWarning.text = lines.joinToString(separator = "\n")
+        binding.tvFilterWarning.isVisible = lines.isNotEmpty()
     }
 
     /**

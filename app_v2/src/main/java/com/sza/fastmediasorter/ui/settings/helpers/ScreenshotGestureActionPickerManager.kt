@@ -5,6 +5,8 @@ import androidx.lifecycle.LifecycleOwner
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
+import com.sza.fastmediasorter.util.showBoundTo
+import timber.log.Timber
 
 /**
  * Builds the per-direction screenshot-gesture action picker and maps actions to labels.
@@ -19,6 +21,9 @@ class ScreenshotGestureActionPickerManager(
     private val screenRecordingAvailable: Boolean = false,
     // S1038: SYSTEM-group actions run through the noLegal accessibility seam; hidden where it is absent.
     private val systemActionsAvailable: Boolean = false,
+    // S2256: the launcher route exists only where the home surface is compiled in; the host supplies the
+    // seam's own answer rather than each call site re-deciding it.
+    private val launcherRouteAvailable: Boolean = false,
 ) {
 
     fun labelFor(context: Context, action: ScreenshotGestureAction): String =
@@ -31,13 +36,33 @@ class ScreenshotGestureActionPickerManager(
                 ScreenshotGestureAction.TAKE_PHOTO_OCR_TRANSLATE ->
                     capabilityAvailability.isTranslationAvailable()
                 ScreenshotGestureAction.START_SCREEN_RECORDING -> screenRecordingAvailable
-                ScreenshotGestureAction.OPEN_NOTIFICATION_SHADE,
-                ScreenshotGestureAction.OPEN_QUICK_SETTINGS,
                 ScreenshotGestureAction.LOCK_SCREEN,
                 ScreenshotGestureAction.TOGGLE_SPLIT_SCREEN,
                 ScreenshotGestureAction.PREVIOUS_APP -> systemActionsAvailable
+                ScreenshotGestureAction.OPEN_ALL_APPS -> launcherRouteAvailable
                 else -> true
             }
+        }
+
+    /**
+     * S2256: the picker's rows, exposed so a host offering a superset can prepend its own actions.
+     * The launcher route is deliberately absent - it travels through [launcherRouteItem] instead, which
+     * is what puts it at the head of its group on every surface rather than wherever the enum declares it.
+     */
+    fun pickerItems(): List<GesturePickerItem<ScreenshotGestureAction>> =
+        availableActions()
+            .filterNot { it == ScreenshotGestureAction.OPEN_ALL_APPS }
+            .map { GesturePickerItem(it, ScreenshotGestureActionCatalog.metaFor(it)) }
+
+    /** The launcher route as this surface offers it, or null where the build has no launcher. */
+    fun launcherRouteItem(): GesturePickerItem<ScreenshotGestureAction>? =
+        if (launcherRouteAvailable) {
+            GesturePickerItem(
+                ScreenshotGestureAction.OPEN_ALL_APPS,
+                ScreenshotGestureActionCatalog.metaFor(ScreenshotGestureAction.OPEN_ALL_APPS),
+            )
+        } else {
+            null
         }
 
     fun showPicker(
@@ -46,44 +71,14 @@ class ScreenshotGestureActionPickerManager(
         current: ScreenshotGestureAction,
         onPicked: (ScreenshotGestureAction) -> Unit
     ) {
-        val rows = buildRows()
+        Timber.d("S2256: edge picker opened, launcher route available=%s", launcherRouteAvailable)
         GesturePickerDialog(
             context = context,
             title = context.getString(R.string.setting_screenshot_gesture_action_dialog_title),
             lifecycleOwner = lifecycleOwner,
-            rows = rows,
-            selectedAction = current,
+            rows = GesturePickerRowBuilder().build(pickerItems(), listOfNotNull(launcherRouteItem())),
+            selectedKey = current,
             onPicked = onPicked,
-        ).show()
-    }
-
-    // Emits one Header per non-empty group followed by its available actions, in group-declaration
-    // order (empty groups - e.g. DEVICE/SYSTEM until the later batches - are skipped). Within a group,
-    // actions keep ScreenshotGestureAction declaration order.
-    private fun buildRows(): List<GesturePickerRow> {
-        val available = availableActions().toSet()
-        return GestureActionGroup.entries.flatMap { group ->
-            val entries = ScreenshotGestureAction.entries.filter {
-                it in available && ScreenshotGestureActionCatalog.groupOf(it) == group
-            }
-            if (entries.isEmpty()) {
-                emptyList()
-            } else {
-                buildList {
-                    add(GesturePickerRow.Header(group.titleRes))
-                    entries.forEach { action ->
-                        add(
-                            GesturePickerRow.Entry(
-                                action = action,
-                                labelRes = ScreenshotGestureActionCatalog.labelResFor(action),
-                                explanationRes = ScreenshotGestureActionCatalog.explanationResFor(action),
-                                iconRes = ScreenshotGestureActionCatalog.iconResFor(action),
-                                enabled = true,
-                            ),
-                        )
-                    }
-                }
-            }
-        }
+        ).showBoundTo(lifecycleOwner)
     }
 }

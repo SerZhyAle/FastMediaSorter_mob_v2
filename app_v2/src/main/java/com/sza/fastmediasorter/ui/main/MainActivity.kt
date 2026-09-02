@@ -31,6 +31,7 @@ import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.ui.UiState
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.core.util.StoragePermissionRule
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
@@ -45,8 +46,8 @@ import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.networkmonitor.NetworkMonitorContract
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
-import com.sza.fastmediasorter.ui.addresource.AddResourceActivity
 import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorAprilFoolsPrankManager
+import com.sza.fastmediasorter.ui.common.AppUpdateNoticeManager
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.InputHelpFirstRunHint
 import com.sza.fastmediasorter.ui.common.input.UiSurface
@@ -67,6 +68,7 @@ import com.sza.fastmediasorter.ui.main.helpers.MainPanelItemActionsManager
 import com.sza.fastmediasorter.ui.main.helpers.MainProgramsMenuCoordinator
 import com.sza.fastmediasorter.ui.main.helpers.MainProgramsPanelManager
 import com.sza.fastmediasorter.ui.main.helpers.MainQuickCaptureMenuManager
+import com.sza.fastmediasorter.ui.main.helpers.MainResourceReconnectManager
 import com.sza.fastmediasorter.ui.main.helpers.MainResourceTabsManager
 import com.sza.fastmediasorter.ui.main.helpers.MainResumePlaybackHelper
 import com.sza.fastmediasorter.ui.main.helpers.MainScreenRecordingManager
@@ -137,6 +139,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var streamsPanelManager: MainStreamsPanelManager
     private lateinit var collapsedChipsPlacement: MainCollapsedChipsPlacementManager
 
+    // S2370: owns the reconnect picker round trip - grant, same-folder check, mismatch confirmation.
+    private lateinit var reconnectManager: MainResourceReconnectManager
+
     // S1443: last free width the command bar reported; a chip visibility change re-places against it
     // instead of forcing a fresh measurement pass that the bar has not been asked for.
     private var controlBarFreeWidthPx = 0
@@ -163,6 +168,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         com.sza.fastmediasorter.domain.model.ResourceGridCellSize.DEFAULT
     private var isNetworkMonitorEnabled = false
     private var isSystemInfoEnabled = false
+    private var isFrontFlashlightEnabled = false
     private var isWearCompanionEnabled = false
     private var isEmbeddedGameEnabled = false
     private var isCameraOcrEnabled = false
@@ -198,6 +204,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private val quickCaptureCameraLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result -> if (::cameraCaptureManager.isInitialized) cameraCaptureManager.handleResult(result) }
+
+    // S2370: the reconnect folder picker. Registered pre-STARTED as a field for the same reason the
+    // capture launchers are; the manager it delegates to is built in setupViews, hence the guard.
+    private val reconnectTreePickerLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocumentTree()
+    ) { uri -> if (::reconnectManager.isInitialized) reconnectManager.onFolderPicked(uri) }
 
     // S0774: screen-recording permission launchers - registered pre-STARTED, delegated to the manager.
     private val screenRecordingRecordAudioLauncher = registerForActivityResult(
@@ -299,6 +311,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // so this runs before the pending Activity result is dispatched (onStart) - mirrors BrowseActivity.
         savedInstanceState?.let {
             if (::cameraCaptureManager.isInitialized) cameraCaptureManager.restoreState(it)
+            // S2374: same window, same reason - a recreation while the system folder picker is
+            // foreground would otherwise hand the result to a manager with nothing to apply it to.
+            if (::reconnectManager.isInitialized) reconnectManager.restoreState(it)
         }
 
         // S0207 Phase 01: post the MAIN_DRAWN measurement once the first frame is on screen. BaseActivity.onCreate has already called setContentView(binding.root) by the time we return from super.onCreate(), so binding.root is attached and post() runs after layout.
@@ -360,10 +375,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         binding.root.post { InputHelpFirstRunHint.showIfNeeded(this) }
 
         // If AudioPlaybackService is already running when MainActivity is freshly created (Android 8.x OEM ROMs can clear the activity back stack while keeping the foreground service alive), restore the user to the player that is currently playing. FLAG_ACTIVITY_REORDER_TO_FRONT: brings an existing PlayerActivity to the top of the stack without creating a duplicate instance; creates a new one if not present.
-        if (!returnToSettingsRequested
-            && intent?.action == Intent.ACTION_MAIN
-            && AudioPlaybackService.isRunning
-            && AudioPlaybackService.currentResourceId > 0L) {
+        if (!returnToSettingsRequested &&
+            intent?.action == Intent.ACTION_MAIN &&
+            AudioPlaybackService.isRunning &&
+            AudioPlaybackService.currentResourceId > 0L
+        ) {
             binding.root.post {
                 // Audio playback is inherently a 2D surface. createPanelIntent is kept here as an explicit "open the flat 2D player" semantics marker - every flavor now routes to PlayerActivity directly (immersive VR removed in S0241).
                 val playerIntent = PlayerActivity.createPanelIntent(
@@ -442,7 +458,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             lifecycleScope.launch {
                 val enabled = appSettings.first().cameraOcrTranslationEnabled
                 if (enabled) {
-                    startActivity(com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity.createIntent(this@MainActivity))
+                    startActivity(
+                        com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity.createIntent(this@MainActivity)
+                    )
                 } else if (isTaskRoot) {
                     finish()
                 }
@@ -515,6 +533,18 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             layoutInflater = layoutInflater
         )
 
+        // S2097 - Back press at the main home screen minimizes the task to the system launcher
+        // instead of finishing the activity and overshooting into developer options or settings.
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : androidx.activity.OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    Timber.d("S2097: root Back at main home - moveTaskToBack instead of finish")
+                    moveTaskToBack(true)
+                }
+            }
+        )
+
         // The dialog outlives this Activity instance when the screen rotates while it is open, so
         // the filter arrives as a FragmentResult and the listener belongs to the Activity, not to
         // the tap that opened the dialog. An enum name unresolvable after an app update is dropped.
@@ -560,7 +590,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             lifecycleScope.launch {
                 val enabled = appSettings.first().cameraOcrTranslationEnabled
                 if (enabled) {
-                    startActivity(com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity.createIntent(this@MainActivity))
+                    startActivity(
+                        com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity.createIntent(this@MainActivity)
+                    )
                 } else if (isTaskRoot) {
                     finish()
                 }
@@ -697,6 +729,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // S0564: persist the pending quick-capture target so a kill while the camera host is
         // foreground does not abandon the captured file (restored in onCreate, see below).
         if (::cameraCaptureManager.isInitialized) cameraCaptureManager.saveState(outState)
+        // S2374: the reconnect picker's pending target survives the same way (restored in onCreate).
+        if (::reconnectManager.isInitialized) reconnectManager.saveState(outState)
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
@@ -768,6 +802,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         screenRecording = isScreenRecordingEnabled,
         systemInfo = isSystemInfoEnabled,
         wearCompanion = isWearCompanionEnabled,
+        frontFlashlight = isFrontFlashlightEnabled,
     )
 
     private fun showMainWindowDropdownMenu() {
@@ -959,6 +994,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         val mainAllowSeparateWindow =
             com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector.isMultiWindowActiveNow(this)
 
+        reconnectManager = MainResourceReconnectManager(
+            activity = this,
+            launchPicker = { initial -> reconnectTreePickerLauncher.launch(initial) },
+            onReconnect = { resourceId, uri ->
+                viewModel.reconnectResource(resourceId, uri.toString())
+            },
+        )
+
         resourceAdapter = ResourceAdapter(
             onItemClick = { resource ->
                 // Simple click = select and open Browse
@@ -1028,7 +1071,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             onOpenInNewWindowClick = { resource -> panelItemActions.openResourceInNewWindow(resource.id) },
             // S0963 (Pillar 2): resource "Open in VR Cinema" entry; visibility mirrors XR availability.
             isOpenInVrCinemaVisible = panelItemActions.isVrCinemaAvailable(),
-            onOpenInVrCinemaClick = { resource -> panelItemActions.openResourceInVrCinema(resource) }
+            onOpenInVrCinemaClick = { resource -> panelItemActions.openResourceInVrCinema(resource) },
+            // S2370: offered only where the direct file route to shared storage is out of reach for
+            // good - false on noLegal and below API 30, where the raw path still works.
+            isDirectPathReconnectCandidate = StoragePermissionRule.isDirectFileAccessUnobtainable(this),
+            onReconnectClick = { resource -> reconnectManager.request(resource) }
         )
 
         binding.rvResources.adapter = resourceAdapter
@@ -1121,33 +1168,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // Load resources after UI is ready (deferred from onCreate via BaseActivity)
         viewModel.refreshResources()
 
-        // Log app version in background and show update Toast if needed
-        lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-            try {
-                val packageInfo = packageManager.getPackageInfoCompat(packageName)
-                val versionName = packageInfo.versionName
-                val versionCode = PackageInfoCompat.getLongVersionCode(packageInfo)
-
-                val prefs = getSharedPreferences("app_update_prefs", android.content.Context.MODE_PRIVATE)
-                val lastSeenVersionName = prefs.getString("last_seen_version_name", null)
-
-                if (lastSeenVersionName != null && lastSeenVersionName != versionName) {
-                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                        Toast.makeText(this@MainActivity, getString(R.string.app_updated_to, versionName), Toast.LENGTH_LONG).show()
-                    }
-                }
-
-                if (lastSeenVersionName != versionName) {
-                    prefs.edit().putString("last_seen_version_name", versionName).apply()
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to get app version")
-            }
-        }
+        // Check for app update and show Toast if needed (S2270)
+        AppUpdateNoticeManager.checkForUpdate(this)
     }
 
     override fun observeData() {
-
         collectOnLifecycle(viewModel.state) { state ->
             resourceAdapter.submitList(state.resources)
             resourceAdapter.setSelectedResource(state.selectedResource?.id)
@@ -1232,91 +1257,102 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
         // Observe settings to show/hide Favorites button
         collectOnLifecycle(appSettings) { settings ->
-            latestSettings = settings // S0770: keep the freshest snapshot for the panel item menus.
-            val calculatorEnabledChanged = isCalculatorEnabled != settings.enableCalculator
-            val networkMonitorNowEnabled =
-                settings.enableNetworkMonitor && networkMonitorContract.isAvailableInBuild
-            val networkMonitorEnabledChanged = isNetworkMonitorEnabled != networkMonitorNowEnabled
-            val systemInfoEnabledChanged = isSystemInfoEnabled != settings.enableSystemInfo
-            // S1735 (ADR-1): the setting AND the build's watch bridge. The setting alone would offer the
-            // companion where no bridge exists; the capability alone would deny the user the switch.
-            val wearCompanionNowEnabled =
-                settings.enableWearCompanion && mediaCapabilities.supportsWearCompanion
-            val wearCompanionEnabledChanged = isWearCompanionEnabled != wearCompanionNowEnabled
-            Timber.d("S1735: companion gate=%s", wearCompanionNowEnabled)
-            val embeddedGameEnabledChanged = isEmbeddedGameEnabled != settings.embeddedGameEnabled
-            val cameraOcrEnabledChanged = isCameraOcrEnabled != settings.cameraOcrTranslationEnabled
-            // S0523: the quick-capture menu entries reuse the existing capture toggles - no separate
-            // settings. Voice -> mic recording; video/photo -> the inverted capture-enable flags.
-            val quickVoiceEnabledChanged = isQuickVoiceEnabled != settings.micRecordingEnabled
-            val quickVideoEnabledChanged = isQuickVideoEnabled != !settings.disableVideoCapture
-            val quickPhotoEnabledChanged = isQuickPhotoEnabled != !settings.disableCameraCapture
-            // S0542: the manual "Download by link" entry reuses the existing link auto-download
-            // setting - no separate toggle.
-            val linkDownloadEnabledChanged = isLinkDownloadEnabled != settings.linkAutoDownloadEnabled
-            // S0755/S0756: streams-enabled and the two panel toggles all change panel visibility/content.
-            val streamsEnabledChanged = isStreamsEnabled != settings.enableStreams
-            val programsPanelChanged = isProgramsPanelEnabled != settings.showProgramsPanelInMainWindow
-            val streamsPanelChanged = isStreamsPanelEnabled != settings.showStreamsPanelInMainWindow
-            // S0774: gate on the toggle AND the capability (empty controller set on lite/photos/legacy).
-            val screenRecordingNowEnabled =
-                settings.screenRecordingEnabled && screenVideoRecordingControllers.isNotEmpty()
-            val screenRecordingEnabledChanged = isScreenRecordingEnabled != screenRecordingNowEnabled
-            isCalculatorEnabled = settings.enableCalculator
-            isNetworkMonitorEnabled = networkMonitorNowEnabled
-            isSystemInfoEnabled = settings.enableSystemInfo
-            isWearCompanionEnabled = wearCompanionNowEnabled
-            isEmbeddedGameEnabled = settings.embeddedGameEnabled
-            isCameraOcrEnabled = settings.cameraOcrTranslationEnabled
-            isQuickVoiceEnabled = settings.micRecordingEnabled
-            isQuickVideoEnabled = !settings.disableVideoCapture
-            isQuickPhotoEnabled = !settings.disableCameraCapture
-            isLinkDownloadEnabled = settings.linkAutoDownloadEnabled
-            isStreamsEnabled = settings.enableStreams
-            isProgramsPanelEnabled = settings.showProgramsPanelInMainWindow
-            isStreamsPanelEnabled = settings.showStreamsPanelInMainWindow
-            isScreenRecordingEnabled = screenRecordingNowEnabled
-            // S1672: the toggle reports eligibility instead of writing visibility, so the overflow
-            // planner can tell "switched off" from "evicted for width" (both would be GONE).
-            layoutChrome.setCommandEligible(R.id.btnFavorites, settings.enableFavorites)
-            resourceAdapter.setUseCompactElements(settings.useCompactElements)
-            resourceAdapter.setOverflowModeEnabled(settings.resourceOpsInOverflowMenu) // S0160
-            // S0727: apply the persisted allowSeparateWindow preference off-Main here (OR runtime
-            // capability), replacing the removed runBlocking read in setupViews.
-            resourceAdapter.setOpenInNewWindowVisible(
-                settings.allowSeparateWindow ||
-                    com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
-                        .isMultiWindowActiveNow(this@MainActivity)
-            )
-            // S0963: re-mirror XR availability (VR-3D master toggle) onto the resource VR Cinema entry.
-            resourceAdapter.setOpenInVrCinemaVisible(resourceVrCinemaLaunchManager.isAvailable)
-            layoutChrome.applyCompactToolbar(settings.useCompactElements)
-            layoutChrome.refreshGridSpacing()
-            // S1285: this collector is the only one that sees a cell-size change, and until now it
-            // could not alter the span count - without this the new step would sit unapplied until
-            // the next rotation or state emission, reading to the user as a setting that did nothing.
-            if (appliedResourceGridCellSize != settings.resourceGridCellSize) {
-                appliedResourceGridCellSize = settings.resourceGridCellSize
-                layoutChrome.updateLayoutManagerForScreenSize()
-            }
-            // S0759: the left-edge gesture overlay is a setting, not a service - feed its live value to
-            // the exit button so the minimize/close mode (and icon) tracks it without an app restart.
-            exitButtonManager.setGestureOverlayEnabled(settings.gestureOverlayEnabled)
-            // S0755/S0756: any menu-affecting gate OR a panel/streams toggle change rebuilds the panels
-            // (the programs panel mirrors the menu) and refreshes the three-dots button visibility.
-            val panelInputsChanged = listOf(
-                calculatorEnabledChanged, embeddedGameEnabledChanged, cameraOcrEnabledChanged,
-                networkMonitorEnabledChanged, systemInfoEnabledChanged,
-                wearCompanionEnabledChanged,
-                quickVoiceEnabledChanged, quickVideoEnabledChanged, quickPhotoEnabledChanged,
-                linkDownloadEnabledChanged, streamsEnabledChanged, programsPanelChanged, streamsPanelChanged,
-                screenRecordingEnabledChanged,
-            ).any { it }
-            if (panelInputsChanged) {
-                refreshPanels()
-            }
-            layoutChrome.restitchControlBarFocusChain()
+            applyAppSettingsToUi(settings)
         }
+    }
+
+    private fun applyAppSettingsToUi(settings: AppSettings) {
+        latestSettings = settings // S0770: keep the freshest snapshot for the panel item menus.
+        val calculatorEnabledChanged = isCalculatorEnabled != settings.enableCalculator
+        val networkMonitorNowEnabled =
+            settings.enableNetworkMonitor && networkMonitorContract.isAvailableInBuild
+        val networkMonitorEnabledChanged = isNetworkMonitorEnabled != networkMonitorNowEnabled
+        val systemInfoEnabledChanged = isSystemInfoEnabled != settings.enableSystemInfo
+        val frontFlashlightEnabledChanged = isFrontFlashlightEnabled != settings.frontFlashlightEnabled
+        // S1735 (ADR-1): the setting AND the build's watch bridge. The setting alone would offer the
+        // companion where no bridge exists; the capability alone would deny the user the switch.
+        val wearCompanionNowEnabled =
+            settings.enableWearCompanion && mediaCapabilities.supportsWearCompanion
+        val wearCompanionEnabledChanged = isWearCompanionEnabled != wearCompanionNowEnabled
+        val embeddedGameEnabledChanged = isEmbeddedGameEnabled != settings.embeddedGameEnabled
+        val cameraOcrEnabledChanged = isCameraOcrEnabled != settings.cameraOcrTranslationEnabled
+        // S0523: the quick-capture menu entries reuse the existing capture toggles - no separate
+        // settings. Voice -> mic recording; video/photo -> the inverted capture-enable flags.
+        val quickVoiceEnabledChanged = isQuickVoiceEnabled != settings.micRecordingEnabled
+        val quickVideoEnabledChanged = isQuickVideoEnabled != !settings.disableVideoCapture
+        val quickPhotoEnabledChanged = isQuickPhotoEnabled != !settings.disableCameraCapture
+        // S0542: the manual "Download by link" entry reuses the existing link auto-download
+        // setting - no separate toggle.
+        val linkDownloadEnabledChanged = isLinkDownloadEnabled != settings.linkAutoDownloadEnabled
+        // S0755/S0756: streams-enabled and the two panel toggles all change panel visibility/content.
+        val streamsEnabledChanged = isStreamsEnabled != settings.enableStreams
+        val programsPanelChanged = isProgramsPanelEnabled != settings.showProgramsPanelInMainWindow
+        val streamsPanelChanged = isStreamsPanelEnabled != settings.showStreamsPanelInMainWindow
+        // S0774: gate on the toggle AND the capability (empty controller set on lite/photos/legacy).
+        val screenRecordingNowEnabled =
+            settings.screenRecordingEnabled && screenVideoRecordingControllers.isNotEmpty()
+        val screenRecordingEnabledChanged = isScreenRecordingEnabled != screenRecordingNowEnabled
+        isCalculatorEnabled = settings.enableCalculator
+        isNetworkMonitorEnabled = networkMonitorNowEnabled
+        isSystemInfoEnabled = settings.enableSystemInfo
+        isFrontFlashlightEnabled = settings.frontFlashlightEnabled
+        isWearCompanionEnabled = wearCompanionNowEnabled
+        isEmbeddedGameEnabled = settings.embeddedGameEnabled
+        isCameraOcrEnabled = settings.cameraOcrTranslationEnabled
+        isQuickVoiceEnabled = settings.micRecordingEnabled
+        isQuickVideoEnabled = !settings.disableVideoCapture
+        isQuickPhotoEnabled = !settings.disableCameraCapture
+        isLinkDownloadEnabled = settings.linkAutoDownloadEnabled
+        isStreamsEnabled = settings.enableStreams
+        isProgramsPanelEnabled = settings.showProgramsPanelInMainWindow
+        isStreamsPanelEnabled = settings.showStreamsPanelInMainWindow
+        isScreenRecordingEnabled = screenRecordingNowEnabled
+        // S1672: the toggle reports eligibility instead of writing visibility, so the overflow
+        // planner can tell "switched off" from "evicted for width" (both would be GONE).
+        layoutChrome.setCommandEligible(R.id.btnFavorites, settings.enableFavorites)
+        resourceAdapter.setUseCompactElements(settings.useCompactElements)
+        resourceAdapter.setOverflowModeEnabled(settings.resourceOpsInOverflowMenu) // S0160
+        Timber.d("S2209: disableAnimations=%s applied to resource list", settings.disableAnimations)
+        if (settings.disableAnimations) {
+            binding.rvResources.itemAnimator = null
+        } else if (binding.rvResources.itemAnimator == null) {
+            binding.rvResources.itemAnimator = androidx.recyclerview.widget.DefaultItemAnimator()
+        }
+        // S0727: apply the persisted allowSeparateWindow preference off-Main here (OR runtime
+        // capability), replacing the removed runBlocking read in setupViews.
+        resourceAdapter.setOpenInNewWindowVisible(
+            settings.allowSeparateWindow ||
+                com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
+                    .isMultiWindowActiveNow(this@MainActivity)
+        )
+        // S0963: re-mirror XR availability (VR-3D master toggle) onto the resource VR Cinema entry.
+        resourceAdapter.setOpenInVrCinemaVisible(resourceVrCinemaLaunchManager.isAvailable)
+        layoutChrome.applyCompactToolbar(settings.useCompactElements)
+        layoutChrome.refreshGridSpacing()
+        // S1285: this collector is the only one that sees a cell-size change, and until now it
+        // could not alter the span count - without this the new step would sit unapplied until
+        // the next rotation or state emission, reading to the user as a setting that did nothing.
+        if (appliedResourceGridCellSize != settings.resourceGridCellSize) {
+            appliedResourceGridCellSize = settings.resourceGridCellSize
+            layoutChrome.updateLayoutManagerForScreenSize()
+        }
+        // S0759: the left-edge gesture overlay is a setting, not a service - feed its live value to
+        // the exit button so the minimize/close mode (and icon) tracks it without an app restart.
+        exitButtonManager.setGestureOverlayEnabled(settings.gestureOverlayEnabled)
+        // S0755/S0756: any menu-affecting gate OR a panel/streams toggle change rebuilds the panels
+        // (the programs panel mirrors the menu) and refreshes the three-dots button visibility.
+        val panelInputsChanged = listOf(
+            calculatorEnabledChanged, embeddedGameEnabledChanged, cameraOcrEnabledChanged,
+            networkMonitorEnabledChanged, systemInfoEnabledChanged, frontFlashlightEnabledChanged,
+            wearCompanionEnabledChanged,
+            quickVoiceEnabledChanged, quickVideoEnabledChanged, quickPhotoEnabledChanged,
+            linkDownloadEnabledChanged, streamsEnabledChanged, programsPanelChanged, streamsPanelChanged,
+            screenRecordingEnabledChanged,
+        ).any { it }
+        if (panelInputsChanged) {
+            refreshPanels()
+        }
+        layoutChrome.restitchControlBarFocusChain()
     }
 
     private fun openSettings() {
@@ -1325,7 +1361,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     /** Recalculates grid layout, toolbar labels and tabs after screen rotation. */
     override fun onLayoutConfigurationChanged(newConfig: Configuration) {
-        Timber.d("S1549: MainActivity onLayoutConfigurationChanged - command bar and tab anchor re-applied on rotation")
         layoutChrome.updateToolbarButtonLabels(newConfig)
         layoutChrome.updateLayoutManagerForScreenSize()
 
@@ -1368,10 +1403,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         // Gamepad buttons first. D-pad / left stick focus moves are left to Android's
         // default focus search (super), which already works with focusable="true" items.
-        val action = gamepadInputManager.handleKeyEvent(event, com.sza.fastmediasorter.domain.input.InputSurface.BROWSER)
+        val action = gamepadInputManager.handleKeyEvent(
+            event,
+            com.sza.fastmediasorter.domain.input.InputSurface.BROWSER
+        )
         if (action is GamepadAction.BrowserAction && routeBrowserGamepadAction(action)) return true
         if (event.action == KeyEvent.ACTION_DOWN) {
-            val commandId = keyBindingManager.resolveKeyAction(event.keyCode, event.metaState, com.sza.fastmediasorter.domain.input.InputSurface.BROWSER)
+            val commandId = keyBindingManager.resolveKeyAction(
+                event.keyCode,
+                event.metaState,
+                com.sza.fastmediasorter.domain.input.InputSurface.BROWSER
+            )
             if (commandId != null && routeMainCommandId(commandId)) return true
         }
         return super.dispatchKeyEvent(event)
@@ -1380,7 +1422,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun routeMainCommandId(commandId: String): Boolean {
         return if (::keyboardNavigationHandler.isInitialized) {
             keyboardNavigationHandler.dispatchCommandId(commandId)
-        } else false
+        } else {
+            false
+        }
     }
 
     private fun routeBrowserGamepadAction(action: GamepadAction.BrowserAction): Boolean {
@@ -1470,6 +1514,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         const val ACTION_CAMERA_OCR_TRANSLATE = "com.sza.fastmediasorter.action.CAMERA_OCR_TRANSLATE"
         const val ACTION_OPEN_FAVORITES = "com.sza.fastmediasorter.ACTION_OPEN_FAVORITES"
         const val ACTION_BROWSE_RESOURCE = "com.sza.fastmediasorter.ACTION_BROWSE_RESOURCE"
+
         /** Sent by AudioPlaybackService notification contentIntent (tapping the notification body).
          *  Routes the user back to PlayerActivity for the currently playing audio resource. */
         const val ACTION_RESUME_PLAYER = "com.sza.fastmediasorter.ACTION_RESUME_PLAYER"

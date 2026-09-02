@@ -15,7 +15,8 @@
 #   -Reconcile            Force a sync against the catalog now (the automatic path, on demand).
 #   -Validate             Report drift: unknown tickets, duplicates, status mismatches.
 #   -List [-Release N] [-WithLeases]
-#                         Print the queue, optionally one release block and its live leases.
+#                         Print the queue, optionally one release block. -WithLeases marks each
+#                         taken row inline and appends the holder detail block.
 #   -SetCurrent N         Point the "current-release:" marker at package N.
 #   -Ship -Release N      Move block N into PLAN/RELEASE_QUEUE_DONE.md and advance the marker.
 #         [-Version X]    Stamp the shipped block with the released version name.
@@ -38,7 +39,7 @@ param(
     [Parameter(ParameterSetName = 'List')][switch] $List,
     # List the finished side (PLAN/RELEASE_READY.md) instead of the work-remaining queue.
     [Parameter(ParameterSetName = 'List')][switch] $Ready,
-    # Append a read-only projection of active ticket leases to the selected queue rows.
+    # Mark each taken row inline, and append a read-only projection of active ticket leases.
     [Parameter(ParameterSetName = 'List')][switch] $WithLeases,
     [Parameter(ParameterSetName = 'SetCurrent', Mandatory = $true)][int] $SetCurrent,
     [Parameter(ParameterSetName = 'Ship', Mandatory = $true)][switch] $Ship,
@@ -250,14 +251,46 @@ switch ($PSCmdlet.ParameterSetName) {
         $source = if ($Ready) { Read-ReleaseReady } else { Read-ReleaseQueue }
         $tickets = Get-QueueTickets -Lines $source
         if ($Release) { $tickets = @($tickets | Where-Object { $_.Release -eq $Release }) }
+        # Read the leases once and use them twice. The inline marker answers "is anyone on this
+        # right now" in the same scan as the plan itself - a lease lives minutes, so it can never
+        # be written into the queue FILE, and a reader who has to consult a second block below
+        # the table reads the plan and the occupancy as two separate questions. The block stays
+        # because the marker deliberately omits what only matters once occupancy is established:
+        # the full session id and host, needed before stealing or clearing a lease.
+        $leaseById = @{}
+        if ($WithLeases) {
+            foreach ($lease in (Get-ActiveTicketLeases)) { $leaseById[[string] $lease.id] = $lease }
+        }
         foreach ($t in $tickets) {
-            Write-Output (Format-ReleaseQueueLine -Release $t.Release -Ticket $t.Ticket -Changed $t.Changed -Status $t.Status)
+            $row = Format-ReleaseQueueLine -Release $t.Release -Ticket $t.Ticket -Changed $t.Changed -Status $t.Status
+            $ticketId = [string] $t.Id
+            if ($leaseById.ContainsKey($ticketId)) {
+                $lease = $leaseById[$ticketId]
+                $sessionId = [string] $lease.sessionId
+                # Probed, not read: `mine` is emitted by ticket-lease Status but absent from the
+                # test fixture, and a bare read of a missing property throws under StrictMode.
+                $mine = $false
+                if ($lease.PSObject.Properties['mine']) { $mine = [bool] $lease.mine }
+                $holder = if ($mine) {
+                    'this session'
+                } elseif ($sessionId.Length -ge 8) {
+                    'session ' + $sessionId.Substring(0, 8)
+                } else {
+                    "session $sessionId"
+                }
+                $reason = if ([string]::IsNullOrWhiteSpace([string] $lease.reason)) { 'no reason given' } else { [string] $lease.reason }
+                # Pad to a fixed column so the markers line up: the status column is ragged
+                # (4 characters for 'Dead' against 17 for 'BlockNeedUserTest') and an unpadded
+                # marker zig-zags across the block, which is the one thing this row is for.
+                $row = '{0,-98}[taken {1}m, {2}, {3}]' -f $row, $lease.ageMinutes, $reason, $holder
+            }
+            Write-Output $row
         }
         Write-Output ("--- {0} ticket(s); current release: {1}" -f $tickets.Count, (Get-CurrentRelease))
         if ($WithLeases) {
             $visibleIds = @{}
             foreach ($ticket in $tickets) { $visibleIds[$ticket.Id] = $true }
-            $leases = @(Get-ActiveTicketLeases | Where-Object { $visibleIds.ContainsKey([string] $_.id) })
+            $leases = @($leaseById.Values | Where-Object { $visibleIds.ContainsKey([string] $_.id) } | Sort-Object id)
             Write-Output '--- active ticket leases'
             if ($leases.Count -eq 0) {
                 Write-Output '(none)'

@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.theme.ColorThemePrefs
+import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.databinding.PageWelcomeBinding
@@ -29,6 +30,7 @@ import com.sza.fastmediasorter.ui.dialog.UiLanguagePickerItems
 import com.sza.fastmediasorter.ui.welcome.holders.FunctionalityPageViewHolder
 import com.sza.fastmediasorter.ui.welcome.holders.PermissionsPageViewHolder
 import com.sza.fastmediasorter.ui.welcome.holders.ProfilesPageViewHolder
+import timber.log.Timber
 
 class WelcomePagerAdapter(
     private val pages: List<WelcomePage>,
@@ -289,6 +291,13 @@ class WelcomePagerAdapter(
  * Helper function to apply fade+slide-up entrance animation with a start delay.
  */
 private fun animateEntrance(view: View, delayMs: Long) {
+    if (!AnimationPolicy.isAnimationAllowed) {
+        view.clearAnimation()
+        view.alpha = 1f
+        view.translationY = 0f
+        Timber.d("S2250: welcome entrance skipped")
+        return
+    }
     val anim = AnimationUtils.loadAnimation(view.context, R.anim.welcome_fade_slide_up)
     anim.startOffset = delayMs
     view.startAnimation(anim)

@@ -170,5 +170,13 @@
     <string name="welcome_role_sources_detail_cloud_only">Stockage de l\'appareil, Google Drive, OneDrive, Dropbox</string>
     <string name="welcome_role_sources_detail_local_only">Stockage interne et carte SD</string>
     <string name="welcome_role_sorting_detail">Envoyez un fichier dans son dossier d\'une seule pression</string>
-    <string name="welcome_role_more_detail">Flux, appareil photo et plus - une application au lieu de plusieurs</string>
+    <string name="welcome_role_more_detail">Appareil photo, widgets, gadgets et plus - une seule appli au lieu de plusieurs</string>
+    <string name="welcome_description_1_shell">Pas seulement une appli multimédia - un environnement complet pour votre appareil.\nÉcran d\'accueil, lecteur, gestionnaire de fichiers, flux et stockage distant au même endroit.</string>
+    <string name="welcome_description_1_details_shell">FastMediaSorter peut piloter tout l\'appareil : un écran d\'accueil avec vos applis, widgets et raccourcis, un lecteur de photos, vidéos, musique et livres, un gestionnaire de fichiers pour le stockage local, réseau et cloud, des flux internet et une appli compagnon Wear OS - et par-dessus tout cela, un tri rapide d\'une simple pression.\n\nVous la voulez comme écran d\'accueil ? Activez l\'interrupteur ci-dessus et le système vous demandera de confirmer après la configuration. Tout ce que vous choisissez ici pourra être modifié plus tard dans les Paramètres, il n\'y a donc pas de mauvais choix - appuyez simplement sur Suivant.</string>
+    <string name="welcome_role_home_screen">Écran d\'accueil</string>
+    <string name="welcome_role_home_screen_detail">Pilote l\'appareil à la place d\'un lanceur - applis, widgets et médias à portée de main</string>
+    <string name="welcome_role_streams">Flux</string>
+    <string name="welcome_role_streams_detail">Radio internet, chaînes TV et vidéo depuis un catalogue prêt à l\'emploi</string>
+    <string name="welcome_role_wear">Appli montre</string>
+    <string name="welcome_role_wear_detail">Un compagnon Wear OS - parcourez et lisez directement à votre poignet</string>
 </resources>

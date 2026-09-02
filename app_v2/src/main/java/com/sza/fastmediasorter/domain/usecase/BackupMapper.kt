@@ -109,7 +109,9 @@ object BackupMapper {
             resourcesByPath.values.firstOrNull {
                 it.path == backup.targetResourcePath && it.type.name == backup.targetResourceType
             }
-        } else null
+        } else {
+            null
+        }
 
         if (opType != ScheduledOpType.DELETE && dst == null) return null
 
@@ -284,8 +286,10 @@ object BackupMapper {
             launcherTrayShowBattery = settings.launcherTrayShowBattery,
             launcherRotationHintShown = settings.launcherRotationHintShown,
             launcherDesktopLocked = settings.launcherDesktopLocked,
+            launcherDesktopDoubleTapLockEnabled = settings.launcherDesktopDoubleTapLockEnabled,
             launcherWallpaperMode = settings.launcherWallpaperMode,
             launcherWallpaperImagePath = settings.launcherWallpaperImagePath,
+            launcherWallpaperCameraId = settings.launcherWallpaperCameraId,
             allAppsSortOrder = settings.allAppsSortOrder,
             allAppsSortDescending = settings.allAppsSortDescending,
             launcherScreenBlackoutTimeoutSeconds = settings.launcherScreenBlackoutTimeoutSeconds,
@@ -481,27 +485,33 @@ object BackupMapper {
                 ?.takeIf { it != StereoMode.AUTO && it != StereoMode.UNKNOWN }
                 ?: current.stereoDefaultProjection,
             // S1740: Launcher settings
-            launcherDensityFactor = backup.launcherDensityFactor,
-            launcherTaskbarPlacement = backup.launcherTaskbarPlacement.gsonSafe(current.launcherTaskbarPlacement),
-            launcherTaskbarShowRecents = backup.launcherTaskbarShowRecents,
-            launcherTaskbarShowPinned = backup.launcherTaskbarShowPinned,
-            launcherTaskbarShowTray = backup.launcherTaskbarShowTray,
-            launcherReplaceSystemStatusArea = backup.launcherReplaceSystemStatusArea,
-            launcherTopStatusStripMode = backup.launcherTopStatusStripMode,
-            launcherForeignNotificationsEnabled = backup.launcherForeignNotificationsEnabled,
-            launcherTrayShowClock = backup.launcherTrayShowClock,
-            launcherTrayShowBluetooth = backup.launcherTrayShowBluetooth,
-            launcherTrayShowSim1 = backup.launcherTrayShowSim1,
-            launcherTrayShowSim2 = backup.launcherTrayShowSim2,
-            launcherTrayShowNetwork = backup.launcherTrayShowNetwork,
-            launcherTrayShowBattery = backup.launcherTrayShowBattery,
-            launcherRotationHintShown = backup.launcherRotationHintShown,
-            launcherDesktopLocked = backup.launcherDesktopLocked,
-            launcherWallpaperMode = backup.launcherWallpaperMode.gsonSafe(current.launcherWallpaperMode),
-            launcherWallpaperImagePath = backup.launcherWallpaperImagePath.gsonSafe(current.launcherWallpaperImagePath),
-            allAppsSortOrder = backup.allAppsSortOrder.gsonSafe(current.allAppsSortOrder),
-            allAppsSortDescending = backup.allAppsSortDescending,
-            launcherScreenBlackoutTimeoutSeconds = backup.launcherScreenBlackoutTimeoutSeconds,
+            launcher = current.launcher.copy(
+                densityFactor = backup.launcherDensityFactor,
+                taskbarPlacement = backup.launcherTaskbarPlacement.gsonSafe(current.launcherTaskbarPlacement),
+                taskbarShowRecents = backup.launcherTaskbarShowRecents,
+                taskbarShowPinned = backup.launcherTaskbarShowPinned,
+                taskbarShowTray = backup.launcherTaskbarShowTray,
+                replaceSystemStatusArea = backup.launcherReplaceSystemStatusArea,
+                topStatusStripMode = backup.launcherTopStatusStripMode,
+                foreignNotificationsEnabled = backup.launcherForeignNotificationsEnabled,
+                trayShowClock = backup.launcherTrayShowClock,
+                trayShowBluetooth = backup.launcherTrayShowBluetooth,
+                trayShowSim1 = backup.launcherTrayShowSim1,
+                trayShowSim2 = backup.launcherTrayShowSim2,
+                trayShowNetwork = backup.launcherTrayShowNetwork,
+                trayShowBattery = backup.launcherTrayShowBattery,
+                rotationHintShown = backup.launcherRotationHintShown,
+                desktopLocked = backup.launcherDesktopLocked,
+                // null in older backup files → preserve current setting, so the gesture stays enabled by default
+                desktopDoubleTapLockEnabled = backup.launcherDesktopDoubleTapLockEnabled
+                    ?: current.launcherDesktopDoubleTapLockEnabled,
+                wallpaperMode = backup.launcherWallpaperMode.gsonSafe(current.launcherWallpaperMode),
+                wallpaperImagePath = backup.launcherWallpaperImagePath.gsonSafe(current.launcherWallpaperImagePath),
+                wallpaperCameraId = backup.launcherWallpaperCameraId.gsonSafe(current.launcherWallpaperCameraId),
+                allAppsSortOrder = backup.allAppsSortOrder.gsonSafe(current.allAppsSortOrder),
+                allAppsSortDescending = backup.allAppsSortDescending,
+                screenBlackoutTimeoutSeconds = backup.launcherScreenBlackoutTimeoutSeconds,
+            ),
         )
     }
 
@@ -528,7 +538,9 @@ object BackupMapper {
             allFiles = backup.allFiles,
             showHiddenFiles = backup.showHiddenFiles,
             showSubfoldersAsItems = backup.showSubfoldersAsItems,
-            supportedMediaTypes = backup.supportedMediaTypes.gsonSafeList().mapNotNull { safeParseMediaType(it) }.toSet(),
+            supportedMediaTypes = backup.supportedMediaTypes.gsonSafeList()
+                .mapNotNull { safeParseMediaType(it) }
+                .toSet(),
             profile = safeParseResourceProfile(backup.profile.gsonSafe("NONE")),
             accessPin = backup.accessPin,
             readSpeedMbps = backup.readSpeedMbps,
@@ -549,28 +561,32 @@ object BackupMapper {
 
     // Safe enum parsers - fall back to defaults for forward compatibility
     private fun safeParseSortMode(value: String): com.sza.fastmediasorter.domain.model.SortMode {
-        return try { com.sza.fastmediasorter.domain.model.SortMode.valueOf(value) }
-        catch (_: Exception) { com.sza.fastmediasorter.domain.model.SortMode.NAME_ASC }
+        return try {
+            com.sza.fastmediasorter.domain.model.SortMode.valueOf(value)
+        } catch (_: Exception) { com.sza.fastmediasorter.domain.model.SortMode.NAME_ASC }
     }
     private fun safeParseResourceType(value: String): com.sza.fastmediasorter.domain.model.ResourceType {
-        return try { com.sza.fastmediasorter.domain.model.ResourceType.valueOf(value) }
-        catch (_: Exception) { com.sza.fastmediasorter.domain.model.ResourceType.LOCAL }
+        return try {
+            com.sza.fastmediasorter.domain.model.ResourceType.valueOf(value)
+        } catch (_: Exception) { com.sza.fastmediasorter.domain.model.ResourceType.LOCAL }
     }
     private fun safeParseCloudProvider(value: String): com.sza.fastmediasorter.data.cloud.CloudProvider {
-        return try { com.sza.fastmediasorter.data.cloud.CloudProvider.valueOf(value) }
-        catch (_: Exception) { com.sza.fastmediasorter.data.cloud.CloudProvider.GOOGLE_DRIVE }
+        return try {
+            com.sza.fastmediasorter.data.cloud.CloudProvider.valueOf(value)
+        } catch (_: Exception) { com.sza.fastmediasorter.data.cloud.CloudProvider.GOOGLE_DRIVE }
     }
     private fun safeParseDisplayMode(value: String): com.sza.fastmediasorter.domain.model.DisplayMode {
-        return try { com.sza.fastmediasorter.domain.model.DisplayMode.valueOf(value) }
-        catch (_: Exception) { com.sza.fastmediasorter.domain.model.DisplayMode.LIST }
+        return try {
+            com.sza.fastmediasorter.domain.model.DisplayMode.valueOf(value)
+        } catch (_: Exception) { com.sza.fastmediasorter.domain.model.DisplayMode.LIST }
     }
     private fun safeParseMediaType(value: String): MediaType? {
-        return try { MediaType.valueOf(value) }
-        catch (_: Exception) { null }
+        return try { MediaType.valueOf(value) } catch (_: Exception) { null }
     }
     private fun safeParseResourceProfile(value: String): com.sza.fastmediasorter.domain.model.ResourceProfile {
-        return try { com.sza.fastmediasorter.domain.model.ResourceProfile.valueOf(value) }
-        catch (_: Exception) { com.sza.fastmediasorter.domain.model.ResourceProfile.NONE }
+        return try {
+            com.sza.fastmediasorter.domain.model.ResourceProfile.valueOf(value)
+        } catch (_: Exception) { com.sza.fastmediasorter.domain.model.ResourceProfile.NONE }
     }
 
     // S0406: network credential mapping. Export reads the decrypted password/SSH key;

@@ -144,6 +144,13 @@ class SettingsManifestExportTest {
         assertFalse("btnScheduledNotificationPermission must be de-indexed (S0604)", "btnScheduledNotificationPermission" in keys)
     }
 
+    @Test
+    fun `calculator dialog action buttons are not indexed`() {
+        val keys = buildManifest().map { it.key }.toSet()
+        assertFalse("btnCalculatorSettingsApply must be de-indexed", "btnCalculatorSettingsApply" in keys)
+        assertFalse("btnCalculatorSettingsCancel must be de-indexed", "btnCalculatorSettingsCancel" in keys)
+    }
+
     /**
      * Verify mode (default): fails if `docs/settings/settings-manifest.json` is missing or stale.
      * Generate mode (`-Dsettings.manifest.generate=true`): (re)writes the committed file instead.

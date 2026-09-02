@@ -17,12 +17,17 @@ enum class NetworkMonitorSection(val key: String) {
     Gnss("gnss"),
     Internet("internet"),
     History("history"),
+    Tools("tools"),
+    Speed("speed"),
     ;
 
     companion object {
 
         /** Intent extra carrying [key]. Public so external entry points can address a section by name. */
         const val EXTRA_SECTION = "extra_network_monitor_section"
+
+        /** Intent extra marking a section opened through a Launcher-owned route. */
+        const val EXTRA_LAUNCHER_ORIGIN = "extra_network_monitor_launcher_origin"
 
         /**
          * Resolves [key] back to a section, falling back to [Summary].
@@ -42,3 +47,11 @@ fun Intent.putNetworkMonitorSection(section: NetworkMonitorSection): Intent =
 /** Reads the section a caller asked for, or [NetworkMonitorSection.Summary] when it asked for none. */
 fun Intent.readNetworkMonitorSection(): NetworkMonitorSection =
     NetworkMonitorSection.fromKey(getStringExtra(NetworkMonitorSection.EXTRA_SECTION))
+
+/** Marks a Network Monitor intent as originating from Launcher. */
+fun Intent.putNetworkMonitorLauncherOrigin(): Intent =
+    putExtra(NetworkMonitorSection.EXTRA_LAUNCHER_ORIGIN, true)
+
+/** Returns whether a Network Monitor intent originated from Launcher. */
+fun Intent.hasNetworkMonitorLauncherOrigin(): Boolean =
+    getBooleanExtra(NetworkMonitorSection.EXTRA_LAUNCHER_ORIGIN, false)

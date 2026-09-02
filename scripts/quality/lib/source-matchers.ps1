@@ -108,6 +108,104 @@ function Test-UnsafeLaunchBody([string]$text, [int]$openBrace) {
     return $false
 }
 
+# S2326: a literal Windows drive path binds a script to one machine's disk layout, so moving the
+# tree to another drive letter or directory name silently breaks it. Two project roots declared
+# `c:\GIT\FastMediaSorter_mob_v2` while the tree lived on `P:` and nobody noticed, because nothing
+# looked. Resolve through scripts/utils/project-paths.ps1 instead.
+#
+# The lookbehind spares three shapes that are not drives:
+#   - a word character, so a URL scheme (`https://`) and `$env:LOCALAPPDATA\..` do not read as one;
+#   - a dot, so `foo.C:/bar` does not;
+#   - a BACKSLASH, which is the one that actually bit. A regex character class written
+#     `[\s:\-|]` puts a letter, a colon and a separator side by side, and two live gate scripts
+#     carry exactly that - they were reported as hardcoded paths by the first draft of this rule.
+# The character after the separator excludes `-` for the same reason: a real path segment does not
+# begin with a hyphen, but the escaped `\-` inside a character class does.
+$script:DrivePathRx = [regex]'(?<![\w$.\\])[A-Za-z]:[\\/][\w.$]'
+
+<#
+.SYNOPSIS
+    Code lines of a script, with comment text blanked out but line numbers preserved.
+.DESCRIPTION
+    A comment cannot bind a path, so it cannot make a script non-portable - and judging comments
+    would force deleting legitimate prose, such as clean-user-temp.ps1 naming `C:\Windows\Temp` as
+    an example of a directory it REFUSES to touch. Rewriting that to satisfy a gate makes the
+    document worse while changing no behaviour.
+
+    Only a whole-line comment is blanked, never a trailing one: `$dst = "d:\out"  # sink` must stay
+    judged, and dropping everything after the first `#` would also drop a literal that a string on
+    the same line legitimately contains.
+#>
+function Get-DrivePathCodeLines([string]$Text) {
+    $lines = $Text -split "`r?`n"
+    $out = New-Object 'string[]' $lines.Count
+    $inBlock = $false
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        $line = $lines[$i]
+        if ($inBlock) {
+            if ($line -match '#>') { $inBlock = $false; $line = $line -replace '^.*?#>', '' }
+            else { $out[$i] = ''; continue }
+        }
+        if ($line -match '<#') {
+            if ($line -match '<#.*?#>') { $line = $line -replace '<#.*?#>', '' }
+            else { $inBlock = $true; $line = $line -replace '<#.*$', '' }
+        }
+        if ($line -match '^\s*#') { $line = '' }
+        $out[$i] = $line
+    }
+    return $out
+}
+
+function Measure-HardcodedDrivePathText([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return 0 }
+    $count = 0
+    foreach ($line in (Get-DrivePathCodeLines $Text)) {
+        if ($line) { $count += $script:DrivePathRx.Matches($line).Count }
+    }
+    return $count
+}
+
+# Line numbers of the offending literals, so -List and the failure output name the site.
+function Find-HardcodedDrivePathLines([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return @() }
+    $codeLines = Get-DrivePathCodeLines $Text
+    $hits = @()
+    for ($i = 0; $i -lt $codeLines.Count; $i++) {
+        if ($codeLines[$i] -and $script:DrivePathRx.IsMatch($codeLines[$i])) { $hits += ($i + 1) }
+    }
+    return $hits
+}
+
+# S2332: the three calls a builder stops needing the moment it delegates delivery. Judged rather than
+# the whole block's shape because a hand-written copy is recognisable by what it reaches for, not by
+# how it is worded - the 26 occurrences this rule was written against carried six different textual
+# forms of one behaviour, and a shape-matching rule would have missed the three worded differently.
+#
+# Only the two DELIVERY sinks. Other sinks stay unjudged: build-with-version.ps1 legitimately resolves
+# `Kind Apk` for a distribution folder that is not part of this block, and flagging it would push a
+# correct caller into an exemption list, which is how exemption lists start.
+$script:InlineDeliveryRx =
+    [regex]'Get-ArtifactSink\s+-Kind\s+(Drive|Commander)\b|Get-ToolPath\s+-Tool\s+SevenZip\b'
+
+function Measure-InlineDeliveryBlockText([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return 0 }
+    $count = 0
+    foreach ($line in (Get-DrivePathCodeLines $Text)) {
+        if ($line) { $count += $script:InlineDeliveryRx.Matches($line).Count }
+    }
+    return $count
+}
+
+function Find-InlineDeliveryBlockLines([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return @() }
+    $codeLines = Get-DrivePathCodeLines $Text
+    $hits = @()
+    for ($i = 0; $i -lt $codeLines.Count; $i++) {
+        if ($codeLines[$i] -and $script:InlineDeliveryRx.IsMatch($codeLines[$i])) { $hits += ($i + 1) }
+    }
+    return $hits
+}
+
 $script:InsetsListenerRx = [regex]'ViewCompat\.setOnApplyWindowInsetsListener\s*\('
 $script:InsetsCutoutRx = [regex]'displayCutout\s*\(\)'
 # The one compliant helper in the repo (utils/ViewExtensions.kt). It already takes
@@ -171,10 +269,13 @@ $script:SuspendFunRx = [regex]'\bsuspend\s+(?:inline\s+)?fun\b'
 # Entering any of these means the code below runs in a coroutine even when the enclosing
 # function is not itself `suspend` - the lambda body is.
 $script:CoroutineCtxRx = [regex]'\b(?:withContext|coroutineScope|supervisorScope|runBlocking|flow|channelFlow|callbackFlow|produce|launch|async)\s*[({]|\bsuspendCancellableCoroutine\b'
-# core/util/CoroutineExt.kt offers the second sanctioned form of the same fix. Its KDoc requires
-# the call to be the FIRST statement of the block, so anything after a statement has already run
-# error-path work on a cancellation and is still a violation.
-$script:RethrowHelperRx = [regex]'\brethrowIfCancellation\s*\('
+# core/util/CoroutineExt.kt offers the second sanctioned form of the same fix, as a FAMILY rather
+# than a single function: `rethrowIfCancellation()` plus every `<verb>UnlessCancellation(..)` member,
+# each of which re-throws the cancellation before doing any error-path work. Matched by name shape so
+# a new member needs no paired edit here - an enumeration forgotten costs a whole batch its count
+# (S2104 ADR-3). Every member's KDoc requires the call to be the FIRST statement of the block, so a
+# call sitting after another statement has already run error-path work and is still a violation.
+$script:RethrowHelperRx = [regex]'\b(?:rethrowIfCancellation|\w+UnlessCancellation)\s*\('
 
 function Get-LineIndent([string]$line) {
     return [regex]::Match($line, '^[ \t]*').Length
@@ -210,13 +311,33 @@ function Find-SwallowedCancellationLines([string]$Text) {
         if ($covered -or $tryLine -lt 0) { continue }
 
         # The block may instead open with the helper, which rethrows before any error-path work.
+        # A one-line block carries that first statement on the catch line itself, after the opening
+        # brace, so seeding the scan from the next line alone would read the closing `}` and call a
+        # cured site a violation. That case is not rare: fitting the guard on one line is the entire
+        # reason the helper family exists (S1890/S2104). The brace is located at paren depth 0 so an
+        # annotated arm - `catch (@Suppress("TooGenericExceptionCaught") t: Throwable) {` - resolves
+        # to the block brace rather than to the annotation's own parentheses.
         $firstStatement = ''
-        for ($j = $i + 1; $j -lt $lines.Count; $j++) {
-            $cand = $lines[$j]
-            if ($cand.Trim().Length -eq 0) { continue }
-            if ($cand.Trim() -match '^(//|/\*|\*)') { continue }
-            $firstStatement = $cand
-            break
+        $braceIdx = -1
+        $depth = 0
+        for ($c = 0; $c -lt $lines[$i].Length; $c++) {
+            $ch = $lines[$i][$c]
+            if ($ch -eq '(') { $depth++ }
+            elseif ($ch -eq ')') { $depth-- }
+            elseif ($ch -eq '{' -and $depth -le 0) { $braceIdx = $c; break }
+        }
+        if ($braceIdx -ge 0) {
+            $inlineTail = $lines[$i].Substring($braceIdx + 1).Trim()
+            if ($inlineTail.Length -gt 0 -and $inlineTail -notmatch '^(//|/\*)') { $firstStatement = $inlineTail }
+        }
+        if ($firstStatement.Length -eq 0) {
+            for ($j = $i + 1; $j -lt $lines.Count; $j++) {
+                $cand = $lines[$j]
+                if ($cand.Trim().Length -eq 0) { continue }
+                if ($cand.Trim() -match '^(//|/\*|\*)') { continue }
+                $firstStatement = $cand
+                break
+            }
         }
         if ($script:RethrowHelperRx.IsMatch($firstStatement)) { continue }
 
@@ -426,6 +547,182 @@ function Measure-LoneResourceBackslashes([string]$Text) {
     return $n
 }
 
+# S2250: a policy check can be hoisted or expressed as an early return, so a lexical gate cannot
+# reliably prove that an individual animator consulted it. Count the animation vocabulary instead:
+# adding any new primitive makes the review explicit, while the baseline never hides that growth.
+$script:UnpolicedAnimationRx = [regex]'\boverridePendingTransition\b|\boverrideActivityTransition\b|\bbeginDelayedTransition\b|\bLayoutTransition\b|\bsetPageTransformer\b|\bObjectAnimator\b|\bValueAnimator\b|\bAnimatorSet\b|\bAnimationUtils\.loadAnimation\b|\bwithCrossFade\s*\(\s*(?!0(?:\.0+)?(?:[fFdD])?\s*[,)])|\bAnimatedVisibility\b'
+
+function Find-UnpolicedAnimationLines([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return @() }
+    $hits = @()
+    $lines = $Text -split "`r?`n"
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        foreach ($match in $script:UnpolicedAnimationRx.Matches($lines[$i])) {
+            $hits += ($i + 1)
+        }
+    }
+    return $hits
+}
+
+function Measure-UnpolicedAnimationText([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return 0 }
+    return $script:UnpolicedAnimationRx.Matches($Text).Count
+}
+
+# S2328: the caption/value split - a label that takes the row's free width while its value sits at
+# the far edge. Structural, not lexical, and deliberately so: the reference settings row carries the
+# SAME attributes as the defect (a weight, an end gravity) and differs only in WHERE they sit, so a
+# regex cannot separate them. The discriminator is order - in the reference the weighted spacer comes
+# AFTER the value, so the slack falls at the row's end instead of between the pair.
+$script:CaptionValueControlRx = [regex]'(?:^|\.)(?:Switch|MaterialSwitch|SwitchCompat|SwitchMaterial|Button|MaterialButton|CheckBox|MaterialCheckBox|AppCompatCheckBox|Slider|SeekBar|RangeSlider|ImageButton|EditText|TextInputEditText|RadioButton|Spinner)$'
+$script:CaptionValueTextRx = [regex]'(?:^|\.)(?:TextView|MaterialTextView|AppCompatTextView|Chronometer)$'
+
+function Get-CaptionValueSimpleName([System.Xml.Linq.XElement]$Element) {
+    $n = $Element.Name.LocalName
+    $i = $n.LastIndexOf('.')
+    if ($i -ge 0) { $n = $n.Substring($i + 1) }
+    return $n
+}
+
+# Namespace-agnostic on purpose: `layout_constraint*` arrives in the res-auto namespace and
+# `layout_weight` in the android one, and no layout attribute shares a local name across the two.
+function Get-CaptionValueAttr([System.Xml.Linq.XElement]$Element, [string]$LocalName) {
+    foreach ($a in $Element.Attributes()) {
+        if ($a.Name.LocalName -eq $LocalName) { return $a.Value }
+    }
+    return $null
+}
+
+function Test-CaptionValueGravityEnd([string]$Value) {
+    if ([string]::IsNullOrWhiteSpace($Value)) { return $false }
+    foreach ($part in ($Value -split '\|')) {
+        if ($part.Trim() -in @('end', 'right')) { return $true }
+    }
+    return $false
+}
+
+function Test-CaptionValueIsText([System.Xml.Linq.XElement]$Element) {
+    $script:CaptionValueTextRx.IsMatch((Get-CaptionValueSimpleName $Element))
+}
+
+function Test-CaptionValueIsControl([System.Xml.Linq.XElement]$Element) {
+    $script:CaptionValueControlRx.IsMatch((Get-CaptionValueSimpleName $Element))
+}
+
+# A value is "text-like" when it is a TextView, or a wrapper carrying text and no control. The
+# wrapper case is what makes a primary+secondary value column count; the control case is what keeps
+# the reference settings row - caption, then a switch or a chevron at the end - passing.
+function Test-CaptionValueTextLike([System.Xml.Linq.XElement]$Element) {
+    if (Test-CaptionValueIsControl $Element) { return $false }
+    if (Test-CaptionValueIsText $Element) { return $true }
+    $desc = @($Element.Descendants())
+    if ($desc.Count -eq 0) { return $false }
+    foreach ($d in $desc) { if (Test-CaptionValueIsControl $d) { return $false } }
+    foreach ($d in $desc) { if (Test-CaptionValueIsText $d) { return $true } }
+    return $false
+}
+
+function Test-CaptionValueHorizontalRow([System.Xml.Linq.XElement]$Element) {
+    if ((Get-CaptionValueSimpleName $Element) -ne 'LinearLayout') { return $false }
+    $o = Get-CaptionValueAttr $Element 'orientation'
+    return ([string]::IsNullOrWhiteSpace($o) -or $o -eq 'horizontal')
+}
+
+# The one definition of the violation. Measure- and Find- both read it, so the count the gate
+# enforces and the lines `-List` prints can never disagree (S1621).
+function Get-CaptionValueSplitHits([string]$Text) {
+    $hits = @()
+    if ([string]::IsNullOrEmpty($Text)) { return $hits }
+    # Cheap text gate before the parse: most layout files carry none of this vocabulary, and the
+    # XML parse is the expensive half of the rule.
+    if ($Text -notmatch 'layout_weight|layout_constraintEnd_toEndOf|gravity') { return $hits }
+
+    $doc = $null
+    try {
+        $doc = [System.Xml.Linq.XDocument]::Parse($Text, [System.Xml.Linq.LoadOptions]::SetLineInfo)
+    }
+    catch {
+        # A malformed file is the XML parser's finding, not this rule's - turning it into a
+        # violation count would blame the wrong gate for the wrong defect.
+        return $hits
+    }
+    if ($null -eq $doc -or $null -eq $doc.Root) { return $hits }
+
+    foreach ($el in $doc.Descendants()) {
+        $name = Get-CaptionValueSimpleName $el
+        $line = ([System.Xml.IXmlLineInfo]$el).LineNumber
+
+        # Form 1 - weighted caption in a horizontal row with the value after it.
+        if (Test-CaptionValueHorizontalRow $el) {
+            $kids = @($el.Elements())
+            for ($i = 0; $i -lt $kids.Count; $i++) {
+                $kid = $kids[$i]
+                if (-not (Test-CaptionValueIsText $kid)) { continue }
+                $wv = 0.0
+                if (-not [double]::TryParse((Get-CaptionValueAttr $kid 'layout_weight'), [ref]$wv)) { continue }
+                if ($wv -le 0) { continue }
+                for ($j = $i + 1; $j -lt $kids.Count; $j++) {
+                    if (Test-CaptionValueTextLike $kids[$j]) {
+                        $hits += [pscustomobject]@{ Line = ([System.Xml.IXmlLineInfo]$kid).LineNumber; Form = 'weighted-caption' }
+                        break
+                    }
+                }
+            }
+        }
+
+        # Form 2 - the value pushed to the row's far end by its own gravity.
+        if ((Test-CaptionValueIsText $el) -and $null -ne $el.Parent -and (Test-CaptionValueHorizontalRow $el.Parent)) {
+            $g = Get-CaptionValueAttr $el 'gravity'
+            $lg = Get-CaptionValueAttr $el 'layout_gravity'
+            $ta = Get-CaptionValueAttr $el 'textAlignment'
+            if ((Test-CaptionValueGravityEnd $g) -or (Test-CaptionValueGravityEnd $lg) -or ($ta -eq 'viewEnd')) {
+                $prior = $false
+                foreach ($sib in $el.ElementsBeforeSelf()) { if (Test-CaptionValueIsText $sib) { $prior = $true } }
+                if ($prior) { $hits += [pscustomobject]@{ Line = $line; Form = 'end-aligned-value' } }
+            }
+        }
+
+        # Form 3 - the split declared in a style, which hands it to every consumer at once. This is
+        # the form that reached seven network monitor screens from two style blocks.
+        if ($name -eq 'style') {
+            $hasWeight = $false
+            $endGravity = $false
+            foreach ($item in $el.Elements()) {
+                if ((Get-CaptionValueSimpleName $item) -ne 'item') { continue }
+                $itemName = Get-CaptionValueAttr $item 'name'
+                if ($itemName -eq 'android:layout_weight') { $hasWeight = $true }
+                if ($itemName -eq 'android:gravity' -and (Test-CaptionValueGravityEnd $item.Value)) { $endGravity = $true }
+            }
+            if ($hasWeight -and $endGravity) { $hits += [pscustomobject]@{ Line = $line; Form = 'style-declared-split' } }
+        }
+
+        # Form 4 - the constraint spelling: value pinned to the parent's end and anchored to a
+        # sibling's top, with nothing tying its start to the caption, so the gap is the screen.
+        if (Test-CaptionValueIsText $el) {
+            if ((Get-CaptionValueAttr $el 'layout_constraintEnd_toEndOf') -eq 'parent') {
+                $hasStart = $false
+                foreach ($a in $el.Attributes()) {
+                    if ($a.Name.LocalName -like 'layout_constraintStart_*') { $hasStart = $true }
+                }
+                $topTo = Get-CaptionValueAttr $el 'layout_constraintTop_toTopOf'
+                if (-not $hasStart -and -not [string]::IsNullOrWhiteSpace($topTo) -and $topTo -ne 'parent') {
+                    $hits += [pscustomobject]@{ Line = $line; Form = 'unanchored-end-constraint' }
+                }
+            }
+        }
+    }
+
+    return $hits
+}
+
+function Measure-CaptionValueSplit([string]$Text) {
+    return @(Get-CaptionValueSplitHits $Text).Count
+}
+
+function Find-CaptionValueSplitLines([string]$Text) {
+    return @(Get-CaptionValueSplitHits $Text | ForEach-Object { $_.Line } | Sort-Object -Unique)
+}
+
 function New-RegexRule {
     param(
         [Parameter(Mandatory)][string]$Name,
@@ -492,6 +789,48 @@ function Get-SourceRules {
         (New-RegexRule -Name 'findviewbyid' `
                 -Pattern ([regex]'\bfindViewById\s*[<(]') `
                 -FailMessage 'new findViewById in app_v2/src/main (S1693). Use the layout''s generated binding field; if this file is genuinely a legitimate shape (custom View, adapter, runtime-resolved layout, documented host-neutral helper), justify the growth in review instead of raising the baseline.'),
+        # S2103: the layering rule `UI -> ViewModel -> UseCase -> Repository -> DataSource`
+        # (CLAUDE.md Rule 8, docs/ARCHITECTURE.md) was the last architectural rule in this repo with
+        # no exit code behind it, and Rule 33's own measurement is that prose holds at 1-8% while an
+        # exit code holds at 99%. Growth stops, not a migration order: measured 2026-08-27 the debt is
+        # 403 / 47 / 36 / 2 and no campaign over the 164 files is scheduled - the Rule 32 model, same
+        # as findviewbyid above.
+        #
+        # FOUR baselines rather than one aggregate, and the overlap of the last two with the first is
+        # deliberate. The numbers span three orders of magnitude, so under a single counter a new DAO
+        # in a fragment could be paid for by deleting one unused data.cloud import in the same change.
+        # S1910 is the ticket where exactly that masking happened. The cost of the split is zero: the
+        # root app_v2/src/main is already walked for every rule above, so each of these is one more
+        # regex pass over text already in memory.
+        #
+        # `\r?$` is load-bearing on the last two - these files are CRLF, and in .NET multiline mode
+        # `$` matches before the `\n` with the `\r` still ahead of it, so a bare `Entity$` would count
+        # zero and ship a dead gate that reads green.
+        (New-RegexRule -Name 'ui-imports-data' `
+                -Pattern ([regex]'(?m)^import com\.sza\.fastmediasorter\.data\.') `
+                -PathFilter 'app_v2/src/main/java/com/sza/fastmediasorter/ui/' `
+                -FailMessage 'new data-layer import in a UI file (S2103). UI reaches data through a UseCase, not directly: inject the UseCase and let it own the repository call. The baseline falls when an import moves behind its layer; it is never raised.'),
+        # Sharper than the rule above and worth driving to zero first: a Room DAO or entity in a
+        # fragment means the persistence schema is now a UI dependency, so a migration cannot move
+        # without touching screens.
+        (New-RegexRule -Name 'ui-imports-room' `
+                -Pattern ([regex]'(?m)^import com\.sza\.fastmediasorter\.data\.[A-Za-z0-9_.]*(Dao|Entity)\r?$') `
+                -PathFilter 'app_v2/src/main/java/com/sza/fastmediasorter/ui/' `
+                -FailMessage 'Room DAO or entity imported straight into UI (S2103). Map the entity to a domain model in the repository and let the UI see only that model. This is the sharpest of the four layer rules - its baseline is meant to reach zero.'),
+        # Deliberately any *Impl under data., not only data.repository: today both hits live in
+        # data.repository, so widening moves no baseline, but a data.cloud.SomethingImpl is the same
+        # violation and the narrow pattern would have waved it through.
+        (New-RegexRule -Name 'ui-imports-impl' `
+                -Pattern ([regex]'(?m)^import com\.sza\.fastmediasorter\.data\.[A-Za-z0-9_.]*Impl\r?$') `
+                -PathFilter 'app_v2/src/main/java/com/sza/fastmediasorter/ui/' `
+                -FailMessage 'concrete data-layer implementation imported in UI (S2103). Depend on the interface the impl satisfies and let Hilt bind it, so the UI cannot be coupled to one implementation.'),
+        # The UseCase layer skipped: 219 UseCase classes exist and 31 of the 44 ViewModels still reach
+        # past them into domain.repository. PathFilter is the ui/ subtree because every *ViewModel.kt
+        # in app_v2/src/main lives there - verified 2026-08-27, zero outside it.
+        (New-RegexRule -Name 'viewmodel-imports-repository' `
+                -Pattern ([regex]'(?m)^import com\.sza\.fastmediasorter\.domain\.repository\.') `
+                -PathFilter 'app_v2/src/main/java/com/sza/fastmediasorter/ui/.*ViewModel\.kt$' `
+                -FailMessage 'ViewModel imports a repository directly, skipping the UseCase layer (S2103). Put the operation in a VerbNounUseCase and inject that instead. The baseline falls when a call moves into a UseCase; it is never raised.'),
         (New-RegexRule -Name 'empty-catch' `
                 -Pattern ([regex]'catch\s*\([^)]*\)\s*\{\s*(?:(?://[^\r\n]*)|(?:/\*[\s\S]*?\*/))?\s*\}') `
                 -FailMessage 'new empty catch block introduced. Recover, use a safe default, or log at the correct level.'),
@@ -529,6 +868,60 @@ function Get-SourceRules {
                          'app_v2/src/main/res/layout-w600dp') `
                 -PathFilter 'app_v2/src/main/res/layout(-land|-sw480dp|-sw720dp|-w600dp)?/' `
                 -FailMessage 'new hardcoded dimension literal in a layout (S1922). Move the value into @dimen/ and reference it, so the size can be changed in one place. Structural "0dp" (ConstraintLayout match-constraints) is NOT counted by this rule - if that is what you added, this is not the finding.'),
+        # S2193: "one visual form per element role" (docs/ARCHITECTURE.md, right before the Trigger
+        # Row patterns). SettingsToggleRow already owns the toggle-row role; a hand-rolled
+        # MaterialSwitch + TextView + ImageButton triplet outside it is the same debt Pattern A's
+        # own prose already calls out. Excluded: the wrapper's own layout (it legitimately embeds
+        # the switch), and item_scheduled_operation.xml, the S0536 documented dense-list-item
+        # exception where ARCHITECTURE.md explicitly allows a bare MaterialSwitch. Same five layout
+        # roots as the colour/dimen rules above, on the same S1932 measurement basis.
+        (New-RegexRule -Name 'view-raw-switch' `
+                -Pattern ([regex]'<com\.google\.android\.material\.materialswitch\.MaterialSwitch\b') `
+                -Extensions @('.xml') `
+                -Roots @('app_v2/src/main/res/layout', 'app_v2/src/main/res/layout-land',
+                         'app_v2/src/main/res/layout-sw480dp', 'app_v2/src/main/res/layout-sw720dp',
+                         'app_v2/src/main/res/layout-w600dp') `
+                -PathFilter 'app_v2/src/main/res/layout(-land|-sw480dp|-sw720dp|-w600dp)?/' `
+                -ExcludeNames @('view_settings_toggle_row.xml', 'item_scheduled_operation.xml') `
+                -FailMessage 'new hand-rolled MaterialSwitch row outside the canonical wrapper (S2193). Use com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow (docs/ARCHITECTURE.md Pattern A) instead of a private MaterialSwitch + TextView triplet.'),
+        # S2193: same principle, checkbox side. FormCheckboxRow already owns the checkbox-row role
+        # and its subtitle is optional (setSubtitle(null) hides it), so it is the canonical form
+        # with or without a subtitle - a raw MaterialCheckBox outside it (e.g. a hand-rolled
+        # media-type filter grid) is the same debt as the switch rule above. Only the wrapper's own
+        # layout is excluded.
+        (New-RegexRule -Name 'view-raw-checkbox' `
+                -Pattern ([regex]'<com\.google\.android\.material\.checkbox\.MaterialCheckBox\b') `
+                -Extensions @('.xml') `
+                -Roots @('app_v2/src/main/res/layout', 'app_v2/src/main/res/layout-land',
+                         'app_v2/src/main/res/layout-sw480dp', 'app_v2/src/main/res/layout-sw720dp',
+                         'app_v2/src/main/res/layout-w600dp') `
+                -PathFilter 'app_v2/src/main/res/layout(-land|-sw480dp|-sw720dp|-w600dp)?/' `
+                -ExcludeNames @('view_form_checkbox_row.xml') `
+                -FailMessage 'new raw MaterialCheckBox outside the canonical wrapper (S2193). Use com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow (docs/ARCHITECTURE.md Pattern B - subtitle is optional) instead of a hand-rolled checkbox.'),
+        # S2328: the caption/value split. The only structural rule in this family - see the four
+        # forms in Get-CaptionValueSplitHits above and ADR-4 in PLAN/S2328 for why a regex cannot
+        # do it. Roots add the values directory for the style form, and PathFilter pins that half to
+        # themes.xml alone: applicability is tested before the file is read, so naming the file in
+        # the filter keeps the rest of values/ out of the walk entirely rather than parsing and
+        # discarding it. The baseline is NOT all one defect - it carries a known ambiguity class
+        # (two co-equal data columns, e.g. a player's position|duration pair or a source -> target
+        # row) that the four forms cannot tell from a caption and its value; those entries are named
+        # in PLAN/S2328_bugfix-caption-value-opposite-edges/PHASE_05__caption-value-gate.md rather
+        # than excluded by name, because excluding the file would also blind the rule to a real new
+        # split appearing in it.
+        [pscustomobject]@{
+            Name         = 'caption-value-split'
+            Extensions   = @('.xml')
+            Roots        = @('app_v2/src/main/res/layout', 'app_v2/src/main/res/layout-land',
+                             'app_v2/src/main/res/layout-sw480dp', 'app_v2/src/main/res/layout-sw720dp',
+                             'app_v2/src/main/res/layout-w600dp', 'app_v2/src/main/res/values')
+            PathFilter   = 'app_v2/src/main/res/(layout(-land|-sw480dp|-sw720dp|-w600dp)?/|values/themes\.xml$)'
+            Baseline     = 'caption-value-split-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-CaptionValueSplit $t }
+            LocateInText = { param($t) Find-CaptionValueSplitLines $t }
+            FailMessage  = 'new caption/value split in a layout (S2328). The caption must hug its own text and carry no layout_weight; the value takes the remaining width and stays start-aligned, so the row''s slack falls after the value and never between the pair - see view_settings_selection_row.xml and docs/ARCHITECTURE.md "Caption and Value Proximity". A control at the row''s end (switch, chevron, icon button) is not a value and is not counted. If the new row is genuinely two co-equal data columns rather than a caption and its value, justify it in review instead of raising the baseline.'
+        },
         [pscustomobject]@{
             Name        = 'unsafe-collect'
             Extensions  = @('.kt')
@@ -571,6 +964,16 @@ function Get-SourceRules {
                 -Baseline 'deprecated-pm-flags-baseline.txt' `
                 -ExcludeNames @('PackageManagerCompat.kt') `
                 -FailMessage 'new raw-int PackageManager overload introduced. Use the *Compat helpers in util/PackageManagerCompat.kt (CLAUDE.md Rule 21).'),
+        # S2094: the canonical toggle-row pattern (switch left, title, optional tooltip button,
+        # subtitle) is a View-side composite element with no Compose counterpart. Wear companion's
+        # WearWatchSettingsGroup.kt is the one place allowed to call Compose Switch directly - it IS
+        # the canonical wrapper's Compose reproduction (SwitchRow) - so it is excluded the same way
+        # PackageManagerCompat.kt is excluded above. Baseline seeded at 0: this file was the only raw
+        # Compose Switch( call in app_v2 at authoring time, and this ticket brought it to canon.
+        (New-RegexRule -Name 'compose-raw-switch' `
+                -Pattern ([regex]'\bSwitch\s*\(') `
+                -ExcludeNames @('WearWatchSettingsGroup.kt') `
+                -FailMessage 'new raw Compose Switch( call outside the canonical row wrapper. Compose has no shared toggle-row element yet - wrap it the way WearWatchSettingsGroup.kt does (SwitchRow) or route through the View-side SettingsToggleRow pattern (CLAUDE.md Rule 33, S2094).'),
         # S1335: PermissionRegistryRepositoryImpl.resolveFlavorGate is the S0970 compile-time
         # whitelist map - the deliberate single place BuildConfig flavor reads are allowed in
         # src/main (reflection breaks under R8, see the function's own KDoc). Every optional,
@@ -642,6 +1045,30 @@ function Get-SourceRules {
             LocateInText = { param($t) Find-SwallowedCancellationLines $t }
             FailMessage  = 'new catch in wear coroutine code that swallows CancellationException - a broad arm, or an IllegalStateException/RuntimeException arm, both of which are its supertypes. Add `catch (e: CancellationException) { throw e }` as the first arm of the chain (S1363/S1889/S1910).'
         },
+        # S2250: phone and Wear counts stay separate. A new animator in one module cannot hide
+        # behind a cleanup in the other, and the fail message names the policy the new site must use.
+        [pscustomobject]@{
+            Name         = 'unpoliced-animation'
+            Extensions   = @('.kt')
+            Roots        = @('app_v2/src/main')
+            PathFilter   = 'app_v2/src/main/'
+            Baseline     = 'unpoliced-animation-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-UnpolicedAnimationText $t }
+            LocateInText = { param($t) Find-UnpolicedAnimationLines $t }
+            FailMessage  = 'new animation primitive in the phone app (S2250). Re-judge the site and consult AnimationPolicy before creating the transition or animator.'
+        },
+        [pscustomobject]@{
+            Name         = 'unpoliced-animation-wear'
+            Extensions   = @('.kt')
+            Roots        = @('wear/src')
+            PathFilter   = 'wear/src/'
+            Baseline     = 'unpoliced-animation-wear-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-UnpolicedAnimationText $t }
+            LocateInText = { param($t) Find-UnpolicedAnimationLines $t }
+            FailMessage  = 'new animation primitive in Wear (S2250). Re-judge the site and consult VideoPlayerUiState.animationsDisabled before creating it.'
+        },
         [pscustomobject]@{
             Name         = 'activity-logic'
             Extensions   = @('.kt')
@@ -699,7 +1126,13 @@ function Get-SourceRules {
             Name         = 'class-architecture-naming'
             Extensions   = @('.kt')
             Roots        = @('app_v2/src', 'wear/src')
-            PathFilter   = '[\\/](domain[\\/]usecase|data[\\/]repository)[\\/]'
+            # S1863: the S1742 excuse below spares the test CLASS but not the fixtures declared inside
+            # it, so a fake named after the interface it stands in for - `FakeSenderRepository` in a
+            # `domain/usecase` test - still failed the delta. That is the same defect one level down:
+            # a fixture is named after what it fakes, and no architectural suffix fits it. The third
+            # instance of this false positive in one rule (S1742, S1797, this one), so the whole test
+            # source set leaves the rule rather than the exclusion list growing a third time.
+            PathFilter   = '^(?!.*[\\/]src[\\/](?:test|androidTest)[\\/]).*[\\/](domain[\\/]usecase|data[\\/]repository)[\\/]'
             Baseline     = 'class-architecture-naming-baseline.txt'
             ExcludeNames = @()
             CountInText  = {
@@ -713,6 +1146,15 @@ function Get-SourceRules {
                 foreach ($line in ($t -split "`n")) {
                     $trimmed = $line.Trim()
                     if ($trimmed.StartsWith('//') -or $trimmed.StartsWith('/*') -or $trimmed.StartsWith('*')) { continue }
+                    # S1884: Rule 6 governs the file's architectural type, not the result holders nested
+                    # inside it. A nested `sealed interface Outcome` is a member of an already correctly
+                    # named *UseCase - the shipped SendStreamToWatchUseCase.Outcome is the convention, and
+                    # it passes only because the baseline absorbed it. Charging the next one is what
+                    # produced `SendFileToWatchOutcomeUseCase.OpenedUseCase`: an architectural suffix
+                    # stamped onto a type the rule was never about. Indentation is the discriminator - a
+                    # top-level declaration starts at column 0. Third instance of this false positive in
+                    # one rule (S1742, S1797, this one), so it is fixed generally rather than excused again.
+                    if ($line -match '^\s') { continue }
                     if ($trimmed -match '^(?:public\s+|internal\s+|private\s+|open\s+|abstract\s+|sealed\s+|data\s+)*(?:class|interface)\s+([A-Za-z0-9_]+)') {
                         $name = $Matches[1]
                         # S1742: a test class is named after the thing it tests, so `FooUseCaseTest` is
@@ -736,6 +1178,109 @@ function Get-SourceRules {
                 return $count
             }
             FailMessage  = 'new class or interface in domain/usecase or data/repository violates Rule 6 naming suffix (expected *UseCase or *Repository / *RepositoryImpl).'
+        },
+        # S2133: Wear single declared toggle form. Refuses ToggleChip, Checkbox and Switch anywhere in
+        # wear/src/main outside ui/common.
+        (New-RegexRule -Name 'wear-raw-toggle' `
+                -Pattern ([regex]'\b(ToggleChip|Checkbox|Switch)\b') `
+                -Roots @('wear/src/main') `
+                -PathFilter '^wear/src/main/java/com/sza/fastmediasorter/wear/ui/(?!common/).*' `
+                -Baseline 'wear-raw-toggle-baseline.txt' `
+                -FailMessage 'new raw toggle (ToggleChip, Checkbox, Switch) in wear/src/main outside ui/common (S2133). Use WearSettingsToggleCell from ui/common instead.'),
+        # S2243: AppSettings field persistence completeness gate.
+        # Compares every field in AppSettings.kt against the combined text of
+        # data/repository/settings/*.kt and SettingsRepositoryImpl.kt.
+        [pscustomobject]@{
+            Name         = 'appsettings-persistence'
+            Extensions   = @('.kt')
+            Roots        = @('app_v2/src/main/java/com/sza/fastmediasorter/domain/model')
+            PathFilter   = 'app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings\.kt$'
+            Baseline     = 'appsettings-persistence-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = {
+                param($t)
+                if ([string]::IsNullOrWhiteSpace($t)) { return 0 }
+                $fields = @()
+                foreach ($line in ($t -split "`r?`n")) {
+                    if ($line -match '^\s+val\s+(\w+)\s*:') {
+                        $fields += $Matches[1]
+                    }
+                }
+                if ($fields.Count -eq 0) { return 0 }
+                
+                $repoRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
+                $storesDir = Join-Path $repoRoot 'app_v2/src/main/java/com/sza/fastmediasorter/data/repository/settings'
+                $implFile = Join-Path $repoRoot 'app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt'
+                
+                $storeTexts = @()
+                if (Test-Path $storesDir) {
+                    $storeTexts += Get-ChildItem $storesDir -Filter *.kt | ForEach-Object { Get-Content $_.FullName -Raw }
+                }
+                if (Test-Path $implFile) {
+                    $storeTexts += Get-Content $implFile -Raw
+                }
+                $combinedText = $storeTexts -join "`n"
+                
+                $missingCount = 0
+                foreach ($f in $fields) {
+                    if ($combinedText -notmatch [regex]::Escape($f)) {
+                        $missingCount++
+                    }
+                }
+                return $missingCount
+            }
+            FailMessage  = 'new field added to AppSettings without persistence in settings stores or SettingsRepositoryImpl (S2243).'
+        },
+        # S2326: the repository-script layer, judged for literal drive paths. This is the only rule
+        # here that walks scripts rather than app sources, so it names its own roots and extensions.
+        # Two files are spared by name rather than by the path filter:
+        #   - project-paths.ps1 IS the resolver, and its sink table is the deliberate single place a
+        #     machine default is written down - a default that lives nowhere would stop delivering
+        #     artifacts on the machine that has those directories;
+        #   - test-agent-lock-queue.ps1 feeds `Z:\no-such-transcript\missing.jsonl` to the liveness
+        #     checker on purpose. Strategic section 2 lists synthetic fixtures as a non-goal: the
+        #     path has to be literal, because what it tests is the handling of a path that is not
+        #     there. It sits in scripts/utils/ rather than a *.tests/ directory, so the path filter
+        #     below does not reach it.
+        [pscustomobject]@{
+            Name         = 'hardcoded-drive-path'
+            Extensions   = @('.ps1', '.psm1', '.cmd', '.bat', '.sh')
+            Roots        = @('scripts', 'maestro', 'dev', 'a.ps1')
+            PathFilter   = '^(?!dev/archive/)(?!.*\.tests/)(?!.*/\.venv/)(?:scripts/|maestro/|dev/|a\.ps1$)'
+            Baseline     = 'hardcoded-drive-path-baseline.txt'
+            ExcludeNames = @('project-paths.ps1', 'test-agent-lock-queue.ps1')
+            CountInText  = { param($t) Measure-HardcodedDrivePathText $t }
+            LocateInText = { param($t) Find-HardcodedDrivePathLines $t }
+            FailMessage  = 'new literal drive path in a repository script. It binds the script to one machine, so moving the tree to another drive letter or directory name breaks it silently. Dot-source scripts/utils/project-paths.ps1 and ask for the path by role - Get-ProjectRoot, Get-ProjectPath, Get-SiblingPath, Get-ToolPath, Get-ArtifactSink - or override through the matching FMS_* environment variable (S2326).'
+        },
+        # S2332: a build path that writes the delivery block itself instead of calling the script that
+        # holds it. S1707 extracted that block into copy-to-drive.ps1 precisely so it would be written
+        # once, and then nothing was converted: on 2026-09-02 it was still hand-written in 26 places
+        # across 25 builders while the shared script had two callers. Without a gate the next builder
+        # writes it again, which is what happened after S1707.
+        #
+        # scripts/utils is outside the path filter rather than listed in ExcludeNames: that directory is
+        # where the shared implementation lives, and naming the two files by hand would let a THIRD
+        # hand-written copy appear beside them unjudged. Test directories are filtered out for the same
+        # reason project-paths.tests exercises Get-ArtifactSink on purpose.
+        #
+        # dev/ is in scope because the builder the owner actually runs lives there, not under
+        # scripts/builders/ (S2337). While the scope was the two scripts/ directories alone, a zero
+        # baseline meant "zero among the files walked" rather than "zero in the tree": dev/build-with-
+        # version.ps1 kept the hand-written block through S2332's whole conversion, and the launcher
+        # dev/build-with-version.bat invokes it. The directory is named rather than the file, for the
+        # same reason scripts/utils is: a by-name list lets the next copy appear beside it unjudged.
+        # dev/archive/ is excluded as a read-only zone, matching hardcoded-drive-path above.
+        [pscustomobject]@{
+            Name         = 'inline-delivery-block'
+            Extensions   = @('.ps1', '.psm1')
+            Roots        = @('scripts', 'dev')
+            PathFilter   = '^(?!dev/archive/)(?!.*\.tests/)(?:scripts/(builders|release)/|dev/)'
+            Baseline     = 'inline-delivery-block-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-InlineDeliveryBlockText $t }
+            LocateInText = { param($t) Find-InlineDeliveryBlockLines $t }
+            FailMessage  = 'a build path resolving a delivery sink or the archiver itself instead of calling the one script that holds the delivery block. Repeating it means the next change to delivery is either made 26 times or diverges - which is how the watch shipped while its Drive copy stayed a month stale and looked current (S1707). Call scripts/utils/publish-artifact.ps1 with -Path and -Name; it covers both sinks, takes several artifacts for one archive, and skips a sink it cannot reach without failing the build. Use -NoZip / -NoCommander for a path that legitimately delivers less (S2332).'
         }
     )
 }

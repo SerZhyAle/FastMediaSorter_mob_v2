@@ -21,7 +21,6 @@ import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.databinding.FragmentResourceEditorBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.PermissionTask
-import com.sza.fastmediasorter.domain.model.ResourceConnectionStatus
 import com.sza.fastmediasorter.domain.model.ResourceConnectionTestResult
 import com.sza.fastmediasorter.domain.model.ResourceEditorMode
 import com.sza.fastmediasorter.domain.model.ResourceErrorCode
@@ -41,7 +40,7 @@ import com.sza.fastmediasorter.utils.PermissionChecker
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collectLatest
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -63,6 +62,7 @@ class ResourceEditorFragment : Fragment() {
     private var pendingSaveAfterPermissionGrant = false
     private var hasMediaTypesBySchema = false
     private var toolbarBaseTitle: String = ""
+
     // S0535: section state goes through the unified orchestrator + consolidated store.
     private val sectionsManager by lazy { CollapsibleSectionsManager(requireContext()) }
     private lateinit var outcomeRenderer: ResourceEditorOutcomeRenderer
@@ -161,7 +161,11 @@ class ResourceEditorFragment : Fragment() {
 
     private fun setupCollapsibleSections() {
         // Keys drop the type+orientation composition (the consolidated store is orientation-agnostic).
-        sectionsManager.register(binding.headerConnectionSettings, binding.contentConnectionSettings, "resource_editor__connection")
+        sectionsManager.register(
+            binding.headerConnectionSettings,
+            binding.contentConnectionSettings,
+            "resource_editor__connection"
+        )
         sectionsManager.register(binding.headerMediaTypes, binding.gridMediaTypes, "resource_editor__media_types")
         sectionsManager.register(binding.headerScanning, binding.contentScanning, "resource_editor__scanning")
         sectionsManager.register(binding.headerDestination, binding.contentDestination, "resource_editor__destination")
@@ -308,8 +312,11 @@ class ResourceEditorFragment : Fragment() {
     }
 
     fun performSave() {
-        if (shouldCheckMediaPermissionBeforeSave()) showPermissionRequiredDialog()
-        else viewModel.onSave()
+        if (shouldCheckMediaPermissionBeforeSave()) {
+            showPermissionRequiredDialog()
+        } else {
+            viewModel.onSave()
+        }
     }
 
     private fun setupButtons() {
@@ -366,7 +373,8 @@ class ResourceEditorFragment : Fragment() {
 
         // Listen for the icon the user picked; update ViewModel + preview button
         childFragmentManager.setFragmentResultListener(
-            IconPickerBottomSheet.KEY, viewLifecycleOwner
+            IconPickerBottomSheet.KEY,
+            viewLifecycleOwner
         ) { _, bundle ->
             val pickedId = bundle.getString(IconPickerBottomSheet.RESULT_ICON_ID) ?: return@setFragmentResultListener
             viewModel.onIconPicked(pickedId)
@@ -642,20 +650,60 @@ class ResourceEditorFragment : Fragment() {
         binding.cbShowHiddenFiles.isChecked = formData.showHiddenFiles
         binding.cbShowSubfoldersAsItems.isChecked = formData.showSubfoldersAsItems
         binding.cbRememberFileList.isChecked = formData.rememberFileList
-        binding.cbScanSubdirectories.setOnCheckedChangeListener { _, isChecked -> viewModel.onFieldChanged(ResourceFieldKey.SCAN_SUBDIRECTORIES, isChecked) }
-        binding.cbAllFiles.setOnCheckedChangeListener { _, isChecked -> viewModel.onFieldChanged(ResourceFieldKey.ALL_FILES, isChecked) }
-        binding.cbDisableThumbnails.setOnCheckedChangeListener { _, isChecked -> viewModel.onFieldChanged(ResourceFieldKey.DISABLE_THUMBNAILS, isChecked) }
-        binding.cbShowHiddenFiles.setOnCheckedChangeListener { _, isChecked -> viewModel.onFieldChanged(ResourceFieldKey.SHOW_HIDDEN_FILES, isChecked) }
-        binding.cbShowSubfoldersAsItems.setOnCheckedChangeListener { _, isChecked -> viewModel.onFieldChanged(ResourceFieldKey.SHOW_SUBFOLDERS_AS_ITEMS, isChecked) }
-        binding.cbRememberFileList.setOnCheckedChangeListener { isChecked -> viewModel.onFieldChanged(ResourceFieldKey.REMEMBER_FILE_LIST, isChecked) }
+        binding.cbScanSubdirectories.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.onFieldChanged(
+                ResourceFieldKey.SCAN_SUBDIRECTORIES,
+                isChecked
+            )
+        }
+        binding.cbAllFiles.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.onFieldChanged(
+                ResourceFieldKey.ALL_FILES,
+                isChecked
+            )
+        }
+        binding.cbDisableThumbnails.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.onFieldChanged(
+                ResourceFieldKey.DISABLE_THUMBNAILS,
+                isChecked
+            )
+        }
+        binding.cbShowHiddenFiles.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.onFieldChanged(
+                ResourceFieldKey.SHOW_HIDDEN_FILES,
+                isChecked
+            )
+        }
+        binding.cbShowSubfoldersAsItems.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.onFieldChanged(
+                ResourceFieldKey.SHOW_SUBFOLDERS_AS_ITEMS,
+                isChecked
+            )
+        }
+        binding.cbRememberFileList.setOnCheckedChangeListener { isChecked ->
+            viewModel.onFieldChanged(
+                ResourceFieldKey.REMEMBER_FILE_LIST,
+                isChecked
+            )
+        }
 
         // Destination checkboxes (guarded: programmatic setChecked must NOT fire onFieldChanged)
         binding.cbIsDestination.setOnCheckedChangeListener(null)
         binding.cbIsReadOnly.setOnCheckedChangeListener(null)
         binding.cbIsDestination.isChecked = formData.isDestination
         binding.cbIsReadOnly.isChecked = formData.isReadOnly
-        binding.cbIsDestination.setOnCheckedChangeListener { _, isChecked -> viewModel.onFieldChanged(ResourceFieldKey.IS_DESTINATION, isChecked) }
-        binding.cbIsReadOnly.setOnCheckedChangeListener { _, isChecked -> viewModel.onFieldChanged(ResourceFieldKey.IS_READ_ONLY, isChecked) }
+        binding.cbIsDestination.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.onFieldChanged(
+                ResourceFieldKey.IS_DESTINATION,
+                isChecked
+            )
+        }
+        binding.cbIsReadOnly.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.onFieldChanged(
+                ResourceFieldKey.IS_READ_ONLY,
+                isChecked
+            )
+        }
 
         // Dependent visibility: showHiddenFiles depends on allFiles, showSubfoldersAsItems depends on scanSubdirectories
         binding.cbShowHiddenFiles.isEnabled = formData.allFiles
@@ -709,6 +757,7 @@ class ResourceEditorFragment : Fragment() {
         val isLocal = type == ResourceType.LOCAL
         val isNetwork = type == ResourceType.SMB || type == ResourceType.SFTP || type == ResourceType.FTP
         val isCloud = type == ResourceType.CLOUD
+        val isStream = type == ResourceType.HTTP_STREAM || type == ResourceType.RTSP_STREAM
 
         val localFieldsVisible = isLocal && visibleKeys.contains(ResourceFieldKey.PATH)
         val networkFieldsVisible = isNetwork && (
@@ -719,12 +768,18 @@ class ResourceEditorFragment : Fragment() {
                 visibleKeys.contains(ResourceFieldKey.PATH)
             )
         val cloudFieldsVisible = isCloud && visibleKeys.contains(ResourceFieldKey.CLOUD_FOLDER)
+        // A stream's URL is rendered into tilPath, which lives inside this section - without
+        // this term the section hides the field renderFieldSchema just made visible.
+        val streamFieldsVisible = isStream && visibleKeys.contains(ResourceFieldKey.PATH)
 
         val shouldShowConnectionSection = localFieldsVisible ||
             networkFieldsVisible ||
             cloudFieldsVisible ||
+            streamFieldsVisible ||
             isNetwork ||
             isCloud
+
+        Timber.d("S2225: connection section for %s visible=%b", type, shouldShowConnectionSection)
 
         binding.cardConnectionSettings.isVisible = shouldShowConnectionSection
         binding.headerConnectionSettings.isVisible = shouldShowConnectionSection
@@ -744,13 +799,19 @@ class ResourceEditorFragment : Fragment() {
         val isLocal = type == ResourceType.LOCAL
         val isNetwork = type == ResourceType.SMB || type == ResourceType.SFTP || type == ResourceType.FTP
         val isCloud = type == ResourceType.CLOUD
+        val isStream = type == ResourceType.HTTP_STREAM || type == ResourceType.RTSP_STREAM
 
-        binding.groupLocal.isVisible = isLocal
+        binding.groupLocal.isVisible = isLocal || isStream
         binding.groupNetwork.isVisible = isNetwork
         binding.groupCloud.isVisible = isCloud
 
         binding.tilName.isVisible = visibleKeys.contains(ResourceFieldKey.NAME)
-        binding.tilPath.isVisible = isLocal && visibleKeys.contains(ResourceFieldKey.PATH)
+        binding.tilPath.isVisible = (isLocal || isStream) && visibleKeys.contains(ResourceFieldKey.PATH)
+        if (isStream) {
+            binding.tilPath.hint = getString(R.string.streams_add_url_hint)
+        } else if (isLocal) {
+            binding.tilPath.hint = getString(R.string.hint_folder_path)
+        }
         binding.tilServerPath.isVisible = isNetwork && visibleKeys.contains(ResourceFieldKey.PATH)
 
         binding.tilHost.isVisible = isNetwork && visibleKeys.contains(ResourceFieldKey.HOST)
@@ -768,18 +829,7 @@ class ResourceEditorFragment : Fragment() {
         updateMediaTypesSectionVisibility()
 
         // Scanning section (collapsible header + content)
-        val hasScanSettings = visibleKeys.contains(ResourceFieldKey.SCAN_SUBDIRECTORIES) ||
-            visibleKeys.contains(ResourceFieldKey.ALL_FILES) ||
-            visibleKeys.contains(ResourceFieldKey.DISABLE_THUMBNAILS) ||
-            visibleKeys.contains(ResourceFieldKey.REMEMBER_FILE_LIST)
-        binding.cardScanning.isVisible = hasScanSettings
-        binding.headerScanning.isVisible = hasScanSettings
-        binding.cbScanSubdirectories.isVisible = visibleKeys.contains(ResourceFieldKey.SCAN_SUBDIRECTORIES)
-        binding.cbAllFiles.isVisible = visibleKeys.contains(ResourceFieldKey.ALL_FILES)
-        binding.cbDisableThumbnails.isVisible = visibleKeys.contains(ResourceFieldKey.DISABLE_THUMBNAILS)
-        binding.cbShowHiddenFiles.isVisible = visibleKeys.contains(ResourceFieldKey.SHOW_HIDDEN_FILES)
-        binding.cbShowSubfoldersAsItems.isVisible = visibleKeys.contains(ResourceFieldKey.SHOW_SUBFOLDERS_AS_ITEMS)
-        binding.cbRememberFileList.isVisible = hasScanSettings
+        renderScanningSection(visibleKeys)
 
         // Destination section (collapsible header + content)
         val hasDestination = visibleKeys.contains(ResourceFieldKey.IS_DESTINATION) ||
@@ -810,6 +860,21 @@ class ResourceEditorFragment : Fragment() {
             binding.cardDestination.isVisible = false
             binding.headerDestination.isVisible = false
         }
+    }
+
+    private fun renderScanningSection(visibleKeys: Set<ResourceFieldKey>) {
+        val hasScanSettings = visibleKeys.contains(ResourceFieldKey.SCAN_SUBDIRECTORIES) ||
+            visibleKeys.contains(ResourceFieldKey.ALL_FILES) ||
+            visibleKeys.contains(ResourceFieldKey.DISABLE_THUMBNAILS) ||
+            visibleKeys.contains(ResourceFieldKey.REMEMBER_FILE_LIST)
+        binding.cardScanning.isVisible = hasScanSettings
+        binding.headerScanning.isVisible = hasScanSettings
+        binding.cbScanSubdirectories.isVisible = visibleKeys.contains(ResourceFieldKey.SCAN_SUBDIRECTORIES)
+        binding.cbAllFiles.isVisible = visibleKeys.contains(ResourceFieldKey.ALL_FILES)
+        binding.cbDisableThumbnails.isVisible = visibleKeys.contains(ResourceFieldKey.DISABLE_THUMBNAILS)
+        binding.cbShowHiddenFiles.isVisible = visibleKeys.contains(ResourceFieldKey.SHOW_HIDDEN_FILES)
+        binding.cbShowSubfoldersAsItems.isVisible = visibleKeys.contains(ResourceFieldKey.SHOW_SUBFOLDERS_AS_ITEMS)
+        binding.cbRememberFileList.isVisible = hasScanSettings
     }
 
     private fun renderFieldStates(fieldStates: Map<ResourceFieldKey, ResourceFieldState>) {

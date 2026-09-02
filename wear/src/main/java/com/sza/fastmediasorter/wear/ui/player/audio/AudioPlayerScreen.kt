@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Pause
@@ -26,6 +28,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -36,7 +39,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
@@ -52,7 +54,6 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
-import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
@@ -63,9 +64,10 @@ import coil.compose.rememberAsyncImagePainter
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.StreamChannelReason
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
-import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.WaveParticleBackground
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandButton
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerSeekActions
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
 import timber.log.Timber
 
@@ -75,17 +77,10 @@ private const val ANIMATION_SCRIM_ALPHA = 0.37f
 /** A cover artwork made 33% more visible per S1866, keeping text readable. */
 private const val COVER_SCRIM_ALPHA = 0.47f
 
-/**
- * Wear OS asks for a 48.dp press target and these buttons were drawn at 36.dp, which is below it.
- * Wear Compose 1.2.1 has no way to enlarge a press target without enlarging the button - the
- * modifier that does it on the phone lives in a Material library this module deliberately does not
- * depend on - so the buttons grow instead, and the row keeps its width by spacing them tighter.
- */
-private val CONTROL_BUTTON_SIZE = 48.dp
 private val CONTROL_ROW_SPACING = 4.dp
 
-/** S1701: the glyph inside the 48.dp press target - the target is the reach, the icon is the read. */
-private val CONTROL_ICON_SIZE = 24.dp
+/** The error glyph is a mark, not a command, so it carries no press target. */
+private val ERROR_GLYPH_SIZE = 48.dp
 
 /**
  * S1701: the bar is drawn thin but grabbed over a taller strip - a 4.dp target on a watch is missed
@@ -158,7 +153,11 @@ fun AudioPlayerScreen(
                         onSkipPrevious = viewModel::skipToPrevious,
                         onToggleDimmed = viewModel::toggleDimmed,
                         onToggleShuffle = viewModel::toggleShuffle,
-                        onSeekTo = viewModel::seekTo
+                        seek = PlayerSeekActions(
+                            onSeekTo = viewModel::seekTo,
+                            onSeekBackward = viewModel::seekBackward,
+                            onSeekForward = viewModel::seekForward
+                        )
                     )
                 )
             }
@@ -198,7 +197,7 @@ private data class AudioPlayerActions(
     val onSkipPrevious: () -> Unit,
     val onToggleDimmed: () -> Unit,
     val onToggleShuffle: () -> Unit,
-    val onSeekTo: (Long) -> Unit
+    val seek: PlayerSeekActions
 )
 
 @Composable
@@ -254,7 +253,7 @@ private fun AudioPlayerContent(
                 duration = uiState.durationFormatted,
                 progress = uiState.progress,
                 durationMs = uiState.durationMs,
-                onSeekTo = actions.onSeekTo
+                onSeekTo = actions.seek.onSeekTo
             )
         }
         item {
@@ -264,7 +263,8 @@ private fun AudioPlayerContent(
                 onPlayPause = actions.onPlayPause,
                 onSkipNext = actions.onSkipNext,
                 onSkipPrevious = actions.onSkipPrevious,
-                onToggleShuffle = actions.onToggleShuffle
+                onToggleShuffle = actions.onToggleShuffle,
+                seek = actions.seek
             )
         }
         item {
@@ -362,6 +362,14 @@ private fun PlayerBackground(
     albumArtUrl: String?,
     isPlaying: Boolean
 ) {
+    // S2000: this screen used to sit on the navigation host's black fill, which the app-wide
+    // background layer replaced. It paints its own now, so what follows is unchanged by whatever
+    // the owner chose as the app background.
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+    )
     val painter = albumArtUrl?.let { rememberAsyncImagePainter(model = it) }
     if (painter != null) {
         Image(
@@ -376,6 +384,8 @@ private fun PlayerBackground(
     // screen, because a non-null uri had been read as "there is a cover". So the fallback is the uri
     // failing to produce an image, not the uri being absent.
     val coverShown = painter?.state is AsyncImagePainter.State.Success
+    // S2000: this screen remains the sole drawer of the animation here - WearAppBackground draws it
+    // behind every other screen and is covered by the opaque fill above, so it is never drawn twice.
     if (!coverShown) {
         WaveParticleBackground(
             modifier = Modifier.fillMaxSize(),
@@ -489,10 +499,15 @@ private fun PlaybackControls(
     onPlayPause: () -> Unit,
     onSkipNext: () -> Unit,
     onSkipPrevious: () -> Unit,
-    onToggleShuffle: () -> Unit
+    onToggleShuffle: () -> Unit,
+    seek: PlayerSeekActions
 ) {
     val previousDesc = stringResource(R.string.wear_previous_file)
     val nextDesc = stringResource(R.string.wear_next_file)
+    // S2140: seeking came back to this row as a long press. The two labels are what TalkBack reads
+    // instead of "double tap and hold", so the second command on these buttons is discoverable.
+    val seekBackwardDesc = stringResource(R.string.wear_seek_backward)
+    val seekForwardDesc = stringResource(R.string.wear_seek_forward)
     // The description names the action the press performs, and it changes with the state, so a screen
     // reader announces playing versus paused - the icon alone states it only to someone looking.
     val playPauseDesc = stringResource(if (isPlaying) R.string.pause else R.string.play)
@@ -504,30 +519,36 @@ private fun PlaybackControls(
         horizontalArrangement = Arrangement.spacedBy(CONTROL_ROW_SPACING),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        ControlButton(
+        PlayerCommandButton(
             onClick = onSkipPrevious,
             icon = Icons.Filled.SkipPrevious,
-            description = previousDesc
+            contentDescription = previousDesc,
+            onLongClick = seek.onSeekBackward,
+            onLongClickLabel = seekBackwardDesc
         )
 
-        ControlButton(
+        PlayerCommandButton(
             onClick = onPlayPause,
             icon = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-            description = playPauseDesc,
-            highlighted = true
+            contentDescription = playPauseDesc,
+            checked = true
         )
 
-        ControlButton(
+        PlayerCommandButton(
             onClick = onSkipNext,
             icon = Icons.Filled.SkipNext,
-            description = nextDesc
+            contentDescription = nextDesc,
+            onLongClick = seek.onSeekForward,
+            onLongClickLabel = seekForwardDesc
         )
 
-        ControlButton(
+        PlayerCommandButton(
             onClick = onToggleShuffle,
-            icon = Icons.Filled.Shuffle,
-            description = shuffleDesc,
-            highlighted = isShuffleEnabled
+            // The two orders differ in shape, not only in tint: a state told apart by colour alone is
+            // not told apart on a watch at arm's length.
+            icon = if (isShuffleEnabled) Icons.Filled.Shuffle else Icons.AutoMirrored.Filled.ArrowForward,
+            contentDescription = shuffleDesc,
+            checked = isShuffleEnabled
         )
     }
 }
@@ -552,11 +573,11 @@ private fun SecondaryControls(
         horizontalArrangement = Arrangement.spacedBy(CONTROL_ROW_SPACING),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        ControlButton(
+        PlayerCommandButton(
             onClick = onToggleFavorite,
             icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-            description = favoriteDesc,
-            highlighted = isFavorite
+            contentDescription = favoriteDesc,
+            checked = isFavorite
         )
 
         ScreenOffButton(onToggleDimmed = onToggleDimmed)
@@ -573,44 +594,11 @@ private fun SecondaryControls(
 private fun ScreenOffButton(onToggleDimmed: () -> Unit) {
     val screenOffDesc = stringResource(R.string.wear_screen_off)
 
-    RectangularButton(
-        onClick = {
-            Timber.d("S1865: screen-off action tapped from secondary controls")
-            onToggleDimmed()
-        },
-        modifier = Modifier.size(CONTROL_BUTTON_SIZE),
-        colors = ButtonDefaults.secondaryButtonColors()
-    ) {
-        Text(
-            text = "🌙",
-            style = MaterialTheme.typography.body2,
-            modifier = Modifier.semantics { contentDescription = screenOffDesc }
-        )
-    }
-}
-
-@Composable
-private fun ControlButton(
-    onClick: () -> Unit,
-    icon: ImageVector,
-    description: String,
-    highlighted: Boolean = false
-) {
-    RectangularButton(
-        onClick = onClick,
-        modifier = Modifier.size(CONTROL_BUTTON_SIZE),
-        colors = if (highlighted) {
-            ButtonDefaults.primaryButtonColors()
-        } else {
-            ButtonDefaults.secondaryButtonColors()
-        }
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = description,
-            modifier = Modifier.size(CONTROL_ICON_SIZE)
-        )
-    }
+    PlayerCommandButton(
+        onClick = onToggleDimmed,
+        icon = Icons.Filled.DarkMode,
+        contentDescription = screenOffDesc
+    )
 }
 
 @Composable
@@ -618,9 +606,11 @@ private fun ErrorContent(message: String) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "⚠️",
-            style = MaterialTheme.typography.display2
+        Icon(
+            imageVector = Icons.Filled.Warning,
+            contentDescription = message,
+            tint = MaterialTheme.colors.error,
+            modifier = Modifier.size(ERROR_GLYPH_SIZE)
         )
         Text(
             text = message,

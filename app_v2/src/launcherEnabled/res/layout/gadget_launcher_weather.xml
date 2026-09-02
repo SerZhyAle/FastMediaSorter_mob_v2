@@ -83,17 +83,6 @@
                 tools:text="Weather is unavailable right now"
                 tools:visibility="visible" />
 
-            <!-- CC-BY 4.0 obliges us to name the source; it is part of the gadget, not a debug label. -->
-            <TextView
-                android:id="@+id/gadgetWeatherAttribution"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="2"
-                android:text="@string/launcher_gadget_weather_attribution"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                android:textSize="9sp" />
-
         </LinearLayout>
 
     </LinearLayout>

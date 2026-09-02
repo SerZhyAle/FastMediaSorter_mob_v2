@@ -95,6 +95,11 @@ class LauncherGadgetRegistry @Inject constructor(
         // S1175: same contract - the key is what a cell's `target` column stores, so it is never renamed.
         const val KEY_MAP = "map"
 
+        // S2241 & S2285: Google interactive live frame desktop gadgets
+        const val KEY_GOOGLE_MAPS_LIVE = "google_maps_live"
+        const val KEY_GOOGLE_KEEP_LIVE = "google_keep_live"
+        const val KEY_GOOGLE_CALENDAR_LIVE = "google_calendar_live"
+
         // S1177: same contract once more - this key is the stored `target` of a translator cell.
         const val KEY_TRANSLATOR = "translator"
 
@@ -123,6 +128,22 @@ class LauncherGadgetRegistry @Inject constructor(
         const val KEY_MEDIA_VIDEO_WINDOW = "media_video_window"
         const val KEY_MEDIA_DOCUMENT_WINDOW = "media_document_window"
         const val KEY_MEDIA_IMAGE_WINDOW = "media_image_window"
+
+        // S2031: one channel of the stream catalog, played inside its own cell. Same contract as every
+        // key above - this is what a cell's `target` column stores, so it is never renamed.
+        const val KEY_STREAM_WINDOW = "stream_window"
+
+        // S1906: one remote time zone, shown beside the local clock. Same contract - the key is the
+        // stored `target`, so it is never renamed. Deliberately not [KEY_CLOCK]: that cell shows the
+        // system zone by contract, and reusing its key would retarget every clock already placed.
+        const val KEY_WORLD_CLOCK = "world_clock"
+
+        // S1930: the two home-screen widgets whose cell owns a configured instance. Same contract as
+        // every key above - this is what a cell's `target` column stores, so it is never renamed - and
+        // both spell the `gadgetKey` HomeWidgetCatalog already publishes for them, so the desktop cell
+        // and its home-screen twin answer to one name.
+        const val KEY_RANDOM_PHOTO_FRAME = "random_photo_frame"
+        const val KEY_CAMERA_QUICK_CAPTURE = "camera_quick_capture"
 
         private const val SEPARATOR = ':'
     }

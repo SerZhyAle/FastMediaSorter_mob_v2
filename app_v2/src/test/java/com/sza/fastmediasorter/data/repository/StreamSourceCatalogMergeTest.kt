@@ -3,6 +3,8 @@ package com.sza.fastmediasorter.data.repository
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.util.StreamChannelIdentity
 import com.sza.fastmediasorter.testing.InMemoryRoomRule
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -46,6 +48,9 @@ class StreamSourceCatalogMergeTest {
         dao,
         dbRule.db.streamQualityMemoryDao(),
         dbRule.db.streamUserStateDao(),
+        // The catalog snapshot shares WhileSubscribed, so an unconfined scope with no collector
+        // starts nothing; these cases exercise the DAO path, not the snapshot.
+        CoroutineScope(Dispatchers.Unconfined),
     )
 
     @Test

@@ -22,6 +22,9 @@ param()
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+if ([string]::IsNullOrWhiteSpace($env:CLAUDE_CODE_SESSION_ID)) {
+    $env:CLAUDE_CODE_SESSION_ID = 'test-suite-session'
+}
 
 # Three levels up: device-lease.tests -> devtest -> scripts -> repo root.
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..' '..' '..')).Path

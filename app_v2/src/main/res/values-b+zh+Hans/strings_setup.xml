@@ -170,5 +170,13 @@
     <string name="welcome_role_sources_detail_cloud_only">设备存储、Google 云端硬盘、OneDrive、Dropbox</string>
     <string name="welcome_role_sources_detail_local_only">内部存储和 SD 卡</string>
     <string name="welcome_role_sorting_detail">一次点按就把文件送进它该去的文件夹</string>
-    <string name="welcome_role_more_detail">直播流、相机等等 - 一个应用抵得上许多个</string>
+    <string name="welcome_role_more_detail">相机、小部件、小工具等 - 一个应用取代多个</string>
+    <string name="welcome_description_1_shell">不只是媒体应用 - 而是设备的完整外壳。\n主屏幕、播放器、文件管理器、直播流和远程存储集于一处。</string>
+    <string name="welcome_description_1_details_shell">FastMediaSorter 可以掌管整台设备：带有你的应用、小部件和快捷方式的主屏幕，照片、视频、音乐和图书的播放器，本地、网络和云存储的文件管理器，互联网直播流以及 Wear OS 手表配套应用 - 在这一切之上，还有轻点即可完成的快速整理。\n\n想把它设为主屏幕吗？打开上面的开关，系统会在设置完成后请你确认。此屏幕上的所有选择以后都能在设置中更改，所以这里没有错误的选择 - 直接点击下一步继续即可。</string>
+    <string name="welcome_role_home_screen">主屏幕</string>
+    <string name="welcome_role_home_screen_detail">取代启动器掌管设备 - 应用、小部件和媒体触手可及</string>
+    <string name="welcome_role_streams">直播流</string>
+    <string name="welcome_role_streams_detail">来自现成目录的网络电台、电视和视频频道</string>
+    <string name="welcome_role_wear">手表应用</string>
+    <string name="welcome_role_wear_detail">Wear OS 配套应用 - 在手腕上浏览和播放</string>
 </resources>

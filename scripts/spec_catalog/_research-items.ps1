@@ -32,6 +32,20 @@ function Get-ResearchSectionHeadingPattern {
     )
 }
 
+function Get-AuditSectionHeadingPattern {
+    # Heading spellings that mean "the verdict of the last audit" - the block /spec-check
+    # writes and the only place a Verified ticket's proof lives (S2298).
+    #
+    # Matched against heading TEXT for the same reason the research pattern is: live specs
+    # number their headings, and `## 6. Last Audit` is a real spelling on disk. A literal
+    # '## Last Audit' test misses it - which is how S2226 was counted as an unaudited
+    # closure it was not, and how preview.ps1 reported last_audit_present = false for a
+    # spec that carries the block.
+    return @(
+        '(?i)\bLast\s+Audit\b'
+    )
+}
+
 function Get-OpenStatusPattern {
     # The status line of an item still open. Nine spellings occur in live specs:
     # bold and bare markers, both languages, with or without a trailing colon, and

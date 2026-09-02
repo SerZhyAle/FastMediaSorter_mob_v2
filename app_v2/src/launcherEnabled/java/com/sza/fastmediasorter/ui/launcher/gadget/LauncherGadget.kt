@@ -11,9 +11,11 @@ import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 /**
  * S0404: one kind of interactive block the user can place on the desktop (ADR-5 - our own views only,
@@ -41,6 +43,14 @@ interface LauncherGadget {
 
     @get:DrawableRes
     val iconRes: Int
+
+    /**
+     * True when [iconRes] is a flat single-colour glyph meant to inherit the surrounding theme's colour
+     * (S2062), as opposed to a branded or multi-colour icon (a YouTube logo, an `_accent` widget glyph)
+     * that a tint would flatten to one colour. Defaults to false so every gadget stays untinted unless
+     * its own drawable is confirmed a plain white/constant-filled vector.
+     */
+    val iconTintable: Boolean get() = false
 
     /** True when the gadget is meaningless without a resource picked at add time (Phase 07). */
     val requiresResourceParam: Boolean
@@ -88,6 +98,9 @@ abstract class LauncherGadgetView @JvmOverloads constructor(
 
     private var activeJob: Job? = null
 
+    /** The renderer replaces this cell with its failed-gadget state after asynchronous work fails. */
+    var onFailure: (() -> Unit)? = null
+
     /**
      * Runs while attached and STARTED; cancelled on detach or stop, and restarted on the next
      * attach/start. Loading here (rather than in the constructor) is what keeps Home cheap - a gadget
@@ -101,12 +114,28 @@ abstract class LauncherGadgetView @JvmOverloads constructor(
         val owner = findViewTreeLifecycleOwner() ?: return
         activeJob = owner.lifecycleScope.launch {
             owner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                onActive()
+                // A failing gadget may cost its own cell and nothing more (S2208). This view is part of
+                // the home screen, so an exception escaping here kills the process the system restarts
+                // as HOME, which crash-loops the whole device until the desktop is edited - and the
+                // desktop cannot be edited while the launcher keeps dying (S2207 did exactly that).
+                try {
+                    Timber.d("S2261: gadget active loop started for ${javaClass.simpleName}")
+                    onActive()
+                } catch (cancellation: CancellationException) {
+                    throw cancellation
+                    // Deliberately every throwable: an isolation boundary that enumerated exception
+                    // types would let the one it did not list through, which is the crash-loop again.
+                } catch (@Suppress("TooGenericExceptionCaught") failure: Throwable) {
+                    Timber.e(failure, "Gadget ${javaClass.simpleName} failed; cell left inert")
+                    Timber.d("S2208: ${javaClass.simpleName} active work failed")
+                    onFailure?.invoke()
+                }
             }
         }
     }
 
     override fun onDetachedFromWindow() {
+        Timber.d("S2261: gadget active loop stopped for ${javaClass.simpleName}")
         activeJob?.cancel()
         activeJob = null
         super.onDetachedFromWindow()

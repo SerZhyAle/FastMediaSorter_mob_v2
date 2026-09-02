@@ -57,7 +57,10 @@ function Resolve-Targets {
     param([string]$ForArea)
     $files = [System.Collections.Generic.List[System.IO.FileInfo]]::new()
     if ($Path) {
-        foreach ($p in $Path) {
+        # `pwsh -File` binds a quoted CSV as one string instead of a string array. Accept the
+        # same comma-delimited form as the paired docs gate so release workflow snippets can pass
+        # an explicit mirror set without depending on the caller shell's array syntax.
+        foreach ($p in ($Path | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })) {
             $full = if ([System.IO.Path]::IsPathRooted($p)) { $p } else { Join-Path $repoRoot $p }
             if (-not (Test-Path -LiteralPath $full)) {
                 Write-Error "fix-house-style: path not found: $p" -ErrorAction Continue

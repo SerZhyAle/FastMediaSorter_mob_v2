@@ -8,20 +8,21 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import androidx.wear.compose.foundation.lazy.AutoCenteringParams
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.items
@@ -29,25 +30,28 @@ import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
-import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.LocalContentColor
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.HomeSection
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionId
+import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
+import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
+import com.sza.fastmediasorter.wear.ui.common.WearListMetrics
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.rememberCloseAppAction
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.icon.WearResourceIconRegistry
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
-private val CELL_ICON_SIZE = 24.dp
-private val TITLE_VERTICAL_PADDING = 16.dp
 
 @Composable
 fun HomeScreen(
@@ -55,9 +59,13 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     Timber.d("HomeScreen composing")
+    Timber.d("S2003: home - no app-name header, opens centred on the first navigation tile")
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val listState = rememberScalingLazyListState()
+    val listState = rememberScalingLazyListState(initialCenterItemIndex = 0)
+    // Resolved here rather than inside the item slot: a slot is not the screen's remember scope, so
+    // the action would be rebuilt every time the bar scrolls back into composition.
+    val closeApp = rememberCloseAppAction()
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -68,25 +76,21 @@ fun HomeScreen(
         // name - a narrow round watch cannot give three columns a 48 dp target (strategic ADR-2).
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val columns = GridColumnFit.columnsFor(uiState.viewMode, maxWidth.value.toInt())
-            Timber.d("S1970: home grid columns=$columns, cells shrink toward the round edge")
-            Timber.d("S1974: home columns=$columns, shortcuts=${uiState.lastUsedResources.size}")
             ScalingLazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = listState,
                 contentPadding = wearScreenInsets(),
-                scalingParams = WearGridScalingParams
+                scalingParams = WearGridScalingParams,
+                // One setting written twice: the state index says where to open, this says which
+                // index may reach the centre at all. AutoCenteringParams defaults to 1 and pads
+                // nothing below it, so setting the state alone leaves the request unhonoured.
+                //
+                // Top space is owned by autoCentering, but not exclusively: wearScreenInsets()
+                // is a uniform inset on a round display, so its top share stacks on top of the
+                // centring padding. Whether that stack is visible is a round-display measurement
+                // (S2003 §3.3), so no number is guessed here - the device pass settles it.
+                autoCentering = AutoCenteringParams(itemIndex = 0)
             ) {
-                item {
-                    Text(
-                        text = stringResource(R.string.app_name),
-                        style = MaterialTheme.typography.title2,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = TITLE_VERTICAL_PADDING),
-                        textAlign = TextAlign.Center
-                    )
-                }
-
                 lastUsedItems(
                     shortcuts = uiState.lastUsedResources,
                     columns = columns,
@@ -101,7 +105,8 @@ fun HomeScreen(
 
                 item {
                     HomeCommandBar(
-                        onSettingsClick = { navController.navigate(WearRoutes.SETTINGS) }
+                        onSettingsClick = { navController.navigate(WearRoutes.SETTINGS) },
+                        onCloseClick = closeApp
                     )
                 }
             }
@@ -165,14 +170,16 @@ private fun HomeSectionChip(
     onClick: () -> Unit
 ) {
     val label = section.dynamicLabel ?: stringResource(section.labelRes)
+    val glyph = glyphFor(section)
     Chip(
         onClick = onClick,
         label = { Text(text = label) },
         icon = {
             Icon(
-                painter = painterResource(iconFor(section.id)),
+                painter = painterResource(glyph.painterRes),
                 contentDescription = label,
-                modifier = Modifier.size(CELL_ICON_SIZE)
+                modifier = Modifier.size(WearListMetrics.LeadingIconNormal),
+                tint = if (glyph.ownsItsColour) Color.Unspecified else LocalContentColor.current
             )
         },
         // A section announces its own name - the dynamic resource name where it has one - so the
@@ -227,13 +234,73 @@ private fun HomeSectionCell(
         caption = label,
         onClick = onClick,
         modifier = modifier
-    ) {
+    ) { glyphModifier ->
+        val glyph = glyphFor(section)
         Icon(
-            painter = painterResource(iconFor(section.id)),
+            painter = painterResource(glyph.painterRes),
             contentDescription = null,
-            modifier = Modifier.size(CELL_ICON_SIZE)
+            modifier = glyphModifier,
+            tint = if (glyph.ownsItsColour) {
+                Color.Unspecified
+            } else {
+                sectionTint(contentTypeFor(section.id))
+            }
         )
     }
+}
+
+/**
+ * What a section draws in its icon slot: a vector plus whether that vector owns its colour.
+ *
+ * S2129: the last-used entries used to share one history glyph, so two or three recent resources
+ * were impossible to tell apart on a small screen. A resource's own vector is coloured already, and
+ * tinting it would repaint the very thing that distinguishes one row from the next.
+ */
+private data class SectionGlyph(@DrawableRes val painterRes: Int, val ownsItsColour: Boolean)
+
+/**
+ * The resource's own icon where the section carries one, otherwise the fixed glyph its id names.
+ *
+ * Only the last-used entries ever carry an icon id, so every other section reaches the fixed switch
+ * with no special case, and an id this build does not have falls back there too.
+ */
+private fun glyphFor(section: HomeSection): SectionGlyph =
+    WearResourceIconRegistry.resolveDrawable(section.iconId)
+        ?.let { SectionGlyph(it, ownsItsColour = true) }
+        ?: SectionGlyph(iconFor(section.id), ownsItsColour = false)
+
+/**
+ * The semantic tone for a section glyph, or none when the painter already carries its own colour.
+ *
+ * The guard is [ContentTypeCatalog.isMonochrome] rather than an unconditional tint: an already
+ * coloured vector must keep what it has, which is exactly the favourites star's case.
+ */
+@Composable
+private fun sectionTint(type: WearContentType?): Color =
+    if (type != null && ContentTypeCatalog.isMonochrome(type)) {
+        colorResource(ContentTypeCatalog.tintFor(type))
+    } else {
+        Color.Unspecified
+    }
+
+/**
+ * Which content type a home section stands for, or null when it stands for none.
+ *
+ * This screen lists origins, not content types, so only streams names one outright. The rest take
+ * the catalog's `OTHER` tone, which is the umbrella the catalog already documents for "a source
+ * registered in this app" - the same reading that gave the Resources section its glyph.
+ *
+ * Favourites is null deliberately: `ic_resource_favorites` is a fixed amber badge with no tint hook,
+ * so a semantic tone would repaint the star (strategic §11 criterion 7).
+ */
+private fun contentTypeFor(id: HomeSectionId): WearContentType? = when (id) {
+    HomeSectionId.FAVOURITES -> null
+    HomeSectionId.STREAMS -> WearContentType.STREAM
+    HomeSectionId.LAST_USED_RESOURCE,
+    HomeSectionId.RESOURCES,
+    HomeSectionId.PHONE,
+    HomeSectionId.LOCAL,
+    HomeSectionId.APPS -> WearContentType.OTHER
 }
 
 /**

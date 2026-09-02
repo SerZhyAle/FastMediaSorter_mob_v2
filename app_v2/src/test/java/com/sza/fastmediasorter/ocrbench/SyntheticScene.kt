@@ -42,6 +42,7 @@ object SyntheticScene {
         darkPanel(),
         longTranslationInTightBox(),
         uniformMultilineText(),
+        lineWithVariedWordHeights(),
     )
 
     /** A line whose box is stretched by one tall stroke - the defect S1711 fixed, kept as a guard. */
@@ -146,6 +147,60 @@ object SyntheticScene {
             )
         )
     }
+
+    /**
+     * S2036: one line whose four words genuinely differ in height, so the height-relation axes have a
+     * response on reproducible material.
+     *
+     * The four heights are authored, which is exactly why this scene can never answer the question the
+     * axes exist for - it measures the author, not our material. It is here to prove the arithmetic
+     * runs and to keep the axes from having "unmeasured" as their only observed value.
+     */
+    fun lineWithVariedWordHeights(): Built {
+        val bitmap = blankScene(Color.WHITE)
+        val canvas = Canvas(bitmap)
+        val lineBox = Rect(MARGIN, MARGIN, MARGIN + VARIED_LINE_WIDTH, MARGIN + LINE_HEIGHT)
+        val words = VARIED_WORDS.map { word ->
+            val box = Rect(
+                MARGIN + word.leftOffset,
+                MARGIN + word.topInset,
+                MARGIN + word.leftOffset + word.width,
+                MARGIN + word.topInset + word.height,
+            )
+            drawTextIn(canvas, word.text, box, BODY_TEXT_SIZE, Color.BLACK)
+            AnnotatedWord(word.text, box)
+        }
+        return Built(
+            bitmap,
+            annotation(
+                id = "line-with-varied-word-heights",
+                textAreas = listOf(TextArea(VARIED_WORDS.joinToString(" ") { it.text }, lineBox, words)),
+                paintable = listOf(PaintableArea(lineBox)),
+            )
+        )
+    }
+
+    /** Authored geometry of one word of [lineWithVariedWordHeights], relative to the scene margin. */
+    private data class VariedWord(
+        val text: String,
+        val leftOffset: Int,
+        val width: Int,
+        val topInset: Int,
+        val height: Int,
+    )
+
+    private const val VARIED_LINE_WIDTH = 360
+
+    /**
+     * Heights 30, 26, 18 and 40 - median 28, maximum 40. Median and maximum differ on purpose: an axis
+     * that aggregated one where it meant the other would still pass on a scene where they coincide.
+     */
+    private val VARIED_WORDS = listOf(
+        VariedWord(text = "Big", leftOffset = 0, width = 90, topInset = 8, height = 30),
+        VariedWord(text = "gyp", leftOffset = 100, width = 90, topInset = 16, height = 26),
+        VariedWord(text = "xx", leftOffset = 200, width = 60, topInset = 16, height = 18),
+        VariedWord(text = "Ej", leftOffset = 270, width = 70, topInset = 4, height = 40),
+    )
 
     private const val UNIFORM_LINE_COUNT = 4
     private const val UNIFORM_LINE_GAP = 16

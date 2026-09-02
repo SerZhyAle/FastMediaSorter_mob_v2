@@ -33,7 +33,7 @@ import org.robolectric.annotation.Config
 @Config(sdk = [33])
 class PermissionRegistryManifestParityTest {
 
-    private val repo = PermissionRegistryRepositoryImpl()
+    private val repo = permissionRegistry()
 
     private fun declaredPermissions(): Set<String> {
         val context = RuntimeEnvironment.getApplication()

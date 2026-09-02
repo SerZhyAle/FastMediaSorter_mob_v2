@@ -114,7 +114,6 @@ class NetworkStateMonitor @Inject constructor(
             }
             if (linkSignature != lastLoggedLinkSignature) {
                 lastLoggedLinkSignature = linkSignature
-                Timber.d("S1892: link-properties gate passed iface=%s", linkProperties.interfaceName)
                 Timber.d("NetworkStateMonitor: Link properties changed - ${linkProperties.interfaceName}")
             }
             handleNetworkChange(network)

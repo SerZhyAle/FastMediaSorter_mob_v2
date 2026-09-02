@@ -7,10 +7,12 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.graphics.drawable.Icon
 import android.os.Build
 import android.util.Rational
 import android.widget.ImageButton
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -21,9 +23,9 @@ import timber.log.Timber
 /**
  * Manages Picture-in-Picture mode for PlayerActivity and StandalonePlayerActivity.
  *
- * Scope: Android 12+ (API 31+) only.
+ * Scope: Android 8+ (API 26+); auto-enter on leaving the activity is API 31+ only.
  * - Auto-enter PiP on home button press (when video playing)
- * - PiP button in custom controls (hidden on API < 31)
+ * - PiP button in custom controls (hidden where the platform has no PiP)
  * - Remote actions: play/pause
  * - UI adjustments when entering/exiting PiP
  */
@@ -39,12 +41,23 @@ class PictureInPictureManager(
     private val isVideoPlaying: () -> Boolean
 ) {
     private var pipReceiver: BroadcastReceiver? = null
+    private val savedVisibilities = mutableMapOf<android.view.View, Int>()
 
-    /** Whether PiP is supported on this device (API 31+) */
-    val isSupported: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    /** Whether PiP is supported on this device (API 26+ and system feature present) */
+    val isSupported: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+        activity.packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
 
     /** Current enabled state - updated by [setupPipButton]. */
     var isEnabled: Boolean = false
+        private set
+
+    /**
+     * S2026: whether the host is currently in PiP. Read by the hosts' own overlay-visibility
+     * updaters, which run on state changes and would otherwise re-show chrome this manager hid.
+     * Not derived from `Activity.isInPictureInPictureMode` because that is API 24+ and the legacy
+     * flavor ships minSdk 23.
+     */
+    var isInPipMode: Boolean = false
         private set
 
     companion object {
@@ -80,8 +93,8 @@ class PictureInPictureManager(
      */
     fun enterPictureInPicture() {
         if (!isSupported) return
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            enterPipApi31()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            enterPipApi26()
         }
     }
 
@@ -100,16 +113,22 @@ class PictureInPictureManager(
      */
     fun onPictureInPictureModeChanged(isInPipMode: Boolean) {
         Timber.d("PiPManager: mode changed, isInPip=$isInPipMode")
-
-        chromeToHide.forEach { it.isVisible = !isInPipMode }
+        this.isInPipMode = isInPipMode
 
         if (isInPipMode) {
+            savedVisibilities.clear()
+            chromeToHide.forEach { view ->
+                savedVisibilities[view] = view.visibility
+                view.isVisible = false
+            }
             // Hide ExoPlayer controller in PiP (controlled via remote actions)
-            // Receiver is already registered in enterPipApi31(), but guard with registerPipReceiver()
-            // idempotency check in case system triggers this path without enterPictureInPictureMode().
             playerView.useController = false
             registerPipReceiver()
         } else {
+            chromeToHide.forEach { view ->
+                savedVisibilities[view]?.let { view.visibility = it }
+            }
+            savedVisibilities.clear()
             // Re-enable and explicitly show the controller - useController=true only
             // *permits* showing but does NOT auto-show after being hidden in PiP.
             playerView.useController = true
@@ -123,7 +142,7 @@ class PictureInPictureManager(
      */
     fun updatePipActions() {
         if (!isSupported) return
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             try {
                 val params = buildPipParams()
                 activity.setPictureInPictureParams(params)
@@ -139,21 +158,35 @@ class PictureInPictureManager(
 
     // === Private ===
 
-    @RequiresApi(Build.VERSION_CODES.S)
-    private fun enterPipApi31() {
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun enterPipApi26() {
         try {
+            // S2186: hide the controller BEFORE requesting the mode change, not only inside
+            // onPictureInPictureModeChanged. That callback fires asynchronously after the system
+            // already began the transition, so a controller left visible here gets frozen into
+            // the PiP window at whatever instant ExoPlayer's un-clamped currentPosition ticked -
+            // observed as a time counter/seek-bar past the clip's duration that never updates
+            // again once useController=false stops the controller's refresh loop.
+            playerView.useController = false
+            Timber.d("S2186: controller hidden before PiP mode request")
             // Register receiver BEFORE building params so that the PendingIntents
             // inside RemoteActions are guaranteed to have an active receiver.
             registerPipReceiver()
             val params = buildPipParams()
             activity.enterPictureInPictureMode(params)
             Timber.d("PiPManager: entered PiP mode")
+            Timber.d("S2026: PiP accepted by host ${activity.javaClass.simpleName}, taskId=${activity.taskId}")
         } catch (e: Exception) {
             Timber.e(e, "PiPManager: failed to enter PiP")
+            // S2026: the refusal used to reach the log only, so a tap on the button looked like a dead
+            // control. The platform rejects PiP for whole classes of host - a home-type task above all -
+            // and the user is owed an answer either way.
+            unregisterPipReceiver()
+            Toast.makeText(activity, R.string.pip_enter_failed, Toast.LENGTH_SHORT).show()
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.S)
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun buildPipParams(): PictureInPictureParams {
         val isPlaying = isVideoPlaying()
 
@@ -164,11 +197,15 @@ class PictureInPictureManager(
             if (isPlaying) REQUEST_PAUSE else REQUEST_PLAY
         )
 
-        return PictureInPictureParams.Builder()
+        val builder = PictureInPictureParams.Builder()
             .setAspectRatio(Rational(16, 9))
             .setActions(listOf(playAction))
-            .setAutoEnterEnabled(true)
-            .build()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            builder.setAutoEnterEnabled(true)
+        }
+
+        return builder.build()
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

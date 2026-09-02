@@ -76,9 +76,16 @@ batch, ratcheting the index size down and never up.
 - **Memory must not restate CLAUDE.md or any always-loaded text.** A rule in the preamble is billed
   on every turn already; a memory file repeating it is billed a second time and drifts from the
   original independently.
-- **A memory anchored to a ticket expires with that ticket.** 52% of memory bytes here reference
-  tickets that are Archived or gone from the catalog. The gate reports those files; a memory whose
-  ticket is dead and which no session has re-read is a deletion candidate.
+- **A memory does NOT expire with the ticket that taught it - only its author can say when it
+  expires.** This rule used to read the other way, and the gate used to report every file whose
+  every `Sxxxx` was Archived or absent. S2308 measured that check on this corpus (2026-09-01): it
+  fired on 269 of the 342 ticket-anchored files and 3 of them were genuinely dead, about 1%
+  precision, because a memory is written precisely so its lesson outlives the incident - ticket
+  liveness measures the age of an anchor, not the decay of a claim. Narrowing did not rescue it
+  (`type: project` plus unreachability reached 7%, a vanished `temp/` path 11%). The check was
+  removed and replaced by one that reads the author's own declaration - "delete this memory when
+  ..", "this snapshot decays" - which measured 100%. So: when a memory records a moment rather than
+  a durable fact, write its expiry condition into the file, because nothing else can infer it.
 - **A memory that will not be read is not worth writing.** The corpus is written about 2.3x more
   often than it is consulted, and only ~20% of sessions perform any recall read at all. Write for
   the future session that will hit the same trap, not to record that the work happened.
@@ -86,9 +93,10 @@ batch, ratcheting the index size down and never up.
 Two facts that shape how the rules are applied here, measured rather than assumed
 (`temp/S1338/memory-usage.json`, `scripts/metrics/mine-memory-usage.py`):
 
-- **Only the index is billed per turn.** `MEMORY.md` is injected into every turn; the other ~220
-  files are read on demand. Deleting a detail file therefore saves nothing that is billed and loses
-  the trap it records. Shrink the index; keep the traps.
+- **Only the index is billed per turn.** `MEMORY.md` is injected into every turn; the other files
+  are read on demand - ~220 of them when this was written, 408 on 2026-09-01. Deleting a detail file
+  therefore saves nothing that is billed and loses the trap it records. Shrink the index; keep the
+  traps.
 - **"Never read" is rarer than it looks.** 17.4% of bytes were never read by any session, not 40% -
   the 40% band is "read in at most one session", which is usually just the session that wrote it.
 

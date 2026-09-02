@@ -6,6 +6,9 @@ import android.widget.Toast
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.storage.RestrictedTreeTargetPolicy
 import com.sza.fastmediasorter.core.util.UriPathResolver
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.player.FileOperationsHandler
@@ -43,6 +46,7 @@ class PlayerFolderPickerHandler(
             val settings = try {
                 settingsRepository.getSettings().first()
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 com.sza.fastmediasorter.domain.model.AppSettings()
             }
             pendingOp = PendingOp(operationType, sourceCredentialsId)
@@ -52,7 +56,7 @@ class PlayerFolderPickerHandler(
             try {
                 onLaunchPicker(initialUri)
             } catch (e: Exception) {
-                Timber.e(e, "PlayerFolderPickerHandler: failed to launch folder picker")
+                e.errorUnlessCancellation("PlayerFolderPickerHandler: failed to launch folder picker")
                 Toast.makeText(activity, activity.getString(R.string.error_unknown), Toast.LENGTH_SHORT).show()
                 pendingOp = null
             }
@@ -99,7 +103,7 @@ class PlayerFolderPickerHandler(
                 val current = settingsRepository.getSettings().first()
                 settingsRepository.updateSettings(current.copy(lastSelectedLocalFolder = uri.toString()))
             } catch (e: Exception) {
-                Timber.w(e, "PlayerFolderPickerHandler: failed to save last local folder")
+                e.warnUnlessCancellation("PlayerFolderPickerHandler: failed to save last local folder")
             }
         }
 

@@ -12,6 +12,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.usecase.MergeDrawOverlayUseCase
 import com.sza.fastmediasorter.ui.player.helpers.DrawCropCompositor
@@ -157,7 +158,7 @@ class StandaloneDrawSaveHelper(
                     }
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Standalone draw save failed")
+                e.errorUnlessCancellation("Standalone draw save failed")
                 false
             }
             manager.exitDrawMode(save = false)
@@ -207,7 +208,7 @@ class StandaloneDrawSaveHelper(
                     currentResource = null,
                 )
             } catch (e: Exception) {
-                Timber.e(e, "Standalone draw crop failed")
+                e.errorUnlessCancellation("Standalone draw crop failed")
                 withContext(Dispatchers.Main) {
                     Toast.makeText(activity, R.string.draw_crop_failed, Toast.LENGTH_SHORT).show()
                 }

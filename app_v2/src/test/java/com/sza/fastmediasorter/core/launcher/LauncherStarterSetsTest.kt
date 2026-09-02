@@ -20,8 +20,17 @@ import org.junit.Test
  * exactly what is worth testing here. Pure Kotlin, no Android imports (not launcher UI, so in scope
  * despite the iteration-1 no-UI-tests boundary - same reasoning as the Phase 07 repository tests).
  */
-@Suppress("FunctionNaming") // backtick test names, project convention (cf. LauncherGridGeometryTest)
+@Suppress("FunctionNaming", "LargeClass") // backtick test names, project convention (cf. LauncherGridGeometryTest)
 class LauncherStarterSetsTest {
+
+    /**
+     * S2309: the screen class these cases compose for unless they are about the class itself.
+     *
+     * Medium and wide is the pair the pre-S2309 hardcoded layout was written against, so a case
+     * that predates the second axis keeps asserting the desktop it was written to assert.
+     */
+    private val mediumWide =
+        LauncherScreenClass(LauncherScreenClass.Size.MEDIUM, LauncherScreenClass.Shape.WIDE)
 
     private val allPaddingAvailable = mapOf(
         InternalRouteCatalog.KEY_STREAMS to true,
@@ -30,6 +39,11 @@ class LauncherStarterSetsTest {
         InternalRouteCatalog.KEY_CALCULATOR to true,
         InternalRouteCatalog.KEY_NETWORK_MONITOR to true,
         InternalRouteCatalog.KEY_OCR to true,
+        InternalRouteCatalog.KEY_SCREEN_RECORDING to true,
+        InternalRouteCatalog.KEY_LINK_DOWNLOAD to true,
+        InternalRouteCatalog.KEY_GAME to true,
+        InternalRouteCatalog.KEY_SYSTEM_INFO to true,
+        InternalRouteCatalog.KEY_WEAR_COMPANION to true,
     )
 
     /** The utilities every profile closes with, below the second header. */
@@ -89,7 +103,14 @@ class LauncherStarterSetsTest {
 
     @Test
     fun `every set opens with top unsectioned items and closes with the launcher actions`() {
-        val items = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap(), emptySet())
+        val items = LauncherStarterSets.itemsFor(
+            DeviceProfileType.OTHER,
+            StarterResources(),
+            emptyMap(),
+            emptySet(),
+            screenClass = mediumWide,
+        )
+            .filter { it.screenIndex == 0 }
         assertEquals(
             listOf("clock", "search", "weather", "sec:app_functions") +
                 actionTargets(DeviceProfileType.OTHER) +
@@ -108,7 +129,9 @@ class LauncherStarterSetsTest {
                 StarterResources(recentId = 1),
                 allPaddingAvailable,
                 emptySet(),
+                screenClass = mediumWide,
             )
+            .filter { it.screenIndex == 0 }
             .map { it.target }
         val widgetsHeaderIndex = targets.indexOf("sec:widgets")
         val actionsHeaderIndex = targets.indexOf("sec:app_functions")
@@ -126,7 +149,8 @@ class LauncherStarterSetsTest {
             StarterResources(allAudioId = 7),
             mapOf(InternalRouteCatalog.KEY_STREAMS to true),
             emptySet(),
-        )
+            screenClass = mediumWide,
+        ).filter { it.screenIndex == 0 }
         val actionsHeaderIndex = items.indexOfFirst { it.target == "sec:app_functions" }
         assertFalse(items.drop(actionsHeaderIndex).any { it.kind == LauncherCellKind.GADGET })
     }
@@ -145,7 +169,8 @@ class LauncherStarterSetsTest {
             ),
             allPaddingAvailable,
             emptySet(),
-        )
+            screenClass = mediumWide,
+        ).filter { it.screenIndex == 0 }
         assertEquals(
             listOf(
                 "clock", "search", "weather",
@@ -155,11 +180,13 @@ class LauncherStarterSetsTest {
                 "res:4:BROWSE", "res:5:BROWSE", "res:6:BROWSE",
                 // S1913: listed rather than folded into sectionTail(), which has no padding cells by
                 // construction. This assertion is named "and padding set" and is called with
-                // allPaddingAvailable, so commonFeatures emits all six - the helper silently dropped
+                // allPaddingAvailable, so commonFeatures emits every key - the helper silently dropped
                 // them when the flat tail was refactored away, which is what made this test red.
                 "sec:app_functions",
                 "fn:streams", "fn:quick_camera", "fn:quick_voice",
                 "fn:calculator", "fn:network_monitor", "fn:ocr",
+                // S2019: the five programs the seed used to leave out of the App-functions section.
+                "fn:screen_recording", "fn:link_download", "fn:game", "fn:system_info", "fn:wear_companion",
             ) + actionTargets(DeviceProfileType.PERSONAL_SMARTPHONE) + commonTail,
             items.map { it.target },
         )
@@ -172,7 +199,8 @@ class LauncherStarterSetsTest {
             StarterResources(recentId = 1),
             mapOf(InternalRouteCatalog.KEY_CALCULATOR to true), // only calculator compiled in
             emptySet(),
-        )
+            screenClass = mediumWide,
+        ).filter { it.screenIndex == 0 }
         assertEquals(
             listOf(
                 "clock", "search", "weather",
@@ -193,13 +221,14 @@ class LauncherStarterSetsTest {
             StarterResources(lastResourceId = 5),
             emptyMap(),
             emptySet(),
-        )
+            screenClass = mediumWide,
+        ).filter { it.screenIndex == 0 }
         assertEquals(
             listOf(
                 "clock", "search", "weather",
                 // S1913: no sec:resources header here. profileGadgets seeds the PHOTO_FRAME
                 // slideshow shortcut into the widgets bucket beside its folder-preview gadget, the
-                // way EBOOK_READER seeds its PLAY shortcut, while commonResources is scoped to one
+                // way EBOOK_READER seeds its PLAY shortcut, while coreResources is scoped to one
                 // BROWSE shortcut per virtual resource and never reads lastResourceId. resItems is
                 // therefore empty, and an empty section must not print a header - a header with
                 // nothing under it swallows the section below it, section membership being positional.
@@ -216,7 +245,14 @@ class LauncherStarterSetsTest {
     @Test
     fun `null id dependencies are skipped, never seeded as dangling cells`() {
         val items = LauncherStarterSets
-            .itemsFor(DeviceProfileType.PHOTO_FRAME, StarterResources(), emptyMap(), emptySet())
+            .itemsFor(
+                DeviceProfileType.PHOTO_FRAME,
+                StarterResources(),
+                emptyMap(),
+                emptySet(),
+                screenClass = mediumWide,
+            )
+            .filter { it.screenIndex == 0 }
         assertEquals(
             listOf(
                 "clock", "search", "weather",
@@ -236,7 +272,8 @@ class LauncherStarterSetsTest {
             StarterResources(allAudioId = 7),
             mapOf(InternalRouteCatalog.KEY_STREAMS to true),
             emptySet(),
-        )
+            screenClass = mediumWide,
+        ).filter { it.screenIndex == 0 }
         assertEquals(
             listOf(
                 "clock", "search",
@@ -254,6 +291,7 @@ class LauncherStarterSetsTest {
             StarterResources(allAudioId = 7),
             emptyMap(),
             emptySet(),
+            screenClass = mediumWide,
         )
         assertFalse(withoutStreams.any { it.target == "streams" })
         assertFalse(withoutStreams.any { it.target == "fn:streams" })
@@ -263,7 +301,7 @@ class LauncherStarterSetsTest {
     fun `no third-party app cell is seeded when nothing is installed`() {
         DeviceProfileType.entries.forEach { profile ->
             val targets = LauncherStarterSets
-                .itemsFor(profile, StarterResources(), allPaddingAvailable, emptySet())
+                .itemsFor(profile, StarterResources(), allPaddingAvailable, emptySet(), screenClass = mediumWide)
                 .map { it.target }
             LauncherStarterSets.candidatePackages.forEach { candidate ->
                 assertFalse("$profile seeded $candidate blind", targets.contains("app:$candidate"))
@@ -278,6 +316,7 @@ class LauncherStarterSetsTest {
             StarterResources(),
             allPaddingAvailable,
             setOf(LauncherStarterSets.PACKAGE_YOUTUBE),
+            screenClass = mediumWide,
         ).map { it.target }
         assertEquals(1, targets.count { it == "app:${LauncherStarterSets.PACKAGE_YOUTUBE}" })
         assertFalse(targets.contains("app:${LauncherStarterSets.PACKAGE_YOUTUBE_MUSIC}"))
@@ -291,13 +330,15 @@ class LauncherStarterSetsTest {
             StarterResources(),
             allPaddingAvailable,
             installed,
-        ).map { it.target }.toSet()
+            screenClass = mediumWide,
+        ).filter { it.screenIndex == 0 }.map { it.target }.toSet()
         val smartphone = LauncherStarterSets.itemsFor(
             DeviceProfileType.PERSONAL_SMARTPHONE,
             StarterResources(),
             allPaddingAvailable,
             installed,
-        ).map { it.target }.toSet()
+            screenClass = mediumWide,
+        ).filter { it.screenIndex == 0 }.map { it.target }.toSet()
 
         assertNotEquals(car, smartphone)
         assertTrue("car needs speed", "speed" in car)
@@ -310,7 +351,8 @@ class LauncherStarterSetsTest {
         assertEquals(DeviceProfileType.entries.toSet(), profileGrid.keys)
         profileGrid.forEach { (profile, expected) ->
             val targets = LauncherStarterSets
-                .itemsFor(profile, StarterResources(), allPaddingAvailable, installed)
+                .itemsFor(profile, StarterResources(), allPaddingAvailable, installed, screenClass = mediumWide)
+                .filter { it.screenIndex == 0 }
                 .map { it.target }.toSet()
             assertEquals("$profile weather", profile != DeviceProfileType.AUDIO_PLAYER, "weather" in targets)
             assertEquals("$profile Wi-Fi", expected.wifi, "os:wifi" in targets)
@@ -344,7 +386,13 @@ class LauncherStarterSetsTest {
     /** Targets between the widgets header and the next section header; empty when the group is absent. */
     private fun widgetTargets(profile: DeviceProfileType): List<String> {
         val res = StarterResources(allImagesId = 9, allDocsId = 9, lastResourceId = 9)
-        val targets = LauncherStarterSets.itemsFor(profile, res, emptyMap(), emptySet()).map { it.target }
+        val targets = LauncherStarterSets.itemsFor(
+            profile,
+            res,
+            emptyMap(),
+            emptySet(),
+            screenClass = mediumWide,
+        ).map { it.target }
         val start = targets.indexOf("sec:widgets")
         if (start < 0) return emptyList()
         val rest = targets.drop(start + 1)
@@ -361,6 +409,7 @@ class LauncherStarterSetsTest {
             StarterResources(allAudioId = 7),
             mapOf(InternalRouteCatalog.KEY_STREAMS to true),
             emptySet(),
+            screenClass = mediumWide,
         )
         val placed = LauncherStarterSets.place(items, columns = 4)
         assertNoOverlap(placed)
@@ -376,6 +425,7 @@ class LauncherStarterSetsTest {
             StarterResources(recentId = 1, allAudioId = 2, allImagesId = 3),
             allPaddingAvailable,
             emptySet(),
+            screenClass = mediumWide,
         )
         columnCounts.forEach { columns ->
             val placed = LauncherStarterSets.place(items, columns)
@@ -402,11 +452,36 @@ class LauncherStarterSetsTest {
             allPaddingAvailable,
             emptySet(),
             importedShortcuts = imported,
+            screenClass = mediumWide,
         )
         columnCounts.forEach { columns ->
             val placed = LauncherStarterSets.place(items, columns)
             assertNoOverlap(placed)
             placed.forEach { assertTrue("cell past right edge at $columns", it.colIndex + it.spanW <= columns) }
+        }
+    }
+
+    @Test
+    fun `every profile places its starter set intact on the dense-grid column count`() {
+        // S2320: the dense grid is the shipped density, and on a typical phone it resolves to five
+        // columns where the previous default resolved to four. Every profile is checked because the
+        // grid width applies to all of them at once, and a profile added later must not slip through.
+        val denseGridColumns = 5
+        DeviceProfileType.entries.forEach { profile ->
+            val items = LauncherStarterSets.itemsFor(
+                profile,
+                StarterResources(recentId = 1, allAudioId = 2, allImagesId = 3, allVideoId = 4, allDocsId = 5),
+                allPaddingAvailable,
+                emptySet(),
+                screenClass = mediumWide,
+            )
+            val placed = LauncherStarterSets.place(items, denseGridColumns)
+
+            assertEquals("item dropped for $profile", items.size, placed.size)
+            assertNoOverlap(placed)
+            placed.forEach {
+                assertTrue("cell past right edge for $profile", it.colIndex + it.spanW <= denseGridColumns)
+            }
         }
     }
 
@@ -419,6 +494,7 @@ class LauncherStarterSetsTest {
             allPaddingAvailable,
             emptySet(),
             importedShortcuts = imported,
+            screenClass = mediumWide,
         ).map { it.target }
         val contentHeaderIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_RESOURCES))
         val actionsHeaderIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_APP_FUNCTIONS))
@@ -440,7 +516,8 @@ class LauncherStarterSetsTest {
         allPaddingAvailable,
         installed,
         googleServicesAvailable = googleServicesAvailable,
-    )
+        screenClass = mediumWide,
+    ).filter { it.screenIndex == 0 }
 
     @Test
     fun `google section holds the installed candidates in catalogue order`() {
@@ -472,21 +549,91 @@ class LauncherStarterSetsTest {
         val installed = LauncherStarterSets.GOOGLE_APP_PACKAGES.toSet()
         val targets = googleItems(googleServicesAvailable = false, installed = installed).map { it.target }
         assertFalse(targets.contains(sectionTarget(LauncherCellCommand.SECTION_GOOGLE)))
-        // S1913: these four reach the desktop through paths the Google gating does not control -
-        // YouTube, YouTube Music and Chrome from commonThirdPartyApps, Maps from the MAPS_PROFILES
-        // rule - so seeing them here says nothing about whether the Google section was suppressed.
+        // S2015: these four are exactly the packages that must survive the deduplication on a device
+        // with no Play Services. The Google section is not seeded here, so it owns nothing, and the
+        // Apps section subtracts an empty set - YouTube, YouTube Music and Chrome still arrive through
+        // commonThirdPartyApps, Maps through the MAPS_PROFILES rule. Subtracting the whole catalogue
+        // instead of the seeded set would strip them off the desktop altogether (strategic ADR-1).
         // Chrome's literal rather than the constant because PACKAGE_CHROME is private, as with
-        // FM_RADIO_PACKAGE elsewhere in this file. Holding a cell in two sections is allowed: S1644
-        // ruled that a repeated target is not what makes a cell a duplicate.
+        // FM_RADIO_PACKAGE elsewhere in this file.
         val seededOutsideGoogleSection = setOf(
             LauncherStarterSets.PACKAGE_YOUTUBE,
             LauncherStarterSets.PACKAGE_YOUTUBE_MUSIC,
             LauncherStarterSets.PACKAGE_MAPS,
             "com.android.chrome",
         )
+        seededOutsideGoogleSection.forEach {
+            assertTrue("lost without services: $it", targets.contains("app:$it"))
+        }
         LauncherStarterSets.GOOGLE_APP_PACKAGES
             .filterNot { it in seededOutsideGoogleSection }
             .forEach { assertFalse("seeded without services: $it", targets.contains("app:$it")) }
+    }
+
+    // ── S2015: one section owns a package, and the Apps section holds the user's own ────────
+
+    @Test
+    fun `with google services those four sit in the google section and nowhere else`() {
+        // S1913 asserted the opposite: that YouTube, YouTube Music, Maps and Chrome legitimately stood
+        // outside the Google section while it also held them. That is the duplication S2015 removes.
+        val installed = LauncherStarterSets.GOOGLE_APP_PACKAGES.toSet()
+        val targets = googleItems(googleServicesAvailable = true, installed = installed).map { it.target }
+        val headerIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_GOOGLE))
+        assertTrue("google header absent", headerIndex >= 0)
+        LauncherStarterSets.GOOGLE_APP_PACKAGES.forEach { packageName ->
+            val target = "app:$packageName"
+            assertEquals("$packageName seeded twice", 1, targets.count { it == target })
+            assertTrue("$packageName sits outside the google section", targets.indexOf(target) > headerIndex)
+        }
+    }
+
+    @Test
+    fun `no app target repeats on a device carrying the whole google catalogue`() {
+        val installed = LauncherStarterSets.candidatePackages
+        val targets = googleItems(googleServicesAvailable = true, installed = installed).map { it.target }
+        val repeated = targets.filter { it.startsWith("app:") }
+            .groupingBy { it }.eachCount()
+            .filterValues { it > 1 }
+        assertEquals("a fresh desktop shows the same icon twice: $repeated", emptyMap<String, Int>(), repeated)
+    }
+
+    @Test
+    fun `supplied third-party apps are seeded under the android-apps header, never above it`() {
+        val thirdParty = listOf("com.whatsapp", "org.telegram.messenger")
+        val targets = LauncherStarterSets.itemsFor(
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            StarterResources(recentId = 1),
+            allPaddingAvailable,
+            LauncherStarterSets.candidatePackages,
+            googleServicesAvailable = true,
+            thirdPartyApps = thirdParty,
+            screenClass = mediumWide,
+        ).map { it.target }
+        val appsHeaderIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_ANDROID_APPS))
+        val googleHeaderIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_GOOGLE))
+        assertTrue("android-apps header absent", appsHeaderIndex >= 0)
+        thirdParty.forEach { packageName ->
+            val index = targets.indexOf("app:$packageName")
+            assertTrue("$packageName absent", index >= 0)
+            assertTrue("$packageName landed above its header", index > appsHeaderIndex)
+            assertTrue("$packageName fell into the google section", index < googleHeaderIndex)
+        }
+    }
+
+    @Test
+    fun `a supplied third-party app the section already placed is not seeded twice`() {
+        // The caller resolves its list against the whole device, so the starter table's own candidates
+        // can appear in it; the section drops them rather than placing a second cell.
+        val targets = LauncherStarterSets.itemsFor(
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            StarterResources(recentId = 1),
+            allPaddingAvailable,
+            setOf(LauncherStarterSets.PACKAGE_YOUTUBE),
+            thirdPartyApps = listOf(LauncherStarterSets.PACKAGE_YOUTUBE, "com.whatsapp"),
+            screenClass = mediumWide,
+        ).map { it.target }
+        assertEquals(1, targets.count { it == "app:${LauncherStarterSets.PACKAGE_YOUTUBE}" })
+        assertEquals(1, targets.count { it == "app:com.whatsapp" })
     }
 
     @Test
@@ -517,6 +664,7 @@ class LauncherStarterSetsTest {
             setOf("com.android.vending"),
             googleServicesAvailable = true,
             importedShortcuts = imported,
+            screenClass = mediumWide,
         ).map { it.target }
         // Once from the import, once from the GOOGLE section: the owner allows the same application to
         // hold as many cells as it has free positions.
@@ -542,7 +690,13 @@ class LauncherStarterSetsTest {
     fun `a header is packed at the one span it is stored at`() {
         // S1642: the packer's clamp to the seeded width used to narrow a header, which is why the seed
         // carried a second span. The compact span fits every grid, so the clamp is now a no-op on it.
-        val items = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap(), emptySet())
+        val items = LauncherStarterSets.itemsFor(
+            DeviceProfileType.OTHER,
+            StarterResources(),
+            emptyMap(),
+            emptySet(),
+            screenClass = mediumWide,
+        )
         val placed = LauncherStarterSets.place(items, columns = 4)
         val header = placed.first { it.item.kind == LauncherCellKind.SECTION }
         assertEquals(LauncherSectionMembership.HEADER_SPAN_W, header.spanW)
@@ -597,7 +751,13 @@ class LauncherStarterSetsTest {
 
     @Test
     fun `place preserves the own-app placeholder target for the use case to substitute`() {
-        val items = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap(), emptySet())
+        val items = LauncherStarterSets.itemsFor(
+            DeviceProfileType.OTHER,
+            StarterResources(),
+            emptyMap(),
+            emptySet(),
+            screenClass = mediumWide,
+        )
         val placed = LauncherStarterSets.place(items, columns = 4)
         assertTrue(placed.any { it.item.target == "app:__self__" })
     }
@@ -621,6 +781,7 @@ class LauncherStarterSetsTest {
                 LauncherStarterSets.PACKAGE_MAPS,
                 FM_RADIO_PACKAGE,
             ),
+            screenClass = mediumWide,
         )
         val placed = LauncherStarterSets.place(items, columns = MIN_COLUMNS)
         assertNoOverlap(placed)
@@ -632,10 +793,13 @@ class LauncherStarterSetsTest {
         val items = smartphoneFullSet()
         intArrayOf(3, 4, 8).forEach { columns ->
             val placed = LauncherStarterSets.place(items, columns)
-            var floor = 0
-            placed.forEach { cell ->
-                assertTrue("${cell.item.target} above its header at $columns", cell.rowIndex >= floor)
-                if (cell.item.kind == LauncherCellKind.SECTION) floor = cell.rowIndex
+            val placedByScreen = placed.groupBy { it.screenIndex }
+            for ((_, screenPlaced) in placedByScreen) {
+                var floor = 0
+                screenPlaced.forEach { cell ->
+                    assertTrue("${cell.item.target} above its header at $columns", cell.rowIndex >= floor)
+                    if (cell.item.kind == LauncherCellKind.SECTION) floor = cell.rowIndex
+                }
             }
         }
     }
@@ -645,17 +809,20 @@ class LauncherStarterSetsTest {
         // S1428 reads membership off the rows, so a cell that packs above its own header belongs to the
         // section before it - the defect S1587 recorded on the device.
         val placed = LauncherStarterSets.place(smartphoneFullSet(), columns = 4)
-        var seededUnder: String? = null
-        placed.forEach { cell ->
-            if (cell.item.kind == LauncherCellKind.SECTION) {
-                seededUnder = cell.item.target
-                return@forEach
+        val placedByScreen = placed.groupBy { it.screenIndex }
+        for ((_, screenPlaced) in placedByScreen) {
+            var seededUnder: String? = null
+            screenPlaced.forEach { cell ->
+                if (cell.item.kind == LauncherCellKind.SECTION) {
+                    seededUnder = cell.item.target
+                    return@forEach
+                }
+                val ownedBy = screenPlaced
+                    .filter { it.item.kind == LauncherCellKind.SECTION && it.rowIndex <= cell.rowIndex }
+                    .maxByOrNull { it.rowIndex }
+                    ?.item?.target
+                assertEquals("${cell.item.target} drifted out of its section", seededUnder, ownedBy)
             }
-            val ownedBy = placed
-                .filter { it.item.kind == LauncherCellKind.SECTION && it.rowIndex <= cell.rowIndex }
-                .maxByOrNull { it.rowIndex }
-                ?.item?.target
-            assertEquals("${cell.item.target} drifted out of its section", seededUnder, ownedBy)
         }
     }
 
@@ -681,18 +848,8 @@ class LauncherStarterSetsTest {
         ),
         allPaddingAvailable,
         setOf(LauncherStarterSets.PACKAGE_YOUTUBE, LauncherStarterSets.PACKAGE_MAPS),
+        screenClass = mediumWide,
     )
-
-    /** S1587: the launcher's own actions close the set, under the second header, above the common tail. */
-    private fun sectionTail(profile: DeviceProfileType): List<String> = buildList {
-        add("sec:app_functions")
-        addAll(
-            LauncherActionCatalog.all
-                .filter { it.key != LauncherActionCatalog.KEY_BLACK_SCREEN || profile in BLACK_SCREEN_PROFILES }
-                .map { "act:${it.key}" },
-        )
-        addAll(commonTail)
-    }
 
     /** S1613: pinned-shortcut items shaped exactly as the seed encodes what the platform hands back. */
     private fun importedPins(): List<LauncherStarterSets.StarterItem> =
@@ -712,19 +869,261 @@ class LauncherStarterSetsTest {
     )
 
     private fun assertNoOverlap(placed: List<LauncherStarterSets.PlacedStarterItem>) {
-        val occupied = mutableSetOf<Pair<Int, Int>>()
+        val occupied = mutableSetOf<Triple<Int, Int, Int>>()
         for (p in placed) {
             for (r in p.rowIndex until p.rowIndex + p.spanH) {
                 for (c in p.colIndex until p.colIndex + p.spanW) {
-                    assertTrue("overlap at ($r, $c)", occupied.add(r to c))
+                    assertTrue("overlap at screen ${p.screenIndex} ($r, $c)", occupied.add(Triple(p.screenIndex, r, c)))
                 }
             }
         }
     }
 
+    // -- S2309 screen class ----------------------------------------------------------------------
+
+    @Test
+    fun `a compact elongated screen seeds fewer first-screen items than an expanded balanced one`() {
+        val compact = LauncherStarterSets.itemsFor(
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            fullResources(),
+            allPaddingAvailable,
+            setOf(LauncherStarterSets.PACKAGE_YOUTUBE, LauncherStarterSets.PACKAGE_MAPS),
+            screenClass = LauncherScreenClass(LauncherScreenClass.Size.COMPACT, LauncherScreenClass.Shape.ELONGATED),
+        ).count { it.screenIndex == 0 }
+        val expanded = LauncherStarterSets.itemsFor(
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            fullResources(),
+            allPaddingAvailable,
+            setOf(LauncherStarterSets.PACKAGE_YOUTUBE, LauncherStarterSets.PACKAGE_MAPS),
+            screenClass = LauncherScreenClass(LauncherScreenClass.Size.EXPANDED, LauncherScreenClass.Shape.BALANCED),
+        ).count { it.screenIndex == 0 }
+
+        assertTrue("compact seeded $compact first-screen items, expanded $expanded", compact < expanded)
+    }
+
+    @Test
+    fun `the seeded header order follows the rule section order`() {
+        val screenClass = LauncherScreenClass(LauncherScreenClass.Size.MEDIUM, LauncherScreenClass.Shape.WIDE)
+        val profile = DeviceProfileType.CAR_HEAD_UNIT
+        val rule = LauncherStarterLayoutRules.ruleFor(screenClass)
+
+        val headers = LauncherStarterSets.itemsFor(
+            profile,
+            fullResources(),
+            allPaddingAvailable,
+            setOf(LauncherStarterSets.PACKAGE_MAPS),
+            screenClass = screenClass,
+        ).filter { it.target.startsWith(LauncherCellCommand.PREFIX_SECTION) }
+
+        // Judged per screen, not over the flat list: a key recurring on ANOTHER screen is the layout the
+        // desktop has always had (widgets and resources lead screen 0 and open screen 1 again), while a
+        // key recurring on ONE screen is the collision ADR-7 exists to prevent. Comparing the flat list
+        // against a de-duplicated rule order would have called the first case a failure.
+        val ruleOrder = rule.sectionOrder.map { "${LauncherCellCommand.PREFIX_SECTION}${it.sectionKey}" }
+        for ((screen, onScreen) in headers.groupBy { it.screenIndex }) {
+            val targets = onScreen.map { it.target }
+
+            assertEquals("screen $screen seeded one section key twice: $targets", targets.size, targets.distinct().size)
+            val positions = targets.map { ruleOrder.indexOf(it) }
+            assertEquals("screen $screen ordered $targets against the rule", positions.sorted(), positions)
+        }
+    }
+
+    @Test
+    fun `no seeded item lands past the last screen the rule allows`() {
+        for (profile in DeviceProfileType.entries) {
+            for (size in LauncherScreenClass.Size.entries) {
+                for (shape in LauncherScreenClass.Shape.entries) {
+                    val screenClass = LauncherScreenClass(size, shape)
+                    val rule = LauncherStarterLayoutRules.ruleFor(screenClass)
+                    val items = LauncherStarterSets.itemsFor(
+                        profile,
+                        fullResources(),
+                        allPaddingAvailable,
+                        setOf(LauncherStarterSets.PACKAGE_MAPS),
+                        screenClass = screenClass,
+                    )
+
+                    val worst = items.maxOf { it.screenIndex }
+                    assertTrue(
+                        "$profile on $screenClass seeded screen $worst of ${rule.screenCount}",
+                        worst <= rule.screenCount - 1,
+                    )
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `a bare device still gets at least one section`() {
+        for (profile in DeviceProfileType.entries) {
+            val items = LauncherStarterSets.itemsFor(
+                profile,
+                StarterResources(),
+                emptyMap(),
+                emptySet(),
+                screenClass = LauncherScreenClass(
+                    LauncherScreenClass.Size.COMPACT,
+                    LauncherScreenClass.Shape.ELONGATED,
+                ),
+            )
+
+            assertTrue(
+                "$profile seeded no section on a bare device",
+                items.any { it.target.startsWith(LauncherCellCommand.PREFIX_SECTION) },
+            )
+        }
+    }
+
+    @Test
+    fun `no section header is seeded without an item under it`() {
+        val screenClass = LauncherScreenClass(LauncherScreenClass.Size.COMPACT, LauncherScreenClass.Shape.ELONGATED)
+
+        for (profile in DeviceProfileType.entries) {
+            val targets = LauncherStarterSets
+                .itemsFor(profile, StarterResources(), emptyMap(), emptySet(), screenClass = screenClass)
+                .map { it.target }
+
+            targets.forEachIndexed { index, target ->
+                if (target.startsWith(LauncherCellCommand.PREFIX_SECTION)) {
+                    val next = targets.getOrNull(index + 1)
+                    assertTrue(
+                        "$profile seeded empty header $target",
+                        next != null && !next.startsWith(LauncherCellCommand.PREFIX_SECTION),
+                    )
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `no two section headers share a screen and a target`() {
+        for (profile in DeviceProfileType.entries) {
+            for (size in LauncherScreenClass.Size.entries) {
+                for (shape in LauncherScreenClass.Shape.entries) {
+                    val headers = LauncherStarterSets.itemsFor(
+                        profile,
+                        fullResources(),
+                        allPaddingAvailable,
+                        setOf(LauncherStarterSets.PACKAGE_YOUTUBE, LauncherStarterSets.PACKAGE_MAPS),
+                        screenClass = LauncherScreenClass(size, shape),
+                    ).filter { it.target.startsWith(LauncherCellCommand.PREFIX_SECTION) }
+                        .map { it.screenIndex to it.target }
+
+                    assertEquals(
+                        "$profile on $size/$shape emitted a duplicate section header",
+                        headers.size,
+                        headers.distinct().size,
+                    )
+                }
+            }
+        }
+    }
+
+    // -- S2321 the content aggregates are not budget fodder ---------------------------------------
+
+    @Test
+    fun `the content aggregates reach a compact desktop whatever the budget`() {
+        for (shape in LauncherScreenClass.Shape.entries) {
+            val screenClass = LauncherScreenClass(LauncherScreenClass.Size.COMPACT, shape)
+            val targets = LauncherStarterSets.itemsFor(
+                DeviceProfileType.PERSONAL_SMARTPHONE,
+                fullResources(),
+                allPaddingAvailable,
+                emptySet(),
+                screenClass = screenClass,
+            ).map { it.target }
+
+            // The three the reported clean install lost: documents, camera and "All files" sat at
+            // positions 5, 6 and 7 of one budgeted group a compact screen cut at four.
+            listOf(ALL_DOCS_ID, CAMERA_ID, ALL_FILES_ID).forEach { id ->
+                assertTrue(
+                    "compact/$shape dropped res:$id, the desktop's only way into that content type",
+                    "res:$id:BROWSE" in targets,
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `the user resource tail is still cut to budget on a compact screen`() {
+        val screenClass =
+            LauncherScreenClass(LauncherScreenClass.Size.COMPACT, LauncherScreenClass.Shape.ELONGATED)
+        val userIds = (USER_RESOURCE_FIRST_ID until USER_RESOURCE_FIRST_ID + USER_RESOURCE_COUNT).toList()
+        val targets = LauncherStarterSets.itemsFor(
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            fullResources().copy(userResourceIds = userIds),
+            allPaddingAvailable,
+            emptySet(),
+            screenClass = screenClass,
+        ).map { it.target }
+        val budget = LauncherStarterLayoutRules.ruleFor(screenClass)
+            .itemBudget
+            .getValue(LauncherStarterLayoutRules.StarterSectionGroup.RESOURCES)
+
+        val seeded = userIds.count { "res:$it:BROWSE" in targets }
+        assertEquals("the open tail lost its budget with the split", budget, seeded)
+        assertTrue("the fixture gave the budget nothing to cut", seeded < userIds.size)
+    }
+
+    @Test
+    fun `the predefined all files resource is seeded exactly once`() {
+        val targets = LauncherStarterSets.itemsFor(
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            fullResources().copy(userResourceIds = listOf(USER_RESOURCE_FIRST_ID)),
+            allPaddingAvailable,
+            emptySet(),
+            screenClass = LauncherScreenClass(LauncherScreenClass.Size.COMPACT, LauncherScreenClass.Shape.ELONGATED),
+        ).map { it.target }
+
+        // The seed excludes it from userResourceIds; a caller that forgot to would put it in both groups.
+        assertEquals(1, targets.count { it == "res:$ALL_FILES_ID:BROWSE" })
+    }
+
+    @Test
+    fun `the resource split leaves the google section on the medium-wide first screen`() {
+        val screenZero = LauncherStarterSets.itemsFor(
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            fullResources(),
+            allPaddingAvailable,
+            setOf(LauncherStarterSets.PACKAGE_YOUTUBE, LauncherStarterSets.PACKAGE_MAPS),
+            googleServicesAvailable = true,
+            screenClass = mediumWide,
+        ).filter { it.screenIndex == 0 }.map { it.target }
+
+        // The split adds an entry to sectionOrder and the screen cut counts entries, so without the
+        // matching firstScreenSections bump this group would silently move to screen 1.
+        assertTrue(
+            "the google section left screen 0",
+            sectionTarget(LauncherCellCommand.SECTION_GOOGLE) in screenZero,
+        )
+    }
+
+    /** A device with something in every media bucket, so a budget has something to cut. */
+    private fun fullResources() = StarterResources(
+        recentId = 1L,
+        allAudioId = 2L,
+        allImagesId = 3L,
+        allVideoId = 4L,
+        allDocsId = ALL_DOCS_ID,
+        cameraId = CAMERA_ID,
+        allFilesId = ALL_FILES_ID,
+        lastResourceId = 7L,
+    )
+
     private companion object {
         const val FM_RADIO_PACKAGE = "com.android.fmradio"
         const val MIN_COLUMNS = 3
+
+        // S2321: the three aggregates a compact screen used to drop, named so the assertions read as
+        // the symptom rather than as three bare numbers.
+        const val ALL_DOCS_ID = 5L
+        const val CAMERA_ID = 6L
+        const val ALL_FILES_ID = 8L
+
+        /** A user tail comfortably longer than any scaled RESOURCES budget. */
+        const val USER_RESOURCE_FIRST_ID = 10L
+        const val USER_RESOURCE_COUNT = 16L
 
         /** The reference phone of S1587: 384dp wide at density factor 1.0, so four 96dp columns. */
         const val PHONE_COLUMNS = 4

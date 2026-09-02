@@ -14,6 +14,7 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -23,26 +24,48 @@ import timber.log.Timber
 
 class GameLaunchWidgetProvider : AppWidgetProvider() {
 
+    @Suppress("TooGenericExceptionCaught")
     override fun onUpdate(
         context: Context,
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
-        updateWidgets(context.applicationContext, appWidgetManager, appWidgetIds)
+        if (appWidgetIds.isEmpty()) return
+        val pendingResult = goAsync()
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            try {
+                renderWidgets(context.applicationContext, appWidgetManager, appWidgetIds)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                Timber.e(error, "GameLaunchWidgetProvider: widget update failed")
+            } finally {
+                pendingResult.finish()
+            }
+        }
     }
 
     companion object {
         private const val REQUEST_CODE_GAME_BASE = 31_600
         private const val REQUEST_CODE_SETTINGS_BASE = 31_700
-        private val widgetScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+        @Suppress("TooGenericExceptionCaught")
         fun updateAll(context: Context, enabledOverride: Boolean? = null) {
             val appContext = context.applicationContext
             val appWidgetManager = AppWidgetManager.getInstance(appContext)
             val appWidgetIds = appWidgetManager.getAppWidgetIds(
                 ComponentName(appContext, GameLaunchWidgetProvider::class.java)
             )
-            updateWidgets(appContext, appWidgetManager, appWidgetIds, enabledOverride)
+            if (appWidgetIds.isEmpty()) return
+            CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+                try {
+                    renderWidgets(appContext, appWidgetManager, appWidgetIds, enabledOverride)
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (error: Exception) {
+                    Timber.e(error, "GameLaunchWidgetProvider: widget update failed")
+                }
+            }
         }
 
         fun updateAppWidget(
@@ -60,18 +83,15 @@ class GameLaunchWidgetProvider : AppWidgetProvider() {
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
 
-        private fun updateWidgets(
+        private suspend fun renderWidgets(
             context: Context,
             appWidgetManager: AppWidgetManager,
             appWidgetIds: IntArray,
             enabledOverride: Boolean? = null
         ) {
-            if (appWidgetIds.isEmpty()) return
-            widgetScope.launch {
-                val enabled = enabledOverride ?: readGameEnabled(context)
-                appWidgetIds.forEach { appWidgetId ->
-                    updateAppWidget(context, appWidgetManager, appWidgetId, enabled)
-                }
+            val enabled = enabledOverride ?: readGameEnabled(context)
+            appWidgetIds.forEach { appWidgetId ->
+                updateAppWidget(context, appWidgetManager, appWidgetId, enabled)
             }
         }
 

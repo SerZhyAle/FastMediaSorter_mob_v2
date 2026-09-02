@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.data.verifier
 
+import android.content.Context
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -16,7 +18,8 @@ class LocalQuickVerifierTest {
     @get:Rule
     val tempFolder = TemporaryFolder()
 
-    private val verifier = LocalQuickVerifier()
+    private val context = mockk<Context>(relaxed = true)
+    private val verifier = LocalQuickVerifier(context)
 
     @Test
     fun `reports only non-existent paths as missing`() = runBlocking {
@@ -43,3 +46,4 @@ class LocalQuickVerifierTest {
         assertTrue(verifier.missingFiles(1L, emptyList()).isEmpty())
     }
 }
+

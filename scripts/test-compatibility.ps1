@@ -1,7 +1,14 @@
-# K.5 Emulator Test Automation Script
-# 
-# This script helps test FastMediaSorter on multiple Android API levels
-# Usage: .\scripts\test-compatibility.ps1
+<#
+.SYNOPSIS
+    K.5: install and smoke-test FastMediaSorter across several Android API levels sequentially.
+
+.DESCRIPTION
+    Launches one AVD per requested API level, installs the standard debug APK and harvests a log
+    into temp/emulator_logs. Requires `emulator` and `adb` on PATH.
+
+.EXAMPLE
+    pwsh -NoProfile -File scripts/test-compatibility.ps1 -ApiLevel 33
+#>
 
 param(
     [Parameter(Mandatory = $false)]
@@ -18,7 +25,8 @@ function Write-Warn { Write-Host $args[0] -ForegroundColor Yellow }
 function Write-Fail { Write-Host $args[0] -ForegroundColor Red }
 
 # Configuration
-$ProjectRoot = "C:\GIT\FastMediaSorter_mob_v2"
+. "$PSScriptRoot\utils\project-paths.ps1"
+$ProjectRoot = Get-ProjectRoot
 $ApkPath = "$ProjectRoot\DOWNLOADS\FastMediaSorter_standard_debug.apk"
 $LogOutputDir = "$ProjectRoot\temp\emulator_logs"
 

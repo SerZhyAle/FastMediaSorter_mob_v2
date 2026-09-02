@@ -7,7 +7,6 @@ import androidx.lifecycle.LifecycleOwner
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.flow.Flow
-import timber.log.Timber
 
 /**
  * S1643: the one node that decides which screen edge the taskbar composition is anchored to.
@@ -28,7 +27,6 @@ class LauncherTaskbarPlacementManager(
     /** Follow the stored placement for as long as [lifecycleOwner] is started. Call once from the host. */
     fun bind(placementAtTop: Flow<Boolean>) {
         lifecycleOwner.collectOnLifecycle(placementAtTop) { atTop ->
-            Timber.d("S1643: taskbar placement applied, atTop=$atTop")
             applyConstraints(atTop)
             applyFocusOrder(atTop)
         }

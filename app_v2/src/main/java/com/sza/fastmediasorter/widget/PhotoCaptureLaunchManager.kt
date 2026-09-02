@@ -96,7 +96,6 @@ class PhotoCaptureLaunchManager(
         }
         pendingDir = dir
         val fileName = CaptureFileNamer.shared.allocate(CaptureFileNamer.CaptureKind.PHOTO, ".jpg")
-        Timber.d("S1882: headless photo output $fileName")
         pendingBaseName = fileName.removeSuffix(".jpg")
         if (hasCameraPermission()) performCapture() else requestPermission()
     }

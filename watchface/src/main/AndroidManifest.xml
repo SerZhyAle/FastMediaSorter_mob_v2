@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-feature
+        android:name="android.hardware.type.watch"
+        android:required="true" />
+
+    <!-- No <service> element: Watch Face Format is rendered by the system, so unlike the legacy
+         Jetpack watch face API this package declares no component of its own. -->
+    <application
+        android:allowBackup="false"
+        android:hasCode="false"
+        android:icon="@drawable/ic_watch_face_launcher"
+        android:label="@string/watch_face_name">
+
+        <meta-data
+            android:name="com.google.android.wearable.standalone"
+            android:value="true" />
+
+        <property
+            android:name="com.google.wear.watchface.format.version"
+            android:value="4" />
+    </application>
+
+</manifest>

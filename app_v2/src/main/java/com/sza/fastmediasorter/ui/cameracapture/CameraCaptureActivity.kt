@@ -9,10 +9,10 @@ import android.graphics.Typeface
 import android.net.Uri
 import android.view.KeyEvent
 import android.view.View
-import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.widget.PopupMenu
 import androidx.camera.view.PreviewView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
@@ -232,6 +232,8 @@ class CameraCaptureActivity :
             // S1658: seeded before anything can save, so a switch never persists an empty memory
             // over the stored one - the flow manager refuses to write until this has run.
             flowManager.seedLensMemory(settings.cameraLensSettings)
+            flowManager.setGridEnabled(settings.cameraGridEnabled)
+            renderGridOverlay()
             sessionManager.setAspectRatioAndResolution(
                 CameraAspectSelection.fromStored(settings.cameraAspectRatio),
                 sessionManager.currentResolution,
@@ -274,6 +276,7 @@ class CameraCaptureActivity :
                 flowManager.onCrossLensFloorSelected(equivalent)
                 syncZoomSelection()
             },
+            switchButton = binding.btnCameraLensSwitch,
         )
         lensSwitchManager = CameraLensSwitchManager(
             switchButton = binding.btnCameraLensSwitch,
@@ -503,8 +506,10 @@ class CameraCaptureActivity :
     private fun showProfileMenu() {
         val profiles = flowManager.availableProfiles()
         val popup = PopupMenu(this, binding.btnCameraProfile)
+        popup.setForceShowIcon(true)
         profiles.forEachIndexed { index, profile ->
-            popup.menu.add(PROFILE_MENU_GROUP, index, index, CameraProfilePresentation.labelRes(profile))
+            val item = popup.menu.add(PROFILE_MENU_GROUP, index, index, CameraProfilePresentation.labelRes(profile))
+            item.setIcon(CameraProfilePresentation.iconRes(profile))
         }
         popup.menu.setGroupCheckable(PROFILE_MENU_GROUP, true, true)
         profiles.indexOf(flowManager.activeProfile)
@@ -827,6 +832,7 @@ class CameraCaptureActivity :
 
     private fun renderGridOverlay() {
         binding.cameraGridOverlay.visibility = if (flowManager.gridEnabled) View.VISIBLE else View.GONE
+        lifecycleScope.launch { helperFactory.rememberGridEnabled(flowManager.gridEnabled) }
     }
 
     /**
@@ -857,7 +863,6 @@ class CameraCaptureActivity :
             params.dimensionRatio = ratio
             binding.previewClipBox.layoutParams = params
         }
-        Timber.d("S1920: preview clip box ratio=${ratio ?: "full-screen"}")
     }
 
     /** S1658: after the settings dialog applies a shape, re-scale the preview and remember the choice. */

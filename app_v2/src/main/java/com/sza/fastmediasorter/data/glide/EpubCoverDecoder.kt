@@ -1,16 +1,20 @@
 package com.sza.fastmediasorter.data.glide
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import com.bumptech.glide.load.Options
 import com.bumptech.glide.load.ResourceDecoder
 import com.bumptech.glide.load.engine.Resource
 import com.bumptech.glide.load.resource.SimpleResource
+import com.sza.fastmediasorter.FastMediaSorterApp
+import com.sza.fastmediasorter.utils.SafHelper
 import io.documentnode.epub4j.domain.Book
 import io.documentnode.epub4j.epub.EpubReader
 import timber.log.Timber
 import java.io.File
 import java.io.FileInputStream
+import java.io.InputStream
 
 /**
  * Glide decoder for EPUB files.
@@ -18,21 +22,33 @@ import java.io.FileInputStream
  * 
  * Usage:
  * - Register in GlideAppModule
- * - Handles File objects with .epub extension
+ * - Handles File objects with .epub extension (including SAF content URIs)
  * - Extracts cover image from EPUB metadata
  */
-class EpubCoverDecoder : ResourceDecoder<File, Bitmap> {
+class EpubCoverDecoder(
+    private val context: Context = FastMediaSorterApp.appContext
+) : ResourceDecoder<File, Bitmap> {
     
     override fun handles(source: File, options: Options): Boolean {
-        // Only handle EPUB files
-        return source.name.endsWith(".epub", ignoreCase = true)
+        // Only handle EPUB files (supports direct filesystem paths and SAF content URIs)
+        val cleanPath = source.path.substringBefore('?').substringBefore('#')
+        return cleanPath.endsWith(".epub", ignoreCase = true)
     }
 
     override fun decode(source: File, width: Int, height: Int, options: Options): Resource<Bitmap>? {
-        var inputStream: FileInputStream? = null
+        var inputStream: InputStream? = null
         
         try {
-            inputStream = FileInputStream(source)
+            inputStream = if (SafHelper.isContentUri(source.path)) {
+                val uri = SafHelper.parseUri(source.path)
+                context.contentResolver.openInputStream(uri)
+                    ?: run {
+                        Timber.w("EpubCoverDecoder: ContentResolver returned null stream for $uri")
+                        return null
+                    }
+            } else {
+                FileInputStream(source)
+            }
             val reader = EpubReader()
             val book: Book = reader.readEpub(inputStream)
             

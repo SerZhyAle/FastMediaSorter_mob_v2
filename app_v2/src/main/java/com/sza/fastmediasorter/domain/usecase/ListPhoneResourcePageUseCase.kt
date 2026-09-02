@@ -20,14 +20,6 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 /**
- * S1860: what an item asks before it decodes a picture - "is this page still willing to pay for one".
- *
- * A function rather than a holder class, so the page's remaining allowance stays a local of `page()`
- * and no item can read or reset it.
- */
-private typealias ThumbnailGate = suspend (suspend () -> String?) -> String?
-
-/**
  * S1697: resolves one paired-watch browse request into a bounded page of metadata the phone is
  * willing to expose. The watch never carries phone policy, so every visibility and permission
  * decision is taken here, per request, and a rejected request comes back as a protocol status
@@ -53,22 +45,135 @@ class ListPhoneResourcePageUseCase @Inject constructor(
             }
             WearPhoneResourceRequestKind.CHILDREN -> listChildren(request)
             WearPhoneResourceRequestKind.OPEN -> failure(request, WearPhoneResourceResponseStatus.NOT_FOUND)
+            WearPhoneResourceRequestKind.THUMBNAIL -> thumbnailFor(request)
         }
 
-    // S1911: the scan is a plugin boundary - any host, protocol or provider failure must become one
-    // domain answer, so the broad arm is the contract rather than laziness. The one throwable that
-    // must NOT be folded in, CancellationException, is rethrown as the first arm above it.
+    /**
+     * S2129: one picture for one item, answered as a page carrying that item alone.
+     *
+     * No clock allowance guards this branch, deliberately. S1860 records below that the decoder is
+     * blocking and does not answer cancellation, so an allowance can only stop the NEXT decode and
+     * never the running one - which is why the page-wide clock protected nothing and starved the
+     * items behind it instead. One request carrying one picture is already bounded by the watch's
+     * own ten-second wait, and an overrun now costs that single row rather than every row behind it.
+     *
+     * A file that cannot produce a picture answers OK with a null picture, never an error: the watch
+     * draws its type glyph either way, and a failure status would be reported to the owner as one.
+     */
+    private suspend fun thumbnailFor(request: WearPhoneResourceRequest): WearPhoneResourcePage {
+        val token = request.itemToken?.let { PhoneResourceToken.parse(it) }
+            ?: return failure(request, WearPhoneResourceResponseStatus.NOT_FOUND)
+
+        val lookup = runCatching { resourceRepository.getResourceById(token.resourceId) }
+            .onFailure { Timber.w(it, "Phone resource lookup failed for thumbnail") }
+        val resource = lookup.getOrNull()
+
+        return when {
+            lookup.isFailure -> failure(request, WearPhoneResourceResponseStatus.PHONE_UNAVAILABLE)
+            resource == null -> failure(request, WearPhoneResourceResponseStatus.NOT_FOUND)
+            !resource.isExposedToWatch() -> failure(request, WearPhoneResourceResponseStatus.ACCESS_DENIED)
+            else -> singleItemPage(request, token, resource)
+        }
+    }
+
+    private suspend fun singleItemPage(
+        request: WearPhoneResourceRequest,
+        token: PhoneResourceToken,
+        resource: MediaResource
+    ): WearPhoneResourcePage {
+        val file = locateFile(token, resource)
+            ?: return failure(request, WearPhoneResourceResponseStatus.NOT_FOUND)
+
+        // The parent the wire token is rebuilt against, so the answer addresses the item exactly as
+        // the request did rather than under a second spelling of the same file.
+        val parent = PhoneResourceToken(
+            resourceId = token.resourceId,
+            relativePath = token.relativePath.substringBeforeLast('/', "")
+        )
+        // The picture is built here rather than left to the page path's gate: that gate is the page's
+        // shared allowance and step 05.3 removes it, after which the page answers with no picture at
+        // all and this branch is the only producer. The per-picture ceiling still applies - it lives
+        // inside BuildWatchThumbnailUseCase, not in the gate.
+        val picture = buildWatchThumbnail(file)
+        return WearPhoneResourcePage(
+            requestId = request.requestId,
+            status = WearPhoneResourceResponseStatus.OK,
+            items = listOf(file.toWireItem(parent, picture))
+        )
+    }
+
+    /**
+     * The file a token addresses, or null when the resource no longer holds it.
+     *
+     * A scan is the only way back from a token to a file: the token is stateless by design, so there
+     * is no server-side table to look the item up in. A path token scans the folder it names; a
+     * MediaStore token scans the resource root, because an element of a virtual resource has no path
+     * inside that resource and is separated from its same-named siblings only by its store id.
+     */
+    // S1911: same plugin boundary as the listing paths - any host or provider failure becomes one
+    // domain answer, and only CancellationException is let through.
     @Suppress("TooGenericExceptionCaught")
+    private suspend fun locateFile(token: PhoneResourceToken, resource: MediaResource): MediaFile? {
+        val byMediaStoreId = token.mediaStoreId != null
+        val scanPath = if (byMediaStoreId) {
+            resource.path
+        } else {
+            PhoneResourceToken(token.resourceId, token.relativePath.substringBeforeLast('/', ""))
+                .resolveAgainst(resource)
+        }
+
+        val children = runCatching { mediaScannerFactory.getScanner(resource.type) }.getOrNull()
+            ?.let { scanner ->
+                try {
+                    withinScanBudget(scanDeadline()) {
+                        scanner.listDirectoryContents(
+                            path = scanPath,
+                            supportedTypes = resource.supportedMediaTypes,
+                            credentialsId = resource.credentialsId,
+                            showHiddenFiles = resource.showHiddenFiles
+                        )
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Timber.w(e, "Phone resource thumbnail listing failed")
+                    null
+                }
+            }
+
+        val visible = children?.visibleTo(resource)?.filterNot { it.isDirectory }.orEmpty()
+        return if (byMediaStoreId) {
+            visible.firstOrNull { it.mediaStoreIdOrNull() == token.mediaStoreId }
+        } else {
+            visible.firstOrNull { it.name == token.relativePath.substringAfterLast('/') }
+        }
+    }
+
     private suspend fun listFlatItems(request: WearPhoneResourceRequest): WearPhoneResourcePage {
         val filter = request.mediaTypeFilter()
-        val resources = runCatching { resourceRepository.getAllResourcesSync() }
+        val exposed = runCatching { resourceRepository.getAllResourcesSync() }
             .getOrElse { error ->
                 Timber.w(error, "Phone resource roots unavailable for flat list")
                 return failure(request, WearPhoneResourceResponseStatus.PHONE_UNAVAILABLE)
             }
             .filter { it.isExposedToWatch() }
-            .filter { it.holdsAnyOf(filter) }
 
+        // The gap is answered before the walk, not after it: scanning every exposed resource to
+        // produce an empty page would spend the watch's whole wait to learn what the resource
+        // configuration already said.
+        return typeGapOrNull(request, exposed, filter)
+            ?: scanFlatItems(request, exposed.filter { it.holdsAnyOf(filter) }, filter)
+    }
+
+    // S1911: the scan is a plugin boundary - any host, protocol or provider failure must become one
+    // domain answer, so the broad arm is the contract rather than laziness. The one throwable that
+    // must NOT be folded in, CancellationException, is rethrown as the first arm above it.
+    @Suppress("TooGenericExceptionCaught")
+    private suspend fun scanFlatItems(
+        request: WearPhoneResourceRequest,
+        resources: List<MediaResource>,
+        filter: Set<MediaType>?
+    ): WearPhoneResourcePage {
         // S1860: one allowance for the whole walk, not one per resource - this list scans every
         // exposed resource in turn, so a single dead host must not spend the watch's whole wait.
         val deadline = scanDeadline()
@@ -103,21 +208,53 @@ class ListPhoneResourcePageUseCase @Inject constructor(
         val sorted = allFiles.sortedByDescending { pair ->
             pair.second.lastModified.coerceAtLeast(pair.second.createdDate)
         }
-        return page(request, sorted) { (resource, file), gate ->
-            file.toWireItem(PhoneResourceToken(resource.id, ""), gate)
+        return page(request, sorted) { (resource, file) ->
+            file.toWireItem(PhoneResourceToken(resource.id, ""))
         }
     }
 
     private suspend fun listRoots(request: WearPhoneResourceRequest): WearPhoneResourcePage {
-        val visible = runCatching { resourceRepository.getAllResourcesSync() }
+        val filter = request.mediaTypeFilter()
+        val exposed = runCatching { resourceRepository.getAllResourcesSync() }
             .getOrElse { error ->
                 Timber.w(error, "Phone resource roots unavailable")
                 return failure(request, WearPhoneResourceResponseStatus.PHONE_UNAVAILABLE)
             }
             .filter { it.isExposedToWatch() }
-            .filter { it.holdsAnyOf(request.mediaTypeFilter()) }
 
-        return page(request, visible) { resource, _ -> resource.toRootItem() }
+        return typeGapOrNull(request, exposed, filter)
+            ?: page(request, exposed.filter { it.holdsAnyOf(filter) }) { resource ->
+                resource.toRootItem()
+            }
+    }
+
+    /**
+     * S2130 ADR-5: the answer that names why this category is empty, or null when that is not what
+     * emptied it.
+     *
+     * Both conditions matter. With no filter there is no category to blame - the watch asked for
+     * everything and everything is what it got. With nothing exposed at all the phone is simply
+     * showing the watch nothing, which is the ordinary EMPTY answer about the phone rather than a
+     * statement about this category, and answering otherwise would tell someone with no configured
+     * resources that their videos are misconfigured.
+     *
+     * The narrowing itself is not revisited here: strategic ADR-5 keeps it, because it carries out
+     * the owner's own per-resource choice. What changes is that the choice now explains itself.
+     */
+    private fun typeGapOrNull(
+        request: WearPhoneResourceRequest,
+        exposed: List<MediaResource>,
+        filter: Set<MediaType>?
+    ): WearPhoneResourcePage? {
+        val blamesTheCategory = filter != null &&
+            exposed.isNotEmpty() &&
+            exposed.none { it.holdsAnyOf(filter) }
+        return if (blamesTheCategory) {
+            Timber.i("No exposed resource holds %s - answering the watch with the reason", request.mediaType)
+            failure(request, WearPhoneResourceResponseStatus.NO_RESOURCE_FOR_TYPE)
+        } else {
+            null
+        }
     }
 
     private suspend fun listChildren(request: WearPhoneResourceRequest): WearPhoneResourcePage {
@@ -161,7 +298,6 @@ class ListPhoneResourcePageUseCase @Inject constructor(
                 // S1911: an abandoned request is not a failed scan. `runCatching` caught this too and
                 // answered the watch SOURCE_UNAVAILABLE, which nothing could deliver anyway - the same
                 // cancelled scope publishes the page - so it only mislabelled the log and the status.
-                Timber.d("S1911: phone resource listing cancelled, propagating instead of reporting")
                 throw e
             } catch (e: Exception) {
                 Timber.w(e, "Phone resource listing failed")
@@ -176,8 +312,8 @@ class ListPhoneResourcePageUseCase @Inject constructor(
             // S1860: a scan that outran its allowance lands here too, and for the same reason - the
             // source is what did not answer, and saying so beats the watch's silent ten-second give-up.
             children == null -> failure(request, WearPhoneResourceResponseStatus.SOURCE_UNAVAILABLE)
-            else -> page(request, children.visibleTo(resource)) { file, gate ->
-                file.toWireItem(parent, gate)
+            else -> page(request, children.visibleTo(resource)) { file ->
+                file.toWireItem(parent)
             }
         }
     }
@@ -187,7 +323,7 @@ class ListPhoneResourcePageUseCase @Inject constructor(
 
     private suspend fun MediaFile.toWireItem(
         parent: PhoneResourceToken,
-        gate: ThumbnailGate
+        thumbnailBase64: String? = null
     ): WearPhoneResourceItem =
         WearPhoneResourceItem(
             // A folder is always addressed by its path; a file prefers its MediaStore identity,
@@ -202,13 +338,9 @@ class ListPhoneResourcePageUseCase @Inject constructor(
             mimeType = if (isDirectory) null else type.toWireMimeType(),
             sizeBytes = size,
             isDirectory = isDirectory,
-            // A folder carries no picture, and a file the use case declines carries none either -
-            // both are ordinary states the watch draws as a type icon.
-            thumbnailBase64 = if (isDirectory) {
-                null
-            } else {
-                gate { buildWatchThumbnail(this@toWireItem) }
-            }
+            // S2129: page items carry no embedded picture (thumbnailBase64 is null); pictures
+            // are fetched on-demand per visible row via THUMBNAIL requests.
+            thumbnailBase64 = if (isDirectory) null else thumbnailBase64
         )
 
     /**
@@ -238,25 +370,10 @@ class ListPhoneResourcePageUseCase @Inject constructor(
     private suspend fun <T> page(
         request: WearPhoneResourceRequest,
         source: List<T>,
-        toItem: suspend (T, ThumbnailGate) -> WearPhoneResourceItem
+        toItem: suspend (T) -> WearPhoneResourceItem
     ): WearPhoneResourcePage {
         val offset = request.pageToken?.toIntOrNull()?.coerceAtLeast(0) ?: 0
-        val startedAtNanos = System.nanoTime()
-        // The allowance is spent here, before the decode, rather than trimmed off the result after
-        // it: this state is what tells an item it is not worth decoding at all.
-        var spentChars = 0
-        val expiresAtNanos = startedAtNanos + TimeUnit.MILLISECONDS.toNanos(THUMBNAIL_BUDGET_MS)
-        val gate: ThumbnailGate = { decode ->
-            val remainingChars = MAX_PAGE_THUMBNAIL_CHARS - spentChars
-            val inTime = System.nanoTime() < expiresAtNanos
-            val decoded = if (remainingChars > 0 && inTime) decode() else null
-            val affordable = decoded?.takeIf { it.length <= remainingChars }
-            spentChars += affordable?.length ?: 0
-            affordable
-        }
-        val window = source.drop(offset).take(PAGE_SIZE).map { toItem(it, gate) }
-        val spentMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedAtNanos)
-        Timber.d("S1860: page of ${window.size} built in ${spentMs}ms")
+        val window = source.drop(offset).take(PAGE_SIZE).map { toItem(it) }
         val nextOffset = offset + window.size
         // EMPTY describes the folder, not the window: a page past the last item is still a valid OK
         // answer about a folder that does have content.
@@ -388,28 +505,6 @@ class ListPhoneResourcePageUseCase @Inject constructor(
 
         /** Upper bound of items in one watch-bound page. */
         const val PAGE_SIZE = 50
-
-        /**
-         * Upper bound of Base64 picture data one page may carry, across all its items.
-         *
-         * Sized well inside the Data Layer's per-message limit so the metadata the page also
-         * carries still fits beside the pictures.
-         *
-         * S1893: the envelope now Base64-encodes the payload and the sender measures its final bytes.
-         * A fifty-item page spends roughly 44 KB on names and tokens, so 24 KB of pictures stays
-         * conservatively below the 100 KB GMS limit after Base64 expansion.
-         */
-        const val MAX_PAGE_THUMBNAIL_CHARS = 24 * 1024
-
-        /**
-         * S1860: how long one page may spend decoding pictures before the rest ship without one.
-         *
-         * Sized against the watch's ten-second wait together with `SCAN_BUDGET_MS`: four for the
-         * scan, two for the pictures, and the rest is slack for the one decode that may start just
-         * inside the allowance and overrun it. A decoder is blocking and does not answer
-         * cancellation, so the allowance can only stop the NEXT decode, never the running one.
-         */
-        private const val THUMBNAIL_BUDGET_MS = 2_000L
 
         /** S1860: how long one request may spend scanning, across every resource it touches. */
         private const val SCAN_BUDGET_MS = 4_000L

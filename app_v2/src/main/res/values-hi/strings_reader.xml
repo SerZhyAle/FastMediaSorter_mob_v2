@@ -61,7 +61,6 @@
     <string name="epub_table_of_contents">विषयसूची</string>
     <string name="epub_text_empty_tts">अध्याय में कोई पाठ नहीं मिला</string>
     <string name="text_content_hint">पाठ सामग्री</string>
-    <string name="text_copied">टेक्स्ट क्लिपबोर्ड पर कॉपी हो गया</string>
     <string name="text_editing_large_file">एक से अधिक पृष्ठों वाली फ़ाइलों के लिए संपादन सुविधा उपलब्ध नहीं है।</string>
     <string name="text_editor_action_cancel">रद्द करना</string>
     <string name="text_editor_action_save">बचाना</string>

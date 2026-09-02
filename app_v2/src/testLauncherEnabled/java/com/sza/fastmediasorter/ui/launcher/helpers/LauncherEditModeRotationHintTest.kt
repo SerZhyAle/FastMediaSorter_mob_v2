@@ -85,6 +85,9 @@ class LauncherEditModeRotationHintTest {
             addCellButton = mockk(relaxed = true),
             snackbarAnchor = content,
             viewModel = viewModel,
+            // S2316 gave the manager the active screen; this hint test is screen-agnostic, so it
+            // pins screen 0 rather than pretending the choice matters here.
+            activeScreenIndex = { 0 },
             actions = mockk(relaxed = true),
         )
     }

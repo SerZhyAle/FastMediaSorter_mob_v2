@@ -37,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -219,7 +220,9 @@ private fun IndicatorList(
                 navigationIcon = {
                     IconButton(
                         onClick = onCancel,
-                        modifier = Modifier.focusRequester(cancelFocusRequester)
+                        modifier = Modifier
+                            .focusRequester(cancelFocusRequester)
+                            .testTag("network_config_cancel")
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Close,
@@ -265,6 +268,7 @@ private fun IndicatorRow(
     OutlinedCard(
         onClick = onClick,
         modifier = modifier
+            .testTag("network_config_indicator_item")
             .fillMaxWidth()
             .onFocusChanged { isFocused = it.isFocused }
             .focusable(),

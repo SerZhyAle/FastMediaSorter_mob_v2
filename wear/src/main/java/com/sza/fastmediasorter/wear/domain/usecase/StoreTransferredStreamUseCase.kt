@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearStreamStoreResult
 import com.sza.fastmediasorter.wear.domain.model.WearStreamTransferAck
 import com.sza.fastmediasorter.wear.domain.model.WearStreamTransferPayload
+import com.sza.fastmediasorter.wear.domain.model.WearTileKind
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
 import timber.log.Timber
 import java.util.UUID
@@ -18,7 +19,8 @@ import javax.inject.Inject
  */
 class StoreTransferredStreamUseCase @Inject constructor(
     private val repository: WearStreamChannelRepository,
-    private val classifier: ClassifyWearStreamMediaKindUseCase
+    private val classifier: ClassifyWearStreamMediaKindUseCase,
+    private val requestWearTileRefreshUseCase: RequestWearTileRefreshUseCase
 ) {
 
     // The ack is the phone's only view of what happened here; any persistence failure must become
@@ -52,6 +54,7 @@ class StoreTransferredStreamUseCase @Inject constructor(
             } else {
                 WearStreamTransferAck.OUTCOME_UPDATED
             }
+            requestWearTileRefreshUseCase(WearTileKind.STREAM)
             WearStreamStoreResult(WearStreamTransferAck(requestId = payload.requestId, outcome = outcome), channel)
         } catch (e: Exception) {
             Timber.w(e, "Failed to store transferred stream")

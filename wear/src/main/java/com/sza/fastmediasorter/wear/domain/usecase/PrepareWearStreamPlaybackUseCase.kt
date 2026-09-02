@@ -1,11 +1,15 @@
 package com.sza.fastmediasorter.wear.domain.usecase
 
 import android.net.Uri
+import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_STREAM
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearStreamPlaybackTarget
+import com.sza.fastmediasorter.wear.domain.model.foldWearStreamIdentity
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
+import com.sza.fastmediasorter.wear.domain.repository.WearStreamUsageRepository
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -21,6 +25,7 @@ import javax.inject.Inject
 class PrepareWearStreamPlaybackUseCase @Inject constructor(
     private val selectedMediaManager: SelectedMediaManager,
     private val playbackSetManager: PlaybackSetManager,
+    private val usageRepository: WearStreamUsageRepository,
 ) {
 
     /**
@@ -36,11 +41,23 @@ class PrepareWearStreamPlaybackUseCase @Inject constructor(
         val isVideo = channel.isVideoKind()
         val mediaFile = channel.toMediaFile(isVideo)
 
+        // S2146: counted here rather than in the list's ViewModel, because this is the one point the
+        // list entrance and the phone's Data Layer request already share - counting at either
+        // entrance alone would make a channel opened from the phone invisible to the default order.
+        // Folded, not merely normalized: the projection looks the count up by the same folded identity
+        // it partitions pins by, and a station reached over http on one day and https on the next is
+        // one station to the owner. Writing the un-folded form here would key a web channel's count to
+        // an address the reader never asks for, so every play of it would count into nothing.
+        Timber.d("S2146: counting play of ${channel.name} as ${foldWearStreamIdentity(channel.url)}")
+        usageRepository.recordPlay(foldWearStreamIdentity(channel.url))
+
         selectedMediaManager.selectFile(
             file = mediaFile,
             isNetworkSource = true,
             streamUri = channel.url,
-            sourceId = SOURCE_ID,
+            // S2039: the domain constant, not a private copy - the two agreed by value but not by
+            // definition, so a change to one would not have reached the other.
+            sourceId = SOURCE_ID_STREAM,
             isDirectStream = true,
         )
 
@@ -63,7 +80,6 @@ class PrepareWearStreamPlaybackUseCase @Inject constructor(
     )
 
     private companion object {
-        const val SOURCE_ID = "stream"
         const val MIME_VIDEO = "video/*"
         const val MIME_AUDIO = "audio/*"
     }

@@ -48,6 +48,7 @@
 
                     <TextView
                         android:id="@+id/calculatorHistory"
+                        android:textIsSelectable="true"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="bottom|start"
@@ -59,6 +60,11 @@
 
                 <TextView
                     android:id="@+id/calculatorDisplay"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="@drawable/focus_button_background"
+                    android:background="?attr/selectableItemBackground"
+                    android:contentDescription="@string/calculator_display_content_description"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_marginStart="@dimen/margin_medium"
@@ -67,7 +73,7 @@
                     android:maxLines="1"
                     android:text="0"
                     android:textAlignment="viewEnd"
-                    android:textColor="@color/text_color_primary"
+                    android:textColor="@color/calculator_display_value"
                     app:autoSizeMaxTextSize="@dimen/calculator_display_text_size"
                     app:autoSizeMinTextSize="@dimen/calculator_display_text_size_min"
                     app:autoSizeStepGranularity="@dimen/calculator_display_text_size_step"
@@ -123,43 +129,50 @@
                     <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorMemoryClear" style="@style/Widget.FastMediaSorter.Calculator.MemoryButton" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:contentDescription="@string/calculator_action_memory_clear" android:text="MC" />
                 </LinearLayout>
 
-                <GridLayout
-                    android:id="@+id/calculatorGrid"
+                <FrameLayout
+                    android:id="@+id/calculatorGridContainer"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="1"
+                    android:clipToPadding="false">
+
+                <GridLayout
+                    android:id="@+id/calculatorGrid"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
                     android:columnCount="4"
                     android:rowCount="6"
                     android:useDefaultMargins="false">
 
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorClear" style="@style/Widget.FastMediaSorter.Calculator.ClearButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_rowWeight="1" android:contentDescription="@string/calculator_action_clear" android:text="C" />
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorClearEntry" style="@style/Widget.FastMediaSorter.Calculator.ClearButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_rowWeight="1" android:contentDescription="@string/calculator_action_clear_entry" android:text="CE" />
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorBackspace" style="@style/Widget.FastMediaSorter.Calculator.Button" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_rowWeight="1" android:contentDescription="@string/calculator_action_backspace" android:text="⌫" />
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorPercent" style="@style/Widget.FastMediaSorter.Calculator.OperatorButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_rowWeight="1" android:contentDescription="@string/calculator_action_percent" android:text="%" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorClear" style="@style/Widget.FastMediaSorter.Calculator.ClearButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_gravity="fill" android:layout_rowWeight="1" android:contentDescription="@string/calculator_action_clear" android:text="C" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorClearEntry" style="@style/Widget.FastMediaSorter.Calculator.ClearButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_gravity="fill" android:layout_rowWeight="1" android:contentDescription="@string/calculator_action_clear_entry" android:text="CE" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorBackspace" style="@style/Widget.FastMediaSorter.Calculator.Button" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_gravity="fill" android:layout_rowWeight="1" android:contentDescription="@string/calculator_action_backspace" android:text="⌫" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorPercent" style="@style/Widget.FastMediaSorter.Calculator.OperatorButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_gravity="fill" android:layout_rowWeight="1" android:contentDescription="@string/calculator_action_percent" android:text="%" />
 
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorSeven" style="@style/Widget.FastMediaSorter.Calculator.DigitButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_rowWeight="1" android:text="7" />
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorEight" style="@style/Widget.FastMediaSorter.Calculator.DigitButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_rowWeight="1" android:text="8" />
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorNine" style="@style/Widget.FastMediaSorter.Calculator.DigitButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_rowWeight="1" android:text="9" />
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorDivide" style="@style/Widget.FastMediaSorter.Calculator.OperatorButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_rowWeight="1" android:contentDescription="@string/calculator_action_divide" android:text="÷" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorSeven" style="@style/Widget.FastMediaSorter.Calculator.DigitButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_gravity="fill" android:layout_rowWeight="1" android:text="7" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorEight" style="@style/Widget.FastMediaSorter.Calculator.DigitButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_gravity="fill" android:layout_rowWeight="1" android:text="8" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorNine" style="@style/Widget.FastMediaSorter.Calculator.DigitButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_gravity="fill" android:layout_rowWeight="1" android:text="9" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorDivide" style="@style/Widget.FastMediaSorter.Calculator.OperatorButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_gravity="fill" android:layout_rowWeight="1" android:contentDescription="@string/calculator_action_divide" android:text="÷" />
 
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorFour" style="@style/Widget.FastMediaSorter.Calculator.DigitButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_rowWeight="1" android:text="4" />
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorFive" style="@style/Widget.FastMediaSorter.Calculator.DigitButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_rowWeight="1" android:text="5" />
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorSix" style="@style/Widget.FastMediaSorter.Calculator.DigitButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_rowWeight="1" android:text="6" />
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorMultiply" style="@style/Widget.FastMediaSorter.Calculator.OperatorButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_rowWeight="1" android:contentDescription="@string/calculator_action_multiply" android:text="×" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorFour" style="@style/Widget.FastMediaSorter.Calculator.DigitButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_gravity="fill" android:layout_rowWeight="1" android:text="4" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorFive" style="@style/Widget.FastMediaSorter.Calculator.DigitButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_gravity="fill" android:layout_rowWeight="1" android:text="5" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorSix" style="@style/Widget.FastMediaSorter.Calculator.DigitButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_gravity="fill" android:layout_rowWeight="1" android:text="6" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorMultiply" style="@style/Widget.FastMediaSorter.Calculator.OperatorButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_gravity="fill" android:layout_rowWeight="1" android:contentDescription="@string/calculator_action_multiply" android:text="×" />
 
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorOne" style="@style/Widget.FastMediaSorter.Calculator.DigitButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_rowWeight="1" android:text="1" />
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorTwo" style="@style/Widget.FastMediaSorter.Calculator.DigitButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_rowWeight="1" android:text="2" />
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorThree" style="@style/Widget.FastMediaSorter.Calculator.DigitButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_rowWeight="1" android:text="3" />
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorSubtract" style="@style/Widget.FastMediaSorter.Calculator.OperatorButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_rowWeight="1" android:contentDescription="@string/calculator_action_subtract" android:text="-" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorOne" style="@style/Widget.FastMediaSorter.Calculator.DigitButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_gravity="fill" android:layout_rowWeight="1" android:text="1" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorTwo" style="@style/Widget.FastMediaSorter.Calculator.DigitButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_gravity="fill" android:layout_rowWeight="1" android:text="2" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorThree" style="@style/Widget.FastMediaSorter.Calculator.DigitButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_gravity="fill" android:layout_rowWeight="1" android:text="3" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorSubtract" style="@style/Widget.FastMediaSorter.Calculator.OperatorButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_gravity="fill" android:layout_rowWeight="1" android:contentDescription="@string/calculator_action_subtract" android:text="-" />
 
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorToggleSign" style="@style/Widget.FastMediaSorter.Calculator.Button" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_rowWeight="1" android:contentDescription="@string/calculator_action_toggle_sign" android:text="+/-" />
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorZero" style="@style/Widget.FastMediaSorter.Calculator.DigitButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_rowWeight="1" android:text="0" />
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorDecimal" style="@style/Widget.FastMediaSorter.Calculator.Button" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_rowWeight="1" android:contentDescription="@string/calculator_action_decimal" android:text="." />
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorAdd" style="@style/Widget.FastMediaSorter.Calculator.PlusButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_rowWeight="1" android:contentDescription="@string/calculator_action_add" android:text="+" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorToggleSign" style="@style/Widget.FastMediaSorter.Calculator.Button" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_gravity="fill" android:layout_rowWeight="1" android:contentDescription="@string/calculator_action_toggle_sign" android:text="+/-" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorZero" style="@style/Widget.FastMediaSorter.Calculator.DigitButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_gravity="fill" android:layout_rowWeight="1" android:text="0" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorDecimal" style="@style/Widget.FastMediaSorter.Calculator.Button" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_gravity="fill" android:layout_rowWeight="1" android:contentDescription="@string/calculator_action_decimal" android:text="." />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorAdd" style="@style/Widget.FastMediaSorter.Calculator.PlusButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_gravity="fill" android:layout_rowWeight="1" android:contentDescription="@string/calculator_action_add" android:text="+" />
 
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorMenu" style="@style/Widget.FastMediaSorter.Calculator.Button" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_rowWeight="1" android:contentDescription="@string/more_actions" android:text="≡" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorMenu" style="@style/Widget.FastMediaSorter.Calculator.Button" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnWeight="1" android:layout_gravity="fill" android:layout_rowWeight="1" android:contentDescription="@string/more_actions" android:text="≡" />
                 <com.google.android.material.button.MaterialButton android:id="@+id/btnCalculatorEquals" style="@style/Widget.FastMediaSorter.Calculator.EqualsButton" android:layout_width="0dp" android:layout_height="0dp" android:layout_columnSpan="3" android:layout_columnWeight="3" android:layout_rowWeight="1" android:layout_gravity="fill" android:contentDescription="@string/calculator_action_equals" android:text="=" />
                 </GridLayout>
+                </FrameLayout>
             </LinearLayout>
         </LinearLayout>
 

@@ -1,46 +1,68 @@
 package com.sza.fastmediasorter.wear.ui.browse
 
+import androidx.annotation.StringRes
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
+import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
+import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.MediaType
+import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
+import com.sza.fastmediasorter.wear.domain.model.asContentType
+import com.sza.fastmediasorter.wear.domain.model.contentTypeForMime
+import com.sza.fastmediasorter.wear.ui.common.CellCaption
+import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
+import com.sza.fastmediasorter.wear.ui.common.LongPressChip
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
+import com.sza.fastmediasorter.wear.ui.common.WearRowDensity
+import com.sza.fastmediasorter.wear.ui.common.rowDensityFor
 import com.sza.fastmediasorter.wear.util.GridColumnFit
+import com.sza.fastmediasorter.wear.util.fileSizeParts
 import java.util.Locale
 
 private const val SINGLE_COLUMN = 1
+private const val GRID_CAPTION_LINES = 2
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
 
 private const val IMAGE_PREFIX = "image/"
 private const val VIDEO_PREFIX = "video/"
 private const val AUDIO_PREFIX = "audio/"
 
-private const val PHOTO_ICON = "🖼️"
-private const val VIDEO_ICON = "🎬"
-private const val AUDIO_ICON = "🎵"
-
-private const val BYTES_PER_UNIT = 1024.0
 private const val SECONDS_PER_MINUTE = 60
 private const val MINUTES_PER_HOUR = 60
 private const val MILLIS_PER_SECOND = 1000
 
+private val SELECTION_BORDER_WIDTH = 2.dp
+private val SELECTION_BADGE_SIZE = 16.dp
+
 /** What a file cell can ask of the screen that owns the list. */
 internal data class MediaFileActions(
     val onFileClick: (WearMediaFile) -> Unit,
+    val onFileLongClick: (WearMediaFile) -> Unit,
     val onThumbnailNeeded: (WearMediaFile) -> Unit
 )
 
@@ -55,14 +77,25 @@ internal fun ScalingLazyListScope.mediaFileItems(
     columns: Int,
     thumbnails: Map<Long, WearThumbnail>,
     mediaType: MediaType,
+    selectedIds: Set<Long>,
     actions: MediaFileActions
 ) {
+    // Decided here, for the whole list, rather than per row: a picture that lands mid-scroll must not
+    // re-size the glyph under the reading finger (strategic ADR-3). Only the cell path ever swaps a
+    // glyph for a thumbnail, so the column count is what answers that question.
+    val density = rowDensityFor(
+        types = files.map { contentTypeForMime(it.mimeType) ?: mediaType.asContentType() },
+        canProduceThumbnails = columns != SINGLE_COLUMN
+    )
     if (columns == SINGLE_COLUMN) {
         items(files, key = { it.id }) { file ->
             MediaFileChip(
                 file = file,
                 mediaType = mediaType,
-                onClick = { actions.onFileClick(file) }
+                selected = file.id in selectedIds,
+                density = density,
+                onClick = { actions.onFileClick(file) },
+                onLongClick = { actions.onFileLongClick(file) }
             )
         }
     } else {
@@ -72,6 +105,7 @@ internal fun ScalingLazyListScope.mediaFileItems(
                 columns = columns,
                 thumbnails = thumbnails,
                 mediaType = mediaType,
+                selectedIds = selectedIds,
                 actions = actions
             )
         }
@@ -85,6 +119,7 @@ private fun MediaFileRow(
     columns: Int,
     thumbnails: Map<Long, WearThumbnail>,
     mediaType: MediaType,
+    selectedIds: Set<Long>,
     actions: MediaFileActions
 ) {
     Row(
@@ -94,16 +129,38 @@ private fun MediaFileRow(
         files.forEach { file ->
             // Asking here rather than up front keeps the read tied to a cell that is on screen.
             LaunchedEffect(file.id) { actions.onThumbnailNeeded(file) }
-            ThumbnailCell(
-                thumbnail = thumbnails[file.id] ?: WearThumbnail.Loading,
-                caption = file.name,
-                onClick = { actions.onFileClick(file) },
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = typeIcon(file, mediaType),
-                    style = MaterialTheme.typography.title3
-                )
+            val selected = file.id in selectedIds
+            Box(modifier = Modifier.weight(1f)) {
+                ThumbnailCell(
+                    thumbnail = thumbnails[file.id] ?: WearThumbnail.Loading,
+                    caption = file.name,
+                    onClick = { actions.onFileClick(file) },
+                    modifier = selectionFrame(selected),
+                    onLongClick = { actions.onFileLongClick(file) },
+                    // A file with a thumbnail keeps the two-line caption under its own picture; one
+                    // without shows the mime-type glyph shared by every file of that type, and there
+                    // the name moves onto it (S2177).
+                    captionLayout = CellCaption(
+                        maxLines = GRID_CAPTION_LINES,
+                        overGroupIcon = true
+                    )
+                ) { glyphModifier ->
+                    // The inset is the cell's, not the glyph's: ThumbnailCell hands the S2003
+                    // placeholder contract down already sized, so this slot applies it untouched
+                    // instead of choosing a size of its own.
+                    val type = contentTypeForMime(file.mimeType) ?: mediaType.asContentType()
+                    Icon(
+                        painter = painterResource(ContentTypeCatalog.iconFor(type)),
+                        // The cell already announces the file by name; a second description would
+                        // make a screen reader read the same cell twice.
+                        contentDescription = null,
+                        modifier = glyphModifier,
+                        tint = typeTint(type)
+                    )
+                }
+                if (selected) {
+                    SelectionBadge(modifier = Modifier.align(Alignment.TopEnd))
+                }
             }
         }
         repeat(columns - files.size) {
@@ -116,7 +173,10 @@ private fun MediaFileRow(
 private fun MediaFileChip(
     file: WearMediaFile,
     mediaType: MediaType,
-    onClick: () -> Unit
+    selected: Boolean,
+    density: WearRowDensity,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
 ) {
     val secondaryText = when {
         file.mimeType?.startsWith(IMAGE_PREFIX) == true -> formatFileSize(file.size)
@@ -125,8 +185,11 @@ private fun MediaFileChip(
         else -> ""
     }
 
-    Chip(
+    // The library Chip owns its own clickable and never sees a press handed in through a modifier,
+    // so the row that has to serve both gestures is the module's own (S1953).
+    LongPressChip(
         onClick = onClick,
+        onLongClick = onLongClick,
         label = {
             Text(
                 text = file.name,
@@ -134,24 +197,91 @@ private fun MediaFileChip(
                 overflow = TextOverflow.Ellipsis
             )
         },
-        secondaryLabel = {
-            Text(text = "${typeIcon(file, mediaType)} $secondaryText")
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(selectionFrame(selected)),
+        // Both glyphs take the same size, or selecting a row would resize its leading slot.
+        icon = if (selected) {
+            { SelectionBadge(size = density.leadingIconSize) }
+        } else {
+            { TypeBadge(file = file, mediaType = mediaType, size = density.leadingIconSize) }
         },
-        modifier = Modifier.fillMaxWidth(),
+        // The glyph used to lead this line, so it was never empty. Now that the type has its own
+        // slot, a file whose mime type classifies nothing has nothing to say here, and an empty
+        // Text would still claim a second line and push the name off the row's centre.
+        secondaryLabel = if (secondaryText.isEmpty()) {
+            null
+        } else {
+            { Text(text = secondaryText) }
+        },
         colors = ChipDefaults.secondaryChipColors()
     )
 }
 
-/** The file's own type decides the glyph; the screen's type answers only for an unknown one. */
-private fun typeIcon(file: WearMediaFile, mediaType: MediaType): String = when {
-    file.mimeType?.startsWith(IMAGE_PREFIX) == true -> PHOTO_ICON
-    file.mimeType?.startsWith(VIDEO_PREFIX) == true -> VIDEO_ICON
-    file.mimeType?.startsWith(AUDIO_PREFIX) == true -> AUDIO_ICON
-    else -> when (mediaType) {
-        MediaType.MUSIC -> AUDIO_ICON
-        MediaType.VIDEO -> VIDEO_ICON
-        MediaType.PHOTO -> PHOTO_ICON
-    }
+/**
+ * A selected cell is marked by shape as well as by the badge: colour alone would leave the state
+ * unreadable to the accessibility requirement in strategic §3.2.
+ */
+@Composable
+private fun selectionFrame(selected: Boolean): Modifier = if (selected) {
+    Modifier.border(SELECTION_BORDER_WIDTH, MaterialTheme.colors.primary, MaterialTheme.shapes.small)
+} else {
+    Modifier
+}
+
+@Composable
+private fun SelectionBadge(modifier: Modifier = Modifier, size: Dp = SELECTION_BADGE_SIZE) {
+    Icon(
+        imageVector = Icons.Default.Check,
+        contentDescription = stringResource(R.string.wear_file_selected),
+        modifier = modifier.size(size),
+        tint = MaterialTheme.colors.primary
+    )
+}
+
+/**
+ * The type glyph a row wears while nothing is selected, so its icon slot is never empty.
+ *
+ * The caller hands both this glyph and the selection badge one size, so opening a selection swaps
+ * one glyph for the other without shifting the row's height.
+ */
+@Composable
+private fun TypeBadge(file: WearMediaFile, mediaType: MediaType, size: Dp) {
+    val type = contentTypeForMime(file.mimeType) ?: mediaType.asContentType()
+    Icon(
+        painter = painterResource(ContentTypeCatalog.iconFor(type)),
+        contentDescription = stringResource(typeNameRes(type)),
+        modifier = Modifier.size(size),
+        tint = typeTint(type)
+    )
+}
+
+/**
+ * The semantic tone for a type glyph, or none when the painter already carries its own colour.
+ *
+ * Same guard as the home screens: an already coloured vector must keep what it has, so the catalog
+ * is asked rather than tinted blindly.
+ */
+@Composable
+private fun typeTint(type: WearContentType): Color = if (ContentTypeCatalog.isMonochrome(type)) {
+    colorResource(ContentTypeCatalog.tintFor(type))
+} else {
+    Color.Unspecified
+}
+
+/** What a screen reader calls the glyph, so the type is announced as an entity of its own. */
+@StringRes
+private fun typeNameRes(type: WearContentType): Int = when (type) {
+    WearContentType.MUSIC -> R.string.wear_content_type_music
+    WearContentType.VIDEO -> R.string.wear_content_type_video
+    WearContentType.IMAGE -> R.string.wear_content_type_image
+    // The resolver feeding this badge yields only the three media kinds. The rest of the catalog's
+    // enum belongs to other surfaces, so the badge names them generically rather than announcing a
+    // kind it could not have derived.
+    WearContentType.DOCUMENT,
+    WearContentType.FOLDER,
+    WearContentType.STREAM,
+    WearContentType.OTHER -> R.string.wear_content_type_other
 }
 
 private fun formatDuration(durationMs: Long): String {
@@ -168,12 +298,12 @@ private fun formatDuration(durationMs: Long): String {
     }
 }
 
+/**
+ * Composable so the unit is read through the composition's configuration rather than a context's: the
+ * label has to follow the watch's language, which the arithmetic behind it never sees (S2353).
+ */
+@Composable
 private fun formatFileSize(bytes: Long): String {
-    val kilobytes = bytes / BYTES_PER_UNIT
-    val megabytes = kilobytes / BYTES_PER_UNIT
-    return when {
-        megabytes >= 1 -> String.format(Locale.US, "%.1f MB", megabytes)
-        kilobytes >= 1 -> String.format(Locale.US, "%.1f KB", kilobytes)
-        else -> "$bytes B"
-    }
+    val parts = fileSizeParts(bytes)
+    return stringResource(parts.unitRes, parts.value)
 }

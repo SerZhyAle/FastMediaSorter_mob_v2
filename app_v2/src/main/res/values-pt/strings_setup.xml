@@ -170,5 +170,13 @@
     <string name="welcome_role_sources_detail_cloud_only">Armazenamento do aparelho, Google Drive, OneDrive, Dropbox</string>
     <string name="welcome_role_sources_detail_local_only">Armazenamento interno e cartão SD</string>
     <string name="welcome_role_sorting_detail">Envie um arquivo para a pasta dele com um único toque</string>
-    <string name="welcome_role_more_detail">Transmissões, câmera e mais - um aplicativo em vez de vários</string>
+    <string name="welcome_role_more_detail">Câmara, widgets, gadgets e mais - uma app em vez de muitas</string>
+    <string name="welcome_description_1_shell">Não é apenas uma app de multimédia - é um ambiente completo para o seu dispositivo.\nEcrã principal, leitor, gestor de ficheiros, streams e armazenamento remoto num só lugar.</string>
+    <string name="welcome_description_1_details_shell">O FastMediaSorter pode gerir todo o dispositivo: um ecrã principal com as suas apps, widgets e atalhos, um leitor de fotografias, vídeos, música e livros, um gestor de ficheiros para armazenamento local, de rede e na nuvem, streams da internet e uma app complementar para Wear OS - e, acima de tudo isso, ordenação rápida com um toque.\n\nQuer usá-la como ecrã principal? Ligue o interruptor acima e o sistema pedirá a sua confirmação depois da configuração. Tudo o que escolher neste ecrã pode ser alterado mais tarde nas Definições, por isso não há escolha errada aqui - basta tocar em Seguinte para continuar.</string>
+    <string name="welcome_role_home_screen">Ecrã principal</string>
+    <string name="welcome_role_home_screen_detail">Gere o dispositivo em vez de um lançador - apps, widgets e multimédia à mão</string>
+    <string name="welcome_role_streams">Streams</string>
+    <string name="welcome_role_streams_detail">Rádio na internet, canais de TV e vídeo a partir de um catálogo pronto a usar</string>
+    <string name="welcome_role_wear">App do relógio</string>
+    <string name="welcome_role_wear_detail">Uma app complementar para Wear OS - navegue e reproduza no seu pulso</string>
 </resources>

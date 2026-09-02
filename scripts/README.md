@@ -103,7 +103,7 @@ Some root-level scripts remain for backward compatibility:
 **Always run scripts from project root**:
 
 ```powershell
-cd c:\GIT\FastMediaSorter_mob_v2
+cd <your FastMediaSorter_mob_v2 checkout>
 .\scripts\builders\build-debug.PS1
 .\scripts\utils\run-stress.ps1
 ```

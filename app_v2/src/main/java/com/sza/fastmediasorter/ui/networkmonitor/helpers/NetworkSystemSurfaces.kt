@@ -3,7 +3,17 @@ package com.sza.fastmediasorter.ui.networkmonitor.helpers
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import timber.log.Timber
+
+/**
+ * S2025: opens the system surface for [catalogKey] if resolvable, trying fallbackIntent first when present.
+ */
+fun Context.startSystemSurfaceFor(catalogKey: String) {
+    val target = OsShortcutCatalog.byKey(catalogKey) ?: return
+    val candidates = listOfNotNull(target.fallbackIntent?.invoke(this), target.intent(this))
+    startFirstAvailableSystemSurface(candidates)
+}
 
 /**
  * S1433: opens the first of [intents] that this device actually has, and reports whether any of them did.

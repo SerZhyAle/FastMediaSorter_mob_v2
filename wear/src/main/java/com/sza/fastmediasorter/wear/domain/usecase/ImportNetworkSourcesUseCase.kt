@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.wear.domain.model.NetworkBasePath
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearSyncPayload
+import com.sza.fastmediasorter.wear.domain.model.WearTileKind
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import timber.log.Timber
 import javax.inject.Inject
@@ -12,7 +13,8 @@ import javax.inject.Inject
 private const val STALE_THRESHOLD_MS = 24 * 60 * 60 * 1000L
 
 class ImportNetworkSourcesUseCase @Inject constructor(
-    private val repository: NetworkSourceRepository
+    private val repository: NetworkSourceRepository,
+    private val requestWearTileRefreshUseCase: RequestWearTileRefreshUseCase
 ) {
     suspend operator fun invoke(payload: WearSyncPayload): ImportResult {
         if (System.currentTimeMillis() - payload.sentAt > STALE_THRESHOLD_MS) {
@@ -27,10 +29,14 @@ class ImportNetworkSourcesUseCase @Inject constructor(
 
         for (item in payload.sources) {
             val type = when (item.type.uppercase()) {
-                "SMB"  -> NetworkSourceType.SMB
-                "FTP"  -> NetworkSourceType.FTP
+                "SMB" -> NetworkSourceType.SMB
+                "FTP" -> NetworkSourceType.FTP
                 "SFTP" -> NetworkSourceType.SFTP
-                else   -> { Timber.w("Unknown type ${item.type} - skipping"); skipped++; continue }
+                else -> {
+                    Timber.w("Unknown type ${item.type} - skipping")
+                    skipped++
+                    continue
+                }
             }
             val source = NetworkSource(
                 id = item.id,
@@ -46,7 +52,10 @@ class ImportNetworkSourcesUseCase @Inject constructor(
                 basePath = NetworkBasePath.normalize(item.basePath, type, item.shareName),
                 domain = item.domain,
                 sshPrivateKey = item.sshPrivateKey,
-                hostKeyFingerprint = item.hostKeyFingerprint
+                hostKeyFingerprint = item.hostKeyFingerprint,
+                // S2129: stored opaque. Resolution happens at draw time, so an id this build does
+                // not know still imports and simply falls back to the type glyph.
+                iconId = item.iconId
             )
             // upsertSource will update if merge key matches, add otherwise.
             // We detect add vs update by checking if the id already existed.
@@ -55,6 +64,7 @@ class ImportNetworkSourcesUseCase @Inject constructor(
         }
 
         Timber.i("Import complete: added=$added updated=$updated skipped=$skipped")
+        requestWearTileRefreshUseCase(WearTileKind.RESOURCE)
         return ImportResult(added, updated, skipped)
     }
 }

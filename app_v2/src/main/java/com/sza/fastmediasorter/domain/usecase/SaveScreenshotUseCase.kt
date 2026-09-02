@@ -17,7 +17,6 @@ import com.sza.fastmediasorter.util.ScreenshotDestinationPolicy
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -50,7 +49,6 @@ class SaveScreenshotUseCase @Inject constructor(
         target: ScreenshotDestinationPolicy.Target
     ): SaveResult = withContext(Dispatchers.IO) {
         val fileName = CaptureFileNamer.shared.allocate(CaptureFileNamer.CaptureKind.SCREENSHOT, ".png")
-        Timber.d("S1882: screenshot output $fileName")
         val tempDir = File(context.cacheDir, TEMP_DIR_NAME)
         if (!tempDir.exists() && !tempDir.mkdirs()) {
             return@withContext SaveResult.Failure(

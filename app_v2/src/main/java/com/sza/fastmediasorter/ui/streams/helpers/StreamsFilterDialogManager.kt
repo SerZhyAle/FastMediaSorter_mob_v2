@@ -48,7 +48,8 @@ class StreamsFilterDialogManager(
         var pinnedOnly = state.filter.pinnedOnly
 
         fun renderValues() {
-            binding.tvCategoryValue.text = category ?: activity.getString(R.string.streams_filter_all)
+            binding.tvCategoryValue.text = StreamCategoryOptionMapper.label(activity, category)
+                ?: activity.getString(R.string.streams_filter_all)
             // S1477: the picked rubric is shown localized; `topic` itself stays the catalog id.
             binding.tvTopicValue.text = StreamTopicRubricCatalog.label(activity, topic)
                 ?: activity.getString(R.string.streams_filter_all)
@@ -89,7 +90,7 @@ class StreamsFilterDialogManager(
         }
 
         binding.rowCategory.setOnClickListener {
-            val options = StreamLanguageOptionMapper.categoryOptions(state.facets.categories)
+            val options = StreamCategoryOptionMapper.categoryOptions(activity, state.facets.categories)
             openPicker(R.string.streams_filter_category, options, category, KEY_CATEGORY, TAG_CATEGORY)
         }
         binding.rowTopic.setOnClickListener {
@@ -97,11 +98,11 @@ class StreamsFilterDialogManager(
             openPicker(R.string.streams_filter_topic, options, topic, KEY_TOPIC, TAG_TOPIC)
         }
         binding.rowLanguage.setOnClickListener {
-            val options = StreamLanguageOptionMapper.languageOptions(state.facets.languages)
+            val options = StreamLanguageOptionMapper.languageOptions(activity, state.facets.languages)
             openPicker(R.string.streams_filter_language, options, language, KEY_LANGUAGE, TAG_LANGUAGE)
         }
         binding.rowCountry.setOnClickListener {
-            val options = StreamCountryOptionMapper.countryOptions(state.facets.countries)
+            val options = StreamCountryOptionMapper.countryOptions(activity, state.facets.countries)
             openPicker(R.string.streams_filter_country, options, country, KEY_COUNTRY, TAG_COUNTRY)
         }
 
@@ -189,7 +190,7 @@ class StreamsFilterDialogManager(
         if (language == null) {
             activity.getString(R.string.streams_filter_all)
         } else {
-            StreamLanguageOptionMapper.languageOptions(listOf(language)).firstOrNull()?.label ?: language
+            StreamLanguageOptionMapper.languageOptions(activity, listOf(language)).firstOrNull()?.label ?: language
         }
 
     /** Decorates the active country code with its flag ("UA" -> "🇺🇦 UA"); "All" when no country is set. */
@@ -197,7 +198,7 @@ class StreamsFilterDialogManager(
         if (country == null) {
             activity.getString(R.string.streams_filter_all)
         } else {
-            StreamCountryOptionMapper.countryOptions(listOf(country)).firstOrNull()?.label ?: country
+            StreamCountryOptionMapper.countryOptions(activity, listOf(country)).firstOrNull()?.label ?: country
         }
 
     private companion object {

@@ -310,7 +310,7 @@ if ($RegenerateInventory) {
     # S1402: the freshness check names the fix (-Dicon.inventory.generate=true) but nothing here could
     # run it, so the only route was a bare gradlew call - which Rule 23 forbids because it takes no
     # BUILD.LOCK. The regeneration belongs to the gate that detects the staleness.
-    Enter-BuildLockOrExit -Reason "assert-icon-inventory-sync.ps1 (IconInventoryExportTest, generate mode)"
+    Enter-BuildLockOrExit -Reason "assert-icon-inventory-sync.ps1 (IconInventoryExportTest, generate mode)" -Domain Build.Phone
     Push-Location $RepoRoot
     try {
         $run = Invoke-ProcessWithTimeout -FilePath $gradlew -WorkingDirectory $RepoRoot `
@@ -319,7 +319,7 @@ if ($RegenerateInventory) {
         $genExit = if ($run.TimedOut) { 2 } else { $run.ExitCode }
         $timedOut = $run.TimedOut
     }
-    finally { Pop-Location; Exit-AgentLock -Name Build }
+    finally { Pop-Location; Exit-AgentLock -Name 'Build' -Domains @('Build.Phone') }
     if ($timedOut) {
         Write-Error "assert-icon-inventory-sync: regeneration run timed out after ${TimeoutSeconds}s (exit 2)" -ErrorAction Continue
         exit 2
@@ -333,7 +333,7 @@ if ($RegenerateInventory) {
 }
 
 if ($IncludeExportTest) {
-    Enter-BuildLockOrExit -Reason "assert-icon-inventory-sync.ps1 (IconInventoryExportTest)"
+    Enter-BuildLockOrExit -Reason "assert-icon-inventory-sync.ps1 (IconInventoryExportTest)" -Domain Build.Phone
     Push-Location $RepoRoot
     try {
         $run = Invoke-ProcessWithTimeout -FilePath $gradlew -WorkingDirectory $RepoRoot `
@@ -342,7 +342,7 @@ if ($IncludeExportTest) {
         $testExit = if ($run.TimedOut) { 2 } else { $run.ExitCode }
         $timedOut = $run.TimedOut
     }
-    finally { Pop-Location; Exit-AgentLock -Name Build }
+    finally { Pop-Location; Exit-AgentLock -Name 'Build' -Domains @('Build.Phone') }
     if ($timedOut) {
         Add-Fail 'inventory-fresh' "IconInventoryExportTest timed out after ${TimeoutSeconds}s"
     }

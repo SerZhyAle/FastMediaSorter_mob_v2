@@ -1,7 +1,5 @@
 package com.sza.fastmediasorter.wear.ui.navigation
 
-import timber.log.Timber
-
 /**
  * Every navigation address of the watch app, declared once.
  *
@@ -50,12 +48,34 @@ object WearRoutes {
     const val NETWORK_MONITOR = "network_monitor"
     const val GAME = "game"
 
+    /**
+     * S1862: the voice recorder is a mini-program, so [VOICE_RECORDER] carries its `canonicalKey`
+     * like the three above. [VOICE_NOTES] is not one - it is the recorder's own note list, reached
+     * only from the recorder, so it stays out of the Apps catalog and has no key to match.
+     */
+    const val VOICE_RECORDER = "voice_recorder"
+    const val VOICE_NOTES = "voice_notes"
+
+    /**
+     * S2008: the watch's own report, relocated from `settings/system_info`. Its value is the program's
+     * `canonicalKey` like the four above, which is what the Apps catalog's route-equals-key test reads;
+     * the old settings-namespaced address could not satisfy that and is gone.
+     */
+    const val SYSTEM_INFO = "system_info"
+
+    /** S2006: where a file the watch cannot play lands, instead of the audio player. */
+    const val UNSUPPORTED_FILE = "unsupported_file"
+
     const val ARG_MEDIA_TYPE = "mediaType"
     const val ARG_SOURCE_ID = "sourceId"
     const val ARG_SOURCE_NAME = "sourceName"
     const val ARG_ADDED = "added"
     const val ARG_UPDATED = "updated"
     const val ARG_FILE_ID = "fileId"
+    const val ARG_TILE_KIND = "tileKind"
+
+    /** S2201: the level of the watch-local folder walk to open, as `WearFolderAddress.asToken` writes it. */
+    const val ARG_FOLDER_TOKEN = "folderToken"
 
     const val BROWSE_PATTERN = "browse/{$ARG_MEDIA_TYPE}"
     const val PHONE_BROWSE_PATTERN = "browse_phone/{$ARG_MEDIA_TYPE}"
@@ -77,19 +97,35 @@ object WearRoutes {
     const val VIDEO_PLAYER_PATTERN = "video_player/{$ARG_FILE_ID}"
     const val IMAGE_VIEWER_PATTERN = "image_viewer/{$ARG_FILE_ID}"
 
+    /**
+     * S1955: where a tile of the given kind is pointed at its target.
+     *
+     * The only address the tiles add. Everything else a tile opens is an existing route reused as it is -
+     * a resource goes to [SOURCE_MEDIA_TYPE_PATTERN], favourites to [FAVOURITES], a channel to the players -
+     * because the assignment is the one action the feature adds and the rest it only shortens.
+     */
+    const val TILE_TARGET_PICKER_PATTERN = "tile_target_picker/{$ARG_TILE_KIND}"
+
+    /**
+     * S2201: one level of the watch's own folder walk.
+     *
+     * The argument is optional because the entrance names no level at all: an absent token is the
+     * root, which is exactly what `WearFolderAddress.parse` answers for a blank one. Declaring it
+     * mandatory would leave the walk with no address for its first screen.
+     */
+    const val LOCAL_FOLDER_PATTERN = "local_folder?$ARG_FOLDER_TOKEN={$ARG_FOLDER_TOKEN}"
+
     fun browse(mediaType: String): String = "browse/$mediaType"
 
     fun browsePhone(mediaType: String): String = "browse_phone/$mediaType"
 
     fun browseSource(mediaType: String, sourceId: String, sourceName: String): String {
         val route = "browse/$mediaType?$ARG_SOURCE_ID=${encodeArg(sourceId)}&$ARG_SOURCE_NAME=${encodeArg(sourceName)}"
-        Timber.d("S1848: browseSource route=%s", route)
         return route
     }
 
     fun sourceMediaType(sourceId: String, sourceName: String): String {
         val route = "source_media_type?$ARG_SOURCE_ID=${encodeArg(sourceId)}&$ARG_SOURCE_NAME=${encodeArg(sourceName)}"
-        Timber.d("S1848: sourceMediaType route=%s", route)
         return route
     }
 
@@ -100,6 +136,21 @@ object WearRoutes {
     fun videoPlayer(fileId: Long): String = "video_player/$fileId"
 
     fun imageViewer(fileId: Long): String = "image_viewer/$fileId"
+
+    fun tileTargetPicker(kind: String): String = "tile_target_picker/${encodeArg(kind)}"
+
+    /**
+     * S2201: the walk opened at the level [token] names.
+     *
+     * Encoded like every other argument here, and for a sharper reason than most: an address token
+     * carries a filesystem path or a MediaStore relative path, so it holds `/` by construction and
+     * a folder name inside it may legally hold `&`. Concatenated raw, either one misses this
+     * pattern and the tap does nothing at all.
+     */
+    fun localFolder(token: String): String = "local_folder?$ARG_FOLDER_TOKEN=${encodeArg(token)}"
+
+    /** The walk opened at its entrance, where no level has been chosen yet. */
+    fun localFolderRoot(): String = localFolder("")
 
     /**
      * S1848: percent-encodes one argument value before it is concatenated into a route.

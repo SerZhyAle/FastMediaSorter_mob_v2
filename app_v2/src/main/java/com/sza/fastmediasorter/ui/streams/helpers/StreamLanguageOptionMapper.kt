@@ -11,7 +11,7 @@ import java.util.Locale
  * `LanguageItem` for the flag glyph through a name->code reverse index built once over
  * [TranslationLanguageCatalog.supportedCodes]. Names outside the translator catalog (e.g. "sanskrit",
  * "tagalog", "brazilian portuguese") resolve to no flag and degrade to plain text (strategic §3.2).
- * Categories are plain strings with no flag.
+ * Categories are handled by [StreamCategoryOptionMapper].
  */
 object StreamLanguageOptionMapper {
 
@@ -32,18 +32,16 @@ object StreamLanguageOptionMapper {
      * primary languages are pinned to the top; a stable sort keeps the rest in their incoming
      * (alphabetical) order.
      */
-    fun languageOptions(languageNames: List<String>): List<Option> =
+    fun languageOptions(context: Context, languageNames: List<String>): List<Option> =
         languageNames.map { name ->
             val normalized = name.trim().lowercase(Locale.ENGLISH)
-            val flag = nameToCode[normalized]?.let { TranslationLanguageCatalog.findLanguage(it) }
-            Option(id = normalized, label = displayCase(name.trim()), flag = flag)
+            val flag = nameToCode[normalized]?.let {
+                TranslationLanguageCatalog.findLanguage(it, context.resources.configuration.locales[0])
+            }
+            Option(id = normalized, label = flag?.localizedName ?: displayCase(name.trim()), flag = flag)
         }.sortedBy { option ->
             PINNED_LANGUAGES.indexOf(option.id).let { if (it >= 0) it else PINNED_LANGUAGES.size }
         }
-
-    /** Builds flag-less options from plain category strings (id == the raw value, matched verbatim). */
-    fun categoryOptions(categories: List<String>): List<Option> =
-        categories.map { Option(id = it, label = it) }
 
     /**
      * S1477: rubric options carry the catalog id (what [StreamsFilter] matches) but a localized label,

@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherDesktopLayout
+import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -41,6 +42,7 @@ class LauncherEditModeManager(
     private val addCellButton: View,
     private val snackbarAnchor: View,
     private val viewModel: LauncherHomeViewModel,
+    private val activeScreenIndex: () -> Int,
     private val actions: LauncherDesktopActions,
 ) {
 
@@ -53,7 +55,6 @@ class LauncherEditModeManager(
         desktop.setOnLongClickListener {
             val locked = viewModel.desktopLocked.value
             val editing = viewModel.editMode.value
-            Timber.d("S1466: desktop long press - locked=$locked editing=$editing")
             if (locked || editing) return@setOnLongClickListener false
             showQuickMenu()
             true
@@ -83,9 +84,21 @@ class LauncherEditModeManager(
      * S1466: built per gesture and dropped on dismiss, so no popup outlives the desktop that anchored it.
      * "Add an item" carries the pressed square; a press the grid cannot name falls back to the first free
      * position, which is exactly what the taskbar "+" does and never leaves the item unplaced.
+     *
+     * S2033: the square is read in drawn coordinates and named in stored ones. This gesture works outside
+     * edit mode, where the desktop is rendered with its sections actually folded, so the row under the
+     * finger is short by the height of every collapsed section above it until it is translated back.
      */
     private fun showQuickMenu() {
-        val slot = desktop.slotAt(desktop.lastPressX, desktop.lastPressY)
+        val screenIndex = activeScreenIndex()
+        val cells = viewModel.cells.value.filter { it.cell.screenIndex == screenIndex }
+        val slot = desktop.slotAt(desktop.lastPressX, desktop.lastPressY)?.let {
+            // S2317: one derivation with the render path - the folded targets are read off the same cell
+            // list the projection runs against, so the two directions cannot disagree about a fold.
+            LauncherGridGeometry.storedSlotFor(it, cells, viewModel.sections.collapsedTargetsFor(cells))
+        }
+        Timber.d("S2318: quick-menu activeScreen=%d cellCount=%d", screenIndex, cells.size)
+        Timber.d("S2033: showQuickMenu slot=%s", slot)
         // Each gesture builds a fresh menu, so the popup's own replace-on-show guard never sees the
         // previous instance - closing it here is what keeps two modal windows off the desktop.
         quickMenu?.dismiss()

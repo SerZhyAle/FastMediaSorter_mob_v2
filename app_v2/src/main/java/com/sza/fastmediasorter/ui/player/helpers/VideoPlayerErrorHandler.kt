@@ -163,7 +163,6 @@ internal class VideoPlayerErrorHandler(
             val uri = android.net.Uri.parse(manager.currentFilePath)
             val pos = manager.lastPlaybackPosition
             if (activity != null && currentFile != null && activity.tryAltEngineFallback(currentFile, uri, pos)) {
-                Timber.d("S1060: VideoPlayerErrorHandler: AltEngine fallback initiated for %s", currentFile.name)
                 return true
             }
         }

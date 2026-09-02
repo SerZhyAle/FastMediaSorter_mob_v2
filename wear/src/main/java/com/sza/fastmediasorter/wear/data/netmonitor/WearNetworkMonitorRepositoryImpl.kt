@@ -93,10 +93,12 @@ class WearNetworkMonitorRepositoryImpl @Inject constructor(
     }
 
     private fun sample(): WearNetworkSnapshot {
+        val recordedAtMillis = System.currentTimeMillis()
         val active = connectivityManager?.activeNetwork
         val networkCapabilities = active?.let { connectivityManager.getNetworkCapabilities(it) }
         val wifiInfo = wifiInfo(networkCapabilities)
         return WearNetworkSnapshot(
+            recordedAtMillis = recordedAtMillis,
             activeTransport = networkCapabilities?.let { transportOf(it) },
             wifiNetworkName = wifiInfo?.let { readableSsid(it) },
             wifiSignalDbm = wifiInfo?.rssi,

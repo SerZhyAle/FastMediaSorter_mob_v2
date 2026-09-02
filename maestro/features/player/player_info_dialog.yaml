@@ -1,7 +1,7 @@
 appId: com.sza.fastmediasorter.debug
 ---
 # Test: File info dialog with audio metadata (S0551 Phase 05).
-# Precondition: OWNER_TRIGGER import registered "Загрузки" LOCAL resource and seeded
+# Precondition: clean preparation exposes the standard "Загрузки" LOCAL resource and seeds
 #   Audio/test_audio_flac.flac (a FLAC carrying artist/album metadata).
 # Oracle: info dialog exposes filename, size, and audio metadata section.
 

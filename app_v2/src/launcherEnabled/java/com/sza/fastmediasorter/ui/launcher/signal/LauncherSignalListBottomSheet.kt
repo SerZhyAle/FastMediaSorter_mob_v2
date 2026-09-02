@@ -12,7 +12,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.sza.fastmediasorter.databinding.LauncherSignalListItemBinding
 import com.sza.fastmediasorter.databinding.LauncherSignalListSheetBinding
-import timber.log.Timber
 
 /**
  * S1421 §5.1: every active signal, including the ones the strip could not fit.
@@ -56,7 +55,6 @@ class LauncherSignalListBottomSheet : BottomSheetDialogFragment() {
         val list = sheet.launcherSignalList
         list.layoutManager = GridLayoutManager(requireContext(), columnCount())
         list.adapter = SignalAdapter()
-        Timber.d("S1908: signal panel opened, ${signals.size} signal(s), ${columnCount()} column(s)")
         sheet.launcherSignalDismissAll.setOnClickListener {
             // Exactly the rows that show their own button, so the header's promise is the sum of theirs.
             onDismissAll(signals.filter(canDismiss))

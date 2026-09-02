@@ -413,7 +413,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     // cohesive wiring blocks below; order matters - sections need adapters, placement needs the
     // media-kind trigger, and the entry actions run only after every manager is constructed.
     override fun setupViews() {
-        Timber.d("S1198: setupViews split - running six wiring blocks")
         setupInlineAudio()
         setupStreamSections()
         setupToolbarCommands()
@@ -1063,6 +1062,16 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * PlayerLifecycleManager.exitPlayerWithAudioCheck via the shared resolver + dialog. Only ON-mode
      * (service) playback can continue in the background; OFF-mode audio is already torn down by onStop.
      */
+    private fun finishOrNavigateUp() {
+        if (isTaskRoot) {
+            startActivity(
+                Intent(this, com.sza.fastmediasorter.ui.main.MainActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            )
+        }
+        finish()
+    }
+
     private fun exitStreamsWithAudioCheck() {
         when (
             AudioExitBehaviorResolver.resolve(
@@ -1073,31 +1082,31 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         ) {
             AudioExitAction.FINISH -> {
                 keepBackgroundService = inlineAudio.isServiceAudioActive
-                finish()
+                finishOrNavigateUp()
             }
             AudioExitAction.STOP_AND_FINISH -> {
                 inlineAudio.stop()
-                finish()
+                finishOrNavigateUp()
             }
             AudioExitAction.ASK -> BackgroundAudioExitDialog.show(
                 context = this,
                 onStopThisTime = {
                     inlineAudio.stop()
-                    finish()
+                    finishOrNavigateUp()
                 },
                 onContinueThisTime = {
                     keepBackgroundService = true
-                    finish()
+                    finishOrNavigateUp()
                 },
                 onAlwaysStop = {
                     viewModel.updateExitBehavior(BackgroundAudioExitBehavior.ALWAYS_STOP)
                     inlineAudio.stop()
-                    finish()
+                    finishOrNavigateUp()
                 },
                 onAlwaysContinue = {
                     viewModel.updateExitBehavior(BackgroundAudioExitBehavior.ALWAYS_CONTINUE)
                     keepBackgroundService = true
-                    finish()
+                    finishOrNavigateUp()
                 },
             )
         }
@@ -1323,7 +1332,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * orientation by the time this runs, so re-reading them here produces what the dead layout described.
      */
     private fun applyOrientationDimensions() {
-        Timber.d("S1549: StreamsActivity applyOrientationDimensions - qualified dimensions re-read on rotation")
         val sidePadding = resources.getDimensionPixelSize(R.dimen.streams_list_side_padding)
         listOf(binding.rvStreams, binding.rvStreamsPinned).forEach { list ->
             list.setPaddingRelative(sidePadding, list.paddingTop, sidePadding, list.paddingBottom)

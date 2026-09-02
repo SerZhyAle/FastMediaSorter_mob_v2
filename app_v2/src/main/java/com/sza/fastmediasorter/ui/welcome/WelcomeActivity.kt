@@ -3,10 +3,8 @@ package com.sza.fastmediasorter.ui.welcome
 import android.animation.ValueAnimator
 import android.content.Intent
 import android.os.Bundle
-import android.view.FocusFinder
 import android.view.KeyEvent
 import android.view.View
-import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.LinearLayout
 import android.widget.Toast
@@ -16,13 +14,12 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
-import androidx.core.view.isVisible
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
-import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.input.TvNavAction
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
@@ -35,6 +32,7 @@ import com.sza.fastmediasorter.databinding.ActivityWelcomeBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog
 import com.sza.fastmediasorter.ui.main.MainActivity
+import com.sza.fastmediasorter.ui.profile.DeviceProfilePickerDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
@@ -43,9 +41,11 @@ import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeFeatureCards
 import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeFunctionalityController
 import com.sza.fastmediasorter.ui.welcome.helpers.WelcomePermissionsManager
 import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeRemoteSourcesController
+import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeTvNavigationManager
 import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -55,6 +55,10 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
 
     @Inject
     lateinit var mediaCapabilities: MediaCapabilities
+
+    /** Compile-time availability of the optional surfaces the first-page pitch may name (S2310). */
+    @Inject
+    lateinit var capabilityAvailability: CapabilityAvailability
 
     /** Owns the functionality page (S0400): capability toggles + inline deliverable downloads. */
     @Inject
@@ -93,14 +97,29 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     private var currentPage = 0
     private var defaultPlayerPageIndex = -1
     private var profilesPageIndex = -1
+
     // Separate field so the restored page is applied once in setupViewPager() without
     // affecting currentPage until the ViewPager is ready.
     private var restoredPage = 0
 
     // S1377: registered in setupViewPager, unregistered on the destroy edge below.
     private var rotationManager: com.sza.fastmediasorter.ui.welcome.helpers.WelcomeRotationManager? = null
+
     // S1234: the per-page palette moved to WelcomePagePalette - the brand animation owns the page
     // background now, and the colour tints the translucent panel behind each page's copy instead.
+
+    // S2312: the slider's D-pad / keyboard focus logic owns no Activity state, so it lives in its own
+    // manager and this Activity only dispatches keys into it. Built lazily because it needs the binding.
+    private val tvNavigation: WelcomeTvNavigationManager by lazy {
+        Timber.d("S2312: welcome TV navigation delegated to WelcomeTvNavigationManager")
+        WelcomeTvNavigationManager(
+            binding = binding,
+            currentPage = { currentPage },
+            pageCount = { pagerAdapter.itemCount },
+            focusedView = { currentFocus },
+            activateFocused = { activateFocusedViewOrAncestor() },
+        )
+    }
 
     override fun getViewBinding(): ActivityWelcomeBinding =
         ActivityWelcomeBinding.inflate(layoutInflater)
@@ -126,7 +145,21 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         // run and clears grantAllInProgress. enableAllManager.attach() re-arms grantAllOnComplete (guarded on
         // grantAllInProgress), so it must run first, while grantAllInProgress is still the restored `true`;
         // otherwise the re-arm no-ops and the default-player stage never starts (the S0910 stall).
-        enableAllManager.attach(this, permissionsManager) { completeWelcomeFlow() }
+        enableAllManager.attach(
+            activity = this,
+            permissionsManager = permissionsManager,
+            // S2322: the default-app stage opens one of the user's own files so the OS can raise its
+            // "Open with / Always" sheet. Announce it here, immediately before it happens - the
+            // overview shown at the very start is long gone behind the permission screens by now.
+            onConfirmDefaultPlayerStage = {
+                if (supportFragmentManager.findFragmentByTag(TAG_ENABLE_ALL_DEFAULT_APP) == null) {
+                    WelcomeEnableAllExplainerDialogFragment.newInstance(
+                        mode = WelcomeEnableAllExplainerDialogFragment.Mode.DEFAULT_APP,
+                        requestKey = REQUEST_KEY_ENABLE_ALL_DEFAULT_APP,
+                    ).show(supportFragmentManager, TAG_ENABLE_ALL_DEFAULT_APP)
+                }
+            },
+        ) { completeWelcomeFlow() }
 
         // The permissions page (S0402) owns ActivityResult launchers - wire it before the pager binds.
         permissionsManager.attach(this)
@@ -144,6 +177,8 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
                 onWelcomeLanguageSelected(code)
             }
         }
+
+        registerEnableAllResultListeners()
 
         setupViewPager()
         setupButtons()
@@ -258,9 +293,12 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
 
         // In landscape the status bar / nav bar / cutout may sit on a side edge - pad both sides.
         val sideInset = maxOf(
-            statusBar.left, statusBar.right,
-            navBar.left, navBar.right,
-            cutout.left, cutout.right
+            statusBar.left,
+            statusBar.right,
+            navBar.left,
+            navBar.right,
+            cutout.left,
+            cutout.right
         )
         val barPadding = resources.getDimensionPixelSize(R.dimen.welcome_top_nav_padding)
 
@@ -277,22 +315,45 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     }
 
     private fun setupViewPager() {
+        // S2310: a build that ships the home surface is pitched as a device shell, not as a media
+        // organizer. The same capability that decides the launcher toggle below picks the copy, so
+        // the page can never promise a home screen the build does not compile in (S1388).
+        val shellPitch = launcherModeContract.isAvailableInBuild
+        val streamsInPitch = capabilityAvailability.isStreamsAvailable()
+        val wearInPitch = mediaCapabilities.supportsWearCompanion
+        Timber.d("S2310: welcome pitch shell=$shellPitch streams=$streamsInPitch wear=$wearInPitch")
+
+        val firstPageDescriptionRes = if (shellPitch) {
+            R.string.welcome_description_1_shell
+        } else {
+            R.string.welcome_description_1
+        }
+        val firstPageDetailsRes = if (shellPitch) {
+            R.string.welcome_description_1_details_shell
+        } else {
+            R.string.welcome_description_1_details
+        }
         pagesList = mutableListOf(
             // Page 1: Welcome (Enhanced with feature cards)
             WelcomePage(
                 iconRes = R.drawable.ic_app_logo,
                 titleRes = R.string.welcome_title_1,
-                descriptionRes = R.string.welcome_description_1,
-                detailDescriptionRes = R.string.welcome_description_1_details,
+                descriptionRes = firstPageDescriptionRes,
+                detailDescriptionRes = firstPageDetailsRes,
                 // Ordered as a pitch, not as a grid: what the app opens, then where it reads from,
                 // then what it does with it. Rendered as a one-column list on a phone.
                 // S1389: the set answers to the build's own capabilities - see WelcomeFeatureCards.
-                featureCards = WelcomeFeatureCards.build(mediaCapabilities),
+                featureCards = WelcomeFeatureCards.build(
+                    capabilities = mediaCapabilities,
+                    launcherAvailable = shellPitch,
+                    streamsAvailable = streamsInPitch,
+                    wearAvailable = wearInPitch,
+                ),
                 showLanguagePicker = true,
                 onLanguagePickerRequested = ::showWelcomeLanguagePicker,
                 showThemePicker = true,
                 onThemeSelected = ::onWelcomeThemeSelected,
-                showLauncherModeToggle = launcherModeContract.isAvailableInBuild,
+                showLauncherModeToggle = shellPitch,
                 launcherModeChecked = viewModel.launcherModeRequested,
                 onLauncherModeToggled = { viewModel.setLauncherModeRequested(it) },
             ),
@@ -311,7 +372,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
                 // Next would take, so the profile page needs no separate confirm control.
                 onProfileConfirmed = { type ->
                     viewModel.onProfileSelected(type)
-                    flipPage(forward = true)
+                    tvNavigation.flipPage(forward = true)
                 },
             )
         )
@@ -360,8 +421,10 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         // markDefaultPlayerOnboardingShown() is called in onPageSelected() when the user reaches
         // this page - so skipping welcome doesn't suppress future display.
         val shouldShowDefaultPlayerPage = mediaCapabilities.supportsDefaultPlayer &&
-            (!viewModel.isDefaultPlayerOnboardingShown() ||
-                !DefaultPlayerHelper.isAlreadyDefaultPlayer(this))
+            (
+                !viewModel.isDefaultPlayerOnboardingShown() ||
+                    !DefaultPlayerHelper.isAlreadyDefaultPlayer(this)
+                )
 
         if (shouldShowDefaultPlayerPage) {
             defaultPlayerPageIndex = pagesList.size
@@ -457,8 +520,11 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
                     setMargins(indicatorMarginPx, 0, indicatorMarginPx, 0)
                 }
                 setBackgroundResource(
-                    if (isActive) R.drawable.indicator_active
-                    else R.drawable.indicator_inactive
+                    if (isActive) {
+                        R.drawable.indicator_active
+                    } else {
+                        R.drawable.indicator_inactive
+                    }
                 )
             }
             binding.layoutIndicator.addView(indicator)
@@ -523,12 +589,90 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             completeWelcomeFlow()
         }
 
-        // S0409: one-tap full setup. Sets profile OTHER, enables everything, walks permission +
-        // default-player dialogs, then finishes - skipping the remaining pages.
+        // S0409: one-tap full setup - enables everything, walks permission + default-player dialogs,
+        // then finishes, skipping the remaining pages. S2311: it now opens the profile picker first and
+        // runs from its result, so an unlucky auto-detection is visible and correctable before anything
+        // is applied.
         binding.btnEnableAll.setOnClickListener {
-            enableAllManager.start {
-                viewModel.onProfileSelected(DeviceProfileType.OTHER)
-                viewModel.saveDeviceProfile(isSkipped = false)
+            // A second tap while the explainer is up would stack a duplicate showing the same text.
+            if (supportFragmentManager.findFragmentByTag(TAG_ENABLE_ALL_EXPLAINER) != null) {
+                return@setOnClickListener
+            }
+            // S2322: explain the chain of system screens before the profile picker, because the
+            // picker's own tap already applies settings - after it, an explanation would describe
+            // something the user has agreed to.
+            WelcomeEnableAllExplainerDialogFragment.newInstance(
+                mode = WelcomeEnableAllExplainerDialogFragment.Mode.OVERVIEW,
+                requestKey = REQUEST_KEY_ENABLE_ALL_EXPLAINER,
+            ).show(supportFragmentManager, TAG_ENABLE_ALL_EXPLAINER)
+        }
+    }
+
+    /**
+     * The three fragment results the "Enable all" path answers with: the explainer overview, the
+     * device-profile confirmation, and the just-in-time default-app reminder.
+     *
+     * All three belong to the Activity rather than to a tap, because each dialog outlives the
+     * recreation this screen performs routinely (theme and language picks). They live in their own
+     * function only because setupViews would otherwise exceed detekt's LongMethod ceiling - measured,
+     * not assumed: with them inline the function reached 82 lines against a limit of 80.
+     */
+    private fun registerEnableAllResultListeners() {
+        // S2311: the enable-all shortcut confirms the device profile before it applies anything, and
+        // no result at all (Back / tap-outside) deliberately applies nothing.
+        supportFragmentManager.setFragmentResultListener(
+            REQUEST_KEY_ENABLE_ALL_PROFILE,
+            this
+        ) { _, bundle ->
+            val type = bundle.getString(DeviceProfilePickerDialogFragment.RESULT_PROFILE)
+                ?.let { name -> runCatching { DeviceProfileType.valueOf(name) }.getOrNull() }
+                ?: return@setFragmentResultListener
+            Timber.d("S2311: enable-all profile confirmed: %s", type)
+            enableAllManager.start { viewModel.applyProfileForEnableAll(type) }
+        }
+
+        // S2322: the overview is answered before anything is applied, so declining it must leave the
+        // profile picker unopened - opening the picker is what commits the user (S2311 ADR-3).
+        supportFragmentManager.setFragmentResultListener(
+            REQUEST_KEY_ENABLE_ALL_EXPLAINER,
+            this
+        ) { _, bundle ->
+            val proceed = bundle.getBoolean(
+                WelcomeEnableAllExplainerDialogFragment.RESULT_PROCEED,
+                false
+            )
+            Timber.d("S2322: enable-all overview answered, proceed=%s", proceed)
+            val pickerUp = supportFragmentManager.findFragmentByTag(TAG_ENABLE_ALL_PROFILE) != null
+            if (proceed && !pickerUp) {
+                val state = viewModel.state.value
+                // warnOnApply is false: this is first-run onboarding, so there are no tuned settings
+                // for that warning to protect.
+                DeviceProfilePickerDialogFragment.newInstance(
+                    current = state.selectedProfile
+                        ?: state.recommendedProfile
+                        ?: DeviceProfileType.PERSONAL_SMARTPHONE,
+                    recommended = state.recommendedProfile,
+                    warnOnApply = false,
+                    requestKey = REQUEST_KEY_ENABLE_ALL_PROFILE,
+                ).show(supportFragmentManager, TAG_ENABLE_ALL_PROFILE)
+            }
+        }
+
+        // S2322: declining the just-in-time reminder drops the whole default-app stage, so no
+        // unexplained "Open with" sheet is ever raised over the user's files.
+        supportFragmentManager.setFragmentResultListener(
+            REQUEST_KEY_ENABLE_ALL_DEFAULT_APP,
+            this
+        ) { _, bundle ->
+            val proceed = bundle.getBoolean(
+                WelcomeEnableAllExplainerDialogFragment.RESULT_PROCEED,
+                false
+            )
+            Timber.d("S2322: default-app reminder answered, proceed=%s", proceed)
+            if (proceed) {
+                enableAllManager.onDefaultPlayerStageConfirmed()
+            } else {
+                enableAllManager.onDefaultPlayerStageDeclined()
             }
         }
     }
@@ -677,16 +821,32 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
      */
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.action == KeyEvent.ACTION_DOWN) {
+            val nav = tvNavigation
             when (event.keyCode) {
-                KeyEvent.KEYCODE_DPAD_LEFT -> { handleSliderHorizontal(View.FOCUS_LEFT, forward = false); return true }
-                KeyEvent.KEYCODE_DPAD_RIGHT -> { handleSliderHorizontal(View.FOCUS_RIGHT, forward = true); return true }
-                KeyEvent.KEYCODE_DPAD_UP -> { handleSliderVertical(View.FOCUS_UP); return true }
-                KeyEvent.KEYCODE_DPAD_DOWN -> { handleSliderVertical(View.FOCUS_DOWN); return true }
+                KeyEvent.KEYCODE_DPAD_LEFT -> {
+                    nav.handleHorizontal(View.FOCUS_LEFT, forward = false)
+                    return true
+                }
+                KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                    nav.handleHorizontal(View.FOCUS_RIGHT, forward = true)
+                    return true
+                }
+                KeyEvent.KEYCODE_DPAD_UP -> {
+                    nav.handleVertical(View.FOCUS_UP)
+                    return true
+                }
+                KeyEvent.KEYCODE_DPAD_DOWN -> {
+                    nav.handleVertical(View.FOCUS_DOWN)
+                    return true
+                }
                 KeyEvent.KEYCODE_DPAD_CENTER,
                 KeyEvent.KEYCODE_ENTER,
-                KeyEvent.KEYCODE_NUMPAD_ENTER -> if (handleSliderSelect()) return true
-                KeyEvent.KEYCODE_TAB -> if (handleSliderSequential(forward = !event.isShiftPressed)) return true
-                KeyEvent.KEYCODE_ESCAPE -> { onBackPressedDispatcher.onBackPressed(); return true }
+                KeyEvent.KEYCODE_NUMPAD_ENTER -> if (nav.handleSelect()) return true
+                KeyEvent.KEYCODE_TAB -> if (nav.handleSequential(forward = !event.isShiftPressed)) return true
+                KeyEvent.KEYCODE_ESCAPE -> {
+                    onBackPressedDispatcher.onBackPressed()
+                    return true
+                }
             }
         }
         return super.dispatchKeyEvent(event)
@@ -697,176 +857,11 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
      * owned by [dispatchKeyEvent] above.
      */
     override fun onTvNavigation(action: TvNavAction): Boolean = when (action) {
-        TvNavAction.Back -> { onBackPressedDispatcher.onBackPressed(); true }
+        TvNavAction.Back -> {
+            onBackPressedDispatcher.onBackPressed()
+            true
+        }
         else -> false
-    }
-
-    /** ENTER / DPAD_CENTER: activate the focused clickable control, else the visible primary CTA. */
-    private fun handleSliderSelect(): Boolean {
-        if (activateFocusedViewOrAncestor()) return true
-        return when {
-            binding.btnFinish.isVisible -> { binding.btnFinish.performClick(); true }
-            binding.btnNext.isVisible -> { binding.btnNext.performClick(); true }
-            else -> false
-        }
-    }
-
-    /** The itemView of the currently-visible ViewPager2 page, or null if not laid out yet. */
-    private fun currentPageView(): View? {
-        val recycler = binding.viewPager.getChildAt(0) as? RecyclerView ?: return null
-        return recycler.findViewHolderForAdapterPosition(currentPage)?.itemView
-    }
-
-    private fun isDescendantOf(view: View, parent: View): Boolean {
-        var p = view.parent
-        while (p != null) {
-            if (p === parent) return true
-            p = p.parent
-        }
-        return false
-    }
-
-    /** Horizontal focus scope for [view]: the bottom bar if focus is there, else the current page. */
-    private fun horizontalScope(view: View?): ViewGroup? {
-        if (view == null) return null
-        if (isDescendantOf(view, binding.layoutBottomNav)) return binding.layoutBottomNav
-        val page = currentPageView()
-        return if (page is ViewGroup && isDescendantOf(view, page)) page else null
-    }
-
-    /**
-     * The first focusable control inside the current page, or null if the page has none.
-     * ViewPager2's RecyclerView descends to the page when asked for FOCUS_DOWN, so this returns the
-     * top-most actionable control (e.g. the language picker on the first page).
-     */
-    private fun firstPageFocusable(): View? {
-        val page = currentPageView() as? ViewGroup ?: return null
-        val candidates = ArrayList<View>()
-        page.addFocusables(candidates, View.FOCUS_FORWARD)
-        return candidates.firstOrNull { it.isShown && it.isFocusable }
-    }
-
-    /**
-     * Move focus from the pager container onto a real control: the first focusable in the current
-     * page, falling back to the bottom bar. Returns true if focus moved off the container.
-     *
-     * Why: the first D-pad press on a freshly-opened page leaves focus on the ViewPager2 RecyclerView
-     * (the page's parent, not a descendant), so it belongs to neither the page nor the bar scope.
-     * Without this, LEFT/RIGHT would resolve a null scope and fall straight through to flipPage,
-     * making the in-page pickers unreachable on a remote that has no TAB key. S0289.
-     */
-    private fun enterPageFromContainer(): Boolean {
-        firstPageFocusable()?.let { it.requestFocus(); return true }
-        if (binding.btnNext.isVisible || binding.btnFinish.isVisible) { focusBar(); return true }
-        return false
-    }
-
-    /** True when focus sits on neither the current page content nor the bottom bar (e.g. on the
-     *  ViewPager2 RecyclerView container itself, or nowhere yet). */
-    private fun isOnPagerContainer(focused: View?): Boolean {
-        if (focused == null) return true
-        if (isDescendantOf(focused, binding.layoutBottomNav)) return false
-        val page = currentPageView()
-        return !(page is ViewGroup && isDescendantOf(focused, page))
-    }
-
-    /**
-     * LEFT / RIGHT: move focus to a neighbour inside the current scope; flip the page only at the
-     * scope's horizontal edge. Always consumes so ViewPager2 never performs its own page scroll.
-     */
-    private fun handleSliderHorizontal(direction: Int, forward: Boolean): Boolean {
-        val focused = currentFocus
-        // Focus on the pager container (typical after the very first D-pad key): pull it into the page
-        // instead of flipping, so the in-page pickers become reachable without a TAB key.
-        if (isOnPagerContainer(focused) && enterPageFromContainer()) return true
-        val scope = horizontalScope(focused)
-        if (focused != null && scope != null) {
-            val neighbour = FocusFinder.getInstance().findNextFocus(scope, focused, direction)
-            if (neighbour != null && neighbour !== focused) {
-                neighbour.requestFocus()
-                return true
-            }
-        }
-        return flipPage(forward)
-    }
-
-    /**
-     * UP / DOWN: move focus between the current page content and the bottom bar without letting the
-     * ViewPager2 RecyclerView perform its focus-escape page scroll. Always consumes.
-     */
-    private fun handleSliderVertical(direction: Int): Boolean {
-        val focused = currentFocus
-        val bar = binding.layoutBottomNav
-        val page = currentPageView() as? ViewGroup
-        val inBar = focused != null && isDescendantOf(focused, bar)
-        val inPage = focused != null && page != null && isDescendantOf(focused, page)
-
-        when {
-            inPage -> {
-                val next = FocusFinder.getInstance().findNextFocus(page, focused, direction)
-                if (next != null && next !== focused) {
-                    next.requestFocus()
-                } else if (direction == View.FOCUS_DOWN) {
-                    focusBar()
-                }
-            }
-            inBar -> if (direction == View.FOCUS_UP) {
-                // From the bar, UP re-enters the page on a real control (last focusable for a natural
-                // "come back to where you were near the bottom" feel), else stays put.
-                val target = (currentPageView() as? ViewGroup)?.let { p ->
-                    val list = ArrayList<View>()
-                    p.addFocusables(list, View.FOCUS_FORWARD)
-                    list.lastOrNull { it.isShown && it.isFocusable }
-                }
-                target?.requestFocus()
-            }
-            // Focus on the pager container: pull it onto a real control instead of leaving it stranded.
-            else -> enterPageFromContainer()
-        }
-        return true
-    }
-
-    /** Focus the visible primary button in the bottom bar. */
-    private fun focusBar() {
-        val target = binding.btnFinish.takeIf { it.isVisible }
-            ?: binding.btnNext
-        target.requestFocus()
-    }
-
-    /** Visible, focusable controls of the slider in TAB order: current page content, then bottom bar. */
-    private fun sliderFocusables(): List<View> {
-        val list = ArrayList<View>()
-        (currentPageView() as? ViewGroup)?.addFocusables(list, View.FOCUS_FORWARD)
-        binding.layoutBottomNav.addFocusables(list, View.FOCUS_FORWARD)
-        return list.filter { it.isShown && it.isFocusable }
-    }
-
-    /** TAB / SHIFT+TAB: cycle focus within the slider (page + bar) with wraparound, no pager scroll. */
-    private fun handleSliderSequential(forward: Boolean): Boolean {
-        val all = sliderFocusables()
-        if (all.isEmpty()) return false
-        val idx = all.indexOf(currentFocus)
-        val nextIdx = when {
-            idx < 0 -> 0
-            forward -> (idx + 1) % all.size
-            else -> (idx - 1 + all.size) % all.size
-        }
-        all[nextIdx].requestFocus()
-        return true
-    }
-
-    private fun flipPage(forward: Boolean): Boolean {
-        return if (forward) {
-            if (currentPage < pagerAdapter.itemCount - 1) {
-                binding.viewPager.currentItem = currentPage + 1
-                true
-            } else false
-        } else {
-            if (currentPage > 0) {
-                binding.viewPager.currentItem = currentPage - 1
-                true
-            } else false
-        }
     }
 
     /**
@@ -882,5 +877,18 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
 
     companion object {
         private const val KEY_CURRENT_PAGE = "key_current_page"
+
+        // S2311: own result key so the enable-all confirmation cannot collide with the Settings screen's
+        // use of the same picker.
+        private const val REQUEST_KEY_ENABLE_ALL_PROFILE = "welcome_enable_all_profile_result"
+        private const val TAG_ENABLE_ALL_PROFILE = "WelcomeEnableAllProfilePicker"
+
+        // S2322: the two explainer surfaces carry their own keys because both are answered by the
+        // same fragment class - one shared key would let the overview's answer start the
+        // default-app stage.
+        private const val REQUEST_KEY_ENABLE_ALL_EXPLAINER = "welcome_enable_all_explainer_result"
+        private const val TAG_ENABLE_ALL_EXPLAINER = "WelcomeEnableAllExplainer"
+        private const val REQUEST_KEY_ENABLE_ALL_DEFAULT_APP = "welcome_enable_all_default_app_result"
+        private const val TAG_ENABLE_ALL_DEFAULT_APP = "WelcomeEnableAllDefaultAppPrompt"
     }
 }

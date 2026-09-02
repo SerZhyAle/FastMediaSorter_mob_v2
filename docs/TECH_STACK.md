@@ -58,7 +58,7 @@ Flavor summary:
 - `lite`: lighter local-first build, 4 ABIs
 - `photos`: image/cloud-focused build, 4 ABIs
 - `legacy`: API 23-25 full-feature build, 4 ABIs
-- `noLegal`: sideload-only full build with VR/XR and Python surface, 2 ABIs (`arm64-v8a`, `x86_64`)
+- `noLegal`: sideload-only full build with VR/XR and Python surface, 1 ABI (`arm64-v8a`) - `x86_64` was dropped 2026-08-23 and cannot return while Chaquopy is in the build, which refuses a build with no `ndk.abiFilters` just as AGP refuses filters alongside ABI splits (S1972, `docs/DEV_OPS.md`)
 - `vr`: OpenXR headset build, 1 ABI (`arm64-v8a`)
 
 Build type summary:
@@ -68,7 +68,7 @@ Build type summary:
 
 ## Build Outputs and Size Facts
 - Main app APK outputs: `app_v2/build/outputs/apk/<flavor>/<buildType>/`
-- Wear APK outputs: `wear/build/outputs/apk/<buildType>/`
+- Wear APK outputs: `wear/build/outputs/apk/<flavor>/<buildType>/` - the module declares `standard` and `noLegal` since S2090
 - Main app AAB outputs: `app_v2/build/outputs/bundle/<flavor>Release/`
 - Main app metadata example: `app_v2/build/outputs/apk/standard/debug/output-metadata.json`
 
@@ -131,6 +131,7 @@ Engineering effort estimate:
 - UI: Jetpack Compose BOM `2024.02.00`, Material 3, Activity `1.10.1`, Lifecycle `2.7.0`, ConstraintLayout `2.1.4`
 - Media: Media3 `1.2.1` (`exoplayer`, `ui`, `common`, `session`, `effect`, plus flavor-mounted `hls`, `dash`, `rtsp`, `midi`)
 - Imaging and capture: Glide `4.16.0`, Coil `2.5.0` (Wear), CameraX `1.5.3`, PhotoView `2.3.0`, ExifInterface `1.3.7`
+- Wear tiles (`wear` only, S1955): Tiles `1.6.2`, ProtoLayout `1.4.2` (`protolayout`, `protolayout-material`, `protolayout-expression`). Both declare minSdk 23, below the module's own 28, so neither moves the floor
 - Network and auth: SMBJ `0.12.1`, JSch `0.2.26` (both modules), Commons Net `3.10.0`, OkHttp `4.12.0`, Retrofit `2.9.0`, AppAuth `0.11.1`
 - Cloud SDKs: Play Services Auth `21.0.0`, Dropbox Core SDK `5.4.5`, MSAL `6.0.1`
 - OCR, translation, docs, archives: ML Kit Translate `17.0.3`, Language ID `17.0.6`, Tesseract4Android `4.8.0`, epub4j-core `4.2`, jsoup `1.17.2`, Markwon `4.6.2`, zip4j `2.11.5`

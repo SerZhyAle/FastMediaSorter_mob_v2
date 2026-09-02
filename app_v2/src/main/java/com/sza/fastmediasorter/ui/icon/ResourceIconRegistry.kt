@@ -5,7 +5,7 @@ import com.sza.fastmediasorter.R
 
 /**
  * Constant registry mapping `ico-XX-NNN` icon ids to `@DrawableRes` integers.
- * All 60 entries are listed by hand - no reflection used.
+ * All 100 entries are listed by hand - no reflection used.
  */
 object ResourceIconRegistry {
 

@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.data.cloud
 
 import androidx.annotation.Keep
-import com.microsoft.identity.client.IAccount
 import org.json.JSONArray
 import org.json.JSONObject
 import timber.log.Timber
@@ -13,12 +12,18 @@ import timber.log.Timber
  */
 object OneDriveRestClientUtils {
 
-/** Serialize an MSAL [IAccount] to a stable JSON envelope for persistence. */
-    fun serializeAccount(account: IAccount): String =
+    /**
+     * Serialize an MSAL account to a stable JSON envelope for persistence.
+     *
+     * S0403: takes the three fields rather than the MSAL `IAccount` itself. That is the whole
+     * reason this file can stay in `src/main` while the client that calls it moved to
+     * `src/cloudSdk` - and it lets the round-trip test drop its mocked SDK type.
+     */
+    fun serializeAccount(username: String, id: String, authority: String): String =
         JSONObject().apply {
-            put("username", account.username)
-            put("id", account.id)
-            put("authority", account.authority)
+            put("username", username)
+            put("id", id)
+            put("authority", authority)
         }.toString()
 
     /**

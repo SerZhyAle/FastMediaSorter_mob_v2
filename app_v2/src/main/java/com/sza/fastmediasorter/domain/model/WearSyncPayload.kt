@@ -24,7 +24,11 @@ data class WearNetworkSourcePayload(
     @SerializedName("sshPrivateKey") val sshPrivateKey: String? = null, // SFTP key-auth
     // S1555: canonical SHA256 host-key pin (S0046), normalised here so the watch needs no parser.
     // Null keeps the watch permissive, which is what every source saved before this field does.
-    @SerializedName("hostKeyFingerprint") val hostKeyFingerprint: String? = null
+    @SerializedName("hostKeyFingerprint") val hostKeyFingerprint: String? = null,
+    // S2129: the resource's own `ico-NN-NNN` id, resolved to a vector on the watch (ADR-1).
+    // Null on a resource that never got one, and absent from an older phone's payload - both
+    // cases leave the watch on its type-derived glyph rather than refusing the source.
+    @SerializedName("iconId") val iconId: String? = null
 )
 
 /**

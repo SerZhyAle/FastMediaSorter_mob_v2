@@ -4,6 +4,8 @@ import android.app.Activity
 import androidx.appcompat.app.AlertDialog
 import androidx.media3.ui.PlayerView
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.models.TranslationFontFamily
 import com.sza.fastmediasorter.domain.models.TranslationFontSize
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -98,16 +100,18 @@ class StandalonePlayerSettingsManager(
                 val fontSize = try {
                     TranslationFontSize.valueOf(settings.ocrDefaultFontSize)
                 } catch (e: Exception) {
+                    e.rethrowIfCancellation()
                     TranslationFontSize.AUTO
                 }
                 val fontFamily = try {
                     TranslationFontFamily.valueOf(settings.ocrDefaultFontFamily)
                 } catch (e: Exception) {
+                    e.rethrowIfCancellation()
                     TranslationFontFamily.DEFAULT
                 }
                 trackSelectionManager.applySubtitleStyle(fontSize, fontFamily)
             } catch (e: Exception) {
-                Timber.e(e, "StandalonePlayerSettingsManager: failed to apply subtitle styling")
+                e.errorUnlessCancellation("StandalonePlayerSettingsManager: failed to apply subtitle styling")
             }
         }
     }

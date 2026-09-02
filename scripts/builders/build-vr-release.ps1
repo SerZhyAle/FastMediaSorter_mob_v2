@@ -20,7 +20,8 @@ param(
 $ErrorActionPreference = "Stop"
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
-Enter-BuildLockOrExit -Reason "build-vr-release.ps1"
+. "$PSScriptRoot\..\utils\project-paths.ps1"
+Enter-BuildLockOrExit -Reason "build-vr-release.ps1" -Domain Build.Phone
 try {
 
 $projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
@@ -58,7 +59,7 @@ if ($DryRun) {
 Push-Location $projectRoot
 try {
     Write-Host "Running: gradlew assembleVrRelease" -ForegroundColor Yellow
-    & $gradlew assembleVrRelease "-Pchaquopy.enabled=false" --configuration-cache
+    & $gradlew :app_v2:assembleVrRelease "-Pchaquopy.enabled=false" --configuration-cache
     $buildExit = $LASTEXITCODE
 }
 finally {
@@ -73,29 +74,11 @@ if ($buildExit -ne 0) {
 Write-Host "`nVR APK Build Successful!" -ForegroundColor Green
 
 $apkDir = Join-Path $projectRoot "app_v2\build\outputs\apk\vr\release"
-$metadataPath = Join-Path $apkDir "output-metadata.json"
-$apkPath = $null
-
-if (Test-Path -LiteralPath $metadataPath) {
-    try {
-        $meta = Get-Content -LiteralPath $metadataPath -Raw | ConvertFrom-Json
-        if ($meta.elements -and $meta.elements.Count -gt 0 -and $meta.elements[0].outputFile) {
-            $apkPath = Join-Path $apkDir $meta.elements[0].outputFile
-        }
-    }
-    catch {
-        Write-Host "Warning: failed to parse output-metadata.json; falling back to newest .apk" -ForegroundColor Yellow
-    }
-}
-
-if (-not $apkPath -or -not (Test-Path -LiteralPath $apkPath)) {
-    $latestApk = Get-ChildItem -LiteralPath $apkDir -Filter *.apk -ErrorAction SilentlyContinue |
-        Sort-Object LastWriteTime -Descending |
-        Select-Object -First 1
-    if ($latestApk) {
-        $apkPath = $latestApk.FullName
-    }
-}
+# S1972: one resolver for every builder - it selects by ABI from output-metadata.json
+# and refuses to guess, where this block used to take element 0 and then the newest file.
+. "$PSScriptRoot\..\utils\find-build-artifact.ps1"
+$resolvedArtifact = Find-BuildArtifact -Dir $apkDir
+$apkPath = if ($resolvedArtifact) { $resolvedArtifact.FullName } else { $null }
 
 if (-not $apkPath -or -not (Test-Path -LiteralPath $apkPath)) {
     Write-Host "Error: VR APK not found in $apkDir" -ForegroundColor Red
@@ -121,35 +104,15 @@ $logEntry = "$timestamp | vr-release | $destName | $versionName"
 Add-Content -Path $journalPath -Value $logEntry
 Write-Host "Build logged to journal" -ForegroundColor Gray
 
-# Zip with password and copy to Google Drive.
 # This builder was the only one of the 24 that never mirrored (found 2026-08-23): every sibling
-# carried the block below, so the Drive copy of vr-release silently stayed at the April build while
-# DOWNLOADS advanced to June. A mirror that is stale rather than absent is the worse failure - it
-# looks like a delivered artifact.
-$gdDir = "c:\GD\WORK\FastMediaSorter"
-if (!(Test-Path -Path $gdDir)) {
-    New-Item -ItemType Directory -Path $gdDir | Out-Null
-}
-
-# Copy raw APK to Google Drive (in addition to password-protected ZIP below).
-# Recipients with security policies that block APK downloads use the .zip copy;
-# the raw .apk lets fast paths skip the unzip step.
-Copy-Item -Path $destPath -Destination "$gdDir\$destName" -Force
-Write-Host "APK copied to $gdDir\$destName" -ForegroundColor Green
-
-$zipName = [System.IO.Path]::ChangeExtension($destName, ".zip")
-$zipPath = "$gdDir\$zipName"
-
-# Use 7-Zip to create password-protected archive
-$7zipPath = "C:\Program Files\7-Zip\7z.exe"
-if (Test-Path -Path $7zipPath) {
-    & $7zipPath a -tzip -p1 "$zipPath" $destPath | Out-Null
-    Write-Host "APK zipped with password and copied to Google Drive: $zipPath" -ForegroundColor Cyan
-}
+# carried the delivery block this call replaced, so the Drive copy of vr-release silently stayed at
+# the April build while DOWNLOADS advanced to June. A mirror that is stale rather than absent is the
+# worse failure - it looks like a delivered artifact.
+& "$PSScriptRoot\..\utils\publish-artifact.ps1" -Path $destPath -Name $destName -NoCommander
 
 exit 0
 
 }
 finally {
-    Exit-AgentLock -Name Build
+    Exit-AgentLock -Name 'Build' -Domains @('Build.Phone')
 }

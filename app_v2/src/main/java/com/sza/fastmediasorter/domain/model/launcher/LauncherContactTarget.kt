@@ -70,3 +70,17 @@ data class LauncherContactChannel(
     val target: LauncherContactTarget,
     val label: String,
 )
+
+/**
+ * S2240: a messaging app installed on this device, offered before any contact is known.
+ *
+ * Deliberately not a [LauncherContactChannel]: a channel is a row on one person, this is an app on the
+ * device, and the messenger-first order asks for the app while no person has been chosen yet. Carrying
+ * no contact fields is what keeps it out of the stored cell format - [LauncherContactTarget] is what a
+ * cell persists, and a type that cannot describe a contact can never be mistaken for one.
+ */
+data class LauncherMessengerApp(
+    val packageName: String,
+    /** The app's own name, as a launcher would show it - taken from the application, not the activity. */
+    val label: String,
+)

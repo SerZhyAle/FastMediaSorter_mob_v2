@@ -266,6 +266,7 @@ private class FakeResourceRepository : ResourceRepository {
     ): List<MediaResource> = resources
     override suspend fun addResource(resource: MediaResource): Long = 0
     override suspend fun updateResource(resource: MediaResource) = Unit
+    override suspend fun updateResourceAddress(resourceId: Long, newPath: String) = Unit
     override suspend fun swapResourceDisplayOrders(resource1: MediaResource, resource2: MediaResource) = Unit
     override suspend fun updateResourcesDisplayOrder(resources: List<MediaResource>) = Unit
     override suspend fun deleteResource(resourceId: Long) = Unit

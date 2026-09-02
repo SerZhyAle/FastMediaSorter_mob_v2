@@ -29,11 +29,14 @@
     stage - which would have made the whole relocation a downgrade (S1939 ADR-1).
 
     Gates (in order):
+      - assert-play-listing-locales    (S2340 Play listing locales vs locales_config.xml)
       - assert-unreferenced-strings    (S1568 string keys nothing under <module>/src references)
       - assert-splash-brand-sync       (S1706 generated splash drawables vs strings and template)
       - assert-icon-inventory-sync     (S0815 icon docs vs the settings icon/title sources)
       - assert-doc-icons-sync          (S0889 doc icon assets vs their inventory)
       - assert-device-profile-matrix   (S1216 device matrix, registry and applier agreement)
+      - assert-source-gates            (S2110 every lexical ratchet baseline, over the whole tree)
+      - run-script-suites              (S2122 every *.tests/Run-Tests.ps1 suite in the repository)
 
     Deliberately NOT moved here: assert-oss-notices. It ships inside the package, so criteria 1
     and 2 hold - but its own wiring comment records that both of its findings ARE attributable to
@@ -88,11 +91,45 @@ else {
 
 # name -> extra args (beyond -Gate). Cheapest first, so a missing script surfaces early.
 $gates = [ordered]@{
+    # S2340. Reads two declarations - locales_config.xml and the LOCALES dict in
+    # publish-play-listing.py - plus 39 small text files, so it is the cheapest member and goes first.
+    # Rule 33 puts it in release scope on all four criteria (strategic S2340 "Гейт"): the listing
+    # reaches a user only when the owner publishes it; its subject is the whole listing tree against
+    # the whole locale declaration; each finding names its own locale and folder; and adding the
+    # missing locales is one batch either way. Deliberately NOT passed -Quiet - that switch suppresses
+    # the per-violation lines, and "which locale" is the whole content of this gate's report.
+    'assert-play-listing-locales.ps1'  = @()
     'assert-unreferenced-strings.ps1'  = @('-Quiet')
     'assert-splash-brand-sync.ps1'     = @('-Quiet')
     'assert-icon-inventory-sync.ps1'   = @()
     'assert-doc-icons-sync.ps1'        = @()
     'assert-device-profile-matrix.ps1' = @('-Quiet')
+    # S2110. Every lexical ratchet baseline, judged over the WHOLE tree. Rule 33 puts it here on
+    # all four criteria (strategic S2110 section 6.3): a hardcoded dp breaks nothing at runtime, so
+    # between releases it cannot reach a user; its subject is the tree, not a changed file; -Explain
+    # makes the finding name its own files; and batch conversion costs no more than per-ticket.
+    # It stays in assert-fast-gates.ps1 as well, and that is NOT duplication (ADR-2): there the
+    # runner is handed -ChangedFiles and judges the named set, here it never is and always judges
+    # the tree. Deleting either entry is what made the baselines nominal - measured 2026-08-27,
+    # layout-hardcoded-dimens sat 6 above its baseline in committed HEAD with every closure green,
+    # because a file no author named is judged by neither mode.
+    'assert-source-gates.ps1'          = @()
+    # S2122. The full sweep of every *.tests/Run-Tests.ps1 in the repository. Last on purpose: the
+    # table is ordered cheapest first and this is the most expensive member by a wide margin - the
+    # 37-suite sweep measured 214.8 s on 2026-08-27, against the 120 s foreground budget.
+    #
+    # Rule 33 puts it here on three grounds at once. It is attributable to no changed file, since it
+    # runs everything; it exceeds the foreground budget the per-ticket closure must stay inside; and
+    # it can fail on a sibling session's in-flight work, which is the accepted price of the release
+    # scope and intolerable in a ticket close. The per-ticket half lives in post-change.ps1 as
+    # `script-suite-regression`, where the changed set selects only the neighbouring suites.
+    #
+    # -Gate is what makes "could not verify" fatal here. The runner returns 2 when a suite could not
+    # run for want of an environment tool; the closure calls it without -Gate and treats that as
+    # advisory, because a developer machine missing rg must still be able to close a ticket. Before a
+    # release the environment must be complete, and the loop below collapses every non-zero code to
+    # FAIL - so the inversion needs no second code path here, only the switch.
+    'run-script-suites.ps1'            = @('-Quiet')
 }
 
 $results = [System.Collections.Generic.List[object]]::new()

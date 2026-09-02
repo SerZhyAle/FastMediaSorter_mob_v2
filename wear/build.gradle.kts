@@ -18,8 +18,8 @@ plugins {
 //     codes MUST differ: both modules publish under the same applicationId (S1681), and Play refuses
 //     a release whose artifacts repeat a versionCode. Wear = app_v2 code without its last digit.
 // Gate: scripts/quality/assert-module-version-parity.ps1.
-val defaultAppVersionCode = 26081516
-val defaultAppVersionName = "2.60.8151.612"
+val defaultAppVersionCode = 26082701
+val defaultAppVersionName = "2.60.8270.111"
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }
@@ -119,6 +119,36 @@ android {
         }
     }
 
+    // S2090: the watch gets the same two-variant split the phone has had for years. Until this block
+    // existed there was nowhere to put a capability Play refuses on a watch, so the only available
+    // answer was to delete it - which is what happened to ACCESS_FINE_LOCATION in S2013. The dimension
+    // is deliberately empty of source sets: no class and no manifest overlay lives under
+    // wear/src/noLegal yet, and the first Play-blocked capability creates both. See
+    // dev/FLAVOR_DEVELOPMENT_RULES.md for the shape that capability must take.
+    flavorDimensions += listOf("version")
+
+    productFlavors {
+        create("standard") {
+            dimension = "version"
+            isDefault = true
+        }
+
+        create("noLegal") {
+            dimension = "version"
+            // S1681: no applicationIdSuffix, ever. Play Services routes Data Layer traffic by an AppKey
+            // of (package name, signing certificate) and drops a mismatch inside WearableService, below
+            // the app - so a suffix here would stop delivery in both directions while the watch went on
+            // logging successful sends. app_v2's own noLegal carries no suffix for the same class of
+            // reason (S0232), and S1951 shows the outcome when a flavor does take one.
+            //
+            // No manifest.srcFile either: on the phone that substitution REPLACED the auto-detected
+            // flavor manifest and silently dropped the other entries, which had to be re-added through
+            // androidComponents.onVariants. Leaving it unset means a future wear/src/noLegal/
+            // AndroidManifest.xml is picked up by convention and merged normally.
+            versionNameSuffix = "-NoLegal"
+        }
+    }
+
     compileOptions {
         // CRITICAL: Do not change - Java 17 required for Kotlin 1.9.24 and modern Wear OS libraries
         sourceCompatibility = JavaVersion.VERSION_17
@@ -193,6 +223,17 @@ dependencies {
     // Wear OS essentials
     implementation("com.google.android.gms:play-services-wearable:18.1.0")
     implementation("androidx.wear:wear:1.3.0")
+    implementation("androidx.wear:wear-input:1.1.0")
+
+    // S1955: tiles for the system carousel. The tile service and its layout library split at 1.2 and are
+    // both maintained; both declare minSdk 23, so neither moves this module's floor of 28.
+    implementation("androidx.wear.tiles:tiles:1.6.2")
+    implementation("androidx.wear.protolayout:protolayout:1.4.2")
+    implementation("androidx.wear.protolayout:protolayout-material:1.4.2")
+    implementation("androidx.wear.protolayout:protolayout-expression:1.4.2")
+
+    // S2047: watch face complication data sources. watch-face APIs are deprecated at 1.3.0 while complication APIs are not.
+    implementation("androidx.wear.watchface:watchface-complications-data-source-ktx:1.3.0")
     
     // Accompanist Permissions (for runtime permission handling)
     implementation("com.google.accompanist:accompanist-permissions:0.34.0")
@@ -211,7 +252,14 @@ dependencies {
     // Hilt Dependency Injection
     implementation("com.google.dagger:hilt-android:2.59")
     ksp("com.google.dagger:hilt-android-compiler:2.59")
-    
+
+    // Room - voice-note store (S1862). Version is deliberately kept equal to app_v2 and pinned in
+    // docs/TECH_STACK.md; check-doc-vs-gradle.ps1 reads that pin. KSP is already applied above, so
+    // this adds a processor, not a plugin.
+    implementation("androidx.room:room-runtime:2.7.0")
+    implementation("androidx.room:room-ktx:2.7.0")
+    ksp("androidx.room:room-compiler:2.7.0")
+
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
@@ -250,4 +298,11 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+}
+
+ksp {
+    // Export the Room schema JSON into a committed dir so a future migration is validatable (S0731
+    // set the same rule for app_v2). Version 1 has no migration; the schema is what a version 2 will
+    // be diffed against.
+    arg("room.schemaLocation", "$projectDir/schemas")
 }

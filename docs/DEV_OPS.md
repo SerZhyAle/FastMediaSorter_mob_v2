@@ -24,13 +24,8 @@
 .\scripts\builders\build-legacy-debug.ps1
 .\scripts\builders\build-legacy-release.ps1
 
-# VR
-.\scripts\builders\build-vr-debug.ps1                   # alias: .\a.ps1 vrd
-.\scripts\builders\build-vr-release.ps1                 # alias: .\a.ps1 vr
-.\scripts\builders\build-vr-aab.ps1                     # AAB for Meta Horizon Store
-.\scripts\builders\install-vr-debug-to-device.ps1       # install, NO launch | alias: .\a.ps1 ivrd
-.\scripts\builders\install-vr-release-to-device.ps1     # install, NO launch | alias: .\a.ps1 ivr
-.\scripts\builders\build-vr-device.ps1                  # build+install+launch - smoke only, bypasses HorizonOS shell
+# VR - one builder only; debug, AAB and install go through Gradle and adb.ps1 (see below)
+.\scripts\builders\build-vr-release.ps1                 # release APK | alias: .\a.ps1 vr
 
 # RELEASE AAB (standard, for Google Play)
 .\scripts\builders\build-aab-release.ps1                # alias: .\a.ps1 r
@@ -39,16 +34,15 @@
 .\gradlew.bat :wear:assembleDebug
 
 # DIRECT GRADLE (any flavor×buildType combination)
-.\gradlew.bat assembleStandardDebug
-.\gradlew.bat assembleStandardRelease
-.\gradlew.bat assembleLiteDebug
-.\gradlew.bat assemblePhotosDebug
-.\gradlew.bat assembleLegacyDebug
-.\gradlew.bat assembleVrDebug
-.\gradlew.bat assembleVrRelease
-.\gradlew.bat assembleVrUnlicensedRelease
-.\gradlew.bat bundleVrRelease                            # AAB for Meta Horizon Store
-.\gradlew.bat assembleStandardStaging                    # staging = minified but debuggable
+.\gradlew.bat :app_v2:assembleStandardDebug
+.\gradlew.bat :app_v2:assembleStandardRelease
+.\gradlew.bat :app_v2:assembleLiteDebug
+.\gradlew.bat :app_v2:assemblePhotosDebug
+.\gradlew.bat :app_v2:assembleLegacyDebug
+.\gradlew.bat :app_v2:assembleVrDebug
+.\gradlew.bat :app_v2:assembleVrRelease
+.\gradlew.bat :app_v2:bundleVrRelease                            # AAB for Meta Horizon Store
+.\gradlew.bat :app_v2:assembleStandardStaging                    # staging = minified but debuggable
 ```
 
 ## a.ps1 SHORTCUTS
@@ -56,10 +50,7 @@
 | Alias | Action |
 |:------|:-------|
 | `.\a.ps1 r`    | Build standard AAB release |
-| `.\a.ps1 vr`   | Build VR release APK |
-| `.\a.ps1 vrd`  | Build VR debug APK |
-| `.\a.ps1 ivr`  | Install VR release to device (no launch) |
-| `.\a.ps1 ivrd` | Install VR debug to device (no launch) |
+| `.\a.ps1 vr`   | Build VR release APK (the only VR alias - debug and install go through Gradle and `adb.ps1`) |
 | `.\a.ps1 d`    | Fast reusable debug build (standard) |
 | `.\a.ps1 db`   | Fast reusable debug build, skip zip |
 | `.\a.ps1 dav`  | Debug build with timestamped app version |
@@ -110,6 +101,16 @@ called `clear` is gone - it was twice read as "clear the log" and wiped app data
 .\a.ps1 adb clip-check                        # content leaving the display shape; exit 9 on a defect
 .\a.ps1 adb shell -Cmd "getprop ro.product.cpu.abi"
 ```
+
+### `install` refuses a module/device mismatch (S2043)
+
+`install` reads the selected device's `ro.build.characteristics` and refuses (exit 1, nothing
+installed) when `-Module` disagrees with what it finds - a phone-flavored `-Module app_v2`
+install against a device reporting `watch`, or `-Module wear` against one that does not. Both
+modules publish under one `applicationId` (S1681), so before this guard the wrong `-Module`
+silently replaced whichever app was already on that device and `install` still reported success.
+`-Module wear` also only ever auto-resolves the RELEASE apk directory - a debug watch build
+needs an explicit `-Apk`.
 
 ### Tapping by label, and what clip-check calls a defect (S1847)
 
@@ -205,7 +206,7 @@ Two properties of the switch are worth knowing before reading a report:
 pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Unit -Tests "com.sza.fastmediasorter.SomeClassTest"
 
 # LINT
-.\gradlew.bat lintStandardDebug
+.\gradlew.bat :app_v2:lintStandardDebug
 ```
 
 ### Preferred local validation ladder
@@ -269,6 +270,32 @@ pwsh -NoProfile -File scripts/utils/recover-kapt-stall.ps1
 
 `recover-kapt-stall.ps1` is the targeted scalpel: it stops daemons, removes `app_v2/build/tmp/kapt3`, `app_v2/build/generated/source/kapt*`, `app_v2/build/kotlin`, `app_v2/build/tmp/kotlin-classes`, and `.gradle/<ver>/executionHistory`. `clean-gradle-caches.ps1` nukes everything (`.gradle/`, `build/`, `app_v2/build/`) and is the cold-start option.
 
+### A class the incremental state lost, not a class the sources lack - S2127
+
+Symptom: a Kotlin compile fails on a file in `src/main` that nobody edited, naming a class it "cannot access".
+
+```text
+e: .../ui/browse/managers/BrowseManagerInitializer.kt:118:53 Cannot access class 'ReviewRequestManager'.
+   Check your module classpath for missing or conflicting dependencies.
+e: .../ui/browse/managers/BrowseManagerInitializer.kt:390:42 Unresolved reference 'onSortOperationSuccess'.
+```
+
+Every part of it points away from the real cause. The classpath named is correct. The file named is a consumer, not the declaration. Neighbouring files that reference the same type explicitly stay silent, because they were not in the dirty set. And the run flips between red and green depending on what dirtied that set beforehand - a changed `-Pfms.versionCode` regenerates `BuildConfig`, which half the module depends on - which reads as a configuration defect.
+
+Cause: a class whose source file moved between source sets keeps its FQCN and changes its source root. The incremental output then holds no `.class` for it, while the already-compiled binaries of its consumers keep naming it in their signatures. This repo relocates classes into paired source sets as a routine seam technique, so it recurs - S0403 did it for `cast`, `wear` and `playServices` in one ticket.
+
+Handled automatically. `check-standard-fast.ps1` (`fk`/`fkn`/`fc`/`fr`/`fu`) and `build-debug.PS1` (`d`/`db`/`dq`/`dav`) both detect the signature and repeat the run once with `-Pkotlin.incremental=false`; that rebuilds the lost class output and heals the state for later incremental runs too. A run that compiles twice and prints `not a source defect (S2127)` is doing this on purpose.
+
+The repeat is bound to that one signature, so an ordinary compile error still costs a single attempt. A genuinely missing dependency pays one extra compile and then reports its own verdict - it is never hidden.
+
+Reproducing it by hand, if a future case needs confirming rather than repairing:
+
+```powershell
+.\gradlew.bat :app_v2:compileStandardDebugKotlin -Pchaquopy.enabled=false -Pkotlin.incremental=false --no-configuration-cache
+```
+
+Passing there while the incremental run fails is the proof - same task, same flavor, same configuration, one flag apart.
+
 ### KSP incremental is off on purpose - S1375
 
 Symptom, if the setting is ever removed: `:app_v2:kspStandardDebugKotlin` fails and `compileStandardDebugKotlin` never runs, so nothing in `app_v2` compiles.
@@ -289,12 +316,43 @@ Cause: KSP2's incremental bookkeeping relativizes every classpath entry against 
 
 A same-root layout (`GRADLE_USER_HOME` on the project's drive) also avoids the crash, but that is a machine-specific absolute path - the same reason `org.gradle.java.home` is not committed, see the header of `gradle.properties`.
 
-### Concurrent-agent locks (BUILD.LOCK / CODE.LOCK) - S1338
+### Concurrent-agent locks, split by domain - S1338, S2109
 
-Two independent locks under `temp/`, both driven through `scripts/utils/agent-lock.ps1`, so two agent sessions in the same working tree do not race each other:
+A coordination resource is a **pair: type plus domain**, not one global word. Both types are driven through `scripts/utils/agent-lock.ps1`, and every domain that exists is declared in one table, `scripts/utils/agent-lock-domains.ps1` - adding a module is a row there, not an edit in each entry point.
 
-- **`temp/BUILD.LOCK`** - acquired by `Enter-BuildLockOrExit` before any direct `gradlew`/`gradlew.bat` invocation, released by `Exit-AgentLock` after (success or failure). Since S1432 a busy lock **queues** the caller instead of refusing: it takes a ticket, reports its position and starts when its turn comes. Pass `-NoWait` (or set `FMS_LOCK_NO_WAIT=1`) where an immediate answer matters more than a turn.
-- **`temp/CODE.LOCK`** - acquired via `scripts/utils/enter-code-lock.ps1 -Reason "<ticket/skill>"` before a multi-file source edit (Kotlin/XML/build-file). Since S1432 a busy lock queues the caller and **exits 4** ("queued, not yet your turn") rather than waving the edit through. Auto-releases from `post-change.ps1`'s closure - and that release is owner-checked, so it never removes a lock belonging to another live session; a skill that skips the facade (`/skill-fix`) must call `scripts/utils/exit-code-lock.ps1` itself when the edit is done.
+| Domain | Covers | Derived from |
+| --- | --- | --- |
+| `Build.Phone` | gradle work on `app_v2`, all six flavors | the module the entry point builds |
+| `Build.Wear` | gradle work on `wear` | the module the entry point builds |
+| `Code.Phone` | edits under `app_v2/` | the changed path set |
+| `Code.Wear` | edits under `wear/` | the changed path set |
+| `Code.Scripts` | edits to `scripts/`, `dev/`, `docs/`, `.claude/`, `.github/`, the root agent files and `a.ps1`; plus the content trees `play/`, `fastlane/`, `store_assets/`, `delivery/`, `maestro/` and the root site pages, documents and icons (S2342) | the changed path set |
+| *(no domain)* | edits under `PLAN/` - the one exemption, S2338 | the changed path set |
+
+**The test is "is this path already serialised by something finer", not "is it source"** (S2338). The domain lock exists to order what nothing else orders, so a path some other mechanism already makes exclusive does not need it - and `PLAN/` is exclusive twice over. A spec file and its phase folder belong to exactly one ticket, and a ticket is held exclusively by `ticket-lease.ps1` (atomic claim, exit 3 to the loser), so two sessions cannot reach one spec file at all; the journals and both release files are written only through the catalog mutators, every one of which holds `Enter-CatalogLock`. `docs/` and `dev/` are deliberately **not** exempt by the same test: they are hand-edited prose with nothing finer over them, so a concurrent edit there is an ordinary lost update. A PLAN-only changed set therefore resolves to no domain at all, and `enter-code-lock.ps1` reports that and exits 0 with nothing to release. Measured 2026-09-02 over the last 397 dev-log rows: 217 (55%) touched `PLAN/` and nothing else, so before the exemption the majority of closures took a domain that protected nothing while serialising every other `scripts/` and `docs/` edit in the repository. Callers must handle the empty set, which was unreachable before this ticket.
+
+**Content with no code in it takes `Code.Scripts`, not the full set** (S2342). Fail-closed exists for a path that *might* belong to a module - over-protecting an unknown one is the safe direction to be wrong. A store listing, a site page, a Fastlane metadata file or a root licence cannot belong to a module in principle: none of them compiles, links or packs into an APK. Until this ticket they all fell through to `return $full`, so a one-line edit to the Play listing serialised phone and watch work it could not conflict with - observed in S2340 phase 03, where a set of one repository script plus one listing file queued behind a wear session. Measured 2026-09-02 over the last 400 dev-log rows: the full code set was taken 11 times, 9 of those sets touched content and 8 were content **only**, so the expensive serialisation was spent almost entirely on paths with nothing to serialise. The branch was read off a full listing of the repository root rather than extended one directory per finding, and the remainder is asserted rather than assumed: `corex/` (unrecognised source) and the modules `benchmark/` and `watchface/` still take every code domain. Those two are real Gradle modules with no `Build.*` domain of their own, so giving them a code domain is a boundary decision - a table row plus its own build lock - and is deliberately not made here.
+
+**`dev/CHANGELOG.md` carries its own mutex, not the domain lock** (S2338). `scripts/add_to_dev_log.ps1` appends by read-modify-write - it scans recent rows for a duplicate, decides, then appends - and until this ticket that critical section was covered only incidentally, by the `Code.Scripts` lock a closure happened to hold because `dev/` is in the prefix list. With PLAN-only closures no longer taking any domain, the cover would have vanished for most writers, so the script now takes a per-checkout `Global\FMS-DevLog-<hash>` mutex around the scan and the append. Same shape and same reason as the spec catalog (S1437) and the feature inventory (S1537), which measured eight concurrent unlocked writers landing four records; verified here at 8 of 8. A system mutex rather than a lock file, because an append is milliseconds while the BUILD/CODE family is sized for 3-60 minute edit windows with queue directories and reservations.
+
+Two sessions contend only where their domains overlap. A watch edit, a phone edit and a scripts edit therefore proceed at the same time, and so do `.\a.ps1 fw` and `.\a.ps1 fk` - measured 2026-08-27 at 12 s wall for both, with no queue wait and no cache-contention message in either log.
+
+**The domain is derived, not declared** (ADR-1). `enter-code-lock.ps1 -Files "<changed paths>"` maps the set through `Resolve-CodeDomainsForPaths`; a gradle entry point derives its domain from the module it already builds (`check-standard-fast.ps1` from `-Module`, now via the registry row in `scripts/utils/gradle-modules.ps1`, so a module with no domain of its own widens to both rather than defaulting to the phone's; `assert-detekt.ps1` from `-Module`, or both domains when it runs without one). `-Domain` exists as an escape hatch and is second-class on purpose: a wrongly declared domain silently removes protection while still looking like working coordination, whereas a wrongly derived one is visible in the file set the call already prints.
+
+**Anything that does not decompose takes the full set** (ADR-2), so the failure direction is over-protection rather than under-protection: a build file in either module or at the root, a path the table does not recognise, a module added later, or a call that names no file set at all. A module's own `build.gradle.kts` deliberately belongs to the full set rather than to its module - the configuration phase processes every subproject, so a broken build file in one module fails a check requested for the other. The shared static-analysis config (`gradle/`, `lint-rules/`, `config/detekt/detekt.yml` and its siblings) is judged the same way; the per-module detekt **baselines** are the one carve-out, because `baseline-app_v2*` and `baseline-wear*` are named for their module and read by that module's check alone. That carve-out is not cosmetic: regenerating a baseline is a by-product of most Kotlin closures, so failing closed on it bought no protection and silently cost the split on the majority of tickets - observed 2026-08-31, a one-file `app_v2` edit plus its baseline took all three code domains. Over-protection is the safe direction to be wrong, but only where it protects something.
+
+**Multi-domain work is all-or-nothing, in canonical order.** A set is taken in the table's fixed rank, and a domain that cannot be taken releases every domain already taken in that call. Both halves matter: a hand-picked order lets two overlapping sets block each other with no timeout to break it, and a caller left holding half a set blocks every overlapping session for the whole length of its own wait. A multi-domain waiter is granted only when its ticket is head in **every** domain of its set - head in one and second in another is exactly the state that livelocks two overlapping waiters.
+
+**State written before the split is honoured** (strategic 3.2). Coordination files outlive a session, so a sibling may hold a pre-split `temp/BUILD.LOCK` or `temp/CODE.LOCK` at the moment the split lands. Those files name no domain, so the only safe reading is the widest one: a pre-split lock holds **every** domain of its type until its owner releases it or today's rules judge it stale, and a ticket left in a pre-split queue is a place in every domain of its type, ordered by its original sequence number. The first time such a file is honoured in a process, it says so on one line. Releasing one is the other half of the same rule and just as necessary - adoption that blocks without releasing converts every in-flight holder into a stall that only the staleness window ends - so a **bare** name releases the pre-split file of its type, while a single domain never does, because that file covers domains the caller did not take.
+
+The two types, and how each is taken:
+
+- **Build domains** - acquired by `Enter-BuildLockOrExit -Domain <..>` before any direct `gradlew`/`gradlew.bat` invocation, released by `Exit-AgentLock -Name Build -Domains <..>` after (success or failure). A caller that names no domain still takes both, so a script nobody has taught its module keeps serialising exactly as it did before the split. Since S1432 a busy domain **queues** the caller instead of refusing: it takes a ticket, reports its position and starts when its turn comes. Pass `-NoWait` (or set `FMS_LOCK_NO_WAIT=1`) where an immediate answer matters more than a turn.
+- **Code domains** - acquired via `scripts/utils/enter-code-lock.ps1 -Files "<changed paths>" -Reason "<ticket/skill>"` before a multi-file source edit (Kotlin/XML/build-file). Since S1432 a busy domain queues the caller and **exits 4** ("queued, not yet your turn") rather than waving the edit through. Auto-releases from `post-change.ps1`'s closure, which frees exactly the domains the run actually holds - the union of what its change set maps to and what this session owns - so a scripts-only closure by a session that took the full set does not leave two domains held for nobody. That release is owner-checked per domain, so it never removes a lock belonging to another live session; a skill that skips the facade (`/skill-fix`) must call `scripts/utils/exit-code-lock.ps1` itself when the edit is done.
+
+**A gradle task name in a repository script carries its module segment** (S2172). Write `:app_v2:assembleStandardDebug`, never `assembleStandardDebug`. This is not a spelling preference: an unqualified name is expanded by Gradle across **every** project in the build that declares it, so its meaning is set by the composition of the build rather than by the script that passes it. When S2090 gave the watch its own `standard` / `noLegal` dimension, forty call sites silently began building the watch as well, and not one of them was edited - measured 2026-08-27, `gradlew assembleStandardDebug --dry-run` scheduled 48 `:wear:` tasks beside 53 `:app_v2:` ones, while `:app_v2:assembleStandardDebug` scheduled none. This is the one way a correctly derived `-Domain` still under-protects, because the domain follows the module the entry point *believes* it builds: the caller holds `Build.Phone` and writes into `wear/build/**`, so a sibling's watch build dies on a locked `R.jar` with an error that reads as broken code rather than as contention. A watch artifact built by a phone task also inherits the phone's `versionCode`. Gate: `scripts/quality/assert-qualified-gradle-tasks.ps1`, in the fast-gates batch and so in every closure. S2175 extended the same gate to `.github/workflows/*.yml` - the CI workflows called `gradlew` with the identical unqualified shape, and a `.ps1`-only scanner could not see it.
+
+**Releasing a wedged lock:** `..ps1 ub` (build) and `..ps1 uc` (code) are the launcher shortcuts for `scripts/utils/clear-agent-lock.ps1`. Both are conservative - a lock whose holder is still live is refused, and the holder's pid, age, reason and session id are printed instead, because clearing it would hand the turn to the next agent mid-edit. `..ps1 uc -Force` overrides once the holder is confirmed gone (check the session's transcript mtime, not the pid - a code-domain pid can be recycled), and drops the whole queue with it, including any ticket your own background waiter is holding.
 
 #### Device leases - S1926
 
@@ -319,27 +377,40 @@ Exit codes match the ticket lease exactly, because it is the ticket lease's shap
 
 Like every other lock here, this is **advisory**: it coordinates consenting callers and does not stop a raw `adb` command, exactly as `BUILD.LOCK` does not stop a raw `gradlew`.
 
-**The queue (S1432).** Each lock has a queue directory `temp/<NAME>.QUEUE` holding one ticket file per waiter, numbered in order. The head of the queue owns the turn: a free lock is **not** enough to acquire, because a live head that has not yet spent its reservation window (5 min for Build, 3 for Code) still owns it - that window is what survives the gap between "your turn" and the moment gradle actually starts. Ownership of a ticket belongs to an agent **session**, not a process. A ticket whose owner has gone quiet, or which passed its ceiling (60 min Build, 20 min Code), is evicted by whoever reads the queue next. Every timing lives in one table, `$Script:AgentLockTimings`.
+**The queue (S1432).** Each DOMAIN has its own queue directory `temp/<DOMAIN>.QUEUE` holding one ticket file per waiter, numbered in order. The head of the queue owns the turn: a free lock is **not** enough to acquire, because a live head that has not yet spent its reservation window (5 min for Build, 3 for Code) still owns it - that window is what survives the gap between "your turn" and the moment gradle actually starts. Ownership of a ticket belongs to an agent **session**, not a process. A ticket whose owner has gone quiet, or which passed its ceiling (60 min Build, 20 min Code), is evicted by whoever reads the queue next. Every timing lives in one table, `$Script:AgentLockTimings`.
 
 **Queue fairness and liveness (S1448).** Four rules make the queue actually hand out turns in order, each of them fixing an observed starvation where a session sat still for tens of minutes without a single error:
 
 - **Taking a lock retires every ticket of the acquiring session**, not only the ticket handed to the acquire. Otherwise a session working step by step - take lock, close step, immediately queue for the next one - leaves the previous step's ticket parked on the head *while it holds the lock*, and nobody behind it can ever advance.
 - **The turn is decided by ticket identity, never by session identity.** A caller holding no ticket is answered from the lock and the head's reservation; it can no longer inherit the turn just because the head happens to belong to its own session. `enter-code-lock.ps1` therefore takes its place in the queue **before** it asks for the lock, exactly as `Enter-BuildLockOrExit` already did - so a session that releases and immediately wants the lock back queues behind whoever was already waiting. A re-entrant call from a session that already holds the lock is recognised and returns 0 without queueing.
-- **A waiting ticket carries its own heartbeat.** Liveness reads `lastSeenAt` first (stamped by `wait-for-lock-turn.ps1` on every poll), the owning session's transcript second, the enqueue time last. The transcript alone punished exactly the behaviour the contract demands: a session that queues, backgrounds the waiter and goes off to do lock-free work writes nothing, looked dead at the 15-minute mark, and was evicted from a place it had earned. The absolute ticket ceiling still judges `enqueuedAt` and is **not** extended by the heartbeat, so a genuinely abandoned head still ages out.
+- **A superset request tops up rather than re-queuing, but only in one direction** (S2200). The re-entrancy check above only fired when the requested set was *identical* to what the session already held - a session holding `Code.Wear` alone that then also needs `Code.Phone` fell through to the ordinary acquire path, which has no self-ownership check at all: it saw its own `Code.Wear` lock as "busy" and queued behind it, a wait nothing can ever end from the outside. `Enter-AgentLockDomain` still has no such check; instead `enter-code-lock.ps1` now splits the request into `Held` (already this session's) and `Missing` before touching the queue. Safety of granting `Missing` without releasing `Held` depends on canonical rank, not on self-ownership alone: it is safe exactly when every held domain outranks every missing one (`Code.Phone` < `Code.Wear` < `Code.Scripts`) - continuing upward through the table is equivalent to a fresh multi-domain acquire that already completed its first steps, so it inherits that acquire's deadlock-freedom. The other direction - holding a higher-ranked domain while a lower-ranked one is still missing - is refused outright (exit 4, nothing enqueued) with a message naming the self-collision and the recourse (`exit-code-lock.ps1` then retake the full set), because granting it would let a symmetric session holding the low-ranked domain deadlock against this one. `scripts/utils/agent-lock.ps1`'s `Resolve-AgentLockTopUp` is the single place this split is decided.
+- **A waiting ticket carries its own heartbeat.** Liveness reads `lastSeenAt` first (stamped by `wait-for-lock-turn.ps1` on every poll), the owning session's transcript second, the enqueue time last. The transcript alone punished exactly the behaviour the contract demands: a session that queues, backgrounds the waiter and goes off to do lock-free work writes nothing, looked dead at the 15-minute mark, and was evicted from a place it had earned. **An abandoned head does not age out** (S2098, correcting what this line claimed before): `TicketCeilingMinutes` is declared for `Build` and `Code` but read by no queue consumer - only `ticket-lease.ps1` and `device-lease.ps1` apply the field, and `Remove-StaleAgentLockTickets` judges the owner, never the ticket's age. That is deliberate. A legitimate wait behind one long build, or behind several queued builds, outlasts both numbers, so applying them would evict a session waiting exactly as the contract demands - `scripts/utils/test-agent-lock-queue.ps1` asserts that survival. The remedy for a dropped intent is therefore explicit withdrawal, below, not a timer.
+- **One head does age out: the one that was told to go and never went** (S2194). `Remove-StaleAgentLockTickets` carries a second, narrow reason to drop a ticket - **forfeit** - and it applies only to a queue **head** whose `turnGrantedAt` is older than that domain's `ReservationMinutes`, which does not hold the lock, and which is not the sweeping session's own. It is not the ticket-age timer the bullet above rules out: it reads `ReservationMinutes`, never `TicketCeilingMinutes` or `SessionStaleMinutes`, and it judges an **already-granted turn** rather than a wait, so a ticket that was never granted one survives any amount of waiting - `test-agent-lock-queue.ps1` asserts both boundaries. Safe because it fires only after the reservation expired, at which point the head holds no privilege anyway: `Test-AgentLockTurn` is already answering "your turn" to whoever asks. Leaving it in place is what costs - every remaining waiter is told to go at once and they race for the lock file, so a later arrival can overtake an earlier one, and every inspector reports a waiter who does not exist.
 - **The refusal names the blocker that exists.** A lock that is held reports its holder; a lock that is free while a foreign ticket owns the head says so and names the head's session, reason, wait and reservation window. `enter-code-lock.ps1` no longer prints a `Holder:` line built from an absent lock file - the observed `Holder: session  (age 0s, reason: '')` sent readers hunting for a holder that was not there.
 
 `lock-status.ps1 -Queue` surfaces the pathology directly: each ticket carries `heldByLockHolder`, the JSON payload carries `headOwnedByHolder`, and a text row owned by the current holder is suffixed `<- holds the lock`.
 
 ```powershell
 # Who holds it, who is waiting, in what order (this session's own ticket is marked '>')
-pwsh -NoProfile -File scripts/utils/lock-status.ps1 -Name Build -Queue
+pwsh -NoProfile -File scripts/utils/lock-status.ps1 -Name Build.Wear -Queue
+# A bare Build or Code prints one section per domain of the set, each naming its own domain
 pwsh -NoProfile -File scripts/utils/lock-status.ps1 -Name Code -Queue -Json
 
 # Wait for your turn OUT OF BAND: run this as a background task and keep working
-pwsh -NoProfile -File scripts/utils/wait-for-lock-turn.ps1 -Name Code -Reason "S0900 edit"
+pwsh -NoProfile -File scripts/utils/wait-for-lock-turn.ps1 -Name Code.Phone -Reason "S0900 edit"
 ```
 
-`wait-for-lock-turn.ps1` takes a ticket, blocks, and **exits** the moment the turn arrives - its exit is the "your turn" signal, which is the only channel through which an external event returns an agent to work. The ticket deliberately survives that exit: the caller inherits it, protected by the reservation window, and passes it to `Enter-AgentLock -Ticket`. Exit codes: **0** granted, **2** timed out, **3** ticket evicted while waiting, **4** could not enqueue. Do not read the verdict from the exit code a background task reports - that is the exit of the last command in the launch line, and it has already turned a refused build into an apparently green one. Read the marker instead: `temp/<NAME>.TURN-<sessionId>.json`, carrying `outcome` (`granted` / `timeout` / `evicted` / `enqueue-failed`), the ticket number and how long the wait took.
+**All five domains at a glance:** `.\a.ps1 rm` (`scripts/utils/monitor-spec-queue.ps1`) prints one line per domain with its holder and the tickets behind it, collapsing the idle domains into a single `free` line. Two properties are worth knowing before reading it. It **writes nothing** - unlike `lock-status.ps1`, it never evicts a stale ticket, so a queue entry it shows may be one the next acquire would sweep away; that is why every ticket row carries both its wait and its last heartbeat, and a long wait with a cold heartbeat is an abandoned intent, not a working sibling. And it takes the domain names from `agent-lock-domains.ps1` rather than listing them, which is the fix for what S2170 found: the section had kept naming the two pre-split files that nothing writes any more, so it reported "free" while three domains were held.
+
+`wait-for-lock-turn.ps1` takes a ticket, blocks, and **exits** the moment the turn arrives - its exit is the "your turn" signal, which is the only channel through which an external event returns an agent to work. The ticket deliberately survives that exit: the caller inherits it, protected by the reservation window, and passes it to `Enter-AgentLock -Ticket`. Exit codes: **0** granted, **2** timed out, **3** ticket evicted while waiting, **4** could not enqueue. Do not read the verdict from the exit code a background task reports - that is the exit of the last command in the launch line, and it has already turned a refused build into an apparently green one. Read the marker instead: `temp/<DOMAIN>.TURN-<sessionId>.json`, one per domain of the set, carrying `outcome` (`granted` / `timeout` / `evicted` / `enqueue-failed`), the ticket number and how long the wait took.
+
+**Withdrawing a dropped intent (S2098).** The queue has an operation for cancelling your own request, and it is the only remedy for an abandoned ticket:
+
+```powershell
+pwsh -NoProfile -File scripts/utils/withdraw-lock-ticket.ps1 -Name Code.Phone   # or: .\a.ps1 uqc / uqb
+```
+
+Its three boundaries are what separate it from the two operations it sits next to. It removes **only the calling session's** tickets, so it can never take someone else's place in line. It **never reads or writes the lock file**, so it is safe to run at any moment during another session's edit. And it **refuses (exit 2) when no session id is in the environment** rather than reporting a quiet zero, because without an identity "my ticket" and anyone else's are indistinguishable. Compare: `clear-agent-lock.ps1 -Name <..>` evicts only tickets whose owner is judged gone - which an abandoned ticket's owner is not - and `clear-agent-lock.ps1 -Name <..> -Force` drops the entire queue **plus the lock**, which may belong to a third, actively working session. That distinction is not academic: on 2026-08-27 an abandoned head sat in front of two waiting sessions, the unforced clear declined it, `-Force` would have taken a working session's lock, and the queue was only freed by deleting the ticket file by hand. Withdrawal stays the remedy for a ticket that has **not** been granted a turn; a head that was granted one and never entered is now dropped by the forfeit rule above, so that half of the case no longer needs a hand.
 
 **Re-entrancy.** Several gates run a nested script while already holding `BUILD.LOCK`, and `& other.ps1` executes in the same process - so a nested acquire would queue behind a lock this very run owns. `Enter-BuildLockOrExit` recognises the holder as itself (same pid) or as the ancestor that launched it (inherited `FMS_BUILD_LOCK_HELD_BY`) and reuses the lock instead of waiting.
 
@@ -363,7 +434,9 @@ A third shared file follows the same family but keys ownership differently (S139
 **Parallel picker sessions (S1437).** Two or three `/spec-next` / `/spec-do` sessions now run at once in one working tree. Three things make that safe, and each replaced a different blocker:
 
 - **Round state is per session** - `temp/spec-next-session.<sessionId>.json`, one file each. The old single file's `-Verb Init` refusal (exit 4) is gone; that code is retired and not reused. A pre-S1437 `temp/spec-next-session.json` is adopted into the per-session path on the first `Resume`.
-- **A ticket lease stops two sessions working the same ticket** - `scripts/spec_catalog/ticket-lease.ps1`, one file per lease under `temp/SPEC-TICKET.LEASES/`. A claim is an atomic `CreateNew`, so of two sessions racing for one ticket exactly one wins; the loser gets **exit 3**, which is a normal outcome - it re-ranks with that id excluded and takes the next ticket, it does not wait. Release is owner-checked (**exit 4** refuses to free a live sibling's lease). Expiry follows the owning session's liveness with an independent 480-minute ceiling, and a stale lease is swept by whoever reads next - no watchdog, same as the queue. **S1448 widened what counts as alive**, because a preflight once offered S1436 as unleased while the owning session was demonstrably working it: a lease now carries its own `lastSeenAt`, refreshed on every verb its owner runs, and a session holding `CODE.LOCK` or `BUILD.LOCK` with a reason naming the ticket id counts as live on that evidence alone. The 480-minute ceiling still judges `claimedAt` and neither signal extends it. `spec-next-preflight.ps1` consumes the lease set as an extra exclusion source and leaves its five sort keys alone, so the owner's release-plan order still decides who gets what.
+- **A ticket lease stops two sessions working the same ticket** - `scripts/spec_catalog/ticket-lease.ps1`, one file per lease under `temp/SPEC-TICKET.LEASES/`. A claim is an atomic `CreateNew`, so of two sessions racing for one ticket exactly one wins; the loser gets **exit 3**, which is a normal outcome - it re-ranks with that id excluded and takes the next ticket, it does not wait. Release is owner-checked (**exit 4** refuses to free a live sibling's lease). Expiry follows the owning session's liveness with an independent 480-minute ceiling, and a stale lease is swept by whoever reads next - no watchdog, same as the queue. **S1448 widened what counts as alive**, because a preflight once offered S1436 as unleased while the owning session was demonstrably working it: a lease now carries its own `lastSeenAt`, refreshed on every verb its owner runs, and a session holding any code or build domain with a reason naming the ticket id counts as live on that evidence alone - the evidence is scanned across **every** domain, plus the two pre-split names, because after S2109 a session holding `Code.Wear` writes no file under the bare name and a check looking only there would read a working session as abandoned and sweep it. The 480-minute ceiling still judges `claimedAt` and neither signal extends it. `spec-next-preflight.ps1` consumes the lease set as an extra exclusion source and leaves its five sort keys alone, so the owner's release-plan order still decides who gets what.
+- **A killed flow leaves its leases behind, and the sweep will not take them for 45 minutes** - deliberately, because that window is sized for a working session that writes nothing while it thinks. `.\a.ps1 ul` (`ticket-lease.ps1 -Verb Clean`) judges on live evidence instead: a lease survives only while a running headless child names its ticket, its owner holds any code or build domain naming it, this session owns it, or its owner's transcript moved within `-QuietMinutes` (2). Everything else is litter and goes, with the reason printed per lease. `-Force` drops the lot. Use it after `.\a.ps1 rs -Kill`, never as a way to take a ticket a sibling is working.
+
 - **Catalog journal writes are serialized** - `Enter-CatalogLock` / `Exit-CatalogLock` (and the `Invoke-CatalogTransaction` wrapper) in `scripts/spec_catalog/_lib.ps1` hold a named system mutex across **read -> mutate -> write** in every mutator, id allocation included. The write was already atomic by temp-file rename; the failure it fixes is the lost update, where two processes hold the same snapshot and the later write silently drops the earlier change. A mutex rather than a lock file because a journal rewrite is milliseconds, and it dies with its process so a crashed holder cannot wedge the catalog.
 
 ```powershell
@@ -371,6 +444,15 @@ A third shared file follows the same family but keys ownership differently (S139
 pwsh -NoProfile -File scripts/spec_catalog/ticket-lease.ps1 -Verb Status
 pwsh -NoProfile -File scripts/spec_catalog/ticket-lease.ps1 -Verb Status -Json
 # Release-order view with ephemeral ownership for the selected package; it never rewrites PLAN/RELEASE_QUEUE.md.
+# Each taken row is marked inline ('[taken 5.4m, /spec-all, session 39ebfe7f]'), so occupancy reads in the
+# same scan as the plan; the block underneath still carries the full session id needed to steal or clear one.
+```
+
+**The release files carry the same marker** (owner ruling 2026-09-01). `PLAN/RELEASE_QUEUE.md` and `PLAN/RELEASE_READY.md` are where the plan is actually read, so a ticket held by a live session is marked on its own row there - `[taken 15:42, /spec-all, be08adb0]`, a claim time rather than an age, because an age written into a file is wrong a minute later. The lease store under `temp/` stays the source of truth: the marker is re-rendered from it on every catalog write, so a session that died loses its marker on the next write and its ticket reads as free again. Anything parsing those files must strip the marker before reading the status column - `Remove-ReleaseQueueLeaseMarker` in `scripts/spec_catalog/_lib.ps1` is that one strip, and `run-spec-all-queue.ps1` tolerates the same tail in its own line pattern.
+
+```powershell
+# Re-render the markers on demand (any catalog write does it too)
+pwsh -NoProfile -File scripts/spec_catalog/release-queue.ps1 -Reconcile
 pwsh -NoProfile -File scripts/spec_catalog/release-queue.ps1 -List -Release 32 -WithLeases
 ```
 
@@ -431,6 +513,32 @@ Ratchet model: each module has a committed baseline freezing every pre-existing 
 - Baselines: `config/detekt/baseline-app_v2.xml`, `config/detekt/baseline-wear.xml`.
 - Plugin: applied per-subproject in the root `build.gradle.kts` (`subprojects { }`), detekt `1.23.8` + `detekt-formatting`.
 
+**Format vs signal split (S2105) - a read-only view, not a second baseline.** detekt's Gradle plugin
+reads exactly one baseline per module - `build.gradle.kts`'s `DetektExtension.baseline` is a single
+`RegularFileProperty`, so `config/detekt/baseline-<module>.xml` stays the one file detekt, the ratchet
+model above and the S1356 absorption gate all read; nothing about them changed. On top of it,
+`scripts/quality/split-detekt-baseline.ps1` derives two committed, read-only VIEW files per module,
+classifying every `<ID>` by rule name through `config/detekt/rule-categories.txt` (one
+`RuleName<TAB>format|signal` line per rule, the only place the boundary is decided):
+
+```powershell
+# Per-category counts, no manual grep through a 2 MB XML
+pwsh -NoProfile -File scripts/quality/split-detekt-baseline.ps1
+
+# Regenerate after the operational baseline or the category table changed
+pwsh -NoProfile -File scripts/quality/split-detekt-baseline.ps1 -Update -Reason '<why>'
+```
+
+- Views: `config/detekt/baseline-<module>-format.xml`, `config/detekt/baseline-<module>-signal.xml`.
+  Their combined ID set always equals the operational baseline's exactly - checked by `-Gate`.
+- A baseline rule name absent from `rule-categories.txt` fails closed (exit 2), never guesses a category.
+- `post-change.ps1`'s `detekt-baseline-split-sync` gate (fatal, mirrors `detekt-baseline-absorption`)
+  fires whenever an operational baseline, a view file, or the category table is among the changed
+  files - a re-freeze or a hand-edited table without a matching `-Update` FAILs the same closure that
+  changed it.
+- Shrinking the format debt via batched autocorrect was measured in S2112 and **does not work as a
+  campaign** - see "Batched autocorrect: measured and not adopted" below.
+
 **Scoped preflight (S1595) - the cheap step that now decides.** `post-change.ps1` runs
 `scripts/quality/detekt-preflight.ps1` before it starts the gradle gate, and since S1595 that step
 runs the **real** analyser over only the changed files (`scripts/quality/detekt-scoped.ps1`,
@@ -477,6 +585,82 @@ pwsh -NoProfile -File scripts/quality/audit-detekt-baseline-drift.ps1 -BaselineF
 
 Each stale entry prints as `DRIFTED` (the same rule is still live elsewhere in the same file, under a shape this entry no longer covers - a debt that quietly thawed) or `DEAD (prune candidate)` / `DEAD (file removed)` (nothing under that rule is live in the file at all - most likely already fixed, safe to prune after a glance). Diagnostic-only: it never fails a build and never mutates the baseline file - the classification is advisory input for a human decision, not an automated cleanup.
 
+**Removing a dead entry (S2112) - `prune-detekt-baseline.ps1`, and NOT a re-freeze.** The diagnostic
+above names dead entries; this is the tool that deletes them. It exists because detekt's own answer -
+`:<module>:detektBaseline` - re-freezes the whole module and cannot tell "this finding was fixed"
+from "this finding is new", which is exactly how the 2026-08-02 absorption incident happened
+(`assert-detekt-baseline-absorption.ps1`, S1356). **A whole-module re-freeze is the wrong tool for
+removing a dead entry; reach for it only when you mean to accept new debt deliberately.**
+
+```powershell
+# Report what is dead for these files - writes nothing
+pwsh -NoProfile -File scripts/quality/prune-detekt-baseline.ps1 -Module app_v2 -Files "a.kt,b.kt"
+
+# Delete those entries
+pwsh -NoProfile -File scripts/quality/prune-detekt-baseline.ps1 -Module app_v2 -Files "a.kt,b.kt" -Apply -Reason '<why>'
+```
+
+It runs detekt's CLI over the named files with `--create-baseline`, which emits IDs in the
+operational baseline's exact vocabulary, and subtracts the two sets. The contract is one-directional:
+
+- **exit 0** - reported, or the dead entries were deleted. Deletions only; every surviving line is
+  copied verbatim, so the diff is `N deletions, 0 insertions`.
+- **exit 1** - the named files carry a finding the baseline does not hold. Every one is printed and
+  **nothing is written**. The script has no code path that adds an `<ID>` at all, so absorbing debt
+  here is impossible rather than merely forbidden.
+- **exit 2** - could not verify. Note that detekt writes no baseline file when it finds nothing, so
+  the run also requests a Checkstyle report and reads *its* presence as "the analyser ran" - without
+  that, a dead analyser and a clean input set look identical and the prune would delete everything.
+
+The input set is silently widened to every `.kt` in the module sharing a name with a named file: a
+baseline ID carries `Rule:FileName$signature` with no directory, and 329 of app_v2's format entries
+sit on names that occur in more than one source set. After a prune, regenerate the derived artifacts
+in the same closing wave - `split-detekt-baseline.ps1 -Update` and
+`assert-detekt-baseline-absorption.ps1 -Update` - or the split-sync gate fails the closure.
+
+**Batched autocorrect: measured and not adopted (S2112).** The obvious use of the tool above is a
+campaign - autocorrect a package, prune what died, repeat over the module. That was measured on
+`core/util` (36 files, 120 format entries) on 2026-08-27 and the package had to be reverted. Three
+things came out of it, and all three generalise:
+
+- **Autocorrect is not idempotent.** Three passes were needed; pass 1 itself manufactured 18
+  `NoSemicolons` findings by splitting calls across lines. Anything written as "correct once, then
+  compile" is wrong by construction.
+- **Wrapping relocates line-length debt, it does not remove it.** `ArgumentListWrapping` lifts a long
+  string literal out of a `Timber.x(..)` call onto its own line, where it is still over 120
+  characters but under a new signature - so the frozen `MaxLineLength` entry stops matching and the
+  same debt returns as a *new* finding. Eight of the nine irreducible survivors were this. Since
+  `MaxLineLength` + `MaximumLineLength` are 33% of the format baseline and no rule in this stack
+  reflows a line, that third is not reachable by autocorrect at all.
+- **A format-only pass is not format-only.** The ninth survivor was `ComplexCondition`, a *signal*
+  rule whose baseline signature the reformat invalidated.
+
+Cost, for the record: +146 lines (+2.7%, worst file +14.1%), no `LargeClass` crossing in that
+package, and zero baseline entries retired. Full measurement:
+`PLAN/S2112_shrink_detekt_format_baseline/research/03__autocorrect-price-report.md`. Whether to
+continue in some other shape is an open owner decision, not a settled plan.
+
+**The format step may only touch a file it improves (S2116).** `post-change.ps1`'s `detekt-format`
+step is `detekt-scoped.ps1 -Fix`, and until 2026-08-27 it ran ktlint auto-correct over every file
+in the closure's set unconditionally and never judged what it left on disk. Combined with the two
+properties above - a wrap breaks the baseline signature, and no rule reflows an over-long string
+literal - that made a closure that cannot converge: measured on S2104, 74 findings over 54 files a
+judge run had called clean seconds earlier, identical across three consecutive `post-change.ps1`
+runs, and reproduced in isolation on one file (`PASS`, 0 findings, then `FAIL`, 4 findings, after
+`-Fix`). Since S2116 the mode is three passes:
+
+- **Judge the whole set first.** A file with no finding is never handed to the corrector, so a clean
+  set costs exactly one analyser pass and every file stays byte-identical. This is the common case,
+  and it is also the case that produced the defect.
+- **Correct only the files that carry a finding**, after snapshotting each one byte for byte.
+- **Re-judge those files and restore any whose finding count grew**, naming the file and the rules
+  that made it worse. `-Fix` still always exits 0: the verdict belongs to the preflight behind it.
+
+The overlay `config/detekt/format-autocorrect.yml` was deliberately *not* narrowed to a denylist of
+wrapping rules - a hand-kept list would need extending on every ktlint bump, while judging the
+result catches a rule that does not exist yet. Contract tests for all three passes:
+`scripts/quality/detekt-scoped.tests/Run-Tests.ps1` (cases F, G, H).
+
 ### Resource-link gate - S1915
 
 Prints as `resource-link-gate`. The only gate in the closure facade that runs aapt. It fires when the changed set carries a resource or a manifest (`$isResourceChange`, so a Kotlin-only or docs-only closure skips it and pays nothing) and links those resources for every variant the set touches.
@@ -489,7 +673,13 @@ pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Resources -
 pwsh -NoProfile -File ./a.ps1 fr
 ```
 
-**Variant selection.** `src/main` and every non-flavor source set ship inside the default variant, so `Standard` is always linked; a path under `src/<flavor>/` adds that flavor on top, deduplicated. A resource under `src/vr/res` linked only as `standard` would be judged by a variant that never sees the file - the same false green S1807 found when a phone target was quoted as proof under a wear change. The `wear` module declares no product flavors and `check-standard-fast.ps1` exits 2 on any non-default `-Flavor`, so the watch is answered before source sets are read at all.
+**Module selection - derived, never declared (S2121).** The gate ignores `post-change.ps1 -Module` and resolves the modules from the changed resource paths themselves, through the registry in `scripts/utils/gradle-modules.ps1`. `-Module` defaults to `app_v2` and nothing corrected it, so a ten-file change lying entirely under `watchface/` linked `:app_v2:processStandardDebugResources` and printed PASS - a verdict about a module the change never touched, which is worse than no gate because it looks like one that fired. A set spanning two modules links both, in the registry's own order.
+
+**Adding a module means adding a registry row.** A resource path under a directory the registry does not know fails the gate by name and links nothing; the gate never guesses a task name, because a guess either fails with a worse message than that refusal or silently passes about a variant nobody chose. The registry records the three facts a task name needs: the module's flavors, its build types, and whether it has any resource-processing task at all. Only `lint-rules` has none - it is a pure `kotlin("jvm")` project with no Android plugin - so it alone is named and skipped rather than linked.
+
+**Build types are per-module too (S2123).** A variant name is flavor plus build type, and until S2123 only the flavor half lived in the registry; the other half was a `ValidateSet("Debug", "Release")` on the builder's `-BuildType`, which is a claim about every module and false for one. `:benchmark` declares neither: the `androidx.baselineprofile` plugin gives it exactly `nonMinifiedRelease` and `benchmarkRelease`, and since it carries no flavor dimension the whole task-name segment is the build type. That is why S2121 measured `:benchmark:processDebugResources does not exist` and recorded `LinksResources = $false` - the task *name* was unbuildable, not the module unlinkable. Measured 2026-08-27, the real tasks run green and cheap: `:benchmark:processNonMinifiedReleaseResources` in 2.4 s and `:benchmark:processNonMinifiedReleaseManifest` in 1.4 s, neither needing `:app_v2` to build. The gate now reads each module's default build type - its first declared one, still `Debug` for `app_v2`, `wear` and `watchface` - from the registry and prints it beside the module before running.
+
+**Variant selection.** `src/main` and every non-flavor source set ship inside the default variant, so the module's first declared flavor is always linked; a path under `src/<flavor>/` adds that flavor on top, deduplicated, and only paths inside that module's own directory may select one. A resource under `src/vr/res` linked only as `standard` would be judged by a variant that never sees the file - the same false green S1807 found when a phone target was quoted as proof under a wear change. A module with no flavor dimension answers with an empty set, which is what makes the builder omit the variant segment entirely and run `:watchface:processDebugResources`; passing it a `-Flavor` is refused with exit 2 before any lock is taken.
 
 **Why it exists.** Every other gate in the facade is lexical. Before S1915 no path in it ran aapt, and `a.ps1 fk` compiles Kotlin without linking anything - so a layout that did not link closed green, and the ticket reached `BlockNeedUserTest`, which means "install this on a device and test it", without anything ever having built what gets installed (S1881). The gate runs the link rather than asking whether a build happened, which is why it needs no build journal, no `temp/` marker and no dev-log parsing, and why parallel sessions raise no question here.
 
@@ -517,6 +707,84 @@ pwsh -NoProfile -File scripts/quality/assert-source-gates.ps1 -Only layout-hardc
 **Migration model - the Rule 32 model, same as `findviewbyid`.** No campaign over the 331 layout files is scheduled, and the previous attempt at one reached 63% before being abandoned and deleted. A literal converts when another ticket reaches its file for its own reasons; the next green `-UpdateBaseline` run lowers the baseline; the baseline never rises without a boundary decision. The gate's job is that last clause - it is why the count cannot drift back up while nobody is looking.
 
 The rule lives in the shared registry (`scripts/quality/lib/source-matchers.ps1`) and rides the single tree walk with every other lexical rule, so it adds no traversal of its own: 331 files in roughly 0.3 s.
+
+### Layer import ratchet - S2103
+
+Four rules, printed as `ui-imports-data`, `ui-imports-room`, `ui-imports-impl` and `viewmodel-imports-repository`. They are the mechanical half of the layering rule `UI -> ViewModel -> UseCase -> Repository -> DataSource` (CLAUDE.md Rule 8, `docs/ARCHITECTURE.md`), which until S2103 was the only architectural rule in the repository with no exit code behind it - and Rule 33's own measurement is that a rule in prose holds at 1-8% while a rule with an exit code holds at 99%.
+
+Each counts import lines under `app_v2/src/main/java/com/sza/fastmediasorter/ui/` and fails only when its total rises above a frozen baseline:
+
+| Rule | Counts | Baseline (measured 2026-08-27) |
+| --- | --- | --- |
+| `ui-imports-data` | any `import com.sza.fastmediasorter.data.*` in a UI file | 403 |
+| `viewmodel-imports-repository` | `import com.sza.fastmediasorter.domain.repository.*` in a `*ViewModel.kt` - the UseCase layer skipped | 47 |
+| `ui-imports-room` | a Room `*Dao` / `*Entity` imported straight into UI | 36 |
+| `ui-imports-impl` | a `*Impl` from `data.*` imported instead of its interface | 2 |
+
+```powershell
+# Current counts vs baselines, with every offending file listed
+pwsh -NoProfile -File scripts/quality/assert-source-gates.ps1 -List `
+    -Only ui-imports-data,ui-imports-room,ui-imports-impl,viewmodel-imports-repository
+
+# PASS/FAIL verdict (this is how post-change.ps1 reaches them, via the neuroslop umbrella)
+pwsh -NoProfile -File scripts/quality/assert-source-gates.ps1 -Gate `
+    -Only ui-imports-data,ui-imports-room,ui-imports-impl,viewmodel-imports-repository
+
+# Ratchet the baselines DOWN after moving some imports behind their layer
+pwsh -NoProfile -File scripts/quality/assert-source-gates.ps1 -UpdateBaseline `
+    -Only ui-imports-data,ui-imports-room,ui-imports-impl,viewmodel-imports-repository
+```
+
+**Four baselines, not one, and the overlap is deliberate.** `ui-imports-room` and `ui-imports-impl` are both subsets of `ui-imports-data`, so a Room import is counted twice. That is the point: the four numbers span three orders of magnitude (403 / 47 / 36 / 2), and under a single aggregate counter a new `*Dao` in a fragment could be paid for by deleting one unused `data.cloud` import elsewhere in the same change. S1910 is the ticket where exactly that masking happened.
+
+**`data.model` is counted, and no suppression list exists.** All 16 of its UI imports are the `DeviceProfile` family - pure device-description types with no Room and no Android dependency, which by meaning belong in `domain.model` and simply live in the wrong package. The fix is to move the type, and the move lowers the baseline on the next green run; an exemption would freeze the wrong placement permanently.
+
+**Migration model - the Rule 32 model, same as `findviewbyid` and `layout-hardcoded-dimens`.** No campaign over the 164 files is scheduled. A file converts when another ticket reaches it for its own reasons, the next green `-UpdateBaseline` run lowers the baseline, and the runner refuses to raise one. `ui-imports-room` is the baseline worth driving to zero first - a DAO in a fragment is the sharpest of the four.
+
+**Placement class: per-ticket** (Rule 33, named at birth). Release-scope needs all four of its conditions and the second fails here - the subject is the changed file itself, not the tree or a shipped artifact. Per-ticket is earned by the first condition instead: later work builds on the leak, because every further file importing through the same hole raises the cost of unwinding it. Rule 33's failure mode - a gate that cannot attribute its finding and so fails on a sibling session's WIP - does not arise, since `-ScopeToFile` puts the runner in delta mode, judging each changed file against its own HEAD version.
+
+The rules live in the shared registry (`scripts/quality/lib/source-matchers.ps1`) and ride the single tree walk, so they add no traversal: `app_v2/src/main` is already scanned, and the narrowing is a `PathFilter` applied to text already in memory. Wear is deliberately not judged - that module has no `com.sza.fastmediasorter.ui` package, so the rules would only produce a dead baseline of zero.
+
+### Ratchet reconciliation - the two runs and what each judges - S2110
+
+Every ratchet baseline in this repository is enforced by the same runner in two different senses, and the difference is the whole point:
+
+- **The per-ticket closure judges the named file set.** `post-change.ps1 -ScopeToFile` hands the runner `-ChangedFiles`, which puts it in delta mode: each file's working copy is counted against its own `HEAD` version, and only growth fails. This is what keeps a closure from going red on a sibling session's in-flight work (S1338).
+- **The release-scope run judges the whole tree.** `assert-release-scope-gates.ps1` invokes the same runner with no `-ChangedFiles` at all, so it compares each rule's project-wide count against its committed baseline. `/spec-prerelease` step 0.4 is the only mandatory path that reaches it.
+
+**Why the second run had to exist.** Delta mode is fail-closed for a brand-new file - absent from `HEAD`, so every hit in it counts as new - which makes the predicate look airtight. It is not, because a file the author never names is judged by neither mode. Measured 2026-08-27: `layout-hardcoded-dimens` stood at 1899 against a baseline of 1893 in **committed** `HEAD`, with all five layout directories clean in the working tree. The six literals sat in three layout files created after the baseline commit, and every closure that carried them was green. No per-file logic can close that hole - only a run that looks at files nobody named.
+
+**Two entries for one script is not duplication** (S2110 ADR-2). In `assert-fast-gates.ps1` the runner takes `-ChangedFiles` from its caller and judges a changed set; in `assert-release-scope-gates.ps1` it never does and always judges the tree. Different subject, so both entries are load-bearing - deleting either one is what returns the baselines to being nominal.
+
+**`-Explain` turns a red total into a list of files.** A full-scan failure prints `baseline 1893 | actual 1899 | delta 6` and no address, which is the shape that costs an hour of git archaeology; `-Explain` performs that archaeology mechanically. It resolves the reference point as the last commit that touched **that rule's own baseline file**, then prints every path under the rule's roots whose count differs between that commit and the working tree:
+
+```powershell
+# Which files moved a rule off its baseline, and by how much
+pwsh -NoProfile -File scripts/quality/assert-source-gates.ps1 -Explain -Only layout-hardcoded-dimens
+```
+
+Each line reads `path  refCount -> workCount`, and the run closes with the reference commit, both totals and the delta. It reports only - a delta never fails the run. A rule whose baseline file has no commit at all has no reference point, so the run says that and exits 2 (cannot verify) rather than printing an empty list that reads like "nothing drifted".
+
+### Swallowed cancellation - the three cure forms and which one a site takes - S2104
+
+The gate's own FailMessage names `catch (e: CancellationException) { throw e }`, and the tree abandoned that shape: 436 helper call sites against zero remaining supertype arms. A developer who reads only the failure message writes three lines and reorders a catch chain for nothing. The cures actually in use live in `core/util/CoroutineExt.kt`, mirrored deliberately in `wear/util/CoroutineExt.kt` because no module is shared between `app_v2` and `wear`:
+
+- `Throwable.rethrowIfCancellation()` - re-throws, logs nothing.
+- `Throwable.warnUnlessCancellation(message, vararg args)` - re-throws, else `Timber.w`.
+- `Throwable.errorUnlessCancellation(message, vararg args)` - re-throws, else `Timber.e`.
+
+**The call must be the block's first statement.** Anything above that first statement has already run error-path work on what was only a cancellation, and the matcher counts that as uncured - a one-line block therefore carries its cure on the `catch` line itself, which the matcher reads.
+
+**Which form a site takes is decided by what the block already does, not by preference:**
+
+- First statement is `Timber.e(<v>, ..)` or `Timber.w(<v>, ..)` passing the caught variable first - swap the whole call for the matching `*UnlessCancellation` member.
+- Anything else - a log that does not pass the throwable, a `Timber.tag/d/i`, a `withContext`, a return expression, an empty body - insert `<v>.rethrowIfCancellation()` above it and leave the existing line untouched.
+
+**A swap never changes the level of the line it replaces.** That is why the family covers warn and error rather than one level: most of the debt logs at error, and curing it with the warn member alone would silently downgrade real failures. Where a swap cannot preserve both the level and the stack trace, the insert form wins.
+
+A site that already re-throws by hand keeps its own log line instead: give it a real `catch (e: CancellationException)` arm ahead of the broad one. The matcher skips a chain whose head arm names cancellation, so the debug line survives and the finding clears.
+
+The matcher recognises the family by name shape (`\w+UnlessCancellation`), so a new member needs no paired gate edit.
 
 ### Listener symmetry ratchet gate - S0721
 
@@ -607,8 +875,93 @@ Instrumented leak detection run on demand using LeakCanary inside instrumented t
 Usage:
 ```powershell
 # Run the leak detection instrumented test
-.\gradlew.bat :app_v2:connectedStandardDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.sza.fastmediasorter.leak.LeakDetectionInstrumentationTest
+pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode ConnectedAndroidTest -Tests com.sza.fastmediasorter.leak.LeakDetectionInstrumentationTest
 ```
+
+Routed through the builder rather than `gradlew.bat` because Rule 23 admits one gradle invocation per
+build domain and a direct call bypasses `temp/BUILD.PHONE.LOCK`. In this mode `-Tests` is forwarded to
+AndroidJUnitRunner, not to Gradle: name **either** fully qualified classes (`Pkg.Class`, or
+`Pkg.Class#method`) **or** packages, comma-separated, and the builder picks `class=` or `package=` by the
+final segment's case. Mixing the two is refused rather than guessed, and a Gradle glob would be accepted
+silently and then run the whole instrumented suite on the device.
+
+### Database upgrade proof - S2306
+
+The Room migrations are the one thing that can destroy data a user already has, and Room only compares a
+migration against the exported schema on the device, during the first launch after an update. `.\a.ps1 fa`
+compiles the instrumented set; it does not run it. **`.\a.ps1 fam` runs it** - every test in
+`com.sza.fastmediasorter.data.local.db`, per-hop plus the whole-chain test - and is the only place that
+comparison happens before a user's phone performs it.
+
+```powershell
+.\a.ps1 fam          # needs a connected device or emulator; long, background it
+```
+
+Static half, in every closure that touches `data/local/db`, an exported schema or `DatabaseModule.kt`:
+`assert-migration-schema-conformance.ps1` (the SQL against the schema JSON) and
+`assert-migration-test-pairing.ps1` (a migration with no test). They judge text and do not replace the
+run. Release half: `/spec-prerelease` step 1.4, gating.
+
+
+### Wear pre-release sweep - S1984
+
+The watch has its own sweep, because every device stage of the phone one is written against the phone package, the phone launcher activity and the phone variant set.
+
+```powershell
+pwsh -NoProfile -File scripts/devtest/wear-prerelease-prepare.ps1 -DeviceId <serial>
+pwsh -NoProfile -File scripts/devtest/wear-prerelease-walk.ps1 -DeviceId <serial>
+```
+
+- The procedure that sequences these and branches on their exit codes is `.claude/commands/spec-prerelease-wear.md`; what a watch release must prove is `docs/RELEASE_READINESS_WEAR.md`.
+- **A watch must be attached.** The prepare step reads `ro.build.characteristics` and refuses anything without `watch`, because both modules publish under one application id and a run that landed on the phone would report a confident verdict about the wrong build.
+- Run artifacts land in `temp/scratch/wear-prerelease/`: `artifact.json` (what was built and judged), `walk.json` (per-screen outcome plus the log audit's code), `wear_session.log`, and a screenshot and UI dump per screen.
+- The content gates common to both modules run from `scripts/quality/assert-prerelease-content-gates.ps1`, which the phone sweep calls as well - adding a gate there covers the watch without editing either command file.
+
+## OCR OVERLAY ACCURACY CORPUS (S1716)
+
+A corpus of annotated scenes and a harness that scores the translation overlay's plate against them. It
+lives in the test source set (`app_v2/src/test/java/com/sza/fastmediasorter/ocrbench/`), so it ships with
+nothing and is unreachable from the app.
+
+```powershell
+pwsh -NoProfile -File scripts/ocrbench/run-corpus.ps1        # run the corpus, print the report path
+pwsh -NoProfile -File scripts/ocrbench/fetch-real-scenes.ps1 # bring registered real scenes into the cache
+```
+
+Reports land in `temp/ocrbench/<YYYY-MM-DD>/overlay-rectangle-report.md`, and the newest path is also left
+in `temp/ocrbench/last-report.txt`. Every acceptance bound taken from a run is written into
+`docs/OCR_OVERLAY_ACCURACY.md` naming the report's date and path - a bound with no dated report behind it
+does not exist.
+
+**A report that backs a bound gets copied into its ticket folder** (`PLAN/Sxxxx_<slug>/reports/`) and cited
+from there, not from `temp/`. `temp/` is disposable by Rule 1, so a bound citing it loses its provenance the
+first time the directory is cleaned - and `check-evidence-durable.ps1` refuses to close a spec that does it.
+
+**It scores rectangles, and only rectangles.** Four axes: annotated text found, plate-to-text overlap, plate
+area spilling outside the paintable areas, and duration. Nothing here reads a pixel, so nothing here can say
+how much source ink a plate actually hides - that axis needs a rasterised composition and belongs to
+**S1782**, together with the Robolectric upgrade it costs. An axis the run could not compute is reported
+`Unmeasured` with its reason and counted per axis in the report; it never arrives as a zero.
+
+**Adding a synthetic scene.** Add a builder to `SyntheticScene` and list it in `all()`. Everything must come
+from constants declared in that file - no clock, no randomness, no device metrics - because a scene that
+redraws differently makes every later regression unattributable. Declare its paintable areas explicitly
+rather than deriving them from the text areas: "where the text stands" and "where a plate may paint" are
+different questions, and only the scene's author knows the second one.
+
+**Adding a real scene.** Media never enter the repository; they live in a local folder addressed by the
+`FMS_OCRBENCH_SCENES` environment variable. Register one with
+`fetch-real-scenes.ps1 -Register <path relative to that folder>`, which computes its SHA-256 into the
+committed manifest at `app_v2/src/test/resources/ocrbench/real-scenes.json`. Then annotate it by hand at
+`app_v2/src/test/resources/ocrbench/annotations/<sceneId>.json` - the annotation is committed, because it is
+the most expensive manual work here and the only part that cannot be regenerated. A registered scene missing
+from the cache fails the run rather than shrinking the corpus quietly.
+
+**The one rule that must not be broken: a draft annotation never scores.** An annotation filled from a
+recogniser's own output is marked `draft` in its provenance, and `SceneAnnotation.isScorable()` refuses it,
+as it refuses an unreadable scene and an empty annotation. Scoring a recogniser against its own output
+measures nothing while looking like a perfect result. A human corrects the draft first; only then does it
+count.
 
 
 ## STRING RESOURCE TOOLING
@@ -704,14 +1057,36 @@ The app declares thirteen interface locales in `app_v2/src/main/res/xml/locales_
 
 1. Writing a key with `set-android-string.ps1 -Action add` names the locales the call left empty and prints a ready-to-paste `-Translations` fragment. A hint, not a refusal.
 2. Closing a ticket that touched a strings file prints the `new-lexeme-count` advisory. Also not a refusal.
-3. The pre-release sweep runs step `0.8`, which **is** the refusal. `list-new-lexemes.ps1` writes `temp/S1627/new_lexemes_en.txt`; that file goes to the external translation service, each returned file comes back through `locale-bulk-import.ps1`, and the step is re-run until it is 0.
+3. The pre-release sweep runs step `0.8`, which **is** the refusal. Each module keeps its own translator-ready file: `temp/S1627/app_v2/new_lexemes_en.txt` for the phone and `temp/S1627/wear/new_lexemes_en.txt` for the watch. Send each non-empty file to the external translation service, import the phone result with `locale-bulk-import.ps1` and the watch result with the same command plus `-Module wear`, then re-run the step until it is 0.
 
-Four facts a reader cannot derive from the commands:
+Five facts a reader cannot derive from the commands:
 
 - **The refusal sits at the release, not at the ticket, by owner decision (strategic ADR-2).** Nothing ships between releases, so translating each key the day it is written buys the user nothing while costing ten translations per ticket; one batch per release costs one round trip for all of them.
 - **A missing translation is an absent key, never an English copy (ADR-6, S1190).** Android falls back to English on its own, so a partial locale is a shippable state. This is why the producer asks each locale's resource file which keys it carries, rather than comparing values.
 - **Provenance is tracked per module, and the gate runs once per module (S1858).** `scripts/quality/locale-source-fingerprints.json` addresses a unit as `module|set|file|key[|slot]`. It has to: `app_v2` and `wear` each ship `src/main/res/values/strings.xml` and share 14 key names, 6 of them with different English text, so an unqualified identity gave the two modules one slot with room for one hash. Whichever module imported last won it, and the gate then measured the other module's text against the wrong hash and called six translated keys untranslated - unfixable by re-importing, because re-importing only moved the red to the other module. A registry written before that split declares no schema version, reads as v1 and is refused with exit 2 until `scripts/quality/migrate-locale-fingerprints-module.ps1` rewrites it; a v1 store read as v2 would reproduce the same false report with nothing left to explain it.
+- **Provenance is written by whoever writes the text, so a direct seed is self-sufficient (S2327).** `scripts/utils/seed-locale-tranche.ps1` stamps the registry for every unit it translated from the supplied map, and `locale-bulk-import.ps1` no longer does it after the fact. A run that writes a locale file and no fingerprint produces a key the producer still reports as untranslated, however complete the file is - measured on S2320, where adding 20 registry entries by hand removed the key from the report without touching one byte of locale text. The importer could not get this right from where it stood: the accept-or-reject decision is per key and it saw one exit code per source file, so it stamped keys the seeder had rejected - and under `-Merge` a rejected replacement leaves the previously shipped translation in place, which turned the stamp into fresh provenance for stale text. Nothing is stamped for a `-Merge` passthrough, a rejected key or a `-DryRun`: none of them produced new text.
 - **`scripts/quality/locale-untranslated-baseline.txt` holds identities, not a count.** It froze the keys already untranslated on 2026-08-14 - all of them `S1626`'s placeholder-misread phrasings - so a pre-existing gap cannot be reported as new. A count would let a new key slip in behind an old one cleared in the same release. Its entries are module-qualified for the same reason the registry's are. Entries leave the file as `S1626` clears them, and the producer reports a cleared entry as stale; do not expect that soon, since `S1626` is `BlockExternal` - the rule that looked obvious (placeholder at a string edge) was measured over all 307 placeholder-bearing strings and does not discriminate, so the set clears through a probe in a future bulk round rather than through an edit anyone can make today.
+
+### Play listing locales - S2340
+
+```powershell
+# THE PARITY GATE (0 clean, 1 violation, 2 cannot verify)
+pwsh -NoProfile -File scripts/quality/assert-play-listing-locales.ps1
+
+# IT ALSO RUNS FROM THE RELEASE-SCOPE BATCH, WHICH /spec-prerelease STEP 0.4 REACHES
+pwsh -NoProfile -File scripts/quality/assert-release-scope-gates.ps1
+```
+
+**Scope class: release, not per ticket.** Its subject is the whole listing tree against the whole locale declaration, so it must not be wired into `post-change.ps1` or `.\a.ps1 fg` - there it would redden whichever session closed next over debt that session neither created nor can repair (Rule 33; the class S1939 measured at 68 of 191 red lines).
+
+The same thirteen-locale set as the section above, judged for a different surface: `assert-new-lexemes-translated.ps1` asks whether `strings.xml` reaches every declared locale, this one asks whether the Play listing does. Wear App Quality Guidelines WO-G2 requires the listing to be "localized in languages offered by the app", and non-compliance is grounds for rejecting a submission.
+
+Four facts a reader cannot derive from the commands:
+
+- **The language set is declared twice, and this gate is the only thing comparing the copies.** `app_v2/src/main/res/xml/locales_config.xml` is the authority (S1190: a language is added there and nowhere else); the second copy is the `LOCALES` dict in `scripts/release/publish-play-listing.py`. Nothing compared them, so the first grew to thirteen while the second sat at three, and the drift was found by reading Google's guideline rather than by any check here.
+- **A missing dict row fails silently, which is why the gate is needed at all.** The publisher iterates its dict, never the directory listing, so a locale folder without a row is skipped without a message. The only previous observer was publication itself - and `publish-play-listing.ps1 -Mode commit` is owner-gated and rare, so the gap could widen indefinitely between two runs.
+- **The app-locale-to-Play-code table inside the gate is data, not a derivation.** Play's listing languages are a fixed list, not free-form BCP-47: `uk` takes no region, `de-DE` and `hi-IN` require one, `ar` and `ur` forbid one, and Chinese has no script-only code, so the app's `zh-Hans` maps onto `zh-CN`. A derived mapping is wrong for five of the thirteen. Adding a language to the app therefore means adding a row to the gate as well, and it refuses until the listing follows.
+- **Three failure kinds, because they call for different repairs.** `PARITY` - a declared locale no folder serves, or a published folder no locale maps to. `COMPLETE` - a folder in the dict missing one of the three text files; the publisher exits 1 for *every* locale on this, not just the incomplete one. `LIMIT` - a text over 30 / 80 / 4000, counted in code points on the trimmed string, which is what Python's `len()` reports on the value Play receives.
 
 ### Maestro oracle convention - S1612
 
@@ -769,6 +1144,64 @@ Two facts a reader cannot derive from the commands:
 - **Documentation prose carries no gate on purpose.** Measured 2026-08-14 (S1544): 134 of 137 files under `docs/` were clean without one, and the three that were not are the gitignored `FEATURES_noLegal*` showcases, which are never published. A gate would cost every run and defend a surface where nothing accumulates. S1340 §5 forbids growing the `assert-*` inventory for cosmetics, and this ticket shrank the script count by four rather than adding to it.
 - **The `ResourceValue` area skips values that are wholly machine-readable** - a URL, a path, a bare format placeholder - because a literal `...` inside an address is part of the address. That path test demands printable ASCII end to end: Chinese and Japanese set no spaces between words, so "no whitespace and contains a slash" on its own matched whole CJK sentences and left them unfixed.
 
+## PORTABLE PATHS (S2326)
+
+`scripts/utils/project-paths.ps1` is the one place a repository script learns where anything is. Dot-source it (`. "$PSScriptRoot\..\utils\project-paths.ps1"`) and ask by role; do not write a path literal. Moving the tree to another drive letter or another directory name must require editing no script - the working case is a RAM disk, where `P:\ANDROID\FastMediaSorter_mob_v2` becomes `M:\FastMediaSorter_mob_v2`.
+
+**The root is found by a marker, not by counting `..`.** The walk goes upward until one directory carries `settings.gradle.kts`, `a.ps1` and `CLAUDE.md` **together**. All three are required: `settings.gradle.kts` alone also sits in the release worktree next door, and `a.ps1` alone would match a copied launcher. A `..` count is a property of where a file happens to sit, so it stops being true the moment the file moves between subdirectories - the marker is a property of the tree and survives both moves. The walk starts from the module's own directory, so every caller gets the same answer regardless of its depth.
+
+**Four roles, five functions.**
+
+- `Get-ProjectRoot` - the tree's own root.
+- `Get-ProjectPath -Relative 'DOWNLOADS/x.apk'` - a location inside the tree, either separator style.
+- `Get-SiblingPath -Name 'FastMediaSorter_release'` - a directory beside the root. Only the release worktree needs this; `FastMediaSorter_credentials` is not read by any script, because signing resolves on the Gradle side relative to the root.
+- `Get-ToolPath -Tool Adb` - an external tool. Resolution order: the override variable, then `PATH`, then the known install locations, then a refusal naming the tool.
+- `Get-ArtifactSink -Kind Drive` - a delivery destination, or `$null` when it is not reachable here.
+
+**A missing tool fails by name; a missing sink warns and skips.** Without `adb` an install is impossible, so `Get-ToolPath` throws and names both the tool and the variable that would fix it. Without the Google Drive directory a build is still a build, so `Get-ArtifactSink` returns `$null`, writes a warning, and the caller skips its copy - delivery must never become a build blocker. `Get-ToolPath` also prints the path it picked, because a second SDK's `adb` is otherwise invisible until an install lands on the wrong device.
+
+**Override variables.** Every one of them beats discovery.
+
+| Variable | Overrides |
+| --- | --- |
+| `FMS_ADB` | `adb` |
+| `FMS_SEVENZIP` | `7z` |
+| `FMS_PWSH` | `pwsh` |
+| `FMS_NODE` | `node` |
+| `FMS_NPM` | `npm` |
+| `FMS_MAESTRO` | `maestro` |
+| `FMS_FFMPEG` | `ffmpeg` |
+| `FMS_SINK_DRIVE` | artifact sink (Google Drive work directory) |
+| `FMS_SINK_COMMANDER` | artifact sink (Total Commander drop) |
+| `FMS_SINK_APK` | artifact sink (APK archive) |
+| `FMS_SINK_DEOBFUSCATION` | artifact sink (mapping retention) |
+| `FMS_SINK_REMOTE_LOGS` | artifact sink (remote-log intake) |
+| `FMS_PROJECT_MOUNT` | the repository's Linux mount path, for `scripts/builders/build-ffmpeg-dts.sh` when it is run by hand instead of through its PowerShell launcher |
+
+**Adding a tool or a sink is one row**, in `$script:FmsToolTable` or `$script:FmsSinkTable` - never an edit at a call site.
+
+**The sink table is the only place in the repository allowed to name a machine path literally**, which is why the gate below excludes that file by name: a default that lives nowhere would silently stop delivering artifacts on the machine that has those directories.
+
+**The gate: `hardcoded-drive-path`**, a rule in `scripts/quality/lib/source-matchers.ps1`, run by `assert-source-gates.ps1` from both `post-change.ps1` and `.\a.ps1 fg`, baseline `scripts/quality/hardcoded-drive-path-baseline.txt` seeded at **0**. It judges `.ps1`, `.psm1`, `.cmd`, `.bat` and `.sh` under `scripts/`, `maestro/`, `dev/` and `a.ps1`, and refuses a new literal drive path. It deliberately does not fire on a URL scheme, a `$env:`-derived path, a whole-line comment (a comment binds nothing, and `clean-user-temp.ps1` names `C:\Windows\Temp` precisely as a directory it refuses to touch), or a regex character class such as `[\s:\-|]`, which puts a letter, a colon and a separator side by side and read as a drive in the rule's first draft.
+
+## DELIVERING A BUILT ARTIFACT (S1707, S2332)
+
+**One script delivers, and a builder calls it: `scripts/utils/publish-artifact.ps1`.** It puts the artifact raw into the Google Drive share, adds a password ZIP for recipients whose mail or security policy refuses a bare `.apk`, and copies it into the Total Commander staging folder. It delegates the Drive half to `scripts/utils/copy-to-drive.ps1`, which stays scoped to that one sink because two callers already read it that way.
+
+- `-Path` takes **several artifacts**, which land as several raw copies and go into **one** archive. That is what `build-aab-release.ps1` needs: the AAB and its APK travel as a unit.
+- `-Name` renames a single artifact; with a set it names the **archive** only, because renaming one member would silently decide which of them is the real artifact.
+- `-CommanderPath` picks which artifact reaches the Commander folder. It defaults to the first, and a release names the APK explicitly - that folder is a sideload staging area and nobody sideloads an AAB.
+- `-NoZip` and `-NoCommander` are for a path that legitimately delivers less. Five builders mirror to Drive alone and pass `-NoCommander`; `build-with-version.ps1` has never produced the archive and passes `-NoZip`.
+- **It never fails a build.** An unreachable sink or a missing 7-Zip is reported and skipped: the artifact is already built, so its courtesy copy cannot throw it away.
+- Invoke it with the **call operator**, never `pwsh -File` - `-File` binds a comma-separated value as one string and never produces an array, so a two-artifact delivery would look like one missing file.
+- Regression suite: `scripts/utils/publish-artifact.tests/Run-Tests.ps1`, hermetic through `-DriveDir` / `-CommanderDir`.
+
+**The gate: `inline-delivery-block`**, a rule in the same `source-matchers.ps1`, run by `assert-source-gates.ps1` from both `post-change.ps1` and `.\a.ps1 fg`, baseline `scripts/quality/inline-delivery-block-baseline.txt` seeded at **0**. Under `scripts/builders/`, `scripts/release/` and `dev/` it refuses `Get-ArtifactSink -Kind Drive`, `-Kind Commander` and `Get-ToolPath -Tool SevenZip` - the three calls a build path stops needing once it delegates. Other sinks are untouched, so `build-with-version.ps1` keeps resolving `Kind Apk` for its distribution folder. `scripts/utils/` sits outside the filter rather than in an exclusion list, because that is where the implementation lives and naming the two files by hand would let a third hand-written copy appear beside them unjudged.
+
+**Why `dev/` is in that list (S2337).** The builder the owner actually runs is `dev/build-with-version.ps1`, launched by `dev/build-with-version.bat` - not the same-named file under `scripts/builders/`, which is the orphan S2331 deletes. While the scope was the two `scripts/` directories alone, the **0** baseline meant "zero among the files walked", not "zero in the tree": the live builder kept its hand-written block through S2332's entire conversion and was never counted. The directory is named rather than the one file, for the same reason `scripts/utils/` is a filter and not an exclusion list. `dev/archive/` is excluded as a read-only zone, matching `hardcoded-drive-path`, which already walks `dev/`.
+
+**Why the gate exists rather than a convention.** S1707 extracted this block into `copy-to-drive.ps1` for exactly this reason, and then nothing was converted: measured 2026-09-02, the block was still hand-written in 26 places across 25 builders while the shared script had two callers. The cost is in S1707's own record - the watch shipped in release 2.60.8232.251 while its Drive copy stayed at the 15 August build, looking current and being a month stale.
+
 ## SCRIPT HYGIENE (S1872)
 
 Three checks keep the repository's ~370 PowerShell scripts findable, described and alive. All three are ratcheted: their ceilings may fall, never rise, so existing debt never blocks an unrelated ticket while a new script must be correct on the day it is written.
@@ -776,7 +1209,12 @@ Three checks keep the repository's ~370 PowerShell scripts findable, described a
 **`scripts/quality/assert-script-references.ps1`** - a script nothing references is either deleted or declares itself a hand-run tool.
 
 - Judges **live wiring only**. A mention in an archived spec, a `dev/CHANGELOG.md` row or a read-only zone remembers a script; it does not call one. The repository holds over 6000 such documents, enough to make every dead script look wired - with them in the corpus the check reported 0 orphans out of 340 and could not fail.
-- `docs/SCRIPT_CHEATSHEET.md` is excluded **by definition, not by setting**: it names every script by construction.
+- Judges **a path, not a file name** (S2124). Until 2026-08-27 the key was the bare file name, so the 37 files called `Run-Tests.ps1` shared one entry and three comments naming that word vouched for all 37 - none of which is called from anywhere. Any group of files sharing a name went unjudged the moment one member was mentioned. Re-keying raised the verdict from 30 to 58; the 28 added files are Pester runners with no launcher, owned by S2122.
+- A token is resolved into the file it names by the ladder in `scripts/quality/lib/script-reference-resolution.ps1`: a `$PSScriptRoot`-anchored path, a bare name matching a sibling, the longest resolving path suffix, a unique bare name - and then a bare name several scripts carry, which is **evidence about none of them**. The first four rules are the price of the path key: without them the re-keying reported three scripts that run every day as dead.
+- The ladder **matches against every script in the tree and answers only with the judged ones** (S2336). Until 2026-09-02 it matched against the judged roots alone, so a token naming a real file outside them - `maestro/`, `.claude/hooks/`, the version-stamping builder under `dev/` - matched nothing, shortened to its bare leaf, and credited whichever homonym was inside the index. Seven files addressed the builder in `dev/` and between them kept an unrelated copy under `scripts/builders/` alive; the ambiguity counter read 0 throughout, because it counted carriers in the index and the second carrier was outside it. A rule that now matches a real file **stops** instead of shortening past it, even when the answer narrows to nothing, and ambiguity is counted tree-wide. Surfaced exactly one script, which S2331 owns.
+- The tree walk feeding that match **drops nested worktree copies, and the name checks below keep them**. A worktree is a second copy of the repository, so it carries a second file for every name: measured 2026-09-02, 911 `.ps1` files walked against 490 after the exclusion. Fed to the resolver, those 421 duplicates would make every name in the tree ambiguous and report the whole repository as unreferenced.
+- The baseline is a **list of paths, not a count**: repairing one orphan cannot free a slot the next one occupies silently. A line matching nothing prints a prune hint rather than failing.
+- `docs/SCRIPT_CHEATSHEET.md` and the two baseline files are excluded **by definition, not by setting**: each names scripts by construction. The main baseline joined that list the moment it stopped being a count - as a list of 58 paths inside `scripts/`, it vouched for every orphan it recorded and drove the verdict to zero.
 - A Pester suite beside a `Run-Tests.ps1` is reached by discovery, not by name, and is excused automatically.
 - Escape hatch for a script you run by hand: put a line in its comment-based help reading `Manual tool: <why it exists and who runs it>`. An empty reason does not count.
 - `-Memory` mode checks the other direction: every `.ps1` path written in `.claude/agent-memory/**` must resolve, or carry a `Historical:` / `External:` marker on its line or the line above.
@@ -811,6 +1249,21 @@ Three checks keep the repository's ~370 PowerShell scripts findable, described a
 **One root set.** `help.ps1`, `assert-exit-contract.ps1` and both gates above scan `scripts/`, `dev/CATALOG/scripts/` and `dev/ACTIVITY_CATALOG/scripts/`. A population visible to one tool and invisible to another is the population nobody watches.
 
 **Retiring a script.** Delete it together with its references in the same change. Do not leave a forwarding wrapper: nine such wrappers accumulated in `scripts/quality/`, each header claiming it stayed on disk "so every existing caller keeps working unchanged" while having zero callers, and every one of their rules already ran through `assert-source-gates.ps1`.
+
+### Where a regression suite runs - S2122
+
+A suite named `<subject>.tests/Run-Tests.ps1` is the repository's unit of script regression coverage. Until 2026-08-27 there were 37 of them and **not one was invoked from anywhere** - not from `a.ps1`, not from `post-change.ps1`, not from the fast-gate batch, not from the release-scope runner. The first sweep of all 37 found two real failures nobody knew about, one of them red since the ticket that introduced it closed `Verified`. A suite nobody runs is indistinguishable from an absent one.
+
+`scripts/quality/run-script-suites.ps1` is the single implementation behind all three call sites, so the modes cannot drift apart in what they consider a suite or its subject.
+
+- **Placement is the whole registration.** Put the suite at `<dir>/<name>.tests/Run-Tests.ps1` and it is discovered. There is no list to update and no entry to forget - which is deliberate, because a forgotten registry entry is the exact defect that produced this ticket (S2105 added a gate to the facade and never added its recovery-hint entry).
+- **Which change selects which suite.** The first four rules are path arithmetic: the sibling script `<dir>/<name>.ps1`, the sibling library `<dir>/lib/<name>.ps1`, the sibling directory `<dir>/<name>/`, and the nested form `<dir>/<name>/tests/` mapping onto `<dir>/<name>/`. `scripts/doc-drift/` is the one directory carrying both shapes - `scripts/doc-drift.tests/` and `scripts/doc-drift/tests/` - and both resolve to it. Editing anything inside a suite's own directory always runs that suite.
+- **A suite the path cannot reach declares its own subject.** A `# Subject: <path>[, <path>]` line in the suite's header names what it guards. Three suites need it: `oss-notices.tests` guards `generate-oss-notices.ps1`, and the two adb matcher suites guard `scripts/devtest/lib/ui-tree.ps1`. This is not a registry - the declaration lives inside the file it describes, so it cannot fall out of sync with something it is not part of. `run-script-suites.ps1 -ListOnly` prints every suite with its resolved subject and says so out loud when a suite resolves to nothing, so the gap is visible instead of silent.
+- **Two call sites, two readings of the same exit code.** `post-change.ps1` (gate `script-suite-regression`) passes the changed set and runs only the neighbouring suites; it calls the runner **without** `-Gate`, so a suite that could not run for want of an environment tool is advisory and a developer machine missing an optional tool can still close a ticket. `assert-release-scope-gates.ps1` passes no changed set, runs everything, and calls it **with** `-Gate`, which turns that same condition into a failure - before a release the environment must be complete.
+- **The exit-2 path fires on the agent's shell, not on a missing tool - measured 2026-08-27.** `scripts/spec_catalog/drift-check.tests` exits 2 when `rg` is absent, and it did so on every sweep run through the agent's Bash tool. `rg` is installed and on PATH: `%LOCALAPPDATA%\Microsoft\WinGet\Links\rg.exe`. The Bash tool's MSYS environment does not carry that directory, and the child `pwsh` inherits the truncated PATH, so the suite was answering honestly about a shell rather than about the machine. The same sweep from the PowerShell tool is **39 of 39 green in 215.4 s**. Two consequences worth keeping: a red or yellow row naming a missing executable should be re-run from PowerShell before it is believed, and this is exactly the class the exit-2 separation exists for - collapsed into the failure code it would have read as five defects that were never there.
+- **Exit codes.** 0 every selected suite passed or none was selected; 1 a suite failed; 2 nothing failed but something could not verify and `-Gate` was passed. "Found a defect" and "did not look" are different answers, and merging them is what gets a run site silenced.
+- **By hand:** `.\a.ps1 fs` for the full sweep, `.\a.ps1 fs -ChangedFiles "<paths>"` for the neighbours of a change, `.\a.ps1 fs -ListOnly` to see the selection without running anything.
+- **Re-entry is guarded.** The runner exports `FMS_SCRIPT_SUITE_RUNNER=1` around each child, and an inner run reports itself skipped. Without it a suite that drives the closure facade would re-enter the facade's own gate and recurse.
 
 
 ## BUILD TYPES
@@ -877,7 +1330,7 @@ Cast is disabled in `vr` (Horizon OS lacks the Google Play Services Cast module)
 
 ## DATABASE
 
-Room schema version: 53 (`@Database(version = ..)` in `AppDatabase.kt` is the source of truth - read it rather than this line).
+Room schema version: 54 (`@Database(version = ..)` in `AppDatabase.kt` is the source of truth - read it rather than this line).
 Library: `room-runtime:2.7.0`.
 Migrations: one `MigrationNNToNN.kt` file per step in `data/local/db/`, registered in `core/di/DatabaseModule.kt`.
 Exported schemas: `app_v2/schemas/<db-class>/<version>.json`, generated by the build and committed.
@@ -890,7 +1343,20 @@ NDK r27c (`27.2.12479018`) - first NDK release with 16 KB page-size aligned `lib
 ABI strategy is flavor-local, not buildType-local (AGP merges buildType+flavor `abiFilters` as UNION, not intersection - a buildType-level list would leak non-VR ABIs into VR AABs):
 - `standard`, `lite`, `photos`, `legacy`: `arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64`
 - `vr`: `arm64-v8a` only (Meta Quest 2/3/Pro)
-- `noLegal`: `arm64-v8a` + `x86_64` (Chaquopy Python wheels are arm64/x86_64 only; covers Quest + modern phones + emulators)
+- `noLegal`: `arm64-v8a` only since 2026-08-23 - the `x86_64` slice existed solely to run noLegal on an emulator and cost 93.8 MB of a 256.7 MB APK once S1060 added libVLC. It comes back only in a split debug build, as its own file (see below).
+
+### `-Pfms.abiSplits=true` - per-ABI debug APKs (S1972)
+
+An unsliced debug APK carries architectures the target device never executes: standard debug measured 154.3 MB, of which `armeabi-v7a` (18.6) and `x86` (27.1) run on nothing anyone here owns. The phone is arm64-v8a, every emulator is x86_64.
+
+- **Who passes it:** the debug builders that do not need Chaquopy - `build-standard-debug.ps1`, `build-debug.PS1` (behind `a.ps1 d/db/dav/dq`) and `build-debug-clean.PS1`. Nothing else does.
+- **noLegal cannot be split, and this is not an oversight.** AGP refuses `ndk.abiFilters` alongside `splits.abi`; Chaquopy refuses their absence (`Variant 'noLegalDebug': Chaquopy requires ndk.abiFilters`). A flavor carrying the Python runtime can be filtered or split, never both, so noLegal stays one `arm64-v8a` APK - the shape ruled for on 2026-08-23. `build-nolegal-debug.ps1` passes no property, and `build-debug.PS1` withholds it whenever Chaquopy is on.
+- **Who deliberately does not:** every release path. A release still emits one all-architecture APK per flavor, because the GitHub asset is what IzzyOnDroid globs (S0215) and a single-architecture one would shrink the device set the release reaches - canon hard invariant 2.
+- **What it changes:** `splits.abi` turns on with `include("arm64-v8a", "x86_64")`, and every flavor's `ndk.abiFilters` is skipped. Both, not either: AGP refuses the two mechanisms together (`Conflicting configuration: '..' in ndk abiFilters cannot be present when splits abi filters are set`), and it checks **every** variant at configuration time, so one unconditional filter anywhere in `build.gradle.kts` breaks every split build.
+- **vr is excluded by the builders, not by the DSL.** `build-debug.PS1` refuses the flag for a vr task, because an x86_64 vr APK would carry no OpenXR native - the loader AAR ships arm64 only.
+- **Play is untouched.** `android.splits` is ignored when building a bundle, and `bundle.abi.enableSplit` already defaults to true, so the AAB was always per-ABI.
+- **Finding the artifact afterwards:** `scripts/utils/find-build-artifact.ps1`. Every builder, installer and release consumer resolves through it - it selects by ABI from `output-metadata.json` and throws when the request is ambiguous, rather than taking `elements[0]` or the newest file, both of which pick an architecture at random once a build emits more than one output.
+- **Choosing the slice:** the debug builders take `-Abi <name>`; omitted, they read `ro.product.cpu.abi` off the connected device.
 
 ### Prebuilt FFmpeg DTS AAR - the one dependency a clean checkout lacks (S1539)
 
@@ -1000,13 +1466,16 @@ task. The dedicated immersive host is `DiagnosticXrActivity`
 #### 1. Build + install only (no launch)
 
 ```powershell
-.\scripts\builders\build-vr-debug.ps1                    # build debug APK   | .\a.ps1 vrd
-.\scripts\builders\build-vr-release.ps1                  # build release APK | .\a.ps1 vr
-.\scripts\builders\install-vr-debug-to-device.ps1        # install debug, NO launch   | .\a.ps1 ivrd
-.\scripts\builders\install-vr-release-to-device.ps1      # install release, NO launch | .\a.ps1 ivr
+# Build
+.\gradlew.bat :app_v2:assembleVrDebug                            # debug APK
+.\scripts\builders\build-vr-release.ps1                  # release APK | .\a.ps1 vr
+
+# Install, NO launch. `adb.ps1 install -Flavor` has no `vr` value, so name the APK explicitly.
+.\scripts\devtest\adb.ps1 install -Apk app_v2\build\outputs\apk\vr\debug\FastMediaSorter_vr_debug_v<version>.apk
+.\scripts\devtest\adb.ps1 install -Apk app_v2\build\outputs\apk\vr\release\FastMediaSorter_vr_v<version>.apk
 ```
 
-`build-vr-device.ps1` DOES auto-launch via ADB - use it only for fast smoke checks where you don't care about FOCUSED state.
+Install only - never `adb.ps1 launch` here. Launching from ADB starts the panel without the HorizonOS shell, so the Activity never reaches FOCUSED state and immersive entry cannot be judged. Launch from the headset instead, as below.
 
 #### 2. Launch from the headset
 

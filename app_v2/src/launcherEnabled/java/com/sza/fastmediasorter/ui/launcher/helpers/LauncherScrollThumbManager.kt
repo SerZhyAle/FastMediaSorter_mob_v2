@@ -6,7 +6,6 @@ import androidx.core.widget.NestedScrollView
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherScrollThumbView
-import timber.log.Timber
 
 /**
  * S1430: keeps the launcher desktop's scroll thumb and its scroll container in step.
@@ -25,7 +24,6 @@ class LauncherScrollThumbManager(
 
     /** Wire the two together and keep them wired until the host is destroyed. */
     fun attach() {
-        Timber.d("S1430: launcher desktop scroll thumb attached")
         scrollView.setOnScrollChangeListener(
             NestedScrollView.OnScrollChangeListener { _, _, _, _, _ -> syncThumb() }
         )

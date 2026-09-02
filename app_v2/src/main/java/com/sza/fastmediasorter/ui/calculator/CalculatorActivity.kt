@@ -8,19 +8,19 @@ import android.view.KeyEvent
 import android.view.View
 import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isVisible
-import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityCalculatorBinding
-import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorHistoryScaleManager
 import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorInputManager
+import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorSettings
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 @AndroidEntryPoint
-class CalculatorActivity : BaseActivity<ActivityCalculatorBinding>() {
+class CalculatorActivity :
+    BaseActivity<ActivityCalculatorBinding>(),
+    CalculatorSettingsDialogFragment.Callbacks {
 
     private lateinit var inputManager: CalculatorInputManager
 
@@ -45,10 +45,7 @@ class CalculatorActivity : BaseActivity<ActivityCalculatorBinding>() {
         if (::inputManager.isInitialized) inputManager.saveTo(outState)
     }
 
-    override fun keepScreenAwakeFor(settings: AppSettings): Boolean = false
-
     override fun setupViews() {
-        Timber.d("S1549: CalculatorActivity setupViews - recreation applies the orientation layout")
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finishWithResult() }
@@ -68,7 +65,7 @@ class CalculatorActivity : BaseActivity<ActivityCalculatorBinding>() {
             finishWithResult()
             true
         }
-        inputManager = CalculatorInputManager(binding, this).also {
+        inputManager = CalculatorInputManager(binding, this, ::showCalculatorSettings).also {
             it.bind()
             // A restored calculation outranks the intent's initial input: the intent is re-delivered on every
             // recreate, so applying it again would wipe what the user was in the middle of typing.
@@ -105,6 +102,15 @@ class CalculatorActivity : BaseActivity<ActivityCalculatorBinding>() {
         }
     }
 
+    private fun showCalculatorSettings() {
+        CalculatorSettingsDialogFragment.newInstance()
+            .show(supportFragmentManager, CalculatorSettingsDialogFragment.TAG)
+    }
+
+    override fun onCalculatorSettingsChanged(settings: CalculatorSettings) {
+        if (::inputManager.isInitialized) inputManager.reloadSettings()
+    }
+
     private fun openSettings() {
         startActivity(
             Intent(this, SettingsActivity::class.java)
@@ -124,6 +130,12 @@ class CalculatorActivity : BaseActivity<ActivityCalculatorBinding>() {
             } else {
                 setResult(Activity.RESULT_OK, Intent().putExtra(EXTRA_RESULT, result))
             }
+        }
+        if (isTaskRoot) {
+            startActivity(
+                Intent(this, com.sza.fastmediasorter.ui.main.MainActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            )
         }
         finish()
     }

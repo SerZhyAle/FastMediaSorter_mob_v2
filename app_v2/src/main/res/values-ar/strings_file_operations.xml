@@ -94,13 +94,11 @@
     <string name="file_already_exists_skip">%1$s (تم التخطي - الملف موجود بالفعل)</string>
     <string name="file_cloud_id_label">معرّف السحابة: %1$s</string>
     <string name="file_count">عدد الملفات</string>
-    <string name="file_count_format">ملفات %d</string>
     <string name="file_count_over_1000">أكثر من 1000 ملف</string>
     <string name="file_date_label">التاريخ: %1$s</string>
     <string name="file_deleted">تم حذف \"%1$s\"</string>
     <string name="file_info">معلومات الملف</string>
     <string name="file_info_copy_path">مسار النسخ</string>
-    <string name="file_info_copy_path_done">تم نسخ المسار</string>
     <string name="file_info_directory_label">الدليل: %1$s</string>
     <string name="file_info_extension_mime_label">الصيغة: %1$s · %2$s</string>
     <string name="file_info_filename_label">الملف: %1$s</string>

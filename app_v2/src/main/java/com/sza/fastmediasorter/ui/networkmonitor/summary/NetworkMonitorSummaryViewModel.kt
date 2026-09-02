@@ -7,13 +7,17 @@ import com.sza.fastmediasorter.domain.model.networkmonitor.NetworkTransport
 import com.sza.fastmediasorter.domain.model.networkmonitor.SectionAvailability
 import com.sza.fastmediasorter.domain.model.networkmonitor.VisibleNetwork
 import com.sza.fastmediasorter.domain.repository.NetworkMonitorRepository
+import com.sza.fastmediasorter.domain.usecase.networkmonitor.ExternalIpState
+import com.sza.fastmediasorter.domain.usecase.networkmonitor.ResolveExternalIpUseCase
 import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorSection
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.ExternalIpSessionStore
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /** S1433: how the active network is doing, as far as the platform will commit to an answer. */
@@ -69,6 +73,7 @@ data class NetworkMonitorSummaryUiState(
     val networkName: String?,
     val localIpv4: String?,
     val externalIp: String?,
+    val isResolvingExternalIp: Boolean,
     val internet: InternetReachability,
     val sections: Map<NetworkMonitorSection, SectionAvailability?>,
     val facts: Map<NetworkMonitorSection, SectionFact>,
@@ -81,6 +86,7 @@ data class NetworkMonitorSummaryUiState(
             networkName = null,
             localIpv4 = null,
             externalIp = null,
+            isResolvingExternalIp = false,
             internet = InternetReachability.OFFLINE,
             sections = emptyMap(),
             facts = emptyMap(),
@@ -99,23 +105,71 @@ data class NetworkMonitorSummaryUiState(
 @HiltViewModel
 class NetworkMonitorSummaryViewModel @Inject constructor(
     repository: NetworkMonitorRepository,
-    externalIpSessionStore: ExternalIpSessionStore,
+    private val externalIpSessionStore: ExternalIpSessionStore,
+    private val resolveExternalIp: ResolveExternalIpUseCase,
 ) : ViewModel() {
+
+    private val resolving = MutableStateFlow(false)
 
     val uiState: StateFlow<NetworkMonitorSummaryUiState> = combine(
         repository.observeSnapshot(),
         externalIpSessionStore.address,
-    ) { snapshot, externalIp -> snapshot.toUiState(externalIp) }
+        resolving,
+    ) { snapshot, externalIp, isResolving -> snapshot.toUiState(externalIp, isResolving) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), NetworkMonitorSummaryUiState.Empty)
+
+    /**
+     * S2025: asks the echo services for the external address, on the user's explicit tap and never otherwise.
+     *
+     * The same use case and the same session store as the Internet section, so the S1433 privacy contract -
+     * returned to the caller, never cached, never logged - cannot drift between the two entry points.
+     */
+    fun onExternalIpRequested() {
+        if (resolving.value) return
+        resolving.value = true
+        viewModelScope.launch {
+            try {
+                resolveExternalIp(networkLabel()).collect { state -> apply(state) }
+            } finally {
+                resolving.value = false
+            }
+        }
+    }
+
+    private fun apply(state: ExternalIpState) {
+        when (state) {
+            ExternalIpState.Resolving -> Unit
+            is ExternalIpState.Resolved -> externalIpSessionStore.update(state.address)
+            ExternalIpState.Unavailable -> externalIpSessionStore.clear()
+        }
+    }
+
+    /** The use case records a history row and takes the label from the caller, which already holds it. */
+    private fun networkLabel(): String {
+        val state = uiState.value
+        return state.networkName?.takeIf { it.isNotBlank() }
+            ?: state.transport?.name
+            ?: UNKNOWN_NETWORK
+    }
+
+    private companion object {
+
+        /** What the history row records when no network can name itself. */
+        const val UNKNOWN_NETWORK = "unknown"
+    }
 }
 
-private fun NetworkMonitorSnapshot.toUiState(externalIp: String?): NetworkMonitorSummaryUiState {
+private fun NetworkMonitorSnapshot.toUiState(
+    externalIp: String?,
+    isResolvingExternalIp: Boolean,
+): NetworkMonitorSummaryUiState {
     val active = networks.firstOrNull { it.isActive }
     return NetworkMonitorSummaryUiState(
         transport = active?.transport,
         networkName = resolveNetworkName(active?.transport),
         localIpv4 = activeLink?.ipv4Addresses?.firstOrNull(),
         externalIp = externalIp,
+        isResolvingExternalIp = isResolvingExternalIp,
         internet = active.toReachability(),
         sections = mapOf(
             NetworkMonitorSection.Wifi to wifi.availability,

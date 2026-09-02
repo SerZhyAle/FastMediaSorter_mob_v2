@@ -623,7 +623,6 @@ class BrowseCameraCaptureManager(
             val dir = activity.getExternalFilesDir(
                 if (ext == ".mp4") Environment.DIRECTORY_MOVIES else Environment.DIRECTORY_PICTURES
             ) ?: activity.filesDir
-            Timber.d("S1882: browse camera output $fileName")
             File(dir, fileName).also { it.createNewFile() }
         } catch (e: CancellationException) {
             throw e

@@ -52,7 +52,6 @@ class GameViewModel @Inject constructor(
             } catch (exception: CancellationException) {
                 // Leaving the screen cancels this load; painting an Error state on the way out would
                 // show a failure the user never caused, and log it at ERROR (S1889).
-                Timber.d("S1889: game load cancelled - rethrowing instead of painting an error state")
                 throw exception
             } catch (exception: RuntimeException) {
                 Timber.e(exception, "GameViewModel: failed to load game")

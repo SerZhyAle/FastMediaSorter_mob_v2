@@ -106,7 +106,11 @@ class ResourceToAddAdapter(
                 tvPath.text = resource.path
                 tvFileCount.text = when {
                     resource.fileCount >= 1000 -> itemView.context.getString(R.string.file_count_over_1000)
-                    else -> itemView.context.getString(R.string.file_count_format, resource.fileCount)
+                    else -> itemView.resources.getQuantityString(
+                        R.plurals.file_count_format_plural,
+                        resource.fileCount,
+                        resource.fileCount
+                    )
                 }
                 
                 // --- Media Type Toggles ---

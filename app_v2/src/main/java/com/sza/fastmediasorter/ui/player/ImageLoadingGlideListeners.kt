@@ -11,10 +11,10 @@ import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
+import com.sza.fastmediasorter.ui.image.ImageDisplayUtils
 import com.sza.fastmediasorter.ui.player.helpers.AnimatedImageController
 import com.sza.fastmediasorter.ui.player.helpers.LoadingSource
 import com.sza.fastmediasorter.ui.player.helpers.PlayerLoadingIndicatorCoordinator
-import com.sza.fastmediasorter.ui.image.ImageDisplayUtils
 import timber.log.Timber
 
 /** Glide [RequestListener]s for [ImageLoadingManager]: static [Drawable] + GIF. Extracted from the manager body to keep the host class under the 1000-LOC budget. */
@@ -67,7 +67,16 @@ internal class ImageLoadingGlideListeners(
             } else {
                 Timber.e(e, "ImageLoadingManager: Failed to load image")
                 if (!callback.isDestroyed()) {
-                    callback.showError(binding.root.context.getString(R.string.error_image_load_failed), e)
+                    // S2151: Glide wraps the real failure, so the root causes are offered ahead of
+                    // the wrapper - classifying the bare GlideException would make every network
+                    // outage look like an unclassifiable defect.
+                    val causes = (e?.rootCauses?.toList() ?: emptyList()) + listOfNotNull(e)
+                    if (!callback.onNetworkMediaLoadFailed(causes)) {
+                        callback.showError(
+                            binding.root.context.getString(R.string.error_image_load_failed),
+                            e,
+                        )
+                    }
                 }
             }
             return false
@@ -103,7 +112,9 @@ internal class ImageLoadingGlideListeners(
                     val viewW = tv?.width?.takeIf { it > 0 } ?: getCurrentDeviceWidth()
                     val viewH = tv?.height?.takeIf { it > 0 } ?: getCurrentDeviceHeight()
                     getDynamicBackgroundProcessor()?.process(
-                        drawable = resource, screenWidth = viewW, screenHeight = viewH,
+                        drawable = resource,
+                        screenWidth = viewW,
+                        screenHeight = viewH,
                     )
                 }
             }
@@ -143,7 +154,10 @@ internal class ImageLoadingGlideListeners(
         ): Boolean {
             if (isWebpModel(model)) {
                 Timber.i(
-                    "WebP animated display ready: ${describeModel(model)} dataSource=$dataSource drawable=${resource.javaClass.simpleName} size=${resource.intrinsicWidth}x${resource.intrinsicHeight}"
+                    "WebP animated display ready: ${describeModel(
+                        model
+                    )} dataSource=$dataSource drawable=${resource.javaClass.simpleName} " +
+                        "size=${resource.intrinsicWidth}x${resource.intrinsicHeight}"
                 )
             }
             animatedImageController.onDrawableLoaded(resource, getCurrentTargetView())

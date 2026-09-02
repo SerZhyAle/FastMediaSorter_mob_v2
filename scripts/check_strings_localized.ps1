@@ -92,7 +92,7 @@ function Invoke-SourceSetAudit {
     }
 
     $locales = @(
-        Get-SupportedLocales | ForEach-Object {
+        Get-SupportedLocales -Module $Module | ForEach-Object {
             @{
                 Tag    = $_.ToUpperInvariant()
                 Code   = $_

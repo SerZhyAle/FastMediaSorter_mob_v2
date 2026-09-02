@@ -23,6 +23,7 @@ import com.sza.fastmediasorter.core.logging.LoggingHelper
 import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
 import com.sza.fastmediasorter.core.memory.MemoryProbe
 import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayStartupCoordinator
+import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.core.util.CacheStatusHelper
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.core.util.LocaleHelper
@@ -30,6 +31,7 @@ import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.domain.model.SensitiveSetting
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.usecase.PushWearStreamPinsUseCase
 import com.sza.fastmediasorter.worker.DeferredStartupWorker
 import com.sza.fastmediasorter.worker.WorkManagerScheduler
 import dagger.hilt.android.HiltAndroidApp
@@ -138,6 +140,12 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var startupInitializer: dagger.Lazy<AppStartupInitializer>
 
+    // S2149: publishes the phone's pinned stream set to the watch for the life of the process.
+    // Field-injected here rather than added to AppStartupInitializer, whose constructor already sits
+    // at detekt's parameter ceiling with twelve arguments.
+    @Inject
+    lateinit var pushWearStreamPins: dagger.Lazy<PushWearStreamPinsUseCase>
+
     @Inject
     lateinit var screenGestureOverlayStartupCoordinator: dagger.Lazy<ScreenGestureOverlayStartupCoordinator>
 
@@ -154,6 +162,9 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     // S0439: program-wide screen-rotation policy applier; registered as ActivityLifecycleCallbacks in onCreate.
     @Inject
     lateinit var appOrientationManager: com.sza.fastmediasorter.core.orientation.AppOrientationManager
+
+    @Inject
+    lateinit var appKeepScreenAwakeManager: com.sza.fastmediasorter.core.ui.AppKeepScreenAwakeManager
 
     // Application-scoped coroutine for background initialization
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -191,6 +202,17 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 // stops a genuine rebuild failure from crashing the process via the warm-up coroutine.
                 Timber.e(e, "FastMediaSorterApp: Room warm-up failed")
             }
+        }
+
+        // S2250: the only subscription to the disable-animations flag in the process. Every
+        // animation site reads AnimationPolicy synchronously instead of carrying its own wiring,
+        // so this collector is what makes that read cheap enough for a draw path. Started here
+        // rather than behind firstFrameSignal because the first screen's own transition asks.
+        applicationScope.launch(Dispatchers.IO) {
+            settingsRepository.get().getSettings()
+                .map { it.disableAnimations }
+                .distinctUntilChanged()
+                .collect { disabled -> AnimationPolicy.update(disabled) }
         }
 
         // S0213 Pillar C: connect the release-safe degradation signal to MemoryEnduranceTracker so
@@ -234,6 +256,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
 
         // S0439: apply the program-wide screen-rotation policy to every non-self-managed activity.
         registerActivityLifecycleCallbacks(appOrientationManager)
+        registerActivityLifecycleCallbacks(appKeepScreenAwakeManager)
         // S0943: decorate the focused view in-place with the D-pad/TV focus outline on every Activity
         // window (opt-out via FocusDecorationExcluded); one controller per window, hidden in touch mode.
         registerActivityLifecycleCallbacks(
@@ -271,6 +294,16 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         // Keep only the genuinely early startup work here. Heavier maintenance tasks move behind
         // the shared first-frame/deferred-worker gate so cold start stays off the critical path.
         startupInitializer.get().initialize()
+
+        // S2149: the watch raises phone-pinned streams, which only works while the phone republishes
+        // the set as it changes. Started from here rather than from a screen because pinning happens
+        // on several screens and none of them should have to know a watch exists. Dereferenced inside
+        // the coroutine so a phone with no watch paired never builds the Data Layer graph on the main
+        // thread at startup.
+        applicationScope.launch {
+            runCatching { pushWearStreamPins.get().observeAndPush(applicationScope) }
+                .onFailure { Timber.e(it, "Wear stream-pins publisher not started") }
+        }
 
         // S1650: build Glide off the main thread. Deliberately NOT gated on firstFrameSignal, unlike
         // every launch below it - the first image load can happen on the very first screen, and that

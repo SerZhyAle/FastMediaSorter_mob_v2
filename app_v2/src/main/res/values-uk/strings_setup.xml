@@ -172,5 +172,13 @@
     <string name="welcome_role_sources_detail_cloud_only">Пам\'ять пристрою, Google Drive, OneDrive, Dropbox</string>
     <string name="welcome_role_sources_detail_local_only">Внутрішня пам\'ять та SD-картка</string>
     <string name="welcome_role_sorting_detail">Надішліть файл до потрібної теки одним дотиком</string>
-    <string name="welcome_role_more_detail">Трансляції, камера та інше - один застосунок замість багатьох</string>
+    <string name="welcome_role_more_detail">Камера, віджети, гаджети та інше - один застосунок замість багатьох</string>
+    <string name="welcome_description_1_shell">Не просто медіазастосунок - повноцінна оболонка пристрою.\nДомашній екран, плеєр, файловий менеджер, трансляції та віддалені сховища в одному місці.</string>
+    <string name="welcome_description_1_details_shell">FastMediaSorter може вести весь пристрій: домашній екран з вашими застосунками, віджетами та ярликами, плеєр для фото, відео, музики й книжок, файловий менеджер для памʼяті, мережевих тек і хмар, інтернет-трансляції та застосунок-компаньйон для Wear OS - і швидке сортування дотиками поверх усього цього.\n\nХочете зробити його домашнім екраном? Увімкніть перемикач вище, і система попросить підтвердження після налаштування. Усе, що ви оберете на цьому екрані, потім можна змінити в Налаштуваннях, тож неправильного вибору тут немає - просто натисніть «Далі».</string>
+    <string name="welcome_role_home_screen">Домашній екран</string>
+    <string name="welcome_role_home_screen_detail">Веде пристрій замість лаунчера - застосунки, віджети та медіа під рукою</string>
+    <string name="welcome_role_streams">Трансляції</string>
+    <string name="welcome_role_streams_detail">Інтернет-радіо, ТБ і відеоканали з готового каталогу</string>
+    <string name="welcome_role_wear">Застосунок для годинника</string>
+    <string name="welcome_role_wear_detail">Компаньйон Wear OS - перегляд і відтворення просто на годиннику</string>
 </resources>

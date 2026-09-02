@@ -30,6 +30,9 @@ interface LauncherJournalDao {
     @Query("SELECT * FROM launcher_journal ORDER BY launchedAt DESC LIMIT :limit")
     fun recent(limit: Int): Flow<List<LauncherJournalEntity>>
 
+    @Query("DELETE FROM launcher_journal WHERE target = :target")
+    suspend fun deleteByTarget(target: String)
+
     @Query(
         "DELETE FROM launcher_journal WHERE id NOT IN " +
             "(SELECT id FROM launcher_journal ORDER BY launchedAt DESC LIMIT :keep)"

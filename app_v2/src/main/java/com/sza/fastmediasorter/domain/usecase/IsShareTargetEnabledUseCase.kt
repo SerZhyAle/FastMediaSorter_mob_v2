@@ -18,11 +18,15 @@ class IsShareTargetEnabledUseCase @Inject constructor(
 ) {
     /** @return whether [targetId] is enabled given the user's [settings], or false for an unknown id. */
     operator fun invoke(targetId: String, settings: AppSettings): Boolean {
-        val target = registry.byId(targetId) ?: return false
-        return when (targetId) {
-            in settings.enabledShareTargets -> true
-            in settings.disabledShareTargets -> false
-            else -> resolver.isDefaultEnabled(target)
+        val target = registry.byId(targetId)
+        return if (target == null || !resolver.isAvailable(target, settings)) {
+            false
+        } else {
+            when (targetId) {
+                in settings.enabledShareTargets -> true
+                in settings.disabledShareTargets -> false
+                else -> resolver.isDefaultEnabled(target, settings)
+            }
         }
     }
 }

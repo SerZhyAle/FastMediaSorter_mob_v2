@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.core.launcher
 
+import com.sza.fastmediasorter.core.launcher.LauncherStarterLayoutRules.StarterSectionGroup
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
@@ -8,7 +9,6 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
-import timber.log.Timber
 
 /**
  * S0404: profile -> starter desktop, as pure data + a pure row-major packer (strategic §5.3: adding a
@@ -59,6 +59,9 @@ object LauncherStarterSets {
     // S1886: the headset seeds charge rather than a media window - a window decides nothing there.
     private const val GADGET_BATTERY = "battery"
 
+    // S2241: Google Maps interactive live frame gadget
+    private const val GADGET_GOOGLE_MAPS_LIVE = "google_maps_live"
+
     /**
      * Every gadget key this table can emit. Public because the parity test cannot reach the private
      * consts above, and a hand-written list over there is what let the previous four-key guard fall
@@ -79,6 +82,7 @@ object LauncherStarterSets {
         GADGET_MEDIA_VIDEO_WINDOW,
         GADGET_MEDIA_DOCUMENT_WINDOW,
         GADGET_BATTERY,
+        GADGET_GOOGLE_MAPS_LIVE,
     )
 
     // S1560: third-party targets this table may seed. A cell is placed only when its package is present,
@@ -206,6 +210,7 @@ object LauncherStarterSets {
         val target: String,
         val spanW: Int = 1,
         val spanH: Int = 1,
+        val screenIndex: Int = 0,
     )
 
     data class PlacedStarterItem(
@@ -214,6 +219,7 @@ object LauncherStarterSets {
         val colIndex: Int,
         val spanW: Int,
         val spanH: Int,
+        val screenIndex: Int = 0,
     )
 
     /** Resolved ids the seed hands in; each null id is skipped so the desktop never gets a dead cell. */
@@ -224,6 +230,10 @@ object LauncherStarterSets {
         val allVideoId: Long? = null,
         val allDocsId: Long? = null,
         val cameraId: Long? = null,
+        // S2321: the predefined "All files" resource, named separately from [userResourceIds] because it
+        // sits at a real storage path rather than a virtual one and so is indistinguishable from a user
+        // resource by path alone - which is how it ended up in the budgeted tail and off every phone.
+        val allFilesId: Long? = null,
         val lastResourceId: Long? = null,
         val userResourceIds: List<Long> = emptyList(),
     )
@@ -251,7 +261,20 @@ object LauncherStarterSets {
      * target the starter set had already placed, which was the only target-uniqueness check anywhere in
      * the seed; the owner ruled that uniqueness belongs to the grid rectangle alone, so one application
      * may hold as many cells as it has free positions. [place] is what still keeps two cells apart.
+     *
+     * S2015: that allowance is for the *user's* hand and for an imported shortcut, not for the seed's own
+     * two app sections. The Google section resolves first and owns every package it takes; the
+     * Android-apps section is then built from candidates with that set subtracted, so a fresh desktop
+     * never shows one icon twice in two adjacent sections (strategic ADR-1). Subtracting the actually
+     * seeded set rather than the whole catalogue is what keeps Chrome, YouTube and Maps on a device with
+     * no Play Services, where the Google section is not seeded at all.
+     *
+     * S2015: [thirdPartyApps] are the device's own installed applications, resolved by the caller
+     * (`QueryThirdPartyAppsUseCase`) because this table has no Context and must stay pure data. They
+     * close the Android-apps section, which otherwise holds only Wi-Fi, Bluetooth and a dialer once the
+     * Google catalogue is subtracted out of it.
      */
+    @Suppress("LongParameterList") // one data table, and every argument is a distinct seed input
     fun itemsFor(
         profile: DeviceProfileType,
         resources: StarterResources,
@@ -259,64 +282,208 @@ object LauncherStarterSets {
         installedPackages: Set<String>,
         googleServicesAvailable: Boolean = false,
         importedShortcuts: List<StarterItem> = emptyList(),
+        thirdPartyApps: List<String> = emptyList(),
+        screenClass: LauncherScreenClass,
     ): List<StarterItem> {
+        val rule = LauncherStarterLayoutRules.ruleFor(screenClass)
+        val groups = contentGroups(
+            profile = profile,
+            resources = resources,
+            routeAvailableInBuild = routeAvailableInBuild,
+            installedPackages = installedPackages,
+            googleServicesAvailable = googleServicesAvailable,
+            importedShortcuts = importedShortcuts,
+            thirdPartyApps = thirdPartyApps,
+        )
+        return unsectionedTop(profile) + emitGroups(groups, rule)
+    }
+
+    /**
+     * The unsectioned head of every desktop, ahead of the first header and always on screen 0.
+     *
+     * It is not a group and so never reorders: section membership is positional, so anything placed
+     * above the first header belongs to no section and stays where the eye lands first.
+     */
+    private fun unsectionedTop(profile: DeviceProfileType): List<StarterItem> = buildList {
+        add(clock())
+        add(gadget(GADGET_SEARCH))
+        weatherOrNull(profile)?.let(::add)
+    }
+
+    /**
+     * Every content group the profile earns, unordered and unbudgeted - [emitGroups] applies the rule.
+     *
+     * Splitting composition from ordering is what lets S2309 vary the order per device without a second
+     * copy of the table: a group is built once here and placed once there.
+     */
+    @Suppress("LongParameterList") // the same seed inputs itemsFor takes, forwarded whole
+    private fun contentGroups(
+        profile: DeviceProfileType,
+        resources: StarterResources,
+        routeAvailableInBuild: Map<String, Boolean>,
+        installedPackages: Set<String>,
+        googleServicesAvailable: Boolean,
+        importedShortcuts: List<StarterItem>,
+        thirdPartyApps: List<String>,
+    ): Map<StarterSectionGroup, List<StarterItem>> {
         val streamsAvailable = routeAvailableInBuild[InternalRouteCatalog.KEY_STREAMS] == true
-        val items = mutableListOf<StarterItem>()
 
-        // 1. Unsectioned top items ("все")
-        items += clock()
-        items += gadget(GADGET_SEARCH)
-        weatherOrNull(profile)?.let { items += it }
+        // S2015: the Google membership is resolved before the Android-apps group is built, never after,
+        // because that group subtracts it (see the itemsFor KDoc and strategic ADR-1).
+        val googleOwned = googleSectionPackages(googleServicesAvailable, installedPackages)
 
-        // 2. Widgets section
-        val widgets = buildList {
-            addAll(profileGadgets(profile, resources, streamsAvailable))
-            if (profile in LOCATION_TILE_PROFILES) {
-                add(gadget(GADGET_COMPASS))
-                Timber.d("S1747: seeded the compass for %s, altitude and satellites left out", profile)
+        return mapOf(
+            StarterSectionGroup.PROFILE_GADGETS to profileGadgetGroup(profile, resources, streamsAvailable),
+            StarterSectionGroup.CORE_RESOURCES to coreResources(resources),
+            StarterSectionGroup.RESOURCES to userResources(resources) + importedShortcuts,
+            StarterSectionGroup.APP_FUNCTIONS to commonFeatures(routeAvailableInBuild),
+            StarterSectionGroup.LAUNCHER_ACTIONS to launcherActionGroup(profile),
+            StarterSectionGroup.ANDROID_APPS to
+                androidAppsSection(profile, installedPackages, googleOwned, thirdPartyApps),
+            StarterSectionGroup.GOOGLE_APPS to googleOwned.map { shortcut(LauncherCellCommand.App(it)) },
+            StarterSectionGroup.UTILITY_WIDGETS to utilityWidgetGroup(routeAvailableInBuild),
+            StarterSectionGroup.MEDIA_WINDOWS to mediaWindowGroup(resources),
+            StarterSectionGroup.STREAMS to streamGroup(streamsAvailable),
+        )
+    }
+
+    /**
+     * Turns the built groups into a flat item list: the rule's order, its per-group budget and its
+     * screen assignment, in that sequence.
+     *
+     * An empty group is dropped before anything else is decided, header included - membership is
+     * positional (see [LauncherSectionMembership]), so a header with nothing under it would not merely
+     * look wrong, it would swallow every cell of the section below it.
+     *
+     * Groups that share a screen AND a section key are emitted under a single header. A section is
+     * addressed by its target and nothing else - foldedness is stored per (orientation, target) and the
+     * packing pass keys its positions by target - so two headers carrying one key on one screen would
+     * fold as one and overwrite each other's packed position. Two groups may legitimately map to one
+     * key (widgets, resources); which screen they land on is the rule's decision, so the collision has
+     * to be resolved here rather than by forbidding the mapping.
+     */
+    private fun emitGroups(
+        groups: Map<StarterSectionGroup, List<StarterItem>>,
+        rule: LauncherStarterLayoutRules.Rule,
+    ): List<StarterItem> {
+        val present = rule.sectionOrder.filter { groups[it]?.isNotEmpty() == true }
+        val screenOf = assignScreens(present, rule)
+        return present
+            .groupBy { screenOf.getValue(it) to it.sectionKey }
+            .flatMap { (slot, members) ->
+                val (screenIndex, sectionKey) = slot
+                listOf(section(sectionKey, screenIndex)) + members.flatMap { group ->
+                    val budget = rule.itemBudget[group] ?: Int.MAX_VALUE
+                    groups.getValue(group).take(budget).map { it.copy(screenIndex = screenIndex) }
+                }
             }
+    }
+
+    /**
+     * Which screen each present group lands on: the rule's leading entries stay on screen 0 and the rest
+     * spread as evenly as they divide over the screens the rule allows.
+     *
+     * The cut is a position in [LauncherStarterLayoutRules.Rule.sectionOrder], never a position among
+     * the groups that happen to be non-empty. Counting the present ones instead would let an absent
+     * group promote a later one: a device with no resources and no media windows would seed the utility
+     * widgets onto screen 0, which is the layout this ticket exists to stop happening by accident.
+     *
+     * The remainder is spread rather than piled onto screen 1, because a rule that earned a third screen
+     * did so to hold whole sections - leaving them all on the second one would make the extra screen a
+     * setting the user sees and a screen they never reach.
+     */
+    private fun assignScreens(
+        present: List<StarterSectionGroup>,
+        rule: LauncherStarterLayoutRules.Rule,
+    ): Map<StarterSectionGroup, Int> {
+        val later = present.filter { rule.sectionOrder.indexOf(it) >= rule.firstScreenSections }
+        val laterScreens = (rule.screenCount - 1).coerceAtLeast(0)
+        val perScreen = if (laterScreens > 0) {
+            ((later.size + laterScreens - 1) / laterScreens).coerceAtLeast(1)
+        } else {
+            1
+        }
+        return present.associateWith { group ->
+            val laterIndex = later.indexOf(group)
+            if (laterIndex < 0 || laterScreens == 0) {
+                0
+            } else {
+                1 + (laterIndex / perScreen).coerceAtMost(laterScreens - 1)
+            }
+        }
+    }
+
+    private fun profileGadgetGroup(
+        profile: DeviceProfileType,
+        resources: StarterResources,
+        streamsAvailable: Boolean,
+    ): List<StarterItem> = buildList {
+        addAll(profileGadgets(profile, resources, streamsAvailable))
+        if (profile in LOCATION_TILE_PROFILES) {
+            add(gadget(GADGET_COMPASS))
+        }
+        if (profile == DeviceProfileType.CAR_HEAD_UNIT) {
+            add(gadget(GADGET_SPEED))
+        }
+        if (profile in NOW_PLAYING_PROFILES) {
+            add(gadget(GADGET_AUDIO_NOW_PLAYING))
+        }
+        mediaWindowOrNull(profile, resources)?.let(::add)
+    }
+
+    /**
+     * The launcher's own actions plus the tail every desktop closes with.
+     *
+     * A separate group from the feature tiles it shares a section with, so a budget can shorten those
+     * without ever reaching these: a subset of "open the settings, leave launcher mode" is not a smaller
+     * app-functions section, it is a desktop with no way out of the launcher.
+     */
+    private fun launcherActionGroup(profile: DeviceProfileType): List<StarterItem> = buildList {
+        addAll(launcherActions(profile))
+        addAll(commonTail())
+    }
+
+    /** S2251: the utility tiles - a game, the speed readout and the network monitor. */
+    private fun utilityWidgetGroup(routeAvailableInBuild: Map<String, Boolean>): List<StarterItem> = buildList {
+        if (routeAvailableInBuild[InternalRouteCatalog.KEY_GAME] == true) {
+            add(shortcut(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_GAME)))
+        }
+        add(gadget(GADGET_SPEED))
+        if (routeAvailableInBuild[InternalRouteCatalog.KEY_NETWORK_MONITOR] == true) {
+            add(shortcut(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_NETWORK_MONITOR)))
+        }
+    }
+
+    /** S1886: the media windows, each falling back to the last resource when its own is absent. */
+    private fun mediaWindowGroup(resources: StarterResources): List<StarterItem> = buildList {
+        (resources.allImagesId ?: resources.lastResourceId)?.let { add(gadget(GADGET_MEDIA_IMAGE_WINDOW, it)) }
+        (resources.allVideoId ?: resources.lastResourceId)?.let { add(gadget(GADGET_MEDIA_VIDEO_WINDOW, it)) }
+        resources.allAudioId?.let { add(gadget(GADGET_MEDIA_AUDIO_WINDOW, it)) }
+    }
+
+    private fun streamGroup(streamsAvailable: Boolean): List<StarterItem> = if (streamsAvailable) {
+        listOf(streams(), streams())
+    } else {
+        emptyList()
+    }
+
+    /**
+     * S2015: the Android-apps section, with every package the Google section already owns filtered out.
+     * [thirdPartyApps] close it, minus anything the fixed rules above already placed - the caller's list
+     * is resolved against the whole device and the starter table's own candidates may appear in it.
+     */
+    private fun androidAppsSection(
+        profile: DeviceProfileType,
+        installedPackages: Set<String>,
+        googleOwned: Set<String>,
+        thirdPartyApps: List<String>,
+    ): List<StarterItem> {
+        val fixed = buildList {
             if (profile == DeviceProfileType.CAR_HEAD_UNIT) {
-                add(gadget(GADGET_SPEED))
-            }
-            if (profile in NOW_PLAYING_PROFILES) {
-                add(gadget(GADGET_AUDIO_NOW_PLAYING))
-            }
-            mediaWindowOrNull(profile, resources)?.let(::add)
-        }
-        Timber.d("S1886: widgets group for %s seeded with %d tile(s)", profile, widgets.size)
-        if (widgets.isNotEmpty()) {
-            items += section(LauncherCellCommand.SECTION_WIDGETS)
-            items += widgets
-        }
-
-        // 3. Resources section
-        val resItems = buildList {
-            addAll(commonResources(resources))
-            addAll(importedShortcuts)
-        }
-        if (resItems.isNotEmpty()) {
-            items += section(LauncherCellCommand.SECTION_RESOURCES)
-            items += resItems
-        }
-
-        // 4. App functions section
-        val appFuncs = buildList {
-            addAll(commonFeatures(routeAvailableInBuild))
-            addAll(launcherActions(profile))
-            addAll(commonTail())
-        }
-        if (appFuncs.isNotEmpty()) {
-            items += section(LauncherCellCommand.SECTION_APP_FUNCTIONS)
-            items += appFuncs
-        }
-
-        // 5. Android apps section
-        val androidApps = buildList {
-            if (profile == DeviceProfileType.CAR_HEAD_UNIT) {
-                appIfInstalled(PACKAGE_MAPS, installedPackages)?.let(::add)
+                appIfInstalled(PACKAGE_MAPS, installedPackages, googleOwned)?.let(::add)
                 firstInstalled(FM_RADIO_CANDIDATES, installedPackages)?.let(::add)
             } else if (profile in MAPS_PROFILES) {
-                appIfInstalled(PACKAGE_MAPS, installedPackages)?.let(::add)
+                appIfInstalled(PACKAGE_MAPS, installedPackages, googleOwned)?.let(::add)
             }
             if (profile in WIFI_PROFILES) {
                 add(shortcut(LauncherCellCommand.OsShortcut(OsShortcutCatalog.KEY_WIFI)))
@@ -324,70 +491,83 @@ object LauncherStarterSets {
             if (profile in BLUETOOTH_PROFILES) {
                 add(shortcut(LauncherCellCommand.OsShortcut(OsShortcutCatalog.KEY_BLUETOOTH)))
             }
-            addAll(commonThirdPartyApps(installedPackages))
+            addAll(commonThirdPartyApps(installedPackages, googleOwned))
         }
-        if (androidApps.isNotEmpty()) {
-            items += section(LauncherCellCommand.SECTION_ANDROID_APPS)
-            items += androidApps
-        }
+        val alreadyPlaced = fixed.mapNotNullTo(mutableSetOf()) { appPackageOrNull(it.target) }
+        return fixed + thirdPartyApps
+            .filterNot { it in alreadyPlaced || it in googleOwned }
+            .map { shortcut(LauncherCellCommand.App(it)) }
+    }
 
-        // 6. Google section (conditional)
-        items += googleSection(googleServicesAvailable, installedPackages)
+    /** The package inside an `app:` target, or null for any other cell kind. */
+    private fun appPackageOrNull(target: String): String? =
+        target.takeIf { it.startsWith(LauncherCellCommand.PREFIX_APP) }
+            ?.removePrefix(LauncherCellCommand.PREFIX_APP)
 
-        return items
+    /**
+     * S2015: which packages the Google section will actually seed - the catalogue narrowed to what is
+     * installed, and empty when the device has no Play Services. This is the set the Android-apps section
+     * subtracts, and it is deliberately the *seeded* set rather than [GOOGLE_APP_PACKAGES]: on a device
+     * without services the section is not emitted, so subtracting the catalogue there would strip Chrome,
+     * YouTube and Maps off the desktop entirely instead of moving them (strategic ADR-1).
+     */
+    private fun googleSectionPackages(
+        googleServicesAvailable: Boolean,
+        installedPackages: Set<String>,
+    ): Set<String> = if (googleServicesAvailable) {
+        GOOGLE_APP_PACKAGES.filterTo(linkedSetOf()) { it in installedPackages }
+    } else {
+        emptySet()
     }
 
     /**
-     * S1644: the conditional Google section - its header and the installed members of
-     * [GOOGLE_APP_PACKAGES], in catalogue order. The header is emitted only alongside at least one app,
-     * because a header with nothing under it would own every cell below it: section membership is
-     * positional (see [LauncherSectionMembership]), so an empty section is not merely ugly, it swallows
-     * the section that follows. Every installed candidate is seeded - strategic §6.4 rules there is no
-     * cap and the desktop scrolls instead.
+     * The third party apps assigned to profiles, conditional on being installed. S2015: [excluded] names
+     * the packages the Google section already took, so the same icon is never seeded into both sections.
+     * When that section is not seeded the set is empty and every candidate here lands as it always did.
      */
-    private fun googleSection(
-        googleServicesAvailable: Boolean,
+    private fun commonThirdPartyApps(
         installedPackages: Set<String>,
-    ): List<StarterItem> {
-        val apps = if (googleServicesAvailable) {
-            GOOGLE_APP_PACKAGES.mapNotNull { appIfInstalled(it, installedPackages) }
-        } else {
-            emptyList()
-        }
-        return if (apps.isEmpty()) {
-            emptyList()
-        } else {
-            listOf(section(LauncherCellCommand.SECTION_GOOGLE)) + apps
-        }
-    }
-
-    /** The third party apps assigned to profiles, conditional on being installed. */
-    private fun commonThirdPartyApps(installedPackages: Set<String>): List<StarterItem> = buildList {
-        appIfInstalled(PACKAGE_YOUTUBE, installedPackages)?.let(::add)
-        appIfInstalled(PACKAGE_YOUTUBE_MUSIC, installedPackages)?.let(::add)
-        appIfInstalled(PACKAGE_CHROME, installedPackages)?.let(::add)
+        excluded: Set<String>,
+    ): List<StarterItem> = buildList {
+        appIfInstalled(PACKAGE_YOUTUBE, installedPackages, excluded)?.let(::add)
+        appIfInstalled(PACKAGE_YOUTUBE_MUSIC, installedPackages, excluded)?.let(::add)
+        appIfInstalled(PACKAGE_CHROME, installedPackages, excluded)?.let(::add)
         firstInstalled(DIALER_CANDIDATES, installedPackages)?.let(::add)
     }
 
-    private fun appIfInstalled(packageName: String, installedPackages: Set<String>): StarterItem? =
-        if (packageName in installedPackages) shortcut(LauncherCellCommand.App(packageName)) else null
+    private fun appIfInstalled(
+        packageName: String,
+        installedPackages: Set<String>,
+        excluded: Set<String> = emptySet(),
+    ): StarterItem? = if (packageName in installedPackages && packageName !in excluded) {
+        shortcut(LauncherCellCommand.App(packageName))
+    } else {
+        null
+    }
 
     // The unified resource set every profile opens with (owner decision S1091): one BROWSE shortcut per
-    // existing virtual resource that resolved to an id. "All files" is the Recent resource (allFiles=true).
-    private fun commonResources(resources: StarterResources): List<StarterItem> = buildList {
+    // existing aggregate resource that resolved to an id. S2321: a closed set, seeded unbudgeted, because
+    // each entry is the desktop's only way into a whole content type.
+    private fun coreResources(resources: StarterResources): List<StarterItem> = buildList {
         resources.recentId?.let { add(resourceShortcut(it, LauncherResourceMode.BROWSE)) }
         resources.allAudioId?.let { add(resourceShortcut(it, LauncherResourceMode.BROWSE)) }
         resources.allImagesId?.let { add(resourceShortcut(it, LauncherResourceMode.BROWSE)) }
         resources.allVideoId?.let { add(resourceShortcut(it, LauncherResourceMode.BROWSE)) }
         resources.allDocsId?.let { add(resourceShortcut(it, LauncherResourceMode.BROWSE)) }
         resources.cameraId?.let { add(resourceShortcut(it, LauncherResourceMode.BROWSE)) }
-        resources.userResourceIds.forEach { id ->
-            add(resourceShortcut(id, LauncherResourceMode.BROWSE))
-        }
+        resources.allFilesId?.let { add(resourceShortcut(it, LauncherResourceMode.BROWSE)) }
     }
 
-    // Padding feature shortcuts that fill the desktop toward the 12-15 target. Gated on build presence
-    // only: a compiled-but-runtime-disabled feature keeps its cell, which routes to its own setting.
+    // S2321: the open tail - whatever the user made or imported. Budgeted, because it can grow without
+    // limit and a shortened list of one's own folders is a shorter list, not a missing capability.
+    private fun userResources(resources: StarterResources): List<StarterItem> =
+        resources.userResourceIds.map { resourceShortcut(it, LauncherResourceMode.BROWSE) }
+
+    // S2019: every toggleable program the "Programs and scenarios" strip (MainProgramsMenuCoordinator)
+    // also offers, in that strip's order - App Launch Panel (no on/off state) and VR Cinema (no static
+    // InternalRouteCatalog route, needs a resource-picker dialog) are the strip's only two exclusions.
+    // Gated on build presence only: a compiled-but-runtime-disabled feature keeps its cell, which routes
+    // to its own setting.
     private fun commonFeatures(routeAvailableInBuild: Map<String, Boolean>): List<StarterItem> = buildList {
         val paddingKeys = listOf(
             InternalRouteCatalog.KEY_STREAMS,
@@ -396,6 +576,11 @@ object LauncherStarterSets {
             InternalRouteCatalog.KEY_CALCULATOR,
             InternalRouteCatalog.KEY_NETWORK_MONITOR,
             InternalRouteCatalog.KEY_OCR,
+            InternalRouteCatalog.KEY_SCREEN_RECORDING,
+            InternalRouteCatalog.KEY_LINK_DOWNLOAD,
+            InternalRouteCatalog.KEY_GAME,
+            InternalRouteCatalog.KEY_SYSTEM_INFO,
+            InternalRouteCatalog.KEY_WEAR_COMPANION,
         )
         paddingKeys.forEach { key ->
             if (routeAvailableInBuild[key] == true) add(shortcut(LauncherCellCommand.Feature(key)))
@@ -479,52 +664,76 @@ object LauncherStarterSets {
      */
     fun place(items: List<StarterItem>, columns: Int): List<PlacedStarterItem> {
         val cols = columns.coerceAtLeast(1)
-        val occupied = mutableSetOf<Long>()
-        var sectionFloor = 0
-        return items.map { item ->
-            val spanW = item.spanW.coerceIn(1, cols)
-            val spanH = item.spanH.coerceAtLeast(1)
-            val isSection = item.kind == LauncherCellKind.SECTION
-            val (row, col) = if (isSection) {
-                firstEmptyRow(occupied, cols, sectionFloor) to 0
-            } else {
-                firstFreeAnchor(occupied, cols, spanW, spanH, sectionFloor)
+        val result = mutableListOf<PlacedStarterItem>()
+        val itemsByScreen = items.groupBy { it.screenIndex }
+        for ((screenIndex, screenItems) in itemsByScreen) {
+            val occupied = mutableSetOf<Long>()
+            var sectionFloor = 0
+            for (item in screenItems) {
+                val spanW = item.spanW.coerceIn(1, cols)
+                val spanH = item.spanH.coerceAtLeast(1)
+                val isSection = item.kind == LauncherCellKind.SECTION
+                val (row, col) = if (isSection) {
+                    firstEmptyRow(occupied, cols, sectionFloor) to 0
+                } else {
+                    firstFreeAnchor(occupied, cols, spanW, spanH, sectionFloor)
+                }
+                for (r in row until row + spanH) {
+                    for (c in col until col + spanW) occupied += cellKey(r, c)
+                }
+                if (isSection) sectionFloor = row
+                result += PlacedStarterItem(item, row, col, spanW, spanH, screenIndex)
             }
-            for (r in row until row + spanH) {
-                for (c in col until col + spanW) occupied += cellKey(r, c)
-            }
-            if (isSection) sectionFloor = row
-            PlacedStarterItem(item, row, col, spanW, spanH)
         }
+        return result
     }
 
-    private fun clock() =
-        StarterItem(LauncherCellKind.GADGET, GADGET_CLOCK, spanW = CLOCK_SEED_W, spanH = CLOCK_SEED_H)
+    private fun clock(screenIndex: Int = 0) =
+        StarterItem(
+            LauncherCellKind.GADGET,
+            GADGET_CLOCK,
+            spanW = CLOCK_SEED_W,
+            spanH = CLOCK_SEED_H,
+            screenIndex = screenIndex
+        )
 
-    private fun streams() =
-        StarterItem(LauncherCellKind.GADGET, GADGET_STREAMS, spanW = SPAN_WIDE, spanH = SPAN_WIDE)
+    private fun streams(screenIndex: Int = 0) =
+        StarterItem(
+            LauncherCellKind.GADGET,
+            GADGET_STREAMS,
+            spanW = SPAN_WIDE,
+            spanH = SPAN_WIDE,
+            screenIndex = screenIndex
+        )
 
     // Mirrors LauncherGadgetRegistry.encodeTarget(key, param): "<key>:<param>".
-    private fun gadget(key: String, resourceId: Long) =
-        StarterItem(LauncherCellKind.GADGET, "$key:$resourceId", spanW = SPAN_WIDE, spanH = SPAN_WIDE)
+    private fun gadget(key: String, resourceId: Long, screenIndex: Int = 0) =
+        StarterItem(
+            LauncherCellKind.GADGET,
+            "$key:$resourceId",
+            spanW = SPAN_WIDE,
+            spanH = SPAN_WIDE,
+            screenIndex = screenIndex
+        )
 
     // S1560: sensor gadgets (speed, altitude, satellites, weather) carry no param - the cell is just
     // the key. Default span is 2x1 to match the existing sensor-tile form factor.
-    private fun gadget(key: String) =
-        StarterItem(LauncherCellKind.GADGET, key, spanW = SPAN_WIDE)
+    private fun gadget(key: String, screenIndex: Int = 0) =
+        StarterItem(LauncherCellKind.GADGET, key, spanW = SPAN_WIDE, screenIndex = screenIndex)
 
-    private fun resourceShortcut(id: Long, mode: LauncherResourceMode) =
-        shortcut(LauncherCellCommand.Resource(id, mode))
+    private fun resourceShortcut(id: Long, mode: LauncherResourceMode, screenIndex: Int = 0) =
+        shortcut(LauncherCellCommand.Resource(id, mode), screenIndex = screenIndex)
 
     /**
      * S1642: a header is seeded at [LauncherSectionMembership.HEADER_SPAN_W], the one span it is stored and
      * drawn at. [place] packs it at that width unchanged - the value is below the narrowest grid the
      * desktop resolves, so the packer's clamp to the seeded width can never narrow it.
      */
-    private fun section(key: String) = StarterItem(
+    private fun section(key: String, screenIndex: Int = 0) = StarterItem(
         LauncherCellKind.SECTION,
         LauncherCellCommand.Section(key).encode(),
         spanW = LauncherSectionMembership.HEADER_SPAN_W,
+        screenIndex = screenIndex,
     )
 
     /**
@@ -532,20 +741,20 @@ object LauncherStarterSets {
      * chose (strategic §3.1.1, §6.5). S1560: black_screen remains in this action section only for
      * [BLACK_SCREEN_PROFILES] (strategic §6.4).
      */
-    private fun launcherActions(profile: DeviceProfileType): List<StarterItem> =
+    private fun launcherActions(profile: DeviceProfileType, screenIndex: Int = 0): List<StarterItem> =
         LauncherActionCatalog.all
             .filter { it.key != LauncherActionCatalog.KEY_BLACK_SCREEN || profile in BLACK_SCREEN_PROFILES }
-            .map { shortcut(LauncherCellCommand.LauncherAction(it.key)) }
+            .map { shortcut(LauncherCellCommand.LauncherAction(it.key), screenIndex = screenIndex) }
 
     /** The utilities every profile closes with, below the second header. */
-    private fun commonTail(): List<StarterItem> = listOf(
-        shortcut(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_FAVORITES)),
-        shortcut(LauncherCellCommand.OsShortcut(OsShortcutCatalog.KEY_SETTINGS)),
-        shortcut(LauncherCellCommand.App(OWN_APP_TOKEN)),
+    private fun commonTail(screenIndex: Int = 0): List<StarterItem> = listOf(
+        shortcut(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_FAVORITES), screenIndex = screenIndex),
+        shortcut(LauncherCellCommand.OsShortcut(OsShortcutCatalog.KEY_SETTINGS), screenIndex = screenIndex),
+        shortcut(LauncherCellCommand.App(OWN_APP_TOKEN), screenIndex = screenIndex),
     )
 
-    private fun shortcut(command: LauncherCellCommand) =
-        StarterItem(LauncherCellKind.SHORTCUT, command.encode())
+    private fun shortcut(command: LauncherCellCommand, screenIndex: Int = 0) =
+        StarterItem(LauncherCellKind.SHORTCUT, command.encode(), screenIndex = screenIndex)
 
     /**
      * S1560 Phase 04 step 04.2: the weather gadget is seeded to every profile except [AUDIO_PLAYER]

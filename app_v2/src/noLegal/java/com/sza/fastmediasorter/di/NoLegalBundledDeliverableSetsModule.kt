@@ -35,7 +35,11 @@ object NoLegalBundledDeliverableSetsModule {
         override fun descriptors(): Map<DeliverableSet, DeliverableSourceDescriptor> = mapOf(
             DeliverableSet.AUDIO_VISUALIZATIONS to DeliverableDescriptorCatalog.audioVisualizations(),
             DeliverableSet.CHANNEL_PREVIEW_ATLAS to DeliverableDescriptorCatalog.channelPreviewAtlas(),
-            DeliverableSet.STREAM_LOGO_ATLAS to DeliverableDescriptorCatalog.streamLogoAtlas()
+            DeliverableSet.STREAM_LOGO_ATLAS to DeliverableDescriptorCatalog.streamLogoAtlas(),
+            // S1971: Set E is deliberately absent from bundledSets() above. Listing it there would make
+            // the capability report as installed and suppress the download, which is the exact opposite
+            // of this ticket - the 44 MB leaving the APK is the whole point.
+            DeliverableSet.VLC_ENGINE to DeliverableDescriptorCatalog.vlcEngine()
         )
     }
 }

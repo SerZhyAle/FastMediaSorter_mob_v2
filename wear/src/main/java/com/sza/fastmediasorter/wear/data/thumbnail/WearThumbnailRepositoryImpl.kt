@@ -53,7 +53,6 @@ class WearThumbnailRepositoryImpl(
         }
         val key = cacheKey(file, sourceId)
         val answer = cache.get(key) ?: load(file, sourceId).also { cache.put(key, it) }
-        Timber.d("S1730: thumbnail for ${file.name} -> ${answer::class.simpleName}")
         return answer
     }
 
@@ -105,7 +104,6 @@ class WearThumbnailRepositoryImpl(
         withContext(Dispatchers.IO) {
             val source = networkSourceRepository.getSourceById(sourceId)
             val remotePath = NetworkUriParser.remotePathOf(file.uri.toString())
-            Timber.d("S1888: thumbnail remotePath=$remotePath from uri=${file.uri}")
             val stream = source?.let { openStream(it, remotePath) }
             stream?.let { previewReader.read(it) }
         }

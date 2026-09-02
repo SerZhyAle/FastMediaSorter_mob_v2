@@ -18,7 +18,6 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
 import com.sza.fastmediasorter.domain.usecase.launcher.LoadLauncherGadgetFilesUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.awaitCancellation
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -72,7 +71,6 @@ private class VideoWindowGadgetView(
         val loaded = resourceId?.let {
             loadFiles(it, limit = MediaWindow.SCAN_LIMIT, sortMode = SortMode.DATE_DESC)
         } as? LoadLauncherGadgetFilesUseCase.Result.Files
-        Timber.d("S1754: video window bound to resource %s", resourceId)
         val source = loaded?.files
             ?.firstOrNull { it.type == MediaType.VIDEO }
             ?.let(MediaWindow::localModel)

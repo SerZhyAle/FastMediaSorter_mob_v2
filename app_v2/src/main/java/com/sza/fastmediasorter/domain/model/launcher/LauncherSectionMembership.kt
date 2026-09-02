@@ -154,6 +154,56 @@ object LauncherSectionMembership {
         return positions
     }
 
+    /**
+     * S2214: calculating the row compression lift caused by consecutive collapsed/empty section headers
+     * packed onto shared rows.
+     *
+     * Returns a map from section header target to accumulated row compression lift (number of rows saved).
+     */
+    fun packingLifts(
+        cells: List<LauncherCell>,
+        collapsedTargets: Set<String>,
+        columns: Int,
+        renderRowOf: (LauncherCell) -> Int?,
+    ): Map<String, Int> {
+        val packed = packedHeaderPositions(cells, collapsedTargets, columns, renderRowOf)
+        if (packed.isEmpty()) return emptyMap()
+        val sections = sectionsInOrder(cells)
+        val lifts = mutableMapOf<String, Int>()
+        var currentLift = 0
+        for (header in sections) {
+            val drawnRow = renderRowOf(header)
+            val packedPos = packed[header.target]
+            if (drawnRow != null && packedPos != null) {
+                currentLift = (drawnRow - packedPos.row).coerceAtLeast(0)
+            }
+            lifts[header.target] = currentLift
+        }
+        return lifts
+    }
+
+    /**
+     * S2214: calculating the accumulated packing lift to invert for a given rendered row.
+     */
+    fun packingLiftForRenderRow(
+        renderRow: Int,
+        sections: List<LauncherCell>,
+        packedPositions: Map<String, PackedPosition>,
+        renderRowOf: (LauncherCell) -> Int?,
+    ): Int {
+        var lift = 0
+        for (header in sections) {
+            val packedPos = packedPositions[header.target]
+            val drawnRow = renderRowOf(header)
+            if (packedPos != null && drawnRow != null) {
+                if (renderRow > packedPos.row) {
+                    lift = (drawnRow - packedPos.row).coerceAtLeast(0)
+                }
+            }
+        }
+        return lift
+    }
+
     /** The row and column a packed header is drawn at. Never stored - see [packedHeaderPositions]. */
     data class PackedPosition(val row: Int, val col: Int)
 
@@ -215,6 +265,32 @@ object LauncherSectionMembership {
             if (end != null && top >= end) lift += end - firstFolded
         }
         return top - lift
+    }
+
+    /**
+     * S2033: the stored row a press on drawn row [renderRow] points at - the inverse of [renderRowFor].
+     *
+     * Well defined because a fold hides whole sections rather than thinning them: every stored row still
+     * drawn projects onto a drawn row exactly one past the previous drawn one, so a drawn row has one
+     * visible stored row behind it and never two.
+     *
+     * It exists because a coordinate read off a folded desktop can otherwise only be written back as if
+     * nothing were folded, which lands a new cell short by the height of every collapsed section above
+     * the press - often inside one of them, where [renderRowFor] returns null and nothing is drawn at all.
+     *
+     * A collapsed section running to the bottom of the desktop adds nothing, for the same reason it lifts
+     * nothing in [renderRowFor]: it has no rows below it that a fold could have raised.
+     */
+    fun storedRowFor(renderRow: Int, headerRows: List<Int>, collapsedHeaderRows: Set<Int>): Int {
+        var stored = renderRow.coerceAtLeast(0)
+        for (headerRow in headerRows.filter { it in collapsedHeaderRows }) {
+            val end = sectionEndExclusive(headerRow, headerRows)
+            val firstFolded = headerRow + 1
+            // Each fold is undone in turn, so a lower section is compared against a row the sections
+            // above it have already pushed back down - the same order [renderRowFor] accumulates in.
+            if (end != null && stored >= firstFolded) stored += end - firstFolded
+        }
+        return stored
     }
 
     /**

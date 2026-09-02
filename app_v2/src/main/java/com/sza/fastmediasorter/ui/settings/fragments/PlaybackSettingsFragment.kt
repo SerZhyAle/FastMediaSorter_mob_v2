@@ -42,9 +42,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-@AndroidEntryPoint
 // S1161: see GeneralSettingsFragment - the collapsed-group grid is installed by the base class, so every
 // settings tab gets the landscape columns rather than only Management.
+@AndroidEntryPoint
 class PlaybackSettingsFragment : BaseSettingsFragment() {
     private var _binding: FragmentSettingsPlaybackBinding? = null
     private val binding get() = _binding!!
@@ -56,7 +56,9 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
     @Inject lateinit var capabilityAvailability: com.sza.fastmediasorter.core.capability.CapabilityAvailability
 
     @Inject lateinit var shareTargetRegistry: ShareTargetRegistry
+
     @Inject lateinit var shareTargetAvailabilityResolver: ShareTargetAvailabilityResolver
+
     @Inject lateinit var isShareTargetEnabledUseCase: IsShareTargetEnabledUseCase
 
     // S0838: same resolver the runtime «Send to..» menus use, so a configured receiver shows the
@@ -245,7 +247,10 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
         }
 
         binding.btnResetPlaybackSection.setOnClickListener {
-            MaterialAlertDialogBuilder(requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
+            MaterialAlertDialogBuilder(
+                requireContext(),
+                R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive
+            )
                 .setTitle(R.string.reset_playback_section_title)
                 .setMessage(R.string.reset_playback_section_message)
                 .setPositiveButton(android.R.string.ok) { _, _ ->
@@ -342,7 +347,7 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
             // S0838: show each receiver's own glyph immediately; the installed-app launcher icon
             // (menu parity) is resolved off the main thread later and upgrades this in place.
             target.iconRes?.let { setIcon(it) }
-            val available = shareTargetAvailabilityResolver.isAvailable(target)
+            val available = shareTargetAvailabilityResolver.isAvailable(target, current)
             isEnabled = available
             // S0463: show the target's description when available; "Not installed" otherwise.
             val subtitleText: CharSequence? = if (available) {
@@ -462,95 +467,94 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
 
     private fun observeData() {
         collectOnLifecycle(viewModel.settings) { settings ->
-                    isUpdatingFromSettings = true
+            isUpdatingFromSettings = true
 
-                    // S0594: select by explicit value lookup; a mode outside the visible subset yields
-                    // -1 (unselected), preserving the legacy behaviour for modes the selector omits.
-                    binding.spinnerSortMode.setSelection(PLAYBACK_SORT_MODES.indexOf(settings.defaultSortMode))
+            // S0594: select by explicit value lookup; a mode outside the visible subset yields
+            // -1 (unselected), preserving the legacy behaviour for modes the selector omits.
+            binding.spinnerSortMode.setSelection(PLAYBACK_SORT_MODES.indexOf(settings.defaultSortMode))
 
-                    // Slideshow interval
-                    val currentSlideshow = binding.etSlideshowInterval.text.toString().toIntOrNull()
-                    if (currentSlideshow != settings.slideshowInterval) {
-                        binding.etSlideshowInterval.text = getString(R.string.number_format, settings.slideshowInterval)
-                    }
+            // Slideshow interval
+            val currentSlideshow = binding.etSlideshowInterval.text.toString().toIntOrNull()
+            if (currentSlideshow != settings.slideshowInterval) {
+                binding.etSlideshowInterval.text = getString(R.string.number_format, settings.slideshowInterval)
+            }
 
-                    // Switches (only update if value changed; setCheckedSilently avoids listener re-entry)
-                    if (binding.rowPlayToEnd.isChecked != settings.playToEndInSlideshow) {
-                        binding.rowPlayToEnd.setCheckedSilently(settings.playToEndInSlideshow)
-                    }
-                    if (binding.rowAllowRename.isChecked != settings.allowRename) {
-                        binding.rowAllowRename.setCheckedSilently(settings.allowRename)
-                    }
-                    if (binding.rowAllowDelete.isChecked != settings.allowDelete) {
-                        binding.rowAllowDelete.setCheckedSilently(settings.allowDelete)
-                    }
-                    if (binding.rowConfirmDelete.isChecked != settings.confirmDelete) {
-                        binding.rowConfirmDelete.setCheckedSilently(settings.confirmDelete)
-                    }
-                    if (binding.rowHideSystemUiInFullscreen.isChecked != settings.hideSystemUiInFullscreen) {
-                        binding.rowHideSystemUiInFullscreen.setCheckedSilently(settings.hideSystemUiInFullscreen)
-                    }
-                    // Player toggle is independent of the program-wide toggle: shown whenever an accelerometer is present.
-                    binding.layoutFollowSystemRotationPlayer.isVisible = hasAccelerometer
-                    if (binding.rowFollowSystemRotationPlayer.isChecked != settings.playerFollowSystemRotation) {
-                        binding.rowFollowSystemRotationPlayer.setCheckedSilently(settings.playerFollowSystemRotation)
-                    }
-                    if (binding.rowShowCommandPanel.isChecked != settings.defaultShowCommandPanel) {
-                        binding.rowShowCommandPanel.setCheckedSilently(settings.defaultShowCommandPanel)
-                    }
-                    if (binding.rowShowBlackScreenButton.isChecked != settings.showBlackScreenButton) {
-                        binding.rowShowBlackScreenButton.setCheckedSilently(settings.showBlackScreenButton)
-                    }
-                    if (binding.rowSmallControls.isChecked != settings.showSmallControls) {
-                        binding.rowSmallControls.setCheckedSilently(settings.showSmallControls)
-                    }
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        if (binding.rowEnablePip.isChecked != settings.enablePictureInPicture) {
-                            binding.rowEnablePip.setCheckedSilently(settings.enablePictureInPicture)
-                        }
-                    }
-                    if (binding.rowPanelStereoSingleEye.isChecked != settings.panelStereoSingleEye) {
-                        binding.rowPanelStereoSingleEye.setCheckedSilently(settings.panelStereoSingleEye)
-                    }
-                    if (binding.rowShowPlayerHint.isChecked != settings.showPlayerHintOnFirstRun) {
-                        binding.rowShowPlayerHint.setCheckedSilently(settings.showPlayerHintOnFirstRun)
-                    }
-                    if (binding.rowAlwaysShowTouchZones.isChecked != settings.alwaysShowTouchZonesOverlay) {
-                        binding.rowAlwaysShowTouchZones.setCheckedSilently(settings.alwaysShowTouchZonesOverlay)
-                    }
-                    // S0620: switch shows the inverse of the stored flag (checked == grid disabled).
-                    if (binding.rowDisableNineZone.isChecked != !settings.nineZoneGridEnabled) {
-                        binding.rowDisableNineZone.setCheckedSilently(!settings.nineZoneGridEnabled)
-                    }
-                    applyNineZoneVisibility(gridEnabled = settings.nineZoneGridEnabled)
+            // Switches (only update if value changed; setCheckedSilently avoids listener re-entry)
+            if (binding.rowPlayToEnd.isChecked != settings.playToEndInSlideshow) {
+                binding.rowPlayToEnd.setCheckedSilently(settings.playToEndInSlideshow)
+            }
+            if (binding.rowAllowRename.isChecked != settings.allowRename) {
+                binding.rowAllowRename.setCheckedSilently(settings.allowRename)
+            }
+            if (binding.rowAllowDelete.isChecked != settings.allowDelete) {
+                binding.rowAllowDelete.setCheckedSilently(settings.allowDelete)
+            }
+            if (binding.rowConfirmDelete.isChecked != settings.confirmDelete) {
+                binding.rowConfirmDelete.setCheckedSilently(settings.confirmDelete)
+            }
+            if (binding.rowHideSystemUiInFullscreen.isChecked != settings.hideSystemUiInFullscreen) {
+                binding.rowHideSystemUiInFullscreen.setCheckedSilently(settings.hideSystemUiInFullscreen)
+            }
+            // Player toggle is independent of the program-wide toggle: shown whenever an accelerometer is present.
+            binding.layoutFollowSystemRotationPlayer.isVisible = hasAccelerometer
+            if (binding.rowFollowSystemRotationPlayer.isChecked != settings.playerFollowSystemRotation) {
+                binding.rowFollowSystemRotationPlayer.setCheckedSilently(settings.playerFollowSystemRotation)
+            }
+            if (binding.rowShowCommandPanel.isChecked != settings.defaultShowCommandPanel) {
+                binding.rowShowCommandPanel.setCheckedSilently(settings.defaultShowCommandPanel)
+            }
+            if (binding.rowShowBlackScreenButton.isChecked != settings.showBlackScreenButton) {
+                binding.rowShowBlackScreenButton.setCheckedSilently(settings.showBlackScreenButton)
+            }
+            if (binding.rowSmallControls.isChecked != settings.showSmallControls) {
+                binding.rowSmallControls.setCheckedSilently(settings.showSmallControls)
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (binding.rowEnablePip.isChecked != settings.enablePictureInPicture) {
+                    binding.rowEnablePip.setCheckedSilently(settings.enablePictureInPicture)
+                }
+            }
+            if (binding.rowPanelStereoSingleEye.isChecked != settings.panelStereoSingleEye) {
+                binding.rowPanelStereoSingleEye.setCheckedSilently(settings.panelStereoSingleEye)
+            }
+            if (binding.rowShowPlayerHint.isChecked != settings.showPlayerHintOnFirstRun) {
+                binding.rowShowPlayerHint.setCheckedSilently(settings.showPlayerHintOnFirstRun)
+            }
+            if (binding.rowAlwaysShowTouchZones.isChecked != settings.alwaysShowTouchZonesOverlay) {
+                binding.rowAlwaysShowTouchZones.setCheckedSilently(settings.alwaysShowTouchZonesOverlay)
+            }
+            // S0620: switch shows the inverse of the stored flag (checked == grid disabled).
+            if (binding.rowDisableNineZone.isChecked != !settings.nineZoneGridEnabled) {
+                binding.rowDisableNineZone.setCheckedSilently(!settings.nineZoneGridEnabled)
+            }
+            applyNineZoneVisibility(gridEnabled = settings.nineZoneGridEnabled)
 
-                    // S0452: refresh dynamic send-command rows from effective enabled state.
-                    sendCommandRows.forEach { (id, row) ->
-                        val enabled = isShareTargetEnabledUseCase(id, settings)
-                        if (row.isChecked != enabled) row.setCheckedSilently(enabled)
-                    }
+            // S0452: refresh dynamic send-command rows from effective enabled state and availability.
+            updateSendCommandRowsAvailability(settings)
 
-                    // S0577: background-audio block (moved from Media/Audio).
-                    if (capabilityAvailability.isPersistentAudioPlaybackAvailable()) {
-                        if (binding.rowEnablePersistentAudioPlayback.isChecked != settings.enablePersistentAudioPlayback) {
-                            binding.rowEnablePersistentAudioPlayback.setCheckedSilently(settings.enablePersistentAudioPlayback)
-                        }
-                        if (binding.rowShowNowPlayingPanel.isChecked != settings.showNowPlayingPanel) {
-                            binding.rowShowNowPlayingPanel.setCheckedSilently(settings.showNowPlayingPanel)
-                        }
-                        updateNotificationPermissionButtonVisibility()
-                        val radioId = when (settings.backgroundAudioExitBehavior) {
-                            BackgroundAudioExitBehavior.ALWAYS_STOP -> R.id.radioExitBehaviorAlwaysStop
-                            BackgroundAudioExitBehavior.ALWAYS_CONTINUE -> R.id.radioExitBehaviorAlwaysContinue
-                            BackgroundAudioExitBehavior.ASK -> R.id.radioExitBehaviorAsk
-                        }
-                        if (binding.radioGroupExitBehavior.checkedRadioButtonId != radioId) {
-                            binding.radioGroupExitBehavior.check(radioId)
-                        }
-                        updateExitBehaviorVisibility()
-                    }
+            // S0577: background-audio block (moved from Media/Audio).
+            if (capabilityAvailability.isPersistentAudioPlaybackAvailable()) {
+                if (binding.rowEnablePersistentAudioPlayback.isChecked != settings.enablePersistentAudioPlayback) {
+                    binding.rowEnablePersistentAudioPlayback.setCheckedSilently(
+                        settings.enablePersistentAudioPlayback
+                    )
+                }
+                if (binding.rowShowNowPlayingPanel.isChecked != settings.showNowPlayingPanel) {
+                    binding.rowShowNowPlayingPanel.setCheckedSilently(settings.showNowPlayingPanel)
+                }
+                updateNotificationPermissionButtonVisibility()
+                val radioId = when (settings.backgroundAudioExitBehavior) {
+                    BackgroundAudioExitBehavior.ALWAYS_STOP -> R.id.radioExitBehaviorAlwaysStop
+                    BackgroundAudioExitBehavior.ALWAYS_CONTINUE -> R.id.radioExitBehaviorAlwaysContinue
+                    BackgroundAudioExitBehavior.ASK -> R.id.radioExitBehaviorAsk
+                }
+                if (binding.radioGroupExitBehavior.checkedRadioButtonId != radioId) {
+                    binding.radioGroupExitBehavior.check(radioId)
+                }
+                updateExitBehaviorVisibility()
+            }
 
-                    isUpdatingFromSettings = false
+            isUpdatingFromSettings = false
         }
     }
 
@@ -564,6 +568,24 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
         binding.groupTouchZoneScheme.isVisible = gridEnabled
         binding.groupTouchZoneLegend.isVisible = gridEnabled
         binding.tvThreeZoneExplanation.isVisible = !gridEnabled
+    }
+
+    private fun updateSendCommandRowsAvailability(settings: AppSettings) {
+        sendCommandRows.forEach { (id, row) ->
+            val target = shareTargetRegistry.byId(id)
+            if (target != null) {
+                val available = shareTargetAvailabilityResolver.isAvailable(target, settings)
+                row.isEnabled = available
+                val subtitleText: CharSequence? = if (available) {
+                    target.subtitleRes?.let { getString(it) }
+                } else {
+                    getString(R.string.settings_send_command_unavailable)
+                }
+                row.setSubtitle(subtitleText)
+            }
+            val enabled = isShareTargetEnabledUseCase(id, settings)
+            if (row.isChecked != enabled) row.setCheckedSilently(enabled)
+        }
     }
 
     private fun setupCollapsibleSections() {
@@ -650,8 +672,8 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
         if (!capabilityAvailability.isPersistentAudioPlaybackAvailable()) return
         binding.btnNotificationPermission.isVisible =
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                !isNotificationPermissionGranted() &&
-                binding.rowEnablePersistentAudioPlayback.isChecked
+            !isNotificationPermissionGranted() &&
+            binding.rowEnablePersistentAudioPlayback.isChecked
     }
 
     private fun showBatteryOptimizationHintIfNeeded() {

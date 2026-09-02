@@ -98,13 +98,11 @@
     <string name="file_already_exists_skip">%1$s (пропущено - файл вже існує)</string>
     <string name="file_cloud_id_label">Cloud ID: %1$s</string>
     <string name="file_count">Кількість файлів</string>
-    <string name="file_count_format">%d файлів</string>
     <string name="file_count_over_1000">>1000 файлів</string>
     <string name="file_date_label">Дата: %1$s</string>
     <string name="file_deleted">«%1$s» видалено</string>
     <string name="file_info">Інформація про файл</string>
     <string name="file_info_copy_path">Копіювати шлях</string>
-    <string name="file_info_copy_path_done">Шлях скопійовано</string>
     <string name="file_info_directory_label">Каталог: %1$s</string>
     <string name="file_info_extension_mime_label">Формат: %1$s · %2$s</string>
     <string name="file_info_filename_label">Файл: %1$s</string>

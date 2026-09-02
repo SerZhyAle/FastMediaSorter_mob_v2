@@ -118,6 +118,14 @@ data class CameraRuntimeCapabilities(
         /** Drop a preset sitting above this fraction of the max - redundant with the max button. */
         const val NEAR_MAX_DROP_FACTOR = 0.85f
 
+        /**
+         * Above this equivalent multiplier a lens reads as a tele rather than a wide.
+         *
+         * S2076 moved it here from the capture screen's zoom controls: the launcher's camera-wallpaper
+         * picker names the same lenses and must not answer "wide or tele" by a second, drifting number.
+         */
+        const val TELE_MIN_MULTIPLIER = 1.5f
+
         /** Zoom presets are displayed and compared to one decimal place. */
         const val ZOOM_STEP_SCALE = 10f
 

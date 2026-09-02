@@ -161,6 +161,62 @@ class LauncherDesktopRepositoryImplTest {
     }
 
     @Test
+    fun `a cell addressed to a section lands inside that section`() = runTest {
+        // S2018: the import's whole point - the first free squares are in the widgets section above, and
+        // "first free slot" would have taken one of them.
+        add(section(row = 0).copy(target = "sec:widgets"))
+        add(section(row = 4).copy(target = "sec:desktop"))
+        val id = repository.addCellInSection(
+            cell = cell(row = 0, col = 0, target = "app:com.example"),
+            columns = COLUMNS,
+            sectionKey = "desktop",
+        )
+        assertNotNull(id)
+        val stored = storedCell(id!!)
+        assertEquals(4, stored?.rowIndex)
+        assertEquals(LauncherSectionMembership.HEADER_SPAN_W, stored?.colIndex)
+    }
+
+    @Test
+    fun `a full section grows downward instead of spilling into the next one`() = runTest {
+        // S2018: the dense-grid case the owner hit - with no room left under its own header, the previous
+        // behaviour fell back to a grid-wide scan and settled inside a neighbouring section.
+        val widgets = add(section(row = 0).copy(target = "sec:widgets"))
+        add(section(row = 1).copy(target = "sec:desktop"))
+        val google = add(section(row = 2).copy(target = "sec:google"))
+        // Fill every square the desktop section owns: its header row, past the header itself.
+        for (col in LauncherSectionMembership.HEADER_SPAN_W until COLUMNS) {
+            add(cell(row = 1, col = col, target = "app:filler$col"))
+        }
+
+        val id = repository.addCellInSection(
+            cell = cell(row = 0, col = 0, target = "app:com.example"),
+            columns = COLUMNS,
+            sectionKey = "desktop",
+        )
+
+        assertNotNull(id)
+        val stored = storedCell(id!!)
+        assertEquals("the new row opened at the end of the desktop section", 2, stored?.rowIndex)
+        assertEquals(0, stored?.colIndex)
+        assertEquals("the section below moved down to make room", 3, rowOf(google))
+        assertEquals("the section above was left where it was", 0, rowOf(widgets))
+    }
+
+    @Test
+    fun `a cell addressed to a section the desktop lacks is refused`() = runTest {
+        // Creating the header is the caller's decision, so a missing section is a null rather than a
+        // silent placement somewhere else - which is exactly the fallback S2018 removed.
+        add(section(row = 0).copy(target = "sec:widgets"))
+        val id = repository.addCellInSection(
+            cell = cell(row = 0, col = 0, target = "app:com.example"),
+            columns = COLUMNS,
+            sectionKey = "desktop",
+        )
+        assertNull(id)
+    }
+
+    @Test
     fun `adding onto an occupied square pushes the occupant down`() = runTest {
         // S1772: the anchor is the user's choice of place, so the desktop makes room instead of refusing.
         val occupant = add(cell(row = 0, col = 0))
@@ -543,8 +599,226 @@ class LauncherDesktopRepositoryImplTest {
         assertEquals(2, storedCell(secB)?.rowIndex)
     }
 
+    @Test
+    fun `deleting a section removes its header and content and returns their targets`() = runTest {
+        val dao = dbRule.db.launcherCellDao()
+        val header = dao.upsert(entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SECTION, "sec:alpha", spanW = 2))
+        val childOnHeaderRow = dao.upsert(
+            entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SHORTCUT, "app:a", col = 2)
+        )
+        val childBelow = dao.upsert(
+            entity(LauncherOrientation.PORTRAIT, LauncherCellKind.GADGET, GADGET_TARGET, row = 1, spanH = 2)
+        )
+        val nextHeader = dao.upsert(
+            entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SECTION, "sec:beta", row = 3, spanW = 2)
+        )
+
+        val targets = repository.removeSection(LauncherOrientation.PORTRAIT, header)
+
+        assertEquals(setOf("sec:alpha", "app:a", GADGET_TARGET), targets.toSet())
+        assertNull(storedCell(header))
+        assertNull(storedCell(childOnHeaderRow))
+        assertNull(storedCell(childBelow))
+        assertEquals(0, storedCell(nextHeader)?.rowIndex)
+    }
+
+    @Test
+    fun `deleting a section pulls the rows below up by the band height`() = runTest {
+        val dao = dbRule.db.launcherCellDao()
+        val header = dao.upsert(
+            entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SECTION, "sec:alpha", row = 1, spanW = 2)
+        )
+        dao.upsert(entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SHORTCUT, "app:a", row = 2))
+        val nextHeader = dao.upsert(
+            entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SECTION, "sec:beta", row = 4, spanW = 2)
+        )
+
+        repository.removeSection(LauncherOrientation.PORTRAIT, header)
+
+        assertEquals(1, storedCell(nextHeader)?.rowIndex)
+    }
+
+    @Test
+    fun `deleting a section that runs to the bottom leaves nothing to shift`() = runTest {
+        val dao = dbRule.db.launcherCellDao()
+        val header = dao.upsert(entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SECTION, "sec:alpha", spanW = 2))
+        dao.upsert(entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SHORTCUT, "app:a", row = 1))
+
+        repository.removeSection(LauncherOrientation.PORTRAIT, header)
+
+        assertEquals(0, dao.countByOrientation(LauncherOrientation.PORTRAIT.name))
+    }
+
+    @Test
+    fun `deleting one of two headers sharing a row keeps the co-section and compacts the band`() = runTest {
+        val dao = dbRule.db.launcherCellDao()
+        val leftHeader = dao.upsert(
+            entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SECTION, "sec:left", spanW = 2)
+        )
+        dao.upsert(entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SHORTCUT, "app:left", col = 2))
+        val rightHeader = dao.upsert(
+            entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SECTION, "sec:right", col = 4, spanW = 2)
+        )
+        val rightChild = dao.upsert(
+            entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SHORTCUT, "app:right", row = 1)
+        )
+
+        repository.removeSection(LauncherOrientation.PORTRAIT, leftHeader)
+
+        assertEquals(0, storedCell(rightHeader)?.rowIndex)
+        assertEquals(1, storedCell(rightChild)?.rowIndex)
+    }
+
+    @Test
+    fun `deleting an unknown or non-section id returns an empty list`() = runTest {
+        val nonSection = add(cell(row = 0, col = 0))!!
+
+        assertTrue(repository.removeSection(LauncherOrientation.PORTRAIT, nonSection).isEmpty())
+        assertTrue(repository.removeSection(LauncherOrientation.PORTRAIT, Long.MAX_VALUE).isEmpty())
+    }
+
+    @Test
+    fun `resorting packs scattered children densely after the header`() = runTest {
+        val dao = dbRule.db.launcherCellDao()
+        val header = dao.upsert(entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SECTION, "sec:alpha", spanW = 2))
+        val first = dao.upsert(
+            entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SHORTCUT, "app:first", row = 2, col = 3)
+        )
+        val second = dao.upsert(
+            entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SHORTCUT, "app:second", row = 3, col = 3)
+        )
+        val nextHeader = dao.upsert(
+            entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SECTION, "sec:beta", row = 5, spanW = 2)
+        )
+
+        assertTrue(repository.resortSection(LauncherOrientation.PORTRAIT, header, columns = COLUMNS))
+
+        assertEquals(0, storedCell(first)?.rowIndex)
+        assertEquals(2, storedCell(first)?.colIndex)
+        assertEquals(0, storedCell(second)?.rowIndex)
+        assertEquals(3, storedCell(second)?.colIndex)
+        assertEquals(1, storedCell(nextHeader)?.rowIndex)
+    }
+
+    @Test
+    fun `resorting pulls the rows below up when the section shrinks`() = runTest {
+        val dao = dbRule.db.launcherCellDao()
+        val header = dao.upsert(entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SECTION, "sec:alpha", spanW = 2))
+        dao.upsert(entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SHORTCUT, "app:a", row = 3, col = 3))
+        val nextHeader = dao.upsert(
+            entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SECTION, "sec:beta", row = 4, spanW = 2)
+        )
+
+        assertTrue(repository.resortSection(LauncherOrientation.PORTRAIT, header, columns = COLUMNS))
+
+        assertEquals(1, storedCell(nextHeader)?.rowIndex)
+    }
+
+    @Test
+    fun `resorting pushes the rows below down when the section grows`() = runTest {
+        val dao = dbRule.db.launcherCellDao()
+        val header = dao.upsert(entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SECTION, "sec:alpha", spanW = 2))
+        dao.upsert(entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SHORTCUT, "app:a", col = 2))
+        dao.upsert(entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SHORTCUT, "app:b", col = 3))
+        val nextHeader = dao.upsert(
+            entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SECTION, "sec:beta", row = 1, spanW = 2)
+        )
+
+        assertTrue(repository.resortSection(LauncherOrientation.PORTRAIT, header, columns = 3))
+
+        assertEquals(2, storedCell(nextHeader)?.rowIndex)
+    }
+
+    @Test
+    fun `resorting keeps a tall gadget inside the section band`() = runTest {
+        val dao = dbRule.db.launcherCellDao()
+        val header = dao.upsert(entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SECTION, "sec:alpha", spanW = 2))
+        val tallGadget = dao.upsert(
+            entity(
+                LauncherOrientation.PORTRAIT,
+                LauncherCellKind.GADGET,
+                GADGET_TARGET,
+                row = 2,
+                col = 2,
+                spanW = 3,
+                spanH = 2
+            ),
+        )
+        val nextHeader = dao.upsert(
+            entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SECTION, "sec:beta", row = 4, spanW = 2)
+        )
+
+        assertTrue(repository.resortSection(LauncherOrientation.PORTRAIT, header, columns = 4))
+
+        val stored = storedCell(tallGadget)
+        assertEquals(1, stored?.rowIndex)
+        assertTrue((stored?.rowIndex ?: 0) + (stored?.spanH ?: 0) <= (storedCell(nextHeader)?.rowIndex ?: 0))
+    }
+
+    @Test
+    fun `resorting an empty section or unknown id returns false`() = runTest {
+        val dao = dbRule.db.launcherCellDao()
+        val header = dao.upsert(entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SECTION, "sec:alpha", spanW = 2))
+
+        assertFalse(repository.resortSection(LauncherOrientation.PORTRAIT, header, columns = COLUMNS))
+        assertFalse(repository.resortSection(LauncherOrientation.PORTRAIT, Long.MAX_VALUE, columns = COLUMNS))
+    }
+
+    /**
+     * S2217: the reset owes each deleted configured widget cell an instance cleanup it can only
+     * perform while it still knows the cell's target, so the delete hands those columns back. A
+     * dropped or invented target here means a leaked or wrongly cleared widget instance.
+     */
+    @Test
+    fun `clearAll returns every deleted target of both orientations and empties the table`() = runTest {
+        val dao = dbRule.db.launcherCellDao()
+        listOf(
+            entity(orientation = LauncherOrientation.PORTRAIT, kind = LauncherCellKind.GADGET, target = GADGET_TARGET),
+            entity(
+                orientation = LauncherOrientation.PORTRAIT,
+                kind = LauncherCellKind.SHORTCUT,
+                target = "app:com.example"
+            ),
+            entity(
+                orientation = LauncherOrientation.LANDSCAPE,
+                kind = LauncherCellKind.GADGET,
+                target = "app:com.other"
+            ),
+        ).forEach { dao.upsert(it) }
+
+        val targets = repository.clearAll()
+
+        assertEquals(setOf(GADGET_TARGET, "app:com.example", "app:com.other"), targets.toSet())
+        assertEquals(0, dao.countByOrientation(LauncherOrientation.PORTRAIT.name))
+        assertEquals(0, dao.countByOrientation(LauncherOrientation.LANDSCAPE.name))
+    }
+
+    private fun entity(
+        orientation: LauncherOrientation,
+        kind: LauncherCellKind,
+        target: String,
+        row: Int = 0,
+        col: Int = 0,
+        spanW: Int = 1,
+        spanH: Int = 1,
+    ) = LauncherCellEntity(
+        id = 0,
+        orientation = orientation.name,
+        rowIndex = row,
+        colIndex = col,
+        spanW = spanW,
+        spanH = spanH,
+        kind = kind.name,
+        target = target,
+        labelOverride = null,
+        addedAt = 0L,
+    )
+
     private companion object {
         /** Wide enough that no seeding call is refused for width alone. */
         const val COLUMNS = 8
+
+        /** A configured gadget cell's target carries its instance token as the param (S1930 codec). */
+        const val GADGET_TARGET = "gadget:random_photo_frame/-1000001"
     }
 }

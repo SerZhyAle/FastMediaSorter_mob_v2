@@ -1,18 +1,5 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
-import androidx.core.view.isVisible
-import com.bumptech.glide.load.resource.gif.GifDrawable
-import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.domain.model.MediaType
-import com.sza.fastmediasorter.ui.player.PlayerActivity
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import timber.log.Timber
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -20,7 +7,20 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.TransitionDrawable
 import android.view.View
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.load.resource.gif.GifDrawable
+import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.ui.player.PlayerActivity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 /**
  * Manages image translation (OCR + translation overlay) in the player.
@@ -194,7 +194,7 @@ class PlayerImageTranslationManager(
                     }
                 }
             } catch (e: Exception) {
-                if (e is CancellationException) throw e
+                e.rethrowIfCancellation()
                 withContext(Dispatchers.Main) {
                     activity.loadingIndicatorCoordinator.hide(LoadingSource.TRANSLATION)
                     stopTranslation()

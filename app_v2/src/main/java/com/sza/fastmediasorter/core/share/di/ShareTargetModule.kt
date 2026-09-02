@@ -74,6 +74,24 @@ abstract class ShareTargetModule {
 
         @Provides
         @IntoSet
+        fun watchTarget(): ShareTarget = ShareTarget(
+            id = "watch",
+            titleRes = R.string.share_target_title_watch,
+            iconRes = R.drawable.ic_watch,
+            defaultEnabled = ShareTargetDefault.ON_IF_WATCH,
+            availability = ShareTargetAvailability.REQUIRES_WATCH,
+            // ADR-3: the watch renders exactly these four families, so a document never shows a dead
+            // entry - the type filter hides the receiver rather than letting it fail on the watch.
+            applicableTypes = setOf(MediaType.IMAGE, MediaType.GIF, MediaType.VIDEO, MediaType.AUDIO),
+            batchCapable = false,
+            requiresLocalFile = true,
+            textCapable = false,
+            subtitleRes = R.string.share_target_desc_watch,
+            helpMessageRes = R.string.share_target_help_watch,
+        )
+
+        @Provides
+        @IntoSet
         fun printTarget(): ShareTarget = ShareTarget(
             id = "print",
             titleRes = R.string.menu_print,

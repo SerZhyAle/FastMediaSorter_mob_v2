@@ -25,3 +25,15 @@ data class WearStreamChannel(
         const val ORIGIN_PHONE = "PHONE"
     }
 }
+
+fun WearStreamChannel.toFavoriteRecord(): WearFavoriteRecord = WearFavoriteRecord(
+    sourceId = SOURCE_ID_STREAM,
+    filePath = normalizeWearStreamUrl(url),
+    displayName = name,
+    mimeType = if (mediaKind.equals("VIDEO", ignoreCase = true) || mediaKind.equals("RTSP", ignoreCase = true)) {
+        "video/*"
+    } else {
+        "audio/*"
+    },
+    itemKind = FAVORITE_ITEM_KIND_STREAM
+)

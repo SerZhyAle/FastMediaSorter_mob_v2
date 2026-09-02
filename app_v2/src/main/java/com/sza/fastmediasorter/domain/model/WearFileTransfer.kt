@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.domain.model
 
+import com.google.gson.annotations.SerializedName
+
 /**
  * S1861: how one queued phone -> watch transfer ended, or that it has not ended yet.
  *
@@ -29,7 +31,8 @@ data class WearFileTransferItem(
     val displayName: String,
     val totalBytes: Long = 0L,
     val transferredBytes: Long = 0L,
-    val outcome: WearFileTransferOutcome = WearFileTransferOutcome.QUEUED
+    val outcome: WearFileTransferOutcome = WearFileTransferOutcome.QUEUED,
+    val mediaType: MediaType? = null
 )
 
 /**
@@ -64,10 +67,40 @@ const val WEAR_FILE_TRANSFER_MAX_BYTES = 32L * 1024L * 1024L
  * writes them verbatim on both sides, so renaming one here breaks the other module silently.
  */
 data class WearFileTransferMetadata(
+    @SerializedName("requestId")
+    val requestId: String = "",
+    @SerializedName("name")
     val name: String = "",
+    @SerializedName("size")
     val size: Long = 0L,
-    val mimeType: String? = null
+    @SerializedName("mimeType")
+    val mimeType: String? = null,
+    @SerializedName("openNow")
+    val openNow: Boolean = false
 )
+
+/** Correlated acknowledgement sent by the watch after a phone-initiated file transfer. */
+data class WearFileTransferAck(
+    @SerializedName("requestId")
+    val requestId: String = "",
+    @SerializedName("outcome")
+    val outcome: String = ""
+) {
+    companion object {
+        const val OUTCOME_OPENED = "OPENED"
+        const val OUTCOME_NOT_FOREGROUND = "NOT_FOREGROUND"
+        const val OUTCOME_UNSUPPORTED = "UNSUPPORTED"
+        const val OUTCOME_TOO_LARGE = "TOO_LARGE"
+        const val OUTCOME_SAVED = "SAVED"
+
+        /**
+         * S1884: the watch received a truncated file. Distinct from silence on purpose - without it
+         * this side waits out the whole ack timeout and then reports that the watch never answered,
+         * which is the one thing that did not happen.
+         */
+        const val OUTCOME_FAILED = "FAILED"
+    }
+}
 
 /** S1861: how one watch -> phone file ended on the phone. */
 enum class WearFileReceiveOutcome {
@@ -81,11 +114,54 @@ enum class WearFileReceiveOutcome {
 
     NO_DESTINATION,
 
+    /**
+     * S2044: the bytes are on the phone and an upload to a remote destination has been enqueued.
+     *
+     * Not a final outcome, and deliberately not reported as [SAVED]: at the moment the channel
+     * closes the file has not reached the destination the user configured, and only the upload
+     * worker learns whether it ever does.
+     */
+    QUEUED_FOR_UPLOAD,
+
     FAILED
 }
 
 /** S1861: the outcome of one watch -> phone file, with the path it landed on when it landed. */
 data class WearFileReceiveResult(
     val outcome: WearFileReceiveOutcome,
-    val savedPath: String? = null
+    val savedPath: String? = null,
+    val destinationName: String? = null
+)
+
+/** Immediate outcome acknowledgement sent by phone to watch after receiving a file. */
+data class WearFileReceiveAck(
+    @SerializedName("fileName")
+    val fileName: String = "",
+    @SerializedName("outcome")
+    val outcome: String = "",
+    @SerializedName("destination")
+    val destination: String = ""
+) {
+    companion object {
+        const val OUTCOME_SAVED = "SAVED"
+        const val OUTCOME_QUEUED = "QUEUED"
+        const val OUTCOME_NO_DESTINATION = "NO_DESTINATION"
+        const val OUTCOME_TOO_LARGE = "TOO_LARGE"
+        const val OUTCOME_FAILED = "FAILED"
+    }
+}
+
+/**
+ * Deferred upload outcome published as a Data Item by phone to watch.
+ * [completedAtMillis] ensures Data Layer publishes an update even for duplicate outcomes.
+ */
+data class WearFileUploadOutcome(
+    @SerializedName("fileName")
+    val fileName: String = "",
+    @SerializedName("succeeded")
+    val succeeded: Boolean = false,
+    @SerializedName("destination")
+    val destination: String = "",
+    @SerializedName("completedAtMillis")
+    val completedAtMillis: Long = 0L
 )

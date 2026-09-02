@@ -54,7 +54,7 @@ The taskbar sits along the bottom edge. It holds the Start button, the apps you 
 
 - **Prefer it along the top?** **Settings → General → System launcher settings → Taskbar → Taskbar position** switches between **Bottom** and **Top**. The Start menu follows the bar and drops down from above when the bar is up there.
 - **The Start button** opens the menu: open FastMediaSorter, your resources, add a resource, Android settings, app settings, launcher settings, edit desktop contents, and at the end restart, power off and **Exit launcher mode**.
-- **Your apps** are grouped into sections with small headers. Tap a header to collapse a section you rarely open. A fresh desktop also gets a **GOOGLE** section holding the Google apps you already have. Long-press any app for **Put on desktop** and **Pin to taskbar**.
+- **Your apps** are grouped into sections with small headers. Tap a header to collapse a section you rarely open. A fresh desktop puts your Google apps in a **Google** section and your own installed apps - messengers, games and the rest - in an **Apps** section, so the same icon never shows up twice. Long-press any app for **Put on desktop** and **Pin to taskbar**.
 
 ---
 
@@ -105,6 +105,8 @@ Your desktop layout is kept either way, so switching launcher mode back on bring
 ## Tips
 
 > **Wall tablet or car head unit?** Pair launcher mode with **Prevent Sleep** in **Settings → General** so the desktop stays visible while the device is on a charger.
+
+> **Left on all day?** **Settings → General → System launcher settings → Desktop → Screen timeout** sets how long the desktop waits while nobody touches it. It does not go dark at once: first comes a slow dimming, then the blackout - an app-private black overlay rather than the device switching itself off, so any touch brings the desktop straight back. Set it to **Off (never)** to keep the desktop lit.
 
 > **Want the full reference?** Every option, table and corner case lives in the [Use the App as Your Home Screen](../HOW_TO.md#how-to-use-the-app-as-your-home-screen) section of the user manual. This guide covers switching it on and the first steps; that section covers the rest.
 

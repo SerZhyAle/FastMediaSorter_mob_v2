@@ -3,7 +3,7 @@
 
 param(
     [switch]$SkipZip,
-    [string]$Task = "assembleStandardDebug",
+    [string]$Task = ":app_v2:assembleStandardDebug",
     # A packaged debug APK is a distribution artifact - it is copied to DOWNLOADS and installed
     # by hand - so it carries its own build timestamp by default (S1873). Frozen versions belong
     # to the compile-only fast checks (fk/fc/fr/fw) that produce no APK. Pass -AutoVersion:$false
@@ -16,11 +16,22 @@ param(
     # Quiet mode: suppress UP-TO-DATE / NO-SOURCE / SKIPPED task lines, deprecated-DSL spam,
     # and known-acceptable warnings. Errors, FAIL/SUCCESS verdict, and unknown warnings are
     # always preserved. The full unfiltered output is still captured for retry-detection.
-    [switch]$Quiet
+    [switch]$Quiet,
+
+    # S1972: which slice of the split debug build to report and copy. Empty means "ask the connected
+    # device", which is the right answer whenever exactly one is attached; name it explicitly when
+    # several are, or when building for a device that is not plugged in.
+    [string]$Abi = '',
+
+    [Parameter(ValueFromRemainingArguments = $true)]
+    [string[]]$GradleArgs
 )
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
-Enter-BuildLockOrExit -Reason "build-debug.PS1"
+. "$PSScriptRoot\..\utils\project-paths.ps1"
+# S2127: Test-KotlinStaleIncrementalState + Get-KotlinStaleIncrementalRepairArgs.
+. "$PSScriptRoot\gradle-run-verdict.ps1"
+Enter-BuildLockOrExit -Reason "build-debug.PS1" -Domain Build.Phone
 try {
 
 # Patterns that are suppressed in -Quiet mode. Order: most-frequent first.
@@ -114,7 +125,8 @@ function Get-GradleExecutionHistoryRelativePath {
 function Invoke-DebugBuild {
     param(
         [switch]$DisableBuildCache,
-        [switch]$NoDaemon
+        [switch]$NoDaemon,
+        [switch]$NoKotlinIncremental
     )
 
     $versionOverrideArgs = @()
@@ -136,6 +148,18 @@ function Invoke-DebugBuild {
     $enableChaquopy = $script:Chaquopy.IsPresent -or ($script:Task -match '(?i)noLegal')
     $chaquopyFlag = if ($enableChaquopy) { "-Pchaquopy.enabled=true" } else { "-Pchaquopy.enabled=false" }
     $gradleArgs = @($script:Task, $chaquopyFlag)
+    # S1972: debug-only ABI splits - the phone and the emulator each get their own APK. Conditioned
+    # on the task, not on the script, because -Task is settable and this driver would otherwise
+    # slice whatever it was pointed at. Three exclusions, all load-bearing:
+    #   release  - slicing one would shrink the device set it reaches (canon hard invariant 2);
+    #   vr       - an x86_64 vr APK would carry no OpenXR native, the loader AAR being arm64 only;
+    #   Chaquopy - the plugin refuses a build with no ndk.abiFilters, and a split build has none,
+    #              because AGP refuses the two together. Measured 2026-08-26: "Variant
+    #              'noLegalDebug': Chaquopy requires ndk.abiFilters". noLegal therefore stays a
+    #              single arm64 APK, which is the shape the owner ruled for on 2026-08-23.
+    if ($script:Task -match '(?i)debug' -and $script:Task -notmatch '(?i)vr' -and -not $enableChaquopy) {
+        $gradleArgs += "-Pfms.abiSplits=true"
+    }
     if ($enableChaquopy) {
         # S0276 follow-up: repo default is CC-off for direct noLegal/IDE safety, and any
         # noLegal/Chaquopy task graph must stay opted out until the plugin becomes
@@ -153,8 +177,14 @@ function Invoke-DebugBuild {
     if ($NoDaemon) {
         $gradleArgs += "--no-daemon"
     }
+    if ($NoKotlinIncremental) {
+        $gradleArgs += Get-KotlinStaleIncrementalRepairArgs
+    }
     if ($versionOverrideArgs.Count -gt 0) {
         $gradleArgs += $versionOverrideArgs
+    }
+    if ($script:GradleArgs.Count -gt 0) {
+        $gradleArgs += $script:GradleArgs
     }
 
     Write-Host "Starting Gradle: .\\gradlew.bat $($gradleArgs -join ' ')" -ForegroundColor DarkGray
@@ -214,6 +244,19 @@ if ($buildResult.ExitCode -ne 0) {
         $buildResult = Invoke-DebugBuild -DisableBuildCache -NoDaemon
     }
 
+    # S2127: a class the Kotlin incremental state lost, reported against a source file nobody edited.
+    # Distinct from the two branches around it: nothing is locked and nothing failed to pack, the
+    # compile simply cannot see a class whose source file moved between source sets. The retry drops
+    # incremental compilation rather than deleting caches - see Get-KotlinStaleIncrementalRepairArgs.
+    $isKotlinStaleIncrementalState =
+    Test-KotlinStaleIncrementalState -Lines ($buildResult.Output -split "`r?`n")
+
+    if (($buildResult.ExitCode -ne 0) -and $isKotlinStaleIncrementalState) {
+        Write-Host "`nKotlin reported a class its incremental state lost, not a source defect (S2127). Retrying once without incremental compilation..." -ForegroundColor Yellow
+
+        $buildResult = Invoke-DebugBuild -NoKotlinIncremental
+    }
+
     if (($buildResult.ExitCode -ne 0) -and $isKaptIncrementalDataLockError) {
         Write-Host "`nDetected Windows file lock in kapt incremental data. Stopping daemons, cleaning kapt temp folders, and retrying once..." -ForegroundColor Yellow
 
@@ -247,29 +290,24 @@ Write-Host "`nBuild Successful!" -ForegroundColor Green
 # Copy to DOWNLOADS folder
 $downloadsDir = "$projectRoot\DOWNLOADS"
 
-# Resolve actual APK path from AGP output metadata (fallback to newest .apk)
+# Resolve the built APK path from AGP output metadata.
 $apkDir = Join-Path $projectRoot "app_v2\build\outputs\apk\standard\debug"
-$metadataPath = Join-Path $apkDir "output-metadata.json"
-$apkPath = $null
-
-if (Test-Path -Path $metadataPath) {
-    try {
-        $meta = Get-Content -Path $metadataPath -Raw | ConvertFrom-Json
-        if ($meta.elements -and $meta.elements.Count -gt 0 -and $meta.elements[0].outputFile) {
-            $apkPath = Join-Path $apkDir $meta.elements[0].outputFile
-        }
-    }
-    catch {
-        Write-Host "Warning: Failed to parse output-metadata.json, falling back to latest APK." -ForegroundColor Yellow
-    }
+# S1972: one resolver for every builder - it selects by ABI from output-metadata.json
+# and refuses to guess, where this block used to take element 0 and then the newest file.
+. "$PSScriptRoot\..\utils\find-build-artifact.ps1"
+. "$PSScriptRoot\..\utils\get-device-abi.ps1"
+# arm64-v8a is the fallback, not a guess: adb refuses the property read whenever more than one
+# device is online, which is this repo's normal state (phone + watch + emulator, S1986), and the
+# phone is the thing a debug APK is built for. Pass -Abi x86_64 to take the emulator slice.
+$wantedAbi = if ($Abi) { $Abi } else { Get-TargetDeviceAbi -Fallback 'arm64-v8a' }
+try {
+    $resolvedArtifact = Find-BuildArtifact -Dir $apkDir -Abi $wantedAbi
 }
-
-if (-not $apkPath -or -not (Test-Path -Path $apkPath)) {
-    $latestApk = Get-ChildItem -Path $apkDir -Filter *.apk -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-    if ($latestApk) {
-        $apkPath = $latestApk.FullName
-    }
+catch {
+    Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
 }
+$apkPath = if ($resolvedArtifact) { $resolvedArtifact.FullName } else { $null }
 
 if (-not $apkPath -or -not (Test-Path -Path $apkPath)) {
     Write-Host "Error: APK not found in $apkDir" -ForegroundColor Red
@@ -287,7 +325,7 @@ $destName = "FastMediaSorter_standard_debug.apk"
 # version inside it belongs to an older build (S1873). Checked before the copy, because the
 # copy is what puts it in DOWNLOADS and on Google Drive.
 if ($script:AutoVersion) {
-    & (Join-Path $PSScriptRoot "..\quality\assert-artifact-version-fresh.ps1") -Path $apkDir
+    & (Join-Path $PSScriptRoot "..\quality\assert-artifact-version-fresh.ps1") -Path $apkPath
     if ($LASTEXITCODE -eq 1) {
         Write-Host "Refusing to distribute an artifact whose version is not its own." -ForegroundColor Red
         exit 1
@@ -304,49 +342,9 @@ $logEntry = "$timestamp | standard-debug | $destName"
 Add-Content -Path $journalPath -Value $logEntry
 Write-Host "Build logged to journal" -ForegroundColor Gray
 
-# Zip with password and copy to Google Drive
-$gdDir = "c:\GD\WORK\FastMediaSorter"
-if (!(Test-Path -Path $gdDir)) {
-    New-Item -ItemType Directory -Path $gdDir | Out-Null
-}
-
-# Copy raw APK to Google Drive (in addition to password-protected ZIP below).
-# Recipients with security policies that block APK downloads use the .zip copy;
-# the raw .apk lets fast paths skip the unzip step.
-Copy-Item -Path "$downloadsDir\$destName" -Destination "$gdDir\$destName" -Force
-Write-Host "APK copied to $gdDir\$destName" -ForegroundColor Green
-
-$zipName = [System.IO.Path]::ChangeExtension($destName, ".zip")
-$zipPath = "$gdDir\$zipName"
-
-# Use 7-Zip to create password-protected archive
-if ($SkipZip) {
-    Write-Host "SkipZip enabled: ZIP creation and Google Drive archive copy skipped." -ForegroundColor Yellow
-}
-else {
-    $7zipPath = "C:\Program Files\7-Zip\7z.exe"
-    if (Test-Path -Path $7zipPath) {
-        if (Test-Path -Path $zipPath) {
-            Remove-Item -Path $zipPath -Force -ErrorAction SilentlyContinue
-        }
-
-        & $7zipPath a -y -tzip -p1 "$zipPath" "$downloadsDir\$destName" | Out-Null
-
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host "APK zipped with password and copied to Google Drive: $zipPath" -ForegroundColor Cyan
-        }
-        else {
-            Write-Host "Warning: 7-Zip archive creation failed with exit code $LASTEXITCODE" -ForegroundColor Yellow
-        }
-        # Write-Host "Password: 1" -ForegroundColor Yellow
-    }
-    else {
-        Write-Host "Warning: 7-Zip not found. APK not copied to Google Drive." -ForegroundColor Yellow
-        Write-Host "Install 7-Zip from https://www.7-zip.org/ to enable Google Drive upload." -ForegroundColor Yellow
-    }
-}
+& "$PSScriptRoot\..\utils\publish-artifact.ps1" -Path "$downloadsDir\$destName" -Name $destName -NoCommander -NoZip:$SkipZip
 
 }
 finally {
-    Exit-AgentLock -Name Build
+    Exit-AgentLock -Name 'Build' -Domains @('Build.Phone')
 }

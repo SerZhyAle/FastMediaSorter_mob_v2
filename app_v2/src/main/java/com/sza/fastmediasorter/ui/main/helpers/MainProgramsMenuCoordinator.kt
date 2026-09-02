@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.panel.AppLaunchPanelRouteIntents
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.applaunchpanel.AppLaunchPanelActivity
 import com.sza.fastmediasorter.ui.calculator.CalculatorActivity
@@ -62,6 +63,7 @@ class MainProgramsMenuCoordinator(
         val screenRecording: Boolean,
         val systemInfo: Boolean,
         val wearCompanion: Boolean,
+        val frontFlashlight: Boolean,
     )
 
     // S0757: the Quick Launch Panel entry is always present (no toggle), so the count starts at 1 and
@@ -71,6 +73,7 @@ class MainProgramsMenuCoordinator(
             (if (gate.networkMonitor) 1 else 0) +
             (if (gate.cameraOcr) 1 else 0) +
             (if (gate.systemInfo) 1 else 0) +
+            (if (gate.frontFlashlight) 1 else 0) +
             wearCompanionMenuManager.itemCount(gate.wearCompanion) +
             miniGameMenuManager.itemCount(gate.miniGame) +
             quickCaptureMenuManager.itemCount(gate.quickVoice, gate.quickCamera) +
@@ -146,6 +149,14 @@ class MainProgramsMenuCoordinator(
             ).setIcon(R.drawable.ic_info)
         }
         wearCompanionMenuManager.populate(popup, gate.wearCompanion, MENU_ORDER_WEAR_COMPANION)
+        if (gate.frontFlashlight) {
+            popup.menu.add(
+                0,
+                MENU_ITEM_FRONT_FLASHLIGHT,
+                MENU_ORDER_FRONT_FLASHLIGHT,
+                R.string.front_flashlight_title,
+            ).setIcon(R.drawable.ic_front_flashlight)
+        }
         return popup.menu.size()
     }
 
@@ -182,8 +193,12 @@ class MainProgramsMenuCoordinator(
                 true
             }
             MENU_ITEM_SYSTEM_INFO -> {
-                Timber.d("S1733: programs menu opens system info")
                 activity.startActivity(SystemInfoActivity.createIntent(activity))
+                true
+            }
+            MENU_ITEM_FRONT_FLASHLIGHT -> {
+                Timber.d("S2212: programs menu opens front flashlight")
+                activity.startActivity(AppLaunchPanelRouteIntents.frontFlashlight(activity))
                 true
             }
             else -> false
@@ -244,6 +259,8 @@ class MainProgramsMenuCoordinator(
             removeProgramAction(R.string.settings_system_info_title) { it.copy(enableSystemInfo = false) }
         MainWearCompanionMenuManager.MENU_ITEM_WEAR_COMPANION ->
             removeProgramAction(R.string.wear_companion) { it.copy(enableWearCompanion = false) }
+        MENU_ITEM_FRONT_FLASHLIGHT ->
+            removeProgramAction(R.string.front_flashlight_title) { it.copy(frontFlashlightEnabled = false) }
         else -> null
     }
 
@@ -262,6 +279,9 @@ class MainProgramsMenuCoordinator(
         // collision would route one program's tap into another's branch.
         const val MENU_ITEM_SYSTEM_INFO = 19
 
+        // S2212: front flashlight item id
+        const val MENU_ITEM_FRONT_FLASHLIGHT = 21
+
         private const val MENU_ORDER_STREAMS = 1
         private const val MENU_ORDER_VR_CINEMA = 2
         private const val MENU_ORDER_APP_LAUNCH_PANEL = 3
@@ -277,5 +297,8 @@ class MainProgramsMenuCoordinator(
         // S1735: appended after system information for the same reason S1733 appended itself - a new
         // program at the end shifts no familiar position.
         private const val MENU_ORDER_WEAR_COMPANION = 12
+
+        // S2212: front flashlight menu order
+        private const val MENU_ORDER_FRONT_FLASHLIGHT = 13
     }
 }

@@ -46,7 +46,6 @@ param(
 $ErrorActionPreference = "Stop"
 trap { Write-Error $_; exit 1 }
 
-$validFlavors = @("standard", "lite", "photos", "legacy", "vr", "noLegal")
 function Fail([string]$m) { Write-Error $m; exit 1 }
 function Test-NonAscii([string]$s) { foreach ($c in $s.ToCharArray()) { if ([int][char]$c -gt 127) { return $true } } return $false }
 function Split-Csv([string]$s) { return @($s -split '[,\s]+' | Where-Object { $_ } | ForEach-Object { $_.Trim() }) }
@@ -56,6 +55,10 @@ $scriptDir = $PSScriptRoot
 if (-not $scriptDir) { $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path }
 . (Join-Path $scriptDir '_lib.ps1')
 $repoRoot = Resolve-FeatureRepoRoot -ScriptDir $scriptDir
+# The matrix header is the live list; the literal below is only the fallback for a checkout where
+# docs/FLAVOR_MATRIX.md is missing, and it is what went stale when `foss` was declared (S2093).
+$validFlavors = @(Get-FlavorMatrixColumns -RepoRoot $repoRoot)
+if ($validFlavors.Count -eq 0) { $validFlavors = @("standard", "lite", "photos", "legacy", "vr", "noLegal") }
 $fileName = if ($NoLegal) { "ALL_FEATURES_noLegal.jsonl" } else { "ALL_FEATURES.jsonl" }
 $dataFile = Get-FeatureInventoryPath -RepoRoot $repoRoot -NoLegal:$NoLegal
 if (-not (Test-Path $dataFile)) { Fail "Not found: $dataFile" }
@@ -104,7 +107,7 @@ try {
 
         # validate
         if ($flavors.Count -eq 0) { Fail "Record '$idN' would have empty flavors." }
-        foreach ($f in $flavors) { if ($validFlavors -notcontains $f) { Fail "Invalid flavor '$f'." } }
+        foreach ($f in $flavors) { if ($validFlavors -notcontains $f) { Fail "Invalid flavor '$f'. Allowed: $($validFlavors -join ', ')." } }
         if ((Test-NonAscii $name) -or (Test-NonAscii $desc)) { Fail "EN-only: non-ASCII in name/description." }
         if ($specVal -and "$specVal" -notmatch '^S\d{4}$') { Fail "Invalid spec '$specVal'." }
         # S1982: same shape check add.ps1 applies, so a gate cannot enter the inventory through the

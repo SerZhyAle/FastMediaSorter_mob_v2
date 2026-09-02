@@ -19,6 +19,7 @@ object CaptureSettingsStore {
     private val KEY_CAMERA_OPEN_FOR_EDITING = booleanPreferencesKey("camera_open_for_editing")
     private val KEY_CAMERA_COPY_TO_CLIPBOARD = booleanPreferencesKey("camera_copy_to_clipboard")
     private val KEY_CAMERA_GEOTAG_ENABLED = booleanPreferencesKey("camera_geotag_enabled")
+    private val KEY_CAMERA_GRID_ENABLED = booleanPreferencesKey("camera_grid_enabled")
     private val KEY_CAMERA_ASPECT_RATIO = intPreferencesKey("camera_aspect_ratio")
     private val KEY_CAMERA_LENS_SETTINGS = stringPreferencesKey("camera_lens_settings")
     private val KEY_CAMERA_PHOTOS_DESTINATION_RESOURCE_ID = stringPreferencesKey("camera_photos_destination_resource_id")
@@ -34,6 +35,7 @@ object CaptureSettingsStore {
         val cameraCaptureOpenForEditing: Boolean,
         val cameraCaptureCopyToClipboard: Boolean,
         val cameraGeotagEnabled: Boolean,
+        val cameraGridEnabled: Boolean,
         val cameraAspectRatio: Int,
         val cameraLensSettings: String,
         val cameraPhotosDestinationResourceId: String?,
@@ -49,6 +51,7 @@ object CaptureSettingsStore {
         cameraCaptureOpenForEditing = preferences[KEY_CAMERA_OPEN_FOR_EDITING] ?: false,
         cameraCaptureCopyToClipboard = preferences[KEY_CAMERA_COPY_TO_CLIPBOARD] ?: false,
         cameraGeotagEnabled = preferences[KEY_CAMERA_GEOTAG_ENABLED] ?: false,
+        cameraGridEnabled = preferences[KEY_CAMERA_GRID_ENABLED] ?: false,
         cameraAspectRatio = preferences[KEY_CAMERA_ASPECT_RATIO] ?: 1,
         cameraLensSettings = preferences[KEY_CAMERA_LENS_SETTINGS].orEmpty(),
         cameraPhotosDestinationResourceId = preferences[KEY_CAMERA_PHOTOS_DESTINATION_RESOURCE_ID],
@@ -64,6 +67,7 @@ object CaptureSettingsStore {
         preferences[KEY_CAMERA_OPEN_FOR_EDITING] = settings.cameraCaptureOpenForEditing
         preferences[KEY_CAMERA_COPY_TO_CLIPBOARD] = settings.cameraCaptureCopyToClipboard
         preferences[KEY_CAMERA_GEOTAG_ENABLED] = settings.cameraGeotagEnabled
+        preferences[KEY_CAMERA_GRID_ENABLED] = settings.cameraGridEnabled
         preferences[KEY_CAMERA_ASPECT_RATIO] = settings.cameraAspectRatio
         preferences[KEY_CAMERA_LENS_SETTINGS] = settings.cameraLensSettings
         preferences.setOrRemove(KEY_CAMERA_PHOTOS_DESTINATION_RESOURCE_ID, settings.cameraPhotosDestinationResourceId)

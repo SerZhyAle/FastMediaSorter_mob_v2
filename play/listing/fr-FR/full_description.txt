@@ -1,0 +1,41 @@
+Fast Media Sorter est un gestionnaire de fichiers pour Android. Vous ouvrez un dossier source, regardez chaque fichier une fois et l'envoyez là où il doit aller - une décision par fichier, jusqu'à vider le dossier.
+
+Le tri est la raison d'être de l'application :
+
+• Vous choisissez les dossiers des deux côtés - DCIM, Téléchargements, médias des discussions, carte SD, USB, partages SMB/CIFS, FTP et SFTP, Google Drive, OneDrive et Dropbox.
+• Décidez et continuez - copier, déplacer, renommer ou supprimer, puis au suivant.
+• Tous les types de fichiers, pas que les médias - photos, vidéos, musique, PDF, EPUB, texte et archives.
+• Opérations par lots entre dossiers et protocoles, cloud à cloud compris, avec progression et durée estimée.
+• Opérations planifiées - réglez un transfert entre deux dossiers une fois, il se poursuit seul.
+• Corbeille (5 min de récupération), miniatures, tri et filtres, sélection multiple et réorganisation par glisser.
+• Partagez un dossier réseau en code QR : un autre appareil le rejoint en scannant.
+
+Pourquoi l'application demande l'accès à tous les fichiers :
+
+Le tri doit atteindre les dossiers que vous choisissez, et pas seulement le stockage privé de l'application - un gestionnaire de fichiers qui ne peut pas écrire dans votre dossier de destination ne fait rien du tout. C'est pourquoi l'autorisation d'accès à tous les fichiers est demandée, et c'est sur elle que repose le flux de travail principal. Rien ne quitte votre appareil pour autant : il n'y a ni compte ni télémétrie.
+
+Pourquoi l'application demande la localisation :
+
+La localisation est facultative et n'est utilisée que par les fonctions qui en ont besoin : elle inscrit les coordonnées dans les photos et vidéos prises avec l'appareil photo intégré, dessine les gadgets boussole, vitesse, altitude et carte sur le bureau du lanceur, et remplit les sections GNSS et Wi-Fi du moniteur réseau. Elle n'est jamais lue en arrière-plan, et les gadgets carte chargent leurs images par le réseau pour montrer où vous êtes. Si vous refusez, les prises de vue restent simplement sans coordonnées et ces gadgets restent inactifs.
+
+Comme il faut voir un fichier avant de décider, les visionneuses et lecteurs sont intégrés :
+
+• Visionneuse d'images - rotation, filtres, recadrage, annotations, OCR, traduction en surimpression et copie compressée.
+• Lecteur vidéo ExoPlayer (Media3) - Picture-in-Picture, minuterie, reprise par fichier, détection 3D et 360°.
+• Lecteur de musique - lecture en arrière-plan, recherche de paroles, pochettes, visualiseurs et Chromecast.
+• Lecteur PDF et EPUB - synthèse vocale, thèmes, recherche et traduction dans le texte.
+• Éditeur de texte - détection de l'encodage, rendu Markdown, coloration syntaxique.
+• Diaporama - musique de fond, intervalle par élément, vidéo jusqu'au bout, transitions réglables.
+• Appareil photo intégré - objectifs, zoom et tailles adaptés à l'appareil, directement dans le dossier choisi.
+• TV et radio en direct - des milliers de chaînes internet avec recherche, filtres par thème, favoris épinglés et titre en cours.
+
+Pour chaque écran et chaque commande :
+
+• Navigation complète au clavier, à la télécommande TV / D-pad et à la manette.
+• Widgets d'accueil - ouvrir une ressource, reprendre la lecture, musique aléatoire, photos.
+• Tuile de Réglages rapides pour l'audio en arrière-plan. Recherche dans tous les réglages.
+• Wear OS - une application de montre autonome : parcourez les médias de la montre, écoutez la radio et la TV par internet, trois tuiles et trois complications de cadran, plus calculatrice, moniteur réseau et dictaphone. Les partages réseau et les fichiers viennent de l'application du téléphone.
+
+Libre, ouvert et privé - le code source paraît sous licence Apache License 2.0, et la navigation locale, SMB, FTP et SFTP, ainsi que les visionneuses image, vidéo, audio, PDF et EPUB, fonctionnent hors ligne, sans aucun compte.
+
+Source and issues: https://github.com/SerZhyAle/FastMediaSorter_mob_v2

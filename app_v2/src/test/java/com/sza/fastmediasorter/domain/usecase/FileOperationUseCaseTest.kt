@@ -198,7 +198,10 @@ class FileOperationUseCaseTest {
 
     @Test
     fun `S1861 wear destination routes to the watch queue instead of the local branch`() = runTest {
-        every { wearTransferRepository.enqueue(any(), any()) } answers {
+        // S2073: match all 4 params - production computes a fresh random requestId per call
+        // (WearWatchFileOperation.kt), so a 2-arg stub bakes that default in as a literal eq()
+        // at registration time and never matches, silently falling back to relaxed-mock defaults.
+        every { wearTransferRepository.enqueue(any(), any(), any(), any()) } answers {
             wearTransfers.value = WearFileTransferState(
                 listOf(
                     WearFileTransferItem(
@@ -221,7 +224,10 @@ class FileOperationUseCaseTest {
 
     @Test
     fun `S1861 a refused watch transfer is reported as a failure, not a silent success`() = runTest {
-        every { wearTransferRepository.enqueue(any(), any()) } answers {
+        // S2073: match all 4 params - production computes a fresh random requestId per call
+        // (WearWatchFileOperation.kt), so a 2-arg stub bakes that default in as a literal eq()
+        // at registration time and never matches, silently falling back to relaxed-mock defaults.
+        every { wearTransferRepository.enqueue(any(), any(), any(), any()) } answers {
             wearTransfers.value = WearFileTransferState(
                 listOf(
                     WearFileTransferItem(

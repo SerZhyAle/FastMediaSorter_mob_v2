@@ -22,7 +22,15 @@
     <!-- MANAGE_MEDIA permission for direct file deletion without dialogs (Android 12+) -->
     <uses-permission android:name="android.permission.MANAGE_MEDIA" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <!-- S0766: optional GPS geotagging of in-app camera photos (opt-in, default off). -->
+    <!--
+      Location has three consumer families, not one. S0766 optional GPS geotagging of in-app camera
+      photos (opt-in, default off) is the only one on lite/photos/legacy/vr. On standard/noLegal the
+      launcher's compass, speed, altitude and map gadgets (S1179/S1175) and the Network Monitor's GNSS
+      and Wi-Fi sections (S1433) read the same grant. S2013: the declaration stays here because every
+      flavor really uses it, but the user-facing wording is picked per build in the permission registry
+      - it claimed "only geotag" on the two flavors where that was untrue, and Play reviews a location
+      declaration against what the app tells the user.
+    -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
@@ -85,6 +93,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <!-- S0349: microphone foreground service type for the Quick Audio Recorder widget (API 34+) -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <!-- S2386: expand/collapse status bar panels (notification shade / quick settings) without accessibility service -->
+    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <!-- Screen sizes and densities supported -->
@@ -218,6 +228,23 @@
             <action android:name="android.intent.action.INSERT" />
             <data android:mimeType="vnd.android.cursor.dir/event" />
         </intent>
+        <!-- S2063: the launcher gadget family sends these three, and until now resolved them only as a
+             side effect of the MAIN/LAUNCHER entry S0623 declared for the app-launch panel - visibility is
+             granted per package, so every app with a launcher icon happened to cover them. Narrowing that
+             unrelated entry would have silently turned five gadget taps into no-ops with no gate to catch
+             it. WEB_SEARCH is WeatherGadget's fallback, SHOW_ALARMS is LauncherClockIntents, and the geo
+             scheme is MapGadget + CompassGadget. ClockGadget's calendar VIEW needs no entry here: the
+             wildcard VIEW + */* above already matches the handler's time/epoch filter. -->
+        <intent>
+            <action android:name="android.intent.action.WEB_SEARCH" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SHOW_ALARMS" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="geo" />
+        </intent>
     </queries>
 
     <application android:name=".FastMediaSorterApp" android:allowBackup="true" android:dataExtractionRules="@xml/data_extraction_rules" android:fullBackupContent="@xml/backup_rules" android:banner="@drawable/tv_banner" android:icon="@mipmap/ic_launcher" android:label="@string/app_name" android:largeHeap="true" android:roundIcon="@mipmap/ic_launcher_round" android:supportsRtl="true" android:theme="@style/Theme.FastMediaSorter" android:networkSecurityConfig="@xml/network_security_config" android:localeConfig="@xml/locales_config" android:enableOnBackInvokedCallback="true" tools:targetApi="34">
@@ -280,6 +307,10 @@
         <activity android:name=".ui.systeminfo.SystemInfoActivity" android:exported="false" android:label="@string/settings_system_info_title" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
         <activity android:name=".ui.flashlight.FrontFlashlightActivity" android:exported="false" android:label="@string/front_flashlight_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+        <activity android:name=".ui.flashlight.FlashlightToggleActivity" android:exported="false" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" android:theme="@style/Theme.FastMediaSorter.Transparent" />
+
+        <!-- S2211: autonomous Black Screen application surface -->
+        <activity android:name=".ui.blackscreen.BlackScreenActivity" android:exported="false" android:label="@string/launcher_action_black_screen" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
         <!-- S1433: no orientation|screenSize in configChanges on purpose - the Summary screen has a
              layout-land variant, and an Activity that absorbs the configuration change never re-inflates it. -->
@@ -321,7 +352,7 @@
              Declared here rather than in the wearGms overlay, following its neighbour above: only the
              GMS service needs the overlay, because only it references Play Services types that must not
              reach a flavor without them. -->
-        <activity android:name=".ui.wear.WearCompanionActivity" android:exported="false" android:theme="@style/Theme.FMS.TransparentPanelHost" android:excludeFromRecents="true" />
+        <activity android:name=".ui.wear.WearCompanionActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.NoActionBar" android:excludeFromRecents="true" />
 
         <activity android:name=".ui.addresource.AddResourceActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
 
@@ -619,6 +650,14 @@
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_calculator_info" />
+        </receiver>
+
+        <!-- Front Flashlight Widget -->
+        <receiver android:name=".widget.FrontFlashlightWidgetProvider" android:exported="true" android:label="@string/widget_front_flashlight_label" android:icon="@drawable/ic_widget_front_flashlight_accent">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_front_flashlight_info" />
         </receiver>
 
         <!-- Camera OCR Translate Widget -->

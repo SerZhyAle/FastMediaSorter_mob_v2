@@ -43,22 +43,11 @@
              Overridden by Theme.FastMediaSorter.LargePlayerControls applyStyle() when compact is OFF. -->
         <item name="customPlayerControlsLayout">@layout/custom_player_controls</item>
 
-        <!-- S0538: dialog action-button sizing defaults to large; the CompactDialogButtons overlay
-             rebinds these to the 50% compact dimens when "Compact elements (global)" is on. -->
-        <item name="dialogActionButtonMinHeight">@dimen/dialog_action_button_min_height</item>
-        <item name="dialogActionButtonGap">@dimen/dialog_action_button_gap</item>
-
         <!-- S0538: builder dialogs inherit the unified confirm/cancel pair via this seam. -->
         <item name="materialAlertDialogTheme">@style/ThemeOverlay.FastMediaSorter.MaterialAlertDialog</item>
 
         <!-- S0536: every MaterialSwitch left outside SettingsToggleRow inherits one canonical look. -->
         <item name="materialSwitchStyle">@style/Widget.FastMediaSorter.Switch</item>
-    </style>
-
-    <!-- S0538: applied via theme.applyStyle() in BaseActivity when compact mode is on. -->
-    <style name="ThemeOverlay.FastMediaSorter.CompactDialogButtons" parent="">
-        <item name="dialogActionButtonMinHeight">@dimen/dialog_action_button_min_height_compact</item>
-        <item name="dialogActionButtonGap">@dimen/dialog_action_button_gap_compact</item>
     </style>
 
     <!-- S0569: custom accent themes. Applied via theme.applyStyle() in BaseActivity from
@@ -347,6 +336,15 @@
 
     <style name="Widget.FastMediaSorter.Button.Icon" parent="Widget.Material3.Button.IconButton" />
 
+    <!-- S2179: general-purpose destructive role, distinct from DialogDestructive below. That style is
+         scoped to the oversized dialog confirm/cancel pair (S0538/S0684) and would visually dominate a
+         standalone screen. This one keeps standard Filled sizing for a destructive action that sits
+         next to a neutral action outside any dialog (e.g. "Delete all" beside "Install all"). -->
+    <style name="Widget.FastMediaSorter.Button.Destructive" parent="Widget.FastMediaSorter.Button.Filled">
+        <item name="backgroundTint">@color/delete_button</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
     <!-- Dialog action pair (S0538/S0684): one high-visibility role per slot so confirm/cancel are unmissable by a blind finger tap.
          Confirm=green filled (wide, "under-finger"), Cancel=soft-pink error-container tonal (shorter + narrower), Destructive=red filled.
          Colors from @color/ + ?attr/ only (Rule 19).
@@ -392,6 +390,14 @@
         <item name="buttonBarPositiveButtonStyle">@style/Widget.FastMediaSorter.Button.DialogDestructive</item>
         <item name="buttonBarNegativeButtonStyle">@style/Widget.FastMediaSorter.Button.DialogCancel</item>
         <item name="buttonBarNeutralButtonStyle">@style/Widget.FastMediaSorter.Button.DialogCancel</item>
+    </style>
+
+    <!-- S2252: full-screen dialog overlay that removes floating and background borders while keeping system bars visible. -->
+    <style name="ThemeOverlay.FastMediaSorter.Dialog.FullScreen" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowBackground">?attr/colorSurface</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowSoftInputMode">adjustResize</item>
     </style>
 
     <style name="Widget.FastMediaSorter.Calculator.Button" parent="Widget.MaterialComponents.Button.OutlinedButton">
@@ -539,21 +545,21 @@
     </style>
 
     <style name="Widget.FastMediaSorter.NetworkMonitor.RowLabel" parent="">
-        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_weight">1</item>
         <item name="android:textSize">@dimen/text_size_small</item>
         <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
     </style>
 
-    <!-- Values are end-aligned against start-aligned labels: the pairs read as two columns without a table,
-         which a ScrollView of cards cannot give and a landscape split would otherwise break. -->
+    <!-- The value sits next to its label: the label hugs its own text, the value takes the remaining
+         width and stays start-aligned inside it, so the row's slack falls after the value and never
+         between the pair. On a landscape phone the previous end-alignment put the value a screen away
+         from the caption it belongs to. -->
     <style name="Widget.FastMediaSorter.NetworkMonitor.RowValue" parent="">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_marginStart">@dimen/margin_normal</item>
         <item name="android:layout_weight">1</item>
-        <item name="android:gravity">end</item>
         <item name="android:textSize">@dimen/text_size_small</item>
         <item name="android:textColor">?attr/colorOnSurface</item>
     </style>

@@ -116,6 +116,7 @@ object SafHelper {
                 Timber.e("$tag: All deletion methods failed for URI: $contentUri")
             } else {
                 Timber.i("$tag: Successfully deleted URI: $contentUri")
+                notifyMediaScannerAfterDelete(context, contentUri, tag)
             }
 
             deleted
@@ -126,13 +127,43 @@ object SafHelper {
     }
 
     /**
+     * Unindex deleted file from MediaStore so it doesn't linger in queries.
+     */
+    private fun notifyMediaScannerAfterDelete(context: Context, contentUri: String, tag: String) {
+        try {
+            var filePath: String? = if (!contentUri.startsWith("content://")) contentUri else null
+            if (filePath == null) {
+                val uri = Uri.parse(contentUri)
+                val docId = try { DocumentsContract.getDocumentId(uri) } catch (_: Exception) { null }
+                if (docId != null && docId.contains(":")) {
+                    val relativePath = docId.substringAfter(":")
+                    filePath = "/storage/emulated/0/$relativePath"
+                }
+            }
+
+            if (filePath != null && filePath.startsWith("/")) {
+                context.contentResolver.delete(
+                    android.provider.MediaStore.Files.getContentUri("external"),
+                    "${android.provider.MediaStore.MediaColumns.DATA} = ?",
+                    arrayOf(filePath)
+                )
+                android.media.MediaScannerConnection.scanFile(context, arrayOf(filePath), null, null)
+                Timber.d("S2074: SafHelper unindexed deleted file from MediaStore: $filePath")
+                Timber.d("$tag: Unindexed deleted file from MediaStore: $filePath")
+            }
+        } catch (e: Exception) {
+            Timber.w(e, "$tag: Failed to unindex file from MediaStore after delete")
+        }
+    }
+
+    /**
      * Check if a path is a content URI (SAF).
      *
      * @param path The path to check
      * @return true if path starts with content:/ or content://
      */
     fun isContentUri(path: String): Boolean {
-        return path.startsWith("content:/")
+        return path.startsWith("content:/") || path.startsWith("content:\\")
     }
 
     /**
@@ -142,10 +173,11 @@ object SafHelper {
      * @return Normalized URI string with content:// prefix
      */
     fun normalizeContentUri(path: String): String {
-        return if (path.startsWith("content://")) {
-            path
+        val forwardPath = path.replace('\\', '/')
+        return if (forwardPath.startsWith("content://")) {
+            forwardPath
         } else {
-            path.replaceFirst("content:/", "content://")
+            forwardPath.replaceFirst("content:/", "content://")
         }
     }
 
@@ -157,10 +189,11 @@ object SafHelper {
      * @return Parsed and sanitized Uri object
      */
     fun parseUri(uriString: String): Uri {
-        val normalized = if (uriString.startsWith("content:") && !uriString.startsWith("content://")) {
-            uriString.replaceFirst("content:/", "content://")
+        val forwardPath = uriString.replace('\\', '/')
+        val normalized = if (forwardPath.startsWith("content:") && !forwardPath.startsWith("content://")) {
+            forwardPath.replaceFirst("content:/", "content://")
         } else {
-            uriString
+            forwardPath
         }
         return Uri.parse(normalized)
     }

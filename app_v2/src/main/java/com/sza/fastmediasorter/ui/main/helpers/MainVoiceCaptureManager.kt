@@ -88,7 +88,6 @@ class MainVoiceCaptureManager(
         val tempFile = try {
             val dir = activity.getExternalFilesDir(Environment.DIRECTORY_MUSIC) ?: activity.filesDir
             val fileName = CaptureFileNamer.shared.allocate(CaptureFileNamer.CaptureKind.AUDIO, ".m4a")
-            Timber.d("S1882: main audio output $fileName")
             File(dir, fileName)
                 .also { it.createNewFile() }
         } catch (e: Exception) {

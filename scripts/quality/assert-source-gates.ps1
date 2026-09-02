@@ -23,23 +23,28 @@
       -Only           Restrict to the named rules (repeatable), for the wrapper scripts.
       -List           Print file:line for every hit (full-scan mode only).
       -UpdateBaseline Ratchet each baseline DOWN to the measured count. Full scan only.
+      -Explain        S2110: name the files that moved a rule off its baseline. Reports only -
+                      it never fails on a delta. Takes precedence over every mode above.
 
 .NOTES
     Exit codes (CLAUDE.md Rule 7):
       0  every rule at or below its baseline, or a non-gate report run.
       1  -Gate and at least one rule is above its baseline.
-      2  cannot verify - an unknown rule name in -Only, or a source root that does not exist.
+      2  cannot verify - an unknown rule name in -Only, a source root that does not exist, or
+         (-Explain) a rule whose baseline file has no commit, so there is no reference point.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-source-gates.ps1 -Gate
     pwsh -NoProfile -File scripts/quality/assert-source-gates.ps1 -Gate -Only em-dash
     pwsh -NoProfile -File scripts/quality/assert-source-gates.ps1 -Gate -ChangedFiles "a.kt,b.xml"
+    pwsh -NoProfile -File scripts/quality/assert-source-gates.ps1 -Explain -Only layout-hardcoded-dimens
 #>
 [CmdletBinding()]
 param(
     [switch]$Gate,
     [switch]$List,
     [switch]$UpdateBaseline,
+    [switch]$Explain,
     [string[]]$Only,
     [string[]]$ChangedFiles
 )
@@ -64,6 +69,138 @@ if ($Only) {
 }
 
 $failed = [System.Collections.Generic.List[string]]::new()
+
+# --- explain mode ----------------------------------------------------------------------
+# S2110: a full-scan failure prints a number and no address - `baseline 1893 | actual 1899` -
+# and finding the six literals behind it cost an hour of git archaeology. This mode performs
+# that archaeology mechanically. The reference point is the commit that last touched the rule's
+# OWN baseline file, because that is the tree state the integer was true for: anything counted
+# above it arrived after the threshold was set. Reports only - a delta never fails the run,
+# since the gate modes above already own the refusal.
+if ($Explain) {
+    $repoRootNorm = ($repoRoot -replace '\\', '/').TrimEnd('/')
+    $cannotVerify = $false
+
+    $commitCache = @{}
+    $workCache = @{}
+
+    function Get-ExplainCommitFileMap([string]$repoRoot, [string]$refCommit, [string[]]$roots) {
+        $rawCacheKey = "$refCommit`:;$($roots -join ';')"
+        if ($commitCache.ContainsKey($rawCacheKey)) {
+            return $commitCache[$rawCacheKey]
+        }
+
+        $validRoots = @(& git -C $repoRoot ls-tree --name-only $refCommit -- @roots 2>$null)
+        if ($validRoots.Count -eq 0) {
+            $commitCache[$rawCacheKey] = @{}
+            return @{}
+        }
+
+        $map = @{}
+        $ms = [System.IO.MemoryStream]::new()
+        $psi = [System.Diagnostics.ProcessStartInfo]::new()
+        $psi.FileName = 'git'
+        $psi.Arguments = "-C ""$repoRoot"" archive --format=zip $refCommit $($validRoots -join ' ')"
+        $psi.UseShellExecute = $false
+        $psi.RedirectStandardOutput = $true
+        $psi.RedirectStandardError = $true
+
+        $proc = [System.Diagnostics.Process]::Start($psi)
+        $proc.StandardOutput.BaseStream.CopyTo($ms)
+        $proc.WaitForExit()
+
+        if ($proc.ExitCode -eq 0 -and $ms.Length -gt 0) {
+            $ms.Position = 0
+            $zip = [System.IO.Compression.ZipArchive]::new($ms)
+            foreach ($entry in $zip.Entries) {
+                if ($entry.FullName.EndsWith('/')) { continue }
+                $reader = [System.IO.StreamReader]::new($entry.Open(), [System.Text.Encoding]::UTF8)
+                $map[$entry.FullName] = $reader.ReadToEnd()
+                $reader.Close()
+            }
+            $zip.Dispose()
+        }
+        $ms.Dispose()
+
+        $commitCache[$rawCacheKey] = $map
+        return $map
+    }
+
+    function Get-ExplainWorkFileText([string]$repoRoot, [string]$relativePath) {
+        if ($workCache.ContainsKey($relativePath)) {
+            return $workCache[$relativePath]
+        }
+        $abs = Join-Path $repoRoot $relativePath
+        $text = ''
+        if ([System.IO.File]::Exists($abs)) {
+            $text = [System.IO.File]::ReadAllText($abs)
+        }
+        $workCache[$relativePath] = $text
+        return $text
+    }
+
+    foreach ($rule in $rules) {
+        $baselineRel = ((Join-Path $PSScriptRoot $rule.Baseline) -replace '\\', '/')
+        if ($baselineRel.ToLower().StartsWith($repoRootNorm.ToLower() + '/')) {
+            $baselineRel = $baselineRel.Substring($repoRootNorm.Length + 1)
+        }
+
+        $refCommit = (& git -C $repoRoot log -1 --format=%H -- $baselineRel 2>$null | Out-String).Trim()
+        if ([string]::IsNullOrWhiteSpace($refCommit)) {
+            # Saying this out loud is the point (strategic S2110 section 7): an empty list would
+            # read as "nothing drifted", which is the opposite of "I could not look".
+            Write-Host ("{0}: NO REFERENCE POINT - {1} has no commit, so there is no tree state its baseline was true for." -f
+                $rule.Name, $baselineRel) -ForegroundColor Yellow
+            $cannotVerify = $true
+            continue
+        }
+
+        $roots = @($rule.Roots)
+        $tracked = @(& git -C $repoRoot diff --name-only $refCommit -- @roots 2>$null)
+        # An untracked working file is part of "the working tree" too, and it is exactly the shape
+        # that reaches neither judging mode, so leaving it out would reproduce the original hole.
+        $untracked = @(& git -C $repoRoot ls-files --others --exclude-standard -- @roots 2>$null)
+
+        $paths = @(@($tracked + $untracked) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+            ForEach-Object { $_ -replace '\\', '/' } | Sort-Object -Unique | Where-Object {
+                ($_ -match $rule.PathFilter) -and
+                ($rule.Extensions -contains [System.IO.Path]::GetExtension($_)) -and
+                ($rule.ExcludeNames -notcontains [System.IO.Path]::GetFileName($_))
+            })
+
+        $refTotal = 0
+        $workTotal = 0
+        $drifted = [System.Collections.Generic.List[object]]::new()
+        $refMap = Get-ExplainCommitFileMap $repoRoot $refCommit $roots
+
+        foreach ($p in $paths) {
+            $refText = if ($refMap.ContainsKey($p)) { $refMap[$p] } else { '' }
+            $workText = Get-ExplainWorkFileText $repoRoot $p
+
+            # Fast path: if reference text matches working tree text, count cannot change.
+            if ($refText -eq $workText) { continue }
+
+            $refCount = [int](& $rule.CountInText $refText)
+            $workCount = [int](& $rule.CountInText $workText)
+            $refTotal += $refCount
+            $workTotal += $workCount
+            if ($refCount -ne $workCount) {
+                $drifted.Add([pscustomobject]@{ Path = $p; Ref = $refCount; Work = $workCount })
+            }
+        }
+
+        Write-Host ("{0}: reference {1} ({2})" -f $rule.Name, $refCommit.Substring(0, 9), $baselineRel)
+        foreach ($d in $drifted) { Write-Host ("  {0}  {1} -> {2}" -f $d.Path, $d.Ref, $d.Work) }
+        Write-Host ("  {0} path(s) examined | reference {1} | working {2} | delta {3}" -f
+            $paths.Count, $refTotal, $workTotal, ($workTotal - $refTotal)) -ForegroundColor DarkGray
+    }
+
+    if ($cannotVerify) {
+        Write-Error 'assert-source-gates: CANNOT VERIFY - at least one rule has no reference commit.' -ErrorAction Continue
+        exit 2
+    }
+    exit 0
+}
 
 # --- delta mode ------------------------------------------------------------------------
 # One rule at a time, because the delta is defined per file against its HEAD version and
@@ -142,7 +279,11 @@ foreach ($rule in $rules) {
     }
 
     $delta = $current - $baseline
-    Write-Host ("{0} in src/main: baseline {1} | actual {2} | delta {3}" -f $rule.Name, $baseline, $current, $delta)
+    # The scope is the rule's own roots, not a fixed 'src/main': rules already walk wear/src and
+    # app_v2/src, and hardcoded-drive-path walks scripts/, maestro/ and dev/. A banner naming a
+    # tree the run never opened is the S1807 hazard - a verdict quoted against the wrong module.
+    $scope = if ($rule.Roots) { ($rule.Roots -join ', ') } else { 'the repository' }
+    Write-Host ("{0} in {1}: baseline {2} | actual {3} | delta {4}" -f $rule.Name, $scope, $baseline, $current, $delta)
     if ($current -gt $baseline) {
         Write-Host ("FAIL: {0}" -f $rule.FailMessage)
         $failed.Add($rule.Name)

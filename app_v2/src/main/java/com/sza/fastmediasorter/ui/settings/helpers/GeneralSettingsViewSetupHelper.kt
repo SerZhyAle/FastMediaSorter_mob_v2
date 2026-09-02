@@ -147,6 +147,12 @@ class GeneralSettingsViewSetupHelper(
             if (current.fileOpsInOverflowMenu == isChecked) return@setOnCheckedChangeListener
             viewModel.updateSettings(current.copy(fileOpsInOverflowMenu = isChecked))
         }
+        binding.rowDisableAnimations?.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            if (current.disableAnimations == isChecked) return@setOnCheckedChangeListener
+            viewModel.updateSettings(current.copy(disableAnimations = isChecked))
+        }
         binding.rowCompactElements?.let { row ->
             row.setOnCheckedChangeListener { isChecked ->
                 if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener

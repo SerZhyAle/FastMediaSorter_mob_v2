@@ -4,6 +4,7 @@ import android.animation.LayoutTransition
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.ui.common.widget.SettingsGroupsGridLayout
 
 /**
@@ -40,8 +41,10 @@ object SettingsGroupColumnsManager {
             )
             // Animates the surrounding cards into their new slots while a body expands, so the
             // re-flow and the collapse animation read as one motion instead of two jumps.
-            layoutTransition = LayoutTransition().apply {
-                enableTransitionType(LayoutTransition.CHANGING)
+            layoutTransition = if (AnimationPolicy.isAnimationAllowed) {
+                LayoutTransition().apply { enableTransitionType(LayoutTransition.CHANGING) }
+            } else {
+                null
             }
         }
 

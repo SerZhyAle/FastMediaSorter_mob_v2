@@ -5,7 +5,23 @@
     <dimen name="launcher_taskbar_height">56dp</dimen>
     <dimen name="launcher_taskbar_icon_size">40dp</dimen>
     <dimen name="launcher_taskbar_item_spacing">6dp</dimen>
+    <dimen name="launcher_taskbar_action_icon_size">40dp</dimen>
+    <!-- 125% of the pre-S2245 48dp All apps minimum touch target. -->
+    <dimen name="launcher_taskbar_all_apps_width">60dp</dimen>
     <dimen name="launcher_tray_icon_size">18dp</dimen>
+
+    <!-- S2023: the overlays a tray glyph carries - the Wi-Fi generation digit, the Bluetooth device count,
+         the SIM data-type letter, and the roaming ring. Both are sized to fit inside the 18dp square above
+         rather than beside it: the strip is shared by the taskbar and the top status band, so anything that
+         grew a slot would move both at once (strategic §7). -->
+    <dimen name="launcher_tray_badge_text_size">8sp</dimen>
+    <dimen name="launcher_tray_speed_text_size">10sp</dimen>
+    <dimen name="launcher_tray_speed_slot_width">60dp</dimen>
+    <dimen name="launcher_tray_corner_marker_size">5dp</dimen>
+
+    <!-- Keeps top-edge status content clear of rounded screen corners while dynamic inset handling
+         continues to account for system bars and display cutouts. -->
+    <dimen name="launcher_status_strip_corner_inset">8dp</dimen>
 
     <!-- S1421: the freed system status band. Constant by owner ruling - the strip neither collapses nor
          resizes when its content changes, so its height cannot come from the content. Matched to the
@@ -40,6 +56,9 @@
     <!-- S1401: smallest comfortable all-apps cell. The screen divides its measured width by this, so
          one layout serves both orientations and a wide screen simply gets more columns. -->
     <dimen name="launcher_all_apps_cell_min_width">88dp</dimen>
+    <!-- Letter groups share the app cells' footprint, so the all-apps grid stays visually regular. -->
+    <dimen name="launcher_all_apps_group_tile_min_height">72dp</dimen>
+    <dimen name="launcher_all_apps_group_tile_letter_text_size">26sp</dimen>
 
     <!-- S1173: contour width for a shortcut cell's icon and caption, overriding the shared 2dp default.
          That default is sized for large camera overlay labels; on a 12sp caption it thickens the glyph
@@ -86,4 +105,11 @@
     <dimen name="launcher_scroll_thumb_track_width">4dp</dimen>
     <dimen name="launcher_scroll_thumb_touch_width">24dp</dimen>
     <dimen name="launcher_scroll_thumb_min_height">32dp</dimen>
+
+    <!-- S2323: the screen-number badge that stands in for the transition when animations are off. The
+         glyph is sized in sp rather than dp because the owner asked for a large FONT, so a user who
+         scaled text up gets a badge that scales with everything else they read. -->
+    <dimen name="launcher_screen_badge_text_size">96sp</dimen>
+    <dimen name="launcher_screen_badge_margin">12dp</dimen>
+    <dimen name="launcher_screen_badge_shadow_radius">6dp</dimen>
 </resources>

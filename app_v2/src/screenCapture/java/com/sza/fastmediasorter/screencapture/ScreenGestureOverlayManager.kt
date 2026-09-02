@@ -26,6 +26,7 @@ import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureZone
 import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionCatalog
+import timber.log.Timber
 import kotlin.math.atan2
 import kotlin.math.roundToInt
 
@@ -67,6 +68,15 @@ class ScreenGestureOverlayManager(
     // A guide is useful only when it touches the physical display edge. A visible system bar can
     // reserve that edge and move the overlay inward, where the guide incorrectly looks detached.
     private var edgeAlignedGuideZones: Set<ScreenshotGestureZone> = emptySet()
+
+    // S2257: the geometry the live bands were last laid out against. An inset dispatch arrives for
+    // every window change, most of which move nothing, so a relayout is posted only when the geometry
+    // it would produce differs from the one already applied.
+    private var appliedGeometry: Geometry? = null
+
+    // S2257: one window change reaches every live band separately, so without this the four dispatches
+    // would each post the same relayout.
+    private var insetRelayoutPending = false
 
     // S1167: the zone set the host last asked for, replayed when the panel lights up again. Kept apart
     // from bandViews because between screen-off and screen-on there are no windows but the request stands.
@@ -125,6 +135,7 @@ class ScreenGestureOverlayManager(
         for (zone in requestedZones) {
             addBand(zone, geom)
         }
+        appliedGeometry = geom
     }
 
     private fun removeBands() {
@@ -132,6 +143,8 @@ class ScreenGestureOverlayManager(
         bandViews.values.forEach { windowManager.removeViewImmediate(it) }
         bandViews.clear()
         stripWidthPx = 0
+        appliedGeometry = null
+        insetRelayoutPending = false
     }
 
     /**
@@ -290,6 +303,26 @@ class ScreenGestureOverlayManager(
             applyGestureExclusion(view, frame)
             applyBandBackground(zone, view)
         }
+        appliedGeometry = geom
+    }
+
+    /**
+     * S2257: a live band drifts off its physical edge when the visible insets change without a host
+     * configuration callback - a system bar hiding, or the window entering another mode. The dispatch
+     * carrying those insets is the invalidation signal; placement itself stays in [relayout], so the
+     * geometry still has exactly one formula and no window mode needs a route of its own.
+     */
+    private fun onBandInsetsChanged(view: View) {
+        if (insetRelayoutPending || bandViews.isEmpty()) return
+        if (computeGeometry() == appliedGeometry) return
+        insetRelayoutPending = true
+        Timber.d("S2257: band insets changed, posting relayout")
+        // The insets are still being dispatched: laying the window out inside that pass would re-enter
+        // the traversal that delivered them.
+        view.post {
+            insetRelayoutPending = false
+            relayout()
+        }
     }
 
     /** S0724/S0847/S1008: recolour every live band (grey for zones in [zones], transparent otherwise)
@@ -342,6 +375,11 @@ class ScreenGestureOverlayManager(
             isClickable = false
             isFocusable = false
             setOnTouchListener { v, event -> handleTouch(zone, v, event) }
+            setOnApplyWindowInsetsListener { insetTarget, insets ->
+                onBandInsetsChanged(insetTarget)
+                // Returned unmodified: the band consumes nothing and normal window processing stands.
+                insets
+            }
         }
         applyBandBackground(zone, view)
         val params = WindowManager.LayoutParams(

@@ -1,9 +1,11 @@
 package com.sza.fastmediasorter.ui.launcher.helpers
 
+import android.content.Context
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.LifecycleOwner
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.launcher.LauncherSectionCatalog
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
@@ -16,9 +18,13 @@ import com.sza.fastmediasorter.ui.applaunchpanel.edit.AppPickerDialogFragment
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.InternalRoutePickerDialogFragment
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.OsShortcutPickerDialogFragment
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.ResourcePickerDialogFragment
+import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
+import com.sza.fastmediasorter.ui.launcher.gadget.ConfigurableWidgetCatalog
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
+import com.sza.fastmediasorter.ui.launcher.gadget.LauncherTimeZoneCatalog
 import com.sza.fastmediasorter.ui.launcher.gadget.NetworkIndicatorGadget.Companion.PARAM_SEPARATOR
+import com.sza.fastmediasorter.ui.launcher.gadget.StreamWindow
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherCellContentPickerDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherNetworkIndicatorDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherResourceModePickerDialogFragment
@@ -26,6 +32,7 @@ import com.sza.fastmediasorter.ui.launcher.picker.LauncherScheduledOpPickerDialo
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherSectionNameDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherStreamPickerDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherWeatherLocationDialogFragment
+import com.sza.fastmediasorter.widget.LauncherWidgetToken
 import com.sza.fastmediasorter.widget.networkmonitor.NetworkMonitorIndicator
 import timber.log.Timber
 
@@ -33,11 +40,17 @@ import timber.log.Timber
  * S1541: the whole "put something on the desktop" chain - result-key registration, the category
  * dispatch, every picker launch, and the single write that places the chosen item.
  *
- * The target square lives here because it is written when a picker opens and read when its result
- * comes back: splitting the two halves across classes is what would let a returning picker land on
- * the wrong cell.
+ * S2060: the target square itself lives in [LauncherHomeViewModel.pendingSlot], not on this class -
+ * this manager is recreated by the Activity's `by lazy` on every process restart, so a field here
+ * would lose the pointed-at square whenever the OS killed the process mid-flow (a system contact/app/
+ * resource picker running between the write and the read). The chain-routing state below this KDoc
+ * (which gadget, which indicator, which world-clock cell) still lives here on purpose - see §1
+ * Non-goal in S2060 for why that risk is not this ticket's scope.
  */
 class LauncherAddFlowManager(
+    // S1906: the shared searchable picker takes its title as a String, so whoever opens it supplies the
+    // resolved text - every other picker here is a fragment that reads its own strings.
+    private val context: Context,
     private val fragmentManager: FragmentManager,
     private val lifecycleOwner: LifecycleOwner,
     private val viewModel: LauncherHomeViewModel,
@@ -45,18 +58,24 @@ class LauncherAddFlowManager(
     private val contactPickManager: LauncherContactPickManager,
     private val sensorPermissionManager: LauncherSensorPermissionManager,
     private val currentColumns: () -> Int,
-    private val onCreateResource: () -> Unit,
+    private val hostActions: LauncherAddFlowHostActions,
 ) {
 
     // S1209: [NO_SLOT] in either coordinate means the flow started from the taskbar "+", where the user
     // pointed at no square and the repository picks the position.
-    private var pendingRow: Int = 0
-    private var pendingCol: Int = 0
+    // S2060: the coordinate pair itself lives in viewModel.pendingSlot, not here - this manager is
+    // recreated by the Activity's `by lazy` on every process restart, so a plain field here would lose
+    // the pointed-at square exactly like it used to.
     private var pendingGadgetKey: String? = null
 
     // S1440: held only while the resource picker is up - reachability is the one indicator whose param
     // takes two dialogs to answer.
     private var pendingIndicatorKey: String? = null
+
+    // S1906: which world-clock cell is being repointed, or null when the pick will place a new one. The
+    // shared searchable picker returns only the chosen option and carries nothing alongside it, so the
+    // other half of a repoint is remembered here (strategic ADR-3).
+    private var pendingZoneCellId: Long? = null
 
     /**
      * Wires the "put something on the desktop" chain. Each picker returns on its own key and dismisses
@@ -64,13 +83,12 @@ class LauncherAddFlowManager(
      * the placement (and the ADR-10 rememberFileList write) is [LauncherHomeViewModel]'s job (Rule 3).
      */
     fun registerAddFlowListeners() {
-        Timber.d("S1541: add-flow manager registering result listeners")
         fragmentManager.setFragmentResultListener(
             LauncherCellContentPickerDialogFragment.RESULT_KEY,
             lifecycleOwner,
         ) { _, bundle ->
-            pendingRow = bundle.getInt(LauncherCellContentPickerDialogFragment.RESULT_ROW)
-            pendingCol = bundle.getInt(LauncherCellContentPickerDialogFragment.RESULT_COL)
+            viewModel.pendingSlot = bundle.getInt(LauncherCellContentPickerDialogFragment.RESULT_ROW) to
+                bundle.getInt(LauncherCellContentPickerDialogFragment.RESULT_COL)
             openPickerForCategory(bundle)
         }
         fragmentManager.setFragmentResultListener(REQ_APP, lifecycleOwner) { _, bundle ->
@@ -95,6 +113,24 @@ class LauncherAddFlowManager(
                 ?: return@setFragmentResultListener
             addShortcut(LauncherCellCommand.Stream(identityKey))
         }
+        // S2031: the same picker on a second key - this answer binds a window cell to a channel, and an
+        // answer that arrived on the shortcut key above would place a 1x1 shortcut instead. The kind
+        // rides back with the identity, so the footprint is decided here without a second catalog read.
+        fragmentManager.setFragmentResultListener(REQ_STREAM_WINDOW, lifecycleOwner) { _, bundle ->
+            val identityKey = bundle.getString(LauncherStreamPickerDialogFragment.RESULT_STREAM_IDENTITY)
+                ?: return@setFragmentResultListener
+            val mediaKind = bundle.getString(LauncherStreamPickerDialogFragment.RESULT_STREAM_MEDIA_KIND)
+                .orEmpty()
+            val (spanW, spanH) = StreamWindow.spanFor(mediaKind)
+            Timber.d("S2031: place stream window kind=$mediaKind span=${spanW}x$spanH")
+            placeGadget(
+                gadgetKey = LauncherGadgetRegistry.KEY_STREAM_WINDOW,
+                param = identityKey,
+                resourceId = null,
+                spanW = spanW,
+                spanH = spanH,
+            )
+        }
         fragmentManager.setFragmentResultListener(
             LauncherScheduledOpPickerDialogFragment.RESULT_KEY,
             lifecycleOwner,
@@ -105,6 +141,7 @@ class LauncherAddFlowManager(
         }
         registerResourceListeners()
         registerWeatherLocationListener()
+        registerWorldClockZoneListener()
         registerNetworkIndicatorListeners()
         registerSectionNameListener()
         // Taskbar pin flow is separate from the desktop add-flow: no grid coordinate, its own key so an
@@ -144,7 +181,7 @@ class LauncherAddFlowManager(
                 LauncherScheduledOpPickerDialogFragment.TAG,
             )
             // The manager owns the pick-contact / choose-channel chain; the cell it lands on is
-            // still pendingRow/pendingCol, like every other kind.
+            // still viewModel.pendingSlot, like every other kind.
             LauncherCellContentPickerDialogFragment.CATEGORY_CONTACT_PROFILE ->
                 contactPickManager.start(LauncherContactAction.PROFILE)
             LauncherCellContentPickerDialogFragment.CATEGORY_CONTACT_DIAL ->
@@ -193,6 +230,25 @@ class LauncherAddFlowManager(
         )
     }
 
+    /** S1906: re-points an existing world-clock cell, for the same reason the weather one is here. */
+    fun openWorldClockZonePicker(cellId: Long) {
+        pendingZoneCellId = cellId
+        openZonePicker()
+    }
+
+    private fun openZonePicker() {
+        openPicker(
+            SearchableOptionPickerDialog.newInstance(
+                title = context.getString(R.string.launcher_world_clock_zone_title),
+                options = LauncherTimeZoneCatalog.options(),
+                selectedId = null,
+                includeResetRow = false,
+                requestKey = REQ_WORLD_CLOCK_ZONE,
+            ),
+            SearchableOptionPickerDialog.TAG,
+        )
+    }
+
     private fun openPicker(fragment: DialogFragment, tag: String) {
         // A dialog left up on a rebind must not be duplicated by a second tap.
         if (fragmentManager.findFragmentByTag(tag) != null) return
@@ -205,8 +261,9 @@ class LauncherAddFlowManager(
      */
     private fun onLauncherActionChosen(actionKey: String?) {
         if (actionKey == null) {
+            val (row, col) = viewModel.pendingSlot
             openPicker(
-                LauncherCellContentPickerDialogFragment.newActionInstance(pendingRow, pendingCol),
+                LauncherCellContentPickerDialogFragment.newActionInstance(row, col),
                 LauncherCellContentPickerDialogFragment.TAG_ACTION,
             )
             return
@@ -254,8 +311,9 @@ class LauncherAddFlowManager(
 
     private fun onSectionChosen(sectionKey: String?) {
         if (sectionKey == null) {
+            val (row, col) = viewModel.pendingSlot
             openPicker(
-                LauncherCellContentPickerDialogFragment.newSectionInstance(pendingRow, pendingCol),
+                LauncherCellContentPickerDialogFragment.newSectionInstance(row, col),
                 LauncherCellContentPickerDialogFragment.TAG_SECTION,
             )
             return
@@ -275,8 +333,9 @@ class LauncherAddFlowManager(
      */
     private fun onGadgetChosen(gadgetKey: String?) {
         if (gadgetKey == null) {
+            val (row, col) = viewModel.pendingSlot
             openPicker(
-                LauncherCellContentPickerDialogFragment.newGadgetInstance(pendingRow, pendingCol),
+                LauncherCellContentPickerDialogFragment.newGadgetInstance(row, col),
                 LauncherCellContentPickerDialogFragment.TAG_GADGET,
             )
             return
@@ -289,11 +348,30 @@ class LauncherAddFlowManager(
                 LauncherWeatherLocationDialogFragment.TAG,
             )
 
+            // S2031: same shape once more - the stream window's param is a channel identity, so it asks
+            // the channel picker on its own key and is placed when the kind has decided its footprint.
+            gadgetKey == LauncherGadgetRegistry.KEY_STREAM_WINDOW -> openPicker(
+                LauncherStreamPickerDialogFragment.newInstance(REQ_STREAM_WINDOW),
+                LauncherStreamPickerDialogFragment.TAG,
+            )
+
+            // S1906: same shape once more - the world clock's param is a time zone, so it asks the zone
+            // list on its own key. No pending cell id: this pick places a new cell.
+            gadgetKey == LauncherGadgetRegistry.KEY_WORLD_CLOCK -> {
+                pendingZoneCellId = null
+                openZonePicker()
+            }
+
             // S1440: same shape - the network cell's param is an indicator, not a registered resource.
             gadgetKey == LauncherGadgetRegistry.KEY_NETWORK_INDICATOR -> openPicker(
                 LauncherNetworkIndicatorDialogFragment.newInstance(REQ_NETWORK_INDICATOR),
                 LauncherNetworkIndicatorDialogFragment.TAG,
             )
+
+            // S1930: same shape as the four above - the param is an instance token, not a registered
+            // resource - but the question is asked by the widget's own configuration Activity rather
+            // than by a dialog of ours, and the cell is placed only once that Activity says yes.
+            ConfigurableWidgetCatalog.isConfigurable(gadgetKey) -> configureThenPlace(gadgetKey)
 
             gadget.requiresResourceParam -> {
                 pendingGadgetKey = gadgetKey
@@ -309,21 +387,97 @@ class LauncherAddFlowManager(
     }
 
     /**
+     * S1930: mints the cell's instance, hands it to the widget's own configuration screen, and stops.
+     * Nothing is placed yet - [onWidgetConfigured] finishes the flow, because a cell placed first and
+     * configured second is a cell the user can abandon half-made.
+     */
+    private fun configureThenPlace(gadgetKey: String) {
+        val token = LauncherWidgetToken.mint(context)
+        Timber.d("S1930: configure %s with token %d", gadgetKey, token)
+        val intent = ConfigurableWidgetCatalog.configIntent(context, gadgetKey, token) ?: return
+        // In saved state, not a field here: the configuration screen is a separate Activity, which is
+        // exactly when the OS may kill this one (S2060, S2099).
+        viewModel.pendingConfiguredWidget = gadgetKey to token
+        hostActions.startWidgetConfiguration(intent)
+    }
+
+    /**
+     * S1930: the configuration screen returned. [configured] is its `RESULT_OK`, which every widget
+     * config Activity here sets only after writing its instance.
+     *
+     * A cancelled configuration clears the instance rather than leaving it: the screens set
+     * `RESULT_CANCELED` first and can still have written a partial one before the user backed out, and
+     * with no cell placed nothing would ever point at it again.
+     */
+    fun onWidgetConfigured(configured: Boolean) {
+        val (gadgetKey, token) = viewModel.pendingConfiguredWidget ?: return
+        Timber.d("S1930: configured=%b for %s token %d", configured, gadgetKey, token)
+        viewModel.pendingConfiguredWidget = null
+        if (!configured) {
+            ConfigurableWidgetCatalog.clearInstance(context, gadgetKey, token)
+            return
+        }
+        placeGadget(gadgetKey, param = token.toString(), resourceId = null)
+    }
+
+    /**
+     * S2247: place a channel's stream window from its desktop menu, answering whether a slot was
+     * found. Deliberately NOT [placeGadget] - that path reads `viewModel.pendingSlot`, the square the
+     * user may still have pointed at for some other flow, which a menu invocation must neither use
+     * nor disturb; the write always goes to the first free slot.
+     */
+    fun placeStreamWindowFromMenu(
+        identityKey: String,
+        mediaKind: String,
+        onResult: (Boolean) -> Unit,
+    ) {
+        val (spanW, spanH) = StreamWindow.spanFor(mediaKind)
+        Timber.d("S2247: menu place stream window kind=%s span=%dx%d", mediaKind, spanW, spanH)
+        viewModel.addCellInFirstFreeSlot(
+            columns = currentColumns(),
+            kind = LauncherCellKind.GADGET,
+            target = gadgetRegistry.encodeTarget(LauncherGadgetRegistry.KEY_STREAM_WINDOW, identityKey),
+            spanW = spanW,
+            spanH = spanH,
+            onPlaced = onResult,
+        )
+    }
+
+    /**
      * S1440: [param] is whatever the gadget stores in its `target` - a resource id for most of them, an
      * indicator key for the network cell. [resourceId] stays separate because only a resource-backed
      * gadget has a file list to remember (ADR-10).
+     *
+     * S2031: [spanW] / [spanH] override the gadget's own footprint. One picker entry can produce cells of
+     * two different sizes - a stream window is a square for a radio channel and a wide rectangle for a
+     * video one - and which it is only becomes known after the second question is answered, long after
+     * the gadget object was resolved.
      */
-    private fun placeGadget(gadgetKey: String, param: String?, resourceId: Long?) {
-        sensorPermissionManager.placeAfterAsking(gadgetKey) { placeGadgetNow(gadgetKey, param, resourceId) }
+    private fun placeGadget(
+        gadgetKey: String,
+        param: String?,
+        resourceId: Long?,
+        spanW: Int? = null,
+        spanH: Int? = null,
+    ) {
+        sensorPermissionManager.placeAfterAsking(gadgetKey) {
+            placeGadgetNow(gadgetKey, param, resourceId, spanW, spanH)
+        }
     }
 
-    private fun placeGadgetNow(gadgetKey: String, param: String?, resourceId: Long?) {
+    private fun placeGadgetNow(
+        gadgetKey: String,
+        param: String?,
+        resourceId: Long?,
+        spanW: Int? = null,
+        spanH: Int? = null,
+    ) {
         val gadget = gadgetRegistry.byKey(gadgetKey) ?: return
         placeAtPendingSlot(
             kind = LauncherCellKind.GADGET,
             target = gadgetRegistry.encodeTarget(gadgetKey, param),
-            spanW = gadget.defaultSpanW,
-            spanH = gadget.defaultSpanH,
+            spanW = spanW ?: gadget.defaultSpanW,
+            spanH = spanH ?: gadget.defaultSpanH,
             rememberFileListResourceId = resourceId,
         )
     }
@@ -342,7 +496,8 @@ class LauncherAddFlowManager(
         rememberFileListResourceId: Long? = null,
         labelOverride: String? = null,
     ) {
-        if (pendingRow == NO_SLOT) {
+        val (row, col) = viewModel.pendingSlot
+        if (row == NO_SLOT) {
             viewModel.addCellInFirstFreeSlot(
                 columns = currentColumns(),
                 kind = kind,
@@ -354,8 +509,8 @@ class LauncherAddFlowManager(
             )
         } else {
             viewModel.addCell(
-                rowIndex = pendingRow,
-                colIndex = pendingCol,
+                rowIndex = row,
+                colIndex = col,
                 draft = LauncherCellDraft(
                     kind = kind,
                     target = target,
@@ -385,7 +540,7 @@ class LauncherAddFlowManager(
             // S1423: "Create new.." carries no resource id - the shortcut is pinned by the creation
             // flow itself, so there is no mode to pick and no cell to place here.
             if (bundle.getBoolean(ResourcePickerDialogFragment.RESULT_CREATE_NEW, false)) {
-                onCreateResource()
+                hostActions.createResource()
                 return@setFragmentResultListener
             }
             val resourceId = bundle.getLong(ResourcePickerDialogFragment.RESULT_RESOURCE_ID)
@@ -420,12 +575,37 @@ class LauncherAddFlowManager(
                 LauncherWeatherLocationDialogFragment.RESULT_CELL_ID,
                 LauncherWeatherLocationDialogFragment.NO_CELL_ID,
             )
+            // S2213: above the branch on purpose - a first placement and a repoint are both the user
+            // confirming a place, and one call covers both.
+            viewModel.rememberWeatherLocation(encoded)
             if (cellId == LauncherWeatherLocationDialogFragment.NO_CELL_ID) {
                 placeWeatherGadget(encoded)
             } else {
                 viewModel.updateCellTarget(
                     cellId,
                     gadgetRegistry.encodeTarget(LauncherGadgetRegistry.KEY_WEATHER, encoded),
+                )
+            }
+        }
+    }
+
+    /**
+     * S1906: one result key, two flows, told apart by [pendingZoneCellId] - a new cell has no id yet, an
+     * existing one is repointed in place.
+     */
+    private fun registerWorldClockZoneListener() {
+        fragmentManager.setFragmentResultListener(REQ_WORLD_CLOCK_ZONE, lifecycleOwner) { _, bundle ->
+            val zoneId = bundle.getString(SearchableOptionPickerDialog.RESULT_OPTION_ID)
+            // Read and cleared together: a cell id left behind would swallow the next placement into
+            // whichever cell was repointed last.
+            val cellId = pendingZoneCellId
+            pendingZoneCellId = null
+            when {
+                zoneId == null -> Unit
+                cellId == null -> placeGadget(LauncherGadgetRegistry.KEY_WORLD_CLOCK, zoneId, null)
+                else -> viewModel.updateCellTarget(
+                    cellId,
+                    gadgetRegistry.encodeTarget(LauncherGadgetRegistry.KEY_WORLD_CLOCK, zoneId),
                 )
             }
         }
@@ -473,6 +653,10 @@ class LauncherAddFlowManager(
      * every other kind.
      */
     fun addShortcut(command: LauncherCellCommand) {
+        // S2107: the far end of the contact chain. The slot is logged with it because pendingSlot
+        // defaults to (0, 0) rather than to NO_SLOT, so a lost coordinate places the cell top-left
+        // instead of nowhere - and from the tapped square that is indistinguishable from no cell at all.
+        Timber.d("S2107: addShortcut kind=${command::class.simpleName} slot=${viewModel.pendingSlot}")
         placeAtPendingSlot(
             kind = LauncherCellKind.SHORTCUT,
             target = command.encode(),
@@ -496,8 +680,15 @@ class LauncherAddFlowManager(
 
         // S1440: two keys - the network cell's second question reuses the shared resource picker, and a
         // pick answered on REQ_RESOURCE_GADGET would complete some other gadget instead.
+        // S2031: the channel picker's second caller - a window cell bound to one channel, not a shortcut.
+        const val REQ_STREAM_WINDOW = "launcher_add_stream_window"
+
         const val REQ_NETWORK_INDICATOR = "launcher_network_indicator"
         const val REQ_RESOURCE_INDICATOR = "launcher_add_resource_indicator"
+
+        // S1906: its own key, because the shared searchable picker serves several hosts on one
+        // FragmentManager and a zone answered on another host's key would complete the wrong cell.
+        const val REQ_WORLD_CLOCK_ZONE = "launcher_world_clock_zone"
 
         /**
          * S1209: "no square was pointed at" travelling through the picker's row/col arguments. A

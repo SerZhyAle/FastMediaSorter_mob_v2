@@ -1,15 +1,17 @@
 package com.sza.fastmediasorter.data.glide
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
-import com.sza.fastmediasorter.FastMediaSorterApp
 import com.bumptech.glide.load.Options
 import com.bumptech.glide.load.ResourceDecoder
 import com.bumptech.glide.load.engine.Resource
 import com.bumptech.glide.load.resource.SimpleResource
+import com.sza.fastmediasorter.FastMediaSorterApp
 import com.sza.fastmediasorter.di.memoryPressureDecodeFormatResolver
+import com.sza.fastmediasorter.utils.SafHelper
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
@@ -17,49 +19,61 @@ import java.io.IOException
 /**
  * Glide decoder for PDF files.
  * Renders the first page of a PDF document as a thumbnail.
- * 
+ *
  * Usage:
  * - Register in GlideAppModule
- * - Handles File objects with .pdf extension
+ * - Handles File objects with .pdf extension (including SAF content URIs)
  * - Generates thumbnails with proper aspect ratio
  */
-class PdfPageDecoder : ResourceDecoder<File, Bitmap> {
+class PdfPageDecoder(
+    private val context: Context = FastMediaSorterApp.appContext
+) : ResourceDecoder<File, Bitmap> {
 
     private val decodeFormatResolver by lazy {
-        FastMediaSorterApp.appContext.memoryPressureDecodeFormatResolver()
+        context.memoryPressureDecodeFormatResolver()
     }
-    
+
     override fun handles(source: File, options: Options): Boolean {
-        // Only handle PDF files
-        return source.name.endsWith(".pdf", ignoreCase = true)
+        // Only handle PDF files (supports direct filesystem paths and SAF content URIs)
+        val cleanPath = source.path.substringBefore('?').substringBefore('#')
+        return cleanPath.endsWith(".pdf", ignoreCase = true)
     }
 
     override fun decode(source: File, width: Int, height: Int, options: Options): Resource<Bitmap>? {
         var pfd: ParcelFileDescriptor? = null
         var renderer: PdfRenderer? = null
         var page: PdfRenderer.Page? = null
-        
+
         try {
-            // Open PDF file
-            pfd = ParcelFileDescriptor.open(source, ParcelFileDescriptor.MODE_READ_ONLY)
+            // Open PDF file (supports direct filesystem paths and SAF content URIs)
+            pfd = if (SafHelper.isContentUri(source.path)) {
+                val uri = SafHelper.parseUri(source.path)
+                context.contentResolver.openFileDescriptor(uri, "r")
+                    ?: run {
+                        Timber.w("PdfPageDecoder: ContentResolver returned null descriptor for $uri")
+                        return null
+                    }
+            } else {
+                ParcelFileDescriptor.open(source, ParcelFileDescriptor.MODE_READ_ONLY)
+            }
             renderer = PdfRenderer(pfd)
-            
+
             if (renderer.pageCount == 0) {
                 Timber.w("PdfPageDecoder: PDF has no pages: ${source.name}")
                 return null
             }
-            
+
             // Open first page
             page = renderer.openPage(0)
-            
+
             // Calculate target dimensions preserving aspect ratio
             val pageWidth = page.width
             val pageHeight = page.height
             val pageAspectRatio = pageWidth.toFloat() / pageHeight.toFloat()
-            
+
             val targetWidth: Int
             val targetHeight: Int
-            
+
             if (width > 0 && height > 0) {
                 // Use provided dimensions but preserve aspect ratio
                 targetWidth = width
@@ -70,7 +84,7 @@ class PdfPageDecoder : ResourceDecoder<File, Bitmap> {
                 targetWidth = if (pageWidth > maxSize) maxSize else pageWidth
                 targetHeight = (targetWidth / pageAspectRatio).toInt()
             }
-            
+
             // PdfRenderer.Page.render() only accepts ARGB_8888; an RGB_565 target throws
             // IllegalArgumentException. Render into ARGB_8888, then down-copy to the
             // memory-pressure config so the cached thumbnail keeps the reduced footprint.
@@ -85,10 +99,9 @@ class PdfPageDecoder : ResourceDecoder<File, Bitmap> {
                 rendered
             }
 
-            Timber.d("PdfPageDecoder: Generated thumbnail for ${source.name} (${targetWidth}x${targetHeight})")
+            Timber.d("PdfPageDecoder: Generated thumbnail for ${source.name} (${targetWidth}x$targetHeight)")
 
             return SimpleResource(bitmap)
-
         } catch (e: IOException) {
             Timber.e(e, "PdfPageDecoder: Failed to decode PDF: ${source.name}")
             return null

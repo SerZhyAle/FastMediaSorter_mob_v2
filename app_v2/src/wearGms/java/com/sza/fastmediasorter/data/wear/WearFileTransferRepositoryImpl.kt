@@ -6,6 +6,7 @@ import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.di.IoDispatcher
+import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.WEAR_FILE_TRANSFER_MAX_BYTES
 import com.sza.fastmediasorter.domain.model.WearFileTransferItem
 import com.sza.fastmediasorter.domain.model.WearFileTransferMetadata
@@ -24,6 +25,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -35,7 +37,6 @@ import timber.log.Timber
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
-import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -64,9 +65,20 @@ class WearFileTransferRepositoryImpl @Inject constructor(
     private val jobs = ConcurrentHashMap<String, Job>()
     private val sendMutex = Mutex()
 
-    override fun enqueue(sourcePath: String, displayName: String): String {
-        val id = UUID.randomUUID().toString()
-        val item = WearFileTransferItem(id = id, sourcePath = sourcePath, displayName = displayName)
+    override fun enqueue(
+        sourcePath: String,
+        displayName: String,
+        openNow: Boolean,
+        requestId: String,
+        mediaType: MediaType?
+    ): String {
+        val id = requestId
+        val item = WearFileTransferItem(
+            id = id,
+            sourcePath = sourcePath,
+            displayName = displayName,
+            mediaType = mediaType
+        )
         transferState.update { state -> state.copy(items = state.items + item) }
 
         val job = applicationScope.launch(ioDispatcher) {
@@ -80,7 +92,7 @@ class WearFileTransferRepositoryImpl @Inject constructor(
                 Timber.i("Refusing %s for the watch: %d bytes over the ceiling", displayName, totalBytes)
                 finish(id, WearFileTransferOutcome.TOO_LARGE)
             } else {
-                sendMutex.withLock { runTransfer(item.copy(totalBytes = totalBytes)) }
+                sendMutex.withLock { runTransfer(item.copy(totalBytes = totalBytes), openNow) }
             }
         }
         // Registered before the completion hook: a transfer that ends inside launch - an unreachable
@@ -89,6 +101,13 @@ class WearFileTransferRepositoryImpl @Inject constructor(
         jobs[id] = job
         job.invokeOnCompletion { jobs.remove(id) }
         return id
+    }
+
+    override suspend fun awaitTransfer(transferId: String): WearFileTransferOutcome {
+        val matchingState = transfers.first { state ->
+            state.items.find { it.id == transferId }?.outcome?.isTerminal == true
+        }
+        return matchingState.items.first { it.id == transferId }.outcome
     }
 
     override fun cancel(transferId: String) {
@@ -104,12 +123,12 @@ class WearFileTransferRepositoryImpl @Inject constructor(
         transferState.update { state -> state.copy(items = state.items.filterNot { it.outcome.isTerminal }) }
     }
 
-    private suspend fun runTransfer(item: WearFileTransferItem) {
+    private suspend fun runTransfer(item: WearFileTransferItem, openNow: Boolean) {
         val nodeId = firstConnectedNodeId()
         val outcome = if (nodeId == null) {
             WearFileTransferOutcome.WATCH_UNREACHABLE
         } else {
-            copyToWatch(item, nodeId)
+            copyToWatch(item, nodeId, openNow)
         }
         finish(item.id, outcome)
     }
@@ -117,13 +136,17 @@ class WearFileTransferRepositoryImpl @Inject constructor(
     // A channel open and a byte copy fail through GMS ApiException, IOException and RemoteException
     // alike, and every one of them ends this transfer the same way; cancellation is rethrown first.
     @Suppress("TooGenericExceptionCaught")
-    private suspend fun copyToWatch(item: WearFileTransferItem, nodeId: String): WearFileTransferOutcome {
+    private suspend fun copyToWatch(
+        item: WearFileTransferItem,
+        nodeId: String,
+        openNow: Boolean
+    ): WearFileTransferOutcome {
         val channelClient = Wearable.getChannelClient(context)
         // The watch names the received file from the trailing path segment; the announcement that
         // precedes it carries the size, which the trailing segment has no room for.
         val path = "${WearDataLayerPaths.FILE_TRANSFER}/${item.displayName}"
         val channel = try {
-            announce(nodeId, item)
+            announce(nodeId, item, openNow)
             withTimeout(CHANNEL_TIMEOUT_MS) { channelClient.openChannel(nodeId, path).await() }
         } catch (e: CancellationException) {
             throw e
@@ -171,12 +194,16 @@ class WearFileTransferRepositoryImpl @Inject constructor(
      * Tells the watch what is coming before the channel opens, so an oversized or unwanted file is
      * refused there without a single byte crossing the bridge.
      */
-    private suspend fun announce(nodeId: String, item: WearFileTransferItem) {
+    private suspend fun announce(nodeId: String, item: WearFileTransferItem, openNow: Boolean) {
+        val detectedMime = MimeTypeMap.getSingleton()
+            .getMimeTypeFromExtension(File(item.sourcePath).extension.lowercase())
+        val mimeType = detectedMime ?: mediaTypeToMime(item.mediaType)
         val metadata = WearFileTransferMetadata(
+            requestId = item.id,
             name = item.displayName,
             size = item.totalBytes,
-            mimeType = MimeTypeMap.getSingleton()
-                .getMimeTypeFromExtension(File(item.sourcePath).extension.lowercase())
+            mimeType = mimeType,
+            openNow = openNow
         )
         withTimeout(MESSAGE_TIMEOUT_MS) {
             Wearable.getMessageClient(context)
@@ -187,6 +214,14 @@ class WearFileTransferRepositoryImpl @Inject constructor(
                 )
                 .await()
         }
+    }
+
+    private fun mediaTypeToMime(mediaType: MediaType?): String? = when (mediaType) {
+        MediaType.IMAGE -> "image/jpeg"
+        MediaType.GIF -> "image/gif"
+        MediaType.VIDEO -> "video/mp4"
+        MediaType.AUDIO -> "audio/mpeg"
+        else -> null
     }
 
     @Suppress("TooGenericExceptionCaught")

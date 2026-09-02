@@ -3,337 +3,614 @@
      group. Row ids mirror the former inline block so LauncherSettingsDialogFragment reuses the same
      binding wiring; the enable toggle stays in General settings. Every id must also exist in
      layout-land/dialog_launcher_settings.xml (one ViewBinding).
-     S1422: the rows are wrapped into four collapsible groups in the order they already sat in the file -
-     no row changed place. LauncherSettingsDialogFragment registers each header/container pair with
-     CollapsibleSectionsManager, which owns restore, animation and persistence. -->
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+     S1422/S2252: seven collapsible groups in the order specified by S2252. The header with btnClose
+     is pinned at the top outside the NestedScrollView, while the NestedScrollView body carries a weight
+     of 1 wrapped in wrap_content with descendantFocusability afterDescendants. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    android:padding="@dimen/padding_normal">
 
+    <!-- Header: title + btnClose (id unchanged; still just dismiss()). S2017: labeled and styled as
+         Apply/DialogConfirm, not Close/DialogCancel - every row here applies immediately, so the
+         button never had anything to discard, and "Close" read to the owner as a cancel action. -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="@dimen/padding_normal">
+        android:layout_marginBottom="@dimen/margin_small"
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
-        <!-- Header: title + close (DialogCancel taxonomy, S0538). Every control applies immediately, so Close is the only action. -->
-        <LinearLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_small"
-            android:baselineAligned="false"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_weight="1"
+            android:text="@string/launcher_settings_dialog_title"
+            android:textSize="@dimen/text_size_title_dialog"
+            android:textStyle="bold" />
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/launcher_settings_dialog_title"
-                android:textSize="@dimen/text_size_title_dialog"
-                android:textStyle="bold" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnClose"
-                style="@style/Widget.FastMediaSorter.Button.DialogCancel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/margin_small"
-                android:text="@string/close" />
-
-        </LinearLayout>
-
-        <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
-            android:id="@+id/headerLauncherTaskbar"
-            android:layout_width="match_parent"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnClose"
+            style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:csh_icon="@drawable/ic_apps"
-            app:csh_title="@string/launcher_settings_group_taskbar" />
-
-        <LinearLayout
-            android:id="@+id/containerLauncherTaskbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingStart="@dimen/margin_small"
-            android:paddingEnd="@dimen/margin_small"
-            android:paddingBottom="@dimen/margin_small">
-
-            <!-- S1643: which edge the whole bar is anchored to. First in the section because the
-                 placement is the precondition for the composition switches below it. -->
-            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-                android:id="@+id/rowLauncherTaskbarPlacement"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_tiny"
-                android:layout_marginBottom="@dimen/margin_small"
-                app:sdr_inline="true"
-                app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
-                app:sdr_title="@string/launcher_settings_taskbar_placement_title" />
-
-            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                android:id="@+id/rowLauncherShowRecents"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/margin_small"
-                app:str_subtitle="@string/launcher_settings_show_recents_subtitle"
-                app:str_title="@string/launcher_settings_show_recents_title" />
-
-            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                android:id="@+id/rowLauncherShowPinned"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/margin_small"
-                app:str_subtitle="@string/launcher_settings_show_pinned_subtitle"
-                app:str_title="@string/launcher_settings_show_pinned_title" />
-
-            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                android:id="@+id/rowLauncherShowTray"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/margin_small"
-                app:str_subtitle="@string/launcher_settings_show_tray_subtitle"
-                app:str_title="@string/launcher_settings_show_tray_title" />
-
-            <!-- S1415: the tray's own composition, in the order the icons appear left to right. Placed under
-                 the tray toggle above, which is the master switch for the whole block - these only decide what
-                 the block contains. -->
-            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                android:id="@+id/rowLauncherTrayClock"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/margin_small"
-                app:str_subtitle="@string/launcher_settings_tray_clock_subtitle"
-                app:str_title="@string/launcher_settings_tray_clock_title" />
-
-            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                android:id="@+id/rowLauncherTrayBluetooth"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/margin_small"
-                app:str_subtitle="@string/launcher_settings_tray_bluetooth_subtitle"
-                app:str_title="@string/launcher_settings_tray_bluetooth_title" />
-
-            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                android:id="@+id/rowLauncherTraySim1"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/margin_small"
-                app:str_subtitle="@string/launcher_settings_tray_sim_subtitle"
-                app:str_title="@string/launcher_settings_tray_sim1_title" />
-
-            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                android:id="@+id/rowLauncherTraySim2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/margin_small"
-                app:str_subtitle="@string/launcher_settings_tray_sim_subtitle"
-                app:str_title="@string/launcher_settings_tray_sim2_title" />
-
-            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                android:id="@+id/rowLauncherTrayNetwork"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/margin_small"
-                app:str_subtitle="@string/launcher_settings_tray_network_subtitle"
-                app:str_title="@string/launcher_settings_tray_network_title" />
-
-            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                android:id="@+id/rowLauncherTrayBattery"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/margin_small"
-                app:str_subtitle="@string/launcher_settings_tray_battery_subtitle"
-                app:str_title="@string/launcher_settings_tray_battery_title" />
-
-        </LinearLayout>
-
-        <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
-            android:id="@+id/headerLauncherTopBar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:csh_icon="@drawable/ic_display"
-            app:csh_title="@string/launcher_settings_group_top_bar" />
-
-        <LinearLayout
-            android:id="@+id/containerLauncherTopBar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingStart="@dimen/margin_small"
-            android:paddingEnd="@dimen/margin_small"
-            android:paddingBottom="@dimen/margin_small">
-
-            <!-- S1087: OFF keeps the Android status bar and drops the duplicate FMS indicators. -->
-            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                android:id="@+id/rowLauncherReplaceStatusArea"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/margin_small"
-                app:str_subtitle="@string/launcher_settings_replace_status_area_subtitle"
-                app:str_title="@string/launcher_settings_replace_status_area_title" />
-
-            <!-- S1431: directly under the setting that gates it - the mode needs the freed band, so the
-                 row above is its precondition and the fragment disables this one while that is off. -->
-            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                android:id="@+id/rowLauncherTopStatusStrip"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/margin_small"
-                app:str_subtitle="@string/launcher_settings_top_status_strip_summary"
-                app:str_title="@string/launcher_settings_top_status_strip_title" />
-
-            <!-- S1465: the owner put this in the top-bar group, next to the row that frees the band it
-                 draws in. Its subtitle is set from code because the row has three states, not two: off,
-                 on without the system grant, and working. -->
-            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                android:id="@+id/rowLauncherForeignNotifications"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/margin_small"
-                app:str_title="@string/launcher_settings_foreign_notifications_title" />
-
-            <!-- Shown only in the middle state: the switch is on and the system has not granted access. -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnLauncherGrantNotificationAccess"
-                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/margin_small"
-                android:clickable="true"
-                android:focusable="true"
-                android:text="@string/launcher_settings_foreign_notifications_grant"
-                android:textAllCaps="false"
-                android:visibility="gone" />
-
-        </LinearLayout>
-
-        <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
-            android:id="@+id/headerLauncherDesktop"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:csh_icon="@drawable/ic_view_grid"
-            app:csh_title="@string/launcher_settings_group_desktop" />
-
-        <LinearLayout
-            android:id="@+id/containerLauncherDesktop"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingStart="@dimen/margin_small"
-            android:paddingEnd="@dimen/margin_small"
-            android:paddingBottom="@dimen/margin_small">
-
-            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-                android:id="@+id/rowLauncherDensity"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_tiny"
-                android:layout_marginBottom="@dimen/margin_small"
-                app:sdr_inline="true"
-                app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
-                app:sdr_title="@string/launcher_settings_density_title" />
-
-            <!-- S1090: blocks the long-press entry into desktop edit mode; the Start-menu entry is a
-                 deliberate action and stays reachable while locked. -->
-            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                android:id="@+id/rowLauncherLockDesktop"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/margin_small"
-                app:str_subtitle="@string/launcher_settings_lock_desktop_subtitle"
-                app:str_title="@string/launcher_settings_lock_desktop_title" />
-
-            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-                android:id="@+id/rowLauncherWallpaper"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_tiny"
-                android:layout_marginBottom="@dimen/margin_small"
-                app:sdr_inline="true"
-                app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
-                app:sdr_title="@string/launcher_settings_wallpaper_title" />
-
-            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-                android:id="@+id/rowLauncherScreenTimeout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_tiny"
-                android:layout_marginBottom="@dimen/margin_small"
-                app:sdr_inline="true"
-                app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
-                app:sdr_subtitle="@string/launcher_settings_screen_timeout_subtitle"
-                app:sdr_title="@string/launcher_settings_screen_timeout_title" />
-
-            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-                android:id="@+id/rowLauncherWidgetBackdropAlpha"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_tiny"
-                android:layout_marginBottom="@dimen/margin_small"
-                app:sdr_inline="true"
-                app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
-                app:sdr_title="@string/launcher_settings_widget_backdrop_alpha_title" />
-
-        </LinearLayout>
-
-        <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
-            android:id="@+id/headerLauncherSystem"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:csh_icon="@drawable/ic_android"
-            app:csh_title="@string/launcher_settings_group_system" />
-
-        <LinearLayout
-            android:id="@+id/containerLauncherSystem"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingStart="@dimen/margin_small"
-            android:paddingEnd="@dimen/margin_small"
-            android:paddingBottom="@dimen/margin_small">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/rowLauncherOpenHomeSettings"
-                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_small"
-                android:clickable="true"
-                android:focusable="true"
-                android:text="@string/launcher_settings_open_home_chooser_title"
-                android:textAllCaps="false" />
-
-            <!-- S1761: import system desktop shortcuts button in System group -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnImportSystemShortcuts"
-                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_small"
-                android:clickable="true"
-                android:focusable="true"
-                android:text="@string/launcher_settings_import_system_shortcuts_title"
-                android:textAllCaps="false"
-                app:icon="@drawable/ic_import" />
-
-            <!-- S1738: reset sits in the System group as a labeled button - as an unlabeled header icon
-                 its purpose was unreadable until pressed. The destructive confirmation dialog is unchanged. -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnResetLauncher"
-                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_small"
-                android:clickable="true"
-                android:focusable="true"
-                android:text="@string/launcher_settings_reset_title"
-                android:textAllCaps="false"
-                app:icon="@drawable/ic_restore_defaults" />
-
-        </LinearLayout>
+            android:layout_marginStart="@dimen/margin_small"
+            android:text="@string/apply" />
 
     </LinearLayout>
 
-</androidx.core.widget.NestedScrollView>
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:descendantFocusability="afterDescendants"
+        android:focusable="false">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- 1. Taskbar group -->
+            <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                android:id="@+id/headerLauncherTaskbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:csh_icon="@drawable/ic_apps"
+                app:csh_title="@string/launcher_settings_group_taskbar" />
+
+            <LinearLayout
+                android:id="@+id/containerLauncherTaskbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/margin_small"
+                android:paddingEnd="@dimen/margin_small"
+                android:paddingBottom="@dimen/margin_small">
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                    android:id="@+id/rowLauncherTaskbarPlacement"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_tiny"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                    app:sdr_inline="true"
+                    app:sdr_title="@string/launcher_settings_taskbar_placement_title" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowLauncherShowRecents"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:str_subtitle="@string/launcher_settings_show_recents_subtitle"
+                    app:str_title="@string/launcher_settings_show_recents_title" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowLauncherShowPinned"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:str_subtitle="@string/launcher_settings_show_pinned_subtitle"
+                    app:str_title="@string/launcher_settings_show_pinned_title" />
+
+            </LinearLayout>
+
+            <!-- 2. System Tray group -->
+            <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                android:id="@+id/headerLauncherTray"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:csh_icon="@drawable/ic_battery"
+                app:csh_title="@string/launcher_settings_group_tray" />
+
+            <LinearLayout
+                android:id="@+id/containerLauncherTray"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/margin_small"
+                android:paddingEnd="@dimen/margin_small"
+                android:paddingBottom="@dimen/margin_small">
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowLauncherShowTray"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:str_subtitle="@string/launcher_settings_show_tray_subtitle"
+                    app:str_title="@string/launcher_settings_show_tray_title" />
+
+                <!-- S1415/S2016/S2252: the tray's own composition, in the order the icons appear left to right.
+                     Expressed as its own collapsible group; rowLauncherShowTray above is the master toggle. -->
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowLauncherTrayClock"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:str_subtitle="@string/launcher_settings_tray_clock_subtitle"
+                    app:str_title="@string/launcher_settings_tray_clock_title" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowLauncherTrayBluetooth"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:str_subtitle="@string/launcher_settings_tray_bluetooth_subtitle"
+                    app:str_title="@string/launcher_settings_tray_bluetooth_title" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowLauncherTraySim1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:str_subtitle="@string/launcher_settings_tray_sim_subtitle"
+                    app:str_title="@string/launcher_settings_tray_sim1_title" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowLauncherTraySim2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:str_subtitle="@string/launcher_settings_tray_sim_subtitle"
+                    app:str_title="@string/launcher_settings_tray_sim2_title" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowLauncherTrayNetwork"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:str_subtitle="@string/launcher_settings_tray_network_subtitle"
+                    app:str_title="@string/launcher_settings_tray_network_title" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowLauncherTrayBattery"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:str_subtitle="@string/launcher_settings_tray_battery_subtitle"
+                    app:str_title="@string/launcher_settings_tray_battery_title" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowLauncherTraySpeed"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:str_subtitle="@string/launcher_settings_tray_speed_subtitle"
+                    app:str_title="@string/launcher_settings_tray_speed_title" />
+
+            </LinearLayout>
+
+            <!-- 3. Top Bar group -->
+            <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                android:id="@+id/headerLauncherTopBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:csh_icon="@drawable/ic_display"
+                app:csh_title="@string/launcher_settings_group_top_bar" />
+
+            <LinearLayout
+                android:id="@+id/containerLauncherTopBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/margin_small"
+                android:paddingEnd="@dimen/margin_small"
+                android:paddingBottom="@dimen/margin_small">
+
+                <!-- S1087: OFF keeps the Android status bar and drops the duplicate FMS indicators. -->
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowLauncherReplaceStatusArea"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:str_subtitle="@string/launcher_settings_replace_status_area_subtitle"
+                    app:str_title="@string/launcher_settings_replace_status_area_title" />
+
+                <!-- S1431: directly under the setting that gates it - the mode needs the freed band, so the
+                     row above is its precondition and the fragment disables this one while that is off. -->
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowLauncherTopStatusStrip"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:str_subtitle="@string/launcher_settings_top_status_strip_summary"
+                    app:str_title="@string/launcher_settings_top_status_strip_title" />
+
+                <!-- S1465: foreign notifications setting. -->
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowLauncherForeignNotifications"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:str_title="@string/launcher_settings_foreign_notifications_title" />
+
+                <!-- Shown only in the middle state: the switch is on and the system has not granted access. -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnLauncherGrantNotificationAccess"
+                    style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:text="@string/launcher_settings_foreign_notifications_grant"
+                    android:textAllCaps="false"
+                    android:visibility="gone" />
+
+            </LinearLayout>
+
+            <!-- 4. Desktop group -->
+            <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                android:id="@+id/headerLauncherDesktop"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:csh_icon="@drawable/ic_view_grid"
+                app:csh_title="@string/launcher_settings_group_desktop" />
+
+            <LinearLayout
+                android:id="@+id/containerLauncherDesktop"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/margin_small"
+                android:paddingEnd="@dimen/margin_small"
+                android:paddingBottom="@dimen/margin_small">
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                    android:id="@+id/rowLauncherDensity"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_tiny"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                    app:sdr_inline="true"
+                    app:sdr_title="@string/launcher_settings_density_title" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                    android:id="@+id/rowLauncherScreenCount"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_tiny"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                    app:sdr_inline="true"
+                    app:sdr_title="@string/launcher_settings_screen_count_title" />
+
+                <!-- S1090: blocks the long-press entry into desktop edit mode. -->
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowLauncherLockDesktop"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:str_subtitle="@string/launcher_settings_lock_desktop_subtitle"
+                    app:str_title="@string/launcher_settings_lock_desktop_title" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowLauncherDesktopDoubleTapLock"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:str_subtitle="@string/launcher_settings_double_tap_lock_subtitle"
+                    app:str_title="@string/launcher_settings_double_tap_lock_title" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                    android:id="@+id/rowLauncherScreenTimeout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_tiny"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                    app:sdr_inline="true"
+                    app:sdr_subtitle="@string/launcher_settings_screen_timeout_subtitle"
+                    app:sdr_title="@string/launcher_settings_screen_timeout_title" />
+
+            </LinearLayout>
+
+            <!-- 5. Gestures group -->
+            <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                android:id="@+id/headerLauncherGestures"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:csh_icon="@drawable/ic_gesture"
+                app:csh_title="@string/launcher_settings_group_gestures" />
+
+            <LinearLayout
+                android:id="@+id/containerLauncherGestures"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/margin_small"
+                android:paddingEnd="@dimen/margin_small"
+                android:paddingBottom="@dimen/margin_small">
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                    android:id="@+id/rowLauncherDesktopSwipeUp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    app:ssr_title="@string/launcher_desktop_swipe_up_title" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                    android:id="@+id/rowLauncherDesktopSwipeUpTarget"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_medium"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:visibility="gone"
+                    app:ssr_title="@string/gesture_slot_app_label"
+                    app:ssr_value="@string/gesture_slot_app_none" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                    android:id="@+id/rowLauncherDesktopSwipeDown"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    app:ssr_title="@string/launcher_desktop_swipe_down_title" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                    android:id="@+id/rowLauncherDesktopSwipeDownTarget"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_medium"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:visibility="gone"
+                    app:ssr_title="@string/gesture_slot_app_label"
+                    app:ssr_value="@string/gesture_slot_app_none" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                    android:id="@+id/rowLauncherDesktopSwipeLeft"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    app:ssr_title="@string/launcher_desktop_swipe_left_title" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                    android:id="@+id/rowLauncherDesktopSwipeLeftTarget"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_medium"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:visibility="gone"
+                    app:ssr_title="@string/gesture_slot_app_label"
+                    app:ssr_value="@string/gesture_slot_app_none" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                    android:id="@+id/rowLauncherDesktopSwipeRight"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    app:ssr_title="@string/launcher_desktop_swipe_right_title" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                    android:id="@+id/rowLauncherDesktopSwipeRightTarget"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_medium"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:visibility="gone"
+                    app:ssr_title="@string/gesture_slot_app_label"
+                    app:ssr_value="@string/gesture_slot_app_none" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                    android:id="@+id/rowLauncherAllAppsSwipeUp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    app:ssr_title="@string/launcher_all_apps_swipe_up_title" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                    android:id="@+id/rowLauncherAllAppsSwipeUpTarget"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_medium"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:visibility="gone"
+                    app:ssr_title="@string/gesture_slot_app_label"
+                    app:ssr_value="@string/gesture_slot_app_none" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                    android:id="@+id/rowLauncherAllAppsSwipeDown"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    app:ssr_title="@string/launcher_all_apps_swipe_down_title" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                    android:id="@+id/rowLauncherAllAppsSwipeDownTarget"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_medium"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:visibility="gone"
+                    app:ssr_title="@string/gesture_slot_app_label"
+                    app:ssr_value="@string/gesture_slot_app_none" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                    android:id="@+id/rowLauncherAllAppsSwipeLeft"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    app:ssr_title="@string/launcher_all_apps_swipe_left_title" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                    android:id="@+id/rowLauncherAllAppsSwipeLeftTarget"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_medium"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:visibility="gone"
+                    app:ssr_title="@string/gesture_slot_app_label"
+                    app:ssr_value="@string/gesture_slot_app_none" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                    android:id="@+id/rowLauncherAllAppsSwipeRight"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    app:ssr_title="@string/launcher_all_apps_swipe_right_title" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                    android:id="@+id/rowLauncherAllAppsSwipeRightTarget"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_medium"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:visibility="gone"
+                    app:ssr_title="@string/gesture_slot_app_label"
+                    app:ssr_value="@string/gesture_slot_app_none" />
+
+            </LinearLayout>
+
+            <!-- 6. Appearance group -->
+            <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                android:id="@+id/headerLauncherAppearance"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:csh_icon="@drawable/ic_image"
+                app:csh_title="@string/launcher_settings_group_appearance" />
+
+            <LinearLayout
+                android:id="@+id/containerLauncherAppearance"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/margin_small"
+                android:paddingEnd="@dimen/margin_small"
+                android:paddingBottom="@dimen/margin_small">
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                    android:id="@+id/rowLauncherWallpaper"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_tiny"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                    app:sdr_inline="true"
+                    app:sdr_title="@string/launcher_settings_wallpaper_title" />
+
+                <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                    android:id="@+id/rowLauncherWidgetBackdropAlpha"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_tiny"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                    app:sdr_inline="true"
+                    app:sdr_title="@string/launcher_settings_widget_backdrop_alpha_title" />
+
+            </LinearLayout>
+
+            <!-- 7. System group -->
+            <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                android:id="@+id/headerLauncherSystem"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:csh_icon="@drawable/ic_android"
+                app:csh_title="@string/launcher_settings_group_system" />
+
+            <LinearLayout
+                android:id="@+id/containerLauncherSystem"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/margin_small"
+                android:paddingEnd="@dimen/margin_small"
+                android:paddingBottom="@dimen/margin_small">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/rowLauncherOpenHomeSettings"
+                    style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:text="@string/launcher_settings_open_home_chooser_title"
+                    android:textAllCaps="false" />
+
+                <!-- S1761: import system desktop shortcuts button in System group -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnImportSystemShortcuts"
+                    style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:text="@string/launcher_settings_import_system_shortcuts_title"
+                    android:textAllCaps="false"
+                    app:icon="@drawable/ic_import" />
+
+                <!-- S1738: reset sits in the System group as a labeled button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnResetLauncher"
+                    style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:text="@string/launcher_settings_reset_title"
+                    android:textAllCaps="false"
+                    app:icon="@drawable/ic_restore_defaults" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>

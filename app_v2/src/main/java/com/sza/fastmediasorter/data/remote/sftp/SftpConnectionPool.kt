@@ -23,6 +23,7 @@ import java.io.InterruptedIOException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Semaphore
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
 
@@ -49,7 +50,14 @@ class SftpConnectionPool {
         val channel: ChannelSftp,
         val mutex: Mutex,
         val purpose: ChannelPurpose
-    )
+    ) {
+        // S2319: a PLAYBACK borrow lives from open() to close() - a whole track - so [mutex] cannot
+        // serialize it the way FILE_OPS does without parking the next borrower for minutes. The
+        // claim flag instead makes the pool refuse a channel another reader is still streaming
+        // from. Declared outside the primary constructor so it stays out of equals/hashCode, which
+        // pooledChannels.remove(target) relies on.
+        val playbackClaimed: AtomicBoolean = AtomicBoolean(false)
+    }
 
     private class PooledConnection(
         val session: Session,
@@ -104,6 +112,7 @@ class SftpConnectionPool {
 
     private val connectionSemaphore = Semaphore(MAX_CONCURRENT_CONNECTIONS)
     private val cleanupScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     @Volatile
     private var sweepJob: Job? = null
 
@@ -327,7 +336,11 @@ class SftpConnectionPool {
                         Timber.d("SFTP invalidated session with ${pooled.pooledChannels.size} channels")
                     } catch (e: Exception) { Timber.w("Error closing invalidated session: ${e.message}") }
                 } else {
-                    Timber.d("SFTP invalidate deferred for ${key.host} (activeBorrow=${pooled.activeBorrowCount.get()}) - last borrower will disconnect")
+                    val activeBorrows = pooled.activeBorrowCount.get()
+                    Timber.d(
+                        "SFTP invalidate deferred for ${key.host} (activeBorrow=$activeBorrows) - " +
+                            "last borrower will disconnect"
+                    )
                 }
             }
         }
@@ -429,7 +442,12 @@ class SftpConnectionPool {
 
     @Throws(IOException::class)
     fun getConnectionForExoPlayer(connectionInfo: SftpClient.SftpConnectionInfo): ExoPlayerConnection {
-        val key = ConnectionKey(connectionInfo.host, connectionInfo.port, connectionInfo.username, connectionInfo.expectedFingerprint)
+        val key = ConnectionKey(
+            connectionInfo.host,
+            connectionInfo.port,
+            connectionInfo.username,
+            connectionInfo.expectedFingerprint
+        )
         try {
             connectionSemaphore.acquire()
             val pooled = getOrCreateSessionBlocking(key, connectionInfo)
@@ -438,25 +456,30 @@ class SftpConnectionPool {
             // openChannelLock serializes session.openChannel() across both blocking and suspend callers
             pooled.openChannelLock.lock()
             try {
-                val existing = pooled.pooledChannels
-                    .firstOrNull { it.purpose == ChannelPurpose.PLAYBACK && it.channel.isConnected }
-                if (existing != null) {
-                    return borrowPlayback(pooled, existing.channel, "reuse", connectionInfo.host)
+                val claimed = claimIdlePlaybackChannel(pooled.pooledChannels)
+                if (claimed != null) {
+                    return borrowPlayback(pooled, claimed.channel, "reuse", connectionInfo.host)
                 }
 
                 val playbackCount = pooled.pooledChannels.count { it.purpose == ChannelPurpose.PLAYBACK }
                 if (playbackCount < MAX_PLAYBACK_CHANNELS) {
                     val ch = pooled.session.openChannel("sftp") as ChannelSftp
                     ch.connect(CONNECTION_TIMEOUT)
-                    pooled.pooledChannels.add(PooledChannel(ch, Mutex(), ChannelPurpose.PLAYBACK))
-                    Timber.d("SFTP [PLAYBACK] new channel (total=${pooled.pooledChannels.size}/$MAX_CHANNELS_PER_SESSION)")
+                    val opened = PooledChannel(ch, Mutex(), ChannelPurpose.PLAYBACK)
+                    opened.playbackClaimed.set(true)
+                    pooled.pooledChannels.add(opened)
+                    Timber.d(
+                        "SFTP [PLAYBACK] new channel (total=${pooled.pooledChannels.size}/$MAX_CHANNELS_PER_SESSION)"
+                    )
                     return borrowPlayback(pooled, ch, "new channel", connectionInfo.host)
                 }
 
-                // All PLAYBACK slots taken - reuse first (caller waits on I/O)
-                val fallback = pooled.pooledChannels.first { it.purpose == ChannelPurpose.PLAYBACK }
-                Timber.d("SFTP [PLAYBACK] all slots busy, reusing first channel")
-                return borrowPlayback(pooled, fallback.channel, "fallback", connectionInfo.host)
+                // S2319: this used to hand the first PLAYBACK channel to a second borrower. A JSch
+                // ChannelSftp is one request/response queue over one stream, so the two readers
+                // corrupted each other - stat() returned an empty "0:" status and the stream close
+                // threw IndexOutOfBoundsException. Refusing is recoverable: ExoPlayer retries the
+                // load against a slot the outgoing source has since released.
+                refusePlaybackSharing(connectionInfo.host, playbackCount)
             } finally {
                 pooled.openChannelLock.unlock()
             }
@@ -528,6 +551,35 @@ class SftpConnectionPool {
         }
     }
 
+    /**
+     * S2319: refuses a borrow rather than letting two readers share one channel. Kept out of
+     * [getConnectionForExoPlayer] so that function stays within its throw budget.
+     */
+    private fun refusePlaybackSharing(host: String, playbackCount: Int): Nothing {
+        Timber.w("SFTP [PLAYBACK] all $playbackCount slot(s) busy for $host - refusing to share")
+        throw IOException("All SFTP playback channels are busy")
+    }
+
+    /**
+     * S2319: claims one PLAYBACK slot for an exclusive borrow, or returns null when every connected
+     * slot is already streaming. Internal so the exclusivity contract is provable in a unit test -
+     * the defect it fixes only reproduced against a live server during a track transition.
+     */
+    internal fun claimIdlePlaybackChannel(channels: List<PooledChannel>): PooledChannel? {
+        for (pc in channels) {
+            val free = pc.purpose == ChannelPurpose.PLAYBACK &&
+                pc.channel.isConnected &&
+                pc.playbackClaimed.compareAndSet(false, true)
+            if (free) return pc
+        }
+        return null
+    }
+
+    /** S2319: hands a PLAYBACK slot back so the next borrower can claim it. */
+    internal fun releasePlaybackClaim(channels: List<PooledChannel>, channel: ChannelSftp) {
+        channels.firstOrNull { it.channel === channel }?.playbackClaimed?.set(false)
+    }
+
     /** Register a PLAYBACK borrow so [releaseExoPlayerConnection] can always find its owner (S1296). */
     private fun borrowPlayback(
         pooled: PooledConnection,
@@ -537,6 +589,10 @@ class SftpConnectionPool {
     ): ExoPlayerConnection {
         pooled.activeBorrowCount.incrementAndGet()
         playbackOwners[channel] = pooled
+        val claimedSlots = pooled.pooledChannels.count {
+            it.purpose == ChannelPurpose.PLAYBACK && it.playbackClaimed.get()
+        }
+        Timber.d("S2319: playback borrow how=$how claimedSlots=$claimedSlots")
         Timber.d("SFTP [PLAYBACK] acquired ($how) - active=${pooled.activeBorrowCount.get()} host=$host")
         return ExoPlayerConnection(pooled.session, channel)
     }
@@ -548,6 +604,11 @@ class SftpConnectionPool {
         val owner = channel?.let { ch ->
             playbackOwners[ch] ?: pooledSessions.values.find { p -> p.pooledChannels.any { it.channel == ch } }
         } ?: pooledSessions.values.firstOrNull()
+
+        // S2319: free the exclusivity claim first - until it is cleared the next track's open()
+        // sees no idle slot and is refused, which would turn the shared-channel corruption into a
+        // permanently unusable channel.
+        if (channel != null && owner != null) releasePlaybackClaim(owner.pooledChannels, channel)
 
         // Decrement before eviction so channel can still be found in the pool
         val remaining = owner?.activeBorrowCount?.updateAndGet { maxOf(0, it - 1) }
@@ -567,6 +628,9 @@ class SftpConnectionPool {
         playbackOwners.remove(channel)
         pooledSessions.values.forEach { pooled ->
             val target = pooled.pooledChannels.firstOrNull { it.channel == channel } ?: return@forEach
+            // S2319: covers the borrow whose owner lookup missed - this scan walks every session,
+            // so the claim is cleared even when releaseExoPlayerConnection could not resolve one.
+            target.playbackClaimed.set(false)
             try { channel.disconnect() } catch (e: Exception) {
                 Timber.w("SFTP [PLAYBACK] eviction disconnect: ${e.message}")
             }
@@ -631,7 +695,10 @@ class SftpConnectionPool {
                             }
                         }
                     })
-                } catch (e: Exception) { channel.disconnect(); throw e }
+                } catch (e: Exception) {
+                    channel.disconnect()
+                    throw e
+                }
             } finally {
                 connectionSemaphore.release()
                 cleanupIdleConnections()
@@ -758,14 +825,22 @@ class SftpConnectionPool {
     companion object {
         private const val CONNECTION_TIMEOUT = 10_000
         private const val SOCKET_TIMEOUT = 30_000
+
         // SSH keep-alive: ~30 s (interval x countMax) to drop a dead transport, comfortably under
         // the SftpMediaScanner scan watchdog so this cleaner recovery fires first.
         private const val SERVER_ALIVE_INTERVAL_MS = 15_000
         private const val SERVER_ALIVE_COUNT_MAX = 2
         private const val MAX_CONCURRENT_CONNECTIONS = 15
-        private const val MAX_CHANNELS_PER_SESSION = 5   // total across all purposes (Research #1)
-        private const val MAX_PLAYBACK_CHANNELS = 1      // reserved for ExoPlayer streaming
-        private const val MAX_FILE_OPS_CHANNELS = 4      // for suspend file operations
+        private const val MAX_CHANNELS_PER_SESSION = 5 // total across all purposes (Research #1)
+
+        // S2319: two, because an ExoPlayer track transition opens the next source before it closes
+        // the previous one - with a single slot the overlap forced both readers onto one channel.
+        private const val MAX_PLAYBACK_CHANNELS = 2 // reserved for ExoPlayer streaming
+
+        // S2319: three, so the two purposes still sum to MAX_CHANNELS_PER_SESSION. FILE_OPS work is
+        // already serialized per channel by PooledChannel.mutex, so the slot it gives up costs
+        // parallelism only, never correctness.
+        private const val MAX_FILE_OPS_CHANNELS = 3 // for suspend file operations
         private const val IDLE_TIMEOUT_MS = 30_000L
 
         /**

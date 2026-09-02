@@ -18,8 +18,14 @@
         android:orientation="vertical">
 
         <TextView
+            android:id="@+id/gnssSectionHeading"
             style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
             android:drawableStart="@drawable/ic_location"
+            android:drawableEnd="@drawable/ic_open_in_browse"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground"
+            android:contentDescription="@string/app_launch_panel_os_location"
             android:text="@string/network_monitor_section_gnss" />
 
         <LinearLayout
@@ -52,7 +58,13 @@
                             android:layout_height="wrap_content"
                             android:orientation="vertical">
 
-                            <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+                            <LinearLayout
+                                android:id="@+id/gnssVisibleRow"
+                                style="@style/Widget.FastMediaSorter.NetworkMonitor.Row"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:background="?attr/selectableItemBackground"
+                                android:contentDescription="@string/app_launch_panel_os_location">
 
                                 <TextView
                                     style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
@@ -64,7 +76,13 @@
                                     tools:text="14" />
                             </LinearLayout>
 
-                            <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+                            <LinearLayout
+                                android:id="@+id/gnssUsedRow"
+                                style="@style/Widget.FastMediaSorter.NetworkMonitor.Row"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:background="?attr/selectableItemBackground"
+                                android:contentDescription="@string/app_launch_panel_os_location">
 
                                 <TextView
                                     style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"

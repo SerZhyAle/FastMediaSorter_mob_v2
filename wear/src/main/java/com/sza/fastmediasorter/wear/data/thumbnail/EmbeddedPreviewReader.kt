@@ -27,7 +27,6 @@ class EmbeddedPreviewReader @Inject constructor() {
     suspend fun read(stream: InputStream): Bitmap? = withContext(Dispatchers.IO) {
         val head = readHead(stream)
         val preview = if (head.isEmpty()) null else extractThumbnail(head)
-        Timber.d("S1730: head read ${head.size} bytes, preview=${preview != null}")
         preview
     }
 

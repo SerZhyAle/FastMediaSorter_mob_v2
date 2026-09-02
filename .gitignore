@@ -68,6 +68,7 @@ render.experimental.xml
 
 # AI Agent configurations
 .agent/
+.claude/
 
 # Eclipse
 .classpath
@@ -141,17 +142,9 @@ lint/tmp/
 # TEMPORARY & SCRATCH FILES
 # ============================================================================
 temp/
-# PLAN/ is the working spec workspace and stays untracked - specs churn on every
-# pipeline step and the journal is rewritten constantly. The closed-ticket archive
-# is the exception (S1620): it is the only durable record of WHY a decision was
-# made, and it must survive a temp/ sweep and reach other machines.
-# The three-line form is required. A bare `!PLAN/archive/` after `PLAN/` does
-# nothing: git never descends into an excluded directory, so no rule inside it is
-# ever consulted. Re-including the directory itself and then excluding its
-# contents is what lets the negation be reached.
-!PLAN/
-PLAN/*
-!PLAN/archive/
+# PLAN/ is a local specification workspace. It stays entirely outside Git,
+# including closed-ticket archives.
+PLAN/
 logs/
 *.tmp
 *.log
@@ -260,11 +253,6 @@ google*.html
 servers/
 
 archive/
-# Unanchored, so it matches an `archive/` directory at ANY depth (dev/archive/,
-# app_v2/.../archive/). The closed-spec archive is the one exception (S1620) and
-# must be re-included AFTER this line - last matching rule wins, so placing the
-# negation earlier in the file has no effect.
-!PLAN/archive/
 ChoiceModelRules.md
 app_v2\src\main\res\xml\sza_resources.xml
 

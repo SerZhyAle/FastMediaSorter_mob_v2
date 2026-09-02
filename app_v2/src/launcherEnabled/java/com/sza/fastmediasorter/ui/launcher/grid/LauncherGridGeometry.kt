@@ -22,6 +22,21 @@ object LauncherGridGeometry {
     const val MIN_COLUMNS = 3
     const val MAX_COLUMNS = 12
 
+    private const val NOMINAL_SHORTCUT_CELL_SIZE_DP = 88f
+    private const val MIN_SHORTCUT_CELL_SIZE_DP = 0f
+    private const val MIN_SHORTCUT_SCALE = 0.55f
+    private const val MAX_SHORTCUT_SCALE = 1.0f
+    private const val DEFAULT_SHORTCUT_ICON_SIZE_DP = 44f
+    private const val DEFAULT_SHORTCUT_MONOGRAM_TEXT_SIZE_SP = 16f
+    private const val DEFAULT_SHORTCUT_MODE_BADGE_SIZE_DP = 18f
+    private const val DEFAULT_SHORTCUT_CONTENT_PADDING_VERTICAL_DP = 4f
+    private const val DEFAULT_SHORTCUT_LABEL_MARGIN_TOP_DP = 3f
+    private const val MIN_SHORTCUT_ICON_SIZE_DP = 26f
+    private const val MIN_SHORTCUT_MONOGRAM_TEXT_SIZE_SP = 10f
+    private const val MIN_SHORTCUT_MODE_BADGE_SIZE_DP = 12f
+    private const val MIN_SHORTCUT_CONTENT_PADDING_VERTICAL_DP = 1f
+    private const val MIN_SHORTCUT_LABEL_MARGIN_TOP_DP = 1f
+
     /** Higher [densityFactor] shrinks cells, so more of them fit across. */
     fun columns(availableWidthDp: Float, densityFactor: Float): Int {
         val cellDp = BASE_CELL_DP / densityFactor
@@ -48,22 +63,40 @@ object LauncherGridGeometry {
     )
 
     fun shortcutLayoutSpec(cellSizeDp: Float): ShortcutCellLayoutSpec {
-        if (cellSizeDp >= 88f || cellSizeDp <= 0f) {
+        if (cellSizeDp >= NOMINAL_SHORTCUT_CELL_SIZE_DP || cellSizeDp <= MIN_SHORTCUT_CELL_SIZE_DP) {
             return ShortcutCellLayoutSpec(
-                iconSizeDp = 44f,
-                monogramTextSizeSp = 16f,
-                modeBadgeSizeDp = 18f,
-                contentPaddingVerticalDp = 4f,
-                labelMarginTopDp = 3f,
+                iconSizeDp = DEFAULT_SHORTCUT_ICON_SIZE_DP,
+                monogramTextSizeSp = DEFAULT_SHORTCUT_MONOGRAM_TEXT_SIZE_SP,
+                modeBadgeSizeDp = DEFAULT_SHORTCUT_MODE_BADGE_SIZE_DP,
+                contentPaddingVerticalDp = DEFAULT_SHORTCUT_CONTENT_PADDING_VERTICAL_DP,
+                labelMarginTopDp = DEFAULT_SHORTCUT_LABEL_MARGIN_TOP_DP,
             )
         }
-        val scale = (cellSizeDp / 88f).coerceIn(0.55f, 1.0f)
+        val scale = (cellSizeDp / NOMINAL_SHORTCUT_CELL_SIZE_DP).coerceIn(
+            MIN_SHORTCUT_SCALE,
+            MAX_SHORTCUT_SCALE,
+        )
         return ShortcutCellLayoutSpec(
-            iconSizeDp = (44f * scale).coerceIn(26f, 44f),
-            monogramTextSizeSp = (16f * scale).coerceIn(10f, 16f),
-            modeBadgeSizeDp = (18f * scale).coerceIn(12f, 18f),
-            contentPaddingVerticalDp = (4f * scale).coerceIn(1f, 4f),
-            labelMarginTopDp = (3f * scale).coerceIn(1f, 3f),
+            iconSizeDp = (DEFAULT_SHORTCUT_ICON_SIZE_DP * scale).coerceIn(
+                MIN_SHORTCUT_ICON_SIZE_DP,
+                DEFAULT_SHORTCUT_ICON_SIZE_DP,
+            ),
+            monogramTextSizeSp = (DEFAULT_SHORTCUT_MONOGRAM_TEXT_SIZE_SP * scale).coerceIn(
+                MIN_SHORTCUT_MONOGRAM_TEXT_SIZE_SP,
+                DEFAULT_SHORTCUT_MONOGRAM_TEXT_SIZE_SP,
+            ),
+            modeBadgeSizeDp = (DEFAULT_SHORTCUT_MODE_BADGE_SIZE_DP * scale).coerceIn(
+                MIN_SHORTCUT_MODE_BADGE_SIZE_DP,
+                DEFAULT_SHORTCUT_MODE_BADGE_SIZE_DP,
+            ),
+            contentPaddingVerticalDp = (DEFAULT_SHORTCUT_CONTENT_PADDING_VERTICAL_DP * scale).coerceIn(
+                MIN_SHORTCUT_CONTENT_PADDING_VERTICAL_DP,
+                DEFAULT_SHORTCUT_CONTENT_PADDING_VERTICAL_DP,
+            ),
+            labelMarginTopDp = (DEFAULT_SHORTCUT_LABEL_MARGIN_TOP_DP * scale).coerceIn(
+                MIN_SHORTCUT_LABEL_MARGIN_TOP_DP,
+                DEFAULT_SHORTCUT_LABEL_MARGIN_TOP_DP,
+            ),
         )
     }
 
@@ -170,12 +203,10 @@ object LauncherGridGeometry {
         collapsedSections: Set<String>,
         columns: Int,
     ): List<RenderedCell> {
+        Timber.d("S2214: renderPlan calculating packing lifts for %d cells", cells.size)
         val stored = cells.map { it.cell }
         val headerRows = LauncherSectionMembership.headerRows(stored)
-        val collapsedHeaderRows = stored
-            .filter { it.kind == LauncherCellKind.SECTION && it.target in collapsedSections }
-            .map { it.rowIndex.coerceAtLeast(0) }
-            .toSet()
+        val collapsedHeaderRows = collapsedHeaderRowsOf(stored, collapsedSections)
         val drawnRowOf = { cell: LauncherCell ->
             LauncherSectionMembership.renderRowFor(
                 row = cell.rowIndex,
@@ -184,6 +215,7 @@ object LauncherGridGeometry {
                 collapsedHeaderRows = collapsedHeaderRows,
             )
         }
+        val sections = LauncherSectionMembership.sectionsInOrder(stored)
         // S1645: packing runs on the folded rows, so it continues the lift instead of fighting it.
         val packed = LauncherSectionMembership.packedHeaderPositions(
             cells = stored,
@@ -191,14 +223,22 @@ object LauncherGridGeometry {
             columns = columns,
             renderRowOf = drawnRowOf,
         )
-        Timber.d("S1645: render plan packed ${packed.size} collapsed header(s) across $columns columns")
+        // S2214: packing compression lifts rows below packed header chains so no empty rows remain.
+        val lifts = LauncherSectionMembership.packingLifts(
+            cells = stored,
+            collapsedTargets = collapsedSections,
+            columns = columns,
+            renderRowOf = drawnRowOf,
+        )
         return cells.mapNotNull { item ->
             val drawnRow = drawnRowOf(item.cell) ?: return@mapNotNull null
             val packedPosition = packed[item.cell.target]
                 ?.takeIf { item.cell.kind == LauncherCellKind.SECTION }
+            val owner = LauncherSectionMembership.ownerOf(item.cell, sections)
+            val packingLift = owner?.target?.let { lifts[it] } ?: 0
             RenderedCell(
                 item = item,
-                renderRow = packedPosition?.row ?: drawnRow,
+                renderRow = packedPosition?.row ?: (drawnRow - packingLift).coerceAtLeast(0),
                 renderCol = packedPosition?.col ?: item.cell.colIndex,
             )
         }
@@ -256,6 +296,67 @@ object LauncherGridGeometry {
         val row = yPx / cellSize
         return Slot(row = row, col = col).takeIf { col < columns && row < rows }
     }
+
+    /**
+     * S2033: the stored square a press on drawn square [slot] points at.
+     *
+     * The inverse of [renderPlan]'s row projection, reading the header rows and the collapsed header rows
+     * through the same derivation [renderPlan] uses, so the two directions cannot end up disagreeing about
+     * which sections are folded on a desktop the user has just rearranged.
+     *
+     * The column is returned untouched. Folding moves rows only, and the header packing of S1645 moves the
+     * headers themselves rather than the content stored under them, so no press on a content square owes
+     * its column to a fold.
+     */
+    fun storedSlotFor(
+        slot: Slot,
+        cells: List<LauncherCellUi>,
+        collapsedSections: Set<String>,
+        columns: Int = MAX_COLUMNS,
+    ): Slot {
+        val stored = cells.map { it.cell }
+        val headerRows = LauncherSectionMembership.headerRows(stored)
+        val collapsedHeaderRows = collapsedHeaderRowsOf(stored, collapsedSections)
+        val drawnRowOf = { cell: LauncherCell ->
+            LauncherSectionMembership.renderRowFor(
+                row = cell.rowIndex,
+                isHeader = cell.kind == LauncherCellKind.SECTION,
+                headerRows = headerRows,
+                collapsedHeaderRows = collapsedHeaderRows,
+            )
+        }
+        val sections = LauncherSectionMembership.sectionsInOrder(stored)
+        val packed = LauncherSectionMembership.packedHeaderPositions(
+            cells = stored,
+            collapsedTargets = collapsedSections,
+            columns = columns,
+            renderRowOf = drawnRowOf,
+        )
+        val packingLift = LauncherSectionMembership.packingLiftForRenderRow(
+            renderRow = slot.row,
+            sections = sections,
+            packedPositions = packed,
+            renderRowOf = drawnRowOf,
+        )
+        val unpackedRenderRow = (slot.row + packingLift).coerceAtLeast(0)
+        return slot.copy(
+            row = LauncherSectionMembership.storedRowFor(
+                renderRow = unpackedRenderRow,
+                headerRows = headerRows,
+                collapsedHeaderRows = collapsedHeaderRows,
+            ),
+        )
+    }
+
+    /**
+     * The rows carrying a folded header. One derivation for both directions of the projection - two would
+     * be free to drift, and a fold either side reads differently is exactly a cell landing off its square.
+     */
+    private fun collapsedHeaderRowsOf(cells: List<LauncherCell>, collapsedSections: Set<String>): Set<Int> =
+        cells
+            .filter { it.kind == LauncherCellKind.SECTION && it.target in collapsedSections }
+            .map { it.rowIndex.coerceAtLeast(0) }
+            .toSet()
 
     /** Row and height clamps do not depend on the column count, so [rowsFor] can share them. */
     private fun safeRow(row: Int): Int = row.coerceAtLeast(0)

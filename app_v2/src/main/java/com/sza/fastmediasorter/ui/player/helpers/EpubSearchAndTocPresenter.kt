@@ -4,6 +4,7 @@ import android.view.View
 import android.webkit.WebView
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import io.documentnode.epub4j.domain.Book
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -221,7 +222,7 @@ class EpubSearchAndTocPresenter(
                             searchFrom = pos + query.length
                         }
                     } catch (e: Exception) {
-                        Timber.w(e, "EPUB: Error searching chapter $i")
+                        e.warnUnlessCancellation("EPUB: Error searching chapter $i")
                     }
 
                     // Stop scanning more chapters if limit reached (M-3 fix)

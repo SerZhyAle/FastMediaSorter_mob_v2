@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.scanner.WearWatchMediaScanner
 import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.DiscoverNetworkResourcesUseCase
+import com.sza.fastmediasorter.domain.usecase.EnsureWatchResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.GetStorageVolumesUseCase
 import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
 import com.sza.fastmediasorter.domain.usecase.NetworkHost
@@ -62,8 +63,10 @@ sealed class AddResourceEvent {
         val providerName: String,
         val accounts: List<String>
     ) : AddResourceEvent()
+
     /** Missing ACCESS_LOCAL_NETWORK permission - UI must show rationale dialog before retrying. */
     data object ShowLocalNetworkPermission : AddResourceEvent()
+
     /** Emitted after a successful share scan; UI should show a picker and fill the share name field. */
     data class ShowSharePicker(
         val server: String,
@@ -71,6 +74,7 @@ sealed class AddResourceEvent {
         /** S0064: previously used / manually entered share names for this server. */
         val manualShares: List<String> = emptyList()
     ) : AddResourceEvent()
+
     /** SMB share scan completed successfully but returned no selectable shares. */
     data object ShowNoSharesFound : AddResourceEvent()
 
@@ -116,7 +120,9 @@ class AddResourceViewModel @Inject constructor(
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     // S1861: reached from here rather than from the Activity - Rule 3 keeps domain collaborators out
     // of the host, and Rule 14 keeps the flavor question out of `src/main` altogether.
-    private val wearWatchMediaScanner: WearWatchMediaScanner
+    private val wearWatchMediaScanner: WearWatchMediaScanner,
+    // S2034: shared with the companion window's add-or-open button, so both surfaces write one shape.
+    private val ensureWatchResourceUseCase: EnsureWatchResourceUseCase
 ) : BaseViewModel<AddResourceState, AddResourceEvent>() {
 
     override fun getInitialState() = AddResourceState()
@@ -126,27 +132,50 @@ class AddResourceViewModel @Inject constructor(
     private val finalizer = AddResourceFinalizer(context, bridge, resourceRepository, mediaScannerFactory)
 
     private val virtualCoordinator = AddResourceVirtualCoordinator(
-        context, scanLocalFoldersUseCase, addResourceUseCase, mediaScannerFactory,
-        resourceRepository, settingsRepository, bridge
+        context,
+        scanLocalFoldersUseCase,
+        addResourceUseCase,
+        mediaScannerFactory,
+        resourceRepository,
+        settingsRepository,
+        bridge
     )
 
     private val networkScanCoordinator = AddResourceNetworkScanCoordinator(
-        context, discoverNetworkResourcesUseCase, smbOperationsUseCase,
-        networkCredentialsRepository, bridge
+        context,
+        discoverNetworkResourcesUseCase,
+        smbOperationsUseCase,
+        networkCredentialsRepository,
+        bridge
     )
 
     private val smbCoordinator = AddResourceSmbCoordinator(
-        context, smbOperationsUseCase, addResourceUseCase, resourceRepository,
-        settingsRepository, finalizer, bridge
+        context,
+        smbOperationsUseCase,
+        addResourceUseCase,
+        resourceRepository,
+        settingsRepository,
+        finalizer,
+        bridge
     )
 
     private val sftpFtpCoordinator = AddResourceSftpFtpCoordinator(
-        context, addResourceUseCase, smbOperationsUseCase, resourceRepository,
-        settingsRepository, finalizer, bridge
+        context,
+        addResourceUseCase,
+        smbOperationsUseCase,
+        resourceRepository,
+        settingsRepository,
+        finalizer,
+        bridge
     )
 
     private val sftpKeyCoordinator = AddResourceSftpKeyCoordinator(
-        context, addResourceUseCase, smbOperationsUseCase, settingsRepository, finalizer, bridge
+        context,
+        addResourceUseCase,
+        smbOperationsUseCase,
+        settingsRepository,
+        finalizer,
+        bridge
     )
 
     // S0421: use case built manually (like the coordinators) - extending the baselined
@@ -165,9 +194,7 @@ class AddResourceViewModel @Inject constructor(
 
     private val watchCoordinator = AddResourceWatchCoordinator(
         context,
-        addResourceUseCase,
-        resourceRepository,
-        settingsRepository,
+        ensureWatchResourceUseCase,
         bridge
     )
 
@@ -269,9 +296,16 @@ class AddResourceViewModel @Inject constructor(
                     }
                 }
 
-                sendEvent(AddResourceEvent.LoadResourceForCopy(
-                    resource, username, password, domain, sshKey, sshPassphrase
-                ))
+                sendEvent(
+                    AddResourceEvent.LoadResourceForCopy(
+                        resource,
+                        username,
+                        password,
+                        domain,
+                        sshKey,
+                        sshPassphrase
+                    )
+                )
             } catch (e: Exception) {
                 Timber.e(e, "Failed to load resource for copy: $resourceId")
                 sendEvent(AddResourceEvent.ShowError(context.getString(R.string.addresource_resource_load_failed)))
@@ -386,7 +420,9 @@ class AddResourceViewModel @Inject constructor(
                         isReadOnly = isReadOnly,
                         isDestination = if (isReadOnly) false else r.isDestination
                     )
-                } else r
+                } else {
+                    r
+                }
             }
             state.copy(resourcesToAdd = updated, selectedPaths = state.selectedPaths + resource.path)
         }
@@ -399,7 +435,9 @@ class AddResourceViewModel @Inject constructor(
                     val currentTypes = r.supportedMediaTypes.toMutableSet()
                     if (type in currentTypes) currentTypes.remove(type) else currentTypes.add(type)
                     r.copy(supportedMediaTypes = currentTypes)
-                } else r
+                } else {
+                    r
+                }
             }
             state.copy(resourcesToAdd = updated, selectedPaths = state.selectedPaths + resource.path)
         }
@@ -449,7 +487,9 @@ class AddResourceViewModel @Inject constructor(
 
                 val count = addResult.addedCount
                 val addedMsg = context.resources.getQuantityString(
-                    R.plurals.added_n_resources, count, count
+                    R.plurals.added_n_resources,
+                    count,
+                    count
                 )
 
                 val message = if (addResult.destinationsFull) {
@@ -490,15 +530,29 @@ class AddResourceViewModel @Inject constructor(
     // ==================== SMB / SFTP / FTP delegation ====================
 
     fun testSmbConnection(
-        server: String, shareName: String, username: String, password: String, domain: String, port: Int
+        server: String,
+        shareName: String,
+        username: String,
+        password: String,
+        domain: String,
+        port: Int
     ) = smbCoordinator.testSmbConnection(server, shareName, username, password, domain, port)
 
     fun scanSmbShares(
-        server: String, username: String, password: String, domain: String, port: Int
+        server: String,
+        username: String,
+        password: String,
+        domain: String,
+        port: Int
     ) = smbCoordinator.scanSmbShares(server, username, password, domain, port)
 
     fun addSmbResources(
-        server: String, shareName: String, username: String, password: String, domain: String, port: Int
+        server: String,
+        shareName: String,
+        username: String,
+        password: String,
+        domain: String,
+        port: Int
     ) = smbCoordinator.addSmbResources(server, shareName, username, password, domain, port)
 
     fun addSmbResourceManually(
@@ -527,12 +581,20 @@ class AddResourceViewModel @Inject constructor(
     )
 
     fun testSftpFtpConnection(
-        protocolType: ResourceType, host: String, port: Int, username: String, password: String,
+        protocolType: ResourceType,
+        host: String,
+        port: Int,
+        username: String,
+        password: String,
         expectedFingerprint: String? = null
     ) = sftpFtpCoordinator.testSftpFtpConnection(protocolType, host, port, username, password, expectedFingerprint)
 
     fun testSftpConnection(
-        host: String, port: Int, username: String, password: String, expectedFingerprint: String? = null
+        host: String,
+        port: Int,
+        username: String,
+        password: String,
+        expectedFingerprint: String? = null
     ) = sftpFtpCoordinator.testSftpConnection(host, port, username, password, expectedFingerprint)
 
     fun addSftpFtpResource(
@@ -562,13 +624,28 @@ class AddResourceViewModel @Inject constructor(
     )
 
     fun addSftpResource(
-        host: String, port: Int, username: String, password: String, remotePath: String
+        host: String,
+        port: Int,
+        username: String,
+        password: String,
+        remotePath: String
     ) = sftpFtpCoordinator.addSftpResource(host, port, username, password, remotePath)
 
     fun testSftpConnectionWithKey(
-        host: String, port: Int, username: String, privateKey: String, keyPassphrase: String?,
+        host: String,
+        port: Int,
+        username: String,
+        privateKey: String,
+        keyPassphrase: String?,
         expectedFingerprint: String? = null
-    ) = sftpKeyCoordinator.testSftpConnectionWithKey(host, port, username, privateKey, keyPassphrase, expectedFingerprint)
+    ) = sftpKeyCoordinator.testSftpConnectionWithKey(
+        host,
+        port,
+        username,
+        privateKey,
+        keyPassphrase,
+        expectedFingerprint
+    )
 
     fun addSftpResourceWithKey(
         host: String,

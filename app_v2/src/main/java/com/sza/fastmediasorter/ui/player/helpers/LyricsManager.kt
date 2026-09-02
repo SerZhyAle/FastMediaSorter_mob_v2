@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -115,7 +116,7 @@ class LyricsManager(
             } catch (e: Exception) {
                 // This catch block might not be needed if execute() catches everything, 
                 // but good for safety against unexpected crashes
-                Timber.e(e, "LyricsManager: Failed to search lyrics (unexpected)")
+                e.errorUnlessCancellation("LyricsManager: Failed to search lyrics (unexpected)")
                 Toast.makeText(
                     context, 
                     context.getString(R.string.error), 

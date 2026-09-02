@@ -48,7 +48,44 @@ interface LauncherDesktopRepository {
      */
     suspend fun addCellInFirstFreeSlot(cell: LauncherCell, columns: Int): Long?
 
+    /**
+     * S2018: places [cell] inside the section keyed [sectionKey] and nowhere else.
+     *
+     * Deliberately without the grid-wide fallback [addCellInFirstFreeSlot] ends in. That fallback is
+     * what made a bulk import land in whichever section still had a gap - on a dense desktop the first
+     * free squares sit inside the widgets and resources sections, so "first free slot" and "the section
+     * the caller asked for" are different places. When the section is full this pushes the rows below it
+     * down and seats the cell in the row that frees up, growing the section instead of leaving it.
+     *
+     * Returns null when the section has no header on this orientation: creating one is a placement
+     * decision of its own, and the caller owns the label it would carry.
+     */
+    suspend fun addCellInSection(cell: LauncherCell, columns: Int, sectionKey: String): Long?
+
     suspend fun removeCell(id: Long)
+
+    /**
+     * S2301: moves the cell [cellId] of [orientation] onto [screenIndex], which is what the edit-mode
+     * menu offers per screen. Returns whether anything moved - false for an unknown id, for a cell of
+     * another orientation, and for the screen the cell already occupies.
+     *
+     * A `SECTION` header takes its whole block with it (owner ruling 2026-09-01): the header alone would
+     * leave its cells behind, where the positional membership rule hands them to the section above.
+     * The block keeps its own rows and columns relative to its header and lands below everything already
+     * on the target screen - a group that arrives repacked is no longer the arrangement the user built.
+     *
+     * Any other cell takes the first free anchor of the target screen rather than its own coordinates:
+     * screens carry independent coordinates, so the old anchor is occupied on the target screen as often
+     * as not, and one predictable rule beats two (strategic ADR-3).
+     *
+     * [columns] belongs to the screen currently rendering the desktop, same contract as [addCell].
+     */
+    suspend fun moveCellToScreen(
+        orientation: LauncherOrientation,
+        cellId: Long,
+        screenIndex: Int,
+        columns: Int,
+    ): Boolean
 
     /**
      * S1642: brings every stored section header to the one span a header is stored and drawn at.
@@ -104,6 +141,26 @@ interface LauncherDesktopRepository {
     suspend fun swapSectionBlock(orientation: LauncherOrientation, sectionCellId: Long, moveUp: Boolean): Boolean
 
     /**
+     * S2222: deletes the section header with cell id [sectionCellId] together with every cell it owns on
+     * [orientation], in one transaction. Returns the `target` of every removed row read inside that
+     * transaction (S2217 pattern - the caller clears stored configured-widget instances); cells below the
+     * section move up so no multi-row hole remains. Returns an empty list when the id is not a section
+     * header of this orientation. Block membership is [LauncherSectionMembership.ownerOf] - S1428
+     * positional membership, the same rule the swap and the renderer read.
+     */
+    suspend fun removeSection(orientation: LauncherOrientation, sectionCellId: Long): List<String>
+
+    /**
+     * S2222: repacks the cells owned by the section header [sectionCellId] densely in their current visual
+     * order (stored row, then column), starting at the first cell after the header on its own row
+     * ([LauncherSectionMembership.HEADER_SPAN_W]), first-fit row-major respecting each cell's span and the
+     * passed [columns]. Everything below the section shifts by the height difference the repack causes.
+     * Returns whether any row or column changed - false for an unknown id or a section with no owned
+     * cells. [columns] belongs to the rendering screen, same contract as [addCell].
+     */
+    suspend fun resortSection(orientation: LauncherOrientation, sectionCellId: Long, columns: Int): Boolean
+
+    /**
      * Places [cells] only when this orientation has never been seeded and holds no cells.
      * Returns whether it seeded, so a profile change can never overwrite a desktop the user owns.
      */
@@ -114,8 +171,12 @@ interface LauncherDesktopRepository {
      * flags and the stored column widths go with it. A later [seedIfEmpty] therefore seeds again -
      * that is what makes the one-time starter set repeatable for a reset. Read [state] before calling
      * this: the column widths are gone afterwards.
+     *
+     * S2217: returns the `target` column of every row the delete removed, read inside the same
+     * transaction, so the reset can clear whatever those rows pointed at - a configured widget cell
+     * is the only thing that still knows its instance token, and after this call nothing does.
      */
-    suspend fun clearAll()
+    suspend fun clearAll(): List<String>
 
     suspend fun state(): LauncherDesktopState
 

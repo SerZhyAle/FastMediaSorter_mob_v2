@@ -1,8 +1,6 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.app.Activity
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.drawable.Drawable
@@ -29,6 +27,8 @@ import com.github.chrisbanes.photoview.OnSingleFlingListener
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
+import com.sza.fastmediasorter.core.clipboard.copyTextToClipboard
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
@@ -593,7 +593,7 @@ class StandaloneViewManager(
             val savedPos = try {
                 playbackPositionRepository.getPosition(mediaFile.path) ?: -1L
             } catch (e: Exception) {
-                Timber.e(e, "StandaloneViewManager: Failed to restore position for ${mediaFile.path}")
+                e.errorUnlessCancellation("StandaloneViewManager: Failed to restore position for ${mediaFile.path}")
                 -1L
             }
             if (player != exoPlayer) return@launch  // player released while we were querying DB
@@ -795,9 +795,7 @@ class StandaloneViewManager(
             .setTitle(R.string.translation_result_title)
             .setMessage(text)
             .setPositiveButton(R.string.copy) { _, _ ->
-                val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                clipboard.setPrimaryClip(ClipData.newPlainText("translation", text))
-                Toast.makeText(activity, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show()
+                activity.copyTextToClipboard("translation", text)
             }
             .setNegativeButton(R.string.close, null)
             .showBoundToHost(activity)
@@ -865,7 +863,7 @@ class StandaloneViewManager(
             lastSavedPosition = position
             Timber.d("StandaloneViewManager: Saved position ${position}ms/${duration}ms")
         } catch (e: Exception) {
-            Timber.e(e, "StandaloneViewManager: Failed to save position")
+            e.errorUnlessCancellation("StandaloneViewManager: Failed to save position")
         }
     }
 
@@ -875,7 +873,7 @@ class StandaloneViewManager(
                 playbackPositionRepository.savePosition(path, position, duration)
                 Timber.d("StandaloneViewManager: Saved position on release ${position}ms/${duration}ms")
             } catch (e: Exception) {
-                Timber.e(e, "StandaloneViewManager: Failed to save position on release")
+                e.errorUnlessCancellation("StandaloneViewManager: Failed to save position on release")
             }
         }
     }

@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.content.Context
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -208,7 +209,7 @@ class TesseractModelManager @Inject constructor(@param:ApplicationContext privat
             }
             false
         } catch (e: Exception) {
-            Timber.e(e, "TesseractModelManager: Unexpected error during download of model for $language")
+            e.errorUnlessCancellation("TesseractModelManager: Unexpected error during download of model for $language")
             if (tmpFile.exists()) {
                 tmpFile.delete()
             }

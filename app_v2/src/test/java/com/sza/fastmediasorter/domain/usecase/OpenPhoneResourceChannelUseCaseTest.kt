@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
+import com.sza.fastmediasorter.domain.model.WEAR_FILE_TRANSFER_MAX_BYTES
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceRequest
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceRequestKind
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceResponseStatus
@@ -124,7 +125,7 @@ class OpenPhoneResourceChannelUseCaseTest {
         // Sparse rather than written: the cap is read from length(), so materialising a real 32 MB of
         // bytes would buy nothing and slow the suite down.
         val big = File(root, "huge.jpg")
-        RandomAccessFile(big, "rw").use { it.setLength(OpenPhoneResourceChannelUseCase.MAX_TRANSFER_BYTES + 1) }
+        RandomAccessFile(big, "rw").use { it.setLength(WEAR_FILE_TRANSFER_MAX_BYTES + 1) }
         stubResource(resource())
 
         assertRejected(WearPhoneResourceResponseStatus.TRANSFER_REJECTED, useCase(request("1:huge.jpg")))
@@ -133,11 +134,11 @@ class OpenPhoneResourceChannelUseCaseTest {
     @Test
     fun `a file exactly at the transfer cap is still delivered`() = runTest {
         val atCap = File(root, "at-cap.jpg")
-        RandomAccessFile(atCap, "rw").use { it.setLength(OpenPhoneResourceChannelUseCase.MAX_TRANSFER_BYTES) }
+        RandomAccessFile(atCap, "rw").use { it.setLength(WEAR_FILE_TRANSFER_MAX_BYTES) }
         stubResource(resource())
 
         val approved = useCase(request("1:at-cap.jpg")) as PhoneResourceChannel.Approved
-        assertEquals(OpenPhoneResourceChannelUseCase.MAX_TRANSFER_BYTES, approved.sizeBytes)
+        assertEquals(WEAR_FILE_TRANSFER_MAX_BYTES, approved.sizeBytes)
     }
 
     @Test
@@ -153,13 +154,13 @@ class OpenPhoneResourceChannelUseCaseTest {
     }
 
     @Test
-    fun `the approved stream is opened by the caller and yields the file bytes`() = runTest {
+    fun `the approved file is opened by the caller and yields the file bytes`() = runTest {
         writeFile("photo.jpg", "watch-bound bytes")
         stubResource(resource())
 
         val approved = useCase(request("1:photo.jpg")) as PhoneResourceChannel.Approved
 
-        val read = approved.openStream().use { it.readBytes().decodeToString() }
+        val read = approved.file.inputStream().use { it.readBytes().decodeToString() }
         assertEquals("watch-bound bytes", read)
     }
 

@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.core.debug
 import android.app.Application
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import com.sza.fastmediasorter.core.logging.LoggingHelper
 import com.sza.fastmediasorter.ui.debug.CrashActivity
 import com.sza.fastmediasorter.ui.debug.DebugActivity
@@ -24,6 +25,14 @@ object DebugToolsBootstrap {
         DebugNotificationCenter.register(application)
         Timber.plant(UiNotificationTree())
 
+        // S2296: Robolectric boots this real debug Application inside the Gradle test worker, so the
+        // handler below - which ends in exitProcess(10) - is installed process-wide in that JVM and
+        // kills the whole worker on the first uncaught throwable from any thread. Gradle then reports
+        // `tests="1" skipped="1"` with no failure, so the run proves nothing and every gate resting on
+        // a Robolectric test answers CANNOT-VERIFY. The on-device crash dialog this handler exists for
+        // cannot be shown in a JVM test, so it is not installed there.
+        if (isUnderRobolectric()) return
+
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
             if (crashing.compareAndSet(false, true)) {
                 runCatching {
@@ -44,6 +53,9 @@ object DebugToolsBootstrap {
             exitProcess(10)
         }
     }
+
+    // Robolectric's documented marker for its own runtime; no other build reports this fingerprint.
+    private fun isUnderRobolectric(): Boolean = "robolectric".equals(Build.FINGERPRINT, ignoreCase = true)
 
     @JvmStatic
     fun onCoroutineException(throwable: Throwable) {

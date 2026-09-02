@@ -610,6 +610,7 @@ class BrowseFileOperationsManager(
             currentBrowsePath = currentBrowsePath,
             destinationPath = destination.path,
             destinationName = destination.name,
+            destinationResourceId = destination.id,
             overwriteFiles = overwriteFiles,
             sources = buildTransferSources(selectedPaths, mediaFiles),
         )

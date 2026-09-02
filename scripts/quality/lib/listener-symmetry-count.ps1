@@ -22,6 +22,10 @@
       onBackPressedDispatcher.addCallback(..) dropped by the lifecycle it is handed (S1433)
       lifecycle.addObserver(..)               dropped by the lifecycle it is handed (S1559)
       addEventListener(..)                    a DOM call inside an HTML string literal (S1559)
+      addOnCompleteListener(..)               a one-shot Play Services Task callback (S0403). The
+                                              Task API declares no removeOnCompleteListener at all,
+                                              so this can never be paired and is not a leak: the
+                                              Task drops its listeners once it completes.
       any `import` line                       an import is not a call at all (S1559)
       any whole-line comment                  `//`, `/*` and KDoc `*` lines name calls, they do not
                                               make them (S1815). Only a line whose FIRST non-space
@@ -44,6 +48,7 @@ $regReceiverNull = [regex]'\bregisterReceiver\s*\(\s*null\s*,'
 $addListener = [regex]'\badd[A-Za-z0-9_]*Listener\b'
 $removeListener = [regex]'\bremove[A-Za-z0-9_]*Listener\b'
 $addListenerDom = [regex]'\baddEventListener\b'
+$addListenerTask = [regex]'\baddOn(?:Complete|Success|Failure|Canceled)Listener\b'
 
 $addCallback = [regex]'\badd[A-Za-z0-9_]*Callback\b'
 $removeCallback = [regex]'\bremove[A-Za-z0-9_]*Callback\b'
@@ -77,7 +82,7 @@ function Get-FileImbalance([string]$text) {
     $text = Remove-CommentLines (Remove-ImportLines $text)
     $dObs = Get-CategoryImbalance $regContentObserver.Matches($text).Count $unregContentObserver.Matches($text).Count 0
     $dRec = Get-CategoryImbalance $regReceiver.Matches($text).Count $unregReceiver.Matches($text).Count $regReceiverNull.Matches($text).Count
-    $dList = Get-CategoryImbalance $addListener.Matches($text).Count $removeListener.Matches($text).Count $addListenerDom.Matches($text).Count
+    $dList = Get-CategoryImbalance $addListener.Matches($text).Count $removeListener.Matches($text).Count ($addListenerDom.Matches($text).Count + $addListenerTask.Matches($text).Count)
     $dCb = Get-CategoryImbalance $addCallback.Matches($text).Count $removeCallback.Matches($text).Count $addCallbackLifecycle.Matches($text).Count
     $dObs2 = Get-CategoryImbalance $addObserver.Matches($text).Count $removeObserver.Matches($text).Count $addObserverLifecycle.Matches($text).Count
     return $dObs + $dRec + $dList + $dCb + $dObs2
@@ -95,7 +100,7 @@ function Get-FileImbalanceDetail([string]$text) {
     if ($a -ne $b) { $parts.Add("ContentObserver: $a vs $b") }
     $a = $regReceiver.Matches($text).Count - $regReceiverNull.Matches($text).Count; $b = $unregReceiver.Matches($text).Count
     if ($a -ne $b) { $parts.Add("Receiver: $a vs $b") }
-    $a = $addListener.Matches($text).Count - $addListenerDom.Matches($text).Count; $b = $removeListener.Matches($text).Count
+    $a = $addListener.Matches($text).Count - $addListenerDom.Matches($text).Count - $addListenerTask.Matches($text).Count; $b = $removeListener.Matches($text).Count
     if ($a -ne $b) { $parts.Add("Listener: $a vs $b") }
     $a = $addCallback.Matches($text).Count - $addCallbackLifecycle.Matches($text).Count; $b = $removeCallback.Matches($text).Count
     if ($a -ne $b) { $parts.Add("Callback: $a vs $b") }

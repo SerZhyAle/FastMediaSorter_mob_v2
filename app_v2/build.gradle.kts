@@ -208,8 +208,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-val defaultAppVersionCode = 260824141
-val defaultAppVersionName = "2.60.8241.413"
+val defaultAppVersionCode = 260901214
+val defaultAppVersionName = "2.60.9012.140"
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }
@@ -226,6 +226,13 @@ val edgeGestureOverlayStandardEnabled =
 // the strip if Play rejects the specialUse declaration. Standard only.
 val edgeGestureTileStandardEnabled =
     (providers.gradleProperty("fms.edgeGestureTile").orNull ?: "off").lowercase() != "off"
+// S1972: ABI splits, requested per invocation rather than per build type - `splits` is an
+// `android {}`-level block with no per-buildType form, so the debug builders pass
+// -Pfms.abiSplits=true and the release path passes nothing. Read here, at the top with the other
+// property gates, because noLegal's ndk.abiFilters below is conditioned on it as well: `splits` can
+// only slice what was already packaged.
+val abiSplitsRequested =
+    (providers.gradleProperty("fms.abiSplits").orNull ?: "false").equals("true", ignoreCase = true)
 val isXrNativeBuildRequested = providers.gradleProperty("fms.xrNative").orNull?.let { raw ->
     when {
         raw.equals("true", ignoreCase = true) -> true
@@ -353,8 +360,16 @@ android {
             // Covers Android 8+ phones/tablets (arm64-v8a + armeabi-v7a), Chromebooks
             // and emulators (x86/x86_64). AAB per-device delivery keeps user download size
             // unchanged vs single-ABI. See PLAN/spec_ffmpeg-dts-multi-abi.md.
-            ndk {
-                abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+            //
+            // S1972: skipped entirely under -Pfms.abiSplits=true, because AGP refuses the two
+            // mechanisms together - "Conflicting configuration: '..' in ndk abiFilters cannot be
+            // present when splits abi filters are set", measured 2026-08-26. So a split build has
+            // exactly one filter, `splits.abi.include`, and it names the two ABIs anything here
+            // actually runs on. That property is passed only by the debug builders.
+            if (!abiSplitsRequested) {
+                ndk {
+                    abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+                }
             }
         }
 
@@ -413,15 +428,28 @@ android {
             // emulators are not supported for the Python runtime. noLegal is a sideload-only
             // flavor targeting modern devices (arm64) and Quest headsets (arm64).
             //
-            // x86_64 dropped 2026-08-23 (owner ruling): it existed only to run noLegal on an
-            // emulator, and nothing does - the pre-release sweep installs STANDARD debug, which
-            // keeps its own x86_64 slice. Since S1060 added libVLC (43.95 MB per ABI) the unused
-            // slice cost 93.8 MB of a 256.7 MB APK; arm64-only makes it 162.8 MB. Restoring
-            // emulator support belongs to the ABI-split ticket, not to widening this list again -
-            // AGP merges flavor and buildType abiFilters by UNION, so "x86_64 for debug only"
-            // cannot be expressed here and would leak the slice back into every noLegal build.
-            ndk {
-                abiFilters += listOf("arm64-v8a")
+            // x86_64 was dropped 2026-08-23 (owner ruling), and S1972 - the ticket this comment
+            // named as the owner of restoring it - established 2026-08-26 that it cannot come back
+            // while Chaquopy is in the build. Two refusals meet head-on:
+            //
+            //   AGP:      abiFilters cannot be present when splits abi filters are set;
+            //   Chaquopy: "Variant 'noLegalDebug': Chaquopy requires ndk.abiFilters".
+            //
+            // So noLegal can be filtered or split, never both, and it must be filtered. It stays a
+            // single arm64-v8a APK - exactly the shape the owner ruled for, and the reasoning behind
+            // that ruling is untouched: AGP merges flavor and buildType abiFilters by UNION, so
+            // "x86_64 for debug only" is inexpressible here and the slice would ride inside every
+            // noLegal build, costing 93.8 MB of a 256.7 MB APK (libVLC is 43.95 MB per ABI since
+            // S1060). No builder passes -Pfms.abiSplits for this flavor.
+            //
+            // The guard below is still needed, and not for noLegal's own sake: AGP checks the
+            // abiFilters-versus-splits conflict across EVERY variant at configuration time, so an
+            // unconditional filter here would break a split build of standard. Under the property
+            // this flavor is configured filterless and simply never assembled.
+            if (!abiSplitsRequested) {
+                ndk {
+                    abiFilters += listOf("arm64-v8a")
+                }
             }
             if (isXrNativeBuildRequested) {
                 externalNativeBuild {
@@ -585,8 +613,22 @@ android {
             // at that point a dedicated Azure/Google/Dropbox app registration becomes required.
             versionNameSuffix = "-VR"
             // Meta Quest 2/3/Pro use arm64-v8a exclusively; skip 32-bit to halve APK size.
-            ndk {
-                abiFilters += listOf("arm64-v8a")
+            //
+            // S1972: conditional for the same reason as the other flavors, and it has to be. AGP
+            // checks abiFilters against splits across EVERY variant at configuration time, not only
+            // the one being assembled - measured 2026-08-26, a standard debug build with
+            // -Pfms.abiSplits=true failed on `'arm64-v8a' in ndk abiFilters` from this very block.
+            // So a single unconditional filter anywhere in the file breaks every split build.
+            //
+            // The residual case this leaves - a vr APK sliced for x86_64, which would carry no
+            // OpenXR native, since the loader AAR ships arm64 only - is kept out by the builders
+            // instead: build-debug.PS1 refuses to pass the property for a vr task, and no other
+            // caller passes it at all. externalNativeBuild.cmake.abiFilters below stays arm64-only
+            // regardless, so nothing tries to compile the XR runtime for an ABI it has no slice for.
+            if (!abiSplitsRequested) {
+                ndk {
+                    abiFilters += listOf("arm64-v8a")
+                }
             }
             if (isXrNativeBuildRequested) {
                 externalNativeBuild {
@@ -638,6 +680,49 @@ android {
             buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "false") // S1433: no diagnostic program in vr
         }
 
+        // ===== FOSS (F-Droid catalogue: zero proprietary dependencies) =====
+        // S0403: the F-Droid inclusion policy refuses Google Play Services, ML Kit, MSAL and the
+        // Dropbox SDK outright, so this flavor is defined by what it does NOT link rather than by a
+        // feature tier. Everything reachable on free libraries stays on: local media, SMB/FTP/SFTP
+        // shares, documents, EPUB, animations, background audio, the default player.
+        create("foss") {
+            dimension = "version"
+            manifestPlaceholders["ossNoticesPayload"] = "@raw/oss_notices_foss"
+            // S0403 research 07: a distinct id lets the F-Droid build coexist with a Play or
+            // sideload install and keeps F-Droid's signing key off the store identity. Cloud OAuth
+            // is off here, so the shared-id argument that keeps noLegal and vr on the store id
+            // (see the applicationId policy above) does not apply.
+            applicationIdSuffix = ".fdroid"
+            versionNameSuffix = "-FOSS"
+            // Owner ruling 2026-07-14: reach over API surface - de-googled ROMs are commonly older
+            // devices, so foss matches legacy's floor instead of the API 26 line.
+            minSdk = 23
+            disableNativeBuild()
+            buildConfigField("boolean", "SUPPORT_VIDEO", "true")
+            buildConfigField("boolean", "SUPPORT_AUDIO", "true")
+            // Owner ruling 2026-07-14: conservative first iteration - no IPTV stream catalogue, so
+            // foss mounts streamingDisabled and hides the entry point like lite and photos do.
+            buildConfigField("boolean", "SUPPORT_STREAMS", "false")
+            buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "false")
+            // Video capture still records audio, so RECORD_AUDIO stays declared and the permission
+            // row must stay visible - the same split lite carries (S1459).
+            buildConfigField("boolean", "DECLARES_MIC_RECORDING", "true")
+            buildConfigField("boolean", "SUPPORT_IMAGES", "true")
+            buildConfigField("boolean", "SUPPORT_CLOUD", "false")
+            // Network shares are the FOSS audience's replacement for cloud storage (strategic goal 4).
+            buildConfigField("boolean", "SUPPORT_LOCAL_NETWORK", "true")
+            buildConfigField("boolean", "SUPPORT_DOCUMENTS", "true")
+            buildConfigField("boolean", "ENABLE_ANIMATIONS", "true")
+            buildConfigField("boolean", "ENABLE_EPUB", "true")
+            buildConfigField("boolean", "ENABLE_TRANSLATION", "false")
+            buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "true")
+            buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")
+            buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
+            buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")
+            buildConfigField("boolean", "SUPPORT_CAST", "false")
+            buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "false")
+        }
+
         // S0250: flavor `vrUnlicensed` was archived (2026-05-19). Its role - sideload-only
         // VR-capable build - is now fulfilled by `noLegal` (full VR feature surface, runtime
         // XR-gated via XrDetectionFacade). The `vr` flavor remains as the Store-published
@@ -682,6 +767,17 @@ android {
         getByName("testPhotos") {
             kotlin.directories.add("src/testCloudEnabled/java")
         }
+        // S0403: testCloudSdk mirrors the src/cloudSdk main-set mount one for one - the same six
+        // flavors, foss excluded. It is a SEPARATE list from testCloudEnabled above because the two
+        // main sets it shadows do not have the same membership: lite mounts cloudDisabled (so it is
+        // off the testCloudEnabled lists) yet still links the Dropbox SDK, so DropboxClientUtilsTest
+        // must compile there. Merging the two lists would drop lite's coverage or break foss.
+        listOf("testStandard", "testNoLegal", "testLegacy", "testVr", "testPhotos", "testLite")
+            .forEach { unitTestSet ->
+                getByName(unitTestSet) {
+                    kotlin.directories.add("src/testCloudSdk/java")
+                }
+            }
         // S1433: RadioControlContractImpl lives in src/networkMonitor, which only standard and noLegal
         // mount, so its test cannot live in the shared src/test set - that set compiles for every flavor
         // and the reference would break unit-test compilation on the other four, which is the S1450 shape
@@ -705,6 +801,17 @@ android {
         getByName("standard") {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            // S0403: cloud provider clients that import the Dropbox / MSAL / AppAuth / Play Services
+            // auth SDKs directly. foss mounts src/cloudNoSdk, whose no-op twins bind the same four
+            // contracts. Keep this list in sync with the per-flavor cloud dependency blocks below.
+            kotlin.directories.add("src/cloudSdk/java")
+            // S0403: Play Core seam (LanguageSplitInstaller, ReviewRequestManager). Both classes
+            // used to sit in src/main with an unconditional Play Core import, which made it
+            // impossible to take the library off any flavor's classpath. Each source set carries a
+            // full copy under the same FQCN - the OfficeDocumentFamilyCatalog pattern - so call
+            // sites keep injecting one type and never ask which flavor they are in (Rule 14).
+            // Every flavor mounts exactly one of playServicesEnabled / playServicesDisabled.
+            kotlin.directories.add("src/playServicesEnabled/java")
             // S0403: Google Cast SDK seam impl (CastMediaManagerImpl); foss mounts castDisabled.
             kotlin.directories.add("src/castEnabled/java")
             // S0403: GMS-backed Wear Data Layer bridge; foss / non-Wear flavors mount wearStub.
@@ -755,6 +862,11 @@ android {
             manifest.srcFile("src/vr/AndroidManifest.xml")
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            // S0403: cloud provider clients that import the Dropbox / MSAL / AppAuth / Play Services
+            // auth SDKs directly. foss mounts src/cloudNoSdk, whose no-op twins bind the same four
+            // contracts. Keep this list in sync with the per-flavor cloud dependency blocks below.
+            kotlin.directories.add("src/cloudSdk/java")
+            kotlin.directories.add("src/playServicesEnabled/java")
             // S0403: Google Cast SDK seam impl (castEnabled manifest injected via addStaticManifestFile
             // below - manifest.srcFile above is a set, so it cannot also mount the cast overlay).
             kotlin.directories.add("src/castEnabled/java")
@@ -778,6 +890,11 @@ android {
         getByName("legacy") {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            // S0403: cloud provider clients that import the Dropbox / MSAL / AppAuth / Play Services
+            // auth SDKs directly. foss mounts src/cloudNoSdk, whose no-op twins bind the same four
+            // contracts. Keep this list in sync with the per-flavor cloud dependency blocks below.
+            kotlin.directories.add("src/cloudSdk/java")
+            kotlin.directories.add("src/playServicesEnabled/java")
             // S0403: Google Cast SDK seam impl (CastMediaManagerImpl); foss mounts castDisabled.
             kotlin.directories.add("src/castEnabled/java")
             // S1951: no Wear companion in this flavor - the applicationIdSuffix makes the Data Layer
@@ -795,6 +912,11 @@ android {
         getByName("vr") {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            // S0403: cloud provider clients that import the Dropbox / MSAL / AppAuth / Play Services
+            // auth SDKs directly. foss mounts src/cloudNoSdk, whose no-op twins bind the same four
+            // contracts. Keep this list in sync with the per-flavor cloud dependency blocks below.
+            kotlin.directories.add("src/cloudSdk/java")
+            kotlin.directories.add("src/playServicesEnabled/java")
             // S1439: vr declares SUPPORT_CAST=false because Horizon OS has no Play Services Cast
             // module, so it mounts the no-op seam impl - shipping the real one packaged an SDK the
             // platform cannot back, behind two safeguards nothing recorded as requirements.
@@ -814,6 +936,11 @@ android {
         getByName("photos") {
             kotlin.directories.add("src/streamingDisabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
+            // S0403: cloud provider clients that import the Dropbox / MSAL / AppAuth / Play Services
+            // auth SDKs directly. foss mounts src/cloudNoSdk, whose no-op twins bind the same four
+            // contracts. Keep this list in sync with the per-flavor cloud dependency blocks below.
+            kotlin.directories.add("src/cloudSdk/java")
+            kotlin.directories.add("src/playServicesEnabled/java")
             // S0403: Google Cast SDK seam impl (CastMediaManagerImpl); foss mounts castDisabled.
             kotlin.directories.add("src/castEnabled/java")
             // S0403: photos has no Wear companion -> mount the wearStub no-op.
@@ -827,9 +954,31 @@ android {
             // S1433: no Network Monitor program in this flavor - mount the no-op capability contract.
             kotlin.directories.add("src/networkMonitorDisabled/java")
         }
+        // S0403: foss subtracts exactly the proprietary nodes. Every "disabled"/"stub" set below is
+        // the no-op contract half of a seam whose real half links a Google, Microsoft or Dropbox
+        // SDK; documents, EPUB, audio and default-player stay on, which is what separates it from lite.
+        getByName("foss") {
+            kotlin.directories.add("src/streamingDisabled/java")
+            kotlin.directories.add("src/cloudDisabled/java")
+            // S0403: the no-op half of the cloud-provider seam. cloudDisabled above covers cloud
+            // IDENTITY only - one repository binding - which is why lite mounted it for a year while
+            // still linking all five cloud SDKs. This set is what actually keeps them off foss.
+            kotlin.directories.add("src/cloudNoSdk/java")
+            kotlin.directories.add("src/castDisabled/java")
+            kotlin.directories.add("src/wearStub/java")
+            kotlin.directories.add("src/ocrDisabled/java")
+            kotlin.directories.add("src/vrStub/java")
+            kotlin.directories.add("src/launcherDisabled/java")
+            kotlin.directories.add("src/networkMonitorDisabled/java")
+            kotlin.directories.add("src/playServicesDisabled/java")
+        }
         getByName("lite") {
             kotlin.directories.add("src/streamingDisabled/java")
             kotlin.directories.add("src/cloudDisabled/java")
+            // S0403: lite drops cloud IDENTITY but still links every cloud SDK, so it mounts the
+            // SDK-backed clients like the other five. foss is the only flavor on src/cloudNoSdk.
+            kotlin.directories.add("src/cloudSdk/java")
+            kotlin.directories.add("src/playServicesEnabled/java")
             // S0403: lite ships Cast (video flavor), so it mounts the GMS-backed castEnabled impl.
             kotlin.directories.add("src/castEnabled/java")
             // S0403: lite has no Wear companion (SUPPORT_WEAR_COMPANION=false) -> wearStub no-op.
@@ -1132,6 +1281,20 @@ android {
             // in each flavor's *BundledDeliverableSetsModule.bundledSets(), so the delivery runtime
             // treats them as installed and never offers a (Play-forbidden) download.
 
+            // S1971: libVLC is the one native set that goes the other way. Its two libraries are 44 MB
+            // of a 162.8 MB noLegal artifact, and the S0971 reason above does not reach them - noLegal
+            // is sideload-only and never enters Play, so no Play policy applies. The dependency stays
+            // `noLegalImplementation`, so classes.jar remains on the compile path and VlcPlaybackEngine
+            // still builds; only the native part leaves the package and is fetched at runtime. No other
+            // flavor declares the dependency, so these two lines are a no-op everywhere else.
+            // `libc++_shared.so` is deliberately NOT excluded: the copy that ships comes from another
+            // dependency via pickFirsts, and this ticket leaves that pairing exactly as it is.
+            excludes += "**/libvlc.so"
+            excludes += "**/libvlcjni.so"
+
+            // Forces 16 KB page alignment for every native library, which Android 15+ devices need
+            // and Google Play rejects the APK without. This comment sat above the `splits` block
+            // until S1972, where it read as an explanation of a setting it has nothing to do with.
             useLegacyPackaging = false
         }
     }
@@ -1140,12 +1303,28 @@ android {
     // res/xml/locales_config.xml; the store channel trims it back through Play language splits, the
     // direct APK and the non-Play editions deliberately carry all of them.
 
-    // Force 16 KB page alignment for all native libraries
-    // This is critical for Android 15+ devices with 16 KB page size
-    // Without this, Google Play will reject the APK
+    // S1972: `splits` is an `android {}`-level block - the DSL offers no per-build-type form of it,
+    // so "slice debug builds, leave the release path universal" cannot be written as a buildType
+    // setting and is gated by a Gradle property instead. The debug builders pass
+    // -Pfms.abiSplits=true; nothing on the release path does, so a release still emits one
+    // all-architecture APK per flavor and the direct-download channel keeps the device set it
+    // reaches (canon hard invariant 2, strategic §3.2).
+    //
+    // Play is untouched either way: `android.splits` is ignored when building a bundle, and
+    // `bundle.abi.enableSplit` already defaults to true, so the AAB was always sliced per ABI.
+    //
+    // isUniversalApk stays at its default (false): with the property off there is one output and a
+    // universal APK would be a duplicate of it; with the property on, a third output nobody asked for.
     splits {
         abi {
-            isEnable = false
+            isEnable = abiSplitsRequested
+            reset()
+            // The two architectures anything in this project actually runs on: the owner's phone and
+            // the Quest are arm64-v8a, every emulator here is x86_64. When splits are on this list
+            // is the ONLY ABI filter in the build - every flavor's ndk.abiFilters is skipped,
+            // because AGP refuses the two together - so it decides what gets packaged outright
+            // rather than narrowing something already chosen.
+            include("arm64-v8a", "x86_64")
         }
     }
 
@@ -1180,6 +1359,7 @@ tasks.configureEach {
 
 val complianceSourceRoots = listOf(
     "src/main",
+    "src/foss",
     "src/legacy",
     "src/lite",
     "src/photos",
@@ -1247,11 +1427,27 @@ androidComponents {
         }
 
         variant.outputs.forEach { output ->
+            // S1972: the ABI token is not cosmetic. This name is per-output, and every slice of a
+            // split build reaches this block with the same flavor, build type and version - so
+            // without the token all of them resolve to ONE file name and each packaging step
+            // overwrites the previous slice. Measured 2026-08-26: a split standard debug wrote an
+            // output-metadata.json listing two elements, arm64-v8a and x86_64, both naming the
+            // identical .apk, with exactly one 88 MB file on disk. The resolver could then hand a
+            // caller the arm64 element and the caller would install the x86_64 bytes.
+            //
+            // Empty for a non-split build, where the single output carries no ABI filter - so the
+            // release name and today's debug name are unchanged, byte for byte.
+            val abiToken = (output as? com.android.build.api.variant.VariantOutput)
+                ?.filters
+                ?.firstOrNull { it.filterType == com.android.build.api.variant.FilterConfiguration.FilterType.ABI }
+                ?.identifier
+                ?.let { "_$it" }
+                ?: ""
             output.outputFileName.set(
                 output.versionName.map { vn ->
                     val v = vn ?: "unknown"
-                    if (buildType == "release") "FastMediaSorter_${flavorName}_v${v}.apk"
-                    else "FastMediaSorter_${flavorName}_${buildType}_v${v}.apk"
+                    if (buildType == "release") "FastMediaSorter_${flavorName}${abiToken}_v${v}.apk"
+                    else "FastMediaSorter_${flavorName}_${buildType}${abiToken}_v${v}.apk"
                 }
             )
         }
@@ -1491,7 +1687,15 @@ dependencies {
     // Credential Manager replaces the deprecated Google Sign-In SDK; googleid supplies GetGoogleIdOption.
     // androidx.browser is consumed by Phase 03 CCT routing - added here to keep all S0200 deps colocated.
     implementation("androidx.credentials:credentials:1.3.0")
-    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    // S0403: the -play-services-auth provider is the Credential Manager half that pulls GMS in, so
+    // it is scoped away from foss. The core artifact above stays global - it is plain androidx and
+    // the system Credential Manager works without Play Services.
+    "standardImplementation"("androidx.credentials:credentials-play-services-auth:1.3.0")
+    "noLegalImplementation"("androidx.credentials:credentials-play-services-auth:1.3.0")
+    "liteImplementation"("androidx.credentials:credentials-play-services-auth:1.3.0")
+    "photosImplementation"("androidx.credentials:credentials-play-services-auth:1.3.0")
+    "legacyImplementation"("androidx.credentials:credentials-play-services-auth:1.3.0")
+    "vrImplementation"("androidx.credentials:credentials-play-services-auth:1.3.0")
     // S0385: googleid is consumed only by src/cloudEnabled (CredentialManagerGoogleIdentityRepository),
     // which is mounted into every flavor EXCEPT lite (lite mounts cloudDisabled). Scope it per-flavor
     // so the lite APK stops packaging an unused Google-identity dependency.
@@ -1523,10 +1727,23 @@ dependencies {
     implementation("com.google.android.material:material:1.14.0")
 
     // Google Play In-App Review (S0135)
-    implementation("com.google.android.play:review-ktx:2.0.2")
+    // S0403: Play Core is unavailable on F-Droid, so both artifacts are scoped away from foss. A
+    // catalogue install has no Play store page to review and carries every locale in the APK, so
+    // neither library has anything to do there. Consumers live behind the src/playServices* seam.
+    "standardImplementation"("com.google.android.play:review-ktx:2.0.2")
+    "noLegalImplementation"("com.google.android.play:review-ktx:2.0.2")
+    "liteImplementation"("com.google.android.play:review-ktx:2.0.2")
+    "photosImplementation"("com.google.android.play:review-ktx:2.0.2")
+    "legacyImplementation"("com.google.android.play:review-ktx:2.0.2")
+    "vrImplementation"("com.google.android.play:review-ktx:2.0.2")
     // Google Play language splits (S1190). Brought back for on-demand locale delivery only - the
     // dynamic-feature module this library once served was deleted with S0423 and stays deleted.
-    implementation("com.google.android.play:feature-delivery-ktx:2.1.0")
+    "standardImplementation"("com.google.android.play:feature-delivery-ktx:2.1.0")
+    "noLegalImplementation"("com.google.android.play:feature-delivery-ktx:2.1.0")
+    "liteImplementation"("com.google.android.play:feature-delivery-ktx:2.1.0")
+    "photosImplementation"("com.google.android.play:feature-delivery-ktx:2.1.0")
+    "legacyImplementation"("com.google.android.play:feature-delivery-ktx:2.1.0")
+    "vrImplementation"("com.google.android.play:feature-delivery-ktx:2.1.0")
 
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
@@ -1692,9 +1909,22 @@ dependencies {
     // on the one flavor whose whole purpose is old and weak devices (minSdk 23).
 
     // Cloud Storage - Google Drive (REST API + Google Sign-In)
-    implementation("com.google.android.gms:play-services-auth:21.0.0")
-    implementation("net.openid:appauth:0.11.1")
-    
+    // S0403: both are reachable only through src/cloudEnabled, and play-services-auth is proprietary
+    // outright. appauth is Apache-2.0 but rides the same OAuth path, so a flavor mounting
+    // cloudDisabled has no consumer for either. Keep this list in sync with the cloudEnabled mounts.
+    "standardImplementation"("com.google.android.gms:play-services-auth:21.0.0")
+    "noLegalImplementation"("com.google.android.gms:play-services-auth:21.0.0")
+    "liteImplementation"("com.google.android.gms:play-services-auth:21.0.0")
+    "photosImplementation"("com.google.android.gms:play-services-auth:21.0.0")
+    "legacyImplementation"("com.google.android.gms:play-services-auth:21.0.0")
+    "vrImplementation"("com.google.android.gms:play-services-auth:21.0.0")
+    "standardImplementation"("net.openid:appauth:0.11.1")
+    "noLegalImplementation"("net.openid:appauth:0.11.1")
+    "liteImplementation"("net.openid:appauth:0.11.1")
+    "photosImplementation"("net.openid:appauth:0.11.1")
+    "legacyImplementation"("net.openid:appauth:0.11.1")
+    "vrImplementation"("net.openid:appauth:0.11.1")
+
     // Network - Retrofit for iTunes Search API
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
@@ -1704,11 +1934,23 @@ dependencies {
     releaseImplementation("com.github.chuckerteam.chucker:library-no-op:4.0.0")
     
     // Cloud Storage - Dropbox
-    implementation("com.dropbox.core:dropbox-core-sdk:5.4.5")
-    
+    // S0403: F-Droid refuses the Dropbox SDK, and cloudDisabled leaves it with no call site anyway.
+    "standardImplementation"("com.dropbox.core:dropbox-core-sdk:5.4.5")
+    "noLegalImplementation"("com.dropbox.core:dropbox-core-sdk:5.4.5")
+    "liteImplementation"("com.dropbox.core:dropbox-core-sdk:5.4.5")
+    "photosImplementation"("com.dropbox.core:dropbox-core-sdk:5.4.5")
+    "legacyImplementation"("com.dropbox.core:dropbox-core-sdk:5.4.5")
+    "vrImplementation"("com.dropbox.core:dropbox-core-sdk:5.4.5")
+
     // Cloud Storage - OneDrive (REST API + MSAL OAuth)
-    implementation("com.microsoft.identity.client:msal:6.0.1")
-    
+    // S0403: MSAL is proprietary Microsoft code - same exclusion as the Dropbox SDK above.
+    "standardImplementation"("com.microsoft.identity.client:msal:6.0.1")
+    "noLegalImplementation"("com.microsoft.identity.client:msal:6.0.1")
+    "liteImplementation"("com.microsoft.identity.client:msal:6.0.1")
+    "photosImplementation"("com.microsoft.identity.client:msal:6.0.1")
+    "legacyImplementation"("com.microsoft.identity.client:msal:6.0.1")
+    "vrImplementation"("com.microsoft.identity.client:msal:6.0.1")
+
     // Google Cast SDK + MediaRouter (Chromecast output from player) + NanoHTTPD proxy.
     // S0403: consumed only by src/castEnabled (CastMediaManagerImpl / LocalCastProxyServer). Scoped
     // per-flavor so a flavor mounting castDisabled never packages the proprietary Google Cast SDK.
@@ -1790,8 +2032,9 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     testImplementation("androidx.arch.core:core-testing:2.2.0")
+    testImplementation("androidx.test:core:1.6.1")
     testImplementation("io.mockk:mockk:1.13.9")
-    testImplementation("org.robolectric:robolectric:4.11.1") // For Android framework in JVM tests
+    testImplementation("org.robolectric:robolectric:4.16.1") // For Android framework in JVM tests
     
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
@@ -1808,7 +2051,7 @@ dependencies {
 // S1496: BouncyCastle is never declared here - it arrives transitively through SMBJ. Assert the
 // version instead of forcing it: a force would silently block the security updates that ride along
 // with an SMBJ bump, while an unasserted transitive edge lets the crypto library move unnoticed.
-// Test configurations are excluded on purpose: Robolectric 4.11.1 requests bcprov-jdk18on:1.76 on
+// Test configurations are excluded on purpose: Robolectric 4.16.1 requests bcprov-jdk18on:1.81 on
 // the unit-test classpath, and nothing on a test classpath reaches the APK, so asserting there
 // would break the suite over a version that never ships.
 //

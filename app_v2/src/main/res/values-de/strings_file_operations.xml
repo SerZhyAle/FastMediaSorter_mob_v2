@@ -94,13 +94,11 @@
     <string name="file_already_exists_skip">%1$s (übersprungen - Datei existiert bereits)</string>
     <string name="file_cloud_id_label">Cloud-ID: %1$s</string>
     <string name="file_count">Dateianzahl</string>
-    <string name="file_count_format">%d Dateien</string>
     <string name="file_count_over_1000">&gt;1000 Dateien</string>
     <string name="file_date_label">Datum: %1$s</string>
     <string name="file_deleted">\"%1$s\" gelöscht</string>
     <string name="file_info">Dateiinformationen</string>
     <string name="file_info_copy_path">Pfad kopieren</string>
-    <string name="file_info_copy_path_done">Pfad kopiert</string>
     <string name="file_info_directory_label">Verzeichnis: %1$s</string>
     <string name="file_info_extension_mime_label">Format: %1$s · %2$s</string>
     <string name="file_info_filename_label">Datei: %1$s</string>

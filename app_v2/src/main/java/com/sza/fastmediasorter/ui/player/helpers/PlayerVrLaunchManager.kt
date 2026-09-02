@@ -9,6 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.core.xr.StartVrPlaybackUseCase
 import com.sza.fastmediasorter.core.xr.VrLaunchInput
 import com.sza.fastmediasorter.core.xr.VrLaunchMode
@@ -121,7 +122,7 @@ internal class PlayerVrLaunchManager(
             val request = try {
                 buildStartRequest(currentFile, snapshot, source)
             } catch (error: Throwable) {
-                Timber.e(error, "PlayerVrLaunchManager: failed to prepare launch request")
+                error.errorUnlessCancellation("PlayerVrLaunchManager: failed to prepare launch request")
                 transientBadgeState = TransientBadgeState.Error(R.string.player_vr_badge_error_retry)
                 render()
                 return@launch

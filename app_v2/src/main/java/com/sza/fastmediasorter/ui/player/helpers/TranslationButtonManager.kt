@@ -6,9 +6,9 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.models.TranslationFontFamily
@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.domain.models.TranslationFontSize
 import com.sza.fastmediasorter.domain.models.TranslationSessionSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.dialog.TranslationSettingsDialog
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -90,12 +91,14 @@ class TranslationButtonManager(
             val defaultFontSize = try {
                 TranslationFontSize.valueOf(settings.ocrDefaultFontSize)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 TranslationFontSize.AUTO
             }
             
             val defaultFontFamily = try {
                 TranslationFontFamily.valueOf(settings.ocrDefaultFontFamily)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 TranslationFontFamily.DEFAULT
             }
             

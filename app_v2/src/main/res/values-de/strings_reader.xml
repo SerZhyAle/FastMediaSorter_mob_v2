@@ -61,7 +61,6 @@
     <string name="epub_table_of_contents">Inhaltsverzeichnis</string>
     <string name="epub_text_empty_tts">Im Kapitel wurde kein Text gefunden.</string>
     <string name="text_content_hint">Textinhalt</string>
-    <string name="text_copied">Text in die Zwischenablage kopiert</string>
     <string name="text_editing_large_file">Die Bearbeitung von Dateien mit mehreren Seiten ist nicht möglich.</string>
     <string name="text_editor_action_cancel">Stornieren</string>
     <string name="text_editor_action_save">Speichern</string>

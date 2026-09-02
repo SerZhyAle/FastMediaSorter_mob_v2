@@ -577,6 +577,14 @@
   },
   {
     "surface": "program-nav",
+    "key": "black_screen",
+    "feature": "launcher_action_black_screen",
+    "drawable": "ic_black_screen",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "bluetooth",
     "feature": "app_launch_panel_os_bluetooth",
     "drawable": "ic_bluetooth",
@@ -681,6 +689,14 @@
   },
   {
     "surface": "program-nav",
+    "key": "location",
+    "feature": "app_launch_panel_os_location",
+    "drawable": "ic_location",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "network_monitor",
     "feature": "network_monitor_title",
     "drawable": "ic_network_monitor",
@@ -700,6 +716,14 @@
     "key": "ocr",
     "feature": "app_launch_panel_route_ocr",
     "drawable": "ic_camera_ocr_translate",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "physical_flashlight",
+    "feature": "physical_flashlight_title",
+    "drawable": "ic_camera_flash_on",
     "assetFormat": "vector",
     "public": true
   },
@@ -940,6 +964,14 @@
     "key": "viber",
     "feature": "share_target_title_app",
     "drawable": "ic_send_phone_chat",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "send-to",
+    "key": "watch",
+    "feature": "share_target_title_watch",
+    "drawable": "ic_watch",
     "assetFormat": "vector",
     "public": true
   },
@@ -1299,14 +1331,6 @@
     "surface": "settings-row",
     "key": "rowLauncherModeEnabled",
     "feature": "launcher_settings_enable_title",
-    "drawable": "ic_launcher_mode",
-    "assetFormat": "vector",
-    "public": true
-  },
-  {
-    "surface": "settings-row",
-    "key": "rowLauncherSettings",
-    "feature": "launcher_settings_dialog_title",
     "drawable": "ic_launcher_mode",
     "assetFormat": "vector",
     "public": true

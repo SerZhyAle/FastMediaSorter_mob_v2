@@ -2,7 +2,14 @@ package com.sza.fastmediasorter.domain.model
 
 import com.google.gson.annotations.SerializedName
 
-const val WEAR_PHONE_RESOURCE_SCHEMA_VERSION = 3
+/**
+ * S2130 raised this to 5 for [WearPhoneResourceResponseStatus.NO_RESOURCE_FOR_TYPE].
+ *
+ * Both sides move together, in one change: an unknown enum name deserialises to null through Gson,
+ * so a watch built before the value would read the new status as a malformed page rather than as an
+ * unknown one. There is no installed base to negotiate with - the pair ships as one artifact set.
+ */
+const val WEAR_PHONE_RESOURCE_SCHEMA_VERSION = 5
 
 enum class WearPhoneResourceRequestKind {
     @SerializedName("ROOT")
@@ -12,7 +19,17 @@ enum class WearPhoneResourceRequestKind {
     CHILDREN,
 
     @SerializedName("OPEN")
-    OPEN
+    OPEN,
+
+    /**
+     * S2129: one picture for the item named by `itemToken`.
+     *
+     * The answer is an ordinary page carrying that single item with its `thumbnailBase64` filled, so
+     * this kind needs no response type and no transport of its own. Pictures left the page response
+     * because a page-wide budget spent itself on the first few rows and the rest arrived blank.
+     */
+    @SerializedName("THUMBNAIL")
+    THUMBNAIL
 }
 
 enum class WearPhoneResourceResponseStatus {
@@ -21,6 +38,20 @@ enum class WearPhoneResourceResponseStatus {
 
     @SerializedName("EMPTY")
     EMPTY,
+
+    /**
+     * S2130: the phone has resources to show, and not one of them is configured to hold the kind the
+     * watch asked for.
+     *
+     * Distinct from [EMPTY] because the two are different facts about different things, and only one
+     * of them is actionable: EMPTY says a place the watch can reach currently has no files, this says
+     * no such place exists for this category at all. The owner reported the symptom as "Video opens
+     * empty although the phone has videos" - true on both counts, because the scan never visits a
+     * resource whose configured types exclude video (strategic ADR-5). The watch cannot re-derive
+     * this: it never sees the resource list or its per-resource type configuration.
+     */
+    @SerializedName("NO_RESOURCE_FOR_TYPE")
+    NO_RESOURCE_FOR_TYPE,
 
     @SerializedName("PHONE_UNAVAILABLE")
     PHONE_UNAVAILABLE,

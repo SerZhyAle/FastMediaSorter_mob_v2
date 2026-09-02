@@ -28,6 +28,10 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
     private val stateDao: LauncherStateDao,
 ) : LauncherDesktopRepository {
 
+    // S2301: everything that reasons about a whole section block lives in its own class - see
+    // [LauncherSectionCoordinator]; the contract's section members delegate to it unchanged.
+    private val sectionOps = LauncherSectionCoordinator(db, cellDao)
+
     override fun observeCells(orientation: LauncherOrientation): Flow<List<LauncherCell>> =
         cellDao.observeByOrientation(orientation.name)
             .map { entities -> entities.mapNotNull { it.toDomainOrNull() } }
@@ -66,14 +70,6 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         if (blocked) {
             pushTailDown(candidate)
         }
-        Timber.d(
-            "S1772: seating %dx%d at %d,%d - pushed=%b",
-            candidate.spanW,
-            candidate.spanH,
-            candidate.rowIndex,
-            candidate.colIndex,
-            blocked,
-        )
         return LauncherCellPlacement.Placed(cellDao.upsert(candidate.toEntity()))
     }
 
@@ -83,9 +79,11 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
             rowIndex = candidate.rowIndex,
             spanH = candidate.spanH,
             orientationName = candidate.orientation.name,
+            screenIndex = candidate.screenIndex,
         )
         val blocker = cellDao.findOverlapping(
             orientation = candidate.orientation.name,
+            screenIndex = candidate.screenIndex,
             rowIndex = candidate.rowIndex,
             colIndex = candidate.colIndex,
             spanW = candidate.spanW,
@@ -106,6 +104,7 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
     private suspend fun pushTailDown(candidate: LauncherCell) {
         val band = cellDao.findInRowBand(
             orientation = candidate.orientation.name,
+            screenIndex = candidate.screenIndex,
             fromRow = candidate.rowIndex,
             spanH = candidate.spanH,
         )
@@ -123,6 +122,7 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         )
         cellDao.pushRowsDown(
             orientation = candidate.orientation.name,
+            screenIndex = candidate.screenIndex,
             fromRow = fromRow,
             delta = delta,
         )
@@ -153,6 +153,65 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
             }
         }
 
+    override suspend fun addCellInSection(cell: LauncherCell, columns: Int, sectionKey: String): Long? =
+        withContext(Dispatchers.IO) {
+            if (columns < MIN_SPAN) {
+                Timber.w("Launcher desktop: cannot place a cell on a %d-column grid", columns)
+                return@withContext null
+            }
+            val normalized = cell.normalized()
+            val candidate = normalized.copy(spanW = normalized.spanW.coerceAtMost(columns))
+            db.withTransaction {
+                val header = findSectionHeader(candidate.orientation, candidate.screenIndex, sectionKey)
+                    ?: return@withTransaction null
+                // The real header rows, not [headerRowsFor]: that one answers the straddle rule and is
+                // empty for anything but a tall gadget, which would make every section look like it runs
+                // to the bottom of the desktop and defeat the bounding this placement is built on.
+                // Harmless for the straddle check itself, which is false for any single-row cell.
+                val headerRows = cellDao.sectionHeaderRows(
+                    orientation = candidate.orientation.name,
+                    screenIndex = candidate.screenIndex,
+                    kind = LauncherCellKind.SECTION.name,
+                )
+                val scanSpanW = candidate.spanW.coerceAtMost(columns)
+                val lastCol = columns - scanSpanW
+                val anchor = findSectionFreeAnchor(
+                    candidate = candidate,
+                    header = header,
+                    scanSpanW = scanSpanW,
+                    lastCol = lastCol,
+                    headerRows = headerRows,
+                ) ?: growSection(candidate, header, headerRows)
+                cellDao.upsert(candidate.copy(rowIndex = anchor.row, colIndex = anchor.col).toEntity())
+            }
+        }
+
+    /**
+     * S2018: opens a row at the end of [header]'s section by moving everything below it down.
+     *
+     * The alternative - giving up and letting the caller scan the whole grid - is the defect this
+     * exists to remove: an import of a hundred apps then settles into whichever neighbouring section
+     * still had a gap. A contiguous tail push keeps every other cell's section membership intact,
+     * because that membership is positional and a selective shift would re-parent cells.
+     */
+    private suspend fun growSection(
+        candidate: LauncherCell,
+        header: LauncherCell,
+        headerRows: List<Int>,
+    ): GridAnchor {
+        val startRow = header.rowIndex.coerceAtLeast(0)
+        // Null means this section runs to the bottom, so the empty band under the desktop is its end.
+        val insertRow = LauncherSectionMembership.sectionEndExclusive(startRow, headerRows)
+            ?: cellDao.firstRowBelowAll(candidate.orientation.name, candidate.screenIndex)
+        cellDao.pushRowsDown(
+            candidate.orientation.name,
+            candidate.screenIndex,
+            insertRow,
+            candidate.spanH,
+        )
+        return GridAnchor(insertRow, 0)
+    }
+
     /**
      * Row-major scan for the first anchor whose whole footprint is clear (owner decision, strategic §4
      * item 2).
@@ -164,8 +223,13 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
      * empty desktop terminate on the very first probe.
      */
     private suspend fun findFreeAnchor(candidate: LauncherCell, columns: Int): GridAnchor? {
-        val lastRow = cellDao.firstRowBelowAll(candidate.orientation.name)
-        val headerRows = headerRowsFor(candidate.kind.name, candidate.spanH, candidate.orientation.name)
+        val lastRow = cellDao.firstRowBelowAll(candidate.orientation.name, candidate.screenIndex)
+        val headerRows = headerRowsFor(
+            kindName = candidate.kind.name,
+            spanH = candidate.spanH,
+            orientationName = candidate.orientation.name,
+            screenIndex = candidate.screenIndex,
+        )
         val scanSpanW = candidate.spanW.coerceAtMost(columns)
         val lastCol = if (candidate.kind == LauncherCellKind.SECTION) 0 else columns - scanSpanW
 
@@ -173,13 +237,29 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         if (candidate.kind == LauncherCellKind.SHORTCUT &&
             candidate.target.startsWith(LauncherCellCommand.PREFIX_RESOURCE)
         ) {
-            val sectionAnchor = findSectionFreeAnchor(
-                candidate = candidate,
+            Timber.d("S2057: resource shortcut section-bounded scan entered")
+            val header = findSectionHeader(
+                orientation = candidate.orientation,
+                screenIndex = candidate.screenIndex,
                 sectionKey = LauncherCellCommand.SECTION_RESOURCES,
-                scanSpanW = scanSpanW,
-                lastCol = lastCol,
-                headerRows = headerRows,
             )
+            val sectionAnchor = header?.let {
+                // S2057: headerRowsFor answers the straddle rule and is empty for non-gadgets,
+                // which would make sectionEndExclusive return null and the scan unbounded.
+                // Use the real section header rows, as addCellInSection does.
+                val sectionHeaders = cellDao.sectionHeaderRows(
+                    orientation = candidate.orientation.name,
+                    screenIndex = candidate.screenIndex,
+                    kind = LauncherCellKind.SECTION.name,
+                )
+                findSectionFreeAnchor(
+                    candidate = candidate,
+                    header = it,
+                    scanSpanW = scanSpanW,
+                    lastCol = lastCol,
+                    headerRows = sectionHeaders,
+                )
+            }
             if (sectionAnchor != null) return sectionAnchor
         }
 
@@ -213,6 +293,7 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
             for (col in firstColOfRow(row)..lastCol) {
                 val blocker = cellDao.findOverlapping(
                     orientation = candidate.orientation.name,
+                    screenIndex = candidate.screenIndex,
                     rowIndex = row,
                     colIndex = col,
                     spanW = scanSpanW,
@@ -226,28 +307,41 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
     }
 
     /**
-     * S1760: scans for a free slot inside a specific section [sectionKey], starting at the section's
+     * S1760: the header cell of section [sectionKey] on [orientation], or null when it has none.
+     *
+     * Three target shapes are accepted because a section's identity is its encoded target and older
+     * desktops stored it less strictly than the encoder writes it today.
+     */
+    private suspend fun findSectionHeader(
+        orientation: LauncherOrientation,
+        screenIndex: Int,
+        sectionKey: String,
+    ): LauncherCell? {
+        val sectionHeaderTarget = LauncherCellCommand.Section(sectionKey).encode()
+        return cellDao.sectionHeaders(orientation.name, screenIndex, LauncherCellKind.SECTION.name)
+            .mapNotNull { it.toDomainOrNull() }
+            .firstOrNull {
+                it.target == sectionHeaderTarget ||
+                    it.target.endsWith(":$sectionKey") ||
+                    it.target == sectionKey
+            }
+    }
+
+    /**
+     * S1760: scans for a free slot inside the section headed by [header], starting at the section's
      * header row down to the start of the next section.
      */
     private suspend fun findSectionFreeAnchor(
         candidate: LauncherCell,
-        sectionKey: String,
+        header: LauncherCell,
         scanSpanW: Int,
         lastCol: Int,
         headerRows: List<Int>,
     ): GridAnchor? {
-        val sectionHeaderTarget = LauncherCellCommand.Section(sectionKey).encode()
-        val allCells = cellDao.getAllCellsSync()
-            .filter { it.orientation == candidate.orientation.name }
-            .mapNotNull { it.toDomainOrNull() }
-        val sectionHeader = allCells.firstOrNull {
-            it.kind == LauncherCellKind.SECTION &&
-                (it.target == sectionHeaderTarget || it.target.endsWith(":$sectionKey") || it.target == sectionKey)
-        } ?: return null
-
-        val startRow = sectionHeader.rowIndex.coerceAtLeast(0)
+        val startRow = header.rowIndex.coerceAtLeast(0)
         val endRowExclusive = LauncherSectionMembership.sectionEndExclusive(startRow, headerRows)
-        val maxRow = (endRowExclusive?.minus(1)) ?: cellDao.firstRowBelowAll(candidate.orientation.name)
+        val maxRow = endRowExclusive?.minus(1)
+            ?: cellDao.firstRowBelowAll(candidate.orientation.name, candidate.screenIndex)
 
         // The header owns the head of its own row, so content on that row starts past it.
         return scanRows(
@@ -282,12 +376,12 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         rowIndex: Int,
         spanH: Int,
         orientationName: String,
+        screenIndex: Int,
     ): Boolean = LauncherSectionMembership.coversHeaderRow(
         row = rowIndex,
         spanH = spanH,
-        headerRows = headerRowsFor(kindName, spanH, orientationName),
-    ).also { covers ->
-    }
+        headerRows = headerRowsFor(kindName, spanH, orientationName, screenIndex),
+    )
 
     /**
      * The header rows the straddle rule must respect, or an empty list when the rule cannot apply.
@@ -296,13 +390,72 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
      * and only a cell taller than one row can span a boundary, so every shortcut placement - the common
      * case by far - costs no round trip at all.
      */
-    private suspend fun headerRowsFor(kindName: String, spanH: Int, orientationName: String): List<Int> {
+    private suspend fun headerRowsFor(
+        kindName: String,
+        spanH: Int,
+        orientationName: String,
+        screenIndex: Int,
+    ): List<Int> {
         if (kindName != LauncherCellKind.GADGET.name || spanH <= MIN_STRADDLING_SPAN_H) return emptyList()
-        return cellDao.sectionHeaderRows(orientationName, LauncherCellKind.SECTION.name)
+        return cellDao.sectionHeaderRows(orientationName, screenIndex, LauncherCellKind.SECTION.name)
     }
 
     override suspend fun removeCell(id: Long) = withContext(Dispatchers.IO) {
         cellDao.deleteById(id)
+    }
+
+    override suspend fun moveCellToScreen(
+        orientation: LauncherOrientation,
+        cellId: Long,
+        screenIndex: Int,
+        columns: Int,
+    ): Boolean = withContext(Dispatchers.IO) {
+        if (columns < MIN_SPAN || screenIndex < 0) {
+            Timber.w(
+                "Launcher desktop: cannot move cell %d to screen %d on a %d-column grid",
+                cellId,
+                screenIndex,
+                columns,
+            )
+            return@withContext false
+        }
+        // One transaction for the same reason a placement is one: a block half-written across two
+        // screens is an arrangement no rule can restore, and a reader between the two writes would see
+        // the section without its header.
+        db.withTransaction {
+            val source = cellDao.getById(cellId) ?: return@withTransaction false
+            if (source.orientation != orientation.name || source.screenIndex == screenIndex) {
+                return@withTransaction false
+            }
+            if (source.kind == SECTION_KIND) {
+                sectionOps.moveSectionBlockToScreen(orientation, source, screenIndex)
+            } else {
+                moveSingleCellToScreen(source, screenIndex, columns)
+            }
+        }
+    }
+
+    /** Seats one cell on the target screen's first free anchor and writes both changes together. */
+    private suspend fun moveSingleCellToScreen(
+        source: LauncherCellEntity,
+        screenIndex: Int,
+        columns: Int,
+    ): Boolean {
+        val anchor = source.toDomainOrNull()
+            ?.copy(screenIndex = screenIndex)
+            ?.let { findFreeAnchor(it, columns) }
+            ?: return false
+        cellDao.update(
+            source.copy(screenIndex = screenIndex, rowIndex = anchor.row, colIndex = anchor.col),
+        )
+        Timber.i(
+            "Launcher desktop: moved cell %d to screen %d at %d,%d",
+            source.id,
+            screenIndex,
+            anchor.row,
+            anchor.col,
+        )
+        return true
     }
 
     override suspend fun normalizeSectionSpans() {
@@ -325,6 +478,7 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
                 // cell's squares block the resize, keeping the "cells never overlap" invariant.
                 val blocker = cellDao.findOverlapping(
                     orientation = source.orientation,
+                    screenIndex = source.screenIndex,
                     rowIndex = source.rowIndex,
                     colIndex = source.colIndex,
                     spanW = safeW,
@@ -339,6 +493,7 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
                     rowIndex = source.rowIndex,
                     spanH = safeH,
                     orientationName = source.orientation,
+                    screenIndex = source.screenIndex,
                 )
                 if (blocker != null || straddlesHeader) return@withTransaction false
                 cellDao.update(source.copy(spanW = safeW, spanH = safeH))
@@ -366,47 +521,18 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         orientation: LauncherOrientation,
         sectionCellId: Long,
         moveUp: Boolean,
-    ): Boolean = withContext(Dispatchers.IO) {
-        db.withTransaction {
-            val entities = cellDao.getAllCellsSync().filter { it.orientation == orientation.name }
-            val cells = entities.mapNotNull { it.toDomainOrNull() }
-            val sections = LauncherSectionMembership.sectionsInOrder(cells)
-            val targetIndex = sections.indexOfFirst { it.id == sectionCellId }
-            if (targetIndex == -1) return@withTransaction false
+    ): Boolean = sectionOps.swapSectionBlock(orientation, sectionCellId, moveUp)
 
-            val adjacentIndex = if (moveUp) targetIndex - 1 else targetIndex + 1
-            if (adjacentIndex !in sections.indices) return@withTransaction false
+    override suspend fun removeSection(
+        orientation: LauncherOrientation,
+        sectionCellId: Long,
+    ): List<String> = sectionOps.removeSection(orientation, sectionCellId)
 
-            val sectionA = if (moveUp) sections[adjacentIndex] else sections[targetIndex]
-            val sectionB = if (moveUp) sections[targetIndex] else sections[adjacentIndex]
-
-            val blockAEntities = entities.filter { entity ->
-                val domain = entity.toDomainOrNull() ?: return@filter false
-                LauncherSectionMembership.ownerOf(domain, sections)?.id == sectionA.id
-            }
-            val blockBEntities = entities.filter { entity ->
-                val domain = entity.toDomainOrNull() ?: return@filter false
-                LauncherSectionMembership.ownerOf(domain, sections)?.id == sectionB.id
-            }
-
-            if (blockAEntities.isEmpty() || blockBEntities.isEmpty()) return@withTransaction false
-
-            val minRowA = sectionA.rowIndex.coerceAtLeast(0)
-            val minRowB = sectionB.rowIndex.coerceAtLeast(0)
-            val maxRowBEnd = blockBEntities.maxOf { it.rowIndex + it.spanH }
-
-            val heightA = minRowB - minRowA
-            val heightB = maxRowBEnd - minRowB
-
-            blockAEntities.forEach { entity ->
-                cellDao.update(entity.copy(rowIndex = entity.rowIndex + heightB))
-            }
-            blockBEntities.forEach { entity ->
-                cellDao.update(entity.copy(rowIndex = entity.rowIndex - heightA))
-            }
-            true
-        }
-    }
+    override suspend fun resortSection(
+        orientation: LauncherOrientation,
+        sectionCellId: Long,
+        columns: Int,
+    ): Boolean = sectionOps.resortSection(orientation, sectionCellId, columns)
 
     override suspend fun moveCell(id: Long, rowIndex: Int, colIndex: Int): Boolean =
         withContext(Dispatchers.IO) {
@@ -428,10 +554,12 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
                     rowIndex = targetRow,
                     spanH = source.spanH,
                     orientationName = source.orientation,
+                    screenIndex = source.screenIndex,
                 )
                 if (straddlesHeader) return@withTransaction false
                 val blocker = cellDao.findOverlapping(
                     orientation = source.orientation,
+                    screenIndex = source.screenIndex,
                     rowIndex = targetRow,
                     colIndex = targetCol,
                     spanW = source.spanW,
@@ -490,14 +618,16 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun clearAll() {
-        withContext(Dispatchers.IO) {
-            // One transaction: a crash between the two deletes would otherwise leave an empty desktop
-            // still flagged as seeded, and the starter set would never come back.
-            db.withTransaction {
-                cellDao.deleteAll()
-                stateDao.deleteAll()
-            }
+    override suspend fun clearAll(): List<String> = withContext(Dispatchers.IO) {
+        // One transaction: a crash between the two deletes would otherwise leave an empty desktop
+        // still flagged as seeded, and the starter set would never come back. S2217: the read shares
+        // that transaction so no cell can slip in between being reported as deleted and vanishing -
+        // its instance data would then survive the reset with nothing left pointing at it.
+        db.withTransaction {
+            val targets = cellDao.getAllCellsSync().map { it.target }
+            cellDao.deleteAll()
+            stateDao.deleteAll()
+            targets
         }
     }
 
@@ -516,80 +646,10 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         }
     }
 
-    /**
-     * Forces a cell into the shape the overlap invariant assumes before it can ever reach the table.
-     *
-     * A zero or negative span is not merely odd - it makes the stored rectangle empty, and an empty
-     * rectangle intersects nothing, so [LauncherCellDao.findOverlapping] would report that square free
-     * forever and let a second cell land straight on top of it. The renderer, meanwhile, floors every
-     * span at 1 for display, so the two would visibly overlap while the database swore they could not.
-     * Negative indices split the same two views apart the same way. The grid's right edge is deliberately
-     * NOT enforced here: the column count belongs to the current screen, not to the stored desktop.
-     *
-     * S1642: a section header is forced to column 0 of its own row at exactly
-     * [LauncherSectionMembership.HEADER_SPAN_W] columns. The span is pinned because one number has to
-     * describe a header everywhere - the renderer, the free-square sweep and this table - and the column
-     * because a header opens its row: the section's own content fills the squares to its right (strategic
-     * §2.2), and a header sitting anywhere else would leave a gap ahead of it that belongs to no one.
-     */
-    private fun LauncherCell.normalized(): LauncherCell {
-        val isHeader = kind == LauncherCellKind.SECTION
-        return copy(
-            rowIndex = rowIndex.coerceAtLeast(0),
-            colIndex = if (isHeader) 0 else colIndex.coerceAtLeast(0),
-            spanW = if (isHeader) LauncherSectionMembership.HEADER_SPAN_W else spanW.coerceAtLeast(MIN_SPAN),
-            spanH = spanH.coerceAtLeast(MIN_SPAN),
-        )
-    }
-
-    private fun LauncherCell.toEntity(): LauncherCellEntity = LauncherCellEntity(
-        id = id,
-        orientation = orientation.name,
-        rowIndex = rowIndex,
-        colIndex = colIndex,
-        spanW = spanW,
-        spanH = spanH,
-        kind = kind.name,
-        target = target,
-        labelOverride = labelOverride,
-        addedAt = addedAt,
-    )
-
-    /** A row written by a newer build (unknown orientation/kind) is skipped, never a crash. */
-    private fun LauncherCellEntity.toDomainOrNull(): LauncherCell? {
-        val orientationValue = LauncherOrientation.entries.firstOrNull { it.name == orientation }
-        val kindValue = LauncherCellKind.entries.firstOrNull { it.name == kind }
-        if (orientationValue == null || kindValue == null) {
-            Timber.w("Launcher desktop: skipping cell %d with unknown orientation/kind", id)
-            return null
-        }
-        return LauncherCell(
-            id = id,
-            orientation = orientationValue,
-            rowIndex = rowIndex,
-            colIndex = colIndex,
-            spanW = spanW,
-            spanH = spanH,
-            kind = kindValue,
-            target = target,
-            labelOverride = labelOverride,
-            addedAt = addedAt,
-        )
-    }
-
-    private fun LauncherStateEntity.toDomain(): LauncherDesktopState = LauncherDesktopState(
-        seededPortrait = seededPortrait,
-        seededLandscape = seededLandscape,
-        columnsPortrait = columnsPortrait,
-        columnsLandscape = columnsLandscape,
-    )
-
     /** A free square the scan settled on: where a cell's footprint starts. */
     private data class GridAnchor(val row: Int, val col: Int)
 
     private companion object {
-        /** A cell always covers at least its own square; see [normalized]. */
-        const val MIN_SPAN = 1
 
         /** A one-row cell cannot span a boundary, so it can never straddle a header; see [coversHeaderRow]. */
         const val MIN_STRADDLING_SPAN_H = 1

@@ -1,4 +1,4 @@
-﻿# Master Build and Push Script
+# Master Build and Push Script
 # Builds ALL flavors (Standard, Lite, Photos, Legacy, VR, noLegal) in both Debug and Release modes
 # Also builds Wear OS (Debug + Release)
 # Copies artifacts to DOWNLOADS folder
@@ -24,9 +24,11 @@ $maxRetries = 2
 $retryCount = 0
 $buildSuccess = $false
 . "$PSScriptRoot\..\utils\build-version-stamp.ps1"
+. "$PSScriptRoot\..\utils\project-paths.ps1"
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
-Enter-BuildLockOrExit -Reason "build-and-push-all.ps1"
+# S2109: builds every flavor AND the watch module, so it genuinely holds both build domains.
+Enter-BuildLockOrExit -Reason "build-and-push-all.ps1" -Domain @('Build.Phone', 'Build.Wear')
 try {
 
 $stamp = Get-BuildVersionStamp
@@ -51,8 +53,8 @@ while (-not $buildSuccess -and $retryCount -lt $maxRetries) {
         # compilation of this many flavors at once - see agent-memory project_build_gotchas.md
         # #13. Capping concurrency here trades some wall-clock for not crashing the daemon.
         & $gradlew `
-            assembleStandardDebug assembleLiteDebug assemblePhotosDebug assembleLegacyDebug assembleVrDebug `
-            assembleStandardRelease assembleLiteRelease assemblePhotosRelease assembleLegacyRelease assembleVrRelease `
+            :app_v2:assembleStandardDebug :app_v2:assembleLiteDebug :app_v2:assemblePhotosDebug :app_v2:assembleLegacyDebug :app_v2:assembleVrDebug `
+            :app_v2:assembleStandardRelease :app_v2:assembleLiteRelease :app_v2:assemblePhotosRelease :app_v2:assembleLegacyRelease :app_v2:assembleVrRelease `
             "-Pchaquopy.enabled=false" `
             "-Pfms.versionCode=$($stamp.AppVersionCode)" `
             "-Pfms.versionName=$($stamp.VersionName)" `
@@ -65,9 +67,13 @@ while (-not $buildSuccess -and $retryCount -lt $maxRetries) {
             throw "Pass 1 (non-noLegal) failed with exit code $pass1Exit"
         }
 
-        Write-Host "  Pass 1b: Wear OS..." -ForegroundColor DarkGray
+        # S2090: the watch task names carry a flavor segment now. Only the store variant is built here -
+        # this script mirrors artifacts to Drive and the tc folder, and the sideload watch variant is
+        # built on request rather than on every batch run (ADR-6). The copy loop below still scans both,
+        # so a noLegal build made by hand is still picked up and mirrored under its own name.
+        Write-Host "  Pass 1b: Wear OS (standard)..." -ForegroundColor DarkGray
         & $gradlew `
-            :wear:assembleDebug :wear:assembleRelease `
+            :wear:assembleStandardDebug :wear:assembleStandardRelease `
             "-Pchaquopy.enabled=false" `
             "-Pfms.versionCode=$($stamp.WearVersionCode)" `
             "-Pfms.versionName=$($stamp.VersionName)" `
@@ -81,7 +87,7 @@ while (-not $buildSuccess -and $retryCount -lt $maxRetries) {
 
         Write-Host "  Pass 2: noLegal flavor..." -ForegroundColor DarkGray
         & $gradlew `
-            assembleNoLegalDebug assembleNoLegalRelease `
+            :app_v2:assembleNoLegalDebug :app_v2:assembleNoLegalRelease `
             "-Pchaquopy.enabled=true" `
             "-Pfms.versionCode=$($stamp.AppVersionCode)" `
             "-Pfms.versionName=$($stamp.VersionName)" `
@@ -111,7 +117,7 @@ while (-not $buildSuccess -and $retryCount -lt $maxRetries) {
 
 }
 finally {
-    Exit-AgentLock -Name Build
+    Exit-AgentLock -Name 'Build' -Domains @('Build.Phone', 'Build.Wear')
 }
 
 if (-not $buildSuccess) {
@@ -129,30 +135,39 @@ if (!(Test-Path -Path $downloadsDir)) {
 $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 $journalPath = "$downloadsDir\builds_versions.lst"
 
-# Find all generated APKs
-$apkFiles = Get-ChildItem -Path "$projectRoot\app_v2\build\outputs\apk" -Filter "*.apk" -Recurse
+# Resolve one artifact per variant this script actually built, rather than walking the whole apk
+# tree. The walk produced a destination name from the two parent directory names, so every output
+# of a split variant mapped to the SAME name and each copy silently overwrote the last, leaving
+# whichever the enumeration happened to reach last (S1972 §2.1).
+. "$PSScriptRoot\..\utils\find-build-artifact.ps1"
 
-foreach ($apk in $apkFiles) {
-    # Determine flavor/variant from path or name (e.g. ...\standard\debug\FastMediaSorter_debug.apk)
-    # Generic unique name generation
-    
-    # We want: FastMediaSorter_standard_debug.apk
-    # Current structure example: ...\standard\debug\FastMediaSorter_debug.apk
-    
-    $parentDir = $apk.Directory.Name # e.g. "debug" or "release"
-    $grandParentDir = $apk.Directory.Parent.Name # e.g. "standard", "lite"
-    
-    $flavor = $grandParentDir
-    $buildType = $parentDir
-    
-    if ($flavor -match "apk") { 
-        # Fallback if structure is different
-        $newName = $apk.Name
+$builtVariants = @(
+    @{ Flavor = 'standard'; BuildType = 'debug' }
+    @{ Flavor = 'standard'; BuildType = 'release' }
+    @{ Flavor = 'lite'; BuildType = 'debug' }
+    @{ Flavor = 'lite'; BuildType = 'release' }
+    @{ Flavor = 'photos'; BuildType = 'debug' }
+    @{ Flavor = 'photos'; BuildType = 'release' }
+    @{ Flavor = 'legacy'; BuildType = 'debug' }
+    @{ Flavor = 'legacy'; BuildType = 'release' }
+    @{ Flavor = 'vr'; BuildType = 'debug' }
+    @{ Flavor = 'vr'; BuildType = 'release' }
+    @{ Flavor = 'noLegal'; BuildType = 'debug' }
+    @{ Flavor = 'noLegal'; BuildType = 'release' }
+)
+
+foreach ($variant in $builtVariants) {
+    $flavor = $variant.Flavor
+    $buildType = $variant.BuildType
+    $variantDir = "$projectRoot\app_v2\build\outputs\apk\$flavor\$buildType"
+
+    $apk = Find-BuildArtifact -Dir $variantDir
+    if (-not $apk) {
+        Write-Host "Skipped: $flavor $buildType - no artifact in $variantDir" -ForegroundColor Yellow
+        continue
     }
-    else {
-        $newName = "FastMediaSorter_${flavor}_${buildType}.apk"
-    }
-    
+
+    $newName = "FastMediaSorter_${flavor}_${buildType}.apk"
     $destPath = "$downloadsDir\$newName"
     Copy-Item -Path $apk.FullName -Destination $destPath -Force
     Write-Host "Copied: $newName" -ForegroundColor Gray
@@ -161,37 +176,7 @@ foreach ($apk in $apkFiles) {
     $logEntry = "$timestamp | $flavor-$buildType-batch | $newName"
     Add-Content -Path $journalPath -Value $logEntry
     
-    # Copy raw APK to Google Drive AND create password-protected ZIP.
-    # Both raw .apk and .zip (password=1) must live on GD:
-    #   - raw .apk for recipients with normal security
-    #   - .zip for recipients whose security policy blocks .apk downloads
-    $gdDir = "c:\GD\WORK\FastMediaSorter"
-    if (!(Test-Path -Path $gdDir)) {
-        New-Item -ItemType Directory -Path $gdDir | Out-Null
-    }
-
-    Copy-Item -Path $destPath -Destination "$gdDir\$newName" -Force
-    Write-Host "  -> Google Drive (raw): $newName" -ForegroundColor Gray
-
-    $zipName = [System.IO.Path]::ChangeExtension($newName, ".zip")
-    $zipPath = "$gdDir\$zipName"
-
-    # Use 7-Zip to create password-protected archive
-    $7zipPath = "C:\Program Files\7-Zip\7z.exe"
-    if (Test-Path -Path $7zipPath) {
-        & $7zipPath a -tzip -p1 "$zipPath" "$destPath" | Out-Null
-        # Write-Host "  -> Google Drive: $zipName (password: 1)" -ForegroundColor Cyan
-    }
-    else {
-        Write-Host "  -> Warning: 7-Zip not found. ZIP step skipped (raw APK still copied)." -ForegroundColor Yellow
-    }
-
-    # Copy APK to tc folder
-    $tcDir = "c:\GD\tc\SZA\_APP"
-    if (!(Test-Path -Path $tcDir)) {
-        New-Item -ItemType Directory -Path $tcDir | Out-Null
-    }
-    Copy-Item -Path $destPath -Destination "$tcDir\$newName" -Force
+    & "$PSScriptRoot\..\utils\publish-artifact.ps1" -Path $destPath -Name $newName
 }
 
 Write-Host "`nArtifacts copied to $downloadsDir" -ForegroundColor Green
@@ -200,52 +185,36 @@ Write-Host "`nArtifacts copied to $downloadsDir" -ForegroundColor Green
 Write-Host "`nProcessing Wear OS artifacts..." -ForegroundColor Cyan
 $wearApkRoot = "$projectRoot\wear\build\outputs\apk"
 if (Test-Path $wearApkRoot) {
+    # S2090: the watch grew a flavor dimension, so its outputs sit one directory deeper. The store
+    # variant keeps the historic destination name - callers and the Drive mirror address it by that
+    # name - and only the sideload variant carries a flavor segment in what it is copied to.
+    foreach ($wearFlavor in @("standard", "noLegal")) {
     foreach ($buildType in @("debug", "release")) {
-        $wearApkDir = "$wearApkRoot\$buildType"
+        $wearApkDir = "$wearApkRoot\$wearFlavor\$buildType"
         if (-not (Test-Path $wearApkDir)) { continue }
 
-        # Prefer output-metadata.json; fall back to newest .apk
-        $apkPath = $null
-        $metaPath = "$wearApkDir\output-metadata.json"
-        if (Test-Path $metaPath) {
-            try {
-                $meta = Get-Content $metaPath -Raw | ConvertFrom-Json
-                if ($meta.elements -and $meta.elements.Count -gt 0) {
-                    $apkPath = Join-Path $wearApkDir $meta.elements[0].outputFile
-                }
-            } catch { }
-        }
-        if (-not $apkPath -or -not (Test-Path $apkPath)) {
-            $latest = Get-ChildItem $wearApkDir -Filter *.apk -ErrorAction SilentlyContinue |
-                      Sort-Object LastWriteTime -Descending | Select-Object -First 1
-            if ($latest) { $apkPath = $latest.FullName }
-        }
+        # S1972: one resolver for every builder - it selects by ABI from output-metadata.json
+        # and refuses to guess, where this block used to take element 0 and then the newest file.
+        . "$PSScriptRoot\..\utils\find-build-artifact.ps1"
+        $resolvedArtifact = Find-BuildArtifact -Dir $wearApkDir
+        $apkPath = if ($resolvedArtifact) { $resolvedArtifact.FullName } else { $null }
 
         if (-not $apkPath -or -not (Test-Path $apkPath)) {
-            Write-Host "  Warning: Wear $buildType APK not found, skipping." -ForegroundColor Yellow
+            Write-Host "  Warning: Wear $wearFlavor $buildType APK not found, skipping." -ForegroundColor Yellow
             continue
         }
 
-        $wearDest = "$downloadsDir\FastMediaSorter_wear_$buildType.apk"
+        $wearSuffix = if ($wearFlavor -eq 'standard') { '' } else { "_$wearFlavor" }
+        $wearBaseName = "FastMediaSorter_wear${wearSuffix}_$buildType"
+        $wearDest = "$downloadsDir\$wearBaseName.apk"
         Copy-Item -Path $apkPath -Destination $wearDest -Force
-        Write-Host "Copied: FastMediaSorter_wear_$buildType.apk" -ForegroundColor Gray
+        Write-Host "Copied: $wearBaseName.apk" -ForegroundColor Gray
 
-        $logEntry = "$timestamp | wear-$buildType-batch | FastMediaSorter_wear_$buildType.apk"
+        $logEntry = "$timestamp | wear-$wearFlavor-$buildType-batch | $wearBaseName.apk"
         Add-Content -Path $journalPath -Value $logEntry
 
-        # Copy raw APK to Google Drive AND create password-protected ZIP.
-        $gdDir = "c:\GD\WORK\FastMediaSorter"
-        if (!(Test-Path $gdDir)) { New-Item -ItemType Directory -Path $gdDir | Out-Null }
-        Copy-Item -Path $wearDest -Destination "$gdDir\FastMediaSorter_wear_$buildType.apk" -Force
-        $7zipPath = "C:\Program Files\7-Zip\7z.exe"
-        if (Test-Path $7zipPath) {
-            & $7zipPath a -tzip -p1 "$gdDir\FastMediaSorter_wear_$buildType.zip" "$wearDest" | Out-Null
-        }
-
-        # Copy to tc folder
-        $tcDir = "c:\GD\tc\SZA\_APP"
-        if (!(Test-Path $tcDir)) { New-Item -ItemType Directory -Path $tcDir | Out-Null }
-        Copy-Item -Path $wearDest -Destination "$tcDir\FastMediaSorter_wear_$buildType.apk" -Force
+        & "$PSScriptRoot\..\utils\publish-artifact.ps1" -Path $wearDest -Name "$wearBaseName.apk"
+    }
     }
 } else {
     Write-Host "  Warning: Wear build output not found at $wearApkRoot" -ForegroundColor Yellow

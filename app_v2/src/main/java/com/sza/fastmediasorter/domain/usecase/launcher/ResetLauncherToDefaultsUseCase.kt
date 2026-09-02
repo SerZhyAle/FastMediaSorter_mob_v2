@@ -1,10 +1,13 @@
 package com.sza.fastmediasorter.domain.usecase.launcher
 
+import com.sza.fastmediasorter.domain.launcher.ConfiguredWidgetInstanceCleaner
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.launcher.LauncherSettings
 import com.sza.fastmediasorter.domain.repository.InstalledAppsRepository
 import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
 import com.sza.fastmediasorter.domain.repository.LauncherJournalRepository
 import com.sza.fastmediasorter.domain.repository.LauncherPinsRepository
+import com.sza.fastmediasorter.domain.repository.LauncherShortcutSyncRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -25,6 +28,12 @@ import javax.inject.Inject
  * 4. The launch statistics that feed the "most used" order.
  * 5. The launcher-scoped fields of [AppSettings] - and only those.
  * 6. The private copy of a user-picked wallpaper image.
+ * 7. S2217: the stored instances behind configurable widget cells, cleared through
+ *    [ConfiguredWidgetInstanceCleaner] - the gadget codec lives in the launcher flavor source set,
+ *    so the delete hands its removed rows' targets to a seam instead of reading them here.
+ * 8. S2330: the shortcut-sync baseline - the set of routes the desktop has already accounted for.
+ *    Cleared to absent rather than to empty, so the re-seeded desktop is adopted silently the way a
+ *    fresh install adopts it, instead of every launchable route reading as newly enabled.
  *
  * A ticket that introduces a new launcher-owned store must extend this list, otherwise the reset goes
  * silently incomplete.
@@ -33,6 +42,12 @@ import javax.inject.Inject
  * switching it off here would strand the user inside a dialog of a mode that no longer exists), the
  * system HOME role, and the cached list of installed apps (a rebuildable mirror of the device, not
  * launcher state).
+ *
+ * S2213: also outside it, and this one must stay outside - the place the user last picked for a weather
+ * gadget. The reset clears the desktop and the launcher re-seeds the starter set, so a weather cell comes
+ * back without a place of its own; clearing the remembered one too would return an empty block and make
+ * the user search for his city again after every reset. The desktop layout is what the reset restores -
+ * a choice the user made is not the layout.
  *
  * S1613: also outside it, and this one must stay outside - the platform's record of which shortcuts other
  * apps pinned to this launcher. That record is precisely what the desktop seed reads back to restore them
@@ -56,16 +71,24 @@ class ResetLauncherToDefaultsUseCase @Inject constructor(
     private val installedApps: InstalledAppsRepository,
     private val settings: SettingsRepository,
     private val storeLauncherWallpaperUseCase: StoreLauncherWallpaperUseCase,
+    private val configuredWidgetInstances: ConfiguredWidgetInstanceCleaner,
+    private val shortcutSyncBaseline: LauncherShortcutSyncRepository,
 ) {
 
     /** Returns whether the reset completed, so the caller can tell the user it did not happen. */
     suspend operator fun invoke(densityFactor: Float): Boolean = withContext(Dispatchers.IO) {
-        Timber.d("S1886: launcher reset requested at density %s", densityFactor)
         runCatching {
-            desktop.clearAll()
+            // S2217: the deleted rows are the only record of which configured widget instances
+            // existed - their targets come back from the delete and go straight through the seam,
+            // before the rest of the inventory clears anything else.
+            val clearedTargets = desktop.clearAll()
+            clearedTargets.forEach { configuredWidgetInstances.clearInstanceOf(it) }
+            Timber.d("S2217: launcher reset cleared %d configured widget instance targets", clearedTargets.size)
             pins.clearPins()
             journal.clearJournal()
             installedApps.clearLaunchStats()
+            shortcutSyncBaseline.clearSyncedRoutes()
+            Timber.d("S2330: launcher reset cleared the shortcut sync baseline")
 
             restoreLauncherSettings(densityFactor)
             storeLauncherWallpaperUseCase.clear()
@@ -77,33 +100,22 @@ class ResetLauncherToDefaultsUseCase @Inject constructor(
     }
 
     /**
-     * Copies back the launcher fields one by one instead of replacing the whole settings object,
-     * so nothing outside the launcher is touched.
+     * Replaces the launcher group with its defaults, leaving every other setting untouched.
+     *
+     * S2300: the group is one nested field, so the reset is a single assignment - it can no longer fall
+     * behind by missing a launcher setting added later.
      */
     private suspend fun restoreLauncherSettings(densityFactor: Float) {
-        val defaults = AppSettings().copy(launcherDensityFactor = densityFactor)
+        val defaults = LauncherSettings(densityFactor = densityFactor)
         settings.updateSettings { current ->
+            // S1401/S2213: the all-apps order and the remembered weather place survive a desktop reset -
+            // the first is not desktop state, the second must outlive the cell that displays it.
             current.copy(
-                launcherDensityFactor = defaults.launcherDensityFactor,
-                launcherTaskbarShowRecents = defaults.launcherTaskbarShowRecents,
-                launcherTaskbarShowPinned = defaults.launcherTaskbarShowPinned,
-                launcherTaskbarShowTray = defaults.launcherTaskbarShowTray,
-                launcherReplaceSystemStatusArea = defaults.launcherReplaceSystemStatusArea,
-                launcherTopStatusStripMode = defaults.launcherTopStatusStripMode,
-                launcherForeignNotificationsEnabled = defaults.launcherForeignNotificationsEnabled,
-                launcherTaskbarPlacement = defaults.launcherTaskbarPlacement,
-                launcherTrayShowClock = defaults.launcherTrayShowClock,
-                launcherTrayShowBluetooth = defaults.launcherTrayShowBluetooth,
-                launcherTrayShowSim1 = defaults.launcherTrayShowSim1,
-                launcherTrayShowSim2 = defaults.launcherTrayShowSim2,
-                launcherTrayShowNetwork = defaults.launcherTrayShowNetwork,
-                launcherTrayShowBattery = defaults.launcherTrayShowBattery,
-                launcherRotationHintShown = defaults.launcherRotationHintShown,
-                launcherDesktopLocked = defaults.launcherDesktopLocked,
-                launcherWallpaperMode = defaults.launcherWallpaperMode,
-                launcherWallpaperImagePath = defaults.launcherWallpaperImagePath,
-                launcherScreenBlackoutTimeoutSeconds = defaults.launcherScreenBlackoutTimeoutSeconds,
-                launcherWidgetBackdropAlpha = defaults.launcherWidgetBackdropAlpha,
+                launcher = defaults.copy(
+                    allAppsSortOrder = current.launcher.allAppsSortOrder,
+                    allAppsSortDescending = current.launcher.allAppsSortDescending,
+                    weatherLastLocation = current.launcher.weatherLastLocation,
+                ),
             )
         }
     }

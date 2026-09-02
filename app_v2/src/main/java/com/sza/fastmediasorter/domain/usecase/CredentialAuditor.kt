@@ -94,7 +94,7 @@ class CredentialAuditor @Inject constructor(
             val ids = report.entries
                 .filter { it.status == CredentialStatus.ORPHANED }
                 .joinToString { it.credentialId }
-            Timber.w(
+            Timber.d(
                 "CredentialAuditor: ${report.orphanedCount}/${report.totalCount} " +
                     "credentials are ORPHANED (no associated resources). IDs: $ids"
             )

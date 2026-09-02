@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.widget.CameraQuickCaptureWidgetProvider
 import com.sza.fastmediasorter.widget.CaptureOcrPanelWidgetProvider
 import com.sza.fastmediasorter.widget.ContinueReadingWidgetProvider
 import com.sza.fastmediasorter.widget.FavoritesWidgetProvider
+import com.sza.fastmediasorter.widget.FrontFlashlightWidgetProvider
 import com.sza.fastmediasorter.widget.GameLaunchWidgetProvider
 import com.sza.fastmediasorter.widget.QuickAudioRecorderWidgetProvider
 import com.sza.fastmediasorter.widget.RandomMusicWidgetProvider
@@ -199,6 +200,16 @@ class HomeWidgetCatalog @Inject constructor(
             iconRes = R.drawable.ic_widget_scheduled_tasks,
             descriptionRes = R.string.widget_scheduled_tasks_description,
             settingGate = { it.enableScheduledOperations },
+        ),
+        HomeWidgetEntry(
+            providerClass = FrontFlashlightWidgetProvider::class.java,
+            gadgetKey = "front_flashlight",
+            gadgetSpanW = 1,
+            gadgetSpanH = 1,
+            labelRes = R.string.widget_front_flashlight_label,
+            iconRes = R.drawable.ic_widget_front_flashlight_accent,
+            descriptionRes = R.string.widget_front_flashlight_description,
+            settingGate = { it.frontFlashlightEnabled },
         ),
         HomeWidgetEntry(
             // S1916: removed via manifest tools:node="remove" in lite/photos (SUPPORT_STREAMS=false);

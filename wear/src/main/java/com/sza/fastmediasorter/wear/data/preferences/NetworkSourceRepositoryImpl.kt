@@ -80,7 +80,6 @@ class NetworkSourceRepositoryImpl(
         try {
             val sources = sourcesFlow.value.toMutableList()
             val index = NetworkSourceMerge.indexOfMatch(sources, source)
-            Timber.d("S1734: upsert ${source.name} basePath=${source.basePath} matchIndex=$index")
             if (index != -1) {
                 // S1734: the incoming id is kept, not replaced by the stored one. Preserving the old
                 // id was what made the discrepancy permanent - a row matched by the share tuple kept

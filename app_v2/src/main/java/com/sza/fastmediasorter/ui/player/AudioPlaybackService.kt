@@ -45,6 +45,7 @@ import com.sza.fastmediasorter.core.playback.resilience.StreamAudioFailure
 import com.sza.fastmediasorter.core.playback.resilience.StreamFailureClass
 import com.sza.fastmediasorter.core.playback.resilience.StreamServiceRetryDecision
 import com.sza.fastmediasorter.core.playback.resilience.StreamServiceRetryPolicy
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.stats.StatsEvent
@@ -639,7 +640,7 @@ class AudioPlaybackService : MediaSessionService() {
                 try {
                     playbackPositionRepository.savePosition(path, finalPos, finalDur)
                 } catch (e: Exception) {
-                    Timber.e(e, "AudioPlaybackService: onDestroy save position failed")
+                    e.errorUnlessCancellation("AudioPlaybackService: onDestroy save position failed")
                 } finally {
                     finalSaveScope.cancel()
                 }

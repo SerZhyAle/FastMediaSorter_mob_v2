@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.domain.model.MediaExtensions
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.WEAR_FILE_TRANSFER_MAX_BYTES
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceRequest
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceResponseStatus
 import com.sza.fastmediasorter.domain.repository.MediaStoreRepository
@@ -11,7 +12,6 @@ import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import timber.log.Timber
 import java.io.File
-import java.io.InputStream
 import javax.inject.Inject
 
 /**
@@ -26,7 +26,6 @@ class OpenPhoneResourceChannelUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke(request: WearPhoneResourceRequest): PhoneResourceChannel {
-        Timber.d("S1697: phone open request itemToken=%s", request.itemToken)
         val item = request.itemToken?.let { PhoneResourceToken.parse(it) }
             ?: return PhoneResourceChannel.Rejected(WearPhoneResourceResponseStatus.NOT_FOUND)
 
@@ -57,15 +56,13 @@ class OpenPhoneResourceChannelUseCase @Inject constructor(
             !readable -> PhoneResourceChannel.Rejected(WearPhoneResourceResponseStatus.NOT_FOUND)
             mediaType !in RENDERABLE_ON_WATCH ->
                 PhoneResourceChannel.Rejected(WearPhoneResourceResponseStatus.UNSUPPORTED_MEDIA)
-            file.length() > MAX_TRANSFER_BYTES ->
+            file.length() > WEAR_FILE_TRANSFER_MAX_BYTES ->
                 PhoneResourceChannel.Rejected(WearPhoneResourceResponseStatus.TRANSFER_REJECTED)
             else -> PhoneResourceChannel.Approved(
                 name = file.name,
                 sizeBytes = file.length(),
                 mediaType = mediaType,
-                // A provider rather than an open stream: the bridge decides when the descriptor is
-                // taken, so a request the watch abandons before the channel opens costs nothing.
-                openStream = { file.inputStream() }
+                file = file
             )
         }
     }
@@ -92,7 +89,6 @@ class OpenPhoneResourceChannelUseCase @Inject constructor(
      */
     private suspend fun resolveById(resource: MediaResource, mediaStoreId: Long): File? {
         val file = mediaStoreRepository.getFileByMediaStoreId(mediaStoreId)?.let { File(it.path) }
-        Timber.d("S1897: resolveById id=$mediaStoreId found=${file != null}")
         return when {
             file == null -> null
             VirtualPathUtils.isVirtualPath(resource.path) -> file
@@ -114,9 +110,6 @@ class OpenPhoneResourceChannelUseCase @Inject constructor(
         isAvailable && accessPin == null && type == ResourceType.LOCAL
 
     companion object {
-        /** Upper bound of one watch-bound transfer. Beyond it the watch is told the transfer was rejected. */
-        const val MAX_TRANSFER_BYTES: Long = 32L * 1024 * 1024
-
         /** Families the Wear app can actually render once the bytes arrive. */
         private val RENDERABLE_ON_WATCH = setOf(MediaType.IMAGE, MediaType.GIF, MediaType.VIDEO, MediaType.AUDIO)
     }
@@ -126,14 +119,17 @@ class OpenPhoneResourceChannelUseCase @Inject constructor(
 sealed interface PhoneResourceChannel {
 
     /**
-     * An accepted transfer. [openStream] is opened by the bridge and closed by it; nothing here
-     * holds the file open, so an abandoned request leaks no descriptor.
+     * An accepted request, named by the file it resolved to.
+     *
+     * The file rather than an open stream: nothing here holds a descriptor, so a request the watch
+     * abandons before the channel opens costs nothing - and S2004 needs the same resolved file to
+     * address the phone's own viewer, which a stream cannot be turned back into.
      */
     data class Approved(
         val name: String,
         val sizeBytes: Long,
         val mediaType: MediaType,
-        val openStream: () -> InputStream
+        val file: File
     ) : PhoneResourceChannel
 
     /** A refusal the watch can explain without knowing why the phone said no. */

@@ -86,7 +86,14 @@ fun LongPressChip(
                 Spacer(modifier = Modifier.size(ICON_SPACING))
             }
             Column {
-                ChipSlot(contentColor = contentColor, textStyle = MaterialTheme.typography.button) {
+                // S2129: the primary slot carries the row's NAME, which is what the owner reads to
+                // tell two rows apart, so it starts at the caption ceiling rather than at the
+                // library's button size. The secondary slot below stays on caption2: it carries a
+                // subtitle, and shrinking both would erase the difference between them.
+                ChipSlot(
+                    contentColor = contentColor,
+                    textStyle = MaterialTheme.typography.button.copy(fontSize = WearCaptionScale.Ceiling)
+                ) {
                     Row(content = label)
                 }
                 if (secondaryLabel != null) {

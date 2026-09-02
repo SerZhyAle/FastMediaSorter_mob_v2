@@ -61,7 +61,6 @@
     <string name="epub_table_of_contents">مندرجات کا جدول</string>
     <string name="epub_text_empty_tts">باب میں کوئی متن نہیں ملا</string>
     <string name="text_content_hint">متن کا مواد</string>
-    <string name="text_copied">متن کلپ بورڈ پر کاپی ہو گیا۔</string>
     <string name="text_editing_large_file">متعدد صفحات والی فائلوں میں ترمیم دستیاب نہیں ہے۔</string>
     <string name="text_editor_action_cancel">منسوخ کریں۔</string>
     <string name="text_editor_action_save">محفوظ کریں۔</string>

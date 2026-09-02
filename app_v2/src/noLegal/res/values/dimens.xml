@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Vertical footprint of the VR/APK badge inside a browse tile. Split into its two summands so the
+         badge layout consumes them directly, because the S2177 caption plate has to reserve exactly the
+         strip the badge occupies and a resource file cannot add two dimens (S2202). -->
+    <dimen name="browse_apk_vr_badge_top_margin">4dp</dimen>
+    <dimen name="browse_apk_vr_badge_height">20dp</dimen>
+    <!-- Sum of the two above, read by NoLegalBrowseApkTileBadgeBinder.reservedTopBandPx. -->
+    <dimen name="browse_apk_vr_badge_band">24dp</dimen>
+
+</resources>

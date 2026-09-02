@@ -189,7 +189,6 @@ class OrphanCleanupWorker @AssistedInject constructor(
             .filter { it.status != CredentialStatus.ORPHANED && it.orphanedSince != null }
             .map { it.credentialId }
 
-        Timber.d("S1649: orphan clock pass, toStamp=${toStamp.size} toClear=${toClear.size}")
         if (toStamp.isNotEmpty()) {
             networkCredentialsDao.stampOrphanedSince(toStamp, System.currentTimeMillis())
         }

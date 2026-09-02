@@ -34,12 +34,41 @@ data class SceneAnnotation(
 
     companion object {
         /** Bump when a field changes meaning; a reader refuses a version it does not know. */
-        const val CURRENT_VERSION: Int = 1
+        const val CURRENT_VERSION: Int = 2
+
+        /**
+         * Versions this reader accepts. Version 1 predates word geometry (S2036): its text areas carry
+         * no words by construction and it stays scorable on every axis it could already answer. Dropping
+         * it would have forced every annotated scene to be redone before the word axes worked at all,
+         * and the cheap way out of that is a draft filled from a recogniser - which [Provenance] exists
+         * to forbid.
+         */
+        val SUPPORTED_VERSIONS: Set<Int> = setOf(1, 2)
     }
 }
 
 /** One run of source text in the scene, with the text a perfect recogniser would return. */
 data class TextArea(
+    val text: String,
+    val box: Rect,
+    /**
+     * S2036: the words of this line, when someone annotated them.
+     *
+     * Empty means *not annotated at word level* - never *this line holds no word*. The distinction is
+     * the whole point: an axis reading this must report [Measured.Unmeasured] on an empty list, because
+     * treating it as zero words would make an un-annotated scene score like a measured one.
+     */
+    val words: List<AnnotatedWord> = emptyList(),
+)
+
+/**
+ * S2036: one word of a line, with the box a perfect recogniser would return for it.
+ *
+ * Word geometry is what the inherited height multiplier is defined against - it compares a word's
+ * height to the median of the word heights on its line - so a corpus carrying line boxes alone has
+ * nothing to compare and cannot judge that number.
+ */
+data class AnnotatedWord(
     val text: String,
     val box: Rect,
 )

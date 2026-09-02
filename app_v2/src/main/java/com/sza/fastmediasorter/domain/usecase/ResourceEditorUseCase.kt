@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.domain.usecase
 
-import com.sza.fastmediasorter.core.metrics.OperationMetricsRecorder
+import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.di.IoDispatcher
+import com.sza.fastmediasorter.core.metrics.OperationMetricsRecorder
 import com.sza.fastmediasorter.core.util.DestinationColors
+import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceConnectionStatus
@@ -14,10 +16,8 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.ResourceValidationResult
 import com.sza.fastmediasorter.domain.model.ResourceVerificationStatus
 import com.sza.fastmediasorter.domain.model.SortMode
-import com.sza.fastmediasorter.data.local.db.CryptoHelper
-import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.strategy.CloudResourceStrategy
 import com.sza.fastmediasorter.domain.strategy.FtpResourceStrategy
 import com.sza.fastmediasorter.domain.strategy.LocalResourceStrategy
@@ -25,8 +25,8 @@ import com.sza.fastmediasorter.domain.strategy.ResourceFieldSchema
 import com.sza.fastmediasorter.domain.strategy.ResourceStrategy
 import com.sza.fastmediasorter.domain.strategy.SftpResourceStrategy
 import com.sza.fastmediasorter.domain.strategy.SmbResourceStrategy
-import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
-import com.sza.fastmediasorter.data.repository.CachedFileListRepository
+import com.sza.fastmediasorter.domain.strategy.StreamResourceStrategy
+import com.sza.fastmediasorter.domain.strategy.WearWatchResourceStrategy
 import com.sza.fastmediasorter.utils.FtpPathUtils
 import com.sza.fastmediasorter.utils.SftpPathUtils
 import com.sza.fastmediasorter.utils.SmbPathUtils
@@ -35,9 +35,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.flow.first
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -53,7 +53,7 @@ class ResourceEditorUseCase @Inject constructor(
     private val addResourceUseCase: AddResourceUseCase,
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val smbOperationsUseCase: SmbOperationsUseCase,
-    private val credentialsRepository: NetworkCredentialsRepository,
+    private val persistResourceCredentialsUseCase: PersistResourceCredentialsUseCase,
     private val resolveResourceIconUseCase: ResolveResourceIconUseCase,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
@@ -61,50 +61,57 @@ class ResourceEditorUseCase @Inject constructor(
     private val _verificationStatuses = MutableStateFlow<Map<Long, ResourceVerificationStatus>>(emptyMap())
     val verificationStatuses: StateFlow<Map<Long, ResourceVerificationStatus>> = _verificationStatuses.asStateFlow()
 
+    private val wearWatchStrategy = WearWatchResourceStrategy()
+
+    private val streamStrategy = StreamResourceStrategy()
+
     private val strategies: Map<ResourceType, ResourceStrategy> = mapOf(
         ResourceType.LOCAL to LocalResourceStrategy(),
         ResourceType.SMB to SmbResourceStrategy { form ->
-            val normalized = normalizeForStrategy(form)
-            val result = smbOperationsUseCase.testConnection(
-                server = normalized.host,
-                shareName = normalized.path,
-                username = normalized.username,
-                password = normalized.password,
-                port = normalized.port ?: 445
-            )
-            OperationMetricsRecorder.recordConnectionTest(ResourceType.SMB, result.isSuccess)
-            connectionTestResultFrom(result)
+            probeConnection(ResourceType.SMB, form) {
+                smbOperationsUseCase.testConnection(
+                    server = it.host, shareName = it.path, username = it.username,
+                    password = it.password, port = it.port ?: 445
+                )
+            }
         },
         ResourceType.SFTP to SftpResourceStrategy { form ->
-            val normalized = normalizeForStrategy(form)
-            val result = smbOperationsUseCase.testSftpConnection(
-                host = normalized.host,
-                port = normalized.port ?: 22,
-                username = normalized.username,
-                password = normalized.password
-            )
-            OperationMetricsRecorder.recordConnectionTest(ResourceType.SFTP, result.isSuccess)
-            connectionTestResultFrom(result)
+            probeConnection(ResourceType.SFTP, form) {
+                smbOperationsUseCase.testSftpConnection(
+                    host = it.host, port = it.port ?: 22,
+                    username = it.username, password = it.password
+                )
+            }
         },
         ResourceType.FTP to FtpResourceStrategy { form ->
-            val normalized = normalizeForStrategy(form)
-            val result = smbOperationsUseCase.testFtpConnection(
-                host = normalized.host,
-                port = normalized.port ?: 21,
-                username = normalized.username,
-                password = normalized.password
-            )
-            OperationMetricsRecorder.recordConnectionTest(ResourceType.FTP, result.isSuccess)
-            connectionTestResultFrom(result)
+            probeConnection(ResourceType.FTP, form) {
+                smbOperationsUseCase.testFtpConnection(
+                    host = it.host, port = it.port ?: 21,
+                    username = it.username, password = it.password
+                )
+            }
         },
         ResourceType.CLOUD to CloudResourceStrategy { form ->
-            val normalized = normalizeForStrategy(form)
-            val candidate = buildPersistenceModel(normalized)
-            val result = resourceRepository.testConnection(candidate)
-            OperationMetricsRecorder.recordConnectionTest(ResourceType.CLOUD, result.isSuccess)
-            connectionTestResultFrom(result)
+            probeConnection(ResourceType.CLOUD, form) {
+                resourceRepository.testConnection(buildPersistenceModel(it))
+            }
         }
     )
+
+    /**
+     * Every strategy's connection test does the same three things around one protocol call:
+     * normalize the form, record the outcome metric, map the Result. Only the call differs.
+     */
+    private suspend fun probeConnection(
+        type: ResourceType,
+        form: ResourceFormData,
+        probe: suspend (ResourceFormData) -> Result<*>
+    ): ResourceConnectionTestResult {
+        val normalized = normalizeForStrategy(form)
+        val result = probe(normalized)
+        OperationMetricsRecorder.recordConnectionTest(type, result.isSuccess)
+        return connectionTestResultFrom(result)
+    }
 
     suspend fun initialize(
         mode: ResourceEditorMode,
@@ -148,7 +155,9 @@ class ResourceEditorUseCase @Inject constructor(
 
     fun validate(formData: ResourceFormData): ResourceValidationResult = strategyFor(formData.type).validate(formData)
 
-    suspend fun testConnection(formData: ResourceFormData): ResourceConnectionTestResult = strategyFor(formData.type).testConnection(formData)
+    suspend fun testConnection(formData: ResourceFormData): ResourceConnectionTestResult = strategyFor(
+        formData.type
+    ).testConnection(formData)
 
     fun fieldSchema(resourceType: ResourceType): List<ResourceFieldSchema> = strategyFor(resourceType).fieldSchema()
 
@@ -207,7 +216,7 @@ class ResourceEditorUseCase @Inject constructor(
             // Normalize fields before persisting credentials so lookup keys (server, port) are canonical.
             val normalizedFormData = normalizeForStrategy(preparedFormData)
             // Persist credentials before building the model so credentialsId is embedded.
-            val formDataWithCredentials = persistNetworkCredentials(normalizedFormData)
+            val formDataWithCredentials = persistResourceCredentialsUseCase(normalizedFormData)
             var model = buildPersistenceModel(formDataWithCredentials)
 
             val resourceId: Long = when {
@@ -281,117 +290,35 @@ class ResourceEditorUseCase @Inject constructor(
         }
     }
 
-    private fun strategyFor(type: ResourceType): ResourceStrategy = strategies[type] ?: LocalResourceStrategy()
+    /**
+     * S1976: an exhaustive when, not a map lookup with a fallback. The map covers five of the eight
+     * resource types, and the old `?: LocalResourceStrategy()` silenced all three misses - the watch
+     * and both stream types drew a local folder's field schema without anyone being told. A when over
+     * the enum turns the next added type into a compile error here instead of a wrong screen there.
+     */
+    private fun strategyFor(type: ResourceType): ResourceStrategy = when (type) {
+        ResourceType.LOCAL,
+        ResourceType.SMB,
+        ResourceType.SFTP,
+        ResourceType.FTP,
+        ResourceType.CLOUD -> strategies.getValue(type)
 
-    private fun connectionTestResultFrom(result: Result<*>) = if (result.isSuccess)
+        ResourceType.WEAR_WATCH -> wearWatchStrategy
+
+        // S2041: a stream is one address, not a tree, so its schema names only the four fields it
+        // has - the folder's scanning switches and destination flag describe operations that a
+        // stream's scanner and write capability both refuse.
+        ResourceType.HTTP_STREAM,
+        ResourceType.RTSP_STREAM -> streamStrategy
+    }
+
+    private fun connectionTestResultFrom(result: Result<*>) = if (result.isSuccess) {
         ResourceConnectionTestResult(ResourceConnectionStatus.SUCCESS)
-    else
+    } else {
         ResourceConnectionTestResult(
             status = ResourceConnectionStatus.FAILED,
             errorCode = ResourceErrorCode.UNREACHABLE
         )
-
-    /**
-     * Persists network credentials (SMB/SFTP/FTP) and returns a copy with credentialsId set.
-     * EDIT mode (credentialsId present): updates in-place by UUID to avoid stale lookups.
-     * CREATE mode: delegates to SmbOperationsUseCase (insert-or-update by server+share key).
-     */
-    private suspend fun persistNetworkCredentials(formData: ResourceFormData): ResourceFormData {
-        if (formData.type !in setOf(ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP)) {
-            return formData
-        }
-
-        val existingCredentialId = formData.credentialsId
-        if (existingCredentialId != null) {
-            // EDIT: update in-place by UUID; skip server+share lookup that may miss.
-            return updateCredentialInPlace(formData, existingCredentialId)
-        }
-
-        // CREATE: delegate to SmbOperationsUseCase (insert-or-update by server key)
-        val credentialId: String? = when (formData.type) {
-            ResourceType.SMB -> {
-                Timber.d("persistNetworkCredentials: CREATE SMB for host=${formData.host}")
-                smbOperationsUseCase.saveCredentials(
-                    server = formData.host,
-                    shareName = formData.path,
-                    username = formData.username,
-                    password = formData.password,
-                    domain = "", // ResourceFormData has no domain field; SMB domain not exposed in the editor
-                    port = formData.port ?: 445
-                ).onFailure { e -> Timber.e(e, "persistNetworkCredentials: SMB insert failed") }
-                    .getOrNull()
-            }
-            ResourceType.SFTP -> {
-                Timber.d("persistNetworkCredentials: CREATE SFTP for host=${formData.host}")
-                smbOperationsUseCase.saveSftpCredentials(
-                    host = formData.host,
-                    port = formData.port ?: 22,
-                    username = formData.username,
-                    password = formData.password
-                ).onFailure { e -> Timber.e(e, "persistNetworkCredentials: SFTP insert failed") }
-                    .getOrNull()
-            }
-            ResourceType.FTP -> {
-                Timber.d("persistNetworkCredentials: CREATE FTP for host=${formData.host}")
-                smbOperationsUseCase.saveFtpCredentials(
-                    host = formData.host,
-                    port = formData.port ?: 21,
-                    username = formData.username,
-                    password = formData.password
-                ).onFailure { e -> Timber.e(e, "persistNetworkCredentials: FTP insert failed") }
-                    .getOrNull()
-            }
-            else -> null
-        }
-        return if (credentialId != null) formData.copy(credentialsId = credentialId) else formData
-    }
-
-    /** Updates an existing credential in-place by UUID; falls back to insert if not found. */
-    private suspend fun updateCredentialInPlace(
-        formData: ResourceFormData,
-        credentialId: String
-    ): ResourceFormData {
-        return try {
-            val existing = credentialsRepository.getByCredentialId(credentialId)
-            if (existing == null) {
-                Timber.w("updateCredentialInPlace: $credentialId not found, falling back to insert")
-                return persistNetworkCredentials(formData.copy(credentialsId = null))
-            }
-            val defaultPort = when (formData.type) {
-                ResourceType.SMB -> 445
-                ResourceType.SFTP -> 22
-                ResourceType.FTP -> 21
-                else -> existing.port
-            }
-            // Only re-encrypt when user actually typed something; otherwise keep the old hash.
-            val newEncryptedPwd = if (formData.password.isNotEmpty()) {
-                CryptoHelper.encrypt(formData.password) ?: existing.encryptedPassword
-            } else {
-                existing.encryptedPassword
-            }
-            // For SMB, extract bare share name from "share/subfolder" path (first segment only).
-            // For SFTP/FTP there is no shareName concept, preserve existing value.
-            val newShareName = if (formData.type == ResourceType.SMB) {
-                formData.path.replace('\\', '/').split('/').firstOrNull()?.takeIf { it.isNotEmpty() }
-                    ?: existing.shareName
-            } else {
-                existing.shareName
-            }
-            val updated = existing.copy(
-                server = formData.host,
-                port = formData.port ?: defaultPort,
-                username = formData.username,
-                encryptedPassword = newEncryptedPwd,
-                shareName = newShareName,
-                domain = existing.domain // ResourceFormData has no domain field; preserve existing value
-            )
-            credentialsRepository.update(updated)
-            Timber.d("updateCredentialInPlace: OK id=$credentialId type=${formData.type} host=${formData.host} shareName=$newShareName pwdChanged=${formData.password.isNotEmpty()}")
-            formData // credentialsId is already correct
-        } catch (e: Exception) {
-            Timber.e(e, "updateCredentialInPlace: failed for $credentialId")
-            formData
-        }
     }
 
     private suspend fun ensureDestinationMetadata(formData: ResourceFormData): ResourceFormData {
@@ -421,7 +348,9 @@ class ResourceEditorUseCase @Inject constructor(
         )
     }
 
-    private fun normalizeForStrategy(formData: ResourceFormData) = strategyFor(formData.type).normalizeBeforeSave(formData)
+    private fun normalizeForStrategy(formData: ResourceFormData) = strategyFor(
+        formData.type
+    ).normalizeBeforeSave(formData)
 
     private fun buildResourcePath(formData: ResourceFormData): String {
         return when (formData.type) {
@@ -653,7 +582,9 @@ class ResourceEditorUseCase @Inject constructor(
         return suggestions
     }
 
-    suspend fun getExistingPathKeys(excludeResourceId: Long? = null): Set<Pair<ResourceType, String>> = withContext(ioDispatcher) {
+    suspend fun getExistingPathKeys(excludeResourceId: Long? = null): Set<Pair<ResourceType, String>> = withContext(
+        ioDispatcher
+    ) {
         resourceRepository.getAllResourcesSync()
             .asSequence()
             .filter { excludeResourceId == null || it.id != excludeResourceId }
@@ -662,7 +593,9 @@ class ResourceEditorUseCase @Inject constructor(
             .toSet()
     }
 
-    suspend fun getResourceStatistics(resourceId: Long): com.sza.fastmediasorter.ui.resourceeditor.ResourceStatistics? = withContext(ioDispatcher) {
+    suspend fun getResourceStatistics(resourceId: Long): com.sza.fastmediasorter.ui.resourceeditor.ResourceStatistics? = withContext(
+        ioDispatcher
+    ) {
         val resource = resourceRepository.getResourceById(resourceId) ?: return@withContext null
         val cachedFiles = cachedFileListRepository.getCachedFiles(resourceId)
         val inferredSubfolders = cachedFiles?.let { inferSubfolderCount(resource, it) } ?: 0

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.common.widget
 
 import android.content.Context
 import android.graphics.drawable.Drawable
+import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
@@ -16,6 +17,7 @@ import androidx.annotation.StringRes
 import androidx.core.content.res.use
 import androidx.core.view.updateLayoutParams
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.databinding.ViewSettingsSelectionRowBinding
 import com.sza.fastmediasorter.ui.dialog.TooltipDialog
 import timber.log.Timber
 
@@ -33,6 +35,9 @@ import timber.log.Timber
  * collapses the content to hug the left, for rows that open another screen/activity/dialog;
  * value rows keep the chevron.
  *
+ * Inside a [SettingsValueRowGroup] the row shares one label column with its siblings, so their values
+ * line up while each value still sits right beside its own caption - see [applyLabelColumnWidth].
+ *
  * Public XML attributes use the `ssr_` prefix (see `attrs.xml`).
  *
  * @see docs/ARCHITECTURE.md § "UI Patterns - Trigger Row".
@@ -41,15 +46,18 @@ class SettingsSelectionRow @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
-) : LinearLayout(context, attrs, defStyleAttr) {
+) : LinearLayout(context, attrs, defStyleAttr), LabelColumnRow {
 
-    private val iconView: ImageView
-    private val titleView: TextView
-    private val subtitleView: TextView
-    private val valueView: TextView
-    private val helpIcon: ImageButton
-    private val chevronView: ImageView
-    private val trailingSlot: FrameLayout
+    // S1693: the row reads its own children through the generated binding, like SettingsDropdownRow.
+    private val binding = ViewSettingsSelectionRowBinding.inflate(LayoutInflater.from(context), this)
+
+    private val iconView: ImageView = binding.ssrIcon
+    private val titleView: TextView = binding.ssrTitle
+    private val subtitleView: TextView = binding.ssrSubtitle
+    private val valueView: TextView = binding.ssrValue
+    private val helpIcon: ImageButton = binding.ssrIconHelp
+    private val chevronView: ImageView = binding.ssrChevron
+    private val trailingSlot: FrameLayout = binding.ssrTrailingSlot
 
     private var helpTitleText: CharSequence? = null
     private var helpMessageText: CharSequence? = null
@@ -74,16 +82,6 @@ class SettingsSelectionRow @JvmOverloads constructor(
             context.theme.resolveAttribute(android.R.attr.selectableItemBackground, outValue, true)
             setBackgroundResource(outValue.resourceId)
         }
-        LayoutInflater.from(context).inflate(R.layout.view_settings_selection_row, this, true)
-
-        iconView = findViewById(R.id.ssr_icon)
-        titleView = findViewById(R.id.ssr_title)
-        subtitleView = findViewById(R.id.ssr_subtitle)
-        valueView = findViewById(R.id.ssr_value)
-        helpIcon = findViewById(R.id.ssr_iconHelp)
-        chevronView = findViewById(R.id.ssr_chevron)
-        trailingSlot = findViewById(R.id.ssr_trailingSlot)
-
         bindRowClick()
         bindHelpClick()
         applyAttributes(attrs, defStyleAttr)
@@ -294,15 +292,66 @@ class SettingsSelectionRow @JvmOverloads constructor(
      * etalon can hug content to the left without also dropping the tall touch-target band that
      * [applyInlineLayout] removes for dense landscape / navigation rows.
      */
+    /**
+     * Natural width of the title plus its help icon, measured unconstrained so an already applied
+     * column width is never fed back to [SettingsValueRowGroup].
+     */
+    override fun measureLabelNaturalWidth(): Int {
+        val unbounded = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
+        titleView.measure(unbounded, unbounded)
+        var width = titleView.measuredWidth
+        if (helpIcon.visibility == View.VISIBLE) {
+            helpIcon.measure(unbounded, unbounded)
+            width += helpIcon.measuredWidth + resources.getDimensionPixelSize(R.dimen.settings_help_icon_margin)
+        }
+        return width
+    }
+
+    /**
+     * Width of the value plus the trailing chevron and their gaps - what the row needs to the right
+     * of its label column.
+     */
+    override fun measureTrailingNaturalWidth(): Int {
+        val unbounded = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
+        var width = resources.getDimensionPixelSize(R.dimen.margin_medium)
+        if (valueView.visibility != View.GONE) {
+            valueView.measure(unbounded, unbounded)
+            width += valueView.measuredWidth
+        }
+        if (chevronView.visibility != View.GONE) {
+            width += resources.getDimensionPixelSize(R.dimen.settings_help_icon_size) +
+                resources.getDimensionPixelSize(R.dimen.settings_help_icon_margin)
+        }
+        return width
+    }
+
+    /**
+     * Pins the label column so the value starts where its siblings' values start. The value still
+     * follows the label immediately - the column is sized by the longest caption, not by the row -
+     * and carries a readable gap, because on the longest row the column ends exactly where the
+     * caption does and the two texts would otherwise touch.
+     * Zero restores the row's own hug layout, for when the group decided a column does not fit.
+     */
+    override fun applyLabelColumnWidth(widthPx: Int) {
+        val column = widthPx > 0
+        titleView.maxLines = if (column) 1 else Int.MAX_VALUE
+        titleView.ellipsize = if (column) TextUtils.TruncateAt.END else null
+        binding.ssrTitleCluster.updateLayoutParams<LinearLayout.LayoutParams> {
+            width = if (column) widthPx else LayoutParams.WRAP_CONTENT
+            weight = 0f
+            marginEnd = if (column) resources.getDimensionPixelSize(R.dimen.margin_medium) else 0
+        }
+    }
+
     private fun collapseContentToLeft() {
-        (findViewById<LinearLayout>(R.id.ssr_textGroup)).updateLayoutParams<LayoutParams> {
+        binding.ssrTextGroup.updateLayoutParams<LayoutParams> {
             width = LayoutParams.WRAP_CONTENT
             weight = 0f
         }
-        findViewById<LinearLayout>(R.id.ssr_titleLine).updateLayoutParams<ViewGroup.LayoutParams> {
+        binding.ssrTitleLine.updateLayoutParams<ViewGroup.LayoutParams> {
             width = ViewGroup.LayoutParams.WRAP_CONTENT
         }
-        findViewById<View>(R.id.ssr_titleLineSpacer).visibility = View.GONE
+        binding.ssrTitleLineSpacer.visibility = View.GONE
     }
 
     private fun syncHelpVisibility() {

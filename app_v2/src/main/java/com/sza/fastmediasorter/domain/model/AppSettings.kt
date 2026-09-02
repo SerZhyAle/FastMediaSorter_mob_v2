@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.model
 
-import com.sza.fastmediasorter.domain.model.launcher.InstalledAppSortOrder
+import com.sza.fastmediasorter.domain.model.launcher.LauncherSettings
+import kotlin.math.abs
 
 /**
  * Application settings model
@@ -27,6 +28,8 @@ data class AppSettings(
 
     // General settings
     val language: String = "en",
+    // S2209: disable visual transition and decorative animations across the main app.
+    val disableAnimations: Boolean = false,
     val preventSleep: Boolean = true,
     // S0438: dependent player-scoped keep-screen-on. Effective only when preventSleep is off;
     // when preventSleep is on, this is logically treated as on and hidden in the settings UI.
@@ -60,7 +63,7 @@ data class AppSettings(
     val networkParallelism: Int = 4, // Parallel threads for network operations (1, 2, 4, 8, 12, 24)
     val cacheSizeMb: Int = 2048, // Glide disk cache size in MB (512, 1024, 2048, 4096, 8192, 16384) - Default: 2GB after installation
     val isCacheSizeUserModified: Boolean = false, // Flag indicating if user manually changed cache size
-    
+
     // Network sync settings
     val enableBackgroundSync: Boolean = false,
     val backgroundSyncIntervalHours: Int = 4, // hours (1-24)
@@ -78,7 +81,7 @@ data class AppSettings(
     val allFiles: Boolean = false, // Show all file types (not just media). When ON: auto-enables all media types.
     val showHiddenFiles: Boolean = false, // Show hidden files and folders (those starting with a dot). Depends on allFiles being ON.
     val showSubfoldersAsItems: Boolean = false, // Show subfolders as separate browsable items instead of flat file list
-    
+
     // Media Files settings
     val supportImages: Boolean = true,
     val imageSizeMin: Long = 1024L, // 1KB
@@ -99,11 +102,13 @@ data class AppSettings(
     val saveAudioMetadataLocally: Boolean = true, // Save downloaded covers and metadata to local cache
     val enablePhotosDuringAudio: Boolean = false, // Enable random photos from resource during audio playback
     val audioBackgroundPhotosResourceId: String? = null, // ID of resource containing photos for audio background
-    val enablePersistentAudioPlayback: Boolean = false, // Continue audio when app minimized/screen locked (foreground service)
+    // S2247: enabled by default - a stream started from the launcher keeps playing after the screen
+    // turns off, via the foreground service. The setting is the off-switch, not the opt-in.
+    val enablePersistentAudioPlayback: Boolean = true,
     val backgroundAudioExitBehavior: BackgroundAudioExitBehavior = BackgroundAudioExitBehavior.ASK, // What to do when leaving player while background audio is active
     val showNowPlayingPanel: Boolean = false, // Show mini now-playing bar when browsing non-audio/video files while background audio is active
     val audioEmptyStateMode: String = "CANVAS_WAVES", // Animation mode when no cover art: NONE, AVD_PULSE, CANVAS_BARS, CANVAS_WAVES, VISUALIZATION (GIF_LOOP=legacy alias)
-    
+
     val supportText: Boolean = true, // Optional support for text files
     val supportPdf: Boolean = true, // Optional support for PDF files
     val supportEpub: Boolean = true, // Optional support for EPUB files
@@ -153,7 +158,7 @@ data class AppSettings(
     val ocrDefaultFontFamily: String = "DEFAULT", // Default font family for OCR results (DEFAULT, SERIF, MONOSPACE)
     val ocrEngineType: String = "TESSERACT",
     val paddleOcrModel: String = "CYRILLIC",
-    
+
     // Playback and Sorting settings
     val defaultSortMode: SortMode = SortMode.NAME_ASC,
     val slideshowInterval: Int = 10, // seconds (default 10, range 1-3600)
@@ -183,10 +188,10 @@ data class AppSettings(
     val showVideoThumbnails: Boolean = true, // Extract and show first frame for video thumbnails (may be slow for network files)
     val enablePlayerWarmup: Boolean = false, // Optional Browse-side player infrastructure warm-up (no media preload)
     val rendererMigrationEnabled: Boolean = false, // Migration boundary flag for the static image renderer pipeline
-    
+
     // Safe Mode settings (Phase 2.1) - Master toggle for confirmations
     val enableSafeMode: Boolean = true, // When ON: show confirmDelete/confirmMove dialogs. When OFF: skip confirmations
-    
+
     // Scheduled operations
     val enableScheduledOperations: Boolean = true,
     val scheduledOperationsPaused: Boolean = false, // S0353: durable Pause All state for scheduled operations
@@ -200,11 +205,12 @@ data class AppSettings(
     val enableUndo: Boolean = true,
     val maxRecipients: Int = 10, // Maximum number of destination buttons (1-10)
     val enableFavorites: Boolean = true, // Enable "Favorites" feature (enabled by default)
-    val disableCameraCapture: Boolean = false,   // Hide camera-capture button in Browse globally
+    val disableCameraCapture: Boolean = false, // Hide camera-capture button in Browse globally
     val skipCameraFilenameDialog: Boolean = false, // Skip rename dialog after capture; use timestamp name
     val cameraCaptureOpenForEditing: Boolean = false, // Open the captured photo in the drawing editor after saving
     val cameraCaptureCopyToClipboard: Boolean = false, // Also place a captured photo on the system clipboard (S0469)
     val cameraGeotagEnabled: Boolean = false, // S0766: opt-in GPS geotag of in-app camera photos (default off)
+    val cameraGridEnabled: Boolean = false, // Opt-in persistent 3x3 framing grid in camera preview
     // S1658: remembered in-app camera frame shape - 0 = 4:3, 1 = 16:9 (default), 2 = full screen.
     // Decoded by CameraAspectSelection, which owns what each value asks the capture pipeline for.
     val cameraAspectRatio: Int = 1,
@@ -214,13 +220,13 @@ data class AppSettings(
     // S0371: video recording to resource. disableVideoCapture mirrors disableCameraCapture's inverted
     // persistence (master toggle stored as a negative flag); videoCaptureOpenInPlayer is opt-in
     // (default OFF) - after a recording is saved it optionally opens in the player, never the editor.
-    val disableVideoCapture: Boolean = false,    // Hide video-capture command in Browse globally
+    val disableVideoCapture: Boolean = false, // Hide video-capture command in Browse globally
     val videoCaptureOpenInPlayer: Boolean = false, // Open the recorded video in the player after saving
     // S0375: default destination for video recordings when the current resource is not a usable
     // target; null = fallback to the public Movies folder.
     val videoRecordingDestinationResourceId: String? = null,
-    val micRecordingEnabled: Boolean = false,      // S0100: Show mic record button in Browse
-    val micRecordingAskFilename: Boolean = true,   // S0100: Show rename dialog before saving recording
+    val micRecordingEnabled: Boolean = false, // S0100: Show mic record button in Browse
+    val micRecordingAskFilename: Boolean = true, // S0100: Show rename dialog before saving recording
     // S0367: default destination for microphone recordings; null = fallback to public Downloads.
     // Resolved by CaptureDestinationPolicy.resolveMicDestination.
     val micRecordingDestinationResourceId: String? = null,
@@ -253,13 +259,13 @@ data class AppSettings(
     // S0808: main-window streams panel collapsed into its labelled strip (mirror of programsPanelCollapsed).
     val streamsPanelCollapsed: Boolean = false,
     val enablePictureInPicture: Boolean = true,
-    
+
     // Last used resource for quick slideshow
     val lastUsedResourceId: Long = -1L,
-    
+
     // File list caching
     val defaultRememberFileList: Boolean = false,
-    
+
     // Dynamic Background Effect
     val dynamicBackgroundExtension: Boolean = false,
 
@@ -271,8 +277,8 @@ data class AppSettings(
     val acceptSharedFiles: Boolean = true,
 
     // X.11: Background thumbnail pre-generation
-    val enableThumbnailPreload: Boolean = false,       // Background thumbnail pre-generation (opt-in, consumes network bandwidth)
-    val thumbnailPreloadWifiOnly: Boolean = true,       // Restrict preload to unmetered (Wi-Fi) connections
+    val enableThumbnailPreload: Boolean = false, // Background thumbnail pre-generation (opt-in, consumes network bandwidth)
+    val thumbnailPreloadWifiOnly: Boolean = true, // Restrict preload to unmetered (Wi-Fi) connections
 
     // Last selected folder for folder picker persistence (FR-8).
     // Stores the content:// URI string from OpenDocumentTree.
@@ -313,8 +319,8 @@ data class AppSettings(
     val linkDownloadLoginWallHeuristicEnabled: Boolean = true,
 
     // VR settings (spec §5.7/§8 - visible only when SUPPORT_VR_PLAYER == true).
-    val vrRenderingMode: String = "CINEMA",         // Cinema (flat screen in VR) / FULL_SBS / FULL_OU
-    val vrAutoImmersive: Boolean = true,             // Auto-enter immersive on stereo content; off → stay in Cinema/2D, manual entry only
+    val vrRenderingMode: String = "CINEMA", // Cinema (flat screen in VR) / FULL_SBS / FULL_OU
+    val vrAutoImmersive: Boolean = true, // Auto-enter immersive on stereo content; off → stay in Cinema/2D, manual entry only
     val vrPlayerEntryPromptDismissed: Boolean = false, // One-time player prompt for XR-capable devices with master toggle OFF
     // Global VR kill-switch: when true, bypasses all 3D/VR classification; all content plays as plain 2D
     val disable3dVr: Boolean = false,
@@ -322,21 +328,21 @@ data class AppSettings(
     // Immersive VR rendering overrides this flag at runtime via VideoPlayerManager.vrImmersiveActive,
     // so a true default is safe on VR builds (no double crop while immersive).
     val panelStereoSingleEye: Boolean = true,
-    val vrShowFps: Boolean = false,                  // Display diagnostic FPS counter in immersive HUD
-    val playerShowFps: Boolean = false,              // S0021: Display diagnostic FPS counter over the flat (non-immersive) player
+    val vrShowFps: Boolean = false, // Display diagnostic FPS counter in immersive HUD
+    val playerShowFps: Boolean = false, // S0021: Display diagnostic FPS counter over the flat (non-immersive) player
 
     // S0326: Global 3D/VR default settings (Settings → Media → 3D/VR).
     // Detection-source flags below are flavor-independent (flat stereo exists on every flavor);
     // they configure StereoDetector and feed the global-default fallback slot in
     // PlayerStereoModeCoordinator. Per-file override and a positive detection always win over these.
-    val stereoAutoDetectEnabled: Boolean = true,     // Master switch for automatic 3D/VR format recognition
-    val stereoTrustFilename: Boolean = true,         // Trust filename markers (_SBS, _TB, 180, 360, ..)
-    val stereoTrustMetadata: Boolean = true,         // Trust embedded metadata (MP4 st3d/sv3d, Matroska StereoMode, GPano/PhotoSphere XMP)
-    val stereoTrustAspectRatio: Boolean = false,     // Aspect-ratio heuristic - off by default (the false-positive source)
-    val stereoAmbiguityBestGuess: Boolean = false,   // On ambiguity: false → open as 2D, true → apply best guess
+    val stereoAutoDetectEnabled: Boolean = true, // Master switch for automatic 3D/VR format recognition
+    val stereoTrustFilename: Boolean = true, // Trust filename markers (_SBS, _TB, 180, 360, ..)
+    val stereoTrustMetadata: Boolean = true, // Trust embedded metadata (MP4 st3d/sv3d, Matroska StereoMode, GPano/PhotoSphere XMP)
+    val stereoTrustAspectRatio: Boolean = false, // Aspect-ratio heuristic - off by default (the false-positive source)
+    val stereoAmbiguityBestGuess: Boolean = false, // On ambiguity: false → open as 2D, true → apply best guess
     // Global default applied by the coordinator ONLY when detection returned UNKNOWN; MONO == plain 2D.
-    val stereoDefaultLayout: StereoMode = StereoMode.MONO,      // Flat-stereo default: MONO / SBS_FULL / OU
-    val stereoDefaultProjection: StereoMode = StereoMode.MONO,  // Projection default: MONO (flat) / EQUIRECT_180_MONO / EQUIRECT_360_MONO / CYLINDER_180
+    val stereoDefaultLayout: StereoMode = StereoMode.MONO, // Flat-stereo default: MONO / SBS_FULL / OU
+    val stereoDefaultProjection: StereoMode = StereoMode.MONO, // Projection default: MONO (flat) / EQUIRECT_180_MONO / EQUIRECT_360_MONO / CYLINDER_180
 
     // Playback resume on next launch: if true, app reopens last played file on cold start
     val resumeOnNextLaunch: Boolean = true,
@@ -344,7 +350,7 @@ data class AppSettings(
     // Adaptive pre-cache strategy (spec §5)
     val prefetchCacheMultiplier: PrefetchCacheMultiplier = PrefetchCacheMultiplier.AUTO,
     val streamingCacheCleanupMode: StreamingCacheCleanupMode = StreamingCacheCleanupMode.ASK,
-    val streamingCacheTtlDays: Int = 7,          // 0 = off, 1, 3, 7, 30
+    val streamingCacheTtlDays: Int = 7, // 0 = off, 1, 3, 7, 30
 
     // S0050: Black Screen mode - show/hide the black-screen toolbar button in audio/video players
     val showBlackScreenButton: Boolean = false,
@@ -373,73 +379,96 @@ data class AppSettings(
     // User-disableable so power users on trusted devices can screen-record credential screens.
     val secureSensitiveScreens: Boolean = true,
 
-    // S0404: launcher-mode desktop tuning. Grid geometry is computed from the screen; this factor is
-    // the user's manual nudge on top of it (higher factor = smaller cells = more columns), needed
-    // because head units and TV boxes report unreliable densities. Desktop content itself lives in
-    // Room, not here - a device profile seeds it once and never re-applies (ADR-4).
-    val launcherDensityFactor: Float = 1.0f,
-    // S1643: which screen edge the whole taskbar composition is anchored to, one of
-    // [LAUNCHER_TASKBAR_PLACEMENT_OPTIONS]. Stored as a token (like [launcherWallpaperMode]) so an
-    // unknown value from a newer build degrades to the bottom edge. Defaults to the bottom edge
-    // because an update must not move an existing user's bar before the user asks for it (ADR-2);
-    // the car head unit profile overrides it to the top edge through the preset CSV.
-    val launcherTaskbarPlacement: String = LAUNCHER_TASKBAR_PLACEMENT_BOTTOM,
-    val launcherTaskbarShowRecents: Boolean = true,
-    val launcherTaskbarShowPinned: Boolean = true,
-    val launcherTaskbarShowTray: Boolean = true,
-    val launcherReplaceSystemStatusArea: Boolean = false,
-    // S1431: moves the clock and the indicator set off the taskbar tray and onto the freed top band,
-    // which frees the Start panel for a longer recents list. Meaningful only while
-    // [launcherReplaceSystemStatusArea] is on, since without it there is no freed band to draw in.
-    val launcherTopStatusStripMode: Boolean = false,
-    // S1465 ADR-4: whether the top strip also shows other applications' pending notifications as an icon
-    // and a count. Defaults OFF and stays OFF on upgrade: the system notification access may already have
-    // been granted for the "now playing" gadget, and silently widening a consent the user gave for one
-    // purpose to a second one is what gets an app pulled from publication.
-    val launcherForeignNotificationsEnabled: Boolean = false,
-    // S1415: composition of the tray itself, one switch per indicator, in the tray's left-to-right order.
-    // [launcherTaskbarShowTray] above stays the master switch for the whole block; these only decide what
-    // the block contains once it is shown. All default ON so an upgrade looks exactly like the old tray
-    // plus the indicators the device can actually report.
-    val launcherTrayShowClock: Boolean = true,
-    val launcherTrayShowBluetooth: Boolean = true,
-    val launcherTrayShowSim1: Boolean = true,
-    val launcherTrayShowSim2: Boolean = true,
-    val launcherTrayShowNetwork: Boolean = true,
-    val launcherTrayShowBattery: Boolean = true,
-    // S0404: one-shot - true once the first-rotation hint has been shown, so it never repeats. No UI row
-    // (invisible to the settings-doc gate); it is a remembered event, not a user-facing toggle.
-    val launcherRotationHintShown: Boolean = false,
-    // S1090: guards entry into desktop edit mode. Off by default so the long-press gesture stays
-    // discoverable; the Start-menu entry is deliberate and stays reachable regardless of this flag.
-    val launcherDesktopLocked: Boolean = false,
-    // S1101: desktop wallpaper mode, one of [LAUNCHER_WALLPAPER_MODES]. Stored as a token (like
-    // [colorTheme]) so an unknown value from a newer build degrades to the branded default.
-    val launcherWallpaperMode: String = LAUNCHER_WALLPAPER_BRANDED,
-    // S1101: absolute path of the user image copied into app-private storage; empty unless
-    // [launcherWallpaperMode] is [LAUNCHER_WALLPAPER_IMAGE].
-    val launcherWallpaperImagePath: String = "",
-    // S1401: the all-apps screen's chosen order, stored as an [InstalledAppSortOrder] name rather than
-    // an ordinal so reordering the enum later cannot silently repoint a saved preference.
-    val allAppsSortOrder: String = InstalledAppSortOrder.LABEL.name,
-    val allAppsSortDescending: Boolean = false,
-    // S1741: launcher-private screen blackout timeout in seconds (0 = Off).
-    val launcherScreenBlackoutTimeoutSeconds: Int = 0,
-    // S1748: launcher widget backdrop opacity (0.0f = 0% transparent, 0.85f = 85% default, 1.0f = 100% opaque).
-    val launcherWidgetBackdropAlpha: Float = 0.85f
+    // S2300: the launcher-mode desktop group, nested rather than inline because this constructor had
+    // reached the JVM ceiling of 255 descriptor slots and every build crashed on launch. The count and
+    // the failure are recorded on [LauncherSettings].
+    val launcher: LauncherSettings = LauncherSettings(),
 ) {
+
+    // S2300: the launcher group moved into [launcher] to get this class back under the JVM descriptor
+    // ceiling. These read-through properties keep every existing `settings.launcherXxx` call site
+    // valid; a write goes through `copy(launcher = launcher.copy(..))`.
+    val launcherDensityFactor: Float get() = launcher.densityFactor
+    val launcherScreenCount: Int get() = launcher.screenCount
+    val launcherTaskbarPlacement: String get() = launcher.taskbarPlacement
+    val launcherTaskbarShowRecents: Boolean get() = launcher.taskbarShowRecents
+    val launcherTaskbarShowPinned: Boolean get() = launcher.taskbarShowPinned
+    val launcherTaskbarShowTray: Boolean get() = launcher.taskbarShowTray
+    val launcherReplaceSystemStatusArea: Boolean get() = launcher.replaceSystemStatusArea
+    val launcherTopStatusStripMode: Boolean get() = launcher.topStatusStripMode
+    val launcherForeignNotificationsEnabled: Boolean get() = launcher.foreignNotificationsEnabled
+    val launcherTrayShowClock: Boolean get() = launcher.trayShowClock
+    val launcherTrayShowBluetooth: Boolean get() = launcher.trayShowBluetooth
+    val launcherTrayShowSim1: Boolean get() = launcher.trayShowSim1
+    val launcherTrayShowSim2: Boolean get() = launcher.trayShowSim2
+    val launcherTrayShowNetwork: Boolean get() = launcher.trayShowNetwork
+    val launcherTrayShowBattery: Boolean get() = launcher.trayShowBattery
+    val launcherTrayShowSpeed: Boolean get() = launcher.trayShowSpeed
+    val launcherRotationHintShown: Boolean get() = launcher.rotationHintShown
+    val launcherDesktopLocked: Boolean get() = launcher.desktopLocked
+    val launcherDesktopDoubleTapLockEnabled: Boolean get() = launcher.desktopDoubleTapLockEnabled
+    val launcherDesktopSwipeUpAction: LauncherDesktopSwipeAction get() = launcher.desktopSwipeUpAction
+    val launcherDesktopSwipeDownAction: LauncherDesktopSwipeAction get() = launcher.desktopSwipeDownAction
+    val launcherDesktopSwipeLeftAction: LauncherDesktopSwipeAction get() = launcher.desktopSwipeLeftAction
+    val launcherDesktopSwipeRightAction: LauncherDesktopSwipeAction get() = launcher.desktopSwipeRightAction
+    val launcherDesktopSwipeUpPayload: String get() = launcher.desktopSwipeUpPayload
+    val launcherDesktopSwipeDownPayload: String get() = launcher.desktopSwipeDownPayload
+    val launcherDesktopSwipeLeftPayload: String get() = launcher.desktopSwipeLeftPayload
+    val launcherDesktopSwipeRightPayload: String get() = launcher.desktopSwipeRightPayload
+    val launcherAllAppsSwipeUpAction: LauncherAllAppsSwipeAction get() = launcher.allAppsSwipeUpAction
+    val launcherAllAppsSwipeDownAction: LauncherAllAppsSwipeAction get() = launcher.allAppsSwipeDownAction
+    val launcherAllAppsSwipeLeftAction: LauncherAllAppsSwipeAction get() = launcher.allAppsSwipeLeftAction
+    val launcherAllAppsSwipeRightAction: LauncherAllAppsSwipeAction get() = launcher.allAppsSwipeRightAction
+    val launcherAllAppsSwipeUpPayload: String get() = launcher.allAppsSwipeUpPayload
+    val launcherAllAppsSwipeDownPayload: String get() = launcher.allAppsSwipeDownPayload
+    val launcherAllAppsSwipeLeftPayload: String get() = launcher.allAppsSwipeLeftPayload
+    val launcherAllAppsSwipeRightPayload: String get() = launcher.allAppsSwipeRightPayload
+    val launcherWallpaperMode: String get() = launcher.wallpaperMode
+    val launcherWallpaperImagePath: String get() = launcher.wallpaperImagePath
+    val launcherWallpaperCameraId: String get() = launcher.wallpaperCameraId
+    val allAppsSortOrder: String get() = launcher.allAppsSortOrder
+    val allAppsSortDescending: Boolean get() = launcher.allAppsSortDescending
+    val launcherScreenBlackoutTimeoutSeconds: Int get() = launcher.screenBlackoutTimeoutSeconds
+    val launcherWidgetBackdropAlpha: Float get() = launcher.widgetBackdropAlpha
+    val launcherWeatherLastLocation: String get() = launcher.weatherLastLocation
+    val launcherStepsResetCount: Long get() = launcher.stepsResetCount
+    val launcherStepsResetTimestamp: Long get() = launcher.stepsResetTimestamp
     companion object {
         /** S1796: opaque white - the flashlight starts as a plain white lamp until a colour is picked. */
         const val FRONT_FLASHLIGHT_DEFAULT_COLOR: Int = 0xFFFFFFFF.toInt()
 
+        /**
+         * S1748/S2253/S2320: canonical default - launcher surfaces read as plates over the wallpaper
+         * on a fresh install. The 2% that preceded it was indistinguishable from fully transparent.
+         */
+        const val DEFAULT_LAUNCHER_WIDGET_BACKDROP_ALPHA: Float = 0.25f
+
         /** S1748: selectable widget backdrop opacity levels. */
         val LAUNCHER_WIDGET_BACKDROP_ALPHA_OPTIONS = listOf(0.0f, 0.25f, 0.50f, 0.70f, 0.85f, 1.0f)
+
+        /**
+         * S2320: the option nearest [value].
+         *
+         * A stored alpha is an arbitrary float, and S2320 dropped an option that installs still carry.
+         * Snapping on read keeps the settings row and the painted surfaces on one number: without it
+         * the row falls back to the default for a value no option matches while the surfaces keep
+         * painting the stored one.
+         */
+        fun snapLauncherWidgetBackdropAlpha(value: Float): Float =
+            LAUNCHER_WIDGET_BACKDROP_ALPHA_OPTIONS.minBy { option -> abs(option - value) }
 
         /** S1741: preset screen blackout timeout seconds for launcher settings selector (0 = Off). */
         val LAUNCHER_SCREEN_TIMEOUT_PRESETS = listOf(0, 5, 15, 30, 60, 300)
 
         /** S0404: selectable launcher grid densities (see [launcherDensityFactor]). */
         val LAUNCHER_DENSITY_OPTIONS = listOf(0.75f, 1.0f, 1.25f, 1.5f)
+
+        /**
+         * S2320: the dense grid is what the launcher ships with - smaller cells, more of them across.
+         * Named rather than written at the field, so the settings row and the reset dialog can derive
+         * their selected index from it instead of carrying a position that outlives the value.
+         */
+        const val DEFAULT_LAUNCHER_DENSITY_FACTOR: Float = 1.25f
 
         /** S1643: taskbar anchored to the bottom screen edge - the pre-S1643 layout and the default. */
         const val LAUNCHER_TASKBAR_PLACEMENT_BOTTOM = "BOTTOM"
@@ -465,14 +494,30 @@ data class AppSettings(
         /** S1101: user-picked still image or GIF, copied into app-private storage. */
         const val LAUNCHER_WALLPAPER_IMAGE = "IMAGE"
 
+        /** S2076: live frame from a device camera, lens named by [launcherWallpaperCameraId]. */
+        const val LAUNCHER_WALLPAPER_CAMERA = "CAMERA"
+
+        /** S2210: one-shot photo capture wallpaper from a device camera. */
+        const val LAUNCHER_WALLPAPER_INSTANT_PHOTO = "INSTANT_PHOTO"
+
         /** S1101: wallpaper tokens in the order the settings row offers them. */
         val LAUNCHER_WALLPAPER_MODES = listOf(
             LAUNCHER_WALLPAPER_BRANDED,
             LAUNCHER_WALLPAPER_STATIC_STRIPES,
             LAUNCHER_WALLPAPER_NONE,
             LAUNCHER_WALLPAPER_IMAGE,
+            LAUNCHER_WALLPAPER_CAMERA,
+            LAUNCHER_WALLPAPER_INSTANT_PHOTO,
         )
     }
+
+    /**
+     * S2300: edits the nested launcher group - `settings.withLauncher { copy(desktopLocked = true) }`.
+     *
+     * Writing the nested copy by hand at a call site reads as `x.copy(launcher = x.launcher.copy(..))`,
+     * which names the receiver twice and pushes most call sites past the line limit.
+     */
+    fun withLauncher(edit: LauncherSettings.() -> LauncherSettings): AppSettings = copy(launcher = launcher.edit())
 
     /**
      * Returns set of MediaTypes that are globally enabled in app settings.
@@ -483,7 +528,7 @@ data class AppSettings(
         if (allFiles) {
             return MediaType.entries.toSet()
         }
-        
+
         // Otherwise, return individually enabled types
         val types = mutableSetOf<MediaType>()
         if (supportImages) types.add(MediaType.IMAGE)

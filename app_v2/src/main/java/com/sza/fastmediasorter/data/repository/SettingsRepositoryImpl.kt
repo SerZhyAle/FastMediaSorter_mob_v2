@@ -58,6 +58,7 @@ class SettingsRepositoryImpl @Inject constructor(
     companion object {
         private val KEY_LANGUAGE = stringPreferencesKey("language")
         private val KEY_COLOR_THEME = stringPreferencesKey("color_theme")
+        private val KEY_DISABLE_ANIMATIONS = booleanPreferencesKey("disable_animations")
         private val KEY_PREVENT_SLEEP = booleanPreferencesKey("prevent_sleep")
         private val KEY_KEEP_SCREEN_ON_PLAYER = booleanPreferencesKey("keep_screen_on_player")
         private val KEY_SHOW_SMALL_CONTROLS = booleanPreferencesKey("show_small_controls")
@@ -78,17 +79,20 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_SHOW_SUBFOLDERS_AS_ITEMS = booleanPreferencesKey("show_subfolders_as_items")
 
         private val KEY_SUPPORT_IMAGES = booleanPreferencesKey("support_images")
+
         // Media size-filter keys moved to data.repository.settings.MediaSizeFilterSettingsStore (responsibility extraction).
         private val KEY_LOAD_FULL_SIZE_IMAGES = booleanPreferencesKey("load_full_size_images")
         private val KEY_CROP_IMAGES_TO_FULLSCREEN = booleanPreferencesKey("crop_images_to_fullscreen")
         private val KEY_SUPPORT_GIFS = booleanPreferencesKey("support_gifs")
         private val KEY_SUPPORT_VIDEOS = booleanPreferencesKey("support_videos")
         private val KEY_SUPPORT_AUDIO = booleanPreferencesKey("support_audio")
+
         // Audio keys moved to data.repository.settings.AudioSettingsStore (responsibility extraction).
         private val KEY_SEARCH_AUDIO_COVERS_ONLINE = booleanPreferencesKey("search_audio_covers_online")
         private val KEY_SEARCH_AUDIO_COVERS_ONLY_ON_WIFI = booleanPreferencesKey("search_audio_covers_only_on_wifi")
         private val KEY_SAVE_AUDIO_METADATA_LOCALLY = booleanPreferencesKey("save_audio_metadata_locally")
         private val KEY_ENABLE_PHOTOS_DURING_AUDIO = booleanPreferencesKey("enable_photos_during_audio")
+
         // Persistent audio playback: continue playing audio via foreground service when app is minimized/screen locked (like YouTube Music).
         // NOT related to enableSlideshowBackgroundMusic (in-app slideshow music) or enablePhotosDuringAudio (photo overlay during audio).
         // Key string "enable_background_audio" preserved for backward compatibility with existing user settings.
@@ -113,6 +117,7 @@ class SettingsRepositoryImpl @Inject constructor(
         // Text-recognition / translation / OCR keys moved to data.repository.settings.TextRecognitionSettingsStore (responsibility extraction).
 
         private val KEY_DEFAULT_SORT_MODE = stringPreferencesKey("default_sort_mode")
+
         // Slideshow keys moved to data.repository.settings.SlideshowSettingsStore (responsibility extraction).
         private val KEY_PLAY_TO_END = booleanPreferencesKey("play_to_end_in_slideshow")
         private val KEY_ALLOW_RENAME = booleanPreferencesKey("allow_rename")
@@ -149,15 +154,18 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_MAX_RECIPIENTS = intPreferencesKey("max_recipients")
         private val KEY_DISABLE_CAMERA_CAPTURE = booleanPreferencesKey("disable_camera_capture")
         private val KEY_SKIP_CAMERA_FILENAME_DIALOG = booleanPreferencesKey("skip_camera_filename_dialog")
+
         // Camera-capture + mic-recording keys moved to data.repository.settings.CaptureSettingsStore (responsibility extraction).
         // S0371: video recording to resource (master toggle stored inverted, like the camera flags)
         private val KEY_DISABLE_VIDEO_CAPTURE = booleanPreferencesKey("disable_video_capture")
         private val KEY_VIDEO_CAPTURE_OPEN_IN_PLAYER = booleanPreferencesKey("video_capture_open_in_player")
-        private val KEY_VIDEO_RECORDING_DESTINATION_RESOURCE_ID = stringPreferencesKey("video_recording_destination_resource_id")
+        private val KEY_VIDEO_RECORDING_DESTINATION_RESOURCE_ID =
+            stringPreferencesKey("video_recording_destination_resource_id")
+
         // S0100: Microphone recording feature
         // S0367: default destination resource ids for capture flows (null = deterministic fallback)
         private val KEY_IS_PLAYER_FIRST_RUN = booleanPreferencesKey("is_player_first_run")
-        
+
         // Per-type touch zone hint tracking keys (Task 6)
         private val KEY_HINT_SHOWN_9ZONE = booleanPreferencesKey("hint_shown_9zone")
         private val KEY_HINT_SHOWN_3ZONE = booleanPreferencesKey("hint_shown_3zone")
@@ -165,10 +173,13 @@ class SettingsRepositoryImpl @Inject constructor(
 
         private val KEY_COPY_PANEL_COLLAPSED = booleanPreferencesKey("copy_panel_collapsed")
         private val KEY_MOVE_PANEL_COLLAPSED = booleanPreferencesKey("move_panel_collapsed")
+
         // S0781: main-window resource-type filter strip collapsed state.
         private val KEY_RESOURCE_TYPE_TAB_COLLAPSED = booleanPreferencesKey("resource_type_tab_collapsed")
+
         // S0807: main-window programs panel collapsed-strip state.
         private val KEY_PROGRAMS_PANEL_COLLAPSED = booleanPreferencesKey("programs_panel_collapsed")
+
         // S0808: main-window streams panel collapsed-strip state.
         private val KEY_STREAMS_PANEL_COLLAPSED = booleanPreferencesKey("streams_panel_collapsed")
         private val KEY_ENABLE_PICTURE_IN_PICTURE = booleanPreferencesKey("enable_picture_in_picture")
@@ -218,8 +229,10 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_VR_RENDERING_MODE = stringPreferencesKey("vr_rendering_mode")
         private val KEY_VR_AUTO_IMMERSIVE = booleanPreferencesKey("vr_auto_immersive")
         private val KEY_VR_PLAYER_ENTRY_PROMPT_DISMISSED = booleanPreferencesKey("vr_player_entry_prompt_dismissed")
+
         // Global VR kill-switch (spec §3.0.2): disables all 3D/VR classification when true
         private val KEY_VR_DISABLE_3D = booleanPreferencesKey("vr_disable_3d")
+
         // Panel-mode single-eye crop (spec_panel-stereo-single-eye)
         private val KEY_PANEL_STEREO_SINGLE_EYE = booleanPreferencesKey("panel_stereo_single_eye")
         private val KEY_VR_SHOW_FPS = booleanPreferencesKey("vr_show_fps")
@@ -244,7 +257,6 @@ class SettingsRepositoryImpl @Inject constructor(
 
         /** Allowed values for [KEY_STREAMING_CACHE_TTL_DAYS]; `0` means "off". */
         private val STREAMING_CACHE_TTL_VALID = setOf(0, 1, 3, 7, 30)
-
     }
 
     // Cached once per singleton - avoids repeated getSharedPreferences() calls inside DataStore map {}
@@ -275,7 +287,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 }
             }
             .map { preferences ->
-                val languageFromDataStore = preferences[KEY_LANGUAGE]   // null = not explicitly set
+                val languageFromDataStore = preferences[KEY_LANGUAGE] // null = not explicitly set
                 // When DataStore has no saved language (first launch / data cleared), fall back to
                 // LocaleHelper which resolves SharedPreferences → system locale → "en". Legacy
                 // installs can still carry the old "system" sentinel here, so normalize that to
@@ -286,16 +298,20 @@ class SettingsRepositoryImpl @Inject constructor(
                     else -> LocaleHelper.resolveSupportedLanguageCode(languageFromDataStore)
                 }
                 val colorTheme = ColorThemePrefs.normalizeValue(preferences[KEY_COLOR_THEME])
-                
+
                 // Cache size for Glide (GlideAppModule reads from SharedPreferences during init)
                 // glidePrefs is a lazy singleton field - no disk access on every emission
                 val cacheSizeMb = preferences[KEY_CACHE_SIZE_MB] ?: 2048
                 val savedCacheSize = glidePrefs.getInt("cache_size_mb_cached", 0)
                 if (savedCacheSize != cacheSizeMb) {
                     glidePrefs.edit().putInt("cache_size_mb_cached", cacheSizeMb).apply()
-                    if (BuildConfig.DEBUG) Timber.d("SettingsRepositoryImpl: Synced cacheSizeMb to SharedPreferences: ${cacheSizeMb}MB")
+                    if (BuildConfig.DEBUG) {
+                        Timber.d(
+                            "SettingsRepositoryImpl: Synced cacheSizeMb to SharedPreferences: ${cacheSizeMb}MB"
+                        )
+                    }
                 }
-                
+
                 val stereo = StereoSettingsStore.read(preferences)
                 val textRec = TextRecognitionSettingsStore.read(preferences)
                 val audio = AudioSettingsStore.read(preferences)
@@ -309,9 +325,10 @@ class SettingsRepositoryImpl @Inject constructor(
                 val programs = ProgramsSettingsStore.read(preferences)
                 val launcher = LauncherSettingsStore.read(preferences)
 
-                AppSettings(
+                val base = AppSettings(
                     language = language,
                     colorTheme = colorTheme,
+                    disableAnimations = preferences[KEY_DISABLE_ANIMATIONS] ?: false,
                     preventSleep = preferences[KEY_PREVENT_SLEEP] ?: true,
                     keepScreenOnPlayer = preferences[KEY_KEEP_SCREEN_ON_PLAYER] ?: true,
                     showSmallControls = preferences[KEY_SHOW_SMALL_CONTROLS] ?: false,
@@ -375,9 +392,11 @@ class SettingsRepositoryImpl @Inject constructor(
                     supportPdf = preferences[KEY_SUPPORT_PDF] ?: true,
                     supportEpub = preferences[KEY_SUPPORT_EPUB] ?: true,
                     supportOfficeDocuments = preferences[KEY_SUPPORT_OFFICE_DOCUMENTS]
-                        ?: ((preferences[KEY_SUPPORT_TEXT] ?: true) ||
-                            (preferences[KEY_SUPPORT_PDF] ?: true) ||
-                            (preferences[KEY_SUPPORT_EPUB] ?: true)),
+                        ?: (
+                            (preferences[KEY_SUPPORT_TEXT] ?: true) ||
+                                (preferences[KEY_SUPPORT_PDF] ?: true) ||
+                                (preferences[KEY_SUPPORT_EPUB] ?: true)
+                            ),
                     showPdfThumbnails = preferences[KEY_SHOW_PDF_THUMBNAILS] ?: false,
                     textSizeMax = preferences[KEY_TEXT_SIZE_MAX] ?: 104857600L,
                     showTextLineNumbers = preferences[KEY_SHOW_TEXT_LINE_NUMBERS] ?: false,
@@ -453,6 +472,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     cameraCaptureOpenForEditing = capture.cameraCaptureOpenForEditing,
                     cameraCaptureCopyToClipboard = capture.cameraCaptureCopyToClipboard,
                     cameraGeotagEnabled = capture.cameraGeotagEnabled,
+                    cameraGridEnabled = capture.cameraGridEnabled,
                     cameraAspectRatio = capture.cameraAspectRatio,
                     cameraLensSettings = capture.cameraLensSettings,
                     disableVideoCapture = preferences[KEY_DISABLE_VIDEO_CAPTURE] ?: false,
@@ -570,29 +590,6 @@ class SettingsRepositoryImpl @Inject constructor(
                     // S1045: absent key → true (secure by default on fresh install).
                     secureSensitiveScreens = preferences[KEY_SECURE_SENSITIVE_SCREENS] ?: true,
 
-                    // S0404: launcher desktop tuning - owned by LauncherSettingsStore.
-                    launcherDensityFactor = launcher.launcherDensityFactor,
-                    launcherTaskbarShowRecents = launcher.launcherTaskbarShowRecents,
-                    launcherTaskbarShowPinned = launcher.launcherTaskbarShowPinned,
-                    launcherTaskbarShowTray = launcher.launcherTaskbarShowTray,
-                    launcherTrayShowClock = launcher.launcherTrayShowClock,
-                    launcherTrayShowBluetooth = launcher.launcherTrayShowBluetooth,
-                    launcherTrayShowSim1 = launcher.launcherTrayShowSim1,
-                    launcherTrayShowSim2 = launcher.launcherTrayShowSim2,
-                    launcherTrayShowNetwork = launcher.launcherTrayShowNetwork,
-                    launcherTrayShowBattery = launcher.launcherTrayShowBattery,
-                    launcherReplaceSystemStatusArea = launcher.launcherReplaceSystemStatusArea,
-                    launcherTopStatusStripMode = launcher.launcherTopStatusStripMode,
-                    launcherForeignNotificationsEnabled = launcher.launcherForeignNotificationsEnabled,
-                    launcherTaskbarPlacement = launcher.launcherTaskbarPlacement,
-                    launcherRotationHintShown = launcher.launcherRotationHintShown,
-                    launcherDesktopLocked = launcher.launcherDesktopLocked,
-                    launcherWallpaperMode = launcher.launcherWallpaperMode,
-                    launcherWallpaperImagePath = launcher.launcherWallpaperImagePath,
-                    allAppsSortOrder = launcher.allAppsSortOrder,
-                    allAppsSortDescending = launcher.allAppsSortDescending,
-                    launcherScreenBlackoutTimeoutSeconds = launcher.launcherScreenBlackoutTimeoutSeconds,
-
                     // Adaptive pre-cache strategy (spec §5)
                     prefetchCacheMultiplier = com.sza.fastmediasorter.domain.model.PrefetchCacheMultiplier
                         .fromName(preferences[KEY_PREFETCH_CACHE_MULTIPLIER]),
@@ -612,6 +609,9 @@ class SettingsRepositoryImpl @Inject constructor(
                     playerFollowSystemRotation = preferences[KEY_PLAYER_FOLLOW_SYSTEM_ROTATION] ?: false,
                     playerRotationSensorEnabled = preferences[KEY_PLAYER_ROTATION_SENSOR_ENABLED] ?: true
                 )
+                // S0404: launcher desktop tuning - owned by LauncherSettingsStore, which now applies its
+                // own group rather than having the field names restated here (S2213).
+                LauncherSettingsStore.applyTo(base, launcher)
             }
             .distinctUntilChanged()
             // S1517: without this the whole mapping - including the Keystore round trip behind the
@@ -623,207 +623,211 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun updateSettings(settings: AppSettings) {
         settingsUpdateMutex.withLock {
-        Timber.d("SettingsRepo: updateSettings called with allFiles=${settings.allFiles}")
+            Timber.d("SettingsRepo: updateSettings called with allFiles=${settings.allFiles}")
 
-        // S0018 idempotency guard: if the incoming AppSettings equals the currently stored
-        // value (data-class equality across all fields), skip the DataStore write entirely.
-        // This eliminates the spam of "NO fields changed" warnings produced when settings
-        // fragments fire setOnCheckedChangeListener callbacks during initial UI inflation.
-        val current = runCatching { getSettings().first() }.getOrNull()
-        if (current != null && current == settings) {
-            Timber.v("SettingsRepo: updateSettings idempotent - skipping DataStore write")
-            return
-        }
-        if (BuildConfig.DEBUG && current != null) {
-            Timber.d("SettingsRepo: updateSettings diff detected - proceeding with DataStore write")
-        }
+            // S0018 idempotency guard: if the incoming AppSettings equals the currently stored
+            // value (data-class equality across all fields), skip the DataStore write entirely.
+            // This eliminates the spam of "NO fields changed" warnings produced when settings
+            // fragments fire setOnCheckedChangeListener callbacks during initial UI inflation.
+            val current = runCatching { getSettings().first() }.getOrNull()
+            if (current != null && current == settings) {
+                Timber.v("SettingsRepo: updateSettings idempotent - skipping DataStore write")
+                return
+            }
+            if (BuildConfig.DEBUG && current != null) {
+                Timber.d("SettingsRepo: updateSettings diff detected - proceeding with DataStore write")
+            }
 
-        // NOTE: Language is NOT synced to SharedPreferences here.
-        // LocaleHelper.saveLanguage() must be called explicitly when user changes the language.
-        // Syncing here would overwrite system-locale fallback (uk/ru) with the DataStore default "en".
-        val storedLanguage = if (
-            LocaleHelper.isFollowSystemLanguage(settings.language) ||
-            LocaleHelper.isFollowingSystemLanguage(context)
-        ) {
-            LocaleHelper.FOLLOW_SYSTEM_LANGUAGE
-        } else {
-            LocaleHelper.resolveSupportedLanguageCode(settings.language)
-        }
-        val storedColorTheme = ColorThemePrefs.normalizeValue(settings.colorTheme)
+            // NOTE: Language is NOT synced to SharedPreferences here.
+            // LocaleHelper.saveLanguage() must be called explicitly when user changes the language.
+            // Syncing here would overwrite system-locale fallback (uk/ru) with the DataStore default "en".
+            val storedLanguage = if (
+                LocaleHelper.isFollowSystemLanguage(settings.language) ||
+                LocaleHelper.isFollowingSystemLanguage(context)
+            ) {
+                LocaleHelper.FOLLOW_SYSTEM_LANGUAGE
+            } else {
+                LocaleHelper.resolveSupportedLanguageCode(settings.language)
+            }
+            val storedColorTheme = ColorThemePrefs.normalizeValue(settings.colorTheme)
 
-        // S1148: mirror for synchronous reads at player-build time (see RadioStreamBufferConfig).
-        if (current == null || current.streamsSmartBuffering != settings.streamsSmartBuffering) {
-            RadioStreamBufferConfig.syncMirror(context, settings.streamsSmartBuffering)
-        }
+            // S1148: mirror for synchronous reads at player-build time (see RadioStreamBufferConfig).
+            if (current == null || current.streamsSmartBuffering != settings.streamsSmartBuffering) {
+                RadioStreamBufferConfig.syncMirror(context, settings.streamsSmartBuffering)
+            }
 
-        // S1792: mirrors for synchronous reads of color theme and compact player elements.
-        if (current == null || current.colorTheme != settings.colorTheme) {
-            ColorThemePrefs.setMode(context, settings.colorTheme)
-        }
-        if (current == null || current.useCompactElements != settings.useCompactElements) {
-            PlayerLayoutModePrefs.setCompact(context, settings.useCompactElements)
-        }
+            // S1792: mirrors for synchronous reads of color theme and compact player elements.
+            if (current == null || current.colorTheme != settings.colorTheme) {
+                ColorThemePrefs.setMode(context, settings.colorTheme)
+            }
+            if (current == null || current.useCompactElements != settings.useCompactElements) {
+                PlayerLayoutModePrefs.setCompact(context, settings.useCompactElements)
+            }
 
-        dataStore.edit { preferences ->
-            // Preserve the follow-system sentinel so later settings writes do not silently pin the
-            // app to the currently effective language.
-            preferences[KEY_LANGUAGE] = storedLanguage
-            preferences[KEY_COLOR_THEME] = storedColorTheme
-            preferences[KEY_PREVENT_SLEEP] = settings.preventSleep
-            preferences[KEY_KEEP_SCREEN_ON_PLAYER] = settings.keepScreenOnPlayer
-            preferences[KEY_SHOW_SMALL_CONTROLS] = settings.showSmallControls
-            ProgramsSettingsStore.write(preferences, settings)
-            preferences[KEY_DEFAULT_USER] = settings.defaultUser
-            preferences[KEY_DEFAULT_PASSWORD] = encryptPassword(settings.defaultPassword)
-            preferences[KEY_NETWORK_PARALLELISM] = settings.networkParallelism
-            preferences[KEY_CACHE_SIZE_MB] = settings.cacheSizeMb
-            preferences[KEY_IS_CACHE_SIZE_USER_MODIFIED] = settings.isCacheSizeUserModified
-            preferences[KEY_ENABLED_SHARE_TARGETS] = settings.enabledShareTargets
-            preferences[KEY_DISABLED_SHARE_TARGETS] = settings.disabledShareTargets
-            preferences[KEY_ENABLE_BACKGROUND_SYNC] = settings.enableBackgroundSync
-            preferences[KEY_BACKGROUND_SYNC_INTERVAL_HOURS] = settings.backgroundSyncIntervalHours
-            RemoteSourceSettingsStore.write(preferences, settings)
-            preferences[KEY_ALL_FILES] = settings.allFiles
-            Timber.d("SettingsRepo: Saved allFiles=${settings.allFiles} to DataStore")
-            preferences[KEY_SHOW_HIDDEN_FILES] = settings.showHiddenFiles
-            preferences[KEY_SHOW_SUBFOLDERS_AS_ITEMS] = settings.showSubfoldersAsItems
-            preferences[KEY_SUPPORT_IMAGES] = settings.supportImages
-            MediaSizeFilterSettingsStore.write(preferences, settings)
-            preferences[KEY_LOAD_FULL_SIZE_IMAGES] = settings.loadFullSizeImages
-            preferences[KEY_CROP_IMAGES_TO_FULLSCREEN] = settings.cropImagesToFullscreen
-            preferences[KEY_SUPPORT_GIFS] = settings.supportGifs
-            preferences[KEY_SUPPORT_VIDEOS] = settings.supportVideos
-            preferences[KEY_SUPPORT_AUDIO] = settings.supportAudio
-            AudioSettingsStore.write(preferences, settings)
-            preferences[KEY_SEARCH_AUDIO_COVERS_ONLINE] = settings.searchAudioCoversOnline
-            preferences[KEY_SEARCH_AUDIO_COVERS_ONLY_ON_WIFI] = settings.searchAudioCoversOnlyOnWifi
-            preferences[KEY_SAVE_AUDIO_METADATA_LOCALLY] = settings.saveAudioMetadataLocally
-            preferences[KEY_ENABLE_PHOTOS_DURING_AUDIO] = settings.enablePhotosDuringAudio
-            preferences[KEY_ENABLE_BACKGROUND_AUDIO] = settings.enablePersistentAudioPlayback
-            preferences[KEY_BACKGROUND_AUDIO_EXIT_BEHAVIOR] = settings.backgroundAudioExitBehavior.name
-            preferences[KEY_SHOW_NOW_PLAYING_PANEL] = settings.showNowPlayingPanel
-            preferences[KEY_SUPPORT_TEXT] = settings.supportText
-            preferences[KEY_SUPPORT_PDF] = settings.supportPdf
-            preferences[KEY_SUPPORT_EPUB] = settings.supportEpub
-            preferences[KEY_SUPPORT_OFFICE_DOCUMENTS] = settings.supportOfficeDocuments
-            preferences[KEY_SHOW_PDF_THUMBNAILS] = settings.showPdfThumbnails
-            preferences[KEY_TEXT_SIZE_MAX] = settings.textSizeMax
-            preferences[KEY_SHOW_TEXT_LINE_NUMBERS] = settings.showTextLineNumbers
-            preferences[KEY_TEXT_READER_THEME] = settings.textReaderTheme
-            preferences[KEY_MARKDOWN_RENDERED] = settings.markdownRendered
-            preferences[KEY_SYNTAX_HIGHLIGHTING] = settings.syntaxHighlighting
-            preferences[KEY_PDF_SCROLL_MODE] = settings.pdfScrollMode
-            preferences[KEY_PDF_COLOR_MODE] = settings.pdfColorMode
-            preferences[KEY_EPUB_LINE_HEIGHT] = settings.epubLineHeight
-            preferences[KEY_EPUB_HORIZONTAL_MARGIN] = settings.epubHorizontalMargin
-            TextRecognitionSettingsStore.write(preferences, settings)
-            StreamsSettingsStore.write(preferences, settings)
-            preferences[KEY_DEFAULT_SORT_MODE] = settings.defaultSortMode.name
-            SlideshowSettingsStore.write(preferences, settings)
-            preferences[KEY_PLAY_TO_END] = settings.playToEndInSlideshow
-            preferences[KEY_ALLOW_RENAME] = settings.allowRename
-            preferences[KEY_ALLOW_DELETE] = settings.allowDelete
-            preferences[KEY_USE_TRASH] = settings.useTrash
-            preferences[KEY_CONFIRM_DELETE] = settings.confirmDelete
-            preferences[KEY_CONFIRM_MOVE] = settings.confirmMove
-            preferences[KEY_DEFAULT_GRID_MODE] = settings.defaultGridMode
-            preferences[KEY_HIDE_GRID_ACTION_BUTTONS] = settings.hideGridActionButtons
-            preferences[KEY_FILE_OPS_IN_OVERFLOW_MENU] = settings.fileOpsInOverflowMenu
-            preferences[KEY_FILE_OPS_OVERFLOW_MENU_HINT_SHOWN] = settings.fileOpsOverflowMenuHintShown
-            preferences[KEY_HIDE_SYSTEM_UI_IN_FULLSCREEN] = settings.hideSystemUiInFullscreen
-            preferences[KEY_DEFAULT_ICON_SIZE] = settings.defaultIconSize
-            preferences[KEY_DEFAULT_SHOW_COMMAND_PANEL] = settings.defaultShowCommandPanel
-            preferences[KEY_OPEN_VIDEO_IN_FULLSCREEN] = settings.openVideoInFullscreen
-            preferences[KEY_SHOW_DETAILED_ERRORS] = settings.showDetailedErrors
-            preferences[KEY_SHOW_PLAYER_HINT_ON_FIRST_RUN] = settings.showPlayerHintOnFirstRun
-            preferences[KEY_ALWAYS_SHOW_TOUCH_ZONES_OVERLAY] = settings.alwaysShowTouchZonesOverlay
-            preferences[KEY_NINE_ZONE_GRID_ENABLED] = settings.nineZoneGridEnabled
-            preferences[KEY_SHOW_VIDEO_THUMBNAILS] = settings.showVideoThumbnails
-            preferences[KEY_ENABLE_PLAYER_WARMUP] = settings.enablePlayerWarmup
-            preferences[KEY_RENDERER_MIGRATION_ENABLED] = settings.rendererMigrationEnabled
-            preferences[KEY_ENABLE_SAFE_MODE] = settings.enableSafeMode
-            preferences[KEY_ENABLE_SCHEDULED_OPERATIONS] = settings.enableScheduledOperations
-            preferences[KEY_SCHEDULED_OPERATIONS_PAUSED] = settings.scheduledOperationsPaused
-            preferences[KEY_ENABLE_COPYING] = settings.enableCopying
-            preferences[KEY_GO_TO_NEXT_AFTER_COPY] = settings.goToNextAfterCopy
-            preferences[KEY_OVERWRITE_ON_COPY] = settings.overwriteOnCopy
-            preferences[KEY_ENABLE_MOVING] = settings.enableMoving
-            preferences[KEY_OVERWRITE_ON_MOVE] = settings.overwriteOnMove
-            preferences[KEY_ENABLE_UNDO] = settings.enableUndo
-            preferences[KEY_MAX_RECIPIENTS] = settings.maxRecipients.coerceIn(1, 10)
-            preferences[KEY_DISABLE_CAMERA_CAPTURE] = settings.disableCameraCapture
-            preferences[KEY_SKIP_CAMERA_FILENAME_DIALOG] = settings.skipCameraFilenameDialog
-            CaptureSettingsStore.write(preferences, settings)
-            ScreenshotSettingsStore.write(preferences, settings)
-            preferences[KEY_DISABLE_VIDEO_CAPTURE] = settings.disableVideoCapture
-            preferences[KEY_VIDEO_CAPTURE_OPEN_IN_PLAYER] = settings.videoCaptureOpenInPlayer
-            preferences.setOrRemove(KEY_VIDEO_RECORDING_DESTINATION_RESOURCE_ID, settings.videoRecordingDestinationResourceId)
-            preferences[KEY_COPY_PANEL_COLLAPSED] = settings.copyPanelCollapsed
-            preferences[KEY_MOVE_PANEL_COLLAPSED] = settings.movePanelCollapsed
-            preferences[KEY_RESOURCE_TYPE_TAB_COLLAPSED] = settings.resourceTypeTabCollapsed
-            preferences[KEY_PROGRAMS_PANEL_COLLAPSED] = settings.programsPanelCollapsed
-            preferences[KEY_STREAMS_PANEL_COLLAPSED] = settings.streamsPanelCollapsed
-            preferences[KEY_ENABLE_PICTURE_IN_PICTURE] = settings.enablePictureInPicture
-            preferences[KEY_LAST_USED_RESOURCE_ID] = settings.lastUsedResourceId
-            preferences[KEY_DEFAULT_REMEMBER_FILE_LIST] = settings.defaultRememberFileList
-            preferences[KEY_IS_RESOURCE_GRID_MODE] = settings.isResourceGridMode
-            preferences[KEY_RESOURCE_GRID_CELL_SIZE] = settings.resourceGridCellSize.name
-            preferences[KEY_RESOURCE_OPS_IN_OVERFLOW_MENU] = settings.resourceOpsInOverflowMenu
-            preferences[KEY_DYNAMIC_BACKGROUND_EXTENSION] = settings.dynamicBackgroundExtension
-            preferences[KEY_IS_PRIMARY_MEDIA_PLAYER] = settings.isPrimaryMediaPlayer
-            preferences[KEY_ACCEPT_SHARED_FILES] = settings.acceptSharedFiles
-            preferences[KEY_ENABLE_THUMBNAIL_PRELOAD] = settings.enableThumbnailPreload
-            preferences[KEY_THUMBNAIL_PRELOAD_WIFI_ONLY] = settings.thumbnailPreloadWifiOnly
-            // FR-8: Folder picker persistence
-            preferences.setOrRemove(KEY_LAST_SELECTED_LOCAL_FOLDER, settings.lastSelectedLocalFolder)
+            dataStore.edit { preferences ->
+                // Preserve the follow-system sentinel so later settings writes do not silently pin the
+                // app to the currently effective language.
+                preferences[KEY_LANGUAGE] = storedLanguage
+                preferences[KEY_COLOR_THEME] = storedColorTheme
+                preferences[KEY_DISABLE_ANIMATIONS] = settings.disableAnimations
+                preferences[KEY_PREVENT_SLEEP] = settings.preventSleep
+                preferences[KEY_KEEP_SCREEN_ON_PLAYER] = settings.keepScreenOnPlayer
+                preferences[KEY_SHOW_SMALL_CONTROLS] = settings.showSmallControls
+                ProgramsSettingsStore.write(preferences, settings)
+                preferences[KEY_DEFAULT_USER] = settings.defaultUser
+                preferences[KEY_DEFAULT_PASSWORD] = encryptPassword(settings.defaultPassword)
+                preferences[KEY_NETWORK_PARALLELISM] = settings.networkParallelism
+                preferences[KEY_CACHE_SIZE_MB] = settings.cacheSizeMb
+                preferences[KEY_IS_CACHE_SIZE_USER_MODIFIED] = settings.isCacheSizeUserModified
+                preferences[KEY_ENABLED_SHARE_TARGETS] = settings.enabledShareTargets
+                preferences[KEY_DISABLED_SHARE_TARGETS] = settings.disabledShareTargets
+                preferences[KEY_ENABLE_BACKGROUND_SYNC] = settings.enableBackgroundSync
+                preferences[KEY_BACKGROUND_SYNC_INTERVAL_HOURS] = settings.backgroundSyncIntervalHours
+                RemoteSourceSettingsStore.write(preferences, settings)
+                preferences[KEY_ALL_FILES] = settings.allFiles
+                Timber.d("SettingsRepo: Saved allFiles=${settings.allFiles} to DataStore")
+                preferences[KEY_SHOW_HIDDEN_FILES] = settings.showHiddenFiles
+                preferences[KEY_SHOW_SUBFOLDERS_AS_ITEMS] = settings.showSubfoldersAsItems
+                preferences[KEY_SUPPORT_IMAGES] = settings.supportImages
+                MediaSizeFilterSettingsStore.write(preferences, settings)
+                preferences[KEY_LOAD_FULL_SIZE_IMAGES] = settings.loadFullSizeImages
+                preferences[KEY_CROP_IMAGES_TO_FULLSCREEN] = settings.cropImagesToFullscreen
+                preferences[KEY_SUPPORT_GIFS] = settings.supportGifs
+                preferences[KEY_SUPPORT_VIDEOS] = settings.supportVideos
+                preferences[KEY_SUPPORT_AUDIO] = settings.supportAudio
+                AudioSettingsStore.write(preferences, settings)
+                preferences[KEY_SEARCH_AUDIO_COVERS_ONLINE] = settings.searchAudioCoversOnline
+                preferences[KEY_SEARCH_AUDIO_COVERS_ONLY_ON_WIFI] = settings.searchAudioCoversOnlyOnWifi
+                preferences[KEY_SAVE_AUDIO_METADATA_LOCALLY] = settings.saveAudioMetadataLocally
+                preferences[KEY_ENABLE_PHOTOS_DURING_AUDIO] = settings.enablePhotosDuringAudio
+                preferences[KEY_ENABLE_BACKGROUND_AUDIO] = settings.enablePersistentAudioPlayback
+                preferences[KEY_BACKGROUND_AUDIO_EXIT_BEHAVIOR] = settings.backgroundAudioExitBehavior.name
+                preferences[KEY_SHOW_NOW_PLAYING_PANEL] = settings.showNowPlayingPanel
+                preferences[KEY_SUPPORT_TEXT] = settings.supportText
+                preferences[KEY_SUPPORT_PDF] = settings.supportPdf
+                preferences[KEY_SUPPORT_EPUB] = settings.supportEpub
+                preferences[KEY_SUPPORT_OFFICE_DOCUMENTS] = settings.supportOfficeDocuments
+                preferences[KEY_SHOW_PDF_THUMBNAILS] = settings.showPdfThumbnails
+                preferences[KEY_TEXT_SIZE_MAX] = settings.textSizeMax
+                preferences[KEY_SHOW_TEXT_LINE_NUMBERS] = settings.showTextLineNumbers
+                preferences[KEY_TEXT_READER_THEME] = settings.textReaderTheme
+                preferences[KEY_MARKDOWN_RENDERED] = settings.markdownRendered
+                preferences[KEY_SYNTAX_HIGHLIGHTING] = settings.syntaxHighlighting
+                preferences[KEY_PDF_SCROLL_MODE] = settings.pdfScrollMode
+                preferences[KEY_PDF_COLOR_MODE] = settings.pdfColorMode
+                preferences[KEY_EPUB_LINE_HEIGHT] = settings.epubLineHeight
+                preferences[KEY_EPUB_HORIZONTAL_MARGIN] = settings.epubHorizontalMargin
+                TextRecognitionSettingsStore.write(preferences, settings)
+                StreamsSettingsStore.write(preferences, settings)
+                preferences[KEY_DEFAULT_SORT_MODE] = settings.defaultSortMode.name
+                SlideshowSettingsStore.write(preferences, settings)
+                preferences[KEY_PLAY_TO_END] = settings.playToEndInSlideshow
+                preferences[KEY_ALLOW_RENAME] = settings.allowRename
+                preferences[KEY_ALLOW_DELETE] = settings.allowDelete
+                preferences[KEY_USE_TRASH] = settings.useTrash
+                preferences[KEY_CONFIRM_DELETE] = settings.confirmDelete
+                preferences[KEY_CONFIRM_MOVE] = settings.confirmMove
+                preferences[KEY_DEFAULT_GRID_MODE] = settings.defaultGridMode
+                preferences[KEY_HIDE_GRID_ACTION_BUTTONS] = settings.hideGridActionButtons
+                preferences[KEY_FILE_OPS_IN_OVERFLOW_MENU] = settings.fileOpsInOverflowMenu
+                preferences[KEY_FILE_OPS_OVERFLOW_MENU_HINT_SHOWN] = settings.fileOpsOverflowMenuHintShown
+                preferences[KEY_HIDE_SYSTEM_UI_IN_FULLSCREEN] = settings.hideSystemUiInFullscreen
+                preferences[KEY_DEFAULT_ICON_SIZE] = settings.defaultIconSize
+                preferences[KEY_DEFAULT_SHOW_COMMAND_PANEL] = settings.defaultShowCommandPanel
+                preferences[KEY_OPEN_VIDEO_IN_FULLSCREEN] = settings.openVideoInFullscreen
+                preferences[KEY_SHOW_DETAILED_ERRORS] = settings.showDetailedErrors
+                preferences[KEY_SHOW_PLAYER_HINT_ON_FIRST_RUN] = settings.showPlayerHintOnFirstRun
+                preferences[KEY_ALWAYS_SHOW_TOUCH_ZONES_OVERLAY] = settings.alwaysShowTouchZonesOverlay
+                preferences[KEY_NINE_ZONE_GRID_ENABLED] = settings.nineZoneGridEnabled
+                preferences[KEY_SHOW_VIDEO_THUMBNAILS] = settings.showVideoThumbnails
+                preferences[KEY_ENABLE_PLAYER_WARMUP] = settings.enablePlayerWarmup
+                preferences[KEY_RENDERER_MIGRATION_ENABLED] = settings.rendererMigrationEnabled
+                preferences[KEY_ENABLE_SAFE_MODE] = settings.enableSafeMode
+                preferences[KEY_ENABLE_SCHEDULED_OPERATIONS] = settings.enableScheduledOperations
+                preferences[KEY_SCHEDULED_OPERATIONS_PAUSED] = settings.scheduledOperationsPaused
+                preferences[KEY_ENABLE_COPYING] = settings.enableCopying
+                preferences[KEY_GO_TO_NEXT_AFTER_COPY] = settings.goToNextAfterCopy
+                preferences[KEY_OVERWRITE_ON_COPY] = settings.overwriteOnCopy
+                preferences[KEY_ENABLE_MOVING] = settings.enableMoving
+                preferences[KEY_OVERWRITE_ON_MOVE] = settings.overwriteOnMove
+                preferences[KEY_ENABLE_UNDO] = settings.enableUndo
+                preferences[KEY_MAX_RECIPIENTS] = settings.maxRecipients.coerceIn(1, 10)
+                preferences[KEY_DISABLE_CAMERA_CAPTURE] = settings.disableCameraCapture
+                preferences[KEY_SKIP_CAMERA_FILENAME_DIALOG] = settings.skipCameraFilenameDialog
+                CaptureSettingsStore.write(preferences, settings)
+                ScreenshotSettingsStore.write(preferences, settings)
+                preferences[KEY_DISABLE_VIDEO_CAPTURE] = settings.disableVideoCapture
+                preferences[KEY_VIDEO_CAPTURE_OPEN_IN_PLAYER] = settings.videoCaptureOpenInPlayer
+                preferences.setOrRemove(
+                    KEY_VIDEO_RECORDING_DESTINATION_RESOURCE_ID,
+                    settings.videoRecordingDestinationResourceId
+                )
+                preferences[KEY_COPY_PANEL_COLLAPSED] = settings.copyPanelCollapsed
+                preferences[KEY_MOVE_PANEL_COLLAPSED] = settings.movePanelCollapsed
+                preferences[KEY_RESOURCE_TYPE_TAB_COLLAPSED] = settings.resourceTypeTabCollapsed
+                preferences[KEY_PROGRAMS_PANEL_COLLAPSED] = settings.programsPanelCollapsed
+                preferences[KEY_STREAMS_PANEL_COLLAPSED] = settings.streamsPanelCollapsed
+                preferences[KEY_ENABLE_PICTURE_IN_PICTURE] = settings.enablePictureInPicture
+                preferences[KEY_LAST_USED_RESOURCE_ID] = settings.lastUsedResourceId
+                preferences[KEY_DEFAULT_REMEMBER_FILE_LIST] = settings.defaultRememberFileList
+                preferences[KEY_IS_RESOURCE_GRID_MODE] = settings.isResourceGridMode
+                preferences[KEY_RESOURCE_GRID_CELL_SIZE] = settings.resourceGridCellSize.name
+                preferences[KEY_RESOURCE_OPS_IN_OVERFLOW_MENU] = settings.resourceOpsInOverflowMenu
+                preferences[KEY_DYNAMIC_BACKGROUND_EXTENSION] = settings.dynamicBackgroundExtension
+                preferences[KEY_IS_PRIMARY_MEDIA_PLAYER] = settings.isPrimaryMediaPlayer
+                preferences[KEY_ACCEPT_SHARED_FILES] = settings.acceptSharedFiles
+                preferences[KEY_ENABLE_THUMBNAIL_PRELOAD] = settings.enableThumbnailPreload
+                preferences[KEY_THUMBNAIL_PRELOAD_WIFI_ONLY] = settings.thumbnailPreloadWifiOnly
+                // FR-8: Folder picker persistence
+                preferences.setOrRemove(KEY_LAST_SELECTED_LOCAL_FOLDER, settings.lastSelectedLocalFolder)
 
-            preferences[KEY_USE_COMPACT_ELEMENTS] = settings.useCompactElements
-            preferences.setOrRemove(KEY_VIDEO_SNAPSHOT_RESOURCE_ID, settings.videoSnapshotResourceId)
+                preferences[KEY_USE_COMPACT_ELEMENTS] = settings.useCompactElements
+                preferences.setOrRemove(KEY_VIDEO_SNAPSHOT_RESOURCE_ID, settings.videoSnapshotResourceId)
 
-            // Video frame snapshot format - always present with "PNG" default
-            preferences[KEY_VIDEO_SNAPSHOT_FORMAT] = if (settings.videoSnapshotFormat == "JPG") "JPG" else "PNG"
-            preferences[KEY_VIDEO_FRAME_COPY_TO_CLIPBOARD] = settings.videoFrameCopyToClipboard
+                // Video frame snapshot format - always present with "PNG" default
+                preferences[KEY_VIDEO_SNAPSHOT_FORMAT] = if (settings.videoSnapshotFormat == "JPG") "JPG" else "PNG"
+                preferences[KEY_VIDEO_FRAME_COPY_TO_CLIPBOARD] = settings.videoFrameCopyToClipboard
 
-            // Link auto-download (S0003) - owned by LinkSettingsStore.
-            LinkSettingsStore.write(preferences, settings)
+                // Link auto-download (S0003) - owned by LinkSettingsStore.
+                LinkSettingsStore.write(preferences, settings)
 
-            // VR settings (spec §5.7 / Phase 8 split). S0241/S0251 removed forced-format
-            // keys; the old DataStore entries remain on disk in older installs but the new
-            // read path no longer reads them.
-            preferences[KEY_VR_RENDERING_MODE] = settings.vrRenderingMode
-            preferences[KEY_VR_AUTO_IMMERSIVE] = settings.vrAutoImmersive
-            preferences[KEY_VR_PLAYER_ENTRY_PROMPT_DISMISSED] = settings.vrPlayerEntryPromptDismissed
-            preferences[KEY_VR_DISABLE_3D] = settings.disable3dVr
-            preferences[KEY_PANEL_STEREO_SINGLE_EYE] = settings.panelStereoSingleEye
-            preferences[KEY_VR_SHOW_FPS] = settings.vrShowFps
-            preferences[KEY_PLAYER_SHOW_FPS] = settings.playerShowFps
-            // S0326: global 3D/VR default settings - owned by StereoSettingsStore.
-            StereoSettingsStore.write(preferences, settings)
+                // VR settings (spec §5.7 / Phase 8 split). S0241/S0251 removed forced-format
+                // keys; the old DataStore entries remain on disk in older installs but the new
+                // read path no longer reads them.
+                preferences[KEY_VR_RENDERING_MODE] = settings.vrRenderingMode
+                preferences[KEY_VR_AUTO_IMMERSIVE] = settings.vrAutoImmersive
+                preferences[KEY_VR_PLAYER_ENTRY_PROMPT_DISMISSED] = settings.vrPlayerEntryPromptDismissed
+                preferences[KEY_VR_DISABLE_3D] = settings.disable3dVr
+                preferences[KEY_PANEL_STEREO_SINGLE_EYE] = settings.panelStereoSingleEye
+                preferences[KEY_VR_SHOW_FPS] = settings.vrShowFps
+                preferences[KEY_PLAYER_SHOW_FPS] = settings.playerShowFps
+                // S0326: global 3D/VR default settings - owned by StereoSettingsStore.
+                StereoSettingsStore.write(preferences, settings)
 
-            preferences[KEY_RESUME_ON_NEXT_LAUNCH] = settings.resumeOnNextLaunch
-            // S0050: Black Screen button (opt-in)
-            preferences[KEY_SHOW_BLACK_SCREEN_BUTTON] = settings.showBlackScreenButton
-            // S0473: local usage statistics (opt-in)
-            preferences[KEY_ENABLE_STATISTICS] = settings.enableStatistics
-            // S1045: secure sensitive screens (opt-out)
-            preferences[KEY_SECURE_SENSITIVE_SCREENS] = settings.secureSensitiveScreens
-            // S0404: launcher desktop tuning - owned by LauncherSettingsStore.
-            LauncherSettingsStore.write(preferences, settings)
+                preferences[KEY_RESUME_ON_NEXT_LAUNCH] = settings.resumeOnNextLaunch
+                // S0050: Black Screen button (opt-in)
+                preferences[KEY_SHOW_BLACK_SCREEN_BUTTON] = settings.showBlackScreenButton
+                // S0473: local usage statistics (opt-in)
+                preferences[KEY_ENABLE_STATISTICS] = settings.enableStatistics
+                // S1045: secure sensitive screens (opt-out)
+                preferences[KEY_SECURE_SENSITIVE_SCREENS] = settings.secureSensitiveScreens
+                // S0404: launcher desktop tuning - owned by LauncherSettingsStore.
+                LauncherSettingsStore.write(preferences, settings)
 
-            // Adaptive pre-cache strategy (spec §5)
-            preferences[KEY_PREFETCH_CACHE_MULTIPLIER] = settings.prefetchCacheMultiplier.name
-            preferences[KEY_STREAMING_CACHE_CLEANUP_MODE] = settings.streamingCacheCleanupMode.name
-            preferences[KEY_STREAMING_CACHE_TTL_DAYS] = settings.streamingCacheTtlDays
-                .takeIf { it in STREAMING_CACHE_TTL_VALID } ?: 7
+                // Adaptive pre-cache strategy (spec §5)
+                preferences[KEY_PREFETCH_CACHE_MULTIPLIER] = settings.prefetchCacheMultiplier.name
+                preferences[KEY_STREAMING_CACHE_CLEANUP_MODE] = settings.streamingCacheCleanupMode.name
+                preferences[KEY_STREAMING_CACHE_TTL_DAYS] = settings.streamingCacheTtlDays
+                    .takeIf { it in STREAMING_CACHE_TTL_VALID } ?: 7
 
-            // S0028: Multi-window mode
-            preferences[KEY_ALLOW_SEPARATE_WINDOW] = settings.allowSeparateWindow
+                // S0028: Multi-window mode
+                preferences[KEY_ALLOW_SEPARATE_WINDOW] = settings.allowSeparateWindow
 
-            // S0162 / S0439: Screen rotation control
-            preferences[KEY_FOLLOW_SYSTEM_ROTATION] = settings.programFollowSystemRotation
-            preferences[KEY_PLAYER_FOLLOW_SYSTEM_ROTATION] = settings.playerFollowSystemRotation
-            preferences[KEY_PLAYER_ROTATION_SENSOR_ENABLED] = settings.playerRotationSensorEnabled
-        }
+                // S0162 / S0439: Screen rotation control
+                preferences[KEY_FOLLOW_SYSTEM_ROTATION] = settings.programFollowSystemRotation
+                preferences[KEY_PLAYER_FOLLOW_SYSTEM_ROTATION] = settings.playerFollowSystemRotation
+                preferences[KEY_PLAYER_ROTATION_SENSOR_ENABLED] = settings.playerRotationSensorEnabled
+            }
         }
     }
 
@@ -837,11 +841,11 @@ class SettingsRepositoryImpl @Inject constructor(
     override suspend fun resetToDefaults() {
         updateSettings(AppSettings())
     }
-    
+
     override suspend fun setPlayerFirstRun(isFirstRun: Boolean) {
         dataStore.edit { it[KEY_IS_PLAYER_FIRST_RUN] = isFirstRun }
     }
-    
+
     override suspend fun isPlayerFirstRun(): Boolean = readFirst(KEY_IS_PLAYER_FIRST_RUN, true)
 
     override suspend fun saveLastUsedResourceId(resourceId: Long) {
@@ -873,7 +877,17 @@ class SettingsRepositoryImpl @Inject constructor(
     private suspend fun <T> readFirst(key: Preferences.Key<T>, default: T): T =
         dataStore.data
             .map { it[key] ?: default }
-            .catch { e -> if (e is IOException) { Timber.e(e, "Error reading ${key.name}"); emit(default) } else throw e }
+            .catch { e ->
+                if (e is IOException) {
+                    Timber.e(
+                        e,
+                        "Error reading ${key.name}"
+                    )
+                    emit(default)
+                } else {
+                    throw e
+                }
+            }
             .first()
 
     override suspend fun isTouchZoneHintShown(type: TouchZoneHintType): Boolean =
@@ -896,7 +910,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_HINT_SHOWN_MEDIA] = false
         }
     }
-    
+
     /** Encrypts password; returns encrypted Base64 string or empty on error. */
     private fun encryptPassword(plainPassword: String): String {
         if (plainPassword.isEmpty()) return ""
@@ -905,7 +919,7 @@ class SettingsRepositoryImpl @Inject constructor(
             ""
         }
     }
-    
+
     /**
      * Decrypts password; handles migration from legacy plaintext passwords.
      *

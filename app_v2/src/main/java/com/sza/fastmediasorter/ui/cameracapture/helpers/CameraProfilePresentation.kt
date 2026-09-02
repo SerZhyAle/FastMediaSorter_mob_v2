@@ -48,6 +48,7 @@ object CameraProfilePresentation {
     @StringRes
     private fun defaultLabelRes(profile: PhotoProfile): Int = when (profile) {
         PhotoProfile.NORMAL -> R.string.camera_profile_normal
+        PhotoProfile.DOCUMENT -> R.string.camera_profile_document
         PhotoProfile.NIGHT -> R.string.camera_profile_night
         PhotoProfile.PORTRAIT -> R.string.camera_profile_portrait
         PhotoProfile.SELFIE -> R.string.camera_profile_selfie
@@ -61,6 +62,7 @@ object CameraProfilePresentation {
         // the profile button it named the wrong thing. NORMAL is the plain still photo, and ic_image
         // is what a still already means here - media type IMAGE, the statistics rows, the widgets.
         PhotoProfile.NORMAL -> R.drawable.ic_image
+        PhotoProfile.DOCUMENT -> R.drawable.ic_camera_profile_document
         PhotoProfile.NIGHT -> R.drawable.ic_camera_night_on
         PhotoProfile.PORTRAIT -> R.drawable.ic_camera_profile_portrait
         PhotoProfile.SELFIE -> R.drawable.ic_camera_profile_selfie

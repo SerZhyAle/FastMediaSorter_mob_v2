@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.content.Context
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -236,7 +237,7 @@ class AudioBackgroundPhotosManager @Inject constructor(
                 }
                 
             } catch (e: Exception) {
-                Timber.e(e, "AudioBackgroundPhotos: Error loading photos playlist")
+                e.errorUnlessCancellation("AudioBackgroundPhotos: Error loading photos playlist")
                 withContext(Dispatchers.Main) {
                     onErrorListener?.invoke(
                         context.getString(com.sza.fastmediasorter.R.string.audio_background_photos_load_failed)

@@ -1,10 +1,15 @@
 package com.sza.fastmediasorter.domain.usecase.launcher
 
 import android.content.Context
+import com.sza.fastmediasorter.core.launcher.LauncherScreenClass
+import com.sza.fastmediasorter.core.launcher.LauncherScreenClassifier
+import com.sza.fastmediasorter.core.launcher.LauncherStarterLayoutRules
 import com.sza.fastmediasorter.core.launcher.LauncherStarterSets
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.data.launcher.AppShortcutDataSource
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
+import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.isAllFilesPredefined
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
@@ -14,6 +19,7 @@ import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.ProvisionDefaultResourcesUseCase
+import com.sza.fastmediasorter.domain.usecase.apps.QueryThirdPartyAppsUseCase
 import com.sza.fastmediasorter.domain.usecase.apps.ResolveInstalledPackagesUseCase
 import com.sza.fastmediasorter.domain.usecase.panel.ResolvePanelRouteAvailabilityUseCase
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -39,6 +45,7 @@ import javax.inject.Inject
  * dependency read (e.g. a Room exception) degrades to an empty desktop the user can fill, never a crash
  * loop on the device's own home surface (audit 2026-07-17, P1).
  */
+@Suppress("LongParameterList")
 class SeedLauncherDesktopUseCase @Inject constructor(
     private val desktop: LauncherDesktopRepository,
     private val profiles: DeviceProfileRepository,
@@ -47,6 +54,7 @@ class SeedLauncherDesktopUseCase @Inject constructor(
     private val routeAvailability: ResolvePanelRouteAvailabilityUseCase,
     private val provisionDefaultResources: ProvisionDefaultResourcesUseCase,
     private val resolveInstalledPackages: ResolveInstalledPackagesUseCase,
+    private val queryThirdPartyApps: QueryThirdPartyAppsUseCase,
     private val appShortcuts: AppShortcutDataSource,
     @ApplicationContext private val context: Context,
 ) {
@@ -70,30 +78,7 @@ class SeedLauncherDesktopUseCase @Inject constructor(
             // Only seed resource-backed cells for ids that still exist, so a stale last-used id (its
             // resource since deleted) never becomes a permanently-dead tile.
             val lastResourceId = settings.getLastUsedResourceId().takeIf { it > 0L && it in resourceIds }
-            fun idOf(path: String): Long? = allResources.firstOrNull { it.path == path }?.id
-
-            val virtualPaths = setOf(
-                LocalMediaScanner.VIRTUAL_PATH_RECENT,
-                LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO,
-                LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES,
-                LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO,
-                LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS,
-                LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS,
-            )
-            val userResourceIds = allResources
-                .filterNot { it.path in virtualPaths }
-                .map { it.id }
-
-            val starterResources = LauncherStarterSets.StarterResources(
-                recentId = idOf(LocalMediaScanner.VIRTUAL_PATH_RECENT),
-                allAudioId = idOf(LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO),
-                allImagesId = idOf(LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES),
-                allVideoId = idOf(LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO),
-                allDocsId = idOf(LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS),
-                cameraId = idOf(LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS),
-                lastResourceId = lastResourceId,
-                userResourceIds = userResourceIds,
-            )
+            val starterResources = starterResourcesFrom(allResources, lastResourceId)
             val routeAvailableInBuild = routeAvailability.all()
                 .mapValues { (_, availability) -> availability.availableInBuild }
             // Behind the already-seeded early-exit above, so a desktop that will not be seeded never pays
@@ -108,10 +93,7 @@ class SeedLauncherDesktopUseCase @Inject constructor(
                 GmsAvailabilityChecker.Status.UPDATE_REQUIRED -> true
                 GmsAvailabilityChecker.Status.UNAVAILABLE -> false
             }
-            Timber.d(
-                "S1644: seeding desktop, googleServices=$googleServicesAvailable " +
-                    "installedGoogleApps=${LauncherStarterSets.GOOGLE_APP_PACKAGES.count { it in installedPackages }}"
-            )
+            Timber.d("S2015: Seed desktop profile=%s googleServices=%b", profile, googleServicesAvailable)
             // S1613: behind the same early exit, so a desktop that will not be seeded never pays for it.
             val importedShortcuts = appShortcuts.allPinned().map { shortcut ->
                 LauncherStarterSets.StarterItem(
@@ -124,6 +106,18 @@ class SeedLauncherDesktopUseCase @Inject constructor(
                 )
             }
 
+            // S2015: the user's own applications for the Apps section, behind the same early exit as
+            // every other probe above. The exclusion set is the whole starter table's candidate list,
+            // which already contains GOOGLE_APP_PACKAGES - so whatever the Google section takes, and
+            // whatever the table can place by name, cannot come back a second time through this list.
+            val thirdPartyApps = queryThirdPartyApps(LauncherStarterSets.candidatePackages)
+
+            // S2309: read behind the same already-seeded early exit as every other probe above, so a
+            // desktop that will not be seeded never pays for it (strategic §3.2).
+            val screenClass = deviceScreenClass()
+            Timber.d("S2309: composing starter desktop for %s on %s", profile, screenClass)
+            logCoreResourceProbe(starterResources)
+
             val items = LauncherStarterSets.itemsFor(
                 profile,
                 starterResources,
@@ -131,7 +125,13 @@ class SeedLauncherDesktopUseCase @Inject constructor(
                 installedPackages,
                 googleServicesAvailable = googleServicesAvailable,
                 importedShortcuts = importedShortcuts,
+                thirdPartyApps = thirdPartyApps,
+                screenClass = screenClass,
             )
+            if (!state.seededPortrait && !state.seededLandscape) {
+                persistComposedScreenCount(screenClass)
+            }
+
             val ownPackage = context.packageName
             val now = System.currentTimeMillis()
 
@@ -143,6 +143,92 @@ class SeedLauncherDesktopUseCase @Inject constructor(
             }
         }.onFailure { Timber.w(it, "Launcher desktop seed failed; leaving desktop empty") }
         Unit
+    }
+
+    /**
+     * The resolved ids the starter table seeds from, split into the closed core set and the open tail.
+     *
+     * S2321: that division is a rule of its own, not a step of the seed - the six virtual aggregates and
+     * the predefined "All files" resource are the entry points the desktop offers to whole content types,
+     * and everything else is the user tail the layout budget may legitimately shorten.
+     */
+    private fun starterResourcesFrom(
+        allResources: List<MediaResource>,
+        lastResourceId: Long?,
+    ): LauncherStarterSets.StarterResources {
+        fun idOf(path: String): Long? = allResources.firstOrNull { it.path == path }?.id
+
+        val virtualPaths = setOf(
+            LocalMediaScanner.VIRTUAL_PATH_RECENT,
+            LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO,
+            LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES,
+            LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO,
+            LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS,
+            LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS,
+        )
+        // S2321: "All files" lives at a real storage path, so the virtual-path filter below cannot see
+        // it and it used to reach the desktop only through the budgeted user tail - where a compact
+        // screen always cut it. Named here and excluded there, so the core group seeds it exactly once.
+        val allFilesId = allResources.firstOrNull { it.isAllFilesPredefined }?.id
+        val userResourceIds = allResources
+            .filterNot { it.path in virtualPaths || it.id == allFilesId }
+            .map { it.id }
+
+        return LauncherStarterSets.StarterResources(
+            recentId = idOf(LocalMediaScanner.VIRTUAL_PATH_RECENT),
+            allAudioId = idOf(LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO),
+            allImagesId = idOf(LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES),
+            allVideoId = idOf(LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO),
+            allDocsId = idOf(LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS),
+            cameraId = idOf(LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS),
+            allFilesId = allFilesId,
+            lastResourceId = lastResourceId,
+            userResourceIds = userResourceIds,
+        )
+    }
+
+    /**
+     * S2321 probe: the ids the core-resource group received, so a device log separates "the aggregates
+     * were resolved and seeded" from "the seed never reached them" - the distinction the reported clean
+     * install turned on, since a truncated desktop and an unseeded one look identical on screen.
+     */
+    private fun logCoreResourceProbe(resources: LauncherStarterSets.StarterResources) {
+        Timber.d(
+            "S2321: core resources docs=%s camera=%s allFiles=%s userTail=%d",
+            resources.allDocsId,
+            resources.cameraId,
+            resources.allFilesId,
+            resources.userResourceIds.size,
+        )
+    }
+
+    /**
+     * The screen class this device seeds for.
+     *
+     * Reads the configuration rather than taking it as an argument: the seed already holds the
+     * application context, so threading a second argument through the launcher surface would add a
+     * parameter to every caller for a value only this function uses (strategic §3.3).
+     */
+    private fun deviceScreenClass(): LauncherScreenClass {
+        val configuration = context.resources.configuration
+        return LauncherScreenClassifier.classify(
+            smallestWidthDp = configuration.smallestScreenWidthDp,
+            screenWidthDp = configuration.screenWidthDp,
+            screenHeightDp = configuration.screenHeightDp,
+        )
+    }
+
+    /**
+     * Writes the composed screen count, and only on a full seed.
+     *
+     * A partial re-seed touches one orientation of a desktop the user has already had in their hands,
+     * so overwriting the setting there would discard a number they may have chosen themselves. The
+     * rule's count is clamped to the same 1..5 the settings store clamps to on read, so this cannot
+     * persist a value the setting would silently change back.
+     */
+    private suspend fun persistComposedScreenCount(screenClass: LauncherScreenClass) {
+        val screenCount = LauncherStarterLayoutRules.ruleFor(screenClass).screenCount
+        settings.updateSettings { it.withLauncher { copy(screenCount = screenCount) } }
     }
 
     private suspend fun seedOrientation(
@@ -164,6 +250,7 @@ class SeedLauncherDesktopUseCase @Inject constructor(
                 target = placed.item.target.replace(LauncherStarterSets.OWN_APP_TOKEN, ownPackage),
                 labelOverride = null,
                 addedAt = now,
+                screenIndex = placed.screenIndex,
             )
         }
         desktop.seedIfEmpty(orientation, cells)

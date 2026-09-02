@@ -61,7 +61,6 @@ private class DocumentWindowGadgetView(
         val loaded = resourceId?.let {
             loadFiles(it, limit = MediaWindow.SCAN_LIMIT, sortMode = SortMode.DATE_DESC)
         } as? LoadLauncherGadgetFilesUseCase.Result.Files
-        Timber.d("S1754: document window bound to resource %s", resourceId)
         val document = loaded?.files?.firstOrNull { it.type.isDocumentFile() }
         if (document == null) {
             showMessage()

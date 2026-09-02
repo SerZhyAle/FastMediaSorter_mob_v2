@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.common.widget
 import android.content.Context
 import android.content.SharedPreferences
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
+import com.sza.fastmediasorter.data.local.preferences.CollapsibleSectionStore
 
 /**
  * One-time migration of the legacy per-screen collapsible-state namespaces into the consolidated store.
@@ -133,7 +134,12 @@ class CollapsibleSectionStateMigration(private val context: Context) {
 
         private val RESOURCE_EDITOR_TYPES = listOf("local", "smb", "sftp", "ftp", "cloud")
         private val RESOURCE_EDITOR_SECTIONS = listOf(
-            "connection", "media_types", "scanning", "destination", "advanced", "statistics",
+            "connection",
+            "media_types",
+            "scanning",
+            "destination",
+            "advanced",
+            "statistics",
         )
     }
 }

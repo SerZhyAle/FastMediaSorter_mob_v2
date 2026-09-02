@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 /**
  * S0675: renders the stream catalog as grid tiles. Each cell shows the cached current frame via
@@ -376,9 +377,17 @@ class StreamGridAdapter(
                 RecordStreamPlayOutcomeUseCase.OUTCOME_OK ->
                     Triple(R.drawable.ic_stream_status_ok, R.color.stream_status_ok, R.string.stream_status_ok)
                 RecordStreamPlayOutcomeUseCase.OUTCOME_FAIL ->
-                    Triple(R.drawable.ic_stream_status_failed, R.color.stream_status_failed, R.string.stream_status_failed)
+                    Triple(
+                        R.drawable.ic_stream_status_failed,
+                        R.color.stream_status_failed,
+                        R.string.stream_status_failed
+                    )
                 else ->
-                    Triple(R.drawable.ic_stream_status_unknown, R.color.stream_status_unknown, R.string.stream_status_unknown)
+                    Triple(
+                        R.drawable.ic_stream_status_unknown,
+                        R.color.stream_status_unknown,
+                        R.string.stream_status_unknown
+                    )
             }
             val context = binding.ivGridStatus.context
             binding.ivGridStatus.setImageResource(iconRes)
@@ -429,6 +438,9 @@ class StreamGridAdapter(
             StreamMenuAction.MOVE_TO_TOP -> onMoveToTop(source)
             StreamMenuAction.TOGGLE_FAVORITE -> onToggleFavorite(source)
             StreamMenuAction.ADD_SHORTCUT -> onAddShortcut(source)
+            // S2247: desktop-only row - the surface gate keeps it out of this screen's menu, so the
+            // branch exists only to keep the `when` exhaustive and says so if it ever fires.
+            StreamMenuAction.ADD_DESKTOP_WINDOW -> Timber.w("Streams screen offered desktop-only action %s", action)
             StreamMenuAction.EDIT -> onEdit(source)
             StreamMenuAction.SEND_TO_WATCH -> onSendToWatch(source)
             StreamMenuAction.OPEN_ON_WATCH -> onOpenOnWatch(source)

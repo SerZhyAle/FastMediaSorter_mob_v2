@@ -1,1 +1,51 @@
-30
+# Known unreferenced scripts, judged by assert-script-references.ps1 (S1872, keyed by path S2124).
+# One line per script path, so a repaired orphan cannot free a slot the next one occupies silently.
+# Before S2124 this file held a single count, and 37 files sharing the name Run-Tests.ps1 shared
+# one entry - a list is only possible now that each script is judged by its own path.
+#
+# A line matching nothing any more is printed as a prune hint, not a failure. A new path not listed
+# here fails the gate: delete the script, wire it, or declare it with a
+# `Manual tool: <why it exists and who runs it>` line in its comment-based help. Adding a line here
+# instead is a decision to keep dead weight, and it should be a deliberate one.
+#
+# --- Pester runners with no launcher: SECTION CLOSED, S2122 ------------------------------------
+# It held 28 lines, one per Run-Tests.ps1 - suites with no place to run from rather than dead code.
+# The launcher landed (scripts/quality/run-script-suites.ps1), so they are reached by discovery the
+# way a *.Tests.ps1 beside a runner already was, and assert-script-references.ps1 now excuses a
+# suite entry point by convention instead. All 28 lines were pruned; do not re-add one. A NEW suite
+# needs no line here - only a place on disk under <name>.tests/ or <name>/tests/.
+
+# --- scripts nothing references ----------------------------------------------------------------
+# Measured 2026-08-21 by S1872 and unchanged by the S2124 re-keying: finished migrations, one-off
+# measurements, and wrappers whose headers claim callers they do not have. Most are mentioned only
+# in an archived spec or a changelog row, which remembers a script rather than calling one.
+scripts/all_features/migrate_from_log.ps1
+scripts/all_features/scan_surface.ps1
+scripts/builders/build-nolegal-device.ps1
+scripts/check_docs_freshness.ps1
+scripts/devtest/camera-wysiwyg-selftest.ps1
+scripts/disable-watchdog-find.ps1
+scripts/layout-dimen-migration/1-extract-all-resources-v2.ps1
+scripts/layout-dimen-migration/4-unify-dimensions.ps1
+scripts/layout-dimen-migration/analyze-duplicates.ps1
+scripts/layout-dimen-migration/sort-resources-semantic.ps1
+scripts/metrics/agent-cost-report.ps1
+scripts/quality/measure-file-touch-frequency.ps1
+scripts/quality/sector-gate-pilot.ps1
+scripts/release/capture-play-screenshots.ps1
+scripts/spec_catalog/migrate-archive-to-plan.ps1
+scripts/spec_catalog/unverified-backlog.ps1
+scripts/streams.tests/StreamPublisher.Artwork.Tests.ps1
+scripts/streams.tests/StreamPublisher.Common.Tests.ps1
+scripts/streams.tests/StreamPublisher.Delivery.Tests.ps1
+scripts/streams.tests/StreamPublisher.Probes.Tests.ps1
+scripts/test-compatibility.ps1
+scripts/utils/archive-temp.ps1
+scripts/utils/archive-vscode-cruft.ps1
+scripts/utils/create-release-candidate.ps1
+scripts/utils/generate-quality-report.ps1
+scripts/utils/init-ramdisk.ps1
+scripts/utils/measure-concurrent-build.ps1
+scripts/utils/monitor_git.ps1
+scripts/utils/setup_test_vr.ps1
+scripts/utils/setup-alias.ps1

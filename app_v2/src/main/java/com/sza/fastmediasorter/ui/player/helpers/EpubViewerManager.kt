@@ -8,6 +8,9 @@ import android.webkit.WebViewClient
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.clipboard.copyTextToClipboard
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.util.showBoundToHost
@@ -351,6 +354,7 @@ class EpubViewerManager(
                     try {
                         networkFileManager.prepareFileForRead(mediaFile)
                     } catch (e: Exception) {
+                        e.rethrowIfCancellation()
                         withContext(Dispatchers.Main) {
                             loadingToastJob.cancel()
                             setEpubLoadSpinner(false)
@@ -408,7 +412,7 @@ class EpubViewerManager(
                             }
                         }
                     } catch (e: Exception) {
-                        Timber.e(e, "Failed to parse EPUB")
+                        e.errorUnlessCancellation("Failed to parse EPUB")
                         withContext(Dispatchers.Main) {
                             loadingToastJob.cancel()
                             setEpubLoadSpinner(false)
@@ -422,7 +426,7 @@ class EpubViewerManager(
                     }
                 }
             } catch (e: Exception) {
-                Timber.e(e, "EPUB display error")
+                e.errorUnlessCancellation("EPUB display error")
                 loadingToastJob.cancel()
                 setEpubLoadSpinner(false)
                 callback.showError(context.getString(R.string.epub_display_error))
@@ -515,7 +519,7 @@ class EpubViewerManager(
 
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Failed to show chapter $chapterIndex")
+                e.errorUnlessCancellation("Failed to show chapter $chapterIndex")
                 withContext(Dispatchers.Main) {
                     callback.showError(root.context.getString(R.string.epub_chapter_load_failed))
                 }
@@ -889,16 +893,7 @@ class EpubViewerManager(
             val extractedText = result.trim().removeSurrounding("\"")
 
             if (extractedText.isNotBlank()) {
-                val clipboard = root.context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                val clip = android.content.ClipData.newPlainText("EPUB Text", extractedText)
-                clipboard.setPrimaryClip(clip)
-
-                android.widget.Toast.makeText(
-                    root.context,
-                    root.context.getString(R.string.text_copied),
-                    android.widget.Toast.LENGTH_SHORT
-                ).show()
-
+                root.context.copyTextToClipboard("EPUB Text", extractedText)
             } else {
                 android.widget.Toast.makeText(
                     root.context,
@@ -934,7 +929,7 @@ class EpubViewerManager(
                     safeViews.btnTranslateEpubCmd.alpha = if (translationHelper.translationEnabled) 1.0f else 0.55f
                 }
             } catch (e: Exception) {
-                Timber.e(e, "EPUB: Failed to update translate button icon")
+                e.errorUnlessCancellation("EPUB: Failed to update translate button icon")
             }
         }
     }

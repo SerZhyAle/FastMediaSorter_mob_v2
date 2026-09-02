@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wear_tile_resource_label">Плитка ресурсу</string>
+    <string name="wear_tile_stream_label">Плитка потоку</string>
+    <string name="wear_tile_favourites_label">Обране</string>
+    <string name="wear_tile_unassigned_resource">Ресурс не вибрано</string>
+    <string name="wear_tile_unassigned_stream">Потік не вибрано</string>
+    <string name="wear_tile_pick_action">Обрати ціль</string>
+    <string name="wear_tile_target_missing">Ціль більше недоступна</string>
+    <string name="wear_tile_favourites_empty">Немає обраних елементів</string>
+    <string name="wear_tile_picker_title_resource">Вибір ресурсу</string>
+    <string name="wear_tile_picker_title_stream">Вибір потоку</string>
+    <string name="wear_tile_picker_empty_resource">Ресурси не знайдені. Додайте мережевий ресурс або виконайте синхронізацію.</string>
+    <string name="wear_tile_picker_empty_stream">Потоки не знайдені. Додайте потік або синхронізуйте каталог з телефоном.</string>
+</resources>

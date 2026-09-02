@@ -35,4 +35,5 @@ data class LauncherCell(
     val target: String,
     val labelOverride: String?,
     val addedAt: Long,
+    val screenIndex: Int = 0,
 )

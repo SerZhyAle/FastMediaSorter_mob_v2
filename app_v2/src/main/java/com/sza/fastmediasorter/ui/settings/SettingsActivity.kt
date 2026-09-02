@@ -31,6 +31,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.core.ui.BaseActivity
+import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.databinding.ActivitySettingsBinding
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
@@ -192,7 +193,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Timber.d("S1549: SettingsActivity onCreate - recreation applies the orientation layout")
         // Measure actionBarSize and register insets listener before the first frame
         // to prevent toolbarContainer height from jumping on activity open.
         val tv = TypedValue()
@@ -227,11 +227,14 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         binding.viewPager.adapter = adapter
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] viewPager.adapter set")
 
-        // Disable animations between tabs (as per V2 Specification)
-        // Use instant page transformer - no animation
-        binding.viewPager.setPageTransformer { page, position ->
-            page.translationX = 0f
-            page.alpha = if (position == 0f) 1f else 0f
+        if (AnimationPolicy.isAnimationAllowed) {
+            binding.viewPager.setPageTransformer { page, position ->
+                page.translationX = 0f
+                page.alpha = if (position == 0f) 1f else 0f
+            }
+        } else {
+            binding.viewPager.setPageTransformer(null)
+            Timber.d("S2250: settings tab transformer disabled")
         }
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] viewPager configured (transformer)")
 

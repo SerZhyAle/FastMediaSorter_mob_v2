@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
+<hierarchy rotation="0">
+  <node index="0" text="" resource-id="" class="android.widget.FrameLayout" package="com.sza.fastmediasorter.debug" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,0][480,480]">
+    <!-- Fixed chrome inside a corner quadrant, past the 240 px radius, touching no screen edge and
+         under no scrollable ancestor: the one shape Get-ClipVerdict calls OFF-GLASS. Synthetic on
+         purpose - all five recorded watch dumps are clean, so a real one cannot drive the exit-9
+         branch of clip-check, which is the branch S2079 broke. -->
+    <node index="0" text="corner badge" resource-id="com.sza.fastmediasorter.debug:id/badgeCorner" class="android.widget.TextView" package="com.sza.fastmediasorter.debug" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[30,30][120,70]" />
+    <node index="1" text="centred label" resource-id="com.sza.fastmediasorter.debug:id/labelCentre" class="android.widget.TextView" package="com.sza.fastmediasorter.debug" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[150,220][330,260]" />
+  </node>
+</hierarchy>

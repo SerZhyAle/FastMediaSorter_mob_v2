@@ -46,6 +46,13 @@ param([switch]$Gate, [switch]$Quiet)
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 
+# '.claude' is a scan root below, and a nested agent worktree lives under it carrying a full copy
+# of this repository. Which paths that covers is decided in one place for all four repo-wide walks.
+. (Join-Path $PSScriptRoot 'lib/nested-worktrees.ps1')
+$nestedWorktrees = Get-NestedWorktreeRelativePath -RepoRoot $repoRoot
+$skippedWorktreeFiles = [System.Collections.Generic.HashSet[string]]::new(
+    [System.StringComparer]::OrdinalIgnoreCase)
+
 # One row per retirement. Adding the next swap is a single line, not a second script.
 #   Pattern - word-bounded so a substring inside an unrelated identifier does not fire.
 #   Because - printed on a hit, so the fix is obvious without opening the ticket.
@@ -79,6 +86,12 @@ $excludedPaths = @(
 function Test-Excluded {
     param([Parameter(Mandatory)][string]$RelativePath)
     $normalized = $RelativePath.Replace('\', '/')
+    # Counted rather than merely skipped: the verdict line below has to be able to say the walk
+    # dropped a subtree, or "0 hits" reads the same whether it looked or not.
+    if (Test-InNestedWorktree -RelativePath $normalized -Prefixes $nestedWorktrees) {
+        [void]$skippedWorktreeFiles.Add($normalized)
+        return $true
+    }
     foreach ($ex in $excludedPaths) {
         if ($normalized -eq $ex -or $normalized.StartsWith("$ex/")) { return $true }
     }
@@ -130,6 +143,9 @@ foreach ($file in $filesToScan) {
         }
     }
 }
+
+$skipNotice = Get-NestedWorktreeSkipNotice -SkippedFileCount $skippedWorktreeFiles.Count -Prefixes $nestedWorktrees
+if ($skipNotice) { Write-Host "assert-retired-dependency-names: $skipNotice" }
 
 Write-Host ("assert-retired-dependency-names: expected: 0 | actual: {0} retired name(s) across {1} scanned file(s)" -f $hits.Count, $scanned)
 

@@ -30,12 +30,14 @@
 
         <TextView
             android:id="@+id/tvIntervalValue"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_normal"
             android:text="@string/dialog_slideshow_settings_tvIntervalValue_text"
             android:textSize="@dimen/dialog_slideshow_settings_tvIntervalLabel_textSize"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/tvIntervalLabel"
             app:layout_constraintTop_toTopOf="@id/tvIntervalLabel" />
 
         <com.google.android.material.slider.Slider

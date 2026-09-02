@@ -46,7 +46,6 @@ class WearLogReportReceiver @Inject constructor(
 ) {
 
     suspend fun handle(nodeId: String, data: ByteArray) {
-        Timber.d("S1802: phone received a watch log report from node $nodeId")
         when (val parsed = WearLogReportCodec.parse(data, gson)) {
             is WearLogReportParseResult.Malformed -> {
                 Timber.w("Wear log report: payload could not be parsed")

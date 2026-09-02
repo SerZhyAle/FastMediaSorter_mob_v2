@@ -18,8 +18,8 @@ class CameraCaptureGestureCallbackHandler(
     private val requestLensSwitch: () -> Unit,
 ) : CameraCaptureGestureManager.Callbacks {
 
-    override fun onTapToFocus(x: Float, y: Float) {
-        if (flowManager.onTapToFocus(x, y)) focusRingOverlay.showAt(x, y)
+    override fun onTapToFocus(x: Float, y: Float, visualX: Float, visualY: Float) {
+        if (flowManager.onTapToFocus(x, y)) focusRingOverlay.showAt(visualX, visualY)
     }
 
     override fun onDoubleTapZoom() {

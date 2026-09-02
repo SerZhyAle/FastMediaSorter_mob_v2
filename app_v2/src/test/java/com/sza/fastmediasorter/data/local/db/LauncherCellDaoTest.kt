@@ -37,6 +37,7 @@ class LauncherCellDaoTest {
         spanW: Int = 1,
         spanH: Int = 1,
         orientation: String = PORTRAIT,
+        screenIndex: Int = 0,
     ): Long = dao.upsert(
         LauncherCellEntity(
             orientation = orientation,
@@ -48,6 +49,7 @@ class LauncherCellDaoTest {
             target = "app:com.example",
             labelOverride = null,
             addedAt = 0L,
+            screenIndex = screenIndex,
         )
     )
 
@@ -58,14 +60,22 @@ class LauncherCellDaoTest {
         spanH: Int = 1,
         orientation: String = PORTRAIT,
         excludeId: Long = NO_EXCLUSION,
+        screenIndex: Int = 0,
     ) = dao.findOverlapping(
         orientation = orientation,
+        screenIndex = screenIndex,
         rowIndex = row,
         colIndex = col,
         spanW = spanW,
         spanH = spanH,
         excludeId = excludeId,
     )
+
+    @Test
+    fun `a cell on another screen is not a blocker`() = runTest {
+        place(row = 1, col = 1, screenIndex = 1)
+        assertNull(blockerAt(row = 1, col = 1))
+    }
 
     @Test
     fun `identical square is a blocker`() = runTest {

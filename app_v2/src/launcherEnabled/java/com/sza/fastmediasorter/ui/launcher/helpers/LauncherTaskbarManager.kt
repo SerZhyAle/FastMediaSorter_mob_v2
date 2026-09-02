@@ -24,6 +24,7 @@ class LauncherTaskbarManager(
     private val onCommand: (LauncherCellCommand) -> Unit,
     private val onStartClick: () -> Unit,
     private val onAllAppsClick: () -> Unit = {},
+    private val onRecentLongClick: (View, LauncherCellCommand) -> Boolean = { _, _ -> false },
     private val onAddPin: () -> Unit = {},
     private val onRemovePin: (position: Int) -> Unit = {},
     private val onRecentsCapacity: (Int) -> Unit = {},
@@ -50,12 +51,24 @@ class LauncherTaskbarManager(
     // rerun it, exactly like the pinned strip, instead of assuming an app package.
     private val recentsAdapter = LauncherTaskbarIconAdapter(
         onIconClick = { icon -> LauncherCellCommand.decode(icon.id)?.let(onCommand) },
+        onIconLongClick = { anchor, icon ->
+            LauncherCellCommand.decode(icon.id)?.let { onRecentLongClick(anchor, it) } ?: false
+        },
+    )
+
+    private val pinnedAppMenuManager = LauncherTaskbarPinnedAppMenuManager(
+        launchCommand = onCommand,
+        unpin = onRemovePin,
     )
 
     // Only the pinned strip edits: its icons carry a pin position, so unpin routes by position and the
-    // trailing "+" pins one more. Recents cannot be pinned/unpinned, so its adapter takes no edit hooks.
+    // trailing "+" pins one more. Outside edit mode, installed apps also expose their narrow launch/unpin menu.
     private val pinnedAdapter = LauncherTaskbarIconAdapter(
         onIconClick = { icon -> LauncherCellCommand.decode(icon.id)?.let(onCommand) },
+        onIconLongClick = { anchor, icon ->
+            val command = LauncherCellCommand.decode(icon.id) as? LauncherCellCommand.App
+            if (command == null) false else pinnedAppMenuManager.show(anchor, command, icon.position)
+        },
         onRemoveClick = { icon -> onRemovePin(icon.position) },
         onAddClick = onAddPin,
     )
@@ -83,19 +96,52 @@ class LauncherTaskbarManager(
     /** Symmetric with the listener [bind] attaches - the bar outlives no window, but nothing here relies on it. */
     override fun onDestroy(owner: LifecycleOwner) {
         binding.taskbarRecents.removeOnLayoutChangeListener(recentsLayoutListener)
+        pinnedAppMenuManager.dismiss()
     }
 
-    /** Edit mode adds an unpin "X" to every pin and a trailing "+"; recents are unaffected. */
+    /**
+     * S2022: the last composition the settings flow delivered, re-applied whenever edit mode flips so the
+     * two triggers never fight over the same views. Seeded to match the `AppSettings` defaults, so a
+     * `setEditMode` call that lands before the first composition emission renders the same state the
+     * first real emission would.
+     */
+    private var composition = LauncherTaskbarComposition(showRecents = true, showPinned = true, showTray = true)
+
+    /** S2022: true while the desktop is being edited - the render step below reads it beside [composition]. */
+    private var editing = false
+
+    /**
+     * S2022: recents and pinned add an unpin "X" / trailing "+" while editing (pinned only - it is the
+     * strip edit mode's affordances live on); recents and the tray's indicator row are hidden outright
+     * instead, because with everything on (indicators, recents, the "Add" and "Apply" buttons) the bar is
+     * wider than the screen and the last two - Add, Apply - are the ones pushed off (owner report,
+     * strategic §0).
+     */
     fun setEditMode(on: Boolean) {
         pinnedAdapter.setEditMode(on)
+        editing = on
+        render()
     }
 
-    private fun apply(composition: LauncherTaskbarComposition) {
-        binding.taskbarRecents.isVisible = composition.showRecents
+    /** Keep the taskbar surface in the same wallpaper-visible layer as desktop cell backdrops. */
+    fun applyBackdropAlpha(alpha: Float) {
+        binding.root.background.mutate().alpha = (alpha.coerceIn(0f, 1f) * OPAQUE_ALPHA).toInt()
+    }
+
+    private fun apply(newComposition: LauncherTaskbarComposition) {
+        composition = newComposition
+        render()
+    }
+
+    private fun render() {
+        binding.taskbarRecents.isVisible = composition.showRecents && !editing
         binding.taskbarPinned.isVisible = composition.showPinned
         // S1431 ADR-5: the mode subordinates the tray rather than competing with it. The stored switch is
         // never written here, so turning the mode off restores whatever the user last chose.
         binding.trayContainer.isVisible = composition.showTray && !composition.topStatusStripMode
+        // S2022: the clock stays (not named in the owner's report) - only the indicator row is gated on
+        // editing, one level below the container so it can hide without taking the clock with it.
+        binding.trayIndicators.root.isVisible = composition.showTray && !composition.topStatusStripMode && !editing
     }
 
     /**
@@ -126,3 +172,5 @@ data class LauncherTaskbarComposition(
     /** S1431: while the top strip carries the indicators, the tray is hidden whatever [showTray] says. */
     val topStatusStripMode: Boolean = false,
 )
+
+private const val OPAQUE_ALPHA = 255

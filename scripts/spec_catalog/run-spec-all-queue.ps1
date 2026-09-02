@@ -20,9 +20,10 @@
 
   Three coordination guards, all taken from 2026-08-08 runs where sessions
   collided on one ticket:
-    - A ticket whose id appears in the reason of a held or queued CODE.LOCK /
-      BUILD.LOCK is passed over: a sibling is driving it right now. Only
-      /spec-next claims a lease, so "unleased" does not mean "free".
+    - A ticket whose id appears in the reason of a held or queued coordination
+      lock - any of the five domains, code or build - is passed over: a sibling
+      is driving it right now. Only /spec-next claims a lease, so "unleased"
+      does not mean "free".
     - temp/spec-all-queue.lock admits one driver per checkout. Several drivers
       rank the same queue, so they all pick the same head.
     - Tickets are taken through scripts/spec_catalog/ticket-lease.ps1, so one a
@@ -74,7 +75,11 @@ $instanceLockPath = Join-Path $rootPath 'temp\spec-all-queue.lock'
 $pwshCommand = (Get-Command pwsh -ErrorAction Stop).Source
 $driverSessionId = "queue-driver-$PID"
 $terminalStatuses = @('Implemented', 'Verified')
-$ticketPattern = '^\s*(?<release>\d+|--)\s+(?<ticket>S\d{4}_[a-z0-9][a-z0-9-]*)\s+(?<changed>\d{4}-\d{2}-\d{2})\s+(?<status>\S(?:.*\S)?)\s*$'
+# The optional trailing group is the live-occupancy marker the release files carry since
+# 2026-09-01 ('[taken 15:42, /spec-all, be08adb0]'). Without it every taken row reads as a
+# malformed line and this runner exits 2 on the owner's own plan; the status group is lazy so
+# the marker cannot be swallowed into the status instead.
+$ticketPattern = '^\s*(?<release>\d+|--)\s+(?<ticket>S\d{4}_[a-z0-9][a-z0-9-]*)\s+(?<changed>\d{4}-\d{2}-\d{2})\s+(?<status>\S(?:.*?\S)?)(?:\s+\[taken\s[^\]]*\])?\s*$'
 
 function Get-CatalogRecord {
     param([Parameter(Mandatory)][string] $TicketId)
@@ -133,16 +138,20 @@ function Get-TicketBusySignal {
     param([Parameter(Mandatory)][string] $TicketId)
 
     $pattern = [regex]::Escape($TicketId)
-    foreach ($lockName in @('Code', 'Build')) {
+    # S2170: every concrete domain, never the two bare names. A bare name resolves to the ONE
+    # pre-split file that nothing writes any more, so this test read "free" for every sibling and
+    # the driver went back to starting tickets a live session was already on - the exact failure
+    # the function was written to prevent.
+    foreach ($lockName in @(Resolve-AgentLockDomains -Name 'Code') + @(Resolve-AgentLockDomains -Name 'Build')) {
         $status = Get-AgentLockStatus -Name $lockName
         if ($status.Exists -and -not $status.Stale -and [string] $status.Reason -match $pattern) {
-            return "$lockName.LOCK held for '$([string] $status.Reason)'"
+            return "$($lockName.ToUpper()).LOCK held for '$([string] $status.Reason)'"
         }
 
         foreach ($queued in @(Get-AgentLockQueue -Name $lockName)) {
             if ('reason' -notin $queued.PSObject.Properties.Name) { continue }
             $reason = [string] $queued.reason
-            if ($reason -match $pattern) { return "$lockName.LOCK queue: '$reason'" }
+            if ($reason -match $pattern) { return "$($lockName.ToUpper()).LOCK queue: '$reason'" }
         }
     }
 

@@ -2,10 +2,12 @@ package com.sza.fastmediasorter.core.share.handlers
 
 import android.app.Activity
 import android.content.pm.PackageManager
-import com.sza.fastmediasorter.util.getPackageInfoCompat
 import com.sza.fastmediasorter.core.share.ShareTargetHandler
+import com.sza.fastmediasorter.core.share.ShareTargetOutcome
 import com.sza.fastmediasorter.core.share.ShareableContent
 import com.sza.fastmediasorter.core.share.SystemShareInvoker
+import com.sza.fastmediasorter.core.share.asLaunchOutcome
+import com.sza.fastmediasorter.util.getPackageInfoCompat
 import javax.inject.Inject
 
 /**
@@ -17,14 +19,14 @@ class InstagramShareTargetHandler @Inject constructor() : ShareTargetHandler {
 
     override val targetId: String = ID
 
-    override fun send(activity: Activity, content: ShareableContent): Boolean =
+    override suspend fun send(activity: Activity, content: ShareableContent): ShareTargetOutcome =
         SystemShareInvoker.invokeFiles(
             context = activity,
             uris = content.uris,
             mime = content.mime,
             preferredPackage = if (isInstalled(activity)) PACKAGE else null,
             chooserTitle = content.displayName,
-        )
+        ).asLaunchOutcome()
 
     private fun isInstalled(activity: Activity): Boolean = try {
         activity.packageManager.getPackageInfoCompat(PACKAGE)

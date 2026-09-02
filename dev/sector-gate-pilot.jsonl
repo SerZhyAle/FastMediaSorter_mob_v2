@@ -24,3 +24,6 @@
 
 {"kind":"refusal","at":"2026-08-15T16:23:57+02:00","session":"f77c0c40-2a44-42b0-a671-e098cac302a0","tool":"Glob","pattern":"**/*DirectFileExtractionStrategy*Test*.kt","glob":"","path":"","type":"","markerPresent":false,"classification":""}
 {"kind":"refusal","at":"2026-08-15T16:23:57+02:00","session":"f77c0c40-2a44-42b0-a671-e098cac302a0","tool":"Glob","pattern":"**/*LinkDownloadWriter*Test*.kt","glob":"","path":"","type":"","markerPresent":false,"classification":""}
+{"kind":"refusal","at":"2026-09-02T02:14:56+02:00","session":"34af6d40-8311-4cea-8b15-61bd06ac9476","tool":"Grep","pattern":"commonResources|StarterSectionGroup\\.RESOURCES|keepActionsWithFeatures|firstScreenSections","glob":"**/*.kt","path":"","type":"","markerPresent":false,"classification":""}
+{"kind":"refusal","at":"2026-09-02T02:24:10+02:00","session":"31f037f9-6bd8-4bab-ba34-4f18bf4f2074","tool":"Grep","pattern":"S2321","glob":"**/*.kt","path":"","type":"","markerPresent":false,"classification":""}
+{"kind":"refusal","at":"2026-09-02T06:14:51+02:00","session":"ccc6b3fb-2928-42d2-9bde-31f7a0b63bca","tool":"Grep","pattern":"va[lr]\\s+\\w+\\s*:\\s*(Map|MutableMap|HashMap)<[^>]*,\\s*[A-Z]\\w{3,}","glob":"**/*.kt","path":"","type":"","markerPresent":false,"classification":""}

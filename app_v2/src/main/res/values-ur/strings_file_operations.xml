@@ -96,13 +96,11 @@
     <string name="file_already_exists_skip">%1$s (چھوڑ دیا گیا - فائل پہلے سے موجود ہے)</string>
     <string name="file_cloud_id_label">کلاؤڈ ID: %1$s</string>
     <string name="file_count">فائل کاؤنٹ</string>
-    <string name="file_count_format">%d فائلیں۔</string>
     <string name="file_count_over_1000">&gt;1000 فائلیں۔</string>
     <string name="file_date_label">تاریخ: %1$s</string>
     <string name="file_deleted">\"%1$s\" کو حذف کر دیا گیا۔</string>
     <string name="file_info">فائل کی معلومات</string>
     <string name="file_info_copy_path">راستہ کاپی کریں۔</string>
-    <string name="file_info_copy_path_done">پاتھ کاپی ہو گیا۔</string>
     <string name="file_info_directory_label">ڈائریکٹری: %1$s</string>
     <string name="file_info_extension_mime_label">فارمیٹ: %1$s · %2$s</string>
     <string name="file_info_filename_label">فائل: %1$s</string>

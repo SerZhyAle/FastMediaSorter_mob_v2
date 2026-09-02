@@ -1,7 +1,7 @@
 appId: com.sza.fastmediasorter.debug
 ---
 # Test: Soft-delete and undo on seeded Ops/src files (S0551 Phase 03).
-# Precondition: OWNER_TRIGGER import registered "Загрузки" LOCAL resource, trash is enabled,
+# Precondition: clean preparation exposes the standard "Загрузки" LOCAL resource, trash is enabled,
 #   and Ops/src contains ops_delete_soft.png + ops_undo_me.png.
 # Oracle: delete hides the file and exposes btnUndo; undo restores the second file.
 

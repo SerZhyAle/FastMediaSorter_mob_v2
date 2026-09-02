@@ -170,5 +170,13 @@
     <string name="welcome_role_sources_detail_cloud_only">Gerätespeicher, Google Drive, OneDrive, Dropbox</string>
     <string name="welcome_role_sources_detail_local_only">Interner Speicher und SD-Karte</string>
     <string name="welcome_role_sorting_detail">Eine Datei mit einem einzigen Tipp in ihren Ordner schicken</string>
-    <string name="welcome_role_more_detail">Streams, Kamera und mehr - eine App statt vieler</string>
+    <string name="welcome_role_more_detail">Kamera, Widgets, Gadgets und mehr - eine App statt vieler</string>
+    <string name="welcome_description_1_shell">Nicht nur eine Medien-App - eine vollständige Shell für Ihr Gerät.\nStartbildschirm, Player, Dateimanager, Streams und Netzwerkspeicher an einem Ort.</string>
+    <string name="welcome_description_1_details_shell">FastMediaSorter kann das ganze Gerät steuern: ein Startbildschirm mit Ihren Apps, Widgets und Verknüpfungen, ein Player für Fotos, Videos, Musik und Bücher, ein Dateimanager für lokalen, Netzwerk- und Cloud-Speicher, Internet-Streams und eine Wear OS Begleit-App - und schnelles Sortieren per Tippen über allem.\n\nAls Startbildschirm nutzen? Schalten Sie den Schalter oben ein, und das System fragt nach der Einrichtung nach Ihrer Bestätigung. Alles auf diesem Bildschirm lässt sich später in den Einstellungen ändern, es gibt hier also keine falsche Wahl - tippen Sie einfach auf Weiter.</string>
+    <string name="welcome_role_home_screen">Startbildschirm</string>
+    <string name="welcome_role_home_screen_detail">Steuert das Gerät anstelle eines Launchers - Apps, Widgets und Medien griffbereit</string>
+    <string name="welcome_role_streams">Streams</string>
+    <string name="welcome_role_streams_detail">Internetradio, TV- und Videokanäle aus einem fertigen Katalog</string>
+    <string name="welcome_role_wear">Uhren-App</string>
+    <string name="welcome_role_wear_detail">Eine Wear OS Begleit-App - direkt am Handgelenk durchsuchen und abspielen</string>
 </resources>

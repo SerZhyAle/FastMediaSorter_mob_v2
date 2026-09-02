@@ -1,10 +1,11 @@
 package com.sza.fastmediasorter.data.network
 
+import timber.log.Timber
 import java.io.IOException
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.SocketTimeoutException
-import timber.log.Timber
+import java.net.UnknownHostException
 
 /**
  * Categories for SMB playback-path failures. Used to enrich log output so
@@ -16,6 +17,21 @@ import timber.log.Timber
  * AUTH_CONFIG            - authentication, access-denied, or share-not-found error
  * UNKNOWN                - unclassified
  */
+/**
+ * S1617: what a single TCP connect actually answered.
+ *
+ * [REFUSED] is deliberately not a failure: something at that address answered the SYN, which is a
+ * stronger proof of life than an open port on a host that ignores everything else.
+ */
+enum class TcpConnectOutcome {
+    CONNECTED,
+    REFUSED,
+    TIMED_OUT,
+    NAME_NOT_RESOLVED,
+    NO_NETWORK,
+    FAILED,
+}
+
 enum class SmbPlaybackErrorCategory {
     STALE_POOL_CONNECTION,
     NEW_CONNECTION_TIMEOUT,
@@ -129,19 +145,60 @@ object SmbErrorClassifier {
      * @return `true` if the TCP socket connect to [host]:[port] succeeded within [timeoutMs];
      *   `false` if the host is unreachable / refused / timed out at the TCP layer.
      */
-    fun checkConnectivity(host: String, port: Int, timeoutMs: Int): Boolean {
-        return try {
+    fun checkConnectivity(host: String, port: Int, timeoutMs: Int): Boolean =
+        classifyConnectivity(host, port, timeoutMs) == TcpConnectOutcome.CONNECTED
+
+    /**
+     * S1617: the same connect as [checkConnectivity], reporting *what* happened instead of only
+     * whether it succeeded. A refused connection proves the host is alive at the IP layer, and a
+     * boolean cannot say that - it reads identically to a host that is switched off, which is the
+     * conflation the Monitor's reachability role exists to undo.
+     */
+    fun classifyConnectivity(host: String, port: Int, timeoutMs: Int): TcpConnectOutcome =
+        try {
             Socket().use { socket ->
                 socket.connect(InetSocketAddress(host, port), timeoutMs)
             }
-            true
-        } catch (e: Exception) {
-            // S1027: log the real cause (refused / no-route / timeout) instead of a fixed
-            // "after Nms" text that misleads when the failure is an immediate active refusal.
-            // S1320: said "SMB connectivity check" for every protocol, which sent a log reader
-            // hunting an SMB defect while the failing destination was SFTP.
-            Timber.w("TCP connectivity check failed to $host:$port: ${e.javaClass.simpleName}: ${e.message}")
-            false
+            TcpConnectOutcome.CONNECTED
+        } catch (e: SocketTimeoutException) {
+            logConnectFailure(host, port, e)
+            TcpConnectOutcome.TIMED_OUT
+        } catch (e: UnknownHostException) {
+            logConnectFailure(host, port, e)
+            TcpConnectOutcome.NAME_NOT_RESOLVED
+        } catch (e: IOException) {
+            logConnectFailure(host, port, e)
+            classifyConnectFailure(e)
+        } catch (e: IllegalArgumentException) {
+            // Kept because the catch this replaced was `catch (e: Exception)`: a port outside 0..65535
+            // makes InetSocketAddress throw, and the three boolean callers have always been handed
+            // `false` for it rather than an exception. Narrowing the catch without this line would
+            // have changed their behaviour as a side effect of adding the classification.
+            logConnectFailure(host, port, e)
+            TcpConnectOutcome.FAILED
+        }
+
+    /**
+     * `ConnectException` carries the distinction only in its message: the platform raises the same
+     * type for an actively refused port and for a network the device cannot route to at all.
+     */
+    private fun classifyConnectFailure(e: IOException): TcpConnectOutcome {
+        val message = e.message.orEmpty()
+        return when {
+            CONNECTION_REFUSED.containsMatchIn(message) -> TcpConnectOutcome.REFUSED
+            NETWORK_UNREACHABLE.containsMatchIn(message) -> TcpConnectOutcome.NO_NETWORK
+            else -> TcpConnectOutcome.FAILED
         }
     }
+
+    // S1027: log the real cause (refused / no-route / timeout) instead of a fixed
+    // "after Nms" text that misleads when the failure is an immediate active refusal.
+    // S1320: said "SMB connectivity check" for every protocol, which sent a log reader
+    // hunting an SMB defect while the failing destination was SFTP.
+    private fun logConnectFailure(host: String, port: Int, e: Exception) {
+        Timber.w("TCP connectivity check failed to $host:$port: ${e.javaClass.simpleName}: ${e.message}")
+    }
+
+    private val CONNECTION_REFUSED = Regex("""connection refused""", RegexOption.IGNORE_CASE)
+    private val NETWORK_UNREACHABLE = Regex("""network is (unreachable|down)""", RegexOption.IGNORE_CASE)
 }

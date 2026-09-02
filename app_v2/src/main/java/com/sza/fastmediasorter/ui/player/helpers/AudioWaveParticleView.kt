@@ -26,8 +26,8 @@ import kotlin.random.Random
  * Custom View rendering a procedural wave + drifting particle animation as an audio background.
  *
  * Algorithm:
- *  - 5–12 sine-wave paths drawn per frame (count, stroke, amplitude, color randomized per session).
- *  - 15–55 drifting particles that bounce off view edges (count, size, speed, hue randomized).
+ *  - 5-12 sine-wave paths drawn per frame (count, stroke, amplitude, color randomized per session).
+ *  - 15-55 drifting particles that bounce off view edges (count, size, speed, hue randomized).
  *  - Motion-blur trail effect via a semi-transparent overlay drawn onto an off-screen Bitmap each
  *    frame, avoiding expensive post-processing blur filters.
  *
@@ -51,9 +51,9 @@ class AudioWaveParticleView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
     companion object {
-        // Must match the speed of the HTML canvas version: time += 0.003 per animation frame.
-        // ValueAnimator fires ~60fps; 0.003 per tick gives ~0.18/s drift.
-        private const val TIME_INCREMENT = 0.003f
+        // Must match the speed of the HTML canvas version: time += 0.002 per animation frame.
+        // ValueAnimator fires ~60fps; 0.002 per tick gives ~0.12/s drift.
+        private const val TIME_INCREMENT = 0.002f
 
         // Randomization ranges - normal devices
         private const val WAVE_COUNT_MIN    = 5
@@ -367,6 +367,7 @@ class AudioWaveParticleView @JvmOverloads constructor(
                 pendingStart = false
                 initParticles(w, h)
                 wavePaint.strokeWidth = waveStrokeWidth
+                Timber.d("S2206: AudioWaveParticleView startAnimation with TIME_INCREMENT=$TIME_INCREMENT")
                 animator.start()
                 // S1277: covers the ordering where the host starts the animation after layout -
                 // onSizeChanged already painted its frame with the previous session's palette,

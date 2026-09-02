@@ -28,7 +28,6 @@
         android:layout_marginStart="@dimen/padding_normal"
         android:textColor="@color/white"
         android:textSize="@dimen/item_subtitle_text_size"
-        android:gravity="end"
         android:maxLines="1"
         android:ellipsize="end"
         tools:text="Next: 14:30" />

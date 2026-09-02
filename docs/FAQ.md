@@ -337,17 +337,19 @@ Yes, for video streams - tap **Cast** in the player and pick a Chromecast on the
 ## Wear OS
 
 ### Does FastMediaSorter work on Wear OS smartwatches?
-**Yes!** FastMediaSorter v2 includes a Wear OS companion app that allows you to browse and play local media files directly from your smartwatch.
+**Yes!** FastMediaSorter v2 includes a Wear OS companion app, and it has grown from a simple local-file viewer into a real second screen for your media.
 
-### What features are available on Wear OS?
-The Wear OS app currently supports:
-- Browsing local folders
-- Viewing images
-- Playing videos
-- Playing audio files
-- Basic navigation controls
+### What can I do on the watch?
+- **Browse and play** - your paired phone's folders and favourites, or the watch's own local storage, as a thumbnail grid with search, filter and sort. Audio and video play with shuffle, bezel volume, and a screen-off mode that keeps the sound going.
+- **Move files both ways** - send a photo, video or track from the phone straight to the watch (right from the Share sheet), or copy a file from the watch back to a phone folder you choose.
+- **Record a voice note on your wrist** - it waits on the watch until you send it to the phone, so nothing is lost mid-recording.
+- **Play live streams** - radio and video from your Streams catalog play straight from the watch's own channel list, with your pinned favourites on top.
+- **Glance without opening the app** - add a FastMediaSorter tile to your watch face's swipe panel for a quick look, or its complication to a compatible face.
+- **Small built-in tools** - a calculator, a network monitor and the mini-game each get their own watch screen.
 
-**Note:** Network and cloud features are not yet available on Wear OS.
+Settings you change on the phone sync to the watch and back, so you only set things up once.
+
+**Note:** The watch itself still connects to local media only - it reaches your phone's folders and favourites through the paired connection, and browses its own storage directly, but it does not open SMB, FTP or cloud resources on its own.
 
 ---
 

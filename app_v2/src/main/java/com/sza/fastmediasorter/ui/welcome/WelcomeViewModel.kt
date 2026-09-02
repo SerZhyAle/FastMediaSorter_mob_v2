@@ -123,6 +123,19 @@ class WelcomeViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Enable-all entry point (S2311): adopt [type] as the confirmed device profile and AWAIT its settings
+     * preset, so the caller can force-enable everything strictly afterwards. [saveDeviceProfile] applies the
+     * preset in its own application-scope coroutine, which a caller cannot join; a preset landing after the
+     * enable-all write would switch the just-enabled functions back off. Recording firstRunPresetAppliedFor
+     * here is also what makes the [saveDeviceProfile] call below skip a second, redundant preset apply.
+     */
+    suspend fun applyProfileForEnableAll(type: DeviceProfileType) {
+        onProfileSelected(type)
+        applyProfilePresetSettings(type)
+        saveDeviceProfile(isSkipped = false)
+    }
+
     /** Apply [type]'s settings preset (no profile bookkeeping) and, when the profile implies the All
      *  Files resource, ensure it exists. Records the dedup markers consumed by [saveDeviceProfile]. */
     private suspend fun applyProfilePresetSettings(type: DeviceProfileType): Boolean {

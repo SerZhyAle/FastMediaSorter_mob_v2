@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.ui.launcher.gadget.AudioWindowGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.DocumentWindowGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.ImageWindowGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadget
+import com.sza.fastmediasorter.ui.launcher.gadget.StreamWindowGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.VideoWindowGadget
 import dagger.Module
 import dagger.Provides
@@ -37,5 +38,9 @@ object MediaGadgetModule {
         video: VideoWindowGadget,
         document: DocumentWindowGadget,
         image: ImageWindowGadget,
-    ): List<LauncherGadget> = listOf(audio, video, document, image)
+        // S2031: the fifth window - one internet channel rather than one device resource. It joins this
+        // family because it is the same idea (one thing, played inside its cell) and because a sixth
+        // direct parameter on the registry is what this module exists to avoid.
+        streamWindow: StreamWindowGadget,
+    ): List<LauncherGadget> = listOf(audio, video, document, image, streamWindow)
 }

@@ -1,0 +1,52 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Launcher home mode controls smoke test.
+# Description: Verifies Launcher Mode toggle and Launcher Settings entry points in General Settings.
+
+- launchApp
+- runFlow: ../../_shared/permissions.yaml
+- runFlow: ../../_shared/go_home.yaml
+
+# Open Settings
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnSettings"
+- runFlow: ../../_shared/dismiss_settings_dialogs.yaml
+
+# Verify General Settings title
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/titleText"
+    timeout: 10000
+
+# Scroll to Interface section header and expand if collapsed
+- scrollUntilVisible:
+    element:
+      id: "com.sza.fastmediasorter.debug:id/headerInterface"
+    timeout: 15000
+
+- runFlow:
+    when:
+      notVisible:
+        id: "com.sza.fastmediasorter.debug:id/rowLauncherModeEnabled"
+    commands:
+      - tapOn:
+          id: "com.sza.fastmediasorter.debug:id/headerInterface"
+      - waitForAnimationToEnd
+
+# Assert presence of launcher toggle
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/rowLauncherModeEnabled"
+
+# Scroll down to launcher settings row
+- scrollUntilVisible:
+    element:
+      id: "com.sza.fastmediasorter.debug:id/rowLauncherSettings"
+    timeout: 10000
+
+# Assert presence of launcher settings row
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/rowLauncherSettings"
+
+# Crash guard
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"

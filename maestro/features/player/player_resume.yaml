@@ -1,7 +1,7 @@
 appId: com.sza.fastmediasorter.debug
 ---
 # Test: Resume-position path for a video (S0551 Phase 05).
-# Precondition: OWNER_TRIGGER import registered "Загрузки" LOCAL resource and seeded
+# Precondition: clean preparation exposes the standard "Загрузки" LOCAL resource and seeds
 #   DCIM/video_large.mp4 (unconditionally seeded, ~3 min). Resume-on-next-launch stays enabled.
 # Oracle: opening video_large.mp4, watching briefly, leaving, then reopening returns to the
 #   player (playerView) without a crash. The saved-position restore surfaces as a Toast

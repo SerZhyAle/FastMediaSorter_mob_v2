@@ -81,4 +81,6 @@
     <string name="widget_network_monitor_direct_connection">সরাসরি সংযোগ</string>
     <string name="launcher_gadget_network_indicator">নেটওয়ার্ক নির্দেশক</string>
     <string name="launcher_gadget_network_indicator_pick_title">কোন নির্দেশক দেখাতে হবে</string>
+    <string name="widget_front_flashlight_label">সামনের টর্চলাইট</string>
+    <string name="widget_front_flashlight_description">একটি ট্যাপে স্ক্রীনটিকে একটি বাতিতে পরিণত করে৷</string>
 </resources>

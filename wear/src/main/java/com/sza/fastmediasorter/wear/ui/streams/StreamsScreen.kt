@@ -1,11 +1,9 @@
 package com.sza.fastmediasorter.wear.ui.streams
 
-import android.app.Activity
 import android.app.RemoteInput
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.graphics.Bitmap
-import android.speech.RecognizerIntent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -28,19 +26,24 @@ import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
@@ -56,15 +59,26 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.dialog.Dialog
+import androidx.wear.input.RemoteInputIntentHelper
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
+import com.sza.fastmediasorter.wear.domain.model.WearViewMode
+import com.sza.fastmediasorter.wear.ui.common.CellCaption
 import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
+import com.sza.fastmediasorter.wear.ui.common.WearChoiceGridFit
 import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
+import com.sza.fastmediasorter.wear.ui.common.WearStateExtraAction
+import com.sza.fastmediasorter.wear.ui.common.WearStateKind
+import com.sza.fastmediasorter.wear.ui.common.wearChoiceRows
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
+import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionScroll
+import com.sza.fastmediasorter.wear.ui.streams.helpers.WearStreamLanguageLabels
+import com.sza.fastmediasorter.wear.ui.streams.helpers.WearStreamRubricCatalog
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
 
@@ -74,10 +88,20 @@ private const val KEY_SEARCH_QUERY = "search_query"
 // S1962: the toolbar buttons were 40 dp, under the project's own interactive minimum. The constant is
 // the same one GridColumnFit drops a column to protect, so the toolbar and the grid now answer the
 // touch-target question with one number instead of two. VideoActionButtons already sits at 48 dp.
+// S1945: measured 2026-08-26 on Wear_OS_XL_Round (480x480 px / 240x240 dp, round) - the pinned row's
+// three buttons render at bounds x 72-408 px, y 56-152 px (centre ~52 dp from the top). `adb.ps1
+// clip-check` reports none of the three off-glass against the device's own rounded-corner mask; the
+// only clipped nodes on that screen are channel cards scrolled past the edge, unrelated to this row.
+// No extra round-screen inset is needed beyond the shared `wearScreenInsets()` already applied below.
 private val TOOLBAR_BUTTON_SIZE = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
+private val TOOLBAR_ROW_PADDING = 4.dp
+
+// S2178: what the pinned row actually occupies, as opposed to the button inside it. Anything pushed
+// below the row must clear this, not TOOLBAR_BUTTON_SIZE - the 8 dp difference is the row's own
+// vertical padding, and using the button size left exactly that much content under the icons.
+private val TOOLBAR_ROW_HEIGHT = TOOLBAR_BUTTON_SIZE + TOOLBAR_ROW_PADDING * 2
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
 private val CELL_ICON_SIZE = 24.dp
-private val TITLE_VERTICAL_PADDING = 8.dp
 
 private data class StreamsActions(
     val onRefresh: () -> Unit,
@@ -85,7 +109,33 @@ private data class StreamsActions(
     val onSearchClick: () -> Unit,
     val onFilterClick: () -> Unit,
     val onSortClick: () -> Unit,
-    val onClearSearch: () -> Unit
+    val onClearSearch: () -> Unit,
+    val onBack: () -> Unit
+)
+
+private data class StreamsControlState(
+    val searchQuery: String,
+    val filterKind: StreamFilterKind,
+    val sortOrder: StreamSortOrder,
+    val selectedTopic: String?,
+    val selectedLanguage: String?
+)
+
+private data class StreamsFilterDialogState(
+    val selectedFilter: StreamFilterKind,
+    val selectedTopic: String?,
+    val selectedLanguage: String?,
+    // S2146: the facet values carry their channel count, because the dialog both orders and labels by
+    // it. Selection stays a raw id above, so a count that changes on the next catalogue import cannot
+    // invalidate what the owner picked.
+    val availableTopics: List<StreamFacetValue>,
+    val availableLanguages: List<StreamFacetValue>
+)
+
+private data class StreamsFilterDialogActions(
+    val onFilterSelected: (StreamFilterKind) -> Unit,
+    val onTopicSelected: (String?) -> Unit,
+    val onLanguageSelected: (String?) -> Unit
 )
 
 @Composable
@@ -94,14 +144,23 @@ fun StreamsScreen(
     viewModel: StreamsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val listState = rememberScalingLazyListState()
+    // S1945: the default `initialCenterItemIndex = 1` centers the list's 2nd item at open and leaves
+    // the 1st before it - exactly where the now-pinned toolbar paints. Centering item 0 instead keeps
+    // the first channel out from under the toolbar without touching the (unaffected) scroll behaviour.
+    val listState = rememberScalingLazyListState(initialCenterItemIndex = 0)
+
+    // S1954: the player is the other place a channel can be marked, and coming back from it does not
+    // re-emit the catalogue - so the pinned order is re-read here rather than only on a catalogue change.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        viewModel.refreshPinsAndUsage()
+    }
 
     val searchHint = stringResource(R.string.wear_streams_search_hint)
     val searchLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
-            val remoteResults = RemoteInput.getResultsFromIntent(result.data)
+        result.data?.let { resultIntent ->
+            val remoteResults = RemoteInput.getResultsFromIntent(resultIntent)
             // S1946: the keyed answer first, then any other text the bundle carries. A watch that
             // returns the typed string under a key of its own choosing used to be read as "the user
             // entered nothing", which is the same screen as a search that matched everything.
@@ -111,8 +170,7 @@ fun StreamsScreen(
                         results.getCharSequence(key)?.toString()?.takeIf { it.isNotBlank() }
                     }
             }
-            val speechResults = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
-            val query = remoteQuery ?: speechResults?.firstOrNull()
+            val query = remoteQuery
             if (!query.isNullOrBlank()) {
                 viewModel.setSearchQuery(query)
             }
@@ -140,7 +198,8 @@ fun StreamsScreen(
         onSearchClick = { viewModel.setShowSearchDialog(true) },
         onFilterClick = { viewModel.setShowFilterDialog(true) },
         onSortClick = { viewModel.setShowSortDialog(true) },
-        onClearSearch = { viewModel.setSearchQuery("") }
+        onClearSearch = { viewModel.setSearchQuery("") },
+        onBack = { navController.popBackStack() }
     )
 
     WearScreenScaffold(
@@ -168,26 +227,16 @@ private fun launchRemoteOrSpeechInput(
     onUnavailable: () -> Unit,
     launch: (Intent) -> Unit,
 ) {
-    val remoteInputIntent = Intent("androidx.wear.input.action.REMOTE_INPUT").apply {
-        putExtra("androidx.wear.input.extra.DISALLOW_EMOJI", true)
-        val remoteInput = RemoteInput.Builder(KEY_SEARCH_QUERY)
-            .setLabel(searchHint)
-            .build()
-        putExtra("androidx.wear.input.extra.REMOTE_INPUTS", arrayOf(remoteInput))
-    }
+    val remoteInput = RemoteInput.Builder(KEY_SEARCH_QUERY)
+        .setLabel(searchHint)
+        .build()
+    val remoteInputIntent = RemoteInputIntentHelper.createActionRemoteInputIntent()
+    RemoteInputIntentHelper.putRemoteInputsExtra(remoteInputIntent, listOf(remoteInput))
     try {
         launch(remoteInputIntent)
     } catch (_: ActivityNotFoundException) {
-        val speechIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_PROMPT, searchHint)
-        }
-        try {
-            launch(speechIntent)
-        } catch (e: ActivityNotFoundException) {
-            Timber.w(e, "Search input launcher failed")
-            onUnavailable()
-        }
+        Timber.w("Wear remote input is unavailable")
+        onUnavailable()
     }
 }
 
@@ -208,14 +257,26 @@ private fun StreamsDialogsHost(
     }
     if (uiState.showFilterDialog) {
         StreamFilterDialog(
-            selectedFilter = uiState.filterKind,
-            onFilterSelected = viewModel::setFilterKind,
+            state = StreamsFilterDialogState(
+                selectedFilter = uiState.filterKind,
+                selectedTopic = uiState.selectedTopic,
+                selectedLanguage = uiState.selectedLanguage,
+                availableTopics = uiState.availableTopics,
+                availableLanguages = uiState.availableLanguages
+            ),
+            actions = StreamsFilterDialogActions(
+                onFilterSelected = viewModel::setFilterKind,
+                onTopicSelected = viewModel::setSelectedTopic,
+                onLanguageSelected = viewModel::setSelectedLanguage
+            ),
+            viewMode = uiState.viewMode,
             onDismiss = { viewModel.setShowFilterDialog(false) }
         )
     }
     if (uiState.showSortDialog) {
         StreamSortDialog(
             selectedSort = uiState.sortOrder,
+            viewMode = uiState.viewMode,
             onSortSelected = viewModel::setSortOrder,
             onDismiss = { viewModel.setShowSortDialog(false) }
         )
@@ -231,60 +292,86 @@ private fun StreamsMainContent(
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val columns = GridColumnFit.columnsFor(uiState.viewMode, maxWidth.value.toInt())
-        ScalingLazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            state = listState,
-            contentPadding = wearScreenInsets(),
-            scalingParams = WearGridScalingParams
-        ) {
-            item {
-                Text(
-                    text = stringResource(R.string.wear_section_streams),
-                    style = MaterialTheme.typography.title2,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = TITLE_VERTICAL_PADDING),
-                    textAlign = TextAlign.Center
-                )
-            }
+        val screenInsets = wearScreenInsets()
+        val stillArriving = uiState.isLoading && uiState.channels.isEmpty()
 
-            item {
-                StreamsControlHeader(
-                    searchQuery = uiState.searchQuery,
-                    filterKind = uiState.filterKind,
-                    sortOrder = uiState.sortOrder,
-                    onSearchClick = actions.onSearchClick,
-                    onFilterClick = actions.onFilterClick,
-                    onSortClick = actions.onSortClick
-                )
-            }
+        // The empty and failed cases take the whole screen rather than a row inside the list, which
+        // is what every other browse screen does and what the shared block is shaped for. The control
+        // header below stays composed on top either way, so search, filter and sort remain reachable
+        // when a narrowing query is what emptied the list.
+        if (uiState.displayChannels.isEmpty() && !stillArriving) {
+            StreamsStateBlock(uiState = uiState, actions = actions)
+        } else {
+            ScalingLazyColumn(
+                // S2049: the only list-like screen in the module with no rotary hookup - the crown
+                // already scrolls the player and steps the calculator, so its silence here read as a
+                // real gap, not a deliberate one. Plain scroll, not a stepped action: nothing here
+                // consumes discrete steps.
+                modifier = Modifier
+                    .fillMaxSize()
+                    .rotaryActionScroll(listState),
+                state = listState,
+                contentPadding = PaddingValues(
+                    start = screenInsets.calculateLeftPadding(LayoutDirection.Ltr),
+                    top = screenInsets.calculateTopPadding() + TOOLBAR_ROW_HEIGHT,
+                    end = screenInsets.calculateRightPadding(LayoutDirection.Ltr),
+                    bottom = screenInsets.calculateBottomPadding()
+                ),
+                // S1945: matching autoCentering's itemIndex to the state's initialCenterItemIndex
+                // (both 0) measured no change at all - centering targets a scaled viewport position,
+                // not a plain top offset, so it keeps fighting contentPadding.top regardless of which
+                // item it targets. Disabling it outright is the library's own documented alternative
+                // for a developer-picked position (ScalingLazyColumn.kt:237-239): with it off,
+                // contentPadding is what places items.
+                autoCentering = null,
+                scalingParams = WearGridScalingParams
+            ) {
+                streamsSearchState(uiState = uiState, onClearSearch = actions.onClearSearch)
 
-            streamsSearchState(uiState = uiState, onClearSearch = actions.onClearSearch)
-
-            if (uiState.displayChannels.isEmpty()) {
-                streamsEmptyOrLoading(uiState = uiState, onRefresh = actions.onRefresh)
-            } else {
-                streamItems(
-                    channels = uiState.displayChannels,
-                    columns = columns,
-                    getFaviconTile = getFaviconTile,
-                    onChannelClick = actions.onChannelClick
-                )
-                item {
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-                item {
-                    RefreshFooterChip(isRefreshing = uiState.isRefreshing, onRefresh = actions.onRefresh)
+                if (stillArriving) {
+                    streamsLoading()
+                } else {
+                    streamItems(
+                        channels = uiState.displayChannels,
+                        columns = columns,
+                        getFaviconTile = getFaviconTile,
+                        onChannelClick = actions.onChannelClick
+                    )
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                    item {
+                        RefreshFooterChip(
+                            isRefreshing = uiState.isRefreshing,
+                            onRefresh = actions.onRefresh
+                        )
+                    }
                 }
             }
         }
+
+        StreamsControlHeader(
+            state = StreamsControlState(
+                searchQuery = uiState.searchQuery,
+                filterKind = uiState.filterKind,
+                sortOrder = uiState.sortOrder,
+                selectedTopic = uiState.selectedTopic,
+                selectedLanguage = uiState.selectedLanguage
+            ),
+            onSearchClick = actions.onSearchClick,
+            onFilterClick = actions.onFilterClick,
+            onSortClick = actions.onSortClick,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(screenInsets)
+        )
     }
 }
 
 /**
  * S1946: what the list says about the search itself - the refusal of the input path, and the query
- * that is currently narrowing the list. Its own scope function for the reason
- * [streamsEmptyOrLoading] is one: the screen body is at detekt's length ceiling.
+ * that is currently narrowing the list. Its own scope function for the reason [streamsLoading] is
+ * one: the screen body is at detekt's length ceiling.
  */
 private fun ScalingLazyListScope.streamsSearchState(
     uiState: StreamsUiState,
@@ -330,58 +417,65 @@ private fun ScalingLazyListScope.streamsSearchState(
     }
 }
 
-private fun ScalingLazyListScope.streamsEmptyOrLoading(
+/**
+ * What the screen says when the list is empty, and why refresh is not always a Retry.
+ *
+ * A failed update is an error whose retry is exactly the call that failed, so it takes the Retry
+ * slot. An empty catalogue is not a failure - the fetch succeeded and returned nothing - so per the
+ * block's own rule it carries no Retry, and the refresh is offered as the screen's own action
+ * instead. Both keep a visible way back.
+ */
+@Composable
+private fun StreamsStateBlock(
     uiState: StreamsUiState,
-    onRefresh: () -> Unit
+    actions: StreamsActions
 ) {
-    if (uiState.isLoading && uiState.channels.isEmpty()) {
-        item {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                CircularProgressIndicator(modifier = Modifier.size(32.dp))
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = stringResource(R.string.wear_streams_updating),
-                    style = MaterialTheme.typography.caption2,
-                    textAlign = TextAlign.Center
-                )
-            }
+    val failed = uiState.error != null
+    val refreshLabel = stringResource(R.string.wear_streams_refresh)
+    LaunchedEffect(failed) { Timber.d("S2178: streams state block offset below the pinned row") }
+    WearStateBlock(
+        // S2178: the control header keeps painting over this branch, so the block centres its message
+        // in the area below the row rather than in the whole screen. Passed as the caller's modifier
+        // because the block applies that one before its own fillMaxSize, which is what shrinks the
+        // centring area; every other caller of the block has nothing pinned above it.
+        modifier = Modifier.padding(top = TOOLBAR_ROW_HEIGHT),
+        kind = if (failed) WearStateKind.ERROR else WearStateKind.EMPTY,
+        message = if (failed) {
+            stringResource(R.string.wear_streams_update_failed)
+        } else {
+            stringResource(R.string.wear_streams_empty)
+        },
+        onBack = actions.onBack,
+        onRetry = if (failed) actions.onRefresh else null,
+        extraActions = if (failed) {
+            emptyList()
+        } else {
+            listOf(WearStateExtraAction(label = refreshLabel, onClick = actions.onRefresh))
         }
-    } else {
-        item {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = if (uiState.error != null) {
-                        stringResource(R.string.wear_streams_update_failed)
-                    } else {
-                        stringResource(R.string.wear_streams_empty)
-                    },
-                    style = MaterialTheme.typography.body2,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Chip(
-                    onClick = onRefresh,
-                    label = { Text(stringResource(R.string.wear_streams_refresh)) },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Filled.Refresh,
-                            contentDescription = stringResource(R.string.wear_streams_refresh),
-                            modifier = Modifier.size(CELL_ICON_SIZE)
-                        )
-                    },
-                    colors = ChipDefaults.primaryChipColors()
-                )
-            }
+    )
+}
+
+/**
+ * The spinner shown while the first list is still arriving.
+ *
+ * Stays a list item, unlike the empty and failed cases: loading is not one of the state block's
+ * three kinds, and it offers nothing to act on because the answer is already on its way.
+ */
+private fun ScalingLazyListScope.streamsLoading() {
+    item {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            CircularProgressIndicator(modifier = Modifier.size(32.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.wear_streams_updating),
+                style = MaterialTheme.typography.caption2,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
@@ -416,17 +510,16 @@ private fun RefreshFooterChip(
 
 @Composable
 private fun StreamsControlHeader(
-    searchQuery: String,
-    filterKind: StreamFilterKind,
-    sortOrder: StreamSortOrder,
+    state: StreamsControlState,
     onSearchClick: () -> Unit,
     onFilterClick: () -> Unit,
-    onSortClick: () -> Unit
+    onSortClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = TOOLBAR_ROW_PADDING),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -435,7 +528,7 @@ private fun StreamsControlHeader(
                 onSearchClick()
             },
             modifier = Modifier.size(TOOLBAR_BUTTON_SIZE),
-            colors = if (searchQuery.isNotEmpty()) {
+            colors = if (state.searchQuery.isNotEmpty()) {
                 ButtonDefaults.primaryButtonColors()
             } else {
                 ButtonDefaults.secondaryButtonColors()
@@ -451,7 +544,11 @@ private fun StreamsControlHeader(
         RectangularButton(
             onClick = onFilterClick,
             modifier = Modifier.size(TOOLBAR_BUTTON_SIZE),
-            colors = if (filterKind != StreamFilterKind.ALL) {
+            colors = if (
+                state.filterKind != StreamFilterKind.ALL ||
+                !state.selectedTopic.isNullOrBlank() ||
+                !state.selectedLanguage.isNullOrBlank()
+            ) {
                 ButtonDefaults.primaryButtonColors()
             } else {
                 ButtonDefaults.secondaryButtonColors()
@@ -467,7 +564,8 @@ private fun StreamsControlHeader(
         RectangularButton(
             onClick = onSortClick,
             modifier = Modifier.size(TOOLBAR_BUTTON_SIZE),
-            colors = if (sortOrder != StreamSortOrder.DEFAULT) {
+            // S2146: MOST_USED is the resting order now, so it is what an unhighlighted button means.
+            colors = if (state.sortOrder != StreamSortOrder.MOST_USED) {
                 ButtonDefaults.primaryButtonColors()
             } else {
                 ButtonDefaults.secondaryButtonColors()
@@ -561,8 +659,9 @@ private fun StreamSearchDialog(
 
 @Composable
 private fun StreamFilterDialog(
-    selectedFilter: StreamFilterKind,
-    onFilterSelected: (StreamFilterKind) -> Unit,
+    state: StreamsFilterDialogState,
+    actions: StreamsFilterDialogActions,
+    viewMode: WearViewMode,
     onDismiss: () -> Unit
 ) {
     Dialog(
@@ -570,65 +669,124 @@ private fun StreamFilterDialog(
         onDismissRequest = onDismiss
     ) {
         val listState = rememberScalingLazyListState()
-        ScalingLazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            state = listState,
-            contentPadding = wearScreenInsets()
-        ) {
-            item {
-                Text(
-                    text = stringResource(R.string.wear_streams_filter),
-                    style = MaterialTheme.typography.title3,
-                    modifier = Modifier.padding(bottom = 8.dp),
-                    textAlign = TextAlign.Center
-                )
-            }
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val gridFit = WearChoiceGridFit(
+                viewMode = viewMode,
+                availableWidthDp = maxWidth.value.toInt(),
+                fixedEnumeration = true
+            )
+            ScalingLazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                state = listState,
+                contentPadding = wearScreenInsets()
+            ) {
+                item {
+                    Text(
+                        text = stringResource(R.string.wear_streams_filter),
+                        style = MaterialTheme.typography.title3,
+                        modifier = Modifier.padding(bottom = 8.dp),
+                        textAlign = TextAlign.Center
+                    )
+                }
 
-            item {
-                Chip(
-                    onClick = { onFilterSelected(StreamFilterKind.ALL) },
-                    label = { Text(stringResource(R.string.wear_streams_filter_all)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = if (selectedFilter == StreamFilterKind.ALL) {
-                        ChipDefaults.primaryChipColors()
-                    } else {
-                        ChipDefaults.secondaryChipColors()
-                    }
+                wearChoiceRows(
+                    options = listOf(StreamFilterKind.ALL, StreamFilterKind.AUDIO_ONLY, StreamFilterKind.VIDEO_ONLY),
+                    selected = state.selectedFilter,
+                    labelOf = { filter ->
+                        when (filter) {
+                            StreamFilterKind.ALL -> stringResource(R.string.wear_streams_filter_all)
+                            StreamFilterKind.AUDIO_ONLY -> stringResource(R.string.wear_streams_filter_audio)
+                            StreamFilterKind.VIDEO_ONLY -> stringResource(R.string.wear_streams_filter_video)
+                        }
+                    },
+                    onSelected = { actions.onFilterSelected(it) },
+                    gridFit = gridFit
                 )
-            }
 
-            item {
-                Chip(
-                    onClick = { onFilterSelected(StreamFilterKind.AUDIO_ONLY) },
-                    label = { Text(stringResource(R.string.wear_streams_filter_audio)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = if (selectedFilter == StreamFilterKind.AUDIO_ONLY) {
-                        ChipDefaults.primaryChipColors()
-                    } else {
-                        ChipDefaults.secondaryChipColors()
-                    }
-                )
-            }
-
-            item {
-                Chip(
-                    onClick = { onFilterSelected(StreamFilterKind.VIDEO_ONLY) },
-                    label = { Text(stringResource(R.string.wear_streams_filter_video)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = if (selectedFilter == StreamFilterKind.VIDEO_ONLY) {
-                        ChipDefaults.primaryChipColors()
-                    } else {
-                        ChipDefaults.secondaryChipColors()
-                    }
-                )
+                streamTopicFilterChoices(state, actions, gridFit)
+                streamLanguageFilterChoices(state, actions, gridFit)
             }
         }
     }
 }
 
+private fun ScalingLazyListScope.streamTopicFilterChoices(
+    state: StreamsFilterDialogState,
+    actions: StreamsFilterDialogActions,
+    gridFit: WearChoiceGridFit
+) {
+    if (state.availableTopics.isEmpty()) return
+    item {
+        Text(
+            text = stringResource(R.string.wear_streams_filter_topic_header),
+            style = MaterialTheme.typography.caption1,
+            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+            textAlign = TextAlign.Center
+        )
+    }
+    // Built once per list build rather than searched per row: the lambda below runs for every chip.
+    val countById = state.availableTopics.associate { it.id to it.channelCount }
+    wearChoiceRows(
+        options = listOf<String?>(null) + state.availableTopics.map { it.id },
+        selected = state.selectedTopic,
+        // S2146: only the LABEL is localized and counted. `options` and `selected` stay the raw
+        // catalogue ids, because that is what the projection filters on - matching a translated label
+        // would break selection in every locale but English.
+        labelOf = { topic ->
+            topic?.let {
+                facetLabelWithCount(WearStreamRubricCatalog.label(LocalContext.current, it) ?: it, countById[it])
+            } ?: stringResource(R.string.wear_streams_filter_topic_all)
+        },
+        onSelected = { actions.onTopicSelected(it) },
+        gridFit = gridFit.copy(fixedEnumeration = false)
+    )
+}
+
+/**
+ * S2146: a facet row's text - the localized name, then how many channels carry it.
+ *
+ * The number is TEXT on the row rather than a colour or a bar, which strategic §3.2 requires so the
+ * row stays readable to anyone who does not distinguish the colour. A null count means the value is
+ * not in the current facet list, which the "all" row and only it can be - it gets the bare label.
+ */
+@Composable
+private fun facetLabelWithCount(label: String, count: Int?): String {
+    if (count == null) return label
+    return stringResource(R.string.wear_streams_facet_with_count, label, count)
+}
+
+private fun ScalingLazyListScope.streamLanguageFilterChoices(
+    state: StreamsFilterDialogState,
+    actions: StreamsFilterDialogActions,
+    gridFit: WearChoiceGridFit
+) {
+    if (state.availableLanguages.isEmpty()) return
+    item {
+        Text(
+            text = stringResource(R.string.wear_streams_filter_language_header),
+            style = MaterialTheme.typography.caption1,
+            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+            textAlign = TextAlign.Center
+        )
+    }
+    val countById = state.availableLanguages.associate { it.id to it.channelCount }
+    wearChoiceRows(
+        options = listOf<String?>(null) + state.availableLanguages.map { it.id },
+        selected = state.selectedLanguage,
+        // S2146: as above - the label is translated by the system locale table, the id is not.
+        labelOf = { language ->
+            language?.let { facetLabelWithCount(WearStreamLanguageLabels.label(it), countById[it]) }
+                ?: stringResource(R.string.wear_streams_filter_language_all)
+        },
+        onSelected = { actions.onLanguageSelected(it) },
+        gridFit = gridFit.copy(fixedEnumeration = false)
+    )
+}
+
 @Composable
 private fun StreamSortDialog(
     selectedSort: StreamSortOrder,
+    viewMode: WearViewMode,
     onSortSelected: (StreamSortOrder) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -637,69 +795,40 @@ private fun StreamSortDialog(
         onDismissRequest = onDismiss
     ) {
         val listState = rememberScalingLazyListState()
-        ScalingLazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            state = listState,
-            contentPadding = wearScreenInsets()
-        ) {
-            item {
-                Text(
-                    text = stringResource(R.string.wear_streams_sort),
-                    style = MaterialTheme.typography.title3,
-                    modifier = Modifier.padding(bottom = 8.dp),
-                    textAlign = TextAlign.Center
-                )
-            }
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val gridFit = WearChoiceGridFit(
+                viewMode = viewMode,
+                availableWidthDp = maxWidth.value.toInt(),
+                fixedEnumeration = true
+            )
+            ScalingLazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                state = listState,
+                contentPadding = wearScreenInsets()
+            ) {
+                item {
+                    Text(
+                        text = stringResource(R.string.wear_streams_sort),
+                        style = MaterialTheme.typography.title3,
+                        modifier = Modifier.padding(bottom = 8.dp),
+                        textAlign = TextAlign.Center
+                    )
+                }
 
-            item {
-                Chip(
-                    onClick = { onSortSelected(StreamSortOrder.DEFAULT) },
-                    label = { Text(stringResource(R.string.wear_streams_sort_default)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = if (selectedSort == StreamSortOrder.DEFAULT) {
-                        ChipDefaults.primaryChipColors()
-                    } else {
-                        ChipDefaults.secondaryChipColors()
-                    }
-                )
-            }
-
-            item {
-                Chip(
-                    onClick = { onSortSelected(StreamSortOrder.NAME_ASC) },
-                    label = { Text(stringResource(R.string.wear_streams_sort_name_asc)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = if (selectedSort == StreamSortOrder.NAME_ASC) {
-                        ChipDefaults.primaryChipColors()
-                    } else {
-                        ChipDefaults.secondaryChipColors()
-                    }
-                )
-            }
-
-            item {
-                Chip(
-                    onClick = { onSortSelected(StreamSortOrder.NAME_DESC) },
-                    label = { Text(stringResource(R.string.wear_streams_sort_name_desc)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = if (selectedSort == StreamSortOrder.NAME_DESC) {
-                        ChipDefaults.primaryChipColors()
-                    } else {
-                        ChipDefaults.secondaryChipColors()
-                    }
-                )
-            }
-
-            item {
-                Chip(
-                    onClick = { onSortSelected(StreamSortOrder.KIND) },
-                    label = { Text(stringResource(R.string.wear_streams_sort_kind)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = if (selectedSort == StreamSortOrder.KIND) {
-                        ChipDefaults.primaryChipColors()
-                    } else {
-                        ChipDefaults.secondaryChipColors()
-                    }
+                wearChoiceRows(
+                    options = StreamSortOrder.entries,
+                    selected = selectedSort,
+                    labelOf = { sort ->
+                        val res = when (sort) {
+                            StreamSortOrder.MOST_USED -> R.string.wear_streams_sort_most_used
+                            StreamSortOrder.NAME_ASC -> R.string.wear_streams_sort_name_asc
+                            StreamSortOrder.NAME_DESC -> R.string.wear_streams_sort_name_desc
+                            StreamSortOrder.KIND -> R.string.wear_streams_sort_kind
+                        }
+                        stringResource(res)
+                    },
+                    onSelected = onSortSelected,
+                    gridFit = gridFit
                 )
             }
         }
@@ -721,7 +850,10 @@ private fun ScalingLazyListScope.streamItems(
             )
         }
     } else {
-        items(channels.chunked(columns)) { rowChannels ->
+        // S2149: keyed by the row's first address, matching the single-column branch above. Without a
+        // key a change in the middle of a nineteen-thousand-row catalogue re-lays-out every row after
+        // it - and the phone's pinned set arriving is exactly such a change, since it reorders.
+        items(channels.chunked(columns), key = { row -> row.first().url }) { rowChannels ->
             StreamRow(
                 channels = rowChannels,
                 columns = columns,
@@ -817,12 +949,16 @@ private fun StreamCell(
         thumbnail = thumbnail,
         caption = channel.name,
         onClick = onClick,
-        modifier = modifier
-    ) {
+        modifier = modifier,
+        // Every channel whose favicon has not resolved draws the same ic_cast, so the name is the
+        // only thing telling one tile from the next - the grid the 2026-08-27 audit found reading
+        // six times as "S1945 Seed.." (S2177).
+        captionLayout = CellCaption(overGroupIcon = true)
+    ) { glyphModifier ->
         Icon(
             painter = painterResource(R.drawable.ic_cast),
             contentDescription = null,
-            modifier = Modifier.size(CELL_ICON_SIZE)
+            modifier = glyphModifier
         )
     }
 }

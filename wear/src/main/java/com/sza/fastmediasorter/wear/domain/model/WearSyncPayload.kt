@@ -19,7 +19,10 @@ data class WearNetworkSourcePayload(
     val sshPrivateKey: String? = null, // SFTP key-auth
     // S1555: canonical SHA256 host-key pin, already normalised by the phone. Absent on payloads
     // from an older phone, which keeps the permissive behaviour rather than refusing to connect.
-    val hostKeyFingerprint: String? = null
+    val hostKeyFingerprint: String? = null,
+    // S2129: the resource's own `ico-NN-NNN` id. Absent on payloads from a phone older than this
+    // field, which keeps the type-derived glyph rather than failing the import.
+    val iconId: String? = null
 )
 
 /**

@@ -5,7 +5,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
-import timber.log.Timber
 
 /**
  * S1853: lets the user start a chart's observation window over without disturbing what feeds it.
@@ -29,7 +28,6 @@ class ChartWindowResetManager {
 
     /** Asks the window of [chartKey] to start over. */
     fun reset(chartKey: String) {
-        Timber.d("S1853: chart reset requested, key=%s", chartKey)
         _resets.tryEmit(chartKey)
     }
 

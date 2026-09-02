@@ -29,16 +29,27 @@ class CameraProfileApplyManager(private val actions: Actions) {
         fun setBokeh(enabled: Boolean)
         fun setSport(enabled: Boolean)
         fun setMacro(enabled: Boolean)
+        fun setTorch(enabled: Boolean)
         fun switchToFrontLens()
         fun switchToMainBackLens()
+        fun resetZoomTo1x()
     }
 
     var activeProfile: PhotoProfile = PhotoProfile.NORMAL
         private set
 
+    private var cachedSupportedProfiles: List<PhotoProfile>? = null
+
     /** The menu's contents. Callers must render from this rather than re-deriving availability. */
-    fun availableProfiles(capabilities: CameraRuntimeCapabilities): List<PhotoProfile> =
-        PhotoProfile.available(capabilities)
+    fun availableProfiles(capabilities: CameraRuntimeCapabilities): List<PhotoProfile> {
+        val current = PhotoProfile.available(capabilities)
+        val cached = cachedSupportedProfiles
+        if (cached == null || (!capabilities.isFront && current.size >= cached.size)) {
+            cachedSupportedProfiles = current
+            return current
+        }
+        return cached
+    }
 
     /**
      * Apply [profile], or reset when it is already active - re-tapping the current entry is how a
@@ -54,6 +65,11 @@ class CameraProfileApplyManager(private val actions: Actions) {
         Timber.d("CameraProfileApplyManager: applying %s", profile)
         when (profile) {
             PhotoProfile.NORMAL -> Unit
+            PhotoProfile.DOCUMENT -> {
+                actions.switchToMainBackLens()
+                actions.resetZoomTo1x()
+                actions.setTorch(true)
+            }
             PhotoProfile.NIGHT -> actions.setNightMode(true)
             PhotoProfile.PORTRAIT -> actions.setBokeh(true)
             PhotoProfile.SELFIE -> actions.switchToFrontLens()
@@ -117,6 +133,7 @@ class CameraProfileApplyManager(private val actions: Actions) {
         actions.setBokeh(false)
         actions.setSport(false)
         actions.setMacro(false)
+        if (activeProfile == PhotoProfile.DOCUMENT) actions.setTorch(false)
         if (activeProfile == PhotoProfile.SELFIE) actions.switchToMainBackLens()
     }
 }

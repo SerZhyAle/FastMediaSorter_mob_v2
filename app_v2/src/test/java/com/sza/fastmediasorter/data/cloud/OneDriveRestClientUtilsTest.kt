@@ -1,8 +1,5 @@
 package com.sza.fastmediasorter.data.cloud
 
-import com.microsoft.identity.client.IAccount
-import io.mockk.every
-import io.mockk.mockk
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
@@ -17,20 +14,23 @@ import org.robolectric.annotation.Config
 /**
  * Unit tests for [OneDriveRestClientUtils]: MSAL account JSON round-trip, cloud-item-reference
  * prefix stripping, and Graph DriveItem JSON → [CloudFile] mapping (folder marker, ISO-8601 time,
- * nested thumbnail extraction). Robolectric supplies real org.json; IAccount is mocked.
+ * nested thumbnail extraction). Robolectric supplies real org.json.
+ *
+ * S0403: this test stays in the shared `src/test` set because its subject stays in `src/main` -
+ * `serializeAccount` now takes the three account fields instead of the MSAL `IAccount`, so nothing
+ * here names a type that a FOSS build does not link.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34]) // Robolectric 4.11.1 maxSdkVersion=34; targetSdk 35 needs the explicit pin.
+@Config(sdk = [34]) // Robolectric 4.16.1 maxSdkVersion=34; targetSdk 35 needs the explicit pin.
 class OneDriveRestClientUtilsTest {
 
     @Test
     fun `serializeAccount then deserializeAccount round-trips username`() {
-        val account = mockk<IAccount>()
-        every { account.username } returns "user@example.com"
-        every { account.id } returns "id-123"
-        every { account.authority } returns "https://login"
-
-        val json = OneDriveRestClientUtils.serializeAccount(account)
+        val json = OneDriveRestClientUtils.serializeAccount(
+            username = "user@example.com",
+            id = "id-123",
+            authority = "https://login"
+        )
         assertEquals("user@example.com", OneDriveRestClientUtils.deserializeAccount(json))
     }
 

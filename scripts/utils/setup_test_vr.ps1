@@ -14,8 +14,10 @@
 
 $ErrorActionPreference = "Stop"
 
+. "$PSScriptRoot\project-paths.ps1"
+
 # Paths
-$workspaceRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
+$workspaceRoot = Get-ProjectRoot
 $localMediaDir = Join-Path $workspaceRoot "temp\test_vr_media"
 $remotePictureDir = "/sdcard/Pictures/FastMediaSorterVrTest"
 $remoteMovieDir = "/sdcard/Movies/FastMediaSorterVrTest"
@@ -214,15 +216,9 @@ if ($null -eq $ffmpegCommand) {
 
 # Resolve adb similarly - pwsh -NoProfile loses the Android SDK PATH.
 function Resolve-Adb {
-    $cmd = Get-Command adb -ErrorAction SilentlyContinue
-    if ($cmd) { return $cmd.Source }
-    $candidates = @(
-        (Join-Path $env:LOCALAPPDATA 'Android\Sdk\platform-tools\adb.exe'),
-        (Join-Path $env:USERPROFILE 'AppData\Local\Android\Sdk\platform-tools\adb.exe'),
-        'C:\Android\Sdk\platform-tools\adb.exe'
-    )
-    foreach ($p in $candidates) { if (Test-Path $p) { return $p } }
-    return $null
+    # Discovery is shared (S2326). The resolver raises when nothing is found, while this caller
+    # only warns and skips the device push, so the raise is converted back to $null here.
+    try { return Get-ToolPath -Tool Adb -Quiet } catch { return $null }
 }
 $adbExe = Resolve-Adb
 if ($null -eq $adbExe) {
@@ -232,10 +228,13 @@ if ($null -eq $adbExe) {
 }
 
 function Resolve-LabelFontFile {
+    # %WINDIR% rather than a literal C: - the Windows installation is not always on C, and this
+    # script is otherwise portable (S2326).
+    $fontsDir = Join-Path $env:WINDIR 'Fonts'
     $candidates = @(
-        'C:\Windows\Fonts\ariblk.ttf',
-        'C:\Windows\Fonts\arialbd.ttf',
-        'C:\Windows\Fonts\arial.ttf'
+        (Join-Path $fontsDir 'ariblk.ttf'),
+        (Join-Path $fontsDir 'arialbd.ttf'),
+        (Join-Path $fontsDir 'arial.ttf')
     )
     foreach ($path in $candidates) {
         if (Test-Path $path) { return $path }

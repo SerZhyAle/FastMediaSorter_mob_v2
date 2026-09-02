@@ -44,18 +44,25 @@
                     android:textSize="@dimen/text_size_large"
                     android:textStyle="bold" />
 
+                <!-- S2025: two rows, not one joined string - a tap has to copy one address, and a joined
+                     value offers no target for half of itself. -->
                 <LinearLayout
                     android:id="@+id/networkMonitorLocalIpRow"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_small"
+                    android:background="?attr/selectableItemBackground"
                     android:baselineAligned="false"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/touch_target_min_height"
                     android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/network_monitor_ip_addresses_label"
+                        android:text="@string/network_monitor_local_ip_label"
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="@dimen/text_size_small" />
 
@@ -66,6 +73,36 @@
                         android:layout_marginStart="@dimen/margin_normal"
                         android:layout_weight="1"
                         android:text="@string/network_monitor_value_unknown"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="@dimen/text_size_small" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/networkMonitorExternalIpRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:baselineAligned="false"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/touch_target_min_height"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/network_monitor_external_ip_label"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="@dimen/text_size_small" />
+
+                    <TextView
+                        android:id="@+id/networkMonitorExternalIpValue"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/margin_normal"
+                        android:layout_weight="1"
+                        android:text="@string/network_monitor_external_ip_reveal"
                         android:textColor="?attr/colorOnSurface"
                         android:textSize="@dimen/text_size_small" />
                 </LinearLayout>

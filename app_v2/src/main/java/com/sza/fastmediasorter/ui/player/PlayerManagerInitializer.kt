@@ -6,7 +6,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -14,8 +13,6 @@ import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.mutation.Mutation
 import com.sza.fastmediasorter.ui.browse.managers.BrowseCloudAuthManager
 import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperation
-import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperationEvent
-import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperationQueue
 import com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
 import com.sza.fastmediasorter.ui.player.helpers.AudioSlideshowPhotoModeManager
@@ -59,7 +56,6 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.io.File
 import java.util.UUID
 
 /** Consolidates all manager initialization logic extracted from PlayerActivity. Called once from PlayerActivity.initializeManagers() to reduce activity size by ~650 lines. Each private init*() method corresponds to a former private method in PlayerActivity. */
@@ -607,7 +603,8 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                 activity.viewModel.stereoMode.collect { mode ->
                     val currentFile = activity.viewModel.state.value.currentFile ?: return@collect
                     if (currentFile.type == com.sza.fastmediasorter.domain.model.MediaType.IMAGE ||
-                        currentFile.type == com.sza.fastmediasorter.domain.model.MediaType.GIF) {
+                        currentFile.type == com.sza.fastmediasorter.domain.model.MediaType.GIF
+                    ) {
                         activity.imageLoadingManager.setStereoMode(mode)
                         // Re-display the current image so the new crop takes effect.
                         val path = currentFile.path
@@ -629,7 +626,8 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                         activity.imageLoadingManager.setPanelStereoSingleEyeEnabled(enabled)
                         val currentFile = activity.viewModel.state.value.currentFile ?: return@collect
                         if (currentFile.type == com.sza.fastmediasorter.domain.model.MediaType.IMAGE ||
-                            currentFile.type == com.sza.fastmediasorter.domain.model.MediaType.GIF) {
+                            currentFile.type == com.sza.fastmediasorter.domain.model.MediaType.GIF
+                        ) {
                             activity.imageLoadingManager.displayImage(currentFile.path)
                         }
                     }
@@ -674,9 +672,11 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                 override fun onSeekForward(seconds: Int) {
                     if (activity.isAudioServiceActive) {
                         val p = activity.audioServiceController?.player ?: return
-                        p.seekTo((p.currentPosition + seconds * 1000L).coerceAtMost(
-                            p.duration.takeIf { it > 0 } ?: Long.MAX_VALUE
-                        ))
+                        p.seekTo(
+                            (p.currentPosition + seconds * 1000L).coerceAtMost(
+                                p.duration.takeIf { it > 0 } ?: Long.MAX_VALUE
+                            )
+                        )
                     } else {
                         activity.videoPlayerManager.seekForward(seconds)
                     }
@@ -690,6 +690,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                     }
                 }
                 override fun isLiveVideoStream() = activity.viewModel.state.value.isLiveVideoStream
+
                 // S1114: delegate the transport-row VR entry to the existing VR launch manager.
                 override fun onVrLaunchClicked() {
                     activity.playerVrLaunchManager?.launchFromControlsRow()
@@ -846,7 +847,8 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                 AudioPlaybackService.pendingDirection = AudioPlaybackService.DIRECTION_NEXT
                 val wasAudio = activity.viewModel.state.value.currentFile?.type == MediaType.AUDIO
                 if (activity.viewModel.state.value.isSlideShowActive &&
-                    activity.slideshowResourceAvailabilityManager.handlePlaybackEnded()) {
+                    activity.slideshowResourceAvailabilityManager.handlePlaybackEnded()
+                ) {
                     return@PlayerMediaLoaderManager
                 }
                 if (activity.viewModel.state.value.isSlideShowActive) {
@@ -894,19 +896,37 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.pipManager = PictureInPictureManager(
             activity = activity,
             playerView = activity.activityBinding.playerView,
-            chromeToHide = listOf(activity.activityBinding.toolbar, activity.activityBinding.topCommandPanel),
+            chromeToHide = listOf(
+                activity.activityBinding.toolbar,
+                activity.activityBinding.topCommandPanel,
+                activity.safeViews.copyToPanel,
+                activity.safeViews.moveToPanel,
+                activity.activityBinding.streamWaitLabel,
+                activity.activityBinding.streamProgramLabel,
+                activity.activityBinding.tvFileNameOverlay,
+                // S2026: the fullscreen-exit "X" is the way back to the command panel in fullscreen
+                // (S1115), but in PiP it is redundant - the system's own PiP controls expand and close
+                // the window - and it covers a large part of the small window.
+                activity.safeViews.btnDocumentFullscreenExit,
+            ),
             getPlayer = { activity.videoPlayerManager.getPlayer() },
             onPlay = {
                 val isAudio = activity.isMediaLoaderManagerInitialized &&
-                        activity.mediaLoaderManager.isServiceAudioActive
-                if (isAudio) activity.audioServiceController?.player?.play()
-                else activity.videoPlayerManager.play()
+                    activity.mediaLoaderManager.isServiceAudioActive
+                if (isAudio) {
+                    activity.audioServiceController?.player?.play()
+                } else {
+                    activity.videoPlayerManager.play()
+                }
             },
             onPause = {
                 val isAudio = activity.isMediaLoaderManagerInitialized &&
-                        activity.mediaLoaderManager.isServiceAudioActive
-                if (isAudio) activity.audioServiceController?.player?.pause()
-                else activity.videoPlayerManager.pause()
+                    activity.mediaLoaderManager.isServiceAudioActive
+                if (isAudio) {
+                    activity.audioServiceController?.player?.pause()
+                } else {
+                    activity.videoPlayerManager.pause()
+                }
             },
             isVideoPlaying = {
                 val currentFile = activity.viewModel.state.value.currentFile

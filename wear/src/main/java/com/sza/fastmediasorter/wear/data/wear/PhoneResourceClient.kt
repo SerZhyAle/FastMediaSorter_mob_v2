@@ -69,6 +69,18 @@ class PhoneResourceClient @Inject constructor(
     }
 
     /**
+     * S2129: asks the phone for one item's thumbnail on-demand.
+     */
+    suspend fun requestThumbnail(itemToken: String): PhoneResourceOutcome {
+        val request = WearPhoneResourceRequest(
+            requestId = UUID.randomUUID().toString(),
+            kind = WearPhoneResourceRequestKind.THUMBNAIL,
+            itemToken = itemToken
+        )
+        return request(request, WearDataLayerPaths.PHONE_RESOURCE_BROWSE_REQUEST)
+    }
+
+    /**
      * Asks the phone to deliver one item into [destination]. The file is written only after the
      * phone accepted the request, and it is deleted again if the transfer does not complete - a
      * half-written media file would fail later, further from the cause.
@@ -85,7 +97,6 @@ class PhoneResourceClient @Inject constructor(
         // Waiting for the channel is therefore armed before the request leaves, so the open cannot
         // fall into the gap and leave the watch waiting out the whole transfer timeout.
         val channelClient = Wearable.getChannelClient(context)
-        Timber.d("S1950: channel wait armed before open request")
         val transfer = async { awaitChannel(channelClient) }
         val approval = request(request, WearDataLayerPaths.PHONE_RESOURCE_OPEN_REQUEST)
         if (approval is PhoneResourceOutcome.Page) {
@@ -113,6 +124,15 @@ class PhoneResourceClient @Inject constructor(
         }
 
         return when {
+            // S2275: "no watch-phone pair at all" and "the pair exists but our app is not answering"
+            // are different problems with different fixes, and collapsing them made the screen tell a
+            // reviewer to reconnect a phone that was already connected. The distinction is free here -
+            // a null nodeId is exactly the first case, and it is also why the timeout above was never
+            // entered for it.
+            nodeId == null -> {
+                Timber.d("S2275: no connected node - answering PhoneNotPaired without a wait")
+                PhoneResourceOutcome.PhoneNotPaired
+            }
             page == null -> PhoneResourceOutcome.PhoneUnavailable
             page.status in ANSWERED_STATUSES -> PhoneResourceOutcome.Page(page)
             else -> PhoneResourceOutcome.Rejected(page.status)
@@ -161,7 +181,6 @@ class PhoneResourceClient @Inject constructor(
 
     private fun decodePage(payload: ByteArray): WearPhoneResourcePage? = runCatching {
         val envelope = envelopeCodec.decode(payload)
-        Timber.d("S1893: page envelope decoded wireBytes=%d payloadBytes=%d", payload.size, envelope.data.size)
         gson.fromJson(envelope.data.decodeToString(), WearPhoneResourcePage::class.java)
     }.onFailure { Timber.w(it, "Unreadable phone resource page") }.getOrNull()
 
@@ -173,7 +192,6 @@ class PhoneResourceClient @Inject constructor(
         transfer: Deferred<ChannelClient.Channel>,
         destination: File
     ): PhoneResourceOutcome {
-        Timber.d("S1860: receiveTransfer for ${destination.name}")
         // The budget is spent from the approval on, not from the request: the wait was armed
         // earlier only so an early channel is not missed, never to shorten what the phone gets.
         val channel = withTimeoutOrNull(TRANSFER_TIMEOUT_MS) { transfer.await() }
@@ -247,8 +265,11 @@ sealed interface PhoneResourceOutcome {
     /** A completed transfer, already written to [file]. */
     data class Transferred(val file: File) : PhoneResourceOutcome
 
-    /** No phone answered - the paired device is absent, asleep or out of range. */
+    /** A phone is paired and reachable, but nothing answered - the app there is absent or asleep. */
     data object PhoneUnavailable : PhoneResourceOutcome
+
+    /** No phone is connected to this watch at all, so there is nothing to ask. */
+    data object PhoneNotPaired : PhoneResourceOutcome
 
     /** The phone answered and said no, with a reason the UI can phrase for the user. */
     data class Rejected(val status: WearPhoneResourceResponseStatus) : PhoneResourceOutcome

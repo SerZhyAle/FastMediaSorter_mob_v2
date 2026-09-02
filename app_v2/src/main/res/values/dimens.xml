@@ -24,10 +24,18 @@
     <dimen name="calculator_history_text_size">12sp</dimen>
     <dimen name="calculator_display_min_height">88dp</dimen>
     <dimen name="calculator_button_height">64dp</dimen>
+    <!-- S2024: compact keypad mode. 48dp is the Rule 16 accessibility floor for a touch target, not a
+         free choice - the captured request asked for 24dp, which no finger-sized control may use. -->
+    <dimen name="calculator_button_height_compact">48dp</dimen>
+    <dimen name="calculator_button_width_compact">48dp</dimen>
+    <dimen name="calculator_display_text_size_large">56sp</dimen>
 
     <!-- Toggler Font Sizes -->
     <dimen name="toggler_title_text_size">14sp</dimen>
     <dimen name="toggler_desc_text_size">12sp</dimen>
+    <!-- Inline value of a settings row (SettingsSelectionRow / SettingsDropdownRow): one step above the
+         title, so the chosen value is what the eye lands on when scanning a settings section. -->
+    <dimen name="settings_row_value_text_size">16sp</dimen>
 
     <!-- Collapsible group header title: +2sp over toggler titles for stronger section hierarchy. -->
     <dimen name="collapsible_section_title_text_size">16sp</dimen>
@@ -39,6 +47,7 @@
     <dimen name="padding_normal">12dp</dimen>
     <dimen name="padding_small">6dp</dimen>
     <dimen name="padding_tiny">2dp</dimen>
+    <dimen name="padding_3dp">3dp</dimen>
 
     <dimen name="margin_normal">8dp</dimen>
     <dimen name="margin_large">16dp</dimen>
@@ -62,6 +71,9 @@
     <dimen name="outline_text_stroke_width">2dp</dimen>
 
     <!-- UI Elements -->
+    <!-- Material's minimum touch target. A row whose own height is wrap_content (switch, radio,
+         checkbox) reaches it only through minHeight, so the value is named rather than repeated. -->
+    <dimen name="touch_target_min_height">48dp</dimen>
     <dimen name="button_height">48dp</dimen>
     <dimen name="button_height_small">36dp</dimen>
     <dimen name="game_control_button_size">72dp</dimen>
@@ -382,6 +394,12 @@
     <dimen name="dialog_button_icon_padding">0dp</dimen>
     <dimen name="dialog_button_inset">0dp</dimen>
 
+    <!-- S2322: the enable-all explainer's illustrated step rows. The gap sits between the generic
+         16dp and 24dp steps because each row carries a 48dp picture, which needs more air than a
+         text row and less than a section break. -->
+    <dimen name="enable_all_explainer_step_gap">20dp</dimen>
+    <dimen name="enable_all_explainer_guide_size">48dp</dimen>
+
     <!-- Item Layouts -->
     <dimen name="item_padding">8dp</dimen>
     <dimen name="item_padding_vertical">8dp</dimen>
@@ -451,6 +469,9 @@
     <!-- S1433: the compact band strategic 3.1.2 asks for - always visible, never collapsible, and short
          enough that the numbers under it stay on screen with the chart in landscape. -->
     <dimen name="network_monitor_chart_height">96dp</dimen>
+    <!-- Monospace console output of the tools tab. Smaller than body text on purpose: a ping or
+         traceroute line must not wrap, and both orientations must pick the same size. -->
+    <dimen name="network_monitor_console_text_size">12sp</dimen>
 
     <!-- ============================================================ -->
     <!-- LAYOUT-SPECIFIC BASE DIMENSIONS (from layout extraction) -->

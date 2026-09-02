@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S2023: one tray slot - the glyph, an optional badge and an optional corner mark. Merged into
+     LauncherTrayIconView, whose own frame is exactly launcher_tray_icon_size: the overlays are drawn
+     inside that square and never enlarge it, because the strip's geometry is shared by both placements
+     (strategic §7). The badge takes the bottom-end corner and the mark the top-end one, so the SIM
+     data-type letter and the roaming ring never compete for the same place (ADR-8). -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <ImageView
+        android:id="@+id/trayIconGlyph"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        tools:src="@drawable/ic_wifi" />
+
+    <TextView
+        android:id="@+id/trayIconBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:background="@drawable/launcher_tray_badge_background"
+        android:importantForAccessibility="no"
+        android:includeFontPadding="false"
+        android:paddingStart="1dp"
+        android:paddingEnd="1dp"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="@dimen/launcher_tray_badge_text_size"
+        android:visibility="gone"
+        tools:text="6"
+        tools:visibility="visible" />
+
+    <View
+        android:id="@+id/trayIconCornerMarker"
+        android:layout_width="@dimen/launcher_tray_corner_marker_size"
+        android:layout_height="@dimen/launcher_tray_corner_marker_size"
+        android:layout_gravity="top|end"
+        android:background="@drawable/launcher_tray_corner_marker"
+        android:importantForAccessibility="no"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+</merge>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="file_count_format_plural">
+        <item quantity="one">%1$d файл</item>
+        <item quantity="few">%1$d файла</item>
+        <item quantity="many">%1$d файлов</item>
+        <item quantity="other">%1$d файлов</item>
+    </plurals>
+    <plurals name="copying_n_files_from_folder_plural">
+        <item quantity="one">Копируем %1$d файл из %2$s..</item>
+        <item quantity="few">Копируем %1$d файла из %2$s..</item>
+        <item quantity="many">Копируем %1$d файлов из %2$s..</item>
+        <item quantity="other">Копируем %1$d файлов из %2$s..</item>
+    </plurals>
+    <plurals name="archiving_n_files_from_folder_plural">
+        <item quantity="one">Архивирование %1$d файла из %2$s</item>
+        <item quantity="few">Архивирование %1$d файлов из %2$s</item>
+        <item quantity="many">Архивирование %1$d файлов из %2$s</item>
+        <item quantity="other">Архивирование %1$d файлов из %2$s</item>
+    </plurals>
+    <plurals name="moving_n_files_from_folder_plural">
+        <item quantity="one">Перемещаем %1$d файл из %2$s..</item>
+        <item quantity="few">Перемещаем %1$d файла из %2$s..</item>
+        <item quantity="many">Перемещаем %1$d файлов из %2$s..</item>
+        <item quantity="other">Перемещаем %1$d файлов из %2$s..</item>
+    </plurals>
+    <plurals name="renaming_n_files_from_folder_plural">
+        <item quantity="one">Переименовываем %1$d файл из %2$s..</item>
+        <item quantity="few">Переименовываем %1$d файла из %2$s..</item>
+        <item quantity="many">Переименовываем %1$d файлов из %2$s..</item>
+        <item quantity="other">Переименовываем %1$d файлов из %2$s..</item>
+    </plurals>
+</resources>

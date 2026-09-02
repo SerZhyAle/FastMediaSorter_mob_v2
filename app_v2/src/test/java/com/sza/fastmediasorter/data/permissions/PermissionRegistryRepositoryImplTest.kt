@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.permissions
 
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.PermissionGroup
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -20,7 +21,7 @@ import org.robolectric.annotation.Config
 @Config(sdk = [33])
 class PermissionRegistryRepositoryImplTest {
 
-    private val repo = PermissionRegistryRepositoryImpl()
+    private val repo = permissionRegistry()
 
     @Test
     fun `getEntries excludes entries below or above the SDK window on API 33`() {
@@ -73,6 +74,32 @@ class PermissionRegistryRepositoryImplTest {
         assertTrue("access_fine_location" in repo.getWelcomeEntries().map { it.id })
         assertTrue(PermissionGroup.LOCATION in repo.getGroups().map { it.group })
     }
+
+    @Test
+    fun `S2013 the location row names the launcher and monitor uses only on builds that ship them`() {
+        // The row said "only geotag" on every flavor, while standard/noLegal also drive the compass,
+        // speed, altitude and map gadgets and the Network Monitor's GNSS and Wi-Fi sections from the
+        // same grant. Play judges a location declaration against what the app tells the user, so the
+        // inaccurate half is the claim, not the permission. Both directions are asserted because a
+        // wording that over-discloses on lite is the mirror defect, not a safe default.
+        val geotagOnly = locationRow(permissionRegistry(launcherAvailable = false, networkMonitorAvailable = false))
+        assertEquals(R.string.perm_title_location, geotagOnly.titleRes)
+        assertEquals(R.string.perm_desc_location, geotagOnly.descriptionRes)
+        assertEquals(R.string.perm_rationale_location, geotagOnly.rationaleRes)
+
+        val withLauncher = locationRow(permissionRegistry(launcherAvailable = true, networkMonitorAvailable = false))
+        assertEquals(R.string.perm_title_location_extended, withLauncher.titleRes)
+        assertEquals(R.string.perm_rationale_location_extended, withLauncher.rationaleRes)
+
+        // Either consumer alone is enough - the Network Monitor ships without the launcher in no flavor
+        // today, but the wording must not depend on that coincidence.
+        val withMonitor = locationRow(permissionRegistry(launcherAvailable = false, networkMonitorAvailable = true))
+        assertEquals(R.string.perm_desc_location_extended, withMonitor.descriptionRes)
+        assertEquals(R.string.perm_rationale_location_extended, withMonitor.rationaleRes)
+    }
+
+    private fun locationRow(registry: PermissionRegistryRepositoryImpl) =
+        registry.getEntries().first { it.id == "access_fine_location" }
 
     @Test
     fun `S1335 registers the read-contacts permission in registry, onboarding and groups`() {

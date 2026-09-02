@@ -13,6 +13,9 @@ interface GestureAccessibilityActions {
     /**
      * Performs the SYSTEM-group [action], degrading with a log (not a crash) when the accessibility
      * service is not currently running or the action is unavailable at this API level.
+     *
+     * S2268: returns whether the action actually ran, so a caller with a fallback (the launcher's own
+     * black screen when the device lock is out of reach) can tell a degraded no-op from a real lock.
      */
-    fun perform(action: ScreenshotGestureAction)
+    fun perform(action: ScreenshotGestureAction): Boolean
 }

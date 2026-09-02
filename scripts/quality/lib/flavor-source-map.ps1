@@ -124,6 +124,7 @@ function Get-GradleMountWalk {
     $mounts = [System.Collections.Generic.List[object]]::new()
     $unattributed = [System.Collections.Generic.List[object]]::new()
     $stack = [System.Collections.Generic.List[object]]::new()
+    $pendingLoopNames = @()
     $depth = 0
 
     for ($i = $Start; $i -le $End; $i++) {
@@ -133,17 +134,30 @@ function Get-GradleMountWalk {
         if ($code -match 'listOf\(\s*(?<items>[^)]*)\)\s*\.forEach\s*\{') {
             $loopNames = @([regex]::Matches($Matches['items'], '"([A-Za-z0-9_]+)"') | ForEach-Object { $_.Groups[1].Value })
             $stack.Add([pscustomobject]@{ Kind = 'loop'; Names = $loopNames; Depth = $depthBefore })
+            $pendingLoopNames = @()
         }
-        elseif ($code -match 'getByName\(\s*"(?<n>[A-Za-z0-9_]+)"\s*\)\s*\{') {
-            $stack.Add([pscustomobject]@{ Kind = 'target'; Names = @($Matches['n']); Depth = $depthBefore })
+        elseif ($code -match '^\s*listOf\(\s*(?<items>[^)]*)\)\s*$') {
+            $pendingLoopNames = @([regex]::Matches($Matches['items'], '"([A-Za-z0-9_]+)"') | ForEach-Object { $_.Groups[1].Value })
         }
-        elseif ($code -match 'getByName\(\s*(?<v>[A-Za-z_][A-Za-z0-9_]*)\s*\)\s*\{') {
-            $loop = $stack | Where-Object { $_.Kind -eq 'loop' } | Select-Object -Last 1
-            $names = if ($loop) { $loop.Names } else { @() }
-            $stack.Add([pscustomobject]@{ Kind = 'target'; Names = $names; Depth = $depthBefore })
+        elseif ($pendingLoopNames.Count -gt 0 -and $code -match '^\s*\.forEach\s*\{') {
+            $stack.Add([pscustomobject]@{ Kind = 'loop'; Names = $pendingLoopNames; Depth = $depthBefore })
+            $pendingLoopNames = @()
         }
-        elseif ($code -match '^\s*if\s*\(.*\)\s*\{') {
-            $stack.Add([pscustomobject]@{ Kind = 'cond'; Names = @(); Depth = $depthBefore })
+        else {
+            if ($pendingLoopNames.Count -gt 0 -and $code -match '\S') {
+                $pendingLoopNames = @()
+            }
+            if ($code -match 'getByName\(\s*"(?<n>[A-Za-z0-9_]+)"\s*\)\s*\{') {
+                $stack.Add([pscustomobject]@{ Kind = 'target'; Names = @($Matches['n']); Depth = $depthBefore })
+            }
+            elseif ($code -match 'getByName\(\s*(?<v>[A-Za-z_][A-Za-z0-9_]*)\s*\)\s*\{') {
+                $loop = $stack | Where-Object { $_.Kind -eq 'loop' } | Select-Object -Last 1
+                $names = if ($loop) { $loop.Names } else { @() }
+                $stack.Add([pscustomobject]@{ Kind = 'target'; Names = $names; Depth = $depthBefore })
+            }
+            elseif ($code -match '^\s*if\s*\(.*\)\s*\{') {
+                $stack.Add([pscustomobject]@{ Kind = 'cond'; Names = @(); Depth = $depthBefore })
+            }
         }
 
         if ($code -match '(?<kind>kotlin|res|assets)\.directories\.add\(\s*"(?<p>[^"]+)"\s*\)') {

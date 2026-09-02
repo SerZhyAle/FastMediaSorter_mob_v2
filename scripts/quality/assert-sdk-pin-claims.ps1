@@ -43,6 +43,13 @@ param([switch]$Gate, [switch]$Quiet)
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 
+# '.claude' is a scan root below, and a nested agent worktree lives under it carrying a full copy
+# of this repository. Which paths that covers is decided in one place for all four repo-wide walks.
+. (Join-Path $PSScriptRoot 'lib/nested-worktrees.ps1')
+$nestedWorktrees = Get-NestedWorktreeRelativePath -RepoRoot $repoRoot
+$skippedWorktreeFiles = [System.Collections.Generic.HashSet[string]]::new(
+    [System.StringComparer]::OrdinalIgnoreCase)
+
 function Get-BuildPin {
     <#
         Reads one numeric pin out of a Gradle build file. Returns $null when absent, which the
@@ -82,6 +89,12 @@ $excludedRootFiles = @('CLAUDE.md')
 function Test-Excluded {
     param([Parameter(Mandatory)][string]$RelativePath)
     $normalized = $RelativePath.Replace('\', '/')
+    # Counted rather than merely skipped: the verdict line below has to be able to say the walk
+    # dropped a subtree, or "0 mismatches" reads the same whether it looked or not.
+    if (Test-InNestedWorktree -RelativePath $normalized -Prefixes $nestedWorktrees) {
+        [void]$skippedWorktreeFiles.Add($normalized)
+        return $true
+    }
     foreach ($ex in $excludedPaths) {
         if ($normalized -eq $ex -or $normalized.StartsWith("$ex/")) { return $true }
     }
@@ -123,6 +136,9 @@ foreach ($pin in $pins) {
         }
     }
 }
+
+$skipNotice = Get-NestedWorktreeSkipNotice -SkippedFileCount $skippedWorktreeFiles.Count -Prefixes $nestedWorktrees
+if ($skipNotice) { Write-Host "assert-sdk-pin-claims: $skipNotice" }
 
 Write-Host ("assert-sdk-pin-claims: expected: 0 | actual: {0} stale claim(s) across {1} scanned file(s)" -f $mismatches.Count, $scanned)
 

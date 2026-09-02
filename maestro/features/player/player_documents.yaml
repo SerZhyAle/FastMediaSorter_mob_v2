@@ -1,42 +1,37 @@
 appId: com.sza.fastmediasorter.debug
 ---
 # Test: Document renderers for PDF, EPUB, and TXT (S0551 Phase 04).
-# Precondition: OWNER_TRIGGER import registered "Загрузки" LOCAL resource and seeded
-#   Docs/test_doc_romcom.pdf, test_book.epub, and readme.txt.
+# Precondition: setup_test_media.ps1 has seeded Docs/test_doc_romcom.pdf, test_book.epub and
+#   readme.txt; the shared fragment registers that folder as a resource.
 # Oracle: each document-specific surface renders and no crash prompt appears. The default PDF
 #   view mode is page mode, which renders the page into photoView (pdfScrollRecyclerView is only
 #   inflated in scroll mode); EPUB uses epubWebView; TXT renders inside mediaContentArea.
+#
+# S2369: the documents are reached through a resource connected with the system picker, not through
+# the raw-path "Загрузки" one this flow used until 2026-09-02. On a store build MediaProvider strips
+# every document row out of a raw path before the app sees the cursor, so all three files are absent
+# there rather than merely far down the list. The SAF branch of the scanner reads the folder whole.
 
 - launchApp
 - runFlow: ../../_shared/permissions.yaml
-- runFlow: ../../_shared/go_home.yaml
+- runFlow: ../../_shared/add_saf_docs_resource.yaml
 - assertNotVisible:
     text: "Отправить отчёт о сбое?"
 
 - tapOn:
-    text: "Локальные"
-    index: 0
-- scrollUntilVisible:
-    element:
-      text: "Загрузки"
-    timeout: 10000
-- tapOn:
-    text: "Загрузки"
+    text: "Docs"
 - extendedWaitUntil:
     visible:
       id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
     timeout: 15000
-- runFlow: ../../_shared/downloads_sort_reset.yaml
 
-- scrollUntilVisible:
-    element:
+# Four files in the folder, so every row is on screen without scrolling. Open by tapping the row
+# container (clear of the right-side operation buttons), matched by the exact filename - a centred
+# filename-text tap lands on a button (see player_image.yaml).
+- extendedWaitUntil:
+    visible:
       text: "test_doc_romcom.pdf"
-    timeout: 40000
-    visibilityPercentage: 30
-    centerElement: true
-    waitToSettleTimeoutMs: 600
-# Open by tapping the row container (clear of the right-side operation buttons), matched by the exact
-# filename - a centred filename-text tap lands on a button (see player_image.yaml).
+    timeout: 20000
 - tapOn:
     containsChild:
       text: "test_doc_romcom.pdf"
@@ -50,16 +45,10 @@ appId: com.sza.fastmediasorter.debug
     text: "Отправить отчёт о сбое?"
 - back
 
-# Back lands on the previous file's row; the next target may sort above it, so reset to the top
-# before the down-only scroll.
-- runFlow: ../../_shared/downloads_sort_reset.yaml
-- scrollUntilVisible:
-    element:
+- extendedWaitUntil:
+    visible:
       text: "test_book.epub"
-    timeout: 40000
-    visibilityPercentage: 30
-    centerElement: true
-    waitToSettleTimeoutMs: 600
+    timeout: 20000
 - tapOn:
     containsChild:
       text: "test_book.epub"
@@ -73,14 +62,10 @@ appId: com.sza.fastmediasorter.debug
     text: "Отправить отчёт о сбое?"
 - back
 
-- runFlow: ../../_shared/downloads_sort_reset.yaml
-- scrollUntilVisible:
-    element:
+- extendedWaitUntil:
+    visible:
       text: "readme.txt"
-    timeout: 40000
-    visibilityPercentage: 30
-    centerElement: true
-    waitToSettleTimeoutMs: 600
+    timeout: 20000
 - tapOn:
     containsChild:
       text: "readme.txt"
@@ -92,3 +77,4 @@ appId: com.sza.fastmediasorter.debug
     id: "com.sza.fastmediasorter.debug:id/mediaContentArea"
 - assertNotVisible:
     text: "Отправить отчёт о сбое?"
+

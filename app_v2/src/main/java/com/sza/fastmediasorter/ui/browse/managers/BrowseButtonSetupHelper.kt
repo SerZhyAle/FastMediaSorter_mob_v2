@@ -1,13 +1,17 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
+import android.content.Context
 import android.content.res.Configuration
 import android.view.Gravity
 import android.view.MotionEvent
+import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.widget.ImageViewCompat
+import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -32,6 +36,7 @@ class BrowseButtonSetupHelper(
 
     interface ButtonCallbacks {
         fun onFilterClicked()
+        fun onSearchQueryChanged(query: String)
         fun onRefreshClicked()
         fun onToggleViewClicked()
         fun onSelectAllClicked()
@@ -61,6 +66,20 @@ class BrowseButtonSetupHelper(
         binding.btnFilter.setOnClickListener {
             UserActionLogger.logButtonClick("Filter", "BrowseActivity")
             callbacks.onFilterClicked()
+        }
+
+        binding.btnSearch.setOnClickListener {
+            UserActionLogger.logButtonClick("Search", "BrowseActivity")
+            showSearchContainer()
+        }
+
+        binding.btnSearchClose.setOnClickListener {
+            UserActionLogger.logButtonClick("SearchClose", "BrowseActivity")
+            hideSearchContainer()
+        }
+
+        binding.etSearchQuery.doOnTextChanged { text, _, _, _ ->
+            callbacks.onSearchQueryChanged(text?.toString().orEmpty())
         }
 
         binding.btnRefresh.setOnClickListener {
@@ -194,6 +213,45 @@ class BrowseButtonSetupHelper(
         setupScrollButtons()
     }
 
+    /**
+     * S2171 ADR-1: the search row is an elevated overlay sharing layoutControls' bar position,
+     * not a replacement screen - layoutSearch carries its own elevation so it draws and receives
+     * touch above layoutControls. layoutControls goes INVISIBLE rather than GONE so
+     * layoutResourceInfo's constraintTop_toBottomOf anchor keeps its measured height, and so the
+     * covered command buttons drop out of D-pad/keyboard focus search (only VISIBLE views are
+     * focus targets on Android).
+     */
+    private fun showSearchContainer() {
+        binding.layoutControls.visibility = View.INVISIBLE
+        binding.layoutSearch.visibility = View.VISIBLE
+        binding.etSearchQuery.requestFocus()
+        val imm = binding.root.context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+        imm?.showSoftInput(binding.etSearchQuery, InputMethodManager.SHOW_IMPLICIT)
+    }
+
+    private fun hideSearchContainer() {
+        // Clearing the text fires the doOnTextChanged listener above, which resets nameContains.
+        binding.etSearchQuery.text?.clear()
+        binding.layoutSearch.visibility = View.GONE
+        binding.layoutControls.visibility = View.VISIBLE
+        val imm = binding.root.context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+        imm?.hideSoftInputFromWindow(binding.etSearchQuery.windowToken, 0)
+    }
+
+    /** True while the live search overlay is open. */
+    fun isSearchActive(): Boolean = binding.layoutSearch.visibility == View.VISIBLE
+
+    /**
+     * Closes the search overlay if it is open, clearing its query (S2171 §3.3: search does not
+     * survive closing). Returns whether it consumed the close, so a Back/Escape handler can close
+     * search first instead of navigating up.
+     */
+    fun closeSearchIfActive(): Boolean {
+        if (!isSearchActive()) return false
+        hideSearchContainer()
+        return true
+    }
+
     private fun setupScrollButtons() {
         binding.fabScrollToTop.setOnClickListener {
             UserActionLogger.logButtonClick("ScrollToTop", "BrowseActivity")
@@ -254,7 +312,8 @@ class BrowseButtonSetupHelper(
 
         if (isWide) {
             binding.btnBack.text = ctx.getString(R.string.back)
-            binding.btnFilter.text = ctx.getString(R.string.search)
+            binding.btnFilter.text = ctx.getString(R.string.filter)
+            binding.btnSearch.text = ctx.getString(R.string.search)
             binding.btnRefresh.text = ctx.getString(R.string.refresh)
             binding.btnToggleView.text = ctx.getString(R.string.toggle_view_short)
             binding.btnSelectAll.text = ctx.getString(R.string.select_all_short)
@@ -266,6 +325,7 @@ class BrowseButtonSetupHelper(
         } else {
             binding.btnBack.text = null
             binding.btnFilter.text = null
+            binding.btnSearch.text = null
             binding.btnRefresh.text = null
             binding.btnToggleView.text = null
             binding.btnSelectAll.text = null
@@ -284,7 +344,7 @@ class BrowseButtonSetupHelper(
      */
     private val labelledCommandButtons: List<MaterialButton>
         get() = listOfNotNull(
-            binding.btnBack, binding.btnFilter, binding.btnRefresh, binding.btnToggleView,
+            binding.btnBack, binding.btnFilter, binding.btnSearch, binding.btnRefresh, binding.btnToggleView,
             binding.btnSelectAll, binding.btnCreateFolder, binding.btnCreateTextFile,
             binding.btnCreateDrawing, binding.btnResourceOps, binding.btnMicRecord,
             binding.btnPlayRandom, binding.btnPlay

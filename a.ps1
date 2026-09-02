@@ -26,6 +26,7 @@
            BUILD.LOCK, so no direct gradlew invocation is needed.
     fu   - Fast full unit-test suite (app_v2)
     fa   - Fast instrumented-test COMPILE check (app_v2 androidTest; does not run them)
+    fam  - RUN the Room migration tests on a connected device (the database-upgrade proof)
     fw   - Fast Kotlin compile check, wear module
     fwr  - Fast resources/manifest check, wear module
     fwu  - Fast unit-test suite, wear module
@@ -33,6 +34,7 @@
            the phone target exits 0 without looking at the watch module at all.
     flr  - Fast lint-rules detector test suite (:lint-rules:test)
     fg   - Fast static gates batch (neuroslop+pm+listener+flavor+ticket-log; -IncludeDetekt opt-in)
+    fs   - Script regression suites (bare = full sweep, background it; -ChangedFiles "<paths>", -ListOnly)
     mb   - Run standard macrobenchmark suite
     gbp  - Generate standard baseline profile
     cd   - Clean + Debug + Zip
@@ -47,11 +49,43 @@
     bfd  - Build failure digest (structured JSON + verdict)
     nl   - Build noLegal Release
     nd   - Build noLegal Debug
+    wd   - Build Wear OS Debug and distribute APK
+    r1   - Run the release queue unattended, instance A (one fresh claude process per ticket)
+    r2   - Same, instance B - the second parallel stream, staggered so it does not race A
+    r3   - Same, instance C - the third parallel stream, staggered further so it does not race A or B
+           Order comes from PLAN/RELEASE_QUEUE.md; the model is picked per ticket (Opus where a
+           decision is left, Sonnet for Implemented and tier 1-2). Options forward through, e.g.
+           `.\a.ps1 r1 -MaxTickets 5 -TimeoutMinutes 45`.
+    rs   - Stop the runners: each finishes the ticket it is on, then exits.
+           `.\a.ps1 rs -Instance b` stops one; `.\a.ps1 rs -Kill` also kills the children.
+    rm   - Monitor: running children, claimed tickets, locks, and what each instance finished.
+           `.\a.ps1 rm -Watch` refreshes until Ctrl+C.
+    ub   - Unlock build: clear EVERY build domain (Build.Phone + Build.Wear) and its queue when
+           the holder is stale or dead. Per domain: ubp (Build.Phone), ubw (Build.Wear).
+    uc   - Unlock code: the same across EVERY code domain (Code.Phone + Code.Wear + Code.Scripts).
+           Per domain: ucp (Code.Phone), ucw (Code.Wear), ucs (Code.Scripts).
+           All REFUSE a lock whose holder is still live and print who holds it; add -Force
+           once the holder is confirmed gone - that also drops that domain's whole queue.
+    uqb  - Withdraw this session's own place in EVERY build domain queue; locks untouched.
+           Per domain: uqbp (Build.Phone), uqbw (Build.Wear).
+    uqc  - The same across every code domain queue; per domain: uqcp (Code.Phone),
+           uqcw (Code.Wear), uqcs (Code.Scripts). Use after abandoning a queued intent: the
+           eviction sweep will not clear it, since it judges the owning session and that
+           session is alive.
+    ul   - Unlock leases: drop the ticket leases a killed flow left behind, keeping every one a
+           running child or a held lock still vouches for. Prints why each went or stayed.
+           `.\a.ps1 ul -Force` drops the lot without asking anything.
     adb  - adb swiss-army passthrough (scripts\devtest\adb.ps1); verb + options ride in via $Rest
     adb-devices / adb-shot / adb-log / adb-current / adb-launch / adb-logcat-clear - fixed-verb shortcuts
 .EXAMPLE
     .\a.ps1 d
     .\a d
+.EXAMPLE
+    .\a.ps1 r1
+    .\a.ps1 r2
+    .\a.ps1 r3
+    .\a.ps1 rm
+    .\a.ps1 rs
 .EXAMPLE
     .\a.ps1 adb devices
     .\a.ps1 adb log -Tail 400 -Grep S0035
@@ -71,8 +105,13 @@ $Rest = $args
 
 $ErrorActionPreference = "Stop"
 
-# Get project root directory
+# Get project root directory. This one file keeps the literal answer: a.ps1 IS one of the three
+# marker files the resolver walks for, so asking the resolver here would make the marker depend on
+# what it identifies (S2326 step 04.2).
 $ProjectRoot = $PSScriptRoot
+
+# Sibling directories (the release worktree below) resolve through the shared resolver.
+. "$PSScriptRoot\scripts\utils\project-paths.ps1"
 
 # Script mapping.
 #
@@ -104,11 +143,20 @@ $scripts = @{
     'fc'        = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'CodeAndResources' } }
     'fu'        = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Unit' } }
     'fa'        = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'AndroidTest' } }  # S1844: compile the instrumented set - no other target does
+    # S2306: RUN the Room migration tests on a connected device. `fa` proves they compile; only this
+    # executes runMigrationsAndValidate, which is the same schema comparison a user's phone performs on
+    # the first launch after an update - and the comparison that reset the owner's database on
+    # 2026-09-01. Needs a device; long, so background it (CLAUDE.md section 6).
+    'fam'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'ConnectedAndroidTest'; Tests = 'com.sza.fastmediasorter.data.local.db' } }
     'fw'        = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Code'; Module = 'wear' } }  # S1496: fast Kotlin compile for the wear module
     'fwr'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Resources'; Module = 'wear' } }  # S1807: fast resources/manifest check for the wear module
     'fwu'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Unit'; Module = 'wear' } }  # S1807: fast unit-test suite for the wear module
     'flr'       = @{ Path = 'scripts\builders\check-lint-rules.ps1'; Args = @{} }  # S1195: custom lint detectors' own test suite
     'fg'        = @{ Path = 'scripts\quality\assert-fast-gates.ps1'; Args = @{} }  # S0826: batch fast static gates in one process
+    # S2122: the repository's *.tests/Run-Tests.ps1 suites, by hand. Bare = the full sweep (measured
+    # over 120 s, so background it); `-ChangedFiles "<paths>"` runs only the suites guarding those
+    # files; `-ListOnly` shows the selection and which subject each suite claims, running nothing.
+    'fs'        = @{ Path = 'scripts\quality\run-script-suites.ps1'; Args = @{} }
     'mb'        = @{ Path = 'scripts\builders\run-standard-macrobenchmark.ps1'; Args = @{} }
     'gbp'       = @{ Path = 'scripts\builders\generate-standard-baseline-profile.ps1'; Args = @{} }
     'cls'       = @{ Path = 'scripts\builders\clean-gradle-caches.ps1'; Args = @{} }
@@ -123,6 +171,45 @@ $scripts = @{
     'bfd'       = @{ Path = 'scripts\builders\build-failure-digest.ps1'; Args = @{} }
     'nl'        = @{ Path = 'scripts\builders\build-nolegal-release.ps1'; Args = @{} }
     'nd'        = @{ Path = 'scripts\builders\build-nolegal-debug.ps1'; Args = @{} }
+    'wd'        = @{ Path = 'scripts\builders\build-wear-debug.PS1'; Args = @{} }
+    # Unattended queue runners. Each ticket gets its own claude process, so the context resets
+    # between tickets instead of growing all session. r1, r2 and r3 are the parallel instances -
+    # r2 and r3 stagger their first ranking, each by a wider window than the last, so no pair
+    # ranks on the same instant and races for the same ticket. Long-running by design: start them
+    # in their own windows.
+    'r1'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Instance = 'a' } }
+    'r2'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Instance = 'b'; StartDelaySeconds = 20 } }
+    'r3'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Instance = 'c'; StartDelaySeconds = 40 } }
+    'rs'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Stop = $true } }
+    'rm'        = @{ Path = 'scripts\utils\monitor-spec-queue.ps1'; Args = @{} }
+    # Lock releasers. Conservative by design: a lock whose owner is still alive is REFUSED and its
+    # holder printed, so the shortcut cannot silently drop a sibling's turn mid-edit. `-Force` rides
+    # through $Rest for the case the operator has confirmed the holder is gone.
+    # S2109: the four short names keep meaning the WHOLE set of their type, so an operator who
+    # learned them before the split keeps getting what they expect; the domain arrives as extra
+    # targets rather than as a second vocabulary.
+    'ub'        = @{ Path = 'scripts\utils\clear-agent-lock.ps1'; Args = @{ Name = 'Build' } }
+    'uc'        = @{ Path = 'scripts\utils\clear-agent-lock.ps1'; Args = @{ Name = 'Code' } }
+    'ubp'       = @{ Path = 'scripts\utils\clear-agent-lock.ps1'; Args = @{ Name = 'Build.Phone' } }
+    'ubw'       = @{ Path = 'scripts\utils\clear-agent-lock.ps1'; Args = @{ Name = 'Build.Wear' } }
+    'ucp'       = @{ Path = 'scripts\utils\clear-agent-lock.ps1'; Args = @{ Name = 'Code.Phone' } }
+    'ucw'       = @{ Path = 'scripts\utils\clear-agent-lock.ps1'; Args = @{ Name = 'Code.Wear' } }
+    'ucs'       = @{ Path = 'scripts\utils\clear-agent-lock.ps1'; Args = @{ Name = 'Code.Scripts' } }
+    # Queue withdrawers (S2098), a different operation from the two above: ub/uc clear a LOCK, while
+    # uqb/uqc drop this session's own place in a QUEUE and never touch a lock file. Reach for these
+    # when a queued intent was abandoned - the eviction sweep will not, since it judges the owning
+    # session, and that session is alive; it is the intent that was dropped.
+    'uqb'       = @{ Path = 'scripts\utils\withdraw-lock-ticket.ps1'; Args = @{ Name = 'Build' } }
+    'uqc'       = @{ Path = 'scripts\utils\withdraw-lock-ticket.ps1'; Args = @{ Name = 'Code' } }
+    'uqbp'      = @{ Path = 'scripts\utils\withdraw-lock-ticket.ps1'; Args = @{ Name = 'Build.Phone' } }
+    'uqbw'      = @{ Path = 'scripts\utils\withdraw-lock-ticket.ps1'; Args = @{ Name = 'Build.Wear' } }
+    'uqcp'      = @{ Path = 'scripts\utils\withdraw-lock-ticket.ps1'; Args = @{ Name = 'Code.Phone' } }
+    'uqcw'      = @{ Path = 'scripts\utils\withdraw-lock-ticket.ps1'; Args = @{ Name = 'Code.Wear' } }
+    'uqcs'      = @{ Path = 'scripts\utils\withdraw-lock-ticket.ps1'; Args = @{ Name = 'Code.Scripts' } }
+    # Ticket leases are the third thing a killed flow leaves behind, and the one the built-in sweep
+    # will not touch for 45 minutes: its window is sized for a working session that writes nothing,
+    # not for a dead one. Clean judges on live evidence instead - see the verb's own docs.
+    'ul'        = @{ Path = 'scripts\spec_catalog\ticket-lease.ps1'; Args = @{ Verb = 'Clean' } }
     # adb swiss-army (scripts/devtest/adb.ps1). `adb` is the full passthrough - the verb
     # and any options ride in via $Rest, e.g. `.\a.ps1 adb log -Tail 400 -Grep S0035`.
     # The rest are fixed-verb shortcuts; extra options still forward through $Rest.
@@ -165,12 +252,14 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "         e.g. '.\a.ps1 fc -Flavor Lite' - proves any of the six flavors." -ForegroundColor DarkCyan
     Write-Host "  fu   - Fast full unit-test suite (app_v2)" -ForegroundColor Cyan
     Write-Host "  fa   - Fast instrumented-test COMPILE check (app_v2 androidTest)" -ForegroundColor Cyan
+    Write-Host "  fam  - RUN the Room migration tests on a connected device (database-upgrade proof)" -ForegroundColor Cyan
     Write-Host "  fw   - Fast Kotlin compile check, wear module" -ForegroundColor Cyan
     Write-Host "  fwr  - Fast resources/manifest check, wear module" -ForegroundColor Cyan
     Write-Host "  fwu  - Fast unit-test suite, wear module" -ForegroundColor Cyan
     Write-Host "         fk/fkn/fr/fc/fu all check app_v2 - a wear/ change needs fw/fwr/fwu." -ForegroundColor DarkCyan
     Write-Host "  flr  - Fast lint-rules detector test suite (:lint-rules:test)" -ForegroundColor Cyan
     Write-Host "  fg   - Fast static gates batch (neuroslop+pm+listener+flavor+ticket-log)" -ForegroundColor Cyan
+    Write-Host "  fs   - Script regression suites (-ChangedFiles / -ListOnly; bare = full sweep)" -ForegroundColor Cyan
     Write-Host "  mb   - Run standard macrobenchmark suite" -ForegroundColor Cyan
     Write-Host "  gbp  - Generate standard baseline profile" -ForegroundColor Cyan
     Write-Host "  cls  - Clean Gradle caches" -ForegroundColor Cyan
@@ -184,6 +273,21 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  bfd  - Build failure digest (structured JSON + verdict)" -ForegroundColor Cyan
     Write-Host "  nl   - Build noLegal Release" -ForegroundColor Cyan
     Write-Host "  nd   - Build noLegal Debug" -ForegroundColor Cyan
+    Write-Host "  wd   - Build Wear OS Debug and distribute APK" -ForegroundColor Cyan
+    Write-Host "  r1   - Run the release queue unattended, instance A (fresh process per ticket)" -ForegroundColor Cyan
+    Write-Host "  r2   - Same, instance B - the second parallel stream" -ForegroundColor Cyan
+    Write-Host "  r3   - Same, instance C - the third parallel stream" -ForegroundColor Cyan
+    Write-Host "  rs   - Stop the runners after the ticket each is on (-Kill to terminate now)" -ForegroundColor Cyan
+    Write-Host "  rm   - Monitor the runners (-Watch to refresh)" -ForegroundColor Cyan
+    Write-Host "  ub   - Unlock build: every build domain, stale/dead only (-Force to override)" -ForegroundColor Cyan
+    Write-Host "         ubp/ubw - one domain: Build.Phone / Build.Wear" -ForegroundColor Cyan
+    Write-Host "  uc   - Unlock code: every code domain, stale/dead only (-Force to override)" -ForegroundColor Cyan
+    Write-Host "         ucp/ucw/ucs - one domain: Code.Phone / Code.Wear / Code.Scripts" -ForegroundColor Cyan
+    Write-Host "  uqb  - Withdraw this session's place in every BUILD domain queue (locks untouched)" -ForegroundColor Cyan
+    Write-Host "         uqbp/uqbw - one domain" -ForegroundColor Cyan
+    Write-Host "  uqc  - Withdraw this session's place in every CODE domain queue (locks untouched)" -ForegroundColor Cyan
+    Write-Host "         uqcp/uqcw/uqcs - one domain" -ForegroundColor Cyan
+    Write-Host "  ul   - Unlock leases: drop ticket leases a killed flow left behind (-Force = all)" -ForegroundColor Cyan
     Write-Host "  adb  - adb swiss-army passthrough, e.g. 'adb log -Tail 400 -Grep S0035'" -ForegroundColor Cyan
     Write-Host "  adb-devices / adb-shot / adb-log / adb-current / adb-launch / adb-logcat-clear" -ForegroundColor Cyan
     Write-Host ""
@@ -208,7 +312,7 @@ if (-not (Test-Path $scriptPath)) {
 #   git worktree add ../FastMediaSorter_release main
 $releaseCommands = @('r', 'nl', 'vr')
 if ($releaseCommands -contains $Command) {
-    $worktreePath = Join-Path (Split-Path $ProjectRoot -Parent) "FastMediaSorter_release"
+    $worktreePath = Get-SiblingPath -Name "FastMediaSorter_release"
     if (Test-Path $worktreePath) {
         Write-Host "Release build - delegating to release worktree [main]" -ForegroundColor Cyan
         Write-Host "  $worktreePath" -ForegroundColor DarkGray

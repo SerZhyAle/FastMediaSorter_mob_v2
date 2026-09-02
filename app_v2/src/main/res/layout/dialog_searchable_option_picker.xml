@@ -23,6 +23,7 @@
          runtime, orientation-correct). -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/layoutOptionSearch"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/margin_small"
@@ -41,6 +42,17 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
+    <!-- S2178: the list's top edge sat flush against the search field on the dialog's own surface, so a
+         half-scrolled row read as erased rather than as scrolled under the pinned field. Follows the
+         field's own visibility, which is decided at runtime by whether the list overflows. -->
+    <View
+        android:id="@+id/dividerOptionSearch"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/item_divider_height"
+        android:layout_marginBottom="@dimen/margin_small"
+        android:background="?attr/colorOutlineVariant"
+        android:visibility="gone" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerOptions"
         android:layout_width="match_parent"
@@ -57,6 +69,15 @@
         android:padding="@dimen/padding_normal"
         android:text="@string/streams_picker_empty"
         android:textColor="@color/text_color_secondary"
+        android:visibility="gone" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnOptionEmptyAction"
+        style="@style/Widget.Material3.Button.TonalButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="@dimen/margin_small"
         android:visibility="gone" />
 
 </com.sza.fastmediasorter.ui.common.widget.MaxHeightLinearLayout>

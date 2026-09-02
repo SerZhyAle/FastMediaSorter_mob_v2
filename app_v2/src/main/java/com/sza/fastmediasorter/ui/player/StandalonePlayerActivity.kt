@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.ui.player
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
@@ -17,7 +16,6 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.widget.PopupMenu
-import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -34,7 +32,6 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
-import com.sza.fastmediasorter.ui.player.VideoTrackSelectionManager
 import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
 import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
 import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeAugmentingCallback
@@ -65,15 +62,12 @@ import com.sza.fastmediasorter.ui.player.standalone.StandaloneHostFactory
 import com.sza.fastmediasorter.ui.player.standalone.applyStandaloneOverflowIcons
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.io.File
 import javax.inject.Inject
 
 /** Standalone Activity for playing/viewing media opened from external sources (Intent.ACTION_VIEW and Intent.ACTION_SEND). Detached from the main resource/database tree - no resource system, no playlists, no history. All viewer routing is delegated to StandaloneViewManager. */
@@ -149,6 +143,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
 
     // S0391: compile-tier capability flags; supplies the cloud-support flag to the debug logger.
     @Inject lateinit var mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities
+
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
 
     // S1114: VR-immersive launch from the transport controls row, mirroring the specialized standalone
@@ -180,6 +175,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
 
     /** S0763: cached 3D/VR master-toggle state; updated by observeTranslationSettings(). */
     private var cached3dVrEnabled = true
+
     /** Set to true after the first successful viewManager.show(); prevents reload on rename state updates. */
     private var contentLoaded = false
 
@@ -189,7 +185,11 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         val documentCallback = if (
             type == ActionMode.TYPE_FLOATING &&
             ::viewManager.isInitialized
-        ) viewManager.getDocumentSelectionActionModeCallback() else null
+        ) {
+            viewManager.getDocumentSelectionActionModeCallback()
+        } else {
+            null
+        }
         return if (documentCallback != null && callback != null) {
             super.startActionMode(DocumentSelectionActionModeAugmentingCallback(callback, documentCallback), type)
         } else {
@@ -251,7 +251,10 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
             root = binding.root,
             lifecycleScope = lifecycleScope
         )
-        if (BuildConfig.DEBUG) Timber.d("StandalonePlayer[debug]: StandaloneViewManager() constructor done in ${SystemClock.uptimeMillis() - viewManagerT0}ms")
+        if (BuildConfig.DEBUG) {
+            val dt = SystemClock.uptimeMillis() - viewManagerT0
+            Timber.d("StandalonePlayer[debug]: StandaloneViewManager() constructor done in ${dt}ms")
+        }
 
         lifecycleManager = StandalonePlayerLifecycleManager(activity = this, viewManager = viewManager)
         lifecycleManager.onCreate(null)
@@ -291,10 +294,18 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         setupEpubButtons()
         setupSearchControls()
 
-        if (BuildConfig.DEBUG) Timber.d("StandalonePlayer[debug]: pre-parseIncomingIntent total=${SystemClock.uptimeMillis() - t0}ms")
+        if (BuildConfig.DEBUG) {
+            Timber.d(
+                "StandalonePlayer[debug]: pre-parseIncomingIntent total=${SystemClock.uptimeMillis() - t0}ms"
+            )
+        }
         parseIncomingIntent()
         setupKeyboardHandler()
-        if (BuildConfig.DEBUG) Timber.d("StandalonePlayer[debug]: setupViews DONE total=${SystemClock.uptimeMillis() - t0}ms")
+        if (BuildConfig.DEBUG) {
+            Timber.d(
+                "StandalonePlayer[debug]: setupViews DONE total=${SystemClock.uptimeMillis() - t0}ms"
+            )
+        }
     }
 
     private fun setupKeyboardHandler() {
@@ -335,8 +346,11 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
                     p.seekTo((p.currentPosition - seconds * 1000L).coerceAtLeast(0L))
                 }
                 override fun onEpubScrollDelta(verticalScroll: Float) {
-                    if (verticalScroll > 0) viewManager.showEpubPreviousChapter()
-                    else viewManager.showEpubNextChapter()
+                    if (verticalScroll > 0) {
+                        viewManager.showEpubPreviousChapter()
+                    } else {
+                        viewManager.showEpubNextChapter()
+                    }
                 }
                 override fun onNavigationScroll(verticalScroll: Float) { /* single-file standalone */ }
                 override fun onToggleMute() {
@@ -360,6 +374,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
                 override fun onShowContextMenu() {
                     toggleStandaloneFullscreen()
                 }
+
                 // Standalone plays a single file - no playlist navigation.
                 override fun onNextFile() {}
                 override fun onPreviousFile() {}
@@ -373,14 +388,20 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     /** S0289 Phase 08: keep the standalone player aligned with PlayerActivity's multimodal baseline - bespoke `keyboardHandler` consumes its keys first, then `super.onKeyDown` lets BaseActivity's TV / back / context defaults take over. No duplicate gamepad-analog helper is required here; the standalone surface does not own a media-resource list. */
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (::keyboardHandler.isInitialized &&
-            keyboardHandler.handleKeyDown(keyCode, event)) return true
+            keyboardHandler.handleKeyDown(keyCode, event)
+        ) {
+            return true
+        }
         return super.onKeyDown(keyCode, event)
     }
 
     /** S0289 Phase 08: pointer events route through the player's bespoke handler first; if it does not consume them, the call falls through to BaseActivity, which delegates to the shared `ActivityMouseDispatchHelper` (wheel scroll, back/context, etc.). */
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
         if (::keyboardHandler.isInitialized &&
-            keyboardHandler.handlePointerEvent(window.decorView, event)) return true
+            keyboardHandler.handlePointerEvent(window.decorView, event)
+        ) {
+            return true
+        }
         return super.dispatchGenericMotionEvent(event)
     }
 
@@ -625,7 +646,9 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     @SuppressLint("UnsafeIntentLaunch") // debug-only logging; no intent is re-launched here
     private fun debugLogLaunchConditions(incomingIntent: Intent?) =
         com.sza.fastmediasorter.ui.player.helpers.StandaloneLaunchDebugLogger.log(
-            this, incomingIntent, mediaCapabilities,
+            this,
+            incomingIntent,
+            mediaCapabilities,
         )
 
     // ── Window / Insets Setup ─────────────────────────────────────────────
@@ -669,23 +692,23 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     // ── PDF Page Navigation ──────────────────────────────────────────────
 
     private fun setupPdfButtons() {
-        binding.btnPdfPrevPage.setOnClickListener    { viewManager.showPdfPreviousPage() }
-        binding.btnPdfHome.setOnClickListener        { viewManager.showPdfFirstPage() }
-        binding.btnPdfNextPage.setOnClickListener    { viewManager.showPdfNextPage() }
+        binding.btnPdfPrevPage.setOnClickListener { viewManager.showPdfPreviousPage() }
+        binding.btnPdfHome.setOnClickListener { viewManager.showPdfFirstPage() }
+        binding.btnPdfNextPage.setOnClickListener { viewManager.showPdfNextPage() }
         binding.btnTranslatePdfCmd.setOnClickListener { viewManager.togglePdfTranslation() }
     }
 
     // ── EPUB Navigation ──────────────────────────────────────────────────
 
     private fun setupEpubButtons() {
-        binding.btnEpubPrevChapter.setOnClickListener      { viewManager.showEpubPreviousChapter() }
-        binding.btnEpubHome.setOnClickListener             { viewManager.showEpubFirstChapter() }
-        binding.btnEpubNextChapter.setOnClickListener      { viewManager.showEpubNextChapter() }
-        binding.btnEpubToc.setOnClickListener              { viewManager.showEpubTableOfContents() }
+        binding.btnEpubPrevChapter.setOnClickListener { viewManager.showEpubPreviousChapter() }
+        binding.btnEpubHome.setOnClickListener { viewManager.showEpubFirstChapter() }
+        binding.btnEpubNextChapter.setOnClickListener { viewManager.showEpubNextChapter() }
+        binding.btnEpubToc.setOnClickListener { viewManager.showEpubTableOfContents() }
         binding.btnEpubFontSizeDecrease.setOnClickListener { viewManager.decreaseEpubFontSize() }
         binding.btnEpubFontSizeIncrease.setOnClickListener { viewManager.increaseEpubFontSize() }
-        binding.btnEpubTextSettingsCmd.setOnClickListener  { viewManager.showEpubReaderSettings() }
-        binding.btnExitEpubFullscreen.setOnClickListener   { viewManager.exitEpubFullscreen() }
+        binding.btnEpubTextSettingsCmd.setOnClickListener { viewManager.showEpubReaderSettings() }
+        binding.btnExitEpubFullscreen.setOnClickListener { viewManager.exitEpubFullscreen() }
         // btnTranslateEpubCmd listener is set by SearchControlsManager.setupSearchControls() (ADR-4)
     }
 
@@ -721,12 +744,12 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     }
 
     private fun applyFullscreenButtonVisibility(type: MediaType) {
-        binding.btnFullscreenCmd.isVisible = type == MediaType.IMAGE
-            || type == MediaType.GIF
-            || type == MediaType.VIDEO
-            || type == MediaType.PDF
-            || type == MediaType.EPUB
-            || type == MediaType.OFFICE_DOCUMENT
+        binding.btnFullscreenCmd.isVisible = type == MediaType.IMAGE ||
+            type == MediaType.GIF ||
+            type == MediaType.VIDEO ||
+            type == MediaType.PDF ||
+            type == MediaType.EPUB ||
+            type == MediaType.OFFICE_DOCUMENT
     }
 
     // ── Search Controls ──────────────────────────────────────────────────
@@ -734,16 +757,16 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     private fun setupSearchControls() {
         val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
         searchControlsManager = SearchControlsManager(
-            binding                   = binding,
+            binding = binding,
             textViewerManagerProvider = { viewManager.textViewerManagerProvider() },
-            pdfViewerManagerProvider  = { viewManager.pdfViewerManagerProvider() },
+            pdfViewerManagerProvider = { viewManager.pdfViewerManagerProvider() },
             epubViewerManagerProvider = { viewManager.epubViewerManagerProvider() },
-            lifecycleScope            = lifecycleScope,
-            inputMethodManager        = imm,
-            callback                  = object : SearchControlsManager.SearchControlsCallback {
+            lifecycleScope = lifecycleScope,
+            inputMethodManager = imm,
+            callback = object : SearchControlsManager.SearchControlsCallback {
                 override fun getCurrentMediaFile() = viewModel.state.value.mediaFile
                 override fun scheduleHideControls() { /* no auto-hide in standalone */ }
-                override fun onEpubTranslate()      { viewManager.toggleEpubTranslation() }
+                override fun onEpubTranslate() { viewManager.toggleEpubTranslation() }
                 override fun showTranslationSettingsDialog() { /* out of scope */ }
             }
         )
@@ -751,11 +774,23 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     }
 
     private fun setupBackPressHandler() {
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                finish()
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    if (isTaskRoot) {
+                        val intent = Intent(
+                            this@StandalonePlayerActivity,
+                            com.sza.fastmediasorter.ui.main.MainActivity::class.java
+                        ).apply {
+                            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                        }
+                        startActivity(intent)
+                    }
+                    finish()
+                }
             }
-        })
+        )
     }
 
     private fun hidePlaylistControls() {
@@ -805,13 +840,15 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
             }
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
-                    R.id.menu_open_in_fms -> { openInFms(); true }
+                    R.id.menu_open_in_fms -> {
+                        openInFms()
+                        true
+                    }
                     else -> false
                 }
             }
             popup.show()
         }
-
     }
 
     // ── File Info ─────────────────────────────────────────────────────────
@@ -848,6 +885,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
             playerView = pv,
             callback = object : StandaloneVideoControlsManager.StandaloneVideoControlsCallback {
                 override fun showPlaybackControlDialog() = this@StandalonePlayerActivity.showPlaybackControlDialog()
+
                 // S1114: this host has no VR badge, so the transport-row button is its only VR entry point.
                 override fun onVrLaunchClicked() {
                     viewModel.state.value.mediaFile?.let { vrCinemaLaunchManager.launch(it) }
@@ -962,7 +1000,8 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
             val type = state.mediaType ?: return@collectOnLifecycle
 
             if (type == MediaType.BINARY_ARCHIVE || type == MediaType.BINARY_DISK ||
-                type == MediaType.BINARY_EXECUTABLE || type == MediaType.BINARY_OTHER) {
+                type == MediaType.BINARY_EXECUTABLE || type == MediaType.BINARY_OTHER
+            ) {
                 Timber.w("StandalonePlayer: unsupported binary type $type for ${file.name}")
                 Toast.makeText(
                     this@StandalonePlayerActivity,

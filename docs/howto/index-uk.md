@@ -20,7 +20,7 @@ permalink: /docs/howto/index-uk.html
 - <img src="../icons/doc/ic_profile_media_player.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу дивитися фільми/серіали з ПК на телефоні, без копіювання файлів»_ → [Домашній кінотеатр та VR](scenario-home-cinema-uk.md)
 - <img src="../icons/doc/ic_profile_photo_frame.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Є старий планшет - хочу зробити з нього фоторамку»_ → [Цифрова фоторамка](scenario-photo-frame-uk.md)
 - <img src="../icons/doc/ic_profile_car_head_unit.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«У мене Android-магнітола в машині, хочу слухати свою музику»_ → [Музика в автомобілі](scenario-car-music-uk.md)
-- <img src="../icons/doc/ic_display.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу FastMedia на смарт-годиннику й не знаю, з чого почати»_ → [Встановити FastMedia на годинник](wear-install-uk.md)
+- <img src="../icons/doc/ic_display.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу FastMedia на смарт-годиннику й не знаю, з чого почати»_ → [Встановити FastMedia на годинник](wear-install-uk.md) • [Веб-портал Wear OS](../wear/index-uk.md)
 - <img src="../icons/doc/ic_audio.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу слухати свою музику або треки з телефона на смарт-годиннику»_ → [Музика на смарт-годиннику](scenario-watch-music-uk.md)
 - <img src="../icons/doc/ic_resource_smb.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу підключити смарт-годинник напряму до спільної теки ПК або NAS»_ → [Підключення годинника до мережевих ресурсів](scenario-watch-network-uk.md)
 - <img src="../icons/doc/ic_cast.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу слухати інтернет-радіо на Android-магнітолі або плеєрі»_ → [Інтернет-радіо і Трансляції](scenario-internet-radio-uk.md)
@@ -30,7 +30,7 @@ permalink: /docs/howto/index-uk.html
 - <img src="../icons/doc/ic_vr_headset.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу дивитися SBS 3D-фільми на телефоні або повністю зануритися на Quest»_ → [Іммерсивний кінотеатр OpenXR VR](../HOW_TO_UK.md#іммерсивний-кінотеатр-openxr-vr)
 - <img src="../icons/doc/ic_calculator.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу швидко обчислювати математичні формули прямо з тексту документів або фото»_ → [Швидкі обчислення з тексту та OCR](../HOW_TO_UK.md#швидкі-обчислення-з-тексту-та-ocr)
 - <img src="../icons/doc/ic_edit_20.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу створювати та редагувати нотатки Markdown прямо на хмарі або мережевому диску»_ → [Хмарні нотатки Markdown та код](../HOW_TO_UK.md#хмарні-нотатки-markdown-та-код)
-- <img src="../icons/doc/ic_launcher_mode.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу, щоб старий планшет показував мої теки, годинник і погоду замість сітки піктограм»_ → [Застосунок замість домашнього екрана](scenario-launcher-mode-uk.md)
+- <img src="../icons/doc/ic_launcher_mode.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу, щоб старий планшет показував мої теки, годинник і погоду замість сітки піктограм»_ → [Застосунок замість домашнього екрана](scenario-launcher-mode-uk.md) • [Веб-портал Лаунчера](../launcher/index-uk.md)
 
 ---
 

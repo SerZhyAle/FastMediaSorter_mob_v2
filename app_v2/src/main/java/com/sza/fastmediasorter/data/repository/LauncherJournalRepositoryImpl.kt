@@ -42,6 +42,12 @@ class LauncherJournalRepositoryImpl @Inject constructor(
             }
             .distinctUntilChanged()
 
+    override suspend fun remove(target: LauncherCellCommand) {
+        withContext(Dispatchers.IO) {
+            dao.deleteByTarget(target.encode())
+        }
+    }
+
     override suspend fun clearJournal() {
         withContext(Dispatchers.IO) {
             dao.deleteAll()

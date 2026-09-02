@@ -4,10 +4,19 @@
 
     <com.google.android.material.appbar.MaterialToolbar android:id="@+id/toolbar" android:layout_width="0dp" android:layout_height="wrap_content" android:background="?attr/colorPrimary" app:navigationIcon="@drawable/ic_arrow_back" app:navigationIconTint="?attr/colorOnPrimary" app:navigationContentDescription="@string/back" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- S2178: declared before the buttons so it draws behind them. Makes the pinned zone a visibly
+         different plane from the list; a 1dp divider alone was invisible on the dark theme and the
+         clipped first row still read as damage. -->
+    <View android:id="@+id/bg_permissions_actions" android:layout_width="0dp" android:layout_height="0dp" android:background="?attr/colorSurfaceVariant" app:layout_constraintBottom_toBottomOf="@id/divider_permissions_actions" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/toolbar" />
+
     <com.google.android.material.button.MaterialButton android:id="@+id/btn_grant_all" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/perm_btn_grant_all" android:visibility="gone" android:layout_marginStart="8dp" android:layout_marginEnd="8dp" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/toolbar" />
 
     <com.google.android.material.button.MaterialButton android:id="@+id/btn_open_system_settings" style="@style/Widget.FastMediaSorter.Button.Text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="?attr/colorPrimary" android:text="@string/perm_btn_open_system_settings" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/btn_grant_all" />
 
-    <androidx.recyclerview.widget.RecyclerView android:id="@+id/rv_permissions" android:layout_width="0dp" android:layout_height="0dp" android:scrollbars="vertical" android:fadeScrollbars="false" android:scrollbarStyle="outsideOverlay" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/btn_open_system_settings" />
+    <!-- S2178: the list's top edge used to sit flush against the action buttons on the same background,
+         so a half-scrolled row read as erased rather than as scrolled under the pinned area. -->
+    <View android:id="@+id/divider_permissions_actions" android:layout_width="0dp" android:layout_height="@dimen/item_divider_height" android:background="?attr/colorOutlineVariant" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/btn_open_system_settings" />
+
+    <androidx.recyclerview.widget.RecyclerView android:id="@+id/rv_permissions" android:layout_width="0dp" android:layout_height="0dp" android:scrollbars="vertical" android:fadeScrollbars="false" android:scrollbarStyle="outsideOverlay" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/divider_permissions_actions" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

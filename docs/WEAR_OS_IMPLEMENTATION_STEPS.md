@@ -80,7 +80,7 @@ interface WearPreferencesRepository {
 }
 ```
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add WearPreferencesRepository interface for settings management`
 
@@ -110,7 +110,7 @@ Create PreferencesKeys object with all settings keys and default values.
 - Implement all interface methods using `dataStore.edit { }` for writes
 - Set default values: audio=true, video=true, images=true, slideshow=false, interval=5, wait=false, albumArt=false
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Implement WearPreferencesRepositoryImpl with DataStore`
 
@@ -137,7 +137,7 @@ fun provideWearPreferencesRepository(
 }
 ```
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add WearPreferencesRepository to Hilt DI module`
 
@@ -177,7 +177,7 @@ data class SettingsUiState(
 )
 ```
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add SettingsUiState data class`
 
@@ -201,7 +201,7 @@ Create a ViewModel for the Settings screen that loads current settings from repo
 - Use `viewModelScope.launch` for write operations
 - Mark as `@HiltViewModel`
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add SettingsViewModel with settings management logic`
 
@@ -236,7 +236,7 @@ Use `ScalingLazyColumn` with the following items:
 
 Use `hiltViewModel()` to obtain ViewModel and `collectAsState()` for state observation.
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add Settings screen UI with all toggles and app info`
 
@@ -268,7 +268,7 @@ composable("settings") {
 MediaCategory("⚙️ Settings", "settings")
 ```
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add Settings navigation and Home screen button`
 
@@ -301,7 +301,7 @@ Add the following strings:
 - `version` = "Version: %s"
 - `build_number` = "Build: %s"
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add string resources for Settings screen`
 
@@ -323,7 +323,7 @@ Update BrowseViewModel to check settings before loading media files. If media ty
 - If disabled, emit `BrowseUiState.Empty("This media type is disabled in settings")`
 - Combine settings Flow with media files Flow
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add media type filtering in BrowseViewModel based on settings`
 
@@ -357,7 +357,7 @@ Update HomeScreen to hide disabled media type categories based on settings.
 
 - Use `filteredCategories` in ScalingLazyColumn
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Filter Home screen categories based on settings`
 
@@ -390,7 +390,7 @@ interface SlideshowController {
 }
 ```
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add SlideshowController interface`
 
@@ -413,7 +413,7 @@ Implement slideshow controller for images with timer-based auto-advance.
 - Implement start/stop/pause/resume logic
 - Support manual next/previous
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Implement ImageSlideshowController with timer-based advance`
 
@@ -437,7 +437,7 @@ Integrate slideshow controller into ImageViewerViewModel to support auto-advance
 - Observe slideshow currentIndex and navigate automatically
 - Check settings.isSlideshowEnabled before starting
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add slideshow support to ImageViewerViewModel`
 
@@ -459,7 +459,7 @@ Add UI controls to start/stop slideshow in ImageViewerScreen.
 - Add slideshow status text ("Slideshow: ON/OFF")
 - Button calls `viewModel.toggleSlideshow()`
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add slideshow controls to ImageViewerScreen UI`
 
@@ -482,7 +482,7 @@ Update AudioPlayerViewModel to automatically advance to next track when current 
   - If true, navigate to next track automatically
   - Need to pass navController or create navigation callback
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add auto-advance to next track in AudioPlayerViewModel`
 
@@ -504,7 +504,7 @@ Update VideoPlayerViewModel to automatically advance to next video when current 
   - Check if `settings.isSlideshowEnabled && settings.slideshowWaitForFinish`
   - If true, navigate to next video automatically
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add auto-advance to next video in VideoPlayerViewModel`
 
@@ -527,7 +527,7 @@ Add strings:
 - `start_slideshow` = "Start Slideshow"
 - `stop_slideshow` = "Stop Slideshow"
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add slideshow string resources`
 
@@ -553,7 +553,7 @@ implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 implementation("com.squareup.okhttp3:okhttp:4.12.0")
 ```
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `build(wear): Add Retrofit dependencies for album art API`
 
@@ -588,7 +588,7 @@ data class ITunesTrack(
 }
 ```
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add iTunes API data models`
 
@@ -616,7 +616,7 @@ interface ITunesApiService {
 }
 ```
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add iTunes API service interface`
 
@@ -650,7 +650,7 @@ fun provideITunesApiService(retrofit: Retrofit): ITunesApiService {
 }
 ```
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add iTunes API service to Hilt DI`
 
@@ -673,7 +673,7 @@ Create a repository for fetching and caching album artwork.
 - Cache downloaded URLs in SharedPreferences
 - Return cached URL if available, otherwise query iTunes API
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add AlbumArtRepository for artwork fetching and caching`
 
@@ -697,7 +697,7 @@ Integrate album art loading into AudioPlayerViewModel.
 - If true, call `albumArtRepository.getAlbumArt()` with artist/album from metadata
 - Update UI state with artwork URL
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add album art loading to AudioPlayerViewModel`
 
@@ -719,7 +719,7 @@ Update AudioPlayerScreen UI to display downloaded album artwork using Coil.
 - Add error handling for failed loads
 - Size: circular image, 80.dp diameter
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Display album art in AudioPlayerScreen UI`
 
@@ -742,7 +742,7 @@ Add SMBJ library dependency to wear module.
 implementation("com.hierynomus:smbj:0.12.1")
 ```
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `build(wear): Add SMBJ dependency for SMB support`
 
@@ -782,7 +782,7 @@ data class NetworkSource(
 )
 ```
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add NetworkSource data models`
 
@@ -805,7 +805,7 @@ Create SMB data source implementation using SMBJ library.
 - Handle SMB connection lifecycle
 - Return Result<> for all operations
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add SmbDataSource for SMB file operations`
 
@@ -840,7 +840,7 @@ Implementation:
 - Store sources in EncryptedSharedPreferences (serialize to JSON)
 - Inject EncryptedSharedPreferences via Hilt
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add NetworkSourceRepository for network storage management`
 
@@ -885,7 +885,7 @@ fun provideEncryptedSharedPreferences(
 }
 ```
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add EncryptedSharedPreferences for secure credential storage`
 
@@ -920,7 +920,7 @@ sealed class ConnectionTestResult {
 }
 ```
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add AddSmbUiState data classes`
 
@@ -943,7 +943,7 @@ Create ViewModel for Add SMB connection screen.
 - `testConnection()` calls SmbDataSource to verify connection
 - `saveConnection()` creates NetworkSource and saves via repository
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add AddSmbViewModel for SMB connection management`
 
@@ -970,7 +970,7 @@ Use ScalingLazyColumn with:
 
 Note: Text input on Wear OS is limited - use `rememberLauncherForActivityResult` with `RemoteInput.getResultsFromIntent()` for text entry.
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add AddSmbScreen UI for SMB connection setup`
 
@@ -994,7 +994,7 @@ Add navigation routes for network storage screens.
 
 2. Add "Network Storage" button in Settings screen that navigates to "network/sources"
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add network storage navigation routes`
 
@@ -1019,7 +1019,7 @@ Create a screen to list all saved network storage connections.
   - Long press to delete
 - FAB to add new connection (navigate to add screen)
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add NetworkSourceListScreen to manage connections`
 
@@ -1047,7 +1047,7 @@ suspend fun getNetworkMediaFiles(
 
 Implementation: Query appropriate data source based on NetworkSource type.
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Extend WearMediaRepository to support network sources`
 
@@ -1070,7 +1070,7 @@ Create a browse screen for network storage sources.
 - Handle connection errors gracefully
 - Support playing files directly from network
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add NetworkBrowseScreen for browsing network storage`
 
@@ -1092,7 +1092,7 @@ Configure ExoPlayer to support streaming from SMB sources.
 - Add appropriate buffer size for network streaming
 - Handle connection timeouts
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Configure ExoPlayer for SMB network streaming`
 
@@ -1115,7 +1115,7 @@ Add strings for:
 - Error messages
 - Connection status
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add network storage string resources`
 
@@ -1139,7 +1139,7 @@ implementation("commons-net:commons-net:3.10.0")
 implementation("com.github.mwiede:jsch:0.2.16")
 ```
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `build(wear): Add FTP and SFTP dependencies`
 
@@ -1157,7 +1157,7 @@ Create FTP data source implementation using Apache Commons Net.
 **Implementation Details**:
 Similar to SmbDataSource but using FTPClient from commons-net.
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add FtpDataSource for FTP file operations`
 
@@ -1175,7 +1175,7 @@ Create SFTP data source implementation using JSch.
 **Implementation Details**:
 Similar to SmbDataSource but using JSch library for SFTP.
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add SftpDataSource for SFTP file operations`
 
@@ -1194,7 +1194,7 @@ Create Add FTP connection screen (similar to Add SMB).
 **Implementation Details**:
 Form fields: Server, Port, Username, Password, Base Path
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add FTP connection setup screen`
 
@@ -1213,7 +1213,7 @@ Create Add SFTP connection screen.
 **Implementation Details**:
 Form fields: Server, Port, Username, Password, Base Path
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add SFTP connection setup screen`
 
@@ -1231,7 +1231,7 @@ Update repository implementation to handle FTP and SFTP sources.
 **Implementation Details**:
 Add handling for FTP and SFTP connection testing using respective data sources.
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add FTP/SFTP support to NetworkSourceRepository`
 
@@ -1254,7 +1254,7 @@ Add Google Play Services Auth dependency for Google Sign-In.
 implementation("com.google.android.gms:play-services-auth:21.0.0")
 ```
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `build(wear): Add Google Play Services Auth dependency`
 
@@ -1272,7 +1272,7 @@ Create data models for Google Drive API responses.
 **Implementation Details**:
 Data classes for Drive files list, file metadata, etc.
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add Google Drive API data models`
 
@@ -1293,7 +1293,7 @@ Create Google Drive data source using Drive REST API.
 - Use Drive REST API for file operations
 - Store access token securely
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add GoogleDriveDataSource for Drive file operations`
 
@@ -1315,7 +1315,7 @@ Create authentication screen for Google Drive.
 - Handle OAuth flow
 - Save access/refresh tokens
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add Google Drive authentication screen`
 
@@ -1333,7 +1333,7 @@ Integrate Google Drive into network storage system.
 **Implementation Details**:
 Add "Google Drive" option to network source types and handle accordingly.
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Integrate Google Drive into network storage system`
 
@@ -1356,7 +1356,7 @@ Add INTERNET permission to AndroidManifest.xml for network operations.
 <uses-permission android:name="android.permission.INTERNET" />
 ```
 
-**Build Target**: `:wear:assembleDebug`
+**Build Target**: `:wear:assembleStandardDebug`
 
 **Commit Message**: `feat(wear): Add INTERNET permission for network operations`
 

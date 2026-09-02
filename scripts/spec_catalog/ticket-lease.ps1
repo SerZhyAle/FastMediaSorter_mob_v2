@@ -25,6 +25,13 @@
     List    - ids only, one per line (or a JSON array under -Json). Feeds an exclusion list.
     Status  - human-readable holder map: ticket, session, host, last seen, reason.
     Sweep   - drop stale leases and report how many went.
+    Clean   - drop every lease nothing alive still supports, and say why each one went or stayed.
+              Sweep's window is 45 minutes because a working session writes nothing for a long
+              time; that is the wrong window right after the operator killed the runners, when
+              the flow is gone and its leases are simply litter. Clean judges on live evidence
+              instead - a headless child naming the ticket, a lock naming it, a transcript that
+              moved in the last -QuietMinutes - so a killed run's leases go within a minute or
+              two while a working session's lease is never touched.
 
 .PARAMETER Id
     Ticket id, Sxxxx. Required for Claim and Release.
@@ -38,6 +45,12 @@
 .PARAMETER StaleMinutes
     Liveness window. Defaults to $Script:AgentLockTimings.SpecTicket.SessionStaleMinutes.
 
+.PARAMETER QuietMinutes
+    Clean only. How long an owning session's transcript may have been still before its lease
+    counts as litter. Small on purpose (2 minutes): a killed process stops writing instantly,
+    and the other two keep-signals - a live child naming the ticket, a lock naming it - cover
+    the working session that merely sits in one long model turn.
+
 .EXAMPLE
     pwsh -NoProfile -File scripts/spec_catalog/ticket-lease.ps1 -Verb Claim -Id S1234 -Reason "/spec-next"
     Takes S1234. Exit 0 on success, exit 3 when a live sibling got there first.
@@ -46,16 +59,21 @@
     pwsh -NoProfile -File scripts/spec_catalog/ticket-lease.ps1 -Verb Status
     Prints which session holds which ticket and how long ago each was last seen.
 
+.EXAMPLE
+    pwsh -NoProfile -File scripts/spec_catalog/ticket-lease.ps1 -Verb Clean
+    After killing the queue runners: drops the leases their dead children left behind, keeps the
+    ones a live run or a held lock still vouches for. -Force drops the lot unconditionally.
+
 .EXIT CODES
     0 - done: claimed, released, or reported.
     1 - error: unreadable store, bad argument shape, write failure.
     3 - claim lost: a live foreign session already holds this ticket.
-    4 - release refused: a live foreign session owns this lease.
+    4 - release refused: a live foreign session owns this lease (never returned under -Force).
 #>
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet('Claim', 'Release', 'List', 'Status', 'Sweep')]
+    [ValidateSet('Claim', 'Release', 'List', 'Status', 'Sweep', 'Clean')]
     [string]$Verb,
 
     [string]$Id,
@@ -64,7 +82,17 @@ param(
 
     [switch]$Json,
 
-    [int]$StaleMinutes = 0
+    # Release only: drop the lease even though its owner still looks live. Liveness here is the write
+    # time of the owner's transcript, which cannot separate "still working" from "exited a minute ago" -
+    # the file stops growing either way. A supervisor that spawned the owning process and watched it
+    # exit knows what that heuristic cannot reach, and only such a caller may pass this. Never pass it
+    # to clear a lease you merely believe is idle: that is what Sweep and the staleness window are for.
+    [switch]$Force,
+
+    [int]$StaleMinutes = 0,
+
+    # Clean only - see .PARAMETER QuietMinutes.
+    [int]$QuietMinutes = 2
 )
 
 $ErrorActionPreference = 'Stop'
@@ -116,7 +144,13 @@ function Test-LeaseOwnerHoldsLock {
     $ticketId = [string]$Lease.id
     if ([string]::IsNullOrWhiteSpace($ownerSessionId) -or [string]::IsNullOrWhiteSpace($ticketId)) { return $false }
 
-    foreach ($lockName in @('Code', 'Build')) {
+    # S2109: scan every domain, not the two bare names. Research artifact 05 flagged this as one of
+    # only two functional consumers of the lock name outside the library: after the split a session
+    # holding Code.Wear writes no file under the bare name, so a check that looked only there would
+    # find nothing, read a working session's lease as abandoned, and sweep it out from under it.
+    $lockNames = @(Resolve-AgentLockDomains -Name 'Code') + @(Resolve-AgentLockDomains -Name 'Build') +
+        @('Code', 'Build')
+    foreach ($lockName in $lockNames) {
         $lock = Get-AgentLockStatus -Name $lockName
         if (-not $lock.Exists -or $lock.Stale) { continue }
         if ([string]$lock.SessionId -ne $ownerSessionId) { continue }
@@ -198,6 +232,43 @@ function Get-LiveLeases {
         }
     }
     return ($out | Sort-Object id)
+}
+
+function Get-LiveRunTicketIds {
+    <#
+        Ticket ids named by the headless children running right now. This is the same evidence the
+        queue monitor shows under "running", and it is the one signal that survives a long model
+        turn: a child mid-turn writes no transcript line and touches no lock, so without it Clean
+        would drop a lease out from under a run that is working perfectly.
+    #>
+    $ids = @()
+    foreach ($proc in @(Get-CimInstance Win32_Process -Filter "Name = 'claude.exe'" -ErrorAction SilentlyContinue)) {
+        if (-not $proc.CommandLine) { continue }
+        if ($proc.CommandLine -notmatch '\s-p\s') { continue }
+        foreach ($m in [regex]::Matches([string]$proc.CommandLine, 'S\d{4}')) { $ids += $m.Value }
+    }
+    return @($ids | Sort-Object -Unique)
+}
+
+function Get-LeaseQuietMinutes {
+    <#
+        Minutes since the owning session last produced evidence of itself: its transcript's write
+        time, or the lease's own heartbeat when the transcript is unreachable. $null means neither
+        exists, which is not the same as "quiet forever" - the caller decides what that is worth.
+    #>
+    param([Parameter(Mandatory)]$Lease)
+
+    $marks = @()
+    $transcript = [string]$Lease.transcriptPath
+    if (-not [string]::IsNullOrWhiteSpace($transcript) -and (Test-Path -LiteralPath $transcript)) {
+        try { $marks += (Get-Item -LiteralPath $transcript).LastWriteTime } catch { }
+    }
+    if ($Lease.lastSeenAt) {
+        $marks += [DateTimeOffset]::FromUnixTimeMilliseconds([int64]$Lease.lastSeenAt).LocalDateTime
+    }
+    if ($marks.Count -eq 0) { return $null }
+    $newest = ($marks | Sort-Object -Descending | Select-Object -First 1)
+    return ((Get-Date) - $newest).TotalMinutes
 }
 
 function Write-LeaseFile {
@@ -312,15 +383,17 @@ switch ($Verb) {
 
         $lease = Read-Lease -Path $path
         $liveness = if ($null -ne $lease) { Get-LeaseLiveness -Lease $lease } else { 'foreign-stale' }
-        if ($liveness -eq 'foreign-live') {
+        if ($liveness -eq 'foreign-live' -and -not $Force) {
             $holderId = [string]$lease.sessionId
             if ($Json) { [pscustomobject]@{ outcome = 'release-refused'; id = $Id; heldBy = $holderId } | ConvertTo-Json -Compress }
             else { Write-Host "ticket-lease: refusing to release $Id - live session $holderId owns it." -ForegroundColor Yellow }
             exit 4
         }
 
+        $forced = ($liveness -eq 'foreign-live')
         Remove-Item -LiteralPath $path -Force
-        if ($Json) { [pscustomobject]@{ outcome = 'released'; id = $Id } | ConvertTo-Json -Compress }
+        if ($Json) { [pscustomobject]@{ outcome = 'released'; id = $Id; forced = $forced } | ConvertTo-Json -Compress }
+        elseif ($forced) { Write-Host "ticket-lease: force-released $Id (owner looked live; caller says its process exited)." -ForegroundColor Yellow }
         else { Write-Host "ticket-lease: released $Id." -ForegroundColor Green }
         exit 0
     }
@@ -353,6 +426,58 @@ switch ($Verb) {
             Write-Host ("  {0} {1}  {2} on {3}  ({4}, held {5} min)  {6}" -f `
                     $marker, $l.id, $l.sessionId, $l.host, $seen, $l.ageMinutes, $l.reason) -ForegroundColor $color
         }
+        exit 0
+    }
+
+    'Clean' {
+        $liveTickets = @(Get-LiveRunTicketIds)
+        $dropped = @()
+        $kept = @()
+        foreach ($file in (Get-ChildItem -LiteralPath $leaseDir -Filter '*.json' -ErrorAction SilentlyContinue)) {
+            $lease = Read-Lease -Path $file.FullName
+            $id = if ($null -ne $lease) { [string]$lease.id } else { $file.BaseName }
+
+            $keepReason = $null
+            if (-not $Force) {
+                if ($null -eq $lease) {
+                    # Unreadable can mean mid-write. The 60-second grace matches Invoke-LeaseSweep's,
+                    # for the same reason: a reader arriving between create and rename must not delete
+                    # a lease that is about to be valid.
+                    if (((Get-Date) - $file.LastWriteTime).TotalSeconds -le 60) { $keepReason = 'unreadable but written seconds ago' }
+                }
+                elseif ($liveTickets -contains $id) { $keepReason = 'a running headless child names this ticket' }
+                elseif (Test-LeaseOwnerHoldsLock -Lease $lease) { $keepReason = 'its owner holds a lock naming this ticket' }
+                elseif ((Get-LeaseLiveness -Lease $lease) -eq 'self') { $keepReason = 'this session owns it' }
+                else {
+                    $quiet = Get-LeaseQuietMinutes -Lease $lease
+                    if ($null -ne $quiet -and $quiet -lt $QuietMinutes) {
+                        $keepReason = "its owner was writing {0:N1} min ago" -f $quiet
+                    }
+                }
+            }
+
+            if ($keepReason) {
+                $kept += [pscustomobject]@{ id = $id; reason = $keepReason }
+                continue
+            }
+            Remove-Item -LiteralPath $file.FullName -Force -ErrorAction SilentlyContinue
+            $why = if ($Force) { 'forced' }
+                elseif ($null -eq $lease) { 'unreadable' }
+                else {
+                    $quiet = Get-LeaseQuietMinutes -Lease $lease
+                    if ($null -eq $quiet) { 'no live run, no transcript' } else { "no live run, owner quiet {0:N0} min" -f $quiet }
+                }
+            $dropped += [pscustomobject]@{ id = $id; reason = $why }
+        }
+
+        if ($Json) {
+            [pscustomobject]@{ outcome = 'cleaned'; dropped = @($dropped); kept = @($kept) } | ConvertTo-Json -Depth 4 -Compress
+            exit 0
+        }
+        foreach ($k in $kept) { Write-Host ("  kept    {0}  ({1})" -f $k.id, $k.reason) -ForegroundColor DarkGray }
+        foreach ($d in $dropped) { Write-Host ("  dropped {0}  ({1})" -f $d.id, $d.reason) -ForegroundColor Yellow }
+        if ($dropped.Count -eq 0 -and $kept.Count -eq 0) { Write-Host 'ticket-lease: no leases held.' }
+        else { Write-Host ("ticket-lease: {0} dropped, {1} kept." -f $dropped.Count, $kept.Count) -ForegroundColor Cyan }
         exit 0
     }
 

@@ -69,6 +69,14 @@ object SettingsDocScopeCatalog {
             SettingsSearchDestination.OPERATIONS,
             ""
         ),
+        // S2024: opened only from the calculator's own popup menu, never from a settings screen - no
+        // settings-screen control leads here, so hostKey stays empty.
+        DocScopeSurface(
+            R.layout.dialog_calculator_settings,
+            "calculator",
+            SettingsSearchDestination.OPERATIONS,
+            ""
+        ),
         // Opened only from the camera-OCR capture flow (CameraOcrTranslateActivity), same reason.
         DocScopeSurface(
             R.layout.dialog_camera_ocr_settings,
@@ -134,6 +142,14 @@ object SettingsDocScopeCatalog {
             titleUk = "Увімкнути аудіо"
         ),
         WearDocEntry(
+            key = "wearEnableDocuments",
+            layout = "wear_media_types_settings",
+            kind = "TOGGLE_ROW",
+            titleEn = "Enable documents",
+            titleRu = "Включить документы",
+            titleUk = "Увімкнути документи"
+        ),
+        WearDocEntry(
             key = "wearEnableImages",
             layout = "wear_media_types_settings",
             kind = "TOGGLE_ROW",
@@ -192,6 +208,57 @@ object SettingsDocScopeCatalog {
             titleEn = "Files view",
             titleRu = "Вид файлов",
             titleUk = "Вигляд файлів"
+        ),
+        // S1862: a radio group rather than a toggle, because the setting picks between two named
+        // models and section 6 item 1 requires it to be able to stop the automatic send - an "off"
+        // caption would not say that the note is then kept on the watch until sent by hand.
+        WearDocEntry(
+            key = "wearVoiceNoteSendPolicy",
+            layout = "wear_other_settings",
+            kind = "RADIO_GROUP",
+            titleEn = "Voice note delivery",
+            titleRu = "Доставка голосовых заметок",
+            titleUk = "Доставка голосових нотаток"
+        ),
+        // S2000 introduced this as a phone-only choice. S2093 / ADR-3 split it: the mode is two values
+        // and is now offered on the watch's Screen settings as well, while the picture it points at
+        // stays a phone choice, because picking one means opening a gallery and sending a file.
+        WearDocEntry(
+            key = "wearBackgroundMode",
+            layout = "wear_screen_settings",
+            kind = "RADIO_GROUP",
+            titleEn = "Watch Background",
+            titleRu = "Фон на часах",
+            titleUk = "Фон на годиннику"
+        ),
+        // S2093: a real watch row since S1781 that was never published - a pre-existing Rule 22 gap,
+        // in scope here because strategic criterion 9 is that this reference lists the set the owner
+        // actually has, and the parity gate fails the closure while it does not.
+        WearDocEntry(
+            key = "wearStreamsSection",
+            layout = "wear_media_types_settings",
+            kind = "TOGGLE_ROW",
+            titleEn = "Show Streams",
+            titleRu = "Показывать трансляции",
+            titleUk = "Показувати трансляції"
+        ),
+        // S2093: a real watch row since S1718, likewise never published. ADR-2 keeps it watch-only -
+        // it describes one physical watch and does not exist at all without a rotation sensor.
+        WearDocEntry(
+            key = "wearAutoRotation",
+            layout = "wear_other_settings",
+            kind = "TOGGLE_ROW",
+            titleEn = "Auto rotation",
+            titleRu = "Автоповорот",
+            titleUk = "Автоповорот"
+        ),
+        WearDocEntry(
+            key = "wearDisableAnimations",
+            layout = "wear_other_settings",
+            kind = "TOGGLE_ROW",
+            titleEn = "Disable animations",
+            titleRu = "Отключить анимацию",
+            titleUk = "Вимкнути анімацію"
         )
     )
 }

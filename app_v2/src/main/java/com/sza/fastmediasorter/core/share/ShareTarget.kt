@@ -74,6 +74,9 @@ enum class ShareTargetDefault {
     ALWAYS_OFF,
     ON_IF_GOOGLE,
     ON_IF_INTERNET,
+
+    /** On when the wear companion is switched on and this build carries the bridge (S1884). */
+    ON_IF_WATCH,
 }
 
 /** Availability rule deciding whether the target's command may be shown. */
@@ -82,4 +85,11 @@ enum class ShareTargetAvailability {
     PACKAGE_INSTALLED,
     REQUIRES_GOOGLE,
     REQUIRES_INTERNET,
+
+    /**
+     * Needs a reachable paired watch: the wear companion toggle is on and the build ships the
+     * bridge. Deliberately the same gate S1799 already owns, so the companion switch darkens the
+     * stream send and the file send together (S1884 strategic §3.3).
+     */
+    REQUIRES_WATCH,
 }

@@ -5,7 +5,6 @@ import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -27,8 +26,12 @@ class ResolveLastUsedResourceUseCase @Inject constructor(
         preferencesRepository.lastUsedResources,
         networkSourceRepository.observeSources()
     ) { remembered, sources ->
-        val resolved = remembered.filter { target -> sources.any { it.id == target.id } }
-        Timber.d("S1836: home shortcuts resolve to ${resolved.map { it.name }}")
-        resolved
+        // S2129: the same lookup that proves the source still exists also carries its icon across.
+        // Enriching here rather than in the stored history keeps the icon current when the owner
+        // repoints it on the phone, and leaves the two-field history format untouched.
+        remembered.mapNotNull { target ->
+            sources.firstOrNull { it.id == target.id }
+                ?.let { target.copy(iconId = it.iconId) }
+        }
     }
 }

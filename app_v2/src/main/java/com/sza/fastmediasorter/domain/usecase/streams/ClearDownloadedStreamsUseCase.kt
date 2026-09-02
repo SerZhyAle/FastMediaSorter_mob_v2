@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase.streams
 
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -18,7 +17,6 @@ class ClearDownloadedStreamsUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(): Int {
         val removed = repository.deleteAllDownloaded()
-        Timber.d("S1780: cleared %d downloaded stream(s)", removed)
         return removed
     }
 }

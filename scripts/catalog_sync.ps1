@@ -49,9 +49,21 @@ if (-not $Force) {
         $scanRoot = Join-Path $repoRoot "$Module\src"
         $newest = $null
         if (Test-Path -LiteralPath $scanRoot) {
-            $newest = Get-ChildItem -LiteralPath $scanRoot -Recurse -File -Include '*.kt', '*.java' -ErrorAction SilentlyContinue |
-                Where-Object { $_.FullName -notmatch '[\\/](build|\.gradle|\.kotlin)[\\/]' } |
-                Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
+            $newestTime = [DateTime]::MinValue
+            $enumFiles = [System.IO.Directory]::EnumerateFiles($scanRoot, "*.*", [System.IO.SearchOption]::AllDirectories)
+            foreach ($f in $enumFiles) {
+                if ($f.EndsWith('.kt', [System.StringComparison]::OrdinalIgnoreCase) -or
+                    $f.EndsWith('.java', [System.StringComparison]::OrdinalIgnoreCase)) {
+                    if ($f -match '[\\/](build|\.gradle|\.kotlin)[\\/]') { continue }
+                    $t = [System.IO.File]::GetLastWriteTimeUtc($f)
+                    if ($t -gt $newestTime) {
+                        $newestTime = $t
+                    }
+                }
+            }
+            if ($newestTime -gt [DateTime]::MinValue) {
+                $newest = [PSCustomObject]@{ LastWriteTimeUtc = $newestTime }
+            }
         }
         # S1344: the sector stamp is derived from dev/CATALOG/sectors.json, so editing a sector
         # definition must invalidate the index even when no source file moved - otherwise the
@@ -84,7 +96,31 @@ Write-Host "[catalog_sync] sectors -> $Module" -ForegroundColor Cyan
 $sectorFile = Join-Path $repoRoot 'dev\CATALOG\sectors.json'
 $indexFile = Join-Path $repoRoot "dev\CATALOG\$Module.jsonl"
 if ((Test-Path -LiteralPath $sectorFile) -and (Test-Path -LiteralPath $indexFile)) {
-    $definitions = (Get-Content -LiteralPath $sectorFile -Raw -Encoding UTF8 | ConvertFrom-Json).sectors
+    $rawSectors = Get-Content -LiteralPath $sectorFile -Raw -Encoding UTF8 | ConvertFrom-Json
+    $definitions = $rawSectors.sectors
+
+    $overrideMap = @{}
+    $classMatchList = [System.Collections.Generic.List[PSCustomObject]]::new()
+    $pathMatchList = [System.Collections.Generic.List[PSCustomObject]]::new()
+
+    foreach ($d in $definitions) {
+        if ($d.overrides) {
+            foreach ($o in $d.overrides) { $overrideMap[$o] = $d.name }
+        }
+        if ($d.classMatches) {
+            foreach ($cm in $d.classMatches) {
+                $regexStr = "^" + [regex]::Escape($cm).Replace("\*", ".*").Replace("\?", ".") + "$"
+                $classMatchList.Add([PSCustomObject]@{ Regex = [regex]::new($regexStr); Name = $d.name })
+            }
+        }
+        if ($d.pathMatches) {
+            foreach ($pm in $d.pathMatches) {
+                $regexStr = "^" + [regex]::Escape($pm).Replace("\*", ".*").Replace("\?", ".") + "$"
+                $pathMatchList.Add([PSCustomObject]@{ Regex = [regex]::new($regexStr); Name = $d.name })
+            }
+        }
+    }
+
     $claimedCount = 0
     $unclaimedCount = 0
     $unclaimedPrefixes = @{}
@@ -92,30 +128,28 @@ if ((Test-Path -LiteralPath $sectorFile) -and (Test-Path -LiteralPath $indexFile
 
     foreach ($line in (Get-Content -LiteralPath $indexFile -Encoding UTF8)) {
         if (-not $line) { continue }
-        $record = $line | ConvertFrom-Json
+        $record = $line | ConvertFrom-Json -AsHashtable
         $cls = if ($record.class) { $record.class } else { '' }
         $pth = if ($record.path) { $record.path } else { '' }
 
         $owner = $null
-        foreach ($d in $definitions) {
-            if (($d.overrides -contains $cls) -or ($d.overrides -contains $pth)) { $owner = $d.name; break }
-        }
-        if (-not $owner) {
-            foreach ($d in $definitions) {
-                foreach ($pattern in $d.classMatches) { if ($cls -like $pattern) { $owner = $d.name; break } }
-                if ($owner) { break }
+        if ($overrideMap.ContainsKey($cls)) { $owner = $overrideMap[$cls] }
+        elseif ($overrideMap.ContainsKey($pth)) { $owner = $overrideMap[$pth] }
+
+        if (-not $owner -and $cls) {
+            foreach ($item in $classMatchList) {
+                if ($item.Regex.IsMatch($cls)) { $owner = $item.Name; break }
             }
         }
-        if (-not $owner) {
-            foreach ($d in $definitions) {
-                foreach ($pattern in $d.pathMatches) { if ($pth -like $pattern) { $owner = $d.name; break } }
-                if ($owner) { break }
+        if (-not $owner -and $pth) {
+            foreach ($item in $pathMatchList) {
+                if ($item.Regex.IsMatch($pth)) { $owner = $item.Name; break }
             }
         }
 
         if ($owner) {
             $claimedCount++
-            $record | Add-Member -NotePropertyName sector -NotePropertyValue $owner -Force
+            $record['sector'] = $owner
         }
         else {
             # Full coverage is explicitly not a goal - an unclaimed class simply carries no sector.

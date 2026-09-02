@@ -92,6 +92,7 @@ class ScreenshotGestureActionDispatcherOpenAppTest {
             mediaActionHandler = mockk(relaxed = true),
             launchActionHandler = mockk(relaxed = true),
             accessibilityActions = emptySet(),
+            launcherModeContract = mockk(relaxed = true),
         )
     }
 

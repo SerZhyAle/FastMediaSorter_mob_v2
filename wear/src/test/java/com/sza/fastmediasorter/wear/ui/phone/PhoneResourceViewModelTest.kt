@@ -1,20 +1,31 @@
 package com.sza.fastmediasorter.wear.ui.phone
 
 import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceClient
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceOutcome
+import com.sza.fastmediasorter.wear.domain.browse.BrowseCategoryCatalog
+import com.sza.fastmediasorter.wear.domain.files.WEAR_PHONE_FILE_CACHE_DIR
+import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
+import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
+import com.sza.fastmediasorter.wear.domain.model.WearFileStorageClass
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceItem
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourcePage
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceResponseStatus
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.domain.usecase.PerformWearFileOperationUseCase
 import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
+import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -26,10 +37,12 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.io.File
 import kotlin.io.path.createTempDirectory
 
 /** S1898: the watch's own `TRANSFER_TIMEOUT_MS`, long enough that a tap outlives the list it was made on. */
@@ -50,29 +63,51 @@ class PhoneResourceViewModelTest {
     // so the stored view is held at its default and never varied.
     private val preferences: WearPreferencesRepository = mockk()
     private val selectedMedia: SelectedMediaManager = mockk(relaxed = true)
+    private val capabilityPolicy: WearFileCapabilityPolicy = mockk(relaxed = true)
+    private val performFileOperation: PerformWearFileOperationUseCase = mockk(relaxed = true)
 
     // S1846: the view model now prepares a cache directory for a delivered phone file. Only the path is
     // read at construction, so a stub context with a real temp dir is enough and no Robolectric is needed.
+    // S2092 hoisted the directory into a field so a case can plant a copy where the view model looks.
+    private val cacheRoot = createTempDirectory("s1846-test").toFile()
     private val context: Context = mockk<Context>().also {
-        every { it.cacheDir } returns createTempDirectory("s1846-test").toFile()
+        every { it.cacheDir } returns cacheRoot
     }
+
+    /**
+     * S2130: what the screen actually asked the phone for - the type filter and the list shape.
+     *
+     * Recorded rather than asserted one argument at a time because ADR-3's requirement is that two
+     * requests be *different*, which is a comparison and not a per-call verification.
+     */
+    private data class BrowseAsk(val mediaType: String?, val isFlat: Boolean?)
+
+    private val browseAsks = mutableListOf<BrowseAsk>()
 
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
         every { preferences.fileListViewMode } returns flowOf(WearViewMode.LIST)
+        // The action menu builds a Uri for the entry's copy, and android.net.Uri is a stub in a unit test.
+        mockkStatic(Uri::class)
+        every { Uri.fromFile(any()) } returns mockk(relaxed = true)
+        coEvery { client.browse(any(), any(), any(), any()) } answers {
+            browseAsks += BrowseAsk(arg<String?>(2), arg<Boolean?>(3))
+            PhoneResourceOutcome.Page(page(item("Camera")))
+        }
     }
 
     @After
     fun tearDown() {
         Dispatchers.resetMain()
+        unmockkStatic(Uri::class)
     }
 
     @Test
     fun `a page becomes content`() = runTest {
         coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.Page(page(item("Camera")))
 
-        val viewModel = PhoneResourceViewModel(client, selectedMedia, context, preferences, SavedStateHandle())
+        val viewModel = buildViewModel()
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
@@ -84,7 +119,7 @@ class PhoneResourceViewModelTest {
     fun `an answered but empty folder is not an error`() = runTest {
         coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.Page(page())
 
-        val viewModel = PhoneResourceViewModel(client, selectedMedia, context, preferences, SavedStateHandle())
+        val viewModel = buildViewModel()
         advanceUntilIdle()
 
         assertEquals(PhoneResourceUiState.Empty, viewModel.uiState.value)
@@ -94,7 +129,7 @@ class PhoneResourceViewModelTest {
     fun `a disconnected phone becomes unavailable with no reason to show`() = runTest {
         coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.PhoneUnavailable
 
-        val viewModel = PhoneResourceViewModel(client, selectedMedia, context, preferences, SavedStateHandle())
+        val viewModel = buildViewModel()
         advanceUntilIdle()
 
         assertEquals(PhoneResourceUiState.Unavailable(null), viewModel.uiState.value)
@@ -105,7 +140,7 @@ class PhoneResourceViewModelTest {
         coEvery { client.browse(any(), any(), any(), any()) } returns
             PhoneResourceOutcome.Rejected(WearPhoneResourceResponseStatus.ACCESS_DENIED)
 
-        val viewModel = PhoneResourceViewModel(client, selectedMedia, context, preferences, SavedStateHandle())
+        val viewModel = buildViewModel()
         advanceUntilIdle()
 
         assertEquals(
@@ -118,7 +153,7 @@ class PhoneResourceViewModelTest {
     fun `retry after a disconnect recovers the content`() = runTest {
         coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.PhoneUnavailable
 
-        val viewModel = PhoneResourceViewModel(client, selectedMedia, context, preferences, SavedStateHandle())
+        val viewModel = buildViewModel()
         advanceUntilIdle()
         assertEquals(PhoneResourceUiState.Unavailable(null), viewModel.uiState.value)
 
@@ -133,7 +168,7 @@ class PhoneResourceViewModelTest {
     fun `walking into a folder and back keeps the screen on the trail`() = runTest {
         coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.Page(page(item("Camera")))
 
-        val viewModel = PhoneResourceViewModel(client, selectedMedia, context, preferences, SavedStateHandle())
+        val viewModel = buildViewModel()
         advanceUntilIdle()
 
         viewModel.openFolder("1:Camera", "Camera")
@@ -148,7 +183,7 @@ class PhoneResourceViewModelTest {
     fun `the root is titled by the chip that opened the screen`() = runTest {
         coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.Page(page(item("Camera")))
 
-        val viewModel = PhoneResourceViewModel(client, selectedMedia, context, preferences, SavedStateHandle())
+        val viewModel = buildViewModel()
         advanceUntilIdle()
 
         assertEquals(ScreenTitle.Resource(R.string.phone_resource_title), viewModel.contentTitle())
@@ -158,7 +193,7 @@ class PhoneResourceViewModelTest {
     fun `a folder titles the screen with its own name`() = runTest {
         coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.Page(page(item("Camera")))
 
-        val viewModel = PhoneResourceViewModel(client, selectedMedia, context, preferences, SavedStateHandle())
+        val viewModel = buildViewModel()
         advanceUntilIdle()
 
         viewModel.openFolder("1:Camera", "Camera")
@@ -171,7 +206,7 @@ class PhoneResourceViewModelTest {
     fun `the second level names the second folder and back names the first again`() = runTest {
         coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.Page(page(item("Camera")))
 
-        val viewModel = PhoneResourceViewModel(client, selectedMedia, context, preferences, SavedStateHandle())
+        val viewModel = buildViewModel()
         advanceUntilIdle()
 
         viewModel.openFolder("1:Camera", "Camera")
@@ -190,7 +225,7 @@ class PhoneResourceViewModelTest {
     fun `back from the first folder restores the chip title`() = runTest {
         coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.Page(page(item("Camera")))
 
-        val viewModel = PhoneResourceViewModel(client, selectedMedia, context, preferences, SavedStateHandle())
+        val viewModel = buildViewModel()
         advanceUntilIdle()
 
         viewModel.openFolder("1:Camera", "Camera")
@@ -205,6 +240,63 @@ class PhoneResourceViewModelTest {
         (uiState.value as PhoneResourceUiState.Content).title
 
     /**
+     * S2130 ADR-3: All and Browse are two different lists, and the only thing telling them apart on
+     * the way in is the route argument - All sends the `all` token, the folder browser sends none.
+     * Both want a null *type filter*, so the shape was being derived from that shared null and the two
+     * entries collapsed into one identical request. These cases pin the argument-to-request mapping at
+     * the exact point that collapsed.
+     */
+    @Test
+    fun `the all chip asks for a flat list of every type`() = runTest {
+        buildViewModel(BrowseCategoryCatalog.TOKEN_ALL)
+        advanceUntilIdle()
+
+        assertEquals(BrowseAsk(mediaType = null, isFlat = true), browseAsks.single())
+    }
+
+    @Test
+    fun `the folder browser carries no argument and asks for a folder walk`() = runTest {
+        buildViewModel(categoryToken = null)
+        advanceUntilIdle()
+
+        assertEquals(BrowseAsk(mediaType = null, isFlat = false), browseAsks.single())
+    }
+
+    @Test
+    fun `a type chip asks for a flat list carrying its own filter`() = runTest {
+        buildViewModel(BrowseCategoryCatalog.TOKEN_VIDEOS)
+        advanceUntilIdle()
+
+        assertEquals(
+            BrowseAsk(mediaType = BrowseCategoryCatalog.TOKEN_VIDEOS, isFlat = true),
+            browseAsks.single()
+        )
+    }
+
+    /** The regression this phase exists to prevent: the two entries must not ask the same question. */
+    @Test
+    fun `all and browse do not produce the same request`() = runTest {
+        buildViewModel(BrowseCategoryCatalog.TOKEN_ALL)
+        advanceUntilIdle()
+        buildViewModel(categoryToken = null)
+        advanceUntilIdle()
+
+        assertNotEquals(browseAsks[0], browseAsks[1])
+    }
+
+    /**
+     * S2130: the title comes from the same table the chip on the home screen was drawn from, so All
+     * is not labelled "Phone" like the folder browser it used to be indistinguishable from.
+     */
+    @Test
+    fun `the all chip titles the screen with its own word`() = runTest {
+        val viewModel = buildViewModel(BrowseCategoryCatalog.TOKEN_ALL)
+        advanceUntilIdle()
+
+        assertEquals(ScreenTitle.Resource(R.string.wear_phone_all), viewModel.contentTitle())
+    }
+
+    /**
      * S1898: the refusal line is anchored to the screen now, so it no longer scrolls out of sight on
      * its own. Walking into another folder has to drop it, or it stays on screen naming a file the
      * folder in front of the user does not contain.
@@ -214,7 +306,7 @@ class PhoneResourceViewModelTest {
         coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.Page(page(item("Camera")))
         coEvery { client.open(any(), any()) } returns PhoneResourceOutcome.PhoneUnavailable
 
-        val viewModel = PhoneResourceViewModel(client, selectedMedia, context, preferences, SavedStateHandle())
+        val viewModel = buildViewModel()
         advanceUntilIdle()
 
         viewModel.openFile(fileItem("holiday.jpg"))
@@ -240,7 +332,7 @@ class PhoneResourceViewModelTest {
             PhoneResourceOutcome.PhoneUnavailable
         }
 
-        val viewModel = PhoneResourceViewModel(client, selectedMedia, context, preferences, SavedStateHandle())
+        val viewModel = buildViewModel()
         advanceUntilIdle()
 
         viewModel.openFile(fileItem("holiday.jpg"))
@@ -248,6 +340,74 @@ class PhoneResourceViewModelTest {
         advanceUntilIdle()
 
         assertNull("a transfer outlived its list and must not repaint over the new one", viewModel.openOutcome.value)
+    }
+
+    /**
+     * S2092: the phone nulls the type of everything outside the three renderable families, so the row
+     * carried the refusal before the tap. Fetching first spent the whole file over Bluetooth and left a
+     * permanent cache entry to learn what the list already said.
+     */
+    @Test
+    fun `a file the watch cannot render is refused without a transfer`() = runTest {
+        coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.Page(page(item("Camera")))
+
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        viewModel.openFile(documentItem("report.pdf"))
+        advanceUntilIdle()
+
+        assertEquals(PhoneFileOpenOutcome.Unsupported, viewModel.openOutcome.value)
+        coVerify(exactly = 0) { client.open(any(), any()) }
+    }
+
+    /**
+     * S2092: opening on the phone is addressed by the browse token and moves no bytes, so an entry this
+     * watch never fetched still allows it. Before this the copy-based answer was the only answer, and
+     * the action that works was reachable only after a transfer that was going to be refused.
+     */
+    @Test
+    fun `an entry with no copy on the watch still allows opening it on the phone`() = runTest {
+        coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.Page(page(item("Camera")))
+
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        assertEquals(
+            setOf(WearFileOperationKind.OPEN_ON_PHONE),
+            viewModel.allowedOperationsFor(documentItem("report.pdf"))
+        )
+    }
+
+    /**
+     * S2092: the phone's original and the watch's copy are two different files, so the offer about the
+     * first is added to the answer about the second rather than replacing it.
+     */
+    @Test
+    fun `a fetched entry keeps the copy operations beside opening it on the phone`() = runTest {
+        coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.Page(page(item("Camera")))
+        every { capabilityPolicy.classify(any(), any()) } returns WearFileStorageClass.PHONE_COPY
+        every { capabilityPolicy.allowedOperations(WearFileStorageClass.PHONE_COPY) } returns
+            setOf(WearFileOperationKind.DELETE)
+
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+        val entry = documentItem("report.pdf")
+        plantCopyOf(entry)
+
+        assertEquals(
+            setOf(WearFileOperationKind.DELETE, WearFileOperationKind.OPEN_ON_PHONE),
+            viewModel.allowedOperationsFor(entry)
+        )
+    }
+
+    /**
+     * Writes a copy where the view model looks for one. The name mirrors its private `toCacheFileName`,
+     * which is the one thing about the copy directory's layout a test has to know.
+     */
+    private fun plantCopyOf(entry: WearPhoneResourceItem) {
+        val dir = File(cacheRoot, WEAR_PHONE_FILE_CACHE_DIR).apply { mkdirs() }
+        File(dir, "${entry.token.hashCode()}-${entry.name}").writeText("copy")
     }
 
     private fun page(vararg items: WearPhoneResourceItem) = WearPhoneResourcePage(
@@ -260,6 +420,18 @@ class PhoneResourceViewModelTest {
         items = items.toList()
     )
 
+    private fun buildViewModel(categoryToken: String? = null) = PhoneResourceViewModel(
+        client,
+        selectedMedia,
+        capabilityPolicy,
+        performFileOperation,
+        context,
+        preferences,
+        SavedStateHandle(
+            categoryToken?.let { mapOf(WearRoutes.ARG_MEDIA_TYPE to it) }.orEmpty()
+        )
+    )
+
     private fun item(name: String) = WearPhoneResourceItem(
         token = "1:$name",
         name = name,
@@ -270,6 +442,59 @@ class PhoneResourceViewModelTest {
         token = "1:$name",
         name = name,
         mimeType = "image/jpeg",
+        isDirectory = false
+    )
+
+    @Test
+    fun `asking twice for the same token issues one request`() = runTest {
+        val page = WearPhoneResourcePage(
+            requestId = "r1",
+            status = WearPhoneResourceResponseStatus.OK,
+            items = listOf(fileItem("photo.jpg"))
+        )
+        coEvery { client.requestThumbnail("1:photo.jpg") } returns PhoneResourceOutcome.Page(page)
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        viewModel.requestThumbnail("1:photo.jpg")
+        viewModel.requestThumbnail("1:photo.jpg")
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { client.requestThumbnail("1:photo.jpg") }
+    }
+
+    @Test
+    fun `in-flight thumbnail request cap is not exceeded`() = runTest {
+        coEvery { client.requestThumbnail(any()) } coAnswers {
+            delay(100)
+            PhoneResourceOutcome.Page(
+                WearPhoneResourcePage(
+                    requestId = "r1",
+                    status = WearPhoneResourceResponseStatus.OK,
+                    items = emptyList()
+                )
+            )
+        }
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        viewModel.requestThumbnail("1:file1.jpg")
+        viewModel.requestThumbnail("1:file2.jpg")
+        viewModel.requestThumbnail("1:file3.jpg")
+        viewModel.requestThumbnail("1:file4.jpg")
+        // S2266: the cap is enforced synchronously, but the client call it guards is queued on
+        // viewModelScope, and StandardTestDispatcher runs nothing until the scheduler is advanced.
+        // Verifying before this line reads an empty mock and proves nothing about the cap.
+        advanceUntilIdle()
+
+        coVerify(exactly = 3) { client.requestThumbnail(any()) }
+    }
+
+    /** A file outside the three renderable families: the phone sends it with no type at all. */
+    private fun documentItem(name: String) = WearPhoneResourceItem(
+        token = "1:$name",
+        name = name,
+        mimeType = null,
         isDirectory = false
     )
 }

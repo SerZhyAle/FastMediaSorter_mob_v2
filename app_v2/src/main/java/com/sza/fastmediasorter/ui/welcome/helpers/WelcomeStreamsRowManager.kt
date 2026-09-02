@@ -82,7 +82,6 @@ class WelcomeStreamsRowManager @Inject constructor(
     private fun maybeImportForPreset(binding: PageWelcomeFunctionalityBinding, owner: LifecycleOwner) {
         owner.lifecycleScope.launch {
             val catalogCount = countCatalogStreamSourcesUseCase()
-            Timber.d("S1918: preset streams row bound, catalog rows=%d", catalogCount)
             if (catalogCount > 0) return@launch
             // The count is a suspending read, so the user can have switched the row OFF meanwhile;
             // starting the download then would contradict a choice already persisted.

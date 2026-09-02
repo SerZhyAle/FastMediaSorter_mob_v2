@@ -1,0 +1,99 @@
+# S2105: format-vs-signal classification for every detekt rule name that can appear in
+# config/detekt/baseline-<module>.xml. Read by scripts/quality/split-detekt-baseline.ps1 to
+# derive config/detekt/baseline-<module>-format.xml / -signal.xml from the operational baseline.
+#
+# Criterion: a rule's home detekt rule set is the default classifier - `formatting` (the
+# ktlint-derived rule set enabled in config/detekt/detekt.yml) is "format", every other rule set
+# (style, complexity, naming, exceptions, potential-bugs, empty-blocks, performance) is "signal".
+#
+# Three named overrides against raw rule-set membership, found empirically (PLAN/S2105.../research/
+# 02__format-signal-boundary.md): these three live outside `formatting` but duplicate a `formatting`
+# rule's finding on the same lines (matching or near-matching counts in both baselines), so they are
+# the same format concern under a second name, not a second, independent piece of debt.
+#   MaxLineLength       (style, detekt-native)   duplicates MaximumLineLength (formatting)
+#   NewLineAtEndOfFile   (style, detekt-native)   duplicates FinalNewline     (formatting)
+#   WildcardImport       (style, detekt-native)   duplicates NoWildcardImports (formatting)
+#
+# Two boundary decisions named explicitly in strategic spec S2105 §6 item 2:
+#   MultiLineIfElse -> format. Wrap/brace placement for multi-line if/else - pure layout, no
+#     behavior or design implication (part of the `formatting` rule set).
+#   FunctionNaming   -> signal. Naming-convention rule (detekt `naming` rule set), not whitespace.
+#     detekt.yml already carries ignoreAnnotated: ['Composable'] for this rule; if Composable
+#     functions still appear in the baseline that is a separate config-tuning question, not a
+#     reason to move this rule into `format`.
+#
+# A baseline rule name absent from this table must fail the split-sync gate closed (exit 2,
+# "cannot verify") rather than default into either bucket - see split-detekt-baseline.ps1.
+#
+# Format: one "RuleName<TAB>category" line per rule, sorted alphabetically by rule name.
+
+AnnotationOnSeparateLine	format
+AnnotationSpacing	format
+ArgumentListWrapping	format
+ChainWrapping	format
+CommentSpacing	format
+CommentWrapping	format
+ComplexCondition	signal
+CyclomaticComplexMethod	signal
+EmptyElseBlock	signal
+EmptyFunctionBlock	signal
+EmptyIfBlock	signal
+ExplicitGarbageCollectionCall	signal
+Filename	format
+FinalNewline	format
+FunctionNaming	signal
+FunctionOnlyReturningConstant	signal
+FunctionStartOfBodySpacing	format
+ImplicitDefaultLocale	signal
+ImportOrdering	format
+Indentation	format
+InstanceOfCheckForException	signal
+InvalidPackageDeclaration	signal
+LargeClass	signal
+LongMethod	signal
+LongParameterList	signal
+LoopWithTooManyJumpStatements	signal
+MagicNumber	signal
+MatchingDeclarationName	signal
+MaxLineLength	format
+MaximumLineLength	format
+MayBeConst	signal
+MemberNameEqualsClassName	signal
+MultiLineIfElse	format
+NestedBlockDepth	signal
+NewLineAtEndOfFile	format
+NoBlankLineBeforeRbrace	format
+NoConsecutiveBlankLines	format
+NoEmptyFirstLineInMethodBlock	format
+NoMultipleSpaces	format
+NoTrailingSpaces	format
+NoUnusedImports	format
+NoWildcardImports	format
+ParameterListWrapping	format
+ParameterWrapping	format
+PrintStackTrace	signal
+PropertyWrapping	format
+ReturnCount	signal
+RethrowCaughtException	signal
+SerialVersionUIDInSerializableClass	signal
+SpacingAroundComma	format
+SpacingAroundCurly	format
+SpacingAroundKeyword	format
+SpacingAroundOperators	format
+SpacingBetweenDeclarationsWithAnnotations	format
+SpacingBetweenDeclarationsWithComments	format
+SpreadOperator	signal
+StringTemplate	format
+SwallowedException	signal
+ThrowsCount	signal
+TooGenericExceptionCaught	signal
+TooGenericExceptionThrown	signal
+TooManyFunctions	signal
+UnusedParameter	signal
+UnusedPrivateMember	signal
+UnusedPrivateProperty	signal
+UseCheckOrError	signal
+UseRequire	signal
+VariableNaming	signal
+WildcardImport	format
+Wrapping	format

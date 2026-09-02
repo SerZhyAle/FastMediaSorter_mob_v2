@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.dialog
 
+import android.content.res.ColorStateList
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -8,17 +9,19 @@ import android.view.ViewTreeObserver
 import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
-import com.google.android.material.textfield.TextInputEditText
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.google.android.material.color.MaterialColors
+import com.google.android.material.textfield.TextInputEditText
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogSearchableOptionPickerBinding
 import com.sza.fastmediasorter.databinding.ItemSearchableOptionBinding
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.LeadingVisual
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.Option
 import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
+import timber.log.Timber
 import java.util.Locale
 
 /**
@@ -39,6 +42,15 @@ object SearchableOptionPickerController {
      * prepended and reported as a `null` pick. [onPicked] receives the chosen option (or null for the
      * reset row); the caller is responsible for dismissing its host.
      */
+    /** The three type-to-filter views, bound together because a caller wires all three or none. */
+    data class SearchUi(
+        val layout: View?,
+        val input: TextInputEditText?,
+        val emptyLabel: TextView?,
+        /** S2178: boundary line under the field; shares the field's runtime visibility. */
+        val divider: View? = null,
+    )
+
     fun attach(
         binding: DialogSearchableOptionPickerBinding,
         options: List<Option>,
@@ -49,9 +61,12 @@ object SearchableOptionPickerController {
     ) {
         attachViews(
             recyclerOptions = binding.recyclerOptions,
-            searchLayout = binding.layoutOptionSearch,
-            editOptionSearch = binding.editOptionSearch,
-            tvOptionsEmpty = binding.tvOptionsEmpty,
+            searchUi = SearchUi(
+                binding.layoutOptionSearch,
+                binding.editOptionSearch,
+                binding.tvOptionsEmpty,
+                binding.dividerOptionSearch,
+            ),
             options = options,
             selectedId = selectedId,
             resetRow = resetRow,
@@ -62,15 +77,15 @@ object SearchableOptionPickerController {
 
     fun attachViews(
         recyclerOptions: RecyclerView,
-        searchLayout: View?,
-        editOptionSearch: TextInputEditText?,
-        tvOptionsEmpty: TextView?,
+        searchUi: SearchUi? = null,
         options: List<Option>,
         selectedId: String?,
         resetRow: Option?,
         columns: Int = 1,
         onPicked: (Option?) -> Unit,
     ) {
+        val editOptionSearch = searchUi?.input
+        val tvOptionsEmpty = searchUi?.emptyLabel
         val rows = if (resetRow != null) listOf(resetRow) + options else options
         val adapter = OptionAdapter(selectedId) { option ->
             onPicked(if (resetRow != null && option.id == resetRow.id) null else option)
@@ -94,8 +109,9 @@ object SearchableOptionPickerController {
         }
 
         scrollToSelected(recyclerOptions, rows, selectedId)
+        val searchLayout = searchUi?.layout
         if (searchLayout != null) {
-            applySearchVisibilityOnFit(recyclerOptions, searchLayout)
+            applySearchVisibilityOnFit(recyclerOptions, searchLayout, searchUi.divider)
         }
     }
 
@@ -124,14 +140,20 @@ object SearchableOptionPickerController {
      * list is laid out; re-runs on recreate (rotation), so it stays orientation-correct without a
      * separate landscape layout.
      */
-    private fun applySearchVisibilityOnFit(recycler: RecyclerView, searchLayout: View) {
+    private fun applySearchVisibilityOnFit(
+        recycler: RecyclerView,
+        searchLayout: View,
+        divider: View?,
+    ) {
         recycler.viewTreeObserver.addOnGlobalLayoutListener(
             object : ViewTreeObserver.OnGlobalLayoutListener {
                 override fun onGlobalLayout() {
                     if (recycler.height == 0) return
                     recycler.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                    searchLayout.isVisible =
-                        recycler.computeVerticalScrollRange() > recycler.height
+                    val overflows = recycler.computeVerticalScrollRange() > recycler.height
+                    Timber.d("S2178: option picker search and divider visible=$overflows")
+                    searchLayout.isVisible = overflows
+                    divider?.isVisible = overflows
                 }
             },
         )
@@ -214,6 +236,18 @@ object SearchableOptionPickerController {
                 if (leading != null) {
                     flagView.isVisible = false
                     icon.isVisible = true
+                    // S2062: the row is recycled, so a tint applied for a previous white glyph must be
+                    // cleared here - left set, it would repaint the next row's app icon/thumbnail/brand
+                    // logo one flat colour.
+                    val applyTint = leading is LeadingVisual.IconRes && leading.tintIcon
+                    Timber.d("S2062: picker row leading visual tinted=$applyTint")
+                    icon.imageTintList = if (applyTint) {
+                        ColorStateList.valueOf(
+                            MaterialColors.getColor(icon, com.google.android.material.R.attr.colorOnSurfaceVariant)
+                        )
+                    } else {
+                        null
+                    }
                     when (leading) {
                         is LeadingVisual.IconDrawable -> {
                             // Cancel any pending async load from a recycled thumbnail row first.

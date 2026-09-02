@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.core.share.handlers
 import android.app.Activity
 import com.sza.fastmediasorter.core.share.GoogleLensShare
 import com.sza.fastmediasorter.core.share.ShareTargetHandler
+import com.sza.fastmediasorter.core.share.ShareTargetOutcome
 import com.sza.fastmediasorter.core.share.ShareableContent
 import javax.inject.Inject
 
@@ -15,10 +16,10 @@ class LensShareTargetHandler @Inject constructor() : ShareTargetHandler {
 
     override val targetId: String = ID
 
-    override fun send(activity: Activity, content: ShareableContent): Boolean {
-        val uri = content.uris.firstOrNull() ?: return false
+    override suspend fun send(activity: Activity, content: ShareableContent): ShareTargetOutcome {
+        val uri = content.uris.firstOrNull() ?: return ShareTargetOutcome.Failed()
         GoogleLensShare.shareImageUri(activity, uri)
-        return true
+        return ShareTargetOutcome.Launched
     }
 
     companion object {

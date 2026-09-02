@@ -6,7 +6,41 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.8241.708** (August 2026) - Fix Release
+**Current release: 2.60.9021.951** (September 2026)
+
+> Changes since version 2.60.8241.708
+
+---
+
+## What's New
+
+- **Reconnect a folder through the system chooser** - a folder added by typing its path can be reconnected through Android's own folder window, keeping its name, place in the list, PIN, icon and favourites, and gaining the documents a typed path can never read.
+- **The app says what a folder cannot show** - when a connection can only reach photos, video and audio, the list says so instead of quietly leaving documents out.
+- **Camera shooting modes** - a Document profile alongside the everyday ones, tap to focus with exposure metering, and the active mode shown on its own button.
+- **A watch that works on its own** - tiles on the watch face, files walked straight from the watch's own storage, file actions with the phone as recipient, search, filter and sort inside a resource, the volume on the file list, a copyable calculator result, harder game levels, and a web portal link.
+- **The watch and the phone keep the same settings** - changes made on either side reach the other.
+- **Desktop gadgets and widgets** - a live map of where you are, a world clock, a YouTube frame, stream windows as desktop cells, and network indicators in the status area.
+- **Launcher gestures** - page between screens, move a cell to another screen, open All apps from an edge swipe, and turn the flashlight on with a physical gesture.
+- **Picture-in-picture from anywhere** - the floating video window opens from every screen that plays video and keeps its frame when it stands alone.
+- **Network Monitor** - a host ping probe, a hop-by-hop traceroute, the external address, and a history that logs changes rather than repeats.
+- **Streams stay grouped and translated** - channel rubrics in your language, canonical filters, channel pictures updated without waiting for an app release, and audio that keeps playing.
+- **The resource list remembers you** - filter and sort survive between sessions, on the phone and on the watch alike.
+- **Setup explains the system screens before it starts** - the one-tap Enable All says what Android will ask and why.
+
+## What's Fixed
+
+- Documents in a folder connected through the system chooser now show their page and cover previews.
+- The search overlay in a folder no longer hides under the status bar, so its close button responds.
+- The file count on a resource no longer goes stale after an operation, and file-count wording is correct in every language.
+- The reconnect dialog survives a screen rotation instead of disappearing.
+- Streams show a real message when the catalog comes back empty, instead of a blank screen.
+- Watch playback no longer reports a cancelled state as an error, and an absent watch API is no longer logged as a failure.
+- The watch database survives an upgrade instead of resetting.
+- Launcher shortcuts import into their own section and keep their alignment.
+
+---
+
+## Previous Release: 2.60.8241.708 (August 2026) - Fix Release
 
 > Fix: granting All files access no longer leaves the permission dialog on screen
 

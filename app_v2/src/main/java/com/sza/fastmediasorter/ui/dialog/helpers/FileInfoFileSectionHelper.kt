@@ -1,13 +1,11 @@
 package com.sza.fastmediasorter.ui.dialog.helpers
 
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.text.format.DateFormat
 import android.view.View
-import android.widget.Toast
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.clipboard.copyTextToClipboard
 import com.sza.fastmediasorter.core.util.MediaFilePathDescriptor
 import com.sza.fastmediasorter.core.util.MimeTypeResolver
 import com.sza.fastmediasorter.core.util.formatFileSize
@@ -26,7 +24,9 @@ class FileInfoFileSectionHelper(
             val decomposition = MediaFilePathDescriptor.decompose(file.path, file.cloudDisplayPath)
 
             binding.tvFileName.text = context.getString(R.string.file_name_label, file.name)
-            binding.tvFileSize.text = context.getString(R.string.file_size_label, formatFileSize(file.size))
+            val sizeText = formatFileSize(context, file.size)
+            Timber.d("S2351: file info size rendered as '$sizeText'")
+            binding.tvFileSize.text = context.getString(R.string.file_size_label, sizeText)
             binding.tvFileDate.text = context.getString(R.string.file_date_label, formatDate(file.createdDate))
             binding.tvFileType.text = context.getString(R.string.file_type_label, file.type.name)
 
@@ -82,9 +82,7 @@ class FileInfoFileSectionHelper(
 
             binding.btnCopyPath.isVisible = true
             binding.btnCopyPath.setOnClickListener {
-                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                clipboard.setPrimaryClip(ClipData.newPlainText("path", decomposition.displayPath))
-                Toast.makeText(context, R.string.file_info_copy_path_done, Toast.LENGTH_SHORT).show()
+                context.copyTextToClipboard("path", decomposition.displayPath)
             }
 
             binding.tvFilePath.visibility = View.GONE

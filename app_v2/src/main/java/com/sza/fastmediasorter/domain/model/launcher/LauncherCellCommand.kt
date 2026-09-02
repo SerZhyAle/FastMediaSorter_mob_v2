@@ -236,6 +236,16 @@ sealed interface LauncherCellCommand {
          */
         const val SECTION_GOOGLE = "google"
 
+        /**
+         * S2018: where "import all installed apps" puts what it imports.
+         *
+         * A fixed literal rather than a minted user key, because the import must be able to find the
+         * section it wrote last time: a key carrying the creation timestamp is unfindable by the next
+         * run, which would grow a second "Desktop" header on every import. Nothing seeds this section -
+         * it appears when the user first imports, and stays theirs to refill afterwards.
+         */
+        const val SECTION_DESKTOP = "desktop"
+
         private const val SEPARATOR = ":"
 
         // Field layout of a [Contact] target. These positions are a persistence format from the first

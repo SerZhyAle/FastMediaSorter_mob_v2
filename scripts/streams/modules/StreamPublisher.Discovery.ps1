@@ -27,8 +27,8 @@ function New-Candidate {
     )
     $https = $url.ToLowerInvariant().StartsWith('https')
     [pscustomobject]@{
-        category      = $category
-        topic         = $topic
+        category      = Get-CanonicalCategory -Category $category
+        topic         = Get-CanonicalTopic -topic $topic
         name          = ($name -replace '\s+', ' ').Trim()
         url           = $url.Trim()
         media_kind    = $mediaKind
@@ -37,8 +37,8 @@ function New-Candidate {
         bitrate       = $bitrate
         is_live       = $isLive.ToString().ToLowerInvariant()
         https         = $https.ToString().ToLowerInvariant()
-        language      = $language
-        country       = $country
+        language      = Get-CanonicalLanguages -Languages $language
+        country       = Get-CanonicalCountry -Country $country
         homepage      = $homepage
         source_kind   = $sourceKind
         license_note  = $licenseNote

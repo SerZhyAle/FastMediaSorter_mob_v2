@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/item_focus_selector"
+    android:foreground="@drawable/item_interaction_overlay"
     android:focusable="true"
     android:focusableInTouchMode="false"
     android:paddingStart="@dimen/padding_small"

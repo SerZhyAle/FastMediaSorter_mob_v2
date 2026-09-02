@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="file_count_format_plural"><item quantity="one">%1$d فائل</item><item quantity="other">%1$d فائلیں۔</item></plurals>
+    <plurals name="copying_n_files_from_folder_plural"><item quantity="one">%2$s سے %1$d فائل کاپی ہو رہی ہے..</item><item quantity="other">%2$s سے %1$d فائلیں کاپی ہو رہی ہیں..</item></plurals>
+    <plurals name="archiving_n_files_from_folder_plural"><item quantity="one">%2$s سے %1$d فائل آرکائیو ہو رہی ہے</item><item quantity="other">%2$s سے %1$d فائلیں آرکائیو ہو رہی ہیں</item></plurals>
+    <plurals name="moving_n_files_from_folder_plural"><item quantity="one">%2$s سے %1$d فائل منتقل ہو رہی ہے..</item><item quantity="other">%2$s سے %1$d فائلیں منتقل ہو رہی ہیں..</item></plurals>
+    <plurals name="renaming_n_files_from_folder_plural"><item quantity="one">%2$s سے %1$d فائل کا نام تبدیل ہو رہا ہے..</item><item quantity="other">%2$s سے %1$d فائلوں کے نام تبدیل ہو رہے ہیں..</item></plurals>
+</resources>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    S0403 - FOSS (F-Droid) flavor manifest overlay.
+
+    The strategic requirement is invisibility, not degradation: a capability this flavor cannot back
+    must leave no entry point behind, so every component below is removed rather than left declared
+    and failing. Two kinds are removed here.
+
+    (1) Components whose CLASS is gone with the dependency. play-services-auth, MSAL, the Dropbox SDK
+        and AppAuth are all off the foss classpath (see build.gradle.kts), so their manifest entries
+        would name types the APK does not contain.
+    (2) Components of a capability this flavor turns off in BuildConfig - cloud pickers, OCR and
+        translation surfaces, the stream widget, the voice recorder.
+
+    Cast OPTIONS_PROVIDER and the Wear <service> need no removal: they arrive with the castEnabled /
+    wearGms source sets, which foss does not mount.
+
+    Deliberately KEPT, unlike the lite overlay: ACCESS_LOCAL_NETWORK and the companion importer
+    (SMB/FTP/SFTP shares are this flavor's replacement for cloud storage), the audio widgets and the
+    player activity-aliases (documents, EPUB, background audio and the default player all stay on).
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- S1454: the only seam onto ContactsContract is ContactSnapshotDataSource, reached solely from
+         src/launcherEnabled, which foss does not mount - the same closure as the lite overlay. -->
+    <uses-permission
+        android:name="android.permission.READ_CONTACTS"
+        tools:node="remove" />
+
+    <application>
+
+        <!-- Cloud providers: SUPPORT_CLOUD=false and every provider SDK is off the classpath. -->
+        <activity
+            android:name=".ui.cloudfolders.GoogleDriveFolderPickerActivity"
+            tools:node="remove" />
+        <activity
+            android:name=".ui.cloudfolders.DropboxFolderPickerActivity"
+            tools:node="remove" />
+        <activity
+            android:name=".ui.cloudfolders.OneDriveFolderPickerActivity"
+            tools:node="remove" />
+        <activity
+            android:name=".ui.cloudauth.GoogleDriveAuthCompletionActivity"
+            tools:node="remove" />
+        <activity
+            android:name=".ui.cloudauth.GoogleDriveAuthResolutionActivity"
+            tools:node="remove" />
+
+        <!-- Library-owned OAuth receivers. Their classes ship inside AppAuth, the Dropbox SDK and
+             MSAL, none of which foss links. -->
+        <activity
+            android:name="net.openid.appauth.RedirectUriReceiverActivity"
+            tools:node="remove" />
+        <activity
+            android:name="com.dropbox.core.android.AuthActivity"
+            tools:node="remove" />
+        <activity
+            android:name="com.microsoft.identity.client.BrowserTabActivity"
+            tools:node="remove" />
+
+        <!-- OCR and translation: ENABLE_TRANSLATION=false, and foss mounts ocrDisabled. -->
+        <activity
+            android:name=".ui.cameraocr.CameraOcrTranslateActivity"
+            tools:node="remove" />
+        <receiver
+            android:name=".widget.CameraOcrTranslateWidgetProvider"
+            tools:node="remove" />
+        <receiver
+            android:name=".widget.CaptureOcrPanelWidgetProvider"
+            tools:node="remove" />
+
+        <!-- Streams: SUPPORT_STREAMS=false (S1916), same removal lite and photos carry. -->
+        <receiver
+            android:name=".widget.StreamLaunchWidgetProvider"
+            tools:node="remove" />
+        <activity
+            android:name=".widget.StreamLaunchWidgetConfigActivity"
+            tools:node="remove" />
+
+        <!-- Voice notes: SUPPORT_MIC_RECORDING=false (S0349). RECORD_AUDIO itself stays declared -
+             camera video still records with audio, which is why DECLARES_MIC_RECORDING is true. -->
+        <receiver
+            android:name=".widget.QuickAudioRecorderWidgetProvider"
+            tools:node="remove" />
+        <activity
+            android:name=".widget.QuickAudioRecorderActivity"
+            tools:node="remove" />
+        <service
+            android:name=".widget.QuickAudioRecorderService"
+            tools:node="remove" />
+
+    </application>
+
+</manifest>

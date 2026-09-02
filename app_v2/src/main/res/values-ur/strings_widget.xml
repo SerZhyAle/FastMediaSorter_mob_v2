@@ -81,4 +81,6 @@
     <string name="widget_network_monitor_direct_connection">براہ راست کنکشن</string>
     <string name="launcher_gadget_network_indicator">نیٹ ورک اشارہ</string>
     <string name="launcher_gadget_network_indicator_pick_title">کون سا اشارہ دکھانا ہے</string>
+    <string name="widget_front_flashlight_label">سامنے والی ٹارچ</string>
+    <string name="widget_front_flashlight_description">ایک نل میں اسکرین کو چراغ میں بدل دیتا ہے۔</string>
 </resources>

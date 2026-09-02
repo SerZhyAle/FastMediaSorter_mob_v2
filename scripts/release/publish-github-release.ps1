@@ -14,8 +14,9 @@
 
     The script:
       - Reads versionName from app_v2/build.gradle.kts
-      - Discovers each spectrum release APK (standard, vr, lite, photos, legacy,
-        noLegal, wear) via output-metadata.json (fall back to newest-by-LastWriteTime)
+      - Resolves each spectrum release APK (standard, vr, lite, photos, legacy,
+        noLegal, wear) through scripts/utils/find-build-artifact.ps1, which refuses
+        to guess rather than picking the newest file (S1972)
       - Stages each in a temp dir as FastMediaSorter-<flavor>-<version>.apk
         (versioned names - IzzyOnDroid globs the pattern)
       - Verifies signing fingerprint matches the single pinned value (shared key)
@@ -98,7 +99,10 @@ $spectrum = [ordered]@{
     photos   = "app_v2/build/outputs/apk/photos/release"
     legacy   = "app_v2/build/outputs/apk/legacy/release"
     noLegal  = "app_v2/build/outputs/apk/noLegal/release"
-    wear     = "wear/build/outputs/apk/release"
+    # S2090: the watch has its own flavor dimension now. The published asset is the store variant, the
+    # same one the Play track gets - the sideload watch variant is built on request and is not part of
+    # the spectrum a release publishes (ADR-6).
+    wear     = "wear/build/outputs/apk/standard/release"
 }
 
 # ----------------------------------------------------------------------
@@ -160,36 +164,12 @@ $version = $versionMatch.Groups[1].Value
 Write-Host "Version: $version" -ForegroundColor Green
 
 # ----------------------------------------------------------------------
-# APK discovery (prefer output-metadata.json, fall back to newest .apk)
+# APK discovery - delegated to the shared resolver (S1972). The two throws
+# below stay here rather than moving into it, because the resolver answers
+# "nothing was built" with $null for callers that have their own guard, and
+# this one's guard is a message naming the builder to run.
 # ----------------------------------------------------------------------
-function Find-Apk {
-    param(
-        [Parameter(Mandatory)] [string] $Dir,
-        [Parameter(Mandatory)] [string] $Flavor
-    )
-    if (-not (Test-Path -LiteralPath $Dir)) {
-        throw "$Flavor APK directory missing: $Dir. Run the appropriate builder first (a.ps1 r / a.ps1 vr)."
-    }
-    $metadataPath = Join-Path $Dir "output-metadata.json"
-    if (Test-Path -LiteralPath $metadataPath) {
-        try {
-            $meta = Get-Content -LiteralPath $metadataPath -Raw | ConvertFrom-Json
-            if ($meta.elements -and $meta.elements.Count -gt 0 -and $meta.elements[0].outputFile) {
-                $candidate = Join-Path $Dir $meta.elements[0].outputFile
-                if (Test-Path -LiteralPath $candidate) { return Get-Item -LiteralPath $candidate }
-            }
-        } catch {
-            Write-Host "Warning: failed to parse $metadataPath; falling back to newest .apk" -ForegroundColor Yellow
-        }
-    }
-    $newest = Get-ChildItem -LiteralPath $Dir -Filter *.apk -ErrorAction SilentlyContinue |
-        Sort-Object LastWriteTime -Descending |
-        Select-Object -First 1
-    if (-not $newest) {
-        throw "$Flavor APK not found in $Dir. Run the appropriate builder first."
-    }
-    return $newest
-}
+. "$PSScriptRoot/../utils/find-build-artifact.ps1"
 
 # ----------------------------------------------------------------------
 # Discover every spectrum APK, apply the staleness guard, and stage each
@@ -209,7 +189,16 @@ $null = New-Item -ItemType Directory -Path $stagingDir -Force
 $stagedAssets = @()
 foreach ($flavor in $spectrum.Keys) {
     $dir = Join-Path $repoRoot $spectrum[$flavor]
-    $apk = Find-Apk -Dir $dir -Flavor $flavor
+    if (-not (Test-Path -LiteralPath $dir)) {
+        throw "$flavor APK directory missing: $dir. Run the appropriate builder first (a.ps1 r / a.ps1 vr)."
+    }
+    # No -Abi: the release path stays universal until strategic §6.1 is answered, and asking for
+    # nothing is what makes a split release directory throw here rather than publish one slice under
+    # the architecture-free asset name IzzyOnDroid globs (S0215).
+    $apk = Find-BuildArtifact -Dir $dir
+    if (-not $apk) {
+        throw "$flavor APK not found in $dir. Run the appropriate builder first."
+    }
 
     # Staleness guard: every APK must be newer than build.gradle.kts minus 24h
     # (i.e. built within ~24h of the version bump that put the current

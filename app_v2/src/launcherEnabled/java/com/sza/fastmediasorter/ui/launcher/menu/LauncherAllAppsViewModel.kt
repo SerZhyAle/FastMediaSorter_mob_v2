@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.launcher.menu
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.launcher.InstalledApp
 import com.sza.fastmediasorter.domain.model.launcher.InstalledAppSortOrder
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -43,6 +44,15 @@ class LauncherAllAppsViewModel @Inject constructor(
         .map { it.allAppsSortDescending }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS), false)
 
+    /**
+     * S2304: the panel reads its four swipe slots from here rather than opening a second settings flow.
+     *
+     * Eagerly, unlike the flows above: this one is read synchronously the moment a swipe is recognized
+     * and never collected, so a lazily started share would answer every gesture with the defaults.
+     */
+    val appSettings: StateFlow<AppSettings> = settings
+        .stateIn(viewModelScope, SharingStarted.Eagerly, AppSettings())
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val apps: StateFlow<List<InstalledApp>> =
         combine(_query, order, descending) { query, order, descending -> Triple(query, order, descending) }
@@ -55,13 +65,15 @@ class LauncherAllAppsViewModel @Inject constructor(
 
     fun setOrder(value: InstalledAppSortOrder) {
         viewModelScope.launch {
-            settingsRepository.updateSettings { it.copy(allAppsSortOrder = value.name) }
+            settingsRepository.updateSettings { it.withLauncher { copy(allAppsSortOrder = value.name) } }
         }
     }
 
     fun toggleDirection() {
         viewModelScope.launch {
-            settingsRepository.updateSettings { it.copy(allAppsSortDescending = !it.allAppsSortDescending) }
+            settingsRepository.updateSettings { s ->
+                s.withLauncher { copy(allAppsSortDescending = !allAppsSortDescending) }
+            }
         }
     }
 

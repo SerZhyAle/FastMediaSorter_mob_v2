@@ -61,7 +61,6 @@
     <string name="epub_table_of_contents">Table des matières</string>
     <string name="epub_text_empty_tts">Aucun texte trouvé dans le chapitre</string>
     <string name="text_content_hint">Contenu textuel</string>
-    <string name="text_copied">Texte copié dans le presse-papiers</string>
     <string name="text_editing_large_file">La modification n\'est pas possible pour les fichiers comportant plusieurs pages.</string>
     <string name="text_editor_action_cancel">Annuler</string>
     <string name="text_editor_action_save">Sauvegarder</string>

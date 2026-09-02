@@ -48,7 +48,9 @@ class FileInfoLaunchManager(
                 else -> {
                     val file = File(mediaFile.path)
                     if (!file.exists()) {
-                        Timber.w("FileInfoLaunchManager.openInExternalPlayer: file does not exist: ${file.absolutePath}")
+                        Timber.w(
+                            "FileInfoLaunchManager.openInExternalPlayer: file does not exist: ${file.absolutePath}"
+                        )
                         Toast.makeText(
                             context,
                             context.getString(R.string.file_not_found),
@@ -262,7 +264,7 @@ class FileInfoLaunchManager(
             displayName = mediaFile.name,
             mediaFile = mediaFile,
         )
-        return handler.send(activity, content)
+        return handler.open(activity, content)
     }
 
     private fun mimeTypeForMediaFile(displayName: String): String {

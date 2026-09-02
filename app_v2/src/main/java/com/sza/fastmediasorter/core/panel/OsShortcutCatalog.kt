@@ -11,8 +11,8 @@ import com.sza.fastmediasorter.domain.radio.RadioKind
 import com.sza.fastmediasorter.util.resolveActivityCompat
 
 /**
- * Curated catalog of common OS system targets offered in the app-launch panel (strategic S0663 §6.3:
- * the fixed set of nine). [available] returns only the targets whose intent actually resolves on the
+ * Curated catalog of common OS system targets offered in the app-launch panel.
+ * [available] returns only the targets whose intent actually resolves on the
  * device, so a tile never leads nowhere. Resolution touches the PackageManager - call [available]
  * off the main thread.
  */
@@ -54,6 +54,7 @@ object OsShortcutCatalog {
     const val KEY_DATA_USAGE = "data_usage"
     const val KEY_NFC = "nfc"
     const val KEY_VPN = "vpn"
+    const val KEY_LOCATION = "location"
 
     // Settings.ACTION_* are compile-time String constants; the value is inlined so it exists on every
     // API level and [available] can probe it via resolveActivity. InlinedApi (auto-rotate API 31, data
@@ -131,6 +132,9 @@ object OsShortcutCatalog {
         },
         Target(KEY_VPN, R.string.app_launch_panel_os_vpn, R.drawable.ic_lock) {
             Intent(Settings.ACTION_VPN_SETTINGS)
+        },
+        Target(KEY_LOCATION, R.string.app_launch_panel_os_location, R.drawable.ic_location) {
+            Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
         },
     )
 

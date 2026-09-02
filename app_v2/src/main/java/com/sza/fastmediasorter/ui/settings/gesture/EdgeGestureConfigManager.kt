@@ -4,11 +4,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
 import android.provider.Settings
-import android.text.InputType
 import android.view.View
-import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.appcompat.widget.TooltipCompat
@@ -29,6 +25,9 @@ import com.sza.fastmediasorter.ui.applaunchpanel.edit.EditAppLaunchPanelActivity
 import com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.ui.settings.helpers.GestureTargetKind
+import com.sza.fastmediasorter.ui.settings.helpers.GestureTargetResetControl
+import com.sza.fastmediasorter.ui.settings.helpers.GestureUrlTargetDialog
 import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionPickerManager
 import com.sza.fastmediasorter.util.showBoundTo
 import timber.log.Timber
@@ -215,36 +214,20 @@ class EdgeGestureConfigManager(
         direction: ScreenshotGestureDirection,
     ) {
         row.setOnRowClickListener { openActionPicker(zone, direction) }
-        val slotRow = appRow(zone, direction)
-        slotRow.setOnRowClickListener { appSlotHost.showAppPicker(zone, direction) }
+        val slotRow = targetRow(zone, direction)
+        slotRow.setOnRowClickListener { openTargetPicker(zone, direction) }
         slotRow.setTrailingControl(resetControl(zone, direction))
     }
 
-    /**
-     * S1036: the explicit reset is the only path that clears a stored package - changing the direction's
-     * action must not, or switching away and back would silently drop the choice. It writes an empty
-     * payload for this one slot and leaves the action bound to it untouched.
-     */
-    private fun resetControl(zone: ScreenshotGestureZone, direction: ScreenshotGestureDirection): ImageView {
-        val ctx = fragment.requireContext()
-        val size = (RESET_ICON_SIZE_DP * ctx.resources.displayMetrics.density).toInt()
-        return ImageView(ctx).apply {
-            layoutParams = ViewGroup.LayoutParams(size, size)
-            setImageResource(R.drawable.ic_clear)
-            val borderless = intArrayOf(android.R.attr.selectableItemBackgroundBorderless)
-            background = ctx.obtainStyledAttributes(borderless).run { getDrawable(0).also { recycle() } }
-            isClickable = true
-            isFocusable = true
-            contentDescription = ctx.getString(R.string.gesture_slot_app_reset)
-            setOnClickListener {
-                // Render from the copy just written: the settings flow has not emitted it yet, so
-                // viewModel.settings.value would still carry the package being cleared.
-                val cleared = applyPayload(viewModel.settings.value, zone, direction, "")
-                viewModel.updateSettings(cleared)
-                renderAppRow(cleared, zone, direction)
-            }
+    // S2256: the same reset control the launcher desktop swipes carry, built once in a shared helper.
+    private fun resetControl(zone: ScreenshotGestureZone, direction: ScreenshotGestureDirection): ImageView =
+        GestureTargetResetControl.create(fragment.requireContext()) {
+            // Render from the copy just written: the settings flow has not emitted it yet, so
+            // viewModel.settings.value would still carry the package being cleared.
+            val cleared = applyPayload(viewModel.settings.value, zone, direction, "")
+            viewModel.updateSettings(cleared)
+            renderTargetRow(cleared, zone, direction)
         }
-    }
 
     private fun openActionPicker(zone: ScreenshotGestureZone, direction: ScreenshotGestureDirection) {
         gestureActionPickerManager.showPicker(
@@ -253,13 +236,10 @@ class EdgeGestureConfigManager(
             viewModel.settings.value.screenshotGestureAction(zone, direction)
         ) { picked ->
             viewModel.updateSettings(applyAction(viewModel.settings.value, zone, direction, picked))
-            // S1038: OPEN_URL needs a target address; prompt for it right after the action is chosen and
-            // store it in the per-slot payload. Cancelling leaves the payload empty (dispatch degrades).
-            if (picked == ScreenshotGestureAction.OPEN_URL) promptUrl(zone, direction)
-            // S1036: OPEN_APP needs a target package, so offer the app picker straight after the action is
-            // chosen, mirroring OPEN_URL above. Cancelling leaves the payload empty and the gesture opens
-            // FastMediaSorter, which is what it did before this action carried a payload at all.
-            if (picked == ScreenshotGestureAction.OPEN_APP) appSlotHost.showAppPicker(zone, direction)
+            // S1036/S1038: an action that carries a target asks for it right after it is chosen; cancelling
+            // leaves the payload empty and the gesture degrades. S2265: the row below is now the way back
+            // to the same chooser, so this call is a convenience rather than the only chance to set one.
+            openTargetPicker(zone, direction, picked)
             // S1038: the brightness actions need WRITE_SETTINGS; request it now so the gesture actually
             // works. Without the grant the action is set but stays inactive (dispatch degrades with a log).
             if (picked == ScreenshotGestureAction.BRIGHTNESS_MAX ||
@@ -267,6 +247,25 @@ class EdgeGestureConfigManager(
             ) {
                 ensureWriteSettingsPermission()
             }
+        }
+    }
+
+    /**
+     * S2265: opens the chooser the assigned action needs - the app picker or the address prompt - and does
+     * nothing for an action that carries no target. Both the target row and the action picker enter here,
+     * so a slot is configured the same way whether it was just assigned or is being corrected later.
+     */
+    private fun openTargetPicker(
+        zone: ScreenshotGestureZone,
+        direction: ScreenshotGestureDirection,
+        action: ScreenshotGestureAction = viewModel.settings.value.screenshotGestureAction(zone, direction),
+    ) {
+        val kind = GestureTargetKind.of(action)
+        Timber.d("S2265: edge target picker %s/%s kind=%s", zone, direction, kind)
+        when (kind) {
+            GestureTargetKind.APP -> appSlotHost.showAppPicker(zone, direction)
+            GestureTargetKind.URL -> promptUrl(zone, direction)
+            null -> Unit
         }
     }
 
@@ -303,28 +302,15 @@ class EdgeGestureConfigManager(
     }
 
     // S1038: per-slot URL entry for the OPEN_URL action, pre-filled with the current payload for editing.
+    // S2256: the same address prompt the launcher desktop swipes open, so one concept keeps one wording.
     private fun promptUrl(zone: ScreenshotGestureZone, direction: ScreenshotGestureDirection) {
-        val ctx = fragment.requireContext()
-        val input = EditText(ctx).apply {
-            setText(viewModel.settings.value.screenshotGesturePayload(zone, direction))
-            setSelection(text.length)
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
-            setHint(R.string.gesture_url_input_hint)
-        }
-        val pad = (URL_DIALOG_PADDING_DP * ctx.resources.displayMetrics.density).toInt()
-        val container = FrameLayout(ctx).apply {
-            setPadding(pad, pad / 2, pad, 0)
-            addView(input)
-        }
-        MaterialAlertDialogBuilder(ctx)
-            .setTitle(R.string.gesture_url_input_title)
-            .setView(container)
-            .setPositiveButton(R.string.ok) { _, _ ->
-                val url = input.text?.toString()?.trim().orEmpty()
+        GestureUrlTargetDialog.show(
+            host = fragment,
+            current = viewModel.settings.value.screenshotGesturePayload(zone, direction),
+            onSave = { url ->
                 viewModel.updateSettings(applyPayload(viewModel.settings.value, zone, direction, url))
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .showBoundTo(fragment)
+            },
+        )
     }
 
     private fun renderZone(settings: AppSettings, zone: ScreenshotGestureZone) {
@@ -340,54 +326,67 @@ class EdgeGestureConfigManager(
         views.upRow.setValue(label(ScreenshotGestureDirection.UP))
         views.rightRow.setValue(label(ScreenshotGestureDirection.RIGHT))
         views.downRow.setValue(label(ScreenshotGestureDirection.DOWN))
-        ScreenshotGestureDirection.entries.forEach { direction -> renderAppRow(settings, zone, direction) }
+        ScreenshotGestureDirection.entries.forEach { direction -> renderTargetRow(settings, zone, direction) }
     }
 
     /**
-     * S1036: the app row belongs to one direction and is on screen only while that direction launches an
-     * app. A package that no longer resolves renders as not-chosen, which is what the dispatcher does
-     * with it too - the dialog must not claim an app the gesture can no longer open.
+     * S1036: the target row belongs to one direction and is on screen only while that direction's action
+     * carries a target. A package that no longer resolves renders as not-chosen, which is what the
+     * dispatcher does with it too - the dialog must not claim an app the gesture can no longer open.
+     *
+     * S2265: the address of an open-URL slot renders here too, so it can be re-read, corrected and
+     * cleared; before this it was asked for once and then unreachable.
      */
-    private fun renderAppRow(
+    private fun renderTargetRow(
         settings: AppSettings,
         zone: ScreenshotGestureZone,
         direction: ScreenshotGestureDirection,
     ) {
-        val row = appRow(zone, direction)
-        val launchesApp = settings.screenshotGestureAction(zone, direction) == ScreenshotGestureAction.OPEN_APP
-        row.isVisible = launchesApp
-        if (!launchesApp) return
-        val notChosen = fragment.getString(R.string.gesture_slot_app_none)
-        val packageName = settings.screenshotGesturePayload(zone, direction)
-        row.setValue(notChosen)
-        if (packageName.isEmpty()) return
-        appSlotHost.resolveAppLabel(packageName) { label -> row.setValue(label ?: notChosen) }
+        val row = targetRow(zone, direction)
+        val kind = GestureTargetKind.of(settings.screenshotGestureAction(zone, direction))
+        row.isVisible = kind != null
+        val payload = settings.screenshotGesturePayload(zone, direction)
+        when (kind) {
+            GestureTargetKind.APP -> {
+                val notChosen = fragment.getString(R.string.gesture_slot_app_none)
+                row.setTitle(fragment.getString(R.string.gesture_slot_app_label))
+                row.setValue(notChosen)
+                if (payload.isNotEmpty()) {
+                    appSlotHost.resolveAppLabel(payload) { label -> row.setValue(label ?: notChosen) }
+                }
+            }
+            GestureTargetKind.URL -> {
+                row.setTitle(fragment.getString(R.string.gesture_url_input_title))
+                row.setValue(payload.ifEmpty { fragment.getString(R.string.gesture_slot_url_none) })
+            }
+            null -> Unit
+        }
     }
 
-    // Mirrors applyPayload's slot mapping so a direction and its app row are read the same way.
-    private fun appRow(
+    // Mirrors applyPayload's slot mapping so a direction and its target row are read the same way.
+    private fun targetRow(
         zone: ScreenshotGestureZone,
         direction: ScreenshotGestureDirection,
     ): SettingsSelectionRow = when (zone) {
         ScreenshotGestureZone.LEFT_TOP -> when (direction) {
-            ScreenshotGestureDirection.UP -> binding.rowGestureLeftTopUpApp
-            ScreenshotGestureDirection.RIGHT -> binding.rowGestureLeftTopRightApp
-            ScreenshotGestureDirection.DOWN -> binding.rowGestureLeftTopDownApp
+            ScreenshotGestureDirection.UP -> binding.rowGestureLeftTopUpTarget
+            ScreenshotGestureDirection.RIGHT -> binding.rowGestureLeftTopRightTarget
+            ScreenshotGestureDirection.DOWN -> binding.rowGestureLeftTopDownTarget
         }
         ScreenshotGestureZone.LEFT_BOTTOM -> when (direction) {
-            ScreenshotGestureDirection.UP -> binding.rowGestureLeftBottomUpApp
-            ScreenshotGestureDirection.RIGHT -> binding.rowGestureLeftBottomRightApp
-            ScreenshotGestureDirection.DOWN -> binding.rowGestureLeftBottomDownApp
+            ScreenshotGestureDirection.UP -> binding.rowGestureLeftBottomUpTarget
+            ScreenshotGestureDirection.RIGHT -> binding.rowGestureLeftBottomRightTarget
+            ScreenshotGestureDirection.DOWN -> binding.rowGestureLeftBottomDownTarget
         }
         ScreenshotGestureZone.RIGHT_TOP -> when (direction) {
-            ScreenshotGestureDirection.UP -> binding.rowGestureRightTopUpApp
-            ScreenshotGestureDirection.RIGHT -> binding.rowGestureRightTopRightApp
-            ScreenshotGestureDirection.DOWN -> binding.rowGestureRightTopDownApp
+            ScreenshotGestureDirection.UP -> binding.rowGestureRightTopUpTarget
+            ScreenshotGestureDirection.RIGHT -> binding.rowGestureRightTopRightTarget
+            ScreenshotGestureDirection.DOWN -> binding.rowGestureRightTopDownTarget
         }
         ScreenshotGestureZone.RIGHT_BOTTOM -> when (direction) {
-            ScreenshotGestureDirection.UP -> binding.rowGestureRightBottomUpApp
-            ScreenshotGestureDirection.RIGHT -> binding.rowGestureRightBottomRightApp
-            ScreenshotGestureDirection.DOWN -> binding.rowGestureRightBottomDownApp
+            ScreenshotGestureDirection.UP -> binding.rowGestureRightBottomUpTarget
+            ScreenshotGestureDirection.RIGHT -> binding.rowGestureRightBottomRightTarget
+            ScreenshotGestureDirection.DOWN -> binding.rowGestureRightBottomDownTarget
         }
     }
 
@@ -570,10 +569,5 @@ class EdgeGestureConfigManager(
             ScreenshotGestureDirection.DOWN ->
                 s.copy(screenshotGesture = s.screenshotGesture.copy(payloadRightBottomDown = payload))
         }
-    }
-
-    private companion object {
-        private const val URL_DIALOG_PADDING_DP = 24
-        private const val RESET_ICON_SIZE_DP = 36
     }
 }

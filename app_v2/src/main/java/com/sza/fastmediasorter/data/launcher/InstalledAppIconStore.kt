@@ -50,11 +50,14 @@ class InstalledAppIconStore @Inject constructor(
             }
             val size = context.resources.getDimensionPixelSize(R.dimen.installed_app_icon_cache_size)
             val bitmap = rasterise(icon, size)
-            FileOutputStream(target).use { stream ->
-                bitmap.compress(Bitmap.CompressFormat.PNG, PNG_QUALITY, stream)
+            try {
+                FileOutputStream(target).use { stream ->
+                    bitmap.compress(Bitmap.CompressFormat.PNG, PNG_QUALITY, stream)
+                }
+                target.name
+            } finally {
+                bitmap.recycle()
             }
-            bitmap.recycle()
-            target.name
         } catch (e: IOException) {
             Timber.i(e, "Icon cache write failed for %s", packageName)
             null

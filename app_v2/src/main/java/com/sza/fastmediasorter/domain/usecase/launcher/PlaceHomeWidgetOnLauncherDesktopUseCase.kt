@@ -16,6 +16,7 @@ import javax.inject.Inject
  */
 class PlaceHomeWidgetOnLauncherDesktopUseCase @Inject constructor(
     private val desktopRepository: LauncherDesktopRepository,
+    private val revealLauncherSection: RevealLauncherSectionUseCase,
 ) {
 
     /**
@@ -51,6 +52,12 @@ class PlaceHomeWidgetOnLauncherDesktopUseCase @Inject constructor(
             labelOverride = null,
             addedAt = addedAt,
         )
-        return desktopRepository.addCellInFirstFreeSlot(cell, columns)
+        val placedId = desktopRepository.addCellInFirstFreeSlot(cell, columns)
+        if (placedId != null) {
+            // "the cell landed" and "a section had to be opened" are separate facts
+            // and the caller reports only the first.
+            revealLauncherSection(placedId, orientation)
+        }
+        return placedId
     }
 }

@@ -1,7 +1,7 @@
 appId: com.sza.fastmediasorter.debug
 ---
 # Test: Open and control video playback (S0551 Phase 04).
-# Precondition: OWNER_TRIGGER import registered "Загрузки" LOCAL resource and seeded
+# Precondition: clean preparation exposes the standard "Загрузки" LOCAL resource and seeds
 #   video_sample.mp4 under /storage/emulated/0/Download.
 # Oracle: playerView renders, the play/pause control (btnPlaybackControl) is available, and
 #   no crash prompt appears.

@@ -23,14 +23,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AspectRatio
 import androidx.compose.material.icons.filled.CropFree
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -55,21 +60,26 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
-import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
-import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.StreamChannelReason
+import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
-import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandButton
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerSeekActions
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
 import timber.log.Timber
+
+/** Wear's minimum comfortable touch target - the same 48 dp the transport buttons use. */
+/** The play/pause control is the one command drawn larger than the shared default. */
+private val PLAY_PAUSE_TARGET_SIZE = 56.dp
+private val SECONDARY_ROW_SPACING = 4.dp
 
 private val PROGRESS_BAR_HEIGHT = 4.dp
 private val PROGRESS_BAR_TOUCH_HEIGHT = 24.dp
@@ -81,10 +91,12 @@ private data class VideoPlayerActions(
     val onPlayPause: () -> Unit,
     val onSkipNext: () -> Unit,
     val onSkipPrevious: () -> Unit,
-    val onSeekTo: (Long) -> Unit,
+    val seek: PlayerSeekActions,
     val onRotaryStep: (Int) -> Unit,
     val onToggleScaleMode: () -> Unit,
-    val onPanDelta: (Float, Float) -> Unit
+    val onToggleShuffle: () -> Unit,
+    val onPanDelta: (Float, Float) -> Unit,
+    val onToggleFavorite: () -> Unit
 )
 
 /**
@@ -96,15 +108,11 @@ fun VideoPlayerScreen(
     viewModel: VideoPlayerViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    Timber.d("S1870: video scale mode crop pan rendered")
-
     // S0902: pause playback when the host activity stops (screen off / app backgrounded) -
     // onDispose only fires on navigation away, so without this the player kept running.
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
         viewModel.onHostStopped()
     }
-
-    Timber.d("S1867: VideoPlayerScreen linear progress composed, isPlaying: ${uiState.isPlaying}")
 
     KeepScreenOnEffect(enabled = uiState.isPlaying)
 
@@ -130,18 +138,20 @@ fun VideoPlayerScreen(
                         onPlayPause = viewModel::togglePlayPause,
                         onSkipNext = viewModel::skipToNext,
                         onSkipPrevious = viewModel::skipToPrevious,
-                        onSeekTo = viewModel::seekTo,
+                        seek = PlayerSeekActions(
+                            onSeekTo = viewModel::seekTo,
+                            onSeekBackward = viewModel::seekBackward,
+                            onSeekForward = viewModel::seekForward
+                        ),
                         onRotaryStep = { step ->
-                            // S1683: same binding as audio, per strategic 6.2 - the bezel moves inside the
-                            // file, and the file is changed by the buttons only.
-                            if (step > 0) {
-                                viewModel.seekForward()
-                            } else {
-                                viewModel.seekBackward()
-                            }
+                            // S2140: the bezel now matches audio's volume binding (S1701) instead of
+                            // seeking - seeking moved to a long press on the previous/next buttons.
+                            viewModel.onVolumeStep(up = step > 0)
                         },
                         onToggleScaleMode = viewModel::toggleScaleMode,
-                        onPanDelta = viewModel::onPanDelta
+                        onToggleShuffle = viewModel::toggleShuffle,
+                        onPanDelta = viewModel::onPanDelta,
+                        onToggleFavorite = viewModel::toggleFavorite
                     )
                 )
             }
@@ -164,17 +174,17 @@ private fun BatteryWarningDialog(
             text = "⚠️",
             style = MaterialTheme.typography.display2
         )
-        
+
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         Text(
             text = stringResource(R.string.battery_warning),
             style = MaterialTheme.typography.body1,
             textAlign = TextAlign.Center
         )
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         Chip(
             onClick = onDismiss,
             label = { Text(stringResource(R.string.wear_video_continue)) },
@@ -274,7 +284,7 @@ private fun VideoPlayerContent(
                     .padding(wearScreenInsets())
             )
         }
-        
+
         // Loading indicator
         if (uiState.isLoading) {
             CircularProgressIndicator(
@@ -283,25 +293,35 @@ private fun VideoPlayerContent(
                     .align(Alignment.Center)
             )
         }
-        
-        // Controls overlay
-        AnimatedVisibility(
-            visible = uiState.showControls,
-            enter = fadeIn(),
-            exit = fadeOut(),
-            modifier = Modifier.align(Alignment.Center)
-        ) {
-            VideoControls(
-                uiState = uiState,
-                onPlayPause = actions.onPlayPause,
-                onSkipNext = actions.onSkipNext,
-                onSkipPrevious = actions.onSkipPrevious,
-                onSeekTo = actions.onSeekTo,
-                onToggleScaleMode = actions.onToggleScaleMode
-            )
+
+        // Controls overlay.
+        // S2250: the setting removes the fade, not the panel - the plain branch reaches the same
+        // visible state in one frame, and hiding it still hides VideoControls with it.
+        LaunchedEffect(uiState.animationsDisabled) {
+            if (uiState.animationsDisabled) Timber.d("S2250: Wear video controls transition skipped")
+        }
+        when {
+            !uiState.animationsDisabled -> AnimatedVisibility(
+                visible = uiState.showControls,
+                enter = fadeIn(),
+                exit = fadeOut(),
+                modifier = Modifier.align(Alignment.Center)
+            ) {
+                VideoControls(
+                    uiState = uiState,
+                    actions = actions
+                )
+            }
+
+            uiState.showControls -> Box(modifier = Modifier.align(Alignment.Center)) {
+                VideoControls(
+                    uiState = uiState,
+                    actions = actions
+                )
+            }
         }
     }
-    
+
     // Cleanup
     DisposableEffect(Unit) {
         onDispose {
@@ -318,98 +338,114 @@ private fun PlayPauseButton(
     description: String,
     onClick: () -> Unit
 ) {
-    RectangularButton(
+    PlayerCommandButton(
         onClick = onClick,
-        modifier = Modifier.size(56.dp),
-        colors = ButtonDefaults.primaryButtonColors()
-    ) {
-        Icon(
-            imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-            contentDescription = description,
-            modifier = Modifier.size(32.dp)
-        )
-    }
+        icon = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+        contentDescription = description,
+        modifier = Modifier.size(PLAY_PAUSE_TARGET_SIZE),
+        checked = true
+    )
 }
 
 @Composable
 private fun VideoActionButtons(
-    hasSet: Boolean,
     isPlaying: Boolean,
     scaleMode: VideoScaleMode,
-    onPlayPause: () -> Unit,
-    onSkipNext: () -> Unit,
-    onSkipPrevious: () -> Unit,
-    onToggleScaleMode: () -> Unit
+    isShuffleEnabled: Boolean,
+    actions: VideoPlayerActions
 ) {
     val previousDesc = stringResource(R.string.wear_previous_file)
     val nextDesc = stringResource(R.string.wear_next_file)
     val playPauseDesc = stringResource(if (isPlaying) R.string.pause else R.string.play)
+    val shuffleDesc = stringResource(
+        if (isShuffleEnabled) R.string.wear_shuffle_on else R.string.wear_shuffle_off
+    )
+    // S2140: seeking moved off the bezel onto a long press here, and the labels are what TalkBack reads
+    // in place of "double tap and hold".
+    val seekBackwardDesc = stringResource(R.string.wear_seek_backward)
+    val seekForwardDesc = stringResource(R.string.wear_seek_forward)
 
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (hasSet) {
-            RectangularButton(
-                onClick = onSkipPrevious,
-                modifier = Modifier.size(48.dp),
-                colors = ButtonDefaults.secondaryButtonColors()
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.SkipPrevious,
-                    contentDescription = previousDesc,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-        }
+        // S2140: drawn whether or not a set exists, unlike before. The bezel used to carry seeking and
+        // did not care about the set, so hiding these two with the set cost nothing; now they carry it,
+        // and hiding them would take seeking away from exactly the single file and the stream that the
+        // bezel used to serve. The tap is the part that stays conditional - skipToPrevious/skipToNext
+        // already return early on a set of one, so a tap without a set does nothing rather than wrong.
+        PlayerCommandButton(
+            onClick = actions.onSkipPrevious,
+            icon = Icons.Filled.SkipPrevious,
+            contentDescription = previousDesc,
+            onLongClick = actions.seek.onSeekBackward,
+            onLongClickLabel = seekBackwardDesc
+        )
 
         PlayPauseButton(
             isPlaying = isPlaying,
             description = playPauseDesc,
-            onClick = onPlayPause
+            onClick = actions.onPlayPause
         )
 
-        if (hasSet) {
-            RectangularButton(
-                onClick = onSkipNext,
-                modifier = Modifier.size(48.dp),
-                colors = ButtonDefaults.secondaryButtonColors()
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.SkipNext,
-                    contentDescription = nextDesc,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-        }
+        PlayerCommandButton(
+            onClick = actions.onSkipNext,
+            icon = Icons.Filled.SkipNext,
+            contentDescription = nextDesc,
+            onLongClick = actions.seek.onSeekForward,
+            onLongClickLabel = seekForwardDesc
+        )
 
-        RectangularButton(
-            onClick = onToggleScaleMode,
-            modifier = Modifier.size(48.dp),
-            colors = ButtonDefaults.secondaryButtonColors()
-        ) {
-            val scaleIcon = if (scaleMode == VideoScaleMode.CROP_PAN) {
-                Icons.Filled.AspectRatio
-            } else {
-                Icons.Filled.CropFree
-            }
-            Icon(
-                imageVector = scaleIcon,
-                contentDescription = stringResource(R.string.wear_video_scale_mode),
-                modifier = Modifier.size(24.dp)
-            )
+        val scaleIcon = if (scaleMode == VideoScaleMode.CROP_PAN) {
+            Icons.Filled.AspectRatio
+        } else {
+            Icons.Filled.CropFree
         }
+        PlayerCommandButton(
+            onClick = actions.onToggleScaleMode,
+            icon = scaleIcon,
+            contentDescription = stringResource(R.string.wear_scale_mode),
+            checked = scaleMode == VideoScaleMode.CROP_PAN
+        )
+
+        PlayerCommandButton(
+            onClick = actions.onToggleShuffle,
+            // Shape as well as tint - the accessibility constraint asks for two signals.
+            icon = if (isShuffleEnabled) Icons.Filled.Shuffle else Icons.AutoMirrored.Filled.ArrowForward,
+            contentDescription = shuffleDesc,
+            checked = isShuffleEnabled
+        )
     }
+}
+
+/**
+ * S1954: the mark lives on its own row rather than beside the transport buttons, because that row is
+ * already four controls wide on a round screen. The audio player made the same split for the same
+ * reason (S1701), so the star sits in the same place in both players.
+ *
+ * The filled and outlined hearts differ in shape, not only in colour, so the state survives a screen
+ * that renders the highlight faintly.
+ */
+@Composable
+private fun FavoriteButton(
+    isFavorite: Boolean,
+    onToggleFavorite: () -> Unit
+) {
+    val description = stringResource(
+        if (isFavorite) R.string.wear_player_favorite_remove else R.string.wear_player_favorite_add
+    )
+    PlayerCommandButton(
+        onClick = onToggleFavorite,
+        icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+        contentDescription = description,
+        checked = isFavorite
+    )
 }
 
 @Composable
 private fun VideoControls(
     uiState: VideoPlayerUiState,
-    onPlayPause: () -> Unit,
-    onSkipNext: () -> Unit,
-    onSkipPrevious: () -> Unit,
-    onSeekTo: (Long) -> Unit,
-    onToggleScaleMode: () -> Unit
+    actions: VideoPlayerActions
 ) {
     Column(
         modifier = Modifier
@@ -421,24 +457,47 @@ private fun VideoControls(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Bottom
     ) {
+        // S2140: shown only while the bezel is being turned and for a moment after, same readout shape
+        // and the same string audio already uses (strategic 3.2 - one key, not a duplicate per screen).
+        // It needs no visibility rule of its own: this whole column is already inside whichever
+        // branch renders the panel, so hiding the panel hides this with it.
+        if (uiState.isVolumeVisible) {
+            val readout = stringResource(
+                R.string.wear_audio_volume_level,
+                uiState.volumeLevel,
+                uiState.volumeMax,
+            )
+            Text(
+                text = readout,
+                style = MaterialTheme.typography.caption1,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics { contentDescription = readout },
+            )
+        }
         PlaybackTimeRow(
             currentPosition = uiState.currentPositionFormatted,
             duration = uiState.durationFormatted,
             progress = uiState.progress,
             durationMs = uiState.durationMs,
-            onSeekTo = onSeekTo
+            onSeekTo = actions.seek.onSeekTo
         )
 
         Spacer(modifier = Modifier.height(4.dp))
 
         VideoActionButtons(
-            hasSet = uiState.hasSet,
             isPlaying = uiState.isPlaying,
             scaleMode = uiState.scaleMode,
-            onPlayPause = onPlayPause,
-            onSkipNext = onSkipNext,
-            onSkipPrevious = onSkipPrevious,
-            onToggleScaleMode = onToggleScaleMode
+            isShuffleEnabled = uiState.isShuffleEnabled,
+            actions = actions
+        )
+
+        Spacer(modifier = Modifier.height(SECONDARY_ROW_SPACING))
+
+        FavoriteButton(
+            isFavorite = uiState.isFavorite,
+            onToggleFavorite = actions.onToggleFavorite
         )
 
         if (uiState.hasSet) {

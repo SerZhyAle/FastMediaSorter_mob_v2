@@ -29,6 +29,7 @@ class PlaylistGadget @Inject constructor(
     override val defaultSpanH: Int = 2
     override val labelRes: Int = R.string.launcher_gadget_playlist
     override val iconRes: Int = R.drawable.ic_playlist
+    override val iconTintable: Boolean = true
     override val requiresResourceParam: Boolean = true
 
     override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View =

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1677: launcher icon for the watch face package - the round dial with two wave crests across
+     its lower half, which is the composition the face itself draws. Wear OS quality rules ask a
+     watch face icon to be round and free of extraneous graphics, so there is no badge and no text. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <path
+        android:fillColor="#FF05070C"
+        android:pathData="M24,2a22,22 0 1,0 0.01,0z" />
+
+    <path
+        android:strokeColor="#FF0B82EB"
+        android:strokeWidth="2.2"
+        android:fillColor="@android:color/transparent"
+        android:strokeLineCap="round"
+        android:pathData="M6,31 Q13,24 20,31 T34,31 T46,29" />
+
+    <path
+        android:strokeColor="#FF98CFF1"
+        android:strokeWidth="1.8"
+        android:fillColor="@android:color/transparent"
+        android:strokeLineCap="round"
+        android:pathData="M4,38 Q12,31 20,38 T35,37" />
+
+    <path
+        android:fillColor="#FFC4E3F7"
+        android:pathData="M16,16m-1.6,0a1.6,1.6 0 1,0 3.2,0a1.6,1.6 0 1,0 -3.2,0z" />
+    <path
+        android:fillColor="#FF98CFF1"
+        android:pathData="M31,13m-1.1,0a1.1,1.1 0 1,0 2.2,0a1.1,1.1 0 1,0 -2.2,0z" />
+    <path
+        android:fillColor="#FF6DB4F3"
+        android:pathData="M25,21m-0.9,0a0.9,0.9 0 1,0 1.8,0a0.9,0.9 0 1,0 -1.8,0z" />
+
+</vector>

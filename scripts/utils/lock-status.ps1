@@ -1,6 +1,7 @@
 <#
 .SYNOPSIS
-    Fast, read-only check of temp/BUILD.LOCK or temp/CODE.LOCK - existence, age, holder.
+    Fast, read-only check of one coordination domain - existence, age, holder. A bare Build or
+    Code reports every domain of that type, one section each, every line naming its own domain.
 
 .DESCRIPTION
     Never mutates the lock file (staleness is only ever reclaimed inside Enter-AgentLock, at
@@ -29,12 +30,12 @@
                1 = held, ONLY under -StrictExit.
 
 .EXAMPLE
-    pwsh -NoProfile -File scripts/utils/lock-status.ps1 -Name Build
+    pwsh -NoProfile -File scripts/utils/lock-status.ps1 -Name Build.Wear
     pwsh -NoProfile -File scripts/utils/lock-status.ps1 -Name Code -Json
     pwsh -NoProfile -File scripts/utils/lock-status.ps1 -Name Build -Wait -WaitTimeoutSeconds 300
 #>
 param(
-    [Parameter(Mandatory)][ValidateSet('Build', 'Code')][string]$Name,
+    [Parameter(Mandatory)][string]$Name,
     [switch]$Json,
     [switch]$StrictExit,
     # S1432: also report the queue behind the lock - who is waiting and in what order.
@@ -46,6 +47,41 @@ param(
 
 $ErrorActionPreference = "Stop"
 . "$PSScriptRoot\agent-lock.ps1"
+
+# S2109: a bare Build or Code reports one section per domain of its set. Every line names the
+# domain it belongs to, because a verdict about one domain read as a verdict about its neighbour
+# is exactly the mistake already made twice on the two modules' fast checks.
+try {
+    $domains = @(Resolve-AgentLockDomains -Name $Name)
+}
+catch {
+    Write-Error "lock-status: $($_.Exception.Message)" -ErrorAction Continue
+    exit 2
+}
+
+if ($domains.Count -gt 1) {
+    $anyHeld = $false
+    $sections = @()
+    foreach ($domain in $domains) {
+        $argumentList = @('-NoProfile', '-File', $PSCommandPath, '-Name', $domain)
+        if ($Json) { $argumentList += '-Json' }
+        if ($Queue) { $argumentList += '-Queue' }
+        $output = & pwsh @argumentList
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        if ($Json) { $sections += ($output | ConvertFrom-Json) }
+        else { $output | ForEach-Object { Write-Host $_ } }
+        if ("$output" -match 'HELD') { $anyHeld = $true }
+    }
+    if ($Json) {
+        [pscustomobject]@{ name = $Name; domains = $domains; sections = $sections } |
+            ConvertTo-Json -Compress -Depth 6
+    }
+    if ($anyHeld -and $StrictExit) {
+        Write-Host "$Name : at least one domain is held - exiting 1 as requested by -StrictExit." -ForegroundColor Red
+        exit 1
+    }
+    exit 0
+}
 
 try {
     $status = Get-AgentLockStatus -Name $Name
@@ -118,7 +154,7 @@ else {
         Write-Host "$Name.LOCK: $label" -ForegroundColor $color
         Write-Host "  path:       $($status.Path)"
         Write-Host "  pid:        $($status.Pid)"
-        if ($Name -eq 'Build') {
+        if ($Name -like 'Build*') {
             Write-Host "  processAlive: $($status.ProcessAlive)"
         }
         Write-Host "  age:        $([int]$status.AgeSeconds)s"

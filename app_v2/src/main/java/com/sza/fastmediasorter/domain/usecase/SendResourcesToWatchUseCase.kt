@@ -83,7 +83,10 @@ class SendResourcesToWatchUseCase @Inject constructor(
                     sshPrivateKey = creds.decryptedSshPrivateKey,
                     // S1555: canonicalised here, never on the watch - an unparseable value becomes
                     // null and stays permissive, exactly as the phone's own SFTP path treats it.
-                    hostKeyFingerprint = SshFingerprintNormalizer.canonical(resource.hostKeyFingerprint)
+                    hostKeyFingerprint = SshFingerprintNormalizer.canonical(resource.hostKeyFingerprint),
+                    // S2129: sent verbatim. The watch owns the mirrored icon set and resolves the id
+                    // there, so validating it here would only reject ids a newer watch does carry.
+                    iconId = resource.iconId
                 )
             )
             sent++

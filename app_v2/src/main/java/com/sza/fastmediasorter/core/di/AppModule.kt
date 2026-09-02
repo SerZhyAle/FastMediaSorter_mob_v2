@@ -31,6 +31,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
+import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -39,6 +40,18 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.inject.Qualifier
 import javax.inject.Singleton
+
+internal fun isExpectedHttpFallback(url: HttpUrl): Boolean {
+    val path = url.encodedPath
+    return path.endsWith("/delivery-manifest.json") ||
+        when (url.host) {
+            "itunes.apple.com" -> path == "/search"
+            "api.deezer.com" -> path == "/search"
+            "musicbrainz.org" -> path.startsWith("/ws/2/recording")
+            "coverartarchive.org" -> path.startsWith("/release/")
+            else -> false
+        }
+}
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
@@ -175,8 +188,7 @@ object AppModule {
                 val request = chain.request()
                 val response = chain.proceed(request)
                 if (!response.isSuccessful) {
-                    val isManifest = request.url.toString().endsWith("/delivery-manifest.json")
-                    if (!isManifest) {
+                    if (!isExpectedHttpFallback(request.url)) {
                         Timber.e("HTTP ${response.code} ${request.method} ${request.url}")
                     }
                 }

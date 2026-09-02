@@ -28,15 +28,22 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
+            <!-- S2237: the pair caption is itself the control - tapping it opens the program's
+                 translation settings, where both languages and the engine are configured. -->
             <TextView
                 android:id="@+id/gadgetTranslatorDirection"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:clickable="true"
+                android:contentDescription="@string/launcher_translator_language_settings"
                 android:ellipsize="end"
+                android:focusable="true"
+                android:foreground="@drawable/focus_button_background"
                 android:maxLines="1"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="11sp"
+                tools:ignore="SelectableText"
                 tools:text="auto to ru" />
 
             <ImageButton

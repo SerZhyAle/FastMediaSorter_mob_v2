@@ -3,6 +3,9 @@ package com.sza.fastmediasorter.playback
 import android.content.Context
 import android.net.Uri
 import android.view.ViewGroup
+import com.sza.fastmediasorter.data.delivery.DeliveredNativeLibraryLoader
+import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
+import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.playback.AltPlaybackEngine
@@ -12,6 +15,7 @@ import org.videolan.libvlc.Media
 import org.videolan.libvlc.MediaPlayer
 import org.videolan.libvlc.util.VLCVideoLayout
 import timber.log.Timber
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,6 +34,8 @@ import javax.inject.Singleton
 @Singleton
 class VlcPlaybackEngine @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val nativeLibraryLoader: DeliveredNativeLibraryLoader,
+    private val capabilityRepository: DeliverableCapabilityRepository,
 ) : AltPlaybackEngine {
 
     private var libVlc: LibVLC? = null
@@ -40,8 +46,16 @@ class VlcPlaybackEngine @Inject constructor(
 
     override val engineId: String = "libvlc"
 
-    override fun canPlay(file: MediaFile): Boolean =
+    override val requiredDeliverableSet: DeliverableSet = DeliverableSet.VLC_ENGINE
+
+    override fun couldPlay(file: MediaFile): Boolean =
         file.type == MediaType.VIDEO && file.path.startsWith("/")
+
+    // S1971: the payload is no longer in the APK, so "this engine handles the file" is only half the
+    // answer - without the delivered libraries there is nothing to decode with, and offering the engine
+    // anyway would walk straight into the process kill described on requireLibVlc.
+    override fun canPlay(file: MediaFile): Boolean =
+        couldPlay(file) && capabilityRepository.isInstalledBlocking(DeliverableSet.VLC_ENGINE)
 
     override fun attach(container: ViewGroup) {
         detachRenderView()
@@ -120,8 +134,25 @@ class VlcPlaybackEngine @Inject constructor(
         return mp
     }
 
-    private fun requireLibVlc(): LibVLC =
-        libVlc ?: LibVLC(context, arrayListOf("--no-sub-autodetect-file")).also { libVlc = it }
+    /**
+     * S1971: the delivered payload is attached BEFORE the constructor, never after.
+     *
+     * `LibVLC`'s constructor calls the library's own `loadLibraries()`, which answers a failed
+     * `System.loadLibrary("vlc"/"vlcjni")` with `System.exit(1)` - a process kill, not an exception.
+     * There is therefore nothing to catch downstream: the only safe order is to verify and attach the
+     * payload first, and to translate a delivery failure into an exception the fallback path already
+     * handles.
+     */
+    private fun requireLibVlc(): LibVLC {
+        libVlc?.let { return it }
+        Timber.d("S1971: attaching delivered libVLC payload before LibVLC construction")
+        try {
+            nativeLibraryLoader.load(DeliverableSet.VLC_ENGINE)
+        } catch (e: IOException) {
+            throw IllegalStateException("libVLC payload unavailable: ${e.message}", e)
+        }
+        return LibVLC(context, arrayListOf("--no-sub-autodetect-file")).also { libVlc = it }
+    }
 
     private fun detachRenderView() {
         videoLayout?.let { layout -> hostContainer?.removeView(layout) }

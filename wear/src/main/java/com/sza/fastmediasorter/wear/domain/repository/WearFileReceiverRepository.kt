@@ -1,7 +1,7 @@
 package com.sza.fastmediasorter.wear.domain.repository
 
 import com.google.android.gms.wearable.ChannelClient
-import com.sza.fastmediasorter.wear.domain.model.WearFileReceiveOutcome
+import com.sza.fastmediasorter.wear.domain.model.WearFileReceiveResult
 import com.sza.fastmediasorter.wear.domain.model.WearFileTransferMetadata
 
 /**
@@ -20,11 +20,15 @@ interface WearFileReceiverRepository {
     fun declare(metadata: WearFileTransferMetadata)
 
     /**
-     * Drains [channel] into a file named [fileName] under the watch's own downloads directory.
+     * Drains [channel] into a file named [fileName], and reports where it landed.
      *
      * A declaration already over the ceiling is refused without opening the stream. The bytes are
      * counted while they are written regardless, and a file that outgrows what was declared is
      * aborted and deleted: metadata written by the other side is a hint, never a check.
+     *
+     * S1884: the destination follows the announced intent. A file sent to be looked at once goes to a
+     * pruned preview cache; a file sent to be kept goes to the watch's downloads directory as it
+     * always has. The caller is told the path rather than deriving it, so the rule has one owner.
      */
-    suspend fun receiveFile(channel: ChannelClient.Channel, fileName: String): WearFileReceiveOutcome
+    suspend fun receiveFile(channel: ChannelClient.Channel, fileName: String): WearFileReceiveResult
 }

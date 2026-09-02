@@ -147,7 +147,6 @@ object LocaleHelper {
         val systemLanguage = detectSystemLanguage()
         if (systemLanguage != lastLoggedSystemFallback) {
             lastLoggedSystemFallback = systemLanguage
-            Timber.d("S1892: system-language fallback gate passed lang=%s", systemLanguage)
             Timber.d("LocaleHelper: No saved language preference; using system language: $systemLanguage")
         }
         cachedLanguageCode = null
@@ -226,7 +225,6 @@ object LocaleHelper {
         val resolvedLanguageCode = resolveSupportedLanguageCode(languageCode)
         if (resolvedLanguageCode != lastLoggedAppliedLanguage) {
             lastLoggedAppliedLanguage = resolvedLanguageCode
-            Timber.d("S1892: applyLocale log gate passed code=%s", resolvedLanguageCode)
             if (BuildConfig.DEBUG) {
                 val t0 = SystemClock.uptimeMillis()
                 val caller = Thread.currentThread().stackTrace

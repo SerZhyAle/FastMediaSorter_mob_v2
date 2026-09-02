@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase.panel
 
 import android.content.Context
+import android.content.pm.PackageManager
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
@@ -12,7 +13,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -76,7 +76,6 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
             // the same shape the embedded game and the flashlight use. Hardcoding true here is what let a
             // disabled calculator keep opening from a panel tile and a desktop cell.
             InternalRouteCatalog.KEY_CALCULATOR -> {
-                Timber.d("S1856: calculator route toggle=%s", settings.enableCalculator)
                 Availability(availableInBuild = true, enabledAtRuntime = settings.enableCalculator)
             }
             InternalRouteCatalog.KEY_NETWORK_MONITOR ->
@@ -123,6 +122,14 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
             // is the same shape the embedded game uses: always built in, gated by the user's toggle.
             InternalRouteCatalog.KEY_FRONT_FLASHLIGHT ->
                 Availability(availableInBuild = true, enabledAtRuntime = settings.frontFlashlightEnabled)
+            InternalRouteCatalog.KEY_PHYSICAL_FLASHLIGHT ->
+                Availability(
+                    availableInBuild = context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH),
+                    enabledAtRuntime = true,
+                )
+            // S2211: black screen needs no special capability - always available in build and runtime.
+            InternalRouteCatalog.KEY_BLACK_SCREEN ->
+                Availability(availableInBuild = true, enabledAtRuntime = true)
             else -> resolveCaptureRoute(routeKey, settings)
         }
 

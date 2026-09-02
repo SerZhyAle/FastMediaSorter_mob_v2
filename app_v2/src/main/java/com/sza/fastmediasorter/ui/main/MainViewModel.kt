@@ -17,7 +17,6 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.DedupAuthAccountsUseCase
 import com.sza.fastmediasorter.domain.usecase.DeleteResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.ExportResourcesToFileUseCase
@@ -28,14 +27,19 @@ import com.sza.fastmediasorter.domain.usecase.MigrateCameraResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.MigrateS0059UseCase
 import com.sza.fastmediasorter.domain.usecase.ProvisionDefaultResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.ProvisionDownloadsDestinationUseCase
+import com.sza.fastmediasorter.domain.usecase.ReadMainListSessionUseCase
+import com.sza.fastmediasorter.domain.usecase.ReconnectResourceUseCase
+import com.sza.fastmediasorter.domain.usecase.RefreshResourceFileCountsUseCase
 import com.sza.fastmediasorter.domain.usecase.ResolveResourceIconUseCase
 import com.sza.fastmediasorter.domain.usecase.SaveCapturedMediaUseCase
-import com.sza.fastmediasorter.domain.usecase.SizeFilter
+import com.sza.fastmediasorter.domain.usecase.SaveMainListSessionUseCase
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.companion.ExportCompanionConfigUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ObservePinnedStreamSourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.UnpinStreamSourceUseCase
+import com.sza.fastmediasorter.ui.main.helpers.MainListSessionManager
+import com.sza.fastmediasorter.ui.main.helpers.MainReconnectOutcomeMapper
 import com.sza.fastmediasorter.ui.main.helpers.ResourceFilterManager
 import com.sza.fastmediasorter.ui.main.helpers.ResourceNavigationCoordinator
 import com.sza.fastmediasorter.ui.main.helpers.ResourceOrderManager
@@ -98,7 +102,10 @@ sealed class MainEvent {
             return result
         }
     }
-    data class RequestPassword(val resource: com.sza.fastmediasorter.domain.model.MediaResource, val forSlideshow: Boolean = false) : MainEvent()
+    data class RequestPassword(
+        val resource: com.sza.fastmediasorter.domain.model.MediaResource,
+        val forSlideshow: Boolean = false
+    ) : MainEvent()
     data class NavigateToBrowse(val resourceId: Long, val skipAvailabilityCheck: Boolean = false) : MainEvent()
     data class NavigateToPlayerSlideshow(val resourceId: Long) : MainEvent()
     data class NavigateToPlayerRandomMusic(val resourceId: Long) : MainEvent()
@@ -110,10 +117,13 @@ sealed class MainEvent {
     data class ScanProgress(val currentFile: String?, val scannedCount: Int) : MainEvent()
     object ScanComplete : MainEvent()
     object ConfirmRescanWithVirtualResources : MainEvent()
+
     // S0422: a single resource has been written to [filePath]; the host shares it via ACTION_SEND.
     data class ShareResourceFile(val filePath: String) : MainEvent()
+
     // S0984: an SFTP access .fmscfg has been written to [filePath]; the host shares it via ACTION_SEND.
     data class ShareCompanionConfigFile(val filePath: String) : MainEvent()
+
     // S1039: show the compact .fmscfg [payload] as a QR (via CompanionQrShareActivity).
     data class ShowCompanionQr(
         val payload: String,
@@ -129,7 +139,6 @@ sealed class MainEvent {
 class MainViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val getResourcesUseCase: GetResourcesUseCase,
-    private val addResourceUseCase: AddResourceUseCase,
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val deleteResourceUseCase: DeleteResourceUseCase,
     private val exportResourcesToFileUseCase: ExportResourcesToFileUseCase,
@@ -153,11 +162,16 @@ class MainViewModel @Inject constructor(
     private val appShortcutsManager: com.sza.fastmediasorter.core.AppShortcutsManager,
     private val networkContextAnalyzer: com.sza.fastmediasorter.core.network.NetworkContextAnalyzer,
     private val remoteSourceGate: RemoteSourceAvailabilityGate,
-    private val resolveScanFilterUseCase: com.sza.fastmediasorter.domain.usecase.ResolveScanFilterUseCase,
+    private val refreshResourceFileCountsUseCase: RefreshResourceFileCountsUseCase,
     // S1195: capture + streams-panel operations the Activity used to inject and hand to its managers.
     private val saveCapturedMediaUseCase: SaveCapturedMediaUseCase,
     private val observePinnedStreamSourcesUseCase: ObservePinnedStreamSourcesUseCase,
     private val unpinStreamSourceUseCase: UnpinStreamSourceUseCase,
+    // S2370: swap a direct-path resource's address for a picked folder tree, identity preserved.
+    private val reconnectResourceUseCase: ReconnectResourceUseCase,
+    // S2199: last-session sort and filters for this list.
+    private val readMainListSessionUseCase: ReadMainListSessionUseCase,
+    private val saveMainListSessionUseCase: SaveMainListSessionUseCase,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BaseViewModel<MainState, MainEvent>() {
 
@@ -203,7 +217,7 @@ class MainViewModel @Inject constructor(
     companion object {
         const val FAVORITES_RESOURCE_ID = -100L
     }
-    
+
     private val filterManager = ResourceFilterManager()
     private val navigationCoordinator = ResourceNavigationCoordinator(
         context = context,
@@ -214,19 +228,28 @@ class MainViewModel @Inject constructor(
     private val orderManager = ResourceOrderManager(
         resourceRepository = resourceRepository
     )
+    private val listSessionManager = MainListSessionManager(
+        readSession = readMainListSessionUseCase,
+        saveSession = saveMainListSessionUseCase
+    )
     private val scanCoordinator = ResourceScanCoordinator(
         getResourcesUseCase = getResourcesUseCase,
         resourceRepository = resourceRepository,
         updateResourceUseCase = updateResourceUseCase,
         mediaScannerFactory = mediaScannerFactory,
-        settingsRepository = settingsRepository,
         smbOperationsUseCase = smbOperationsUseCase,
         remoteSourceGate = remoteSourceGate,
-        resolveScanFilter = resolveScanFilterUseCase
+        refreshResourceFileCountsUseCase = refreshResourceFileCountsUseCase
     )
 
     init {
         viewModelScope.launch(ioDispatcher) {
+            // S2199: before observeResourcesFromDatabase() below, because that collector reads
+            // state.value when it filters and sorts; a restore landing after its first emission
+            // would leave the list unnarrowed until some unrelated source happened to re-emit.
+            val restored = listSessionManager.restore(state.value)
+            updateState { restored }
+            Timber.d("S2199: main list restored sort=${restored.sortMode} type=${restored.filterByType}")
             // NonCancellable: provisioning must finish atomically even if this ViewModel
             // is destroyed during WelcomeActivity's ephemeral first MainActivity creation.
             // Without this, viewModelScope.cancel() can interrupt after "Recent" is inserted
@@ -336,7 +359,7 @@ class MainViewModel @Inject constructor(
             Timber.d("Navigation already in progress, ignoring click")
             return
         }
-        
+
         viewModelScope.launch(ioDispatcher) {
             val resource = resourceOverride ?: state.value.selectedResource
             if (resource == null || resource.id == 0L) {
@@ -347,19 +370,22 @@ class MainViewModel @Inject constructor(
                 )
                 return@launch
             }
-            
+
             try {
-                updateState { 
+                updateState {
                     it.copy(
                         isNavigating = true,
-                        navigationMessage = context.getString(com.sza.fastmediasorter.R.string.connecting_to_resource, resource.name)
+                        navigationMessage = context.getString(
+                            com.sza.fastmediasorter.R.string.connecting_to_resource,
+                            resource.name
+                        )
                     )
                 }
-                
+
                 saveLastUsedResourceId(resource.id)
                 validateAndOpenResource(resource, slideshowMode = false)
             } finally {
-                updateState { 
+                updateState {
                     it.copy(
                         isNavigating = false,
                         navigationMessage = null
@@ -431,7 +457,7 @@ class MainViewModel @Inject constructor(
             Timber.d("Navigation already in progress, ignoring click")
             return
         }
-        
+
         viewModelScope.launch(ioDispatcher) {
             try {
                 val resource = state.value.selectedResource
@@ -444,26 +470,33 @@ class MainViewModel @Inject constructor(
                     } else {
                         null
                     }
-                    
+
                     targetResource ?: state.value.resources.firstOrNull()
                 }
-                
+
                 if (resourceToOpen == null || resourceToOpen.id == 0L) {
-                    sendEvent(MainEvent.ShowMessage(context.getString(com.sza.fastmediasorter.R.string.no_resources_available)))
+                    sendEvent(
+                        MainEvent.ShowMessage(
+                            context.getString(com.sza.fastmediasorter.R.string.no_resources_available)
+                        )
+                    )
                     return@launch
                 }
-                
-                updateState { 
+
+                updateState {
                     it.copy(
                         isNavigating = true,
-                        navigationMessage = context.getString(com.sza.fastmediasorter.R.string.starting_slideshow_for, resourceToOpen.name)
+                        navigationMessage = context.getString(
+                            com.sza.fastmediasorter.R.string.starting_slideshow_for,
+                            resourceToOpen.name
+                        )
                     )
                 }
-                
+
                 saveLastUsedResourceId(resourceToOpen.id)
                 validateAndOpenResource(resourceToOpen, slideshowMode = true)
             } finally {
-                updateState { 
+                updateState {
                     it.copy(
                         isNavigating = false,
                         navigationMessage = null
@@ -472,7 +505,7 @@ class MainViewModel @Inject constructor(
             }
         }
     }
-    
+
     fun startSlideshowFor(resource: MediaResource) {
         if (state.value.isNavigating) {
             Timber.d("Navigation already in progress, ignoring icon click")
@@ -504,7 +537,11 @@ class MainViewModel @Inject constructor(
                 it.path == LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO
             }
             if (resource == null) {
-                sendEvent(MainEvent.ShowMessage(context.getString(com.sza.fastmediasorter.R.string.widget_random_music_resource_not_found)))
+                sendEvent(
+                    MainEvent.ShowMessage(
+                        context.getString(com.sza.fastmediasorter.R.string.widget_random_music_resource_not_found)
+                    )
+                )
             } else {
                 sendEvent(MainEvent.NavigateToPlayerRandomMusic(resource.id))
             }
@@ -517,7 +554,11 @@ class MainViewModel @Inject constructor(
                 it.path == LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS
             }
             if (resource == null) {
-                sendEvent(MainEvent.ShowMessage(context.getString(com.sza.fastmediasorter.R.string.widget_camera_photos_resource_not_found)))
+                sendEvent(
+                    MainEvent.ShowMessage(
+                        context.getString(com.sza.fastmediasorter.R.string.widget_camera_photos_resource_not_found)
+                    )
+                )
             } else {
                 sendEvent(MainEvent.NavigateToBrowse(resource.id, skipAvailabilityCheck = true))
             }
@@ -531,7 +572,7 @@ class MainViewModel @Inject constructor(
             Timber.e(e, "Failed to save last used resource ID")
         }
     }
-    
+
     private suspend fun validateAndOpenResource(resource: MediaResource, slideshowMode: Boolean = false) {
         // Delegate validation to navigation coordinator
         when (val result = navigationCoordinator.validateAndNavigate(resource, slideshowMode)) {
@@ -559,7 +600,7 @@ class MainViewModel @Inject constructor(
             }
         }
     }
-    
+
     /** Called after password verification to proceed with navigation. */
     fun proceedAfterPasswordCheck(resourceId: Long, slideshowMode: Boolean) {
         if (slideshowMode) {
@@ -592,85 +633,39 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun moveResourceUp(resource: MediaResource) {
+    /**
+     * The one body the four move actions shared. They differed only in which [ResourceOrderManager]
+     * call they made, so every one of them had to grow the same persist call in S2199 - four copies
+     * of a block that has to stay identical is what kept this class over its size ceiling.
+     *
+     * CannotMove means the resource is already at the edge, and Error is delivered through the
+     * exception handler; neither leaves anything for this function to do.
+     */
+    private fun reorderResource(
+        resource: MediaResource,
+        move: suspend (MediaResource, List<MediaResource>) -> ResourceOrderManager.OrderResult
+    ) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            val currentList = state.value.resources
-            
-            when (orderManager.moveResourceUp(resource, currentList)) {
-                is ResourceOrderManager.OrderResult.Success -> {
-                    // Switch to manual sort mode to preserve user's ordering
-                    updateState { it.copy(sortMode = orderManager.getRecommendedSortMode()) }
-                    loadResources()
-                }
-                is ResourceOrderManager.OrderResult.CannotMove -> {
-                    // Already at top - silently ignore
-                }
-                is ResourceOrderManager.OrderResult.Error -> {
-                    // Error handled by exception handler
-                }
+            if (move(resource, state.value.resources) is ResourceOrderManager.OrderResult.Success) {
+                // Switch to manual sort mode to preserve user's ordering
+                updateState { it.copy(sortMode = orderManager.getRecommendedSortMode()) }
+                loadResources()
+                persistListSession()
             }
         }
     }
 
-    fun moveResourceDown(resource: MediaResource) {
-        viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            val currentList = state.value.resources
+    fun moveResourceUp(resource: MediaResource) =
+        reorderResource(resource, orderManager::moveResourceUp)
 
-            when (orderManager.moveResourceDown(resource, currentList)) {
-                is ResourceOrderManager.OrderResult.Success -> {
-                    // Switch to manual sort mode to preserve user's ordering
-                    updateState { it.copy(sortMode = orderManager.getRecommendedSortMode()) }
-                    loadResources()
-                }
-                is ResourceOrderManager.OrderResult.CannotMove -> {
-                    // Already at bottom - silently ignore
-                }
-                is ResourceOrderManager.OrderResult.Error -> {
-                    // Error handled by exception handler
-                }
-            }
-        }
-    }
+    fun moveResourceDown(resource: MediaResource) =
+        reorderResource(resource, orderManager::moveResourceDown)
 
-    fun moveResourceToTop(resource: MediaResource) {
-        viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            val currentList = state.value.resources
+    fun moveResourceToTop(resource: MediaResource) =
+        reorderResource(resource, orderManager::moveResourceToTop)
 
-            when (orderManager.moveResourceToTop(resource, currentList)) {
-                is ResourceOrderManager.OrderResult.Success -> {
-                    // Switch to manual sort mode to preserve user's ordering
-                    updateState { it.copy(sortMode = orderManager.getRecommendedSortMode()) }
-                    loadResources()
-                }
-                is ResourceOrderManager.OrderResult.CannotMove -> {
-                    // Already at top - silently ignore
-                }
-                is ResourceOrderManager.OrderResult.Error -> {
-                    // Error handled by exception handler
-                }
-            }
-        }
-    }
-
-    fun moveResourceToBottom(resource: MediaResource) {
-        viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            val currentList = state.value.resources
-
-            when (orderManager.moveResourceToBottom(resource, currentList)) {
-                is ResourceOrderManager.OrderResult.Success -> {
-                    // Switch to manual sort mode to preserve user's ordering
-                    updateState { it.copy(sortMode = orderManager.getRecommendedSortMode()) }
-                    loadResources()
-                }
-                is ResourceOrderManager.OrderResult.CannotMove -> {
-                    // Already at bottom - silently ignore
-                }
-                is ResourceOrderManager.OrderResult.Error -> {
-                    // Error handled by exception handler
-                }
-            }
-        }
-    }
+    fun moveResourceToBottom(resource: MediaResource) =
+        reorderResource(resource, orderManager::moveResourceToBottom)
 
     /**
      * Persist the new display order after a drag-to-reorder gesture.
@@ -681,6 +676,7 @@ class MainViewModel @Inject constructor(
             when (orderManager.saveResourceOrder(resources)) {
                 is ResourceOrderManager.OrderResult.Success -> {
                     updateState { it.copy(sortMode = orderManager.getRecommendedSortMode()) }
+                    persistListSession()
                 }
                 is ResourceOrderManager.OrderResult.Error -> {
                     // Error handled by exception handler
@@ -690,37 +686,50 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    /** S2199: remembers the sort and filters the list ended up in. */
+    private fun persistListSession() {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            listSessionManager.persist(state.value)
+            Timber.d("S2199: main list persisted sort=${state.value.sortMode}")
+        }
+    }
+
     fun setSortMode(sortMode: SortMode) {
         updateState { it.copy(sortMode = sortMode) }
         loadResources()
+        persistListSession()
     }
 
     fun setFilterByType(types: Set<ResourceType>?) {
         updateState { it.copy(filterByType = types) }
         loadResources()
+        persistListSession()
     }
 
     fun setFilterByMediaType(mediaTypes: Set<MediaType>?) {
         updateState { it.copy(filterByMediaType = mediaTypes) }
         loadResources()
+        persistListSession()
     }
 
     fun setFilterByName(name: String?) {
         updateState { it.copy(filterByName = name) }
         loadResources()
+        persistListSession()
     }
 
     fun clearFilters() {
-        updateState { 
+        updateState {
             it.copy(
                 filterByType = null,
                 filterByMediaType = null,
                 filterByName = null
-            ) 
+            )
         }
         loadResources()
+        persistListSession()
     }
-    
+
     fun setActiveTab(tab: ResourceTab) {
         updateState { it.copy(activeResourceTab = tab) }
         // Re-apply filters with new tab selection
@@ -756,21 +765,25 @@ class MainViewModel @Inject constructor(
                 if (resource != null) {
                     sendEvent(MainEvent.NavigateToBrowse(resourceId, skipAvailabilityCheck = true))
                 } else {
-                    sendEvent(MainEvent.ShowMessage(context.getString(com.sza.fastmediasorter.R.string.resource_not_found)))
+                    sendEvent(
+                        MainEvent.ShowMessage(context.getString(com.sza.fastmediasorter.R.string.resource_not_found))
+                    )
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Error opening resource via shortcut")
-                sendEvent(MainEvent.ShowMessage(context.getString(com.sza.fastmediasorter.R.string.main_open_resource_failed)))
+                sendEvent(
+                    MainEvent.ShowMessage(context.getString(com.sza.fastmediasorter.R.string.main_open_resource_failed))
+                )
             }
         }
     }
-    
+
     fun restorePreviousTab() {
         // Restore tab that was active before opening Favorites
         val tabToRestore = state.value.previousTab ?: ResourceTab.ALL
         updateState { it.copy(activeResourceTab = tabToRestore, previousTab = null) }
     }
-    
+
     fun copySelectedResource(resourceOverride: MediaResource? = null) {
         val selected = resourceOverride ?: state.value.selectedResource
         if (selected == null) {
@@ -781,33 +794,11 @@ class MainViewModel @Inject constructor(
             )
             return
         }
-        
+
         // Open copy flow in ResourceEditorActivity with source resource id
         sendEvent(MainEvent.NavigateToAddResourceCopy(selected.id))
     }
-    
-    /**
-     * Generate a unique copy name by appending " (copy)" or " (copy N)"
-     */
-    private fun generateCopyName(originalName: String): String {
-        val resources = state.value.resources
-        val existingNames = resources.map { it.name }.toSet()
-        
-        // Try "Name (copy)" first
-        var copyName = "$originalName (copy)"
-        if (!existingNames.contains(copyName)) {
-            return copyName
-        }
-        
-        // If it exists, try "Name (copy 2)", "Name (copy 3)", etc.
-        var counter = 2
-        while (existingNames.contains("$originalName (copy $counter)")) {
-            counter++
-        }
-        
-        return "$originalName (copy $counter)"
-    }
-    
+
     fun toggleResourceViewMode() {
         viewModelScope.launch(ioDispatcher) {
             // Get current value from settings (source of truth)
@@ -825,7 +816,7 @@ class MainViewModel @Inject constructor(
         // Refreshing resources from database
         loadResources()
     }
-    
+
     /**
      * Quick check all resources: test availability and check write access.
      * Does NOT count files - only checks connectivity and permissions for UI status indicators.
@@ -854,14 +845,30 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             when (scanCoordinator.scanAndRefreshSingleResource(resource)) {
                 is ResourceScanCoordinator.SingleScanResult.Unavailable ->
-                    sendEvent(MainEvent.ShowMessage(
-                        context.getString(R.string.resource_unavailable_name, resource.name)
-                    ))
+                    sendEvent(
+                        MainEvent.ShowMessage(
+                            context.getString(R.string.resource_unavailable_name, resource.name)
+                        )
+                    )
                 is ResourceScanCoordinator.SingleScanResult.Available -> {
                     // DB updated via updateResourceUseCase inside scanCoordinator;
                     // the resource-list observer refreshes the UI automatically.
                 }
             }
+        }
+    }
+
+    // S2370: the rescan rides the existing single-resource path because the refreshed counter must
+    // include the documents the direct address could never return, and nothing else produces it.
+    fun reconnectResource(resourceId: Long, treeUriString: String) {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            val result = reconnectResourceUseCase(resourceId, treeUriString)
+            result.onSuccess {
+                resourceRepository.get().getResourceById(resourceId)?.let { scanSingleResource(it) }
+            }
+            result.exceptionOrNull()?.let { Timber.w(it, "Resource reconnect failed") }
+            Timber.d("S2374: reconnect outcome reported, resource=%d", resourceId)
+            sendEvent(MainReconnectOutcomeMapper.toEvent(result))
         }
     }
 

@@ -6,7 +6,6 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.widget.RemoteViews
 import com.sza.fastmediasorter.R
-import timber.log.Timber
 
 /**
  * S1916 - the home-screen tile that opens one saved channel.
@@ -34,7 +33,6 @@ class StreamLaunchWidgetProvider : AppWidgetProvider() {
 
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
         for (appWidgetId in appWidgetIds) {
-            Timber.d("S1916: tile deleted id=%d", appWidgetId)
             StreamLaunchWidgetStore.delete(context, appWidgetId)
         }
     }
@@ -48,7 +46,6 @@ class StreamLaunchWidgetProvider : AppWidgetProvider() {
         ) {
             val views = RemoteViews(context.packageName, R.layout.widget_stream_launch)
             val config = StreamLaunchWidgetStore.read(context, appWidgetId)
-            Timber.d("S1916: tile bind id=%d configured=%b", appWidgetId, config != null)
             if (config == null) {
                 bindUnconfigured(context, views, appWidgetId)
             } else {

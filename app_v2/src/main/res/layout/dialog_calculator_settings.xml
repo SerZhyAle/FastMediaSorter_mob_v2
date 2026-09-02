@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/margin_medium">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switchCalculatorGroupThousands"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/touch_target_min_height"
+                android:text="@string/calculator_settings_group_thousands"
+                android:textColor="?android:attr/textColorPrimary" />
+
+            <TextView
+                android:id="@+id/textCalculatorGroupThousandsSummary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_medium"
+                android:text="@string/calculator_settings_group_thousands_summary"
+                android:textColor="?android:attr/textColorSecondary"
+                android:textSize="@dimen/text_size_small" />
+
+            <TextView
+                android:id="@+id/labelCalculatorTextSize"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/calculator_settings_text_size"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textSize="@dimen/text_size_normal" />
+
+            <com.google.android.material.slider.Slider
+                android:id="@+id/sliderCalculatorTextSize"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_medium"
+                android:contentDescription="@string/calculator_settings_text_size"
+                android:stepSize="2"
+                android:valueFrom="16"
+                android:valueTo="72" />
+
+            <TextView
+                android:id="@+id/labelCalculatorKeypadMode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/calculator_settings_keypad_mode"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textSize="@dimen/text_size_normal" />
+
+            <RadioGroup
+                android:id="@+id/radioCalculatorKeypadMode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/radioKeypadModeNormal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="@dimen/touch_target_min_height"
+                    android:text="@string/calculator_keypad_mode_normal"
+                    android:textColor="?android:attr/textColorPrimary" />
+
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/radioKeypadModeLarge"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="@dimen/touch_target_min_height"
+                    android:text="@string/calculator_keypad_mode_large"
+                    android:textColor="?android:attr/textColorPrimary" />
+
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/radioKeypadModeCompact"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="@dimen/touch_target_min_height"
+                    android:text="@string/calculator_keypad_mode_compact"
+                    android:textColor="?android:attr/textColorPrimary" />
+            </RadioGroup>
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_medium"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCalculatorSettingsCancel"
+            style="@style/Widget.FastMediaSorter.Button.DialogCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cancel" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCalculatorSettingsApply"
+            style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dialog_action_button_gap"
+            android:text="@string/apply" />
+    </LinearLayout>
+</LinearLayout>

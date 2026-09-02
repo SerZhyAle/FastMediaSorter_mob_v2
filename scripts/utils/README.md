@@ -83,7 +83,7 @@ Development utilities and tools for FastMediaSorter v2.
 All utility scripts should be run from project root:
 
 ```powershell
-cd c:\GIT\FastMediaSorter_mob_v2
+cd <your FastMediaSorter_mob_v2 checkout>
 .\scripts\utils\run-stress.ps1
 ```
 

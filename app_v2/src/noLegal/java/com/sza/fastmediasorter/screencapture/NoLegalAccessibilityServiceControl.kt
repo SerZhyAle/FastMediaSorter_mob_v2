@@ -24,7 +24,6 @@ class NoLegalAccessibilityServiceControl @Inject constructor() : AccessibilitySe
 
     override fun disableSelf(): Boolean {
         val service = ScreenshotAccessibilityServiceHolder.instance ?: return false
-        timber.log.Timber.d("S1881: disableSelf called")
         service.disableSelf()
         return true
     }

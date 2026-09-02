@@ -180,7 +180,8 @@
                     android:layout_marginTop="@dimen/welcome_description_margin_top"
                     android:visibility="gone"
                     app:str_icon="@drawable/ic_launcher_mode"
-                    app:str_title="@string/launcher_welcome_toggle_title" />
+                    app:str_title="@string/launcher_welcome_toggle_title"
+                    app:str_subtitle="@string/launcher_welcome_toggle_subtitle" />
 
                 <!-- Adaptive feature-block grid (populated programmatically; columnCount set at runtime) -->
                 <GridLayout

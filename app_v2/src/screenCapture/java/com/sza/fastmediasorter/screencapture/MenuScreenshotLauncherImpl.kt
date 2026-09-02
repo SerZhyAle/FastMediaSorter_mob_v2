@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.screencapture
 import android.app.Activity
 import android.content.Intent
 import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
+import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import javax.inject.Inject
 
 /**
@@ -13,7 +14,10 @@ import javax.inject.Inject
  */
 class MenuScreenshotLauncherImpl @Inject constructor() : MenuScreenshotLauncher {
 
-    override fun launch(activity: Activity) {
-        activity.startActivity(Intent(activity, ScreenCaptureConsentActivity::class.java))
+    override fun launch(activity: Activity, action: ScreenshotGestureAction) {
+        activity.startActivity(
+            Intent(activity, ScreenCaptureConsentActivity::class.java)
+                .putExtra(ScreenCaptureConsentActivity.EXTRA_ACTION, action.name),
+        )
     }
 }

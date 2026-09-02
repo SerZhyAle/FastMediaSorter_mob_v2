@@ -5,10 +5,12 @@ import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.RectF
 import android.net.Uri
+import android.os.ParcelFileDescriptor
 import android.view.View
 import androidx.annotation.RequiresApi
-import android.os.ParcelFileDescriptor
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.clipboard.copyTextToClipboard
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -304,15 +306,7 @@ class PdfLinkAndSearchManager(
 
             withContext(Dispatchers.Main) {
                 if (!recognizedText.isNullOrBlank()) {
-                    val ctx = root.context
-                    val clipboard = ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE)
-                            as android.content.ClipboardManager
-                    clipboard.setPrimaryClip(android.content.ClipData.newPlainText("pdf_text", recognizedText))
-                    android.widget.Toast.makeText(
-                        ctx,
-                        ctx.getString(com.sza.fastmediasorter.R.string.text_copied),
-                        android.widget.Toast.LENGTH_SHORT
-                    ).show()
+                    root.context.copyTextToClipboard("pdf_text", recognizedText)
                 } else {
                     onError(root.context.getString(com.sza.fastmediasorter.R.string.ocr_no_text_found))
                 }
@@ -341,7 +335,7 @@ class PdfLinkAndSearchManager(
                     onShareToGoogleLens(tempFile)
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Failed to save PDF page for Google Lens")
+                e.errorUnlessCancellation("Failed to save PDF page for Google Lens")
                 withContext(Dispatchers.Main) {
                     onError(root.context.getString(R.string.toast_error_google_lens))
                 }

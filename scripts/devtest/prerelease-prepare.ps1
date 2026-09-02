@@ -38,6 +38,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
 $RepoRoot     = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $DebugPackage = 'com.sza.fastmediasorter.debug'
 . (Join-Path $RepoRoot 'scripts/utils/agent-lock.ps1')
@@ -130,17 +132,17 @@ Add-Stage 'uninstall' 'OK' "removed $DebugPackage if present"
 # adb.ps1 (no side effects).
 $gradlew = Join-Path $RepoRoot 'gradlew.bat'
 . (Join-Path $RepoRoot 'scripts/utils/build-version-stamp.ps1')
-Enter-BuildLockOrExit -Reason 'prerelease-prepare.ps1 (assembleStandardDebug)'
+Enter-BuildLockOrExit -Reason 'prerelease-prepare.ps1 (assembleStandardDebug)' -Domain Build.Phone
 try {
     $stamp = Get-BuildVersionStamp
-    & $gradlew assembleStandardDebug '-Pchaquopy.enabled=false' "-Pfms.versionCode=$($stamp.AppVersionCode)" "-Pfms.versionName=$($stamp.VersionName)" --console=plain *> $null
+    & $gradlew :app_v2:assembleStandardDebug '-Pchaquopy.enabled=false' "-Pfms.versionCode=$($stamp.AppVersionCode)" "-Pfms.versionName=$($stamp.VersionName)" --console=plain *> $null
     if ($LASTEXITCODE -ne 0) {
         Add-Stage 'install' 'FAIL' "assembleStandardDebug exit $LASTEXITCODE"
         Complete-Run 10
     }
 }
 finally {
-    Exit-AgentLock -Name Build
+    Exit-AgentLock -Name 'Build' -Domains @('Build.Phone')
 }
 $instArgs = @('-NoProfile', '-File', "$RepoRoot/scripts/devtest/adb.ps1", 'install', '-Flavor', 'standard', '-DeviceId', $TargetDevice)
 & pwsh @instArgs *> $null

@@ -63,6 +63,7 @@ class AppStartupInitializer @Inject constructor(
 ) {
 
     private val connectionThrottleManagerInitialized = AtomicBoolean(false)
+
     // S0473: guards the always-on baseline launch record so a re-enqueued deferred worker records
     // a single launch per process, never one per worker pass.
     private val launchRecorded = AtomicBoolean(false)
@@ -152,7 +153,7 @@ class AppStartupInitializer @Inject constructor(
             Timber.e(e, "Failed to apply Chrome OS keybinding defaults")
         }
     }
-    
+
     /**
      * Sync cache size setting to SharedPreferences for Glide initialization.
      */
@@ -173,7 +174,7 @@ class AppStartupInitializer @Inject constructor(
             }
         }
     }
-    
+
     /**
      * Log status of all runtime permissions at startup (DEBUG builds only).
      */
@@ -191,7 +192,11 @@ class AppStartupInitializer @Inject constructor(
             } else {
                 Timber.i("%-40s = %s", "READ_EXTERNAL_STORAGE", granted(Manifest.permission.READ_EXTERNAL_STORAGE))
                 if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) { // API <= 28
-                    Timber.i("%-40s = %s", "WRITE_EXTERNAL_STORAGE", granted(Manifest.permission.WRITE_EXTERNAL_STORAGE))
+                    Timber.i(
+                        "%-40s = %s",
+                        "WRITE_EXTERNAL_STORAGE",
+                        granted(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    )
                 }
             }
 
@@ -213,7 +218,6 @@ class AppStartupInitializer @Inject constructor(
 
             // Normal permissions
             Timber.i("%-40s = %s", "INTERNET", granted(Manifest.permission.INTERNET))
-
         } catch (e: Exception) {
             Timber.e(e, "Failed to log permissions status")
         }
@@ -241,7 +245,7 @@ class AppStartupInitializer @Inject constructor(
             Timber.e(e, "Failed to fix cloud resources isWritable flag")
         }
     }
-    
+
     /**
      * Fix LOCAL resources with isWritable = false due to the edit-reset bug.
      * When a resource was edited, buildPersistenceModel() did not preserve isWritable,
@@ -253,9 +257,9 @@ class AppStartupInitializer @Inject constructor(
             val repo = resourceRepository.get()
             val resources = repo.getAllResources().first()
             val broken = resources.filter {
-                it.type == com.sza.fastmediasorter.domain.model.ResourceType.LOCAL
-                    && !it.isWritable
-                    && !it.isReadOnly
+                it.type == com.sza.fastmediasorter.domain.model.ResourceType.LOCAL &&
+                    !it.isWritable &&
+                    !it.isReadOnly
             }
             if (broken.isNotEmpty()) {
                 broken.forEach { resource ->
@@ -321,7 +325,7 @@ class AppStartupInitializer @Inject constructor(
             Timber.e(e, "Failed to migrate thumbnail cache")
         }
     }
-    
+
     /**
      * Cleanup old thumbnail cache (>30 days) on app start, then enforce the user-configured
      * size limit via LRU eviction.

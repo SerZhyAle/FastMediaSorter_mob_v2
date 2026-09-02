@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.launcher.helpers
 
 import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.TooltipCompat
 import androidx.core.view.isVisible
@@ -33,12 +34,12 @@ sealed interface LauncherTaskbarRow {
 /**
  * S0404: renders a horizontal taskbar strip (recents or pinned). Visuals arrive pre-resolved.
  *
- * Only the pinned strip turns editing on ([setEditMode]); recents never does. In edit mode each icon
- * shows an unpin "X" and a trailing "+" is appended. Both are inert on the recents adapter, which is
- * built with [onIconClick] alone - [onRemoveClick]/[onAddClick] default to no-ops.
+ * Only the pinned strip turns editing on ([setEditMode]); recents instead open a context menu on long
+ * press. In edit mode each pinned icon shows an unpin "X" and a trailing "+" is appended.
  */
 class LauncherTaskbarIconAdapter(
     private val onIconClick: (LauncherTaskbarIcon) -> Unit,
+    private val onIconLongClick: (View, LauncherTaskbarIcon) -> Boolean = { _, _ -> false },
     private val onRemoveClick: (LauncherTaskbarIcon) -> Unit = {},
     private val onAddClick: () -> Unit = {},
 ) : ListAdapter<LauncherTaskbarRow, RecyclerView.ViewHolder>(DIFF) {
@@ -107,6 +108,7 @@ class LauncherTaskbarIconAdapter(
             if (row.editing) {
                 // In edit mode the body arranges, it does not launch - only the badge acts.
                 binding.root.setOnClickListener(null)
+                binding.root.setOnLongClickListener(null)
                 binding.root.isClickable = false
                 binding.taskbarUnpinBadge.contentDescription =
                     binding.root.context.getString(R.string.launcher_edit_unpin_named, item.label)
@@ -114,6 +116,7 @@ class LauncherTaskbarIconAdapter(
             } else {
                 binding.root.isClickable = true
                 binding.root.setOnClickListener { onIconClick(item) }
+                binding.root.setOnLongClickListener { onIconLongClick(it, item) }
             }
         }
     }

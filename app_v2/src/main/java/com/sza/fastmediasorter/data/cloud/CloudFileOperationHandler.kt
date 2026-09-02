@@ -472,16 +472,20 @@ class CloudFileOperationHandler @Inject constructor(
         }
     }
 
-    /** S0266: public wrapper for noLegal silent APK install. Forwards into the internal download path so callers (e.g. BrowseApkInstallHandlerImpl) can hide the operation from the universal FileOperationProgressDialog. */
+    /**
+     * S0266/S2283: public wrapper for cloud downloads. Callers (e.g. BrowseApkInstallHandlerImpl)
+     * can optionally pass a progressCallback for progress dialog updates.
+     */
     suspend fun downloadFromCloudToPublic(
         cloudPath: String,
         destPath: String,
         fileName: String,
+        progressCallback: ByteProgressCallback? = null,
     ): Boolean = cloudDownloadUseCase.downloadToPublic(
         cloudPath = cloudPath,
         destPath = destPath,
         fileName = fileName,
-        progressCallback = null,
+        progressCallback = progressCallback,
     )
 
     /** Universal any->cloud upload via temp file (OOM-safe). [sourcePath] may be local, smb://, sftp://, ftp://. */

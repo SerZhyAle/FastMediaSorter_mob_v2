@@ -9,38 +9,29 @@ appId: com.sza.fastmediasorter.debug
 # text". This flow closes that gap by asserting the text-specific views, so a regression that
 # routes .txt to the wrong viewer fails here instead of passing there.
 #
-# Precondition: the "Загрузки" LOCAL resource is registered and setup_test_media.ps1 has seeded
-# Docs/readme.txt under it - the same precondition player_documents.yaml relies on. Navigate the
-# same way that flow does: the seeded folders are reached through the Локальные -> Загрузки
-# resource, NOT as a top-level "Docs" resource (measured 2026-08-13 - no such resource is
-# registered, and asserting it failed on the first tap).
+# S2369: the file is reached through a resource connected with the system picker, not through the
+# raw-path "Загрузки" one it used until 2026-09-02. On a store build MediaProvider strips every
+# document row out of a raw path before the app sees the cursor, so readme.txt is not merely below
+# the fold there - it is absent, and no amount of scrolling reaches it. The shared fragment
+# registers the folder once and is a no-op on a later call.
 
 - launchApp
 - runFlow: ../../_shared/permissions.yaml
-- runFlow: ../../_shared/go_home.yaml
+- runFlow: ../../_shared/add_saf_docs_resource.yaml
 
 - tapOn:
-    text: "Локальные"
-    index: 0
-- scrollUntilVisible:
-    element:
-      text: "Загрузки"
-    timeout: 10000
-- tapOn:
-    text: "Загрузки"
+    text: "Docs"
 - extendedWaitUntil:
     visible:
       id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
     timeout: 20000
-- runFlow: ../../_shared/downloads_sort_reset.yaml
 
-- scrollUntilVisible:
-    element:
+# Four files in the folder, so the row is on screen without scrolling. Tap the row container clear
+# of the right-side operation buttons - a centred filename tap lands on a button (player_image.yaml).
+- extendedWaitUntil:
+    visible:
       text: "readme.txt"
-    timeout: 40000
-    visibilityPercentage: 30
-    centerElement: true
-    waitToSettleTimeoutMs: 600
+    timeout: 20000
 - tapOn:
     containsChild:
       text: "readme.txt"

@@ -14,6 +14,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.AspectRatio
+import androidx.compose.material.icons.filled.CropFree
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -28,24 +38,29 @@ import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
+import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
-import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandButton
 import timber.log.Timber
-import kotlin.math.abs
+
+/** The scrim behind the panel, dark enough to read white text over any picture. */
+private const val OVERLAY_SCRIM_ALPHA = 0.6f
+
+private val FAVORITE_ROW_TOP_PADDING = 4.dp
+private val ERROR_GLYPH_SIZE = 48.dp
 
 private const val SWIPE_THRESHOLD = 100f
 
@@ -84,24 +99,37 @@ fun ImageViewerScreen(
                 ImageViewerContent(
                     uiState = uiState,
                     isFavorite = isFavorite,
-                    onSwipeLeft = viewModel::navigateToNext,
-                    onSwipeRight = viewModel::navigateToPrevious,
-                    onToggleSlideshow = viewModel::toggleSlideshow,
-                    onToggleFavorite = viewModel::toggleFavorite
+                    actions = ImageViewerActions(
+                        onSwipeLeft = viewModel::navigateToNext,
+                        onSwipeRight = viewModel::navigateToPrevious,
+                        onToggleSlideshow = viewModel::toggleSlideshow,
+                        onToggleFavorite = viewModel::toggleFavorite,
+                        onToggleShuffle = viewModel::toggleShuffle,
+                        onToggleScaleMode = viewModel::toggleScaleMode,
+                        onScreenTap = viewModel::onScreenTap
+                    )
                 )
             }
         }
     }
 }
 
+/** The image viewer's callbacks, bundled the way the audio and video players already bundle theirs. */
+private data class ImageViewerActions(
+    val onSwipeLeft: () -> Unit,
+    val onSwipeRight: () -> Unit,
+    val onToggleSlideshow: () -> Unit,
+    val onToggleFavorite: () -> Unit,
+    val onToggleShuffle: () -> Unit,
+    val onToggleScaleMode: () -> Unit,
+    val onScreenTap: () -> Unit
+)
+
 @Composable
 private fun ImageViewerContent(
     uiState: ImageViewerUiState,
     isFavorite: Boolean,
-    onSwipeLeft: () -> Unit,
-    onSwipeRight: () -> Unit,
-    onToggleSlideshow: () -> Unit,
-    onToggleFavorite: () -> Unit
+    actions: ImageViewerActions
 ) {
     Box(
         modifier = Modifier
@@ -121,18 +149,18 @@ private fun ImageViewerContent(
                             dragOffset += overSlop
                         }
                     }
-                    Timber.d(
-                        "S1705: image drag start x=${down.position.x} band=$startedInDismissBand " +
-                            "leaveToPlatform=$leaveToPlatform"
-                    )
+                    // A lift that never crossed the horizontal slop is a tap, not a page turn.
+                    if (slop == null && !leaveToPlatform) {
+                        actions.onScreenTap()
+                    }
                     if (slop != null && !leaveToPlatform) {
                         horizontalDrag(slop.id) { change ->
                             dragOffset += change.positionChange().x
                             change.consume()
                         }
                         when {
-                            dragOffset < -SWIPE_THRESHOLD -> onSwipeLeft()
-                            dragOffset > SWIPE_THRESHOLD -> onSwipeRight()
+                            dragOffset < -SWIPE_THRESHOLD -> actions.onSwipeLeft()
+                            dragOffset > SWIPE_THRESHOLD -> actions.onSwipeRight()
                         }
                     }
                 }
@@ -140,12 +168,16 @@ private fun ImageViewerContent(
     ) {
         // Image
         var isImageLoading by remember { mutableFloatStateOf(1f) }
-        
+
         AsyncImage(
             model = uiState.mediaFile?.uri,
             contentDescription = uiState.mediaFile?.name,
             modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Fit,
+            contentScale = if (uiState.scaleMode == VideoScaleMode.CROP_PAN) {
+                ContentScale.Crop
+            } else {
+                ContentScale.Fit
+            },
             onState = { state ->
                 isImageLoading = when (state) {
                     is AsyncImagePainter.State.Loading -> 1f
@@ -153,7 +185,7 @@ private fun ImageViewerContent(
                 }
             }
         )
-        
+
         // Loading indicator while image loads
         if (isImageLoading > 0f) {
             CircularProgressIndicator(
@@ -162,82 +194,160 @@ private fun ImageViewerContent(
                     .align(Alignment.Center)
             )
         }
-        
-        val favoriteDesc = stringResource(R.string.wear_toggle_favorite)
 
-        // Bottom info overlay
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .background(Color.Black.copy(alpha = 0.6f))
-                // The scrim stays full-bleed; only its content is inset, so the labels at the ends
-                // of the row keep clear of the curve at the bottom of a round screen.
-                .padding(wearScreenInsets()),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // File name
-            Text(
-                text = uiState.mediaFile?.name ?: "",
-                style = MaterialTheme.typography.caption2,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                color = Color.White
+        if (uiState.showControls) {
+            ImageBottomPanel(
+                uiState = uiState,
+                isFavorite = isFavorite,
+                onToggleFavorite = actions.onToggleFavorite,
+                onToggleSlideshow = actions.onToggleSlideshow,
+                onToggleShuffle = actions.onToggleShuffle,
+                onToggleScaleMode = actions.onToggleScaleMode,
+                modifier = Modifier.align(Alignment.BottomCenter)
             )
-            
-            // Navigation info
-            if (uiState.totalCount > 1) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    // The arrows stay outside the resource: they are decoration, and a translator
-                    // handed "← Prev" has to guess whether the glyph is part of the word.
-                    Text(
-                        text = "← " + stringResource(R.string.previous),
-                        style = MaterialTheme.typography.caption3,
-                        color = Color.Gray
-                    )
-                    Text(
-                        text = uiState.positionText,
-                        style = MaterialTheme.typography.caption3,
-                        color = Color.White
-                    )
-                    Text(
-                        text = stringResource(R.string.next) + " →",
-                        style = MaterialTheme.typography.caption3,
-                        color = Color.Gray
-                    )
-                }
-            }
-            
-            // Slideshow indicator
-            if (uiState.isSlideshowActive) {
-                Text(
-                    text = "▶ " + stringResource(R.string.slideshow_active),
-                    style = MaterialTheme.typography.caption3,
-                    color = Color.Green,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
-            }
+        }
+    }
+}
 
-            // Favorite toggle button
-            RectangularButton(
-                onClick = onToggleFavorite,
-                // Wear OS asks for a 48.dp press target; this button was drawn at 32.dp, and this
-                // module has no Material dependency offering a target larger than the button.
-                modifier = Modifier
-                    .size(48.dp)
-                    .padding(top = 4.dp),
-                colors = if (isFavorite) ButtonDefaults.primaryButtonColors() else ButtonDefaults.secondaryButtonColors()
+/**
+ * The bottom panel of the image viewer: name, position, slideshow state and the commands.
+ *
+ * Extracted from the content composable in S2006 - once the panel became conditional the caller
+ * crossed detekt's LongMethod ceiling, and a panel that can be hidden is its own thing anyway.
+ */
+@Composable
+private fun ImageBottomPanel(
+    uiState: ImageViewerUiState,
+    isFavorite: Boolean,
+    onToggleFavorite: () -> Unit,
+    onToggleSlideshow: () -> Unit,
+    onToggleShuffle: () -> Unit,
+    onToggleScaleMode: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val favoriteDesc = stringResource(R.string.wear_toggle_favorite)
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(Color.Black.copy(alpha = OVERLAY_SCRIM_ALPHA))
+            // The scrim stays full-bleed; only its content is inset, so the labels at the ends
+            // of the row keep clear of the curve at the bottom of a round screen.
+            .padding(wearScreenInsets()),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // File name
+        Text(
+            text = uiState.mediaFile?.name ?: "",
+            style = MaterialTheme.typography.caption2,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            color = Color.White
+        )
+
+        // Navigation info
+        if (uiState.totalCount > 1) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                // The arrows stay outside the resource: they are decoration, and a translator
+                // handed "← Prev" has to guess whether the glyph is part of the word.
                 Text(
-                    text = if (isFavorite) "❤️" else "🤍",
+                    text = "← " + stringResource(R.string.previous),
                     style = MaterialTheme.typography.caption3,
-                    modifier = Modifier.semantics { contentDescription = favoriteDesc }
+                    color = Color.Gray
+                )
+                Text(
+                    text = uiState.positionText,
+                    style = MaterialTheme.typography.caption3,
+                    color = Color.White
+                )
+                Text(
+                    text = stringResource(R.string.next) + " →",
+                    style = MaterialTheme.typography.caption3,
+                    color = Color.Gray
                 )
             }
         }
+
+        // Slideshow indicator
+        if (uiState.isSlideshowActive) {
+            Text(
+                text = "▶ " + stringResource(R.string.slideshow_active),
+                style = MaterialTheme.typography.caption3,
+                color = Color.Green,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+        }
+
+        ImageCommandRow(
+            uiState = uiState,
+            onToggleSlideshow = onToggleSlideshow,
+            onToggleShuffle = onToggleShuffle,
+            onToggleScaleMode = onToggleScaleMode
+        )
+
+        PlayerCommandButton(
+            onClick = onToggleFavorite,
+            icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+            contentDescription = favoriteDesc,
+            modifier = Modifier.padding(top = FAVORITE_ROW_TOP_PADDING),
+            checked = isFavorite
+        )
+    }
+}
+
+/** The image viewer's own command row: slideshow, traversal order and fit, in that order. */
+@Composable
+private fun ImageCommandRow(
+    uiState: ImageViewerUiState,
+    onToggleSlideshow: () -> Unit,
+    onToggleShuffle: () -> Unit,
+    onToggleScaleMode: () -> Unit
+) {
+    val slideshowDesc = stringResource(
+        if (uiState.isSlideshowActive) R.string.wear_slideshow_stop else R.string.wear_slideshow_start
+    )
+    val shuffleDesc = stringResource(
+        if (uiState.isShuffleEnabled) R.string.wear_shuffle_on else R.string.wear_shuffle_off
+    )
+    // The same two glyphs the video player uses for the same choice, mapped the same way round.
+    val scaleIcon = if (uiState.scaleMode == VideoScaleMode.CROP_PAN) {
+        Icons.Filled.AspectRatio
+    } else {
+        Icons.Filled.CropFree
+    }
+
+    Row(
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        PlayerCommandButton(
+            onClick = onToggleSlideshow,
+            icon = if (uiState.isSlideshowActive) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+            contentDescription = slideshowDesc,
+            checked = uiState.isSlideshowActive
+        )
+
+        PlayerCommandButton(
+            onClick = onToggleShuffle,
+            // Shape as well as tint - the accessibility constraint asks for two signals.
+            icon = if (uiState.isShuffleEnabled) {
+                Icons.Filled.Shuffle
+            } else {
+                Icons.AutoMirrored.Filled.ArrowForward
+            },
+            contentDescription = shuffleDesc,
+            checked = uiState.isShuffleEnabled
+        )
+
+        PlayerCommandButton(
+            onClick = onToggleScaleMode,
+            icon = scaleIcon,
+            contentDescription = stringResource(R.string.wear_scale_mode),
+            checked = uiState.scaleMode == VideoScaleMode.CROP_PAN
+        )
     }
 }
 
@@ -246,9 +356,11 @@ private fun ErrorContent(message: String) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "⚠️",
-            style = MaterialTheme.typography.display2
+        Icon(
+            imageVector = Icons.Filled.Warning,
+            contentDescription = message,
+            tint = MaterialTheme.colors.error,
+            modifier = Modifier.size(ERROR_GLYPH_SIZE)
         )
         Text(
             text = message,

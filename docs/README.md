@@ -255,6 +255,8 @@ Detailed guides are available in multiple languages:
 
 - [Product History](PRODUCT_HISTORY.md)
 - [How-To Guides](HOW_TO.md)
+- [Launcher Web Portal](launcher/index.md)
+- [Wear OS Web Portal](wear/index.md)
 - [Quick Start](QUICK_START.md)
 - [FAQ](FAQ.md)
 - [Troubleshooting](TROUBLESHOOTING.md)
@@ -292,17 +294,17 @@ Detailed guides are available in multiple languages:
 
 ## Wear OS Companion ⌚
 
-FastMediaSorter includes a Wear OS companion app designed for quick access on smartwatch form factors.
+FastMediaSorter includes a full-featured Wear OS standalone app and phone companion designed for smartwatch form factors.
 
-- Browse and play local media directly on Wear OS devices
-- UI and runtime behavior optimized for small circular/compact screens
-- Dedicated setup, build, and troubleshooting documentation for watch workflows
+- Browse and play local, cloud, and network (SMB/SFTP) media directly on Wear OS devices
+- UI and runtime behavior optimized for round and compact displays
+- Dedicated web portal, setup guides, and troubleshooting for watch workflows
 
-Wear OS docs:
+Wear OS documentation:
 
-- [Wear OS Quick Start](WEAR_OS_QUICK_START.md)
-- [Wear OS Setup](WEAR_OS_SETUP.md)
-- [Wear OS Status](WEAR_OS_STATUS.md)
+- 🌟 **[Wear OS Web Portal](wear/index.md)** - Complete feature showcase, screenshots, and app store downloads
+- [Wear OS Quick Start](WEAR_OS_QUICK_START.md) - Step-by-step pairing and setup guide
+- [Wear OS Setup](WEAR_OS_SETUP.md) - Module architecture and companion bridge configuration
 - [Wear OS section in Features](FEATURES.md#16-settings--navigation)
 
 ## Build Instructions
@@ -332,9 +334,9 @@ Wear OS docs:
 
 ```powershell
 .\build-debug.PS1
-.\gradlew.bat assembleStandardDebug
+.\gradlew.bat :app_v2:assembleStandardDebug
 .\gradlew.bat testStandardDebugUnitTest
-.\gradlew.bat lintStandardDebug
+.\gradlew.bat :app_v2:lintStandardDebug
 ```
 
 ### Built APKs 📦

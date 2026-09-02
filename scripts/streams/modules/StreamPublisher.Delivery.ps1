@@ -242,7 +242,55 @@ function Invoke-PublishCatalog {
     Write-Host ("Published stream-catalog.zip -> {0} ({1} rows, {2:N1} KB, {3})." -f $Tag, $rowCount, $zipKb, $bundleNote) -ForegroundColor Green
 }
 
+function Normalize-CatalogFacetRows {
+    param([object[]]$Rows)
+    $moves = @{}
+    $normalizers = @(
+        @{ facet = 'category'; apply = { param($value) Get-CanonicalCategory -Category $value } },
+        @{ facet = 'topic'; apply = { param($value) Get-CanonicalTopic -topic $value } },
+        @{ facet = 'language'; apply = { param($value) Get-CanonicalLanguages -Languages $value } },
+        @{ facet = 'country'; apply = { param($value) Get-CanonicalCountry -Country $value } }
+    )
+    foreach ($row in $Rows) {
+        foreach ($normalizer in $normalizers) {
+            $facet = [string]$normalizer.facet
+            $old = [string]$row.$facet
+            $new = [string](& $normalizer.apply $old)
+            if ($old -eq $new) { continue }
+            $key = "{0}`u{001F}{1}`u{001F}{2}" -f $facet, $old, $new
+            $moves[$key] = 1 + $(if ($moves.ContainsKey($key)) { $moves[$key] } else { 0 })
+            $row.$facet = $new
+        }
+    }
+    $moveRows = @($moves.GetEnumerator() | ForEach-Object {
+            $parts = $_.Key -split "`u{001F}", 3
+            [pscustomobject]@{ facet = $parts[0]; from = $parts[1]; to = $parts[2]; rows = $_.Value }
+        } | Sort-Object facet, rows -Descending)
+    [pscustomobject]@{ Rows = $Rows; Moves = $moveRows }
+}
+
 function Invoke-PublisherModeDispatch {
+if ($NormalizeFacets) {
+    if (-not (Test-Path $ExistingCsv)) { throw "Catalog CSV not found: $ExistingCsv" }
+    $facetRows = @(Import-Csv -Path $ExistingCsv)
+    $result = Normalize-CatalogFacetRows -Rows $facetRows
+    $mapReport = Join-Path $OutDir 'facet-normalization-moves.csv'
+    Write-CsvUtf8 -Rows $result.Moves -Path $mapReport -Columns @('facet', 'from', 'to', 'rows')
+    foreach ($facet in @('category', 'topic', 'language', 'country')) {
+        $moved = @($result.Moves | Where-Object { $_.facet -eq $facet } | Measure-Object -Property rows -Sum).Sum
+        Write-Host ("Facets: {0} move(s) in {1}." -f ($moved ?? 0), $facet) -ForegroundColor DarkGray
+    }
+    $stamp = (Get-Date).ToString('yyyyMMdd-HHmmss')
+    $backup = Join-Path $OutDir ("streams.csv.{0}.bak" -f $stamp)
+    Copy-Item -LiteralPath $ExistingCsv -Destination $backup -Force
+    if (-not (Test-Path -LiteralPath $backup)) { throw "Facet-normalization backup failed: $backup" }
+    Write-CsvUtf8 -Rows $result.Rows -Path $ExistingCsv -Columns $Schema
+    Write-Host ("Facets: rewrote {0}; moves -> {1}; backup -> {2}" -f $ExistingCsv, $mapReport, $backup) `
+        -ForegroundColor Green
+    if ($Publish) { Invoke-PublishCatalog }
+    return $true
+}
+
 # S1477: rubric normalisation is its own mode - it rewrites a shipped CSV column, so it must not ride
 # along with discovery, maintenance or an artwork pass. The before/after histogram is printed so the
 # fold can be reviewed before -Publish sends it to every user.

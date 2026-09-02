@@ -22,12 +22,12 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.github.chrisbanes.photoview.OnSingleFlingListener
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.share.SharePrintHost
 import com.sza.fastmediasorter.core.ui.BaseActivity
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.databinding.ActivityStandaloneDocumentBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -109,10 +109,14 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
     // the network collaborators it only forwarded - now live behind the factory, which builds each
     // manager itself. The host names no data-layer type of its own (Rule 3).
     @Inject lateinit var standaloneHostFactory: StandaloneHostFactory
+
     // S0473: usage-statistics sink, forwarded into the standalone PdfViewerManager.
     @Inject lateinit var statsSink: com.sza.fastmediasorter.domain.stats.StatsSink
+
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
+
     @Inject lateinit var capabilityAvailability: CapabilityAvailability
+
     @Inject lateinit var mediaCapabilities: MediaCapabilities
 
     // S0393 U4/U5: keyboard / D-pad handler (pdf/epub keys + paging).
@@ -134,13 +138,17 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             context = this,
             callback = object : TranslationManager.TranslationCallback {
                 override fun showError(message: String) = showToastError(message)
+
                 // S0393 wave-C: real download prompt so first-use translation doesn't silently no-op.
                 override fun showModelDownloadPrompt(
                     languageName: String,
                     onConfirm: () -> Unit,
                     onCancel: () -> Unit
                 ) {
-                    if (isFinishing || isDestroyed) { onCancel(); return }
+                    if (isFinishing || isDestroyed) {
+                        onCancel()
+                        return
+                    }
                     com.google.android.material.dialog.MaterialAlertDialogBuilder(this@DocumentStandaloneActivity)
                         .setTitle(R.string.download_translation_model_title)
                         .setMessage(getString(R.string.download_translation_model_message, languageName))
@@ -182,7 +190,9 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             callback = object : com.sza.fastmediasorter.ui.player.DestinationButtonsManager.DestinationButtonsCallback {
                 override fun onCopyClicked(destination: MediaResource) = fileOperations.copyCurrentFileTo(destination)
                 override fun onMoveClicked(destination: MediaResource) = fileOperations.moveCurrentFileTo(destination)
-                override fun onCustomPathPickerRequested(operationType: com.sza.fastmediasorter.domain.model.FileOperationType) {
+                override fun onCustomPathPickerRequested(
+                    operationType: com.sza.fastmediasorter.domain.model.FileOperationType
+                ) {
                     pendingCustomPathOp = operationType
                     customPathPickerLauncher.launch(null)
                 }
@@ -228,6 +238,7 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             coroutineScope = lifecycleScope,
             callback = object : PdfViewerManager.PdfViewerCallback {
                 override fun showError(message: String) = showToastError(message)
+
                 // S0393 wave-C: show extracted page text in a scrollable, copyable dialog.
                 override fun displayOcrText(text: String) {
                     com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog.show(
@@ -336,6 +347,7 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
 
     override val printHostActivity: AppCompatActivity get() = this
     override val printNetworkFileManager: NetworkFileManager get() = networkFileManager
+
     // Print the rendered Office document only when the internal viewer was actually built (noLegal
     // internal render path); market external-handoff never creates it, so there is nothing to print.
     override fun printOfficeDocument(): Boolean =
@@ -401,13 +413,19 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
 
     override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent?): Boolean {
         if (::keyboardHandler.isInitialized &&
-            keyboardHandler.handleKeyDown(keyCode, event)) return true
+            keyboardHandler.handleKeyDown(keyCode, event)
+        ) {
+            return true
+        }
         return super.onKeyDown(keyCode, event)
     }
 
     override fun dispatchGenericMotionEvent(event: android.view.MotionEvent): Boolean {
         if (::keyboardHandler.isInitialized &&
-            keyboardHandler.handlePointerEvent(window.decorView, event)) return true
+            keyboardHandler.handlePointerEvent(window.decorView, event)
+        ) {
+            return true
+        }
         return super.dispatchGenericMotionEvent(event)
     }
 
@@ -426,7 +444,8 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
         }
         return if (documentCallback != null && callback != null) {
             super.startActionMode(
-                DocumentSelectionActionModeAugmentingCallback(callback, documentCallback), type
+                DocumentSelectionActionModeAugmentingCallback(callback, documentCallback),
+                type
             )
         } else {
             super.startActionMode(callback, type)
@@ -505,18 +524,32 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
     }
 
     private fun setupBackPressHandler() {
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                // Exit document fullscreen first; only then leave the activity.
-                when {
-                    resolvedType == MediaType.PDF && pdfViewerManager.isInFullscreenMode() ->
-                        pdfViewerManager.exitFullscreenMode()
-                    resolvedType == MediaType.EPUB && epubViewerManager.isInFullscreenMode() ->
-                        epubViewerManager.exitFullscreenMode()
-                    else -> finish()
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    // Exit document fullscreen first; only then leave the activity.
+                    when {
+                        resolvedType == MediaType.PDF && pdfViewerManager.isInFullscreenMode() ->
+                            pdfViewerManager.exitFullscreenMode()
+                        resolvedType == MediaType.EPUB && epubViewerManager.isInFullscreenMode() ->
+                            epubViewerManager.exitFullscreenMode()
+                        else -> {
+                            if (isTaskRoot) {
+                                val intent = Intent(
+                                    this@DocumentStandaloneActivity,
+                                    com.sza.fastmediasorter.ui.main.MainActivity::class.java
+                                ).apply {
+                                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                                }
+                                startActivity(intent)
+                            }
+                            finish()
+                        }
+                    }
                 }
             }
-        })
+        )
     }
 
     private fun setupFileOperationButtons() {
@@ -544,16 +577,21 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             // S1364: hiding menu_edit_section_standalone removes its children with it, so the editing
             // ids are no longer listed individually. That also retires menu_rotate_content_standalone
             // on this host, which rendered but had no branch in the when below - a dead tap.
-            listOf(R.id.menu_edit_section_standalone,
+            listOf(
+                R.id.menu_edit_section_standalone,
                 R.id.menu_rename_standalone, R.id.menu_autorotate_standalone,
                 R.id.menu_black_screen, R.id.menu_google_lens, R.id.menu_youtube_music, R.id.menu_ocr_image,
                 R.id.menu_translate_image, R.id.menu_image_text_settings,
                 R.id.menu_print, R.id.menu_save_frame,
-                R.id.menu_sleep_timer, R.id.menu_lyrics, R.id.menu_playback_speed)
+                R.id.menu_sleep_timer, R.id.menu_lyrics, R.id.menu_playback_speed
+            )
                 .forEach { popup.menu.findItem(it)?.isVisible = false }
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
-                    R.id.menu_open_in_fms -> { fileOperations.openInFms(); true }
+                    R.id.menu_open_in_fms -> {
+                        fileOperations.openInFms()
+                        true
+                    }
                     else -> false
                 }
             }
@@ -758,7 +796,7 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
                 val started = officeViewerHost.open(mediaFile, preparedFile)
                 if (!started) openOfficeExternally(mediaFile)
             } catch (e: Exception) {
-                Timber.e(e, "DocumentStandalone: failed to render Office document internally")
+                e.errorUnlessCancellation("DocumentStandalone: failed to render Office document internally")
                 openOfficeExternally(mediaFile)
             }
         }
@@ -775,7 +813,7 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
                 )
                 if (!opened) showToastError(getString(R.string.no_app_to_open))
             } catch (e: Exception) {
-                Timber.e(e, "DocumentStandalone: failed to open Office document externally")
+                e.errorUnlessCancellation("DocumentStandalone: failed to open Office document externally")
                 showToastError(getString(R.string.error_opening_file_simple))
             }
         }

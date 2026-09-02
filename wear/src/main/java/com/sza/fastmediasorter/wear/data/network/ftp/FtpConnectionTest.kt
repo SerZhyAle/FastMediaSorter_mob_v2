@@ -32,7 +32,6 @@ class FtpConnectionTest @Inject constructor() {
             // The base path is what browsing will open, so that is what is verified - reaching the
             // server while the configured folder is missing is not a working source.
             val reachable = client.changeWorkingDirectory(path)
-            Timber.d("S1554: FTP test on ${source.server} path=$path reachable=$reachable")
             if (reachable) {
                 Result.success(true)
             } else {

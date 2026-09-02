@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S2031: the video face of a stream window cell, inflated from the cell's stub only for a channel the
+     catalog marks as video.
+
+     surface_type is a texture_view, not the default surface, for the reason
+     gadget_launcher_media_video_window.xml states: a SurfaceView punches a hole through the window and
+     would draw over the wallpaper, the resize handle and every cell the desktop scrolls past it.
+
+     The poster sits over the player and carries the channel's last frame while nothing is playing, so a
+     stopped cell is a picture rather than a black rectangle.
+
+     Orientation-neutral, so no layout-land counterpart: the launcher measures a cell exactly.
+
+     A real FrameLayout root, not <merge>: this layout is inflated from a ViewStub, and ViewStub always
+     inflates with attachToRoot=false, which <merge> cannot be inflated with - it threw InflateException
+     and took the whole launcher process down on every desktop that carried a video stream cell (S2207). -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.media3.ui.PlayerView
+        android:id="@+id/streamWindowPlayer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="true"
+        android:contentDescription="@string/play_pause"
+        android:focusable="true"
+        app:resize_mode="zoom"
+        app:surface_type="texture_view"
+        app:use_controller="false" />
+
+    <ImageView
+        android:id="@+id/streamWindowPoster"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop" />
+
+    <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
+        android:id="@+id/streamWindowPlayerTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:minHeight="28dp"
+        android:paddingStart="@dimen/margin_small"
+        android:paddingEnd="@dimen/margin_small"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
+        tools:text="City camera" />
+
+</FrameLayout>

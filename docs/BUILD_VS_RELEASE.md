@@ -2,7 +2,7 @@
 
 Source of truth for two work-process terms used across this project: **build** (RU «сборка») and **release** (RU «релиз»). They are different actions with very different cost. This document defines each, maps it to the existing tooling, and states exactly when paid GitHub Actions minutes are spent.
 
-Skills `/build` and `/skill-release` reference this file for terminology.
+Skills `/build`, `/skill-release` and `/skill-release-wear` reference this file for terminology.
 
 ---
 
@@ -49,6 +49,7 @@ Conclusion: **a test build (commit + push to a DEBUG branch) costs 0 minutes.** 
 
 - Campaign runbook: `/release [<flavor> ..]` - the full work order: assess situation, finish in-flight work + bug-fixes, run `/spec-prerelease`, evaluate, ready the docs (incl. "What's New in vXXX"), run the publish pipeline, distribute everywhere, verify. The "nothing forgotten" checklist lives here.
 - Publish pipeline: `/skill-release [<flavor> ..]` - the automated core (merge DEBUG into `main`, tag, generate release notes, build artifacts, publish to Google Play + GitHub Release + Google Drive). It is one step inside `/release`, and the only flow that spends Actions minutes. Its per-step checklist and channel matrix live in the `/skill-release` skill - this document does not duplicate them.
+- Watch publish pipeline: `/skill-release-wear` - the second release entry point, scoped to the `wear` module and the Play `wear:production` track. It runs on the watch's own cadence rather than as a step of `/release` or `/skill-release`, touches no branch and spends no Actions minutes: it resolves a version from the live Play state, runs the watch pre-release sweep, builds the watch bundle and publishes it. The phone pipeline neither builds nor publishes the watch (S2081).
 - Hotfix on `main` with zero new behavior: `/skill-fix-release` instead of a full release.
 
 ---

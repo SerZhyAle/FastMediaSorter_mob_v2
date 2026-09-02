@@ -55,6 +55,10 @@
 .PARAMETER Json
     Emit a machine-readable summary instead of console lines.
 
+.PARAMETER Reconcile
+    Permit a requested step rewrite to repair a stale INDEX.md step counter from the phase file's
+    markers first. Without this explicit switch, a counter disagreement still exits 3 untouched.
+
 .EXAMPLE
     pwsh -NoProfile -File scripts/spec_catalog/plan-tick.ps1 -Id S1596 -Phase 02 -Steps 3,4,5 -State Done
     Marks steps 02.3, 02.4 and 02.5 done in one call.
@@ -99,7 +103,9 @@ param(
 
     [string]$Log = '',
 
-    [switch]$Json
+    [switch]$Json,
+
+    [switch]$Reconcile
 )
 
 $ErrorActionPreference = 'Stop'
@@ -122,6 +128,10 @@ if (-not $planFolder) {
 }
 
 if ($PSCmdlet.ParameterSetName -eq 'Checkbox') {
+    if ($Reconcile) {
+        Write-Error 'plan-tick: -Reconcile applies only to -Steps because a checkbox has no phase-step counter.' -ErrorAction Continue
+        exit 2
+    }
     if ($State -notin @('NotDone', 'Done')) {
         Write-Error "plan-tick: -Checkbox supports -State NotDone or Done only; a GFM bullet has no '$State' form." -ErrorAction Continue
         exit 2
@@ -299,6 +309,7 @@ $doneBefore = Measure-DoneMarkers -Body $lines -MarkerMap $markerIndexByStep
 $indexFile = Join-Path $planFolder.FullName 'INDEX.md'
 $indexLines = $null
 $indexRowNumber = -1
+$reconciledIndex = $false
 if (Test-Path -LiteralPath $indexFile) {
     $indexLines = [System.IO.File]::ReadAllLines($indexFile)
     for ($i = 0; $i -lt $indexLines.Length; $i++) {
@@ -317,11 +328,15 @@ if ($indexRowNumber -ge 0) {
         $recordedDone = [int]$Matches[1]
         $recordedTotal = [int]$Matches[2]
         if ($recordedDone -ne $doneBefore -or $recordedTotal -ne $totalSteps) {
-            # Built first, then reported on one line: a Write-Error whose -ErrorAction lands on a
-            # continuation line reads to assert-exit-contract as a bare terminating call.
-            $divergence = "plan-tick: INDEX.md says phase $phaseNumber is $recorded but $($phaseFile.Name) has $doneBefore/$totalSteps - the two surfaces disagree, so nothing was written. Reconcile them first."
-            Write-Error $divergence -ErrorAction Continue
-            exit 3
+            if ($Reconcile) {
+                $reconciledIndex = $true
+            } else {
+                # Built first, then reported on one line: a Write-Error whose -ErrorAction lands on a
+                # continuation line reads to assert-exit-contract as a bare terminating call.
+                $divergence = "plan-tick: INDEX.md says phase $phaseNumber is $recorded but $($phaseFile.Name) has $doneBefore/$totalSteps - the two surfaces disagree, so nothing was written. Reconcile them first."
+                Write-Error $divergence -ErrorAction Continue
+                exit 3
+            }
         }
     }
 }
@@ -507,6 +522,7 @@ $result = [ordered]@{
     phase        = $phaseNumber
     file         = $phaseFile.Name
     state        = $State
+    reconciled   = $reconciledIndex
     steps        = @($changed | ForEach-Object { $_.step })
     changed      = $changed.Count
     doneAfter    = $doneAfter

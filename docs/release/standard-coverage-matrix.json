@@ -22,6 +22,7 @@
     { "group": "Wear companion", "coverage": "partial", "evidenceLevel": "manual-device", "note": "best-effort waiver (S0553 §3.3) - paired-watch proof only when a change touches the Wear subsystem" },
     { "group": "quick widgets + default-player integration", "coverage": "partial", "evidenceLevel": "manual-device", "note": "home-screen widgets + system default-player handoff are manual-device checks" },
     { "group": "statistics + backup/restore + settings search", "coverage": "covered", "evidenceLevel": "emulator-spine", "note": "" },
+    { "group": "database upgrade path (Room migrations)", "coverage": "covered", "evidenceLevel": "emulator-spine", "note": "S2306: /spec-prerelease step 1.4 runs the instrumented migration tests on the device (.\\a.ps1 fam), which is the same schema comparison a user's phone performs on the first launch after an update; the static half is assert-migration-schema-conformance + assert-migration-test-pairing in every closure" },
     { "group": "R8 / shrink integrity of the release artifact", "coverage": "covered", "evidenceLevel": "release-build", "note": "standard-release-smoke.ps1 on the minified APK" },
     { "group": "standard feature surface vs baseline", "coverage": "covered", "evidenceLevel": "static", "note": "standard-surface-snapshot.ps1 -CheckRegressions" },
     { "group": "VR immersive player", "coverage": "intentionally-excluded", "evidenceLevel": "static", "note": "SUPPORT_VR_PLAYER=false in standard (S0553 §5.1)" },

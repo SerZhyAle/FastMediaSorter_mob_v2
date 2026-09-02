@@ -24,7 +24,6 @@ internal class BrowseFilterDialogManager(
 ) {
     fun showFilterDialog(currentFilter: FileFilter?, allowedMediaTypes: Set<MediaType>? = null) {
         val dialogBinding = DialogFilterBinding.inflate(LayoutInflater.from(activity))
-        dialogBinding.etFilterName.setText(currentFilter?.nameContains ?: "")
 
         val allowed = allowedMediaTypes ?: MediaType.entries.toSet()
         val allTypesSelected = currentFilter?.mediaTypes == null
@@ -98,7 +97,6 @@ internal class BrowseFilterDialogManager(
             dialog.dismiss()
         }
         dialogBinding.btnApplyFilter.setOnClickListener {
-            val nameFilter = dialogBinding.etFilterName.text?.toString()?.trim()
             val minSizeText = dialogBinding.etMinSize.text?.toString()?.trim()
             val maxSizeText = dialogBinding.etMaxSize.text?.toString()?.trim()
             val selectedTypes = typeOptions
@@ -106,7 +104,7 @@ internal class BrowseFilterDialogManager(
                 .mapTo(mutableSetOf()) { it.type }
             val allAllowedSelected = selectedTypes == allowed
             val filter = FileFilter(
-                nameContains = nameFilter?.ifBlank { null },
+                nameContains = currentFilter?.nameContains,
                 minDate = minDate,
                 maxDate = maxDate,
                 minSizeMb = minSizeText?.toFloatOrNull(),

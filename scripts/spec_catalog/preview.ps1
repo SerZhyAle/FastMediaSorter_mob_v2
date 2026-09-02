@@ -129,7 +129,12 @@ if (Test-Path $folderCandidate -PathType Container) {
 }
 
 # 6. Last Audit block present?
-$lastAuditPresent = ($specText -match '(?m)^##\s+Last\s+Audit\b')
+# Read through the pattern the closing gate uses (S2298), not a literal '## Last Audit':
+# live specs number their headings, and `## 6. Last Audit` is a real spelling on disk that
+# the literal test reported as absent. The flag travels through spec-next-preflight.ps1 into
+# /spec-all step 0a-drift, where "block absent" switches an already-closed ticket into
+# review mode - so a false negative here costs a re-audit of finished work.
+$lastAuditPresent = @(Get-SpecSectionLines -Path $specPath -HeadingPattern (Get-AuditSectionHeadingPattern)).Count -gt 0
 
 # 7. Timber tag count across .kt
 $timberCount = 0

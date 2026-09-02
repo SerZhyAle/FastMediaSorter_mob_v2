@@ -4,11 +4,15 @@
     Setup PowerShell alias for 'a' command
 .DESCRIPTION
     Adds a function to PowerShell profile to enable 'a <command>' syntax
+.NOTES
+    Exit codes:
+      0  the alias was added, or one was already present in the profile.
 #>
 
 $ErrorActionPreference = "Stop"
 
-$ProjectRoot = "c:\GIT\FastMediaSorter_mob_v2"
+. "$PSScriptRoot\project-paths.ps1"
+$ProjectRoot = Get-ProjectRoot
 $ProfilePath = $PROFILE
 
 Write-Host "🔧 Setting up PowerShell alias..." -ForegroundColor Cyan

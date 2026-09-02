@@ -116,7 +116,12 @@ class LocalMediaScanner @Inject constructor(
             Timber.d("LocalMediaScanner: MediaStore query returned ${files.size} files")
             if (files.isNotEmpty()) {
                 val filtered = files.filter { file ->
-                    sizeFilter == null || file.size <= 0L || MediaTypeUtils.isFileSizeInRange(file.size, file.type, sizeFilter)
+                    val exists = !file.path.startsWith("/") || File(file.path).exists()
+                    if (!exists) {
+                        Timber.d("S2074: Filtered out non-existent MediaStore phantom file: ${file.path}")
+                        Timber.w("LocalMediaScanner: Filtered out non-existent MediaStore phantom file: ${file.path}")
+                    }
+                    exists && (sizeFilter == null || file.size <= 0L || MediaTypeUtils.isFileSizeInRange(file.size, file.type, sizeFilter))
                 }
                 if (filtered.isNotEmpty() || sizeFilter == null) {
                     onProgress?.onComplete(filtered.size, 0)
@@ -427,7 +432,6 @@ class LocalMediaScanner @Inject constructor(
 
         // Virtual resources delegate to scanFolder to produce their file list
         if (VirtualPathUtils.isVirtualPath(path)) {
-            Timber.d("S1860: listDirectoryContents virtual path='$path'")
             return@withContext scanFolder(
                 path = path,
                 supportedTypes = supportedTypes,

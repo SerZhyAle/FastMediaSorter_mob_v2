@@ -7,7 +7,7 @@
     The app's built-in "export logs" action (LogExportHelper.kt) zips every on-device
     fastmediasorter_*.log file and shares it out. When the app is tested on a remote/external
     device (not connected via adb to this machine), that share is routed through Google Drive,
-    which lands the archive in a locally synced drop folder (default C:\GD\temp).
+    which lands the archive in a locally synced drop folder (the RemoteLogs artifact sink).
 
     The archive's filename is NOT a reliable signal: it comes from the share intent's
     EXTRA_SUBJECT text (export_logs_subject string), which is locale-dependent (EN/RU/UK - the
@@ -27,7 +27,8 @@
     the full archive.
 
 .PARAMETER SourceDir
-    Drop folder to scan for the archive. Default: C:\GD\temp
+    Drop folder to scan for the archive. Defaults to the resolved RemoteLogs artifact sink
+    (override with FMS_SINK_REMOTE_LOGS).
 
 .PARAMETER DestDir
     Destination for extracted log files. Default: logs (repo-relative)
@@ -43,10 +44,11 @@
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/utils/import-remote-logs.ps1
-    Auto-detect the newest diagnostic archive in C:\GD\temp, extract new/updated sessions into logs/.
+    Auto-detect the newest diagnostic archive in the drop folder, extract new/updated
+    sessions into logs/.
 
 .EXAMPLE
-    pwsh -NoProfile -File scripts/utils/import-remote-logs.ps1 -ArchivePath "C:\GD\temp\Log export (3)" -Json
+    pwsh -NoProfile -File scripts/utils/import-remote-logs.ps1 -ArchivePath "$env:FMS_SINK_REMOTE_LOGS\Log export (3)" -Json
     Import one specific archive, bypassing auto-detection, machine-readable output.
 
 .NOTES
@@ -58,7 +60,7 @@
 #>
 [CmdletBinding()]
 param(
-    [string]$SourceDir = 'C:\GD\temp',
+    [string]$SourceDir,
     [string]$DestDir = 'logs',
     [string]$ArchivePath,
     [int]$MaxCandidates = 25,
@@ -165,8 +167,13 @@ if ($ArchivePath) {
         Fail 2 "ArchivePath is not a readable zip with .log entries: $ArchivePath"
     }
 } else {
-    if (-not (Test-Path -LiteralPath $SourceDir -PathType Container)) {
-        Fail 1 "SourceDir not found: $SourceDir"
+    if (-not $SourceDir) {
+        . "$PSScriptRoot\project-paths.ps1"
+        $SourceDir = Get-ArtifactSink -Kind RemoteLogs -Quiet
+    }
+    if (-not $SourceDir -or -not (Test-Path -LiteralPath $SourceDir -PathType Container)) {
+        Fail 1 ("SourceDir not found: " +
+            $(if ($SourceDir) { $SourceDir } else { 'the RemoteLogs sink (set FMS_SINK_REMOTE_LOGS)' }))
     }
     $candidates = Get-ChildItem -LiteralPath $SourceDir -File -ErrorAction SilentlyContinue |
         Sort-Object LastWriteTime -Descending |

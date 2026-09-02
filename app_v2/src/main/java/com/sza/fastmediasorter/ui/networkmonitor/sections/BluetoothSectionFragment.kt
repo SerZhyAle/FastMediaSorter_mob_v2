@@ -10,12 +10,14 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.databinding.FragmentNetworkMonitorBluetoothBinding
 import com.sza.fastmediasorter.domain.model.networkmonitor.BluetoothDeviceEntry
 import com.sza.fastmediasorter.domain.model.networkmonitor.MonitorSection
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.NetworkMonitorPermissionManager
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.RadioToggleBinder
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.SignalChartBinder
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.startSystemSurfaceFor
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.toReasonRes
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -72,6 +74,9 @@ class BluetoothSectionFragment : Fragment() {
             onResetRequested = viewModel::onChartResetRequested,
         )
         binding.bluetoothChart.chartHeading.setText(R.string.network_monitor_bluetooth_signal_heading)
+        binding.bluetoothSectionHeading.setOnClickListener {
+            requireContext().startSystemSurfaceFor(OsShortcutCatalog.KEY_BLUETOOTH)
+        }
         binding.bluetoothDevicePicker.setOnItemClickListener { _, _, position, _ ->
             viewModel.onDeviceSelected(pickerDevices.getOrNull(position)?.address)
         }

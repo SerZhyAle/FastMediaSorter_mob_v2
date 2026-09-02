@@ -146,6 +146,100 @@ Assert-That 'green run runs once' `
 ($result.Attempts -eq 1 -and $result.ExitCode -eq 0) `
 "attempts=$($result.Attempts) exit=$($result.ExitCode)"
 
+# --- stale Kotlin incremental state (S2127) ----------------------------------------------------
+# Verbatim from temp/check_fast_20260827_110848.log. The file named is a src/main consumer nobody
+# edited; the class it cannot see had just moved into a flavor source set. Everything about this
+# output reads as a source defect, which is exactly why it needs a signature of its own.
+$staleIncrementalOutput = @(
+    '> Task :app_v2:compileNoLegalDebugKotlin',
+    ("e: file:///P:/ANDROID/FastMediaSorter_mob_v2/app_v2/src/main/java/com/sza/fastmediasorter/ui/" +
+        "browse/managers/BrowseManagerInitializer.kt:118:53 Cannot access class 'ReviewRequestManager'. " +
+        'Check your module classpath for missing or conflicting dependencies.'),
+    "e: BrowseManagerInitializer.kt:390:42 Unresolved reference 'onSortOperationSuccess'.",
+    '> Task :app_v2:compileNoLegalDebugKotlin FAILED',
+    'BUILD FAILED in 1m 6s'
+)
+
+# A real compile error. It shares the "Unresolved reference" line with the fixture above and carries
+# none of the classpath sentence - the discrimination this whole feature rests on.
+$redCompileOutput = @(
+    "e: BrowseFileOperationsManager.kt:88:31 Unresolved reference 'renameSelectedFile'.",
+    '> Task :app_v2:compileStandardDebugKotlin FAILED',
+    'BUILD FAILED in 21s'
+)
+
+Assert-That 'detects the stale-incremental-state signature' `
+(Test-KotlinStaleIncrementalState -Lines $staleIncrementalOutput) 'signature not recognised'
+
+Assert-That 'spares a genuine compile error' `
+(-not (Test-KotlinStaleIncrementalState -Lines $redCompileOutput)) `
+'an ordinary unresolved reference was read as stale incremental state'
+
+Assert-That 'spares a green run' `
+(-not (Test-KotlinStaleIncrementalState -Lines $greenOutput)) 'a passing run was read as stale state'
+
+Assert-That 'spares a dead worker' `
+(-not (Test-KotlinStaleIncrementalState -Lines $deathOutput)) 'a dead worker was read as stale state'
+
+foreach ($shape in @(
+        @{ Name = 'single blank line'; Value = @('') },
+        @{ Name = 'null output'; Value = $null }
+    )) {
+    $threw = $false
+    try { $null = Test-KotlinStaleIncrementalState -Lines $shape.Value } catch { $threw = $true }
+    Assert-That "stale-state detector binds $($shape.Name) without throwing" (-not $threw) 'binding threw'
+}
+
+# The common case: clearing the state fixes it, so the run must end green having repaired exactly once.
+$repairCalls = 0
+$result = Invoke-GradleRunWithRetry -RunOnce {
+    param([int]$Attempt)
+    if ($Attempt -eq 1) { return [pscustomobject]@{ ExitCode = 1; Lines = $staleIncrementalOutput } }
+    return [pscustomobject]@{ ExitCode = 0; Lines = $greenOutput }
+} -MaxAttempts 2 -RepairStaleIncrementalState { $script:repairCalls++ }
+
+Assert-That 'stale state is repaired once and the retry succeeds' `
+($result.ExitCode -eq 0 -and $result.Attempts -eq 2 -and $repairCalls -eq 1 -and $result.StaleIncrementalState) `
+"exit=$($result.ExitCode) attempts=$($result.Attempts) repairs=$repairCalls"
+
+# A genuinely missing dependency looks identical on attempt 1 and survives the repair. It costs one
+# extra compile and then reports its own verdict - it must never be repaired twice or hidden.
+$repairCalls = 0
+$result = Invoke-GradleRunWithRetry -RunOnce {
+    param([int]$Attempt)
+    return [pscustomobject]@{ ExitCode = 1; Lines = $staleIncrementalOutput }
+} -MaxAttempts 2 -RepairStaleIncrementalState { $script:repairCalls++ }
+
+Assert-That 'a failure surviving the repair keeps its own verdict' `
+($result.ExitCode -eq 1 -and $result.Attempts -eq 2 -and $repairCalls -eq 1) `
+"exit=$($result.ExitCode) attempts=$($result.Attempts) repairs=$repairCalls"
+
+# A red compile must not be repaired at all - the repair costs a full non-incremental rebuild.
+$repairCalls = 0
+$result = Invoke-GradleRunWithRetry -RunOnce {
+    param([int]$Attempt)
+    return [pscustomobject]@{ ExitCode = 1; Lines = $redCompileOutput }
+} -MaxAttempts 2 -RepairStaleIncrementalState { $script:repairCalls++ }
+
+Assert-That 'a red compile is neither repaired nor retried' `
+($result.Attempts -eq 1 -and $repairCalls -eq 0 -and -not $result.StaleIncrementalState) `
+"attempts=$($result.Attempts) repairs=$repairCalls"
+
+# Without the block the old behaviour must be untouched: one attempt, no repair, verdict passed through.
+$result = Invoke-GradleRunWithRetry -RunOnce {
+    param([int]$Attempt)
+    return [pscustomobject]@{ ExitCode = 1; Lines = $staleIncrementalOutput }
+} -MaxAttempts 2
+
+Assert-That 'no repair block means the previous behaviour is unchanged' `
+($result.Attempts -eq 1 -and $result.ExitCode -eq 1 -and -not $result.StaleIncrementalState) `
+"attempts=$($result.Attempts) exit=$($result.ExitCode)"
+
+# The repair is a flag, not a deletion, so it cannot be defeated by a daemon holding a file handle.
+$repairArgs = @(Get-KotlinStaleIncrementalRepairArgs)
+Assert-That 'the repair turns incremental compilation off for the retry' `
+($repairArgs -contains '-Pkotlin.incremental=false') "args=$($repairArgs -join ' ')"
+
 # --- JUnit report outcome (S1464) --------------------------------------------------------------
 # Existence is not execution. Each fixture below is a report a gate might be handed; only one of them
 # licenses the claim "the thing under test is wrong".

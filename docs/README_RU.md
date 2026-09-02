@@ -302,6 +302,8 @@ FastMediaSorter v2 поддерживает широкий спектр форм
 
 - [История продукта](PRODUCT_HISTORY_RU.md)
 - [Руководства](HOW_TO_RU.md)
+- [Веб-портал Лаунчера](launcher/index-ru.md)
+- [Веб-портал Wear OS](wear/index-ru.md)
 - [Быстрый Старт](QUICK_START_RU.md)
 - [FAQ](FAQ_RU.md)
 - [Устранение неполадок](TROUBLESHOOTING_RU.md)
@@ -339,17 +341,18 @@ FastMediaSorter v2 поддерживает широкий спектр форм
 
 ## Wear OS Companion ⌚
 
-FastMediaSorter включает companion-приложение для Wear OS, оптимизированное под сценарии использования на смарт-часах.
+Компаньон Wear OS давно перерос простой просмотр локальных файлов - теперь это полноценный второй экран для вашей библиотеки.
 
-- Просмотр и воспроизведение локального медиа прямо на Wear OS-устройствах
-- UI и поведение рантайма оптимизированы под компактные экраны круглой формы
-- Отдельная документация по установке, сборке и отладке Wear-сценариев
+- Просмотр и воспроизведение папок и избранного с сопряжённого телефона или собственного хранилища часов прямо на Wear OS устройствах
+- Пересылка файлов между телефоном и часами, живые трансляции прямо с часов и мелкие встроенные инструменты (калькулятор, монитор сети, мини-игра) без открытия приложения на телефоне
+- Интерфейс и поведение оптимизированы под компактные круглые экраны
+- Отдельный веб-портал, пошаговые инструкции и документация
 
 Документация Wear OS:
 
-- [Wear OS Quick Start](WEAR_OS_QUICK_START.md)
-- [Wear OS Setup](WEAR_OS_SETUP.md)
-- [Wear OS Status](WEAR_OS_STATUS.md)
+- 🌟 **[Веб-портал Wear OS](wear/index-ru.md)** - Полный обзор фичей, скриншоты и ссылки на магазины
+- [Wear OS Quick Start](WEAR_OS_QUICK_START.md) - Руководство по привязке и первичной настройке
+- [Wear OS Setup](WEAR_OS_SETUP.md) - Архитектура модуля и синхронизация с телефоном
 - [Раздел Wear OS в FEATURES](FEATURES.md#16-settings--navigation)
 
 ## Инструкция по сборке
@@ -383,9 +386,9 @@ FastMediaSorter включает companion-приложение для Wear OS, 
 
 ```powershell
 .\build-debug.PS1
-.\gradlew.bat assembleStandardDebug
+.\gradlew.bat :app_v2:assembleStandardDebug
 .\gradlew.bat testStandardDebugUnitTest
-.\gradlew.bat lintStandardDebug
+.\gradlew.bat :app_v2:lintStandardDebug
 ```
 
 ## Тестирование 🧪

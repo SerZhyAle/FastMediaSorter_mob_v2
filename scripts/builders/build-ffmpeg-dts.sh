@@ -14,6 +14,19 @@
 
 set -euo pipefail
 
+# ── Project mount path ────────────────────────────────────────────────────────
+# Where this repository is visible from inside WSL/Linux. Supplied as the first argument by
+# scripts/builders/build-ffmpeg-dts-wsl.ps1, which resolves it from the live project root; the
+# FMS_PROJECT_MOUNT variable is the hand-run fallback. Keeping a literal copy here would let this
+# script and its launcher disagree the first time the tree moves (S2326 step 04.4).
+PROJECT_MOUNT="${1:-${FMS_PROJECT_MOUNT:-}}"
+if [[ -z "$PROJECT_MOUNT" ]]; then
+    echo "ERROR: project mount path not supplied."
+    echo "  Pass it as the first argument, or export FMS_PROJECT_MOUNT=/mnt/<drive>/<path-to-repo>."
+    echo "  Normally you run the launcher instead: scripts\\builders\\build-ffmpeg-dts-wsl.ps1"
+    exit 1
+fi
+
 # ── Configuration ─────────────────────────────────────────────────────────────
 # NDK Linux toolchain - expected at ~/android-ndk-r27c (prepared by temp/wsl2-phase1-setup.sh).
 # r27c is the first NDK to ship 16 KB-aligned libc++_shared.so - required for Android 15+.
@@ -379,13 +392,13 @@ package_aar() {
     # Fallback to an already-built fms-ffmpeg-dts.aar from the project tree (or backups).
     # Both contain classes.jar extracted from media3-decoder-ffmpeg-1.2.1.aar, so bytecode matches.
     if [[ -z "$prebuilt_aar" ]]; then
-        local project_aar="/mnt/p/ANDROID/FastMediaSorter_mob_v2/app_v2/libs/fms-ffmpeg-dts.aar"
+        local project_aar="${PROJECT_MOUNT}/app_v2/libs/fms-ffmpeg-dts.aar"
         [[ -f "$project_aar" ]] && prebuilt_aar="$project_aar"
     fi
     if [[ -z "$prebuilt_aar" ]]; then
         # Pick the most recent backup in temp/ matching the naming convention.
         local backup_aar
-        backup_aar=$(ls -t /mnt/p/ANDROID/FastMediaSorter_mob_v2/temp/fms-ffmpeg-dts_*.aar 2>/dev/null | head -1)
+        backup_aar=$(ls -t "${PROJECT_MOUNT}"/temp/fms-ffmpeg-dts_*.aar 2>/dev/null | head -1)
         [[ -n "$backup_aar" ]] && prebuilt_aar="$backup_aar"
     fi
     if [[ -z "$prebuilt_aar" ]]; then

@@ -27,8 +27,10 @@ class CameraProfileApplyManagerTest {
         override fun setBokeh(enabled: Boolean) { calls += "bokeh=$enabled" }
         override fun setSport(enabled: Boolean) { calls += "sport=$enabled" }
         override fun setMacro(enabled: Boolean) { calls += "macro=$enabled" }
+        override fun setTorch(enabled: Boolean) { calls += "torch=$enabled" }
         override fun switchToFrontLens() { calls += "frontLens" }
         override fun switchToMainBackLens() { calls += "backLens" }
+        override fun resetZoomTo1x() { calls += "resetZoom1x" }
     }
 
     private val actions = RecordingActions()
@@ -51,6 +53,27 @@ class CameraProfileApplyManagerTest {
     fun `starts on normal`() {
         assertEquals(PhotoProfile.NORMAL, manager.activeProfile)
         assertTrue(actions.calls.isEmpty())
+    }
+
+    @Test
+    fun `applying document switches to back lens, resets zoom to 1x and enables torch`() {
+        manager.apply(PhotoProfile.DOCUMENT)
+
+        assertEquals(PhotoProfile.DOCUMENT, manager.activeProfile)
+        assertTrue("backLens" in actions.calls)
+        assertTrue("resetZoom1x" in actions.calls)
+        assertTrue("torch=true" in actions.calls)
+    }
+
+    @Test
+    fun `leaving document turns off torch`() {
+        manager.apply(PhotoProfile.DOCUMENT)
+        actions.calls.clear()
+
+        manager.resetToNormal("test")
+
+        assertEquals(PhotoProfile.NORMAL, manager.activeProfile)
+        assertTrue("torch=false" in actions.calls)
     }
 
     @Test

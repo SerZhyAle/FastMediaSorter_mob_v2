@@ -170,5 +170,13 @@
     <string name="welcome_role_sources_detail_cloud_only">آلے کا اسٹوریج، Google Drive، OneDrive، Dropbox</string>
     <string name="welcome_role_sources_detail_local_only">اندرونی اسٹوریج اور SD کارڈ</string>
     <string name="welcome_role_sorting_detail">ایک ہی ٹیپ سے فائل کو اس کے فولڈر میں بھیجیں</string>
-    <string name="welcome_role_more_detail">اسٹریمز، کیمرہ اور بہت کچھ - کئی ایپس کے بجائے ایک</string>
+    <string name="welcome_role_more_detail">کیمرا، ویجٹ، گیجٹ اور بہت کچھ - کئی ایپس کی جگہ ایک ہی ایپ</string>
+    <string name="welcome_description_1_shell">صرف میڈیا ایپ نہیں - آپ کے آلے کے لیے مکمل شیل۔\nہوم اسکرین، پلیئر، فائل مینیجر، اسٹریمز اور دور دراز اسٹوریج ایک ہی جگہ۔</string>
+    <string name="welcome_description_1_details_shell">FastMediaSorter پورا آلہ چلا سکتا ہے: آپ کی ایپس، ویجٹ اور شارٹ کٹ کے ساتھ ہوم اسکرین، تصاویر، ویڈیو، موسیقی اور کتابوں کا پلیئر، مقامی، نیٹ ورک اور کلاؤڈ اسٹوریج کے لیے فائل مینیجر، انٹرنیٹ اسٹریمز اور ایک Wear OS ساتھی ایپ - اور ان سب کے اوپر، ایک ٹیپ سے تیز چھانٹی۔\n\nاسے اپنی ہوم اسکرین بنانا چاہتے ہیں؟ اوپر والا سوئچ آن کریں، سیٹ اپ کے بعد سسٹم آپ سے تصدیق مانگے گا۔ اس اسکرین پر منتخب کی گئی ہر چیز بعد میں ترتیبات میں بدلی جا سکتی ہے، اس لیے یہاں کوئی غلط انتخاب نہیں - آگے بڑھنے کے لیے بس اگلا دبائیں۔</string>
+    <string name="welcome_role_home_screen">ہوم اسکرین</string>
+    <string name="welcome_role_home_screen_detail">لانچر کی جگہ آلہ چلاتا ہے - ایپس، ویجٹ اور میڈیا ہاتھ میں</string>
+    <string name="welcome_role_streams">اسٹریمز</string>
+    <string name="welcome_role_streams_detail">تیار فہرست سے انٹرنیٹ ریڈیو، ٹی وی اور ویڈیو چینلز</string>
+    <string name="welcome_role_wear">گھڑی کی ایپ</string>
+    <string name="welcome_role_wear_detail">ایک Wear OS ساتھی ایپ - براہ راست اپنی کلائی پر دیکھیں اور چلائیں</string>
 </resources>

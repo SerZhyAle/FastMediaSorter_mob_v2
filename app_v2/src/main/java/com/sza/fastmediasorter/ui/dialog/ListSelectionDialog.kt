@@ -10,6 +10,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.sza.fastmediasorter.databinding.DialogListSelectionBinding
+import com.sza.fastmediasorter.util.bindTo
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -30,6 +31,7 @@ open class ListSelectionDialog<T>(
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        bindTo(config.lifecycleOwner)
         binding = DialogListSelectionBinding.inflate(layoutInflater)
         setContentView(binding.root)
 

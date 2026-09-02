@@ -85,7 +85,8 @@ class BackupMapperTest {
     fun `scheduled op maps to backup using resource paths`() {
         val src = createMediaResource(id = 1L, path = "/src", type = ResourceType.LOCAL)
         val dst = createMediaResource(id = 2L, path = "/dst", type = ResourceType.LOCAL)
-        val op = createScheduledOperation(sourceResourceId = 1L, targetResourceId = 2L, operationType = ScheduledOpType.MOVE)
+        val op =
+            createScheduledOperation(sourceResourceId = 1L, targetResourceId = 2L, operationType = ScheduledOpType.MOVE)
 
         val backup = BackupMapper.toBackupScheduledOperation(op, mapOf(1L to src, 2L to dst))!!
 
@@ -153,9 +154,11 @@ class BackupMapperTest {
         val src = createMediaResource(id = 5L, path = "/src", type = ResourceType.LOCAL)
         val dst = createMediaResource(id = 6L, path = "/dst", type = ResourceType.LOCAL)
         val backup = BackupScheduledOperation(
-            sourceResourcePath = "/src", sourceResourceType = "LOCAL",
+            sourceResourcePath = "/src",
+            sourceResourceType = "LOCAL",
             operationType = "WUT",
-            targetResourcePath = "/dst", targetResourceType = "LOCAL",
+            targetResourcePath = "/dst",
+            targetResourceType = "LOCAL",
         )
 
         val restored = BackupMapper.toScheduledOperation(backup, mapOf("a" to src, "b" to dst))!!
@@ -169,8 +172,14 @@ class BackupMapperTest {
     fun `favorites map resource name and path via lookup`() {
         val resource = createMediaResource(id = 1L, name = "Photos", path = "/p")
         val entity = FavoritesEntity(
-            uri = "/p/a.jpg", resourceId = 1L, displayName = "a.jpg",
-            mediaType = 1, size = 10L, lastKnownPath = "/p/a.jpg", dateModified = 5L, addedTimestamp = 7L,
+            uri = "/p/a.jpg",
+            resourceId = 1L,
+            displayName = "a.jpg",
+            mediaType = 1,
+            size = 10L,
+            lastKnownPath = "/p/a.jpg",
+            dateModified = 5L,
+            addedTimestamp = 7L,
         )
 
         val backup = BackupMapper.toBackupFavorites(listOf(entity), mapOf(1L to resource)).single()
@@ -183,8 +192,13 @@ class BackupMapperTest {
     @Test
     fun `favorites missing resource get blank name and path`() {
         val entity = FavoritesEntity(
-            uri = "u", resourceId = 99L, displayName = "x",
-            mediaType = 1, size = 0L, lastKnownPath = "u", dateModified = 0L,
+            uri = "u",
+            resourceId = 99L,
+            displayName = "x",
+            mediaType = 1,
+            size = 0L,
+            lastKnownPath = "u",
+            dateModified = 0L,
         )
 
         val backup = BackupMapper.toBackupFavorites(listOf(entity), emptyMap()).single()
@@ -266,17 +280,19 @@ class BackupMapperTest {
 
     @Test
     fun `launcher settings round-trip through backup mapper`() {
-        val current = createAppSettings().copy(
-            launcherDensityFactor = 1.25f,
-            launcherTaskbarPlacement = "TOP",
-            launcherTaskbarShowRecents = false,
-            launcherWallpaperMode = "STATIC_STRIPES",
-            launcherWallpaperImagePath = "/path/to/custom_wallpaper.png",
-            launcherDesktopLocked = true,
-            allAppsSortOrder = "USAGE_COUNT",
-            allAppsSortDescending = true,
-            launcherScreenBlackoutTimeoutSeconds = 60
-        )
+        val current = createAppSettings().withLauncher {
+            copy(
+                densityFactor = 1.25f,
+                taskbarPlacement = "TOP",
+                taskbarShowRecents = false,
+                wallpaperMode = "STATIC_STRIPES",
+                wallpaperImagePath = "/path/to/custom_wallpaper.png",
+                desktopLocked = true,
+                allAppsSortOrder = "USAGE_COUNT",
+                allAppsSortDescending = true,
+                screenBlackoutTimeoutSeconds = 60,
+            )
+        }
 
         val backup = BackupMapper.toBackupSettings(current)
         val restored = BackupMapper.toAppSettings(backup, createAppSettings(), BackupPayload.CURRENT_VERSION)
@@ -290,6 +306,18 @@ class BackupMapperTest {
         assertEquals("USAGE_COUNT", restored.allAppsSortOrder)
         assertEquals(true, restored.allAppsSortDescending)
         assertEquals(60, restored.launcherScreenBlackoutTimeoutSeconds)
+    }
+
+    // S2249: pre-S2249 backups carry no launcherDesktopDoubleTapLockEnabled field, which Gson
+    // deserializes as null - the restore must keep the current value, not force the gesture off.
+    @Test
+    fun `older backup without double-tap lock field preserves the current launcher setting`() {
+        val current = createAppSettings().withLauncher { copy(desktopDoubleTapLockEnabled = true) }
+        val backup = BackupMapper.toBackupSettings(current).copy(launcherDesktopDoubleTapLockEnabled = null)
+
+        val restored = BackupMapper.toAppSettings(backup, current, BackupPayload.CURRENT_VERSION)
+
+        assertEquals(true, restored.launcherDesktopDoubleTapLockEnabled)
     }
 
     @Test
@@ -322,4 +350,3 @@ class BackupMapperTest {
         assertEquals(123456789L, restoredEntity.addedAt)
     }
 }
-

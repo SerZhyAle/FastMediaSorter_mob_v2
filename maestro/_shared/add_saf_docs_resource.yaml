@@ -1,0 +1,136 @@
+appId: com.sza.fastmediasorter.debug
+---
+# S2369: register the seeded Docs folder as a resource connected through the system picker, and
+# leave the caller on the main screen with that resource listed under "Локальные".
+#
+# Why the picker and not the "Download" quick chip: store flavors declare no all-files access
+# (S2012), so MediaProvider strips every document row from a raw-path resource before the app sees
+# the cursor - a raw-path Downloads resource can never list a .pdf, .epub or .txt, whatever the
+# flow does. The SAF branch of the scanner reads the same folder whole.
+#
+# Why FastMediaSorter_Test/Docs and not Download itself: from API 30 the platform refuses to grant
+# a tree on the Download root - the picker answers "Can't use this folder". Any subfolder is fine.
+#
+# The picker is the system's own UI and is NOT translated by the app locale prerelease-configure
+# sets: its labels follow the device language, which the sweep leaves at English. Hence the English
+# button text here beside the app's Russian.
+#
+# Idempotent: if the resource is already registered the fragment returns without touching anything,
+# so a flow may call it after another flow already ran.
+
+- runFlow: go_home.yaml
+- tapOn:
+    text: "Локальные"
+    index: 0
+# A newly registered resource lands at the END of the list, so the "already there?" test has to look
+# there too - checked from the top it reads "absent" for a resource sitting two screens down and the
+# fragment registers a second copy of the same folder.
+- scroll
+- scroll
+- scroll
+- runFlow:
+    when:
+      notVisible:
+        text: "Docs"
+    commands:
+      - tapOn:
+          id: "com.sza.fastmediasorter.debug:id/btnAddResource"
+      # AddResourceActivity keeps the last-used resource type, so it opens either on the type picker
+      # or straight on the local-folder screen. toolbarContainer exists only in this activity's
+      # layout, so it is the oracle that the screen is up before the type is judged; the card is then
+      # tapped only if it is really there. Waiting on the card unconditionally failed on a device
+      # where a previous run had already chosen "local folder".
+      - extendedWaitUntil:
+          visible:
+            id: "com.sza.fastmediasorter.debug:id/toolbarContainer"
+          timeout: 15000
+      - waitForAnimationToEnd
+      - runFlow:
+          when:
+            visible:
+              id: "com.sza.fastmediasorter.debug:id/cardLocalFolder"
+          commands:
+            - tapOn:
+                id: "com.sza.fastmediasorter.debug:id/cardLocalFolder"
+            - waitForAnimationToEnd
+      - extendedWaitUntil:
+          visible:
+            id: "com.sza.fastmediasorter.debug:id/btnAddManually"
+          timeout: 15000
+      - tapOn:
+          id: "com.sza.fastmediasorter.debug:id/btnAddManually"
+
+      # Folder-selection dialog. btnBrowseWithSAF sits below the quick-folder chips, so the sheet is
+      # scrolled before the tap - scrollUntilVisible works on the dialog's own scroll container.
+      - extendedWaitUntil:
+          visible:
+            id: "com.sza.fastmediasorter.debug:id/btnDownload"
+          timeout: 8000
+      # The button is the LAST child of the dialog's scroll container, so it can never be centred and
+      # never reaches 100% visibility - the sheet runs out of scroll under it. Asking for either
+      # failed on a screen where the button was plainly on display (measured 2026-09-02, the failure
+      # screenshot shows it fully drawn). Judge it the way a user does: mostly visible, wherever it
+      # ends up.
+      - scrollUntilVisible:
+          element:
+            id: "com.sza.fastmediasorter.debug:id/btnBrowseWithSAF"
+          timeout: 10000
+          visibilityPercentage: 60
+          centerElement: false
+      - tapOn:
+          id: "com.sza.fastmediasorter.debug:id/btnBrowseWithSAF"
+
+      # System picker: internal storage root -> Download -> FastMediaSorter_Test -> Docs.
+      - extendedWaitUntil:
+          visible:
+            id: "com.google.android.documentsui:id/dir_list"
+          timeout: 15000
+      - tapOn:
+          text: "Download"
+      - waitForAnimationToEnd
+      - tapOn:
+          text: "FastMediaSorter_Test"
+      - waitForAnimationToEnd
+      - tapOn:
+          text: "Docs"
+      # The confirm button is shown on a refused folder too, so the oracle is the refusal being gone:
+      # message_title carries "Can't use this folder", which the platform puts on Download itself.
+      - extendedWaitUntil:
+          notVisible:
+            id: "com.google.android.documentsui:id/message_title"
+          timeout: 10000
+      # The overlay wrapping the confirm button is not in the hierarchy Maestro sees - the button
+      # itself is android:id/button1, and nothing else on this screen carries that id.
+      - tapOn:
+          id: "android:id/button1"
+      # The grant dialog's ALLOW is android:id/button1 as well, so it is matched by text instead -
+      # anchored, because Maestro reads text as a regex and a bare "USE THIS FOLDER" also matches the
+      # platform's "Can't use this folder" notice.
+      - extendedWaitUntil:
+          visible:
+            text: "^ALLOW$"
+          timeout: 10000
+      - tapOn:
+          text: "^ALLOW$"
+
+      # Back in the app: the staging row carries the four documents; register it.
+      - extendedWaitUntil:
+          visible:
+            id: "com.sza.fastmediasorter.debug:id/btnAddToResources"
+          timeout: 15000
+      - tapOn:
+          id: "com.sza.fastmediasorter.debug:id/btnAddToResources"
+      - runFlow: go_home.yaml
+      - tapOn:
+          text: "Локальные"
+          index: 0
+
+# Leave the caller with the row on screen, so it can tap it without scrolling itself. Not centred and
+# not at 100%: a newly registered resource lands LAST in the list, and the list stops scrolling with
+# it at the bottom edge - the same oracle that failed on btnBrowseWithSAF above, for the same reason.
+- scrollUntilVisible:
+    element:
+      text: "Docs"
+    timeout: 15000
+    visibilityPercentage: 60
+    centerElement: false

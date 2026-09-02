@@ -10,17 +10,19 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.HttpException
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.di.memoryPressureDecodeFormatResolver
 import com.sza.fastmediasorter.core.util.MemoryTier
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import com.sza.fastmediasorter.data.repository.AudioMetadataSaveData
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
+import com.sza.fastmediasorter.di.memoryPressureDecodeFormatResolver
 import com.sza.fastmediasorter.domain.model.AudioMetadata
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -33,8 +35,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.concurrent.ConcurrentHashMap
 import timber.log.Timber
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Handles audio cover art loading for PlayerActivity:
@@ -134,7 +136,10 @@ class AudioCoverArtLoader(
                     val bitmap = if (artworkData != null) {
                         withContext(Dispatchers.IO) {
                             try { android.graphics.BitmapFactory.decodeByteArray(artworkData, 0, artworkData.size) }
-                            catch (e: Exception) { Timber.w(e, "Failed to decode ExoPlayer artworkData"); null }
+                            catch (e: Exception) {
+                                e.rethrowIfCancellation()
+                                Timber.w(e, "Failed to decode ExoPlayer artworkData"); null
+                            }
                         }
                     } else null
 
@@ -202,7 +207,7 @@ class AudioCoverArtLoader(
                         Timber.d("Cover art: file not accessible (${file.path}): ${e.message}")
                         LocalEmbeddedInfo(null, null, null)
                     } catch (e: Exception) {
-                        Timber.w(e, "Failed to extract embedded cover art")
+                        e.warnUnlessCancellation("Failed to extract embedded cover art")
                         LocalEmbeddedInfo(null, null, null)
                     } finally {
                         retriever.release()
@@ -478,7 +483,7 @@ class AudioCoverArtLoader(
                         Timber.d("pushArtworkToNotification: stale (capturedIndex=$currentIndex/$currentMediaId, current=$nowIndex/$nowMediaId) - dropped")
                     }
                 }
-            } catch (e: Exception) { Timber.w(e, "pushArtworkToNotification: failed") }
+            } catch (e: Exception) { e.warnUnlessCancellation("pushArtworkToNotification: failed") }
         }
     }
 
@@ -510,6 +515,9 @@ class AudioCoverArtLoader(
                 if (!response.isSuccessful) return@withContext null
                 response.body?.bytes()
             }
-        } catch (e: Exception) { Timber.d(e, "downloadImageBytes: failed for %s", url); null }
+        } catch (e: Exception) {
+            e.rethrowIfCancellation()
+            Timber.d(e, "downloadImageBytes: failed for %s", url); null
+        }
     }
 }

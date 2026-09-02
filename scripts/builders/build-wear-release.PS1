@@ -10,6 +10,15 @@
 #   <gradle exit> - the Gradle build itself failed
 [CmdletBinding()]
 param(
+    # Build the artifacts but publish none of them: no DOWNLOADS copy, no journal line, no Google
+    # Drive mirror. For a caller that needs the artifact in wear/build/outputs and nothing else -
+    # the pre-release run (S1984), whose job is to judge a build, not to hand it to anyone. Without
+    # this the verification run overwrites the Drive copy and the AAB publish-play-release.ps1
+    # addresses by path with an unstamped ad-hoc build, which is why that run's build branch had
+    # never once been executed. The phone sweep avoids the same trap by refusing its own
+    # distributing builder outright (scripts/devtest/prerelease-prepare.ps1, stage 2).
+    [switch] $NoDistribute,
+
     # Apk  - sideload asset for GitHub releases (the historic behaviour, still the default).
     # Aab  - the only artifact the Play Wear OS track accepts; Play refuses an APK (S1707).
     # Both - one Gradle invocation produces the pair, so the store artifact and the sideload
@@ -21,7 +30,12 @@ param(
     # a name without a code, or a code without a name, produces an artifact that disagrees with
     # the release it claims to be.
     [string] $VersionName,
-    [int] $VersionCode
+    [int] $VersionCode,
+
+    # S2090: which watch variant to build. 'standard' is what Play accepts and stays the default;
+    # 'noLegal' is the sideload variant, built on request rather than on every release (ADR-6).
+    [ValidateSet('standard', 'noLegal')]
+    [string] $Flavor = 'standard'
 )
 
 if ([string]::IsNullOrWhiteSpace($VersionName) -xor ($VersionCode -le 0)) {
@@ -39,15 +53,18 @@ $buildApk = $Artifact -in @('Apk', 'Both')
 $buildAab = $Artifact -in @('Aab', 'Both')
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
-Enter-BuildLockOrExit -Reason "build-wear-release.PS1"
+Enter-BuildLockOrExit -Reason "build-wear-release.PS1" -Domain Build.Wear
 try {
 
+# AGP capitalises the flavor inside a task name and lower-cases it inside an output path.
+$taskFlavor = $Flavor.Substring(0, 1).ToUpperInvariant() + $Flavor.Substring(1)
+
 $gradleTasks = @()
-if ($buildApk) { $gradleTasks += ':wear:assembleRelease' }
-if ($buildAab) { $gradleTasks += ':wear:bundleRelease' }
+if ($buildApk) { $gradleTasks += ":wear:assemble${taskFlavor}Release" }
+if ($buildAab) { $gradleTasks += ":wear:bundle${taskFlavor}Release" }
 
 $versionLabel = if ($versionArgs.Count -gt 0) { "$VersionName ($VersionCode)" } else { 'version as checked into wear/build.gradle.kts' }
-Write-Host "Building Wear OS release [$($gradleTasks -join ', ')] - $versionLabel.." -ForegroundColor Cyan
+Write-Host "Building Wear OS release [$Flavor] [$($gradleTasks -join ', ')] - $versionLabel.." -ForegroundColor Cyan
 
 # Start the Gradle build process
 & "$PSScriptRoot\..\..\gradlew.bat" @gradleTasks @versionArgs --configuration-cache
@@ -62,50 +79,39 @@ Write-Host "`nBuild Successful!" -ForegroundColor Green
 # Copy to DOWNLOADS folder
 $projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
 $downloadsDir = "$projectRoot\DOWNLOADS"
-if (!(Test-Path -Path $downloadsDir)) {
+if (-not $NoDistribute -and !(Test-Path -Path $downloadsDir)) {
     New-Item -ItemType Directory -Path $downloadsDir | Out-Null
 }
 
 if ($buildAab) {
     # The Play Wear OS track accepts a bundle only. Kept next to the phone AAB under the same
     # naming scheme so publish-play-release.ps1 can address either by path alone.
-    $aabDir = Join-Path $projectRoot "wear\build\outputs\bundle\release"
+    $aabDir = Join-Path $projectRoot "wear\build\outputs\bundle\$Flavor\release"
     $aab = Get-ChildItem -Path $aabDir -Filter *.aab -ErrorAction SilentlyContinue |
         Sort-Object LastWriteTime -Descending | Select-Object -First 1
     if (-not $aab) {
         Write-Host "Error: AAB not found in $aabDir" -ForegroundColor Red
         exit 1
     }
-    $aabDest = Join-Path $downloadsDir "FastMediaSorter_wear_release.aab"
-    Copy-Item -Path $aab.FullName -Destination $aabDest -Force
-    Write-Host "AAB copied to $aabDest ($([math]::Round($aab.Length / 1MB, 2)) MB)" -ForegroundColor Green
+    if ($NoDistribute) {
+        Write-Host "AAB built at $($aab.FullName) - not copied (-NoDistribute)" -ForegroundColor Yellow
+    }
+    else {
+        $aabDest = Join-Path $downloadsDir "FastMediaSorter_wear_release.aab"
+        Copy-Item -Path $aab.FullName -Destination $aabDest -Force
+        Write-Host "AAB copied to $aabDest ($([math]::Round($aab.Length / 1MB, 2)) MB)" -ForegroundColor Green
+    }
 }
 
 if ($buildApk) {
 
-# Resolve actual APK path from AGP output metadata (fallback to newest .apk)
-$apkDir = Join-Path $projectRoot "wear\build\outputs\apk\release"
-$metadataPath = Join-Path $apkDir "output-metadata.json"
-$apkPath = $null
-
-if (Test-Path -Path $metadataPath) {
-    try {
-        $meta = Get-Content -Path $metadataPath -Raw | ConvertFrom-Json
-        if ($meta.elements -and $meta.elements.Count -gt 0 -and $meta.elements[0].outputFile) {
-            $apkPath = Join-Path $apkDir $meta.elements[0].outputFile
-        }
-    }
-    catch {
-        Write-Host "Warning: Failed to parse output-metadata.json, falling back to latest APK." -ForegroundColor Yellow
-    }
-}
-
-if (-not $apkPath -or -not (Test-Path -Path $apkPath)) {
-    $latestApk = Get-ChildItem -Path $apkDir -Filter *.apk -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-    if ($latestApk) {
-        $apkPath = $latestApk.FullName
-    }
-}
+# Resolve the built APK path from AGP output metadata.
+$apkDir = Join-Path $projectRoot "wear\build\outputs\apk\$Flavor\release"
+# S1972: one resolver for every builder - it selects by ABI from output-metadata.json
+# and refuses to guess, where this block used to take element 0 and then the newest file.
+. "$PSScriptRoot\..\utils\find-build-artifact.ps1"
+$resolvedArtifact = Find-BuildArtifact -Dir $apkDir
+$apkPath = if ($resolvedArtifact) { $resolvedArtifact.FullName } else { $null }
 
 if (-not $apkPath -or -not (Test-Path -Path $apkPath)) {
     Write-Host "Error: APK not found in $apkDir" -ForegroundColor Red
@@ -113,6 +119,11 @@ if (-not $apkPath -or -not (Test-Path -Path $apkPath)) {
 }
 
 Write-Host "APK location: $apkPath" -ForegroundColor Cyan
+
+if ($NoDistribute) {
+    Write-Host "APK built - not copied, not journalled, not mirrored (-NoDistribute)" -ForegroundColor Yellow
+}
+else {
 
 $destName = "FastMediaSorter_wear_release.apk"
 Copy-Item -Path $apkPath -Destination "$downloadsDir\$destName" -Force
@@ -129,9 +140,11 @@ Write-Host "Build logged to journal" -ForegroundColor Gray
 # here; it now lives in one place so the release path can call the same thing.
 & "$PSScriptRoot\..\utils\copy-to-drive.ps1" -Path "$downloadsDir\$destName" -Name $destName
 
+}   # end if (-not $NoDistribute)
+
 }   # end if ($buildApk)
 
 }
 finally {
-    Exit-AgentLock -Name Build
+    Exit-AgentLock -Name 'Build' -Domains @('Build.Wear')
 }

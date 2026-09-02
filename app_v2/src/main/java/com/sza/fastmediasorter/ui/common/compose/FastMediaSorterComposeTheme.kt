@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.common.compose
 
 import android.content.Context
 import androidx.annotation.AttrRes
+import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -10,10 +11,14 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import com.google.android.material.color.MaterialColors
 import androidx.appcompat.R.attr as AppCompatAttr
 import com.google.android.material.R.attr as MaterialAttr
@@ -33,6 +38,7 @@ private const val DARK_SURFACE_LUMINANCE = 0.5f
  * the user picked (S0569) - the View widgets beside it stay themed, so the island looks foreign.
  * Every ComposeView in the app goes through this wrapper.
  */
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun FastMediaSorterComposeTheme(content: @Composable () -> Unit) {
     val context = LocalContext.current
@@ -42,7 +48,15 @@ fun FastMediaSorterComposeTheme(content: @Composable () -> Unit) {
         // hardcoded Color.Black - so any Text outside a Surface, Card or Scaffold renders black and
         // disappears on a dark background regardless of the scheme resolved above. Every island in
         // this app is hosted on a themed View surface, which makes onSurface the right default.
-        CompositionLocalProvider(LocalContentColor provides colorScheme.onSurface, content = content)
+        CompositionLocalProvider(LocalContentColor provides colorScheme.onSurface) {
+            // S2096: every testTag below this point is published as an Android resource-id. Compose
+            // emits no id of its own, so without this line the screen dumps as anonymous nodes and
+            // adb.ps1 tap-id exits 8. Centralised here rather than per-screen after S2091 confirmed
+            // the pattern works but needs repeating on each island.
+            Box(modifier = Modifier.semantics { testTagsAsResourceId = true }) {
+                content()
+            }
+        }
     }
 }
 

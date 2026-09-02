@@ -23,6 +23,10 @@ import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
  * btnPath (S1316) is a reserved anchor rather than an overflow candidate: it is the only way back
  * up the folder tree, so it must never be pushed into the "⋮" menu. Its width is subtracted from
  * the bar budget while it is visible, exactly like the btnResourceOps anchor.
+ *
+ * btnSearch (S2171) is reserved the same way: it is the sole entry point to live search, and
+ * hiding it behind "⋮" on a narrow bar would defeat the "search in a couple of taps" contract.
+ * Unlike btnPath it has no visibility gate, so its width is always subtracted from the budget.
  */
 class BrowseCommandOverflowManager(
     private val binding: ActivityBrowseBinding
@@ -79,7 +83,8 @@ class BrowseCommandOverflowManager(
         // cached width for a GONE button and shrink the budget at resource root for nothing, and on
         // a cold cache the force-measure fallback would poison measuredHeight (S1258 note below).
         val pathWidth = if (binding.btnPath.isVisible) measuredWidthOf(binding.btnPath) else 0
-        val reserved = anchorWidth + pathWidth
+        val searchWidth = measuredWidthOf(binding.btnSearch)
+        val reserved = anchorWidth + pathWidth + searchWidth
 
         val slots = eligible.map { c ->
             CommandSlot(
@@ -136,8 +141,9 @@ class BrowseCommandOverflowManager(
 
     /**
      * Priority-ordered candidate commands (index 0 = highest priority, overflows last).
-     * btnResourceOps and btnPath are excluded: both are reserved anchors, never overflow candidates
-     * (their widths are subtracted from the bar budget in [applyPartition] instead).
+     * btnResourceOps, btnPath and btnSearch are excluded: all three are reserved anchors, never
+     * overflow candidates (their widths are subtracted from the bar budget in [applyPartition]
+     * instead).
      */
     private fun candidates(): List<Candidate> {
         val filterCell = binding.btnFilter.parent as? View

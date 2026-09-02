@@ -92,12 +92,40 @@ class OcrBlockFilterTest {
     }
 
     @Test
+    fun `cjk short text is accepted`() {
+        val singleCharVerdict = OcrBlockFilter.evaluate(block(text = "止", confidence = 90f))
+        val doubleCharVerdict = OcrBlockFilter.evaluate(block(text = "出口", confidence = 90f))
+
+        assertEquals(OcrBlockFilter.Verdict.ACCEPTED, singleCharVerdict)
+        assertEquals(OcrBlockFilter.Verdict.ACCEPTED, doubleCharVerdict)
+    }
+
+    @Test
+    fun `abjad script text without vowels is accepted`() {
+        val arabicVerdict = OcrBlockFilter.evaluate(block(text = "مرحبا", confidence = 90f))
+        val hebrewVerdict = OcrBlockFilter.evaluate(block(text = "שלום", confidence = 90f))
+
+        assertEquals(OcrBlockFilter.Verdict.ACCEPTED, arabicVerdict)
+        assertEquals(OcrBlockFilter.Verdict.ACCEPTED, hebrewVerdict)
+    }
+
+    @Test
+    fun `vowel-less alphabetic text fails translatability`() {
+        val latinVerdict = OcrBlockFilter.evaluate(block(text = "bcdfgh", confidence = 90f))
+        val cyrillicVerdict = OcrBlockFilter.evaluate(block(text = "бвгджз", confidence = 90f))
+
+        assertEquals(OcrBlockFilter.Verdict.TOO_MANY_SPECIAL_CHARS, latinVerdict)
+        assertEquals(OcrBlockFilter.Verdict.TOO_MANY_SPECIAL_CHARS, cyrillicVerdict)
+    }
+
+    @Test
     fun `isAccepted agrees with evaluate on every rejection`() {
         val rejected = listOf(
             block(text = "Hello world", confidence = 10f),
             block(text = "ab", confidence = 90f),
             block(text = "a!!!!", confidence = 90f),
             block(text = "Hello world", confidence = 90f, right = 5, bottom = 5),
+            block(text = "bcdfgh", confidence = 90f),
         )
 
         rejected.forEach { block ->

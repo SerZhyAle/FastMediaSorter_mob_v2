@@ -6,4 +6,10 @@
     <string name="setting_resource_ops_in_overflow_menu_desc">Agrupa los botones de acción en línea en un menú desbordante ⋮ en cada tarjeta de recurso</string>
     <string name="action_refresh_resource">Refrescar</string>
     <string name="resource_unavailable_name">El recurso \"%1$s\" no está disponible.</string>
+    <string name="resource_menu_reconnect_resource">Reconectar recurso</string>
+    <string name="reconnect_different_folder_title">Carpeta diferente seleccionada</string>
+    <string name="reconnect_different_folder_message">Elegiste %1$s, pero este recurso está conectado a %2$s. ¿Reconectar de todas formas? El recurso apuntará a la carpeta que elegiste.</string>
+    <string name="reconnect_success">Recurso reconectado.</string>
+    <string name="reconnect_failed">No se pudo reconectar - elige la carpeta e inténtalo de nuevo.</string>
+    <string name="reconnect_success_partial_favorites">Reconectado. Favoritos movidos: %1$d de %2$d.</string>
 </resources>

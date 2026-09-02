@@ -116,9 +116,8 @@ Run against `standard-debug` (`com.sza.fastmediasorter.debug`). The capability f
 - **Seeded test media** under `/storage/emulated/0/Download/FastMediaSorter_Test/` via
   `scripts/utils/setup_test_media.ps1`.
 - A **`Загрузки` local resource** over `/storage/emulated/0/Download` that flattens the seeded
-  tree. This appears automatically as a standard-folder resource on the Local tab; the
-  `/spec-prerelease` OWNER_TRIGGER import is one way to register it but is not required for the
-  core flows.
+  tree. This appears automatically as a standard-folder resource on the Local tab and is the only
+  resource prerequisite for the core flows.
 - **Stylus handwriting off** so text-entry flows land their input. The runner sets this on every
   invocation (`settings put secure stylus_handwriting_enabled 0`); no manual step needed.
 - **Launcher mode** may be left on by any device test of the launcher desktop, and nothing turns it

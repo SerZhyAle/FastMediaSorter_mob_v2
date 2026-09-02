@@ -4,15 +4,15 @@ import android.net.Uri
 import androidx.media3.common.C
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DataSpec
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.extractor.DefaultExtractorsFactory
 import androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.data.network.datasource.BdTsStripDataSourceFactory
 import com.sza.fastmediasorter.data.network.datasource.TsPacketFormat
 import com.sza.fastmediasorter.data.network.datasource.TsPacketFormatDetector
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 // Only BD_192 requires header stripping; STANDARD_188 and UNKNOWN are plain pass-through.
 internal fun shouldUseBdTsStripper(format: TsPacketFormat): Boolean = format == TsPacketFormat.BD_192
@@ -55,7 +55,7 @@ internal suspend fun DataSource.Factory.detectTsFormatSuspend(uri: Uri): TsPacke
             }
             TsPacketFormatDetector.detect(probe.copyOf(totalRead))
         } catch (e: Exception) {
-            Timber.w(e, "detectTsFormatSuspend: probe failed for $uri")
+            e.warnUnlessCancellation("detectTsFormatSuspend: probe failed for $uri")
             TsPacketFormat.UNKNOWN
         } finally {
             try { source.close() } catch (_: Exception) {}

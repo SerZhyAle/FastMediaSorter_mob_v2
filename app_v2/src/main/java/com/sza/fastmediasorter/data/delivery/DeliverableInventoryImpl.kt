@@ -146,6 +146,21 @@ class DeliverableInventoryImpl @Inject constructor(
                 )
             )
         }
+        // S1971: only noLegal contributes a libVLC descriptor, so `isSetOffered` is what keeps the row
+        // out of the five flavors that carry no such dependency at all.
+        if (isSetOffered(DeliverableSet.VLC_ENGINE)) {
+            add(
+                ExtensionItem.Module(
+                    id = moduleKey(DeliverableSet.VLC_ENGINE),
+                    set = DeliverableSet.VLC_ENGINE,
+                    displayNameRes = R.string.ext_vlc_engine_title,
+                    descriptionRes = R.string.ext_vlc_engine_desc,
+                    sizeLabel = moduleSizeLabel(DeliverableSet.VLC_ENGINE),
+                    section = ExtensionSection.MEDIA_PLAYBACK,
+                    statusFlow = moduleStatusFlow(DeliverableSet.VLC_ENGINE)
+                )
+            )
+        }
         if (capabilityAvailability.isStreamsAvailable()) {
             add(
                 ExtensionItem.Catalog(
@@ -246,8 +261,11 @@ class DeliverableInventoryImpl @Inject constructor(
         if (bundled.contains(set)) return flowOf(ExtensionStatus.Installed)
         val active = activeDownloads.getOrPut(moduleKey(set)) {
             MutableStateFlow(
-                if (repository.isInstalledBlocking(set)) ExtensionStatus.Installed
-                else ExtensionStatus.NotInstalled
+                if (repository.isInstalledBlocking(set)) {
+                    ExtensionStatus.Installed
+                } else {
+                    ExtensionStatus.NotInstalled
+                }
             )
         }
         return combine(repository.stateOf(set), active) { cap, download ->
@@ -284,8 +302,11 @@ class DeliverableInventoryImpl @Inject constructor(
     private fun languageStatusFlow(languageCode: String): Flow<ExtensionStatus> =
         activeDownloads.getOrPut(languageKey(languageCode)) {
             MutableStateFlow(
-                if (tesseractModelManager.isModelInstalled(languageCode)) ExtensionStatus.Installed
-                else ExtensionStatus.NotInstalled
+                if (tesseractModelManager.isModelInstalled(languageCode)) {
+                    ExtensionStatus.Installed
+                } else {
+                    ExtensionStatus.NotInstalled
+                }
             )
         }
 
@@ -348,6 +369,7 @@ class DeliverableInventoryImpl @Inject constructor(
         // Estimated arm64-v8a download sizes (bytes) shown until a flavor contributes a real
         // descriptor; values mirror temp/S0386_B3_so_staging.md (strategic §5.4).
         private const val STREAM_CATALOG_ID = "stream_catalog"
+
         // S1110: approximate size of the growing, non-pinned stream-catalog.zip (measured 2.44 MB on
         // 2026-07-19: 2.31 MiB favicon atlas + 0.92 MB CSV). Not the stale S0386 staging estimate.
         private const val STREAM_CATALOG_SIZE = 2_500_000L
@@ -363,7 +385,8 @@ class DeliverableInventoryImpl @Inject constructor(
             DeliverableSet.FFMPEG_DTS to 7_675_704L,
             // S1445: the tile packs replaced the sprite sheets as the fetched payload - pack + sidecar.
             DeliverableSet.CHANNEL_PREVIEW_ATLAS to 10_975_853L,
-            DeliverableSet.STREAM_LOGO_ATLAS to 5_925_785L
+            DeliverableSet.STREAM_LOGO_ATLAS to 5_925_785L,
+            DeliverableSet.VLC_ENGINE to 46_181_608L
         )
     }
 }

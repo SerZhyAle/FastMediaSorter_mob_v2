@@ -12,7 +12,6 @@ import com.sza.fastmediasorter.domain.usecase.CredentialAuditor
 import com.sza.fastmediasorter.domain.usecase.DeleteUnusedCredentialsUseCase
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
-import timber.log.Timber
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
@@ -59,7 +58,6 @@ class UnusedCredentialsHelper(
     }
 
     private fun render(eligibleCount: Int) {
-        Timber.d("S1649: settings row rendered, eligible=$eligibleCount")
         val button = binding.btnUnusedCredentials
         button.isVisible = eligibleCount > 0
         if (eligibleCount > 0) {
@@ -97,7 +95,6 @@ class UnusedCredentialsHelper(
     private fun delete() {
         fragment.viewLifecycleOwner.lifecycleScope.launch {
             val deleted = withContext(Dispatchers.IO) { deleteUnusedCredentialsUseCase.deleteAllEligible() }
-            Timber.d("S1649: deletion confirmed, deleted=$deleted")
             Toast.makeText(
                 fragment.requireContext(),
                 fragment.getString(R.string.settings_unused_credentials_deleted, deleted),

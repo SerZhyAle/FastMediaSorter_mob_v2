@@ -16,6 +16,9 @@ import androidx.compose.material.icons.filled.Movie
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -36,17 +39,30 @@ import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
+import com.sza.fastmediasorter.wear.domain.model.WearFileOperation
+import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
+import com.sza.fastmediasorter.wear.ui.browse.FileDeleteConfirmDialog
+import com.sza.fastmediasorter.wear.ui.common.CellCaption
+import com.sza.fastmediasorter.wear.ui.common.LongPressChip
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
+import com.sza.fastmediasorter.wear.ui.common.WearFileActionsDialog
 import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
+import com.sza.fastmediasorter.wear.ui.common.WearStateKind
+import com.sza.fastmediasorter.wear.ui.common.playerRouteFor
+import com.sza.fastmediasorter.wear.ui.common.rememberWearRenameInput
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
-import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 
 private const val SINGLE_COLUMN = 1
+
+/** The action menu acts on the pressed file alone; the confirmation reuses the selection wording. */
+private const val SINGLE_FILE = 1
 private val GRID_GAP = 4.dp
+private val MESSAGE_HORIZONTAL_PADDING = 16.dp
 
 /**
  * S1846: the Favourites section - what was marked on this watch, opened from here.
@@ -66,6 +82,15 @@ fun FavouritesScreen(
     val listState = rememberScalingLazyListState()
     val openRequest by viewModel.openRequest.collectAsStateWithLifecycle()
 
+    // Which menu is open is view state: a rotation that dropped it costs nothing, while a ViewModel
+    // that carried it would replay it.
+    var actionRecord by remember { mutableStateOf<WearFavoriteRecord?>(null) }
+    var deleteRecord by remember { mutableStateOf<WearFavoriteRecord?>(null) }
+    val renameRecord = remember { mutableStateOf<WearFavoriteRecord?>(null) }
+    val requestRename = rememberWearRenameInput { newName ->
+        renameRecord.value?.let { viewModel.runOperation(it, WearFileOperation.Rename(newName)) }
+    }
+
     // The tap is acted on once, in an effect keyed to the request, and the request is consumed straight
     // after - a recomposition must not push the player a second time.
     LaunchedEffect(openRequest) {
@@ -82,10 +107,23 @@ fun FavouritesScreen(
         positionIndicator = { PositionIndicator(listState) }
     ) {
         when (val current = state) {
-            is FavouritesUiState.Loading -> CentredMessage(text = stringResource(R.string.loading))
+            // Loading keeps its plain centred line: it is not one of the state block's three kinds,
+            // and it offers nothing to act on because the answer is already on its way.
+            is FavouritesUiState.Loading -> Text(
+                text = stringResource(R.string.loading),
+                style = MaterialTheme.typography.body2,
+                color = MaterialTheme.colors.onSurfaceVariant,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = MESSAGE_HORIZONTAL_PADDING),
+                textAlign = TextAlign.Center
+            )
 
-            is FavouritesUiState.Empty -> CentredMessage(
-                text = stringResource(R.string.wear_favourites_empty)
+            // No retry: favourites are read from local storage, so there is no call to repeat.
+            is FavouritesUiState.Empty -> WearStateBlock(
+                kind = WearStateKind.EMPTY,
+                message = stringResource(R.string.wear_favourites_empty),
+                onBack = { navController.popBackStack() }
             )
 
             is FavouritesUiState.Content -> FavouritesList(
@@ -94,35 +132,75 @@ fun FavouritesScreen(
                 listState = listState,
                 viewMode = viewMode,
                 onOpen = viewModel::open,
-                onUnmark = viewModel::unmark
+                onUnmark = viewModel::unmark,
+                onLongPress = { record -> actionRecord = record }
             )
         }
+    }
+
+    actionRecord?.let { record ->
+        FavouriteActionsMenu(
+            record = record,
+            viewModel = viewModel,
+            onClose = { actionRecord = null },
+            onDelete = { deleteRecord = record },
+            onRename = {
+                renameRecord.value = record
+                requestRename()
+            }
+        )
+    }
+
+    deleteRecord?.let { record ->
+        FileDeleteConfirmDialog(
+            selectedCount = SINGLE_FILE,
+            onConfirm = {
+                deleteRecord = null
+                viewModel.runOperation(record, WearFileOperation.Delete)
+            },
+            onDismiss = { deleteRecord = null }
+        )
     }
 }
 
 /**
- * Which player renders a favourite the view model has already handed over.
+ * The long-press menu for one favourite row.
  *
- * The kind decides, never the row's position - and a record with no kind never reaches here, because the
- * view model answers `Unopenable` for it. Guessing a player would be worse than refusing: a document sent
- * to the audio player fails further from its cause, which is the failure mode this whole ticket is about.
+ * Unmarking rides here rather than only in the row: the grid cell has no room for the second chip the
+ * single-column layout carries, so in grid mode this menu is the only way to unmark.
  */
-private fun playerRouteFor(fileId: Long, mimeType: String): String = when {
-    mimeType.startsWith("image") -> WearRoutes.imageViewer(fileId)
-    mimeType.startsWith("video") -> WearRoutes.videoPlayer(fileId)
-    else -> WearRoutes.audioPlayer(fileId)
-}
-
 @Composable
-private fun CentredMessage(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.body2,
-        color = MaterialTheme.colors.onSurfaceVariant,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        textAlign = TextAlign.Center
+private fun FavouriteActionsMenu(
+    record: WearFavoriteRecord,
+    viewModel: FavouritesViewModel,
+    onClose: () -> Unit,
+    onDelete: () -> Unit,
+    onRename: () -> Unit
+) {
+    // Classifying a path canonicalises it, which touches the filesystem - asked once per pressed row
+    // rather than on every recomposition the open dialog causes.
+    val target = remember(record.identity) { viewModel.actionTargetFor(record) }
+    val allowed = remember(record.identity) { viewModel.allowedOperationsFor(record) }
+    WearFileActionsDialog(
+        file = target,
+        allowed = allowed,
+        onPick = { kind ->
+            onClose()
+            when (kind) {
+                WearFileOperationKind.DELETE -> onDelete()
+                WearFileOperationKind.RENAME -> onRename()
+                WearFileOperationKind.SEND_TO_PHONE ->
+                    viewModel.runOperation(record, WearFileOperation.SendToPhone)
+                WearFileOperationKind.MOVE_TO_PHONE ->
+                    viewModel.runOperation(record, WearFileOperation.MoveToPhone)
+                WearFileOperationKind.OPEN_ON_PHONE -> viewModel.reportOpenOnPhoneUnavailable()
+            }
+        },
+        onDismiss = onClose,
+        onUnmark = {
+            onClose()
+            viewModel.unmark(record)
+        }
     )
 }
 
@@ -133,7 +211,8 @@ private fun FavouritesList(
     listState: ScalingLazyListState,
     viewMode: WearViewMode,
     onOpen: (WearFavoriteRecord) -> Unit,
-    onUnmark: (WearFavoriteRecord) -> Unit
+    onUnmark: (WearFavoriteRecord) -> Unit,
+    onLongPress: (WearFavoriteRecord) -> Unit
 ) {
     // The column count comes from the width this composable actually gets, exactly as both other file
     // lists decide it - the geometry question has one answer in this app, not three.
@@ -170,7 +249,13 @@ private fun FavouritesList(
                 }
             }
 
-            recordItems(records = records, columns = columns, onOpen = onOpen, onUnmark = onUnmark)
+            recordItems(
+                records = records,
+                columns = columns,
+                onOpen = onOpen,
+                onUnmark = onUnmark,
+                onLongPress = onLongPress
+            )
         }
     }
 }
@@ -180,11 +265,17 @@ private fun ScalingLazyListScope.recordItems(
     records: List<WearFavoriteRecord>,
     columns: Int,
     onOpen: (WearFavoriteRecord) -> Unit,
-    onUnmark: (WearFavoriteRecord) -> Unit
+    onUnmark: (WearFavoriteRecord) -> Unit,
+    onLongPress: (WearFavoriteRecord) -> Unit
 ) {
     if (columns == SINGLE_COLUMN) {
         items(records) { record ->
-            FavouriteChip(record = record, onOpen = onOpen, onUnmark = onUnmark)
+            FavouriteChip(
+                record = record,
+                onOpen = onOpen,
+                onUnmark = onUnmark,
+                onLongPress = onLongPress
+            )
         }
     } else {
         items(records.chunked(columns)) { rowRecords ->
@@ -197,11 +288,16 @@ private fun ScalingLazyListScope.recordItems(
                         thumbnail = WearThumbnail.Unavailable,
                         caption = record.displayName,
                         onClick = { onOpen(record) },
-                        modifier = Modifier.weight(1f)
-                    ) {
+                        modifier = Modifier.weight(1f),
+                        onLongClick = { onLongPress(record) },
+                        // One glyph per record type: a screen full of favourites of the same kind is
+                        // read by name only, so the name takes the cell (S2177).
+                        captionLayout = CellCaption(overGroupIcon = true)
+                    ) { glyphModifier ->
                         Icon(
                             imageVector = record.icon(),
                             contentDescription = null,
+                            modifier = glyphModifier,
                             tint = MaterialTheme.colors.onSurfaceVariant
                         )
                     }
@@ -218,10 +314,12 @@ private fun ScalingLazyListScope.recordItems(
 private fun FavouriteChip(
     record: WearFavoriteRecord,
     onOpen: (WearFavoriteRecord) -> Unit,
-    onUnmark: (WearFavoriteRecord) -> Unit
+    onUnmark: (WearFavoriteRecord) -> Unit,
+    onLongPress: (WearFavoriteRecord) -> Unit
 ) {
-    Chip(
+    LongPressChip(
         onClick = { onOpen(record) },
+        onLongClick = { onLongPress(record) },
         label = { Text(text = record.displayName) },
         secondaryLabel = if (record.mimeType == null) {
             { Text(text = stringResource(R.string.wear_favourites_unopenable)) }
@@ -241,6 +339,8 @@ private fun FavouriteChip(
         label = { Text(text = stringResource(R.string.wear_favourites_unmark)) },
         modifier = Modifier.fillMaxWidth()
     )
+    // The chip stays where it was: the single-column layout already reached unmarking in one tap,
+    // and moving it into the menu would have cost that layout a tap to fix the grid's problem.
 }
 
 /** The kind picks the glyph; a record from before this ticket has none and gets the neutral file icon. */

@@ -64,6 +64,7 @@ _Generated from the app. Do not edit by hand._
 | Mirror log to opened folder | Copies the debug log into the folder currently open in the viewer, so a reproduction can be picked up without digging into the app sandbox. Off by default; debug builds only. |
 | Open browse in grid view | Opens the file browser in grid view by default instead of list view. |
 | Device profile | Selects the device profile that adapts the interface and controls to your device type. |
+| Disable animations | Disables screen transitions, group expanding and collapsing, settings-tab effects, decorative animations, and image crossfades. Audio visualizers, the camera focus ring, and filename auto-hide still run because they convey state. |
 | Enable background sync | Lets the app sync remote resources in the background when the device is idle. |
 | Enable Favorites | Enables the Favorites feature so you can mark and quickly access starred files. |
 | Statistics collection | Enables anonymous usage statistics collection to help improve the app. |
@@ -286,18 +287,39 @@ _Settings -> General -> System launcher settings_
 
 | Setting | What it does |
 |---|---|
-| Import system desktop shortcuts | Adds a desktop cell for every application installed on the device, so a fresh launcher desktop can be filled without placing each one by hand. |
+| Import all installed apps | Adds a desktop cell for every application installed on the device, so a fresh launcher desktop can be filled without placing each one by hand. |
 | Grant notification access | Opens the system notification-access screen. Shown only while the launcher's foreign-notification row is on and the system has not granted the access. |
 | Reset launcher settings | Resets the launcher configuration and desktop cells back to defaults after confirmation. |
+| Appearance | Settings for launcher appearance: desktop wallpaper mode and widget backdrop opacity. |
 | Desktop | Settings for the launcher desktop itself: icon grid density, the edit lock and the wallpaper. |
+| Gestures | Settings for launcher desktop gestures: swipe up, down, left, right, and double-tap actions. |
 | System | Entry to the Android home-app chooser, where the system launcher is selected. |
 | Taskbar | Settings for the launcher taskbar at the bottom: recent and pinned apps, and which icons its tray shows. |
 | Top bar | Settings for the launcher's own top strip, which can replace the system status area. |
-| Grid density | Sets how many icons the launcher desktop grid fits per row and column. |
-| Notifications from other apps on the top bar | Shows one icon per other app that has pending notifications in the launcher top bar, with how many it has. Their title, text and attachments are never read. Off by default and inert until the system grants notification access. |
+| System tray | Settings for the launcher system tray: clock, Bluetooth, SIM indicators, network speed, and battery. |
+| All apps: swipe down | Chooses what this swipe does on the All apps panel. The list is deliberately short: back to the desktop, expand all apps, launch a chosen app, lock the screen, or unused. Screen lock is offered only in builds that can perform it. This direction runs only at the top of the list; by default it closes the panel and returns to the desktop. |
+| App to launch | The app this direction launches. Shown only while the direction is set to launch an app; the reset control beside it clears the choice without changing the action. |
+| All apps: swipe left | Chooses what this swipe does on the All apps panel. The list is deliberately short: back to the desktop, expand all apps, launch a chosen app, lock the screen, or unused. Screen lock is offered only in builds that can perform it. This direction unassigned by default. |
+| App to launch | The app this direction launches. Shown only while the direction is set to launch an app; the reset control beside it clears the choice without changing the action. |
+| All apps: swipe right | Chooses what this swipe does on the All apps panel. The list is deliberately short: back to the desktop, expand all apps, launch a chosen app, lock the screen, or unused. Screen lock is offered only in builds that can perform it. This direction unassigned by default. |
+| App to launch | The app this direction launches. Shown only while the direction is set to launch an app; the reset control beside it clears the choice without changing the action. |
+| All apps: swipe up | Chooses what this swipe does on the All apps panel. The list is deliberately short: back to the desktop, expand all apps, launch a chosen app, lock the screen, or unused. Screen lock is offered only in builds that can perform it. This direction runs only after the list is scrolled to its end; by default it expands the full app list instead of the alphabetical sections. |
+| App to launch | The app this direction launches. Shown only while the direction is set to launch an app; the reset control beside it clears the choice without changing the action. |
+| Grid density | Sets how many icons the launcher desktop grid fits per row and column; dense by default. |
+| Double tap to lock the screen | Lets a double tap on empty desktop space lock the screen; where the device lock is out of reach the launcher blacks the screen out instead. On by default. |
+| Swipe down | Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. By default, it opens the notification shade when the system action is available. The list also carries the launcher's own routes - All apps, and the next and previous desktop screen. |
+| App to launch | Sets the target of the downward swipe's action - the app it launches or the web address it opens. Shown only while the assigned action takes a target; tap to change it, and clear it from the address dialog. An empty target keeps the action's own fallback. |
+| Swipe left | Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. By default no action is assigned, and on a multi-screen desktop an unassigned left or right swipe pages between screens. The list also carries the launcher's own routes - All apps, and the next and previous desktop screen. |
+| App to launch | Sets the target of the leftward swipe's action - the app it launches or the web address it opens. Shown only while the assigned action takes a target; tap to change it, and clear it from the address dialog. An empty target keeps the action's own fallback. |
+| Swipe right | Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. By default no action is assigned, and on a multi-screen desktop an unassigned left or right swipe pages between screens. The list also carries the launcher's own routes - All apps, and the next and previous desktop screen. |
+| App to launch | Sets the target of the rightward swipe's action - the app it launches or the web address it opens. Shown only while the assigned action takes a target; tap to change it, and clear it from the address dialog. An empty target keeps the action's own fallback. |
+| Swipe up | Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. Swipe up runs only after reaching the bottom; by default, it opens All apps. The list also carries the launcher's own routes - All apps, and the next and previous desktop screen. |
+| App to launch | Sets the target of the upward swipe's action - the app it launches or the web address it opens. Shown only while the assigned action takes a target; tap to change it, and clear it from the address dialog. An empty target keeps the action's own fallback. |
+| Notifications from other apps on the top bar | Shows one icon per other app that has pending notifications in the launcher top bar, with how many it has. Their title, text and attachments are never read. On by default and inert until the system grants notification access. |
 | Lock desktop | Blocks long-press entry into desktop edit mode; the Start-menu entry stays reachable. |
 | Change home screen | Opens Android's default-launcher chooser to switch the system home screen. |
 | Hide system status bar | Replaces the system status bar with the launcher's own clock/status area; off keeps the Android status bar. |
+| Number of screens | Sets how many desktop screens the launcher has, so pinned icons and widgets can be spread across several pages instead of one. |
 | Screen timeout | Turns the screen black after a chosen period of inactivity while on the launcher desktop: never (off), presets of 5 to 300 seconds, or a custom number of seconds. |
 | Show pinned apps | Shows pinned apps on the launcher desktop. |
 | Show recent apps | Shows recently used apps on the launcher desktop. |
@@ -310,8 +332,9 @@ _Settings -> General -> System launcher settings_
 | Network type | Shows the current connection type - Wi-Fi, mobile or wired - in the launcher tray. |
 | SIM 1 signal | Shows the signal level of the first SIM in the launcher tray. Needs permission to read the phone state; the indicator is absent without it or without a SIM in the slot. |
 | SIM 2 signal | Shows the signal level of the second SIM in the launcher tray. Needs permission to read the phone state; the indicator is absent without it or on a single-SIM device. |
-| Desktop wallpaper | Chooses the launcher desktop's wallpaper: branded animation, a static striped frame refreshed when you return to the launcher, an empty surface, or your own image. |
-| Widget backdrop opacity | Controls the opacity of widget background cards on the launcher desktop (0% transparent to 100% opaque; 85% default). |
+| Transfer speed | Shows device-wide download and upload transfer speeds in the launcher status area as two separate cells; updates once per second when enabled. |
+| Desktop wallpaper | Chooses the launcher desktop's wallpaper: branded animation, a static striped frame refreshed when you return to the launcher, an empty surface, your own image, a live frame from a device camera, or an instant photo the camera takes anew every time you return to the launcher. Both camera entries appear only on devices that have a camera, and choosing either asks for the camera permission and then for a lens. The live frame stops whenever the desktop leaves the screen; the instant photo releases the camera as soon as its picture is taken, and keeps only the newest one. |
+| Widget backdrop opacity | Controls the opacity of widget background cards on the launcher desktop (0% transparent to 100% opaque; 25% default). |
 | Grid density | Chooses the icon density the launcher reset lays the starter set out at; it opens on the density your device profile suggests. |
 
 ## Edge gestures
@@ -325,29 +348,29 @@ _Settings -> Destinations -> Configure gestures_
 | General gesture settings | Section header for the general edge-gesture settings - screenshot destination, clipboard copy, and the app-launch panel editor. |
 | Save screenshots to clipboard | Also copies every captured screenshot to the clipboard, ready to paste. |
 | Down gesture action | Assigns the action triggered by swiping down from the left edge's lower gesture zone. |
-| App to launch | Chooses the app launched by swiping down in the left edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping down in the left edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
 | Right gesture action | Assigns the action triggered by swiping right from the left edge's lower gesture zone. |
-| App to launch | Chooses the app launched by swiping right in the left edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping right in the left edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
 | Up gesture action | Assigns the action triggered by swiping up from the left edge's lower gesture zone. |
-| App to launch | Chooses the app launched by swiping up in the left edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping up in the left edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
 | Down gesture action | Assigns the action triggered by swiping down from the left edge's upper gesture zone. |
-| App to launch | Chooses the app launched by swiping down in the left edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping down in the left edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
 | Right gesture action | Assigns the action triggered by swiping right from the left edge's upper gesture zone. |
-| App to launch | Chooses the app launched by swiping right in the left edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping right in the left edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
 | Up gesture action | Assigns the action triggered by swiping up from the left edge's upper gesture zone. |
-| App to launch | Chooses the app launched by swiping up in the left edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping up in the left edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
 | Down gesture action | Assigns the action triggered by swiping down from the right edge's lower gesture zone. |
-| App to launch | Chooses the app launched by swiping down in the right edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping down in the right edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
 | Right gesture action | Assigns the action triggered by swiping right from the right edge's lower gesture zone. |
-| App to launch | Chooses the app launched by swiping right in the right edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping right in the right edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
 | Up gesture action | Assigns the action triggered by swiping up from the right edge's lower gesture zone. |
-| App to launch | Chooses the app launched by swiping up in the right edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping up in the right edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
 | Down gesture action | Assigns the action triggered by swiping down from the right edge's upper gesture zone. |
-| App to launch | Chooses the app launched by swiping down in the right edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping down in the right edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
 | Right gesture action | Assigns the action triggered by swiping right from the right edge's upper gesture zone. |
-| App to launch | Chooses the app launched by swiping right in the right edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping right in the right edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
 | Up gesture action | Assigns the action triggered by swiping up from the right edge's upper gesture zone. |
-| App to launch | Chooses the app launched by swiping up in the right edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping up in the right edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
 | Left edge - lower band | Enables the edge-gesture zone at the left edge's lower band. |
 | Show the gesture strip | Shows the semi-transparent gesture-strip guide for the left edge's lower zone. |
 | Left edge - upper band | Enables the edge-gesture zone at the left edge's upper band. |
@@ -409,12 +432,18 @@ _Reached from Wear OS watch app -> Settings._
 
 | Setting | What it does |
 |---|---|
+| Auto rotation | Lets the watch screen follow the wrist. Watch-only: the row is absent on a watch with no rotation sensor. |
+| Watch Background | Chooses what the watch draws behind the app screens: the branded waves-and-particles animation, or an image picked on the phone. The picked image is cropped and scaled to the watch frame on the phone and travels the file channel, so the watch receives a ready frame and never resizes anything. When the image is missing or has not arrived, the watch draws the animation instead. A constant dim sits between the background and the content so text stays readable over a light picture, and the background is not drawn while the app is away from the foreground or in ambient mode. |
+| Disable animations | On Wear OS, removes the video controls panel transition while keeping the same controls available immediately. |
 | Download album art | Downloads and displays cover art for audio tracks on Wear OS. |
 | Enable audio | Enables playback and browsing of audio files on Wear OS. |
+| Enable documents | Enables browsing of document files on Wear OS, on the watch storage and on the paired phone alike. |
 | Enable images | Enables viewing and browsing of image files on Wear OS. |
 | Enable slideshow | Enables automatic slideshow presentation of media files on Wear OS. |
 | Enable video | Enables playback and browsing of video files on Wear OS. |
 | Files view | Chooses how file lists on the watch are laid out: a list, or a grid of two or three columns with real thumbnails. |
-| Keep screen on | Keeps the watch screen on outside the players; the audio, video and image players hold it on regardless. |
+| Keep screen on | Keeps the watch screen on across every screen outside the players, the startup splash and the permission screen included; the audio, video and image players hold it on regardless. |
 | Slideshow interval | Sets the delay in seconds between slides during slideshow playback on Wear OS. |
+| Show Streams | Shows or hides the Streams section on the watch home screen. Off leaves the other media sections untouched. |
 | Screens view | Chooses how the watch navigation screens, including Settings, are laid out: a list, or a grid of two or three columns. |
+| Voice note delivery | Chooses what happens to a voice note recorded on the watch once it is stopped: send it to the phone straight away, or keep it on the watch until it is sent by hand. Either way the note stays on the watch until it is deleted, and a note taken while the phone is out of reach waits and leaves on its own when the link returns. |

@@ -210,10 +210,20 @@ function Reset-App {
 function Get-FlowSet {
     param([string]$Selection)
 
-    # A single flow file (relative to repo root or absolute).
+    # A single flow file. This branch claims every '.yaml' selection, so whatever it cannot resolve
+    # is refused outright - the later category branch never sees it. Until 2026-09-02 it resolved
+    # only against the repo root, which meant the two forms this script's own help offers
+    # ('smoke\app_launch.yaml', a category-relative path) both answered "no flow matched": they live
+    # under maestro/, not under the repo root. Measured while re-running one failed flow instead of
+    # the whole 25-flow suite. Try each root in turn, then fall back to a bare file name.
     if ($Selection -match '\.ya?ml$') {
-        $f = if (Test-Path -Path $Selection -PathType Leaf) { $Selection } else { Join-Path $ProjectRoot $Selection }
-        if (Test-Path -Path $f -PathType Leaf) { return @(Get-Item -Path $f) }
+        $norm = $Selection -replace '/', '\'
+        foreach ($candidate in @($norm, (Join-Path $ProjectRoot $norm), (Join-Path $MaestroDir $norm))) {
+            if (Test-Path -Path $candidate -PathType Leaf) { return @(Get-Item -Path $candidate) }
+        }
+        if ($norm -notmatch '[\\/]') {
+            return @(Get-ChildItem -Path $MaestroDir -Recurse -Filter $norm -File)
+        }
         return @()
     }
 
@@ -242,6 +252,7 @@ function Get-FlowSet {
     if (Test-Path -Path $dir -PathType Container) {
         return @(Get-ChildItem -Path $dir -Recurse -Filter '*.yaml' -File)
     }
+
     return @()
 }
 

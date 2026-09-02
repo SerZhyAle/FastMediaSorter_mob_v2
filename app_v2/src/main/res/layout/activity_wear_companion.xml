@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  S2000: the companion's window is a single full-bleed container and nothing else.
+
+  No landscape counterpart exists on purpose: there is no orientation-dependent geometry to vary -
+  the content is Compose and lays itself out per width.
+-->
+<androidx.fragment.app.FragmentContainerView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/wearCompanionContainer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface" />

@@ -6,7 +6,6 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import com.sza.fastmediasorter.wear.domain.repository.StreamNetworkHold
 import dagger.hilt.android.qualifiers.ApplicationContext
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -59,7 +58,6 @@ class StreamNetworkHoldManager internal constructor(
     private fun acquire() = synchronized(lock) {
         if (holds == 0) {
             handle = requester.request()
-            Timber.d("S1728: wide channel requested")
         }
         holds++
     }
@@ -67,7 +65,6 @@ class StreamNetworkHoldManager internal constructor(
     private fun releaseOne() = synchronized(lock) {
         if (--holds == 0) {
             handle?.release()
-            Timber.d("S1728: wide channel released")
             handle = null
         }
     }

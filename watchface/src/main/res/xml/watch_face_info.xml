@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1677: Watch Face Format metadata. This file replaces the <meta-data> entries the legacy
+     Jetpack watch face API kept in the manifest; Preview is the only required field. -->
+<WatchFaceInfo>
+    <Preview value="@drawable/preview" />
+    <Editable value="true" />
+    <!-- Category is deliberately absent. It is optional, and the vocabulary of values it accepts
+         could not be confirmed from the format reference - an invented one would pass the build in
+         silence and surface only as a store rejection. -->
+    <MultipleInstancesAllowed value="false" />
+</WatchFaceInfo>

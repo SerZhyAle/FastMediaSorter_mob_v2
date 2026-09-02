@@ -52,9 +52,12 @@ function New-Sandbox {
     New-Item -ItemType Directory -Force (Join-Path $sandbox 'scripts/quality/lib') | Out-Null
     Copy-Item (Join-Path $repoRoot 'scripts/utils/set-android-string.ps1') (Join-Path $sandbox 'scripts/utils/')
     Copy-Item (Join-Path $repoRoot 'scripts/utils/locale-set.ps1') (Join-Path $sandbox 'scripts/utils/')
-    Copy-Item (Join-Path $repoRoot 'scripts/quality/lib/android-string-format.ps1') (Join-Path $sandbox 'scripts/quality/lib/')
-    Copy-Item (Join-Path $repoRoot 'scripts/quality/lib/android-string-liveness.ps1') (Join-Path $sandbox 'scripts/quality/lib/')
-    Copy-Item (Join-Path $repoRoot 'scripts/quality/lib/house-text-style.ps1') (Join-Path $sandbox 'scripts/quality/lib/')
+    # S2126: the whole lib directory, never a hand-listed subset. Naming the tool's dependencies here
+    # is a registry that has to be kept in sync with a file it is not part of, and it fell out of sync
+    # exactly once already - S1824 gave the tool a fourth dot-source (locale-fingerprints.ps1), the
+    # list still copied three, and the tool died at load inside the sandbox. Ten cases then failed for
+    # a reason none of them was testing, and nothing noticed because no runner reached this file.
+    Copy-Item (Join-Path $repoRoot 'scripts/quality/lib/*.ps1') (Join-Path $sandbox 'scripts/quality/lib/')
 
     $res = Join-Path $sandbox 'app_v2/src/main/res'
 

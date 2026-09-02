@@ -75,7 +75,6 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 . (Join-Path $PSScriptRoot 'locale-set.ps1')
 . (Join-Path $repoRoot 'scripts/quality/lib/house-text-style.ps1')
-. (Join-Path $repoRoot 'scripts/quality/lib/locale-fingerprints.ps1')
 
 if (-not (Test-Path -LiteralPath $TextPath)) {
     Write-Error "locale-bulk-import: translated file not found: $TextPath" -ErrorAction Continue
@@ -104,7 +103,7 @@ if (-not (Test-Path -LiteralPath $IndexPath)) {
 if (-not $Locale) {
     $stem = [System.IO.Path]::GetFileNameWithoutExtension($TextPath)
     if ($stem -match '^all_texts[_.](.+)$') {
-        $declared = Get-SupportedLocales
+        $declared = Get-SupportedLocales -Module $Module
         foreach ($candidate in ($Matches[1] -split '[._]')) {
             $match = $declared | Where-Object { $_ -ieq $candidate } | Select-Object -First 1
             if ($match -and $match -ine 'en') { $Locale = $match }
@@ -226,21 +225,13 @@ foreach ($mapKey in $maps.Keys) {
     if ($seedExit -ne 0) { $seedFailed++ }
 }
 
+# S2327: the fingerprint registry is stamped by the seeder now, not here. This loop could only
+# filter by what THIS side had accepted, while the decision belongs to the seeder and arrives as one
+# exit code per source file - so a key the seeder rejected was stamped anyway, and under -Merge a
+# rejected replacement keeps the previously shipped translation, which turned the stamp into fresh
+# provenance for stale text.
 if ($DryRun) {
     Write-Host "locale-bulk-import: -DryRun, no resource file changed."
-} else {
-    $fingerprints = Get-LocaleSourceFingerprints
-    for ($i = 0; $i -lt $records.Count; $i++) {
-        $record = $records[$i]
-        $value = $translated[$i].Trim()
-        if ([string]::IsNullOrWhiteSpace($value)) { continue }
-        if ((Get-FormatSignature $value) -ne [string]$record.formats) { continue }
-        $set = if (($record.PSObject.Properties.Name -contains 'set') -and $record.set) { [string]$record.set } else { $SourceSet }
-        $unitId = Get-LocaleUnitId -Module $Module -Set $set -File $record.file -Key $record.key -Slot ([string]$record.slot)
-        $enHash = Get-EnglishStringFingerprint -Text ([string]$record.en)
-        Update-LocaleSourceFingerprint -Fingerprints $fingerprints -Locale $Locale -Identity $unitId -Hash $enHash
-    }
-    Save-LocaleSourceFingerprints -Fingerprints $fingerprints
 }
 
 if ($seedFailed -gt 0) {

@@ -13,7 +13,13 @@ class WearAppCatalogTest {
         val ids = WearAppCatalog.apps().map { it.id }
 
         assertEquals(
-            listOf(WearAppId.CALCULATOR, WearAppId.NETWORK_MONITOR, WearAppId.GAME),
+            listOf(
+                WearAppId.CALCULATOR,
+                WearAppId.NETWORK_MONITOR,
+                WearAppId.GAME,
+                WearAppId.VOICE_RECORDER,
+                WearAppId.SYSTEM_INFO
+            ),
             ids
         )
     }

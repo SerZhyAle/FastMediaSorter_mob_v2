@@ -8,7 +8,6 @@ import com.sza.fastmediasorter.databinding.ActivityGameHelpBinding
 import com.sza.fastmediasorter.domain.game.GameMode
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 @AndroidEntryPoint
 class GameHelpActivity : BaseActivity<ActivityGameHelpBinding>() {
@@ -18,7 +17,6 @@ class GameHelpActivity : BaseActivity<ActivityGameHelpBinding>() {
     override fun getViewBinding(): ActivityGameHelpBinding = ActivityGameHelpBinding.inflate(layoutInflater)
 
     override fun setupViews() {
-        Timber.d("S1549: GameHelpActivity setupViews - recreation applies the orientation layout")
         binding.root.applySystemBarInsetPadding()
         applyMode(GameMode.fromStorageName(intent.getStringExtra(EXTRA_MODE)))
         binding.btnGameHelpBack.setOnClickListener { finish() }

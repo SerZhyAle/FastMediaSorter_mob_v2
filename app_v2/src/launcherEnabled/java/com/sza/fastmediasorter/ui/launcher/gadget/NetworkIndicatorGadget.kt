@@ -112,7 +112,6 @@ private class NetworkIndicatorGadgetView(
     }
 
     override suspend fun CoroutineScope.onActive() {
-        Timber.d("S1440: gadget active, indicator=%s", indicator.key)
         activeScope = this
         try {
             observe(indicator, resourceId).collect(::render)

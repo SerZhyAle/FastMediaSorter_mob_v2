@@ -19,10 +19,24 @@
          to 6.89:1 on the Dark Green theme's, and the threshold holds under every colour theme. -->
     <color name="launcher_taskbar_start_text">#FFE1F0FD</color>
     <color name="launcher_taskbar_all_apps_text">#FFE6EBED</color>
+    <color name="launcher_all_apps_blue">#FF64B5F6</color>
+    <color name="launcher_all_apps_green">#FF81C784</color>
+    <color name="launcher_all_apps_yellow">#FFFFD54F</color>
+    <color name="launcher_all_apps_red">#FFEF9A9A</color>
     <color name="launcher_start_row_group1">#FF64B5F6</color>
     <color name="launcher_start_row_group2">#FF80CBC4</color>
     <color name="launcher_start_row_group3">#FFEFB8C8</color>
     <color name="launcher_start_row_group4">#FFF2B8B5</color>
+
+    <!-- S2323: night half of the screen-number badge. The glyphs lighten and the halo flips to dark, so
+         the outline keeps working over a bright wallpaper the way the day set's light halo does over a
+         dark one. -->
+    <color name="launcher_screen_badge_1">#FF90CAF9</color>
+    <color name="launcher_screen_badge_2">#FFA5D6A7</color>
+    <color name="launcher_screen_badge_3">#FFFFCC80</color>
+    <color name="launcher_screen_badge_4">#FFCE93D8</color>
+    <color name="launcher_screen_badge_5">#FFEF9A9A</color>
+    <color name="launcher_screen_badge_shadow">#B3000000</color>
 
     <!-- Basic colors -->
     <color name="black">#FF000000</color>

@@ -63,14 +63,25 @@ class WearFaviconAtlasSlicer(
         decoded = false
     }
 
+    /**
+     * S2149: the atlas is a single bitmap sized to the whole catalogue, so the first request for any
+     * tile pays the entire decode.
+     *
+     * The dispatcher is named here rather than inherited from the caller, so that cost is a property
+     * of the decode instead of an accident of whoever asks first. Today the only caller is [tileFor],
+     * which already runs on IO; stating it here is what keeps a future second caller from deciding it
+     * by mistake on the thread drawing the first visible row. The mutex still bounds it to one decode.
+     */
     private suspend fun atlas(): Bitmap? = mutex.withLock {
         if (!decoded) {
             decoded = true
             val file = atlasFileProvider()
-            cachedAtlas = if (file != null && file.isFile) {
-                BitmapFactory.decodeFile(file.path)
-            } else {
-                null
+            cachedAtlas = withContext(Dispatchers.IO) {
+                if (file != null && file.isFile) {
+                    BitmapFactory.decodeFile(file.path)
+                } else {
+                    null
+                }
             }
         }
         cachedAtlas

@@ -25,9 +25,15 @@
       7. Every DeviceProfileType has a CSV column, and no CSV column names an unknown profile.
       8. Every non-empty cell of a constrained field is inside the range its Settings screen
          accepts; the `Other` column is entirely empty.
+      9. Every AppSettings field carries a decision: a value in at least one profile column, a
+         `fields` entry, or a `reviewed` entry. This is the rule that makes a newly added setting
+         visible - rule 1 is satisfied the moment a row exists, so before rule 9 a field could sit
+         with every cell empty and nobody could tell that from a deliberate "no override" (S1538).
 
     Rules 5 and 6 are the reason the registry exists: without it the checker cannot tell a
-    forgotten setting from one that is deliberately never presettable.
+    forgotten setting from one that is deliberately never presettable. Rule 9 is why the registry
+    has two arrays: `fields` forbids a value forever, `reviewed` records that the field was
+    examined and needs no override today, and a value added to a reviewed row later is legitimate.
 
 .PARAMETER AddMissing
     Append missing AppSettings field rows and DeviceProfileType columns to the CSV (empty cells),
@@ -119,6 +125,16 @@ if (-not $registry.fields) {
 }
 $registryFields = @($registry.fields | ForEach-Object { $_.field })
 $registryNoReason = @($registry.fields | Where-Object { -not $_.reason } | ForEach-Object { $_.field })
+
+# S1538: the soft category. A reviewed field is still presettable and still needs its CSV row -
+# it simply carries no override today, so a value added later is legitimate, not an error. That
+# is the whole difference from $registryFields above, and the reason the two lists cannot merge.
+$reviewedFields = @()
+$reviewedNoReason = @()
+if ($registry.PSObject.Properties.Name -contains 'reviewed' -and $null -ne $registry.reviewed) {
+    $reviewedFields = @($registry.reviewed | ForEach-Object { $_.field })
+    $reviewedNoReason = @($registry.reviewed | Where-Object { -not $_.reason } | ForEach-Object { $_.field })
+}
 
 # --- Applier branch labels (`"fieldName" ->` at line start) ---
 $applierBranches = @(
@@ -219,6 +235,21 @@ $staleRows = $csvFields | Where-Object { $_ -notin $appFields }
 $missingColumns = $enumValues | Where-Object { $_ -notin $csvProfileEnums }
 $unknownColumns = $csvProfileColumns | Where-Object { (ColToEnum $_) -notin $enumValues }
 $staleRegistry = $registryFields | Where-Object { $_ -notin $appFields }
+# S1538: same two checks for the soft category, plus the contradiction between the two lists.
+$staleReviewed = @($reviewedFields | Where-Object { $_ -notin $appFields })
+$reviewedAndRegistered = @($reviewedFields | Where-Object { $_ -in $registryFields })
+
+# S1538 rule 9: a field nobody decided. It has a row, so rule 1 is satisfied and the old gate was
+# silent; every profile cell is empty and neither registry claims it, so the empty cells mean
+# "nobody looked" rather than "deliberately no override". This is the check that makes a newly
+# added setting visible instead of letting it sit unreviewed forever.
+$undecidedFields = @()
+foreach ($row in $csvRows) {
+    $field = $row.option
+    if ($field -in $registryFields -or $field -in $reviewedFields) { continue }
+    if ($field -notin $appFields) { continue }
+    if ((Get-FilledCells $row).Count -eq 0) { $undecidedFields += $field }
+}
 
 # A registered field that nevertheless carries a value: the registry says it can never apply.
 $registeredWithValue = @()
@@ -249,6 +280,7 @@ Write-Info "  CSV rows              : $($csvFields.Count)"
 Write-Info "  DeviceProfileTypes    : $($enumValues.Count)"
 Write-Info "  CSV profile columns   : $($csvProfileColumns.Count)"
 Write-Info "  Non-presettable fields: $($registryFields.Count)"
+Write-Info "  Reviewed fields       : $($reviewedFields.Count)"
 Write-Info "  Applier branches      : $($applierBranches.Count)"
 
 function Report($label, $items) {
@@ -263,6 +295,10 @@ Report 'CSV columns with NO matching DeviceProfileType' $unknownColumns
 Report 'registered non-presettable fields NAMING an unknown AppSettings field' $staleRegistry
 Report 'registered non-presettable fields WITHOUT a reason' $registryNoReason
 Report 'registered non-presettable fields CARRYING a value' $registeredWithValue
+Report 'reviewed fields NAMING an unknown AppSettings field' $staleReviewed
+Report 'reviewed fields WITHOUT a reason' $reviewedNoReason
+Report 'fields listed as BOTH non-presettable and reviewed' $reviewedAndRegistered
+Report 'fields with NO decision - needs a profile value, a non-presettable entry, or a reviewed entry' $undecidedFields
 Report 'CSV rows with no applier branch and no registry entry' $rowsWithoutBranch
 Report 'CSV rows CARRYING A VALUE with no applier branch' $valuedRowsWithoutBranch
 Report 'cells outside the range their Settings screen accepts' $valueViolations
@@ -270,19 +306,22 @@ Report "cells in the 'Other' column, which must stay empty" $otherColumnViolatio
 
 $hasMissing = ($missingRows.Count + $missingColumns.Count) -gt 0
 $hasStale = ($staleRows.Count + $unknownColumns.Count + $staleRegistry.Count) -gt 0
-$hasRegistryConflict = ($registryNoReason.Count + $registeredWithValue.Count) -gt 0
+$hasRegistryConflict = ($registryNoReason.Count + $registeredWithValue.Count +
+    $staleReviewed.Count + $reviewedNoReason.Count + $reviewedAndRegistered.Count) -gt 0
 $hasApplierGap = ($rowsWithoutBranch.Count + $valuedRowsWithoutBranch.Count) -gt 0
 $hasBadValue = ($valueViolations.Count + $otherColumnViolations.Count) -gt 0
+$hasUndecided = $undecidedFields.Count -gt 0
 
 if (-not $AddMissing) {
-    if ($hasMissing -or $hasStale -or $hasRegistryConflict -or $hasApplierGap -or $hasBadValue) {
+    if ($hasMissing -or $hasStale -or $hasRegistryConflict -or $hasApplierGap -or $hasBadValue -or $hasUndecided) {
         if ($Gate) {
             Write-Output 'check-device-profile-presets: FAIL - see the violations above.'
         }
         else {
             Write-Output ''
-            Write-Output 'INCONSISTENT. Every AppSettings field needs either a CSV row or an entry in'
-            Write-Output 'docs/settings/device-profile-nonpresettable.json, and every valued row needs an'
+            Write-Output 'INCONSISTENT. Every AppSettings field needs a decision - a profile value, a'
+            Write-Output 'non-presettable entry, or a reviewed entry in'
+            Write-Output 'docs/settings/device-profile-nonpresettable.json - and every valued row needs an'
             Write-Output 'applier branch. Run with -AddMissing to append missing rows/columns (empty);'
             Write-Output 'stale rows/columns are reported, not auto-removed.'
         }

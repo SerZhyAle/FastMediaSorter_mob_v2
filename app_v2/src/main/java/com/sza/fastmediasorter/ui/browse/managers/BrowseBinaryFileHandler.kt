@@ -102,7 +102,7 @@ class BrowseBinaryFileHandler(
             Toast.makeText(activity, R.string.error_opening_file_simple, Toast.LENGTH_SHORT).show()
             return
         }
-        if (!openInHandler.send(activity, content)) {
+        if (!openInHandler.open(activity, content)) {
             Toast.makeText(activity, R.string.no_app_to_open, Toast.LENGTH_SHORT).show()
         }
     }

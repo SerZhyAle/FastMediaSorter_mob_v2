@@ -41,6 +41,9 @@ class LauncherCellViewBinder(
     private val onEmptySlotClick: (row: Int, col: Int) -> Unit = { _, _ -> },
     private val onRemoveClick: (LauncherCellUi) -> Unit = {},
     private val onCellDragStart: (android.view.View, LauncherCellUi) -> Unit = { _, _ -> },
+    // S2301: a tap on a cell while editing. It opens that cell's edit menu; the drag stays on the long
+    // press, so the two gestures never compete.
+    private val onCellEditTap: (android.view.View, LauncherCellUi) -> Unit = { _, _ -> },
     // S0427: a resting shortcut cell's long press. Returns whether it was consumed, so a cell with
     // nothing to expand keeps behaving like an ordinary un-long-pressable cell.
     private val onCellLongPress: (View, LauncherCellUi) -> Boolean = { _, _ -> false },
@@ -115,10 +118,17 @@ class LauncherCellViewBinder(
         plan.forEach { rendered ->
             val item = rendered.item
             val view = when (item.cell.kind) {
-                LauncherCellKind.SHORTCUT -> bindShortcut(inflater, container, item)
+                LauncherCellKind.SHORTCUT -> bindShortcut(inflater, container, item, gadgetBackdropAlpha)
                 LauncherCellKind.GADGET -> bindGadget(inflater, container, item)
                 LauncherCellKind.SECTION ->
-                    bindSection(inflater, container, item, item.cell.target in foldedSections, editMode)
+                    bindSection(
+                        inflater,
+                        container,
+                        item,
+                        item.cell.target in foldedSections,
+                        editMode,
+                        gadgetBackdropAlpha,
+                    )
             }
             applyCellSurface(view, item, editMode, gadgetBackdropAlpha)
             if (editMode) decorateForEdit(inflater, view, item)
@@ -190,6 +200,11 @@ class LauncherCellViewBinder(
         val opacity = (alpha.coerceIn(0f, 1f) * OPAQUE_ALPHA).roundToInt()
         card.setCardBackgroundColor(ColorUtils.setAlphaComponent(surface, opacity))
         card.cardElevation = 0f
+    }
+
+    /** S2253: decorative plates share the backdrop setting without fading their readable foreground. */
+    private fun applyBackdropAlpha(view: View, alpha: Float) {
+        view.background?.mutate()?.alpha = (alpha.coerceIn(0f, 1f) * OPAQUE_ALPHA).roundToInt()
     }
 
     /**
@@ -266,14 +281,28 @@ class LauncherCellViewBinder(
             isClickable = true
             isLongClickable = true
             importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            setOnClickListener { /* swallow: cells do not launch while editing */ }
+            // The cell still never launches while editing - the tap opens its edit menu instead.
+            setOnClickListener { onCellEditTap(view, item) }
             setOnLongClickListener {
                 onCellDragStart(view, item)
                 true
             }
         }
+        // S2305: the section header is the one cell whose own content must outrank the scrim. A
+        // ViewGroup hit-tests its children in reverse index order at equal Z, so a scrim appended last
+        // takes every touch - including the actions button that is the only way to rename, reorder or
+        // delete a section while editing. First child instead: the header strip is then hit-tested
+        // above it, and since the strip itself is not clickable, every touch that misses the button
+        // still falls through to the scrim and keeps the cell's edit tap and drag.
+        val scrimIndex = if (item.cell.kind == LauncherCellKind.SECTION) {
+            Timber.d("S2305: section edit scrim placed below the header strip")
+            0
+        } else {
+            view.childCount
+        }
         view.addView(
             editScrim,
+            scrimIndex,
             FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT,
@@ -313,6 +342,7 @@ class LauncherCellViewBinder(
         inflater: LayoutInflater,
         container: LauncherDesktopLayout,
         item: LauncherCellUi,
+        backdropAlpha: Float,
     ): android.view.View {
         val binding = ItemLauncherCellShortcutBinding.inflate(inflater, container, false)
         applyShortcutLayoutScaling(binding, container)
@@ -338,6 +368,7 @@ class LauncherCellViewBinder(
         }
         bindMonogram(binding, visual?.monogramSeed)
         bindModeBadge(binding, item)
+        applyBackdropAlpha(binding.cellLabel, backdropAlpha)
         binding.root.contentDescription = describe(binding, item)
         binding.root.setOnClickListener { onCellClick(item) }
         binding.root.setOnLongClickListener { onCellLongPress(binding.root, item) }
@@ -425,17 +456,19 @@ class LauncherCellViewBinder(
         item: LauncherCellUi,
         collapsed: Boolean,
         editMode: Boolean,
+        backdropAlpha: Float,
     ): android.view.View {
         val binding = ItemLauncherSectionHeaderBinding.inflate(inflater, container, false)
         val title = item.visual?.label
             ?: container.context.getString(R.string.launcher_home_cell_unavailable)
         binding.sectionTitle.text = title
-        Timber.d("S1743: section header bound as a single strip - title=%s", title)
+        Timber.d("S2284: outlined section title bound")
         // S1664: set, never animated. [bind] rebuilds every cell view on each emission, so there is no
         // previous chevron to turn - it is inflated fresh and simply arrives already at its state. An
         // animation here would play on a view the user has not seen yet, on every unrelated rebind.
         binding.sectionChevron.rotation =
             if (collapsed) COLLAPSED_CHEVRON_ROTATION else EXPANDED_CHEVRON_ROTATION
+        applyBackdropAlpha(binding.sectionTitle.parent as View, backdropAlpha)
         ViewCompat.setAccessibilityHeading(binding.root, true)
         binding.root.setOnClickListener { onSectionClick(item) }
         announceSectionState(binding.root, title, collapsed)

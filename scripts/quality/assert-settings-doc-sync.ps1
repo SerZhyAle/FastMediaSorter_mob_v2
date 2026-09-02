@@ -36,6 +36,7 @@ param(
     [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path,
     [switch] $SkipManifestTest,  # escape hatch for environments without a JVM/gradle
     [string[]] $ChangedFiles,    # delta path: skip the gradle stage when nothing feeds the manifest
+    [switch] $SkipHowToStage,    # the caller runs assert-howto-settings-paths.ps1 as its own gate
     [int] $TimeoutSeconds = 600
 )
 
@@ -66,8 +67,14 @@ if ($LASTEXITCODE -ne 0) { Fail 'catalog-complete' 'a settings layout with rows 
 # of them cannot have moved the manifest, and paying ~28 s of gradle to re-prove that is the
 # 35 s-per-run cost this gate was cited for. Everything else in the file is still judged: the
 # four cheap stages always run.
+# A layout feeds the manifest only when it CARRIES a settings row. Matching every app_v2 layout
+# charged the ~28 s gradle stage to any UI ticket that touched any screen: measured over 12 days,
+# the stage ran on 130 closures at 64 s each. The widget tag list is the same one
+# assert-settings-catalog-complete.ps1 discovers layouts by, so the two cannot disagree.
+$settingsRowTagPattern = '<[\w.]*\b(?:SettingsToggleRow|SettingsDropdownRow|SettingsInputRow|SettingsSelectionRow)\b'
+$layoutPathPattern = '(^|/)app_v2/src/[^/]+/res/layout[^/]*/'
+
 $manifestInputPatterns = @(
-    '(^|/)app_v2/src/[^/]+/res/layout[^/]*/',
     '(^|/)app_v2/src/[^/]+/res/values[^/]*/strings',
     '(^|/)app_v2/src/[^/]+/java/com/sza/fastmediasorter/ui/settings/',
     '(^|/)app_v2/src/[^/]+/java/com/sza/fastmediasorter/di/[^/]*SettingsSearch',
@@ -83,13 +90,21 @@ $manifestAffected = $true
 if ($scoped.Count -gt 0) {
     $manifestAffected = $false
     foreach ($f in $scoped) {
+        if ($f -match $layoutPathPattern) {
+            # A layout that no longer exists was deleted from the set the scan reads, which moves
+            # the manifest - so an unreadable path widens back rather than being read as clean.
+            $layoutFull = Join-Path $RepoRoot $f
+            if (-not (Test-Path -LiteralPath $layoutFull)) { $manifestAffected = $true; break }
+            if ([System.IO.File]::ReadAllText($layoutFull) -match $settingsRowTagPattern) { $manifestAffected = $true; break }
+            continue
+        }
         foreach ($rx in $manifestInputPatterns) {
             if ($f -match $rx) { $manifestAffected = $true; break }
         }
         if ($manifestAffected) { break }
     }
     if (-not $manifestAffected) {
-        Write-Host "settings-doc-sync: manifest stage skipped - none of the $($scoped.Count) changed file(s) feeds the settings scan (layouts, strings, ui/settings, settings-search DI)." -ForegroundColor Yellow
+        Write-Host "settings-doc-sync: manifest stage skipped - none of the $($scoped.Count) changed file(s) feeds the settings scan (a layout carrying a settings row, strings, ui/settings, settings-search DI)." -ForegroundColor Yellow
     }
 }
 
@@ -104,7 +119,7 @@ if (-not $SkipManifestTest -and $manifestAffected) {
     # that job finishes, so a non-waiting acquire here loses the race against our own sibling job
     # (not cross-session contention) and reports a false lock-contention FAIL. -Wait queues instead;
     # a genuine timeout still surfaces as exit 2 CANNOT-VERIFY (documented above), never exit 1.
-    Enter-BuildLockOrExit -Reason "assert-settings-doc-sync.ps1 (SettingsManifestExportTest)" -Wait
+    Enter-BuildLockOrExit -Reason "assert-settings-doc-sync.ps1 (SettingsManifestExportTest)" -Wait -Domain Build.Phone
     Push-Location $RepoRoot
     try {
         # S1786: execute with timeout ceiling
@@ -116,7 +131,7 @@ if (-not $SkipManifestTest -and $manifestAffected) {
         $manifestOutput = $run.Output
         $manifestExit = if ($run.TimedOut) { 2 } else { $run.ExitCode }
         $timedOut = $run.TimedOut
-    } finally { Pop-Location; Exit-AgentLock -Name Build }
+    } finally { Pop-Location; Exit-AgentLock -Name 'Build' -Domains @('Build.Phone') }
     if ($timedOut) {
         CannotVerify 'manifest-fresh' "the SettingsManifestExportTest gradle run exceeded ${TimeoutSeconds}s and was killed (exit 2)."
     }
@@ -172,11 +187,17 @@ try {
 }
 
 # Stage 5 - HOW_TO settings-path freshness (S0558) ------------------------------
-& (Join-Path $PSScriptRoot 'assert-howto-settings-paths.ps1') -RepoRoot $RepoRoot
-if ($LASTEXITCODE -ne 0) { Fail 'howto-paths' 'a HOW_TO "Settings -> .." recipe drifted from the manifest - see the lines above' }
+# post-change.ps1 runs the same script as its own `howto-settings-paths-gate`, so on that path this
+# stage was the second execution of one check in one closure. -SkipHowToStage lets the caller keep
+# the gate it already reports and drop the duplicate; every other caller still gets stage 5.
+if (-not $SkipHowToStage) {
+    & (Join-Path $PSScriptRoot 'assert-howto-settings-paths.ps1') -RepoRoot $RepoRoot
+    if ($LASTEXITCODE -ne 0) { Fail 'howto-paths' 'a HOW_TO "Settings -> .." recipe drifted from the manifest - see the lines above' }
+}
 
 # Name what was actually judged: a verdict that claims "manifest fresh" after skipping the
 # manifest stage is the same false certification the closure facade was fixed for in phase 02.
 $manifestVerdict = if (-not $SkipManifestTest -and $manifestAffected) { 'manifest fresh' } else { 'manifest stage NOT run' }
-Write-Host "settings-doc-sync: OK - catalog complete, $manifestVerdict, annotations covered, reference up to date, HOW_TO recipes in sync." -ForegroundColor Green
+$howToVerdict = if ($SkipHowToStage) { 'HOW_TO recipes judged by the caller' } else { 'HOW_TO recipes in sync' }
+Write-Host "settings-doc-sync: OK - catalog complete, $manifestVerdict, annotations covered, reference up to date, $howToVerdict." -ForegroundColor Green
 exit 0

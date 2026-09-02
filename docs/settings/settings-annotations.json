@@ -459,10 +459,20 @@
     "ru": "Настройки, определяющие общий вид и стиль взаимодействия с приложением.",
     "uk": "Налаштування, що визначають загальний вигляд і стиль взаємодії з застосунком."
   },
+  "headerLauncherAppearance": {
+    "en": "Settings for launcher appearance: desktop wallpaper mode and widget backdrop opacity.",
+    "ru": "Настройки оформления лаунчера: режим обоев рабочего стола и прозрачность подложки виджетов.",
+    "uk": "Налаштування оформлення лаунчера: режим шпалер робочого стола та прозорість підкладки віджетів."
+  },
   "headerLauncherDesktop": {
     "en": "Settings for the launcher desktop itself: icon grid density, the edit lock and the wallpaper.",
     "ru": "Настройки самого рабочего стола лаунчера: плотность сетки значков, блокировка правки и обои.",
     "uk": "Налаштування самого робочого стола лаунчера: щільність сітки значків, блокування редагування та шпалери."
+  },
+  "headerLauncherGestures": {
+    "en": "Settings for launcher desktop gestures: swipe up, down, left, right, and double-tap actions.",
+    "ru": "Настройки жестов рабочего стола лаунчера: действия при свайпе вверх, вниз, влево, вправо и двойном касании.",
+    "uk": "Налаштування жестів робочого стола лаунчера: дії при свайпі вгору, вниз, ліворуч, праворуч та подвійному торканні."
   },
   "headerLauncherSystem": {
     "en": "Entry to the Android home-app chooser, where the system launcher is selected.",
@@ -478,6 +488,11 @@
     "en": "Settings for the launcher's own top strip, which can replace the system status area.",
     "ru": "Настройки собственной верхней полосы лаунчера, которая может замещать системную область статуса.",
     "uk": "Налаштування власної верхньої смуги лаунчера, яка може замінювати системну область стану."
+  },
+  "headerLauncherTray": {
+    "en": "Settings for the launcher system tray: clock, Bluetooth, SIM indicators, network speed, and battery.",
+    "ru": "Настройки системного трея лаунчера: часы, Bluetooth, индикаторы SIM, скорость сети и батарея.",
+    "uk": "Налаштування системного трею лаунчера: годинник, Bluetooth, індикатори SIM, швидкість мережі та батарея."
   },
   "headerMainWindowInterface": {
     "en": "Settings that control which optional panels and menus appear on the main window.",
@@ -749,6 +764,11 @@
     "ru": "Выбирает профиль устройства, адаптирующий интерфейс и элементы управления под тип устройства.",
     "uk": "Вибирає профіль пристрою, що адаптує інтерфейс та елементи керування під тип пристрою."
   },
+  "rowDisableAnimations": {
+    "en": "Disables screen transitions, group expanding and collapsing, settings-tab effects, decorative animations, and image crossfades. Audio visualizers, the camera focus ring, and filename auto-hide still run because they convey state.",
+    "ru": "Отключает переходы между экранами, разворачивание и сворачивание групп, эффекты вкладок настроек, декоративные анимации и кроссфейды изображений. Аудиовизуализаторы, кольцо фокуса камеры и автоскрытие имени файла продолжают работать, потому что показывают состояние.",
+    "uk": "Вимикає переходи між екранами, розгортання та згортання груп, ефекти вкладок налаштувань, декоративні анімації та кросфейди зображень. Аудіовізуалізатори, кільце фокусу камери й автоприховування назви файла продовжують працювати, бо показують стан."
+  },
   "rowDisableNineZone": {
     "en": "Turns off the 9-zone touch grid; the fullscreen player switches to a simpler 3-zone layout (previous / zoom / next) with a left-edge command-panel area.",
     "ru": "Отключает 9-зоновую сенсорную сетку; полноэкранный плеер переключается на упрощённую раскладку из 3 зон (предыдущий / зум / следующий) с областью командной панели у левого края.",
@@ -879,60 +899,60 @@
     "ru": "Задаёт действие, которое выполняется свайпом вниз в зоне жеста у левого края (нижняя полоса).",
     "uk": "Задає дію, яка виконується свайпом вниз у зоні жесту біля лівого краю (нижня смуга)."
   },
-  "rowGestureLeftBottomDownApp": {
-    "en": "Chooses the app launched by swiping down in the left edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter.",
-    "ru": "Выбирает приложение, которое запускается свайпом вниз в зоне жеста у левого края (нижняя полоса), и сбрасывает этот выбор. Строка видна, только пока действие направления - запуск приложения; если приложение не выбрано, жест открывает FastMediaSorter.",
-    "uk": "Вибирає застосунок, який запускається свайпом вниз у зоні жесту біля лівого краю (нижня смуга), і скидає цей вибір. Рядок видно, лише поки дія напрямку - запуск застосунку; якщо застосунок не вибрано, жест відкриває FastMediaSorter."
+  "rowGestureLeftBottomDownTarget": {
+    "en": "Chooses the app or web address opened by swiping down in the left edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter.",
+    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вниз в зоне жеста у левого края (нижняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает FastMediaSorter.",
+    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вниз у зоні жесту біля лівого краю (нижня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває FastMediaSorter."
   },
   "rowGestureLeftBottomRight": {
     "en": "Assigns the action triggered by swiping right from the left edge's lower gesture zone.",
     "ru": "Задаёт действие, которое выполняется свайпом вправо в зоне жеста у левого края (нижняя полоса).",
     "uk": "Задає дію, яка виконується свайпом праворуч у зоні жесту біля лівого краю (нижня смуга)."
   },
-  "rowGestureLeftBottomRightApp": {
-    "en": "Chooses the app launched by swiping right in the left edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter.",
-    "ru": "Выбирает приложение, которое запускается свайпом вправо в зоне жеста у левого края (нижняя полоса), и сбрасывает этот выбор. Строка видна, только пока действие направления - запуск приложения; если приложение не выбрано, жест открывает FastMediaSorter.",
-    "uk": "Вибирає застосунок, який запускається свайпом вправо у зоні жесту біля лівого краю (нижня смуга), і скидає цей вибір. Рядок видно, лише поки дія напрямку - запуск застосунку; якщо застосунок не вибрано, жест відкриває FastMediaSorter."
+  "rowGestureLeftBottomRightTarget": {
+    "en": "Chooses the app or web address opened by swiping right in the left edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter.",
+    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вправо в зоне жеста у левого края (нижняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает FastMediaSorter.",
+    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вправо у зоні жесту біля лівого краю (нижня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває FastMediaSorter."
   },
   "rowGestureLeftBottomUp": {
     "en": "Assigns the action triggered by swiping up from the left edge's lower gesture zone.",
     "ru": "Задаёт действие, которое выполняется свайпом вверх в зоне жеста у левого края (нижняя полоса).",
     "uk": "Задає дію, яка виконується свайпом вгору у зоні жесту біля лівого краю (нижня смуга)."
   },
-  "rowGestureLeftBottomUpApp": {
-    "en": "Chooses the app launched by swiping up in the left edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter.",
-    "ru": "Выбирает приложение, которое запускается свайпом вверх в зоне жеста у левого края (нижняя полоса), и сбрасывает этот выбор. Строка видна, только пока действие направления - запуск приложения; если приложение не выбрано, жест открывает FastMediaSorter.",
-    "uk": "Вибирає застосунок, який запускається свайпом вгору у зоні жесту біля лівого краю (нижня смуга), і скидає цей вибір. Рядок видно, лише поки дія напрямку - запуск застосунку; якщо застосунок не вибрано, жест відкриває FastMediaSorter."
+  "rowGestureLeftBottomUpTarget": {
+    "en": "Chooses the app or web address opened by swiping up in the left edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter.",
+    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вверх в зоне жеста у левого края (нижняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает FastMediaSorter.",
+    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вгору у зоні жесту біля лівого краю (нижня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває FastMediaSorter."
   },
   "rowGestureLeftTopDown": {
     "en": "Assigns the action triggered by swiping down from the left edge's upper gesture zone.",
     "ru": "Задаёт действие, которое выполняется свайпом вниз в зоне жеста у левого края (верхняя полоса).",
     "uk": "Задає дію, яка виконується свайпом вниз у зоні жесту біля лівого краю (верхня смуга)."
   },
-  "rowGestureLeftTopDownApp": {
-    "en": "Chooses the app launched by swiping down in the left edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter.",
-    "ru": "Выбирает приложение, которое запускается свайпом вниз в зоне жеста у левого края (верхняя полоса), и сбрасывает этот выбор. Строка видна, только пока действие направления - запуск приложения; если приложение не выбрано, жест открывает FastMediaSorter.",
-    "uk": "Вибирає застосунок, який запускається свайпом вниз у зоні жесту біля лівого краю (верхня смуга), і скидає цей вибір. Рядок видно, лише поки дія напрямку - запуск застосунку; якщо застосунок не вибрано, жест відкриває FastMediaSorter."
+  "rowGestureLeftTopDownTarget": {
+    "en": "Chooses the app or web address opened by swiping down in the left edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter.",
+    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вниз в зоне жеста у левого края (верхняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает FastMediaSorter.",
+    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вниз у зоні жесту біля лівого краю (верхня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває FastMediaSorter."
   },
   "rowGestureLeftTopRight": {
     "en": "Assigns the action triggered by swiping right from the left edge's upper gesture zone.",
     "ru": "Задаёт действие, которое выполняется свайпом вправо в зоне жеста у левого края (верхняя полоса).",
     "uk": "Задає дію, яка виконується свайпом праворуч у зоні жесту біля лівого краю (верхня смуга)."
   },
-  "rowGestureLeftTopRightApp": {
-    "en": "Chooses the app launched by swiping right in the left edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter.",
-    "ru": "Выбирает приложение, которое запускается свайпом вправо в зоне жеста у левого края (верхняя полоса), и сбрасывает этот выбор. Строка видна, только пока действие направления - запуск приложения; если приложение не выбрано, жест открывает FastMediaSorter.",
-    "uk": "Вибирає застосунок, який запускається свайпом вправо у зоні жесту біля лівого краю (верхня смуга), і скидає цей вибір. Рядок видно, лише поки дія напрямку - запуск застосунку; якщо застосунок не вибрано, жест відкриває FastMediaSorter."
+  "rowGestureLeftTopRightTarget": {
+    "en": "Chooses the app or web address opened by swiping right in the left edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter.",
+    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вправо в зоне жеста у левого края (верхняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает FastMediaSorter.",
+    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вправо у зоні жесту біля лівого краю (верхня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває FastMediaSorter."
   },
   "rowGestureLeftTopUp": {
     "en": "Assigns the action triggered by swiping up from the left edge's upper gesture zone.",
     "ru": "Задаёт действие, которое выполняется свайпом вверх в зоне жеста у левого края (верхняя полоса).",
     "uk": "Задає дію, яка виконується свайпом вгору у зоні жесту біля лівого краю (верхня смуга)."
   },
-  "rowGestureLeftTopUpApp": {
-    "en": "Chooses the app launched by swiping up in the left edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter.",
-    "ru": "Выбирает приложение, которое запускается свайпом вверх в зоне жеста у левого края (верхняя полоса), и сбрасывает этот выбор. Строка видна, только пока действие направления - запуск приложения; если приложение не выбрано, жест открывает FastMediaSorter.",
-    "uk": "Вибирає застосунок, який запускається свайпом вгору у зоні жесту біля лівого краю (верхня смуга), і скидає цей вибір. Рядок видно, лише поки дія напрямку - запуск застосунку; якщо застосунок не вибрано, жест відкриває FastMediaSorter."
+  "rowGestureLeftTopUpTarget": {
+    "en": "Chooses the app or web address opened by swiping up in the left edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter.",
+    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вверх в зоне жеста у левого края (верхняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает FastMediaSorter.",
+    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вгору у зоні жесту біля лівого краю (верхня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває FastMediaSorter."
   },
   "rowGestureOverlayEnabled": {
     "en": "Enables the left-edge gesture overlay, allowing swipe shortcuts to trigger file operations.",
@@ -944,60 +964,60 @@
     "ru": "Задаёт действие, которое выполняется свайпом вниз в зоне жеста у правого края (нижняя полоса).",
     "uk": "Задає дію, яка виконується свайпом вниз у зоні жесту біля правого краю (нижня смуга)."
   },
-  "rowGestureRightBottomDownApp": {
-    "en": "Chooses the app launched by swiping down in the right edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter.",
-    "ru": "Выбирает приложение, которое запускается свайпом вниз в зоне жеста у правого края (нижняя полоса), и сбрасывает этот выбор. Строка видна, только пока действие направления - запуск приложения; если приложение не выбрано, жест открывает FastMediaSorter.",
-    "uk": "Вибирає застосунок, який запускається свайпом вниз у зоні жесту біля правого краю (нижня смуга), і скидає цей вибір. Рядок видно, лише поки дія напрямку - запуск застосунку; якщо застосунок не вибрано, жест відкриває FastMediaSorter."
+  "rowGestureRightBottomDownTarget": {
+    "en": "Chooses the app or web address opened by swiping down in the right edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter.",
+    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вниз в зоне жеста у правого края (нижняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает FastMediaSorter.",
+    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вниз у зоні жесту біля правого краю (нижня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває FastMediaSorter."
   },
   "rowGestureRightBottomRight": {
     "en": "Assigns the action triggered by swiping right from the right edge's lower gesture zone.",
     "ru": "Задаёт действие, которое выполняется свайпом вправо в зоне жеста у правого края (нижняя полоса).",
     "uk": "Задає дію, яка виконується свайпом праворуч у зоні жесту біля правого краю (нижня смуга)."
   },
-  "rowGestureRightBottomRightApp": {
-    "en": "Chooses the app launched by swiping right in the right edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter.",
-    "ru": "Выбирает приложение, которое запускается свайпом вправо в зоне жеста у правого края (нижняя полоса), и сбрасывает этот выбор. Строка видна, только пока действие направления - запуск приложения; если приложение не выбрано, жест открывает FastMediaSorter.",
-    "uk": "Вибирає застосунок, який запускається свайпом вправо у зоні жесту біля правого краю (нижня смуга), і скидає цей вибір. Рядок видно, лише поки дія напрямку - запуск застосунку; якщо застосунок не вибрано, жест відкриває FastMediaSorter."
+  "rowGestureRightBottomRightTarget": {
+    "en": "Chooses the app or web address opened by swiping right in the right edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter.",
+    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вправо в зоне жеста у правого края (нижняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает FastMediaSorter.",
+    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вправо у зоні жесту біля правого краю (нижня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває FastMediaSorter."
   },
   "rowGestureRightBottomUp": {
     "en": "Assigns the action triggered by swiping up from the right edge's lower gesture zone.",
     "ru": "Задаёт действие, которое выполняется свайпом вверх в зоне жеста у правого края (нижняя полоса).",
     "uk": "Задає дію, яка виконується свайпом вгору у зоні жесту біля правого краю (нижня смуга)."
   },
-  "rowGestureRightBottomUpApp": {
-    "en": "Chooses the app launched by swiping up in the right edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter.",
-    "ru": "Выбирает приложение, которое запускается свайпом вверх в зоне жеста у правого края (нижняя полоса), и сбрасывает этот выбор. Строка видна, только пока действие направления - запуск приложения; если приложение не выбрано, жест открывает FastMediaSorter.",
-    "uk": "Вибирає застосунок, який запускається свайпом вгору у зоні жесту біля правого краю (нижня смуга), і скидає цей вибір. Рядок видно, лише поки дія напрямку - запуск застосунку; якщо застосунок не вибрано, жест відкриває FastMediaSorter."
+  "rowGestureRightBottomUpTarget": {
+    "en": "Chooses the app or web address opened by swiping up in the right edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter.",
+    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вверх в зоне жеста у правого края (нижняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает FastMediaSorter.",
+    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вгору у зоні жесту біля правого краю (нижня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває FastMediaSorter."
   },
   "rowGestureRightTopDown": {
     "en": "Assigns the action triggered by swiping down from the right edge's upper gesture zone.",
     "ru": "Задаёт действие, которое выполняется свайпом вниз в зоне жеста у правого края (верхняя полоса).",
     "uk": "Задає дію, яка виконується свайпом вниз у зоні жесту біля правого краю (верхня смуга)."
   },
-  "rowGestureRightTopDownApp": {
-    "en": "Chooses the app launched by swiping down in the right edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter.",
-    "ru": "Выбирает приложение, которое запускается свайпом вниз в зоне жеста у правого края (верхняя полоса), и сбрасывает этот выбор. Строка видна, только пока действие направления - запуск приложения; если приложение не выбрано, жест открывает FastMediaSorter.",
-    "uk": "Вибирає застосунок, який запускається свайпом вниз у зоні жесту біля правого краю (верхня смуга), і скидає цей вибір. Рядок видно, лише поки дія напрямку - запуск застосунку; якщо застосунок не вибрано, жест відкриває FastMediaSorter."
+  "rowGestureRightTopDownTarget": {
+    "en": "Chooses the app or web address opened by swiping down in the right edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter.",
+    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вниз в зоне жеста у правого края (верхняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает FastMediaSorter.",
+    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вниз у зоні жесту біля правого краю (верхня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває FastMediaSorter."
   },
   "rowGestureRightTopRight": {
     "en": "Assigns the action triggered by swiping right from the right edge's upper gesture zone.",
     "ru": "Задаёт действие, которое выполняется свайпом вправо в зоне жеста у правого края (верхняя полоса).",
     "uk": "Задає дію, яка виконується свайпом праворуч у зоні жесту біля правого краю (верхня смуга)."
   },
-  "rowGestureRightTopRightApp": {
-    "en": "Chooses the app launched by swiping right in the right edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter.",
-    "ru": "Выбирает приложение, которое запускается свайпом вправо в зоне жеста у правого края (верхняя полоса), и сбрасывает этот выбор. Строка видна, только пока действие направления - запуск приложения; если приложение не выбрано, жест открывает FastMediaSorter.",
-    "uk": "Вибирає застосунок, який запускається свайпом вправо у зоні жесту біля правого краю (верхня смуга), і скидає цей вибір. Рядок видно, лише поки дія напрямку - запуск застосунку; якщо застосунок не вибрано, жест відкриває FastMediaSorter."
+  "rowGestureRightTopRightTarget": {
+    "en": "Chooses the app or web address opened by swiping right in the right edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter.",
+    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вправо в зоне жеста у правого края (верхняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает FastMediaSorter.",
+    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вправо у зоні жесту біля правого краю (верхня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває FastMediaSorter."
   },
   "rowGestureRightTopUp": {
     "en": "Assigns the action triggered by swiping up from the right edge's upper gesture zone.",
     "ru": "Задаёт действие, которое выполняется свайпом вверх в зоне жеста у правого края (верхняя полоса).",
     "uk": "Задає дію, яка виконується свайпом вгору у зоні жесту біля правого краю (верхня смуга)."
   },
-  "rowGestureRightTopUpApp": {
-    "en": "Chooses the app launched by swiping up in the right edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter.",
-    "ru": "Выбирает приложение, которое запускается свайпом вверх в зоне жеста у правого края (верхняя полоса), и сбрасывает этот выбор. Строка видна, только пока действие направления - запуск приложения; если приложение не выбрано, жест открывает FastMediaSorter.",
-    "uk": "Вибирає застосунок, який запускається свайпом вгору у зоні жесту біля правого краю (верхня смуга), і скидає цей вибір. Рядок видно, лише поки дія напрямку - запуск застосунку; якщо застосунок не вибрано, жест відкриває FastMediaSorter."
+  "rowGestureRightTopUpTarget": {
+    "en": "Chooses the app or web address opened by swiping up in the right edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter.",
+    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вверх в зоне жеста у правого края (верхняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает FastMediaSorter.",
+    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вгору у зоні жесту біля правого краю (верхня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває FastMediaSorter."
   },
   "rowGoToNextAfterCopy": {
     "en": "Automatically advances to the next file in the list after a copy operation completes.",
@@ -1024,15 +1044,100 @@
     "ru": "Открывает список языков интерфейса с поиском. В сборке из Play выбранный язык сначала догружается; если загрузить не удалось, приложение остаётся на текущем языке.",
     "uk": "Відкриває список мов інтерфейсу з пошуком. У збірці з Play вибрана мова спочатку завантажується; якщо завантажити не вдалося, застосунок залишається поточною мовою."
   },
+  "rowLauncherAllAppsSwipeDown": {
+    "en": "Chooses what this swipe does on the All apps panel. The list is deliberately short: back to the desktop, expand all apps, launch a chosen app, lock the screen, or unused. Screen lock is offered only in builds that can perform it. This direction runs only at the top of the list; by default it closes the panel and returns to the desktop.",
+    "ru": "Выбирает, что делает этот свайп на экране «Все приложения». Список намеренно короткий: вернуться на рабочий стол, развернуть все приложения, запуск выбранного приложения, блокировка экрана, не используется. Блокировка экрана предлагается только в сборках, где она исполнима. Это направление срабатывает только в начале списка; по умолчанию закрывает панель и возвращает на рабочий стол.",
+    "uk": "Обирає, що робить цей свайп на екрані «Усі застосунки». Список навмисно короткий: повернутися на робочий стіл, розгорнути всі застосунки, запуск обраного застосунку, блокування екрана, не використовується. Блокування екрана пропонується лише у збірках, де воно здійсненне. Цей напрямок спрацьовує лише на початку списку; за замовчуванням закриває панель і повертає на робочий стіл."
+  },
+  "rowLauncherAllAppsSwipeDownTarget": {
+    "en": "The app this direction launches. Shown only while the direction is set to launch an app; the reset control beside it clears the choice without changing the action.",
+    "ru": "Приложение, которое запускает это направление. Показывается только пока направлению назначен запуск приложения; кнопка сброса рядом очищает выбор, не меняя действия.",
+    "uk": "Застосунок, який запускає цей напрямок. Показується лише поки напрямку призначено запуск застосунку; кнопка скидання поруч очищає вибір, не змінюючи дію."
+  },
+  "rowLauncherAllAppsSwipeLeft": {
+    "en": "Chooses what this swipe does on the All apps panel. The list is deliberately short: back to the desktop, expand all apps, launch a chosen app, lock the screen, or unused. Screen lock is offered only in builds that can perform it. This direction unassigned by default.",
+    "ru": "Выбирает, что делает этот свайп на экране «Все приложения». Список намеренно короткий: вернуться на рабочий стол, развернуть все приложения, запуск выбранного приложения, блокировка экрана, не используется. Блокировка экрана предлагается только в сборках, где она исполнима. Это направление по умолчанию не назначен.",
+    "uk": "Обирає, що робить цей свайп на екрані «Усі застосунки». Список навмисно короткий: повернутися на робочий стіл, розгорнути всі застосунки, запуск обраного застосунку, блокування екрана, не використовується. Блокування екрана пропонується лише у збірках, де воно здійсненне. Цей напрямок за замовчуванням не призначений."
+  },
+  "rowLauncherAllAppsSwipeLeftTarget": {
+    "en": "The app this direction launches. Shown only while the direction is set to launch an app; the reset control beside it clears the choice without changing the action.",
+    "ru": "Приложение, которое запускает это направление. Показывается только пока направлению назначен запуск приложения; кнопка сброса рядом очищает выбор, не меняя действия.",
+    "uk": "Застосунок, який запускає цей напрямок. Показується лише поки напрямку призначено запуск застосунку; кнопка скидання поруч очищає вибір, не змінюючи дію."
+  },
+  "rowLauncherAllAppsSwipeRight": {
+    "en": "Chooses what this swipe does on the All apps panel. The list is deliberately short: back to the desktop, expand all apps, launch a chosen app, lock the screen, or unused. Screen lock is offered only in builds that can perform it. This direction unassigned by default.",
+    "ru": "Выбирает, что делает этот свайп на экране «Все приложения». Список намеренно короткий: вернуться на рабочий стол, развернуть все приложения, запуск выбранного приложения, блокировка экрана, не используется. Блокировка экрана предлагается только в сборках, где она исполнима. Это направление по умолчанию не назначен.",
+    "uk": "Обирає, що робить цей свайп на екрані «Усі застосунки». Список навмисно короткий: повернутися на робочий стіл, розгорнути всі застосунки, запуск обраного застосунку, блокування екрана, не використовується. Блокування екрана пропонується лише у збірках, де воно здійсненне. Цей напрямок за замовчуванням не призначений."
+  },
+  "rowLauncherAllAppsSwipeRightTarget": {
+    "en": "The app this direction launches. Shown only while the direction is set to launch an app; the reset control beside it clears the choice without changing the action.",
+    "ru": "Приложение, которое запускает это направление. Показывается только пока направлению назначен запуск приложения; кнопка сброса рядом очищает выбор, не меняя действия.",
+    "uk": "Застосунок, який запускає цей напрямок. Показується лише поки напрямку призначено запуск застосунку; кнопка скидання поруч очищає вибір, не змінюючи дію."
+  },
+  "rowLauncherAllAppsSwipeUp": {
+    "en": "Chooses what this swipe does on the All apps panel. The list is deliberately short: back to the desktop, expand all apps, launch a chosen app, lock the screen, or unused. Screen lock is offered only in builds that can perform it. This direction runs only after the list is scrolled to its end; by default it expands the full app list instead of the alphabetical sections.",
+    "ru": "Выбирает, что делает этот свайп на экране «Все приложения». Список намеренно короткий: вернуться на рабочий стол, развернуть все приложения, запуск выбранного приложения, блокировка экрана, не используется. Блокировка экрана предлагается только в сборках, где она исполнима. Это направление срабатывает только когда список долистан до конца; по умолчанию разворачивает полный список приложений вместо алфавитных секций.",
+    "uk": "Обирає, що робить цей свайп на екрані «Усі застосунки». Список навмисно короткий: повернутися на робочий стіл, розгорнути всі застосунки, запуск обраного застосунку, блокування екрана, не використовується. Блокування екрана пропонується лише у збірках, де воно здійсненне. Цей напрямок спрацьовує лише коли список догорнуто до кінця; за замовчуванням розгортає повний список застосунків замість абеткових секцій."
+  },
+  "rowLauncherAllAppsSwipeUpTarget": {
+    "en": "The app this direction launches. Shown only while the direction is set to launch an app; the reset control beside it clears the choice without changing the action.",
+    "ru": "Приложение, которое запускает это направление. Показывается только пока направлению назначен запуск приложения; кнопка сброса рядом очищает выбор, не меняя действия.",
+    "uk": "Застосунок, який запускає цей напрямок. Показується лише поки напрямку призначено запуск застосунку; кнопка скидання поруч очищає вибір, не змінюючи дію."
+  },
   "rowLauncherDensity": {
-    "en": "Sets how many icons the launcher desktop grid fits per row and column.",
-    "ru": "Задаёт, сколько значков помещается по строкам и столбцам сетки рабочего стола лаунчера.",
-    "uk": "Задає, скільки піктограм вміщується в рядках і стовпцях сітки робочого столу лаунчера."
+    "en": "Sets how many icons the launcher desktop grid fits per row and column; dense by default.",
+    "ru": "Задаёт, сколько значков помещается по строкам и столбцам сетки рабочего стола лаунчера; по умолчанию плотная.",
+    "uk": "Задає, скільки піктограм вміщується в рядках і стовпцях сітки робочого столу лаунчера; типово щільна."
+  },
+  "rowLauncherDesktopDoubleTapLock": {
+    "en": "Lets a double tap on empty desktop space lock the screen; where the device lock is out of reach the launcher blacks the screen out instead. On by default.",
+    "ru": "Позволяет двойным тапом по свободному месту рабочего стола блокировать экран; где блокировка устройства недоступна, лаунчер гасит экран в чёрный. По умолчанию включено.",
+    "uk": "Дозволяє подвійним дотиком по вільному місцю робочого стола блокувати екран; де блокування пристрою недоступне, лаунчер гасить екран у чорний. Типово ввімкнено."
+  },
+  "rowLauncherDesktopSwipeDown": {
+    "en": "Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. By default, it opens the notification shade when the system action is available. The list also carries the launcher's own routes - All apps, and the next and previous desktop screen.",
+    "ru": "Выбирает действие свайпа лаунчера из того же доступного набора, что и для жестов с края. При выборе «Открыть приложение» или «Открыть URL» затем задаётся цель. По умолчанию открывает шторку уведомлений, если системное действие доступно. В списке есть и собственные маршруты лаунчера - «Все приложения», а также следующий и предыдущий экран рабочего стола.",
+    "uk": "Вибирає дію свайпу лаунчера з того самого доступного набору, що й для жестів з краю. Після вибору «Відкрити програму» або «Відкрити URL» задається ціль. Типово відкриває шторку сповіщень, якщо системна дія доступна. У списку є й власні маршрути лаунчера - «Усі програми», а також наступний і попередній екран робочого стола."
+  },
+  "rowLauncherDesktopSwipeDownTarget": {
+    "en": "Sets the target of the downward swipe's action - the app it launches or the web address it opens. Shown only while the assigned action takes a target; tap to change it, and clear it from the address dialog. An empty target keeps the action's own fallback.",
+    "ru": "Задаёт цель действия свайпа вниз - программу, которую оно запускает, или адрес, который открывает. Строка видна, только пока назначенное действие принимает цель; нажатие меняет цель, а очистить её можно в диалоге адреса. Пустая цель оставляет запасное поведение самого действия.",
+    "uk": "Задає ціль дії свайпу вниз - програму, яку вона запускає, або адресу, яку відкриває. Рядок видно, лише поки призначена дія приймає ціль; натискання змінює ціль, а очистити її можна в діалозі адреси. Порожня ціль залишає запасну поведінку самої дії."
+  },
+  "rowLauncherDesktopSwipeLeft": {
+    "en": "Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. By default no action is assigned, and on a multi-screen desktop an unassigned left or right swipe pages between screens. The list also carries the launcher's own routes - All apps, and the next and previous desktop screen.",
+    "ru": "Выбирает действие свайпа лаунчера из того же доступного набора, что и для жестов с края. При выборе «Открыть приложение» или «Открыть URL» затем задаётся цель. По умолчанию действие не назначено, а на многоэкранном рабочем столе незанятый свайп влево или вправо листает экраны. В списке есть и собственные маршруты лаунчера - «Все приложения», а также следующий и предыдущий экран рабочего стола.",
+    "uk": "Вибирає дію свайпу лаунчера з того самого доступного набору, що й для жестів з краю. Після вибору «Відкрити програму» або «Відкрити URL» задається ціль. Типово дію не призначено, а на багатоекранному робочому столі незайнятий свайп вліво або вправо гортає екрани. У списку є й власні маршрути лаунчера - «Усі програми», а також наступний і попередній екран робочого стола."
+  },
+  "rowLauncherDesktopSwipeLeftTarget": {
+    "en": "Sets the target of the leftward swipe's action - the app it launches or the web address it opens. Shown only while the assigned action takes a target; tap to change it, and clear it from the address dialog. An empty target keeps the action's own fallback.",
+    "ru": "Задаёт цель действия свайпа влево - программу, которую оно запускает, или адрес, который открывает. Строка видна, только пока назначенное действие принимает цель; нажатие меняет цель, а очистить её можно в диалоге адреса. Пустая цель оставляет запасное поведение самого действия.",
+    "uk": "Задає ціль дії свайпу вліво - програму, яку вона запускає, або адресу, яку відкриває. Рядок видно, лише поки призначена дія приймає ціль; натискання змінює ціль, а очистити її можна в діалозі адреси. Порожня ціль залишає запасну поведінку самої дії."
+  },
+  "rowLauncherDesktopSwipeRight": {
+    "en": "Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. By default no action is assigned, and on a multi-screen desktop an unassigned left or right swipe pages between screens. The list also carries the launcher's own routes - All apps, and the next and previous desktop screen.",
+    "ru": "Выбирает действие свайпа лаунчера из того же доступного набора, что и для жестов с края. При выборе «Открыть приложение» или «Открыть URL» затем задаётся цель. По умолчанию действие не назначено, а на многоэкранном рабочем столе незанятый свайп влево или вправо листает экраны. В списке есть и собственные маршруты лаунчера - «Все приложения», а также следующий и предыдущий экран рабочего стола.",
+    "uk": "Вибирає дію свайпу лаунчера з того самого доступного набору, що й для жестів з краю. Після вибору «Відкрити програму» або «Відкрити URL» задається ціль. Типово дію не призначено, а на багатоекранному робочому столі незайнятий свайп вліво або вправо гортає екрани. У списку є й власні маршрути лаунчера - «Усі програми», а також наступний і попередній екран робочого стола."
+  },
+  "rowLauncherDesktopSwipeRightTarget": {
+    "en": "Sets the target of the rightward swipe's action - the app it launches or the web address it opens. Shown only while the assigned action takes a target; tap to change it, and clear it from the address dialog. An empty target keeps the action's own fallback.",
+    "ru": "Задаёт цель действия свайпа вправо - программу, которую оно запускает, или адрес, который открывает. Строка видна, только пока назначенное действие принимает цель; нажатие меняет цель, а очистить её можно в диалоге адреса. Пустая цель оставляет запасное поведение самого действия.",
+    "uk": "Задає ціль дії свайпу вправо - програму, яку вона запускає, або адресу, яку відкриває. Рядок видно, лише поки призначена дія приймає ціль; натискання змінює ціль, а очистити її можна в діалозі адреси. Порожня ціль залишає запасну поведінку самої дії."
+  },
+  "rowLauncherDesktopSwipeUp": {
+    "en": "Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. Swipe up runs only after reaching the bottom; by default, it opens All apps. The list also carries the launcher's own routes - All apps, and the next and previous desktop screen.",
+    "ru": "Выбирает действие свайпа лаунчера из того же доступного набора, что и для жестов с края. При выборе «Открыть приложение» или «Открыть URL» затем задаётся цель. Свайп вверх срабатывает только после нижней границы; по умолчанию открывает «Все приложения». В списке есть и собственные маршруты лаунчера - «Все приложения», а также следующий и предыдущий экран рабочего стола.",
+    "uk": "Вибирає дію свайпу лаунчера з того самого доступного набору, що й для жестів з краю. Після вибору «Відкрити програму» або «Відкрити URL» задається ціль. Свайп угору спрацьовує лише після нижньої межі; типово відкриває «Усі програми». У списку є й власні маршрути лаунчера - «Усі програми», а також наступний і попередній екран робочого стола."
+  },
+  "rowLauncherDesktopSwipeUpTarget": {
+    "en": "Sets the target of the upward swipe's action - the app it launches or the web address it opens. Shown only while the assigned action takes a target; tap to change it, and clear it from the address dialog. An empty target keeps the action's own fallback.",
+    "ru": "Задаёт цель действия свайпа вверх - программу, которую оно запускает, или адрес, который открывает. Строка видна, только пока назначенное действие принимает цель; нажатие меняет цель, а очистить её можно в диалоге адреса. Пустая цель оставляет запасное поведение самого действия.",
+    "uk": "Задає ціль дії свайпу вгору - програму, яку вона запускає, або адресу, яку відкриває. Рядок видно, лише поки призначена дія приймає ціль; натискання змінює ціль, а очистити її можна в діалозі адреси. Порожня ціль залишає запасну поведінку самої дії."
   },
   "rowLauncherForeignNotifications": {
-    "en": "Shows one icon per other app that has pending notifications in the launcher top bar, with how many it has. Their title, text and attachments are never read. Off by default and inert until the system grants notification access.",
-    "ru": "Показывает в верхней полосе лаунчера по одному значку на каждое другое приложение с висящими уведомлениями и число этих уведомлений. Заголовок, текст и вложения не читаются. По умолчанию выключено и бездействует, пока системный доступ к уведомлениям не выдан.",
-    "uk": "Показує у верхній смузі лаунчера по одному значку на кожен інший застосунок із висячими сповіщеннями та їхню кількість. Заголовок, текст і вкладення не читаються. Типово вимкнено і не діє, доки системний доступ до сповіщень не надано."
+    "en": "Shows one icon per other app that has pending notifications in the launcher top bar, with how many it has. Their title, text and attachments are never read. On by default and inert until the system grants notification access.",
+    "ru": "Показывает в верхней полосе лаунчера по одному значку на каждое другое приложение с висящими уведомлениями и число этих уведомлений. Заголовок, текст и вложения не читаются. По умолчанию включено и бездействует, пока системный доступ к уведомлениям не выдан.",
+    "uk": "Показує у верхній смузі лаунчера по одному значку на кожен інший застосунок із висячими сповіщеннями та їхню кількість. Заголовок, текст і вкладення не читаються. Типово увімкнено і не діє, доки системний доступ до сповіщень не надано."
   },
   "rowLauncherLockDesktop": {
     "en": "Blocks long-press entry into desktop edit mode; the Start-menu entry stays reachable.",
@@ -1053,6 +1158,11 @@
     "en": "Replaces the system status bar with the launcher's own clock/status area; off keeps the Android status bar.",
     "ru": "Заменяет системную строку состояния собственной областью часов/статуса лаунчера; выключено - остаётся системная строка состояния.",
     "uk": "Замінює системний рядок стану власною областю годинника/статусу лаунчера; вимкнено - лишається системний рядок стану."
+  },
+  "rowLauncherScreenCount": {
+    "en": "Sets how many desktop screens the launcher has, so pinned icons and widgets can be spread across several pages instead of one.",
+    "ru": "Задаёт, сколько рабочих столов у лаунчера, чтобы закреплённые значки и виджеты можно было разложить по нескольким страницам, а не по одной.",
+    "uk": "Задає, скільки робочих столів має лаунчер, щоб закріплені піктограми та віджети можна було розкласти по кількох сторінках, а не по одній."
   },
   "rowLauncherScreenTimeout": {
     "en": "Turns the screen black after a chosen period of inactivity while on the launcher desktop: never (off), presets of 5 to 300 seconds, or a custom number of seconds.",
@@ -1119,15 +1229,20 @@
     "ru": "Показывает уровень сигнала второй SIM в трее лаунчера. Нужно разрешение на чтение состояния телефона; без него или на устройстве с одной SIM индикатора нет.",
     "uk": "Показує рівень сигналу другої SIM у треї лаунчера. Потрібен дозвіл на читання стану телефона; без нього або на пристрої з однією SIM індикатора немає."
   },
+  "rowLauncherTraySpeed": {
+    "en": "Shows device-wide download and upload transfer speeds in the launcher status area as two separate cells; updates once per second when enabled.",
+    "ru": "Показывает общую скорость приёма и передачи в области статуса лаунчера двумя отдельными ячейками; обновляется раз в секунду при включении.",
+    "uk": "Показує загальну швидкість прийому та передачі в області статусу лаунчера двома окремими ячейками; оновлюється раз на секунду при увімкненні."
+  },
   "rowLauncherWallpaper": {
-    "en": "Chooses the launcher desktop's wallpaper: branded animation, a static striped frame refreshed when you return to the launcher, an empty surface, or your own image.",
-    "ru": "Выбирает заставку рабочего стола лаунчера: фирменную анимацию, застывший кадр в стиле полос, который обновляется при возвращении в лаунчер, пустой фон или своё изображение.",
-    "uk": "Вибирає заставку робочого стола лаунчера: фірмову анімацію, застиглий кадр у стилі смуг, що оновлюється після повернення до лаунчера, порожній фон або власне зображення."
+    "en": "Chooses the launcher desktop's wallpaper: branded animation, a static striped frame refreshed when you return to the launcher, an empty surface, your own image, a live frame from a device camera, or an instant photo the camera takes anew every time you return to the launcher. Both camera entries appear only on devices that have a camera, and choosing either asks for the camera permission and then for a lens. The live frame stops whenever the desktop leaves the screen; the instant photo releases the camera as soon as its picture is taken, and keeps only the newest one.",
+    "ru": "Выбирает заставку рабочего стола лаунчера: фирменную анимацию, застывший кадр в стиле полос, который обновляется при возвращении в лаунчер, пустой фон, своё изображение, живой кадр с камеры устройства или мгновенное фото, которое камера снимает заново при каждом возвращении в лаунчер. Оба пункта камеры видны только на устройствах с камерой, и при выборе любого из них запрашивается разрешение на камеру, а затем предлагается выбрать объектив. Живой кадр останавливается, как только рабочий стол уходит с экрана; мгновенное фото освобождает камеру сразу после снимка и хранит только самый свежий кадр.",
+    "uk": "Вибирає заставку робочого стола лаунчера: фірмову анімацію, застиглий кадр у стилі смуг, що оновлюється після повернення до лаунчера, порожній фон, власне зображення, живий кадр з камери пристрою або миттєве фото, яке камера робить заново під час кожного повернення до лаунчера. Обидва пункти камери видно лише на пристроях із камерою, і під час вибору будь-якого з них запитується дозвіл на камеру, а потім пропонується обрати об'єктив. Живий кадр зупиняється, щойно робочий стіл зникає з екрана; миттєве фото звільняє камеру одразу після знімка і зберігає лише найсвіжіший кадр."
   },
   "rowLauncherWidgetBackdropAlpha": {
-    "en": "Controls the opacity of widget background cards on the launcher desktop (0% transparent to 100% opaque; 85% default).",
-    "ru": "Настраивает прозрачность подложки виджетов на рабочем столе лаунчера (от 0% прозрачно до 100% непрозрачно; по умолчанию 85%).",
-    "uk": "Налаштовує прозорість підкладки віджетів на робочому столі лаунчера (від 0% прозоро до 100% непрозоро; за замовчуванням 85%)."
+    "en": "Controls the opacity of widget background cards on the launcher desktop (0% transparent to 100% opaque; 25% default).",
+    "ru": "Настраивает прозрачность подложки виджетов на рабочем столе лаунчера (от 0% прозрачно до 100% непрозрачно; по умолчанию 25%).",
+    "uk": "Налаштовує прозорість підкладки віджетів на робочому столі лаунчера (від 0% прозоро до 100% непрозоро; за замовчуванням 25%)."
   },
   "rowLinkAutodownloadEnabled": {
     "en": "Automatically downloads a file when a link is shared into the app.",
@@ -1494,6 +1609,21 @@
     "ru": "Показывает результат перевода непрозрачными блоками поверх исходного текста, в стиле Google Lens.",
     "uk": "Показує результат перекладу непрозорими блоками поверх вихідного тексту, у стилі Google Lens."
   },
+  "wearAutoRotation": {
+    "en": "Lets the watch screen follow the wrist. Watch-only: the row is absent on a watch with no rotation sensor.",
+    "ru": "Разрешает экрану часов поворачиваться за рукой. Только на часах: на модели без датчика поворота строки нет.",
+    "uk": "Дозволяє екрану годинника повертатися за рукою. Лише на годиннику: на моделі без датчика повороту рядка немає."
+  },
+  "wearBackgroundMode": {
+    "en": "Chooses what the watch draws behind the app screens: the branded waves-and-particles animation, or an image picked on the phone. The picked image is cropped and scaled to the watch frame on the phone and travels the file channel, so the watch receives a ready frame and never resizes anything. When the image is missing or has not arrived, the watch draws the animation instead. A constant dim sits between the background and the content so text stays readable over a light picture, and the background is not drawn while the app is away from the foreground or in ambient mode.",
+    "ru": "Выбирает, что часы рисуют за экранами приложения: фирменную анимацию волн и частиц или изображение, выбранное на телефоне. Выбранная картинка кадрируется и масштабируется под экран часов на телефоне и едет отдельным файловым каналом, так что часы получают готовый кадр и ничего не пересчитывают. Если изображения нет или оно не доехало, часы рисуют анимацию. Между фоном и содержимым лежит постоянное затемнение, чтобы текст читался и на светлой картинке, а сам фон не рисуется, пока приложение не на переднем плане и в ambient-режиме.",
+    "uk": "Обирає, що годинник малює за екранами застосунку: фірмову анімацію хвиль і частинок або зображення, вибране на телефоні. Вибрана картинка кадрується та масштабується під екран годинника на телефоні й їде окремим файловим каналом, тож годинник отримує готовий кадр і нічого не перераховує. Якщо зображення немає або воно не доїхало, годинник малює анімацію. Між фоном і вмістом лежить постійне затемнення, щоб текст читався і на світлій картинці, а сам фон не малюється, поки застосунок не на передньому плані та в ambient-режимі."
+  },
+  "wearDisableAnimations": {
+    "en": "On Wear OS, removes the video controls panel transition while keeping the same controls available immediately.",
+    "ru": "На Wear OS убирает переход панели управления видео, сразу оставляя доступными те же элементы управления.",
+    "uk": "На Wear OS прибирає перехід панелі керування відео, одразу залишаючи доступними ті самі елементи керування."
+  },
   "wearDownloadAlbumArt": {
     "en": "Downloads and displays cover art for audio tracks on Wear OS.",
     "ru": "Загружает и отображает обложки для аудиофайлов на Wear OS.",
@@ -1503,6 +1633,11 @@
     "en": "Enables playback and browsing of audio files on Wear OS.",
     "ru": "Включает воспроизведение и просмотр аудиофайлов на Wear OS.",
     "uk": "Вмикає відтворення та перегляд аудіофайлів на Wear OS."
+  },
+  "wearEnableDocuments": {
+    "en": "Enables browsing of document files on Wear OS, on the watch storage and on the paired phone alike.",
+    "ru": "Включает просмотр документов на Wear OS - и в памяти часов, и на сопряжённом телефоне.",
+    "uk": "Вмикає перегляд документів на Wear OS - і в памʼяті годинника, і на спареному телефоні."
   },
   "wearEnableImages": {
     "en": "Enables viewing and browsing of image files on Wear OS.",
@@ -1517,7 +1652,7 @@
   "wearEnableVideo": {
     "en": "Enables playback and browsing of video files on Wear OS.",
     "ru": "Включает воспроизведение и просмотр видеофайлов на Wear OS.",
-    "uk": "Вмикає відтворення та перегляд видеофайлов на Wear OS."
+    "uk": "Вмикає відтворення та перегляд відеофайлів на Wear OS."
   },
   "wearFileListViewMode": {
     "en": "Chooses how file lists on the watch are laid out: a list, or a grid of two or three columns with real thumbnails.",
@@ -1525,18 +1660,28 @@
     "uk": "Обирає розкладку списків файлів на годиннику: список або сітка з двох чи трьох колонок зі справжніми превʼю."
   },
   "wearKeepScreenAwake": {
-    "en": "Keeps the watch screen on outside the players; the audio, video and image players hold it on regardless.",
-    "ru": "Держит экран часов включённым вне проигрывателей; аудио, видео и просмотр изображений удерживают его в любом случае.",
-    "uk": "Тримає екран годинника увімкненим поза програвачами; аудіо, відео та перегляд зображень утримують його в будь-якому разі."
+    "en": "Keeps the watch screen on across every screen outside the players, the startup splash and the permission screen included; the audio, video and image players hold it on regardless.",
+    "ru": "Держит экран часов включённым на каждом экране вне проигрывателей, включая заставку и экран разрешений; аудио, видео и просмотр изображений удерживают его в любом случае.",
+    "uk": "Тримає екран годинника увімкненим на кожному екрані поза програвачами, включно із заставкою та екраном дозволів; аудіо, відео та перегляд зображень утримують його в будь-якому разі."
   },
   "wearSlideshowInterval": {
     "en": "Sets the delay in seconds between slides during slideshow playback on Wear OS.",
     "ru": "Задаёт задержку в секундах между слайдами при воспроизведении слайд-шоу на Wear OS.",
     "uk": "Задає затримку в секундах між слайдами під час відтворення слайд-шоу на Wear OS."
   },
+  "wearStreamsSection": {
+    "en": "Shows or hides the Streams section on the watch home screen. Off leaves the other media sections untouched.",
+    "ru": "Показывает или скрывает раздел трансляций на главном экране часов. Выключение не трогает остальные разделы.",
+    "uk": "Показує або приховує розділ трансляцій на головному екрані годинника. Вимкнення не чіпає інші розділи."
+  },
   "wearViewMode": {
     "en": "Chooses how the watch navigation screens, including Settings, are laid out: a list, or a grid of two or three columns.",
     "ru": "Выбирает раскладку навигационных экранов часов, включая Настройки: список либо сетка из двух или трёх колонок.",
     "uk": "Обирає розкладку навігаційних екранів годинника, зокрема Налаштування: список або сітка з двох чи трьох колонок."
+  },
+  "wearVoiceNoteSendPolicy": {
+    "en": "Chooses what happens to a voice note recorded on the watch once it is stopped: send it to the phone straight away, or keep it on the watch until it is sent by hand. Either way the note stays on the watch until it is deleted, and a note taken while the phone is out of reach waits and leaves on its own when the link returns.",
+    "ru": "Выбирает, что происходит с голосовой заметкой на часах после остановки записи: отправить её на телефон сразу или держать на часах до отправки вручную. В обоих случаях заметка остаётся на часах до удаления, а снятая при недоступном телефоне ждёт и уходит сама при восстановлении связи.",
+    "uk": "Обирає, що стається з голосовою нотаткою на годиннику після зупинки запису: надіслати її на телефон одразу чи тримати на годиннику до надсилання вручну. В обох випадках нотатка лишається на годиннику до видалення, а знята за недоступного телефона чекає та йде сама щойно зв'язок відновиться."
   }
 }

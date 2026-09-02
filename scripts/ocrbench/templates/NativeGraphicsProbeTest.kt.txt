@@ -1,0 +1,62 @@
+package com.sza.fastmediasorter.ocrbench
+
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import org.junit.Assert.assertFalse
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
+
+/**
+ * S1782: the single assertion that decides whether the Robolectric upgrade bought anything.
+ *
+ * This file is a template, not a test. `scripts/ocrbench/measure-robolectric-upgrade.ps1` copies it into a
+ * throwaway worktree as `.kt`; it must never be added to `app_v2/src/test` in the main checkout, where the
+ * current Robolectric would fail it at class init with
+ * `NoClassDefFoundError: android.graphics.ColorSpace` and turn the suite red for every session on the machine.
+ *
+ * The assertion is deliberately negative. Under legacy graphics the canvas records draw calls without
+ * rasterising them, so a scene built only from text comes back byte-identical to a blank bitmap - the silent
+ * zero that reads as perfect concealment. Asserting the drawn bitmap merely "exists" would pass in exactly
+ * that case.
+ */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+class NativeGraphicsProbeTest {
+
+    @Test
+    fun `native graphics rasterises drawn text`() {
+        val drawn = whiteBitmap()
+        Canvas(drawn).drawText(PROBE_TEXT, MARGIN_PX, BASELINE_PX, textPaint())
+
+        assertFalse(
+            "graphics mode recorded the draw call instead of rasterising it",
+            drawn.sameAs(whiteBitmap())
+        )
+    }
+
+    private fun whiteBitmap(): Bitmap {
+        val bitmap = Bitmap.createBitmap(WIDTH_PX, HEIGHT_PX, Bitmap.Config.ARGB_8888)
+        Canvas(bitmap).drawColor(Color.WHITE)
+        return bitmap
+    }
+
+    private fun textPaint(): Paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.BLACK
+        textSize = TEXT_SIZE_PX
+    }
+
+    private companion object {
+        const val PROBE_TEXT = "Rasterise me"
+        const val WIDTH_PX = 320
+        const val HEIGHT_PX = 120
+        const val MARGIN_PX = 16f
+        const val BASELINE_PX = 72f
+        const val TEXT_SIZE_PX = 48f
+    }
+}

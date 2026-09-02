@@ -1,0 +1,138 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>CyclomaticComplexMethod:BrowseViewModel.kt$BrowseViewModel$private fun getMimeTypeFromFileName(fileName: String): String?</ID>
+    <ID>FunctionNaming:AddNetworkSourceScreen.kt$@Composable fun AddNetworkSourceScreen( navController: NavController, viewModel: AddNetworkSourceViewModel = hiltViewModel() )</ID>
+    <ID>FunctionNaming:AddNetworkSourceScreen.kt$@Composable private fun EditableFieldChip( label: String, value: String, fallback: String, onClick: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:AddNetworkSourceScreen.kt$@Composable private fun EditFieldOverlay( field: AddField, value: String, onValueChange: (String) -&gt; Unit, passwordVisible: Boolean, onPasswordVisibilityToggle: () -&gt; Unit, onSave: () -&gt; Unit, onCancel: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:AddNetworkSourceScreen.kt$@Composable private fun ProtocolChip( label: String, selected: Boolean, onClick: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:AddSmbScreen.kt$@Deprecated("Use AddNetworkSourceScreen instead") @Composable fun AddSmbScreen( navController: NavController )</ID>
+    <ID>FunctionNaming:AudioPlayerScreen.kt$@Composable fun AudioPlayerScreen( viewModel: AudioPlayerViewModel = hiltViewModel() )</ID>
+    <ID>FunctionNaming:AudioPlayerScreen.kt$@Composable private fun AudioPlayerContent( uiState: AudioPlayerUiState, isFavorite: Boolean, onPlayPause: () -&gt; Unit, onSeekForward: () -&gt; Unit, onSeekBackward: () -&gt; Unit, onToggleFavorite: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:AudioPlayerScreen.kt$@Composable private fun ErrorContent(message: String)</ID>
+    <ID>FunctionNaming:BrowseScreen.kt$@Composable fun BrowseScreen( navController: NavController, viewModel: BrowseViewModel = hiltViewModel() )</ID>
+    <ID>FunctionNaming:BrowseScreen.kt$@Composable private fun EmptyContent(message: String)</ID>
+    <ID>FunctionNaming:BrowseScreen.kt$@Composable private fun ErrorContent( message: String, onRetry: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:BrowseScreen.kt$@Composable private fun LoadingContent()</ID>
+    <ID>FunctionNaming:BrowseScreen.kt$@Composable private fun MediaFileChip( file: WearMediaFile, mediaType: MediaType, onClick: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:BrowseScreen.kt$@Composable private fun MediaListContent( title: String, files: List&lt;WearMediaFile&gt;, mediaType: MediaType, onFileClick: (WearMediaFile) -&gt; Unit )</ID>
+    <ID>FunctionNaming:HomeScreen.kt$@Composable fun HomeScreen( navController: NavController, settingsViewModel: SettingsViewModel = hiltViewModel() )</ID>
+    <ID>FunctionNaming:ImageViewerScreen.kt$@Composable fun ImageViewerScreen( viewModel: ImageViewerViewModel = hiltViewModel() )</ID>
+    <ID>FunctionNaming:ImageViewerScreen.kt$@Composable private fun ErrorContent(message: String)</ID>
+    <ID>FunctionNaming:ImageViewerScreen.kt$@Composable private fun ImageViewerContent( uiState: ImageViewerUiState, isFavorite: Boolean, onSwipeLeft: () -&gt; Unit, onSwipeRight: () -&gt; Unit, onToggleSlideshow: () -&gt; Unit, onToggleFavorite: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:MainActivity.kt$@Composable fun MainNavigation(keepScreenAwakeOutsidePlayers: Flow&lt;Boolean&gt;)</ID>
+    <ID>FunctionNaming:MainActivity.kt$@Composable fun WearApp(initialHasPermissions: Boolean = false)</ID>
+    <ID>FunctionNaming:NetworkSourcesScreen.kt$@Composable fun NetworkSourcesScreen( navController: NavController, viewModel: NetworkSourcesViewModel = hiltViewModel() )</ID>
+    <ID>FunctionNaming:NetworkSourcesScreen.kt$@Composable private fun EmptyContent( syncState: SyncState, onAddClick: () -&gt; Unit, onSyncClick: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:NetworkSourcesScreen.kt$@Composable private fun ErrorContent( message: String, onRetry: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:NetworkSourcesScreen.kt$@Composable private fun ExportToPhoneChip( exportState: ExportState, onClick: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:NetworkSourcesScreen.kt$@Composable private fun LoadingContent()</ID>
+    <ID>FunctionNaming:NetworkSourcesScreen.kt$@Composable private fun SourcesListContent( sources: List&lt;SourceItem&gt;, syncState: SyncState, exportState: ExportState = ExportState.Idle, onSourceClick: (String, String) -&gt; Unit, onAddClick: () -&gt; Unit, onSyncClick: () -&gt; Unit, onExportClick: () -&gt; Unit = {}, onDeleteClick: (SourceItem) -&gt; Unit = {} )</ID>
+    <ID>FunctionNaming:NetworkSourcesScreen.kt$@Composable private fun SyncFromPhoneChip( syncState: SyncState, onClick: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:PermissionsScreen.kt$@OptIn(ExperimentalPermissionsApi::class) @Composable fun PermissionsScreen( onPermissionsGranted: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:SettingsScreen.kt$@Composable fun SettingsScreen( navController: NavController, viewModel: SettingsViewModel = hiltViewModel(), listState: ScalingLazyListState = rememberScalingLazyListState() )</ID>
+    <ID>FunctionNaming:SettingsScreen.kt$@Composable private fun SlideshowIntervalStepper( currentSeconds: Int, onIntervalChanged: (Int) -&gt; Unit )</ID>
+    <ID>FunctionNaming:SyncResultScreen.kt$@Composable fun SyncResultScreen( navController: NavController, added: Int, updated: Int )</ID>
+    <ID>FunctionNaming:SyncTransferScreen.kt$@Composable fun SyncTransferScreen( navController: NavController, phoneName: String = "" )</ID>
+    <ID>FunctionNaming:Theme.kt$@Composable fun WearAppTheme( content: @Composable () -&gt; Unit )</ID>
+    <ID>FunctionNaming:VideoPlayerScreen.kt$@Composable fun VideoPlayerScreen( viewModel: VideoPlayerViewModel = hiltViewModel() )</ID>
+    <ID>FunctionNaming:VideoPlayerScreen.kt$@Composable private fun BatteryWarningDialog( onDismiss: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:VideoPlayerScreen.kt$@Composable private fun ErrorContent(message: String)</ID>
+    <ID>FunctionNaming:VideoPlayerScreen.kt$@Composable private fun VideoControls( isPlaying: Boolean, currentPosition: String, duration: String, progress: Float, onPlayPause: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:VideoPlayerScreen.kt$@Composable private fun VideoPlayerContent( uiState: VideoPlayerUiState, player: androidx.media3.exoplayer.ExoPlayer, onScreenTap: () -&gt; Unit, onPlayPause: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:WearTextInput.kt$@Composable fun WearTextInput( label: String, value: String, onValueChange: (String) -&gt; Unit, isPassword: Boolean = false, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:WearTextInput.kt$@Composable private fun SimpleCharacterPickerDialog( initialValue: String, isPassword: Boolean = false, onSave: (String) -&gt; Unit, onDismiss: () -&gt; Unit )</ID>
+    <ID>ImplicitDefaultLocale:AudioPlayerUiState.kt$AudioPlayerUiState$String.format("%d:%02d", minutes, seconds)</ID>
+    <ID>ImplicitDefaultLocale:BrowseScreen.kt$String.format("%.1f KB", bytes / 1024.0)</ID>
+    <ID>ImplicitDefaultLocale:BrowseScreen.kt$String.format("%.1f MB", bytes / (1024.0 * 1024.0))</ID>
+    <ID>ImplicitDefaultLocale:BrowseScreen.kt$String.format("%d:%02d:%02d", hours, remainingMinutes, seconds)</ID>
+    <ID>ImplicitDefaultLocale:BrowseScreen.kt$String.format("%d:%02d", minutes, seconds)</ID>
+    <ID>ImplicitDefaultLocale:VideoPlayerUiState.kt$VideoPlayerUiState$String.format("%d:%02d", minutes, seconds)</ID>
+    <ID>LongMethod:AddNetworkSourceScreen.kt$@Composable fun AddNetworkSourceScreen( navController: NavController, viewModel: AddNetworkSourceViewModel = hiltViewModel() )</ID>
+    <ID>LongMethod:AudioPlayerScreen.kt$@Composable private fun AudioPlayerContent( uiState: AudioPlayerUiState, isFavorite: Boolean, onPlayPause: () -&gt; Unit, onSeekForward: () -&gt; Unit, onSeekBackward: () -&gt; Unit, onToggleFavorite: () -&gt; Unit )</ID>
+    <ID>LongMethod:HomeScreen.kt$@Composable fun HomeScreen( navController: NavController, settingsViewModel: SettingsViewModel = hiltViewModel() )</ID>
+    <ID>LongMethod:ImageViewerScreen.kt$@Composable private fun ImageViewerContent( uiState: ImageViewerUiState, isFavorite: Boolean, onSwipeLeft: () -&gt; Unit, onSwipeRight: () -&gt; Unit, onToggleSlideshow: () -&gt; Unit, onToggleFavorite: () -&gt; Unit )</ID>
+    <ID>LongMethod:MainActivity.kt$@Composable fun MainNavigation(keepScreenAwakeOutsidePlayers: Flow&lt;Boolean&gt;)</ID>
+    <ID>LongMethod:NetworkSourcesScreen.kt$@Composable fun NetworkSourcesScreen( navController: NavController, viewModel: NetworkSourcesViewModel = hiltViewModel() )</ID>
+    <ID>LongMethod:PermissionsScreen.kt$@OptIn(ExperimentalPermissionsApi::class) @Composable fun PermissionsScreen( onPermissionsGranted: () -&gt; Unit )</ID>
+    <ID>LongMethod:SettingsScreen.kt$@Composable fun SettingsScreen( navController: NavController, viewModel: SettingsViewModel = hiltViewModel(), listState: ScalingLazyListState = rememberScalingLazyListState() )</ID>
+    <ID>LongMethod:WearTextInput.kt$@Composable private fun SimpleCharacterPickerDialog( initialValue: String, isPassword: Boolean = false, onSave: (String) -&gt; Unit, onDismiss: () -&gt; Unit )</ID>
+    <ID>LongParameterList:AudioPlayerViewModel.kt$AudioPlayerViewModel$( private val mediaRepository: WearMediaRepository, private val albumArtRepository: AlbumArtRepository, private val preferencesRepository: WearPreferencesRepository, private val selectedMediaManager: SelectedMediaManager, private val smbDataSource: SmbDataSource, private val exoPlayer: ExoPlayer, private val publishPlaybackStateUseCase: PublishPlaybackStateUseCase, private val favoritesRepository: WearFavoritesRepository, private val sendFavoritesDeltaUseCase: SendFavoritesDeltaUseCase, savedStateHandle: SavedStateHandle, @ApplicationContext private val context: Context )</ID>
+    <ID>LongParameterList:NetworkSourcesScreen.kt$( sources: List&lt;SourceItem&gt;, syncState: SyncState, exportState: ExportState = ExportState.Idle, onSourceClick: (String, String) -&gt; Unit, onAddClick: () -&gt; Unit, onSyncClick: () -&gt; Unit, onExportClick: () -&gt; Unit = {}, onDeleteClick: (SourceItem) -&gt; Unit = {} )</ID>
+    <ID>LoopWithTooManyJumpStatements:WatchWearListenerService.kt$WatchWearListenerService$for</ID>
+    <ID>MagicNumber:AddNetworkSourceScreen.kt$0.9f</ID>
+    <ID>MagicNumber:AddNetworkSourceViewModel.kt$AddNetworkSourceViewModel$21</ID>
+    <ID>MagicNumber:AddNetworkSourceViewModel.kt$AddNetworkSourceViewModel$22</ID>
+    <ID>MagicNumber:AddNetworkSourceViewModel.kt$AddNetworkSourceViewModel$443</ID>
+    <ID>MagicNumber:AddNetworkSourceViewModel.kt$AddNetworkSourceViewModel$445</ID>
+    <ID>MagicNumber:AudioPlayerUiState.kt$AudioPlayerUiState$1000</ID>
+    <ID>MagicNumber:AudioPlayerUiState.kt$AudioPlayerUiState$60</ID>
+    <ID>MagicNumber:AudioPlayerViewModel.kt$AudioPlayerViewModel$10_000</ID>
+    <ID>MagicNumber:AudioPlayerViewModel.kt$AudioPlayerViewModel$500</ID>
+    <ID>MagicNumber:BrowseScreen.kt$1000</ID>
+    <ID>MagicNumber:BrowseScreen.kt$1024</ID>
+    <ID>MagicNumber:BrowseScreen.kt$1024.0</ID>
+    <ID>MagicNumber:BrowseScreen.kt$60</ID>
+    <ID>MagicNumber:ImageSlideshowController.kt$ImageSlideshowController$1000L</ID>
+    <ID>MagicNumber:NetworkSource.kt$NetworkSource$21</ID>
+    <ID>MagicNumber:NetworkSource.kt$NetworkSource$22</ID>
+    <ID>MagicNumber:NetworkSource.kt$NetworkSource$443</ID>
+    <ID>MagicNumber:NetworkSource.kt$NetworkSource$445</ID>
+    <ID>MagicNumber:PermissionsScreen.kt$0xFFFF9800</ID>
+    <ID>MagicNumber:SettingsScreen.kt$10</ID>
+    <ID>MagicNumber:SettingsScreen.kt$15</ID>
+    <ID>MagicNumber:SettingsScreen.kt$20</ID>
+    <ID>MagicNumber:SettingsScreen.kt$3</ID>
+    <ID>MagicNumber:SettingsScreen.kt$30</ID>
+    <ID>MagicNumber:SettingsScreen.kt$5</ID>
+    <ID>MagicNumber:SettingsScreen.kt$60</ID>
+    <ID>MagicNumber:SettingsViewModel.kt$SettingsViewModel$3</ID>
+    <ID>MagicNumber:SettingsViewModel.kt$SettingsViewModel$4</ID>
+    <ID>MagicNumber:SettingsViewModel.kt$SettingsViewModel$5</ID>
+    <ID>MagicNumber:SettingsViewModel.kt$SettingsViewModel$6</ID>
+    <ID>MagicNumber:SftpDataSource.kt$SftpDataSource$30_000</ID>
+    <ID>MagicNumber:SmbDataSource.kt$SmbDataSource$30</ID>
+    <ID>MagicNumber:SyncResultScreen.kt$8_000</ID>
+    <ID>MagicNumber:VideoPlayerUiState.kt$VideoPlayerUiState$1000</ID>
+    <ID>MagicNumber:VideoPlayerUiState.kt$VideoPlayerUiState$60</ID>
+    <ID>MagicNumber:VideoPlayerViewModel.kt$VideoPlayerViewModel$3000</ID>
+    <ID>MagicNumber:VideoPlayerViewModel.kt$VideoPlayerViewModel$500</ID>
+    <ID>MagicNumber:WatchWearListenerService.kt$WatchWearListenerService$120</ID>
+    <ID>MagicNumber:WatchWearListenerService.kt$WatchWearListenerService$60</ID>
+    <ID>MagicNumber:WatchWearListenerService.kt$WatchWearListenerService$80</ID>
+    <ID>MagicNumber:WearPreferencesRepositoryImpl.kt$WearPreferencesRepositoryImpl$5</ID>
+    <ID>MagicNumber:WearTextInput.kt$0.95f</ID>
+    <ID>MagicNumber:WearTextInput.kt$5</ID>
+    <ID>ReturnCount:AddNetworkSourceScreen.kt$private fun canSubmit(state: AddNetworkSourceUiState): Boolean</ID>
+    <ID>ReturnCount:AddNetworkSourceViewModel.kt$AddNetworkSourceViewModel$private fun validate(state: AddNetworkSourceUiState, requireShareName: Boolean): String?</ID>
+    <ID>ReturnCount:BrowseViewModel.kt$BrowseViewModel$private fun getMimeTypeFromFileName(fileName: String): String?</ID>
+    <ID>ReturnCount:SmbDataSource.kt$SmbDataSource$suspend fun getFileInfo(path: String): Result&lt;FileInfo&gt;</ID>
+    <ID>ReturnCount:SmbDataSource.kt$SmbDataSource$suspend fun getFileSize(path: String): Result&lt;Long&gt;</ID>
+    <ID>ReturnCount:SmbDataSource.kt$SmbDataSource$suspend fun getFileStream(path: String): Result&lt;InputStream&gt;</ID>
+    <ID>ReturnCount:SmbDataSource.kt$SmbDataSource$suspend fun listFiles(path: String): Result&lt;List&lt;String&gt;&gt;</ID>
+    <ID>SwallowedException:SmbDataSource.kt$SmbDataSource$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:AddNetworkSourceViewModel.kt$AddNetworkSourceViewModel$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:AlbumArtRepositoryImpl.kt$AlbumArtRepositoryImpl$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:AudioPlayerViewModel.kt$AudioPlayerViewModel$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:BrowseViewModel.kt$BrowseViewModel$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ImageViewerViewModel.kt$ImageViewerViewModel$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:MainActivity.kt$MainActivity$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:NetworkSourceRepositoryImpl.kt$NetworkSourceRepositoryImpl$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:NetworkSourcesViewModel.kt$NetworkSourcesViewModel$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SmbConnectionViewModel.kt$SmbConnectionViewModel$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SmbDataSource.kt$SmbDataSource$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:VideoPlayerViewModel.kt$VideoPlayerViewModel$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:WatchWearListenerService.kt$WatchWearListenerService$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:WearFavoritesRepositoryImpl.kt$WearFavoritesRepositoryImpl$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:WearMediaRepositoryImpl.kt$WearMediaRepositoryImpl$e: Exception</ID>
+    <ID>UnusedParameter:ImageViewerScreen.kt$onToggleSlideshow: () -&gt; Unit</ID>
+    <ID>UnusedParameter:ImageViewerViewModel.kt$ImageViewerViewModel$startIndex: Int</ID>
+    <ID>UnusedParameter:SettingsScreen.kt$navController: NavController</ID>
+    <ID>UnusedPrivateMember:BrowseViewModel.kt$BrowseViewModel$private fun matchesMediaType(mimeType: String?, mediaType: MediaType): Boolean</ID>
+    <ID>UnusedPrivateProperty:AudioPlayerViewModel.kt$AudioPlayerViewModel$private val albumArtRepository: AlbumArtRepository</ID>
+    <ID>UnusedPrivateProperty:AudioPlayerViewModel.kt$AudioPlayerViewModel$private val preferencesRepository: WearPreferencesRepository</ID>
+    <ID>UnusedPrivateProperty:SettingsViewModel.kt$SettingsViewModel$@ApplicationContext private val context: Context</ID>
+    <ID>UseRequire:NetworkSourceRepositoryImpl.kt$NetworkSourceRepositoryImpl$throw IllegalArgumentException("Source not found: ${source.id}")</ID>
+  </CurrentIssues>
+</SmellBaseline>

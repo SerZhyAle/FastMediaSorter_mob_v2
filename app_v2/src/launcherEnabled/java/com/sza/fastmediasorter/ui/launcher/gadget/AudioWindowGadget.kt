@@ -16,7 +16,6 @@ import com.sza.fastmediasorter.ui.launcher.gadget.nowplaying.OwnSessionNowPlayin
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -75,7 +74,6 @@ private class AudioWindowGadgetView(
         val loaded = resourceId?.let {
             loadFiles(it, limit = MediaWindow.SCAN_LIMIT, sortMode = SortMode.DATE_DESC)
         } as? LoadLauncherGadgetFilesUseCase.Result.Files
-        Timber.d("S1754: audio window bound to resource %s", resourceId)
         binding.mediaAudioWindowTitle.text = loaded?.resourceName
             ?: context.getString(R.string.launcher_gadget_media_audio_window)
         firstTrackName = loaded?.files?.firstOrNull { it.type == MediaType.AUDIO }?.name

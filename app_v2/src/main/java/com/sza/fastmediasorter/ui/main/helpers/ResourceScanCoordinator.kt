@@ -4,10 +4,9 @@ import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
-import com.sza.fastmediasorter.domain.usecase.ResolveScanFilterUseCase
+import com.sza.fastmediasorter.domain.usecase.RefreshResourceFileCountsUseCase
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
 import com.sza.fastmediasorter.util.VirtualPathUtils
@@ -38,10 +37,9 @@ class ResourceScanCoordinator @Inject constructor(
     private val resourceRepository: dagger.Lazy<ResourceRepository>,
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val mediaScannerFactory: MediaScannerFactory,
-    private val settingsRepository: SettingsRepository,
     private val smbOperationsUseCase: SmbOperationsUseCase,
     private val remoteSourceGate: RemoteSourceAvailabilityGate,
-    private val resolveScanFilter: ResolveScanFilterUseCase
+    private val refreshResourceFileCountsUseCase: RefreshResourceFileCountsUseCase
 ) {
     
     /**
@@ -194,20 +192,14 @@ class ResourceScanCoordinator @Inject constructor(
     }
     
     /**
-     * Process virtual resource: skip connection test and write check, only update file count.
+     * Process virtual resource: skip connection and write checks, then refresh its stored count.
      * Virtual resources are always available and never writable.
      */
     private suspend fun processVirtualResource(resource: MediaResource): Boolean {
-        val scanner = mediaScannerFactory.getScanner(resource.type)
-        val fileCount = getFileCount(scanner, resource)
-        
-        if (fileCount != resource.fileCount || !resource.isAvailable) {
-            updateResourceUseCase(resource.copy(
-                isAvailable = true,
-                fileCount = fileCount
-            ))
-            Timber.d("Updated virtual resource ${resource.name}: fileCount=$fileCount")
+        if (!resource.isAvailable) {
+            updateResourceUseCase(resource.copy(isAvailable = true))
         }
+        refreshResourceFileCountsUseCase(setOf(resource.id))
         return false // Virtual resources are never writable
     }
 
@@ -242,7 +234,6 @@ class ResourceScanCoordinator @Inject constructor(
         }
         
         val scanner = mediaScannerFactory.getScanner(resource.type)
-        
         Timber.d("Checking write access for ${resource.name}...")
         val isWritable = try {
             scanner.isWritable(resource.path, resource.credentialsId)
@@ -258,48 +249,11 @@ class ResourceScanCoordinator @Inject constructor(
             needsUpdate = true
         }
         
-        // Update file count (fast count with 1500imit)
-        val fileCount = getFileCount(scanner, resource)
-        
-        if (fileCount != resource.fileCount) {
-            updatedResource = updatedResource.copy(fileCount = fileCount)
-            needsUpdate = true
-            Timber.d("Updated file count for ${resource.name}: $fileCount files")
-        }
-        
         if (needsUpdate) {
             updateResourceUseCase(updatedResource)
         }
-        
+        refreshResourceFileCountsUseCase(setOf(resource.id))
         return isWritable
-    }
-    
-    /**
-     * Get file count for resource using appropriate scanner.
-     */
-    private suspend fun getFileCount(scanner: com.sza.fastmediasorter.domain.usecase.MediaScanner, resource: MediaResource): Int {
-        val currentSettings = settingsRepository.getSettings().first()
-        // S1584: the card counter must promise exactly what Browse will list, so the filter is resolved
-        // in one place for both. Deriving it here independently is what let the card claim 45 files
-        // against an empty list.
-        val scanFilter = resolveScanFilter(resource, currentSettings)
-
-        Timber.d("Counting files for ${resource.name}...")
-        val fileCount = try {
-            scanner.getFileCount(
-                resource.path,
-                scanFilter.mediaTypes,
-                sizeFilter = scanFilter.sizeFilter,
-                credentialsId = resource.credentialsId,
-                scanSubdirectories = resource.scanSubdirectories
-            )
-        } catch (e: Exception) {
-            Timber.e(e, "Error counting files for ${resource.name}")
-            resource.fileCount
-        }
-        Timber.d("File count completed for ${resource.name}: $fileCount files")
-        
-        return fileCount
     }
     
     /**

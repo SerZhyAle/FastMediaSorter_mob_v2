@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.wear.data.repository.WearStreamCatalogCsvParser
 import com.sza.fastmediasorter.wear.domain.model.CatalogImportResult
 import com.sza.fastmediasorter.wear.domain.model.CatalogPayload
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
+import com.sza.fastmediasorter.wear.domain.model.WearTileKind
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -26,7 +27,8 @@ class ImportWearStreamCatalogUseCase @Inject constructor(
     private val parser: WearStreamCatalogCsvParser,
     private val classifier: ClassifyWearStreamMediaKindUseCase,
     private val repository: WearStreamChannelRepository,
-    private val faviconAtlasStore: WearFaviconAtlasStore
+    private val faviconAtlasStore: WearFaviconAtlasStore,
+    private val requestWearTileRefreshUseCase: RequestWearTileRefreshUseCase
 ) {
     // Every step here talks to the network, a ZIP stream or the store, and each one already ends in a
     // logged CatalogImportResult rather than a rethrow. Narrowing to IOException would let an
@@ -34,7 +36,6 @@ class ImportWearStreamCatalogUseCase @Inject constructor(
     // which is the opposite of what a catalog refresh should do.
     @Suppress("TooGenericExceptionCaught")
     suspend operator fun invoke(): CatalogImportResult = withContext(Dispatchers.IO) {
-        Timber.d("S1708: wear stream catalog import starting")
         Timber.i("Wear stream catalog import: starting")
         val payload = try {
             downloadCatalog()
@@ -97,6 +98,7 @@ class ImportWearStreamCatalogUseCase @Inject constructor(
                 merged.size - channels.size
             )
             repository.saveChannels(merged)
+            requestWearTileRefreshUseCase(WearTileKind.STREAM)
         } catch (e: Exception) {
             Timber.w(e, "Wear stream catalog import failed: save")
             return@withContext CatalogImportResult.Failure(e.message ?: "save error")

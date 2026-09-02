@@ -59,20 +59,29 @@ if (-not (Test-Path -LiteralPath $selectCli)) {
 }
 
 # Fixed infrastructure per CLAUDE.md Rule 1 plus the working dirs live scripts write into.
+# S2170: the coordination names are DERIVED from the domain table, never listed here. A hand-kept
+# list is what let the split land with five live queue directories unprotected - the archiver still
+# knew only the two pre-split names, so a sweep could have moved a running session's queue away.
+. (Join-Path $PSScriptRoot 'agent-lock-domains.ps1')
+$lockDomainNames = @(Get-AgentLockDomainNames)
+
 $protectedDirs = @(
-    'archive', 'done', 'scratch', 'gradle-tmp',
-    'BUILD.QUEUE', 'CODE.QUEUE', 'SPEC-TICKET.LEASES',
+    'archive', 'done', 'scratch', 'gradle-tmp', 'SPEC-TICKET.LEASES',
     'sessions', 'metrics', 'test-devices', 'play-shots', 'play-shots-tablet',
     'channel-preview-frames', 'channel-preview-publish',
     'stream-logo-src', 'stream-logo-publish',
     'tile-pack-publish', 'tile-pack-channel-preview-tiles', 'tile-pack-stream-logo-tiles'
 )
+$protectedDirs += @($lockDomainNames | ForEach-Object { "$($_.ToUpper()).QUEUE" })
+
 $protectedFiles = @(
-    'BUILD.LOCK', 'CODE.LOCK', 'spec-all-queue.lock', 'spec-next-skip-cache.json',
+    'spec-all-queue.lock', 'spec-next-skip-cache.json',
     'current.log', 'stream-catalog-liveness.csv', 'stream-catalog.zip', '.gitignore'
 )
-# Live logcat sinks the log tooling appends to.
-$protectedFilePatterns = @('fastmediasorter_*.log')
+$protectedFiles += @($lockDomainNames | ForEach-Object { "$($_.ToUpper()).LOCK" })
+# Live logcat sinks the log tooling appends to, plus the out-of-band your-turn markers a waiting
+# session polls for - archiving one converts a granted turn into a wait that never ends.
+$protectedFilePatterns = @('fastmediasorter_*.log', '*.TURN-*.json')
 
 Write-Host 'Reading spec catalog..'
 $specs = & $selectCli -Format json | ConvertFrom-Json

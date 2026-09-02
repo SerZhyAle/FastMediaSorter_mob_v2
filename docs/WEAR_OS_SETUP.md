@@ -92,6 +92,24 @@ startup setting travels with a clone - Android Studio generates the entries in t
 
 ## Deploying to Device
 
+### Away-from-workstation updates
+
+For repeatable installation on a paired watch away from the development workstation, use a
+**Play Console internal or closed testing track**. Upload the Wear artifact to the selected test
+track, add the owner as a tester, then start the remote installation from the app's Play Store
+listing on the paired phone. Play Store delivers the test artifact to the watch, so this route does
+not depend on ADB or a shared home Wi-Fi network.
+
+The `wearDebug` APK copied to Google Drive is useful for local developer delivery, but this path
+does not grant remote package-install authority on the watch. The Wear Data Layer can move
+application data between matching installed companions; the watch still owns its package installer,
+unknown-source trust setting, and installation confirmation.
+
+An owner may investigate a local-file sideload only as an OEM-dependent fallback: first confirm on
+the actual watch that it accepts a file delivered by an already-installed companion, exposes its
+own installer confirmation, and can update the matching debug package. Do not treat that result as
+a supported distribution path or as a first-install bootstrap.
+
 ### Physical Wear Device (Samsung Galaxy Watch and any dockless watch)
 
 Samsung Galaxy Watch charges on an inductive pad and exposes no USB data path, so a cable is not an
@@ -296,7 +314,7 @@ Timber.e(exception, "Error message")
 .\gradlew.bat :wear:assembleRelease
 ```
 
-APK will be available at: `wear/build/outputs/apk/release/wear-release.apk`
+APK will be available at: `wear/build/outputs/apk/standard/release/wear-standard-release.apk` - the watch module carries `standard` and `noLegal` flavors since S2090, and `standard` is what ships.
 
 ## Deployment to Play Store
 

@@ -60,7 +60,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
 
       - name: Build standard debug APK
-        run: ./gradlew assembleStandardDebug --stacktrace
+        run: ./gradlew :app_v2:assembleStandardDebug --stacktrace
         env:
           DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY || 'dpy64e70kqobr6x' }}
 

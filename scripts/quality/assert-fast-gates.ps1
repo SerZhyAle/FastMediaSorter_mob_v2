@@ -16,7 +16,9 @@
                                       swallowed-cancellation, activity-logic (S1329),
                                       untracked-dialog and the two string-resource rules)
       - assert-listener-symmetry
+      - assert-wear-settings-parity  (S2093 watch settings present on one side of the pair only)
       - assert-qualifier-shadowing   (values-land key a smallestWidth bucket always outranks)
+      - assert-qualified-gradle-tasks (S2172 a Gradle task name missing its :module: segment)
       - assert-tactical-step-form    (S1343 Why-field ratchet over PLAN/*/PHASE_*.md)
       - assert-flavor-matrix-docs    (S1392 doc flavor tables vs the generated capability snapshot)
 - assert-sdk-pin-claims        (S1438 SDK pins stated in prose vs the build files)
@@ -33,6 +35,7 @@
       - assert-gson-persistence-contract (S1639 a durable Gson model whose wire names nothing pins)
       - assert-stream-asset-revisions (S1828 a pinned stream-catalog asset that would stop being published)
       - assert-migration-test-pairing (S1844 a Room migration with no instrumented migration test)
+ - assert-migration-schema-conformance (S2306 migration SQL that disagrees with the exported schema)
       - assert-launcher-contrast     (S1895 a launcher colour measured under 7:1 on its own surface)
       - assert-detekt                (only with -IncludeDetekt; honours -ChangedFiles)
 
@@ -91,6 +94,13 @@ $gates = [ordered]@{
     # The individual scripts still exist as wrappers for any direct caller.
     'assert-source-gates.ps1'                   = @()
     'assert-wear-route-literals.ps1'            = @()
+    # S2093: a watch setting present on one side of the phone/watch pair and absent on the other. The
+    # list used to live in four independently maintained places, so a one-sided setting diverged in
+    # silence and was found only when the owner could not see it where it was expected. Reads the two
+    # WearSettingsRegistry copies against the payload, the watch store and the settings reference; no
+    # gradle daemon. Per-ticket by Rule 33: only the author knows whether a new one-sided setting was
+    # meant to be one-sided, and the reference it guards is read by agents between releases.
+    'assert-wear-settings-parity.ps1'           = @('-Quiet')
     'assert-listener-symmetry.ps1'              = @()
     'assert-orientation-implied-feature.ps1'    = @()
     # S1549: an activity that absorbs 'orientation' in configChanges never re-inflates on
@@ -109,12 +119,26 @@ $gates = [ordered]@{
     # EAP=Stop makes the following `exit N` unreachable, so a script's documented code
     # collapses to 1. Cheap (scans scripts/*.ps1 only) and the class has regrown 3 times.
     'assert-exit-contract.ps1'                  = @('-Quiet')
+    # S2172: a Gradle task name written without its module segment. Gradle expands such a name across
+    # every project that declares it, so `assembleStandardDebug` began meaning "app_v2 AND wear" the
+    # day S2090 gave the watch a `standard` flavor - changing what 40 call sites did without editing
+    # one of them. The entry point then writes into wear/build/** while holding only Build.Phone, so
+    # a sibling session's watch build dies on a locked R.jar reading as broken code. Scans scripts/*.ps1
+    # only, no gradle daemon.
+    'assert-qualified-gradle-tasks.ps1'         = @('-Quiet')
     # S1844: a Room migration with no instrumented migration test. Nothing compiled androidTest and
     # nothing checked the pairing, so a migration could ship untested while a plausible-looking test
     # file sat beside it - AppDatabaseMigration50To51Test.kt referenced a constant it never declared
     # and could not compile at all. Ratchet over two directory listings, no gradle daemon; the 12
     # migrations that predate the habit are baselined so only a NEW gap fails.
     'assert-migration-test-pairing.ps1'         = @()
+    # S2306: the other half of the same contract - a migration test proves a test EXISTS, this proves
+    # the migration's SQL says what the exported schema Room validates against says. S2251 had neither:
+    # the SQL added `screen_index`, LauncherCellEntity declared `screenIndex`, and the disagreement was
+    # visible in two files in this tree while every check ran green. Room compares them on the user's
+    # device on the first launch after an update, and the recovery path deletes the database when they
+    # differ. Two directory listings and a JSON parse, no gradle daemon.
+    'assert-migration-schema-conformance.ps1'   = @('-Quiet')
     # S1895: the launcher taskbar and Start panel measured against the surfaces they land on, in all
     # eight themes. The previous change to these same colours was closed on a visual check and
     # shipped the Start label at 4.22:1; contrast is arithmetic, so it can be checked rather than
@@ -129,6 +153,12 @@ $gates = [ordered]@{
     # wear shipped them for months - 1.2 MB, 10 % of its release APK, on a watch. Parses the two
     # build files by brace balance, no gradle daemon.
     'assert-packaging-excludes-parity.ps1'      = @('-Quiet')
+    # S2129: the wear copy of the resource-icon set against app_v2, its source of truth. The watch
+    # resolves a synced `ico-NN-NNN` id locally, so a missing copy answers null and falls back to
+    # the type glyph - the very defect S2129 removes, returning with no crash and no log. Per-ticket
+    # by Rule 33: the fallback is silent, so between releases nothing else would surface it.
+    # Forwards to the generator's own -Check, so gate and fix cannot disagree; no gradle daemon.
+    'assert-resource-icon-parity.ps1'           = @('-Quiet')
     # The version fields of app_v2 and wear are one contract under one applicationId: the same
     # versionName, and versionCodes that must NOT collide - Play refuses the repeat at submission
     # time, long after the build passed. The tree carried both modules on 260815161. Reads the two

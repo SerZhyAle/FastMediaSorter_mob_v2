@@ -10,6 +10,8 @@ param(
 $ErrorActionPreference = "SilentlyContinue"
 $WarningPreference = "SilentlyContinue"
 
+. "$PSScriptRoot\..\scripts\utils\project-paths.ps1"
+
 Write-Host @"
 ╔═══════════════════════════════════════════════════════════════╗
 ║     FastMediaSorter v2 - Maestro Setup Verification           ║
@@ -37,14 +39,21 @@ else {
 
 # Check 2: Android SDK
 Write-Host "`n📍 Checking Android SDK..."
-$sdkPath = "C:\Users\$env:USERNAME\AppData\Local\Android\Sdk"
-if (Test-Path $sdkPath) {
+# The SDK root is derived from the discovered adb rather than assumed, so a machine with the SDK
+# somewhere else still verifies green (S2326). ANDROID_HOME wins when it is set.
+$sdkPath = if ($env:ANDROID_HOME) { $env:ANDROID_HOME }
+elseif ($env:ANDROID_SDK_ROOT) { $env:ANDROID_SDK_ROOT }
+else {
+    $adb = try { Get-ToolPath -Tool Adb -Quiet } catch { $null }
+    if ($adb) { Split-Path -Parent (Split-Path -Parent $adb) } else { $null }
+}
+if ($sdkPath -and (Test-Path $sdkPath)) {
     Write-Host "✅ Android SDK found: $sdkPath"
     $checks += "Android SDK"
 }
 else {
     Write-Host "❌ Android SDK not found"
-    Write-Host "   Usually at: C:\Users\$env:USERNAME\AppData\Local\Android\Sdk"
+    Write-Host "   Set ANDROID_HOME, or put platform-tools on PATH"
     $issuesFound++
 }
 

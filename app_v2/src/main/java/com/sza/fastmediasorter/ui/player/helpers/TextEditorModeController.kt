@@ -6,6 +6,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.editor.actions.EditorActionPanel
@@ -17,7 +18,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.io.File
 
 /** Enter / exit / save lifecycle for the text-editor in [TextViewerManager]. Extracted to keep the host class under the 1000-LOC budget. */
@@ -173,7 +173,7 @@ internal class TextEditorModeController(
                     Toast.makeText(context, R.string.toast_text_saved, Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Error saving text file")
+                e.errorUnlessCancellation("Error saving text file")
                 withContext(Dispatchers.Main) {
                     setTextSaveSpinner(false)
                     showError(context.getString(R.string.text_file_save_failed))

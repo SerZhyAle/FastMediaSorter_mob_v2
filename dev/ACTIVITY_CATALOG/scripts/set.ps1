@@ -31,6 +31,8 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+. "$PSScriptRoot\..\..\..\scripts\utils\project-paths.ps1"
+
 $allowedStatuses = @("new","tested","todo","unknown")
 
 if ($Status -and $allowedStatuses -notcontains $Status) {
@@ -107,7 +109,7 @@ Write-Host "Updated $($target.class): $($changed -join ', ')"
 
 if (-not $NoRender) {
     $renderScript = Join-Path $PSScriptRoot "render.ps1"
-    & "C:\Program Files\PowerShell\7\pwsh.exe" -File $renderScript -Module $Module -Root $Root
+    & (Get-ToolPath -Tool Pwsh -Quiet) -File $renderScript -Module $Module -Root $Root
 }
 
 exit 0

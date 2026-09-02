@@ -80,13 +80,13 @@ if ($DryRun) {
 $before = Get-Fingerprint
 
 # Step 1 - regenerate the manifest from the live scan --------------------------
-Enter-BuildLockOrExit -Reason "reindex-settings.ps1 (SettingsManifestExportTest generate)"
+Enter-BuildLockOrExit -Reason "reindex-settings.ps1 (SettingsManifestExportTest generate)" -Domain Build.Phone
 Push-Location $RepoRoot
 try {
     & ".\gradlew.bat" ":app_v2:testStandardDebugUnitTest" "--tests" "*SettingsManifestExportTest" `
         "-Dsettings.manifest.generate=true" | Out-Null
     $genExit = $LASTEXITCODE
-} finally { Pop-Location; Exit-AgentLock -Name Build }
+} finally { Pop-Location; Exit-AgentLock -Name 'Build' -Domains @('Build.Phone') }
 if ($genExit -ne 0) {
     Write-Error "reindex-settings: manifest regeneration (gradle) failed" -ErrorAction Continue
     exit 1

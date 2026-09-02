@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.wear.domain.model
 
 import com.google.gson.annotations.SerializedName
+import java.net.URI
+import java.util.Locale
 
 /**
  * S1846: one favourite, kept as a record rather than as a `sourceId:filePath` string.
@@ -13,6 +15,10 @@ import com.google.gson.annotations.SerializedName
  * keys off, what `isFavorite` answers by, and what the legacy string form encoded - so a record and an old
  * string describing the same file are the same favourite, and the reader must not list both.
  *
+ * S2039: a stream's address is compared in its NORMALIZED form, so two spellings of one channel - an
+ * uppercase host, a trailing slash, an explicit default port - are one favourite rather than two. The stored
+ * bytes keep whatever spelling was written; only what counts as equal changed.
+ *
  * [mediaType] and [displayName] are presentation, not identity: a legacy entry has neither and is still a
  * valid favourite, drawn by the last segment of its path.
  */
@@ -22,15 +28,14 @@ data class WearFavoriteRecord(
     @SerializedName("displayName") val displayName: String,
     // A coarse family such as image, video or audio, or null when this build never learned the kind.
     // Written as a line comment on purpose: the wildcard form of a mime type ends a block comment early.
-    @SerializedName("mimeType") val mimeType: String? = null
+    @SerializedName("mimeType") val mimeType: String? = null,
+    @SerializedName("itemKind") val itemKind: String? = null
 ) {
 
     /** The pair that decides sameness, joined the way the legacy store already joined it. */
-    val identity: String get() = "$sourceId$IDENTITY_SEPARATOR$filePath"
+    val identity: String get() = favoriteIdentityKey(sourceId, filePath)
 
     companion object {
-
-        private const val IDENTITY_SEPARATOR = ":"
 
         /**
          * Reads a favourite written before this ticket.
@@ -39,6 +44,7 @@ data class WearFavoriteRecord(
          * splitting on all of them would rewrite the path and lose the file.
          */
         fun fromLegacyKey(key: String): WearFavoriteRecord? {
+            // Splits the stored string as written; normalization belongs to comparison, not to parsing.
             val separator = key.indexOf(IDENTITY_SEPARATOR)
             if (separator <= 0 || separator == key.lastIndex) {
                 return null
@@ -69,11 +75,108 @@ fun favoriteSourceId(isNetworkSource: Boolean, networkSourceId: String?): String
     else -> networkSourceId?.takeIf { it.isNotBlank() } ?: SOURCE_ID_NETWORK
 }
 
+/** The separator the legacy store joined a favourite's two halves with, kept as the one spelling of it. */
+private const val IDENTITY_SEPARATOR = ":"
+
+/**
+ * S2039: the one rule for when two favourites are the same one, cited by every writer, reader and comparison.
+ *
+ * A direct stream is addressed by a url the catalogue spells however its source spelled it, so the same
+ * station reached twice can arrive as two strings that differ in host case, a trailing slash or an explicit
+ * default port. Before this, each caller decided for itself whether to normalize - the streams list and the
+ * video player did, the audio player did not - so a station marked from the audio player was stored under one
+ * spelling and looked up under another and silently never pinned.
+ *
+ * **This is a COMPARISON form and is never written back to storage.** The favourites store deliberately
+ * refuses to migrate on read (see its `keyRecords` note): a read that writes turns listing the favourites
+ * into a way to lose them if the process dies mid-write. Normalizing at comparison time gets the same result
+ * without that risk, and a mark written by an older build keeps working with no migration step at all.
+ *
+ * Only [SOURCE_ID_STREAM] normalizes. A local or ordinary network favourite carries a file path, and putting
+ * a url rule through it would rewrite the path and lose the file.
+ */
+fun favoriteIdentityKey(sourceId: String, filePath: String): String {
+    val comparable = if (sourceId == SOURCE_ID_STREAM) normalizeWearStreamUrl(filePath) else filePath
+    return "$sourceId$IDENTITY_SEPARATOR$comparable"
+}
+
 /** A file the watch itself holds. */
 const val SOURCE_ID_LOCAL = "local"
 
 /** A network file whose source id was not recorded - the pre-S1846 spelling, kept so old marks resolve. */
 const val SOURCE_ID_NETWORK = "network"
+
+/** A direct stream keyed by its normalized address instead of a volatile catalog row id. */
+const val SOURCE_ID_STREAM = "stream"
+
+/** A stream is presentation-distinct but shares the existing favourite identity and storage. */
+const val FAVORITE_ITEM_KIND_STREAM = "stream"
+
+/**
+ * Mirrors the phone stream-key rule because a channel address can survive catalog re-import while its row id cannot.
+ */
+fun normalizeWearStreamUrl(url: String): String {
+    val trimmed = url.trim()
+    val parsed = runCatching { URI(trimmed) }.getOrNull()
+    val scheme = parsed?.scheme
+    val host = parsed?.host
+    if (parsed == null || scheme == null || host == null) {
+        return trimmed.removeSuffix("/")
+    }
+    val lowerScheme = scheme.lowercase(Locale.ROOT)
+    val userInfo = parsed.rawUserInfo?.let { "$it@" }.orEmpty()
+    val port = parsed.port
+    val portPart = if (port < 0 || port == defaultPortOf(lowerScheme)) "" else ":$port"
+    val path = parsed.rawPath.orEmpty().removeSuffix("/")
+    val query = parsed.rawQuery?.let { "?$it" }.orEmpty()
+    val fragment = parsed.rawFragment?.let { "#$it" }.orEmpty()
+    return lowerScheme + "://" + userInfo + host.lowercase(Locale.ROOT) + portPart + path + query + fragment
+}
+
+private fun defaultPortOf(scheme: String): Int = when (scheme) {
+    "http" -> HTTP_DEFAULT_PORT
+    "https" -> HTTPS_DEFAULT_PORT
+    "rtsp" -> RTSP_DEFAULT_PORT
+    else -> NO_DEFAULT_PORT
+}
+
+private const val HTTP_DEFAULT_PORT = 80
+private const val HTTPS_DEFAULT_PORT = 443
+private const val RTSP_DEFAULT_PORT = 554
+private const val NO_DEFAULT_PORT = -1
+
+/**
+ * S2149: the rule for COMPARING two stream addresses, and only that.
+ *
+ * [normalizeWearStreamUrl] produces the key a favourite is stored under and must keep producing exactly
+ * that: widening it would invalidate every mark the user has already placed, which is the failure S2039
+ * recorded. So the extra rule the phone has lives here instead, on top, applied to both sides of a
+ * comparison and never written anywhere. It replaces an `http` or `https` scheme with a single token so
+ * the two spellings of one channel compare equal; every other scheme, `rtsp` included, is returned
+ * untouched, because two genuinely different protocols on one host and path are two different channels.
+ *
+ * Mirrors the phone's `StreamChannelIdentity.of`, which is the rule pinned identities arrive folded by -
+ * measured there on 17628 published rows, this fold alone collapses 53 groups of duplicate broadcasters.
+ */
+fun foldWearStreamIdentity(url: String): String {
+    val normalized = normalizeWearStreamUrl(url)
+    val separator = normalized.indexOf(SCHEME_SEPARATOR)
+    if (separator <= 0) {
+        return normalized
+    }
+    // The malformed-address branch of the normalizer returns the input verbatim, so the scheme it hands
+    // back is not guaranteed lowercase the way the parsed branch is.
+    val scheme = normalized.substring(0, separator).lowercase(Locale.ROOT)
+    return if (scheme in WEB_SCHEMES) {
+        WEB_SCHEME_TOKEN + normalized.substring(separator)
+    } else {
+        normalized
+    }
+}
+
+private const val SCHEME_SEPARATOR = "://"
+private const val WEB_SCHEME_TOKEN = "web"
+private val WEB_SCHEMES = setOf("http", "https")
 
 /**
  * S1846: the whole favourites list, from the two shapes the store holds.

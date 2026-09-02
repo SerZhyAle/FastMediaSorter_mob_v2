@@ -6,4 +6,10 @@
     <string name="setting_resource_ops_in_overflow_menu_desc">Fasst die Inline-Aktionsschaltflächen auf jeder Ressourcenkarte in einem ⋮-Überlaufmenü zusammen</string>
     <string name="action_refresh_resource">Aktualisieren</string>
     <string name="resource_unavailable_name">Ressource \"%1$s\" ist nicht verfügbar</string>
+    <string name="resource_menu_reconnect_resource">Ressource erneut verbinden</string>
+    <string name="reconnect_different_folder_title">Anderer Ordner ausgewählt</string>
+    <string name="reconnect_different_folder_message">Sie haben %1$s ausgewählt, aber diese Ressource ist mit %2$s verbunden. Trotzdem erneut verbinden? Die Ressource zeigt dann auf den ausgewählten Ordner.</string>
+    <string name="reconnect_success">Ressource erneut verbunden.</string>
+    <string name="reconnect_failed">Verbindung fehlgeschlagen - wählen Sie den Ordner aus und versuchen Sie es erneut.</string>
+    <string name="reconnect_success_partial_favorites">Erneut verbunden. Favoriten verschoben: %1$d von %2$d.</string>
 </resources>

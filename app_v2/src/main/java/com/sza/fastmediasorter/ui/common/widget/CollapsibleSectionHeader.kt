@@ -18,6 +18,7 @@ import androidx.annotation.StringRes
 import androidx.core.content.res.use
 import androidx.core.view.ViewCompat
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.ui.dialog.TooltipDialog
 import timber.log.Timber
 
@@ -315,7 +316,7 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
 
     private fun updateChevron(animate: Boolean) {
         val target = if (expanded) EXPANDED_ROTATION else COLLAPSED_ROTATION
-        if (animate) {
+        if (animate && AnimationPolicy.isAnimationAllowed) {
             chevronView.animate()
                 .rotation(target)
                 .setDuration(ROTATION_ANIMATION_DURATION_MS)

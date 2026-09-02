@@ -1,4 +1,4 @@
-﻿# Maestro Stress Test Runner with Live Monitoring
+# Maestro Stress Test Runner with Live Monitoring
 # FastMediaSorter v2
 # Usage: .\scripts\utils\run-maestro-stress.ps1 [-Suite monkey|navigation|lifecycle|all] [-Monitor] [-Report]
 
@@ -21,6 +21,7 @@ $LogFile = Join-Path $TempDir "stress_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
 $CrashLog = Join-Path $TempDir "crash_monitor.log"
 $ReportFile = Join-Path $TempDir "stress_report_$(Get-Date -Format 'yyyyMMdd_HHmmss').html"
 . (Join-Path $ProjectRoot "scripts/utils/agent-lock.ps1")
+. (Join-Path $ProjectRoot "scripts/utils/project-paths.ps1")
 
 # Ensure temp directory exists
 if (-not (Test-Path $TempDir)) { New-Item -ItemType Directory -Path $TempDir -Force | Out-Null }
@@ -60,12 +61,12 @@ function Get-AdbPath {
 }
 
 function Get-MaestroCmd {
-    $customPath = "c:\GD\tc\Programm\maestro\bin"
-    if (Test-Path $customPath) { $env:PATH += ";$customPath" }
-    
-    $cmd = Get-Command maestro -ErrorAction SilentlyContinue
-    if (-not $cmd) { $cmd = Get-Command maestro-cli -ErrorAction SilentlyContinue }
-    return $cmd
+    # The caller reports a missing Maestro itself and exits, so the resolver's raise is
+    # converted back to $null here rather than being allowed to end the run (S2326).
+    $resolved = try { Get-ToolPath -Tool Maestro -Quiet } catch { $null }
+    if ($resolved) { return [pscustomobject]@{ Name = (Split-Path $resolved -Leaf); Source = $resolved } }
+
+    return Get-Command maestro-cli -ErrorAction SilentlyContinue
 }
 
 function Get-AppMemoryMB {
@@ -450,14 +451,14 @@ $appInstalled = & $adbPath shell pm list packages | Select-String "com.sza.fastm
 if (-not $appInstalled) {
     if (-not $SkipBuild) {
         Write-Host "⚠ App not installed, building..." -ForegroundColor Yellow
-        Enter-BuildLockOrExit -Reason 'run-maestro-stress.ps1 (assembleStandardDebug)'
+        Enter-BuildLockOrExit -Reason 'run-maestro-stress.ps1 (assembleStandardDebug)' -Domain Build.Phone
         try {
             . (Join-Path $ProjectRoot 'scripts/utils/build-version-stamp.ps1')
             $stamp = Get-BuildVersionStamp
-            & "$ProjectRoot\gradlew.bat" assembleStandardDebug "-Pfms.versionCode=$($stamp.AppVersionCode)" "-Pfms.versionName=$($stamp.VersionName)"
+            & "$ProjectRoot\gradlew.bat" :app_v2:assembleStandardDebug "-Pfms.versionCode=$($stamp.AppVersionCode)" "-Pfms.versionName=$($stamp.VersionName)"
         }
         finally {
-            Exit-AgentLock -Name Build
+            Exit-AgentLock -Name 'Build' -Domains @('Build.Phone')
         }
         $apk = Get-ChildItem -Path "$ProjectRoot\app_v2\build\outputs\apk\standard\debug" -Filter "*.apk" | Select-Object -First 1
         if ($apk) {

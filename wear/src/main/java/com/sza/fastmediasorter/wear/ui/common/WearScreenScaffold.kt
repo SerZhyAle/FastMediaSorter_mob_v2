@@ -10,13 +10,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.material.scrollAway
-import timber.log.Timber
 
 /**
  * Share of the shorter screen edge kept clear of controls on a round display. A chord near the top
@@ -29,6 +29,16 @@ private const val ROUND_INSET_FRACTION = 0.10f
 private val SQUARE_INSET = 4.dp
 
 /**
+ * Share of the shorter edge a square may take before its corners leave a round display.
+ *
+ * The largest square inscribed in a circle has a side of the diameter divided by the square root of
+ * two, about 0.707; 0.70 keeps a margin under that. [ROUND_INSET_FRACTION] alone is not enough for a
+ * square: it leaves a content box of 0.8 of the diameter, whose half-diagonal is 0.566 against a
+ * glass radius of 0.5, so every corner is outside the display (S2008).
+ */
+private const val ROUND_SQUARE_FRACTION = 0.70f
+
+/**
  * Common root for every screen in the module: a Wear [Scaffold] that always draws [TimeText].
  *
  * Every screen composes through here so the clock survives every state, and so no screen paints its
@@ -36,6 +46,11 @@ private val SQUARE_INSET = 4.dp
  *
  * @param positionIndicator scroll indicator for a scrolling screen, omitted by the ones whose
  * content is full-bleed and does not scroll.
+ * @param pageIndicator page dots for a paged screen, usually a `HorizontalPageIndicator`. It belongs
+ * here and never among the content: both of its styles measure the whole frame - the linear one is a
+ * `fillMaxSize` row, the curved one an arc at the rim - so as an unweighted child of a column it takes
+ * the full height and leaves a weighted pager beside it exactly zero, which draws nothing at all
+ * (S2056).
  * @param scrollState the scrolling list state when content can move beneath the clock. The clock
  * scrolls away with the list so stationary content is never obscured after a scroll.
  * @param showTimeText false only for the screen-off mode of S1683, where a lit clock would be the one
@@ -49,17 +64,16 @@ private val SQUARE_INSET = 4.dp
 fun WearScreenScaffold(
     modifier: Modifier = Modifier,
     positionIndicator: (@Composable () -> Unit)? = null,
+    pageIndicator: (@Composable () -> Unit)? = null,
     scrollState: ScalingLazyListState? = null,
     showTimeText: Boolean = true,
     contentPadding: PaddingValues = wearScreenInsets(),
     content: @Composable BoxScope.() -> Unit
 ) {
-    if (scrollState != null) {
-        Timber.d("S1678: TimeText scrolls away with the list")
-    }
     Scaffold(
         modifier = modifier.fillMaxSize(),
         positionIndicator = positionIndicator,
+        pageIndicator = pageIndicator,
         timeText = if (showTimeText) {
             { TimeText(modifier = if (scrollState == null) Modifier else Modifier.scrollAway(scrollState)) }
         } else {
@@ -93,5 +107,25 @@ fun wearScreenInsets(): PaddingValues {
         PaddingValues(shorterEdge * ROUND_INSET_FRACTION)
     } else {
         PaddingValues(SQUARE_INSET)
+    }
+}
+
+/**
+ * Side of the largest square this display can draw whole.
+ *
+ * The module's second statement about screen shape, kept beside the first so the two are read
+ * together: [wearScreenInsets] insets a rectangle proportionally, which is right for text and rows,
+ * and is not enough for a square, whose corners reach further from the centre than its edges do. A
+ * screen drawing a square - a game board, a grid, a dial - caps it with this rather than inventing a
+ * fraction of its own.
+ */
+@Composable
+fun wearMaxSquareSide(): Dp {
+    val configuration = LocalConfiguration.current
+    val shorterEdge = minOf(configuration.screenWidthDp, configuration.screenHeightDp).dp
+    return if (configuration.isScreenRound) {
+        shorterEdge * ROUND_SQUARE_FRACTION
+    } else {
+        shorterEdge - SQUARE_INSET * 2
     }
 }

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="@color/color_media_video">
+    <!-- Main camcorder body -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M15,8 H4 C2.9,8 2,8.9 2,10 V18 C2,19.1 2.9,20 4,20 H15 C16.1,20 17,19.1 17,18 V10 C17,8.9 16.1,8 15,8 Z" />
+    <!-- Lens cone pointing right -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M17,11.5 L22,8.5 V19.5 L17,16.5 Z" />
+    <!-- Top reels/discs representing film reels -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M6.5,4 C5.12,4 4,5.12 4,6.5 C4,7.88 5.12,9 6.5,9 C7.88,9 9,7.88 9,6.5 C9,5.12 7.88,4 6.5,4 Z M12.5,4 C11.12,4 10,5.12 10,6.5 C10,7.88 11.12,9 12.5,9 C13.88,9 15,7.88 15,6.5 C15,5.12 13.88,4 12.5,4 Z" />
+</vector>

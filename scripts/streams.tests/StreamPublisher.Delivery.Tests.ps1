@@ -3,6 +3,7 @@ $AllowFaviconlessPublish = $false
 $ExistingCsv = ''
 $PublishTag = 'test-tag'
 $MaxAtlasBytes = 1024
+. (Join-Path $PSScriptRoot '..\streams\modules\StreamPublisher.Common.ps1')
 . $modulePath
 
 Describe 'StreamPublisher.Delivery' {
@@ -35,5 +36,21 @@ Describe 'StreamPublisher.Delivery' {
         $threw = $false
         try { Assert-CatalogZipEntries -ZipPath $zip -BundledAtlas $false } catch { $threw = $true }
         $threw | Should Be $true
+    }
+
+    It 'normalizes all four facets without changing row identity' {
+        $rows = @([pscustomobject]@{
+                category = 'Radio (SomaFM)'; topic = 'Adult Contemporary'; language = 'American English, Gernan'
+                country = 'Germany'; url = 'https://example.test/live'; name = 'Station'
+            })
+        $result = Normalize-CatalogFacetRows -Rows $rows
+        $result.Rows.Count | Should Be 1
+        $result.Rows[0].url | Should Be 'https://example.test/live'
+        $result.Rows[0].name | Should Be 'Station'
+        $result.Rows[0].category | Should Be 'Radio'
+        $result.Rows[0].topic | Should Be 'Pop'
+        $result.Rows[0].language | Should Be 'english,german'
+        $result.Rows[0].country | Should Be 'DE'
+        ($result.Moves | Where-Object { $_.facet -eq 'country' }).Count | Should Be 1
     }
 }

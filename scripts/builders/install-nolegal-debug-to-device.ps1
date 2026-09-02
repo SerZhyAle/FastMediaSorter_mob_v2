@@ -5,12 +5,12 @@
 # for arm64-v8a only, so VR mode is reachable only on Quest-class headsets.
 #
 # Why install-only (no auto-launch):
-#   Symmetric with `ivr` / `ivrd`. The user picks the launch surface on the
-#   device - phone launcher for standard UI, Quest Library (Unknown Sources)
-#   for the VR entry. Auto-launching via `adb shell am start` would force one
-#   of those surfaces and, on Quest, would skip the vrshell launch_id path
-#   needed for FOCUSED XR sessions (same reason documented in
-#   install-vr-debug-to-device.ps1).
+#   The user picks the launch surface on the device - phone launcher for
+#   standard UI, Quest Library (Unknown Sources) for the VR entry.
+#   Auto-launching via `adb shell am start` would force one of those surfaces
+#   and, on Quest, would skip the vrshell launch_id path needed for FOCUSED XR
+#   sessions (S1983: the dedicated VR installers this once pointed at are gone;
+#   the same reasoning is written up in docs/DEV_OPS.md, Quest debugging).
 #
 # Usage:
 #   .\scripts\builders\install-nolegal-debug-to-device.ps1
@@ -21,9 +21,11 @@ param(
     [string]$ApkPath = $null
 )
 
-$ErrorActionPreference = 'Stop'
+. "$PSScriptRoot\..\utils\project-paths.ps1"
+. "$PSScriptRoot\..\utils\find-build-artifact.ps1"
+. "$PSScriptRoot\..\utils\get-device-abi.ps1"
 
-$adb = 'C:\Users\serzh\AppData\Local\Android\Sdk\platform-tools\adb.exe'
+$adb = Get-ToolPath -Tool Adb
 if (-not (Test-Path -Path $adb)) {
     $adb = 'adb'
 }
@@ -38,25 +40,14 @@ Write-Host "Launch policy: install only - DO NOT auto-launch (see script header)
 # Resolve APK path.
 if (-not $ApkPath) {
     $apkDir = Join-Path $projectRoot "app_v2\build\outputs\apk\noLegal\$variant"
-    $metadataPath = Join-Path $apkDir 'output-metadata.json'
-
-    if (Test-Path -Path $metadataPath) {
-        try {
-            $meta = Get-Content -Path $metadataPath -Raw | ConvertFrom-Json
-            if ($meta.elements -and $meta.elements.Count -gt 0 -and $meta.elements[0].outputFile) {
-                $ApkPath = Join-Path $apkDir $meta.elements[0].outputFile
-            }
-        }
-        catch {
-            Write-Host "Warning: failed to parse output-metadata.json - falling back to latest .apk" -ForegroundColor Yellow
-        }
+    $deviceAbi = Get-TargetDeviceAbi -Adb $adb
+    try {
+        $resolved = Find-BuildArtifact -Dir $apkDir -Abi $deviceAbi
+        if ($resolved) { $ApkPath = $resolved.FullName }
     }
-
-    if (-not $ApkPath -or -not (Test-Path -Path $ApkPath)) {
-        $latestApk = Get-ChildItem -Path $apkDir -Filter *.apk -ErrorAction SilentlyContinue |
-            Sort-Object LastWriteTime -Descending |
-            Select-Object -First 1
-        if ($latestApk) { $ApkPath = $latestApk.FullName }
+    catch {
+        Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+        exit 1
     }
 }
 

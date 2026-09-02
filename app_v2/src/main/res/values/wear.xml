@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+      S1862: the phone advertises itself to the paired watch as the companion node.
+
+      The watch's WatchWearListenerService subscribes to capability changes on
+      "fms_phone_companion" and drains its pending voice notes the moment the phone comes back.
+      onCapabilityChanged only fires for a capability a remote node actually advertises, so
+      without this array the watch's reconnect trigger is dead code and a note taken away from
+      the phone waits until the user opens the watch app.
+
+      Read at runtime by the Wearable library, which only standard and noLegal link
+      (play-services-wearable is scoped to those two configurations). In the four flavors that
+      mount wearStub nothing parses this array, so it stays inert there rather than advertising
+      a companion that cannot answer.
+    -->
+    <string-array name="android_wear_capabilities" translatable="false">
+        <item>fms_phone_companion</item>
+    </string-array>
+
+</resources>

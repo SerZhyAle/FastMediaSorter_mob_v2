@@ -231,8 +231,8 @@ then `name`.
 
 | Column | Meaning |
 |--------|---------|
-| `category` | High-level rubric: `Radio`, `Radio (SomaFM)`, `Live TV`, `Open movies`, `Test stream`. |
-| `topic` | Genre / theme for filtering (e.g. `Jazz`, `Classical`, `Ambient`, `Lo-fi`, `Electronic`, `News`, `Science & Space`, `Movie`, `Test pattern`). |
+| `category` | High-level rubric, canonical set `Radio`, `Live TV`, `On-demand video`, `Test streams`; provider aliases are folded into these (S2233). |
+| `topic` | Genre / theme for filtering, the closed rubric set (S1477); unknown values fold into `General` (e.g. `Jazz`, `Classical`, `Ambient`, `News`, `Movies & Series`). |
 | `name` | Display title. |
 | `url` | Direct playable stream URL (playlists already resolved to the underlying stream). |
 | `media_kind` | `AUDIO` \| `VIDEO` \| `RTSP` - drives launch routing (inline audio vs fullscreen video). |
@@ -241,8 +241,8 @@ then `name`.
 | `bitrate` | Audio bitrate in kbps as text; empty if unknown. |
 | `is_live` | `true` for live/continuous streams, `false` for VOD. |
 | `https` | `true` if the URL is HTTPS; `false` for cleartext `http://` (relevant to the network-security policy). |
-| `language` | Normalised lowercase language name(s); multi-value comma-separated (e.g. `english`, `english,german`). |
-| `country` | ISO-3166 alpha-2 where known. |
+| `language` | Canonical lowercase language name(s); regional variants and typos fold to the base name, multi-value comma-separated (e.g. `english`, `english,german`). Unknown tokens stay verbatim. |
+| `country` | ISO-3166 alpha-2, uppercase; full names and `uk`/`usa` aliases fold to the code, unknown values stay verbatim. |
 | `homepage` | Attribution / source page. |
 | `source_kind` | `TEST` \| `PUBLIC_RADIO` \| `COMMUNITY` \| `PUBLIC_BROADCASTER` \| `GOV` \| `CREATIVE_COMMONS` \| `PUBLIC_DOMAIN`. |
 | `license_note` | Short reason the stream is free to access. |
@@ -411,6 +411,26 @@ pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly
 - `-PruneStatuses dead,unknown` widens the set if you deliberately want to drop `unknown` too - not
   recommended for a publish.
 - After pruning, re-publish the release asset with the guarded packer (see Hosting above).
+
+### Facet normalization rewrite (S2233)
+
+`-NormalizeFacets` rewrites the four grouping columns (`category`, `topic`, `language`, `country`) of the
+existing catalog into their canonical values. It is a reviewable metadata-only mode: no network
+collection runs, the row count and URL multiset stay unchanged, a timestamped backup and a per-value
+move report land under `temp/S2233/`, and nothing is uploaded unless `-Publish` is passed. Blank cells
+stay blank; an unknown non-blank value stays verbatim as a visible fallback instead of being dropped.
+The legacy `-NormalizeTopics` switch remains the topic-only subset of the same operation.
+
+```
+# Review the diff first - writes the backup + move report, publishes nothing:
+pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -NormalizeFacets
+
+# Publish the normalized catalog after reviewing the move report:
+pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -NormalizeFacets -Publish
+```
+
+The canonical value contract itself (which aliases fold where) is documented in
+`dev/handoff/streams-source-spec/03_catalog_format.md` §2.4.
 
 ## Inventory (snapshot 2026-07-23, post-webcam replenishment)
 

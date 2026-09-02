@@ -18,6 +18,10 @@ object ProgramsSettingsStore {
     private val KEY_ENABLE_CALCULATOR = booleanPreferencesKey("enable_calculator")
     private val KEY_ENABLE_NETWORK_MONITOR = booleanPreferencesKey("enable_network_monitor")
     private val KEY_ENABLE_SYSTEM_INFO = booleanPreferencesKey("enable_system_info")
+    // S2050: this field stays in AppSettings/DataStore rather than the watch-mirror store because it
+    // is read as a reactive phone-behaviour toggle by code outside the companion sheet (e.g. the
+    // programs panel, share targets). See WearSettingsMirrorStore's KDoc for the symmetric case - a
+    // field that only the companion sheet itself ever reads back.
     private val KEY_ENABLE_WEAR_COMPANION = booleanPreferencesKey("enable_wear_companion")
     private val KEY_RECORD_GNSS_TRACK = booleanPreferencesKey("record_gnss_track")
     private val KEY_EMBEDDED_GAME_ENABLED = booleanPreferencesKey("embedded_game_enabled")

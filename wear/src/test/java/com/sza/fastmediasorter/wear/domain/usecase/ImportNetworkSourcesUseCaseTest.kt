@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearNetworkSourcePayload
 import com.sza.fastmediasorter.wear.domain.model.WearSyncPayload
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
+import io.mockk.mockk
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -21,7 +22,7 @@ class ImportNetworkSourcesUseCaseTest {
     @Before
     fun setup() {
         fakeRepository = FakeNetworkSourceRepository()
-        useCase = ImportNetworkSourcesUseCase(fakeRepository)
+        useCase = ImportNetworkSourcesUseCase(fakeRepository, mockk(relaxed = true))
     }
 
     @Test
@@ -139,6 +140,7 @@ class ImportNetworkSourcesUseCaseTest {
     )
 }
 
+@Suppress("EmptyFunctionBlock", "UnusedParameter")
 private class FakeNetworkSourceRepository : NetworkSourceRepository {
 
     val existing = mutableListOf<NetworkSource>()

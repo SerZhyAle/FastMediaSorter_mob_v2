@@ -17,9 +17,11 @@ param(
     [string]$DeviceId = $env:ANDROID_SERIAL
 )
 
-$ErrorActionPreference = 'Stop'
+. "$PSScriptRoot\..\utils\project-paths.ps1"
+. "$PSScriptRoot\..\utils\find-build-artifact.ps1"
+. "$PSScriptRoot\..\utils\get-device-abi.ps1"
 
-$adb = 'C:\Users\serzh\AppData\Local\Android\Sdk\platform-tools\adb.exe'
+$adb = Get-ToolPath -Tool Adb
 if (-not (Test-Path -Path $adb)) {
     $adb = 'adb'
 }
@@ -34,25 +36,14 @@ Write-Host "Launch policy: install only - DO NOT auto-launch" -ForegroundColor M
 # Resolve APK path.
 if (-not $ApkPath) {
     $apkDir = Join-Path $projectRoot "app_v2\build\outputs\apk\standard\$variant"
-    $metadataPath = Join-Path $apkDir 'output-metadata.json'
-
-    if (Test-Path -Path $metadataPath) {
-        try {
-            $meta = Get-Content -Path $metadataPath -Raw | ConvertFrom-Json
-            if ($meta.elements -and $meta.elements.Count -gt 0 -and $meta.elements[0].outputFile) {
-                $ApkPath = Join-Path $apkDir $meta.elements[0].outputFile
-            }
-        }
-        catch {
-            Write-Host "Warning: failed to parse output-metadata.json - falling back to latest .apk" -ForegroundColor Yellow
-        }
+    $deviceAbi = Get-TargetDeviceAbi -Adb $adb -DeviceId $DeviceId
+    try {
+        $resolved = Find-BuildArtifact -Dir $apkDir -Abi $deviceAbi
+        if ($resolved) { $ApkPath = $resolved.FullName }
     }
-
-    if (-not $ApkPath -or -not (Test-Path -Path $ApkPath)) {
-        $latestApk = Get-ChildItem -Path $apkDir -Filter *.apk -ErrorAction SilentlyContinue |
-            Sort-Object LastWriteTime -Descending |
-            Select-Object -First 1
-        if ($latestApk) { $ApkPath = $latestApk.FullName }
+    catch {
+        Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+        exit 1
     }
 }
 

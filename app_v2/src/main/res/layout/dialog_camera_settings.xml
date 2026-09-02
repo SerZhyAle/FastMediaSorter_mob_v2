@@ -83,16 +83,17 @@
                     android:orientation="horizontal">
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:text="@string/camera_setting_exposure"
                         android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/tvCameraExposureValue"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/margin_normal"
+                        android:layout_weight="1" />
                 </LinearLayout>
 
                 <com.google.android.material.slider.Slider
@@ -130,16 +131,17 @@
                     android:orientation="horizontal">
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:text="@string/camera_setting_iso"
                         android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/tvCameraIsoValue"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/margin_normal"
+                        android:layout_weight="1" />
                 </LinearLayout>
 
                 <com.google.android.material.slider.Slider
@@ -162,16 +164,17 @@
                     android:orientation="horizontal">
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:text="@string/camera_setting_shutter"
                         android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/tvCameraShutterValue"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/margin_normal"
+                        android:layout_weight="1" />
                 </LinearLayout>
 
                 <com.google.android.material.slider.Slider

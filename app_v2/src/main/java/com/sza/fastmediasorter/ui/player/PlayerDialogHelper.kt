@@ -11,11 +11,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.data.transfer.CloudFileHandle
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
@@ -28,7 +30,6 @@ import com.sza.fastmediasorter.domain.usecase.FlipImageUseCase
 import com.sza.fastmediasorter.domain.usecase.NetworkImageEditUseCase
 import com.sza.fastmediasorter.domain.usecase.RotateImageUseCase
 import com.sza.fastmediasorter.domain.usecase.SaveGifFirstFrameUseCase
-import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
 import com.sza.fastmediasorter.ui.dialog.RenameDialog
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
@@ -645,7 +646,7 @@ class PlayerDialogHelper(
                     ).show()
                 }
             } catch (e: Exception) {
-                Timber.e(e, "PDF export failed")
+                e.errorUnlessCancellation("PDF export failed")
                 Toast.makeText(
                     activity,
                     activity.getString(

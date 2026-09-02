@@ -188,7 +188,6 @@ class CloudMediaScanner @Inject constructor(
             // First arm on purpose: CancellationException extends IllegalStateException, so the
             // authentication arm below takes every cancellation and reports normal teardown as a
             // failed scan - and hands back an empty folder as if it were the answer (S1889).
-            Timber.d("S1889: cloud scan cancelled - rethrowing instead of returning an empty folder")
             throw e
         } catch (e: IllegalStateException) {
             // Re-throw authentication errors to be handled by ViewModel
@@ -241,7 +240,6 @@ class CloudMediaScanner @Inject constructor(
             // First arm on purpose: CancellationException extends IllegalStateException, so the
             // authentication arm below takes every cancellation and reports normal teardown as a
             // failed scan - and hands back an empty folder as if it were the answer (S1889).
-            Timber.d("S1889: cloud scan cancelled - rethrowing instead of returning an empty folder")
             throw e
         } catch (e: IllegalStateException) {
             // Re-throw authentication errors to be handled by ViewModel

@@ -13,6 +13,19 @@ object WearDataLayerPaths {
     /** Message, watch → phone. Carries network sources export payload. */
     const val SOURCES_EXPORT = "/fms/watch/sources_export"
 
+    /**
+     * Data Item, watch → phone. Carries the watch's own settings payload back to the phone (S2093).
+     *
+     * A Data Item rather than a Message, matching [PLAYBACK_STATE]: the watch's settings are state, so
+     * the phone must be able to read the latest one after reconnecting rather than only catching it live.
+     *
+     * The `/fms/watch` prefix is the reason no manifest edit is needed. `src/wearGms/AndroidManifest.xml`
+     * already declares `pathPrefix="/fms/watch"` for PhoneWearListenerService, added by S1697 after the
+     * service handled watch paths in code while the filter matched one unrelated path and GMS silently
+     * dropped the rest. A path named outside the prefix would need its own filter entry.
+     */
+    const val SETTINGS_REPORT = "/fms/watch/settings_report"
+
     /** Data Item, watch → phone. Carries current playback state. */
     const val PLAYBACK_STATE = "/fms/watch/playback_state"
 
@@ -47,7 +60,21 @@ object WearDataLayerPaths {
     const val STREAM_TRANSFER_ACK = "/fms/watch/stream_transfer_ack"
 
     /**
-     * Channel, phone → watch. Carries the bytes of one file sent to the paired watch (S1861).
+     * Data Item, phone → watch. Carries the whole set of pinned stream identities (S2149).
+     *
+     * A Data Item rather than a Message because the set is state, not an event: a watch switched on a
+     * day later must see the current set rather than have missed the moment it changed. The set is
+     * always sent whole - never a delta and never skipped when empty - because replacing it is the only
+     * thing that lets an unpin on the phone withdraw the channel from the watch's top group.
+     *
+     * The path deliberately sits under `/fms/phone`, a prefix `wear/src/main/AndroidManifest.xml`
+     * already declares for the watch listener, so it needs no manifest edit. A path named outside an
+     * already-declared prefix is silently dropped by GMS - the S1697 failure.
+     */
+    const val STREAM_PINS = "/fms/phone/stream_pins"
+
+    /**
+     * Channel, either direction. Carries the bytes of one file sent to the paired watch (S1861).
      *
      * The file name rides in the path as a trailing segment ("$FILE_TRANSFER/photo.jpg"): the watch
      * half already names the received file from the last segment, so the channel needs no separate
@@ -64,10 +91,49 @@ object WearDataLayerPaths {
      */
     const val FILE_TRANSFER_META = "/fms/transfer_file_meta"
 
+    /** Message, watch → phone. Carries the correlated outcome of one file transfer. */
+    const val FILE_TRANSFER_ACK = "/fms/watch/transfer_file_ack"
+
+    /** Message, phone → watch. Immediate outcome acknowledgement of one received file. */
+    const val FILE_RECEIVE_ACK = "/fms/phone/receive_file_ack"
+
+    /** Data Item, phone → watch. Deferred upload outcome of one received file. */
+    const val FILE_UPLOAD_OUTCOME = "/fms/phone/receive_file_upload_outcome"
+
+    /** Message, watch → phone. Asks the phone to show one of its own files (S2004). */
+    const val OPEN_ON_PHONE_REQUEST = "/fms/watch/open_on_phone"
+
+    /** Message, phone → watch. Answers one open request - shown, notified, or refused. */
+    const val OPEN_ON_PHONE_ACK = "/fms/phone/open_on_phone_ack"
+
+    /**
+     * Reserved name the watch background frame is transferred under (S2000).
+     *
+     * The name is the whole correlation mechanism: [FILE_TRANSFER] names the received file from the
+     * last path segment and carries no field a purpose could ride in, so the watch recognises the
+     * background frame by this name and by nothing else. Sending anything else under it overwrites
+     * the background.
+     */
+    const val BACKGROUND_IMAGE_FILE_NAME = "wear_background.png"
+
+    /**
+     * Canonical square edge of that frame, in pixels (S2000).
+     *
+     * Declared once rather than written at each use, so retargeting another watch display is one
+     * edit instead of a search. The phone scales to it before sending; the watch never resizes.
+     */
+    const val BACKGROUND_IMAGE_EDGE_PX = 480
+
     // --- WearEventEnvelope.eventType constants ---
 
     /** eventType value for SETTINGS_PUSH envelopes. */
     const val EVENT_SETTINGS = "SETTINGS_PUSH"
+
+    /** eventType value for SETTINGS_REPORT envelopes (S2093). */
+    const val EVENT_SETTINGS_REPORT = "SETTINGS_REPORT"
+
+    /** eventType value for STREAM_PINS envelopes (S2149). */
+    const val EVENT_STREAM_PINS = "STREAM_PINS"
 
     /** eventType value for SOURCES_EXPORT envelopes. */
     const val EVENT_SOURCES_EXPORT = "SOURCES_EXPORT"

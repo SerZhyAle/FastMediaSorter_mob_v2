@@ -54,7 +54,7 @@
                          phone use one rule and neither is hardcoded
     text                 input text -Text "<string>" (spaces handled)
     key                  input keyevent -Key <name-or-code> (e.g. BACK, 4, KEYCODE_HOME)
-    prefs                pull app_settings.xml via run-as to temp/scratch/ (debuggable build only)
+    prefs                pull settings.preferences.pb via run-as to temp/scratch/ (debuggable build only)
     pull                 fetch a file off the device: -Remote <path> [-Local <path>] [-Latest].
                          Without -Local the file lands in temp/scratch/ under its own name.
                          -Latest treats -Remote as a directory or glob and takes the newest match
@@ -121,8 +121,9 @@
     7 - the underlying adb command returned non-zero
     8 - `tap-label` / `tap-id`: no visible node carried that label or that resource-id, so NOTHING
         was tapped. Distinct from 7 because "the screen does not show it" and "the tap failed" call
-        for different next moves - the first usually means an animation was still running, or the
-        list needs scrolling
+        for different next moves - the first usually means an animation was still running, the
+        list needs scrolling, or the target simply is not on this screen and the name was guessed
+        rather than read off `uidump`
     9 - `clip-check`: at least one node is OFF-GLASS. EDGE and CLIPPED never reach this code
 
   Human output: one verdict line per verb (plus the data the verb produces).
@@ -147,6 +148,23 @@
 .EXAMPLE
   pwsh -NoProfile -File scripts/devtest/adb.ps1 logcat-clear
   Empty the logcat buffer. This is what "clear the log" means - it never touches app data.
+
+.PARAMETER Module
+  Which module's build a call is about: 'app_v2' (default) or 'wear'. Only `install` and `launch`
+  read it - the watch publishes under the phone's application id, so every other verb already
+  addresses a watch correctly once -DeviceId points at one. For `launch` it selects the component,
+  because the watch declares its own activity under its own code namespace; for `install` it
+  selects `wear\build\outputs\apk\<flavor>\release` instead of the phone's flavored debug directory.
+  Since S2090 the watch has a flavor dimension of its own, but only `standard` and `noLegal` - a
+  phone-only flavor is refused by name. `install` also refuses when -Module
+  disagrees with the selected device's `ro.build.characteristics` (watch vs not) - both modules
+  share one applicationId (S1681), so the wrong -Module would otherwise silently replace whichever
+  app is already on that device and still report success (S2043).
+
+.EXAMPLE
+  pwsh -NoProfile -File scripts/devtest/adb.ps1 install -Module wear -DeviceId 192.168.1.166:46551
+  pwsh -NoProfile -File scripts/devtest/adb.ps1 launch -Module wear -DeviceId 192.168.1.166:46551
+  Install the watch release build onto a paired watch and start it by its own component.
 
 .EXAMPLE
   pwsh -NoProfile -File scripts/devtest/adb.ps1 wipe-data -Yes
@@ -190,6 +208,13 @@ param(
     [string]$Apk,
     [ValidateSet('standard', 'lite', 'photos', 'legacy', 'noLegal')]
     [string]$Flavor = 'standard',
+    # Which module's build this call is about. Both modules publish under the SAME application id
+    # (S1681 - Play Services routes the Data Layer by it), so this switch never selects a package:
+    # it selects the launch component and the artifact directory, which are the only two things
+    # that actually differ. Read by `install` and `launch` alone; every other verb is already
+    # module-agnostic because the package resolution is.
+    [ValidateSet('app_v2', 'wear')]
+    [string]$Module = 'app_v2',
     [int]$X,
     [int]$Y,
     # swipe: the second point, and how long the gesture takes. A fling and a drag differ only in
@@ -230,10 +255,23 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# Emit UTF-8 whatever shell launched us, and do it BEFORE the first write - the stdout writer is
+# built on first output and keeps the encoding it was born with, so setting this later fixes
+# nothing. When stdout is redirected, pwsh inherits the OEM codepage (cp866 on a Russian Windows),
+# so every non-Latin label this script prints reaches the caller as mojibake. That is not cosmetic:
+# `uidump` exists to tell a caller which label to pass to `tap-label`, and an unreadable listing
+# makes the verb pair unusable on a localized device. It cost S2084 a whole device session - the
+# labels came back as question marks, the caller concluded `-Label` was being corrupted in transit,
+# and stopped. The argument was never corrupted; only this echo was.
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
 # Canonical app coordinates (see install/builder scripts and /spec-test-device).
 $BASE_PACKAGE   = 'com.sza.fastmediasorter'
 $DEBUG_PACKAGE  = "$BASE_PACKAGE.debug"
 $MAIN_ACTIVITY  = 'com.sza.fastmediasorter.ui.main.MainActivity'
+# The watch declares `.MainActivity` under its own code namespace while publishing under the phone's
+# application id, so the component differs even though the package does not (S1984).
+$WEAR_MAIN_ACTIVITY = 'com.sza.fastmediasorter.wear.MainActivity'
 
 . (Join-Path $PSScriptRoot 'lib/adb-log-filter.ps1')
 . (Join-Path $PSScriptRoot 'lib/ui-tree.ps1')
@@ -281,6 +319,8 @@ function Fail {
 # share one discovery order instead of hand-rolling their own hardcoded fallback.
 
 . "$PSScriptRoot/lib/find-adb.ps1"
+. "$PSScriptRoot/../utils/find-build-artifact.ps1"
+. "$PSScriptRoot/../utils/get-device-abi.ps1"
 
 $adb = Find-Adb
 if (-not $adb) {
@@ -368,6 +408,20 @@ function Resolve-Package {
     Fail 4 "neither '$primary' nor '$fallback' is installed on $Id (build/install first)"
 }
 
+function Resolve-Activity {
+    if ($Module -eq 'wear') { return $WEAR_MAIN_ACTIVITY }
+    return $MAIN_ACTIVITY
+}
+
+# Form-factor signal shared by the round/rectangle fallback in Get-DisplayShape and the
+# install-time module/device guard (S2043): both modules publish under one applicationId
+# (S1681), so nothing else on the device can tell a phone install from a watch install apart.
+function Test-WatchDevice {
+    param([string]$Id)
+    $chars = (Invoke-Adb $Id @('shell', 'getprop', 'ro.build.characteristics') -AllowFail) -join ''
+    return $chars -match 'watch'
+}
+
 function Get-TempDir {
     # Ad-hoc CLI outputs are no-ticket scratch by nature (CLAUDE.md Rule 10.1) -> temp/scratch/.
     # -OutDir overrides that for work that IS ticket-bound, where Rule 10.1 asks for temp/Sxxxx/.
@@ -448,8 +502,7 @@ function Get-DisplayShape {
         }
     }
     if ($radius -le 0) {
-        $chars = (Invoke-Adb $Id @('shell', 'getprop', 'ro.build.characteristics') -AllowFail) -join ''
-        if ($chars -match 'watch' -and $w -eq $h) {
+        if ((Test-WatchDevice $Id) -and $w -eq $h) {
             $radius = [int]($w / 2)
             $shapeSource = 'watch characteristic + square display - assumed round'
         }
@@ -486,7 +539,7 @@ switch ($Verb.ToLowerInvariant()) {
         Write-Host "  swipe      input swipe -X <x> -Y <y> -X2 <x> -Y2 <y> [-Duration ms]" -ForegroundColor White
         Write-Host "  text       input text -Text <string>" -ForegroundColor White
         Write-Host "  key        input keyevent -Key <name-or-code>" -ForegroundColor White
-        Write-Host "  prefs      pull app_settings.xml to temp/scratch/ (run-as)" -ForegroundColor White
+        Write-Host "  prefs      pull settings.preferences.pb to temp/scratch/ (run-as)" -ForegroundColor White
         Write-Host "  pull       fetch a file: -Remote <path> [-Local <path>] [-Latest] -> temp/scratch/" -ForegroundColor White
         Write-Host "  push       send a file: -Local <path> -Remote <path>" -ForegroundColor White
         Write-Host "  shell      passthrough -Cmd <adb shell command>" -ForegroundColor White
@@ -554,9 +607,10 @@ switch ($Verb.ToLowerInvariant()) {
         $pkg = Resolve-Package $id
         $script:result.device = $id; $script:result.package = $pkg
         # Explicit component avoids the debug LeakCanary launcher pre-empting the app launcher.
-        Invoke-Adb $id @('shell', 'am', 'start', '-n', "$pkg/$MAIN_ACTIVITY") | Out-Null
-        if ($Json) { Emit-Ok @{ id = $id; package = $pkg; component = "$pkg/$MAIN_ACTIVITY" } }
-        Write-Host "LAUNCHED $pkg/$MAIN_ACTIVITY on $id" -ForegroundColor Green
+        $activity = Resolve-Activity
+        Invoke-Adb $id @('shell', 'am', 'start', '-n', "$pkg/$activity") | Out-Null
+        if ($Json) { Emit-Ok @{ id = $id; package = $pkg; component = "$pkg/$activity" } }
+        Write-Host "LAUNCHED $pkg/$activity on $id" -ForegroundColor Green
         exit 0
     }
 
@@ -605,27 +659,46 @@ switch ($Verb.ToLowerInvariant()) {
     'install' {
         $id = Select-Device
         $script:result.device = $id
+        # Both modules publish under one applicationId (S1681), so nothing in the OS stops a
+        # phone-module install from silently replacing the app running on a paired watch, or the
+        # reverse - the wrong artifact lands and this verb still reports success (S2043).
+        $isWatchDevice = Test-WatchDevice $id
+        if ($isWatchDevice -and $Module -ne 'wear') {
+            Fail 1 "device $id reports watch characteristics (ro.build.characteristics) but -Module is '$Module' - installing the phone build here would silently replace the watch app, since both modules share one applicationId (S1681). Pass -Module wear, or point -DeviceId at a phone."
+        }
+        if (-not $isWatchDevice -and $Module -eq 'wear') {
+            Fail 1 "device $id does not report watch characteristics but -Module wear was requested - installing the wear build onto a non-watch device is almost certainly a mistake. Point -DeviceId at the paired watch, or drop -Module wear."
+        }
+        # S2090: the watch declares its own `version` dimension now, but only over two of the phone's six.
+        # Naming the accepted set beats naming the rejection: the wear set is a strict subset, so the
+        # plausible mistake is asking a watch for a phone-only flavor.
+        $wearFlavors = @('standard', 'noLegal')
+        if ($Module -eq 'wear' -and $wearFlavors -notcontains $Flavor) {
+            Fail 1 "-Module wear does not have flavor '$Flavor': the watch module declares $($wearFlavors -join ', ')"
+        }
         $apkPath = $Apk
         if (-not $apkPath) {
             $repoRoot = (Resolve-Path -Path (Join-Path $PSScriptRoot '..\..')).Path
-            $apkDir = Join-Path $repoRoot "app_v2\build\outputs\apk\$Flavor\debug"
-            $metaPath = Join-Path $apkDir 'output-metadata.json'
-            if (Test-Path -Path $metaPath -PathType Leaf) {
-                try {
-                    $meta = Get-Content -Path $metaPath -Raw | ConvertFrom-Json
-                    if ($meta.elements -and $meta.elements.Count -gt 0 -and $meta.elements[0].outputFile) {
-                        $apkPath = Join-Path $apkDir $meta.elements[0].outputFile
-                    }
-                } catch { }
+            $apkDir = if ($Module -eq 'wear') {
+                Join-Path $repoRoot "wear\build\outputs\apk\$Flavor\release"
+            } else {
+                Join-Path $repoRoot "app_v2\build\outputs\apk\$Flavor\debug"
             }
-            if (-not $apkPath -or -not (Test-Path -Path $apkPath)) {
-                $latest = Get-ChildItem -Path $apkDir -Filter *.apk -ErrorAction SilentlyContinue |
-                    Sort-Object LastWriteTime -Descending | Select-Object -First 1
-                if ($latest) { $apkPath = $latest.FullName }
+            # Ask for the architecture of the device this verb already selected, so a split build
+            # installs what the device can run instead of whichever slice was written last (S1972).
+            $deviceAbi = Get-TargetDeviceAbi -Adb $adb -DeviceId $id
+            try {
+                $resolved = Find-BuildArtifact -Dir $apkDir -Abi $deviceAbi
+                if ($resolved) { $apkPath = $resolved.FullName }
+            } catch {
+                Fail 1 $_.Exception.Message
             }
         }
         if (-not $apkPath -or -not (Test-Path -Path $apkPath -PathType Leaf)) {
-            Fail 1 "APK not found (pass -Apk <path>, or build the $Flavor debug variant first)"
+            # -Module wear only ever looks in the release directory - a debug watch build is never
+            # auto-resolved and always needs an explicit -Apk (S2043).
+            $buildHint = if ($Module -eq 'wear') { 'only the release wear artifact is auto-resolved - pass -Apk <path> for a debug watch build, or build the wear release variant first' } else { "build the $Flavor debug variant first" }
+            Fail 1 "APK not found (pass -Apk <path>, or $buildHint)"
         }
         Invoke-Adb $id @('install', '-r', '-d', $apkPath) | Out-Null
         if ($Json) { Emit-Ok @{ id = $id; apk = $apkPath } }
@@ -829,7 +902,7 @@ switch ($Verb.ToLowerInvariant()) {
         $nodes = @(Get-UiNodes (Get-UiTree $id $file))
         $hits  = @(Select-UiNodesById $nodes $ResourceId -Exact:$Exact)
         if ($hits.Count -eq 0) {
-            Fail 8 "no visible node carries the resource-id '$ResourceId' - nothing was tapped. The tree is at $file; run 'uidump -Ids' against it, and remember a screen still animating or a list needing a scroll shows neither"
+            Fail 8 "no visible node carries the resource-id '$ResourceId' - nothing was tapped. The tree is at $file; run 'uidump -Ids' and match an id from ITS output. Causes, commonest first: this node carries no resource-id at all (TabLayout tabs carry none - reach those with tap-label), the list needs scrolling, the screen is still animating"
         }
         if ($Index -lt 1 -or $Index -gt $hits.Count) {
             Fail 1 "-Index $Index is out of range: '$ResourceId' matches $($hits.Count) node(s)"
@@ -855,7 +928,7 @@ switch ($Verb.ToLowerInvariant()) {
             else { $_.text -like "*$Label*" -or $_.desc -like "*$Label*" }
         })
         if ($hits.Count -eq 0) {
-            Fail 8 "no visible node carries '$Label' - nothing was tapped. The tree is at $file; the usual causes are a screen still animating and a list that needs scrolling"
+            Fail 8 "no visible node carries '$Label' - nothing was tapped. The tree is at $file; run 'uidump' and match a label from ITS output rather than a guessed or translated one. Causes, commonest first: the name is not on this screen at all, the list needs scrolling, the screen is still animating"
         }
         if ($Index -lt 1 -or $Index -gt $hits.Count) {
             Fail 1 "-Index $Index is out of range: '$Label' matches $($hits.Count) node(s)"
@@ -876,7 +949,7 @@ switch ($Verb.ToLowerInvariant()) {
         $shape = Get-DisplayShape $id
         $file  = Join-Path (Get-TempDir) ("uitree_$($id -replace '[^A-Za-z0-9_.-]', '_')_$(Get-Stamp).xml")
         $nodes = @(Get-UiNodes (Get-UiTree $id $file))
-        $findings = New-Object System.Collections.Generic.List[object]
+        $findings = [System.Collections.Generic.List[object]]::new()
         # Labelled only: S1879 widened the tree to nodes named by a resource-id alone, and this
         # classification is calibrated against five recorded dumps. Judging the new nodes would move
         # counts that were measured, not chosen.
@@ -891,7 +964,9 @@ switch ($Verb.ToLowerInvariant()) {
         }
         $offGlass = @($findings | Where-Object { $_.kind -eq 'OFF-GLASS' })
         if ($Json) {
-            $script:result.data = [ordered]@{ id = $id; file = $file; shape = $shape; checked = $judged.Count; findings = @($findings); offGlass = $offGlass.Count }
+            # ToArray(), never @($findings): the array subexpression around a PSObject-wrapped
+            # List[object] throws "Argument types do not match" and killed this -Json path (S2079).
+            $script:result.data = [ordered]@{ id = $id; file = $file; shape = $shape; checked = $judged.Count; findings = $findings.ToArray(); offGlass = $offGlass.Count }
             $script:result.ok = ($offGlass.Count -eq 0)
             $script:result.exitCode = if ($offGlass.Count -eq 0) { 0 } else { 9 }
             if ($offGlass.Count -gt 0) { $script:result.reason = "$($offGlass.Count) node(s) off-glass" }
@@ -944,10 +1019,15 @@ switch ($Verb.ToLowerInvariant()) {
         $id  = Select-Device
         $pkg = Resolve-Package $id
         $script:result.device = $id; $script:result.package = $pkg
-        $local = Join-Path (Get-TempDir) "app_settings_$(Get-Stamp).xml"
-        $out = & $adb -s $id shell "run-as $pkg cat /data/data/$pkg/shared_prefs/app_settings.xml" 2>$null
-        if (-not $out) { Fail 7 "could not read app_settings.xml (non-debuggable build or file absent)" }
-        ($out -join "`n") | Out-File -FilePath $local -Encoding UTF8
+        $local = Join-Path (Get-TempDir) "settings_$(Get-Stamp).preferences.pb"
+        $encoded = & $adb -s $id shell "run-as $pkg base64 /data/data/$pkg/files/datastore/settings.preferences_pb" 2>$null
+        if (-not $encoded) { Fail 7 "could not read settings.preferences.pb (non-debuggable build or file absent)" }
+        try {
+            $bytes = [Convert]::FromBase64String(($encoded -join ''))
+        } catch {
+            Fail 7 "could not decode settings.preferences.pb from $pkg"
+        }
+        [System.IO.File]::WriteAllBytes($local, $bytes)
         if ($Json) { Emit-Ok @{ id = $id; package = $pkg; file = $local } }
         Write-Host "PREFS $local" -ForegroundColor Green
         exit 0

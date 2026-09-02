@@ -19,12 +19,13 @@
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnStart"
         style="@style/Widget.FastMediaSorter.Button.Text"
-        android:layout_width="wrap_content"
+        android:layout_width="@dimen/launcher_taskbar_height"
         android:layout_height="match_parent"
         android:clickable="true"
+        android:contentDescription="@string/launcher_taskbar_start"
         android:focusable="true"
         android:foreground="@drawable/focus_button_background"
-        android:gravity="start|center_vertical"
+        android:gravity="center"
         android:insetTop="0dp"
         android:insetBottom="0dp"
         android:insetLeft="0dp"
@@ -33,13 +34,12 @@
         android:minHeight="0dp"
         android:nextFocusUp="@id/launcherDesktop"
         android:nextFocusRight="@id/btnAllApps"
-        android:paddingStart="@dimen/margin_tiny"
-        android:paddingEnd="@dimen/margin_tiny"
-        android:text="@string/launcher_taskbar_start"
-        android:textColor="?attr/launcherTaskbarStartText"
+        android:paddingStart="0dp"
+        android:paddingEnd="0dp"
         app:icon="@drawable/ic_launcher_mode"
-        app:iconGravity="start"
-        app:iconPadding="@dimen/margin_tiny"
+        app:iconGravity="textStart"
+        app:iconPadding="0dp"
+        app:iconSize="@dimen/launcher_taskbar_action_icon_size"
         app:iconTint="?attr/launcherTaskbarStartText" />
 
     <!-- S1401: opens the full-screen app list. Icon-only (owner, 2026-08-05) and deliberately OUTSIDE
@@ -48,7 +48,7 @@
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnAllApps"
         style="@style/Widget.FastMediaSorter.Button.Text"
-        android:layout_width="wrap_content"
+        android:layout_width="@dimen/launcher_taskbar_all_apps_width"
         android:layout_height="match_parent"
         android:layout_marginStart="@dimen/margin_small"
         android:clickable="true"
@@ -59,18 +59,18 @@
         android:insetBottom="0dp"
         android:insetLeft="0dp"
         android:insetRight="0dp"
-        android:minWidth="@dimen/dialog_icon_button_min_width"
+        android:minWidth="0dp"
         android:minHeight="0dp"
         android:nextFocusUp="@id/launcherDesktop"
         android:nextFocusLeft="@id/btnStart"
         android:nextFocusRight="@id/taskbarRecents"
-        android:paddingStart="@dimen/margin_small"
-        android:paddingEnd="@dimen/margin_small"
-        android:textColor="?attr/launcherTaskbarAllAppsText"
-        app:icon="@drawable/ic_view_grid"
+        android:paddingStart="0dp"
+        android:paddingEnd="0dp"
+        app:icon="@drawable/ic_launcher_all_apps"
         app:iconGravity="textStart"
         app:iconPadding="0dp"
-        app:iconTint="?attr/launcherTaskbarAllAppsText" />
+        app:iconSize="@dimen/launcher_taskbar_action_icon_size"
+        app:iconTint="@null" />
 
     <!-- Both strips live inside one weighted block so they can only ever consume the slack left by the
          Start button and the tray. A wrap_content strip placed directly in the bar is measured against the
@@ -173,7 +173,7 @@
          outside editing; the weighted strip block above yields slack before the tray does. -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/launcherEditDone"
-        style="@style/Widget.FastMediaSorter.Button.Text"
+        style="@style/Widget.FastMediaSorter.Launcher.TaskbarDone"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:clickable="true"

@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.wear.ui.apps.game
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.domain.game.GameBoardGenerator
+import com.sza.fastmediasorter.wear.domain.game.GameDifficulty
 import com.sza.fastmediasorter.wear.domain.game.GameDirection
 import com.sza.fastmediasorter.wear.domain.game.GameLevelConfig
 import com.sza.fastmediasorter.wear.domain.game.GameLevelState
@@ -38,7 +39,6 @@ class GameViewModel @Inject constructor(
     val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
 
     init {
-        Timber.d("S1710: game screen opened on the watch")
         viewModelScope.launch { restoreOrStart() }
     }
 
@@ -103,11 +103,13 @@ class GameViewModel @Inject constructor(
     private fun generate(levelNumber: Int): GameLevelState? {
         val config = GameLevelConfig(
             levelNumber = levelNumber,
+            difficulty = difficultyFor(levelNumber),
             width = BOARD_SIDE,
             height = BOARD_SIDE,
-            shadowCount = SHADOW_COUNT,
+            shadowCount = shadowCountFor(levelNumber),
             seed = levelNumber.toLong() * LEVEL_SEED_STEP
         )
+        Timber.d("S2008: level $levelNumber shadows ${config.shadowCount} band ${config.difficulty}")
         val generated = generator.createInitialState(config)
         if (generated == null) {
             Timber.w("game: level %d could not be generated, board left unchanged", levelNumber)
@@ -115,12 +117,43 @@ class GameViewModel @Inject constructor(
         return generated
     }
 
+    /**
+     * The one lever that makes a later level harder.
+     *
+     * The board side is deliberately not the lever: the square the board is drawn into is capped by
+     * the glass, so every added row only shrinks a cell that is already about 16 dp across, and
+     * S1965 settled that a watch control is not made smaller to buy a fit (strategic ADR-3). More
+     * shadows cost no legibility at all - the same cells, more things moving in them. Capped well
+     * short of the density at which the generator runs out of placements satisfying its own distance
+     * minimums and returns null.
+     */
+    private fun shadowCountFor(levelNumber: Int): Int =
+        minOf(SHADOW_COUNT_MAX, SHADOW_COUNT_BASE + (levelNumber - 1) / LEVELS_PER_SHADOW)
+
+    /**
+     * The band the level falls into, carried in the config and in the save.
+     *
+     * The generator does not read it today and this ticket does not teach it to: it is a line-by-line
+     * mirror of the phone's, kept so one config and one seed yield one board on both devices
+     * (strategic ADR-2). The band is recorded so the two sides agree about what a level was, while
+     * [shadowCountFor] is what actually changes the game.
+     */
+    private fun difficultyFor(levelNumber: Int): GameDifficulty = when {
+        levelNumber < NORMAL_FROM_LEVEL -> GameDifficulty.EASY
+        levelNumber < HARD_FROM_LEVEL -> GameDifficulty.NORMAL
+        else -> GameDifficulty.HARD
+    }
+
     private companion object {
         const val FIRST_LEVEL_NUMBER = 1
 
         /** Small enough that every cell stays readable on a watch, above the generator's minimum. */
         const val BOARD_SIDE = 9
-        const val SHADOW_COUNT = 2
+        const val SHADOW_COUNT_BASE = 2
+        const val SHADOW_COUNT_MAX = 5
+        const val LEVELS_PER_SHADOW = 3
+        const val NORMAL_FROM_LEVEL = 4
+        const val HARD_FROM_LEVEL = 10
         const val LEVEL_SEED_STEP = 7919L
     }
 }

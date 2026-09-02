@@ -1,11 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  S1814: the single declaration of the languages the wear interface supports.
-  Kotlin reads it through WearLocaleManager, and per-app language settings in Android 13+
-  read this declaration directly.
+  S2054: the single declaration of the languages the wear interface supports. WearLanguageCatalog parses
+  this file, and per-app language settings in Android 13+ read it directly, so both paths agree.
+
+  The set matches app_v2's declaration because the phone is the only thing that chooses the watch's
+  language (S1814) and the phone offers all thirteen. Chinese is pinned to the simplified script:
+  simplified and traditional are mutually unreadable, so the variant cannot be left implicit.
 -->
 <locale-config xmlns:android="http://schemas.android.com/apk/res/android">
     <locale android:name="en"/>
+    <locale android:name="zh-Hans"/>
+    <locale android:name="hi"/>
+    <locale android:name="es"/>
+    <locale android:name="fr"/>
+    <locale android:name="ar"/>
+    <locale android:name="bn"/>
+    <locale android:name="pt"/>
     <locale android:name="ru"/>
+    <locale android:name="ur"/>
     <locale android:name="uk"/>
+    <locale android:name="de"/>
+    <locale android:name="it"/>
 </locale-config>

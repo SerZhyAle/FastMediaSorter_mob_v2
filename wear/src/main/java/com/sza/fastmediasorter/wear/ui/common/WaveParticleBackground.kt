@@ -33,7 +33,7 @@ import kotlin.random.Random
 // version. The four constants below are copied verbatim from that class and fix how fast the
 // motion runs; the counts underneath are the watch's own, because the number of elements may be
 // reduced for battery while the speed and the character of the motion may not change.
-private const val TIME_INCREMENT = 0.003f
+private const val TIME_INCREMENT = 0.002f
 private const val SPEED_MULT_MIN = 0.5f
 private const val SPEED_MULT_MAX = 1.5f
 private const val HUE_SPREAD_DEG = 108f
@@ -128,8 +128,8 @@ fun WaveParticleBackground(
 
         LaunchedEffect(session, running) {
             if (!running) return@LaunchedEffect
+            Timber.d("S2206: WaveParticleBackground running with TIME_INCREMENT=$TIME_INCREMENT")
             session.reroll()
-            Timber.d("S1683: brand animation started ${bufferWidth}x$bufferHeight")
             var lastFrameNanos = 0L
             while (true) {
                 withFrameNanos { frameNanos ->

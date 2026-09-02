@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S2230: translucent rounded plate behind a stream-window overlay button, so the glyph stays
+     legible over an arbitrary video frame - the same contrast problem the player title's outline
+     solves, answered with a dim plate because a 40dp glyph has no room for an outline. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <corners android:radius="12dp" />
+
+    <solid android:color="#66000000" />
+
+</shape>

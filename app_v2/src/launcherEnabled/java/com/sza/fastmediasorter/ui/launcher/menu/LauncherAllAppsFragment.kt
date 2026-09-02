@@ -1,12 +1,18 @@
 package com.sza.fastmediasorter.ui.launcher.menu
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.PopupMenu
-import androidx.core.view.doOnLayout
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.DialogFragment
@@ -14,15 +20,25 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
+import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
 import com.sza.fastmediasorter.databinding.FragmentLauncherAllAppsBinding
+import com.sza.fastmediasorter.domain.model.LauncherAllAppsSwipeDirection
+import com.sza.fastmediasorter.domain.model.launcher.InstalledApp
 import com.sza.fastmediasorter.domain.model.launcher.InstalledAppSortOrder
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAllAppsGestureManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAllAppsSwipeActionHandler
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAppActionMenuManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import timber.log.Timber
+import javax.inject.Inject
 
 /**
  * S1401: the full-screen list of every installed app - search, order picker, grid, action menu.
@@ -38,8 +54,34 @@ class LauncherAllAppsFragment : DialogFragment() {
     /** Shared with the desktop: launching, placing and pinning all belong to the home surface. */
     private val homeViewModel: LauncherHomeViewModel by activityViewModels()
 
+    @Inject
+    lateinit var screenshotGestureActionDispatcher: ScreenshotGestureActionDispatcher
+
+    @Inject
+    lateinit var menuScreenshotLaunchers: Set<@JvmSuppressWildcards MenuScreenshotLauncher>
+
     private var _binding: FragmentLauncherAllAppsBinding? = null
     private val binding get() = _binding!!
+
+    /** S2304: null outside the view lifecycle, which is what the swipe listener is bound to. */
+    private var swipeActionHandler: LauncherAllAppsSwipeActionHandler? = null
+
+    /** Detached in onDestroyView: the RecyclerView outlives this fragment's view on a re-inflate. */
+    private var swipeTouchListener: RecyclerView.OnItemTouchListener? = null
+
+    private val systemDialogsReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.getStringExtra(SYSTEM_DIALOG_REASON) == SYSTEM_DIALOG_REASON_HOME_KEY) {
+                // The system can issue HOME after FragmentManager saves state; there is no UI state to retain.
+                dismissAllowingStateLoss()
+            }
+        }
+    }
+
+    private val groupManager = LauncherAlphabeticalAppGroupManager()
+
+    private var latestApps: List<InstalledApp> = emptyList()
+    private val expandedGroupKeys = mutableSetOf<String>()
 
     private val appsAdapter = LauncherAppGridAdapter(
         onAppClick = { app ->
@@ -50,6 +92,7 @@ class LauncherAllAppsFragment : DialogFragment() {
             actionMenuManager.show(view, app.id)
             true
         },
+        onGroupToggle = ::toggleGroup,
     )
 
     // Built lazily on the first long press: most visits never open the menu at all. The scope is the
@@ -92,20 +135,20 @@ class LauncherAllAppsFragment : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setUpGrid()
+        attachSwipeGestures()
+        binding.allAppsHome.setOnClickListener { dismiss() }
+        ContextCompat.registerReceiver(
+            requireContext(),
+            systemDialogsReceiver,
+            IntentFilter(Intent.ACTION_CLOSE_SYSTEM_DIALOGS),
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
         binding.allAppsSearch.doAfterTextChanged { viewModel.setQuery(it?.toString().orEmpty()) }
         binding.allAppsSort.setOnClickListener { showOrderMenu(it) }
 
         collectOnLifecycle(viewModel.apps) { apps ->
-            appsAdapter.submitApps(
-                apps.map { app ->
-                    LauncherAppGridAdapter.AppItem(
-                        id = app.packageName,
-                        label = app.label,
-                        iconFile = app.iconFile,
-                        iconVersion = app.lastUpdateTime,
-                    )
-                }
-            )
+            latestApps = apps
+            renderGroups()
             applyEmptyState(apps.isEmpty())
         }
     }
@@ -114,21 +157,97 @@ class LauncherAllAppsFragment : DialogFragment() {
         super.onDestroyView()
         // The popup anchors inside this screen and must not outlive it.
         actionMenuManager.dismiss()
+        requireContext().unregisterReceiver(systemDialogsReceiver)
+        swipeTouchListener?.let { binding.allAppsGrid.removeOnItemTouchListener(it) }
+        swipeTouchListener = null
+        swipeActionHandler = null
         _binding = null
     }
 
-    /**
-     * The column count comes from the measured width rather than a constant, which is what lets one
-     * layout serve portrait and landscape (strategic 3.3 - no landscape counterpart is declared).
-     */
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // The launcher handles rotation itself, so the dialog must recalculate its grid instead of
+        // waiting for a new app-list emission that may never arrive.
+        renderGroups()
+    }
+
     private fun setUpGrid() {
-        val layoutManager = GridLayoutManager(requireContext(), FALLBACK_COLUMNS)
+        val layoutManager = GridLayoutManager(requireContext(), desktopColumns())
         binding.allAppsGrid.layoutManager = layoutManager
         binding.allAppsGrid.adapter = appsAdapter
-        binding.allAppsGrid.doOnLayout { grid ->
-            val cellWidth = resources.getDimensionPixelSize(R.dimen.launcher_all_apps_cell_min_width)
-            layoutManager.spanCount = (grid.width / cellWidth).coerceAtLeast(1)
+        layoutManager.spanSizeLookup = appsAdapter.getSpanSizeLookup(desktopColumns())
+    }
+
+    /**
+     * S2304: the recognizer reads the grid's own event stream through an item-touch listener that never
+     * claims it, so taps, long presses and scrolling keep their normal dispatch. A vertical direction
+     * still fires only at the matching scroll boundary, which is what keeps an ordinary scroll from
+     * reading as a swipe.
+     */
+    private fun attachSwipeGestures() {
+        swipeActionHandler = LauncherAllAppsSwipeActionHandler(
+            activity = requireActivity(),
+            actionDispatcher = screenshotGestureActionDispatcher,
+            screenshotLaunchers = menuScreenshotLaunchers,
+            onBackToDesktop = ::dismiss,
+            onExpandAllApps = ::expandFullAppList,
+        )
+        val gestureManager = LauncherAllAppsGestureManager(
+            container = binding.allAppsGrid,
+            viewport = binding.allAppsGrid,
+            isEnabled = { true },
+            // The whole grid is swipeable: on a full-screen list of cells there is almost no free space
+            // to start from, and the recognizer already separates a fling from a tap by slop and velocity.
+            isTouchOnInteractiveCell = { false },
+            onSwipe = ::dispatchSwipe,
+        )
+        val listener = object : RecyclerView.SimpleOnItemTouchListener() {
+            override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+                gestureManager.onTouchEvent(e)
+                return false
+            }
         }
+        swipeTouchListener = listener
+        binding.allAppsGrid.addOnItemTouchListener(listener)
+    }
+
+    private fun dispatchSwipe(direction: LauncherAllAppsGestureManager.DesktopSwipeDirection) {
+        val handler = swipeActionHandler ?: return
+        val slot = when (direction) {
+            LauncherAllAppsGestureManager.DesktopSwipeDirection.UP -> LauncherAllAppsSwipeDirection.UP
+            LauncherAllAppsGestureManager.DesktopSwipeDirection.DOWN -> LauncherAllAppsSwipeDirection.DOWN
+            LauncherAllAppsGestureManager.DesktopSwipeDirection.LEFT -> LauncherAllAppsSwipeDirection.LEFT
+            LauncherAllAppsGestureManager.DesktopSwipeDirection.RIGHT -> LauncherAllAppsSwipeDirection.RIGHT
+        }
+        Timber.d("S2304: all apps swipe recognized direction=%s", slot)
+        val settings = viewModel.appSettings.value
+        viewLifecycleOwner.lifecycleScope.launch {
+            handler.handle(slot.actionOf(settings), slot.payloadOf(settings))
+        }
+    }
+
+    /**
+     * Expands the preview section into the full app list. One-way on purpose: the section header tap
+     * stays the way back to the alphabetical view, so a repeated swipe cannot flip the list under the
+     * finger.
+     */
+    private fun expandFullAppList() {
+        if (expandedGroupKeys.add(LauncherAlphabeticalAppGroupManager.KEY_PREVIEW)) {
+            renderGroups()
+        }
+    }
+
+    private fun renderGroups() {
+        val spanCount = desktopColumns()
+        val layoutManager = binding.allAppsGrid.layoutManager as GridLayoutManager
+        layoutManager.spanCount = spanCount
+        layoutManager.spanSizeLookup = appsAdapter.getSpanSizeLookup(spanCount)
+        appsAdapter.submitGroups(groupManager.groupApps(latestApps, spanCount, expandedGroupKeys))
+    }
+
+    private fun toggleGroup(key: String) {
+        if (!expandedGroupKeys.add(key)) expandedGroupKeys.remove(key)
+        renderGroups()
     }
 
     /**
@@ -174,11 +293,10 @@ class LauncherAllAppsFragment : DialogFragment() {
     companion object {
         const val TAG = "launcher_all_apps"
 
-        /** Used until the first layout pass reports a real width. */
-        private const val FALLBACK_COLUMNS = 4
-
         /** Kept clear of the order ids, which are the map's indices. */
         private const val REVERSE_ITEM_ID = 100
+        private const val SYSTEM_DIALOG_REASON = "reason"
+        private const val SYSTEM_DIALOG_REASON_HOME_KEY = "homekey"
 
         private val ORDER_LABELS = linkedMapOf(
             InstalledAppSortOrder.LABEL to R.string.launcher_all_apps_sort_label,

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.settings
 
+import android.Manifest
 import android.app.Dialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
@@ -19,13 +20,28 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
+import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
+import com.sza.fastmediasorter.core.screencapture.gesture.GestureAccessibilityActions
 import com.sza.fastmediasorter.databinding.DialogLauncherResetConfirmBinding
 import com.sza.fastmediasorter.databinding.DialogLauncherSettingsBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.LauncherAllAppsSwipeDirection
+import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeDirection
+import com.sza.fastmediasorter.domain.usecase.launcher.IsCameraWallpaperAvailableUseCase
+import com.sza.fastmediasorter.domain.usecase.panel.QueryLaunchableAppsUseCase
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
+import com.sza.fastmediasorter.ui.settings.helpers.LauncherAllAppsSwipeActionPickerManager
+import com.sza.fastmediasorter.ui.settings.helpers.LauncherAllAppsSwipeSettingsManager
+import com.sza.fastmediasorter.ui.settings.helpers.LauncherDesktopSwipeActionPickerManager
+import com.sza.fastmediasorter.ui.settings.helpers.LauncherDesktopSwipeSettingsManager
+import com.sza.fastmediasorter.ui.settings.helpers.LauncherScreenTimeoutSettingsManager
+import com.sza.fastmediasorter.ui.settings.helpers.LauncherSwipePayloadPickerManager
+import com.sza.fastmediasorter.ui.settings.helpers.LauncherWallpaperSettingsManager
+import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionPickerManager
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -59,12 +75,49 @@ class LauncherSettingsDialogFragment : DialogFragment() {
     @Inject
     lateinit var launcherRoleManager: LauncherRoleManager
 
+    @Inject
+    lateinit var gestureAccessibilityActions: Set<@JvmSuppressWildcards GestureAccessibilityActions>
+
+    @Inject
+    lateinit var capabilityAvailability: CapabilityAvailability
+
+    @Inject
+    lateinit var screenVideoRecordingControllers: Set<@JvmSuppressWildcards ScreenVideoRecordingController>
+
+    // S2256: the swipe target rows read an app's own label from the same source the edge slots use, so a
+    // row and the picker can never disagree about what an app is called.
+    @Inject
+    lateinit var queryLaunchableApps: QueryLaunchableAppsUseCase
+
+    // S2076: whether this device has a camera at all. Injected here rather than into the shared settings
+    // ViewModel, whose constructor is already at its parameter ceiling - and the question is a UI one:
+    // it decides which entries the wallpaper dropdown offers, not what gets written.
+    @Inject
+    lateinit var isCameraWallpaperAvailable: IsCameraWallpaperAvailableUseCase
+
     // S1422: the shared orchestrator already owns restore, animation and persistence of section state,
     // so this dialog only declares which rows belong together.
     private val sectionsManager by lazy { CollapsibleSectionsManager(requireContext()) }
 
     // Guards render() writes so setCheckedSilently / setSelection never bounce back into a settings update.
     private var isUpdatingFromSettings = false
+
+    // Every row manager is released in onDestroyView: each one holds the binding, so a reference kept
+    // past the view outlives the hierarchy it renders into.
+    private var desktopSwipeSettingsManager: LauncherDesktopSwipeSettingsManager? = null
+    private var allAppsSwipeSettingsManager: LauncherAllAppsSwipeSettingsManager? = null
+    private var wallpaperSettingsManager: LauncherWallpaperSettingsManager? = null
+    private var screenTimeoutSettingsManager: LauncherScreenTimeoutSettingsManager? = null
+
+    // S2256: the direction the swipe app picker is currently choosing for. Held here rather than in
+    // LauncherSwipePayloadPickerManager, which is rebuilt on every re-inflate, and saved because losing it
+    // mid-pick (the host process can die while the child app picker is open) would write the chosen
+    // package into no direction at all - the same trap and fix as EdgeGestureConfigDialogFragment's
+    // pendingAppSlot.
+    private var pendingSwipeAppDirection: LauncherDesktopSwipeDirection? = null
+
+    // S2304: the same trap as above, for the All apps panel slot family.
+    private var pendingAllAppsSwipeDirection: LauncherAllAppsSwipeDirection? = null
 
     /**
      * S1101: picks the desktop wallpaper image. The file is copied into private storage right away, so
@@ -74,11 +127,33 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             if (uri == null) {
                 // Cancelled: the row already moved to "My image", so put it back on the stored mode.
-                renderWallpaperRow(viewModel.settings.value)
+                wallpaperSettingsManager?.render(viewModel.settings.value)
                 return@registerForActivityResult
             }
             viewModel.applyLauncherWallpaperImage(uri)
         }
+
+    /**
+     * S2076: the CAMERA grant for the live wallpaper. A refusal is not an error worth a message - the row
+     * simply returns to the stored mode, exactly as a cancelled image pick does.
+     */
+    private val requestCameraForWallpaper =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            wallpaperSettingsManager?.onCameraPermissionResult(granted)
+        }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setStyle(STYLE_NORMAL, R.style.ThemeOverlay_FastMediaSorter_Dialog_FullScreen)
+        pendingSwipeAppDirection = savedInstanceState
+            ?.getString(STATE_PENDING_SWIPE_DIRECTION)
+            ?.let { runCatching { LauncherDesktopSwipeDirection.valueOf(it) }.getOrNull() }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        pendingSwipeAppDirection?.let { outState.putString(STATE_PENDING_SWIPE_DIRECTION, it.name) }
+    }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dialog = super.onCreateDialog(savedInstanceState)
@@ -99,15 +174,71 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             dismiss()
             return
         }
+        Timber.d("S2017: launcher settings dialog opened")
         binding.btnClose.setOnClickListener { dismiss() }
+        desktopSwipeSettingsManager = LauncherDesktopSwipeSettingsManager(
+            host = this,
+            binding = binding,
+            currentSettings = { viewModel.settings.value },
+            updateSettings = viewModel::updateSettings,
+            picker = desktopSwipeActionPicker(),
+            payloadPicker = LauncherSwipePayloadPickerManager(
+                host = this,
+                currentSettings = { viewModel.settings.value },
+                updateSettings = viewModel::updateSettings,
+                pendingDirection = { pendingSwipeAppDirection },
+                setPendingDirection = { pendingSwipeAppDirection = it },
+            ),
+            queryLaunchableApps = queryLaunchableApps,
+        )
+        allAppsSwipeSettingsManager = LauncherAllAppsSwipeSettingsManager(
+            host = this,
+            binding = binding,
+            currentSettings = { viewModel.settings.value },
+            updateSettings = viewModel::updateSettings,
+            picker = LauncherAllAppsSwipeActionPickerManager(
+                systemActionsAvailable = gestureAccessibilityActions.isNotEmpty(),
+            ),
+            queryLaunchableApps = queryLaunchableApps,
+            pendingDirection = { pendingAllAppsSwipeDirection },
+            setPendingDirection = { pendingAllAppsSwipeDirection = it },
+        )
+        wallpaperSettingsManager = LauncherWallpaperSettingsManager(
+            host = this,
+            binding = binding,
+            hasCamera = isCameraWallpaperAvailable::hasHardware,
+            currentSettings = { viewModel.settings.value },
+            isUpdating = { isUpdatingFromSettings },
+            applyMode = viewModel::applyLauncherWallpaperMode,
+            launchImagePicker = { pickWallpaperImage.launch(WALLPAPER_MIME_TYPES) },
+            requestCameraPermission = { requestCameraForWallpaper.launch(Manifest.permission.CAMERA) },
+            applyCameraLens = { lensId, isInstantPhoto ->
+                if (isInstantPhoto) {
+                    viewModel.applyLauncherWallpaperInstantPhoto(lensId)
+                } else {
+                    viewModel.applyLauncherWallpaperCamera(lensId)
+                }
+            },
+        )
+        screenTimeoutSettingsManager = LauncherScreenTimeoutSettingsManager(
+            host = this,
+            binding = binding,
+            currentSettings = { viewModel.settings.value },
+            isUpdating = { isUpdatingFromSettings },
+            updateSettings = viewModel::updateSettings,
+        )
+        Timber.d("S2255: launcher settings row managers attached")
+        desktopSwipeSettingsManager?.registerAppPickerListener()
+        allAppsSwipeSettingsManager?.registerAppPickerListener()
         setupCollapsibleSections()
         setupRows()
         observeSettings()
     }
 
-    /** S1422: only the top bar starts expanded - it is the group the launcher work keeps changing. */
+    /** S1422/S2252: seven collapsible groups - only top bar starts expanded by default. */
     private fun setupCollapsibleSections() {
         sectionsManager.register(binding.headerLauncherTaskbar, binding.containerLauncherTaskbar, "launcher__taskbar")
+        sectionsManager.register(binding.headerLauncherTray, binding.containerLauncherTray, "launcher__tray")
         sectionsManager.register(
             binding.headerLauncherTopBar,
             binding.containerLauncherTopBar,
@@ -115,54 +246,69 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             defaultExpanded = true,
         )
         sectionsManager.register(binding.headerLauncherDesktop, binding.containerLauncherDesktop, "launcher__desktop")
+        sectionsManager.register(
+            binding.headerLauncherGestures,
+            binding.containerLauncherGestures,
+            "launcher__gestures"
+        )
+        sectionsManager.register(
+            binding.headerLauncherAppearance,
+            binding.containerLauncherAppearance,
+            "launcher__appearance"
+        )
         sectionsManager.register(binding.headerLauncherSystem, binding.containerLauncherSystem, "launcher__system")
+        Timber.d("S2252: launcher settings full-screen dialog registered 7 collapsible groups")
         expandRequestedSection()
     }
 
     /**
-     * S1466: unfolds the group the caller asked for, after every section restored its stored state -
-     * the request has to win over that state, or a user who once folded the desktop group would open the
+     * S1466/S2252: unfolds the group the caller asked for, after every section restored its stored state -
+     * the request has to win over that state, or a user who once folded the appearance group would open the
      * dialog from "Wallpaper" and see no wallpaper row.
      */
     private fun expandRequestedSection() {
-        if (arguments?.getString(ARG_EXPAND_SECTION) != SECTION_DESKTOP) return
-        binding.headerLauncherDesktop.setExpanded(true, notify = true)
+        if (arguments?.getString(ARG_EXPAND_SECTION) != SECTION_APPEARANCE) return
+        binding.headerLauncherAppearance.setExpanded(true, notify = true)
     }
 
     private fun setupRows() {
         setupPlacementRow()
+        desktopSwipeSettingsManager?.setupRows()
+        allAppsSwipeSettingsManager?.setupRows()
         binding.rowLauncherShowRecents.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(launcherTaskbarShowRecents = isChecked))
+            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(taskbarShowRecents = isChecked) })
         }
         binding.rowLauncherShowPinned.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(launcherTaskbarShowPinned = isChecked))
+            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(taskbarShowPinned = isChecked) })
         }
         binding.rowLauncherShowTray.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(launcherTaskbarShowTray = isChecked))
+            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(taskbarShowTray = isChecked) })
         }
         setupTrayRows()
         binding.rowLauncherReplaceStatusArea.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateSettings(
                 viewModel.settings.value.copy(
-                    launcherReplaceSystemStatusArea = isChecked,
-                    // S1431: the mode has nowhere to draw without the freed band, so it is cleared with it
-                    // rather than left stored as on and unreachable (strategic risk row 6).
-                    launcherTopStatusStripMode = isChecked && viewModel.settings.value.launcherTopStatusStripMode,
+                    launcher = viewModel.settings.value.launcher.copy(
+                        replaceSystemStatusArea = isChecked,
+                        // S1431: the mode has nowhere to draw without the freed band, so it is cleared
+                        // with it rather than left stored as on and unreachable (strategic risk row 6).
+                        topStatusStripMode = isChecked && viewModel.settings.value.launcherTopStatusStripMode,
+                    ),
                 )
             )
         }
         binding.rowLauncherTopStatusStrip.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(launcherTopStatusStripMode = isChecked))
+            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(topStatusStripMode = isChecked) })
         }
         binding.rowLauncherForeignNotifications.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateSettings(
-                viewModel.settings.value.copy(launcherForeignNotificationsEnabled = isChecked)
+                viewModel.settings.value.withLauncher { copy(foreignNotificationsEnabled = isChecked) }
             )
             // Turning it on without the system grant would leave a switch claiming to work, so the screen
             // that can fix it is offered in the same gesture rather than waiting for the user to find it.
@@ -183,14 +329,21 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             if (isUpdatingFromSettings) return@setOnItemSelectedListener
             val options = AppSettings.LAUNCHER_DENSITY_OPTIONS
             val factor = options.getOrElse(index) { options[DENSITY_DEFAULT_INDEX] }
-            viewModel.updateSettings(viewModel.settings.value.copy(launcherDensityFactor = factor))
+            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(densityFactor = factor) })
         }
-        setupWallpaperRow()
+        setupScreenCountRow()
+        requireNotNull(wallpaperSettingsManager).setupRow()
         binding.rowLauncherLockDesktop.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(launcherDesktopLocked = isChecked))
+            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(desktopLocked = isChecked) })
         }
-        setupScreenTimeoutRow()
+        binding.rowLauncherDesktopDoubleTapLock.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings(
+                viewModel.settings.value.withLauncher { copy(desktopDoubleTapLockEnabled = isChecked) },
+            )
+        }
+        requireNotNull(screenTimeoutSettingsManager).setupRow()
         setupWidgetBackdropAlphaRow()
         binding.rowLauncherOpenHomeSettings.setOnClickListener {
             val host = activity ?: return@setOnClickListener
@@ -218,49 +371,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             if (isUpdatingFromSettings) return@setOnItemSelectedListener
             val options = AppSettings.LAUNCHER_TASKBAR_PLACEMENT_OPTIONS
             val placement = options.getOrElse(index) { AppSettings.LAUNCHER_TASKBAR_PLACEMENT_BOTTOM }
-            Timber.d("S1643: taskbar placement chosen in settings, value=$placement")
-            viewModel.updateSettings(viewModel.settings.value.copy(launcherTaskbarPlacement = placement))
-        }
-    }
-
-    /**
-     * S1741: presets (0, 5, 15, 30, 60, 300 seconds) and custom duration entry.
-     */
-    private fun setupScreenTimeoutRow() {
-        binding.rowLauncherScreenTimeout.setOnItemSelectedListener { index ->
-            if (isUpdatingFromSettings) return@setOnItemSelectedListener
-            val presets = AppSettings.LAUNCHER_SCREEN_TIMEOUT_PRESETS
-            if (index in presets.indices) {
-                val seconds = presets[index]
-                Timber.d("Screen timeout preset chosen, seconds=%d", seconds)
-                viewModel.updateSettings(
-                    viewModel.settings.value.copy(launcherScreenBlackoutTimeoutSeconds = seconds)
-                )
-            } else if (index == presets.size) {
-                showCustomScreenTimeoutDialog()
-            }
-        }
-    }
-
-    /** S1748: widget backdrop opacity presets selector. */
-    private fun setupWallpaperRow() {
-        binding.rowLauncherWallpaper.setEntries(
-            listOf(
-                getText(R.string.launcher_settings_wallpaper_branded),
-                getText(R.string.launcher_settings_wallpaper_static_stripes),
-                getText(R.string.launcher_settings_wallpaper_none),
-                getText(R.string.launcher_settings_wallpaper_image),
-            )
-        )
-        binding.rowLauncherWallpaper.setOnItemSelectedListener { index ->
-            if (isUpdatingFromSettings) return@setOnItemSelectedListener
-            val modes = AppSettings.LAUNCHER_WALLPAPER_MODES
-            when (val mode = modes.getOrElse(index) { AppSettings.LAUNCHER_WALLPAPER_BRANDED }) {
-                // Image mode only becomes real once a file is actually picked and copied, so the write
-                // happens in the picker callback, not here.
-                AppSettings.LAUNCHER_WALLPAPER_IMAGE -> pickWallpaperImage.launch(WALLPAPER_MIME_TYPES)
-                else -> viewModel.applyLauncherWallpaperMode(mode)
-            }
+            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(taskbarPlacement = placement) })
         }
     }
 
@@ -279,7 +390,16 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             if (isUpdatingFromSettings) return@setOnItemSelectedListener
             val options = AppSettings.LAUNCHER_WIDGET_BACKDROP_ALPHA_OPTIONS
             val alpha = options.getOrElse(index) { options[BACKDROP_ALPHA_DEFAULT_INDEX] }
-            viewModel.updateSettings(viewModel.settings.value.copy(launcherWidgetBackdropAlpha = alpha))
+            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(widgetBackdropAlpha = alpha) })
+        }
+    }
+
+    private fun setupScreenCountRow() {
+        binding.rowLauncherScreenCount.setEntries(listOf("1", "2", "3", "4", "5"))
+        binding.rowLauncherScreenCount.setOnItemSelectedListener { index ->
+            if (isUpdatingFromSettings) return@setOnItemSelectedListener
+            val count = index + 1
+            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(screenCount = count) })
         }
     }
 
@@ -287,27 +407,31 @@ class LauncherSettingsDialogFragment : DialogFragment() {
     private fun setupTrayRows() {
         binding.rowLauncherTrayClock.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(launcherTrayShowClock = isChecked))
+            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(trayShowClock = isChecked) })
         }
         binding.rowLauncherTrayBluetooth.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(launcherTrayShowBluetooth = isChecked))
+            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(trayShowBluetooth = isChecked) })
         }
         binding.rowLauncherTraySim1.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(launcherTrayShowSim1 = isChecked))
+            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(trayShowSim1 = isChecked) })
         }
         binding.rowLauncherTraySim2.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(launcherTrayShowSim2 = isChecked))
+            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(trayShowSim2 = isChecked) })
         }
         binding.rowLauncherTrayNetwork.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(launcherTrayShowNetwork = isChecked))
+            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(trayShowNetwork = isChecked) })
         }
         binding.rowLauncherTrayBattery.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(launcherTrayShowBattery = isChecked))
+            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(trayShowBattery = isChecked) })
+        }
+        binding.rowLauncherTraySpeed.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(trayShowSpeed = isChecked) })
         }
     }
 
@@ -365,17 +489,25 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             binding.rowLauncherTraySim2.setCheckedSilently(settings.launcherTrayShowSim2)
             binding.rowLauncherTrayNetwork.setCheckedSilently(settings.launcherTrayShowNetwork)
             binding.rowLauncherTrayBattery.setCheckedSilently(settings.launcherTrayShowBattery)
+            binding.rowLauncherTraySpeed.setCheckedSilently(settings.launcherTrayShowSpeed)
             binding.rowLauncherReplaceStatusArea.setCheckedSilently(settings.launcherReplaceSystemStatusArea)
             binding.rowLauncherTopStatusStrip.setCheckedSilently(settings.launcherTopStatusStripMode)
             renderTopStatusStripRows(settings)
             binding.rowLauncherForeignNotifications.setCheckedSilently(settings.launcherForeignNotificationsEnabled)
             renderForeignNotificationsRow(settings.launcherForeignNotificationsEnabled)
             binding.rowLauncherTaskbarPlacement.setSelection(placementIndex(settings))
+            renderDesktopSwipeRows(settings)
             binding.rowLauncherLockDesktop.setCheckedSilently(settings.launcherDesktopLocked)
+            binding.rowLauncherDesktopDoubleTapLock.setCheckedSilently(
+                settings.launcherDesktopDoubleTapLockEnabled,
+            )
             val densityIndex = AppSettings.LAUNCHER_DENSITY_OPTIONS.indexOf(settings.launcherDensityFactor)
+            Timber.d("S2320: density row factor=%s idx=%s", settings.launcherDensityFactor, densityIndex)
             binding.rowLauncherDensity.setSelection(if (densityIndex >= 0) densityIndex else DENSITY_DEFAULT_INDEX)
-            renderWallpaperRow(settings)
-            renderScreenTimeoutRow(settings)
+            val screenCountIndex = (settings.launcherScreenCount - 1).coerceIn(0, MAX_SCREEN_COUNT_INDEX)
+            binding.rowLauncherScreenCount.setSelection(screenCountIndex)
+            wallpaperSettingsManager?.render(settings)
+            screenTimeoutSettingsManager?.render(settings)
             renderWidgetBackdropAlphaRow(settings)
             isUpdatingFromSettings = false
         }
@@ -401,7 +533,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         }
         collectOnLifecycle(viewModel.launcherWallpaperImportFailed) {
             // The stored mode never changed, so the row has to be walked back off "My image" by hand.
-            renderWallpaperRow(viewModel.settings.value)
+            wallpaperSettingsManager?.render(viewModel.settings.value)
             Snackbar.make(
                 binding.root,
                 R.string.launcher_settings_wallpaper_import_failed,
@@ -409,6 +541,24 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             ).show()
         }
     }
+
+    private fun renderDesktopSwipeRows(settings: AppSettings) {
+        desktopSwipeSettingsManager?.render(settings)
+        allAppsSwipeSettingsManager?.render(settings)
+    }
+
+    private fun desktopSwipeActionPicker(): LauncherDesktopSwipeActionPickerManager =
+        LauncherDesktopSwipeActionPickerManager(
+            ScreenshotGestureActionPickerManager(
+                capabilityAvailability = capabilityAvailability,
+                screenRecordingAvailable = screenVideoRecordingControllers.isNotEmpty(),
+                systemActionsAvailable = gestureAccessibilityActions.isNotEmpty(),
+                // S2256: left off deliberately - this surface offers the panel as its own local action,
+                // which reuses the open home task, so wrapping the shared enum route too would show the
+                // same panel twice under two different keys.
+                launcherRouteAvailable = false,
+            ),
+        )
 
     /**
      * S1431: the two rows the mode governs.
@@ -470,88 +620,22 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         return if (index >= 0) index else 0
     }
 
-    private fun renderWallpaperRow(settings: AppSettings) {
-        val wasUpdating = isUpdatingFromSettings
-        isUpdatingFromSettings = true
-        val index = AppSettings.LAUNCHER_WALLPAPER_MODES.indexOf(settings.launcherWallpaperMode)
-        binding.rowLauncherWallpaper.setSelection(if (index >= 0) index else 0)
-        isUpdatingFromSettings = wasUpdating
-    }
-
-    private fun renderScreenTimeoutRow(settings: AppSettings) {
-        val presets = AppSettings.LAUNCHER_SCREEN_TIMEOUT_PRESETS
-        val currentSeconds = settings.launcherScreenBlackoutTimeoutSeconds
-        val customLabel = if (currentSeconds !in presets && currentSeconds > 0) {
-            getString(R.string.launcher_settings_screen_timeout_custom_format, currentSeconds)
-        } else {
-            getString(R.string.launcher_settings_screen_timeout_custom)
-        }
-        val entries = listOf(
-            getText(R.string.launcher_settings_screen_timeout_off),
-            getText(R.string.launcher_settings_screen_timeout_5s),
-            getText(R.string.launcher_settings_screen_timeout_15s),
-            getText(R.string.launcher_settings_screen_timeout_30s),
-            getText(R.string.launcher_settings_screen_timeout_60s),
-            getText(R.string.launcher_settings_screen_timeout_300s),
-            customLabel,
-        )
-        binding.rowLauncherScreenTimeout.setEntries(entries)
-        val presetIndex = presets.indexOf(currentSeconds)
-        val selectedIndex = if (presetIndex >= 0) presetIndex else presets.size
-        binding.rowLauncherScreenTimeout.setSelection(selectedIndex)
-    }
-
     private fun renderWidgetBackdropAlphaRow(settings: AppSettings) {
         val options = AppSettings.LAUNCHER_WIDGET_BACKDROP_ALPHA_OPTIONS
         val index = options.indexOfFirst {
-            kotlin.math.abs(it - settings.launcherWidgetBackdropAlpha) < ALPHA_MATCH_EPSILON
+            kotlin.math.abs(it - settings.launcherWidgetBackdropAlpha) < OPTION_MATCH_EPSILON
         }
-        binding.rowLauncherWidgetBackdropAlpha.setSelection(if (index >= 0) index else BACKDROP_ALPHA_DEFAULT_INDEX)
-    }
-
-    private fun showCustomScreenTimeoutDialog() {
-        val current = viewModel.settings.value.launcherScreenBlackoutTimeoutSeconds
-        val initialText = if (current > 0) current.toString() else ""
-        val context = requireContext()
-        val input = com.google.android.material.textfield.TextInputEditText(context).apply {
-            inputType = android.text.InputType.TYPE_CLASS_NUMBER
-            setText(initialText)
-            hint = getString(R.string.launcher_settings_screen_timeout_dialog_hint)
-            setSingleLine()
-            setSelection(text?.length ?: 0)
-        }
-        val container = android.widget.FrameLayout(context).apply {
-            val margin = resources.getDimensionPixelSize(R.dimen.margin_normal)
-            setPadding(margin, margin / 2, margin, 0)
-            addView(input)
-        }
-        MaterialAlertDialogBuilder(context)
-            .setTitle(R.string.launcher_settings_screen_timeout_dialog_title)
-            .setView(container)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                val entered = input.text?.toString()?.trim()?.toIntOrNull()
-                if (entered != null && entered > 0) {
-                    viewModel.updateSettings(
-                        viewModel.settings.value.copy(launcherScreenBlackoutTimeoutSeconds = entered)
-                    )
-                } else {
-                    renderScreenTimeoutRow(viewModel.settings.value)
-                }
-            }
-            .setNegativeButton(android.R.string.cancel) { _, _ ->
-                renderScreenTimeoutRow(viewModel.settings.value)
-            }
-            .setOnCancelListener {
-                renderScreenTimeoutRow(viewModel.settings.value)
-            }
-            .showBoundTo(this@LauncherSettingsDialogFragment)
+        val selected = if (index >= 0) index else BACKDROP_ALPHA_DEFAULT_INDEX
+        Timber.d("S2264: backdrop row alpha=%s idx=%s", settings.launcherWidgetBackdropAlpha, selected)
+        Timber.d("S2320: backdrop row alpha=%s idx=%s", settings.launcherWidgetBackdropAlpha, selected)
+        binding.rowLauncherWidgetBackdropAlpha.setSelection(selected)
     }
 
     override fun onStart() {
         super.onStart()
         dialog?.window?.setLayout(
             ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.MATCH_PARENT,
         )
         // Settings panel: every control applies immediately, so there is no positive action - a no-op
         // confirm keeps Esc-dismiss and focus traversal without a false Enter-confirm.
@@ -569,6 +653,10 @@ class LauncherSettingsDialogFragment : DialogFragment() {
     }
 
     override fun onDestroyView() {
+        desktopSwipeSettingsManager = null
+        allAppsSwipeSettingsManager = null
+        wallpaperSettingsManager = null
+        screenTimeoutSettingsManager = null
         super.onDestroyView()
         _binding = null
     }
@@ -577,13 +665,16 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         const val TAG = "LauncherSettingsDialogFragment"
 
         /**
-         * S1466: the desktop group holds the wallpaper row, and the quick menu's "Wallpaper" item has no
+         * S1466/S2252: the appearance group holds the wallpaper row, and the quick menu's "Wallpaper" item has no
          * other home - wallpaper is a row of this dialog, not a screen of its own. Opening the dialog with
          * that group already unfolded is what keeps the two menu items from landing in the same place.
          */
-        const val SECTION_DESKTOP = "desktop"
+        const val SECTION_APPEARANCE = "appearance"
 
         private const val ARG_EXPAND_SECTION = "expand_section"
+
+        // S2256: survives the same process-death-while-app-picker-is-open window pendingSwipeAppDirection guards.
+        private const val STATE_PENDING_SWIPE_DIRECTION = "pending_swipe_app_direction"
 
         /** [expandSection] unfolds one group on open regardless of its stored state; null keeps them as they were. */
         fun newInstance(expandSection: String? = null): LauncherSettingsDialogFragment =
@@ -591,14 +682,33 @@ class LauncherSettingsDialogFragment : DialogFragment() {
                 arguments = bundleOf(ARG_EXPAND_SECTION to expandSection)
             }
 
-        // Standard density (1.0f) sits at index 1 of AppSettings.LAUNCHER_DENSITY_OPTIONS.
-        private const val DENSITY_DEFAULT_INDEX = 1
+        /**
+         * S2320: derived from the canonical default for the reason S2264 recorded for the alpha row -
+         * a position written as a number outlives the value it names.
+         */
+        private val DENSITY_DEFAULT_INDEX =
+            AppSettings.LAUNCHER_DENSITY_OPTIONS
+                .indexOfFirst {
+                    kotlin.math.abs(it - AppSettings.DEFAULT_LAUNCHER_DENSITY_FACTOR) < OPTION_MATCH_EPSILON
+                }
+                .coerceAtLeast(0)
+        private const val MAX_SCREEN_COUNT_INDEX = 4
 
-        // 0.85f sits at index 4 of AppSettings.LAUNCHER_WIDGET_BACKDROP_ALPHA_OPTIONS.
-        private const val BACKDROP_ALPHA_DEFAULT_INDEX = 4
+        // Alpha and density are stored as floats, so a row matches its option by proximity rather
+        // than by equality.
+        private const val OPTION_MATCH_EPSILON = 0.01f
 
-        // The stored alpha is a float, so the row matches it by proximity rather than by equality.
-        private const val ALPHA_MATCH_EPSILON = 0.01f
+        /**
+         * S2264: the row's fallback for a stored alpha no option matches is derived from the canonical
+         * default rather than written as an index, because a hardcoded one outlived the default it named -
+         * S2253 moved the default to fully transparent and this constant kept pointing at 0.85f.
+         */
+        private val BACKDROP_ALPHA_DEFAULT_INDEX =
+            AppSettings.LAUNCHER_WIDGET_BACKDROP_ALPHA_OPTIONS
+                .indexOfFirst {
+                    kotlin.math.abs(it - AppSettings.DEFAULT_LAUNCHER_WIDGET_BACKDROP_ALPHA) < OPTION_MATCH_EPSILON
+                }
+                .coerceAtLeast(0)
 
         // S1101: stills and GIFs both arrive as image/*; the decoder picks the right path per file.
         private val WALLPAPER_MIME_TYPES = arrayOf("image/*")

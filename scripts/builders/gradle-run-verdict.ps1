@@ -47,6 +47,64 @@ function Test-GradleWorkerDeath {
     return $false
 }
 
+# S2127: K2's MISSING_DEPENDENCY_CLASS. The wording is the stable part of the diagnostic - the class
+# name in front of it varies, and so does whether the second line says the class is a supertype.
+# S2219: KSP worker ClassCastException (KspAAWorkerAction) under incremental state.
+$script:KotlinStaleIncrementalPatterns = @(
+    'Check your module classpath for missing or conflicting dependencies',
+    'com\.google\.devtools\.ksp\.gradle\.KspAAWorkerAction',
+    '\[ksp\] java\.lang\.ClassCastException'
+)
+
+function Test-KotlinStaleIncrementalState {
+    <#
+    .SYNOPSIS
+        True when a Kotlin compile failed on a class the incremental state lost rather than a real one.
+
+    .DESCRIPTION
+        S2127: a class whose source file moves between source sets keeps its FQCN and changes its
+        source root. The incremental output then holds no .class for it while the already-compiled
+        binaries of its consumers keep naming it in their signatures, so the next partial recompile
+        reads a consumer from a stale binary, fails to find the class, and reports
+        MISSING_DEPENDENCY_CLASS against the CONSUMER's file - a file in src/main that nobody edited,
+        naming a classpath that is in fact correct. Measured 2026-08-27: the identical task, flavor
+        and configuration passed under -Pkotlin.incremental=false and failed under incremental.
+
+        The signature is deliberately not narrowed to a class name or a file. Any relocation produces
+        it, and this repo relocates classes into paired source sets as a routine seam technique
+        (S0403 did it for cast, wear and playServices in one ticket).
+    #>
+    # Same emptiness attributes as Test-GradleWorkerDeath, and for the same binding reason.
+    param(
+        [AllowNull()][AllowEmptyString()][AllowEmptyCollection()][string[]]$Lines
+    )
+
+    foreach ($line in $Lines) {
+        foreach ($pattern in $script:KotlinStaleIncrementalPatterns) {
+            if ($line -match $pattern) { return $true }
+        }
+    }
+    return $false
+}
+
+function Get-KotlinStaleIncrementalRepairArgs {
+    <#
+    .SYNOPSIS
+        The Gradle arguments that repair stale Kotlin incremental state on a retry.
+
+    .DESCRIPTION
+        The retry repeats the SAME task with incremental compilation off. That rebuilds the class
+        output the stale state lost, which heals the state for every later incremental run too -
+        measured 2026-08-27, `fkn` and `dq` both went green incrementally straight after one such run.
+
+        Deleting app_v2/build/kotlin would also work and is what recover-kapt-stall.ps1 does, but it
+        loses a race on Windows whenever a Kotlin or Gradle daemon still holds a handle into that
+        directory: the removal is skipped, the retry fails identically, and the verdict blames the
+        source. Changing one flag cannot be blocked by a file lock.
+    #>
+    return @('-Pkotlin.incremental=false')
+}
+
 function Get-JUnitSuiteOutcome {
     <#
     .SYNOPSIS
@@ -126,15 +184,27 @@ function Invoke-GradleRunWithRetry {
     .PARAMETER MaxAttempts
         Total attempts including the first. 2 by default - a second death is evidence of something
         other than transient host load, and a third attempt would only spend more time saying so.
+
+    .PARAMETER RepairStaleIncrementalState
+        S2127: optional script block run between attempts when, and only when, the failure carries the
+        MISSING_DEPENDENCY_CLASS signature. Supplying it opts a caller into the repair; omitting it
+        leaves the old behaviour exactly as it was. Bound to that one signature on purpose - an
+        ordinary compile error must still cost one attempt, because repeating it would double the wait
+        for an answer that is not going to change.
+
+        Price of a false positive: a genuinely missing dependency pays one extra compile before it is
+        reported, because the repaired retry fails the same way and its verdict is the one returned.
     #>
     param(
         [Parameter(Mandatory)][scriptblock]$RunOnce,
-        [int]$MaxAttempts = 2
+        [int]$MaxAttempts = 2,
+        [scriptblock]$RepairStaleIncrementalState
     )
 
     $attempt = 0
     $result = $null
     $lines = @()
+    $repaired = $false
 
     while ($attempt -lt $MaxAttempts) {
         $attempt++
@@ -144,8 +214,17 @@ function Invoke-GradleRunWithRetry {
         $lines = @($result.Lines)
 
         if ($result.ExitCode -eq 0) { break }
-        if (-not (Test-GradleWorkerDeath -Lines $lines)) { break }
         if ($attempt -ge $MaxAttempts) { break }
+
+        if ($RepairStaleIncrementalState -and -not $repaired -and (Test-KotlinStaleIncrementalState -Lines $lines)) {
+            Write-Host ("Kotlin reported a class its incremental state lost, not a source defect " +
+                "(S2127). Retrying once without incremental compilation.") -ForegroundColor Yellow
+            & $RepairStaleIncrementalState
+            $repaired = $true
+            continue
+        }
+
+        if (-not (Test-GradleWorkerDeath -Lines $lines)) { break }
 
         Write-Host ("Gradle test worker died - this run produced no verdict. " +
             "Retrying once (attempt $($attempt + 1) of $MaxAttempts).") -ForegroundColor Yellow
@@ -154,9 +233,10 @@ function Invoke-GradleRunWithRetry {
     $died = ($result.ExitCode -ne 0) -and (Test-GradleWorkerDeath -Lines $lines)
 
     return [pscustomobject]@{
-        ExitCode    = $result.ExitCode
-        Lines       = $lines
-        Attempts    = $attempt
-        WorkerDeath = $died
+        ExitCode              = $result.ExitCode
+        Lines                 = $lines
+        Attempts              = $attempt
+        WorkerDeath           = $died
+        StaleIncrementalState = $repaired
     }
 }

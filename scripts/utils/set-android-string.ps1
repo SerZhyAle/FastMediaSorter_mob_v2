@@ -33,8 +33,10 @@
                before/after oracle that proves no key was lost or duplicated by a multi-file move.
                (S0339; widened past <string> in S1568.)
 
-    Locale parity: add/get/remove/rename/move always work on EN (values), RU (values-ru), UK (values-uk)
-    together. set is single-locale by design (per-locale tone fixes).
+    Locale parity: add writes EN (values), RU (values-ru) and UK (values-uk) in lockstep and refuses
+    without all three. get/remove/rename/move are WIDER - they sweep every locale directory present on
+    disk (13 today), not just those three, because a key half-removed or half-renamed across locales is
+    a missing string at runtime. set is single-locale by design (per-locale tone fixes).
 
 .PARAMETER Action
     set | add | get | remove | rename | list (default: set).
@@ -180,7 +182,7 @@ if (-not (Test-Path $resDir)) {
 #                      deleted key leaves no orphan behind.
 . (Join-Path $PSScriptRoot 'locale-set.ps1')
 
-$declaredLocaleTags = Get-SupportedLocales
+$declaredLocaleTags = Get-SupportedLocales -Module $Module
 $strictValueByTag = @{ en = $En; ru = $Ru; uk = $Uk }
 
 $locales = @(
@@ -508,7 +510,9 @@ function Invoke-Set {
     if ($stringEntries.Count -eq 1) {
         $match = $stringEntries[0]
         $oldDecodedValue = ConvertFrom-XmlText $match.Groups['value'].Value
-        if ($expectedOldBound -and $oldDecodedValue -ne $ExpectedOldValue) {
+        # S2015: -cne, not -ne. PowerShell's -ne is case-insensitive, so the guard accepted a value
+        # that differed from the expected one in case alone - exactly the edit this guard exists to catch.
+        if ($expectedOldBound -and $oldDecodedValue -cne $ExpectedOldValue) {
             throw "ExpectedOldValue mismatch for key '$Key' in $filePath.`nExpected: $ExpectedOldValue`nActual:   $oldDecodedValue"
         }
         $tagText = $match.Value
@@ -531,7 +535,10 @@ function Invoke-Set {
         $action = 'create'
     }
 
-    if ($updatedContent -eq $content) {
+    # S2015: -ceq, not -eq. A rewrite that changes case only ("GOOGLE" -> "Google") leaves a string
+    # -eq compares equal, so the tool reported "[no change]", wrote nothing and still exited 0 - a
+    # silent no-op indistinguishable from success to any caller checking the exit code.
+    if ($updatedContent -ceq $content) {
         Write-Host "[no change] ${Locale}:$Key in $filePath already matches the requested value." -ForegroundColor Yellow
         return
     }

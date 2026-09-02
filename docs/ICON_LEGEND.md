@@ -27,6 +27,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_screen_rotation.svg" alt="ic_screen_rotation" width="24" height="24"> | Auto-rotate |
 | <img src="icons/svg/ic_battery.svg" alt="ic_battery" width="24" height="24"> | Battery |
 | <img src="icons/svg/ic_battery.svg" alt="ic_battery" width="24" height="24"> | Battery saver |
+| <img src="icons/svg/ic_black_screen.svg" alt="ic_black_screen" width="24" height="24"> | Black screen |
 | <img src="icons/svg/ic_bluetooth.svg" alt="ic_bluetooth" width="24" height="24"> | Bluetooth |
 | <img src="icons/svg/ic_calculator.svg" alt="ic_calculator" width="24" height="24"> | Calculator |
 | <img src="icons/svg/ic_widget_camera_launch_accent.svg" alt="ic_widget_camera_launch_accent" width="24" height="24"> | Camera |
@@ -40,9 +41,11 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_front_flashlight.svg" alt="ic_front_flashlight" width="24" height="24"> | Front flashlight |
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Mini-game |
 | <img src="icons/svg/ic_cloud_download.svg" alt="ic_cloud_download" width="24" height="24"> | Download by link |
+| <img src="icons/svg/ic_location.svg" alt="ic_location" width="24" height="24"> | Location |
 | <img src="icons/svg/ic_network_monitor.svg" alt="ic_network_monitor" width="24" height="24"> | Network Monitor |
 | <img src="icons/svg/ic_nfc.svg" alt="ic_nfc" width="24" height="24"> | NFC |
 | <img src="icons/svg/ic_camera_ocr_translate.svg" alt="ic_camera_ocr_translate" width="24" height="24"> | Photo OCR translate |
+| <img src="icons/svg/ic_camera_flash_on.svg" alt="ic_camera_flash_on" width="24" height="24"> | Camera flashlight |
 | <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Quick capture |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Voice recording |
 | <img src="icons/svg/ic_widget_random_music.svg" alt="ic_widget_random_music" width="24" height="24"> | Random Music |
@@ -114,7 +117,6 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_front_flashlight.svg" alt="ic_front_flashlight" width="24" height="24"> | Front flashlight |
 | <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Gesture overlay |
 | <img src="icons/svg/ic_launcher_mode.svg" alt="ic_launcher_mode" width="24" height="24"> | Make this app the home screen |
-| <img src="icons/svg/ic_launcher_mode.svg" alt="ic_launcher_mode" width="24" height="24"> | System launcher settings |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Enable microphone recording |
 | <img src="icons/svg/ic_history.svg" alt="ic_history" width="24" height="24"> | Statistics |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Screen video recording |
@@ -205,4 +207,5 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_send_plane.svg" alt="ic_send_plane" width="24" height="24"> | Send to app |
 | <img src="icons/svg/ic_send_music_note.svg" alt="ic_send_music_note" width="24" height="24"> | Send to app |
 | <img src="icons/svg/ic_send_phone_chat.svg" alt="ic_send_phone_chat" width="24" height="24"> | Send to app |
+| <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Watch |
 | <img src="icons/svg/ic_send_chat.svg" alt="ic_send_chat" width="24" height="24"> | Send to app |

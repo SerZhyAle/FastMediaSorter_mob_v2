@@ -71,6 +71,15 @@ if ($facade -notmatch '\$catalogChangedFiles = @\(\$changedFiles\) \+ @\(\$delet
     throw 'Declared deletions are not included in catalog-sync input.'
 }
 
+# S2269: automatic release is intentionally per closure, but it must announce the transition so
+# the next phase cannot mistake a green closure for continued ownership of its code domain.
+if ($facade -notmatch '\$releasedDomains = @\(') {
+    throw 'post-change does not compute which code domains this session actually released.'
+}
+if ($facade -notmatch 'Before the next repository source, resource, build, or script edit') {
+    throw 'post-change does not print the code-lock reacquisition handoff.'
+}
+
 $hints = Import-PowerShellDataFile -LiteralPath $hintsPath
 $labels = [regex]::Matches($facade, 'Invoke-Gate "([^"]+)"') |
     ForEach-Object { $_.Groups[1].Value } |
@@ -118,6 +127,36 @@ if ($resourceGateBlock -match 'gradlew') {
 if ($resourceGateBlock -notmatch 'if \(\$LASTEXITCODE -ne 0\) \{ return \}') {
     throw 'Resource-link gate does not stop at the first failing flavor, so an earlier red would read as a pass.'
 }
+# S2121: the module must be DERIVED from the changed paths. Reading -Module is what made a change
+# entirely under watchface/ link :app_v2: resources and print PASS.
+if ($resourceGateBlock -match '-Module \$Module') {
+    throw 'Resource-link gate still passes the declared -Module instead of the module derived from the changed paths.'
+}
+if ($facade -notmatch '\$resourceLinkResolution = Resolve-GradleModulesForPaths') {
+    throw 'Resource-link gate does not resolve its module set from the changed paths.'
+}
+if ($resourceGateBlock -notmatch 'Unresolved\.Count -gt 0') {
+    throw 'Resource-link gate does not refuse a resource path belonging to no registered module.'
+}
+if ($resourceGateBlock -notmatch 'LinksResources') {
+    throw 'Resource-link gate does not skip a module that has no resource-processing task.'
+}
+# S2123: the build type is per-module too. A hardcoded Debug named a task :benchmark has never had -
+# that module's only build types are nonMinifiedRelease and benchmarkRelease - and the gate recorded
+# the module as unlinkable rather than the task name as unbuildable.
+if ($resourceGateBlock -notmatch 'Get-GradleModuleDefaultBuildType') {
+    throw 'Resource-link gate does not take its build type from the registry.'
+}
+if (([regex]::Matches($resourceGateBlock, '-BuildType')).Count -lt 2) {
+    throw 'Resource-link gate does not pass -BuildType on both the flavorless and the per-flavor branch.'
+}
+# The duplicated flavor table is gone - one registry, read by the builder too.
+if ($facade -match 'ResourceLinkFlavors\s*=\s*@\{') {
+    throw 'The per-module flavor table is declared in the facade again instead of read from the registry.'
+}
+if ($facade -notmatch "gradle-modules\.ps1") {
+    throw 'The facade does not load the Gradle module registry.'
+}
 
 # Behaviour of the variant selector, run from the facade's own function text so a rename or a logic
 # change fails here rather than silently selecting the wrong variant.
@@ -132,9 +171,13 @@ if (-not $selectorAst) {
     throw 'Get-ResourceLinkFlavors is not defined in the facade.'
 }
 
+# S2121: the harness loads the real registry instead of stubbing a flavor list. The stub it replaced
+# had already drifted - it substituted a flat array where the facade had grown a per-module hashtable,
+# so the selector was being exercised in a shape the facade no longer had.
+$registryPath = Join-Path $repoRoot 'scripts/utils/gradle-modules.ps1'
 $selectorHarness = [scriptblock]::Create(@"
 param([string[]] `$normChangedFiles, [string] `$TargetModule)
-`$script:ResourceLinkFlavors = @('Standard', 'NoLegal', 'Lite', 'Photos', 'Legacy', 'Vr')
+. '$registryPath'
 $($selectorAst.Extent.Text)
 Get-ResourceLinkFlavors -TargetModule `$TargetModule
 "@)
@@ -174,9 +217,120 @@ Assert-FlavorSelection -Case 'repeated flavor source set' -TargetModule 'app_v2'
     -ChangedSet @(
         'app_v2/src/vr/res/values/strings.xml',
         'app_v2/src/vr/res/layout/vr_player.xml')
-# The watch module declares no product flavors and check-standard-fast.ps1 exits 2 on any other
-# -Flavor, so a flavor-shaped path in the set must not leak into a wear invocation.
+# The watch declares Standard and NoLegal only, and check-standard-fast.ps1 exits 2 on any other
+# -Flavor, so a phone flavor path in the set must not leak into a wear invocation.
 Assert-FlavorSelection -Case 'wear module' -TargetModule 'wear' -Expected @('Standard') `
     -ChangedSet @('wear/src/main/res/values/strings.xml', 'app_v2/src/vr/res/values/strings.xml')
+Assert-FlavorSelection -Case 'wear noLegal source set' -TargetModule 'wear' -Expected @('Standard', 'NoLegal') `
+    -ChangedSet @('wear/src/noLegal/res/values/strings.xml')
+# S2121: a module with no flavor dimension answers with an EMPTY set, which is what tells the gate to
+# invoke the builder without -Flavor and gradle to run :watchface:processDebugResources.
+Assert-FlavorSelection -Case 'flavorless module' -TargetModule 'watchface' -Expected @() `
+    -ChangedSet @('watchface/src/main/res/values/colors.xml')
+# Only THIS module's paths may select a flavor. A set spanning two modules used to offer each of them
+# the other's source sets, which is harmless only while the gate runs for one declared module.
+Assert-FlavorSelection -Case 'foreign flavor path does not leak in' -TargetModule 'app_v2' `
+    -Expected @('Standard') `
+    -ChangedSet @('app_v2/src/main/res/values/colors.xml', 'wear/src/noLegal/res/values/strings.xml')
+
+# S2069: an app_v2-only gate must be decided by WHERE the change is, not only by its ChangeType.
+# A wear-only set used to fire the focus-highlight gate, which can read nothing but app_v2, and the
+# closure was failed by another session's in-flight app_v2 edit. The trigger expressions are lifted
+# out of the facade text rather than restated, so rewording one of them fails here instead of
+# quietly widening the gate back to every module.
+$triggerHarnessPrelude = @'
+param([string[]] $Set, [bool] $IsResourceChange)
+$normChangedFiles = @($Set | ForEach-Object { ($_ -replace '\\', '/') -replace '^\./', '' })
+$isResourceChange = $IsResourceChange
+function Test-AnyChangedFile([string]$Pattern) {
+    foreach ($candidate in $normChangedFiles) {
+        if ($candidate -match $Pattern) { return $true }
+    }
+    return $false
+}
+'@
+
+function Get-TriggerHarness {
+    param([string] $VariableName)
+    # The assignment may wrap onto continuation lines; take everything up to the next comment or
+    # top-level assignment.
+    $match = [regex]::Match(
+        $facade,
+        '(?m)^\$' + [regex]::Escape($VariableName) + '\s*=(?<body>(?:.*)(?:\r?\n[ \t]+.*)*)')
+    if (-not $match.Success) {
+        throw "Trigger '$VariableName' is not assigned at the top level of the facade."
+    }
+    $expression = '$' + $VariableName + ' =' + $match.Groups['body'].Value
+    return [scriptblock]::Create($triggerHarnessPrelude + "`n" + $expression + "`n" + '[bool]$' + $VariableName)
+}
+
+function Assert-Trigger {
+    param(
+        [string] $VariableName,
+        [string] $Case,
+        [string[]] $ChangedSet,
+        [bool] $IsResourceChange = $true,
+        [bool] $Expected
+    )
+    $harness = Get-TriggerHarness -VariableName $VariableName
+    $actual = [bool](& $harness $ChangedSet $IsResourceChange)
+    if ($actual -ne $Expected) {
+        throw "Trigger $VariableName [$Case]: expected $Expected, got $actual."
+    }
+}
+
+# The nine-file wear set from the S2069 repro: five drawables, a colors.xml, two Kotlin files and a
+# test. Not one of them is readable by an app_v2-rooted gate.
+$wearOnlySet = @(
+    'wear/src/main/res/drawable/ic_a.xml',
+    'wear/src/main/res/drawable/ic_b.xml',
+    'wear/src/main/res/values/colors.xml',
+    'wear/src/main/java/com/sza/fastmediasorter/wear/ui/Screen.kt',
+    'wear/src/test/java/com/sza/fastmediasorter/wear/ScreenTest.kt')
+
+Assert-Trigger -VariableName 'runsFocusHighlightGate' -Case 'wear-only resource set' `
+    -Expected $false -ChangedSet $wearOnlySet
+Assert-Trigger -VariableName 'runsFocusHighlightGate' -Case 'app_v2 layout' `
+    -Expected $true -ChangedSet @('app_v2/src/main/res/layout/activity_main.xml')
+# The MaterialCardView half of the gate reads every XML under app_v2/src, so a non-layout app_v2
+# resource must still fire it - narrowing to layout dirs alone would switch that half off.
+Assert-Trigger -VariableName 'runsFocusHighlightGate' -Case 'app_v2 non-layout resource' `
+    -Expected $true -ChangedSet @('app_v2/src/main/res/values/colors.xml')
+Assert-Trigger -VariableName 'runsFocusHighlightGate' -Case 'mixed wear and app_v2' `
+    -Expected $true -ChangedSet ($wearOnlySet + 'app_v2/src/main/res/layout/activity_main.xml')
+Assert-Trigger -VariableName 'runsFocusHighlightGate' -Case 'app_v2 layout under a non-resource ChangeType' `
+    -Expected $false -IsResourceChange $false -ChangedSet @('app_v2/src/main/res/layout/activity_main.xml')
+
+# Same asymmetry, found by the S2069 sweep and reachable today: the watch module has a manifest.
+Assert-Trigger -VariableName 'runsOrientationFeatureGate' -Case 'wear manifest' `
+    -Expected $false -ChangedSet @('wear/src/main/AndroidManifest.xml')
+Assert-Trigger -VariableName 'runsOrientationFeatureGate' -Case 'app_v2 manifest' `
+    -Expected $true -ChangedSet @('app_v2/src/main/AndroidManifest.xml')
+Assert-Trigger -VariableName 'runsOrientationFeatureGate' -Case 'app_v2 flavor manifest' `
+    -Expected $true -ChangedSet @('app_v2/src/vr/AndroidManifest.xml')
+Assert-Trigger -VariableName 'runsOrientationLayoutPairingGate' -Case 'wear manifest' `
+    -Expected $false -ChangedSet @('wear/src/main/AndroidManifest.xml')
+Assert-Trigger -VariableName 'runsOrientationLayoutPairingGate' -Case 'app_v2 manifest' `
+    -Expected $true -ChangedSet @('app_v2/src/main/AndroidManifest.xml')
+Assert-Trigger -VariableName 'runsOrientationLayoutPairingGate' -Case 'app_v2 landscape layout' `
+    -Expected $true -ChangedSet @('app_v2/src/main/res/layout-land/activity_main.xml')
+
+# A gate has to RECEIVE the changed set, not merely be reached: without -ChangedFiles it re-counts
+# the whole tree and -ScopeToFile means nothing to it. S2326 moved the argument vectors out of the
+# call sites and into the pool-start blocks, so the assertion follows the variable the call site
+# names rather than reading the block - a form the next refactor cannot make pass vacuously.
+foreach ($scopedGate in @('focus-highlight-gate', 'neuroslop-gate', 'rtl-layout-attrs-gate', 'listener-symmetry-gate')) {
+    $callSitePattern = 'Invoke-Gate "{0}" \{{ Invoke-GateChild @(\w+) \}}' -f [regex]::Escape($scopedGate)
+    $callSite = [regex]::Match($facade, $callSitePattern)
+    if (-not $callSite.Success) {
+        throw "Could not find the $scopedGate call site - the assertion below would pass vacuously."
+    }
+    $argvName = $callSite.Groups[1].Value
+    $argvPattern = '(?s)\$' + [regex]::Escape($argvName) + ' = @\(.*?\r?\n(if \(\$ScopeToFile[^\r\n]*\r?\n)?'
+    $argvBlock = [regex]::Match($facade, $argvPattern).Value
+    if ($argvBlock -notmatch 'if \(\$ScopeToFile.*-ChangedFiles') {
+        throw "$scopedGate does not forward the changed set under -ScopeToFile (argument vector $argvName)."
+    }
+}
 
 Write-Output "post-change tests: PASS ($($labels.Count) routed labels with hints)"

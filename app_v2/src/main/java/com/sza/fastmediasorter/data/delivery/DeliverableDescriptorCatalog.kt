@@ -31,6 +31,12 @@ object DeliverableDescriptorCatalog {
     /** ABIs we host payloads for, in descriptor preference order. */
     private val SUPPORTED_ABIS = listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
 
+    // S1971: exact byte counts of the arm64 payload as published, read off the AAR by
+    // scripts/builders/publish-libvlc-so.ps1. Not tunable - the script refuses to upload a file whose
+    // size or hash differs from what is pinned here.
+    private const val VLC_SO_SIZE = 46_087_168L
+    private const val VLCJNI_SO_SIZE = 94_440L
+
     /**
      * Set B - Tesseract OCR stack (loaded in dependency order: jpeg/pngx → leptonica → tesseract).
      * Shipped on every OCR flavor (standard/legacy/noLegal/vr).
@@ -70,6 +76,30 @@ object DeliverableDescriptorCatalog {
         "x86_64" to listOf(NativeLib("libffmpegJNI.so", "c85a80c531e9740a06d4c80800cb3f554d8f79a4d101a7103bb660f99429f5d1", 7_583_424L))
     )
 
+    /**
+     * Set E - libVLC decoder (S1971). noLegal + arm64-v8a only, so no other ABI is mapped: the flavor
+     * narrowed to arm64 in 2026-08 and no other flavor carries the dependency at all.
+     *
+     * Order is load-bearing, not stylistic. [DeliveredNativeLibraryLoader] warm-loads in list order,
+     * and `libvlcjni.so` links against `libvlc.so`; libVLC's own `loadLibraries()` answers a failed
+     * `System.loadLibrary` with `System.exit(1)`, so a wrong order kills the process instead of
+     * raising something a caller could catch.
+     */
+    private val VLC: Map<String, List<NativeLib>> = mapOf(
+        "arm64-v8a" to listOf(
+            NativeLib(
+                "libvlc.so",
+                "5ab99a7cb793a0df95d60551f04f254c6d8314dc26d4b0ef5b4feac5a2f3615f",
+                VLC_SO_SIZE
+            ),
+            NativeLib(
+                "libvlcjni.so",
+                "b2137913ed5ec1dd2a2cc07565534c854ec4d32445b1d28f2544d0de252116f2",
+                VLCJNI_SO_SIZE
+            )
+        )
+    )
+
     // S0423: the TRANSLATION lib map + translation() descriptor were removed. Translation is bundled
     // in every translation-capable flavor (no on-demand download), so no payload descriptor exists.
 
@@ -80,17 +110,61 @@ object DeliverableDescriptorCatalog {
     fun audioVisualizations(): DeliverableSourceDescriptor = DeliverableSourceDescriptor(
         set = DeliverableSet.AUDIO_VISUALIZATIONS,
         files = listOf(
-            resource("anim_audio_bg_1.mp4", "947a5bf459b7e6cf98ccdd804cf57b7d6826f087fac236eadd11b325f86f518f", 1_673_054L),
-            resource("anim_audio_bg_2.mp4", "584f519f38deece5b5b31c5d410fe8c37762b902d16ed2c32d9d4fd382eb2a21", 1_674_941L),
-            resource("anim_audio_bg_3.mp4", "6462d6bd0530404094b5e5250271f6b80fffb43d8be37cc0ebc1d493786d07cd", 1_679_910L),
-            resource("anim_audio_bg_4.mp4", "e7be3ff5cbbb837128bbf5bed14ae3c6776197b2c9386bfad3358d2bf2b755b4", 1_684_364L),
-            resource("anim_audio_bg_5.mp4", "99504d435047ad86e0cde9d2ba88ba2cd2551fbbc6b5a9cca743777110d5f954", 1_672_034L),
-            resource("anim_audio_bg_6.mp4", "3b226e716683b66e2f2b754b1e72cf7bcde79238792f816d8c834331f23d7318", 2_080_752L),
-            resource("anim_audio_bg_7.mp4", "f34c09c604a71930149a1f734a7976537c45332179200371a1b811cff9dd39ea", 2_071_845L),
-            resource("anim_audio_bg_8.mp4", "4d052d2bb90bdd40b1664797cbd844dec8caa22cfc438fdf48f485e2f843e77c", 2_067_401L),
-            resource("anim_audio_bg_9.mp4", "b60191cedf92f45213f0f7c6a4c4455ffd7b3a006683d91f329ceb60b433fdd9", 2_059_489L),
-            resource("anim_audio_bg_10.mp4", "13b10fa129ae5c8f025ccd3cac836b90d9b4e18cbc29c2d9c4ba6802d2f70b6e", 2_075_937L),
-            resource("anim_audio_bg_11.mp4", "dc5be5dd8359599dd83d0f49a007031fedc6ce550b7f353c4b911e0bc943c205", 2_076_890L)
+            resource(
+                "anim_audio_bg_1.mp4",
+                "947a5bf459b7e6cf98ccdd804cf57b7d6826f087fac236eadd11b325f86f518f",
+                1_673_054L
+            ),
+            resource(
+                "anim_audio_bg_2.mp4",
+                "584f519f38deece5b5b31c5d410fe8c37762b902d16ed2c32d9d4fd382eb2a21",
+                1_674_941L
+            ),
+            resource(
+                "anim_audio_bg_3.mp4",
+                "6462d6bd0530404094b5e5250271f6b80fffb43d8be37cc0ebc1d493786d07cd",
+                1_679_910L
+            ),
+            resource(
+                "anim_audio_bg_4.mp4",
+                "e7be3ff5cbbb837128bbf5bed14ae3c6776197b2c9386bfad3358d2bf2b755b4",
+                1_684_364L
+            ),
+            resource(
+                "anim_audio_bg_5.mp4",
+                "99504d435047ad86e0cde9d2ba88ba2cd2551fbbc6b5a9cca743777110d5f954",
+                1_672_034L
+            ),
+            resource(
+                "anim_audio_bg_6.mp4",
+                "3b226e716683b66e2f2b754b1e72cf7bcde79238792f816d8c834331f23d7318",
+                2_080_752L
+            ),
+            resource(
+                "anim_audio_bg_7.mp4",
+                "f34c09c604a71930149a1f734a7976537c45332179200371a1b811cff9dd39ea",
+                2_071_845L
+            ),
+            resource(
+                "anim_audio_bg_8.mp4",
+                "4d052d2bb90bdd40b1664797cbd844dec8caa22cfc438fdf48f485e2f843e77c",
+                2_067_401L
+            ),
+            resource(
+                "anim_audio_bg_9.mp4",
+                "b60191cedf92f45213f0f7c6a4c4455ffd7b3a006683d91f329ceb60b433fdd9",
+                2_059_489L
+            ),
+            resource(
+                "anim_audio_bg_10.mp4",
+                "13b10fa129ae5c8f025ccd3cac836b90d9b4e18cbc29c2d9c4ba6802d2f70b6e",
+                2_075_937L
+            ),
+            resource(
+                "anim_audio_bg_11.mp4",
+                "dc5be5dd8359599dd83d0f49a007031fedc6ce550b7f353c4b911e0bc943c205",
+                2_076_890L
+            )
         )
     )
 
@@ -149,6 +223,13 @@ object DeliverableDescriptorCatalog {
     fun ffmpegDts(abi: String = primaryAbi()): DeliverableSourceDescriptor =
         nativeDescriptor(DeliverableSet.FFMPEG_DTS, abi, FFMPEG[abi].orEmpty())
 
+    /**
+     * Set E - libVLC, contributed by noLegal alone. An ABI we host nothing for yields an empty file
+     * list, which is what makes the capability read as unavailable rather than as a broken download.
+     */
+    fun vlcEngine(abi: String = primaryAbi()): DeliverableSourceDescriptor =
+        nativeDescriptor(DeliverableSet.VLC_ENGINE, abi, VLC[abi].orEmpty())
+
     /** First device ABI we host a payload for; defaults to arm64-v8a. */
     fun primaryAbi(): String =
         Build.SUPPORTED_ABIS.firstOrNull { it in SUPPORTED_ABIS } ?: "arm64-v8a"
@@ -178,7 +259,12 @@ object DeliverableDescriptorCatalog {
     private const val STABLE_NAME = ""
 
     private fun resource(name: String, sha256: String, minSize: Long, rev: String = "v1"): PayloadFile =
-        PayloadFile(fileName = name, sources = listOf("$MIRROR/${withRev(name, rev)}"), sha256 = sha256, minSize = minSize)
+        PayloadFile(
+            fileName = name,
+            sources = listOf("$MIRROR/${withRev(name, rev)}"),
+            sha256 = sha256,
+            minSize = minSize
+        )
 
     /**
      * Insert the element revision before the extension: `libtesseract.so` + `v1` -> `libtesseract-v1.so`.

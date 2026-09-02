@@ -143,7 +143,13 @@ object LoggingHelper {
         fileLoggingTree?.clearDebugMirrorTarget()
     }
 
-    private var previousCrashHandler: Thread.UncaughtExceptionHandler? = null
+    /**
+     * S2343: installation is tracked by its own flag rather than inferred from the previous
+     * handler being non-null. On a JVM where nothing installed a default handler first - every
+     * unit-test JVM - the inferred guard never trips, so a second call would capture the handler
+     * installed by the first one and delegate to itself until StackOverflowError.
+     */
+    private var crashHandlerInstalled = false
 
     /**
      * Install a global uncaught exception handler that writes crash reports to a dedicated
@@ -151,11 +157,14 @@ object LoggingHelper {
      * Safe to call multiple times - installs only once. Call early in attachBaseContext.
      */
     fun installCrashHandler() {
-        if (previousCrashHandler != null) return
-        previousCrashHandler = Thread.getDefaultUncaughtExceptionHandler()
+        if (crashHandlerInstalled) return
+        crashHandlerInstalled = true
+        // Read before the new handler exists, so it can never resolve to the handler installed below.
+        val previous = Thread.getDefaultUncaughtExceptionHandler()
+        Timber.d("S2343: crash handler installed, previous=${previous?.javaClass?.simpleName ?: "none"}")
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
             fileLoggingTree?.writeCrashSynchronously(thread, throwable)
-            previousCrashHandler?.uncaughtException(thread, throwable)
+            previous?.uncaughtException(thread, throwable)
         }
     }
 

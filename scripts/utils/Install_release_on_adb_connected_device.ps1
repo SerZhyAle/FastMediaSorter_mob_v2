@@ -70,19 +70,28 @@ if (-not (Test-Path $apkDir)) {
     exit 1
 }
 
-$apkFiles = Get-ChildItem -Path $apkDir -Filter "*.apk" | Sort-Object LastWriteTime -Descending
+# This script read no metadata at all and simply took the newest file, which names an architecture
+# at random once a variant emits more than one output. The resolver reads the metadata and refuses
+# to guess instead (S1972).
+. "$PSScriptRoot\find-build-artifact.ps1"
+try {
+    $latestApk = Find-BuildArtifact -Dir $apkDir
+}
+catch {
+    Write-Host "ERROR: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
+}
 
-if ($apkFiles.Count -eq 0) {
+if (-not $latestApk) {
     Write-Host "ERROR: No APK files found in $apkDir" -ForegroundColor Red
     Write-Host "Build release APK first: .\gradlew.bat assemble${Flavor}Release" -ForegroundColor Yellow
     exit 1
 }
 
-$latestApk = $apkFiles[0]
 $apkPath = $latestApk.FullName
 $apkSize = [math]::Round($latestApk.Length / 1MB, 2)
 
-Write-Host "Latest APK: $($latestApk.Name)" -ForegroundColor Green
+Write-Host "APK: $($latestApk.Name)" -ForegroundColor Green
 Write-Host "Size: $apkSize MB" -ForegroundColor Gray
 Write-Host "Modified: $($latestApk.LastWriteTime)" -ForegroundColor Gray
 

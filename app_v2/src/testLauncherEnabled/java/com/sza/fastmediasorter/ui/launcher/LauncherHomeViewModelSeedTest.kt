@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.launcher
 
+import androidx.lifecycle.SavedStateHandle
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.testing.MainDispatcherRule
@@ -13,7 +14,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 /**
@@ -38,7 +38,7 @@ class LauncherHomeViewModelSeedTest {
         val settingsRepository = mockk<SettingsRepository>()
         every { settingsRepository.getSettings() } returns MutableSharedFlow<AppSettings>()
         return LauncherHomeViewModel(
-            appContext = RuntimeEnvironment.getApplication(),
+            visibility = mockk(relaxed = true),
             desktopDependencies = mockk(relaxed = true),
             taskbarDependencies = mockk(relaxed = true),
             shortcutDependencies = mockk(relaxed = true),
@@ -47,6 +47,9 @@ class LauncherHomeViewModelSeedTest {
             settingsRepository = settingsRepository,
             observeStreams = mockk(relaxed = true),
             executeScheduledOperation = mockk(relaxed = true),
+            isCameraWallpaperAvailable = mockk(relaxed = true),
+            savedStateHandle = SavedStateHandle(),
+            resolveRouteAvailability = mockk(relaxed = true),
         )
     }
 
@@ -83,6 +86,8 @@ class LauncherHomeViewModelSeedTest {
                 mode = defaults.launcherWallpaperMode,
                 imagePath = defaults.launcherWallpaperImagePath,
                 imageAvailable = false,
+                cameraId = defaults.launcherWallpaperCameraId,
+                cameraAvailable = false,
             ),
             viewModel.wallpaper.value,
         )
