@@ -22,7 +22,6 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkSection
 import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkSnapshot
-import timber.log.Timber
 import java.util.Date
 
 private val ROW_SPACING = 4.dp
@@ -72,7 +71,6 @@ private fun WearNetworkSection.titleRes(): Int = when (this) {
  */
 @Composable
 private fun PermissionNotice(canRequest: Boolean, onRequest: () -> Unit) {
-    Timber.d("S2080: netmon permission notice, canRequest=$canRequest")
     if (!canRequest) {
         NoticeCaption(stringResource(R.string.wear_netmon_permission_missing))
         return

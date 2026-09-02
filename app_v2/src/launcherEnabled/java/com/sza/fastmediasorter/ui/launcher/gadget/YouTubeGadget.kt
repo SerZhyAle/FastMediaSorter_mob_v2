@@ -101,7 +101,6 @@ private class YouTubeGadgetView(context: Context) : LauncherGadgetView(context) 
     }
 
     override suspend fun CoroutineScope.onActive() {
-        Timber.d("S2235: YouTube gadget active isLoaded=%s", isLoaded)
         if (!isLoaded) {
             binding.gadgetYouTubeProgress.isVisible = true
             binding.gadgetYouTubeWebView.loadUrl(TARGET_URL)

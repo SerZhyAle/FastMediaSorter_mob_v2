@@ -221,10 +221,6 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
                 refreshResourceFileCountsUseCase(
                     listOfNotNull(sourceResource.id, targetResource?.id),
                 )
-                Timber.d(
-                    "S1995: refreshed resource counts after scheduled operation, processed=%d",
-                    successCount,
-                )
             }
             ScheduledExecutionResult(operationId, successCount, errors, permissionRequired = permissionStop)
 

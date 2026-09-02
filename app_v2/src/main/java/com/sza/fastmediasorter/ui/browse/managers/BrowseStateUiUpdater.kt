@@ -25,7 +25,6 @@ import com.sza.fastmediasorter.util.TextNoteTargetPolicy
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import com.sza.fastmediasorter.utils.clearBadge
 import com.sza.fastmediasorter.utils.setBadgeText
-import timber.log.Timber
 import java.util.Date
 
 /**
@@ -52,8 +51,10 @@ class BrowseStateUiUpdater(
 ) {
     /** Cached display mode to avoid redundant updates. */
     var currentDisplayMode: DisplayMode? = null
+
     /** Cached audio-only mode to force layout refresh when resource changes. */
     var currentAudioOnlyMode: Boolean? = null
+
     /** Cached no-thumbnail flag - grid span count differs for the no-thumbnail "plank" layout (S0419). */
     private var currentDisableThumbnails: Boolean? = null
 
@@ -81,12 +82,12 @@ class BrowseStateUiUpdater(
 
         val isUserFilter = filter != null && !filter.isEmpty() && (
             !filter.nameContains.isNullOrBlank() ||
-            filter.minDate != null ||
-            filter.maxDate != null ||
-            filter.minSizeMb != null ||
-            filter.maxSizeMb != null ||
-            (filter.mediaTypes != null && filter.mediaTypes != resource?.supportedMediaTypes)
-        )
+                filter.minDate != null ||
+                filter.maxDate != null ||
+                filter.minSizeMb != null ||
+                filter.maxSizeMb != null ||
+                (filter.mediaTypes != null && filter.mediaTypes != resource?.supportedMediaTypes)
+            )
 
         // S1685: `isUserFilter` already requires a non-null filter, so a second null check was dead code
         // the compiler reported on every build; carrying the value instead keeps the non-null type.
@@ -97,7 +98,6 @@ class BrowseStateUiUpdater(
         // true, and dropping either one leaves the screen claiming something it cannot deliver.
         val lines = mutableListOf<String>()
         if (resource != null && LimitedStorageReach.isReachLimited(activity, resource)) {
-            Timber.d("S2369: browse strip announced the narrowed connection for ${resource.path}")
             // A virtual aggregate is not a folder the user connected, so it gets its own sentence -
             // telling someone to "add this folder again" would name something they never added.
             // For a real folder the advice has to name the cheapest route that exists on THIS build:
@@ -232,10 +232,10 @@ class BrowseStateUiUpdater(
 
     private fun updateCreateFolderButtonVisibility(state: BrowseState) {
         val resource = state.resource
-        val canCreateFolder = resource != null
-                && resource.showSubfoldersAsItems
-                && !resource.isReadOnly
-                && !VirtualPathUtils.isVirtualPath(resource.path)
+        val canCreateFolder = resource != null &&
+            resource.showSubfoldersAsItems &&
+            !resource.isReadOnly &&
+            !VirtualPathUtils.isVirtualPath(resource.path)
         binding.btnCreateFolder?.isVisible = canCreateFolder
         setCommandEligibility(R.id.btnCreateFolder, canCreateFolder)
 

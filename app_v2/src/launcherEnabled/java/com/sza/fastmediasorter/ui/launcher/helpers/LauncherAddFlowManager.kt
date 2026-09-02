@@ -34,7 +34,6 @@ import com.sza.fastmediasorter.ui.launcher.picker.LauncherStreamPickerDialogFrag
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherWeatherLocationDialogFragment
 import com.sza.fastmediasorter.widget.LauncherWidgetToken
 import com.sza.fastmediasorter.widget.networkmonitor.NetworkMonitorIndicator
-import timber.log.Timber
 
 /**
  * S1541: the whole "put something on the desktop" chain - result-key registration, the category
@@ -122,7 +121,6 @@ class LauncherAddFlowManager(
             val mediaKind = bundle.getString(LauncherStreamPickerDialogFragment.RESULT_STREAM_MEDIA_KIND)
                 .orEmpty()
             val (spanW, spanH) = StreamWindow.spanFor(mediaKind)
-            Timber.d("S2031: place stream window kind=$mediaKind span=${spanW}x$spanH")
             placeGadget(
                 gadgetKey = LauncherGadgetRegistry.KEY_STREAM_WINDOW,
                 param = identityKey,
@@ -393,7 +391,6 @@ class LauncherAddFlowManager(
      */
     private fun configureThenPlace(gadgetKey: String) {
         val token = LauncherWidgetToken.mint(context)
-        Timber.d("S1930: configure %s with token %d", gadgetKey, token)
         val intent = ConfigurableWidgetCatalog.configIntent(context, gadgetKey, token) ?: return
         // In saved state, not a field here: the configuration screen is a separate Activity, which is
         // exactly when the OS may kill this one (S2060, S2099).
@@ -411,7 +408,6 @@ class LauncherAddFlowManager(
      */
     fun onWidgetConfigured(configured: Boolean) {
         val (gadgetKey, token) = viewModel.pendingConfiguredWidget ?: return
-        Timber.d("S1930: configured=%b for %s token %d", configured, gadgetKey, token)
         viewModel.pendingConfiguredWidget = null
         if (!configured) {
             ConfigurableWidgetCatalog.clearInstance(context, gadgetKey, token)
@@ -432,7 +428,6 @@ class LauncherAddFlowManager(
         onResult: (Boolean) -> Unit,
     ) {
         val (spanW, spanH) = StreamWindow.spanFor(mediaKind)
-        Timber.d("S2247: menu place stream window kind=%s span=%dx%d", mediaKind, spanW, spanH)
         viewModel.addCellInFirstFreeSlot(
             columns = currentColumns(),
             kind = LauncherCellKind.GADGET,
@@ -656,7 +651,6 @@ class LauncherAddFlowManager(
         // S2107: the far end of the contact chain. The slot is logged with it because pendingSlot
         // defaults to (0, 0) rather than to NO_SLOT, so a lost coordinate places the cell top-left
         // instead of nowhere - and from the tapped square that is indistinguishable from no cell at all.
-        Timber.d("S2107: addShortcut kind=${command::class.simpleName} slot=${viewModel.pendingSlot}")
         placeAtPendingSlot(
             kind = LauncherCellKind.SHORTCUT,
             target = command.encode(),

@@ -32,7 +32,6 @@ import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -104,7 +103,6 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
 
         collectOnLifecycle(observeCatalogSnapshot()) { sources ->
             if (sources == null) return@collectOnLifecycle
-            Timber.d("S2021: stream picker snapshot rows=${sources.size}")
             allSources = sources
             catalogLoaded = true
             if (!dropdownsPopulated) {

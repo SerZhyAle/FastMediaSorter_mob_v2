@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import com.sza.fastmediasorter.R
-import timber.log.Timber
 
 /**
  * S1421 ADR-3: the signal icons, laid out as two groups pressed to the edges with the display cutout's own
@@ -253,7 +252,6 @@ class LauncherSignalRowView @JvmOverloads constructor(
         // An end side too narrow for even the counter keeps the counter with the start group instead,
         // because a right-aligned block with nowhere to fit would still reach across the cutout.
         val counterSlot = if (hidden > 0 && capacity > 0) 1 else 0
-        Timber.d("S2244: rebuilt launcher signal row with per-side cutout allocation")
         startGroupCount = if (counterSlot == 1 && endCapacity == 0) {
             flowCount
         } else {

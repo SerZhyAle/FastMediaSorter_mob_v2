@@ -4,7 +4,6 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
-import timber.log.Timber
 
 /**
  * S0404: desktop grid sizing. The column count is derived from the screen at render time and the
@@ -203,7 +202,6 @@ object LauncherGridGeometry {
         collapsedSections: Set<String>,
         columns: Int,
     ): List<RenderedCell> {
-        Timber.d("S2214: renderPlan calculating packing lifts for %d cells", cells.size)
         val stored = cells.map { it.cell }
         val headerRows = LauncherSectionMembership.headerRows(stored)
         val collapsedHeaderRows = collapsedHeaderRowsOf(stored, collapsedSections)

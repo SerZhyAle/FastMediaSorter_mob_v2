@@ -97,7 +97,6 @@ class ImageViewerViewModel @Inject constructor(
     }
 
     fun toggleScaleMode() {
-        Timber.d("S2006: image fit toggled, was=${_uiState.value.scaleMode}")
         val next = _uiState.updateAndGet { current ->
             val mode = if (current.scaleMode == VideoScaleMode.FIT) {
                 VideoScaleMode.CROP_PAN
@@ -110,7 +109,6 @@ class ImageViewerViewModel @Inject constructor(
     }
 
     fun toggleShuffle() {
-        Timber.d("S2006: shuffle toggled on image viewer, was=${_uiState.value.isShuffleEnabled}")
         val enabled = !_uiState.value.isShuffleEnabled
         viewModelScope.launch { preferencesRepository.setShuffleEnabled(enabled) }
     }
@@ -241,7 +239,6 @@ class ImageViewerViewModel @Inject constructor(
 
     /** A tap on the picture is the only way back to a hidden panel, so it toggles rather than reveals. */
     fun onScreenTap() {
-        Timber.d("S2006: image panel toggled, wasVisible=${_uiState.value.showControls}")
         if (_uiState.value.showControls) {
             controlsHideJob?.cancel()
             _uiState.update { it.copy(showControls = false) }
@@ -266,7 +263,6 @@ class ImageViewerViewModel @Inject constructor(
     }
 
     fun toggleSlideshow() {
-        Timber.d("S2006: slideshow toggled from viewer, wasActive=${_uiState.value.isSlideshowActive}")
         if (_uiState.value.isSlideshowActive) {
             stopSlideshow()
         } else {

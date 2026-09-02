@@ -6,7 +6,6 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.util.showBoundTo
-import timber.log.Timber
 
 /**
  * Presents the launcher route plus every edge-gesture action executable in this build.
@@ -28,7 +27,6 @@ class LauncherDesktopSwipeActionPickerManager(
         current: LauncherDesktopSwipeAction,
         onPicked: (LauncherDesktopSwipeAction) -> Unit,
     ) {
-        Timber.d("S2256: desktop swipe picker opened, current=%s", current.persistedName)
         GesturePickerDialog(
             context = context,
             title = context.getString(R.string.launcher_desktop_swipe_picker_title),

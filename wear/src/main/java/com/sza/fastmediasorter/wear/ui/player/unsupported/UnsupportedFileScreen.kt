@@ -18,7 +18,6 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
-import timber.log.Timber
 
 private val REFUSAL_GLYPH_SIZE = 32.dp
 private val TEXT_TOP_PADDING = 8.dp
@@ -34,7 +33,6 @@ private val TEXT_TOP_PADDING = 8.dp
  */
 @Composable
 fun UnsupportedFileScreen() {
-    Timber.d("S2006: unsupported file refused instead of opening the audio player")
     WearScreenScaffold {
         Column(
             modifier = Modifier

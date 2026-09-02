@@ -340,7 +340,6 @@ object WearAppModule {
         rebuilder: VoiceNoteIndexRebuilder,
         failure: Throwable
     ): WearVoiceNoteDatabase {
-        Timber.d("S2356: database open failed, recreating the store and rebuilding the index")
         context.deleteDatabase(WearVoiceNoteDatabase.DATABASE_NAME)
         val database = buildWearVoiceNoteDatabase(context)
         val recovered = rebuilder.rebuildInto(database.openHelper.writableDatabase)

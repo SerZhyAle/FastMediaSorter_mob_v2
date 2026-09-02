@@ -168,14 +168,12 @@ class PictureInPictureManager(
             // observed as a time counter/seek-bar past the clip's duration that never updates
             // again once useController=false stops the controller's refresh loop.
             playerView.useController = false
-            Timber.d("S2186: controller hidden before PiP mode request")
             // Register receiver BEFORE building params so that the PendingIntents
             // inside RemoteActions are guaranteed to have an active receiver.
             registerPipReceiver()
             val params = buildPipParams()
             activity.enterPictureInPictureMode(params)
             Timber.d("PiPManager: entered PiP mode")
-            Timber.d("S2026: PiP accepted by host ${activity.javaClass.simpleName}, taskId=${activity.taskId}")
         } catch (e: Exception) {
             Timber.e(e, "PiPManager: failed to enter PiP")
             // S2026: the refusal used to reach the log only, so a tap on the button looked like a dead

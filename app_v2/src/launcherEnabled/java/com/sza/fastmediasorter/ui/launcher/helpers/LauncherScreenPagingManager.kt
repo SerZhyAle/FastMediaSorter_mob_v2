@@ -5,7 +5,6 @@ import android.view.View
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
-import timber.log.Timber
 
 /**
  * S2301: which launcher screen the desktop is drawing, and the dots that say so.
@@ -53,7 +52,6 @@ class LauncherScreenPagingManager(
         if (screenIndex == activeScreenIndex || screenIndex !in 0 until count) return
         val direction = if (screenIndex > activeScreenIndex) FORWARD else BACKWARD
         activeScreenIndex = screenIndex
-        Timber.d("S2301: launcher active screen %d of %d", activeScreenIndex, count)
         onScreenChanged(direction)
         renderIndicators()
     }

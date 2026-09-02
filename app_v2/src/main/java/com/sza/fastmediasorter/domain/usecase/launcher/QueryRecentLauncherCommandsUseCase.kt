@@ -9,7 +9,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
-import timber.log.Timber
 import javax.inject.Inject
 
 /** A recent launcher launch, paired with the visual the taskbar draws for it. */
@@ -35,7 +34,6 @@ class QueryRecentLauncherCommandsUseCase @Inject constructor(
 
     operator fun invoke(limit: Int): Flow<List<RecentLauncherCommand>> =
         combine(journal.recentCommands(limit * 2), pins.observePins()) { recentCommands, pinnedList ->
-            Timber.d("S2242: filtering recents against %d pinned items", pinnedList.size)
             val pinnedCommands = pinnedList.map { it.second }.toSet()
             recentCommands
                 .filter { command -> command !in pinnedCommands }

@@ -13,7 +13,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.rotary.onRotaryScrollEvent
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * S1683: the bezel's action arrives as a lambda and this file never learns what it does. The owner
@@ -73,7 +72,6 @@ fun Modifier.rotaryActionScroll(listState: ScalingLazyListState): Modifier {
     val focusRequester = rememberRotaryFocus()
     val coroutineScope = rememberCoroutineScope()
     return this.rotaryAction(focusRequester) { delta ->
-        Timber.d("S2049: rotary scroll delta=$delta")
         coroutineScope.launch { listState.scrollBy(delta) }
     }
 }

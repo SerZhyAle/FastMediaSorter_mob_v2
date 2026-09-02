@@ -1148,7 +1148,6 @@ class PhotoVideoStandaloneActivity :
             wasFullscreenBeforePip = false
         }
         updateFullscreenExitButtonVisibility()
-        Timber.d("S2026: standalone PiP=$isInPictureInPictureMode, panel=${binding.topCommandPanel.isVisible}")
     }
 
     // S0393: reapply window insets after rotation (configChanges handles orientation here, so the
@@ -1280,7 +1279,6 @@ class PhotoVideoStandaloneActivity :
         val isInPip = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode
         val release = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && !isInPip
         videoReleasedOnStop = release
-        Timber.d("S2174: standalone onStop pip=$isInPip releaseVideo=$release")
         if (release) viewManager.onStopVideo()
     }
 
@@ -1290,7 +1288,6 @@ class PhotoVideoStandaloneActivity :
         // S2174: rebuild only what onStop() actually tore down. An unconditional show() re-created the
         // player under an already-visible PiP window whenever the OS dispatched a stop/start pair
         // across the PiP transition, losing the frame on the rebuild.
-        Timber.d("S2174: standalone onStart rebuildVideo=$videoReleasedOnStop")
         if (!videoReleasedOnStop) return
         videoReleasedOnStop = false
         if (viewModel.state.value.mediaType == MediaType.VIDEO) {

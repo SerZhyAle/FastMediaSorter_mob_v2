@@ -44,7 +44,6 @@ class LauncherAppActionMenuManager(
 
     /** Opens the action menu for [packageName] anchored to [anchor]. */
     fun show(anchor: View, packageName: String, desktopCellId: Long? = null) {
-        Timber.d("S2316: app action menu desktopCellId=%s", desktopCellId)
         // A second long press must replace the first request, not stack a second window on top of it.
         dismiss()
         pendingQuery = scope.launch {

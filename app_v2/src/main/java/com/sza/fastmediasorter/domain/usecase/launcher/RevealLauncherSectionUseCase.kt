@@ -6,7 +6,6 @@ import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
 import com.sza.fastmediasorter.domain.repository.LauncherSectionVisibilityRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -31,7 +30,6 @@ class RevealLauncherSectionUseCase @Inject constructor(
         }
 
         if (owner != null && visibility.isCollapsed(orientation, owner.screenIndex, owner.target)) {
-            Timber.d("S2061: Revealing section %s for placed cell %d", owner.target, cellId)
             visibility.reveal(orientation, owner.screenIndex, owner.target)
             return true
         }

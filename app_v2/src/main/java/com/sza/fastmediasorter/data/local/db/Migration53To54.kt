@@ -20,6 +20,5 @@ val MIGRATION_53_54 = object : Migration(SCHEMA_VERSION_FROM, SCHEMA_VERSION_TO)
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE `launcher_cells` ADD COLUMN `screenIndex` INTEGER NOT NULL DEFAULT 0")
         Timber.i("Migrated database from schema 53 to 54 (added screenIndex to launcher_cells)")
-        Timber.d("S2251: launcher_cells gained screenIndex, schema 53 -> 54")
     }
 }

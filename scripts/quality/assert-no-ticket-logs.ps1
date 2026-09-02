@@ -140,6 +140,30 @@ foreach ($root in $scanRoots) {
                     if ($blockNeedUserTest.Contains('S' + $pm.Groups['num'].Value)) {
                         $allowed = $true
                     }
+
+                    # probe-line-shape (owner ruling 2026-09-02): a probe must be one statement alone
+                    # on its line. A probe is removed in BULK - 176 files in one sweep at the release
+                    # of 2.60.9021.951 - and bulk removal is only safe when dropping the line drops
+                    # exactly the probe. It was not: `}.also { Timber.d("S2354: ..") }` was also the
+                    # closing brace of a `when` and `).also { .. }` closed an argument list, so the
+                    # sweep broke the build hundreds of lines away with `Unresolved reference 'gcd'`.
+                    # Judged on the physical opener line, which is what a line-wise sweep sees.
+                    $lineEnd = $content.IndexOf("`n", $m.Index)
+                    if ($lineEnd -lt 0) { $lineEnd = $content.Length }
+                    $wholeLine = $content.Substring($lineStart, $lineEnd - $lineStart).TrimEnd("`r").Trim()
+                    $isOwnLine = $wholeLine -match '^(timber\.log\.)?Timber\.d\(' -and $wholeLine.EndsWith(')')
+                    if (-not $isOwnLine) {
+                        $rel = $file.FullName.Substring($repoRoot.Length).TrimStart('\', '/')
+                        $findings.Add([pscustomobject]@{
+                            File   = ($rel -replace '\\', '/')
+                            Line   = $lineNo
+                            Level  = "Timber.$level"
+                            Ticket = 'S' + $pm.Groups['num'].Value
+                            Reason = 'probe shares its line with code, or wraps across lines - a bulk delete cannot drop it safely'
+                            Text   = $wholeLine
+                        })
+                        $allowed = $true   # already reported here; do not report it twice below
+                    }
                 }
             }
 

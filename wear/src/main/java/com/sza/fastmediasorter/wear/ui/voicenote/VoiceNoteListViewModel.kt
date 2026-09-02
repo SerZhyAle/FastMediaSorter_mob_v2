@@ -62,7 +62,6 @@ class VoiceNoteListViewModel @Inject constructor(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             val pending = WearDatabaseResetNotice.consumePending(context)
-            Timber.d("S2356: note list consumed reset notice: %s", pending ?: "none pending")
             resetNotice.value = pending
         }
     }
@@ -92,7 +91,6 @@ class VoiceNoteListViewModel @Inject constructor(
      * be sending.
      */
     fun send(noteId: Long) {
-        Timber.d("S1862: manual send requested for note %d", noteId)
         if (sendingNoteId.value != null) {
             Timber.i("Ignoring a send for note %d: another transfer is still running", noteId)
             return

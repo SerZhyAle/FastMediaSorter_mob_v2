@@ -93,12 +93,10 @@ class DeviceActionHandler @Inject constructor() {
     }
 
     private fun expandNotificationShade(context: Context): Boolean {
-        Timber.d("S2386: expanding notification shade via StatusBarManager")
         return expandStatusBarPanel(context, "expandNotificationsPanel")
     }
 
     private fun expandQuickSettings(context: Context): Boolean {
-        Timber.d("S2386: expanding quick settings via StatusBarManager")
         return expandStatusBarPanel(context, "expandSettingsPanel")
     }
 

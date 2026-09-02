@@ -55,7 +55,6 @@ private class GoogleMapsLiveFrameGadgetView(
     }
 
     override suspend fun CoroutineScope.onActive() {
-        Timber.d("S2241: GoogleMapsLiveFrameGadget active loop started")
         liveFrameView.onResume()
 
         runCatching {

@@ -40,7 +40,6 @@ import com.sza.fastmediasorter.utils.PermissionChecker
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -778,8 +777,6 @@ class ResourceEditorFragment : Fragment() {
             streamFieldsVisible ||
             isNetwork ||
             isCloud
-
-        Timber.d("S2225: connection section for %s visible=%b", type, shouldShowConnectionSection)
 
         binding.cardConnectionSettings.isVisible = shouldShowConnectionSection
         binding.headerConnectionSettings.isVisible = shouldShowConnectionSection

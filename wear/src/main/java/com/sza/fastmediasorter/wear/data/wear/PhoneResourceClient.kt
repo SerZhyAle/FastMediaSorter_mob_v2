@@ -130,7 +130,6 @@ class PhoneResourceClient @Inject constructor(
             // a null nodeId is exactly the first case, and it is also why the timeout above was never
             // entered for it.
             nodeId == null -> {
-                Timber.d("S2275: no connected node - answering PhoneNotPaired without a wait")
                 PhoneResourceOutcome.PhoneNotPaired
             }
             page == null -> PhoneResourceOutcome.PhoneUnavailable

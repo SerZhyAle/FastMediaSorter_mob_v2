@@ -12,7 +12,6 @@ import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.ui.settings.LauncherSettingsDialogFragment
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * S1088: owns the System-launcher entry in General -> Interface: the enable toggle (reflects the HOME
@@ -54,7 +53,6 @@ class GeneralSettingsLauncherHelper(
         binding.rowLauncherSettings.setOnClickListener {
             LauncherSettingsDialogFragment().show(fragment.childFragmentManager, LauncherSettingsDialogFragment.TAG)
         }
-        Timber.d("S2288: launcher entry wired as button, enabled=${launcherRoleManager.isModeEnabled()}")
         refreshState()
     }
 

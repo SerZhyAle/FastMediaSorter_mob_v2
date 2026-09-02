@@ -198,7 +198,6 @@ private class TranslatorGadgetView(
      * drops the session swap, so what the user just saved is what runs next.
      */
     private fun openLanguageSettings() {
-        Timber.d("S2237: language settings requested")
         val owner = findViewTreeLifecycleOwner() ?: return
         TranslationSettingsDialog.show(
             context = context,
@@ -232,7 +231,6 @@ private class TranslatorGadgetView(
         activeScope.launch {
             val engine = facade ?: facadeFactory.get().create(this@TranslatorGadgetView).also { facade = it }
             val (source, target) = effectivePair()
-            Timber.d("S2237: translate pair %s to %s", source, target)
             showPair(source, target)
             val translated = runCatching { engine.translate(text, source, target) }
                 .onFailure {
@@ -253,7 +251,6 @@ private class TranslatorGadgetView(
      * of what was typed, and blanking it would punish a mis-tap.
      */
     private fun swapDirection() {
-        Timber.d("S2237: swap requested")
         val activeScope = scope ?: return
         activeScope.launch {
             val (source, target) = effectivePair()

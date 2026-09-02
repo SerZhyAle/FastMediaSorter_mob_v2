@@ -539,7 +539,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             this,
             object : androidx.activity.OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    Timber.d("S2097: root Back at main home - moveTaskToBack instead of finish")
                     moveTaskToBack(true)
                 }
             }
@@ -1312,7 +1311,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         layoutChrome.setCommandEligible(R.id.btnFavorites, settings.enableFavorites)
         resourceAdapter.setUseCompactElements(settings.useCompactElements)
         resourceAdapter.setOverflowModeEnabled(settings.resourceOpsInOverflowMenu) // S0160
-        Timber.d("S2209: disableAnimations=%s applied to resource list", settings.disableAnimations)
         if (settings.disableAnimations) {
             binding.rvResources.itemAnimator = null
         } else if (binding.rvResources.itemAnimator == null) {

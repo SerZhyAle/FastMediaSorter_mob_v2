@@ -123,7 +123,6 @@ private fun ScalingLazyListScope.settingsItems(
         return
     }
 
-    Timber.d("S2042: settings menu grid, columns=$columns, wrap not ellipsis")
     items(destinations.chunked(columns)) { rowDestinations ->
         Row(
             modifier = Modifier.fillMaxWidth(),

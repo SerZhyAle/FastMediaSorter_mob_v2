@@ -39,7 +39,6 @@ class PublishPlaybackStateUseCase @Inject constructor(
         // claimed a delivery failure that never happened, and swallowing the cancellation left the
         // coroutine looking completed to its parent. Cancellation is the caller's outcome, not ours.
         if (e is CancellationException) {
-            Timber.d("S2029: publish playback state cancelled - rethrown, not logged as an error")
             throw e
         }
         Timber.e(e, "PublishPlaybackStateUseCase failed - state not published")

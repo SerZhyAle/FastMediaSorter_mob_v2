@@ -5,7 +5,6 @@ import android.widget.ListPopupWindow
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.sza.fastmediasorter.R
-import timber.log.Timber
 
 /**
  * S1466: the four desktop entry points the quick menu spends, passed as one value.
@@ -114,7 +113,6 @@ class LauncherDesktopQuickMenu(
         val spaceBelowPx = anchor.height - bottomSafePx - yPx
         val spaceAbovePx = yPx - topSafePx
         val opensAbove = spaceBelowPx < menuHeightPx + POPUP_GAP_PX && spaceAbovePx > spaceBelowPx
-        Timber.d("S2181: quick menu opensAbove=$opensAbove spaceBelowPx=$spaceBelowPx menuHeightPx=$menuHeightPx")
         // ListPopupWindow measures its drop from the anchor's bottom edge, and the anchor here is the
         // whole desktop canvas - so the press position is that height minus where the finger landed.
         return if (opensAbove) {

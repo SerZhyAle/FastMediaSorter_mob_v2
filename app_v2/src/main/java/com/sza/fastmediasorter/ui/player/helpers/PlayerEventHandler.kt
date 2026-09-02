@@ -220,7 +220,6 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
         // Removal is offered only for a file that is final AND actually saved: the host toggle would
         // otherwise add a gone file to favorites on a list where it was never saved.
         val offerRemove = gone && activity.viewModel.state.value.currentFile?.isFavorite == true
-        Timber.d("S2151: media unavailable dialog gone=$gone offerRemove=$offerRemove")
         activeDialog?.dismiss()
         activeDialog = MediaUnavailableDialog.show(
             activity = activity,

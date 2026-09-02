@@ -47,7 +47,6 @@ class WearSyncSettingsFragment : Fragment() {
     // resolve different surfaces.
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
         ComposeView(inflater.context).apply {
-            Timber.d("S2091: wear companion island composed - testTags publish as resource-ids")
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 FastMediaSorterComposeTheme {

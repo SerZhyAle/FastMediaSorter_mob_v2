@@ -5,7 +5,6 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
-import timber.log.Timber
 import kotlin.math.abs
 
 /**
@@ -59,9 +58,6 @@ class LauncherAllAppsGestureManager(
     fun onTouchEvent(event: MotionEvent) {
         if (event.actionMasked == MotionEvent.ACTION_DOWN) {
             gestureStartedOnFreeDesktop = isTouchWithinViewport(event) && !isTouchOnInteractiveCell(event)
-            if (gestureStartedOnFreeDesktop) {
-                Timber.d("S2262: desktop gesture dispatch")
-            }
         }
         if (!gestureStartedOnFreeDesktop) return
         detector.onTouchEvent(event)
@@ -80,7 +76,6 @@ class LauncherAllAppsGestureManager(
         ?.let { classifyDirection(it, e2, velocityX, velocityY) }
         ?.takeIf(::isEligibleAtViewportBoundary)
         ?.also { direction ->
-            Timber.d("S2221: dispatch desktop swipe direction=%s", direction)
             onSwipe(direction)
         } != null
 

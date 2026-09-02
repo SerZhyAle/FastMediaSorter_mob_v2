@@ -283,7 +283,6 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
         if (intent.component?.packageName == context.packageName) {
             intent.addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
         }
-        Timber.d("S2215: startIntent target=%s flags=0x%x", intent.component ?: intent.action, intent.flags)
         return runCatching {
             context.startActivity(intent)
             true

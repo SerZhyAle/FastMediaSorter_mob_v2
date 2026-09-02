@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.ui.launcher.helpers
 
 import com.sza.fastmediasorter.core.screencapture.gesture.GestureAccessibilityActions
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
-import timber.log.Timber
 
 /**
  * S2268: turns the desktop's "lock" gesture into the best screen lock this build can actually reach.
@@ -22,7 +21,6 @@ class LauncherScreenLockManager(
 
     fun lockScreen() {
         val locked = accessibilityActions.any { it.perform(ScreenshotGestureAction.LOCK_SCREEN) }
-        Timber.d("S2268: desktop double tap lock, system lock performed=%s", locked)
         if (!locked) showBlackScreen()
     }
 }

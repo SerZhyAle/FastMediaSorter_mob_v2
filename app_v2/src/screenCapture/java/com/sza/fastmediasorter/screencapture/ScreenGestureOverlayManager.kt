@@ -26,7 +26,6 @@ import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureZone
 import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionCatalog
-import timber.log.Timber
 import kotlin.math.atan2
 import kotlin.math.roundToInt
 
@@ -316,7 +315,6 @@ class ScreenGestureOverlayManager(
         if (insetRelayoutPending || bandViews.isEmpty()) return
         if (computeGeometry() == appliedGeometry) return
         insetRelayoutPending = true
-        Timber.d("S2257: band insets changed, posting relayout")
         // The insets are still being dispatched: laying the window out inside that pass would re-enter
         // the traversal that delivered them.
         view.post {

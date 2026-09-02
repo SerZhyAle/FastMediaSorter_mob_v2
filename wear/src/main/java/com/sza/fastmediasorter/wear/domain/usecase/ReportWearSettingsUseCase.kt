@@ -34,7 +34,6 @@ class ReportWearSettingsUseCase @Inject constructor(
         // Typed explicitly: this is the durable wire model, and naming it here is what lets the
         // persistence-contract gate see which class the JSON below carries (S1639).
         val gathered: WearSettingsPayload = gatherWearSettingsUseCase()
-        Timber.d("S2093: watch reporting settings, stamps=${gathered.fieldTimestamps?.size ?: 0}")
         val payloadBytes = gson.toJson(gathered).toByteArray()
         val sentAt = System.currentTimeMillis()
         val envelope = WearEventEnvelope(

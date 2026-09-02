@@ -69,7 +69,6 @@ class PushWearStreamPinsUseCase @Inject constructor(
         val nodes = wearableRepository.getConnectedNodes()
         check(nodes.isNotEmpty()) { "No watch connected" }
         val identities = sources.map { StreamChannelIdentity.ofSource(it) }
-        Timber.d("S2149: publishing ${identities.size} phone-pinned identities to the watch")
         val payloadBytes = gson.toJson(WearStreamPinsPayload(identities)).toByteArray(Charsets.UTF_8)
         val envelope = WearEventEnvelope(
             eventType = WearDataLayerPaths.EVENT_STREAM_PINS,
@@ -79,4 +78,3 @@ class PushWearStreamPinsUseCase @Inject constructor(
         wearableRepository.putEnvelopeDataItem(WearDataLayerPaths.STREAM_PINS, envelope)
     }
 }
-

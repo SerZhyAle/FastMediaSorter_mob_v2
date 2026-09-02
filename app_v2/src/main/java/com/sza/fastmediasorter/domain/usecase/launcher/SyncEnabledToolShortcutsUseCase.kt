@@ -10,7 +10,6 @@ import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
 import com.sza.fastmediasorter.domain.repository.LauncherShortcutSyncRepository
 import com.sza.fastmediasorter.domain.usecase.panel.ResolvePanelRouteAvailabilityUseCase
 import kotlinx.coroutines.flow.first
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -56,7 +55,6 @@ class SyncEnabledToolShortcutsUseCase @Inject constructor(
         val baseline = syncBaseline.syncedRoutes()
 
         if (baseline == null) {
-            Timber.d("S2330: first sync pass, adopting %d route(s) and placing nothing", launchable.size)
             // First run on this install: adopt what is launchable now without placing anything. The
             // desktop this finds was composed by the starter set alone, and an update is not the
             // moment to hand the user eight cells he did not ask for (strategic 5.1).
@@ -65,12 +63,6 @@ class SyncEnabledToolShortcutsUseCase @Inject constructor(
         }
 
         val newlyLaunchable = launchable - baseline
-        Timber.d(
-            "S2330: sync pass launchable=%d baseline=%d newly=%d",
-            launchable.size,
-            baseline.size,
-            newlyLaunchable.size,
-        )
         if (newlyLaunchable.isEmpty()) return
 
         placeCellsFor(newlyLaunchable)

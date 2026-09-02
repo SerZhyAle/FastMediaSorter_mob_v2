@@ -5,8 +5,6 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.stats.StatsMediaType
 
-import timber.log.Timber
-
 /**
  * The single place in app_v2 that knows what colour a content type is.
  *
@@ -25,7 +23,6 @@ object MediaTypeColorCatalog {
 
     @ColorRes
     fun colorFor(category: MediaColorCategory): Int {
-        Timber.d("S2046: resolving colour for category %s", category)
         return when (category) {
             MediaColorCategory.MUSIC -> R.color.color_media_music
             MediaColorCategory.VIDEO -> R.color.color_media_video

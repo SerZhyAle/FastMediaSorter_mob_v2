@@ -622,7 +622,6 @@ class PlayerActivity :
         if (pipOnReadyFired) return
         if (!intent.getBooleanExtra(EXTRA_ENTER_PIP_ON_READY, false)) return
         pipOnReadyFired = true
-        Timber.d("S2230: pip-on-ready requested, entering picture-in-picture")
         Timber.i("PlayerActivity: entering picture-in-picture on playback ready")
         pipManager?.enterPictureInPicture()
     }
@@ -1249,7 +1248,6 @@ class PlayerActivity :
     ) {
         if (!::altEngineFallbackManager.isInitialized || !::deliveryEnableInterceptor.isInitialized) return
         val set = altEngineFallbackManager.pendingInstallSetFor(file) ?: return
-        timber.log.Timber.d("S1971: offering delivery download for alt engine set %s", set)
         deliveryEnableInterceptor.requireInstalled(
             activity = this,
             set = set,

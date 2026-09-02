@@ -249,7 +249,6 @@ class VideoPlayerViewModel @Inject constructor(
     }
 
     fun toggleShuffle() {
-        Timber.d("S2006: shuffle toggled on video player, was=${_uiState.value.isShuffleEnabled}")
         val enabled = !_uiState.value.isShuffleEnabled
         viewModelScope.launch { preferencesRepository.setShuffleEnabled(enabled) }
     }
@@ -463,7 +462,6 @@ class VideoPlayerViewModel @Inject constructor(
      * one-directional guarantee - going through the toggle would hide the panel on every other step.
      */
     fun onVolumeStep(up: Boolean) {
-        Timber.d("S2140: video bezel volume step, up=$up")
         val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return
         audioManager.adjustStreamVolume(
             AudioManager.STREAM_MUSIC,
@@ -496,7 +494,6 @@ class VideoPlayerViewModel @Inject constructor(
     }
 
     fun seekForward() {
-        Timber.d("S2140: video long-press seek forward")
         val target = exoPlayer.currentPosition + SEEK_STEP_MS
         // ExoPlayer reports C.TIME_UNSET, a large negative, while the duration is still unknown -
         // clamping to it would send playback backwards past the start on the first turn of the bezel.
@@ -505,7 +502,6 @@ class VideoPlayerViewModel @Inject constructor(
     }
 
     fun seekBackward() {
-        Timber.d("S2140: video long-press seek backward")
         val newPosition = (exoPlayer.currentPosition - SEEK_STEP_MS).coerceAtLeast(0)
         seekTo(newPosition)
     }
@@ -580,7 +576,6 @@ class VideoPlayerViewModel @Inject constructor(
     }
 
     fun toggleFavorite() {
-        Timber.d("S1954: video player favourite toggled")
         val identity = currentFavoriteIdentity() ?: return
         viewModelScope.launch {
             val marked = toggleFavoriteUseCase.toggle(

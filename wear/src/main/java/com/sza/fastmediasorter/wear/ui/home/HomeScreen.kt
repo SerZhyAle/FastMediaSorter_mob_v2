@@ -59,7 +59,6 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     Timber.d("HomeScreen composing")
-    Timber.d("S2003: home - no app-name header, opens centred on the first navigation tile")
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberScalingLazyListState(initialCenterItemIndex = 0)

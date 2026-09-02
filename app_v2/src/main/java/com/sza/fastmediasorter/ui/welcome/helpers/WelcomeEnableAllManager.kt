@@ -129,7 +129,6 @@ class WelcomeEnableAllManager @Inject constructor(
         // non-OTHER preset landing second would switch the just-enabled functions back off.
         appScope.launch {
             applyProfile()
-            Timber.d("S2311: profile preset awaited, applying enable-all settings now")
             enableAllSettingsUseCase()
             // allFiles=true alone does not materialize the browsable "All Files" resource; a profile
             // preset need not imply it, so create it here to match "everything enabled".
@@ -153,7 +152,6 @@ class WelcomeEnableAllManager @Inject constructor(
         // S2322: this stage raises the OS "Open with / Always" sheet over one of the user's own files,
         // which reads as the app misbehaving unless it was announced. The host owns that announcement -
         // this manager deliberately knows nothing about fragments, as with start()'s applyProfile.
-        Timber.d("S2322: default-player stage handed to host for confirmation")
         val confirm = onConfirmDefaultPlayerStage
         if (confirm == null) {
             launchCurrentDefaultPlayerType()

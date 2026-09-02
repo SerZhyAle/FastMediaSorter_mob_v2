@@ -620,7 +620,6 @@ class BrowseManagerInitializer(
         val resource = viewModel.state.value.resource ?: return null
         return when {
             LimitedStorageReach.isReachLimited(activity, resource) -> {
-                Timber.d("S2369: filter dialog narrowed to the reachable types for ${resource.path}")
                 LimitedStorageReach.narrowToReachable(resource.supportedMediaTypes)
             }
             else -> resource.supportedMediaTypes

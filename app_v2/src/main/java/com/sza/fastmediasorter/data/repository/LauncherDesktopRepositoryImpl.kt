@@ -237,7 +237,6 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         if (candidate.kind == LauncherCellKind.SHORTCUT &&
             candidate.target.startsWith(LauncherCellCommand.PREFIX_RESOURCE)
         ) {
-            Timber.d("S2057: resource shortcut section-bounded scan entered")
             val header = findSectionHeader(
                 orientation = candidate.orientation,
                 screenIndex = candidate.screenIndex,

@@ -249,7 +249,6 @@ class MainViewModel @Inject constructor(
             // would leave the list unnarrowed until some unrelated source happened to re-emit.
             val restored = listSessionManager.restore(state.value)
             updateState { restored }
-            Timber.d("S2199: main list restored sort=${restored.sortMode} type=${restored.filterByType}")
             // NonCancellable: provisioning must finish atomically even if this ViewModel
             // is destroyed during WelcomeActivity's ephemeral first MainActivity creation.
             // Without this, viewModelScope.cancel() can interrupt after "Recent" is inserted
@@ -690,7 +689,6 @@ class MainViewModel @Inject constructor(
     private fun persistListSession() {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             listSessionManager.persist(state.value)
-            Timber.d("S2199: main list persisted sort=${state.value.sortMode}")
         }
     }
 
@@ -867,7 +865,6 @@ class MainViewModel @Inject constructor(
                 resourceRepository.get().getResourceById(resourceId)?.let { scanSingleResource(it) }
             }
             result.exceptionOrNull()?.let { Timber.w(it, "Resource reconnect failed") }
-            Timber.d("S2374: reconnect outcome reported, resource=%d", resourceId)
             sendEvent(MainReconnectOutcomeMapper.toEvent(result))
         }
     }

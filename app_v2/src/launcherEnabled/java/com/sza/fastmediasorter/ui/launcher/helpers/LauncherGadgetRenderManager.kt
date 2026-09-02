@@ -54,9 +54,6 @@ class LauncherGadgetRenderManager(
         // param whether the cell still needs its "tap to configure" listener, so substituting in only one
         // of the two would show the city while still treating the cell as unconfigured.
         val param = LauncherWeatherParamFallback.resolve(decoded.first, decoded.second, savedWeatherLocation())
-        if (param != decoded.second) {
-            Timber.d("S2213: weather cell without its own place took the saved one")
-        }
         // A gadget that cannot build its view degrades to a named failed-gadget tile (S2208). Without
         // this, the exception escapes into the HOME activity's render pass, and because
         // the system restarts HOME immediately the desktop crash-loops the device with no way in to
@@ -64,7 +61,6 @@ class LauncherGadgetRenderManager(
         val view = runCatching { gadget.createView(container, gadgetHost, param) }
             .onFailure {
                 Timber.e(it, "Gadget ${decoded.first} failed to build its view; cell degraded")
-                Timber.d("S2208: ${decoded.first} view creation failed")
             }
             .getOrNull()
         if (view == null) {

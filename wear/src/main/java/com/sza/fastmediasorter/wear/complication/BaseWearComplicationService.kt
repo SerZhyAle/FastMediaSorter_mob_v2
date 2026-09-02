@@ -19,7 +19,6 @@ import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.model.writeTo
 import com.sza.fastmediasorter.wear.domain.usecase.LoadWearComplicationContentUseCase
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -34,7 +33,6 @@ abstract class BaseWearComplicationService : SuspendingComplicationDataSourceSer
     protected abstract val kind: WearComplicationKind
 
     override suspend fun onComplicationRequest(request: ComplicationRequest): ComplicationData? {
-        Timber.d("S2047: onComplicationRequest kind=$kind type=${request.complicationType}")
         val content = loadContent(kind)
         return mapContentToData(request.complicationType, content)
     }

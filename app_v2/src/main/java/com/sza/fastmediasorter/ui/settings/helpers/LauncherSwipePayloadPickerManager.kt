@@ -5,7 +5,6 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeAction
 import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeDirection
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.AppPickerDialogFragment
-import timber.log.Timber
 
 /**
  * S2256: owns the target (app or address) of one launcher desktop swipe direction.
@@ -57,7 +56,6 @@ class LauncherSwipePayloadPickerManager(
 
     /** Opens the chooser matching [action]; a no-op for an action that carries no target. */
     fun openTargetPicker(direction: LauncherDesktopSwipeDirection, action: LauncherDesktopSwipeAction) {
-        Timber.d("S2256: swipe target flow %s kind=%s", direction, targetKindOf(action))
         when (targetKindOf(action)) {
             GestureTargetKind.APP -> showAppPicker(direction)
             GestureTargetKind.URL -> promptUrl(direction)

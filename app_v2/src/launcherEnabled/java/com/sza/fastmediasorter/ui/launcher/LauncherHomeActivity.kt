@@ -79,7 +79,6 @@ import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 
@@ -535,7 +534,6 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             },
             onDoubleTap = {
                 val lockEnabled = viewModel.launcherDesktopSettings.value.launcherDesktopDoubleTapLockEnabled
-                Timber.d("S2249: desktop double-tap, lock setting enabled=%s", lockEnabled)
                 if (lockEnabled) {
                     screenLockManager.lockScreen()
                 }
@@ -641,7 +639,6 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // S1904: the backdrop is part of what a cell looks like, so a new opacity is a re-render - the
         // binder's render key carries it and skips the rebuild when the value did not actually change.
         collectOnLifecycle(viewModel.widgetBackdropAlpha) { alpha ->
-            Timber.d("S2253: launcher shared surfaces alpha=%s", alpha)
             geometryManager.renderDesktop(pagingManager.activeScreenIndex)
             taskbarManager.applyBackdropAlpha(alpha)
         }
@@ -687,7 +684,6 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // A capture still in flight owns the camera and the single output file; a second one would unbind
         // it mid-write and both would fail, so a fast resume-pause-resume waits for the frame it started.
         if (currentWallpaper is LauncherWallpaper.InstantPhoto && instantPhotoCaptureJob?.isActive != true) {
-            Timber.d("S2210: instant photo wallpaper resume trigger for camera %s", currentWallpaper.cameraId)
             instantPhotoCaptureJob = lifecycleScope.launch {
                 val capturedPath = instantPhotoCaptureManager.captureSingleFrame(
                     cameraId = currentWallpaper.cameraId,
@@ -856,7 +852,6 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             idleManager.onUserInteraction()
         }
         if (ev != null && ::blackoutManager.isInitialized && blackoutManager.onDispatchTouchEvent(ev)) {
-            Timber.d("S2267: blackout consumed touch action=%d", ev.actionMasked)
             return true
         }
         if (ev != null) {

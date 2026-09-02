@@ -98,7 +98,6 @@ class WearFavoritesRepositoryImpl @Inject constructor(
         if (kept.size != records.size) {
             saveRecords(kept)
         }
-        Timber.d("S2039: remove $key legacy=$removedLegacy records=${records.size - kept.size}")
         if (removedLegacy || kept.size != records.size) {
             appendDelta(WearFavoriteDeltaItem(sourceId, filePath, false, System.currentTimeMillis()))
             requestWearComplicationRefreshUseCase(WearComplicationKind.FAVOURITES_COUNT)

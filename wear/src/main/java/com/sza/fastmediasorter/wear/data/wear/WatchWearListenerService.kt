@@ -138,13 +138,6 @@ class WatchWearListenerService : WearableListenerService() {
         if (declaration.requestId.isBlank()) return
 
         val outcome = fileTransferOutcome(result, declaration)
-        Timber.d(
-            "S1884: watch answering file transfer reqId=%s openNow=%b got=%s outcome=%s",
-            declaration.requestId,
-            declaration.openNow,
-            result.outcome,
-            outcome
-        )
         sendFileTransferAck(nodeId, WearFileTransferAck(declaration.requestId, outcome))
     }
 
@@ -180,7 +173,6 @@ class WatchWearListenerService : WearableListenerService() {
         return if (handled != null) {
             WearFileTransferAck.OUTCOME_OPENED
         } else {
-            Timber.d("S1961: openFileOnWatch timed out in background for path=%s", savedPath)
             openOnWatchNotifier.notifyPendingOpen(
                 target = WearLaunchTarget.File(savedPath, mimeType),
                 subtitle = savedPath.substringAfterLast('/')
@@ -340,7 +332,6 @@ class WatchWearListenerService : WearableListenerService() {
             // happen. The ack is deliberately unchanged: "saved on the watch, open the watch app" is
             // still true, and the notification only adds a shorter way to do it.
 
-            Timber.d("S1961: openOnWatch timed out in background for stream channel=%s", channel.name)
             openOnWatchNotifier.notifyPendingOpen(
                 target = WearLaunchTarget.Open(streamTargetRef(channel.url)),
                 subtitle = channel.name
@@ -393,7 +384,6 @@ class WatchWearListenerService : WearableListenerService() {
             try {
                 val envelope = envelopeCodec.decode(payloadBytes)
                 val payload = gson.fromJson(envelope.data.decodeToString(), WearStreamPinsPayload::class.java)
-                Timber.d("S2149: received ${payload.identities.size} phone-pinned identities")
                 wearPhonePinsRepository.replaceAll(payload.identities)
             } catch (e: CancellationException) {
                 // The service scope was torn down; swallowing this would leave the coroutine machinery

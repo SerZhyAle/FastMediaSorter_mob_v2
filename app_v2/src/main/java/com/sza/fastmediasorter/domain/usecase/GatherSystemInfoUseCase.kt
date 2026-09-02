@@ -142,7 +142,6 @@ class GatherSystemInfoUseCase @Inject constructor(
     private fun benchmarkFields(): List<Pair<String, String>> = safeList {
         val mem = SystemInfoBenchmark.measureMemoryThroughputMbps()
         val (write, read) = SystemInfoBenchmark.measureStorageThroughputMbps(context.cacheDir)
-        Timber.d("S2359: benchmark fields formatted (mem=%.1f, write=%.1f, read=%.1f)", mem, write, read)
         listOf(
             label(R.string.sysinfo_field_bench_memory) to formatMbps(mem),
             label(R.string.sysinfo_field_bench_storage_write) to formatMbps(write),

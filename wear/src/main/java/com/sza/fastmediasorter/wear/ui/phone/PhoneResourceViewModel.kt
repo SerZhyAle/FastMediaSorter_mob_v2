@@ -266,7 +266,6 @@ class PhoneResourceViewModel @Inject constructor(
         if (inFlightThumbnails.size >= MAX_IN_FLIGHT_THUMBNAILS) return
 
         inFlightThumbnails.add(itemToken)
-        Timber.d("S2129: on-demand thumbnail requested, inFlight=%s", inFlightThumbnails.size)
         _thumbnails.update { current -> current + (itemToken to WearThumbnail.Loading) }
 
         viewModelScope.launch {
@@ -344,7 +343,6 @@ class PhoneResourceViewModel @Inject constructor(
      */
     fun openFile(entry: WearPhoneResourceItem) {
         if (entry.mimeType == null) {
-            Timber.d("S2092: no player for %s - refusing before any transfer", entry.name)
             _openOutcome.value = PhoneFileOpenOutcome.Unsupported
             return
         }
@@ -374,7 +372,6 @@ class PhoneResourceViewModel @Inject constructor(
      * between landing and being read.
      */
     private suspend fun evictOlderCopies(justWritten: File) = withContext(Dispatchers.IO) {
-        Timber.d("S2004: trimming the phone-copy cache, sparing %s", justWritten.name)
         MediaCacheEvictor.evictOldestUntilUnderCap(
             cacheDir = cacheDir,
             keep = justWritten,
@@ -399,7 +396,6 @@ class PhoneResourceViewModel @Inject constructor(
      */
     fun allowedOperationsFor(entry: WearPhoneResourceItem): Set<WearFileOperationKind> {
         val destination = destinationFor(entry)
-        Timber.d("S2092: menu for %s, copy present: %s", entry.name, destination.exists())
         val onTheCopy = if (destination.exists()) {
             capabilityPolicy.allowedOperations(
                 capabilityPolicy.classify(entry.toWatchFile(destination), isNetworkSource = false)
@@ -493,7 +489,6 @@ class PhoneResourceViewModel @Inject constructor(
         inFlightThumbnails.clear()
         _thumbnails.value = emptyMap()
         val isFlat = BrowseCategoryCatalog.shapeForToken(categoryToken) == WearListShape.FLAT_MEDIA
-        Timber.d("S2130: browse category=%s isFlat=%s", categoryToken, isFlat)
         viewModelScope.launch {
             val outcome = phoneResourceClient.browse(parentToken, mediaType = mediaType, isFlat = isFlat)
             _uiState.value = when (outcome) {
@@ -600,7 +595,6 @@ class PhoneResourceViewModel @Inject constructor(
      */
     private fun updateRefine(transform: (BrowseRefineState) -> BrowseRefineState) {
         _refineState.value = transform(_refineState.value)
-        Timber.d("S2136: phone refine q='${_refineState.value.searchQuery}' order=${_refineState.value.sortOrder}")
         // Only the states the projection itself produces may be re-projected. A refine choice made
         // before the first page landed has nothing to project yet, and re-projecting a state that
         // reports why there is no list - S2130's NoResourceForType, or an Unavailable - would replace

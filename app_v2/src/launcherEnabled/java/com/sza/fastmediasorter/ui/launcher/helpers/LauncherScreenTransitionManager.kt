@@ -7,7 +7,6 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.AnimationPolicy
-import timber.log.Timber
 import java.util.Locale
 
 /**
@@ -54,12 +53,6 @@ class LauncherScreenTransitionManager(
      */
     fun transition(direction: Int, render: () -> Unit) {
         val distance = content.width.toFloat()
-        Timber.d(
-            "S2323: screen transition dir=%d width=%.0f animated=%b",
-            direction,
-            distance,
-            AnimationPolicy.isAnimationAllowed && distance > 0f,
-        )
         // Before the first layout pass the container has no width, so there is no distance to travel and
         // the slide would be a flicker at zero offset. Rebinding alone is the honest answer there.
         if (AnimationPolicy.isAnimationAllowed && distance > 0f) {

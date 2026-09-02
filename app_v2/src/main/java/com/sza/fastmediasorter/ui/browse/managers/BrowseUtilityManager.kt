@@ -45,7 +45,6 @@ class BrowseUtilityManager(
         val fileCount = when {
             state.loadingProgress > 0 -> " (${state.loadingProgress}...)" // Show progress during scan
             totalFileCount != null -> {
-                Timber.d("S1994: resource file count=$totalFileCount")
                 " (" + context.resources.getQuantityString(
                     R.plurals.file_count_format_plural,
                     totalFileCount,

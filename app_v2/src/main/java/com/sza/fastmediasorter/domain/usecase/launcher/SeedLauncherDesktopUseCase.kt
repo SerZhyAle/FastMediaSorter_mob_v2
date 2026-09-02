@@ -93,7 +93,6 @@ class SeedLauncherDesktopUseCase @Inject constructor(
                 GmsAvailabilityChecker.Status.UPDATE_REQUIRED -> true
                 GmsAvailabilityChecker.Status.UNAVAILABLE -> false
             }
-            Timber.d("S2015: Seed desktop profile=%s googleServices=%b", profile, googleServicesAvailable)
             // S1613: behind the same early exit, so a desktop that will not be seeded never pays for it.
             val importedShortcuts = appShortcuts.allPinned().map { shortcut ->
                 LauncherStarterSets.StarterItem(
@@ -115,8 +114,6 @@ class SeedLauncherDesktopUseCase @Inject constructor(
             // S2309: read behind the same already-seeded early exit as every other probe above, so a
             // desktop that will not be seeded never pays for it (strategic §3.2).
             val screenClass = deviceScreenClass()
-            Timber.d("S2309: composing starter desktop for %s on %s", profile, screenClass)
-            logCoreResourceProbe(starterResources)
 
             val items = LauncherStarterSets.itemsFor(
                 profile,
@@ -184,21 +181,6 @@ class SeedLauncherDesktopUseCase @Inject constructor(
             allFilesId = allFilesId,
             lastResourceId = lastResourceId,
             userResourceIds = userResourceIds,
-        )
-    }
-
-    /**
-     * S2321 probe: the ids the core-resource group received, so a device log separates "the aggregates
-     * were resolved and seeded" from "the seed never reached them" - the distinction the reported clean
-     * install turned on, since a truncated desktop and an unseeded one look identical on screen.
-     */
-    private fun logCoreResourceProbe(resources: LauncherStarterSets.StarterResources) {
-        Timber.d(
-            "S2321: core resources docs=%s camera=%s allFiles=%s userTail=%d",
-            resources.allDocsId,
-            resources.cameraId,
-            resources.allFilesId,
-            resources.userResourceIds.size,
         )
     }
 

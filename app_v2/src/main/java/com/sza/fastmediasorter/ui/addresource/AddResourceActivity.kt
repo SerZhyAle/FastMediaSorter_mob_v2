@@ -262,7 +262,6 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             showCloudStorageOptions()
         }
         binding.cardStream.setOnClickListener {
-            Timber.d("S2085: cardStream clicked -> opening ResourceEditor for HTTP_STREAM")
             com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("StreamCard", "AddResource")
             startActivity(
                 com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity.createAddIntent(

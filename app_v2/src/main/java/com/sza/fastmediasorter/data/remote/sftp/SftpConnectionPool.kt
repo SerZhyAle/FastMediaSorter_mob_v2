@@ -589,10 +589,6 @@ class SftpConnectionPool {
     ): ExoPlayerConnection {
         pooled.activeBorrowCount.incrementAndGet()
         playbackOwners[channel] = pooled
-        val claimedSlots = pooled.pooledChannels.count {
-            it.purpose == ChannelPurpose.PLAYBACK && it.playbackClaimed.get()
-        }
-        Timber.d("S2319: playback borrow how=$how claimedSlots=$claimedSlots")
         Timber.d("SFTP [PLAYBACK] acquired ($how) - active=${pooled.activeBorrowCount.get()} host=$host")
         return ExoPlayerConnection(pooled.session, channel)
     }

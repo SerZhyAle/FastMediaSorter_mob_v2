@@ -145,7 +145,6 @@ class VlcPlaybackEngine @Inject constructor(
      */
     private fun requireLibVlc(): LibVLC {
         libVlc?.let { return it }
-        Timber.d("S1971: attaching delivered libVLC payload before LibVLC construction")
         try {
             nativeLibraryLoader.load(DeliverableSet.VLC_ENGINE)
         } catch (e: IOException) {

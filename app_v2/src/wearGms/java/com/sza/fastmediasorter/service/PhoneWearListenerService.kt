@@ -258,7 +258,6 @@ class PhoneWearListenerService : WearableListenerService() {
                     envelope.data.decodeToString(),
                     WearSettingsPayload::class.java
                 )
-                Timber.d("S2093: phone merging watch report, skew=${receivedAtEpochMillis - envelope.sentAt}ms")
                 val merged = mergeWearSettingsReportUseCase(payload, envelope.sentAt, receivedAtEpochMillis)
                 WearSyncEvents.emitWatchSettingsMerged(merged)
             } catch (e: Exception) {
@@ -413,7 +412,6 @@ class PhoneWearListenerService : WearableListenerService() {
     private fun handleOpenOnPhone(nodeId: String, data: ByteArray) {
         applicationScope.launch {
             val request = parseOpenOnPhoneRequest(data) ?: return@launch
-            Timber.d("S2004: phone received an open request for %s", request.displayName)
             val approved = openPhoneResourceChannelUseCase(openRequestFor(request.token))
             val outcome = if (approved is PhoneResourceChannel.Approved) {
                 showOrAnnounce(request, approved)

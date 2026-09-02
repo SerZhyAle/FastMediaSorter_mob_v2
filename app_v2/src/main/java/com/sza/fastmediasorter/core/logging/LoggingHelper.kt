@@ -161,7 +161,6 @@ object LoggingHelper {
         crashHandlerInstalled = true
         // Read before the new handler exists, so it can never resolve to the handler installed below.
         val previous = Thread.getDefaultUncaughtExceptionHandler()
-        Timber.d("S2343: crash handler installed, previous=${previous?.javaClass?.simpleName ?: "none"}")
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
             fileLoggingTree?.writeCrashSynchronously(thread, throwable)
             previous?.uncaughtException(thread, throwable)

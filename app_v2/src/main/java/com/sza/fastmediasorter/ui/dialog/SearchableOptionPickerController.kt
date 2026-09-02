@@ -21,7 +21,6 @@ import com.sza.fastmediasorter.databinding.ItemSearchableOptionBinding
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.LeadingVisual
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.Option
 import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
-import timber.log.Timber
 import java.util.Locale
 
 /**
@@ -151,7 +150,6 @@ object SearchableOptionPickerController {
                     if (recycler.height == 0) return
                     recycler.viewTreeObserver.removeOnGlobalLayoutListener(this)
                     val overflows = recycler.computeVerticalScrollRange() > recycler.height
-                    Timber.d("S2178: option picker search and divider visible=$overflows")
                     searchLayout.isVisible = overflows
                     divider?.isVisible = overflows
                 }
@@ -240,7 +238,6 @@ object SearchableOptionPickerController {
                     // cleared here - left set, it would repaint the next row's app icon/thumbnail/brand
                     // logo one flat colour.
                     val applyTint = leading is LeadingVisual.IconRes && leading.tintIcon
-                    Timber.d("S2062: picker row leading visual tinted=$applyTint")
                     icon.imageTintList = if (applyTint) {
                         ColorStateList.valueOf(
                             MaterialColors.getColor(icon, com.google.android.material.R.attr.colorOnSurfaceVariant)

@@ -176,7 +176,6 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
             Toast.makeText(act, R.string.s2283_apk_download_in_progress, Toast.LENGTH_SHORT).show()
             return
         }
-        Timber.d("S2283: start download for %s", file.name)
 
         val cacheApkDir = File(context.cacheDir, "apk_install").apply { mkdirs() }
         val cacheApkFile = File(cacheApkDir, file.name)
@@ -189,14 +188,12 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
             context = act,
             operationType = act.getString(R.string.s0266_apk_download_preparing),
             onCancel = {
-                Timber.d("S2283: User cancelled cloud APK download for ${file.name}")
                 downloadJob?.cancel()
                 if (cacheApkFile.exists()) {
                     cacheApkFile.delete()
                 }
             },
             onBackground = {
-                Timber.d("S2283: User backgrounded cloud APK download for ${file.name}")
                 Toast.makeText(act, R.string.browse_transfer_sent_to_background, Toast.LENGTH_SHORT).show()
             },
             showImmediately = true,

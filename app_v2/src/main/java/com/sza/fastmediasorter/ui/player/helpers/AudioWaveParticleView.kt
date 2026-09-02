@@ -367,7 +367,6 @@ class AudioWaveParticleView @JvmOverloads constructor(
                 pendingStart = false
                 initParticles(w, h)
                 wavePaint.strokeWidth = waveStrokeWidth
-                Timber.d("S2206: AudioWaveParticleView startAnimation with TIME_INCREMENT=$TIME_INCREMENT")
                 animator.start()
                 // S1277: covers the ordering where the host starts the animation after layout -
                 // onSizeChanged already painted its frame with the previous session's palette,

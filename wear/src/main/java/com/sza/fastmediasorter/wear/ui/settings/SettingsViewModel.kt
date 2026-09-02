@@ -282,7 +282,6 @@ class SettingsViewModel @Inject constructor(
     fun syncSettings() {
         if (_uiState.value.isSyncing) return
         _uiState.value = _uiState.value.copy(isSyncing = true)
-        Timber.d("S2093: watch sync button pressed, lastSync=${_uiState.value.lastSyncedAtEpochMillis}")
         viewModelScope.launch {
             reportWearSettingsUseCase()
             _uiState.value = _uiState.value.copy(isSyncing = false)

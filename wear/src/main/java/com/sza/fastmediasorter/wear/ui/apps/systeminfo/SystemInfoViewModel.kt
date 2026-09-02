@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -29,7 +28,6 @@ class SystemInfoViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             val sections = gatherWearSystemInfo()
-            Timber.d("S2008: system info opened from Apps, ${sections.size} section(s)")
             state.value = SystemInfoUiState(loading = false, sections = sections)
         }
     }

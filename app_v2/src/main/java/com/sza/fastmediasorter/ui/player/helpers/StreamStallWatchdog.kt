@@ -46,7 +46,6 @@ internal fun VideoPlayerManager.checkStreamStall() {
     when (outcome) {
         is StreamStallOutcome.Stalled -> recoverFromStreamStall(outcome.reason.diagnostic)
         StreamStallOutcome.Suspended -> {
-            Timber.d("S2254: video output unavailable; watchdog poll suspended path=%s", currentFilePath)
             rescheduleStreamStallPoll()
         }
         is StreamStallOutcome.NoEvidence -> {

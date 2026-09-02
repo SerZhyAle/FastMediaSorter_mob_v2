@@ -21,7 +21,6 @@ class WearUploadOutcomeNotifier @Inject constructor(
 ) {
 
     fun notifyUploadFailed(fileName: String, destination: String): Boolean {
-        Timber.d("S2231: notifyUploadFailed uses Wear status-bar icon")
         if (!canPostNotification()) {
             Timber.w("WearUploadOutcomeNotifier: notification permission denied or disabled")
             return false

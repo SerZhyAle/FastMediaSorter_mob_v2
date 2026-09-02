@@ -219,7 +219,6 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
 
     /** S2256: true even when the seam declines - an absent launcher degrades to a silent no-op. */
     private fun launchAllApps(context: Context): Boolean {
-        Timber.d("S2256: OPEN_ALL_APPS dispatched from a gesture")
         if (!launcherModeContract.openAllApps(context)) {
             Timber.i("ScreenshotGestureActionDispatcher: OPEN_ALL_APPS unavailable on this build")
         }

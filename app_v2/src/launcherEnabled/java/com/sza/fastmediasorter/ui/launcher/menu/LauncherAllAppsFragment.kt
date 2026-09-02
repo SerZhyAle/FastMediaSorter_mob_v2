@@ -37,7 +37,6 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAppActionMenuManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -219,7 +218,6 @@ class LauncherAllAppsFragment : DialogFragment() {
             LauncherAllAppsGestureManager.DesktopSwipeDirection.LEFT -> LauncherAllAppsSwipeDirection.LEFT
             LauncherAllAppsGestureManager.DesktopSwipeDirection.RIGHT -> LauncherAllAppsSwipeDirection.RIGHT
         }
-        Timber.d("S2304: all apps swipe recognized direction=%s", slot)
         val settings = viewModel.appSettings.value
         viewLifecycleOwner.lifecycleScope.launch {
             handler.handle(slot.actionOf(settings), slot.payloadOf(settings))

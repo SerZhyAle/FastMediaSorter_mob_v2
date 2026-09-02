@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.sza.fastmediasorter.wear.util.GridColumnFit
-import timber.log.Timber
 
 private val ROW_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
 
@@ -27,7 +26,6 @@ fun packSettingsRows(
     items: List<WearSettingsItem>,
     columns: Int
 ): List<List<WearSettingsItem>> {
-    Timber.d("S1949: packSettingsRows columns=$columns items=${items.size}")
     if (columns <= 1) {
         return items.map { listOf(it) }
     }

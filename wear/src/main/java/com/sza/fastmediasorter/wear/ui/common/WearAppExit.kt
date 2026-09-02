@@ -20,7 +20,6 @@ internal fun rememberCloseAppAction(): () -> Unit {
     val context = LocalContext.current
     return remember(context) {
         {
-            Timber.d("S1975: close command tapped on home, removing the task")
             val activity = context as? Activity
             if (activity == null) {
                 // Having no host to finish is a real state, not a swallowed failure - name it.

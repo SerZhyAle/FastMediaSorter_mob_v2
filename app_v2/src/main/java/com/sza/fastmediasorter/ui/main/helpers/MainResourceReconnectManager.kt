@@ -48,7 +48,6 @@ class MainResourceReconnectManager(
     /** Opens the system folder picker for [resource], starting in its current folder when it resolves. */
     fun request(resource: MediaResource) {
         pending = Pending(resource.id, resource.path)
-        Timber.d("S2370: reconnect requested, resource=%d", resource.id)
         launchPicker(initialLocationFor(resource.path))
     }
 
@@ -57,7 +56,6 @@ class MainResourceReconnectManager(
         val target = pending
         if (uri == null || target == null) {
             pending = null
-            Timber.d("S2370: folder picker dismissed, nothing changed")
             return
         }
         takePersistableGrant(uri)
@@ -85,7 +83,6 @@ class MainResourceReconnectManager(
         outState.putString(KEY_PENDING_PATH, target.path)
         target.pickedUriString?.let { outState.putString(KEY_PICKED_URI, it) }
         target.pickedPath?.let { outState.putString(KEY_PICKED_PATH, it) }
-        Timber.d("S2374: reconnect pending saved, resource=%d", target.resourceId)
     }
 
     /**
@@ -112,7 +109,6 @@ class MainResourceReconnectManager(
             confirmDifferentFolder(target, uri, pickedPath)
         } else {
             pending = Pending(resourceId, path)
-            Timber.d("S2374: reconnect pending restored, resource=%d", resourceId)
         }
     }
 
@@ -178,7 +174,6 @@ class MainResourceReconnectManager(
 
     private fun proceed(target: Pending, uri: Uri) {
         pending = null
-        Timber.d("S2370: reconnecting resource=%d", target.resourceId)
         onReconnect(target.resourceId, uri)
     }
 

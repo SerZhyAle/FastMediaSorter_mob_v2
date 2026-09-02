@@ -122,7 +122,6 @@ class VoiceRecordingService : Service() {
     }
 
     private fun handleStart() {
-        Timber.d("S1862: recording start requested")
         if (recorder != null) {
             Timber.i("Ignoring a start: the microphone session is already open")
             return
@@ -238,7 +237,6 @@ class VoiceRecordingService : Service() {
      */
     private suspend fun storeNote(file: File, durationMillis: Long) {
         val policy = readSendPolicy()
-        Timber.d("S1862: note stored, send policy is %s", policy)
         val initialState = when (policy) {
             VoiceNoteSendPolicy.AUTOMATIC -> VoiceNoteDeliveryState.PENDING
             VoiceNoteSendPolicy.MANUAL -> VoiceNoteDeliveryState.LOCAL_ONLY

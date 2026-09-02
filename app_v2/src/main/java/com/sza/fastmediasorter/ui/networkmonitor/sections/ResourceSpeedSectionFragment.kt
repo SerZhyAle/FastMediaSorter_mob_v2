@@ -15,7 +15,6 @@ import com.sza.fastmediasorter.databinding.FragmentNetworkMonitorResourceSpeedBi
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import java.util.Locale
 
 @AndroidEntryPoint
@@ -104,12 +103,10 @@ class ResourceSpeedSectionFragment : Fragment() {
         // Rebuilding on every emission would tear the open dialog down mid-answer, so an existing one stands.
         if (meteredDialog != null) return
 
-        Timber.d("S2348: raising the metered confirmation dialog")
         meteredDialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.network_monitor_warn_metered_title)
             .setMessage(R.string.network_monitor_warn_metered_message)
             .setPositiveButton(R.string.network_monitor_action_continue) { _, _ ->
-                Timber.d("S2348: user accepted the metered cost, restarting with allowMetered = true")
                 viewModel.startSpeedTest(getNetworkLabel(), allowMetered = true)
             }
             .setNegativeButton(android.R.string.cancel) { _, _ -> viewModel.dismissMeteredWarning() }

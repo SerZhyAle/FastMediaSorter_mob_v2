@@ -42,7 +42,6 @@ import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.util.GridColumnFit
-import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 private const val APP_LABEL_MAX_LINES = 2
@@ -104,7 +103,6 @@ private fun ScalingLazyListScope.appItems(
             AppChip(app = app, onClick = { onAppClick(app) })
         }
     } else {
-        Timber.d("S2082: apps grid, columns=$columns, caption wraps to $APP_LABEL_MAX_LINES lines")
         items(apps.chunked(columns)) { rowApps ->
             AppRow(apps = rowApps, columns = columns, onAppClick = onAppClick)
         }

@@ -21,7 +21,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -73,7 +72,6 @@ class PerformWearFileOperationUseCase @Inject constructor(
      * from, so the request carries its address and the answer says what the phone did with it.
      */
     private suspend fun openOnPhone(file: WearMediaFile, token: String): WearFileOperationResult {
-        Timber.d("S2004: watch asks the phone to open %s", file.name)
         val outcome = openOnPhoneRepository.requestOpen(
             WearOpenOnPhoneRequest(token = token, displayName = file.name)
         )

@@ -40,7 +40,6 @@ class PlatformMapPlaceLabelProvider @Inject constructor(
         val zoom = OsmMapTileProvider.DEFAULT_ZOOM
         val latitude = WebMercatorTile.coarseLatitude(point.latitude, zoom)
         val longitude = WebMercatorTile.coarseLongitude(point.longitude, zoom)
-        Timber.d("S2297: geocoding tile centre $latitude,$longitude")
         // Broad on purpose, and the interface says so: the geocoder is an OEM system service that
         // answers with IllegalArgumentException on odd coordinates and DeadObjectException when it
         // dies, and a caption is never worth taking the home screen down for. Safe default plus a log.

@@ -455,7 +455,6 @@ class LauncherHomeViewModel @Inject constructor(
             // the first free square it finds can sit inside a collapsed section - where the render plan
             // drops the cell and the user is left with an item that was written and cannot be seen.
             id?.let { sections.revealSectionHolding(it) }
-            Timber.d("S2033: addCellInFirstFreeSlot id=%s", id)
             onPlaced(id != null)
         }
     }
@@ -527,13 +526,12 @@ class LauncherHomeViewModel @Inject constructor(
      */
     fun moveCellToScreen(cellId: Long, screenIndex: Int, columns: Int) {
         viewModelScope.launch {
-            val moved = desktopDependencies.desktopRepository.moveCellToScreen(
+            desktopDependencies.desktopRepository.moveCellToScreen(
                 orientation = _orientation.value,
                 cellId = cellId,
                 screenIndex = screenIndex,
                 columns = columns,
             )
-            Timber.d("S2301: moveCellToScreen id=%s screen=%d moved=%s", cellId, screenIndex, moved)
         }
     }
 
@@ -543,7 +541,6 @@ class LauncherHomeViewModel @Inject constructor(
             val removed = desktopDependencies.desktopRepository.removeSection(_orientation.value, cellId)
             removed.forEach(desktopDependencies.configuredWidgetInstances::clearInstanceOf)
             header?.let(sections::clear)
-            Timber.d("S2222: deleteSection id=%s removed=%d", cellId, removed.size)
         }
     }
 
@@ -551,8 +548,7 @@ class LauncherHomeViewModel @Inject constructor(
         viewModelScope.launch {
             val header = cells.value.find { it.cell.id == cellId }?.cell ?: return@launch
             sections.reveal(header)
-            val moved = desktopDependencies.desktopRepository.resortSection(_orientation.value, cellId, columns)
-            Timber.d("S2222: resortSection id=%s columns=%d moved=%s", cellId, columns, moved)
+            desktopDependencies.desktopRepository.resortSection(_orientation.value, cellId, columns)
         }
     }
 
@@ -611,7 +607,6 @@ class LauncherHomeViewModel @Inject constructor(
      */
     fun rememberWeatherLocation(encoded: String) {
         viewModelScope.launch {
-            Timber.d("S2213: weather place remembered outside the desktop cell")
             settingsRepository.updateSettings { it.withLauncher { copy(weatherLastLocation = encoded) } }
         }
     }
@@ -880,12 +875,6 @@ class LauncherHomeViewModel @Inject constructor(
             val heightColumns = LauncherGridGeometry.columns(heightDp, density)
             val portraitColumns = if (startedPortrait) widthColumns else heightColumns
             val landscapeColumns = if (startedPortrait) heightColumns else widthColumns
-            Timber.d(
-                "S2320: seeding desktop density=%s portraitColumns=%s landscapeColumns=%s",
-                density,
-                portraitColumns,
-                landscapeColumns,
-            )
             desktopDependencies.seedLauncherDesktop(portraitColumns, landscapeColumns)
             startShortcutSyncObservation()
         }
@@ -910,13 +899,11 @@ class LauncherHomeViewModel @Inject constructor(
     private suspend fun startShortcutSyncObservation() {
         if (shortcutSyncObservationStarted) return
         shortcutSyncObservationStarted = true
-        Timber.d("S2330: shortcut sync observation started after seeding")
 
         settingsRepository.getSettings()
             .map { desktopDependencies.syncEnabledToolShortcuts.launchableShortcutRoutes() }
             .distinctUntilChanged()
             .collect { routes ->
-                Timber.d("S2330: launchable shortcut route set changed, size=%d", routes.size)
                 desktopDependencies.syncEnabledToolShortcuts()
             }
     }

@@ -47,7 +47,6 @@ import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.wear.ui.settings.allowedContentTypes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
-import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
@@ -68,8 +67,6 @@ fun LocalHomeScreen(
     navController: NavController,
     settingsViewModel: SettingsViewModel = hiltViewModel()
 ) {
-    Timber.d("S2003: local categories - columns from the saved view mode, catalog glyphs")
-
     val settings by settingsViewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberScalingLazyListState()
 

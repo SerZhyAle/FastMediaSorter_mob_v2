@@ -298,7 +298,6 @@ private fun VideoPlayerContent(
         // S2250: the setting removes the fade, not the panel - the plain branch reaches the same
         // visible state in one frame, and hiding it still hides VideoControls with it.
         LaunchedEffect(uiState.animationsDisabled) {
-            if (uiState.animationsDisabled) Timber.d("S2250: Wear video controls transition skipped")
         }
         when {
             !uiState.animationsDisabled -> AnimatedVisibility(

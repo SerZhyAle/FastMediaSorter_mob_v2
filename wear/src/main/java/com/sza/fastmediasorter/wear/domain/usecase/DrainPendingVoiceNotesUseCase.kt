@@ -28,7 +28,6 @@ class DrainPendingVoiceNotesUseCase @Inject constructor(
 
     suspend operator fun invoke() {
         drainMutex.withLock {
-            Timber.d("S1862: draining pending voice notes")
             for (note in noteRepository.pendingNow()) {
                 val result = sendVoiceNoteUseCase(note.id)
                 if (result is VoiceNoteSendResult.PhoneUnreachable) {

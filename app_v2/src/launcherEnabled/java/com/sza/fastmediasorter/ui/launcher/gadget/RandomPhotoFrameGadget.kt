@@ -78,7 +78,6 @@ private class RandomPhotoFrameGadgetView(
             val stored = RandomPhotoFrameSnapshotStore.read(context, instance)
             if (stored.isConfigured) RandomPhotoFrameWidgetRefresher.refresh(context, instance) else stored
         }
-        Timber.d("S1930: frame cell token %d configured=%b", instance, snapshot.isConfigured)
         render(instance, snapshot)
     }
 

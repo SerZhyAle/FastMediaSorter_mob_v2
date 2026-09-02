@@ -1,7 +1,5 @@
 package com.sza.fastmediasorter.domain.ocr
 
-import timber.log.Timber
-
 /**
  * S1712 / S1717: the single place that decides whether a recognised fragment reaches the overlay, and the
  * single place that can say why one did not.
@@ -73,7 +71,6 @@ object OcrBlockFilter {
             block.boundingBox.height() < MIN_BOX_HEIGHT -> Verdict.BOX_TOO_SMALL
             else -> Verdict.ACCEPTED
         }
-        Timber.d("S1717: evaluated block text='%s' verdict=%s", block.text, verdict)
         return verdict
     }
 

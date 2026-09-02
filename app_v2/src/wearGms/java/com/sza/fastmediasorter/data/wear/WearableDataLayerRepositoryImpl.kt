@@ -54,7 +54,6 @@ class WearableDataLayerRepositoryImpl @Inject constructor(
             // state logged at ERROR paints every debug run on a Wear-less device red through the
             // debug notification tree. Mirrors isWatchReachable() in WearWatchMediaScannerImpl.
             Timber.i(e, "Connected-nodes query failed, treating the watch as absent")
-            Timber.d("S2365: connectedNodes query fell to the absence branch - logged at info")
             emptyList()
         }
     }

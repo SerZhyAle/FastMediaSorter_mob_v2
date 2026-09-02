@@ -73,7 +73,6 @@ class GeneralSettingsCacheHelper(
                 val audioMetaCacheDir = java.io.File(fragment.requireContext().filesDir, AudioMetadataCacheRepository.CACHE_DIR_NAME)
                 val totalSize = calculateDirectorySize(cacheDir) + calculateDirectorySize(audioMetaCacheDir)
                 val formattedSize = formatFileSize(fragment.requireContext(), totalSize)
-                Timber.d("S2351: settings cache size rendered as '$formattedSize'")
                 val audioMetaCacheSize = audioMetadataCacheRepository.getCacheSize()
                 withContext(Dispatchers.Main) {
                     binding.tvCacheSize.text = fragment.getString(R.string.cache_size_format, formattedSize)

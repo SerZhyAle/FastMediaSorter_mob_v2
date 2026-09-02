@@ -174,7 +174,6 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             dismiss()
             return
         }
-        Timber.d("S2017: launcher settings dialog opened")
         binding.btnClose.setOnClickListener { dismiss() }
         desktopSwipeSettingsManager = LauncherDesktopSwipeSettingsManager(
             host = this,
@@ -227,7 +226,6 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             isUpdating = { isUpdatingFromSettings },
             updateSettings = viewModel::updateSettings,
         )
-        Timber.d("S2255: launcher settings row managers attached")
         desktopSwipeSettingsManager?.registerAppPickerListener()
         allAppsSwipeSettingsManager?.registerAppPickerListener()
         setupCollapsibleSections()
@@ -257,7 +255,6 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             "launcher__appearance"
         )
         sectionsManager.register(binding.headerLauncherSystem, binding.containerLauncherSystem, "launcher__system")
-        Timber.d("S2252: launcher settings full-screen dialog registered 7 collapsible groups")
         expandRequestedSection()
     }
 
@@ -502,7 +499,6 @@ class LauncherSettingsDialogFragment : DialogFragment() {
                 settings.launcherDesktopDoubleTapLockEnabled,
             )
             val densityIndex = AppSettings.LAUNCHER_DENSITY_OPTIONS.indexOf(settings.launcherDensityFactor)
-            Timber.d("S2320: density row factor=%s idx=%s", settings.launcherDensityFactor, densityIndex)
             binding.rowLauncherDensity.setSelection(if (densityIndex >= 0) densityIndex else DENSITY_DEFAULT_INDEX)
             val screenCountIndex = (settings.launcherScreenCount - 1).coerceIn(0, MAX_SCREEN_COUNT_INDEX)
             binding.rowLauncherScreenCount.setSelection(screenCountIndex)
@@ -626,8 +622,6 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             kotlin.math.abs(it - settings.launcherWidgetBackdropAlpha) < OPTION_MATCH_EPSILON
         }
         val selected = if (index >= 0) index else BACKDROP_ALPHA_DEFAULT_INDEX
-        Timber.d("S2264: backdrop row alpha=%s idx=%s", settings.launcherWidgetBackdropAlpha, selected)
-        Timber.d("S2320: backdrop row alpha=%s idx=%s", settings.launcherWidgetBackdropAlpha, selected)
         binding.rowLauncherWidgetBackdropAlpha.setSelection(selected)
     }
 

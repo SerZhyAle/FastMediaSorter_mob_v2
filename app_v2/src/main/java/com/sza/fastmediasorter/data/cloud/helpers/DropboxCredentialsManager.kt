@@ -68,7 +68,6 @@ class DropboxCredentialsManager @Inject constructor(
 
     /** Load credentials, preferring the per-account key when [accountEmail] is given. */
     fun loadStoredCredentials(accountEmail: String? = null): String? {
-        Timber.d("S2115: dropbox credential load via manager, account=${accountEmail ?: "none"}")
         purgeLegacyPlaintextCredentials()
         return guardStorage("load", null) {
             val perAccount = if (accountEmail.isNullOrEmpty()) {

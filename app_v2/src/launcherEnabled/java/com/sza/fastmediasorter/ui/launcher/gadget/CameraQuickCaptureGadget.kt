@@ -71,7 +71,6 @@ private class CameraQuickCaptureGadgetView(
      */
     private fun onTap() {
         val instance = token ?: return
-        Timber.d("S1930: capture cell tapped, token %d", instance)
         val intent = if (CameraQuickCaptureWidgetProvider.isConfigured(context, instance)) {
             captureIntent(instance)
         } else {

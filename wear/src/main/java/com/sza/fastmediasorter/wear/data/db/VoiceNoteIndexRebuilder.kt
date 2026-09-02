@@ -69,7 +69,6 @@ class VoiceNoteIndexRebuilder @Inject constructor(
             }
         }
         Timber.i("Rebuilt the voice-note index: %d of %d recording(s) written", written, files.size)
-        Timber.d("S2356: index rebuild wrote %d row(s) from %d file(s) on disk", written, files.size)
         return written
     }
 

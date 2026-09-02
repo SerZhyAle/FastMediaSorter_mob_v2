@@ -132,7 +132,6 @@ class WearFolderWalkViewModel @Inject constructor(
     private fun load(offset: Int) {
         loadJob?.cancel()
         val address = trail.lastOrNull()?.address ?: startAddress
-        Timber.d("S2201: walk level depth=${trail.size} offset=$offset")
         if (offset == FIRST_OFFSET) {
             entries = emptyList()
             nextOffset = null

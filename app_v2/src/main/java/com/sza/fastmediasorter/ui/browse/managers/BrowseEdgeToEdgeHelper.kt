@@ -8,7 +8,6 @@ import androidx.core.view.updatePadding
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
 import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
-import timber.log.Timber
 
 /**
  * Applies edge-to-edge window insets to BrowseActivity layout.
@@ -19,18 +18,18 @@ import timber.log.Timber
 object BrowseEdgeToEdgeHelper {
 
     fun apply(binding: ActivityBrowseBinding) {
-        val topBarOrigPaddingLeft   = binding.layoutControls.paddingLeft
-        val topBarOrigPaddingTop    = binding.layoutControls.paddingTop
-        val topBarOrigPaddingRight  = binding.layoutControls.paddingRight
+        val topBarOrigPaddingLeft = binding.layoutControls.paddingLeft
+        val topBarOrigPaddingTop = binding.layoutControls.paddingTop
+        val topBarOrigPaddingRight = binding.layoutControls.paddingRight
         val topBarOrigPaddingBottom = binding.layoutControls.paddingBottom
 
         // S2368: layoutSearch is constrained to the same parent top as layoutControls and swaps
         // places with it, so it needs the same status-bar inset. Without it the overlay drew from
         // y=0 while the bar it replaces sat at y=147 - its close button landed inside the status
         // bar's own window, which consumed the touch, leaving no way to dismiss the search.
-        val searchOrigPaddingLeft   = binding.layoutSearch.paddingLeft
-        val searchOrigPaddingTop    = binding.layoutSearch.paddingTop
-        val searchOrigPaddingRight  = binding.layoutSearch.paddingRight
+        val searchOrigPaddingLeft = binding.layoutSearch.paddingLeft
+        val searchOrigPaddingTop = binding.layoutSearch.paddingTop
+        val searchOrigPaddingRight = binding.layoutSearch.paddingRight
         val searchOrigPaddingBottom = binding.layoutSearch.paddingBottom
 
         val fabOrigBottomMargin = (binding.fabScrollToBottom.layoutParams as? ViewGroup.MarginLayoutParams)
@@ -53,7 +52,6 @@ object BrowseEdgeToEdgeHelper {
                 searchOrigPaddingRight,
                 searchOrigPaddingBottom
             )
-            Timber.d("S2368: search overlay top inset applied - statusBarHeight=$statusBarHeight")
 
             val fabBottomMargin = fabOrigBottomMargin + navBar.bottom
             (binding.fabScrollToBottom.layoutParams as? ViewGroup.MarginLayoutParams)?.let {

@@ -46,7 +46,6 @@ import com.sza.fastmediasorter.wear.domain.calculator.WearCalculatorEngine
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
-import timber.log.Timber
 
 // S2007, owner ruling 2026-08-26: half the interactive minimum, deliberately. S1965 had raised this
 // to 48.dp because the KDoc and docs/WEAR_OS_STATUS.md both said 48 and the constant alone stood out
@@ -143,10 +142,9 @@ fun CalculatorScreen(
     var copyConfirmationShown by remember { mutableStateOf(false) }
 
     // Keyed on Unit so it marks entry into the screen, not every recomposition the keypad causes.
-    LaunchedEffect(Unit) { Timber.d("S2007: calculator opened - column keypad, red C/backspace, end-aligned value") }
     LaunchedEffect(
         Unit
-    ) { Timber.d("S2152: calculator opened - clear in value row, hugged labels, double-width equals") }
+    ) { }
 
     // S2007: no `scrollState` is handed to the scaffold. That parameter exists only to scroll
     // `TimeText` away, and the value row is fixed below the clock while the keypad scrolls beneath
@@ -168,7 +166,6 @@ fun CalculatorScreen(
                 // repeats an operation, it does not open a second way into the arithmetic.
                 onOperation = { symbol -> viewModel.onOperator(symbol) },
                 onCopy = { value ->
-                    Timber.d("S2152: result copied to clipboard, own confirmation on API < 33")
                     clipboard.setText(AnnotatedString(value))
                     // S2152 ADR-3: from API 33 the platform draws its own clipboard confirmation, and
                     // two confirmations of one action on a watch-sized screen read as a fault. Below
@@ -245,7 +242,6 @@ private fun CalculatorMenuOverlay(
     onClose: () -> Unit,
     onHistory: () -> Unit,
 ) {
-    LaunchedEffect(viewMode) { Timber.d("S2152: calculator menu opened in view mode $viewMode - memory group tinted") }
     CalculatorMenuSheet(
         memoryOccupied = memoryOccupied,
         viewMode = viewMode,

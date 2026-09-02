@@ -6,7 +6,6 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.LauncherAllAppsSwipeAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.util.showBoundTo
-import timber.log.Timber
 
 /**
  * S2304: presents the five actions the All apps panel offers, through the same grouped dialog the edge
@@ -35,7 +34,6 @@ class LauncherAllAppsSwipeActionPickerManager(
         current: LauncherAllAppsSwipeAction,
         onPicked: (LauncherAllAppsSwipeAction) -> Unit,
     ) {
-        Timber.d("S2304: all apps swipe picker opened, current=%s", current.persistedName)
         GesturePickerDialog(
             context = context,
             title = context.getString(R.string.launcher_all_apps_swipe_picker_title),

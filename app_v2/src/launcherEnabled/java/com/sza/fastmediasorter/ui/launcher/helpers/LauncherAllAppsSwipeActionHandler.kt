@@ -4,7 +4,6 @@ import android.app.Activity
 import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
 import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
 import com.sza.fastmediasorter.domain.model.LauncherAllAppsSwipeAction
-import timber.log.Timber
 
 /**
  * S2304: routes actions configured for directional swipes on the launcher All apps panel.
@@ -21,7 +20,6 @@ class LauncherAllAppsSwipeActionHandler(
 ) {
 
     suspend fun handle(action: LauncherAllAppsSwipeAction, payload: String) {
-        Timber.d("S2304: execute all apps swipe action=%s", action.persistedName)
         when (action) {
             LauncherAllAppsSwipeAction.BackToDesktop -> onBackToDesktop()
             LauncherAllAppsSwipeAction.ExpandAllApps -> onExpandAllApps()

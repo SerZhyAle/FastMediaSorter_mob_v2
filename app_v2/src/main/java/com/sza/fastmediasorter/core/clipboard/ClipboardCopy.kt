@@ -7,7 +7,6 @@ import android.os.Build
 import android.widget.Toast
 import androidx.core.content.getSystemService
 import com.sza.fastmediasorter.R
-import timber.log.Timber
 
 /**
  * S2192: the one way this app puts text on the system clipboard.
@@ -23,7 +22,6 @@ import timber.log.Timber
  * use for.
  */
 internal fun Context.copyTextToClipboard(label: String, text: String) {
-    Timber.d("S2192: copyTextToClipboard label=$label sdk=${Build.VERSION.SDK_INT}")
     val clipboard = getSystemService<ClipboardManager>() ?: return
     clipboard.setPrimaryClip(ClipData.newPlainText(label, text))
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {

@@ -26,7 +26,6 @@ import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
@@ -432,7 +431,6 @@ private fun StreamsStateBlock(
 ) {
     val failed = uiState.error != null
     val refreshLabel = stringResource(R.string.wear_streams_refresh)
-    LaunchedEffect(failed) { Timber.d("S2178: streams state block offset below the pinned row") }
     WearStateBlock(
         // S2178: the control header keeps painting over this branch, so the block centres its message
         // in the area below the row rather than in the whole screen. Passed as the caller's modifier

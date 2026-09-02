@@ -83,12 +83,10 @@ class ResetLauncherToDefaultsUseCase @Inject constructor(
             // before the rest of the inventory clears anything else.
             val clearedTargets = desktop.clearAll()
             clearedTargets.forEach { configuredWidgetInstances.clearInstanceOf(it) }
-            Timber.d("S2217: launcher reset cleared %d configured widget instance targets", clearedTargets.size)
             pins.clearPins()
             journal.clearJournal()
             installedApps.clearLaunchStats()
             shortcutSyncBaseline.clearSyncedRoutes()
-            Timber.d("S2330: launcher reset cleared the shortcut sync baseline")
 
             restoreLauncherSettings(densityFactor)
             storeLauncherWallpaperUseCase.clear()

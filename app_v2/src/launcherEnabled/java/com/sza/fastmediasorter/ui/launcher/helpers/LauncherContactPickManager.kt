@@ -95,10 +95,7 @@ class LauncherContactPickManager(
         ActivityResultContracts.RequestPermission(),
     ) {
         val action = stepState.readStep()
-        if (action == null) {
-            Timber.d("S2102: contacts answer arrived with no pending step")
-        } else {
-            Timber.d("S2102: contacts answer resumed step ${action.name}")
+        if (action != null) {
             pick(action)
         }
     }
@@ -177,7 +174,6 @@ class LauncherContactPickManager(
     private fun restoreChannelPicker(manager: FragmentManager): Boolean {
         val channels = stepState.readChannels()
         if (channels != null && manager.findFragmentByTag(TAG_CHANNEL) == null) {
-            Timber.d("S2102: reopening channel picker count=${channels.size}")
             showPicker(
                 R.string.launcher_contact_channel_title,
                 channelOptions(channels),
@@ -205,7 +201,6 @@ class LauncherContactPickManager(
         val nothingUp = manager.findFragmentByTag(TAG_SOURCE) == null &&
             manager.findFragmentByTag(LauncherPhoneNumberDialogFragment.TAG) == null
         if (nothingUp) {
-            Timber.d("S2102: reopening source picker")
             askNumberSource()
         }
     }
@@ -221,7 +216,6 @@ class LauncherContactPickManager(
      */
     private fun restoreMessengerPicker(manager: FragmentManager) {
         if (manager.findFragmentByTag(TAG_MESSENGER) != null) return
-        Timber.d("S2240: reopening messenger picker")
         askMessenger()
     }
 
@@ -347,11 +341,9 @@ class LauncherContactPickManager(
         // no filter, which is the pre-S2240 flow exactly - that is what keeps strategic acceptance
         // criterion 3 true on a device carrying no messenger at all.
         if (messengers.size < MIN_MESSENGERS_TO_ASK) {
-            Timber.d("S2240: messenger step skipped count=${messengers.size}")
             launchSystemPicker(LauncherContactAction.MESSAGE)
             return
         }
-        Timber.d("S2240: asking messenger count=${messengers.size}")
         showPicker(
             R.string.launcher_contact_messenger_title,
             messengerOptions(messengers),
@@ -389,12 +381,10 @@ class LauncherContactPickManager(
     private fun onMessengerPicked(pickedId: String?) {
         val action = stepState.readStep()
         if (pickedId == null || action != LauncherContactAction.MESSAGE) {
-            Timber.d("S2240: messenger pick dropped hasId=${pickedId != null} step=${action?.name}")
             return
         }
         // "Any app" is stored as no filter at all - absent and "do not narrow" are the same answer.
         val chosen = pickedId.takeIf { it != MESSENGER_ANY }
-        Timber.d("S2240: messenger pick narrowed=${chosen != null}")
         stepState.writeMessenger(chosen)
         launchSystemPicker(action)
     }
@@ -422,10 +412,8 @@ class LauncherContactPickManager(
     private fun onSourcePicked(pickedId: String?) {
         val action = stepState.readStep()
         if (pickedId == null || action == null) {
-            Timber.d("S2102: source pick dropped hasId=${pickedId != null} step=${action?.name}")
             return
         }
-        Timber.d("S2102: source pick $pickedId for step ${action.name}")
         when (pickedId) {
             SOURCE_PICK -> launchSystemPicker(action)
             SOURCE_MANUAL -> askNumber()
@@ -450,10 +438,8 @@ class LauncherContactPickManager(
     private fun onNumberEntered(number: String?) {
         val action = stepState.readStep()
         if (number == null || action == null) {
-            Timber.d("S2102: number entry dropped hasNumber=${number != null} step=${action?.name}")
             return
         }
-        Timber.d("S2102: number entry accepted step=${action.name} len=${number.length}")
         stepState.writeStep(null)
         // The number itself is user data and never reaches the log.
         onTargetPicked(
@@ -470,7 +456,6 @@ class LauncherContactPickManager(
         // durable value naming this leg - two that disagreed after a restore would be unresolvable.
         stepState.writeStep(null)
         writePendingAction(action)
-        Timber.d("S2099: stored pending contact action ${action.name}")
         try {
             systemPicker.launch(pickIntent(action))
         } catch (error: ActivityNotFoundException) {
@@ -483,13 +468,11 @@ class LauncherContactPickManager(
 
     private fun onPickResult(result: ActivityResult) {
         val action = readPendingAction()
-        Timber.d("S2099: pick result restored action ${action?.name}")
         writePendingAction(null)
         val picked = result.data?.data
         if (result.resultCode != Activity.RESULT_OK || picked == null) {
             // The one exit that says nothing to the user, so it has to say something to the log:
             // a cancelled picker and a picker that answered without a URI look identical from the grid.
-            Timber.d("S2107: pick dropped code=${result.resultCode} hasUri=${picked != null}")
             return
         }
         if (action == null) {
@@ -521,9 +504,7 @@ class LauncherContactPickManager(
             val messenger = stepState.readMessenger()
             // The authority, never the record: which provider answered the pick is the one fact that
             // separates "read the wrong URI" from "read it and got nothing", and it names no person.
-            Timber.d("S2107: resolving pick action=${action.name} authority=${picked.authority}")
             val outcome = resolvePick(action, picked, messenger)
-            Timber.d("S2107: pick outcome ${outcome::class.simpleName}")
             // S2240: the filter has done its work by here. Left in place it would silently narrow the
             // NEXT message cell the user pins to an app they chose for a different contact.
             stepState.writeMessenger(null)
@@ -546,17 +527,14 @@ class LauncherContactPickManager(
     ) {
         when (outcome) {
             is PickContactShortcutUseCase.Outcome.Ready -> {
-                Timber.d("S2107: handing target to add flow, action=${outcome.target.action.name}")
                 onTargetPicked(outcome.target)
             }
 
             is PickContactShortcutUseCase.Outcome.ChooseChannel -> {
-                Timber.d("S2107: choosing channel, count=${outcome.channels.size}")
                 chooseChannel(outcome.channels)
             }
 
             PickContactShortcutUseCase.Outcome.Unavailable -> {
-                Timber.d("S2107: pick unavailable for action=${action.name}")
                 // S2240: naming the chosen app separates "this person is not on that messenger" from
                 // "this person is in no messenger at all" - different facts, different things to do next.
                 if (messengerPackage == null) {
@@ -604,10 +582,8 @@ class LauncherContactPickManager(
         val channels = stepState.readChannels()
         val target = channels?.firstOrNull { it.target.messageDataId.toString() == pickedId }?.target
         if (target == null) {
-            Timber.d("S2102: channel pick unmatched stored=${channels?.size ?: -1}")
             return
         }
-        Timber.d("S2102: channel pick matched dataId=${target.messageDataId}")
         stepState.writeChannels(null)
         onTargetPicked(target)
     }

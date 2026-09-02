@@ -59,7 +59,6 @@ class SleepTimerManager(
             rotationAnimator?.cancel()
             rotationAnimator = null
             vinylView.rotation = 0f
-            Timber.d("S2250: vinyl rotation skipped")
             return
         }
 
@@ -187,7 +186,6 @@ class SleepTimerManager(
             player.volume = 1.0f
             sleepTimerBadge?.isVisible = false
             sleepTimer = null
-            Timber.d("S2250: sleep fade skipped")
             return
         }
 

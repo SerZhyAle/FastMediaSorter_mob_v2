@@ -90,8 +90,6 @@ class StreamsViewModel @Inject constructor(
                     withContext(Dispatchers.Default) { computeDisplayChannels(inputs) }
                 }
                 .collect { display ->
-                    Timber.d("S2146: projection sorted by ${projectionInputs.value.sortOrder} - ${display.size} rows")
-                    Timber.d("S2149: projection ready - ${display.size} rows off the drawing thread")
                     _uiState.update { it.copy(displayChannels = display) }
                 }
         }
@@ -152,7 +150,6 @@ class StreamsViewModel @Inject constructor(
         val topic = stored.topic
         val language = stored.language
 
-        Timber.d("S2146: restored selection sort=$sortOrder kind=$filterKind topic=$topic lang=$language")
         _uiState.update {
             it.copy(
                 sortOrder = sortOrder,
@@ -210,7 +207,6 @@ class StreamsViewModel @Inject constructor(
      * have hidden the second read from the next reader of the resume path.
      */
     fun refreshPinsAndUsage() {
-        Timber.d("S1954: streams screen re-reading pinned marks and play counts")
         viewModelScope.launch {
             val pinned = loadPinnedStreamIds()
             val usage = usageRepository.usageByIdentity()
@@ -246,14 +242,12 @@ class StreamsViewModel @Inject constructor(
     }
 
     fun setSelectedTopic(topic: String?) {
-        Timber.d("S1947: setSelectedTopic topic=$topic")
         _uiState.update { it.copy(selectedTopic = topic, showFilterDialog = false) }
         projectionInputs.update { it.copy(selectedTopic = topic) }
         viewModelScope.launch { preferencesRepository.setStreamsSelectedTopic(topic) }
     }
 
     fun setSelectedLanguage(language: String?) {
-        Timber.d("S1947: setSelectedLanguage language=$language")
         _uiState.update { it.copy(selectedLanguage = language, showFilterDialog = false) }
         projectionInputs.update { it.copy(selectedLanguage = language) }
         viewModelScope.launch { preferencesRepository.setStreamsSelectedLanguage(language) }
@@ -345,7 +339,6 @@ class StreamsViewModel @Inject constructor(
         favoritesRepository.getFavorites()
             .filter { it.sourceId == SOURCE_ID_STREAM }
             .mapTo(mutableSetOf()) { foldWearStreamIdentity(it.filePath) }
-            .also { Timber.d("S2039: streams list pinned identities $it") }
 }
 
 /**

@@ -106,7 +106,6 @@ fun BrowseScreen(
     val mediaTypeArg = backStackEntry.arguments?.getString(WearRoutes.ARG_MEDIA_TYPE)
     val sourceId = backStackEntry.arguments?.getString(WearRoutes.ARG_SOURCE_ID)
     val sourceName = backStackEntry.arguments?.getString(WearRoutes.ARG_SOURCE_NAME)
-    Timber.d("S2028: browse args mediaType=$mediaTypeArg sourceId=$sourceId")
 
     val mediaType = parseMediaType(mediaTypeArg)
 
@@ -648,7 +647,6 @@ private fun navigateToPlayer(
 ) {
     // The file's own mime type decides; the screen's media type answers only for an unknown one.
     val route = playerRouteFor(file.id, file.mimeType, mediaType)
-    Timber.d("S2005: media item tap routes to $route")
     Timber.d("Navigating to: $route for file: ${file.name} (mimeType: ${file.mimeType})")
     navController.navigate(route)
 }

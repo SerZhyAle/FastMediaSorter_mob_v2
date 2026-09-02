@@ -352,7 +352,6 @@ class BrowseViewModel @Inject constructor(
         // only point at which the types this route actually holds are known.
         refineRestore.consume(presentContentTypes())?.let { types ->
             _refineState.value = _refineState.value.copy(contentTypes = types)
-            Timber.d("S2199: wear browse restored types=$types of ${presentContentTypes()}")
         }
         republish()
     }
@@ -440,7 +439,6 @@ class BrowseViewModel @Inject constructor(
         val previous = _refineState.value
         val updated = transform(previous)
         _refineState.value = updated
-        Timber.d("S2136: browse refine q='${updated.searchQuery}' order=${updated.sortOrder}")
         // S2199: only the two choices the wearer made deliberately. The query and the three dialog
         // flags stay in memory: a restored query narrows the list on a word nobody can see, and a
         // restored flag would reopen a dialog the moment the screen is entered. The equality guard
@@ -449,7 +447,6 @@ class BrowseViewModel @Inject constructor(
             viewModelScope.launch {
                 preferencesRepository.setBrowseContentTypes(updated.contentTypes)
                 preferencesRepository.setBrowseSortOrder(updated.sortOrder)
-                Timber.d("S2199: wear browse persisted types=${updated.contentTypes} order=${updated.sortOrder}")
             }
         }
         republish()
@@ -579,7 +576,6 @@ class BrowseViewModel @Inject constructor(
     ) {
         operationJob?.cancel()
         operationJob = viewModelScope.launch {
-            Timber.d("S1863: start $operation over ${targets.size} file(s)")
             _operationRun.value = WearFileOperationRunState(
                 running = true,
                 total = targets.size,
@@ -599,7 +595,6 @@ class BrowseViewModel @Inject constructor(
             // Only a run that actually changed the directory invalidates the list on screen; a send
             // that left every file where it was would reload for nothing.
             val changed = _operationRun.value.results.any { it.outcome == WearFileOperationOutcome.SUCCEEDED }
-            Timber.d("S1863: finished ${_operationRun.value.results.size} result(s), changed=$changed")
             if (operation.mutatesList() && changed) {
                 loadMediaFiles()
             }

@@ -131,7 +131,6 @@ class NetworkSourcesViewModel @Inject constructor(
             try {
                 val nodes = Wearable.getNodeClient(context).connectedNodes.await()
                 if (nodes.isEmpty()) {
-                    Timber.d("S2275: sync refused - no connected node, showing localized reason")
                     _syncState.value = SyncState.Error(R.string.wear_sync_no_phone_paired)
                     Timber.w("requestSyncFromPhone: no connected nodes")
                     return@launch

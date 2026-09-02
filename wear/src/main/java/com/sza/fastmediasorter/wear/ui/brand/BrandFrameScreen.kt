@@ -20,7 +20,6 @@ import androidx.wear.compose.material.Text
 import coil.compose.AsyncImage
 import com.sza.fastmediasorter.wear.R
 import kotlinx.coroutines.delay
-import timber.log.Timber
 
 /**
  * S1981: how long the frame holds itself, in ms.
@@ -45,7 +44,6 @@ private val LOGO_WORDMARK_GAP = 16.dp
 @Composable
 fun BrandFrameScreen(onTimeout: () -> Unit) {
     LaunchedEffect(Unit) {
-        Timber.d("S2274: brand frame entered composition, drawing launcher icon")
         delay(BRAND_FRAME_DURATION_MS)
         onTimeout()
     }

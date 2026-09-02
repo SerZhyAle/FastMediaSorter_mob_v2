@@ -224,7 +224,6 @@ class MainActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
 
-        Timber.d("S1961: MainActivity onStart cancelling pending open notification")
         openOnWatchNotifier.cancel()
     }
 

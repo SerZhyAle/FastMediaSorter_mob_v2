@@ -13,7 +13,6 @@ import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.launcher.InstalledAppSortOrder
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSettings
-import timber.log.Timber
 
 /**
  * Owns persistence of launcher-mode desktop settings: grid density, taskbar composition and
@@ -273,10 +272,5 @@ object LauncherSettingsStore {
         preferences[KEY_LAUNCHER_WEATHER_LAST_LOCATION] = settings.launcherWeatherLastLocation
         preferences[KEY_LAUNCHER_STEPS_RESET_COUNT] = settings.launcherStepsResetCount
         preferences[KEY_LAUNCHER_STEPS_RESET_TIMESTAMP] = settings.launcherStepsResetTimestamp
-        Timber.d(
-            "S2243: persisted reset count=%d timestamp=%d",
-            settings.launcherStepsResetCount,
-            settings.launcherStepsResetTimestamp
-        )
     }
 }

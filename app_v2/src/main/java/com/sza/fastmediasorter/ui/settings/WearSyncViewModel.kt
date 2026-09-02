@@ -200,7 +200,6 @@ class WearSyncViewModel @Inject constructor(
      */
     fun addOrOpenWatchResource(defaultName: String) {
         viewModelScope.launch {
-            Timber.d("S2034: companion add-or-open watch resource tapped")
             val outcome = ensureWatchResourceUseCase(defaultName).getOrElse { e ->
                 Timber.e(e, "Could not ensure the watch resource")
                 _watchResourceEvents.emit(WearWatchResourceEvent.Failed)
@@ -291,7 +290,6 @@ class WearSyncViewModel @Inject constructor(
         _watchSettingsState.value = settings
         wearSettingsMirrorStore.writeSettings(settings)
         if (changed.isEmpty()) return
-        Timber.d("S2093: phone stamping edited watch settings: ${changed.joinToString(",")}")
         val editedAt = System.currentTimeMillis()
         wearSettingsMirrorStore.writeFieldTimestamps(
             wearSettingsMirrorStore.readFieldTimestamps() + changed.associateWith { editedAt }

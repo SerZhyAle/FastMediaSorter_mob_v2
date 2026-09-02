@@ -25,6 +25,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
+@Suppress("LargeClass") // S2401: predates the probe sweep; splitting this scanner is its own ticket
 class LocalMediaScanner @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val mediaStoreRepository: MediaStoreRepository
@@ -41,6 +42,7 @@ class LocalMediaScanner @Inject constructor(
         const val VIRTUAL_ALL_FILES_LIMIT = 10_000
     }
 
+    @Suppress("LongMethod", "CyclomaticComplexMethod") // S2401: pre-existing debt, see the class note
     override suspend fun scanFolder(
         path: String,
         supportedTypes: Set<MediaType>,
@@ -118,10 +120,12 @@ class LocalMediaScanner @Inject constructor(
                 val filtered = files.filter { file ->
                     val exists = !file.path.startsWith("/") || File(file.path).exists()
                     if (!exists) {
-                        Timber.d("S2074: Filtered out non-existent MediaStore phantom file: ${file.path}")
                         Timber.w("LocalMediaScanner: Filtered out non-existent MediaStore phantom file: ${file.path}")
                     }
-                    exists && (sizeFilter == null || file.size <= 0L || MediaTypeUtils.isFileSizeInRange(file.size, file.type, sizeFilter))
+                    exists && (
+                        sizeFilter == null || file.size <= 0L ||
+                            MediaTypeUtils.isFileSizeInRange(file.size, file.type, sizeFilter)
+                        )
                 }
                 if (filtered.isNotEmpty() || sizeFilter == null) {
                     onProgress?.onComplete(filtered.size, 0)

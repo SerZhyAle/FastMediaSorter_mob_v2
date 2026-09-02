@@ -241,7 +241,6 @@ object ScrollableTextDialog {
                 // S2358: bound to the host - a destroyed activity has nowhere to receive the intent,
                 // so packaging the ZIP for it is wasted work that also outlives its own context.
                 context.launchBoundToHost {
-                    Timber.d("S2358: dialog crash-report send started on the host lifecycle")
                     val zipUri = withContext(Dispatchers.IO) { LogExportHelper.buildLogsZipUri(context) }
                     // Email-first with share-sheet fallback; previously createChooser stripped the
                     // mailto selector and silently dropped the recipient for non-email targets.
@@ -287,7 +286,6 @@ object ScrollableTextDialog {
         // must not truncate the write and leave an IS_PENDING row behind in Downloads; the app context
         // also keeps the host activity out of the reference held for the duration.
         val appContext = context.applicationContext
-        Timber.d("S2358: saveErrorToFile entered - write goes to the application scope")
         appContext.applicationScope().launch {
             try {
                 val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())

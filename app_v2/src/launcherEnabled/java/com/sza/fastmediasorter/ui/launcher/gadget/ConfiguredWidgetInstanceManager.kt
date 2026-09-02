@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.launcher.gadget
 import android.content.Context
 import com.sza.fastmediasorter.domain.launcher.ConfiguredWidgetInstanceCleaner
 import dagger.hilt.android.qualifiers.ApplicationContext
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -34,7 +33,6 @@ class ConfiguredWidgetInstanceManager @Inject constructor(
     override fun clearInstanceOf(target: String?) {
         val decoded = gadgetRegistry.decodeTarget(target) ?: return
         val token = ConfigurableWidgetCatalog.tokenOf(decoded.second) ?: return
-        Timber.d("S1930: clear instance %s token %d", decoded.first, token)
         ConfigurableWidgetCatalog.clearInstance(context, decoded.first, token)
     }
 }

@@ -6,7 +6,6 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.util.showBoundTo
-import timber.log.Timber
 
 /**
  * Builds the per-direction screenshot-gesture action picker and maps actions to labels.
@@ -71,7 +70,6 @@ class ScreenshotGestureActionPickerManager(
         current: ScreenshotGestureAction,
         onPicked: (ScreenshotGestureAction) -> Unit
     ) {
-        Timber.d("S2256: edge picker opened, launcher route available=%s", launcherRouteAvailable)
         GesturePickerDialog(
             context = context,
             title = context.getString(R.string.setting_screenshot_gesture_action_dialog_title),

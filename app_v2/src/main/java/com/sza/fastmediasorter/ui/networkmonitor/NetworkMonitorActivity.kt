@@ -17,7 +17,6 @@ import com.sza.fastmediasorter.ui.networkmonitor.helpers.NetworkMonitorSectionNa
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 /**
  * S1433: host of the Network Monitor program.
@@ -127,7 +126,6 @@ class NetworkMonitorActivity : BaseActivity<ActivityNetworkMonitorBinding>(), Ne
     }
 
     private fun navigateUpOrFinish() {
-        Timber.d("S2236: monitor Back launcherOrigin=%s", intent.hasNetworkMonitorLauncherOrigin())
         if (navigator.canGoBack()) {
             navigator.returnToSummary()
             return

@@ -265,7 +265,6 @@ class FileInfoDialog(
                 R.string.video_bitrate_label,
                 String.format(Locale.getDefault(), "%.2f", mediaFile.videoBitrate / BITS_PER_MBIT)
             )
-            Timber.d("S2349: video bitrate row -> '${binding.tvVideoBitrate.text}'")
             binding.tvVideoBitrate.visibility = View.VISIBLE
         } else {
             binding.tvVideoBitrate.visibility = View.GONE
@@ -693,7 +692,7 @@ class FileInfoDialog(
         ExifInterface.ORIENTATION_TRANSVERSE -> context.getString(R.string.exif_orientation_mirror_rotate_90)
         ExifInterface.ORIENTATION_ROTATE_270 -> context.getString(R.string.exif_orientation_rotate_270)
         else -> context.getString(R.string.exif_orientation_unknown, orientation)
-    }.also { Timber.d("S2354: formatOrientation($orientation) -> '$it' (locale=${Locale.getDefault()})") }
+    }
 
     /**
      * Format GPS coordinates for display. S2352.
@@ -715,7 +714,7 @@ class FileInfoDialog(
             latDirection,
             String.format(Locale.getDefault(), "%.6f", Math.abs(longitude)),
             lonDirection
-        ).also { Timber.d("S2352: formatGPS -> '$it' (locale=${Locale.getDefault()})") }
+        )
     }
 
     /** Euclid GCD - used to simplify aspect ratio (e.g. 1920x1080 → 16:9) */

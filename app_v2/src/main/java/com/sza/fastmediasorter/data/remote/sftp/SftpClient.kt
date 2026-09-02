@@ -196,7 +196,6 @@ class SftpClient @Inject constructor(
             val allFiles = mutableListOf<SftpFileListing>()
             if (recursive) {
                 val skipped = mutableListOf<String>()
-                Timber.d("S2315: recursive SFTP walk entered for '$remotePath'")
                 listFilesRecursive(channel, remotePath, allFiles, skipped)
                 if (skipped.isNotEmpty()) {
                     Timber.w(
@@ -503,8 +502,7 @@ class SftpClient @Inject constructor(
                 // reserve backoff for genuinely transient server errors.
                 if (!lastWasDeadTransport) {
                     delay(retryDelaysMs[attempt - 1])
-                } else {
-                }
+}
             }
 
             val result = withConnection(connectionInfo) { channel ->

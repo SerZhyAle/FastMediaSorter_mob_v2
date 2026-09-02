@@ -57,7 +57,6 @@ class WearLocalFolderRepositoryImpl(
     override suspend fun listLevel(address: WearFolderAddress, offset: Int): Result<WearFolderPage> =
         withContext(Dispatchers.IO) {
             try {
-                Timber.d("S2201: listing ${address::class.simpleName} offset=$offset")
                 Result.success(window(entriesOf(address), offset))
             } catch (e: CancellationException) {
                 // A cancelled walk is the caller leaving the screen, not a level that failed to read.

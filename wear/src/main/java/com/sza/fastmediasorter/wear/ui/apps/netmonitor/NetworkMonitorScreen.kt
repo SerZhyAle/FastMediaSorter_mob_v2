@@ -27,7 +27,6 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
-import timber.log.Timber
 
 private val PAGE_PADDING = 8.dp
 
@@ -88,7 +87,6 @@ fun NetworkMonitorScreen(
                     state = state,
                     canRequestPermissions = canRequestPermissions,
                     onRequestPermissions = {
-                        Timber.d("S2008: netmon permission request for ${requestable.size} permission(s)")
                         permissionsState.launchMultiplePermissionRequest()
                     },
                     modifier = Modifier.fillMaxSize().padding(PAGE_PADDING)
