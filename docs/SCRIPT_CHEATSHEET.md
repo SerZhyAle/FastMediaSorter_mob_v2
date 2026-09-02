@@ -3759,6 +3759,20 @@ scripts/release/capture-play-screenshots.ps1
     -List                 [SwitchParameter]
 ```
 
+### clear-play-listing-images.ps1
+Delete one image type from the Play store listing - a one-way write, gated by -Confirm.
+
+```
+scripts/release/clear-play-listing-images.ps1
+  Delete one image type from the Play store listing - a one-way write, gated by -Confirm.
+  Params:
+    -ImageType  (req)  [String]
+    -Locales           [String] = ''
+    -Confirm           [SwitchParameter]
+    -Package           [String] = 'com.sza.fastmediasorter'
+  Exit: 0 - the images were deleted (or, without -Confirm, the dry run reported what it would delete); 2 - could not verify: no virtual environment, no service-account key, or the API call failed; 3 - nothing to do: no image of that type exists in any requested locale
+```
+
 ### clear-play-track-release.ps1
 Remove the release records from one Google Play track - a one-way write, gated by -Confirm.
 
