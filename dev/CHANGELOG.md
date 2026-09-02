@@ -30102,3 +30102,4 @@ Format: | datetime | file | target | description |
 | 2026-09-02 20:27:10 | `PLAN/S2398_store-listing-launcher-screenshots.md` | `spec` | Scaffold strategic spec skeleton S2398 [branch: DEBUG-v036] |
 | 2026-09-02 20:27:52 | `scripts/release/clear-play-listing-images.ps1` | `release scripts` | Play listing images can be deleted per type - the recovery lever for a phone-only submission whose listing still carries Wear OS screenshots [set of 2: scripts/release/clear-play-listing-images.py] [branch: DEBUG-v036] |
 | 2026-09-02 20:28:52 | `docs/FEATURES.md` | `FEATURES` | Showcase update for v2.60.9021.951 from ALL_FEATURES diff [branch: DEBUG-v036] |
+| 2026-09-02 20:34:46 | `PLAN/S2399_showcase-update-belongs-to-pre-release.md` | `spec` | Scaffold specs S2399 (showcase before merge) and S2400 (background-eligible scripts) [branch: DEBUG-v036] |
