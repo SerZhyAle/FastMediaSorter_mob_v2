@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.wear.ui.player.video
 import com.sza.fastmediasorter.wear.domain.model.StreamChannelReason
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
+import com.sza.fastmediasorter.wear.util.formatWearDuration
 
 /**
  * UI state for the video player screen.
@@ -63,15 +64,8 @@ data class VideoPlayerUiState(
         get() = if (durationMs > 0) currentPositionMs.toFloat() / durationMs else 0f
 
     val currentPositionFormatted: String
-        get() = formatTime(currentPositionMs)
+        get() = formatWearDuration(currentPositionMs)
 
     val durationFormatted: String
-        get() = formatTime(durationMs)
-
-    private fun formatTime(ms: Long): String {
-        val totalSeconds = ms / 1000
-        val minutes = totalSeconds / 60
-        val seconds = totalSeconds % 60
-        return String.format("%d:%02d", minutes, seconds)
-    }
+        get() = formatWearDuration(durationMs)
 }

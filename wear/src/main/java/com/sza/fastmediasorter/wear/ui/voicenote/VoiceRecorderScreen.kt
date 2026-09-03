@@ -41,6 +41,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.domain.model.VoiceNote
 import com.sza.fastmediasorter.wear.domain.recorder.VoiceRecordingErrorReason
 import com.sza.fastmediasorter.wear.domain.recorder.VoiceRecordingState
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
@@ -65,6 +66,7 @@ private val TEXT_HORIZONTAL_PADDING = 8.dp
 @Composable
 fun VoiceRecorderScreen(
     navController: NavController,
+    onPlayNote: (VoiceNote) -> Unit = {},
     viewModel: VoiceRecorderViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -96,6 +98,17 @@ fun VoiceRecorderScreen(
                     onStart = viewModel::startRecording,
                     onStop = viewModel::stopRecording
                 )
+            }
+            // S2161: play-back control visible when idle and a note exists. Hidden while recording
+            // so the recording state's own controls stay unambiguous (strategic §5.3).
+            val recentNote = uiState.mostRecentNote
+            if (uiState.recording is VoiceRecordingState.Idle && recentNote != null) {
+                item {
+                    SecondaryChip(
+                        labelRes = R.string.wear_voice_note_play,
+                        onClick = { onPlayNote(recentNote) }
+                    )
+                }
             }
             if (!microphoneGranted) {
                 item { BlockerText(textRes = R.string.wear_voice_note_permission_required) }

@@ -66,15 +66,6 @@
             Mode   = 'Independent'
             Reason = 'Phone and watch background option labels use distinct localized phrasing.'
         },
-        # The cross-name pair. Phone key from S2000, watch key from S2093; the names
-        # differ because one is a section heading and the other a row label, and
-        # renaming either would touch 13 locale files for cosmetics alone.
-        @{
-            Phone  = 'wear_background_section_title'
-            Watch  = 'wear_setting_background_mode'
-            Mode   = 'Independent'
-            Reason = 'Phone section heading and watch row label use distinct localized phrasing.'
-        },
 
         # ---- Independent: the name collides, the wording is deliberately not shared ----
 
@@ -356,6 +347,53 @@
         @{
             Phone  = 'streams_rubric_world'
             Watch  = 'streams_rubric_world'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+
+        # ---- Mirrored: the settings group titles the companion window shows (S2169) ----
+        # The companion window mirrors the watch settings menu, so its subgroup headers must read
+        # exactly what the watch menu shows. The phone values are lifted verbatim from the watch in
+        # every locale, which is what a Mirrored pair demands.
+        @{
+            Phone  = 'wear_settings_group_media_types'
+            Watch  = 'media_types'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_settings_group_slideshow'
+            Watch  = 'slideshow_settings'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_settings_group_screen'
+            Watch  = 'screen_settings_title'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_settings_group_other'
+            Watch  = 'settings_group_other'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_settings_group_sections'
+            Watch  = 'wear_settings_sections'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_settings_disable_animations'
+            Watch  = 'pref_disable_animations'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_settings_background_mode'
+            Watch  = 'wear_setting_background_mode'
             Mode   = 'Mirrored'
             Reason = ''
         }

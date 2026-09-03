@@ -5,6 +5,24 @@ function Get-GateTelemetryPath {
     return Join-Path $repositoryRoot 'temp/metrics/gate-executions.jsonl'
 }
 
+# S2453: the name reserved for a whole runner's wall clock, distinct from any child gate. A doc
+# row like `a.ps1 fg | 32 s` is a claim about the batch, and since S2451 ran the children
+# concurrently the sum of their elapsedMs is no longer that number - so without this record the
+# headline figure the agent reads is the one thing the journal cannot answer.
+$script:GateTelemetryBatchName = '(batch)'
+
+function Write-GateBatchTelemetryRecord {
+    param(
+        [Parameter(Mandatory = $true)][string]$Runner,
+        [Parameter(Mandatory = $true)][int]$ExitCode,
+        [Parameter(Mandatory = $true)][int]$ElapsedMs
+    )
+
+    $status = switch ($ExitCode) { 0 { 'PASS' } 2 { 'MISSING' } default { 'FAIL' } }
+    Write-GateTelemetryRecord -Runner $Runner -Gate $script:GateTelemetryBatchName `
+        -Status $status -ExitCode $ExitCode -ElapsedMs $ElapsedMs
+}
+
 function Write-GateTelemetryRecord {
     param(
         [Parameter(Mandatory = $true)][string]$Runner,

@@ -50,7 +50,11 @@ function New-WearHalf {
         [string]$MigrationSql,
         [string]$SchemaColumnName,
         [bool]$Register,
-        [bool]$OmitSchemaDir
+        [bool]$OmitSchemaDir,
+        # S2355 step 04.0: plant a `const val version = 9` ABOVE the annotation. The gate must still
+        # read the annotated version - reading the decoy would compare every migration in the module
+        # against the wrong exported schema while printing PASS.
+        [bool]$DecoyVersionConstant
     )
     $wearDbDir = Join-Path $Sandbox 'wear/src/main/java/com/sza/fastmediasorter/wear/data/db'
     $wearDiDir = Join-Path $Sandbox 'wear/src/main/java/com/sza/fastmediasorter/wear/di'
@@ -61,10 +65,11 @@ function New-WearHalf {
     $hasMigration = -not [string]::IsNullOrWhiteSpace($MigrationSql)
     $wearVersion = if ($hasMigration) { 2 } else { 1 }
 
+    $decoy = if ($DecoyVersionConstant) { "const val version = 9$([Environment]::NewLine)" } else { '' }
     Set-Content -Path (Join-Path $wearDbDir 'WearVoiceNoteDatabase.kt') -Encoding utf8NoBOM -Value @"
 package com.sza.fastmediasorter.wear.data.db
 
-@Database(entities = [VoiceNoteEntity::class], version = $wearVersion, exportSchema = true)
+$decoy@Database(entities = [VoiceNoteEntity::class], version = $wearVersion, exportSchema = true)
 abstract class WearVoiceNoteDatabase
 "@
 
@@ -152,7 +157,8 @@ function New-Sandbox {
         [string]$WearMigrationSql,
         [string]$WearSchemaColumnName = 'transferState',
         [bool]$WearRegister = $true,
-        [bool]$OmitWearSchemaDir = $false
+        [bool]$OmitWearSchemaDir = $false,
+        [bool]$WearDecoyVersionConstant = $false
     )
     $sandbox = Join-Path ([System.IO.Path]::GetTempPath()) ('s2306-' + [System.IO.Path]::GetRandomFileName())
     $qualityDir = Join-Path $sandbox 'scripts/quality'
@@ -171,7 +177,7 @@ function New-Sandbox {
     }
 
     New-WearHalf -Sandbox $sandbox -MigrationSql $WearMigrationSql -SchemaColumnName $WearSchemaColumnName `
-        -Register $WearRegister -OmitSchemaDir $OmitWearSchemaDir
+        -Register $WearRegister -OmitSchemaDir $OmitWearSchemaDir -DecoyVersionConstant $WearDecoyVersionConstant
 
     Set-Content -Path (Join-Path $dbDir 'AppDatabase.kt') -Encoding utf8NoBOM -Value @'
 package com.sza.fastmediasorter.data.local.db
@@ -418,6 +424,19 @@ $cases = @(
         }
         Expect  = 2
         Contain = 'wear: registry SchemaDir does not exist'
+    },
+    @{
+        # S2355 step 04.0. Before the fix the version was read with a bare `version = (\d+)` over the
+        # whole source, so this decoy constant - sitting above the annotation - was taken as the
+        # declared version. The gate would then compare the module against a schema 9.json that does
+        # not exist, and the failure it reported would be about the wrong thing entirely.
+        Name    = 'a version constant above the annotation does not displace the annotated version'
+        Args    = @{ MigrationSql = 'ALTER TABLE `launcher_cells` ADD COLUMN `screenIndex` INTEGER NOT NULL DEFAULT 0'
+            SchemaColumnName = 'screenIndex'; SchemaNotNull = $true; SchemaDefault = '0'
+            WearDecoyVersionConstant = $true
+        }
+        Expect  = 0
+        Contain = 'wear version 1'
     }
 )
 

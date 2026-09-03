@@ -38,7 +38,7 @@ Measured on this host, 2026-08-01, warm daemon, configuration cache reused:
 
 | Target | Wall clock | Verdict |
 | --- | ---: | --- |
-| `a.ps1 fg` (fast static gates) | 18.9 s | foreground |
+| `a.ps1 fg` (fast static gates, 45 gates concurrent since S2451) | 32 s | foreground |
 | `assert-detekt.ps1 -Module app_v2` | 20.3 s | foreground |
 | `detekt-scoped.ps1 -ChangedFiles <1 file>` | 2.1 s | foreground |
 | `detekt-scoped.ps1 -ChangedFiles <2 files>` | 3.3 s | foreground |
@@ -47,12 +47,63 @@ Measured on this host, 2026-08-01, warm daemon, configuration cache reused:
 | `a.ps1 fk` | 14.1 s | foreground |
 | `a.ps1 fc` | 18.6 s | foreground |
 | `a.ps1 dq` | 18.4 s | foreground |
+| `a.ps1 faw` (S2355, compile wear instrumented set) | ~15 s | foreground |
 | `a.ps1 d` / `dav` / `r` / `fu` | not measured | background |
 | `a.ps1 fam` (S2306, migration tests ON a device) | not measured | background |
+| `a.ps1 fwm` (S2355, wear migration tests ON a device) | not measured | background |
 
 `fam` is the only target here that needs a connected device, and it is the only one that executes a Room
 migration anywhere outside a user's phone. `fa` compiles the same source set and runs nothing, so a green
 `fa` is not evidence about an upgrade - see `docs/DEV_OPS.md` "Database upgrade proof".
+
+Both device targets take `-DeviceId <serial>` (S2363), defaulting to `ANDROID_SERIAL`. Several devices
+attached and none named is a refusal listing them, not a run on each - a green line naming no device is
+what this ticket was opened over.
+
+### Verdict or work (S2400)
+
+The threshold above says *when* a call may go to the background. It does not say what to do with a call
+that is short on its own, forbidden to background, and repeated until it is long - which is how the
+release of 2.60.9021.951 waited on 187 consecutive `archive.ps1` runs whose only reader was the final
+report. Classify a call by the nature of its result, not by its name:
+
+- **Verdict**: its exit code branches the next action in the same turn - a gate, the closure facade, a
+  status mutator, `release-queue.ps1 -Ship` (its output names the tickets left unshipped). Always
+  foreground, and Rule 26's guard keeps it there.
+- **Work**: its result is read only later - by a report, by a step minutes away, by nobody. For work,
+  look for **one process instead of a loop first**, and only then for the background: a loop of N short
+  mutators pays N interpreter starts (0.27 s each, measured 2026-09-02) plus N full journal rewrites,
+  and a single batched call usually lands far below the threshold, which ends the question.
+
+The three calls the ticket measured, and where each landed:
+
+- `archive.ps1` takes a list of ids and archives it in one process under one catalog lock, with one
+  archive-journal write and one release-queue reconcile; release step 12c calls it once.
+- `catalog_sync.ps1` inside `post-change.ps1` stays after the gates. Since S1338 it already skips itself
+  when no source is newer than the index, so the 14 s it costs on a Kotlin closure is a real rebuild; it
+  sits after the gates because 430 failed closures once paid for an index nothing used, and running it
+  beside them would bring that back.
+- `release-queue.ps1 -Ship` is a verdict (see above) and stays foreground.
+
+**Round trips, not scripts, are what a skill waits on.** Measured 2026-09-02 on the live tree, the calls a
+ticket-bound skill makes while a spec is drafted, researched and documented are all short: `select.ps1`
+0.1 s, `ticket-lease.ps1` 0.1 s, every `document_registry` verb 0.0-0.2 s, `drift-check.ps1` 1.8 s,
+`spec-next-preflight.ps1` 3.8 s, `catalog_sync.ps1` 0.4 s when the index is fresh. What each one costs is
+the model turn that follows it, and a background task does not remove that turn - it moves it to the
+completion notice. So a preamble of four to six such calls is one process, not six background tasks:
+`scripts/spec_catalog/spec-preamble.ps1 -Id Sxxxx -Reason "<skill>" -ProductArea <a> -Trigger <t>`
+resolves the record, claims the lease, runs the drift check where the resume path needs it and answers
+both registry facets in one call, printing one block. The same rule sends research that needs no
+answer yet to a background subagent (`/spec` step 2, `/research` step 4) rather than to a longer wait.
+
+**A job longer than the session** has a third mode. The harness's background task dies with the session
+that started it, so a full Maestro sweep (about 30 minutes) cannot live there. Start it through
+`scripts/utils/start-detached.ps1 -Command <repository script path, or an exe name on PATH> -Arguments '<raw args>' -Ticket Sxxxx -Label <slug>`:
+a hidden, parent-independent process, stdout streaming into
+`temp/<Ticket|scratch>/detached-<label>-<stamp>.log`, stderr appended when it ends, and `<same>.done`
+holding `exit <code>`. `-Status <log>` prints `running` or `exit <code>`. It takes no build or code lock
+by itself; the caller acquires whatever the command needs. It is not for anything that fits the session -
+that keeps the harness's own completion notification.
 
 The script-suite runner splits across the threshold, which is why it has two call sites rather than one (S2122, measured 2026-08-27, 39 suites in the tree):
 
@@ -125,6 +176,12 @@ Since that measurement `fg` gained one gate: `assert-shared-test-flavor-scope` (
 
 S2103 then added four layer-import rules to `assert-source-gates`, measured 2026-08-27 on a warm cache as a paired run over the same 4930 files: 25 rules at 20432 ms against 29 rules at 21737 ms, so the four cost **1.3 s**. Two consecutive 25-rule runs read 20431 and 20432 ms, which is what makes that delta a measurement rather than noise. The cost is a regex pass over text the walk has already loaded - the roots were unchanged, so no file is read twice - and it leaves the batch near 21 s, still far below the 120 s threshold.
 
+S2451 then found the batch **past** the threshold, and the `fg` row above is the only one in the table not dated 2026-08-01: it is a fresh 2026-09-03 measurement. The growth the two paragraphs above track by the gate had continued unrecorded - 45 gates summing 142.8 s on 2026-09-03, and two consecutive foreground runs preempted into the background, which is the delivery Rule 26 exists to forbid. The cause was the schedule rather than the size: the children ran in a strict `foreach`, so the batch cost the sum of 45 independent read-only scans plus 45 interpreter starts, on a host with 20 logical cores of which one was busy. Running them concurrently measured **117 s -> 32 s** in one session on one tree (`-Sequential` preserves the old path and is what produced the 117 s), with the same 45 gates and the same verdicts. Rescoping the expensive gates to release scope under Rule 33 was considered and rejected: those gates judge exactly what the operator changed, so it would have paid coverage for a scheduling defect.
+
+The batch is now bounded below by its slowest single gate, `assert-source-gates` at 32 s - raising the concurrency further buys nothing. If `fg` approaches the threshold again, that gate's own cost is the next lever, not the schedule.
+
+S2453 then closed the loop that let this row go ~7x stale in silence: `scripts/quality/assert-gate-timing-claims.ps1` reads the figure out of the live table row and compares it against the same journal the gates already write, `temp/metrics/gate-executions.jsonl`. Both batch runners now add one record per run under the gate name `(batch)` - their own wall clock, which is what a row here claims and what the concurrent children's summed `elapsedMs` stopped being at S2451. The rules, each taken from the journal's own spread rather than chosen: the **median** over a **14-day** window, a floor of **5** executions before any verdict, fatal past **2x** the documented figure, and fatal on its own when the median crosses the 120 s threshold while the row still says `foreground` - that last case being the one this table exists to answer. A figure the target beat by more than half is advisory: the prose is pessimistic, which misleads more cheaply. A reworded row exits 2 rather than green, because an anchor that no longer matches means the check did not look. An absent journal is not a finding: it lives under `temp/`, which Rule 1 makes disposable, so a fresh clone and the release worktree have none and say `no telemetry` out loud. The claims themselves - the document, the anchor and the telemetry key, never a copy of the number - are `scripts/quality/gate-timing-claims.json`; the gate runs in release scope from `assert-release-scope-gates.ps1`. **So a row in this table is now load-bearing:** re-measure before editing one, because the next release reads it back.
+
 Two caveats, recorded rather than smoothed over:
 
 - The `fk` / `fc` / `dq` figures are runs that stopped at a **kapt failure** from another ticket's
@@ -191,6 +248,29 @@ Measured 3m 4s cold on `app_v2/Standard`, so background it per the 120 s rule ab
 `-Mode Assemble` (exit 2): packaging a release artifact needs the signing config and the release version
 stamp, both of which belong to the release worktree, and an unsigned artifact stamped like a real one is
 the S1873 failure.
+
+### The version a check carries is not the version a build carries (S1873)
+
+This is the difference that decides which of the two you should have reached for, and getting it
+wrong is what started S1873 on 2026-08-21.
+
+A **compile-only check** - every `f*` target on this page - packages nothing, so it deliberately
+keeps the frozen constants from the module's build file. That is what keeps it fast: a moving
+version changes `BuildConfig`, whose constants are inlined at every use site, so stamping a check
+would recompile everything downstream of it and invalidate its configuration-cache entry. Measured:
+3.3 s unstamped against 111 s stamped.
+
+Anything that produces an **installable artifact** carries its own build time instead, whether or
+not a wrapper script asked for it - the build stamps itself when the requested work packages
+something. The full scheme, both gates and the three-way resolution order are in
+[`DEV_OPS.md`](DEV_OPS.md) under "BUILD VERSIONING (S1873)".
+
+**The shape of the defect, so it is recognisable next time:** a file timestamp from minutes ago and
+a version string from days ago. On 2026-08-21 a `check-standard-fast -Mode Assemble` artifact was
+installed on a Galaxy Watch 7 and **lowered** the on-device version from `2.60.8210.016` to
+`2.60.8151.612`, requiring `adb install -d` - the owner believed he was testing fresh code for six
+days. If you install something and the version reads older than the change you just made, do not
+reason about it: run `scripts/quality/assert-artifact-version-fresh.ps1` against the artifact.
 
 ## Fast-path routing
 
@@ -318,6 +398,8 @@ Use:
 .\a.ps1 fw                          # Kotlin under wear/
 .\a.ps1 fwr                         # resources/manifest under wear/
 .\a.ps1 fwu                         # unit tests under wear/src/test
+.\a.ps1 faw                         # instrumented tests compile under wear/src/androidTest (S2355)
+.\a.ps1 fwm                         # Room migration tests run on connected watch (S2355)
 .\gradlew.bat :wear:assembleDebug   # only when packaging proof is the point
 ```
 
@@ -356,12 +438,12 @@ Reason: the noLegal graph intentionally avoids configuration-cache reuse.
 Prove each affected flavor with the same fast check, selected by `-Flavor`. No dedicated letter exists or is needed.
 
 ```powershell
-.\a.ps1 fc -Flavor Lite      # Standard | NoLegal | Lite | Photos | Legacy | Vr
+.\a.ps1 fc -Flavor Lite      # Standard | NoLegal | Lite | Photos | Legacy | Vr | Foss
 .\a.ps1 fc -Flavor Legacy    # the only path that compiles against minSdk 23
 .\a.ps1 fc -Flavor Vr        # the only path that compiles src/vr
 ```
 
-`-Flavor` works on `fk` and `fr` too, and every call takes the build lock of the module it checks - `Build.Phone` here, since all six flavors are one domain - so a spec demanding proof on "every affected variant" is satisfiable without a direct `gradlew` call. Run them one at a time: Rule 23 allows one gradle invocation per build domain, so six phone flavors are still six sequential calls, while a watch check may run beside any of them. Measured on a warm daemon: roughly 1-2.5 min per flavor, since each one owns its own configuration-cache entry.
+`-Flavor` works on `fk` and `fr` too, and every call takes the build lock of the module it checks - `Build.Phone` here, since every phone flavor is one domain - so a spec demanding proof on "every affected variant" is satisfiable without a direct `gradlew` call. Run them one at a time: Rule 23 allows one gradle invocation per build domain, so proving the whole phone set is one sequential call per flavor, while a watch check may run beside any of them. Measured on a warm daemon: roughly 1-2.5 min per flavor, since each one owns its own configuration-cache entry.
 
 Reason this is spelled out: the flag existed long before it was documented, and S1568 deferred its per-flavor validation on the assumption that no such command was available (S1589).
 
@@ -411,6 +493,7 @@ Move upward only when needed:
 | Wear-only Kotlin edit | `.\a.ps1 fw` | resources or tests also changed |
 | Wear-only resource/manifest edit | `.\a.ps1 fwr` | Kotlin also changed |
 | Wear-only logic change with tests | `.\a.ps1 fwu` | packaging proof needed - then `:wear:assembleDebug` |
+| Wear-only instrumented test edit | `.\a.ps1 faw` | execution on watch needed - then `.\a.ps1 fwm` |
 | Flavor-visible resources / flavor source sets | `.\a.ps1 fc -Flavor <name>` per affected flavor | packaging proof needed on that flavor |
 
 ## Anti-patterns

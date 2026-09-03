@@ -29,6 +29,7 @@
     stage - which would have made the whole relocation a downgrade (S1939 ADR-1).
 
     Gates (in order):
+      - assert-gate-timing-claims      (S2453 documented run times vs the gate telemetry journal)
       - assert-play-listing-locales    (S2340 Play listing locales vs locales_config.xml)
       - assert-unreferenced-strings    (S1568 string keys nothing under <module>/src references)
       - assert-splash-brand-sync       (S1706 generated splash drawables vs strings and template)
@@ -37,6 +38,7 @@
       - assert-device-profile-matrix   (S1216 device matrix, registry and applier agreement)
       - assert-source-gates            (S2110 every lexical ratchet baseline, over the whole tree)
       - run-script-suites              (S2122 every *.tests/Run-Tests.ps1 suite in the repository)
+      - assert-suite-tracked           (S2411 every discovered suite runner is in the git index)
 
     Deliberately NOT moved here: assert-oss-notices. It ships inside the package, so criteria 1
     and 2 hold - but its own wiring comment records that both of its findings ARE attributable to
@@ -55,6 +57,10 @@
 .PARAMETER Json
     Emit the per-gate result set as JSON instead of the human table.
 
+.PARAMETER ReuseFinding
+    Opt-in finding reuse (S2409): when an alive finding for gates:release-scope written by this session
+    exists, answer PASS immediately without re-running children.
+
 .PARAMETER Help
     Show help documentation and usage.
 
@@ -63,14 +69,15 @@
 
 .NOTES
     Exit codes (CLAUDE.md Rule 7):
-      0  every gate passed.
+      0  every gate passed (or reused this session's own green run under -ReuseFinding).
       1  at least one gate found a defect. The release does not ship until it is fixed.
       2  cannot verify - a gate script is missing from scripts/quality/.
 #>
 [CmdletBinding()]
 param(
     [switch]$Json,
-    [switch]$Help
+    [switch]$Help,
+    [switch]$ReuseFinding
 )
 
 Set-StrictMode -Version Latest
@@ -82,6 +89,40 @@ if ($Help) {
     exit 0
 }
 
+if ($ReuseFinding) {
+    try {
+        $chatStore = Join-Path $PSScriptRoot '../utils/agent-chat-store.ps1'
+        if (Test-Path -LiteralPath $chatStore) {
+            . $chatStore
+            $match = Get-AgentChatCoveringFinding -Topic 'gates:release-scope' -Request 'assert-release-scope-gates.ps1' -OwnAgentOnly
+            if ($null -ne $match) {
+                $agentObj = Get-AgentChatProp $match 'agent'
+                $authorName = [string](Get-AgentChatProp $agentObj 'name' ([string](Get-AgentChatProp $agentObj 'id' '?')))
+                $atUtc = [DateTime](Get-AgentChatProp $match 'atUtc' ([DateTime]::UtcNow))
+                $ageMin = [double]([DateTime]::UtcNow - $atUtc).TotalMinutes
+                $ageStr = Format-AgentChatAge $ageMin
+
+                if ($Json) {
+                    [ordered]@{
+                        status     = 'pass'
+                        reused     = $true
+                        reusedFrom = "$authorName ($ageStr ago)"
+                        gates      = @()
+                    } | ConvertTo-Json -Depth 4
+                } else {
+                    Write-Host "assert-release-scope-gates: PASS (reused from $authorName, $ageStr ago - release scope clean)." -ForegroundColor Green
+                }
+                exit 0
+            }
+        }
+    } catch { }
+}
+
+# S2453: the batch's own wall clock. Started AFTER the -ReuseFinding exit above, because that
+# path runs no gate at all - journalling its microseconds as a run of this batch would drag the
+# median of the very figure the timing gate judges toward zero.
+$batchStopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+
 $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") {
     "$env:ProgramFiles\PowerShell\7\pwsh.exe"
 }
@@ -91,6 +132,15 @@ else {
 
 # name -> extra args (beyond -Gate). Cheapest first, so a missing script surfaces early.
 $gates = [ordered]@{
+    # S2453. Judges the run times documented in prose against the telemetry journal both batch
+    # runners already write. Rule 33 puts it here on all four criteria: a stale figure reaches no
+    # user at all, only an agent choosing foreground or background; its subject is a document
+    # against months of accumulated journal, which no changed file can be blamed for; each finding
+    # names its own claim id and both numbers; and re-measuring a target costs the same whenever it
+    # is done. Cheapest member by a wide margin - one regex per claim over one document, plus one
+    # pass of the journal - so it goes first and a reworded row surfaces before the slow gates run.
+    # Not passed -Quiet: which claim drifted, and by how much, is the whole content of its report.
+    'assert-gate-timing-claims.ps1'    = @()
     # S2340. Reads two declarations - locales_config.xml and the LOCALES dict in
     # publish-play-listing.py - plus 39 small text files, so it is the cheapest member and goes first.
     # Rule 33 puts it in release scope on all four criteria (strategic S2340 "Гейт"): the listing
@@ -129,7 +179,17 @@ $gates = [ordered]@{
     # advisory, because a developer machine missing rg must still be able to close a ticket. Before a
     # release the environment must be complete, and the loop below collapses every non-zero code to
     # FAIL - so the inversion needs no second code path here, only the switch.
+    # S2411. Asks git whether every discovered *.tests/Run-Tests.ps1 is in the index. Placed here on
+    # all four Rule 33 criteria: an untracked suite reaches no user between releases, its subject is
+    # the whole tree, each finding prints its own path and the `git add` that clears it, and staging
+    # eight paths costs one command either way. The per-ticket half in post-change.ps1 (`suite-tracked`)
+    # judges only a runner the changed set names - it catches the defect at birth, this catches what
+    # already accumulated, including suites belonging to sessions that have long since ended.
+    #
+    # Runs after the sweep above rather than before it: both read the same discovery, and a sweep that
+    # went red is the more urgent report of the two.
     'run-script-suites.ps1'            = @('-Quiet')
+    'assert-suite-tracked.ps1'         = @()
 }
 
 $results = [System.Collections.Generic.List[object]]::new()
@@ -168,13 +228,18 @@ else {
     }
 }
 
+$batchStopwatch.Stop()
+$batchMs = [int]$batchStopwatch.Elapsed.TotalMilliseconds
+
 if ($missing -gt 0) {
+    Write-GateBatchTelemetryRecord -Runner 'assert-release-scope-gates' -ExitCode 2 -ElapsedMs $batchMs
     Write-Error "assert-release-scope-gates: CANNOT VERIFY - $missing gate script(s) absent." -ErrorAction Continue
     exit 2
 }
 
 $failed = @($results | Where-Object { $_.Status -ne 'PASS' }).Count
 if ($failed -gt 0) {
+    Write-GateBatchTelemetryRecord -Runner 'assert-release-scope-gates' -ExitCode 1 -ElapsedMs $batchMs
     $names = (@($results | Where-Object { $_.Status -ne 'PASS' } | ForEach-Object { $_.Gate }) -join ', ')
     Write-Error ("assert-release-scope-gates: FAIL - $failed gate(s) found a defect in the release scope: " +
         "$names. Each printed its own remediation above; fix and re-run until this exits 0. " +
@@ -182,5 +247,23 @@ if ($failed -gt 0) {
     exit 1
 }
 
+# S2409: post a best-effort finding on a clean run
+try {
+    $chatStore = Join-Path $PSScriptRoot '../utils/agent-chat-store.ps1'
+    if (Test-Path -LiteralPath $chatStore) {
+        . $chatStore
+        $candidateScopes = @('app_v2/src', 'wear/src', 'scripts', 'docs', 'fastlane', 'store_assets')
+        $repoRoot = Join-Path $PSScriptRoot '../..'
+        $scopeList = @()
+        foreach ($cs in $candidateScopes) {
+            if (Test-Path -LiteralPath (Join-Path $repoRoot $cs)) {
+                $scopeList += $cs
+            }
+        }
+        [void](New-AgentChatMessage -Stream finding -Kind check -Topic 'gates:release-scope' -TtlMinutes 1440 -Note 'assert-release-scope-gates passed (release scope clean)' -EvidenceCommand 'assert-release-scope-gates.ps1' -EvidenceExit 0 -Scope $scopeList)
+    }
+} catch { }
+
+Write-GateBatchTelemetryRecord -Runner 'assert-release-scope-gates' -ExitCode 0 -ElapsedMs $batchMs
 Write-Host 'assert-release-scope-gates: PASS (release scope clean).' -ForegroundColor Green
 exit 0

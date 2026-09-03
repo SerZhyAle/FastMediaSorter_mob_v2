@@ -27,6 +27,17 @@
 
         <!-- DataStore preferences - device-specific settings and encrypted default password -->
         <exclude domain="file" path="datastore/" />
+
+        <!--
+            S2101: EncryptedSharedPreferences credential stores. Same reason as the
+            database above - the master key lives in the Android Keystore and does not
+            migrate, so these files arrive undecryptable. Sign-in state that IS meant to
+            survive a migration travels through the Block Store port instead, never here.
+        -->
+        <exclude domain="sharedpref" path="primary_google_account_v1.xml" />
+        <exclude domain="sharedpref" path="google_drive_credentials.xml" />
+        <exclude domain="sharedpref" path="dropbox_credentials.xml" />
+        <exclude domain="sharedpref" path="link_download_cookies.xml" />
     </cloud-backup>
 
     <device-transfer>
@@ -37,5 +48,16 @@
 
         <!-- DataStore preferences - device-specific settings and encrypted default password -->
         <exclude domain="file" path="datastore/" />
+
+        <!--
+            S2101: EncryptedSharedPreferences credential stores. Same reason as the
+            database above - the master key lives in the Android Keystore and does not
+            migrate, so these files arrive undecryptable. Sign-in state that IS meant to
+            survive a migration travels through the Block Store port instead, never here.
+        -->
+        <exclude domain="sharedpref" path="primary_google_account_v1.xml" />
+        <exclude domain="sharedpref" path="google_drive_credentials.xml" />
+        <exclude domain="sharedpref" path="dropbox_credentials.xml" />
+        <exclude domain="sharedpref" path="link_download_cookies.xml" />
     </device-transfer>
 </data-extraction-rules>

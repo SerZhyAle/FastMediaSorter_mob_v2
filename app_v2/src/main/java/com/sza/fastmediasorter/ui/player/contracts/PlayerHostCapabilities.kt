@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.contracts
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
+import com.sza.fastmediasorter.ui.player.helpers.ChannelBalanceController
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -82,6 +83,18 @@ interface PlayerHostCapabilities {
 
     /** Defaults to a seekable local file whose colour controls are supported. */
     val supportsColorAdjustmentForActiveSource: Boolean get() = true
+
+    /**
+     * True while the decoded stream actually has two channels to balance between. No host overrides
+     * this: per S1267 ADR-3 the balance value is process-wide, because the audio path of all four
+     * hosts is the same background service that no host holds a reference to.
+     */
+    val supportsChannelBalanceForActiveSource: Boolean
+        get() = ChannelBalanceController.isStereoContentActive
+
+    /** Apply a stereo-balance gain pair to every active playback path. */
+    fun setChannelBalance(leftGain: Float, rightGain: Float) =
+        ChannelBalanceController.setBalance(leftGain, rightGain)
 
     /** Set the user-selected stereo mode for the current file. */
     fun setStereoMode(mode: StereoMode)

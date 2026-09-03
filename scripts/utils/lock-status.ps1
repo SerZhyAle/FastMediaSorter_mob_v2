@@ -1,187 +1,114 @@
+#requires -Version 7.0
 <#
 .SYNOPSIS
-    Fast, read-only check of one coordination domain - existence, age, holder. A bare Build or
-    Code reports every domain of that type, one section each, every line naming its own domain.
+    Forwarder to the canon-shipped harness script locks\lock-status.ps1 (S2402).
 
 .DESCRIPTION
-    Never mutates the lock file (staleness is only ever reclaimed inside Enter-AgentLock, at
-    the moment a caller actually wants the lock). Use this before starting a gradle-backed
-    command or a multi-file code edit, to see whether another agent session currently holds
-    the lock and how stale it looks.
+    GENERATED - do not edit. The mechanism lives in the SZA canon plugin (tools/harness) and this
+    repository consumes it; the file kept here is only the address every existing call site already
+    knows. Regenerate with scripts/utils/install-sza-forwarders.ps1. What this project configures lives in
+    .sza-profile.json at the repository root, never in a script body.
 
-    This is a STATUS QUERY (S1338 phase 09). "Held" is a normal answer to it, not a failure
-    of the query, so the verdict travels in the payload (`status` = held | stale | free) and
-    the process exits 0 either way. Non-zero is reserved for "could not determine".
-    Pass -StrictExit for the legacy contract where held exits 1.
-
-    -Wait blocks until the lock is free (or reclaimable) instead of reporting once. It exists
-    because 793 polls and 48 hand-rolled `until .. sleep` loops were written against the
-    single-shot form (S1338). Staleness is re-judged every poll, so a holder that dies is
-    reported free immediately rather than waited out.
-
-    -Queue also answers the question the raw listing could not (S1448): each ticket carries
-    `heldByLockHolder`, and the JSON payload carries `headOwnedByHolder`. True means the queue
-    head is the current lock holder's own leftover ticket - the holder owns both the lock and the
-    turn, so nobody behind it can advance no matter how long they wait. In text mode such a row
-    is suffixed `<- holds the lock`.
-
-    Exit code: 0 = status determined and reported (free, stale, or held).
-               2 = could not determine (lock file unreadable), or -Wait ran out of time.
-               1 = held, ONLY under -StrictExit.
-
-.EXAMPLE
-    pwsh -NoProfile -File scripts/utils/lock-status.ps1 -Name Build.Wear
-    pwsh -NoProfile -File scripts/utils/lock-status.ps1 -Name Code -Json
-    pwsh -NoProfile -File scripts/utils/lock-status.ps1 -Name Build -Wait -WaitTimeoutSeconds 300
+Exit codes: whatever locks\lock-status.ps1 returns, plus 2 when the harness cannot be located.
 #>
-param(
-    [Parameter(Mandatory)][string]$Name,
-    [switch]$Json,
-    [switch]$StrictExit,
-    # S1432: also report the queue behind the lock - who is waiting and in what order.
-    [switch]$Queue,
-    [switch]$Wait,
-    [int]$WaitTimeoutSeconds = 900,
-    [int]$PollSeconds = 2
-)
-
-$ErrorActionPreference = "Stop"
-. "$PSScriptRoot\agent-lock.ps1"
-
-# S2109: a bare Build or Code reports one section per domain of its set. Every line names the
-# domain it belongs to, because a verdict about one domain read as a verdict about its neighbour
-# is exactly the mistake already made twice on the two modules' fast checks.
-try {
-    $domains = @(Resolve-AgentLockDomains -Name $Name)
+# S2441: every name below carries a $szaFwd prefix because HALF of this set is dot-sourced, and a
+# dot-sourced file assigns into its CALLER's scope. PowerShell names are case-insensitive, so the
+# `$target` this file used to resolve into WAS the caller's `-Target` parameter: post-change.ps1
+# dot-sources the agent-lock-domains forwarder before it journals, and every dev/CHANGELOG.md row
+# written on 2026-09-03 recorded a harness path where the ticket id belonged. The second failure
+# mode is worse than the substitution - a caller declaring `[string]$Candidates` type-constrains
+# this file's own accumulator, so `$candidates = @()` collapses to '' and every `+=` concatenates
+# instead of appending, leaving one unusable path and a forwarder that cannot find the harness at
+# all. Ten scripts under scripts/ declare a parameter that collided. Contract suite:
+# scripts/utils/install-sza-forwarders.tests/.
+$szaFwdCandidates = @()
+if ($env:SZA_HARNESS_ROOT) { $szaFwdCandidates += $env:SZA_HARNESS_ROOT }
+$szaFwdCache = Join-Path $env:USERPROFILE '.claude\plugins\cache\sza-unified-rules\sza'
+if (Test-Path -LiteralPath $szaFwdCache) {
+    # Ordered as VERSIONS, not as strings: the plugin version is date-derived (2026.903.1), so a
+    # string sort puts October's 2026.1001.1 below September's 2026.903.1 and the forwarder would
+    # keep calling the older copy after an update. A directory that does not parse sorts last
+    # rather than being dropped - it may still be the only harness present.
+    $szaFwdVersions = @(Get-ChildItem -LiteralPath $szaFwdCache -Directory -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            $szaFwdParsed = $null
+            [void][version]::TryParse($_.Name, [ref]$szaFwdParsed)
+            [pscustomobject]@{ Path = $_.FullName; Version = $szaFwdParsed }
+        } | Sort-Object @{ Expression = { $null -ne $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Path }; Descending = $true })
+    $szaFwdCandidates += @($szaFwdVersions | ForEach-Object { Join-Path $_.Path 'tools\harness' })
 }
-catch {
-    Write-Error "lock-status: $($_.Exception.Message)" -ErrorAction Continue
+$szaFwdTarget = $null
+foreach ($szaFwdDir in $szaFwdCandidates) {
+    $szaFwdProbe = Join-Path $szaFwdDir 'locks\lock-status.ps1'
+    if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe; break }
+}
+
+# S2452: candidate 3, the canon checkout, reached only when the two above miss. The plugin cache
+# is what actually resolves on every invocation, so the resolver below is never read on the hot
+# path. Its default is held by scripts/utils/project-paths.ps1 and by nothing else - before this it
+# was written in 76 files, 74 of them generated and stamped `GENERATED - do not edit`, so moving
+# the canon required editing files that forbid editing. That is the exact non-portability the
+# hardcoded-drive-path rule was installed to refuse (S2326).
+#
+# The dot-source runs inside `& { }` deliberately. HALF this set is itself dot-sourced, so at top
+# level project-paths.ps1 would define its functions and set its script variables in the CALLER's
+# scope - the S2441 failure one level further out. A child scope cannot reach the caller at all.
+if (-not $szaFwdTarget) {
+    $szaFwdCheckout = $env:SZA_CANON_ROOT
+    if (-not $szaFwdCheckout) {
+        $szaFwdResolver = Join-Path $PSScriptRoot '..\..\scripts\utils\project-paths.ps1'
+        if (Test-Path -LiteralPath $szaFwdResolver) {
+            # A resolver that is absent or throws must not stop the forwarder from printing its own
+            # refusal, which is the only message that names all three candidates and the fix.
+            $szaFwdCheckout = & {
+                param($szaFwdResolverPath)
+                try { . $szaFwdResolverPath; Get-CanonRoot } catch { $null }
+            } $szaFwdResolver
+        }
+    }
+    if ($szaFwdCheckout) {
+        $szaFwdCandidates += (Join-Path $szaFwdCheckout 'tools\harness')
+        $szaFwdProbe = Join-Path $szaFwdCandidates[-1] 'locks\lock-status.ps1'
+        if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe }
+    }
+}
+if (-not $szaFwdTarget) {
+    Write-Host "lock-status.ps1: the SZA harness is not installed - looked in:" -ForegroundColor Red
+    foreach ($szaFwdDir in $szaFwdCandidates) { Write-Host "    $szaFwdDir" -ForegroundColor Gray }
+    Write-Host "  Install or update it:  claude plugin update sza@sza-unified-rules" -ForegroundColor Yellow
+    Write-Host "  Or point at a checkout: `$env:SZA_HARNESS_ROOT = '<repo>\tools\harness'" -ForegroundColor Yellow
     exit 2
 }
 
-if ($domains.Count -gt 1) {
-    $anyHeld = $false
-    $sections = @()
-    foreach ($domain in $domains) {
-        $argumentList = @('-NoProfile', '-File', $PSCommandPath, '-Name', $domain)
-        if ($Json) { $argumentList += '-Json' }
-        if ($Queue) { $argumentList += '-Queue' }
-        $output = & pwsh @argumentList
-        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-        if ($Json) { $sections += ($output | ConvertFrom-Json) }
-        else { $output | ForEach-Object { Write-Host $_ } }
-        if ("$output" -match 'HELD') { $anyHeld = $true }
-    }
-    if ($Json) {
-        [pscustomobject]@{ name = $Name; domains = $domains; sections = $sections } |
-            ConvertTo-Json -Compress -Depth 6
-    }
-    if ($anyHeld -and $StrictExit) {
-        Write-Host "$Name : at least one domain is held - exiting 1 as requested by -StrictExit." -ForegroundColor Red
+$env:SZA_PROJECT_ROOT = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+
+# Half of this set is dot-sourced as a library and half is invoked as a CLI, and the two cannot be
+# forwarded the same way: `& $szaFwdTarget` would run a library in its own scope and define nothing
+# the caller can see, while `exit` inside a dot-sourced file would kill the caller. InvocationName
+# is '.' exactly when this file was dot-sourced, so one template serves both.
+if ($MyInvocation.InvocationName -eq '.') {
+    . $szaFwdTarget
+} else {
+    # Deliberately NOT 'Stop'. A native child's stderr arrives here as ErrorRecord objects, and
+    # under 'Stop' the first one terminates this forwarder before `exit $LASTEXITCODE` runs - so a
+    # script that reported a FAIL and exited 1 would reach its caller as a crashed forwarder with a
+    # different code. Every script in this set states its exit codes; passing them through unchanged
+    # is the whole job. S2441 moved it inside this branch: at the file's top level it also rewrote
+    # the preference of every caller that dot-sources a forwarder, silently downgrading a script
+    # running under 'Stop' for the rest of its life.
+    $ErrorActionPreference = 'Continue'
+    $global:LASTEXITCODE = 0
+    try {
+        & $szaFwdTarget @args
+    } catch {
+        # A child that THROWS never reaches its own `exit`, so $LASTEXITCODE stays 0 and the
+        # forwarder would report success for a script that failed - the one way a forwarder can
+        # turn a red verdict green. Every such refusal is a failure, so it leaves as exit 1.
+        Write-Error $_ -ErrorAction Continue
         exit 1
     }
-    exit 0
+    $szaFwdCode = $LASTEXITCODE
+    exit $(if ($null -eq $szaFwdCode) { 0 } else { $szaFwdCode })
 }
-
-try {
-    $status = Get-AgentLockStatus -Name $Name
-} catch {
-    Write-Error "lock-status: cannot read $Name.LOCK - $($_.Exception.Message)" -ErrorAction Continue
-    exit 2
-}
-
-if ($Wait) {
-    $deadline = (Get-Date).AddSeconds($WaitTimeoutSeconds)
-    while ($status.Exists -and -not $status.Stale) {
-        if ((Get-Date) -ge $deadline) {
-            $msg = "lock-status: {0}.LOCK still held after {1}s (holder pid {2}) - cannot verify it will free." -f
-                $Name, $WaitTimeoutSeconds, $status.Pid
-            Write-Error $msg -ErrorAction Continue
-            exit 2
-        }
-        Start-Sleep -Seconds $PollSeconds
-        try { $status = Get-AgentLockStatus -Name $Name }
-        catch {
-            Write-Error "lock-status: cannot read $Name.LOCK - $($_.Exception.Message)" -ErrorAction Continue
-            exit 2
-        }
-    }
-}
-
-$held = ($status.Exists -and -not $status.Stale)
-# The verdict is part of the payload so a caller never has to infer it from an exit code.
-$state = if (-not $status.Exists) { 'free' } elseif ($status.Stale) { 'stale' } else { 'held' }
-
-$queueTickets = @()
-if ($Queue) {
-    $mySessionId = $env:CLAUDE_CODE_SESSION_ID
-    $position = 0
-    $index = 0
-    # S1448: a ticket owned by the CURRENT lock holder is the starvation shape - the holder's own
-    # abandoned ticket parked on the head, so nobody behind it can ever advance. It used to be
-    # visible only by matching session guids by eye.
-    $holderSessionId = [string]$status.SessionId
-    foreach ($ticket in @(Get-AgentLockQueue -Name $Name)) {
-        $index++
-        $heldByLockHolder = $held -and -not [string]::IsNullOrWhiteSpace($holderSessionId) -and
-            ([string]$ticket.sessionId -eq $holderSessionId)
-        $ticket | Add-Member -NotePropertyName 'position' -NotePropertyValue $index -Force
-        $ticket | Add-Member -NotePropertyName 'mine' -NotePropertyValue ([string]$ticket.sessionId -eq $mySessionId) -Force
-        $ticket | Add-Member -NotePropertyName 'heldByLockHolder' -NotePropertyValue $heldByLockHolder -Force
-        if ($ticket.mine -and $position -eq 0) { $position = $index }
-        $queueTickets += $ticket
-    }
-}
-
-if ($Json) {
-    $status | Add-Member -NotePropertyName 'status' -NotePropertyValue $state -Force
-    $status | Add-Member -NotePropertyName 'held' -NotePropertyValue $held -Force
-    if ($Queue) {
-        $headOwnedByHolder = ($queueTickets.Count -gt 0) -and [bool]$queueTickets[0].heldByLockHolder
-        $status | Add-Member -NotePropertyName 'queue' -NotePropertyValue $queueTickets -Force
-        $status | Add-Member -NotePropertyName 'myPosition' -NotePropertyValue $position -Force
-        $status | Add-Member -NotePropertyName 'headOwnedByHolder' -NotePropertyValue $headOwnedByHolder -Force
-    }
-    $status | ConvertTo-Json -Compress -Depth 4
-}
-else {
-    if (-not $status.Exists) {
-        Write-Host "$Name.LOCK: absent (free)" -ForegroundColor Green
-    }
-    else {
-        $label = if ($status.Stale) { "STALE (reclaimable)" } else { "HELD" }
-        $color = if ($status.Stale) { "Yellow" } else { "Red" }
-        Write-Host "$Name.LOCK: $label" -ForegroundColor $color
-        Write-Host "  path:       $($status.Path)"
-        Write-Host "  pid:        $($status.Pid)"
-        if ($Name -like 'Build*') {
-            Write-Host "  processAlive: $($status.ProcessAlive)"
-        }
-        Write-Host "  age:        $([int]$status.AgeSeconds)s"
-        Write-Host "  acquiredAt: $($status.AcquiredAtIso)"
-        Write-Host "  reason:     $($status.Reason)"
-        Write-Host "  host:       $($status.Host)"
-    }
-
-    if ($Queue) {
-        if ($queueTickets.Count -eq 0) {
-            Write-Host "$Name queue: empty" -ForegroundColor Green
-        }
-        else {
-            Write-Host "$Name queue: $($queueTickets.Count) waiting" -ForegroundColor Yellow
-            foreach ($ticket in $queueTickets) {
-                $marker = if ($ticket.mine) { '>' } else { ' ' }
-                $waitedMinutes = [int](([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() - [int64]$ticket.enqueuedAt) / 60000)
-                $suffix = if ($ticket.heldByLockHolder) { '  <- holds the lock' } else { '' }
-                Write-Host ("  {0} #{1} pos {2}  session {3}  waited {4}m  reason '{5}'{6}" -f
-                    $marker, $ticket.seq, $ticket.position, $ticket.sessionId, $waitedMinutes, $ticket.reason, $suffix)
-            }
-        }
-    }
-}
-
-if ($held -and $StrictExit) {
-    Write-Host "$Name.LOCK: held - exiting 1 as requested by -StrictExit." -ForegroundColor Red
-    exit 1
-}
-exit 0

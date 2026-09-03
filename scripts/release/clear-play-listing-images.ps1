@@ -32,6 +32,10 @@
     pwsh -NoProfile -File scripts/release/clear-play-listing-images.ps1 -ImageType wearScreenshots -Confirm
 
 .NOTES
+    Manual tool: a one-way recovery lever run by hand against a live Play listing, never from a
+    pipeline. No runner may reference it - a release flow that deleted listing images on its own is
+    exactly the automation this script exists to undo.
+
     Exit codes:
       0 - the images were deleted (or, without -Confirm, the dry run reported what it would delete)
       2 - could not verify: no virtual environment, no service-account key, or the API call failed

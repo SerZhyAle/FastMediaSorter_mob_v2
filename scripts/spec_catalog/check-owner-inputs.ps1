@@ -1,113 +1,114 @@
-[CmdletBinding()]
-param(
-    [Parameter(Mandatory)][string] $Id
-)
+#requires -Version 7.0
+<#
+.SYNOPSIS
+    Forwarder to the canon-shipped harness script spec_catalog\check-owner-inputs.ps1 (S2402).
 
-# Gate for Draft -> Approved transition of strategic specs.
+.DESCRIPTION
+    GENERATED - do not edit. The mechanism lives in the SZA canon plugin (tools/harness) and this
+    repository consumes it; the file kept here is only the address every existing call site already
+    knows. Regenerate with scripts/utils/install-sza-forwarders.ps1. What this project configures lives in
+    .sza-profile.json at the repository root, never in a script body.
+
+Exit codes: whatever spec_catalog\check-owner-inputs.ps1 returns, plus 2 when the harness cannot be located.
+#>
+# S2441: every name below carries a $szaFwd prefix because HALF of this set is dot-sourced, and a
+# dot-sourced file assigns into its CALLER's scope. PowerShell names are case-insensitive, so the
+# `$target` this file used to resolve into WAS the caller's `-Target` parameter: post-change.ps1
+# dot-sources the agent-lock-domains forwarder before it journals, and every dev/CHANGELOG.md row
+# written on 2026-09-03 recorded a harness path where the ticket id belonged. The second failure
+# mode is worse than the substitution - a caller declaring `[string]$Candidates` type-constrains
+# this file's own accumulator, so `$candidates = @()` collapses to '' and every `+=` concatenates
+# instead of appending, leaving one unusable path and a forwarder that cannot find the harness at
+# all. Ten scripts under scripts/ declare a parameter that collided. Contract suite:
+# scripts/utils/install-sza-forwarders.tests/.
+$szaFwdCandidates = @()
+if ($env:SZA_HARNESS_ROOT) { $szaFwdCandidates += $env:SZA_HARNESS_ROOT }
+$szaFwdCache = Join-Path $env:USERPROFILE '.claude\plugins\cache\sza-unified-rules\sza'
+if (Test-Path -LiteralPath $szaFwdCache) {
+    # Ordered as VERSIONS, not as strings: the plugin version is date-derived (2026.903.1), so a
+    # string sort puts October's 2026.1001.1 below September's 2026.903.1 and the forwarder would
+    # keep calling the older copy after an update. A directory that does not parse sorts last
+    # rather than being dropped - it may still be the only harness present.
+    $szaFwdVersions = @(Get-ChildItem -LiteralPath $szaFwdCache -Directory -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            $szaFwdParsed = $null
+            [void][version]::TryParse($_.Name, [ref]$szaFwdParsed)
+            [pscustomobject]@{ Path = $_.FullName; Version = $szaFwdParsed }
+        } | Sort-Object @{ Expression = { $null -ne $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Path }; Descending = $true })
+    $szaFwdCandidates += @($szaFwdVersions | ForEach-Object { Join-Path $_.Path 'tools\harness' })
+}
+$szaFwdTarget = $null
+foreach ($szaFwdDir in $szaFwdCandidates) {
+    $szaFwdProbe = Join-Path $szaFwdDir 'spec_catalog\check-owner-inputs.ps1'
+    if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe; break }
+}
+
+# S2452: candidate 3, the canon checkout, reached only when the two above miss. The plugin cache
+# is what actually resolves on every invocation, so the resolver below is never read on the hot
+# path. Its default is held by scripts/utils/project-paths.ps1 and by nothing else - before this it
+# was written in 76 files, 74 of them generated and stamped `GENERATED - do not edit`, so moving
+# the canon required editing files that forbid editing. That is the exact non-portability the
+# hardcoded-drive-path rule was installed to refuse (S2326).
 #
-# Contract (relevance-driven, no hardcoded field list):
-#   - A strategic spec must contain a "### 3.3 Owner inputs (Approval gate)" subsection.
-#   - The set of bullets inside §3.3 is decided by /spec at draft time, based on
-#     the spec's detected character (UI / data / flavor / executable scope).
-#   - The gate validates only what is actually present in §3.3 - every bullet
-#     must carry a concrete value (not a bracketed placeholder, not empty).
-#     "n/a - <reason>" counts as a concrete value.
-#   - This gate judges §3.3 and nothing else. The house text style does not apply
-#     to specification files - the canon's scope list excludes specs by name, next
-#     to code, commands and logs - so a spec's punctuation is not gated here or at
-#     any other transition (S1543). The earlier version of this gate scanned the
-#     whole file for an ellipsis, which reached §0 verbatim owner capture and
-#     twice forced an edit inside material /spec-draft guarantees untouched.
-#   - Universally required: 'Related tickets'. This is the only field that
-#     must be present regardless of spec scope. It encodes dependency chains
-#     consumed by /spec-next and bulk-update.ps1.
-#
-# Exit codes: 0 = ready for Approved. 1 = blockers reported. 2 = bad invocation.
-
-. (Join-Path $PSScriptRoot '_lib.ps1')
-
-if ($Id -notmatch '^S\d{4}$') {
-    # -ErrorAction Continue, not a bare Write-Error: _lib.ps1 sets $ErrorActionPreference = 'Stop',
-    # under which a bare Write-Error throws and the documented `exit 2` below is never reached, so
-    # the process reports 1 and a caller cannot tell "bad invocation" from "blockers found" (S1070).
-    Write-Error "Invalid -Id '$Id' (must match S####)." -ErrorAction Continue
-    exit 2
-}
-
-$records = Read-Catalog
-$record = $records | Where-Object { $_.id -eq $Id } | Select-Object -First 1
-if (-not $record) {
-    Write-Error "No record with id '$Id' in spec-catalog.jsonl." -ErrorAction Continue
-    exit 2
-}
-
-$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-$specPath = Join-Path $repoRoot ($record.file -replace '/', [IO.Path]::DirectorySeparatorChar)
-if (-not (Test-Path $specPath)) {
-    Write-Error "Spec file not found on disk: $specPath" -ErrorAction Continue
-    exit 2
-}
-
-$lines = Get-Content $specPath
-$start = -1
-$end = -1
-for ($i = 0; $i -lt $lines.Count; $i++) {
-    if ($start -lt 0 -and $lines[$i] -match '^###\s+3\.3\s+Owner inputs') {
-        $start = $i
-        continue
-    }
-    if ($start -ge 0 -and ($lines[$i] -match '^##\s+' -or $lines[$i] -match '^###\s+(?!3\.3)')) {
-        $end = $i
-        break
-    }
-}
-if ($start -lt 0) {
-    Write-Output "FAIL $Id"
-    Write-Output "Missing section: '### 3.3 Owner inputs (Approval gate)' in $specPath"
-    Write-Output "Strategic specs without this section cannot transition Draft -> Approved."
-    Write-Output "At minimum the section must contain a 'Related tickets' bullet."
-    Write-Output "/spec auto-emits §3.3 with only the fields relevant to the spec's"
-    Write-Output "detected character (UI / data / flavor / executable scope)."
-    exit 1
-}
-if ($end -lt 0) { $end = $lines.Count }
-
-$section = $lines[$start..($end - 1)]
-$bulletPattern = '^\s*-\s+\*\*(?<field>[^*:]+):\*\*\s*(?<value>.*)$'
-$blockers = New-Object System.Collections.Generic.List[string]
-$found = @{}
-foreach ($line in $section) {
-    if ($line -match $bulletPattern) {
-        $field = $Matches['field'].Trim()
-        $value = $Matches['value'].Trim()
-        $found[$field] = $value
-        # Placeholder detection: value starts with '[' (bracketed hint, not yet edited).
-        if ($value -match '^\[.*\]\s*$') {
-            $blockers.Add("Field '$field' still carries placeholder: $value")
-        } elseif ([string]::IsNullOrWhiteSpace($value)) {
-            $blockers.Add("Field '$field' is empty")
+# The dot-source runs inside `& { }` deliberately. HALF this set is itself dot-sourced, so at top
+# level project-paths.ps1 would define its functions and set its script variables in the CALLER's
+# scope - the S2441 failure one level further out. A child scope cannot reach the caller at all.
+if (-not $szaFwdTarget) {
+    $szaFwdCheckout = $env:SZA_CANON_ROOT
+    if (-not $szaFwdCheckout) {
+        $szaFwdResolver = Join-Path $PSScriptRoot '..\..\scripts\utils\project-paths.ps1'
+        if (Test-Path -LiteralPath $szaFwdResolver) {
+            # A resolver that is absent or throws must not stop the forwarder from printing its own
+            # refusal, which is the only message that names all three candidates and the fix.
+            $szaFwdCheckout = & {
+                param($szaFwdResolverPath)
+                try { . $szaFwdResolverPath; Get-CanonRoot } catch { $null }
+            } $szaFwdResolver
         }
     }
+    if ($szaFwdCheckout) {
+        $szaFwdCandidates += (Join-Path $szaFwdCheckout 'tools\harness')
+        $szaFwdProbe = Join-Path $szaFwdCandidates[-1] 'spec_catalog\check-owner-inputs.ps1'
+        if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe }
+    }
+}
+if (-not $szaFwdTarget) {
+    Write-Host "check-owner-inputs.ps1: the SZA harness is not installed - looked in:" -ForegroundColor Red
+    foreach ($szaFwdDir in $szaFwdCandidates) { Write-Host "    $szaFwdDir" -ForegroundColor Gray }
+    Write-Host "  Install or update it:  claude plugin update sza@sza-unified-rules" -ForegroundColor Yellow
+    Write-Host "  Or point at a checkout: `$env:SZA_HARNESS_ROOT = '<repo>\tools\harness'" -ForegroundColor Yellow
+    exit 2
 }
 
-# Universal requirement: 'Related tickets' must be a present, filled bullet.
-if (-not $found.ContainsKey('Related tickets')) {
-    $blockers.Add("Missing required field: 'Related tickets' (universally required in §3.3 regardless of scope; use 'none' if no dependencies)")
-}
+$env:SZA_PROJECT_ROOT = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 
-if ($blockers.Count -gt 0) {
-    Write-Output "FAIL $Id"
-    foreach ($b in $blockers) { Write-Output "- $b" }
-    Write-Output ""
-    Write-Output "Spec '$Id' cannot transition Draft -> Approved until:"
-    Write-Output "  1. every bullet present in §3.3 carries a concrete value, and"
-    Write-Output "  2. 'Related tickets' is present (use 'none' if no dependencies)."
-    Write-Output "The gate validates only what /spec emitted into §3.3 - it does not"
-    Write-Output "require fields irrelevant to the spec's detected scope."
-    exit 1
+# Half of this set is dot-sourced as a library and half is invoked as a CLI, and the two cannot be
+# forwarded the same way: `& $szaFwdTarget` would run a library in its own scope and define nothing
+# the caller can see, while `exit` inside a dot-sourced file would kill the caller. InvocationName
+# is '.' exactly when this file was dot-sourced, so one template serves both.
+if ($MyInvocation.InvocationName -eq '.') {
+    . $szaFwdTarget
+} else {
+    # Deliberately NOT 'Stop'. A native child's stderr arrives here as ErrorRecord objects, and
+    # under 'Stop' the first one terminates this forwarder before `exit $LASTEXITCODE` runs - so a
+    # script that reported a FAIL and exited 1 would reach its caller as a crashed forwarder with a
+    # different code. Every script in this set states its exit codes; passing them through unchanged
+    # is the whole job. S2441 moved it inside this branch: at the file's top level it also rewrote
+    # the preference of every caller that dot-sources a forwarder, silently downgrading a script
+    # running under 'Stop' for the rest of its life.
+    $ErrorActionPreference = 'Continue'
+    $global:LASTEXITCODE = 0
+    try {
+        & $szaFwdTarget @args
+    } catch {
+        # A child that THROWS never reaches its own `exit`, so $LASTEXITCODE stays 0 and the
+        # forwarder would report success for a script that failed - the one way a forwarder can
+        # turn a red verdict green. Every such refusal is a failure, so it leaves as exit 1.
+        Write-Error $_ -ErrorAction Continue
+        exit 1
+    }
+    $szaFwdCode = $LASTEXITCODE
+    exit $(if ($null -eq $szaFwdCode) { 0 } else { $szaFwdCode })
 }
-
-Write-Output "PASS $Id"
-$count = $found.Count
-Write-Output ("All $count Owner Input field(s) in §3.3 are filled. Spec is eligible for Draft -> Approved promotion.")
-exit 0

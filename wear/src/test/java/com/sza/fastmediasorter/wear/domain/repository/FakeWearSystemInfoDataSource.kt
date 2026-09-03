@@ -4,7 +4,7 @@ private const val MIB = 1024L * 1024L
 private const val GIB = MIB * 1024L
 
 /**
- * Mutable rather than constructed: a watch answers eleven separate questions, and a constructor taking
+ * Mutable rather than constructed: a watch answers a dozen separate questions, and a constructor taking
  * all of them is both unreadable at the call site and past detekt's parameter ceiling. Each test names
  * only the fact it is about.
  */
@@ -17,9 +17,20 @@ class FakeWearSystemInfoDataSource : WearSystemInfoDataSource {
     override var buildNumber: String? = "330"
     override var totalMemoryBytes: Long? = 2L * GIB
     override var availableMemoryBytes: Long? = 512L * MIB
-    override var totalStorageBytes: Long? = 16L * GIB
-    override var availableStorageBytes: Long? = 8L * GIB
-    var phoneConnected: Boolean = true
+    override var appDataBytes: Long? = 128L * MIB
+    override var appCacheBytes: Long? = 32L * MIB
+    override var cacheQuotaBytes: Long? = 4L * GIB
 
-    override suspend fun isPhoneConnected(): Boolean = phoneConnected
+    /** Null is "the Data Layer did not answer"; an empty list is "nothing is paired". */
+    var nodes: List<WearNodeDescriptor>? = listOf(
+        WearNodeDescriptor(id = "n1", displayName = "Pixel 9", isNearby = true)
+    )
+    var local: WearNodeDescriptor? = WearNodeDescriptor(id = "w1", displayName = "Watch7", isNearby = true)
+    var capabilities: List<String>? = listOf("fms_phone", "fms_send_to")
+
+    override suspend fun connectedNodes(): List<WearNodeDescriptor>? = nodes
+
+    override suspend fun localNode(): WearNodeDescriptor? = local
+
+    override suspend fun pairCapabilities(): List<String>? = capabilities
 }

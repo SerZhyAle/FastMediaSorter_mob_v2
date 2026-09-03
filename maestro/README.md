@@ -12,12 +12,20 @@ pwsh -NoProfile -File maestro/run-tests.ps1 -Suite all -Json
 pwsh -NoProfile -File maestro/run-tests.ps1 -Suite smoke -DeviceId emulator-5554
 pwsh -NoProfile -File maestro/run-tests.ps1 -Suite features\player -Json
 pwsh -NoProfile -File maestro/run-tests.ps1 -Suite maestro/features/player/player_image.yaml -Json
+pwsh -NoProfile -File maestro/run-tests.ps1 -Suite player_image.yaml -ListFlows
 ```
 
 Runner contract:
 
 - Full Maestro traces are written under `temp/`; console output is a compact verdict only.
-- `-Json` emits `{ pass, total, failed, reason, flows:[{flow,pass,log}] }`.
+- `-Json` emits `{ pass, total, failed, reason, flows:[{flow,pass,status,log}] }`.
+- A `-Suite` ending in `.yaml` that no root resolves falls back to the file NAME under `maestro/`,
+  so re-running one failed flow never requires remembering its category (S2396).
+- `-ListFlows` prints the resolved set and exits without touching Maestro or a device - the only
+  way to check a selector form with no emulator attached.
+- `status` per flow is `pass|fail|execError`. `execError` is the transport between Maestro and the
+  device failing; it is not an app defect and `scripts/devtest/prerelease-verdict.ps1` does not
+  count it as one.
 - `-DeviceId <adb serial>` pins a device; omit it when exactly one device is online.
 - Exit `0`: all selected flows passed.
 - Exit `1`: bad args or no flow matched `-Suite`.

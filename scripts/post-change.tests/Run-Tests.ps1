@@ -233,6 +233,103 @@ Assert-FlavorSelection -Case 'foreign flavor path does not leak in' -TargetModul
     -Expected @('Standard') `
     -ChangedSet @('app_v2/src/main/res/values/colors.xml', 'wear/src/noLegal/res/values/strings.xml')
 
+# S2416 - Get-RoomRowsForChangedFiles must report "no database touched" as ZERO rows. It used to
+# `return ,$matched.ToArray()`, and the comma is only correct for an UNWRAPPED caller: both call
+# sites wrap in @(), which turns the empty result into a one-element array whose single element is
+# the empty array. So a docs-only closure scored Count 1, ran the androidTest compile gate on a set
+# carrying no .kt at all, and then threw on `$_.Module` under StrictMode - a PowerShell trace instead
+# of a verdict, which is exactly the "found a defect" / "did not look" confusion the facade keeps
+# exit 2 for. Asserted behaviourally rather than by matching the return statement, because the
+# defect is a PAIRING of the return shape with the call site: either half can be rewritten and the
+# bug returns only when both line up again.
+$roomRegistryPath = Join-Path $repoRoot 'scripts/quality/lib/room-databases.ps1'
+function Get-FacadeFunctionText {
+    param([string] $Name)
+    $ast = $facadeAst.FindAll(
+        {
+            param($node)
+            $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+            $node.Name -eq $Name
+        }, $true) | Select-Object -First 1
+    if (-not $ast) { throw "$Name is not defined in the facade." }
+    return $ast.Extent.Text
+}
+
+$roomRowHarness = [scriptblock]::Create(@"
+param([string[]] `$normChangedFiles, [string[]] `$Fields)
+Set-StrictMode -Version Latest
+. '$roomRegistryPath'
+`$roomDatabaseRows = @(Get-RoomDatabaseRegistry -RepoRoot '$repoRoot')
+$(Get-FacadeFunctionText 'Test-PathUnderDir')
+$(Get-FacadeFunctionText 'Get-RoomRowsForChangedFiles')
+Get-RoomRowsForChangedFiles -Fields `$Fields
+"@)
+
+function Assert-RoomRows {
+    param(
+        [string] $Case,
+        [string[]] $ChangedSet,
+        [string[]] $Fields,
+        [string[]] $ExpectedModules
+    )
+    $rows = @(& $roomRowHarness $ChangedSet $Fields)
+    if ($rows.Count -ne $ExpectedModules.Count) {
+        throw "Room rows [$Case]: expected $($ExpectedModules.Count) row(s), got $($rows.Count)."
+    }
+    # The defect surfaced as a property access, not as a wrong count: the phantom element is an
+    # Object[], so reading .Module on it throws. Touch the property on every returned row.
+    $actual = @($rows | ForEach-Object { $_.Module } | Sort-Object)
+    $expected = @($ExpectedModules | Sort-Object)
+    if (($actual -join ',') -ne ($expected -join ',')) {
+        throw "Room rows [$Case]: expected module(s) '$($expected -join ',')', got '$($actual -join ',')'."
+    }
+}
+
+$roomAndroidTestFields = @('AndroidTestDir', 'MigrationDir')
+$roomContractFields = @('MigrationDir', 'SchemaDir', 'RegistrationFile')
+
+# Set size is irrelevant to the match - asserted at one and at three files because the ticket that
+# opened this recorded a size-dependent symptom that direct measurement refuted.
+Assert-RoomRows -Case 'docs-only, one file' -Fields $roomAndroidTestFields -ExpectedModules @() `
+    -ChangedSet @('PLAN/S2416_post-change-crashes-empty-room-row-set.md')
+Assert-RoomRows -Case 'docs-only, three files' -Fields $roomAndroidTestFields -ExpectedModules @() `
+    -ChangedSet @('PLAN/a.md', 'PLAN/b.md', 'PLAN/c.md')
+Assert-RoomRows -Case 'docs-only, contract fields' -Fields $roomContractFields -ExpectedModules @() `
+    -ChangedSet @('PLAN/a.md', 'PLAN/b.md', 'PLAN/c.md')
+# A Kotlin change that touches no registered database is still zero rows - the gate is keyed on the
+# database directories, not on the file extension.
+Assert-RoomRows -Case 'kotlin outside any database' -Fields $roomContractFields -ExpectedModules @() `
+    -ChangedSet @('app_v2/src/main/java/com/sza/fastmediasorter/ui/Foo.kt')
+# The positive cases: the fix must not have bought a clean skip by never matching anything.
+Assert-RoomRows -Case 'phone database source' -Fields $roomContractFields -ExpectedModules @('app_v2') `
+    -ChangedSet @('app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/AppDatabase.kt')
+Assert-RoomRows -Case 'phone registration file' -Fields $roomContractFields -ExpectedModules @('app_v2') `
+    -ChangedSet @('app_v2/src/main/java/com/sza/fastmediasorter/core/di/DatabaseModule.kt')
+Assert-RoomRows -Case 'wear androidTest' -Fields $roomAndroidTestFields -ExpectedModules @('wear') `
+    -ChangedSet @('wear/src/androidTest/java/com/sza/fastmediasorter/wear/data/db/WearDbTest.kt')
+# Both databases in one set must come back as two DISTINCT rows - the shape the caller relies on to
+# name the module it is about to judge (S2355).
+Assert-RoomRows -Case 'both databases' -Fields $roomContractFields -ExpectedModules @('app_v2', 'wear') `
+    -ChangedSet @(
+        'app_v2/schemas/com.sza.fastmediasorter.data.local.db.AppDatabase/1.json',
+        'wear/src/main/java/com/sza/fastmediasorter/wear/data/db/WearVoiceNoteDatabase.kt')
+# A database row must be reported ONCE even when several of its paths are in the set.
+Assert-RoomRows -Case 'one database, many paths' -Fields $roomContractFields -ExpectedModules @('app_v2') `
+    -ChangedSet @(
+        'app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/AppDatabase.kt',
+        'app_v2/src/main/java/com/sza/fastmediasorter/core/di/DatabaseModule.kt',
+        'app_v2/schemas/com.sza.fastmediasorter.data.local.db.AppDatabase/1.json')
+
+# Both call sites must keep wrapping in @(): the function emits rows one at a time, so an unwrapped
+# single match binds a bare row and `.Count` on it reads 1 for a hashtable-like object by accident.
+foreach ($roomCallSite in @(
+        '\$roomAndroidTestRows = @\(Get-RoomRowsForChangedFiles ',
+        '\$runsMigrationContractGates = @\(Get-RoomRowsForChangedFiles ')) {
+    if ($facade -notmatch $roomCallSite) {
+        throw "A Get-RoomRowsForChangedFiles call site no longer wraps the call in @(): /$roomCallSite/."
+    }
+}
+
 # S2069: an app_v2-only gate must be decided by WHERE the change is, not only by its ChangeType.
 # A wear-only set used to fire the focus-highlight gate, which can read nothing but app_v2, and the
 # closure was failed by another session's in-flight app_v2 edit. The trigger expressions are lifted

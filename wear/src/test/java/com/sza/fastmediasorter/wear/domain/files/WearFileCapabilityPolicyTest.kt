@@ -2,11 +2,14 @@ package com.sza.fastmediasorter.wear.domain.files
 
 import android.content.Context
 import android.net.Uri
+import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 import com.sza.fastmediasorter.wear.domain.model.WearFileStorageClass
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
+import com.sza.fastmediasorter.wear.domain.model.WearSendToReceiverEntry
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -87,8 +90,60 @@ class WearFileCapabilityPolicyTest {
     @Test
     fun `a paired phone copy is offered opening on the phone as well`() {
         assertEquals(
-            WearFileOperationKind.entries.toSet(),
+            setOf(
+                WearFileOperationKind.SEND_TO_PHONE,
+                WearFileOperationKind.MOVE_TO_PHONE,
+                WearFileOperationKind.DELETE,
+                WearFileOperationKind.RENAME,
+                WearFileOperationKind.OPEN_ON_PHONE
+            ),
             policy.allowedOperations(WearFileStorageClass.PHONE_COPY)
+        )
+    }
+
+    /**
+     * S2142: an entry opening a dialog with nothing in it is the offer-that-ends-in-a-refusal ADR-3
+     * forbids, and an empty list is the normal state twice over - before the phone's first push, and
+     * after the owner switched the last receiver off there.
+     */
+    @Test
+    fun `send to is withheld while this watch holds no receivers`() {
+        WearFileStorageClass.entries.forEach { storageClass ->
+            assertTrue(
+                "$storageClass offered SEND_TO_RECEIVER with an empty receiver list",
+                WearFileOperationKind.SEND_TO_RECEIVER !in
+                    policyWith(available = true, receivers = emptyList()).allowedOperations(storageClass)
+            )
+        }
+    }
+
+    /** A network share stays at nothing whatever the phone published (S1863, strategic 11 criterion 12). */
+    @Test
+    fun `send to reaches every class the watch can read and never the network one`() {
+        val policy = policyWith(available = true, receivers = listOf(receiver("email")))
+
+        assertEquals(
+            setOf(
+                WearFileStorageClass.APP_OWNED,
+                WearFileStorageClass.PHONE_COPY,
+                WearFileStorageClass.MEDIA_STORE
+            ),
+            WearFileStorageClass.entries
+                .filter { WearFileOperationKind.SEND_TO_RECEIVER in policy.allowedOperations(it) }
+                .toSet()
+        )
+    }
+
+    /**
+     * Sending is a read, so it survives the missing write confirmation on the 28-29 band: the
+     * confirmation guards writing to someone else's row, and handing the bytes over changes nothing.
+     */
+    @Test
+    fun `send to survives a media store row with no write confirmation`() {
+        assertEquals(
+            setOf(WearFileOperationKind.SEND_TO_PHONE, WearFileOperationKind.SEND_TO_RECEIVER),
+            policyWith(available = false, receivers = listOf(receiver("email")))
+                .allowedOperations(WearFileStorageClass.MEDIA_STORE)
         )
     }
 
@@ -245,18 +300,35 @@ class WearFileCapabilityPolicyTest {
         every { context.cacheDir } returns dirs.cache
         every { context.filesDir } returns dirs.files
         every { context.getExternalFilesDir(null) } returns dirs.externalFiles
-        return WearFileCapabilityPolicy(context, consentThatIs(available = false))
+        return WearFileCapabilityPolicy(context, consentThatIs(available = false), receiversThatAre(emptyList()))
     }
 
     /** Classification never consults the confirmation, so these cases fix it either way. */
     private fun policyWithConsent(available: Boolean): WearFileCapabilityPolicy =
-        WearFileCapabilityPolicy(mockk<Context>(relaxed = true), consentThatIs(available))
+        policyWith(available, receivers = emptyList())
+
+    private fun policyWith(
+        available: Boolean,
+        receivers: List<WearSendToReceiverEntry>
+    ): WearFileCapabilityPolicy = WearFileCapabilityPolicy(
+        mockk<Context>(relaxed = true),
+        consentThatIs(available),
+        receiversThatAre(receivers)
+    )
 
     private fun consentThatIs(available: Boolean): WearMediaStoreConsent {
         val consent = mockk<WearMediaStoreConsent>()
         every { consent.isAvailable() } returns available
         return consent
     }
+
+    private fun receiversThatAre(entries: List<WearSendToReceiverEntry>): WearSendToReceiversRepository {
+        val repository = mockk<WearSendToReceiversRepository>()
+        every { repository.observe() } returns MutableStateFlow(entries)
+        return repository
+    }
+
+    private fun receiver(id: String) = WearSendToReceiverEntry(id = id, title = id)
 
     /** A file URI mocked rather than parsed: `Uri.parse` is not available to a plain JVM test. */
     private fun mediaFile(file: File): WearMediaFile {

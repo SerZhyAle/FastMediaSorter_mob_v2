@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.wear.data.db.VoiceNoteDurationReader
 import com.sza.fastmediasorter.wear.data.db.VoiceNoteIndexRebuilder
 import com.sza.fastmediasorter.wear.data.db.WearDatabaseResetNotice
 import com.sza.fastmediasorter.wear.data.db.WearVoiceNoteDatabase
+import com.sza.fastmediasorter.wear.data.db.WearVoiceNoteMigrations
 import com.sza.fastmediasorter.wear.data.network.StreamNetworkHoldManager
 import com.sza.fastmediasorter.wear.data.network.WearNetworkChannelMonitorImpl
 import com.sza.fastmediasorter.wear.data.network.ftp.FtpConnectionTest
@@ -31,6 +32,8 @@ import com.sza.fastmediasorter.wear.data.repository.WearFileSenderRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearLocalFolderRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearMediaRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearOpenOnPhoneRepositoryImpl
+import com.sza.fastmediasorter.wear.data.wear.AndroidWearHardwareDataSource
+import com.sza.fastmediasorter.wear.data.wear.AndroidWearHealthDataSource
 import com.sza.fastmediasorter.wear.data.wear.AndroidWearSystemInfoDataSource
 import com.sza.fastmediasorter.wear.domain.game.GameBoardGenerator
 import com.sza.fastmediasorter.wear.domain.recorder.VoiceRecordingStateHolder
@@ -41,6 +44,8 @@ import com.sza.fastmediasorter.wear.domain.repository.VoiceNoteRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFileReceiverRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFileSenderRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearHardwareDataSource
+import com.sza.fastmediasorter.wear.domain.repository.WearHealthDataSource
 import com.sza.fastmediasorter.wear.domain.repository.WearLocalFolderRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearNetworkChannelMonitor
@@ -91,6 +96,12 @@ object WearAppModule {
      * never released (native HandlerThread / AudioTrack / codecs leaked for the whole process) and was
      * shared between two owners that could not safely release it. Per-VM ownership matches the per-screen
      * player lifecycle (audio and video are separate screens with no cross-screen playback continuity).
+     *
+     * S2166: a third owner exists now - `WearPlaybackService` builds its own player for background
+     * playback. That does not reopen the design S0725 rejected, and the distinction is the whole of
+     * ADR-2: the rejected player was one instance shared between two owners, neither of which could
+     * safely release it, while the service's player has a single owner that releases it in
+     * `onDestroy`. Long-lived is not the same as shared.
      */
     @Provides
     fun provideExoPlayer(
@@ -257,6 +268,18 @@ object WearAppModule {
         impl: AndroidWearSystemInfoDataSource
     ): WearSystemInfoDataSource = impl
 
+    @Provides
+    @Singleton
+    fun provideWearHealthDataSource(
+        impl: AndroidWearHealthDataSource
+    ): WearHealthDataSource = impl
+
+    @Provides
+    @Singleton
+    fun provideWearHardwareDataSource(
+        impl: AndroidWearHardwareDataSource
+    ): WearHardwareDataSource = impl
+
     // S2142: the capability policy reads this to decide whether a MediaStore row may be written at
     // all, so it has to answer on every device - including the 28-29 band, where the answer is "no".
     @Provides
@@ -347,16 +370,18 @@ object WearAppModule {
         return database
     }
 
-    // Deliberately no migration list and no destructive fallback. The migration list belongs to
-    // S2161, which introduces the 1 -> 2 transition; a destructive fallback would let Room drop the
-    // table on its own instead of routing the failure through the recovery above - and the recovery
-    // is what puts the recordings back, which a silent internal drop would not.
+    // S2161: registers the 1 -> 2 migration. Destructive fallback is deliberately absent: a
+    // destructive fallback would let Room drop the table on its own instead of routing the failure
+    // through the recovery above - and the recovery is what puts the recordings back, which a
+    // silent internal drop would not.
     private fun buildWearVoiceNoteDatabase(context: Context): WearVoiceNoteDatabase =
         Room.databaseBuilder(
             context,
             WearVoiceNoteDatabase::class.java,
             WearVoiceNoteDatabase.DATABASE_NAME
-        ).build()
+        )
+            .addMigrations(WearVoiceNoteMigrations.MIGRATION_1_2)
+            .build()
 
     @Provides
     @Singleton

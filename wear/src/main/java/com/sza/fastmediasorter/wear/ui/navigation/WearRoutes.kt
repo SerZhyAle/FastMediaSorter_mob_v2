@@ -47,6 +47,7 @@ object WearRoutes {
     const val CALCULATOR = "calculator"
     const val NETWORK_MONITOR = "network_monitor"
     const val GAME = "game"
+    const val GAME_RULES = "game_rules"
 
     /**
      * S1862: the voice recorder is a mini-program, so [VOICE_RECORDER] carries its `canonicalKey`
@@ -76,11 +77,13 @@ object WearRoutes {
 
     /** S2201: the level of the watch-local folder walk to open, as `WearFolderAddress.asToken` writes it. */
     const val ARG_FOLDER_TOKEN = "folderToken"
+    const val ARG_NETMON_SECTION = "section"
 
     const val BROWSE_PATTERN = "browse/{$ARG_MEDIA_TYPE}"
     const val PHONE_BROWSE_PATTERN = "browse_phone/{$ARG_MEDIA_TYPE}"
     const val BROWSE_SOURCE_PATTERN =
         "browse/{$ARG_MEDIA_TYPE}?$ARG_SOURCE_ID={$ARG_SOURCE_ID}&$ARG_SOURCE_NAME={$ARG_SOURCE_NAME}"
+    const val NETWORK_MONITOR_SECTION_PATTERN = "network_monitor/{$ARG_NETMON_SECTION}"
 
     /**
      * S1829: the media-type step a network source gets between its list and browse.
@@ -151,6 +154,9 @@ object WearRoutes {
 
     /** The walk opened at its entrance, where no level has been chosen yet. */
     fun localFolderRoot(): String = localFolder("")
+
+    fun networkMonitorSection(sectionKey: String): String =
+        "network_monitor/${encodeArg(sectionKey)}"
 
     /**
      * S1848: percent-encodes one argument value before it is concatenated into a route.

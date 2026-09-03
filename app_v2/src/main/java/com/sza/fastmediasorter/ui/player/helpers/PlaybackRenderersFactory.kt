@@ -3,6 +3,8 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.content.Context
 import androidx.media3.common.MimeTypes
 import androidx.media3.exoplayer.DefaultRenderersFactory
+import androidx.media3.exoplayer.audio.AudioSink
+import androidx.media3.exoplayer.audio.DefaultAudioSink
 import androidx.media3.exoplayer.mediacodec.MediaCodecInfo
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import com.sza.fastmediasorter.data.delivery.DeliveredNativeLibraryLoader
@@ -25,12 +27,28 @@ fun createPlaybackRenderersFactory(context: Context): DefaultRenderersFactory {
     // S0386 Phase 07: attach the delivered FFmpeg DTS `.so` (Set D) before the renderers factory is
     // built, so it is on the classloader path when media3's FfmpegLibrary loads `ffmpegJNI`.
     attachDeliveredFfmpegDtsIfInstalled(context)
+    // S1267: every playback path passes through here, so a freshly started process starts on the
+    // user's last balance choice instead of silent 50/50.
+    ChannelBalanceController.restore(context)
     // S1137: EXTENSION_RENDERER_MODE_ON (not _PREFER). The FFmpeg extension exists only for DTS/exotic
     // codecs the platform lacks (Set D above). _PREFER put FfmpegAudioRenderer ahead of MediaCodec for
     // every format it claims, so it intercepted AAC/HE-AAC radio streams and failed fatally mid-stream -
     // runtime decode errors bypass setEnableDecoderFallback (that only covers decoder init). _ON keeps
     // MediaCodec first for AAC/MP3/etc and falls through to FFmpeg only for formats the platform can't do.
-    return DefaultRenderersFactory(context)
+    return object : DefaultRenderersFactory(context) {
+        // S1267: the balance role attaches here, in the one construction point every playback path
+        // already goes through, so it is not duplicated per host. setAudioProcessors prepends to
+        // DefaultAudioProcessorChain, which keeps silence-skipping and the Sonic speed processor.
+        override fun buildAudioSink(
+            context: Context,
+            enableFloatOutput: Boolean,
+            enableAudioTrackPlaybackParams: Boolean
+        ): AudioSink = DefaultAudioSink.Builder(context)
+            .setAudioProcessors(arrayOf(ChannelBalanceAudioProcessor()))
+            .setEnableFloatOutput(enableFloatOutput)
+            .setEnableAudioTrackPlaybackParams(enableAudioTrackPlaybackParams)
+            .build()
+    }
         .setEnableDecoderFallback(true)
         .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
         .setMediaCodecSelector { mimeType, requiresSecureDecoder, requiresTunnelingDecoder ->

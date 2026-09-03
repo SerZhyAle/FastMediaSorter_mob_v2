@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore
 import com.sza.fastmediasorter.data.wear.OpenOnPhoneNotifier
 import com.sza.fastmediasorter.data.wear.WearIncomingFileRegistry
+import com.sza.fastmediasorter.data.wear.WearSendToNotifier
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.domain.model.WearEventEnvelopeCodec
 import com.sza.fastmediasorter.domain.model.WearFavoritesDeltaPayload
@@ -88,6 +89,8 @@ class PhoneWearListenerService : WearableListenerService() {
 
     @Inject lateinit var wearIncomingFileRegistry: WearIncomingFileRegistry
 
+    @Inject lateinit var wearSendToNotifier: WearSendToNotifier
+
     @Inject lateinit var gson: Gson
 
     @Inject lateinit var wearSettingsMirrorStore: SharedPreferencesWearSettingsMirrorStore
@@ -148,7 +151,8 @@ class PhoneWearListenerService : WearableListenerService() {
             return
         }
         val fileName = channel.path.substringAfterLast('/', DEFAULT_INCOMING_FILE_NAME)
-        val declaredBytes = wearIncomingFileRegistry.takeDeclaredSize(fileName)
+        val declaration = wearIncomingFileRegistry.take(fileName)
+        val declaredBytes = declaration?.size ?: 0L
         applicationScope.launch {
             val channelClient = Wearable.getChannelClient(applicationContext)
             try {
@@ -158,7 +162,7 @@ class PhoneWearListenerService : WearableListenerService() {
                 Timber.i("Incoming watch file %s ended as %s", fileName, result.outcome)
                 val ack = WearFileReceiveAck(
                     fileName = fileName,
-                    outcome = when (result.outcome) {
+                    outcome = errandOutcome(fileName, declaration, result) ?: when (result.outcome) {
                         com.sza.fastmediasorter.domain.model.WearFileReceiveOutcome.SAVED ->
                             WearFileReceiveAck.OUTCOME_SAVED
                         com.sza.fastmediasorter.domain.model.WearFileReceiveOutcome.QUEUED_FOR_UPLOAD ->
@@ -202,6 +206,37 @@ class PhoneWearListenerService : WearableListenerService() {
                         .onFailure { Timber.w(it, "Failed to close the incoming watch file channel") }
                 }
             }
+        }
+    }
+
+    /**
+     * S2142: the ack for a transfer that arrived carrying an errand, or null when it carried none.
+     *
+     * Null rather than a default so the ordinary transfer's own answer stays untouched below - an
+     * errand is a different question, and answering it with "saved" would tell the watch the file
+     * was filed away when what it asked for was a receiver.
+     *
+     * A transfer with no local path (a remote destination the phone only queued an upload to) cannot
+     * be handed to a receiver at all: the bytes are not on this phone yet, so the errand is reported
+     * failed rather than silently downgraded to the upload the watch never asked for.
+     */
+    private fun errandOutcome(
+        fileName: String,
+        declaration: WearFileTransferMetadata?,
+        result: com.sza.fastmediasorter.domain.model.WearFileReceiveResult
+    ): String? {
+        val receiverId = declaration?.sendToReceiverId?.takeIf { it.isNotBlank() } ?: return null
+        val savedPath = result.savedPath
+        if (result.outcome != com.sza.fastmediasorter.domain.model.WearFileReceiveOutcome.SAVED ||
+            savedPath.isNullOrEmpty()
+        ) {
+            Timber.w("Send to from watch: %s landed as %s, no local file to hand on", fileName, result.outcome)
+            return WearFileReceiveAck.OUTCOME_FAILED
+        }
+        return if (wearSendToNotifier.notifyPendingSend(fileName, savedPath, receiverId)) {
+            WearFileReceiveAck.OUTCOME_AWAITING_SEND_TO
+        } else {
+            WearFileReceiveAck.OUTCOME_NOTIFICATIONS_OFF
         }
     }
 

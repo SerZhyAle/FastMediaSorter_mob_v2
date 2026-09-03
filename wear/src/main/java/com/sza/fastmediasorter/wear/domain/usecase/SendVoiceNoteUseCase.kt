@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.domain.usecase
 
+import android.net.Uri
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteDeliveryState
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendFailureReason
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendResult
@@ -11,13 +12,15 @@ import java.io.File
 import javax.inject.Inject
 
 /**
- * S1862: hands one note to the phone over the S1861 bridge and records what came back.
+ * S1862 / S2161: hands one note to the phone over the S1861 bridge and records what came back.
  *
  * ADR-1 keeps this on that one transport: a second protocol in the same direction would diverge on
  * ceilings, states and errors, and the two would have to be debugged separately. ADR-3 keeps the
  * file: speech cannot be recorded again, so no outcome here removes anything from disk - a note that
  * failed to send is still a note. Retrying is not done here either (section 5.1 item 4 asks for a
  * legible outcome without a hidden retry); DrainPendingVoiceNotesUseCase owns the second attempt.
+ *
+ * S2161 sends from the MediaStore address when published, and from the private file path otherwise.
  */
 class SendVoiceNoteUseCase @Inject constructor(
     private val noteRepository: VoiceNoteRepository,
@@ -30,7 +33,16 @@ class SendVoiceNoteUseCase @Inject constructor(
             Timber.w("No voice note with id %d to send", noteId)
             return VoiceNoteSendResult.Failed(VoiceNoteSendFailureReason.NOTE_MISSING)
         }
-        val result = fileSenderRepository.sendFile(File(note.absolutePath)).outcome.toVoiceNoteSendResult()
+        val sendResult = if (note.publishedAddress != null) {
+            fileSenderRepository.sendUri(
+                uri = Uri.parse(note.publishedAddress),
+                displayName = note.fileName,
+                sizeBytes = note.sizeBytes
+            )
+        } else {
+            fileSenderRepository.sendFile(File(note.absolutePath))
+        }
+        val result = sendResult.outcome.toVoiceNoteSendResult()
         noteRepository.updateState(noteId, result.toDeliveryState())
         return result
     }

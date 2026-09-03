@@ -193,7 +193,15 @@ $perfBreakdown = [ordered]@{ pass = [bool]$perfPass; failures = $perfFailures; a
 
 # maestro: every suite flow in MaestroResults must have pass=true. Missing file = no suite data
 # supplied this run (neutral/pass); a present file with any failing flow = FAIL.
+#
+# Except a flow whose status is execError (S2396): that is the transport between Maestro and the
+# device dropping - maestro.android.AdbSocket throwing out of the run - and it says nothing about
+# the app, so counting it as a content defect makes the release verdict depend on which run the
+# operator happened to look at. It is reported on its own line instead of being swallowed: an
+# infrastructure failure means the suite did not finish judging that flow, which the reader must
+# see. A flow object with no status field is a pre-S2396 JSON and keeps the old behaviour.
 $maestroFailures = @()
+$maestroInfra = @()
 $maestroTotal = 0
 $maestroPass = $true
 if ($MaestroResults -and (Test-Path $MaestroResults)) {
@@ -201,13 +209,17 @@ if ($MaestroResults -and (Test-Path $MaestroResults)) {
     $flows = @($suite.flows)
     $maestroTotal = $flows.Count
     foreach ($flow in $flows) {
-        if (-not $flow.pass) {
+        if ($flow.pass) { continue }
+        $status = if ($flow.PSObject.Properties.Name -contains 'status') { "$($flow.status)" } else { 'fail' }
+        if ($status -eq 'execError') {
+            $maestroInfra += "$($flow.flow)"
+        } else {
             $maestroPass = $false
             $maestroFailures += "$($flow.flow)"
         }
     }
 }
-$maestroBreakdown = [ordered]@{ pass = [bool]$maestroPass; total = $maestroTotal; failures = $maestroFailures }
+$maestroBreakdown = [ordered]@{ pass = [bool]$maestroPass; total = $maestroTotal; failures = $maestroFailures; infra = $maestroInfra }
 
 # screenshot: evidence only. A present ScreensDir reports the number of captured screenshots
 # but does not contribute to PASS/FAIL.
@@ -289,6 +301,9 @@ else {
     }
     $word = if (-not $pass) { 'FAIL' } elseif ($manualOpen -gt 0) { 'BLOCKED - manual observation open' } else { 'PASS' }
     Write-Host ("VERDICT {0} - log={1} perf={2} maestro={3} walk={4} screenshots={5}" -f $word, $logPass, $perfPass, $maestroPass, $walkPass, $screenshotCount)
+    if ($maestroInfra.Count -gt 0) {
+        Write-Host ("  maestro infra (not counted as a defect, flow not judged): {0}" -f ($maestroInfra -join ', '))
+    }
 }
 
 # A run with nothing broken but something unobserved is not a pass: strategic S1984 criterion 6

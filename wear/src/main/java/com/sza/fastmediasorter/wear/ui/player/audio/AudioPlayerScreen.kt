@@ -170,9 +170,12 @@ fun AudioPlayerScreen(
 
 /**
  * S1683: an opaque black sheet over the whole player that any touch dismisses. It is deliberately not
- * a real display timeout: the screen pauses playback on ON_STOP by design (S0902), so letting the
- * watch sleep would stop the music this mode exists to keep playing. On an OLED watch the pixels
- * under an opaque black sheet are unlit anyway.
+ * a real display timeout, and S2166 halved the reason. The reason still holds with the background
+ * playback setting off: the screen pauses on ON_STOP (S0902), so letting the watch sleep would stop
+ * the music this mode exists to keep playing. With the setting on and the track playing, the sleeping
+ * watch keeps playing from the service, and what this sheet is left doing is keeping the screen
+ * reachable in one touch rather than keeping the sound alive. On an OLED watch the pixels under an
+ * opaque black sheet are unlit anyway, which is why the cheaper mode was never worth swapping in.
  */
 @Composable
 private fun DimOverlay(onExit: () -> Unit) {

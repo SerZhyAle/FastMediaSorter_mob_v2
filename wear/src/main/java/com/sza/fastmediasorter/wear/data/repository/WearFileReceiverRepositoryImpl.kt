@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.data.repository
 
 import android.content.Context
 import android.os.Environment
+import android.util.LruCache
 import com.google.android.gms.wearable.ChannelClient
 import com.google.android.gms.wearable.Wearable
 import com.sza.fastmediasorter.wear.domain.model.WEAR_FILE_TRANSFER_MAX_BYTES
@@ -20,7 +21,6 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
-import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -48,13 +48,13 @@ class WearFileReceiverRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context
 ) : WearFileReceiverRepository {
 
-    private val declarations = ConcurrentHashMap<String, WearFileTransferMetadata>()
+    private val declarations = LruCache<String, WearFileTransferMetadata>(MAX_DECLARATIONS)
 
     override fun declare(metadata: WearFileTransferMetadata) {
         if (metadata.name.isBlank()) {
             Timber.w("Ignoring an incoming file declaration with no name")
         } else {
-            declarations[metadata.name] = metadata
+            declarations.put(metadata.name, metadata)
         }
     }
 
@@ -182,6 +182,9 @@ class WearFileReceiverRepositoryImpl @Inject constructor(
     }
 
     private companion object {
+        // Declarations have no timestamp, so a size cap bounds abandoned announcements without inventing age data.
+        const val MAX_DECLARATIONS = 128
+
         const val RECEIVE_BUFFER_BYTES = 64 * 1024
 
         /** S1884: cache subdirectory holding the one file currently being previewed, and nothing else. */

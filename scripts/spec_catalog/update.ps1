@@ -1,214 +1,114 @@
-# PositionalBinding = $false (S1504): a stray unnamed token is never intentional here, and the
-# first free positional slot is $Name - so it renamed the ticket instead of failing. Backslash is
-# not an escape character in PowerShell, so a note written `.. tagged \"S1474:\" ..` closes its
-# string early and the remainder reaches the parameter binder as separate arguments. With
-# positional binding off they die at bind time instead of overwriting a field.
-[CmdletBinding(PositionalBinding = $false)]
-param(
-    # Not [Parameter(Mandatory)]: a mandatory parameter makes the host prompt before the
-    # body runs, so -Help could never print. Absence is reported explicitly below instead.
-    [string] $Id,
-    [ValidateSet('Draft','Approved','Tactical','In Progress',
-        'Implemented','Verified','Partial','Broken',
-        'BlockByOtherTask','BlockNeedUserTest','BlockQuestions','BlockExternal',
-        'Archived')]
-    [string] $Status,
-    [string] $Name,
-    [string] $File,
-    [int]    $Tier = -1,
-    [int]    $Priority = -1,
-    [string] $StatusNote = $null,  # non-empty: set note; empty '': clear note; $null/omit: preserve
-    [switch] $Help
-)
+#requires -Version 7.0
+<#
+.SYNOPSIS
+    Forwarder to the canon-shipped harness script spec_catalog\update.ps1 (S2402).
 
-if ($Help) {
-    & (Join-Path $PSScriptRoot '..\utils\help.ps1') -Name 'scripts/spec_catalog/update.ps1'
-    exit $LASTEXITCODE
+.DESCRIPTION
+    GENERATED - do not edit. The mechanism lives in the SZA canon plugin (tools/harness) and this
+    repository consumes it; the file kept here is only the address every existing call site already
+    knows. Regenerate with scripts/utils/install-sza-forwarders.ps1. What this project configures lives in
+    .sza-profile.json at the repository root, never in a script body.
+
+Exit codes: whatever spec_catalog\update.ps1 returns, plus 2 when the harness cannot be located.
+#>
+# S2441: every name below carries a $szaFwd prefix because HALF of this set is dot-sourced, and a
+# dot-sourced file assigns into its CALLER's scope. PowerShell names are case-insensitive, so the
+# `$target` this file used to resolve into WAS the caller's `-Target` parameter: post-change.ps1
+# dot-sources the agent-lock-domains forwarder before it journals, and every dev/CHANGELOG.md row
+# written on 2026-09-03 recorded a harness path where the ticket id belonged. The second failure
+# mode is worse than the substitution - a caller declaring `[string]$Candidates` type-constrains
+# this file's own accumulator, so `$candidates = @()` collapses to '' and every `+=` concatenates
+# instead of appending, leaving one unusable path and a forwarder that cannot find the harness at
+# all. Ten scripts under scripts/ declare a parameter that collided. Contract suite:
+# scripts/utils/install-sza-forwarders.tests/.
+$szaFwdCandidates = @()
+if ($env:SZA_HARNESS_ROOT) { $szaFwdCandidates += $env:SZA_HARNESS_ROOT }
+$szaFwdCache = Join-Path $env:USERPROFILE '.claude\plugins\cache\sza-unified-rules\sza'
+if (Test-Path -LiteralPath $szaFwdCache) {
+    # Ordered as VERSIONS, not as strings: the plugin version is date-derived (2026.903.1), so a
+    # string sort puts October's 2026.1001.1 below September's 2026.903.1 and the forwarder would
+    # keep calling the older copy after an update. A directory that does not parse sorts last
+    # rather than being dropped - it may still be the only harness present.
+    $szaFwdVersions = @(Get-ChildItem -LiteralPath $szaFwdCache -Directory -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            $szaFwdParsed = $null
+            [void][version]::TryParse($_.Name, [ref]$szaFwdParsed)
+            [pscustomobject]@{ Path = $_.FullName; Version = $szaFwdParsed }
+        } | Sort-Object @{ Expression = { $null -ne $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Path }; Descending = $true })
+    $szaFwdCandidates += @($szaFwdVersions | ForEach-Object { Join-Path $_.Path 'tools\harness' })
 }
-if (-not $Id) {
-    Write-Error 'update.ps1 requires -Id <Sxxxx>. Run with -Help for the parameter list.' -ErrorAction Continue
-    exit 1
-}
-
-# Convert terminating errors (Write-Error, throw, provider errors) into
-# the documented `exit 1` so callers can rely on $LASTEXITCODE.
-trap {
-    Write-Host $_ -ForegroundColor Red
-    exit 1
-}
-
-. (Join-Path $PSScriptRoot '_lib.ps1')
-
-if ($Id -notmatch '^S\d{4}$') { throw "Invalid -Id '$Id' (must match S####)." }
-if ($PSBoundParameters.ContainsKey('Priority')) {
-    if ($Priority -lt 0 -or $Priority -gt 100) {
-        throw "Invalid -Priority '$Priority' (must be 0..100)."
-    }
-}
-
-# S1582: explicit acceptance-probe contracts are source-backed at write time.
-# Unmarked prose remains free-form, so historic status notes are not reinterpreted.
-if ($PSBoundParameters.ContainsKey('StatusNote') -and $StatusNote -ne '' -and
-    $StatusNote -match '(?im)^\s*Probe\s+(literal|template|none)\s*:') {
-    $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-    $helperPath = Join-Path $repoRoot 'scripts/quality/lib/ticket-acceptance-probes.ps1'
-    $sourceRoots = @((Join-Path $repoRoot 'app_v2/src'), (Join-Path $repoRoot 'wear/src'))
-    if (-not (Test-Path -LiteralPath $helperPath) -or @($sourceRoots | Where-Object { -not (Test-Path -LiteralPath $_) }).Count -gt 0) {
-        throw 'Cannot validate acceptance-probe contract: helper or source roots are unavailable.'
-    }
-    . $helperPath
-    $probeResults = @(Test-TicketAcceptanceProbeNote -Ticket $Id -StatusNote $StatusNote -SourceRoots $sourceRoots)
-    $invalidProbe = @($probeResults | Where-Object { $_.Outcome -ne 'pass' })
-    if ($invalidProbe.Count -gt 0) {
-        $reasons = ($invalidProbe | ForEach-Object { $_.Outcome }) -join ', '
-        throw "Invalid acceptance-probe contract for ${Id}: $reasons."
-    }
+$szaFwdTarget = $null
+foreach ($szaFwdDir in $szaFwdCandidates) {
+    $szaFwdProbe = Join-Path $szaFwdDir 'spec_catalog\update.ps1'
+    if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe; break }
 }
 
-# Resolve from the active journal first, then the archive journal (so updating
-# or reviving an Archived ticket still works under the split).
-$records = [System.Collections.Generic.List[object]]::new()
-# S1437: read -> mutate -> write is one critical section. Two processes holding the same
-# snapshot lose one change entirely - the later write replaces the whole journal.
-Enter-CatalogLock
-foreach ($r in (Read-Catalog)) { $records.Add($r) }
-
-$idx = -1
-for ($i = 0; $i -lt $records.Count; $i++) {
-    if ($records[$i].id -eq $Id) { $idx = $i; break }
-}
-
-$fromArchive = $false
-$old = $null
-if ($idx -ge 0) {
-    $old = $records[$idx]
-} else {
-    foreach ($r in (Read-JsonlFile -Path (Get-ArchivePath))) {
-        if ($r.id -eq $Id) { $old = $r; $fromArchive = $true; break }
-    }
-}
-if ($null -eq $old) { throw "Record '$Id' not found." }
-
-$oldStatus = $old.status
-
-# Build mutable copy preserving all current fields.
-$updated = [pscustomobject]@{
-    id       = [string]$old.id
-    name     = [string]$old.name
-    status   = [string]$old.status
-    priority = [int]$old.priority
-    file     = [string]$old.file
-    created  = [string]$old.created
-    updated  = [string]$old.updated
-}
-if ($old.PSObject.Properties.Name -contains 'tier' -and $null -ne $old.tier -and "$($old.tier)" -ne '') {
-    $updated | Add-Member -NotePropertyName 'tier' -NotePropertyValue ([int]$old.tier)
-}
-$fixedKeys = @('id','name','status','priority','tier','file','created','updated')
-foreach ($prop in $old.PSObject.Properties) {
-    if ($fixedKeys -notcontains $prop.Name -and -not ($updated.PSObject.Properties.Name -contains $prop.Name)) {
-        $updated | Add-Member -NotePropertyName $prop.Name -NotePropertyValue $prop.Value
-    }
-}
-
-if ($PSBoundParameters.ContainsKey('Status'))   { $updated.status   = $Status }
-if ($PSBoundParameters.ContainsKey('Name'))     { $updated.name     = $Name }
-if ($PSBoundParameters.ContainsKey('File'))     { $updated.file     = ($File -replace '\\','/') }
-if ($PSBoundParameters.ContainsKey('Priority')) { $updated.priority = $Priority }
-
-# StatusNote: explicit non-null value updates the record; auto-clear when leaving Block* without a note.
-$resolvedNote = $null   # $null = don't touch header note; '' = clear; non-empty = set
-if ($PSBoundParameters.ContainsKey('StatusNote')) {
-    $resolvedNote = $StatusNote   # caller's explicit intent (may be '' to clear)
-    if ($StatusNote -ne '') {
-        if ($updated.PSObject.Properties.Name -contains 'statusNote') { $updated.statusNote = $StatusNote }
-        else { $updated | Add-Member -NotePropertyName 'statusNote' -NotePropertyValue $StatusNote }
-    } else {
-        # Explicit clear: remove field from record
-        if ($updated.PSObject.Properties.Name -contains 'statusNote') {
-            $updated.PSObject.Properties.Remove('statusNote')
+# S2452: candidate 3, the canon checkout, reached only when the two above miss. The plugin cache
+# is what actually resolves on every invocation, so the resolver below is never read on the hot
+# path. Its default is held by scripts/utils/project-paths.ps1 and by nothing else - before this it
+# was written in 76 files, 74 of them generated and stamped `GENERATED - do not edit`, so moving
+# the canon required editing files that forbid editing. That is the exact non-portability the
+# hardcoded-drive-path rule was installed to refuse (S2326).
+#
+# The dot-source runs inside `& { }` deliberately. HALF this set is itself dot-sourced, so at top
+# level project-paths.ps1 would define its functions and set its script variables in the CALLER's
+# scope - the S2441 failure one level further out. A child scope cannot reach the caller at all.
+if (-not $szaFwdTarget) {
+    $szaFwdCheckout = $env:SZA_CANON_ROOT
+    if (-not $szaFwdCheckout) {
+        $szaFwdResolver = Join-Path $PSScriptRoot '..\..\scripts\utils\project-paths.ps1'
+        if (Test-Path -LiteralPath $szaFwdResolver) {
+            # A resolver that is absent or throws must not stop the forwarder from printing its own
+            # refusal, which is the only message that names all three candidates and the fix.
+            $szaFwdCheckout = & {
+                param($szaFwdResolverPath)
+                try { . $szaFwdResolverPath; Get-CanonRoot } catch { $null }
+            } $szaFwdResolver
         }
     }
-} elseif ($PSBoundParameters.ContainsKey('Status') -and $oldStatus -like 'Block*' -and $updated.status -notlike 'Block*') {
-    # Leaving a Block* status without a new note: auto-clear so stale notes don't linger.
-    $resolvedNote = ''
-    if ($updated.PSObject.Properties.Name -contains 'statusNote') {
-        $updated.PSObject.Properties.Remove('statusNote')
+    if ($szaFwdCheckout) {
+        $szaFwdCandidates += (Join-Path $szaFwdCheckout 'tools\harness')
+        $szaFwdProbe = Join-Path $szaFwdCandidates[-1] 'spec_catalog\update.ps1'
+        if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe }
     }
 }
-if ($Tier -ge 0) {
-    if ($updated.PSObject.Properties.Name -contains 'tier') { $updated.tier = $Tier }
-    else { $updated | Add-Member -NotePropertyName 'tier' -NotePropertyValue $Tier }
+if (-not $szaFwdTarget) {
+    Write-Host "update.ps1: the SZA harness is not installed - looked in:" -ForegroundColor Red
+    foreach ($szaFwdDir in $szaFwdCandidates) { Write-Host "    $szaFwdDir" -ForegroundColor Gray }
+    Write-Host "  Install or update it:  claude plugin update sza@sza-unified-rules" -ForegroundColor Yellow
+    Write-Host "  Or point at a checkout: `$env:SZA_HARNESS_ROOT = '<repo>\tools\harness'" -ForegroundColor Yellow
+    exit 2
 }
 
-# Owner-Inputs gate: any transition INTO Approved requires the spec file's
-# §3.3 "Owner inputs (Approval gate)" subsection to be present and every bullet
-# inside it to carry a concrete value. The set of bullets is decided by /spec
-# at draft time based on the spec's detected character (relevance-driven; not
-# a hardcoded list). Universally required: 'Related tickets'.
-# The gate runs only on the specific transition $oldStatus -> Approved.
-if ($PSBoundParameters.ContainsKey('Status') -and $Status -eq 'Approved' -and $oldStatus -ne 'Approved') {
-    $checker = Join-Path $PSScriptRoot 'check-owner-inputs.ps1'
-    if (Test-Path $checker) {
-        $checkerOutput = & $checker -Id $Id 2>&1
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host ""
-            Write-Host "Owner-Inputs gate blocked promotion of $Id -> Approved:" -ForegroundColor Yellow
-            $checkerOutput | ForEach-Object { Write-Host $_ }
-            Write-Host ""
-            throw ("Cannot promote '{0}' to Approved: §3.3 Owner inputs incomplete. Fill every bullet present in §3.3 with a concrete value (placeholders in square brackets are rejected), ensure 'Related tickets' is present, then re-run update.ps1." -f $Id)
-        }
-    }
-}
+$env:SZA_PROJECT_ROOT = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 
-# Closing gates: any transition INTO a closed status runs the durable-evidence contract
-# (S1606) and the carried-open-item contract (S1607). Both live in Assert-ClosingGates so
-# this path and close.ps1 enforce the same set - a second copy here is what let close.ps1
-# drift into enforcing nothing at all.
-if ($PSBoundParameters.ContainsKey('Status')) {
-    Assert-ClosingGates -Id $Id -OldStatus $oldStatus -NewStatus $Status
-}
-
-$updated.updated = Get-Now
-
-Assert-Record -Record $updated
-
-# Route the write to the journal that matches the NEW status, handling all four
-# transitions (active<->active, active->archive, archive->active, archive->archive).
-$newIsArchived = ($updated.status -eq 'Archived')
-if ($newIsArchived) {
-    Add-ArchiveRecord -Record $updated                       # upsert into archive
-    if (-not $fromArchive) {                                 # was active: drop it there
-        $remaining = @($records | Where-Object { $_.id -ne $Id })
-        Write-Catalog -Records ([object[]]$remaining)
-    }
+# Half of this set is dot-sourced as a library and half is invoked as a CLI, and the two cannot be
+# forwarded the same way: `& $szaFwdTarget` would run a library in its own scope and define nothing
+# the caller can see, while `exit` inside a dot-sourced file would kill the caller. InvocationName
+# is '.' exactly when this file was dot-sourced, so one template serves both.
+if ($MyInvocation.InvocationName -eq '.') {
+    . $szaFwdTarget
 } else {
-    if ($fromArchive) {                                      # revive: archive -> active
-        $archKeep = @((Read-JsonlFile -Path (Get-ArchivePath)) | Where-Object { $_.id -ne $Id })
-        Write-ArchiveCatalog -Records ([object[]]$archKeep)
-        $records.Add($updated)
-        Write-Catalog -Records $records.ToArray()
-    } else {                                                 # in-place active update
-        $records[$idx] = $updated
-        Write-Catalog -Records $records.ToArray()
+    # Deliberately NOT 'Stop'. A native child's stderr arrives here as ErrorRecord objects, and
+    # under 'Stop' the first one terminates this forwarder before `exit $LASTEXITCODE` runs - so a
+    # script that reported a FAIL and exited 1 would reach its caller as a crashed forwarder with a
+    # different code. Every script in this set states its exit codes; passing them through unchanged
+    # is the whole job. S2441 moved it inside this branch: at the file's top level it also rewrote
+    # the preference of every caller that dot-sources a forwarder, silently downgrading a script
+    # running under 'Stop' for the rest of its life.
+    $ErrorActionPreference = 'Continue'
+    $global:LASTEXITCODE = 0
+    try {
+        & $szaFwdTarget @args
+    } catch {
+        # A child that THROWS never reaches its own `exit`, so $LASTEXITCODE stays 0 and the
+        # forwarder would report success for a script that failed - the one way a forwarder can
+        # turn a red verdict green. Every such refusal is a failure, so it leaves as exit 1.
+        Write-Error $_ -ErrorAction Continue
+        exit 1
     }
+    $szaFwdCode = $LASTEXITCODE
+    exit $(if ($null -eq $szaFwdCode) { 0 } else { $szaFwdCode })
 }
-
-# Mirror the new status into the spec file's human-readable **Status:** header so
-# it never drifts from the journal (the owner reads that header directly). Shared
-# fail-soft helper in _lib.ps1; only the first header line is touched, deeper
-# ADR / Proposal **Status:** lines are left alone. The journal write above is the
-# source of truth and is never rolled back by a header problem.
-$statusChanged = $PSBoundParameters.ContainsKey('Status') -and $oldStatus -ne $updated.status
-$noteExplicit  = $PSBoundParameters.ContainsKey('StatusNote')
-if ($statusChanged -or $noteExplicit) {
-    if (Sync-SpecHeaderStatus -PathRef $updated.file -Status $updated.status -StatusNote $resolvedNote) {
-        $noteHint = if ($null -ne $resolvedNote -and $resolvedNote -ne '') { ' + note' } elseif ($resolvedNote -eq '') { ' (note cleared)' } else { '' }
-        Write-Host ("  header synced -> {0}{1}" -f $updated.status, $noteHint) -ForegroundColor DarkGray
-    }
-}
-
-Exit-CatalogLock
-
-Write-Output ("{0} {1} -> {2}" -f $Id, $oldStatus, $updated.status)
-exit 0

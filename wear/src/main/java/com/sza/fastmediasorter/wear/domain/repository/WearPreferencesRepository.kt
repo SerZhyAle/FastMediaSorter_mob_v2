@@ -114,6 +114,14 @@ interface WearPreferencesRepository {
     val keepScreenAwakeOutsidePlayers: Flow<Boolean>
     suspend fun setKeepScreenAwakeOutsidePlayers(enabled: Boolean)
 
+    /**
+     * S2166: audio and audio streams keep playing after the app is minimized, owned by a foreground
+     * service instead of by the player screen. Off by default - the battery cost of holding a
+     * session on a watch is not measured yet, so the switch opts in rather than out.
+     */
+    val backgroundPlaybackEnabled: Flow<Boolean>
+    suspend fun setBackgroundPlaybackEnabled(enabled: Boolean)
+
     /** S2209: disable visual transition and decorative animations across the Wear OS app. */
     val isAnimationsDisabled: Flow<Boolean>
     suspend fun setAnimationsDisabled(disabled: Boolean)

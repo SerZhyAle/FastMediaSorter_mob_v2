@@ -1,198 +1,114 @@
+#requires -Version 7.0
 <#
 .SYNOPSIS
-    Upsert one record into the ALL_FEATURES inventory (docs/ALL_FEATURES.jsonl).
+    Forwarder to the canon-shipped harness script all_features\add.ps1 (S2402).
 
 .DESCRIPTION
-    Developer-facing feature inventory, EN-only. One JSON object per line.
-    Replaces dev/FUNCTIONALITY.log as the source of truth about implemented
-    functionality. Records are validated against docs/ALL_FEATURES.schema.json
-    rules before write. Upsert by `id`: an existing record with the same id is
-    replaced in place; otherwise the record is appended.
+    GENERATED - do not edit. The mechanism lives in the SZA canon plugin (tools/harness) and this
+    repository consumes it; the file kept here is only the address every existing call site already
+    knows. Regenerate with scripts/utils/install-sza-forwarders.ps1. What this project configures lives in
+    .sza-profile.json at the repository root, never in a script body.
 
-    noLegal-only capabilities route to the gitignored docs/ALL_FEATURES_noLegal.jsonl
-    via -NoLegal.
-
-.EXAMPLE
-    .\scripts\all_features\add.ps1 -Id "video.session_restore" -Area "Video Player" `
-        -Name "Session save and restore" -Description "Remembers exact playback coordinates" `
-        -Flavors "standard,vr" -Spec S0001
-
-.EXAMPLE
-    # List the distinct areas already in use (no exploratory ConvertFrom-Json needed):
-    .\scripts\all_features\add.ps1 -ListAreas
+Exit codes: whatever all_features\add.ps1 returns, plus 2 when the harness cannot be located.
 #>
-[CmdletBinding(DefaultParameterSetName = 'Add')]
-param(
-    [Parameter(Mandatory = $true, ParameterSetName = 'Add')] [string]$Id,
-    [Parameter(Mandatory = $true, ParameterSetName = 'Add')] [string]$Area,
-    [Parameter(Mandatory = $true, ParameterSetName = 'Add')] [string]$Name,
-    [Parameter(Mandatory = $true, ParameterSetName = 'Add')] [string]$Description,
-    [Parameter(Mandatory = $true, ParameterSetName = 'Add')] [string]$Flavors,
-    # S1929: the BuildConfig flag this capability lives behind, if any. Deliberately optional and
-    # deliberately without a default: an absent `gate` asserts "behind no flag", so a default would
-    # turn that assertion into a guess. When present, validate.ps1 requires `flavors` to equal the
-    # flag's row in docs/FLAVOR_MATRIX.md. S1982: flags joined by '+' mean the capability needs all
-    # of them at once, and `flavors` must then equal the intersection of their rows.
-    [Parameter(Mandatory = $false, ParameterSetName = 'Add')] [string]$Gate = "",
-    # S2090: which WEAR-module variants the capability exists in. Optional, and omitting it asserts
-    # "every watch build" - so naming both is refused rather than accepted as a synonym. Unrelated to
-    # -Flavors, which names phone variants; see docs/ALL_FEATURES.schema.json for why the two are
-    # separate axes rather than one field read differently for watch records.
-    [Parameter(Mandatory = $false, ParameterSetName = 'Add')] [string]$WearFlavors = "",
-    [Parameter(Mandatory = $false, ParameterSetName = 'Add')] [string]$Spec = "",
-    [Parameter(Mandatory = $false, ParameterSetName = 'Add')] [ValidateSet("active", "removed")] [string]$Status = "active",
-    [Parameter(Mandatory = $true, ParameterSetName = 'List')] [switch]$ListAreas,
-    [switch]$NoLegal,
-    [switch]$Quiet
-)
-
-$ErrorActionPreference = "Stop"
-trap { Write-Error $_; exit 1 }
-
-# S2090: the wear module's own dimension, deliberately a separate list from the phone's.
-$validWearFlavors = @("standard", "noLegal")
-
-function Fail([string]$msg) { Write-Error $msg; exit 1 }
-
-function Test-NonAscii([string]$s) {
-    foreach ($ch in $s.ToCharArray()) { if ([int][char]$ch -gt 127) { return $true } }
-    return $false
+# S2441: every name below carries a $szaFwd prefix because HALF of this set is dot-sourced, and a
+# dot-sourced file assigns into its CALLER's scope. PowerShell names are case-insensitive, so the
+# `$target` this file used to resolve into WAS the caller's `-Target` parameter: post-change.ps1
+# dot-sources the agent-lock-domains forwarder before it journals, and every dev/CHANGELOG.md row
+# written on 2026-09-03 recorded a harness path where the ticket id belonged. The second failure
+# mode is worse than the substitution - a caller declaring `[string]$Candidates` type-constrains
+# this file's own accumulator, so `$candidates = @()` collapses to '' and every `+=` concatenates
+# instead of appending, leaving one unusable path and a forwarder that cannot find the harness at
+# all. Ten scripts under scripts/ declare a parameter that collided. Contract suite:
+# scripts/utils/install-sza-forwarders.tests/.
+$szaFwdCandidates = @()
+if ($env:SZA_HARNESS_ROOT) { $szaFwdCandidates += $env:SZA_HARNESS_ROOT }
+$szaFwdCache = Join-Path $env:USERPROFILE '.claude\plugins\cache\sza-unified-rules\sza'
+if (Test-Path -LiteralPath $szaFwdCache) {
+    # Ordered as VERSIONS, not as strings: the plugin version is date-derived (2026.903.1), so a
+    # string sort puts October's 2026.1001.1 below September's 2026.903.1 and the forwarder would
+    # keep calling the older copy after an update. A directory that does not parse sorts last
+    # rather than being dropped - it may still be the only harness present.
+    $szaFwdVersions = @(Get-ChildItem -LiteralPath $szaFwdCache -Directory -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            $szaFwdParsed = $null
+            [void][version]::TryParse($_.Name, [ref]$szaFwdParsed)
+            [pscustomobject]@{ Path = $_.FullName; Version = $szaFwdParsed }
+        } | Sort-Object @{ Expression = { $null -ne $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Path }; Descending = $true })
+    $szaFwdCandidates += @($szaFwdVersions | ForEach-Object { Join-Path $_.Path 'tools\harness' })
+}
+$szaFwdTarget = $null
+foreach ($szaFwdDir in $szaFwdCandidates) {
+    $szaFwdProbe = Join-Path $szaFwdDir 'all_features\add.ps1'
+    if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe; break }
 }
 
-# Resolve repo root
-$scriptDir = $PSScriptRoot
-if (-not $scriptDir) { $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path }
-. (Join-Path $scriptDir '_lib.ps1')
-$repoRoot = Resolve-FeatureRepoRoot -ScriptDir $scriptDir
-# The matrix header is the live list; the literal below is only the fallback for a checkout where
-# docs/FLAVOR_MATRIX.md is missing, and it is what went stale when `foss` was declared (S2093).
-$validFlavors = @(Get-FlavorMatrixColumns -RepoRoot $repoRoot)
-if ($validFlavors.Count -eq 0) { $validFlavors = @("standard", "lite", "photos", "legacy", "vr", "noLegal") }
-$fileName = if ($NoLegal) { "ALL_FEATURES_noLegal.jsonl" } else { "ALL_FEATURES.jsonl" }
-$dataFile = Get-FeatureInventoryPath -RepoRoot $repoRoot -NoLegal:$NoLegal
-
-# -ListAreas: print the distinct areas already in the inventory and exit. Lets a
-# caller pick an existing area name without a separate exploratory ConvertFrom-Json pass.
-if ($ListAreas) {
-    if (Test-Path $dataFile) {
-        @(Get-Content -LiteralPath $dataFile -Encoding UTF8 |
-            Where-Object { $_.Trim().Length -gt 0 } |
-            ForEach-Object { try { ($_ | ConvertFrom-Json).area } catch { } } |
-            Where-Object { $_ } |
-            Sort-Object -Unique) | ForEach-Object { Write-Output $_ }
-    }
-    exit 0
-}
-
-# Normalize / validate fields (mirror docs/ALL_FEATURES.schema.json)
-$idN = $Id.Trim()
-if ($idN -notmatch '^[a-z0-9]+(?:[-_][a-z0-9]+)*\.[a-z0-9]+(?:[-_][a-z0-9]+)*$') {
-    Fail "Invalid -Id '$idN'. Expected kebab '<area>.<feature>' (lowercase)."
-}
-$areaN = $Area.Trim()
-$nameN = $Name.Trim()
-$descN = ($Description -replace '\s+', ' ').Trim()
-if ([string]::IsNullOrWhiteSpace($areaN)) { Fail "-Area is empty." }
-if ([string]::IsNullOrWhiteSpace($nameN)) { Fail "-Name is empty." }
-if ([string]::IsNullOrWhiteSpace($descN)) { Fail "-Description is empty." }
-
-$flavorList = @($Flavors -split '[,\s]+' | Where-Object { $_ } | ForEach-Object { $_.Trim() })
-if ($flavorList.Count -eq 0) { Fail "-Flavors is empty." }
-foreach ($f in $flavorList) {
-    if ($validFlavors -notcontains $f) {
-        Fail "Invalid flavor '$f'. Allowed: $($validFlavors -join ', ')."
-    }
-}
-$flavorList = @($flavorList | Select-Object -Unique)
-
-$wearFlavorList = @()
-if (-not [string]::IsNullOrWhiteSpace($WearFlavors)) {
-    $wearFlavorList = @($WearFlavors -split '[,\s]+' | Where-Object { $_ } | ForEach-Object { $_.Trim() } | Select-Object -Unique)
-    foreach ($f in $wearFlavorList) {
-        if ($validWearFlavors -notcontains $f) {
-            Fail "Invalid wear flavor '$f'. Allowed: $($validWearFlavors -join ', ')."
+# S2452: candidate 3, the canon checkout, reached only when the two above miss. The plugin cache
+# is what actually resolves on every invocation, so the resolver below is never read on the hot
+# path. Its default is held by scripts/utils/project-paths.ps1 and by nothing else - before this it
+# was written in 76 files, 74 of them generated and stamped `GENERATED - do not edit`, so moving
+# the canon required editing files that forbid editing. That is the exact non-portability the
+# hardcoded-drive-path rule was installed to refuse (S2326).
+#
+# The dot-source runs inside `& { }` deliberately. HALF this set is itself dot-sourced, so at top
+# level project-paths.ps1 would define its functions and set its script variables in the CALLER's
+# scope - the S2441 failure one level further out. A child scope cannot reach the caller at all.
+if (-not $szaFwdTarget) {
+    $szaFwdCheckout = $env:SZA_CANON_ROOT
+    if (-not $szaFwdCheckout) {
+        $szaFwdResolver = Join-Path $PSScriptRoot '..\..\scripts\utils\project-paths.ps1'
+        if (Test-Path -LiteralPath $szaFwdResolver) {
+            # A resolver that is absent or throws must not stop the forwarder from printing its own
+            # refusal, which is the only message that names all three candidates and the fix.
+            $szaFwdCheckout = & {
+                param($szaFwdResolverPath)
+                try { . $szaFwdResolverPath; Get-CanonRoot } catch { $null }
+            } $szaFwdResolver
         }
     }
-    if ($wearFlavorList.Count -eq $validWearFlavors.Count) {
-        Fail "-WearFlavors names every watch build. Omit the parameter instead - an absent wearFlavors already means that."
+    if ($szaFwdCheckout) {
+        $szaFwdCandidates += (Join-Path $szaFwdCheckout 'tools\harness')
+        $szaFwdProbe = Join-Path $szaFwdCandidates[-1] 'all_features\add.ps1'
+        if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe }
     }
 }
-
-$specVal = $null
-if (-not [string]::IsNullOrWhiteSpace($Spec)) {
-    $specT = $Spec.Trim()
-    if ($specT -notmatch '^S\d{4}$') { Fail "Invalid -Spec '$specT'. Expected Sxxxx or empty." }
-    $specVal = $specT
+if (-not $szaFwdTarget) {
+    Write-Host "add.ps1: the SZA harness is not installed - looked in:" -ForegroundColor Red
+    foreach ($szaFwdDir in $szaFwdCandidates) { Write-Host "    $szaFwdDir" -ForegroundColor Gray }
+    Write-Host "  Install or update it:  claude plugin update sza@sza-unified-rules" -ForegroundColor Yellow
+    Write-Host "  Or point at a checkout: `$env:SZA_HARNESS_ROOT = '<repo>\tools\harness'" -ForegroundColor Yellow
+    exit 2
 }
 
-# S1982: mirror the schema's `gate` shape here, so a mistyped flag fails at authoring time instead
-# of surfacing in whatever ticket next runs the closure gate. Semantics stay in validate.ps1, the
-# only place that reads docs/FLAVOR_MATRIX.md: whether the flag exists, and whether `flavors` equal
-# its row - or, for a conjunction, the intersection of the named rows.
-$gateN = $Gate.Trim()
-if ($gateN) {
-    if ($gateN -cnotmatch '^[A-Z][A-Z0-9_]*(?:\+[A-Z][A-Z0-9_]*)*$') {
-        Fail "Invalid -Gate '$gateN'. Expected a BuildConfig flag, or flags joined by '+' when the capability needs all of them at once."
+$env:SZA_PROJECT_ROOT = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+
+# Half of this set is dot-sourced as a library and half is invoked as a CLI, and the two cannot be
+# forwarded the same way: `& $szaFwdTarget` would run a library in its own scope and define nothing
+# the caller can see, while `exit` inside a dot-sourced file would kill the caller. InvocationName
+# is '.' exactly when this file was dot-sourced, so one template serves both.
+if ($MyInvocation.InvocationName -eq '.') {
+    . $szaFwdTarget
+} else {
+    # Deliberately NOT 'Stop'. A native child's stderr arrives here as ErrorRecord objects, and
+    # under 'Stop' the first one terminates this forwarder before `exit $LASTEXITCODE` runs - so a
+    # script that reported a FAIL and exited 1 would reach its caller as a crashed forwarder with a
+    # different code. Every script in this set states its exit codes; passing them through unchanged
+    # is the whole job. S2441 moved it inside this branch: at the file's top level it also rewrote
+    # the preference of every caller that dot-sources a forwarder, silently downgrading a script
+    # running under 'Stop' for the rest of its life.
+    $ErrorActionPreference = 'Continue'
+    $global:LASTEXITCODE = 0
+    try {
+        & $szaFwdTarget @args
+    } catch {
+        # A child that THROWS never reaches its own `exit`, so $LASTEXITCODE stays 0 and the
+        # forwarder would report success for a script that failed - the one way a forwarder can
+        # turn a red verdict green. Every such refusal is a failure, so it leaves as exit 1.
+        Write-Error $_ -ErrorAction Continue
+        exit 1
     }
-    $gateTerms = @($gateN -split '\+')
-    if (@($gateTerms | Sort-Object -Unique).Count -ne $gateTerms.Count) {
-        Fail "Invalid -Gate '$gateN'. A repeated flag narrows nothing - the second term is meant to be a different flag."
-    }
+    $szaFwdCode = $LASTEXITCODE
+    exit $(if ($null -eq $szaFwdCode) { 0 } else { $szaFwdCode })
 }
-
-# EN-only inventory: reject non-ASCII in name/description
-if ((Test-NonAscii $nameN) -or (Test-NonAscii $descN)) {
-    Fail "ALL_FEATURES is EN-only: non-ASCII found in -Name/-Description."
-}
-
-# Build record with stable key order
-$record = [ordered]@{
-    id          = $idN
-    area        = $areaN
-    name        = $nameN
-    description = $descN
-    flavors     = $flavorList
-    spec        = $specVal
-    status      = $Status
-}
-# S1929: omit the key entirely rather than writing an empty one. An absent `gate` is the assertion
-# "behind no flag"; a present-but-blank one would read as an unfinished record instead.
-if ($gateN) {
-    $record.Insert(5, 'gate', $gateN)
-}
-# S2090: same rule as `gate` above - omit the key rather than write an empty one. An absent
-# wearFlavors is the assertion "every watch build has it", which a blank array would not say.
-if ($wearFlavorList.Count -gt 0) {
-    $record.Insert($record.Keys.Count - 2, 'wearFlavors', $wearFlavorList)
-}
-$line = ($record | ConvertTo-Json -Compress -Depth 5)
-
-# S1537: read -> upsert -> write is one critical section. Serializing only the write would
-# still lose this record - the other writer's snapshot was taken before it existed. Every
-# Fail path above runs before the lock is taken, so no early exit can leave it held.
-Enter-FeatureLock -RepoRoot $repoRoot
-try {
-    $existing = Read-FeatureLines -Path $dataFile
-
-    # Upsert by id
-    $found = $false
-    $out = New-Object System.Collections.Generic.List[string]
-    foreach ($l in $existing) {
-        try { $obj = $l | ConvertFrom-Json } catch { $obj = $null }
-        if ($obj -and $obj.id -eq $idN) {
-            $out.Add($line); $found = $true
-        } else {
-            $out.Add($l)
-        }
-    }
-    if (-not $found) { $out.Add($line) }
-
-    Write-FeatureLines -Path $dataFile -Lines $out
-}
-finally { Exit-FeatureLock }
-
-if (-not $Quiet) {
-    $verb = if ($found) { "updated" } else { "added" }
-    Write-Host "[ALL_FEATURES] $verb '$idN' -> docs/$fileName" -ForegroundColor Green
-}
-exit 0

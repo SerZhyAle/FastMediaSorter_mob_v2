@@ -11,6 +11,16 @@ permalink: /docs/WEAR_OS_STATUS.html
 
 ---
 
+## 📐 Verified Watch Shapes (WO-V16 Compliance, S2273)
+
+The watch app layout is declared and verified against three watch screen shape profiles in `scripts/devtest/wear-shape-profiles.json`:
+
+1. **`small-round` (192 dp, 153.6 dp content box)** - `Wear OS small round 1.2"`, `reviewedByPlay = true`. The Play Store WO-V16 baseline floor. Every fixed-width row is sized against this content box.
+2. **`large-round` (227 dp, 181.6 dp content box)** - `Wear OS large round 1.39"`, `reviewedByPlay = true`.
+3. **`xl-round` (240 dp, 192.0 dp content box)** - `Wear OS XL round`, `reviewedByPlay = false`. Regression control shape.
+
+---
+
 ## 📊 Implementation Summary
 
 | Phase | Name                    | Completion | Status                                          |
@@ -206,7 +216,7 @@ The shared pieces live in `ui/common/` (`WearRefineControlHeader`, `WearSearchDi
 | Feature                 | Status | Notes                               |
 | ----------------------- | ------ | ----------------------------------- |
 | **Local Music Browse**  | ✅     | MediaStore query                    |
-| **Audio Playback**      | ✅     | Media3 ExoPlayer with seek controls |
+| **Audio Playback**      | ✅     | Media3 foreground playback service, seek controls, and optional background audio |
 | **Local Video Browse**  | ✅     | MediaStore query                    |
 | **Video Playback**      | ✅     | ExoPlayer + battery warning         |
 | **Local Photo Browse**  | ✅     | MediaStore query                    |
@@ -227,7 +237,7 @@ Everything below was measured or watched on the owner's Galaxy Watch 7, not infe
 | Rotary seek | audio, video | The bezel moves the position inside the file by 10 seconds a step and never changes the file. A watch without a bezel loses nothing - every action is also a button. |
 | Album art | audio | Shown full-bleed behind the controls when the file carries one. A MediaStore album-art uri exists for every track that belongs to an album, so the fallback keys on the image failing to load, not on the uri being absent. |
 | Brand background | audio | The waves-and-particles animation, at the same speed as the phone and the website with fewer elements. It stops when playback pauses: measured 1277 CPU ticks per ten seconds running against 3 stopped. |
-| Screen-off mode | audio | A button blanks the screen and any touch restores it. Playback continues, because the display is never allowed to time out for real - `ON_STOP` pauses playback by S0902 design. |
+| Screen-off mode | audio | A button blanks the screen and any touch restores it. With Background playback enabled, audio files and streams also continue after the app is minimized or the display times out; notification controls remain available. Video and slideshows still pause when their host stops. |
 | Clock | all three players | HH:MM at top centre, from the Wear scaffold, in every state except the blanked screen. |
 | Localization | browse, all three players | Titles and player literals come from resources in EN/RU/UK. The list title used to stay English under a Russian interface. |
 | Touch targets | all three players | Every control is 48.dp, the Wear OS minimum. Wear Compose 1.2.1 has no way to enlarge a press target without enlarging the button. |
@@ -410,7 +420,7 @@ and no channel.
 - `REFUSED_NO_NOTIFICATION` and silence must not be merged: one is fixed on the phone's settings
   screen, the other by bringing the phone closer.
 - Phone side: the dispatcher branch and `OpenOnPhoneNotifier` live in `src/wearGms`, beside the eleven
-  existing handlers, because the four flavors that mount `src/wearStub` must gain no GMS reference. The
+  existing handlers, because the flavors that mount `src/wearStub` must gain no GMS reference. The
   path constants and the payload models sit in `src/main` with the other eleven - a `const val` and a
   `data class` name no GMS type.
 - Foreground is read from `ProcessLifecycleOwner`, never from a task query, and a refused direct launch
@@ -470,9 +480,45 @@ recorder** and **system information**.
   is drawn in the header (S2008); the scaling lives in the config `GameViewModel` builds, never in the
   generator, so the mirror stays exact. The board is capped by `wearMaxSquareSide()` and by the height
   left under the header - a square of the full content width puts its corners outside a round glass.
+- **Voice recorder** records a note through a foreground service, so the session outlives the screen
+  going dark (S1862). Since S2161 the screen shows the running state in its own tone on the status dot
+  and the elapsed counter - deliberately not `MaterialTheme.colors.error`, which already means "something
+  is wrong" across the module, so a running recording drawn in it would say the opposite of the truth.
+  The tone is a third signal beside the glyph and the words, never a replacement: the state still reads
+  with colour off and still speaks to TalkBack as one stop. A finished note plays on the watch itself -
+  from the recorder screen for the note just recorded, and from any row of the note list, where a plain
+  tap plays and a long press opens the actions sheet with Play above Send and Delete. Playback reuses the
+  existing audio player through `PrepareVoiceNotePlaybackUseCase` and the same `playerRouteFor` the folder
+  walk uses; there is no second player (ADR-2). On API 29 and above a stopped recording is published into
+  the watch's shared audio collection, so it appears among the other audio files instead of staying inside
+  the app - the private file is deleted only after the publication is confirmed, because a voice recording
+  cannot be made again (ADR-3). A note that could not be published stays private and is still listed,
+  playable and sendable. On API 28 it stays private by decision, no write permission being declared for it
+  (ADR-4). The note list is not replaced by the audio collection: it remains the only place a note's
+  delivery state - waiting, sent, failed - is visible.
 - **System information** reports what this watch is, so it sits here rather than in Settings, where it
-  was until S2008. Its five sections pack two fields per row through the same `packSettingsRows` the
+  was until S2008. Its sections pack two fields per row through the same `packSettingsRows` the
   settings screens use (S1949), with a pair too wide for half a screen keeping a row of its own.
+  Since S2165 the content is selected by one criterion - a fact the watch's own settings screens do not
+  show - and the screen is assembled from contributors rather than from one interface with a property
+  per fact: `domain/systeminfo/WearSystemInfoContributor.kt` declares the seam, `WearSystemInfoOrder`
+  holds the section order, and `di/WearSystemInfoModule.kt` declares the set with `@Multibinds`. Three
+  consequences worth knowing before editing it:
+  - **A section that cannot be filled says why instead of disappearing**, on the S2130/S1584 pattern and
+    matching the form S2156 settled for the network monitor. A single missing *field* still just
+    vanishes.
+  - **A set the user counts more often than reads is collapsed to its size** and expands on tap - the
+    sensor inventory, the capability set of the pair. Poured in whole they would turn the two-column
+    report into one long column.
+  - **The report is re-read on demand, never on a timer.** Thermal state, battery voltage and uptime
+    move while the screen is open, so there is a refresh chip under the title; a watch polling on a
+    timer would spend battery on a screen opened because the battery is misbehaving.
+  Every Data Layer lookup it makes is bounded by `withTimeoutOrNull` - an unresponsive Play Services
+  used to hold the whole screen, which is the one case the report exists to survive. The storage
+  section measures the app's own footprint through `StorageStatsManager`, not the volume: the `StatFs`
+  reading it replaced reported the whole `/data` partition while its comment claimed otherwise, which is
+  why it repeated what the watch's settings already show. The `noLegal` build adds one further section
+  (the signing-certificate fingerprint) from `wear/src/noLegal/`; `standard` leaves that slot empty.
 - **Calculator** keeps counting on the keypad and every function behind the single menu key; its
   history and memory are written on every change, because a watch program is dismissed by a gesture
   that gives no reliable exit callback.
@@ -586,4 +632,3 @@ not exist for the phone at all.
 ---
 
 **Note**: This status document reflects code and artifact verification as of 2026-08-17. All listed features are implemented and tested in the codebase.
-

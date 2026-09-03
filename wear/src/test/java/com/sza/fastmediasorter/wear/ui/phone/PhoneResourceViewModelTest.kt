@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceClient
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceOutcome
 import com.sza.fastmediasorter.wear.domain.browse.BrowseCategoryCatalog
@@ -29,6 +30,7 @@ import io.mockk.unmockkStatic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -65,6 +67,11 @@ class PhoneResourceViewModelTest {
     private val selectedMedia: SelectedMediaManager = mockk(relaxed = true)
     private val capabilityPolicy: WearFileCapabilityPolicy = mockk(relaxed = true)
     private val performFileOperation: PerformWearFileOperationUseCase = mockk(relaxed = true)
+
+    /** S2142: an explicitly empty receiver list - these cases pin the browse mapping, not receivers. */
+    private val sendToReceivers: WearSendToReceiversRepository = mockk<WearSendToReceiversRepository>().also {
+        every { it.observe() } returns MutableStateFlow(emptyList())
+    }
 
     // S1846: the view model now prepares a cache directory for a delivered phone file. Only the path is
     // read at construction, so a stub context with a real temp dir is enough and no Robolectric is needed.
@@ -425,6 +432,7 @@ class PhoneResourceViewModelTest {
         selectedMedia,
         capabilityPolicy,
         performFileOperation,
+        sendToReceivers,
         context,
         preferences,
         SavedStateHandle(

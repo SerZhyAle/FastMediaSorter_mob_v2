@@ -14,6 +14,7 @@ import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
+import com.sza.fastmediasorter.data.identity.transfer.TransferableSignInWriter
 import com.sza.fastmediasorter.domain.identity.GoogleAccessToken
 import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
 import com.sza.fastmediasorter.domain.identity.GoogleScope
@@ -22,6 +23,8 @@ import com.sza.fastmediasorter.domain.identity.IdentitySignInResult
 import com.sza.fastmediasorter.domain.identity.NeedsResignInReason
 import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccount
 import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccountState
+import com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInProviderKeys
+import com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInRecord
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.Instant
 import javax.inject.Inject
@@ -54,7 +57,8 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
     private val store: PrimaryGoogleAccountStore,
     private val tokenIssuer: GoogleTokenIssuer,
     @ApplicationScope private val scope: CoroutineScope,
-    @Named("googleWebClientId") private val webClientId: String
+    @Named("googleWebClientId") private val webClientId: String,
+    private val transferableSignInWriter: TransferableSignInWriter
 ) : GoogleIdentityRepository {
 
     private val _state = MutableStateFlow<PrimaryGoogleAccountState>(PrimaryGoogleAccountState.Unbound)
@@ -123,6 +127,7 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
             boundAt = Instant.now()
         )
         store.save(account)
+        publishTransferableEnvelope(account)
         _state.value = PrimaryGoogleAccountState.Bound(account)
         return IdentitySignInResult.Success(account)
     }
@@ -156,6 +161,7 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
         if (result is IdentitySignInResult.Success && result.account.email != current.email) {
             // User picked a different account at the prompt - revert to the original primary.
             store.save(current)
+            publishTransferableEnvelope(current)
             _state.value = PrimaryGoogleAccountState.Bound(current)
             return IdentitySignInResult.Cancelled
         }
@@ -201,6 +207,9 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
     override suspend fun signOutPrimary() {
         tokenIssuer.invalidate()
         store.clear()
+        // S2101 pillar 3: without this the next device restores a session the user just left. Every
+        // user-facing Drive sign-out funnels through here, so this one call covers them all.
+        transferableSignInWriter.removeEntry(TransferableSignInProviderKeys.GOOGLE_PRIMARY)
         _state.value = PrimaryGoogleAccountState.Unbound
         // Note: server-side OAuth revocation requires the access-token string which we just
         // discarded via tokenIssuer.invalidate(). Local revocation through GoogleAuthUtil.clearToken
@@ -218,6 +227,9 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
                 // the absent one. NeedsResignIn is wrong here - its contract is "same email". S0743.
                 Timber.i("Primary Google account no longer present on device; clearing stale binding")
                 store.clear()
+                // S2101: the binding is dead, so carrying it to a new device would restore an
+                // account that is not there either.
+                transferableSignInWriter.removeEntry(TransferableSignInProviderKeys.GOOGLE_PRIMARY)
                 _state.value = PrimaryGoogleAccountState.Unbound
                 null
             }
@@ -232,9 +244,47 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
         tokenIssuer.invalidate()
     }
 
+    override suspend fun restoreTransferredBinding(email: String, scopes: Set<GoogleScope>): Boolean {
+        if (_state.value is PrimaryGoogleAccountState.Bound) {
+            return false
+        }
+        val account = PrimaryGoogleAccount(
+            email = email,
+            displayName = null,
+            photoUrl = null,
+            grantedScopes = scopes,
+            boundAt = Instant.now()
+        )
+        store.save(account)
+        _state.value = PrimaryGoogleAccountState.Bound(account)
+        // Deliberately no write back through the transfer writer: the record being restored FROM is
+        // the same record a write would produce, and re-stamping it would move writtenAt on a device
+        // that learned nothing new.
+        Timber.i("Restored transferred Google binding for a migrated device")
+        return true
+    }
+
     // endregion
 
     // region - private helpers
+
+    /**
+     * S2101 pillar 1: records which account is bound and which scopes it granted, and nothing else.
+     *
+     * No token goes in. On the new device the system account has migrated on its own, so
+     * [GoogleTokenIssuer] mints against it as usual - carrying a secret here would widen the leak
+     * surface for no gain (ADR-2).
+     */
+    private suspend fun publishTransferableEnvelope(account: PrimaryGoogleAccount) {
+        transferableSignInWriter.putEntry(
+            providerKey = TransferableSignInProviderKeys.GOOGLE_PRIMARY,
+            kind = TransferableSignInRecord.Kind.IDENTITY_ENVELOPE,
+            payload = mapOf(
+                PAYLOAD_EMAIL to account.email,
+                PAYLOAD_SCOPES to account.grantedScopes.joinToString(SCOPE_SEPARATOR) { it.value }
+            )
+        )
+    }
 
     private suspend fun restoreFromStore(): PrimaryGoogleAccountState {
         return runCatching { store.load() }
@@ -351,4 +401,12 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
     }
 
     // endregion
+
+    private companion object {
+        // S2101: payload field names are part of the persisted transfer format - a build older or
+        // newer than the writer reads them, so they may not be renamed once shipped.
+        const val PAYLOAD_EMAIL = "email"
+        const val PAYLOAD_SCOPES = "scopes"
+        const val SCOPE_SEPARATOR = ","
+    }
 }

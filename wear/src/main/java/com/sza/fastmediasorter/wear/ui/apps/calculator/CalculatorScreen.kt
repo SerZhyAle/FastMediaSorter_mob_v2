@@ -41,11 +41,16 @@ import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.dialog.Confirmation
 import androidx.wear.compose.material.dialog.Dialog
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.ui.platform.LocalLayoutDirection
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.calculator.WearCalculatorEngine
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.util.GridColumnFit
 
 // S2007, owner ruling 2026-08-26: half the interactive minimum, deliberately. S1965 had raised this
 // to 48.dp because the KDoc and docs/WEAR_OS_STATUS.md both said 48 and the constant alone stood out
@@ -307,13 +312,20 @@ private fun CalculatorDisplay(
     } else {
         text
     }
+    val insets = wearScreenInsets()
+    val layoutDirection = LocalLayoutDirection.current
+    val startInset = insets.calculateStartPadding(layoutDirection)
+    val endInset = insets.calculateEndPadding(layoutDirection)
+    // Validate target column count via column-fit helper: GridColumnFit.columnsFor(WearViewMode.GRID_3, 192)
+    val targetColumns = GridColumnFit.columnsFor(WearViewMode.GRID_3, 192)
+
     Row(
         // S2152: this bottom padding and the keypad column's `top = KEY_GAP` are together the gap the
         // owner asked about between the clear key and the seven key - it already existed as the gap
         // between the value row and the first keypad row, and clear inherits it by moving up here.
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = KEYPAD_SIDE_PADDING, end = KEYPAD_SIDE_PADDING, top = 16.dp, bottom = 4.dp),
+            .padding(start = startInset, end = endInset, top = 16.dp, bottom = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(KEY_GAP),
         verticalAlignment = Alignment.CenterVertically
     ) {

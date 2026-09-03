@@ -107,6 +107,30 @@ function Get-SiblingPath {
     Join-Path (Split-Path -Parent (Get-ProjectRoot)) $Name
 }
 
+# S2452: the SZA canon checkout, which is the last of the three places a harness forwarder looks
+# for the shipped harness (S2402). Its default belongs here rather than at the call sites for the
+# reason this whole file exists - and the measurement is unusually blunt: on 2026-09-03 that one
+# machine default was written in 76 places, 74 of them generated files stamped `GENERATED - do not
+# edit`, so relocating the canon meant editing 76 scripts none of which was allowed to be edited.
+#
+# Get-SiblingPath cannot serve the role. The canon lives in P:\WEB\ while the project root lives in
+# P:\ANDROID\, so the checkout is not beside the root and no sibling lookup reaches it.
+#
+# The override keeps the name SZA_CANON_ROOT rather than taking an FMS_ prefix like the tool and
+# sink tables below: it is not this project's variable to rename - the forwarders print it in their
+# own refusal text, and a canon session sets it before any project script runs.
+function Get-CanonRoot {
+    <#
+    .SYNOPSIS
+        Absolute path of the SZA canon checkout.
+    #>
+    [CmdletBinding()]
+    param()
+
+    if ($env:SZA_CANON_ROOT) { return $env:SZA_CANON_ROOT }
+    return 'P:\WEB\sza-unified-rules'
+}
+
 # Adding a tool is a row here, never an edit at a call site (strategic spec S2326 section 5.3).
 # Probe entries name directories to look inside; every one is built from an environment variable
 # so this table itself carries no drive letter.

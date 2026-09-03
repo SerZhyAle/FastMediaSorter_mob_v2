@@ -16,6 +16,7 @@ appId: com.sza.fastmediasorter.debug
     text: "Локальные"
     index: 0
 - scrollUntilVisible:
+    visibilityPercentage: 30
     element:
       text: "Загрузки"
     timeout: 10000
@@ -65,6 +66,7 @@ appId: com.sza.fastmediasorter.debug
     timeout: 20000
 - back
 - scrollUntilVisible:
+    visibilityPercentage: 30
     element:
       text: "Ops/dst"
     timeout: 10000
@@ -78,6 +80,7 @@ appId: com.sza.fastmediasorter.debug
     text: "IMG_copy_01.png"
 - back
 - scrollUntilVisible:
+    visibilityPercentage: 30
     element:
       text: "IMG_copy_01.png"
     timeout: 10000
@@ -129,6 +132,7 @@ appId: com.sza.fastmediasorter.debug
     timeout: 20000
 - back
 - scrollUntilVisible:
+    visibilityPercentage: 30
     element:
       text: "Ops/dst"
     timeout: 10000

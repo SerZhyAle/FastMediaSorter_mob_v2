@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.ui.player.audio
 
 import com.sza.fastmediasorter.wear.domain.model.StreamChannelReason
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
+import com.sza.fastmediasorter.wear.util.formatWearDuration
 
 /**
  * UI state for the audio player screen.
@@ -51,17 +52,10 @@ data class AudioPlayerUiState(
 
     val progress: Float
         get() = if (durationMs > 0) currentPositionMs.toFloat() / durationMs else 0f
-    
+
     val currentPositionFormatted: String
-        get() = formatTime(currentPositionMs)
-    
+        get() = formatWearDuration(currentPositionMs)
+
     val durationFormatted: String
-        get() = formatTime(durationMs)
-    
-    private fun formatTime(ms: Long): String {
-        val totalSeconds = ms / 1000
-        val minutes = totalSeconds / 60
-        val seconds = totalSeconds % 60
-        return String.format("%d:%02d", minutes, seconds)
-    }
+        get() = formatWearDuration(durationMs)
 }

@@ -5,9 +5,10 @@
     publication (S0394).
 
 .DESCRIPTION
-    Stamps a single version into BOTH app_v2 and wear, then builds every release
-    flavor + the wear release in the established two-pass (Chaquopy) order, so all
-    artifacts share one version and the publisher can upload them under one tag.
+    Derives a single version and passes it to every gradle invocation as -Pfms.version*, then
+    builds every release flavor + the wear release in the established two-pass (Chaquopy) order,
+    so all artifacts share one versionName and the publisher can upload them under one tag.
+    S1873: nothing is written into either build.gradle.kts - a build never mutates the tree.
 
     Flavors built (release only):
       standard, lite, photos, legacy, vr   (pass 1, Chaquopy disabled)
@@ -21,14 +22,14 @@
     (scripts/release/publish-github-release.ps1) passes its branch guard.
 
 .PARAMETER SkipBuild
-    Stamp the uniform version into app_v2 + wear build.gradle.kts and exit without
-    building. Useful to inspect the version reconciliation in isolation.
+    Resolve and print the uniform version, then exit without building. Useful to inspect the
+    version reconciliation in isolation.
 
 .PARAMETER ReuseVersion
-    Do NOT compute a fresh version. Reuse the version already stamped in
-    app_v2/build.gradle.kts (e.g. by a prior `a.ps1 r`) and align wear to it. This
-    keeps the GitHub Release APKs aligned with the Google Play AAB produced by
-    `a.ps1 r` in the same release window - used by the /skill-release flow.
+    Do NOT derive a fresh version. Recover the version of the app_v2 release bundle a prior
+    `a.ps1 r` produced, from its AGP output-metadata.json, and build this run's flavors at it.
+    This keeps the GitHub Release APKs aligned with the Google Play AAB produced by `a.ps1 r`
+    in the same release window - used by the /skill-release flow.
 
 .PARAMETER Flavors
     Subset of the spectrum to build. Accepts any of:
@@ -98,89 +99,50 @@ $buildAnyApp  = ($pass1Flavors.Count -gt 0) -or $buildNoLegal
 
 $projectRoot = Resolve-Path "$PSScriptRoot\..\.."
 $gradlew     = Join-Path $projectRoot "gradlew.bat"
-$appGradle   = Join-Path $projectRoot "app_v2\build.gradle.kts"
-$wearGradle  = Join-Path $projectRoot "wear\build.gradle.kts"
 . (Join-Path $projectRoot 'scripts/utils/agent-lock.ps1')
 . (Join-Path $projectRoot 'scripts/utils/find-build-artifact.ps1')
+. (Join-Path $projectRoot 'scripts/utils/build-version-stamp.ps1')
 
 # ----------------------------------------------------------------------
-# Stamp one version into a module's build.gradle.kts.
-# ----------------------------------------------------------------------
-function Set-ModuleVersion {
-    param(
-        [Parameter(Mandatory)] [string] $Path,
-        [Parameter(Mandatory)] [int]    $Code,
-        [Parameter(Mandatory)] [string] $Name
-    )
-    if (-not (Test-Path -LiteralPath $Path)) { throw "build.gradle.kts not found: $Path" }
-    $content = Get-Content -LiteralPath $Path -Raw
-    $content = $content -replace '(versionCode\s*=\s*)\d+', "`${1}$Code"
-    $content = $content -replace '(versionName\s*=\s*)"[^"]*"', "`${1}`"$Name`""
-    Set-Content -LiteralPath $Path -Value $content -NoNewline
-    Write-Host "  stamped $Path" -ForegroundColor DarkGray
-}
-
-# ----------------------------------------------------------------------
-# Version reconciliation.
-# Fresh (default): compute one version (formula identical to build-aab-release.ps1)
-#   and stamp BOTH modules.
+# Version reconciliation. S1873 pillar 2: this script is the one place a multi-module release
+# still decides the version, because two gradle invocations cannot agree on a versionName by
+# reading their own clocks. It passes the decision down as -Pfms.version*, and writes nothing -
+# after ADR-4 no build touches build.gradle.kts, so no caller has to revert one.
 #   versionName: Y.YM.MDDH.Hmm (same for app_v2 + wear).
 #   versionCode app_v2: yyMMddHH + first-minute-digit (9 digits).
 #   versionCode wear:   yyMMddHH (8 digits) - wear keeps the shorter base by design.
-# ReuseVersion: read the version already in app_v2 (set by a prior a.ps1 r) and
-#   align only wear to it (wear code = app code without the trailing minute digit).
+# ReuseVersion: recover the version of the app_v2 release artifact a prior `a.ps1 r` produced,
+#   so this run's extra flavors join that release rather than opening a new one.
 # ----------------------------------------------------------------------
 if ($ReuseVersion) {
-    $appContent = Get-Content -LiteralPath $appGradle -Raw
-    # (?i): build.gradle.kts holds the version in `defaultAppVersionName`/`defaultAppVersionCode`
-    # (capital V); the writer (PowerShell -replace) is case-insensitive, so the reader must be too.
-    $vnMatch = [regex]::Match($appContent, '(?i)versionName\s*=\s*"([^"]+)"')
-    $vcMatch = [regex]::Match($appContent, '(?i)versionCode\s*=\s*(\d+)')
-    if (-not ($vnMatch.Success -and $vcMatch.Success)) {
-        throw "-ReuseVersion: cannot read versionName/versionCode from $appGradle. Run a.ps1 r first."
+    # The AAB is the artifact `a.ps1 r` always produces, so its metadata is the version that run
+    # shipped. Reading it back out of build.gradle.kts stopped being possible at ADR-4 - nothing
+    # writes that file any more, and its constants are a deliberate non-releasable sentinel.
+    $bundleDir = Join-Path $projectRoot 'app_v2\build\outputs\bundle\standardRelease'
+    $prior = Get-ArtifactVersion -Dir $bundleDir
+    if (-not $prior) {
+        throw "-ReuseVersion: no build metadata at $bundleDir\output-metadata.json. Run a.ps1 r first - this flag reuses the version of the release it produced."
     }
-    $versionName     = $vnMatch.Groups[1].Value
-    $appVersionCode  = [int]$vcMatch.Groups[1].Value
+    $versionName    = $prior.VersionName
+    $appVersionCode = $prior.VersionCode
     if ($appVersionCode -lt 100000000) {
-        throw "-ReuseVersion expects a 9-digit release versionCode in app_v2 (got $appVersionCode). Run a.ps1 r first."
+        throw "-ReuseVersion expects a 9-digit release versionCode in $($prior.MetadataPath) (got $appVersionCode). Run a.ps1 r first."
     }
     # Drop the trailing minute digit to obtain wear's 8-digit yyMMddHH code.
     $wearVersionCode = [int][math]::Floor($appVersionCode / 10)
     Write-Host "Reusing version: $versionName (app code $appVersionCode, wear code $wearVersionCode)" -ForegroundColor Green
-    # app_v2 already carries this version; align wear only when it is in the selection.
-    if ($buildWear) {
-        Set-ModuleVersion -Path $wearGradle -Code $wearVersionCode -Name $versionName
-    }
+    Write-Host "  source: $($prior.MetadataPath)" -ForegroundColor DarkGray
 } else {
-    $now = Get-Date
-    $yy  = $now.ToString("yy")
-    $mon = $now.ToString("MM")
-    $dd  = $now.ToString("dd")
-    $HH  = $now.ToString("HH")
-    $mm  = $now.ToString("mm")
-
-    $versionName     = "$($yy[0]).$($yy[1])$($mon[0]).$($mon[1])$dd$($HH[0]).$($HH[1])$mm"
-    $appVersionCode  = [Convert]::ToInt32($now.ToString("yyMMddHH") + $mm[0])
-    $wearVersionCode = [Convert]::ToInt32($now.ToString("yyMMddHH"))
+    $stamp = Get-BuildVersionStamp
+    $versionName     = $stamp.VersionName
+    $appVersionCode  = $stamp.AppVersionCode
+    $wearVersionCode = $stamp.WearVersionCode
 
     Write-Host "Spectrum version: $versionName (app code $appVersionCode, wear code $wearVersionCode)" -ForegroundColor Green
-
-    if ($buildAnyApp) { Set-ModuleVersion -Path $appGradle  -Code $appVersionCode  -Name $versionName }
-    if ($buildWear)   { Set-ModuleVersion -Path $wearGradle -Code $wearVersionCode -Name $versionName }
-}
-
-# A flavor-scoped selection (e.g. -Flavors wear, or a plateau release run with -Flavors standard)
-# only ever stamps the module(s) it was asked to build, by design. That is correct for the build,
-# but it is also exactly how the two modules drift apart in a checkout this script's discard step
-# (the /skill-release release-worktree flow) never reaches - so warn, non-fatally, at the moment the
-# stamp is written rather than leaving it for the next unrelated ticket's `fg` gate (S2117).
-& (Join-Path $PSScriptRoot "..\quality\assert-module-version-parity.ps1") -Quiet
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "Warning: app_v2/build.gradle.kts and wear/build.gradle.kts now disagree on version - see scripts/quality/assert-module-version-parity.ps1. Expected in a partial-flavor run; align both modules before this stamp is committed (S2117)." -ForegroundColor Yellow
 }
 
 if ($SkipBuild) {
-    Write-Host "-SkipBuild set: version stamped, no build performed." -ForegroundColor Yellow
+    Write-Host "-SkipBuild set: version resolved, no build performed." -ForegroundColor Yellow
     exit 0
 }
 
@@ -199,30 +161,43 @@ if ($spectrumDomains.Count -eq 0) { $spectrumDomains = @('Build.Phone', 'Build.W
 Enter-BuildLockOrExit -Reason 'build-release-spectrum.ps1' -Domain $spectrumDomains
 Push-Location $projectRoot
 try {
-    # Pass 1: selected app flavors (Chaquopy off) + wear, if requested.
+    # Pass 1a: selected app flavors (Chaquopy off).
+    # S1873: the app and the watch no longer share one gradle invocation, because -Pfms.versionCode
+    # applies to every module in the call and the two modules must NOT carry the same code - both
+    # publish under one applicationId and Play refuses a release whose artifacts repeat one. The
+    # split is per module, so S2040's guarantee is untouched: the watch's two artifacts still come
+    # out of a single call, at a single version.
     $pass1Tasks = @()
     foreach ($f in $pass1Flavors) {
         # standard -> assembleStandardRelease, vr -> assembleVrRelease, etc.
         $pass1Tasks += ":app_v2:assemble$((Get-Culture).TextInfo.ToTitleCase($f))Release"
     }
+
+    if ($pass1Tasks.Count -gt 0) {
+        Write-Host "Pass 1a: $($pass1Tasks -join ', ') (Chaquopy disabled).." -ForegroundColor Cyan
+        & $gradlew @pass1Tasks "-Pfms.versionCode=$appVersionCode" "-Pfms.versionName=$versionName" "-Pchaquopy.enabled=false" --configuration-cache
+        if ($LASTEXITCODE -ne 0) { throw "Pass 1a (app release flavors) failed with exit $LASTEXITCODE" }
+    }
+
     # Both watch artifacts come out of this single invocation. The sideload APK and the Play bundle
     # used to be produced by two gradle calls at different times - this script and
     # scripts/builders/build-wear-release.PS1 - with nothing establishing that they were built from
     # one tree state or one version, so a divergence between what a user sideloads and what the store
     # serves would have been caught by no gate (S2040). Kept as a list rather than two literals so a
     # third watch artifact costs one entry instead of a rewrite of this block.
-    if ($buildWear) { $pass1Tasks += @(":wear:assemble${wearTaskFlavor}Release", ":wear:bundle${wearTaskFlavor}Release") }
-
-    if ($pass1Tasks.Count -gt 0) {
-        Write-Host "Pass 1: $($pass1Tasks -join ', ') (Chaquopy disabled).." -ForegroundColor Cyan
-        & $gradlew @pass1Tasks "-Pchaquopy.enabled=false" --configuration-cache
-        if ($LASTEXITCODE -ne 0) { throw "Pass 1 (non-noLegal release) failed with exit $LASTEXITCODE" }
+    if ($buildWear) {
+        $wearTasks = @(":wear:assemble${wearTaskFlavor}Release", ":wear:bundle${wearTaskFlavor}Release")
+        Write-Host "Pass 1b: $($wearTasks -join ', ') (Chaquopy disabled).." -ForegroundColor Cyan
+        & $gradlew @wearTasks "-Pfms.versionCode=$wearVersionCode" "-Pfms.versionName=$versionName" "-Pchaquopy.enabled=false" --configuration-cache
+        if ($LASTEXITCODE -ne 0) { throw "Pass 1b (wear release) failed with exit $LASTEXITCODE" }
     }
 
     if ($buildNoLegal) {
         Write-Host "Pass 2: noLegal release (Chaquopy enabled, no configuration cache).." -ForegroundColor Cyan
         & $gradlew `
             :app_v2:assembleNoLegalRelease `
+            "-Pfms.versionCode=$appVersionCode" `
+            "-Pfms.versionName=$versionName" `
             "-Pchaquopy.enabled=true" `
             --no-configuration-cache
         if ($LASTEXITCODE -ne 0) { throw "Pass 2 (noLegal release) failed with exit $LASTEXITCODE" }

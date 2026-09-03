@@ -4,7 +4,14 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import com.sza.fastmediasorter.core.di.ApplicationScope
+import com.sza.fastmediasorter.data.identity.transfer.TransferableSignInWriter
+import com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInProviderKeys
+import com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInRecord
+import dagger.Lazy
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -24,7 +31,9 @@ import javax.inject.Singleton
  */
 @Singleton
 class DropboxCredentialsManager @Inject constructor(
-    @param:ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context,
+    @param:ApplicationScope private val appScope: CoroutineScope,
+    private val transferWriter: Lazy<TransferableSignInWriter>
 ) {
     companion object {
         private const val PREFS_NAME = "dropbox_credentials"
@@ -64,6 +73,7 @@ class DropboxCredentialsManager @Inject constructor(
             edit.apply()
             Timber.d("Dropbox credentials saved (account: ${accountEmail ?: "unknown"})")
         }
+        publishTransferableSecret(credentialsJson, accountEmail)
     }
 
     /** Load credentials, preferring the per-account key when [accountEmail] is given. */
@@ -85,6 +95,34 @@ class DropboxCredentialsManager @Inject constructor(
         guardStorage("clear", Unit) {
             prefs.edit().remove(KEY_CREDENTIALS).apply()
             Timber.d("Dropbox credentials cleared")
+        }
+        forgetTransferableSecret()
+    }
+
+    /**
+     * Mirror the credential into the transferable record so it survives a migration (S2101).
+     *
+     * Fire and forget by design: the transfer write is best-effort and must never affect the
+     * credential save the user just completed, so it neither blocks that save nor reports a failure
+     * back to it. [TransferableSignInWriter] merges, leaving the other providers' entries intact.
+     */
+    private fun publishTransferableSecret(credentialsJson: String, accountEmail: String?) {
+        appScope.launch {
+            transferWriter.get().putEntry(
+                TransferableSignInProviderKeys.DROPBOX,
+                TransferableSignInRecord.Kind.SECRET,
+                mapOf(
+                    TransferredCredentialPayload.EMAIL to accountEmail.orEmpty(),
+                    TransferredCredentialPayload.CREDENTIALS to credentialsJson
+                )
+            )
+        }
+    }
+
+    /** Drop this provider's transferable entry on sign-out; fire and forget for the same reason. */
+    private fun forgetTransferableSecret() {
+        appScope.launch {
+            transferWriter.get().removeEntry(TransferableSignInProviderKeys.DROPBOX)
         }
     }
 

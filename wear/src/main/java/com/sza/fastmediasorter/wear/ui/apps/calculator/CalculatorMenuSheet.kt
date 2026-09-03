@@ -21,6 +21,7 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.calculator.WearCalculatorFunction
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.WearChoiceGridFit
+import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.wearChoiceRows
 
 private val TITLE_VERTICAL_PADDING = 12.dp
@@ -99,7 +100,8 @@ fun CalculatorMenuSheet(
         ScalingLazyColumn(
             modifier = Modifier.fillMaxSize(),
             state = listState,
-            contentPadding = PaddingValues(horizontal = LIST_SIDE_PADDING)
+            contentPadding = PaddingValues(horizontal = LIST_SIDE_PADDING),
+            scalingParams = WearGridScalingParams
         ) {
             item {
                 Text(

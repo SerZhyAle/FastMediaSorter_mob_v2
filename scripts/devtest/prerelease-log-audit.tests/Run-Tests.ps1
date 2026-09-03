@@ -32,6 +32,10 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+# The S2394 cases assert on localized toast text, so the child process's stdout must be decoded as
+# UTF-8 - the console default mangles Cyrillic and turns a correct verdict into a red case.
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
 $repoRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
 $auditScript = Join-Path $repoRoot 'scripts/devtest/prerelease-log-audit.ps1'
 
@@ -114,6 +118,27 @@ $deviceTags = Get-ActionableTags $deviceGpu
 Assert-Equal $false $deviceGpu.softwareRendered 'S1969: no EGL_emulation means the capture is not software-rendered'
 Assert-Equal $true ($deviceTags -contains 'FrameEvents') 'S1969: FrameEvents stays actionable without the marker'
 Assert-Equal 1 $deviceGpu.exitCode 'S1969: an unguarded frame-release miss still exits 1'
+
+# Case 6 - S2394: informational toasts only. Maestro logs them at D from its own process, so every
+# filter in the audit discards the line; the raw pass must still see them, and must not fail the run
+# for a slideshow notice. Before this ticket the counter read 0 here because nothing looked at all.
+$infoToast = Invoke-Audit 'logcat_toast_sample.txt'
+
+Assert-Equal 2 $infoToast.infoToastCount 'S2394: both Maestro toasts are seen'
+Assert-Equal $true ($infoToast.infoToasts -contains 'Слайд-шоу включено с интервалом 10 секунд') 'S2394: the informational text is reported verbatim'
+Assert-Equal 0 $infoToast.toastCount 'S2394: an informational toast is not an error toast'
+Assert-Equal 0 $infoToast.exitCode 'S2394: a run with only informational toasts stays clean'
+
+# Case 7 - both error halves in one capture: a plain Toast whose text is a localized error string,
+# and the app's own Snackbar record. The two paths do not overlap - Maestro never sees a Snackbar -
+# so each has to be proven separately.
+$errorToast = Invoke-Audit 'logcat_error_toast_sample.txt'
+$errorTexts = @($errorToast.toasts | ForEach-Object { $_.msg })
+
+Assert-Equal $true ($errorTexts -contains 'Не получилось скопировать файлы.') 'S2394: a toast matching a localized error string is an error toast'
+Assert-Equal $true (@($errorTexts | Where-Object { $_ -match 'AppErrorNotifier: shown \[CRITICAL\]' }).Count -eq 1) 'S2394: the app-side CRITICAL Snackbar record is an error surface'
+Assert-Equal 1 $errorToast.infoToastCount 'S2394: the informational toast in the same capture stays informational'
+Assert-Equal 1 $errorToast.exitCode 'S2394: an error toast fails the run'
 
 Write-Host ''
 Write-Host ("passed: {0} | failed: {1}" -f $script:passed, $script:failed)

@@ -5,7 +5,9 @@ import com.sza.fastmediasorter.domain.identity.GoogleAccessToken
 import com.sza.fastmediasorter.domain.identity.GoogleScope
 import com.sza.fastmediasorter.domain.identity.NeedsResignInReason
 import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccount
+import com.sza.fastmediasorter.data.identity.transfer.TransferableSignInWriter
 import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccountState
+import com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInProviderKeys
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -40,6 +42,7 @@ class PrimaryGoogleAccountStateTest {
     private val context: Context = mockk(relaxed = true)
     private lateinit var store: PrimaryGoogleAccountStore
     private lateinit var issuer: GoogleTokenIssuer
+    private lateinit var transferWriter: TransferableSignInWriter
     private lateinit var repo: CredentialManagerGoogleIdentityRepository
 
     private val scopes = setOf(GoogleScope.DRIVE, GoogleScope.DRIVE_READONLY)
@@ -56,6 +59,7 @@ class PrimaryGoogleAccountStateTest {
     fun setUp() {
         store = mockk(relaxed = true)
         issuer = mockk(relaxed = true)
+        transferWriter = mockk(relaxed = true)
     }
 
     private fun TestScope.buildRepo(): CredentialManagerGoogleIdentityRepository =
@@ -64,7 +68,8 @@ class PrimaryGoogleAccountStateTest {
             store = store,
             tokenIssuer = issuer,
             scope = this,
-            webClientId = "stub-web-client-id"
+            webClientId = "stub-web-client-id",
+            transferableSignInWriter = transferWriter
         )
 
     @Test
@@ -148,4 +153,57 @@ class PrimaryGoogleAccountStateTest {
 
         coVerify(exactly = 1) { issuer.invalidate() }
     }
+
+    // region - S2101 transferable sign-in
+
+    @Test
+    fun `signOutPrimary removes the transferable envelope`() = runTest(UnconfinedTestDispatcher()) {
+        coEvery { store.load() } returns sampleAccount
+        repo = buildRepo()
+
+        repo.signOutPrimary()
+
+        coVerify(exactly = 1) { transferWriter.removeEntry(TransferableSignInProviderKeys.GOOGLE_PRIMARY) }
+    }
+
+    @Test
+    fun `stale binding self-heal removes the transferable envelope`() = runTest(UnconfinedTestDispatcher()) {
+        coEvery { store.load() } returns sampleAccount
+        coEvery { issuer.issue(any(), any()) } returns TokenIssueResult.AccountAbsent
+        repo = buildRepo()
+
+        repo.getAccessToken(scopes)
+
+        coVerify(exactly = 1) { transferWriter.removeEntry(TransferableSignInProviderKeys.GOOGLE_PRIMARY) }
+    }
+
+    @Test
+    fun `restoreTransferredBinding binds the account and writes no token`() = runTest(UnconfinedTestDispatcher()) {
+        coEvery { store.load() } returns null
+        repo = buildRepo()
+
+        val restored = repo.restoreTransferredBinding("migrated@example.com", scopes)
+
+        assertTrue(restored)
+        val bound = repo.state.value as PrimaryGoogleAccountState.Bound
+        assertEquals("migrated@example.com", bound.account.email)
+        assertEquals(scopes, bound.account.grantedScopes)
+        coVerify(exactly = 1) { store.save(any()) }
+        // ADR-2 held mechanically: restoring must not mint or persist a token, only the binding.
+        coVerify(exactly = 0) { issuer.issue(any(), any()) }
+    }
+
+    @Test
+    fun `restoreTransferredBinding refuses to displace an existing binding`() = runTest(UnconfinedTestDispatcher()) {
+        coEvery { store.load() } returns sampleAccount
+        repo = buildRepo()
+
+        val restored = repo.restoreTransferredBinding("someone-else@example.com", scopes)
+
+        assertTrue(!restored)
+        val bound = repo.state.value as PrimaryGoogleAccountState.Bound
+        assertEquals(sampleAccount.email, bound.account.email)
+    }
+
+    // endregion
 }

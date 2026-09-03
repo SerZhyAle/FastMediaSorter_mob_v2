@@ -49,12 +49,16 @@ class LauncherEditModeManager(
         desktop.setOnDragListener(dragListener)
         // S1466: the gesture opens the quick menu; entering edit mode is now one of its items (ADR-1).
         // The listener sits on the container, so a press that lands on a cell or an interactive gadget is
-        // consumed by that child first and never reaches here. While the desktop is locked, or edit mode is
-        // already on, the gesture stays the silent no-op it has been since S1090.
+        // consumed by that child first and never reaches here. While edit mode is already on, the gesture
+        // stays the silent no-op it has been since S1090.
+        // S2397: the locked desktop no longer stays silent - it answers with a toast, so the gesture is
+        // handled and must not fall through to a second responder after the answer is already on screen.
         desktop.setOnLongClickListener {
-            val locked = viewModel.desktopLocked.value
-            val editing = viewModel.editMode.value
-            if (locked || editing) return@setOnLongClickListener false
+            if (viewModel.desktopLocked.value) {
+                viewModel.onLockedDesktopLongPress()
+                return@setOnLongClickListener true
+            }
+            if (viewModel.editMode.value) return@setOnLongClickListener false
             showQuickMenu()
             true
         }
@@ -106,6 +110,7 @@ class LauncherEditModeManager(
             onEditDesktop = { viewModel.setEditMode(true) },
             onWallpaper = actions.wallpaper,
             onLauncherSettings = actions.launcherSettings,
+            onLockChanges = { viewModel.setDesktopLocked(true) },
         ).also {
             it.show(desktop, desktop.lastPressX.toInt(), desktop.lastPressY.toInt())
         }

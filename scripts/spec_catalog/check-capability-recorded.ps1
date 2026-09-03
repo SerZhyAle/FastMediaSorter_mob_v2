@@ -1,87 +1,114 @@
 #requires -Version 7.0
 <#
 .SYNOPSIS
-    Remind, at closing time, that a spec claiming user-visible impact left no inventory record (S1665).
+    Forwarder to the canon-shipped harness script spec_catalog\check-capability-recorded.ps1 (S2402).
 
 .DESCRIPTION
-    `docs/ALL_FEATURES.jsonl` is the source of truth for shipped capabilities, and a closed ticket that
-    never wrote its record makes its capability invisible to everything built on top of that file. S1654
-    measured the damage: of 1549 closed specs, 275 declare user-visible impact in their own section 8 and
-    have no record at all - so the guide-coverage gate reports full coverage over an inventory that is
-    missing a fifth of what shipped.
+    GENERATED - do not edit. The mechanism lives in the SZA canon plugin (tools/harness) and this
+    repository consumes it; the file kept here is only the address every existing call site already
+    knows. Regenerate with scripts/utils/install-sza-forwarders.ps1. What this project configures lives in
+    .sza-profile.json at the repository root, never in a script body.
 
-    The signal is the spec's own section 8, "Влияние на пользователя". Its default text says the change is
-    invisible; anything else is the author stating that something user-facing shipped. That is a claim by
-    the person who did the work, not a guess made afterwards from a title or a tier - which is why a
-    ticket named `bugfix-` is not excluded: fixing visible behaviour changes the inventory too, through a
-    FIX rather than an ADD.
-
-    ADVISORY BY CONSTRUCTION. This script never blocks a transition, and its caller in `_lib.ps1` keeps it
-    in a list that cannot throw. A hard gate here would be wrong: bugfix specs written in the compact form
-    have no section 8 at all, and tooling and documentation tickets legitimately ship no capability - so a
-    refusal would make closing them impossible. A reminder that the author can act on is the whole product.
-
-    Exit codes:
-      0 - nothing to say, or the reminder was printed. Both are a successful run.
-      2 - cannot verify: the spec file or the inventory is unreadable. Distinct from 0 so a caller can tell
-          "looked and found nothing" from "could not look", even though neither blocks.
-
-.PARAMETER Id
-    Spec id (S####).
-
-.EXAMPLE
-    pwsh -NoProfile -File scripts/spec_catalog/check-capability-recorded.ps1 -Id S1654
+Exit codes: whatever spec_catalog\check-capability-recorded.ps1 returns, plus 2 when the harness cannot be located.
 #>
-[CmdletBinding()]
-param(
-    [Parameter(Mandatory)][string] $Id
-)
+# S2441: every name below carries a $szaFwd prefix because HALF of this set is dot-sourced, and a
+# dot-sourced file assigns into its CALLER's scope. PowerShell names are case-insensitive, so the
+# `$target` this file used to resolve into WAS the caller's `-Target` parameter: post-change.ps1
+# dot-sources the agent-lock-domains forwarder before it journals, and every dev/CHANGELOG.md row
+# written on 2026-09-03 recorded a harness path where the ticket id belonged. The second failure
+# mode is worse than the substitution - a caller declaring `[string]$Candidates` type-constrains
+# this file's own accumulator, so `$candidates = @()` collapses to '' and every `+=` concatenates
+# instead of appending, leaving one unusable path and a forwarder that cannot find the harness at
+# all. Ten scripts under scripts/ declare a parameter that collided. Contract suite:
+# scripts/utils/install-sza-forwarders.tests/.
+$szaFwdCandidates = @()
+if ($env:SZA_HARNESS_ROOT) { $szaFwdCandidates += $env:SZA_HARNESS_ROOT }
+$szaFwdCache = Join-Path $env:USERPROFILE '.claude\plugins\cache\sza-unified-rules\sza'
+if (Test-Path -LiteralPath $szaFwdCache) {
+    # Ordered as VERSIONS, not as strings: the plugin version is date-derived (2026.903.1), so a
+    # string sort puts October's 2026.1001.1 below September's 2026.903.1 and the forwarder would
+    # keep calling the older copy after an update. A directory that does not parse sorts last
+    # rather than being dropped - it may still be the only harness present.
+    $szaFwdVersions = @(Get-ChildItem -LiteralPath $szaFwdCache -Directory -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            $szaFwdParsed = $null
+            [void][version]::TryParse($_.Name, [ref]$szaFwdParsed)
+            [pscustomobject]@{ Path = $_.FullName; Version = $szaFwdParsed }
+        } | Sort-Object @{ Expression = { $null -ne $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Path }; Descending = $true })
+    $szaFwdCandidates += @($szaFwdVersions | ForEach-Object { Join-Path $_.Path 'tools\harness' })
+}
+$szaFwdTarget = $null
+foreach ($szaFwdDir in $szaFwdCandidates) {
+    $szaFwdProbe = Join-Path $szaFwdDir 'spec_catalog\check-capability-recorded.ps1'
+    if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe; break }
+}
 
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
-. (Join-Path $PSScriptRoot '_lib.ps1')
-
-function Stop-CannotVerify([string]$why) {
-    Write-Error "check-capability-recorded: cannot verify $Id - $why" -ErrorAction Continue
+# S2452: candidate 3, the canon checkout, reached only when the two above miss. The plugin cache
+# is what actually resolves on every invocation, so the resolver below is never read on the hot
+# path. Its default is held by scripts/utils/project-paths.ps1 and by nothing else - before this it
+# was written in 76 files, 74 of them generated and stamped `GENERATED - do not edit`, so moving
+# the canon required editing files that forbid editing. That is the exact non-portability the
+# hardcoded-drive-path rule was installed to refuse (S2326).
+#
+# The dot-source runs inside `& { }` deliberately. HALF this set is itself dot-sourced, so at top
+# level project-paths.ps1 would define its functions and set its script variables in the CALLER's
+# scope - the S2441 failure one level further out. A child scope cannot reach the caller at all.
+if (-not $szaFwdTarget) {
+    $szaFwdCheckout = $env:SZA_CANON_ROOT
+    if (-not $szaFwdCheckout) {
+        $szaFwdResolver = Join-Path $PSScriptRoot '..\..\scripts\utils\project-paths.ps1'
+        if (Test-Path -LiteralPath $szaFwdResolver) {
+            # A resolver that is absent or throws must not stop the forwarder from printing its own
+            # refusal, which is the only message that names all three candidates and the fix.
+            $szaFwdCheckout = & {
+                param($szaFwdResolverPath)
+                try { . $szaFwdResolverPath; Get-CanonRoot } catch { $null }
+            } $szaFwdResolver
+        }
+    }
+    if ($szaFwdCheckout) {
+        $szaFwdCandidates += (Join-Path $szaFwdCheckout 'tools\harness')
+        $szaFwdProbe = Join-Path $szaFwdCandidates[-1] 'spec_catalog\check-capability-recorded.ps1'
+        if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe }
+    }
+}
+if (-not $szaFwdTarget) {
+    Write-Host "check-capability-recorded.ps1: the SZA harness is not installed - looked in:" -ForegroundColor Red
+    foreach ($szaFwdDir in $szaFwdCandidates) { Write-Host "    $szaFwdDir" -ForegroundColor Gray }
+    Write-Host "  Install or update it:  claude plugin update sza@sza-unified-rules" -ForegroundColor Yellow
+    Write-Host "  Or point at a checkout: `$env:SZA_HARNESS_ROOT = '<repo>\tools\harness'" -ForegroundColor Yellow
     exit 2
 }
 
-if ($Id -notmatch '^S\d{4}$') { Stop-CannotVerify "invalid id" }
+$env:SZA_PROJECT_ROOT = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 
-$records = Read-Catalog
-$record = $records | Where-Object { $_.id -eq $Id } | Select-Object -First 1
-if (-not $record) { Stop-CannotVerify "no catalog record" }
-
-$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-$specPath = Join-Path $repoRoot ($record.file -replace '/', [IO.Path]::DirectorySeparatorChar)
-if (-not (Test-Path -LiteralPath $specPath)) { Stop-CannotVerify "spec file not on disk" }
-
-$text = Get-Content -LiteralPath $specPath -Raw
-
-# Section 8 in the strategic form. Compact bugfix specs do not have one, and that absence is an answer:
-# their contribution to the inventory is decided at closing, not declared in the template.
-if ($text -notmatch '(?s)##\s*8\.[^\r\n]*[\r\n]+(.{0,600})') { exit 0 }
-$section = $Matches[1]
-
-# The template's own default. Anything else is the author saying something user-facing shipped.
-if ($section -match '(?i)без\s+изменений' -or $section.Trim().Length -lt 20) { exit 0 }
-
-$inventoryPath = Join-Path $repoRoot 'docs/ALL_FEATURES.jsonl'
-if (-not (Test-Path -LiteralPath $inventoryPath)) { Stop-CannotVerify "docs/ALL_FEATURES.jsonl missing" }
-
-$hasRecord = $false
-foreach ($line in Get-Content -LiteralPath $inventoryPath) {
-    if ([string]::IsNullOrWhiteSpace($line)) { continue }
-    if ($line -notlike "*$Id*") { continue }
-    if (($line | ConvertFrom-Json).spec -eq $Id) { $hasRecord = $true; break }
+# Half of this set is dot-sourced as a library and half is invoked as a CLI, and the two cannot be
+# forwarded the same way: `& $szaFwdTarget` would run a library in its own scope and define nothing
+# the caller can see, while `exit` inside a dot-sourced file would kill the caller. InvocationName
+# is '.' exactly when this file was dot-sourced, so one template serves both.
+if ($MyInvocation.InvocationName -eq '.') {
+    . $szaFwdTarget
+} else {
+    # Deliberately NOT 'Stop'. A native child's stderr arrives here as ErrorRecord objects, and
+    # under 'Stop' the first one terminates this forwarder before `exit $LASTEXITCODE` runs - so a
+    # script that reported a FAIL and exited 1 would reach its caller as a crashed forwarder with a
+    # different code. Every script in this set states its exit codes; passing them through unchanged
+    # is the whole job. S2441 moved it inside this branch: at the file's top level it also rewrote
+    # the preference of every caller that dot-sources a forwarder, silently downgrading a script
+    # running under 'Stop' for the rest of its life.
+    $ErrorActionPreference = 'Continue'
+    $global:LASTEXITCODE = 0
+    try {
+        & $szaFwdTarget @args
+    } catch {
+        # A child that THROWS never reaches its own `exit`, so $LASTEXITCODE stays 0 and the
+        # forwarder would report success for a script that failed - the one way a forwarder can
+        # turn a red verdict green. Every such refusal is a failure, so it leaves as exit 1.
+        Write-Error $_ -ErrorAction Continue
+        exit 1
+    }
+    $szaFwdCode = $LASTEXITCODE
+    exit $(if ($null -eq $szaFwdCode) { 0 } else { $szaFwdCode })
 }
-if ($hasRecord) { exit 0 }
-
-Write-Host ""
-Write-Host ("  reminder: {0} declares user-visible impact in section 8 and has no ALL_FEATURES record." -f $Id) -ForegroundColor Yellow
-Write-Host "  If something user-facing shipped, record it - close-and-log.ps1 -FuncOp ADD|CHANGE|FIX" -ForegroundColor Yellow
-Write-Host "  -FuncDesc .. -FeatArea .. -FeatName .. -FeatFlavors .., or scripts/all_features/add.ps1." -ForegroundColor Yellow
-Write-Host "  Nothing shipped? Then section 8 is stale - say so there. This never blocks the close (S1665)." -ForegroundColor Yellow
-Write-Host ""
-exit 0

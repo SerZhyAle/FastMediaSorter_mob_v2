@@ -103,6 +103,26 @@ class ApplyWearSettingsUseCaseTest {
     }
 
     @Test
+    fun `a payload carrying background playback applies it`() = runTest {
+        val repository = FakeWearPreferencesRepository()
+        val useCase = ApplyWearSettingsUseCase(context, repository)
+
+        useCase(payloadWithoutNewFields().copy(backgroundPlaybackEnabled = true))
+
+        assertEquals(true, repository.backgroundPlaybackValue)
+    }
+
+    @Test
+    fun `a payload omitting background playback leaves the watch value alone`() = runTest {
+        val repository = FakeWearPreferencesRepository().apply { backgroundPlaybackValue = true }
+        val useCase = ApplyWearSettingsUseCase(context, repository)
+
+        useCase(payloadWithoutNewFields())
+
+        assertEquals(true, repository.backgroundPlaybackValue)
+    }
+
+    @Test
     fun `a payload omitting the file-list view leaves the watch value alone`() = runTest {
         val repository = FakeWearPreferencesRepository().apply {
             fileListViewModeValue = WearViewMode.GRID_3
@@ -317,6 +337,7 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     var viewModeValue = WearViewMode.LIST
     var backgroundModeValue = WearBackgroundMode.BRANDED_ANIMATION
     var keepScreenAwakeValue = false
+    var backgroundPlaybackValue = false
     var fileListViewModeValue = WearViewMode.LIST
     var videoScaleModeValue = VideoScaleMode.FIT
     var imageScaleModeValue = VideoScaleMode.FIT
@@ -349,6 +370,7 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     override val videoScaleMode: Flow<VideoScaleMode> = MutableStateFlow(videoScaleModeValue)
     override val imageScaleMode: Flow<VideoScaleMode> = MutableStateFlow(imageScaleModeValue)
     override val keepScreenAwakeOutsidePlayers: Flow<Boolean> = MutableStateFlow(keepScreenAwakeValue)
+    override val backgroundPlaybackEnabled: Flow<Boolean> = MutableStateFlow(backgroundPlaybackValue)
     override val lastUsedResources: Flow<List<LastUsedResource>> = MutableStateFlow(lastUsedResourcesValue)
     override val streamsSectionEnabled: Flow<Boolean> = MutableStateFlow(streamsSectionEnabledValue)
     override val calculatorHistory: Flow<List<String>> = MutableStateFlow(calculatorHistoryValue)
@@ -461,6 +483,10 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
 
     override suspend fun setKeepScreenAwakeOutsidePlayers(enabled: Boolean) {
         keepScreenAwakeValue = enabled
+    }
+
+    override suspend fun setBackgroundPlaybackEnabled(enabled: Boolean) {
+        backgroundPlaybackValue = enabled
     }
 
     override suspend fun setLastUsedResource(id: String, name: String) {

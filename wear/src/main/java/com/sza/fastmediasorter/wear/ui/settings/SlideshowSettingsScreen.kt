@@ -32,6 +32,7 @@ import androidx.wear.compose.material.ToggleChipDefaults
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.RectangularButton
+import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsItem
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsRow
@@ -101,7 +102,8 @@ fun SlideshowSettingsScreen(
                 modifier = Modifier.fillMaxSize(),
                 state = listState,
                 contentPadding = wearScreenInsets(),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+                scalingParams = WearGridScalingParams
             ) {
                 item {
                     Text(

@@ -64,6 +64,51 @@ function Get-BuildVersionStamp {
     }
 }
 
+function Get-ArtifactVersion {
+    <#
+    .SYNOPSIS
+        Read the versionName and versionCode a build actually packaged, from the AGP
+        output-metadata.json beside the artifact.
+    .DESCRIPTION
+        The successor to reading a version back out of build.gradle.kts. After S1873 ADR-4 nothing
+        writes those constants, so a consumer that still read them would report the sentinel as the
+        version it just built. The metadata is written by the build that produced the artifact, so
+        it cannot disagree with it.
+
+        $null means "no metadata to read" - absent file, unreadable JSON, or no elements. That is a
+        different answer from "the version is wrong", and a caller that collapses the two reports
+        "did not look" as "looked and found nothing".
+    .PARAMETER Dir
+        Directory holding output-metadata.json - an AGP output directory such as
+        app_v2/build/outputs/bundle/standardRelease.
+    .OUTPUTS
+        PSCustomObject with VersionName [string], VersionCode [int], MetadataPath [string]; or $null.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory, Position = 0)] [string] $Dir
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Dir)) { return $null }
+    $metadataPath = Join-Path $Dir 'output-metadata.json'
+    if (-not (Test-Path -LiteralPath $metadataPath)) { return $null }
+
+    try { $metadata = Get-Content -LiteralPath $metadataPath -Raw | ConvertFrom-Json }
+    catch { return $null }
+
+    # Any element answers: AGP gives every ABI slice of one build the same versionCode and
+    # versionName (S1972 §6.2), and this function judges the version, not a particular file.
+    $element = @($metadata.elements) | Select-Object -First 1
+    if (-not $element) { return $null }
+    if ([string]::IsNullOrWhiteSpace([string]$element.versionName)) { return $null }
+
+    [pscustomobject]@{
+        VersionName  = [string]$element.versionName
+        VersionCode  = [int]$element.versionCode
+        MetadataPath = $metadataPath
+    }
+}
+
 function ConvertFrom-BuildVersionName {
     <#
     .SYNOPSIS

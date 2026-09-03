@@ -12,8 +12,10 @@
              -Module named a project the registry does not know; -Flavor named one the module does
              not declare, or was passed to a module that declares none; -BuildType named a build type
              the module does not declare, or the module declares none at all (S2123 - lint-rules has
-             no Android plugin); or -BuildType Release was combined with -Mode Assemble, which is
-             refused - see below).
+             no Android plugin); -BuildType Release was combined with -Mode Assemble, which is
+             refused - see below; or (S2363) the connected-test target could not be resolved to
+             exactly one device - no adb, no device online, several online with no -DeviceId, or
+             -DeviceId passed to a mode that touches no device at all).
 #>
 param(
     [ValidateSet("Code", "Resources", "CodeAndResources", "Unit", "AndroidTest", "ConnectedAndroidTest", "Assemble")]
@@ -55,6 +57,12 @@ param(
     # directly, which Rule 23 forbids because it bypasses temp/BUILD.LOCK. The gap made the sanctioned
     # path and the documented path contradict each other.
     [string[]]$SystemProperty,
+    # S2363: which device the connected instrumented run goes to. AGP's connected task takes no such
+    # argument - left unpinned it installs on EVERY device `adb devices` reports, which on 2026-09-02
+    # reached the owner's phone and tried to install the app and uninstall the test APK there. The one
+    # lever the task honours is ANDROID_SERIAL, so that is what this parameter sets, and its default is
+    # that same variable - the workaround this replaces keeps working unchanged.
+    [string]$DeviceId = $env:ANDROID_SERIAL,
     [switch]$Quiet
 )
 
@@ -129,6 +137,55 @@ if ($BuildType -eq 'Release' -and $Mode -eq 'Assemble') {
     exit 2
 }
 
+# S2363: resolve the device BEFORE the lock, for the reason the module and flavor checks above are
+# resolved there - a refusal must not first take a place in every sibling's build queue and then
+# decline to build anything. Nothing but ConnectedAndroidTest touches a device, so -DeviceId anywhere
+# else is a caller who believes this run goes somewhere it does not, and answering "fine" to that is
+# how the belief survives.
+$targetDevice = ''
+if ($Mode -eq 'ConnectedAndroidTest') {
+    # The device is chosen by device-ready.ps1 rather than by a private `adb devices` parse: it is
+    # already the one place that knows about a missing adb, an offline device, a device a sibling
+    # session leased (S1926) and - the case this ticket exists for - several devices at once. A second
+    # copy of that judgement here would drift from it.
+    $readyScript = Join-Path $PSScriptRoot '..\devtest\device-ready.ps1'
+    # A hashtable, not an array: `& $script @array` splats POSITIONALLY, so '-Json' lands in the
+    # probe's first positional parameter and it goes looking for a device serial named '-Json'. That
+    # is the same trap a.ps1 documents at its own script table, and it reproduced here on the first run.
+    $readyArgs = @{ Json = $true }
+    if ($DeviceId) { $readyArgs['DeviceId'] = $DeviceId }
+    $readyRaw = & $readyScript @readyArgs
+    $ready = $null
+    if ($readyRaw) { $ready = ($readyRaw | Out-String).Trim() | ConvertFrom-Json }
+    if (-not $ready) {
+        Write-Error "check-standard-fast: the device probe produced no answer, so the target device is unknown - nothing was run. Re-run scripts/devtest/device-ready.ps1 by hand to see why." -ErrorAction Continue
+        exit 2
+    }
+    if (-not $ready.ready) {
+        # `multiple-devices` is the state this ticket is about, and the refusal IS the fix: the run
+        # used to fan out silently instead, so the reason names every serial and the flag that picks one.
+        $attached = @($ready.devices | ForEach-Object { if ($_.id) { $_.id } else { "$_" } }) -join ', '
+        $detail = if ($attached) { " Attached: $attached." } else { '' }
+        Write-Error "check-standard-fast: -Mode ConnectedAndroidTest needs exactly one target device, and the probe answered '$($ready.state)' - $($ready.reason).$detail Pass -DeviceId <serial> (or export ANDROID_SERIAL) to name it." -ErrorAction Continue
+        exit 2
+    }
+    $targetDevice = [string]$ready.selectedDevice
+}
+elseif ($PSBoundParameters.ContainsKey('DeviceId') -and $DeviceId) {
+    Write-Error "check-standard-fast: -DeviceId is accepted only with -Mode ConnectedAndroidTest - every other mode compiles or runs on this host and reaches no device, so naming one here would claim a targeting this run does not do." -ErrorAction Continue
+    exit 2
+}
+
+# S2361: initialize log file at startup so interrupted/stalled runs leave an observable trace.
+$projectRoot = Resolve-Path "$PSScriptRoot\..\.."
+Set-Location $projectRoot
+$tempDir = Join-Path $projectRoot "temp"
+if (-not (Test-Path -Path $tempDir)) {
+    New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+}
+$logTimestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+$tempLogPath = Join-Path $tempDir "check_fast_${Module}_${Mode}_$logTimestamp.log"
+
 # S2109: the domain is derived from -Module - ADR-1 wants the domain read off data the call carries,
 # not declared a second time and left to drift from it.
 # S2121: the derivation moved into the registry, so a module with no domain of its own widens to the
@@ -137,8 +194,36 @@ $buildDomains = @(Get-GradleModuleBuildDomains -Name $Module)
 Enter-BuildLockOrExit -Reason "check-standard-fast.ps1 ($Module)" -Domain $buildDomains
 try {
 
-$projectRoot = Resolve-Path "$PSScriptRoot\..\.."
-Set-Location $projectRoot
+# Write log header immediately after lock acquisition
+$logHeader = @(
+    "=== Fast Check Log ($Module / $Mode) ===",
+    "Date: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')",
+    "PID: $PID",
+    "Module: $Module",
+    "Mode: $Mode",
+    "Flavor: $Flavor",
+    "BuildType: $BuildType",
+    "Build Domains: $($buildDomains -join ', ')",
+    "Device: $(if ($targetDevice) { $targetDevice } else { 'n/a - this mode reaches no device' })",
+    "========================================"
+)
+[System.IO.File]::WriteAllLines($tempLogPath, [string[]]$logHeader)
+
+# S2361: check if sibling build domain locks are currently active (e.g. Build.Phone while running wear)
+$allBuildDomains = @(Get-AgentLockDomainTable | Where-Object { $_.Type -eq 'Build' } | ForEach-Object { $_.Domain })
+$siblingHolders = @()
+foreach ($domain in $allBuildDomains) {
+    if ($buildDomains -contains $domain) { continue }
+    $lockStatus = Get-AgentLockStatus -Name $domain
+    if ($lockStatus.Exists -and -not $lockStatus.Stale) {
+        $siblingHolders += "$domain (PID $($lockStatus.Pid): $($lockStatus.Reason))"
+    }
+}
+if ($siblingHolders.Count -gt 0) {
+    $notice = "[S2361 Notice] Active sibling build lock(s) detected: $($siblingHolders -join '; '). Gradle root project execution may queue behind them."
+    Write-Host $notice -ForegroundColor DarkYellow
+    [System.IO.File]::AppendAllLines($tempLogPath, [string[]]@($notice))
+}
 
 # S2090: both app modules carry a flavor dimension, so their task names get the segment. Before this,
 # wear substituted an empty segment - a task name gradle stopped having the moment the dimension existed.
@@ -252,6 +337,11 @@ $checkLabel = if ($Flavor) { "$Module/$Flavor" } else { $Module }
 Write-Host "Fast $checkLabel check.." -ForegroundColor Cyan
 Write-Host "Mode: $Mode" -ForegroundColor Yellow
 Write-Host "Build type: $BuildType" -ForegroundColor Yellow
+if ($targetDevice) {
+    # Printed beside the mode because this line is what a step-1.4 log quotes as proof of WHICH device
+    # answered - a green connected run naming no device is the state S2363 was opened over.
+    Write-Host "Device: $targetDevice" -ForegroundColor Yellow
+}
 if ($Tests) {
     Write-Host "Tests filter: $Tests" -ForegroundColor Yellow
 }
@@ -274,6 +364,7 @@ $runOnce = {
     & "$projectRoot\gradlew.bat" @attemptArgs 2>&1 | ForEach-Object {
         $line = [string]$_
         $collected.Add($line)
+        [System.IO.File]::AppendAllLines($tempLogPath, [string[]]@($line))
         if ($Quiet -and ($line -match " UP-TO-DATE$" -or $line -match " NO-SOURCE$" -or $line -match " FROM-CACHE$")) {
             return
         }
@@ -289,6 +380,18 @@ $runOnce = {
 # mode gets that repair; the retry policy stays bound to its two signatures and to nothing else, which
 # is what keeps an ordinary red compile a single attempt on either branch.
 $repairStaleState = { $script:kotlinIncrementalDisabled = $true }
+
+# S2363: ANDROID_SERIAL is the only narrowing AGP's connected task honours - it takes no device
+# argument of its own - so the pin is set here, around the one call that reaches a device, and the
+# previous value is restored in the finally below rather than left behind for whatever runs next in
+# this process.
+$previousAndroidSerial = $env:ANDROID_SERIAL
+$script:androidSerialPinned = $false
+if ($targetDevice) {
+    $env:ANDROID_SERIAL = $targetDevice
+    $script:androidSerialPinned = $true
+}
+
 $run = Invoke-GradleRunWithRetry -RunOnce $runOnce -MaxAttempts 2 `
     -RepairStaleIncrementalState $repairStaleState
 
@@ -303,6 +406,7 @@ if ($Mode -eq "Unit" -and -not $Tests) {
     $gateExit = $LASTEXITCODE
     if ($gateExit -eq 1 -and -not $run.WorkerDeath) {
         Write-Host "`nFast check failed - the unit run did not cover the whole suite." -ForegroundColor Red
+        [System.IO.File]::AppendAllLines($tempLogPath, [string[]]@("Fast check failed - unit run truncated."))
         exit 1
     }
     # Exit 2 is "could not check" (no reports yet). Say so, but let a real Gradle failure below own
@@ -319,18 +423,18 @@ if ($run.WorkerDeath) {
     $msg = "check-standard-fast: the Gradle test worker died on both attempts - this run produced NO " +
     "verdict. Nothing was proven about the tests; do not read it as a failure. Usual cause is host " +
     "load (concurrent Gradle daemons or emulators). Re-run on a quiet host; see PLAN/S1463."
+    [System.IO.File]::AppendAllLines($tempLogPath, [string[]]@($msg))
     Write-Error $msg -ErrorAction Continue
     exit 2
 }
 
 if ($gradleExit -ne 0) {
     Write-Host "`nFast check failed." -ForegroundColor Red
+    [System.IO.File]::AppendAllLines($tempLogPath, [string[]]@("Fast check failed with exit code $gradleExit."))
     # S1786: auto-emit structured failure digest from the current run's log
     $bfdScript = Join-Path $PSScriptRoot "build-failure-digest.ps1"
     if (Test-Path $bfdScript) {
-        $tempLogPath = Join-Path $projectRoot "temp/check_fast_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
-        if ($run.Lines -and $run.Lines.Length -gt 0) {
-            [System.IO.File]::WriteAllLines($tempLogPath, $run.Lines, [System.Text.UTF8Encoding]::new($false))
+        if (Test-Path $tempLogPath) {
             Write-Host "`n--- Build Failure Digest ---" -ForegroundColor Yellow
             & $bfdScript -LogPath $tempLogPath
         }
@@ -339,6 +443,9 @@ if ($gradleExit -ne 0) {
 }
 
 Write-Host "`nFast check passed." -ForegroundColor Green
+[System.IO.File]::AppendAllLines($tempLogPath, [string[]]@("Fast check passed successfully."))
+
+
 
 # S1920: name the directory Gradle actually wrote to. A --tests run may report into a directory of its
 # own (`<task>-filtered`) while the plain one keeps whatever the last FULL run left there, so a reader
@@ -364,6 +471,7 @@ if ($Tests -and $Mode -eq "Unit") {
 
 }
 finally {
+    if ($script:androidSerialPinned) { $env:ANDROID_SERIAL = $previousAndroidSerial }
     # Release exactly the domain taken above - a bare Build here would free the other module's
     # domain, which this run never held and a sibling may be building in right now.
     Exit-AgentLock -Name 'Build' -Domains $buildDomains

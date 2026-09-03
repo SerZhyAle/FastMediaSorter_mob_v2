@@ -1,8 +1,8 @@
 # Release build script for Wear OS
-# Note: this build carries the version constants checked into wear/build.gradle.kts as-is,
-# unless -VersionName/-VersionCode pin one explicitly.
-# Nothing here is generated from the clock - a release version is stamped into BOTH modules
-# by scripts/release/build-release-spectrum.ps1, so the watch and the phone stay one version.
+# S1873: -VersionName/-VersionCode carry the release orchestrator's single shared stamp, which is
+# what keeps the watch and the phone on one versionName. Omitted, the invocation clock applies -
+# reusing the checked-in constants was never a decision, and after ADR-4 nothing writes them, so
+# that path would have shipped the sentinel.
 #
 # Exit codes:
 #   0 - requested artifacts built and copied
@@ -43,11 +43,15 @@ if ([string]::IsNullOrWhiteSpace($VersionName) -xor ($VersionCode -le 0)) {
     exit 1
 }
 
-$versionArgs = @()
-if (-not [string]::IsNullOrWhiteSpace($VersionName)) {
-    $versionArgs += "-Pfms.versionName=$VersionName"
-    $versionArgs += "-Pfms.versionCode=$VersionCode"
+. "$PSScriptRoot\..\utils\build-version-stamp.ps1"
+if ([string]::IsNullOrWhiteSpace($VersionName)) {
+    $stamp = Get-BuildVersionStamp
+    # WearVersionCode, not AppVersionCode: both modules publish under one applicationId and Play
+    # refuses a release whose artifacts repeat a versionCode.
+    $VersionName = $stamp.VersionName
+    $VersionCode = $stamp.WearVersionCode
 }
+$versionArgs = @("-Pfms.versionName=$VersionName", "-Pfms.versionCode=$VersionCode")
 
 $buildApk = $Artifact -in @('Apk', 'Both')
 $buildAab = $Artifact -in @('Aab', 'Both')
@@ -63,7 +67,7 @@ $gradleTasks = @()
 if ($buildApk) { $gradleTasks += ":wear:assemble${taskFlavor}Release" }
 if ($buildAab) { $gradleTasks += ":wear:bundle${taskFlavor}Release" }
 
-$versionLabel = if ($versionArgs.Count -gt 0) { "$VersionName ($VersionCode)" } else { 'version as checked into wear/build.gradle.kts' }
+$versionLabel = "$VersionName ($VersionCode)"
 Write-Host "Building Wear OS release [$Flavor] [$($gradleTasks -join ', ')] - $versionLabel.." -ForegroundColor Cyan
 
 # Start the Gradle build process

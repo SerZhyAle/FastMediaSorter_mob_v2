@@ -47,6 +47,10 @@ object PermissionManifestExemptions {
             "Foreground-service type for the transfer worker; granted with the service, not by the user.",
         "android.permission.FOREGROUND_SERVICE_MICROPHONE" to
             "Foreground-service type for recording; the user decision is RECORD_AUDIO, which has its own row.",
+        "android.permission.EXPAND_STATUS_BAR" to
+            "Normal permission, granted at install; there is no dialog and no system screen to send the user " +
+            "to. S2386 declared it for the launcher shade gesture, and DeviceActionHandler consumes it by " +
+            "reflecting expandNotificationsPanel / expandSettingsPanel on the statusbar service.",
         "android.permission.FOREGROUND_SERVICE_SPECIAL_USE" to
             "Foreground-service type for the overlay host; the user decision is SYSTEM_ALERT_WINDOW, which has " +
             "its own row.",

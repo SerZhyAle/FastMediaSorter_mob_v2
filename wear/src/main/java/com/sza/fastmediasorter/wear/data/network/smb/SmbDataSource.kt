@@ -10,6 +10,8 @@ import com.hierynomus.smbj.connection.Connection
 import com.hierynomus.smbj.session.Session
 import com.hierynomus.smbj.share.DiskShare
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
+import com.sza.fastmediasorter.wear.util.errorUnlessCancellation
+import com.sza.fastmediasorter.wear.util.rethrowIfCancellation
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -24,21 +26,21 @@ import java.util.concurrent.TimeUnit
  * Uses SMBJ library for SMB protocol communication.
  */
 class SmbDataSource {
-    
+
     private var connection: Connection? = null
     private var session: Session? = null
     private var share: DiskShare? = null
-    
+
     // Store connection parameters for reconnection
     private var currentSource: NetworkSource? = null
-    
+
     private val config = SmbConfig.builder()
         .withTimeout(30, TimeUnit.SECONDS)
         .withSoTimeout(30, TimeUnit.SECONDS)
         .build()
-    
+
     private val client = SMBClient(config)
-    
+
     /**
      * Connect to SMB server and authenticate.
      */
@@ -46,40 +48,40 @@ class SmbDataSource {
         return withContext(Dispatchers.IO) {
             try {
                 Timber.d("Connecting to SMB: ${source.server}:${source.port}")
-                
+
                 // Disconnect if already connected
                 disconnect()
-                
+
                 // Store source for reconnection
                 currentSource = source
-                
+
                 // Establish connection
                 connection = client.connect(source.server, source.port)
-                
+
                 // Authenticate
                 val authContext = AuthenticationContext(
                     source.username,
                     source.password.toCharArray(),
                     null // Domain (null for workgroup)
                 )
-                
+
                 session = connection?.authenticate(authContext)
-                
+
                 // Connect to share
                 if (source.shareName != null) {
                     share = session?.connectShare(source.shareName) as? DiskShare
                     Timber.d("Connected to share: ${source.shareName}")
                 }
-                
+
                 Result.success(Unit)
             } catch (e: Exception) {
-                Timber.e(e, "Failed to connect to SMB")
+                e.errorUnlessCancellation("Failed to connect to SMB")
                 disconnect()
                 Result.failure(e)
             }
         }
     }
-    
+
     /**
      * Ensure connection is alive, reconnect if needed.
      */
@@ -89,26 +91,27 @@ class SmbDataSource {
             val isAlive = try {
                 connection?.isConnected == true && share != null
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 false
             }
-            
+
             if (isAlive) {
                 Timber.d("SMB connection is alive")
                 return@withContext Result.success(Unit)
             }
-            
+
             // Need to reconnect
             val source = currentSource
             if (source == null) {
                 Timber.e("Cannot reconnect - no stored connection parameters")
                 return@withContext Result.failure(IllegalStateException("Not connected to share"))
             }
-            
+
             Timber.d("SMB connection lost, reconnecting...")
             connect(source)
         }
     }
-    
+
     /**
      * Disconnect from SMB server.
      */
@@ -119,7 +122,7 @@ class SmbDataSource {
                 session?.close()
                 connection?.close()
             } catch (e: Exception) {
-                Timber.e(e, "Error disconnecting from SMB")
+                e.errorUnlessCancellation("Error disconnecting from SMB")
             } finally {
                 share = null
                 session = null
@@ -127,7 +130,7 @@ class SmbDataSource {
             }
         }
     }
-    
+
     /**
      * One entry of an SMB directory listing.
      *
@@ -181,10 +184,10 @@ class SmbDataSource {
             Result.failure(e)
         }
     }
-    
+
     /**
      * Get input stream for file.
-     * 
+     *
      * @param path Path to file relative to share root
      * @return InputStream for reading file content
      */
@@ -204,7 +207,7 @@ class SmbDataSource {
 
             val cleanPath = path.trim('/').trim('\\')
             Timber.d("Opening file: $cleanPath")
-            
+
             // Open file with read access using proper SMBJ API
             val file = currentShare.openFile(
                 cleanPath,
@@ -214,7 +217,7 @@ class SmbDataSource {
                 SMB2CreateDisposition.FILE_OPEN,
                 null
             )
-            
+
             // S1304: closing only the stream leaked the smbj File handle - one open SMB2 handle per
             // viewed media file, held by the server until the session died. Tie the handle's
             // lifetime to the stream the caller actually closes.
@@ -237,7 +240,7 @@ class SmbDataSource {
             Result.failure(e)
         }
     }
-    
+
     /**
      * Check if currently connected.
      */

@@ -1,170 +1,114 @@
 #requires -Version 7.0
 <#
 .SYNOPSIS
-    One definition of what a BlockNeedUserTest debug probe is, shared by the tree gate
-    and the closing gate.
+    Forwarder to the canon-shipped harness script spec_catalog\lib\blockneedusertest-probes.ps1 (S2402).
 
 .DESCRIPTION
-    Two scripts have to agree on the sentence "ticket Sxxxx carries a probe":
+    GENERATED - do not edit. The mechanism lives in the SZA canon plugin (tools/harness) and this
+    repository consumes it; the file kept here is only the address every existing call site already
+    knows. Regenerate with scripts/utils/install-sza-forwarders.ps1. What this project configures lives in
+    .sza-profile.json at the repository root, never in a script body.
 
-      scripts/quality/assert-no-ticket-logs.ps1   - judges the whole tree, after the fact.
-      scripts/spec_catalog/check-probe-present.ps1 - judges one ticket, at the moment its
-                                                     status is about to become BlockNeedUserTest.
-
-    They must not answer differently for the same ticket, or the closing gate refuses a
-    transition the tree gate would have passed (and the operator learns to route around it).
-    That is the S1621 rule, and it is not hypothetical here: a Timber call may span several
-    physical lines, so a per-line search finds a strictly smaller set than the reconstruction
-    below - `Timber.d(\n    "Sxxxx: ..")` is a real probe that a naive grep misses.
-
-    Everything that decides the answer therefore lives here and nowhere else: the probe form,
-    the multi-line call reconstruction, and the baseline allow-list parse.
+Exit codes: whatever spec_catalog\lib\blockneedusertest-probes.ps1 returns, plus 2 when the harness cannot be located.
 #>
-
-Set-StrictMode -Version Latest
-
-# Opener of a Timber log call. Kept here rather than at a call site because the reconstruction
-# below is meaningless without the matching opener definition.
-function Get-TimberOpenerRegex {
-    return [regex]'Timber\.(?<level>[iwed])\('
+# S2441: every name below carries a $szaFwd prefix because HALF of this set is dot-sourced, and a
+# dot-sourced file assigns into its CALLER's scope. PowerShell names are case-insensitive, so the
+# `$target` this file used to resolve into WAS the caller's `-Target` parameter: post-change.ps1
+# dot-sources the agent-lock-domains forwarder before it journals, and every dev/CHANGELOG.md row
+# written on 2026-09-03 recorded a harness path where the ticket id belonged. The second failure
+# mode is worse than the substitution - a caller declaring `[string]$Candidates` type-constrains
+# this file's own accumulator, so `$candidates = @()` collapses to '' and every `+=` concatenates
+# instead of appending, leaving one unusable path and a forwarder that cannot find the harness at
+# all. Ten scripts under scripts/ declare a parameter that collided. Contract suite:
+# scripts/utils/install-sza-forwarders.tests/.
+$szaFwdCandidates = @()
+if ($env:SZA_HARNESS_ROOT) { $szaFwdCandidates += $env:SZA_HARNESS_ROOT }
+$szaFwdCache = Join-Path $env:USERPROFILE '.claude\plugins\cache\sza-unified-rules\sza'
+if (Test-Path -LiteralPath $szaFwdCache) {
+    # Ordered as VERSIONS, not as strings: the plugin version is date-derived (2026.903.1), so a
+    # string sort puts October's 2026.1001.1 below September's 2026.903.1 and the forwarder would
+    # keep calling the older copy after an update. A directory that does not parse sorts last
+    # rather than being dropped - it may still be the only harness present.
+    $szaFwdVersions = @(Get-ChildItem -LiteralPath $szaFwdCache -Directory -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            $szaFwdParsed = $null
+            [void][version]::TryParse($_.Name, [ref]$szaFwdParsed)
+            [pscustomobject]@{ Path = $_.FullName; Version = $szaFwdParsed }
+        } | Sort-Object @{ Expression = { $null -ne $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Path }; Descending = $true })
+    $szaFwdCandidates += @($szaFwdVersions | ForEach-Object { Join-Path $_.Path 'tools\harness' })
+}
+$szaFwdTarget = $null
+foreach ($szaFwdDir in $szaFwdCandidates) {
+    $szaFwdProbe = Join-Path $szaFwdDir 'spec_catalog\lib\blockneedusertest-probes.ps1'
+    if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe; break }
 }
 
-# Probe form: Timber.d("Sxxxx: ..). The string may sit on a later physical line, so the span is
-# matched from its start and \s spans newlines.
-function Get-TimberProbeFormRegex {
-    return [regex]'^Timber\.d\(\s*"S(?<num>\d{4}):'
-}
-
-function Get-TimberProbeFormRegexForId {
-    # The same form, pinned to one ticket. Built from the id rather than filtered afterwards so a
-    # single-ticket caller cannot accidentally accept a neighbour's probe.
-    param([Parameter(Mandatory)][string] $Id)
-    return [regex]('^Timber\.d\(\s*"' + [regex]::Escape($Id) + ':')
-}
-
-function Get-SanitizedTimberCallSpan {
-    # Reconstruct a Timber call from its 'Timber.<level>' start through the ')' that closes its
-    # opening '(', tracking string and comment state. Comments are blanked to spaces so a
-    # `// Sxxxx` rationale note between arguments is not mistaken for log text; string literals
-    # stay verbatim because that is exactly where a probe id lives. Parens inside strings and
-    # comments do not skew the depth count. Kotlin raw triple-quoted strings and char literals
-    # holding a quote are rare in Timber arguments and out of scope.
-    param(
-        [Parameter(Mandatory)][string] $Content,
-        [Parameter(Mandatory)][int] $PrefixStart,
-        [Parameter(Mandatory)][int] $OpenParenIndex
-    )
-    $sb = [System.Text.StringBuilder]::new()
-    [void]$sb.Append($Content.Substring($PrefixStart, $OpenParenIndex - $PrefixStart))
-    $depth = 0
-    $inStr = $false
-    $inLine = $false
-    $inBlock = $false
-    $i = $OpenParenIndex
-    $len = $Content.Length
-    $end = -1
-    while ($i -lt $len) {
-        $c = $Content[$i]
-        if ($inLine) {
-            if ($c -eq "`n") { $inLine = $false; [void]$sb.Append($c) } else { [void]$sb.Append(' ') }
-            $i++; continue
-        }
-        if ($inBlock) {
-            if ($c -eq '*' -and ($i + 1) -lt $len -and $Content[$i + 1] -eq '/') {
-                $inBlock = $false; [void]$sb.Append('  '); $i += 2; continue
-            }
-            [void]$sb.Append($(if ($c -eq "`n") { $c } else { ' ' })); $i++; continue
-        }
-        if ($inStr) {
-            [void]$sb.Append($c)
-            if ($c -eq '\' -and ($i + 1) -lt $len) { [void]$sb.Append($Content[$i + 1]); $i += 2; continue }
-            if ($c -eq '"') { $inStr = $false }
-            $i++; continue
-        }
-        if ($c -eq '"') { $inStr = $true; [void]$sb.Append($c); $i++; continue }
-        if ($c -eq '/' -and ($i + 1) -lt $len -and $Content[$i + 1] -eq '/') { $inLine = $true; [void]$sb.Append('  '); $i += 2; continue }
-        if ($c -eq '/' -and ($i + 1) -lt $len -and $Content[$i + 1] -eq '*') { $inBlock = $true; [void]$sb.Append('  '); $i += 2; continue }
-        [void]$sb.Append($c)
-        if ($c -eq '(') { $depth++ }
-        elseif ($c -eq ')') { $depth--; if ($depth -eq 0) { $end = $i; break } }
-        $i++
-    }
-    if ($end -lt 0) { $end = [Math]::Min($len - 1, $OpenParenIndex + 2000) }
-    return @{ End = $end; Span = $sb.ToString() }
-}
-
-function Get-ProbeSourceFile {
-    # Kotlin sources under the given roots, excluding build output. Shared so the two gates
-    # cannot disagree about which files even count as source.
-    param([Parameter(Mandatory)][string[]] $SourceRoots)
-    foreach ($root in $SourceRoots) {
-        if (-not (Test-Path -LiteralPath $root)) { continue }
-        Get-ChildItem -LiteralPath $root -Recurse -File -Filter '*.kt' -ErrorAction SilentlyContinue |
-            Where-Object { $_.FullName -notmatch '[\\/](build|\.gradle|\.kotlin)[\\/]' }
-    }
-}
-
-function Test-TicketProbeInSource {
-    # Does exactly one ticket carry a probe? Returns the first hit as
-    # @{ Found = $true; File = <path>; Line = <n> }, or @{ Found = $false }.
-    # Stops at the first match: the single-ticket caller needs presence, not an inventory.
-    param(
-        [Parameter(Mandatory)][string] $Id,
-        [Parameter(Mandatory)][string[]] $SourceRoots
-    )
-    $openerRx = Get-TimberOpenerRegex
-    $probeRx = Get-TimberProbeFormRegexForId -Id $Id
-    foreach ($file in (Get-ProbeSourceFile -SourceRoots $SourceRoots)) {
-        $content = Get-Content -LiteralPath $file.FullName -Raw
-        if ([string]::IsNullOrEmpty($content)) { continue }
-        # Cheap reject before the per-call reconstruction: a file with no mention of the id at
-        # all cannot hold its probe, and most files are in that class.
-        if (-not $content.Contains($Id)) { continue }
-        foreach ($m in $openerRx.Matches($content)) {
-            $openParenIdx = $m.Index + $m.Length - 1
-            $span = (Get-SanitizedTimberCallSpan -Content $content -PrefixStart $m.Index -OpenParenIndex $openParenIdx).Span
-            if (-not $probeRx.IsMatch($span)) { continue }
-            # An opener sitting in a comment is not log text - the tree gate skips those too.
-            $lineStart = $content.LastIndexOf("`n", $m.Index) + 1
-            $lineText = $content.Substring($lineStart, $m.Index - $lineStart)
-            if ($lineText.Contains('//')) { continue }
-            $trimmed = $lineText.TrimStart()
-            if ($trimmed.StartsWith('*') -or $trimmed.StartsWith('/*')) { continue }
-            $lineNo = ($content.Substring(0, $m.Index) -split "`n").Count
-            return @{ Found = $true; File = $file.FullName; Line = $lineNo }
+# S2452: candidate 3, the canon checkout, reached only when the two above miss. The plugin cache
+# is what actually resolves on every invocation, so the resolver below is never read on the hot
+# path. Its default is held by scripts/utils/project-paths.ps1 and by nothing else - before this it
+# was written in 76 files, 74 of them generated and stamped `GENERATED - do not edit`, so moving
+# the canon required editing files that forbid editing. That is the exact non-portability the
+# hardcoded-drive-path rule was installed to refuse (S2326).
+#
+# The dot-source runs inside `& { }` deliberately. HALF this set is itself dot-sourced, so at top
+# level project-paths.ps1 would define its functions and set its script variables in the CALLER's
+# scope - the S2441 failure one level further out. A child scope cannot reach the caller at all.
+if (-not $szaFwdTarget) {
+    $szaFwdCheckout = $env:SZA_CANON_ROOT
+    if (-not $szaFwdCheckout) {
+        $szaFwdResolver = Join-Path $PSScriptRoot '..\..\..\scripts\utils\project-paths.ps1'
+        if (Test-Path -LiteralPath $szaFwdResolver) {
+            # A resolver that is absent or throws must not stop the forwarder from printing its own
+            # refusal, which is the only message that names all three candidates and the fix.
+            $szaFwdCheckout = & {
+                param($szaFwdResolverPath)
+                try { . $szaFwdResolverPath; Get-CanonRoot } catch { $null }
+            } $szaFwdResolver
         }
     }
-    return @{ Found = $false }
-}
-
-function Get-ExcusedProbeTickets {
-    # Ids allowed to sit in BlockNeedUserTest with no probe, each with a stated reason.
-    # Format: "Sxxxx  <reason>", '#' comments and blank lines ignored. A row with an id and no
-    # reason does not count - the reason is the whole point of an allow-list over a counter.
-    param([Parameter(Mandatory)][string] $BaselinePath)
-    $excused = [System.Collections.Generic.HashSet[string]]::new()
-    if (-not (Test-Path -LiteralPath $BaselinePath)) { return $excused }
-    foreach ($line in Get-Content -LiteralPath $BaselinePath) {
-        $trimmedLine = $line.Trim()
-        if ($trimmedLine -eq '' -or $trimmedLine.StartsWith('#')) { continue }
-        if ($trimmedLine -match '^(?<id>S\d{4})\s+\S') { [void]$excused.Add($Matches['id']) }
+    if ($szaFwdCheckout) {
+        $szaFwdCandidates += (Join-Path $szaFwdCheckout 'tools\harness')
+        $szaFwdProbe = Join-Path $szaFwdCandidates[-1] 'spec_catalog\lib\blockneedusertest-probes.ps1'
+        if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe }
     }
-    return $excused
+}
+if (-not $szaFwdTarget) {
+    Write-Host "blockneedusertest-probes.ps1: the SZA harness is not installed - looked in:" -ForegroundColor Red
+    foreach ($szaFwdDir in $szaFwdCandidates) { Write-Host "    $szaFwdDir" -ForegroundColor Gray }
+    Write-Host "  Install or update it:  claude plugin update sza@sza-unified-rules" -ForegroundColor Yellow
+    Write-Host "  Or point at a checkout: `$env:SZA_HARNESS_ROOT = '<repo>\tools\harness'" -ForegroundColor Yellow
+    exit 2
 }
 
-function Get-ProbeBaselinePath {
-    param([Parameter(Mandatory)][string] $RepoRoot)
-    return (Join-Path $RepoRoot 'scripts/quality/blockneedusertest-probe-baseline.txt')
-}
+$env:SZA_PROJECT_ROOT = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
 
-function Get-ProbeSourceRoot {
-    # Module roots, not their src/ subdirectories, matching assert-no-ticket-logs.ps1 exactly.
-    # The narrower pair would make the single-ticket check STRICTER than the tree gate - it would
-    # refuse a close over a probe the tree gate is content with - and a gate that is stricter than
-    # the rule it enforces is the one people route around.
-    param([Parameter(Mandatory)][string] $RepoRoot)
-    return @(
-        (Join-Path $RepoRoot 'app_v2'),
-        (Join-Path $RepoRoot 'wear')
-    ) | Where-Object { Test-Path -LiteralPath $_ }
+# Half of this set is dot-sourced as a library and half is invoked as a CLI, and the two cannot be
+# forwarded the same way: `& $szaFwdTarget` would run a library in its own scope and define nothing
+# the caller can see, while `exit` inside a dot-sourced file would kill the caller. InvocationName
+# is '.' exactly when this file was dot-sourced, so one template serves both.
+if ($MyInvocation.InvocationName -eq '.') {
+    . $szaFwdTarget
+} else {
+    # Deliberately NOT 'Stop'. A native child's stderr arrives here as ErrorRecord objects, and
+    # under 'Stop' the first one terminates this forwarder before `exit $LASTEXITCODE` runs - so a
+    # script that reported a FAIL and exited 1 would reach its caller as a crashed forwarder with a
+    # different code. Every script in this set states its exit codes; passing them through unchanged
+    # is the whole job. S2441 moved it inside this branch: at the file's top level it also rewrote
+    # the preference of every caller that dot-sources a forwarder, silently downgrading a script
+    # running under 'Stop' for the rest of its life.
+    $ErrorActionPreference = 'Continue'
+    $global:LASTEXITCODE = 0
+    try {
+        & $szaFwdTarget @args
+    } catch {
+        # A child that THROWS never reaches its own `exit`, so $LASTEXITCODE stays 0 and the
+        # forwarder would report success for a script that failed - the one way a forwarder can
+        # turn a red verdict green. Every such refusal is a failure, so it leaves as exit 1.
+        Write-Error $_ -ErrorAction Continue
+        exit 1
+    }
+    $szaFwdCode = $LASTEXITCODE
+    exit $(if ($null -eq $szaFwdCode) { 0 } else { $szaFwdCode })
 }

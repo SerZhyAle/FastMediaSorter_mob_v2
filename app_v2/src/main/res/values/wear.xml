@@ -11,8 +11,8 @@
       the phone waits until the user opens the watch app.
 
       Read at runtime by the Wearable library, which only standard and noLegal link
-      (play-services-wearable is scoped to those two configurations). In the four flavors that
-      mount wearStub nothing parses this array, so it stays inert there rather than advertising
+      (play-services-wearable is scoped to those two configurations). In the five flavors that
+      mount wearStub - lite, photos, legacy, vr, foss - nothing parses this array, so it stays inert there rather than advertising
       a companion that cannot answer.
     -->
     <string-array name="android_wear_capabilities" translatable="false">

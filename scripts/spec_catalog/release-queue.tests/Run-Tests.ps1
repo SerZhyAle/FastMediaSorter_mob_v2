@@ -25,10 +25,13 @@ function Assert-Condition {
 }
 
 function New-MarkedQueueFixture {
-    # One-line release file in temp/, so the round trip is exercised without touching PLAN/.
+    # A two-line release file in temp/, so the round trip is exercised without touching PLAN/.
+    # The prose line is load-bearing: with a one-line fixture that line IS the ticket line, so
+    # `$parsed.Count -eq 1` counts lines in the file rather than parsed tickets and passes even
+    # when the ticket filter never filtered anything (S2420).
     param([Parameter(Mandatory)][string] $Line)
     $path = Join-Path $fixtureDirectory "release-queue-marked-$PID.md"
-    [System.IO.File]::WriteAllLines($path, @($Line))
+    [System.IO.File]::WriteAllLines($path, @('# sandbox marked queue', $Line))
     return $path
 }
 
@@ -78,8 +81,16 @@ try {
     # "the process died, the ticket is free again" signal.
     $markedLine = (Format-ReleaseQueueLine -Release '40' -Ticket 'S9004_delta' -Changed '2026-08-01' -Status 'In Progress') +
         '   [taken 15:42, /spec-all, be08adb0]'
-    $parsed = @(Read-ReleaseFile -Path (New-MarkedQueueFixture -Line $markedLine)) |
-        Where-Object { $_.Kind -eq 'ticket' }
+    # Read-ReleaseFile returns through `return ,` against unrolling, so a BARE call piped straight
+    # into a filter hands that filter the whole List as ONE object - `$_.Kind` then unrolls over
+    # the members, the comparison against a non-empty array is always true, and the filter passes
+    # everything through unfiltered. Measured 2026-09-03 (S2420, temp/S2420/repro4.ps1): moving the
+    # `@(..)` from the call onto the pipeline does NOT fix it either, because the pipeline still
+    # enumerates only the outer wrapper. What fixes it is the assignment below - an assignment
+    # unrolls the `,` wrapper, leaving the List, and piping a List enumerates its members. The
+    # `@(..)` on the filtered result stays: it is what protects `.Count` from $null on no match.
+    $parsedLines = Read-ReleaseFile -Path (New-MarkedQueueFixture -Line $markedLine)
+    $parsed = @($parsedLines | Where-Object { $_.Kind -eq 'ticket' })
     Assert-Condition ($parsed.Count -eq 1) 'A marked ticket line stopped parsing as a ticket.'
     Assert-Condition ($parsed[0].Status -eq 'In Progress') "Marker leaked into the status column: $($parsed[0].Status)"
     Assert-Condition ($parsed[0].Id -eq 'S9004') 'Marked line parsed the wrong id.'

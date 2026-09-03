@@ -86,12 +86,24 @@ Two deltas are specific to the watch, and both are hard:
   `wear/src/noLegal/AndroidManifest.xml` is picked up by convention and merged normally - which is why
   no such file needs to exist until something has a permission to declare.
 
-**`wear/src/noLegal/` is empty today, and that is the finished state of S2090.** No class, no manifest,
-no resource. The dimension exists so that the next capability Play refuses on a watch has somewhere to
-go instead of being deleted, which is what happened to `ACCESS_FINE_LOCATION` in S2013. Do not read the
-emptiness as an unused dimension, and do not fill it with a placeholder class or an empty manifest to
-make it look occupied: strategic S2090 §9 ADR-5 rules both out, the first as a shipped stub under Rule
-19 and the second as dead weight under Rule 20. The first real capability creates both files.
+**`wear/src/noLegal/` was empty from S2090 until S2165 filled it, and the ban that kept it empty still
+stands.** The dimension existed so that the next capability Play refuses on a watch had somewhere to go
+instead of being deleted, which is what happened to `ACCESS_FINE_LOCATION` in S2013. It now holds
+exactly two files, and they are the shape to copy:
+
+- `wear/src/noLegal/java/com/sza/fastmediasorter/wear/diagnostics/NoLegalWearInfoContributor.kt` - the
+  capability itself, adding the signing-certificate fingerprint to the system-information report.
+- `wear/src/noLegal/java/com/sza/fastmediasorter/wear/di/NoLegalWearInfoModule.kt` - its `@Binds
+  @IntoSet` module, contributing into a set that `wear/src/main` declares with `@Multibinds` so the set
+  stays injectable in `standard`, where nothing occupies that slot.
+
+There is still **no `wear/src/noLegal/AndroidManifest.xml`**, because this capability declares no
+permission and an empty manifest overlay is dead weight under Rule 20 - the second half of S2090 §9
+ADR-5 is unspent, and the first capability that needs a permission creates that file.
+
+Do not fill the directory with a placeholder class to make it look occupied; that half of ADR-5 is
+permanent, and it is the reason the directory stayed empty for as long as it did rather than acquiring
+a stub nobody could later distinguish from real content.
 
 ## 3. AGENT BEHAVIOR & SKILLS
 

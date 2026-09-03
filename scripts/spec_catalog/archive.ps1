@@ -1,168 +1,114 @@
-[CmdletBinding()]
-param(
-    [Parameter(Mandatory)][string] $Id
-)
+#requires -Version 7.0
+<#
+.SYNOPSIS
+    Forwarder to the canon-shipped harness script spec_catalog\archive.ps1 (S2402).
 
-# Under _lib.ps1's $ErrorActionPreference = 'Stop', Write-Error/throw raise
-# terminating errors that abort the script before reaching `exit 1`. The trap
-# below converts any such terminating error into a proper exit-1 contract,
-# so callers can rely on $LASTEXITCODE.
-trap {
-    Write-Host $_ -ForegroundColor Red
-    exit 1
+.DESCRIPTION
+    GENERATED - do not edit. The mechanism lives in the SZA canon plugin (tools/harness) and this
+    repository consumes it; the file kept here is only the address every existing call site already
+    knows. Regenerate with scripts/utils/install-sza-forwarders.ps1. What this project configures lives in
+    .sza-profile.json at the repository root, never in a script body.
+
+Exit codes: whatever spec_catalog\archive.ps1 returns, plus 2 when the harness cannot be located.
+#>
+# S2441: every name below carries a $szaFwd prefix because HALF of this set is dot-sourced, and a
+# dot-sourced file assigns into its CALLER's scope. PowerShell names are case-insensitive, so the
+# `$target` this file used to resolve into WAS the caller's `-Target` parameter: post-change.ps1
+# dot-sources the agent-lock-domains forwarder before it journals, and every dev/CHANGELOG.md row
+# written on 2026-09-03 recorded a harness path where the ticket id belonged. The second failure
+# mode is worse than the substitution - a caller declaring `[string]$Candidates` type-constrains
+# this file's own accumulator, so `$candidates = @()` collapses to '' and every `+=` concatenates
+# instead of appending, leaving one unusable path and a forwarder that cannot find the harness at
+# all. Ten scripts under scripts/ declare a parameter that collided. Contract suite:
+# scripts/utils/install-sza-forwarders.tests/.
+$szaFwdCandidates = @()
+if ($env:SZA_HARNESS_ROOT) { $szaFwdCandidates += $env:SZA_HARNESS_ROOT }
+$szaFwdCache = Join-Path $env:USERPROFILE '.claude\plugins\cache\sza-unified-rules\sza'
+if (Test-Path -LiteralPath $szaFwdCache) {
+    # Ordered as VERSIONS, not as strings: the plugin version is date-derived (2026.903.1), so a
+    # string sort puts October's 2026.1001.1 below September's 2026.903.1 and the forwarder would
+    # keep calling the older copy after an update. A directory that does not parse sorts last
+    # rather than being dropped - it may still be the only harness present.
+    $szaFwdVersions = @(Get-ChildItem -LiteralPath $szaFwdCache -Directory -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            $szaFwdParsed = $null
+            [void][version]::TryParse($_.Name, [ref]$szaFwdParsed)
+            [pscustomobject]@{ Path = $_.FullName; Version = $szaFwdParsed }
+        } | Sort-Object @{ Expression = { $null -ne $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Path }; Descending = $true })
+    $szaFwdCandidates += @($szaFwdVersions | ForEach-Object { Join-Path $_.Path 'tools\harness' })
+}
+$szaFwdTarget = $null
+foreach ($szaFwdDir in $szaFwdCandidates) {
+    $szaFwdProbe = Join-Path $szaFwdDir 'spec_catalog\archive.ps1'
+    if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe; break }
 }
 
-. (Join-Path $PSScriptRoot '_lib.ps1')
-
-if ($Id -notmatch '^S\d{4}$') { throw "Invalid -Id '$Id' (must match S####)." }
-
-$record = Find-Record -Id $Id
-if (-not $record) {
-    Write-Error "Record '$Id' not found."
-    exit 1
+# S2452: candidate 3, the canon checkout, reached only when the two above miss. The plugin cache
+# is what actually resolves on every invocation, so the resolver below is never read on the hot
+# path. Its default is held by scripts/utils/project-paths.ps1 and by nothing else - before this it
+# was written in 76 files, 74 of them generated and stamped `GENERATED - do not edit`, so moving
+# the canon required editing files that forbid editing. That is the exact non-portability the
+# hardcoded-drive-path rule was installed to refuse (S2326).
+#
+# The dot-source runs inside `& { }` deliberately. HALF this set is itself dot-sourced, so at top
+# level project-paths.ps1 would define its functions and set its script variables in the CALLER's
+# scope - the S2441 failure one level further out. A child scope cannot reach the caller at all.
+if (-not $szaFwdTarget) {
+    $szaFwdCheckout = $env:SZA_CANON_ROOT
+    if (-not $szaFwdCheckout) {
+        $szaFwdResolver = Join-Path $PSScriptRoot '..\..\scripts\utils\project-paths.ps1'
+        if (Test-Path -LiteralPath $szaFwdResolver) {
+            # A resolver that is absent or throws must not stop the forwarder from printing its own
+            # refusal, which is the only message that names all three candidates and the fix.
+            $szaFwdCheckout = & {
+                param($szaFwdResolverPath)
+                try { . $szaFwdResolverPath; Get-CanonRoot } catch { $null }
+            } $szaFwdResolver
+        }
+    }
+    if ($szaFwdCheckout) {
+        $szaFwdCandidates += (Join-Path $szaFwdCheckout 'tools\harness')
+        $szaFwdProbe = Join-Path $szaFwdCandidates[-1] 'spec_catalog\archive.ps1'
+        if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe }
+    }
+}
+if (-not $szaFwdTarget) {
+    Write-Host "archive.ps1: the SZA harness is not installed - looked in:" -ForegroundColor Red
+    foreach ($szaFwdDir in $szaFwdCandidates) { Write-Host "    $szaFwdDir" -ForegroundColor Gray }
+    Write-Host "  Install or update it:  claude plugin update sza@sza-unified-rules" -ForegroundColor Yellow
+    Write-Host "  Or point at a checkout: `$env:SZA_HARNESS_ROOT = '<repo>\tools\harness'" -ForegroundColor Yellow
+    exit 2
 }
 
-$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-# S1620: the archive is the only durable record of WHY a closed decision was made, so it
-# lives under version control. It used to go to temp/done/, which is git-ignored and
-# disposable - archiving therefore deleted the reasoning from every machine but this one.
-# PLAN/ itself stays untracked; .gitignore re-includes PLAN/archive/ specifically.
-$doneDir  = Join-Path $repoRoot 'PLAN\archive'
-if (-not (Test-Path $doneDir)) {
-    New-Item -ItemType Directory -Path $doneDir -Force | Out-Null
-}
+$env:SZA_PROJECT_ROOT = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 
-# Locate artefacts in PLAN/
-$planDir      = Join-Path $repoRoot 'PLAN'
-$slug         = $record.name
-# Prefer the catalog path because some specs were renamed after ticket creation.
-$recordFileRelative = if ($record.PSObject.Properties.Name -contains 'file' -and "$($record.file)" -ne '') {
-    [string]$record.file
+# Half of this set is dot-sourced as a library and half is invoked as a CLI, and the two cannot be
+# forwarded the same way: `& $szaFwdTarget` would run a library in its own scope and define nothing
+# the caller can see, while `exit` inside a dot-sourced file would kill the caller. InvocationName
+# is '.' exactly when this file was dot-sourced, so one template serves both.
+if ($MyInvocation.InvocationName -eq '.') {
+    . $szaFwdTarget
 } else {
-    "PLAN/${Id}_${slug}.md"
-}
-$recordFilePath = Join-Path $repoRoot ($recordFileRelative -replace '/', '\')
-$fallbackSpecFile = Join-Path $planDir "${Id}_${slug}.md"
-
-$candidateSpecFiles = [System.Collections.Generic.List[string]]::new()
-$candidateSpecFiles.Add($recordFilePath)
-if ($fallbackSpecFile -ne $recordFilePath) {
-    $candidateSpecFiles.Add($fallbackSpecFile)
-}
-
-$specFile = $null
-foreach ($candidate in $candidateSpecFiles) {
-    if (Test-Path -LiteralPath $candidate -PathType Leaf) {
-        $specFile = $candidate
-        break
+    # Deliberately NOT 'Stop'. A native child's stderr arrives here as ErrorRecord objects, and
+    # under 'Stop' the first one terminates this forwarder before `exit $LASTEXITCODE` runs - so a
+    # script that reported a FAIL and exited 1 would reach its caller as a crashed forwarder with a
+    # different code. Every script in this set states its exit codes; passing them through unchanged
+    # is the whole job. S2441 moved it inside this branch: at the file's top level it also rewrote
+    # the preference of every caller that dot-sources a forwarder, silently downgrading a script
+    # running under 'Stop' for the rest of its life.
+    $ErrorActionPreference = 'Continue'
+    $global:LASTEXITCODE = 0
+    try {
+        & $szaFwdTarget @args
+    } catch {
+        # A child that THROWS never reaches its own `exit`, so $LASTEXITCODE stays 0 and the
+        # forwarder would report success for a script that failed - the one way a forwarder can
+        # turn a red verdict green. Every such refusal is a failure, so it leaves as exit 1.
+        Write-Error $_ -ErrorAction Continue
+        exit 1
     }
+    $szaFwdCode = $LASTEXITCODE
+    exit $(if ($null -eq $szaFwdCode) { 0 } else { $szaFwdCode })
 }
-
-$candidateTacticalDirs = [System.Collections.Generic.List[string]]::new()
-# Strip the extension to get the tactical folder path; ChangeExtension($p, $null)
-# yields "path." in PowerShell 7+ which then fails to resolve, so build it manually.
-$recordTacticalDir = Join-Path `
-    ([System.IO.Path]::GetDirectoryName($recordFilePath)) `
-    ([System.IO.Path]::GetFileNameWithoutExtension($recordFilePath))
-$candidateTacticalDirs.Add($recordTacticalDir)
-$fallbackTacticalDir = Join-Path $planDir "${Id}_${slug}"
-if ($fallbackTacticalDir -ne $recordTacticalDir) {
-    $candidateTacticalDirs.Add($fallbackTacticalDir)
-}
-
-$tacticalDirs = [System.Collections.Generic.List[string]]::new()
-foreach ($candidate in $candidateTacticalDirs) {
-    if (Test-Path -LiteralPath $candidate -PathType Container) {
-        $tacticalDirs.Add($candidate)
-    }
-}
-
-if ($record.status -eq 'Archived' -and $null -eq $specFile -and $tacticalDirs.Count -eq 0) {
-    Write-Error "$Id is already Archived."
-    exit 1
-}
-if ($record.status -eq 'Archived') {
-    Write-Warning "$Id is already Archived in the catalog; continuing to move remaining artefacts from PLAN/."
-}
-
-$moved = New-Object System.Collections.Generic.List[string]
-
-if ($null -ne $specFile) {
-    # Set the in-file header to Archived before moving, so the artefact in
-    # PLAN/archive/ matches the journal (shared fail-soft helper, first line only).
-    [void](Sync-SpecHeaderStatus -PathRef $specFile -Status 'Archived')
-    $specFileName = Split-Path -Path $specFile -Leaf
-    Move-Item -LiteralPath $specFile -Destination (Join-Path $doneDir $specFileName) -Force
-    $moved.Add($specFileName)
-} else {
-    Write-Warning "Strategic file not found in PLAN for '$recordFileRelative' - skipping file move."
-}
-
-foreach ($tacticalDir in $tacticalDirs) {
-    $tacticalDirName = Split-Path -Path $tacticalDir -Leaf
-    Move-Item -LiteralPath $tacticalDir -Destination (Join-Path $doneDir $tacticalDirName) -Force
-    $moved.Add("${tacticalDirName}/")
-}
-
-# Mark Archived in journal, preserve optional fields
-$allRecords = [System.Collections.Generic.List[object]]::new()
-# S1437: read -> mutate -> write is one critical section. Two processes holding the same
-# snapshot lose one change entirely - the later write replaces the whole journal.
-Enter-CatalogLock
-foreach ($r in (Read-Catalog)) { $allRecords.Add($r) }
-
-$idx = -1
-for ($i = 0; $i -lt $allRecords.Count; $i++) {
-    if ($allRecords[$i].id -eq $Id) { $idx = $i; break }
-}
-
-# When the id is no longer in the active journal (already moved to archive),
-# fall back to the record resolved earlier via Find-Record's archive fallback.
-$old = if ($idx -ge 0) { $allRecords[$idx] } else { $record }
-
-# S1620: record where the file actually IS, not where it used to be. The previous version
-# kept the PLAN/ path after moving the file, so 1502 of 1504 archived records pointed at
-# something that no longer existed and select.ps1 handed callers a dead path. Only rewrite
-# when a file was really moved: a record whose artefact was never found keeps its original
-# path rather than gaining a fabricated one.
-$archivedFileRef = [string]$old.file
-if ($null -ne $specFile) {
-    $archivedFileRef = 'PLAN/archive/' + (Split-Path -Path $specFile -Leaf)
-}
-
-$archived = [pscustomobject]@{
-    id       = [string]$old.id
-    name     = [string]$old.name
-    status   = 'Archived'
-    priority = 0
-    file     = $archivedFileRef
-    created  = [string]$old.created
-    updated  = (Get-Now)
-}
-if ($old.PSObject.Properties.Name -contains 'tier' -and $null -ne $old.tier -and "$($old.tier)" -ne '') {
-    $archived | Add-Member -NotePropertyName 'tier' -NotePropertyValue ([int]$old.tier)
-}
-# 'statusNote' is dropped, not carried over: it describes what a Block* status is waiting for, and
-# Archived waits for nothing. update.ps1 already auto-clears it when leaving Block*, so archiving a
-# BlockQuestions/BlockExternal ticket directly used to be the one path that froze a stale "owner
-# decision needed" note into the archive journal forever (found archiving S1186 from BlockQuestions).
-$fixedKeys = @('id','name','status','priority','tier','file','created','updated','statusNote')
-foreach ($prop in $old.PSObject.Properties) {
-    if ($fixedKeys -notcontains $prop.Name -and -not ($archived.PSObject.Properties.Name -contains $prop.Name)) {
-        $archived | Add-Member -NotePropertyName $prop.Name -NotePropertyValue $prop.Value
-    }
-}
-
-Assert-Record -Record $archived
-# Physically relocate: append to the archive journal, drop from the active one.
-# Add-ArchiveRecord replaces by id (idempotent); active removal is a no-op if
-# the id was already moved out.
-Add-ArchiveRecord -Record $archived
-$remaining = @($allRecords | Where-Object { $_.id -ne $Id })
-Write-Catalog -Records ([object[]]$remaining)
-
-$movedStr = if ($moved.Count -gt 0) { $moved -join ', ' } else { '(no files found)' }
-Exit-CatalogLock
-
-Write-Output ("$Id archived [priority -> 0]. Moved: $movedStr -> PLAN/archive/")
-exit 0

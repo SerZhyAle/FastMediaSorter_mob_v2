@@ -1403,6 +1403,13 @@
     <string name="wear_sync_success">已向手表发送 %d 个资源</string>
     <string name="wear_sync_failed">无法与手表同步，再试一次。</string>
     <string name="wear_settings_section_title">手表设置</string>
+    <string name="wear_settings_group_media_types">媒体类型</string>
+    <string name="wear_settings_group_slideshow">幻灯片放映</string>
+    <string name="wear_settings_group_screen">屏幕</string>
+    <string name="wear_settings_group_other">其他</string>
+    <string name="wear_settings_group_sections">部分</string>
+    <string name="wear_settings_disable_animations">禁用动画</string>
+    <string name="wear_settings_background_mode">手表背景</string>
     <string name="wear_settings_audio">音频</string>
     <string name="wear_settings_video">视频</string>
     <string name="wear_settings_images">图片</string>
@@ -3034,7 +3041,6 @@
     <string name="calculator_keypad_mode_normal">普通的</string>
     <string name="calculator_keypad_mode_large">大按键</string>
     <string name="calculator_keypad_mode_compact">紧凑型，右下角</string>
-    <string name="wear_background_section_title">手表背景</string>
     <string name="wear_background_mode_animation">品牌动画</string>
     <string name="wear_background_mode_image">Your image</string>
     <string name="wear_background_pick_image">Choose image</string>

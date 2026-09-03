@@ -1,147 +1,114 @@
+#requires -Version 7.0
 <#
 .SYNOPSIS
-    Validate docs/DOCUMENT_REGISTRY.jsonl and its registered files.
+    Forwarder to the canon-shipped harness script document_registry\validate.ps1 (S2402).
 
 .DESCRIPTION
-    Exit codes: 0 = valid, 1 = validation errors, 2 = invalid invocation or unreadable registry.
+    GENERATED - do not edit. The mechanism lives in the SZA canon plugin (tools/harness) and this
+    repository consumes it; the file kept here is only the address every existing call site already
+    knows. Regenerate with scripts/utils/install-sza-forwarders.ps1. What this project configures lives in
+    .sza-profile.json at the repository root, never in a script body.
+
+Exit codes: whatever document_registry\validate.ps1 returns, plus 2 when the harness cannot be located.
 #>
-[CmdletBinding()]
-param(
-    [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-)
-
-$ErrorActionPreference = 'Stop'
-
-function Get-Matches {
-    param([string] $Pattern)
-    $fullPattern = Join-Path $RepoRoot ($Pattern -replace '/', [IO.Path]::DirectorySeparatorChar)
-    @(Get-ChildItem -Path $fullPattern -File -ErrorAction SilentlyContinue)
+# S2441: every name below carries a $szaFwd prefix because HALF of this set is dot-sourced, and a
+# dot-sourced file assigns into its CALLER's scope. PowerShell names are case-insensitive, so the
+# `$target` this file used to resolve into WAS the caller's `-Target` parameter: post-change.ps1
+# dot-sources the agent-lock-domains forwarder before it journals, and every dev/CHANGELOG.md row
+# written on 2026-09-03 recorded a harness path where the ticket id belonged. The second failure
+# mode is worse than the substitution - a caller declaring `[string]$Candidates` type-constrains
+# this file's own accumulator, so `$candidates = @()` collapses to '' and every `+=` concatenates
+# instead of appending, leaving one unusable path and a forwarder that cannot find the harness at
+# all. Ten scripts under scripts/ declare a parameter that collided. Contract suite:
+# scripts/utils/install-sza-forwarders.tests/.
+$szaFwdCandidates = @()
+if ($env:SZA_HARNESS_ROOT) { $szaFwdCandidates += $env:SZA_HARNESS_ROOT }
+$szaFwdCache = Join-Path $env:USERPROFILE '.claude\plugins\cache\sza-unified-rules\sza'
+if (Test-Path -LiteralPath $szaFwdCache) {
+    # Ordered as VERSIONS, not as strings: the plugin version is date-derived (2026.903.1), so a
+    # string sort puts October's 2026.1001.1 below September's 2026.903.1 and the forwarder would
+    # keep calling the older copy after an update. A directory that does not parse sorts last
+    # rather than being dropped - it may still be the only harness present.
+    $szaFwdVersions = @(Get-ChildItem -LiteralPath $szaFwdCache -Directory -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            $szaFwdParsed = $null
+            [void][version]::TryParse($_.Name, [ref]$szaFwdParsed)
+            [pscustomobject]@{ Path = $_.FullName; Version = $szaFwdParsed }
+        } | Sort-Object @{ Expression = { $null -ne $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Path }; Descending = $true })
+    $szaFwdCandidates += @($szaFwdVersions | ForEach-Object { Join-Path $_.Path 'tools\harness' })
+}
+$szaFwdTarget = $null
+foreach ($szaFwdDir in $szaFwdCandidates) {
+    $szaFwdProbe = Join-Path $szaFwdDir 'document_registry\validate.ps1'
+    if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe; break }
 }
 
-function Get-PagePermalink {
-    param([string] $Path)
-    $head = @(Get-Content -LiteralPath $Path -TotalCount 12 -Encoding utf8 -ErrorAction SilentlyContinue)
-    if ($head.Count -eq 0) { return $null }
-    foreach ($line in $head) {
-        if ($line -match '^\s*permalink:\s*(\S+)\s*$') { return $Matches[1].Trim("'", '"') }
+# S2452: candidate 3, the canon checkout, reached only when the two above miss. The plugin cache
+# is what actually resolves on every invocation, so the resolver below is never read on the hot
+# path. Its default is held by scripts/utils/project-paths.ps1 and by nothing else - before this it
+# was written in 76 files, 74 of them generated and stamped `GENERATED - do not edit`, so moving
+# the canon required editing files that forbid editing. That is the exact non-portability the
+# hardcoded-drive-path rule was installed to refuse (S2326).
+#
+# The dot-source runs inside `& { }` deliberately. HALF this set is itself dot-sourced, so at top
+# level project-paths.ps1 would define its functions and set its script variables in the CALLER's
+# scope - the S2441 failure one level further out. A child scope cannot reach the caller at all.
+if (-not $szaFwdTarget) {
+    $szaFwdCheckout = $env:SZA_CANON_ROOT
+    if (-not $szaFwdCheckout) {
+        $szaFwdResolver = Join-Path $PSScriptRoot '..\..\scripts\utils\project-paths.ps1'
+        if (Test-Path -LiteralPath $szaFwdResolver) {
+            # A resolver that is absent or throws must not stop the forwarder from printing its own
+            # refusal, which is the only message that names all three candidates and the fix.
+            $szaFwdCheckout = & {
+                param($szaFwdResolverPath)
+                try { . $szaFwdResolverPath; Get-CanonRoot } catch { $null }
+            } $szaFwdResolver
+        }
     }
-    return $null
+    if ($szaFwdCheckout) {
+        $szaFwdCandidates += (Join-Path $szaFwdCheckout 'tools\harness')
+        $szaFwdProbe = Join-Path $szaFwdCandidates[-1] 'document_registry\validate.ps1'
+        if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe }
+    }
+}
+if (-not $szaFwdTarget) {
+    Write-Host "validate.ps1: the SZA harness is not installed - looked in:" -ForegroundColor Red
+    foreach ($szaFwdDir in $szaFwdCandidates) { Write-Host "    $szaFwdDir" -ForegroundColor Gray }
+    Write-Host "  Install or update it:  claude plugin update sza@sza-unified-rules" -ForegroundColor Yellow
+    Write-Host "  Or point at a checkout: `$env:SZA_HARNESS_ROOT = '<repo>\tools\harness'" -ForegroundColor Yellow
+    exit 2
 }
 
-function Get-DeclaredAddresses {
-    <#
-        S1803: every address a record announces by hand - its entry point and its translated
-        siblings. The expanded per-page addresses are not here: those come from the pages themselves
-        and cannot point at a file that does not exist.
-    #>
-    param([object] $Record)
-    $addresses = [System.Collections.Generic.List[string]]::new()
-    if ($Record.url) { [void]$addresses.Add([string]$Record.url) }
-    if ($Record.localized_urls) {
-        foreach ($property in $Record.localized_urls.PSObject.Properties) { [void]$addresses.Add([string]$property.Value) }
-    }
-    return $addresses
-}
+$env:SZA_PROJECT_ROOT = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 
-try {
-    $registryPath = Join-Path $RepoRoot 'docs/DOCUMENT_REGISTRY.jsonl'
-    if (-not (Test-Path -LiteralPath $registryPath)) { throw "Registry not found: $registryPath" }
-    $errors = [System.Collections.Generic.List[string]]::new()
-    $records = [System.Collections.Generic.List[object]]::new()
-    $lineNumber = 0
-    foreach ($line in Get-Content -LiteralPath $registryPath -Encoding utf8) {
-        $lineNumber++
-        if (-not $line.Trim()) { continue }
-        try { $records.Add(($line | ConvertFrom-Json)) } catch { $errors.Add("L${lineNumber}: invalid JSON") }
-    }
-    $required = @('id', 'title', 'category', 'audience', 'paths', 'published', 'indexable', 'product_areas', 'update_triggers', 'generated')
-    $seen = @{}
-    foreach ($record in $records) {
-        foreach ($field in $required) {
-            if (-not ($record.PSObject.Properties.Name -contains $field)) { $errors.Add("$($record.id): missing $field") }
-        }
-        if ($record.id -notmatch '^[a-z0-9]+(?:-[a-z0-9]+)*$') { $errors.Add("$($record.id): invalid id") }
-        if ($seen.ContainsKey($record.id)) { $errors.Add("$($record.id): duplicate id") } else { $seen[$record.id] = $true }
-        if ($record.indexable -and (-not $record.published -or -not $record.url)) { $errors.Add("$($record.id): indexable record needs published=true and url") }
-        foreach ($relativePath in @($record.paths)) {
-            if ($relativePath -match '(^|/|\\)\.\.($|/|\\)' -or [IO.Path]::IsPathRooted($relativePath)) {
-                $errors.Add("$($record.id): path escapes repo: $relativePath")
-                continue
-            }
-            if ((Get-Matches -Pattern $relativePath).Count -eq 0) { $errors.Add("$($record.id): no file matches $relativePath") }
-        }
-        # S1803: a page withheld from the sitemap has to say why, in words a reader can re-judge in a
-        # year - an exclusion list whose entries read "internal" becomes a place things disappear into.
-        foreach ($exclusion in @($record.sitemap_exclude)) {
-            if (-not $exclusion) { continue }
-            if (-not $exclusion.path) {
-                $errors.Add("$($record.id): sitemap_exclude entry without a path")
-                continue
-            }
-            if (-not (Test-Path -LiteralPath (Join-Path $RepoRoot $exclusion.path))) {
-                $errors.Add("$($record.id): sitemap_exclude names a missing file: $($exclusion.path)")
-            }
-            $words = @(($exclusion.reason -split '\s+') | Where-Object { $_ })
-            if ($words.Count -lt 4) {
-                $errors.Add("$($record.id): sitemap_exclude reason too thin for $($exclusion.path)")
-            }
-        }
-        $excludedPaths = @(@($record.sitemap_exclude) | Where-Object { $_ -and $_.path } |
-            ForEach-Object { ([string]$_.path).Replace('\', '/') })
-        # S1803: an address written by hand in the record can point at a page that was renamed or never
-        # existed, and a sitemap entry that answers with an error is worse than an unannounced page.
-        # Expanded addresses are exempt by construction - they are read off the page they belong to.
-        if ($record.published -and $record.indexable) {
-            $pages = @{}
-            foreach ($relativePath in @($record.paths)) {
-                foreach ($file in (Get-Matches -Pattern $relativePath)) {
-                    $permalink = Get-PagePermalink -Path $file.FullName
-                    if ($permalink) { $pages[$permalink] = $file.FullName }
-                }
-            }
-            foreach ($address in (Get-DeclaredAddresses -Record $record)) {
-                if ($pages.Count -eq 0) { continue }
-                if (-not $pages.ContainsKey($address)) {
-                    $errors.Add("$($record.id): declared address resolves to no page: $address")
-                }
-            }
-
-            # S1803: the other half of the same contract. Adding a page to an existing group must not
-            # require a registry edit for it to be announced - so a page that must NOT be announced can
-            # only be caught here. A file under an indexable record has to be one of three things: it
-            # declares its own address, it is named in sitemap_exclude with a reason, or it is the
-            # source of an address the record itself declares. Anything else is a page nobody decided
-            # about, which is how an internal note reaches a search engine.
-            $recordAddresses = @(Get-DeclaredAddresses -Record $record)
-            foreach ($relativePath in @($record.paths)) {
-                foreach ($file in (Get-Matches -Pattern $relativePath)) {
-                    $relative = $file.FullName.Substring($RepoRoot.Length).TrimStart('\', '/').Replace('\', '/')
-                    if ($excludedPaths -contains $relative) { continue }
-                    if (Get-PagePermalink -Path $file.FullName) { continue }
-                    # A record-level address has no front matter to read: its source is the file whose
-                    # name the address ends in, and the site root is backed by index.html / README.md.
-                    $backsRecordAddress = $false
-                    foreach ($address in $recordAddresses) {
-                        if ($address -eq "/$($file.Name)") { $backsRecordAddress = $true; break }
-                        if ($address -eq '/' -and $file.Name -in @('index.html', 'README.md')) {
-                            $backsRecordAddress = $true; break
-                        }
-                    }
-                    if ($backsRecordAddress) { continue }
-                    $errors.Add("$($record.id): $relative is neither announced nor excluded - give it a " +
-                        "permalink, or add it to sitemap_exclude with a reason saying what it is and who it is for")
-                }
-            }
-        }
-    }
-    if ($errors.Count -gt 0) {
-        Write-Host "Document registry FAILED: $($errors.Count) error(s)" -ForegroundColor Red
-        $errors | ForEach-Object { Write-Host "  $_" -ForegroundColor Red }
+# Half of this set is dot-sourced as a library and half is invoked as a CLI, and the two cannot be
+# forwarded the same way: `& $szaFwdTarget` would run a library in its own scope and define nothing
+# the caller can see, while `exit` inside a dot-sourced file would kill the caller. InvocationName
+# is '.' exactly when this file was dot-sourced, so one template serves both.
+if ($MyInvocation.InvocationName -eq '.') {
+    . $szaFwdTarget
+} else {
+    # Deliberately NOT 'Stop'. A native child's stderr arrives here as ErrorRecord objects, and
+    # under 'Stop' the first one terminates this forwarder before `exit $LASTEXITCODE` runs - so a
+    # script that reported a FAIL and exited 1 would reach its caller as a crashed forwarder with a
+    # different code. Every script in this set states its exit codes; passing them through unchanged
+    # is the whole job. S2441 moved it inside this branch: at the file's top level it also rewrote
+    # the preference of every caller that dot-sources a forwarder, silently downgrading a script
+    # running under 'Stop' for the rest of its life.
+    $ErrorActionPreference = 'Continue'
+    $global:LASTEXITCODE = 0
+    try {
+        & $szaFwdTarget @args
+    } catch {
+        # A child that THROWS never reaches its own `exit`, so $LASTEXITCODE stays 0 and the
+        # forwarder would report success for a script that failed - the one way a forwarder can
+        # turn a red verdict green. Every such refusal is a failure, so it leaves as exit 1.
+        Write-Error $_ -ErrorAction Continue
         exit 1
     }
-    Write-Host "Document registry PASS: $($records.Count) record(s)" -ForegroundColor Green
-    exit 0
-} catch {
-    Write-Error $_.Exception.Message -ErrorAction Continue
-    exit 2
+    $szaFwdCode = $LASTEXITCODE
+    exit $(if ($null -eq $szaFwdCode) { 0 } else { $szaFwdCode })
 }

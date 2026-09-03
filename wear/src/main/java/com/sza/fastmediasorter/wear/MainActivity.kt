@@ -44,18 +44,22 @@ import com.sza.fastmediasorter.wear.core.notification.WearOpenOnWatchNotifier
 import com.sza.fastmediasorter.wear.core.util.WearLocaleManager
 import com.sza.fastmediasorter.wear.data.wear.WatchFileOpenEvents
 import com.sza.fastmediasorter.wear.data.wear.WatchStreamOpenEvents
+import com.sza.fastmediasorter.wear.domain.model.VoiceNote
 import com.sza.fastmediasorter.wear.domain.model.WearBackground
 import com.sza.fastmediasorter.wear.domain.model.WearFileOpenRequest
 import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.model.readWearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.domain.usecase.PrepareVoiceNotePlaybackUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearFilePlaybackUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearStreamPlaybackUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ResolveWearBackgroundUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ResolveWearLaunchRouteUseCase
 import com.sza.fastmediasorter.wear.ui.apps.AppsScreen
 import com.sza.fastmediasorter.wear.ui.apps.calculator.CalculatorScreen
+import com.sza.fastmediasorter.wear.ui.apps.game.GameRulesScreen
 import com.sza.fastmediasorter.wear.ui.apps.game.GameScreen
+import com.sza.fastmediasorter.wear.ui.apps.netmonitor.NetworkMonitorDetailScreen
 import com.sza.fastmediasorter.wear.ui.apps.netmonitor.NetworkMonitorScreen
 import com.sza.fastmediasorter.wear.ui.apps.systeminfo.SystemInfoScreen
 import com.sza.fastmediasorter.wear.ui.brand.BrandFrameScreen
@@ -111,6 +115,7 @@ data class WearHostUseCases(
     val prepareStreamPlayback: PrepareWearStreamPlaybackUseCase,
     val prepareFilePlayback: PrepareWearFilePlaybackUseCase,
     val resolveBackground: ResolveWearBackgroundUseCase,
+    val prepareVoiceNotePlayback: PrepareVoiceNotePlaybackUseCase,
 )
 
 /**
@@ -129,6 +134,9 @@ data class WearLaunchEntry(
 
 /** S2201: the sentinel the player view models already treat as "no file was named". */
 private const val UNRESOLVED_FILE_ID = -1L
+
+/** S2161: the recorder writes one container only, so the route builder is told it rather than guessing. */
+private const val VOICE_NOTE_MIME_TYPE = "audio/mp4"
 
 /** The three player routes: each covers the whole window, so the shared background is not drawn behind them. */
 private val PLAYER_ROUTES = setOf(
@@ -151,6 +159,10 @@ class MainActivity : ComponentActivity() {
 
     // S1884: the same arrangement for a file the phone delivered rather than a channel it named.
     @Inject lateinit var prepareFilePlayback: PrepareWearFilePlaybackUseCase
+
+    // S2161: a voice note is addressed either by its published MediaStore row or by its private file,
+    // and only this use case knows which - the recorder and note screens hand it the note and navigate.
+    @Inject lateinit var prepareVoiceNotePlayback: PrepareVoiceNotePlaybackUseCase
 
     // S1955: a tile names its target in the launch intent, and resolving it reads the stores.
     @Inject lateinit var resolveLaunchRoute: ResolveWearLaunchRouteUseCase
@@ -203,7 +215,8 @@ class MainActivity : ComponentActivity() {
                 hostUseCases = WearHostUseCases(
                     prepareStreamPlayback = prepareStreamPlayback,
                     prepareFilePlayback = prepareFilePlayback,
-                    resolveBackground = resolveBackground
+                    resolveBackground = resolveBackground,
+                    prepareVoiceNotePlayback = prepareVoiceNotePlayback
                 ),
                 launchEntry = WearLaunchEntry(
                     resolveRoute = resolveLaunchRoute,
@@ -469,7 +482,10 @@ fun MainNavigation(
 
             localFolderRoutes(navController, hostUseCases.prepareFilePlayback)
 
-            miniAppRoutes(navController = navController)
+            miniAppRoutes(
+                navController = navController,
+                prepareVoiceNotePlayback = hostUseCases.prepareVoiceNotePlayback
+            )
 
             tileRoutes(navController = navController)
 
@@ -501,38 +517,44 @@ fun MainNavigation(
                 SyncResultScreen(navController = navController, added = added, updated = updated)
             }
 
-            // Audio player screen
-            composable(
-                route = WearRoutes.AUDIO_PLAYER_PATTERN,
-                arguments = listOf(
-                    navArgument(WearRoutes.ARG_FILE_ID) { type = NavType.LongType }
-                )
-            ) {
-                AudioPlayerScreen()
-            }
-
-            // Video player screen
-            composable(
-                route = WearRoutes.VIDEO_PLAYER_PATTERN,
-                arguments = listOf(
-                    navArgument(WearRoutes.ARG_FILE_ID) { type = NavType.LongType }
-                )
-            ) {
-                VideoPlayerScreen()
-            }
-
-            // Image viewer screen
-            composable(
-                route = WearRoutes.IMAGE_VIEWER_PATTERN,
-                arguments = listOf(
-                    navArgument(WearRoutes.ARG_FILE_ID) { type = NavType.LongType }
-                )
-            ) {
-                ImageViewerScreen()
-            }
+            playerRoutes()
 
             settingsRoutes(navController = navController)
         }
+    }
+}
+
+/**
+ * S2161: the three playback destinations, lifted out of [MainNavigation] for the same reason S1944
+ * lifted the settings block - the host sat at detekt's length ceiling and this ticket adds a line to
+ * it. All three take the same single file-id argument and need nothing from the host.
+ */
+private fun NavGraphBuilder.playerRoutes() {
+    composable(
+        route = WearRoutes.AUDIO_PLAYER_PATTERN,
+        arguments = listOf(
+            navArgument(WearRoutes.ARG_FILE_ID) { type = NavType.LongType }
+        )
+    ) {
+        AudioPlayerScreen()
+    }
+
+    composable(
+        route = WearRoutes.VIDEO_PLAYER_PATTERN,
+        arguments = listOf(
+            navArgument(WearRoutes.ARG_FILE_ID) { type = NavType.LongType }
+        )
+    ) {
+        VideoPlayerScreen()
+    }
+
+    composable(
+        route = WearRoutes.IMAGE_VIEWER_PATTERN,
+        arguments = listOf(
+            navArgument(WearRoutes.ARG_FILE_ID) { type = NavType.LongType }
+        )
+    ) {
+        ImageViewerScreen()
     }
 }
 
@@ -682,7 +704,10 @@ private fun navigateGuarded(navController: NavHostController, route: String) {
  * [settingsRoutes] - the host was over detekt's length ceiling and this ticket adds a line to it.
  * The group is coherent on its own: everything reachable from the Apps list, and nothing else.
  */
-private fun NavGraphBuilder.miniAppRoutes(navController: NavHostController) {
+private fun NavGraphBuilder.miniAppRoutes(
+    navController: NavHostController,
+    prepareVoiceNotePlayback: PrepareVoiceNotePlaybackUseCase
+) {
     composable(WearRoutes.APPS) {
         AppsScreen(navController = navController)
     }
@@ -695,21 +720,39 @@ private fun NavGraphBuilder.miniAppRoutes(navController: NavHostController) {
     }
 
     composable(WearRoutes.NETWORK_MONITOR) {
-        NetworkMonitorScreen()
+        NetworkMonitorScreen(
+            onNavigateToSection = { sectionKey ->
+                navController.navigate(WearRoutes.networkMonitorSection(sectionKey))
+            }
+        )
+    }
+
+    composable(WearRoutes.NETWORK_MONITOR_SECTION_PATTERN) { backStackEntry ->
+        val sectionKey = backStackEntry.arguments?.getString(WearRoutes.ARG_NETMON_SECTION)
+        NetworkMonitorDetailScreen(sectionKey = sectionKey.orEmpty())
     }
 
     composable(WearRoutes.GAME) {
         GameScreen(navController = navController)
     }
 
+    composable(WearRoutes.GAME_RULES) {
+        GameRulesScreen()
+    }
+
     // S1862: the recorder is a program of this list, and its note list is reached only from it -
     // so both live in this group rather than growing a fourth one for one feature.
     composable(WearRoutes.VOICE_RECORDER) {
-        VoiceRecorderScreen(navController = navController)
+        VoiceRecorderScreen(
+            navController = navController,
+            onPlayNote = { note -> navigateToVoiceNote(navController, note, prepareVoiceNotePlayback) }
+        )
     }
 
     composable(WearRoutes.VOICE_NOTES) {
-        VoiceNoteListScreen()
+        VoiceNoteListScreen(
+            onPlayNote = { note -> navigateToVoiceNote(navController, note, prepareVoiceNotePlayback) }
+        )
     }
 
     // S2008: moved here from [settingsRoutes]. The screen configures nothing - it reports what this
@@ -876,6 +919,24 @@ private fun localFileIdFor(
     } else {
         uri.lastPathSegment?.toLongOrNull() ?: UNRESOLVED_FILE_ID
     }
+}
+
+/**
+ * S2161: opens a voice note in the watch's existing audio player.
+ *
+ * The same [playerRouteFor] the folder walk uses, so the watch keeps one way of opening one file
+ * (strategic section 5.5) rather than growing a second route for the recorder. A note the use case
+ * cannot address - no published row and no readable private file - navigates nowhere, because the
+ * players read an unresolved id as "nothing was selected" and would show an empty player instead of
+ * saying anything.
+ */
+private fun navigateToVoiceNote(
+    navController: NavHostController,
+    note: VoiceNote,
+    prepareVoiceNotePlayback: PrepareVoiceNotePlaybackUseCase
+) {
+    val fileId = prepareVoiceNotePlayback(note) ?: return
+    navController.navigate(playerRouteFor(fileId, VOICE_NOTE_MIME_TYPE))
 }
 
 /**

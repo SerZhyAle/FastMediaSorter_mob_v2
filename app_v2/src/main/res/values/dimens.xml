@@ -810,6 +810,7 @@
     <dimen name="device_storage_padding_vertical">0dp</dimen>
 
     <!-- Playback control sliders (S0619) -->
+    <dimen name="playback_section_tab_min_height">56dp</dimen>
     <dimen name="playback_slider_track_height">12dp</dimen>
     <dimen name="playback_slider_thumb_size">28dp</dimen>
     <dimen name="playback_slider_min_height">48dp</dimen>

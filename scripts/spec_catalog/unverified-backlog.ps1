@@ -1,130 +1,114 @@
-#requires -Version 5.1
+#requires -Version 7.0
 <#
 .SYNOPSIS
-    Report the shipped-but-unproven backlog: BlockNeedUserTest against Verified (S1338).
+    Forwarder to the canon-shipped harness script spec_catalog\unverified-backlog.ps1 (S2402).
 
 .DESCRIPTION
-    The ship-to-verify ratio measured 6.9:1 - 87 tickets parked in BlockNeedUserTest against
-    39 Verified, with 38% of the catalog shipped and never proven on a device. An autonomous
-    loop that keeps chaining tickets while that pile grows is manufacturing unverified work,
-    so S1339's loop needs a machine-readable stop reason. This script is that number.
+    GENERATED - do not edit. The mechanism lives in the SZA canon plugin (tools/harness) and this
+    repository consumes it; the file kept here is only the address every existing call site already
+    knows. Regenerate with scripts/utils/install-sza-forwarders.ps1. What this project configures lives in
+    .sza-profile.json at the repository root, never in a script body.
 
-    It reads the ACTIVE journal only - an archived ticket is closed, not pending - counts the
-    two statuses, computes the ratio, and compares the BlockNeedUserTest count to -Ceiling.
-
-    Live probe tags are reported alongside as a second symptom of the same backlog: every
-    ticket in BlockNeedUserTest is supposed to carry `Timber.d("Sxxxx: ..")` lines in source,
-    and they are removed on the way out (CLAUDE.md "Debug Verification Tags"). Counting is
-    opt-in via -IncludeTags because it walks app_v2/src and wear/src.
-
-.PARAMETER Ceiling
-    Maximum acceptable BlockNeedUserTest count. Exceeded -> exit 3. Omitted -> report only.
-
-.PARAMETER IncludeTags
-    Also count live `Timber.d("Sxxxx:` probe lines and the files carrying them.
-
-.PARAMETER Json
-    Emit one JSON object instead of the human-readable lines. This is the shape S1339 parses.
-
-.NOTES
-    Exit codes (CLAUDE.md Rule 7):
-      0  read the catalog; BlockNeedUserTest is at or below -Ceiling, or no ceiling was given.
-      1  error - the catalog could not be parsed.
-      2  cannot verify - the catalog journal does not exist.
-      3  -Ceiling exceeded.
-
-    Contract note: S1339's loop consumes these exit codes and the -Json field names. Changing
-    either is a breaking change for that ticket.
-
-.EXAMPLE
-    pwsh -NoProfile -File scripts/spec_catalog/unverified-backlog.ps1
-    pwsh -NoProfile -File scripts/spec_catalog/unverified-backlog.ps1 -Ceiling 60 -Json
+Exit codes: whatever spec_catalog\unverified-backlog.ps1 returns, plus 2 when the harness cannot be located.
 #>
-[CmdletBinding()]
-param(
-    [int]$Ceiling = 0,
-    [switch]$IncludeTags,
-    [switch]$Json,
-    [switch]$Help
-)
-
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
-if ($Help) {
-    & (Join-Path $PSScriptRoot '..\utils\help.ps1') -Name 'scripts/spec_catalog/unverified-backlog.ps1'
-    exit 0
+# S2441: every name below carries a $szaFwd prefix because HALF of this set is dot-sourced, and a
+# dot-sourced file assigns into its CALLER's scope. PowerShell names are case-insensitive, so the
+# `$target` this file used to resolve into WAS the caller's `-Target` parameter: post-change.ps1
+# dot-sources the agent-lock-domains forwarder before it journals, and every dev/CHANGELOG.md row
+# written on 2026-09-03 recorded a harness path where the ticket id belonged. The second failure
+# mode is worse than the substitution - a caller declaring `[string]$Candidates` type-constrains
+# this file's own accumulator, so `$candidates = @()` collapses to '' and every `+=` concatenates
+# instead of appending, leaving one unusable path and a forwarder that cannot find the harness at
+# all. Ten scripts under scripts/ declare a parameter that collided. Contract suite:
+# scripts/utils/install-sza-forwarders.tests/.
+$szaFwdCandidates = @()
+if ($env:SZA_HARNESS_ROOT) { $szaFwdCandidates += $env:SZA_HARNESS_ROOT }
+$szaFwdCache = Join-Path $env:USERPROFILE '.claude\plugins\cache\sza-unified-rules\sza'
+if (Test-Path -LiteralPath $szaFwdCache) {
+    # Ordered as VERSIONS, not as strings: the plugin version is date-derived (2026.903.1), so a
+    # string sort puts October's 2026.1001.1 below September's 2026.903.1 and the forwarder would
+    # keep calling the older copy after an update. A directory that does not parse sorts last
+    # rather than being dropped - it may still be the only harness present.
+    $szaFwdVersions = @(Get-ChildItem -LiteralPath $szaFwdCache -Directory -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            $szaFwdParsed = $null
+            [void][version]::TryParse($_.Name, [ref]$szaFwdParsed)
+            [pscustomobject]@{ Path = $_.FullName; Version = $szaFwdParsed }
+        } | Sort-Object @{ Expression = { $null -ne $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Path }; Descending = $true })
+    $szaFwdCandidates += @($szaFwdVersions | ForEach-Object { Join-Path $_.Path 'tools\harness' })
+}
+$szaFwdTarget = $null
+foreach ($szaFwdDir in $szaFwdCandidates) {
+    $szaFwdProbe = Join-Path $szaFwdDir 'spec_catalog\unverified-backlog.ps1'
+    if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe; break }
 }
 
-. (Join-Path $PSScriptRoot '_lib.ps1')
-
-$catalogPath = Get-CatalogPath
-if (-not (Test-Path -LiteralPath $catalogPath)) {
-    Write-Error "unverified-backlog: catalog journal not found at $catalogPath - cannot verify." -ErrorAction Continue
+# S2452: candidate 3, the canon checkout, reached only when the two above miss. The plugin cache
+# is what actually resolves on every invocation, so the resolver below is never read on the hot
+# path. Its default is held by scripts/utils/project-paths.ps1 and by nothing else - before this it
+# was written in 76 files, 74 of them generated and stamped `GENERATED - do not edit`, so moving
+# the canon required editing files that forbid editing. That is the exact non-portability the
+# hardcoded-drive-path rule was installed to refuse (S2326).
+#
+# The dot-source runs inside `& { }` deliberately. HALF this set is itself dot-sourced, so at top
+# level project-paths.ps1 would define its functions and set its script variables in the CALLER's
+# scope - the S2441 failure one level further out. A child scope cannot reach the caller at all.
+if (-not $szaFwdTarget) {
+    $szaFwdCheckout = $env:SZA_CANON_ROOT
+    if (-not $szaFwdCheckout) {
+        $szaFwdResolver = Join-Path $PSScriptRoot '..\..\scripts\utils\project-paths.ps1'
+        if (Test-Path -LiteralPath $szaFwdResolver) {
+            # A resolver that is absent or throws must not stop the forwarder from printing its own
+            # refusal, which is the only message that names all three candidates and the fix.
+            $szaFwdCheckout = & {
+                param($szaFwdResolverPath)
+                try { . $szaFwdResolverPath; Get-CanonRoot } catch { $null }
+            } $szaFwdResolver
+        }
+    }
+    if ($szaFwdCheckout) {
+        $szaFwdCandidates += (Join-Path $szaFwdCheckout 'tools\harness')
+        $szaFwdProbe = Join-Path $szaFwdCandidates[-1] 'spec_catalog\unverified-backlog.ps1'
+        if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe }
+    }
+}
+if (-not $szaFwdTarget) {
+    Write-Host "unverified-backlog.ps1: the SZA harness is not installed - looked in:" -ForegroundColor Red
+    foreach ($szaFwdDir in $szaFwdCandidates) { Write-Host "    $szaFwdDir" -ForegroundColor Gray }
+    Write-Host "  Install or update it:  claude plugin update sza@sza-unified-rules" -ForegroundColor Yellow
+    Write-Host "  Or point at a checkout: `$env:SZA_HARNESS_ROOT = '<repo>\tools\harness'" -ForegroundColor Yellow
     exit 2
 }
 
-try {
-    # No @() here: Read-Catalog returns `,$array` to defend against unrolling, so wrapping the
-    # call collects ONE element - the array itself - and every count below reads 1.
-    $records = Read-Catalog
-}
-catch {
-    Write-Error "unverified-backlog: cannot parse the catalog - $($_.Exception.Message)" -ErrorAction Continue
-    exit 1
-}
+$env:SZA_PROJECT_ROOT = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 
-$blocked = @($records | Where-Object { $_.status -eq 'BlockNeedUserTest' })
-$verified = @($records | Where-Object { $_.status -eq 'Verified' })
-$blockedCount = $blocked.Count
-$verifiedCount = $verified.Count
-# A zero denominator is not an infinite ratio worth printing - report the count itself.
-$ratio = if ($verifiedCount -gt 0) { [math]::Round($blockedCount / $verifiedCount, 2) } else { $null }
-
-$tagLines = $null
-$tagFiles = $null
-if ($IncludeTags) {
-    $roots = @('app_v2/src', 'wear/src') |
-        ForEach-Object { Join-Path $script:RepoRoot ($_ -replace '/', '\') } |
-        Where-Object { Test-Path -LiteralPath $_ }
-    $hits = @()
-    foreach ($root in $roots) {
-        $hits += @(Get-ChildItem -LiteralPath $root -Recurse -File -Filter '*.kt' -ErrorAction SilentlyContinue |
-            Select-String -Pattern 'Timber\.d\("S\d{4}:' -SimpleMatch:$false -ErrorAction SilentlyContinue)
+# Half of this set is dot-sourced as a library and half is invoked as a CLI, and the two cannot be
+# forwarded the same way: `& $szaFwdTarget` would run a library in its own scope and define nothing
+# the caller can see, while `exit` inside a dot-sourced file would kill the caller. InvocationName
+# is '.' exactly when this file was dot-sourced, so one template serves both.
+if ($MyInvocation.InvocationName -eq '.') {
+    . $szaFwdTarget
+} else {
+    # Deliberately NOT 'Stop'. A native child's stderr arrives here as ErrorRecord objects, and
+    # under 'Stop' the first one terminates this forwarder before `exit $LASTEXITCODE` runs - so a
+    # script that reported a FAIL and exited 1 would reach its caller as a crashed forwarder with a
+    # different code. Every script in this set states its exit codes; passing them through unchanged
+    # is the whole job. S2441 moved it inside this branch: at the file's top level it also rewrote
+    # the preference of every caller that dot-sources a forwarder, silently downgrading a script
+    # running under 'Stop' for the rest of its life.
+    $ErrorActionPreference = 'Continue'
+    $global:LASTEXITCODE = 0
+    try {
+        & $szaFwdTarget @args
+    } catch {
+        # A child that THROWS never reaches its own `exit`, so $LASTEXITCODE stays 0 and the
+        # forwarder would report success for a script that failed - the one way a forwarder can
+        # turn a red verdict green. Every such refusal is a failure, so it leaves as exit 1.
+        Write-Error $_ -ErrorAction Continue
+        exit 1
     }
-    $tagLines = $hits.Count
-    $tagFiles = @($hits | Select-Object -ExpandProperty Path -Unique).Count
+    $szaFwdCode = $LASTEXITCODE
+    exit $(if ($null -eq $szaFwdCode) { 0 } else { $szaFwdCode })
 }
-
-$exceeded = ($Ceiling -gt 0 -and $blockedCount -gt $Ceiling)
-
-if ($Json) {
-    $payload = [ordered]@{
-        blockNeedUserTest = $blockedCount
-        verified          = $verifiedCount
-        ratio             = $ratio
-        ceiling           = $Ceiling
-        exceeded          = $exceeded
-        probeTagLines     = $tagLines
-        probeTagFiles     = $tagFiles
-    }
-    $payload | ConvertTo-Json -Depth 3 -Compress
-}
-else {
-    $ratioText = if ($null -ne $ratio) { "$ratio : 1" } else { 'n/a (no Verified tickets)' }
-    Write-Host ("unverified-backlog: BlockNeedUserTest {0} | Verified {1} | ship-to-verify {2}" -f
-        $blockedCount, $verifiedCount, $ratioText)
-    if ($IncludeTags) {
-        Write-Host ("  live probe tags: {0} line(s) across {1} file(s)" -f $tagLines, $tagFiles)
-    }
-    if ($Ceiling -gt 0) {
-        Write-Host ("  ceiling {0}: {1}" -f $Ceiling, $(if ($exceeded) { 'EXCEEDED' } else { 'ok' }))
-    }
-}
-
-if ($exceeded) {
-    Write-Error ("unverified-backlog: {0} ticket(s) in BlockNeedUserTest exceeds the ceiling of {1}. Drain the backlog with /spec-sweep before starting more work." -f $blockedCount, $Ceiling) -ErrorAction Continue
-    exit 3
-}
-
-exit 0

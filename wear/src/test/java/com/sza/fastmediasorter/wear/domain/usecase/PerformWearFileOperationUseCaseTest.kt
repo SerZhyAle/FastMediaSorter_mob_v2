@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.wear.domain.usecase
 import android.content.Context
 import android.net.Uri
 import com.sza.fastmediasorter.wear.data.files.WearMediaFileStager
+import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
 import com.sza.fastmediasorter.wear.data.files.WearMediaStoreFileWriter
 import com.sza.fastmediasorter.wear.domain.files.WEAR_PHONE_FILE_CACHE_DIR
 import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
@@ -17,6 +18,7 @@ import com.sza.fastmediasorter.wear.domain.repository.WearFileSenderRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearOpenOnPhoneRepository
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -55,12 +57,21 @@ class PerformWearFileOperationUseCaseTest {
         // S2142: every file this test writes is APP_OWNED, which takes the file branch and never
         // reaches the resolver, so the confirmation seam only has to exist - not to answer anything.
         val consent = mockk<WearMediaStoreConsent>(relaxed = true)
+        // S2142: the published receiver list, answered explicitly rather than relaxed - the policy
+        // reads it to decide whether «Send to..» is offered at all, and a relaxed answer would make
+        // that decision by accident.
+        val receivers = mockk<WearSendToReceiversRepository>()
+        every { receivers.observe() } returns MutableStateFlow(emptyList())
         useCase = PerformWearFileOperationUseCase(
-            capabilityPolicy = WearFileCapabilityPolicy(context, consent),
+            capabilityPolicy = WearFileCapabilityPolicy(context, consent, receivers),
             senderRepository = sender,
             openOnPhoneRepository = opener,
             stager = WearMediaFileStager(context),
-            mediaStoreWriter = WearMediaStoreFileWriter(context, consent)
+            mediaStoreWriter = WearMediaStoreFileWriter(context, consent),
+            sendToReceivers = receivers,
+            // The operations under test are the local ones, which never reach either of these.
+            reachability = mockk(relaxed = true),
+            sendToLauncher = mockk(relaxed = true)
         )
     }
 
@@ -200,9 +211,31 @@ class PerformWearFileOperationUseCaseTest {
         var outcomesByName: Map<String, WearFileSendOutcome> = emptyMap()
         var calls: Int = 0
 
-        override suspend fun sendFile(file: File): com.sza.fastmediasorter.wear.domain.repository.WearFileSendResult {
+        /** S2142: the errand the last [sendFile] carried, so a test can assert it crossed at all. */
+        var lastReceiverId: String? = null
+
+        /** S2142: what the pre-flight reachability check answers; false stops before any staging. */
+        var phoneReachable: Boolean = true
+
+        override suspend fun sendFile(
+            file: File,
+            sendToReceiverId: String?
+        ): com.sza.fastmediasorter.wear.domain.repository.WearFileSendResult {
             calls++
+            lastReceiverId = sendToReceiverId
             val resOutcome = outcomesByName[file.name] ?: outcome
+            return com.sza.fastmediasorter.wear.domain.repository.WearFileSendResult(resOutcome)
+        }
+
+        override suspend fun isPhoneReachable(): Boolean = phoneReachable
+
+        override suspend fun sendUri(
+            uri: android.net.Uri,
+            displayName: String,
+            sizeBytes: Long
+        ): com.sza.fastmediasorter.wear.domain.repository.WearFileSendResult {
+            calls++
+            val resOutcome = outcomesByName[displayName] ?: outcome
             return com.sza.fastmediasorter.wear.domain.repository.WearFileSendResult(resOutcome)
         }
     }
@@ -223,3 +256,4 @@ class PerformWearFileOperationUseCaseTest {
         const val TOKEN = "content://phone/clip.mp4"
     }
 }
+

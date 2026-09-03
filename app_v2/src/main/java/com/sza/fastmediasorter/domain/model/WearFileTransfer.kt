@@ -76,7 +76,16 @@ data class WearFileTransferMetadata(
     @SerializedName("mimeType")
     val mimeType: String? = null,
     @SerializedName("openNow")
-    val openNow: Boolean = false
+    val openNow: Boolean = false,
+    /**
+     * S2142: the «Send to..» receiver the watch is asking this phone to hand the file to.
+     *
+     * Null is the shipped S1861 meaning - file it into the configured destination and nothing else -
+     * so a watch older than this field keeps behaving as it always did. The id is the receiver key
+     * this phone already stores in its own switches, so nothing has to be translated on arrival.
+     */
+    @SerializedName("sendToReceiverId")
+    val sendToReceiverId: String? = null
 )
 
 /** Correlated acknowledgement sent by the watch after a phone-initiated file transfer. */
@@ -148,6 +157,12 @@ data class WearFileReceiveAck(
         const val OUTCOME_NO_DESTINATION = "NO_DESTINATION"
         const val OUTCOME_TOO_LARGE = "TOO_LARGE"
         const val OUTCOME_FAILED = "FAILED"
+
+        /** S2142: the file is here and the «Send to..» action is waiting for a tap on this phone. */
+        const val OUTCOME_AWAITING_SEND_TO = "AWAITING_SEND_TO"
+
+        /** S2142: the errand arrived, but this phone may post no notification to offer it with. */
+        const val OUTCOME_NOTIFICATIONS_OFF = "NOTIFICATIONS_OFF"
     }
 }
 

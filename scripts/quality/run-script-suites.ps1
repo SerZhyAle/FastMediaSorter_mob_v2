@@ -62,7 +62,11 @@
     at a fixture tree so they never execute the repository's real suites.
 
 .PARAMETER Json
-    Write the per-suite result set as JSON to this path, in addition to the human report.
+    Write the selection as JSON to this path, in addition to the human report. In the run mode that
+    is the per-suite result set; under -ListOnly it is the DISCOVERY set - one record per selected
+    suite carrying Suite (its repo-relative path), Subjects and Resolved. S2411 made the list mode
+    honour it so a checker about a property OF a suite reads the same selection the runner would
+    execute, instead of walking the tree a second time and judging a set nobody runs.
 
 .PARAMETER Help
     Show help documentation and usage.
@@ -114,7 +118,13 @@ else {
 # A suite that runs the closure facade would re-enter this runner through the facade's own gate.
 # The nesting is bounded in practice, but an unbounded one is a fork bomb with a friendly name, so
 # the inner run reports itself skipped instead of recursing.
-if ($env:FMS_SCRIPT_SUITE_RUNNER -eq '1') {
+#
+# S2411 exempts -ListOnly: that mode executes no suite, so it cannot recurse, and the guard was
+# refusing a question rather than a fork. Measured on this ticket's own closure - assert-suite-tracked
+# asked for the selection from inside a suite run, got "skipped, exit 0" and no file, and had to
+# answer CANNOT VERIFY. A recursion guard producing a silent non-answer is this ticket's own defect
+# class, so the exemption is the fix and the guard keeps every case that can actually spawn a child.
+if ($env:FMS_SCRIPT_SUITE_RUNNER -eq '1' -and -not $ListOnly) {
     Write-Host 'run-script-suites: SKIP - already running inside a suite run (re-entry guard).' -ForegroundColor DarkGray
     exit 0
 }
@@ -226,6 +236,16 @@ if ($ListOnly) {
     foreach ($descriptor in $selected) {
         $subjectText = if ($descriptor.Resolved) { ($descriptor.Subjects -join ', ') } else { 'NO RESOLVABLE SUBJECT - declare one with a "# Subject:" header line' }
         Write-Host ("  {0}`n      subject: {1}" -f $descriptor.Rel, $subjectText)
+    }
+    if ($Json) {
+        # -AsArray: a one-suite selection would otherwise serialise as a bare object, and the
+        # consumer's `@(ConvertFrom-Json)` would then iterate the object's properties.
+        $listPath = if ([System.IO.Path]::IsPathRooted($Json)) { $Json } else { Join-Path $repoRoot $Json }
+        $selected |
+            ForEach-Object { [pscustomobject]@{ Suite = $_.Rel; Subjects = @($_.Subjects); Resolved = $_.Resolved } } |
+            ConvertTo-Json -Depth 4 -AsArray |
+            Set-Content -LiteralPath $listPath -Encoding utf8NoBOM
+        Write-Host "Written: $listPath"
     }
     exit 0
 }

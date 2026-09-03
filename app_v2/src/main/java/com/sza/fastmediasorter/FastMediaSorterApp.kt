@@ -31,6 +31,7 @@ import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.domain.model.SensitiveSetting
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.usecase.PushWearSendToReceiversUseCase
 import com.sza.fastmediasorter.domain.usecase.PushWearStreamPinsUseCase
 import com.sza.fastmediasorter.worker.DeferredStartupWorker
 import com.sza.fastmediasorter.worker.WorkManagerScheduler
@@ -100,6 +101,11 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var s0200AuthStateWipe: dagger.Lazy<com.sza.fastmediasorter.data.migration.S0200AuthStateWipe>
 
+    /** S2101: restores sign-in state carried over from a previous device. Called off the main thread. */
+    @Inject
+    lateinit var restoreTransferredSignIn:
+        dagger.Lazy<com.sza.fastmediasorter.domain.identity.transfer.RestoreTransferredSignInUseCase>
+
     /** S0386 Phase 13: run-once de-bundle upgrade reconciliation (force-OFF un-installed toggles). */
     @Inject
     lateinit var s0386UpgradeReconciliation: dagger.Lazy<com.sza.fastmediasorter.data.migration.S0386UpgradeReconciliation>
@@ -145,6 +151,12 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     // at detekt's parameter ceiling with twelve arguments.
     @Inject
     lateinit var pushWearStreamPins: dagger.Lazy<PushWearStreamPinsUseCase>
+
+    // S2142: publishes the «Send to..» receiver list to the watch for the life of the process.
+    // Beside the S2149 publisher above and started from the same place for the same reason: the
+    // receiver toggles live on a settings screen that must not have to know a watch exists.
+    @Inject
+    lateinit var pushWearSendToReceivers: dagger.Lazy<PushWearSendToReceiversUseCase>
 
     @Inject
     lateinit var screenGestureOverlayStartupCoordinator: dagger.Lazy<ScreenGestureOverlayStartupCoordinator>
@@ -305,6 +317,15 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 .onFailure { Timber.e(it, "Wear stream-pins publisher not started") }
         }
 
+        // S2142: the watch offers the receivers the owner switched on here, which only works while
+        // the phone republishes the list as those toggles change. Started here rather than from the
+        // settings screen for the reason above it, and dereferenced inside the coroutine so a phone
+        // with no watch paired never builds the Data Layer graph on the main thread at startup.
+        applicationScope.launch {
+            runCatching { pushWearSendToReceivers.get().observeAndPush(applicationScope) }
+                .onFailure { Timber.e(it, "Wear send-to receivers publisher not started") }
+        }
+
         // S1650: build Glide off the main thread. Deliberately NOT gated on firstFrameSignal, unlike
         // every launch below it - the first image load can happen on the very first screen, and that
         // load is exactly what this warm-up has to beat. It waits internally for the cache-size mirror
@@ -327,6 +348,12 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         applicationScope.launch(Dispatchers.IO) {
             firstFrameSignal.await(timeoutMs = 60_000)
             s0200AuthStateWipe.get().runIfNeeded()
+            // S2101: restore sign-in state carried from a previous device. Sequenced AFTER the wipe
+            // inside the same coroutine rather than launched beside it, deliberately - the wipe
+            // clears the primary binding, so on a first launch that is both an upgrade and a
+            // migration, a concurrent restore would race it and lose about half the time. Off the
+            // main thread and behind firstFrameSignal, so it costs the first frame nothing.
+            restoreTransferredSignIn.get().invoke()
         }
 
         // S0386 Phase 13: reconcile OCR/translation toggles after the de-bundle upgrade - run once,
@@ -514,8 +541,11 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     
     /**
      * Handle system memory pressure events.
-     * Clear image cache ONLY on critical memory pressure to preserve thumbnails.
-     * Large cache is intentional for Browse workflow - don't clear on background.
+     * Foreground levels trim progressively; every level meaning "UI not visible" releases bitmap
+     * memory, because Google Play's February 2027 quality thresholds judge bitmaps that stay
+     * resident in background and cached states (S2100).
+     * The image DISK cache is never touched here - it sits outside those metrics and dropping it
+     * only costs reopening time.
      */
     @Suppress("DEPRECATION")
     override fun onTrimMemory(level: Int) {
@@ -571,11 +601,12 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
             ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN,
             ComponentCallbacks2.TRIM_MEMORY_BACKGROUND,
             ComponentCallbacks2.TRIM_MEMORY_MODERATE -> {
-                // App is in background - trim to release LRU bitmaps, preserve hot items.
-                if (level == ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN) {
-                    Timber.d("App backgrounded: level=$level($levelName), mem=$memInfo, trimming Glide")
-                    Glide.get(this).trimMemory(level)
-                }
+                // Every level here means the UI is not visible, so each one must release bitmap
+                // memory: Play's 2027 thresholds judge bitmaps resident in background and cached
+                // states. Disk cache is deliberately untouched - it is outside those metrics and
+                // dropping it only costs reopening time (S2100, strategic ADR-3).
+                Timber.d("S2100: App backgrounded level=$level($levelName), mem=$memInfo, trimming Glide")
+                Glide.get(this).trimMemory(level)
             }
         }
     }

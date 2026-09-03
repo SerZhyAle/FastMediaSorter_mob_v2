@@ -14,6 +14,7 @@ appId: com.sza.fastmediasorter.debug
     id: "com.sza.fastmediasorter.debug:id/rvResources"
 
 - scrollUntilVisible:
+    visibilityPercentage: 30
     element:
       text: ${CLOUD_RESOURCE_NAME}
       below:

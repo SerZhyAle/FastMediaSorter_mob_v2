@@ -113,6 +113,11 @@ class StreamsViewModel @Inject constructor(
         }
     }
 
+    override fun onCleared() {
+        super.onCleared()
+        faviconSlicer.releaseNow()
+    }
+
     /**
      * S2146: seeds the screen from the four stored keys, per strategic §11 criterion 7.
      *

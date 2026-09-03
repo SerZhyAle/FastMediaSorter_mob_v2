@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.favourites
 
 import android.net.Uri
+import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
 import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
 import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
@@ -17,6 +18,7 @@ import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
@@ -49,6 +51,11 @@ class FavouritesViewModelTest {
     private val preferences: WearPreferencesRepository = mockk()
     private val capabilityPolicy: WearFileCapabilityPolicy = mockk(relaxed = true)
     private val performFileOperation: PerformWearFileOperationUseCase = mockk(relaxed = true)
+
+    /** S2142: an explicitly empty receiver list - these tests are about favourites, not receivers. */
+    private val sendToReceivers: WearSendToReceiversRepository = mockk<WearSendToReceiversRepository>().also {
+        every { it.observe() } returns MutableStateFlow(emptyList())
+    }
 
     @Before
     fun setUp() {
@@ -170,6 +177,7 @@ class FavouritesViewModelTest {
         selectedMedia,
         capabilityPolicy,
         performFileOperation,
+        sendToReceivers,
         preferences
     )
 

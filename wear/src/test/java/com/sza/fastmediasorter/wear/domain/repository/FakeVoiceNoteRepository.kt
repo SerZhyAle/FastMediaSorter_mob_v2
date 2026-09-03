@@ -56,12 +56,19 @@ class FakeVoiceNoteRepository(initial: List<VoiceNote> = emptyList()) : VoiceNot
         notes[id]?.let { notes[id] = it.copy(deliveryState = state) }
     }
 
+    override suspend fun updatePublishedAddress(id: Long, publishedAddress: String) {
+        notes[id]?.let { notes[id] = it.copy(publishedAddress = publishedAddress) }
+    }
+
     override suspend fun delete(id: Long) {
         deletedIds += id
         notes.remove(id)
     }
 
     override suspend fun hasRoomToRecord(): Boolean = roomToRecord
+
+    override fun mostRecent(): Flow<VoiceNote?> =
+        MutableStateFlow(notes.values.maxByOrNull { it.createdAtMillis })
 
     /** Oldest first, mirroring the DAO query the drain relies on so ordering bugs stay visible here. */
     private fun pendingOrdered(): List<VoiceNote> = notes.values

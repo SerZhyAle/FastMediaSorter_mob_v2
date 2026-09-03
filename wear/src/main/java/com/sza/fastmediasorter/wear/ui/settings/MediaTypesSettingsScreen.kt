@@ -26,6 +26,7 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.browse.BrowseCategoryCatalog
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
+import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsItem
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsRow
@@ -75,7 +76,8 @@ fun MediaTypesSettingsScreen(
                 modifier = Modifier.fillMaxSize(),
                 state = listState,
                 contentPadding = wearScreenInsets(),
-                verticalArrangement = Arrangement.spacedBy(ROW_SPACING)
+                verticalArrangement = Arrangement.spacedBy(ROW_SPACING),
+                scalingParams = WearGridScalingParams
             ) {
                 item { SettingsHeading(R.string.media_types) }
                 items(packSettingsRows(typeToggles, columns)) { row ->

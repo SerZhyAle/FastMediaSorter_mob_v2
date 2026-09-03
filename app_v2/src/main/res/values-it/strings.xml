@@ -1403,6 +1403,13 @@
     <string name="wear_sync_success">Inviate %d sorgenti all\'orologio</string>
     <string name="wear_sync_failed">Impossibile sincronizzare con l\'orologio. Riprova.</string>
     <string name="wear_settings_section_title">Impostazioni dell\'orologio</string>
+    <string name="wear_settings_group_media_types">Tipi di media</string>
+    <string name="wear_settings_group_slideshow">Presentazione</string>
+    <string name="wear_settings_group_screen">Schermo</string>
+    <string name="wear_settings_group_other">Altro</string>
+    <string name="wear_settings_group_sections">Sezioni</string>
+    <string name="wear_settings_disable_animations">Disattiva le animazioni</string>
+    <string name="wear_settings_background_mode">Guarda Sfondo</string>
     <string name="wear_settings_audio">Audio</string>
     <string name="wear_settings_video">Video</string>
     <string name="wear_settings_images">Immagini</string>
@@ -3039,7 +3046,6 @@
     <string name="calculator_keypad_mode_normal">Normale</string>
     <string name="calculator_keypad_mode_large">Chiavi grandi</string>
     <string name="calculator_keypad_mode_compact">Compatto, in basso a destra</string>
-    <string name="wear_background_section_title">Guarda Sfondo</string>
     <string name="wear_background_mode_animation">Animazione marchiata</string>
     <string name="wear_background_mode_image">La tua immagine</string>
     <string name="wear_background_pick_image">Scegli l\'immagine</string>

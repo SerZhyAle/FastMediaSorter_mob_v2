@@ -1,110 +1,114 @@
+#requires -Version 7.0
 <#
 .SYNOPSIS
-    Gate: a spec handed on as Verified or BlockNeedUserTest carries a written verdict (S2298, S2367).
+    Forwarder to the canon-shipped harness script spec_catalog\check-audit-recorded.ps1 (S2402).
 
-.PARAMETER Id
-    Ticket id, Sxxxx.
+.DESCRIPTION
+    GENERATED - do not edit. The mechanism lives in the SZA canon plugin (tools/harness) and this
+    repository consumes it; the file kept here is only the address every existing call site already
+    knows. Regenerate with scripts/utils/install-sza-forwarders.ps1. What this project configures lives in
+    .sza-profile.json at the repository root, never in a script body.
 
-.NOTES
-    Exit codes:
-      0 - the spec carries a non-empty `## Last Audit` block.
-      1 - the block is absent, or present with nothing under it.
-      2 - bad invocation (malformed id, or an id no record carries), or catalog / spec unreadable.
+Exit codes: whatever spec_catalog\check-audit-recorded.ps1 returns, plus 2 when the harness cannot be located.
 #>
-[CmdletBinding()]
-param(
-    [Parameter(Mandatory)][string] $Id
-)
+# S2441: every name below carries a $szaFwd prefix because HALF of this set is dot-sourced, and a
+# dot-sourced file assigns into its CALLER's scope. PowerShell names are case-insensitive, so the
+# `$target` this file used to resolve into WAS the caller's `-Target` parameter: post-change.ps1
+# dot-sources the agent-lock-domains forwarder before it journals, and every dev/CHANGELOG.md row
+# written on 2026-09-03 recorded a harness path where the ticket id belonged. The second failure
+# mode is worse than the substitution - a caller declaring `[string]$Candidates` type-constrains
+# this file's own accumulator, so `$candidates = @()` collapses to '' and every `+=` concatenates
+# instead of appending, leaving one unusable path and a forwarder that cannot find the harness at
+# all. Ten scripts under scripts/ declare a parameter that collided. Contract suite:
+# scripts/utils/install-sza-forwarders.tests/.
+$szaFwdCandidates = @()
+if ($env:SZA_HARNESS_ROOT) { $szaFwdCandidates += $env:SZA_HARNESS_ROOT }
+$szaFwdCache = Join-Path $env:USERPROFILE '.claude\plugins\cache\sza-unified-rules\sza'
+if (Test-Path -LiteralPath $szaFwdCache) {
+    # Ordered as VERSIONS, not as strings: the plugin version is date-derived (2026.903.1), so a
+    # string sort puts October's 2026.1001.1 below September's 2026.903.1 and the forwarder would
+    # keep calling the older copy after an update. A directory that does not parse sorts last
+    # rather than being dropped - it may still be the only harness present.
+    $szaFwdVersions = @(Get-ChildItem -LiteralPath $szaFwdCache -Directory -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            $szaFwdParsed = $null
+            [void][version]::TryParse($_.Name, [ref]$szaFwdParsed)
+            [pscustomobject]@{ Path = $_.FullName; Version = $szaFwdParsed }
+        } | Sort-Object @{ Expression = { $null -ne $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Path }; Descending = $true })
+    $szaFwdCandidates += @($szaFwdVersions | ForEach-Object { Join-Path $_.Path 'tools\harness' })
+}
+$szaFwdTarget = $null
+foreach ($szaFwdDir in $szaFwdCandidates) {
+    $szaFwdProbe = Join-Path $szaFwdDir 'spec_catalog\check-audit-recorded.ps1'
+    if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe; break }
+}
 
-# Gate for a transition INTO Verified (S2298) or BlockNeedUserTest (S2367).
+# S2452: candidate 3, the canon checkout, reached only when the two above miss. The plugin cache
+# is what actually resolves on every invocation, so the resolver below is never read on the hot
+# path. Its default is held by scripts/utils/project-paths.ps1 and by nothing else - before this it
+# was written in 76 files, 74 of them generated and stamped `GENERATED - do not edit`, so moving
+# the canon required editing files that forbid editing. That is the exact non-portability the
+# hardcoded-drive-path rule was installed to refuse (S2326).
 #
-# Contract:
-#   - `Verified` means "the audit passed". The audit's verdict lives in exactly one
-#     place, the `## Last Audit` block of the spec file: /spec-check writes it, /spec-fix
-#     reads it, and no separate audit registry exists. A ticket reaching Verified without
-#     that block asserts a result it cannot show - the class CLAUDE.md section 12 forbids.
-#   - Measured 2026-09-01 across every live Verified spec: 7 of 129 carry no block at all
-#     (S1783, S1872, S2002, S2053, S2197, S2263, S2280). Their spec files attribute the
-#     closure to three different paths - /spec-all, /spec-code and no marker at all - so
-#     the missing check is not a defect of one command. Assert-ClosingGates is the one
-#     point every path passes through, which is why the gate sits there.
-#   - `BlockNeedUserTest` joined the gated set in S2367. It hands the work to the owner,
-#     which is a claim about coverage as much as Verified is, and measured 2026-09-02 it was
-#     made 72 times out of 158 with no block at all. Its verdict is written WITHOUT running
-#     /spec-check - see the pre-handoff block in .claude/commands/spec-code.md - because
-#     /spec-check would flip the ticket out of the status and delete the probes the pending
-#     device test needs (S2324). Same requirement, different writer.
-#   - `Implemented` is deliberately NOT gated, unlike the two sibling closing gates:
-#     it means "the code is done", and no audit has run by then by definition. Gating it
-#     would demand a verdict before the thing that produces one.
-#   - The block is found by HEADING TEXT through Get-AuditSectionHeadingPattern in
-#     `_research-items.ps1`, shared verbatim with preview.ps1, so this gate's verdict and
-#     the operator's `last_audit_present` flag cannot drift apart (the S1621 rule). Live
-#     specs number their headings: `## 6. Last Audit` is a real spelling, and a literal
-#     '## Last Audit' test reports it as absent.
-#   - A heading with no content under it fails too. An empty block is the same absence of
-#     evidence as no block, only with a table of contents.
-#   - Archived is not reached: Assert-ClosingGates gates only Implemented and Verified.
-#
-# Exit codes: 0 = the spec carries a non-empty audit block. 1 = block absent or empty.
-#             2 = bad invocation, or catalog / spec unreadable.
-
-. (Join-Path $PSScriptRoot '_lib.ps1')
-
-if ($Id -notmatch '^S\d{4}$') {
-    # -ErrorAction Continue, not a bare Write-Error: _lib.ps1 sets $ErrorActionPreference = 'Stop',
-    # under which a bare Write-Error throws and the documented `exit 2` is never reached (S1070).
-    Write-Error "Invalid -Id '$Id' (must match S####)." -ErrorAction Continue
-    exit 2
-}
-
-$record = Find-Record -Id $Id
-if (-not $record) {
-    Write-Error "No record with id '$Id' in the spec catalog." -ErrorAction Continue
-    exit 2
-}
-
-$specPath = Resolve-SpecPath -PathRef $record.file
-if (-not (Test-Path -LiteralPath $specPath -PathType Leaf)) {
-    Write-Error "Spec file not found on disk: $specPath" -ErrorAction Continue
-    exit 2
-}
-
-$rel = $record.file
-$section = @(Get-SpecSectionLines -Path $record.file -HeadingPattern (Get-AuditSectionHeadingPattern))
-
-# A horizontal rule is layout, not a verdict: a block holding only `---` says nothing an
-# empty one does not, and specs end sections with one routinely.
-$content = @($section | Where-Object {
-    $t = $_.Text.Trim()
-    $t -and ($t -notmatch '^([-*_])\1{2,}$')
-})
-
-if ($section.Count -eq 0 -or $content.Count -eq 0) {
-    $reason = if ($section.Count -eq 0) {
-        "carries no '## Last Audit' block"
-    } else {
-        "carries a '## Last Audit' heading with nothing under it"
+# The dot-source runs inside `& { }` deliberately. HALF this set is itself dot-sourced, so at top
+# level project-paths.ps1 would define its functions and set its script variables in the CALLER's
+# scope - the S2441 failure one level further out. A child scope cannot reach the caller at all.
+if (-not $szaFwdTarget) {
+    $szaFwdCheckout = $env:SZA_CANON_ROOT
+    if (-not $szaFwdCheckout) {
+        $szaFwdResolver = Join-Path $PSScriptRoot '..\..\scripts\utils\project-paths.ps1'
+        if (Test-Path -LiteralPath $szaFwdResolver) {
+            # A resolver that is absent or throws must not stop the forwarder from printing its own
+            # refusal, which is the only message that names all three candidates and the fix.
+            $szaFwdCheckout = & {
+                param($szaFwdResolverPath)
+                try { . $szaFwdResolverPath; Get-CanonRoot } catch { $null }
+            } $szaFwdResolver
+        }
     }
-    Write-Output "FAIL $Id"
-    Write-Output ("- {0}: {1}." -f $rel, $reason)
-    Write-Output ""
-    Write-Output "A ticket is handed on with a verdict, and the verdict lives only in that block."
-    Write-Output "Verified says the audit passed; BlockNeedUserTest says the work is ready for the"
-    Write-Output "owner to observe. Both claim the result covers the task, and neither can be read"
-    Write-Output "back without the block."
-    Write-Output "Do one of:"
-    Write-Output ("  1. closing the ticket - run the audit that produces it:  /spec-check {0}" -f $Id)
-    Write-Output "  2. parking it for a device test - re-read the task from disk and write the block"
-    Write-Output "     yourself, mode pre-handoff: coverage per goal, every unobserved criterion as"
-    Write-Output "     an unticked '- [ ]' line. Do NOT run /spec-check for this: it would flip the"
-    Write-Output "     ticket out of BlockNeedUserTest and delete the probes the device test needs."
-    Write-Output "  3. if the re-read shows the work does not cover the task, that is Partial or"
-    Write-Output "     Broken with the gap written into the spec - not a handover."
-    Write-Output "Implemented is not gated - use it when the code is done but no audit has run yet."
-    exit 1
+    if ($szaFwdCheckout) {
+        $szaFwdCandidates += (Join-Path $szaFwdCheckout 'tools\harness')
+        $szaFwdProbe = Join-Path $szaFwdCandidates[-1] 'spec_catalog\check-audit-recorded.ps1'
+        if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe }
+    }
+}
+if (-not $szaFwdTarget) {
+    Write-Host "check-audit-recorded.ps1: the SZA harness is not installed - looked in:" -ForegroundColor Red
+    foreach ($szaFwdDir in $szaFwdCandidates) { Write-Host "    $szaFwdDir" -ForegroundColor Gray }
+    Write-Host "  Install or update it:  claude plugin update sza@sza-unified-rules" -ForegroundColor Yellow
+    Write-Host "  Or point at a checkout: `$env:SZA_HARNESS_ROOT = '<repo>\tools\harness'" -ForegroundColor Yellow
+    exit 2
 }
 
-Write-Output "PASS $Id"
-Write-Output ("Audit block present: {0} content line(s)." -f $content.Count)
-exit 0
+$env:SZA_PROJECT_ROOT = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+
+# Half of this set is dot-sourced as a library and half is invoked as a CLI, and the two cannot be
+# forwarded the same way: `& $szaFwdTarget` would run a library in its own scope and define nothing
+# the caller can see, while `exit` inside a dot-sourced file would kill the caller. InvocationName
+# is '.' exactly when this file was dot-sourced, so one template serves both.
+if ($MyInvocation.InvocationName -eq '.') {
+    . $szaFwdTarget
+} else {
+    # Deliberately NOT 'Stop'. A native child's stderr arrives here as ErrorRecord objects, and
+    # under 'Stop' the first one terminates this forwarder before `exit $LASTEXITCODE` runs - so a
+    # script that reported a FAIL and exited 1 would reach its caller as a crashed forwarder with a
+    # different code. Every script in this set states its exit codes; passing them through unchanged
+    # is the whole job. S2441 moved it inside this branch: at the file's top level it also rewrote
+    # the preference of every caller that dot-sources a forwarder, silently downgrading a script
+    # running under 'Stop' for the rest of its life.
+    $ErrorActionPreference = 'Continue'
+    $global:LASTEXITCODE = 0
+    try {
+        & $szaFwdTarget @args
+    } catch {
+        # A child that THROWS never reaches its own `exit`, so $LASTEXITCODE stays 0 and the
+        # forwarder would report success for a script that failed - the one way a forwarder can
+        # turn a red verdict green. Every such refusal is a failure, so it leaves as exit 1.
+        Write-Error $_ -ErrorAction Continue
+        exit 1
+    }
+    $szaFwdCode = $LASTEXITCODE
+    exit $(if ($null -eq $szaFwdCode) { 0 } else { $szaFwdCode })
+}

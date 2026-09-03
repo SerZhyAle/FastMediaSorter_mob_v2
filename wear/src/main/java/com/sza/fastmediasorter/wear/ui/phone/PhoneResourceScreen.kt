@@ -65,6 +65,7 @@ import com.sza.fastmediasorter.wear.domain.model.contentTypeForEntry
 import com.sza.fastmediasorter.wear.ui.browse.FileDeleteConfirmDialog
 import com.sza.fastmediasorter.wear.ui.common.CellCaption
 import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
+import com.sza.fastmediasorter.wear.ui.common.ReceiverListDialog
 import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WEAR_SEARCH_INPUT_KEY
@@ -445,6 +446,7 @@ private fun PhoneFileDialogs(
     onRename: (WearPhoneResourceItem) -> Unit
 ) {
     var deleteEntry by remember { mutableStateOf<WearPhoneResourceItem?>(null) }
+    var sendToEntry by remember { mutableStateOf<WearPhoneResourceItem?>(null) }
 
     actionEntry?.let { entry ->
         PhoneFileActionsMenu(
@@ -452,7 +454,19 @@ private fun PhoneFileDialogs(
             viewModel = viewModel,
             onClose = onClose,
             onDelete = { deleteEntry = entry },
-            onRename = { onRename(entry) }
+            onRename = { onRename(entry) },
+            onSendTo = { sendToEntry = entry }
+        )
+    }
+
+    sendToEntry?.let { entry ->
+        ReceiverListDialog(
+            receivers = remember(entry.token) { viewModel.sendToReceiversFor(entry) },
+            onPick = { receiver ->
+                sendToEntry = null
+                viewModel.runOperation(entry, WearFileOperation.SendToReceiver(receiver.id))
+            },
+            onDismiss = { sendToEntry = null }
         )
     }
 
@@ -537,7 +551,8 @@ private fun PhoneFileActionsMenu(
     viewModel: PhoneResourceViewModel,
     onClose: () -> Unit,
     onDelete: () -> Unit,
-    onRename: () -> Unit
+    onRename: () -> Unit,
+    onSendTo: () -> Unit
 ) {
     // Both answers stat the cache directory, so they are read once per pressed entry rather than on
     // every recomposition the open dialog causes - disk work does not belong in a composition pass.
@@ -559,6 +574,7 @@ private fun PhoneFileActionsMenu(
                 // one this list was built from.
                 WearFileOperationKind.OPEN_ON_PHONE ->
                     viewModel.runOperation(entry, WearFileOperation.OpenOnPhone(entry.token))
+                WearFileOperationKind.SEND_TO_RECEIVER -> onSendTo()
             }
         },
         onDismiss = onClose
@@ -828,6 +844,7 @@ private fun WearFileOperationOutcome.toStatusRes(): Int = when (this) {
     WearFileOperationOutcome.NOTIFIED_ON_PHONE -> R.string.wear_open_on_phone_notified
     WearFileOperationOutcome.REFUSED_PHONE_NOTIFICATIONS_OFF ->
         R.string.wear_open_on_phone_no_notifications
+    WearFileOperationOutcome.AWAITING_PHONE_ACTION -> R.string.wear_send_to_awaiting_phone
     WearFileOperationOutcome.FAILED -> R.string.wear_file_op_outcome_failed
     WearFileOperationOutcome.CANCELLED -> R.string.wear_file_op_outcome_cancelled
 }
@@ -841,7 +858,9 @@ private fun WearFileOperationOutcome.toStatusRes(): Int = when (this) {
 private fun WearFileOperationOutcome.isSuccess(): Boolean = this == WearFileOperationOutcome.SUCCEEDED ||
     this == WearFileOperationOutcome.QUEUED_ON_PHONE ||
     this == WearFileOperationOutcome.OPENED_ON_PHONE ||
-    this == WearFileOperationOutcome.NOTIFIED_ON_PHONE
+    this == WearFileOperationOutcome.NOTIFIED_ON_PHONE ||
+    // S2142: the errand is on the phone waiting for a tap - the watch's half of it worked.
+    this == WearFileOperationOutcome.AWAITING_PHONE_ACTION
 
 private fun WearPhoneResourceResponseStatus?.toMessageRes(): Int = when (this) {
     WearPhoneResourceResponseStatus.SOURCE_UNAVAILABLE -> R.string.phone_resource_source_unavailable

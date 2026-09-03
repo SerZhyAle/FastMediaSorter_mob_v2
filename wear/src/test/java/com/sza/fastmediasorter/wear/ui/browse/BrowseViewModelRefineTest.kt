@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.ui.browse
 
 import android.net.Uri
 import com.sza.fastmediasorter.wear.data.network.WearNetworkDataSources
+import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
 import com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder
 import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
 import com.sza.fastmediasorter.wear.domain.model.MediaType
@@ -22,6 +23,7 @@ import io.mockk.unmockkStatic
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -54,6 +56,15 @@ class BrowseViewModelRefineTest {
     private val thumbnails: WearThumbnailRepository = mockk(relaxed = true)
     private val capabilityPolicy: WearFileCapabilityPolicy = mockk(relaxed = true)
     private val performFileOperation: PerformWearFileOperationUseCase = mockk(relaxed = true)
+
+    /**
+     * S2142: the published «Send to..» list, answered as empty rather than relaxed. The view model
+     * combines it into a flow at construction, and a relaxed answer would make it a mock list whose
+     * filtering means nothing - these tests are about refining the file list, not about receivers.
+     */
+    private val sendToReceivers: WearSendToReceiversRepository = mockk<WearSendToReceiversRepository>().also {
+        every { it.observe() } returns MutableStateFlow(emptyList())
+    }
 
     @Before
     fun setUp() {
@@ -104,8 +115,13 @@ class BrowseViewModelRefineTest {
             selectedMediaManager = selectedMedia,
             playbackSetManager = playbackSet,
             thumbnailRepository = thumbnails,
-            capabilityPolicy = capabilityPolicy,
-            performFileOperation = performFileOperation
+            // S2444: the real helper over the same mocks, not a mock of it - these cases assert the
+            // refine stage, and a mocked helper would silently drop the bind() the ViewModel makes.
+            fileOperations = BrowseFileOperationsManager(
+                capabilityPolicy = capabilityPolicy,
+                performFileOperation = performFileOperation,
+                sendToReceiversRepository = sendToReceivers
+            )
         ).apply {
             setNavigationArgs(MediaType.MUSIC)
             loadMediaFiles()

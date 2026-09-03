@@ -95,6 +95,11 @@ class MergeWearSettingsReportUseCase @Inject constructor(
             stored.fileListViewMode
         ),
         backgroundMode = merge.optional("backgroundMode", incoming.backgroundMode, stored.backgroundMode),
+        backgroundPlaybackEnabled = merge.optional(
+            "backgroundPlaybackEnabled",
+            incoming.backgroundPlaybackEnabled,
+            stored.backgroundPlaybackEnabled
+        ),
         streamsSectionEnabled = merge.optional(
             "streamsSectionEnabled",
             incoming.streamsSectionEnabled,

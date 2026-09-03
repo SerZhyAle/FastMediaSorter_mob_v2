@@ -1,108 +1,114 @@
+#requires -Version 7.0
 <#
 .SYNOPSIS
-    Gate: the recorded audit judged the task text the spec carries NOW (S2367).
+    Forwarder to the canon-shipped harness script spec_catalog\check-audit-current.ps1 (S2402).
 
 .DESCRIPTION
-    `Verified` asserts that an audit passed; `BlockNeedUserTest` asserts that the work is
-    ready for a human to observe. Both are claims about a task, and neither is worth
-    anything if the task changed after the claim was written.
+    GENERATED - do not edit. The mechanism lives in the SZA canon plugin (tools/harness) and this
+    repository consumes it; the file kept here is only the address every existing call site already
+    knows. Regenerate with scripts/utils/install-sza-forwarders.ps1. What this project configures lives in
+    .sza-profile.json at the repository root, never in a script body.
 
-    S2298 made the verdict provable by requiring the `## Last Audit` block. It cannot tell
-    a verdict written against the current task from one written against a task the owner
-    has since rewritten - and the owner does rewrite it: a spec is edited mid-run by the
-    owner, by /spec-quiz writing an answer into it, and by a sibling session. The pipeline
-    reads the spec once at Stage 0 and works from that reading for the rest of the run.
-
-    This gate closes that window. The block records a `**Task fingerprint:**`, the gate
-    recomputes it over the file on disk, and a mismatch means the audit judged different
-    words than the ones the ticket is being closed against. The fix is never a flag: re-read
-    the task and re-run the audit, which rewrites both the verdict and the stamp.
-
-    What is hashed and why the pipeline's own writes are excluded from it lives in
-    _task-fingerprint.ps1, shared verbatim with every writer, so this gate cannot refuse a
-    stamp the writer considers correct (the S1621 rule).
-
-    Deliberately silent about WHETHER the verdict is good: that judgement is /spec-check's,
-    and a gate second-guessing it by keyword would be a verdict nobody could act on.
-
-.PARAMETER Id
-    Ticket id, Sxxxx.
-
-.NOTES
-    Exit codes:
-      0 - the audit block stamps the current task text.
-      1 - no stamp, or the stamp names a different task text than the file now carries.
-      2 - bad invocation (malformed id, or an id no record carries), or catalog / spec
-          unreadable. Kept distinct from 1 for the reason check-probe-present.ps1 states:
-          "this ticket does not exist" and "this ticket was audited against stale text"
-          call for opposite reactions, and exit 1 phrases the refusal as the latter.
+Exit codes: whatever spec_catalog\check-audit-current.ps1 returns, plus 2 when the harness cannot be located.
 #>
-[CmdletBinding()]
-param(
-    [Parameter(Mandatory)][string] $Id
-)
+# S2441: every name below carries a $szaFwd prefix because HALF of this set is dot-sourced, and a
+# dot-sourced file assigns into its CALLER's scope. PowerShell names are case-insensitive, so the
+# `$target` this file used to resolve into WAS the caller's `-Target` parameter: post-change.ps1
+# dot-sources the agent-lock-domains forwarder before it journals, and every dev/CHANGELOG.md row
+# written on 2026-09-03 recorded a harness path where the ticket id belonged. The second failure
+# mode is worse than the substitution - a caller declaring `[string]$Candidates` type-constrains
+# this file's own accumulator, so `$candidates = @()` collapses to '' and every `+=` concatenates
+# instead of appending, leaving one unusable path and a forwarder that cannot find the harness at
+# all. Ten scripts under scripts/ declare a parameter that collided. Contract suite:
+# scripts/utils/install-sza-forwarders.tests/.
+$szaFwdCandidates = @()
+if ($env:SZA_HARNESS_ROOT) { $szaFwdCandidates += $env:SZA_HARNESS_ROOT }
+$szaFwdCache = Join-Path $env:USERPROFILE '.claude\plugins\cache\sza-unified-rules\sza'
+if (Test-Path -LiteralPath $szaFwdCache) {
+    # Ordered as VERSIONS, not as strings: the plugin version is date-derived (2026.903.1), so a
+    # string sort puts October's 2026.1001.1 below September's 2026.903.1 and the forwarder would
+    # keep calling the older copy after an update. A directory that does not parse sorts last
+    # rather than being dropped - it may still be the only harness present.
+    $szaFwdVersions = @(Get-ChildItem -LiteralPath $szaFwdCache -Directory -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            $szaFwdParsed = $null
+            [void][version]::TryParse($_.Name, [ref]$szaFwdParsed)
+            [pscustomobject]@{ Path = $_.FullName; Version = $szaFwdParsed }
+        } | Sort-Object @{ Expression = { $null -ne $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Path }; Descending = $true })
+    $szaFwdCandidates += @($szaFwdVersions | ForEach-Object { Join-Path $_.Path 'tools\harness' })
+}
+$szaFwdTarget = $null
+foreach ($szaFwdDir in $szaFwdCandidates) {
+    $szaFwdProbe = Join-Path $szaFwdDir 'spec_catalog\check-audit-current.ps1'
+    if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe; break }
+}
 
-. (Join-Path $PSScriptRoot '_lib.ps1')
-. (Join-Path $PSScriptRoot '_task-fingerprint.ps1')
-
-if ($Id -notmatch '^S\d{4}$') {
-    # -ErrorAction Continue, not a bare Write-Error: _lib.ps1 sets $ErrorActionPreference = 'Stop',
-    # under which a bare Write-Error throws and the documented `exit 2` is never reached (S1070).
-    Write-Error "Invalid -Id '$Id' (must match S####)." -ErrorAction Continue
+# S2452: candidate 3, the canon checkout, reached only when the two above miss. The plugin cache
+# is what actually resolves on every invocation, so the resolver below is never read on the hot
+# path. Its default is held by scripts/utils/project-paths.ps1 and by nothing else - before this it
+# was written in 76 files, 74 of them generated and stamped `GENERATED - do not edit`, so moving
+# the canon required editing files that forbid editing. That is the exact non-portability the
+# hardcoded-drive-path rule was installed to refuse (S2326).
+#
+# The dot-source runs inside `& { }` deliberately. HALF this set is itself dot-sourced, so at top
+# level project-paths.ps1 would define its functions and set its script variables in the CALLER's
+# scope - the S2441 failure one level further out. A child scope cannot reach the caller at all.
+if (-not $szaFwdTarget) {
+    $szaFwdCheckout = $env:SZA_CANON_ROOT
+    if (-not $szaFwdCheckout) {
+        $szaFwdResolver = Join-Path $PSScriptRoot '..\..\scripts\utils\project-paths.ps1'
+        if (Test-Path -LiteralPath $szaFwdResolver) {
+            # A resolver that is absent or throws must not stop the forwarder from printing its own
+            # refusal, which is the only message that names all three candidates and the fix.
+            $szaFwdCheckout = & {
+                param($szaFwdResolverPath)
+                try { . $szaFwdResolverPath; Get-CanonRoot } catch { $null }
+            } $szaFwdResolver
+        }
+    }
+    if ($szaFwdCheckout) {
+        $szaFwdCandidates += (Join-Path $szaFwdCheckout 'tools\harness')
+        $szaFwdProbe = Join-Path $szaFwdCandidates[-1] 'spec_catalog\check-audit-current.ps1'
+        if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe }
+    }
+}
+if (-not $szaFwdTarget) {
+    Write-Host "check-audit-current.ps1: the SZA harness is not installed - looked in:" -ForegroundColor Red
+    foreach ($szaFwdDir in $szaFwdCandidates) { Write-Host "    $szaFwdDir" -ForegroundColor Gray }
+    Write-Host "  Install or update it:  claude plugin update sza@sza-unified-rules" -ForegroundColor Yellow
+    Write-Host "  Or point at a checkout: `$env:SZA_HARNESS_ROOT = '<repo>\tools\harness'" -ForegroundColor Yellow
     exit 2
 }
 
-$record = Find-Record -Id $Id
-if (-not $record) {
-    Write-Error "No record with id '$Id' in the spec catalog." -ErrorAction Continue
-    exit 2
+$env:SZA_PROJECT_ROOT = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+
+# Half of this set is dot-sourced as a library and half is invoked as a CLI, and the two cannot be
+# forwarded the same way: `& $szaFwdTarget` would run a library in its own scope and define nothing
+# the caller can see, while `exit` inside a dot-sourced file would kill the caller. InvocationName
+# is '.' exactly when this file was dot-sourced, so one template serves both.
+if ($MyInvocation.InvocationName -eq '.') {
+    . $szaFwdTarget
+} else {
+    # Deliberately NOT 'Stop'. A native child's stderr arrives here as ErrorRecord objects, and
+    # under 'Stop' the first one terminates this forwarder before `exit $LASTEXITCODE` runs - so a
+    # script that reported a FAIL and exited 1 would reach its caller as a crashed forwarder with a
+    # different code. Every script in this set states its exit codes; passing them through unchanged
+    # is the whole job. S2441 moved it inside this branch: at the file's top level it also rewrote
+    # the preference of every caller that dot-sources a forwarder, silently downgrading a script
+    # running under 'Stop' for the rest of its life.
+    $ErrorActionPreference = 'Continue'
+    $global:LASTEXITCODE = 0
+    try {
+        & $szaFwdTarget @args
+    } catch {
+        # A child that THROWS never reaches its own `exit`, so $LASTEXITCODE stays 0 and the
+        # forwarder would report success for a script that failed - the one way a forwarder can
+        # turn a red verdict green. Every such refusal is a failure, so it leaves as exit 1.
+        Write-Error $_ -ErrorAction Continue
+        exit 1
+    }
+    $szaFwdCode = $LASTEXITCODE
+    exit $(if ($null -eq $szaFwdCode) { 0 } else { $szaFwdCode })
 }
-
-$specPath = Resolve-SpecPath -PathRef $record.file
-if (-not (Test-Path -LiteralPath $specPath -PathType Leaf)) {
-    Write-Error "Spec file not found on disk: $specPath" -ErrorAction Continue
-    exit 2
-}
-
-$current = Get-SpecTaskFingerprint -Path $record.file
-if (-not $current) {
-    Write-Error "Could not read the task text of $($record.file)." -ErrorAction Continue
-    exit 2
-}
-
-$recorded = Get-RecordedTaskFingerprint -Path $record.file
-
-if (-not $recorded) {
-    # Two different absences, one refusal: no block at all, or a block that never stamped what
-    # it judged. They are not separated because the action is identical - run the audit - and a
-    # second message would only invite guessing which one applies.
-    Write-Output "FAIL $Id"
-    Write-Output ("- {0}: the audit block records no task fingerprint." -f $record.file)
-    Write-Output ""
-    Write-Output "Nothing states which version of the task the recorded verdict judged, so the"
-    Write-Output "verdict cannot be told apart from one written before the task was last edited."
-    Write-Output "Do one of:"
-    Write-Output ("  1. run the audit that writes both:  /spec-check {0}" -f $Id)
-    Write-Output ("  2. re-read the task, then add to the '## Last Audit' block:")
-    Write-Output ("     **Task fingerprint:** {0}" -f $current)
-    exit 1
-}
-
-if ($recorded -ne $current) {
-    Write-Output "FAIL $Id"
-    Write-Output ("- {0}: the task changed after the recorded audit." -f $record.file)
-    Write-Output ("  audited: {0}    on disk now: {1}" -f $recorded, $current)
-    Write-Output ""
-    Write-Output "The spec body was edited since the verdict was written - by the owner, by"
-    Write-Output "/spec-quiz writing an answer in, or by another session. The recorded audit"
-    Write-Output "judged different words than the ones this ticket is being closed against."
-    Write-Output "Re-read the task as it stands and audit against it:"
-    Write-Output ("  /spec-check {0}" -f $Id)
-    Write-Output "If the re-read shows the work no longer covers the task, that is a Partial or"
-    Write-Output "Broken verdict with the gap written into the spec - not a re-stamp."
-    exit 1
-}
-
-Write-Output "PASS $Id"
-Write-Output ("Audit judged the current task text (fingerprint {0})." -f $current)
-exit 0

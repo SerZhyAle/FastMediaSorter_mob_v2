@@ -34,6 +34,10 @@ interface VoiceNoteDao {
     @Query("UPDATE voice_notes SET deliveryState = :state WHERE id = :id")
     suspend fun updateDeliveryState(id: Long, state: String)
 
+    /** S2161: records the published MediaStore content address. */
+    @Query("UPDATE voice_notes SET publishedAddress = :address WHERE id = :id")
+    suspend fun updatePublishedAddress(id: Long, address: String)
+
     @Query("DELETE FROM voice_notes WHERE id = :id")
     suspend fun deleteById(id: Long)
 

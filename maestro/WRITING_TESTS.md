@@ -4,7 +4,7 @@ A practical guide for developers to create effective Maestro tests for FastMedia
 
 ## Oracle convention (authoritative)
 
-A flow is **green only when it proves the behaviour happened**. Three rules, in order:
+A flow is **green only when it proves the behaviour happened**. Four rules, in order:
 
 1. **Assert the expected post-action element by exact id or exact text.** The assertion that
    proves the feature must NOT carry `optional: true`. `optional` is reserved for genuinely
@@ -18,11 +18,24 @@ A flow is **green only when it proves the behaviour happened**. Three rules, in 
    slideshow `Slideshow auto-start COMPLETE`). Rename, undo, image, text, resume and the info
    dialog have no marker - assert by element only, never weaken to optional-only.
 3. **Carry a crash guard:** `assertNotVisible` on the crash-activity text after the action.
+4. **Every `scrollUntilVisible` states its own `visibilityPercentage`, and it is 60 or lower.**
+   Maestro defaults that parameter to **100**, so a bare `scrollUntilVisible` is a
+   hundred-percent-visibility oracle written silently. An element that sits last in a scroll
+   container can never satisfy it: the container runs out of scroll before the condition is met,
+   and the step times out while the element is drawn whole on screen. `centerElement: true` fails
+   the same way and worse - it keeps scrolling until the element is more than 30% away from the
+   viewport edge - so it is legal only for a row inside a long list, never for the last child of a
+   dialog, a bottom sheet, or a settings section. Measured 2026-09-02 (S2396): this class alone
+   produced two of the three failures seen that day (`btnBrowseWithSAF`, `headerInterface`), and
+   which flow it hits depends on where the previous step left the list, which is why the suite's
+   failure set changed between identical runs. Enforced by
+   `scripts/quality/assert-maestro-oracle.ps1`, rule `scroll-visibility`.
 
 **Forbidden** (these silently pass and defeat the oracle - they are why the legacy flows were
 fictitious):
 
 - `optional: true` on the proof assertion.
+- A `scrollUntilVisible` with no `visibilityPercentage`, or with one above 60.
 - Regex matchers in `id:` / `text:` (`id: ".*recycler.*"`, `text: ".*\.(jpg|png)$"`). Maestro
   does not reliably match these; the assertion never fires. Use exact entry-name ids
   (`id: "rvMediaFiles"`) or exact visible text, locale-fixed for the run.

@@ -22,6 +22,7 @@
       - assert-tactical-step-form    (S1343 Why-field ratchet over PLAN/*/PHASE_*.md)
       - assert-flavor-matrix-docs    (S1392 doc flavor tables vs the generated capability snapshot)
 - assert-sdk-pin-claims        (S1438 SDK pins stated in prose vs the build files)
+- assert-flavor-count-prose    (S2445 flavor counts and complete-set lists in prose vs the matrix)
       - assert-ctor-arg-slots        (S1470 primary constructors near the 255 argument-slot ceiling)
       - assert-packaging-excludes-parity (S1679 shared-library payload stripped in one module only)
       - assert-module-version-parity  (app_v2 / wear version fields under one applicationId)
@@ -52,29 +53,62 @@
 
     Each child runs as its own process so a child `exit` cannot kill this aggregator.
 
+    S2451: the children run CONCURRENTLY. They used to run in a strict foreach, so the batch cost
+    the SUM of 45 independent read-only scans plus 45 interpreter starts - 142.8 s measured
+    2026-09-03, past the 120 s foreground threshold CLAUDE.md Rule 6 pins this target below. The
+    verdict then arrived as a background notification, which is the delivery Rule 26 exists to
+    forbid, and every session passed through it silently. Nothing required the sequence: no gate
+    reads another's output, none of them touches gradle (so no BUILD.LOCK wait is being hidden),
+    and every gate writes only to its own baseline/snapshot file - the one shared sink is the
+    telemetry journal, and the PARENT writes that, after the fan-in, so its append stays
+    single-threaded. Rescoping the expensive gates to release scope under Rule 33 was the wrong
+    trade here: 142.8 s was the batch's schedule, not its size, and those gates judge exactly what
+    the operator changed. -Sequential restores the old order when one gate has to be debugged.
+
+    Ordering survives the change. Output is buffered per gate and printed in table order, never
+    interleaved as it completes - a gate's output is its evidence, and interleaved evidence is
+    unreadable. The summary is printed in table order too, because runs are compared against each
+    other by it.
+
     Modes:
-      (default)      Run each gate in -Gate mode; print per-gate PASS/FAIL; exit 1 if any failed.
-      -IncludeDetekt Also run the (slow) gradle detekt gate.
-      -ChangedFiles  Diff-scoped judgement. Forwarded to detekt AND to every gate in the
-                     table that accepts the parameter (see $changedFilesAware below).
-                     Omit it - as a release or CI run does - and every gate keeps its
-                     strict project-wide judgement.
+      (default)       Run each gate in -Gate mode; print per-gate PASS/FAIL; exit 1 if any failed.
+      -IncludeDetekt  Also run the (slow) gradle detekt gate. Always last, and never concurrent
+                      with the others: it is the one gradle-backed child and takes BUILD.LOCK.
+      -ChangedFiles   Diff-scoped judgement. Forwarded to detekt AND to every gate in the
+                      table that accepts the parameter (see $changedFilesAware below).
+                      Omit it - as a release or CI run does - and every gate keeps its
+                      strict project-wide judgement.
+      -Sequential     Run the children one at a time, as before S2451.
+      -ThrottleLimit  Concurrent children; 0 (default) derives it from the core count.
+
+    Exit codes:
+      0  every gate passed.
+      1  at least one gate failed or is MISSING.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-fast-gates.ps1
     pwsh -NoProfile -File scripts/quality/assert-fast-gates.ps1 -IncludeDetekt -Module app_v2 -ChangedFiles app_v2/src/main/.../Foo.kt
+    pwsh -NoProfile -File scripts/quality/assert-fast-gates.ps1 -Sequential
 #>
 [CmdletBinding()]
 param(
     [switch]$IncludeDetekt,
     [ValidateSet('app_v2', 'wear')]
     [string]$Module,
-    [string[]]$ChangedFiles
+    [string[]]$ChangedFiles,
+    [switch]$Sequential,
+    [ValidateRange(0, 64)]
+    [int]$ThrottleLimit = 0
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib/gate-telemetry.ps1')
+
+# S2453: the batch's own wall clock, which is what `docs/BUILD_TEST_FAST_PATH.md` claims for
+# `a.ps1 fg` and what the caller waits on. Started before any gate so the record covers the
+# whole run including this script's own setup.
+$batchStopwatch = [System.Diagnostics.Stopwatch]::StartNew()
 
 $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") {
     "$env:ProgramFiles\PowerShell\7\pwsh.exe"
@@ -126,11 +160,26 @@ $gates = [ordered]@{
     # a sibling session's watch build dies on a locked R.jar reading as broken code. Scans scripts/*.ps1
     # only, no gradle daemon.
     'assert-qualified-gradle-tasks.ps1'         = @('-Quiet')
+    # S2447: a Hilt binding for a type src/main injects unconditionally, present only in source sets
+    # some flavors do not mount. `fk` compiles standard and `fkn` noLegal, both of which happened to
+    # carry the AccessibilityServiceControl binding; the five flavors that did not went unbuilt for
+    # two weeks until :app_v2:hiltJavaCompileLiteDebug failed with Dagger/MissingBinding. Compiling
+    # those five is 10+ minutes against this batch's 32 s, so the check is lexical: it reads the
+    # mount map out of app_v2/build.gradle.kts and treats a conditionally mounted directory as
+    # covering only when EVERY branch of its if/else provides the type - which is the second half of
+    # the same defect, since standard's only binding sat behind an overlay flag. No gradle daemon.
+    'assert-flavor-binding-coverage.ps1'        = @('-Quiet')
     # S1844: a Room migration with no instrumented migration test. Nothing compiled androidTest and
     # nothing checked the pairing, so a migration could ship untested while a plausible-looking test
     # file sat beside it - AppDatabaseMigration50To51Test.kt referenced a constant it never declared
     # and could not compile at all. Ratchet over two directory listings, no gradle daemon; the 12
     # migrations that predate the habit are baselined so only a NEW gap fails.
+    # S2355: judges EVERY Room database in scripts/quality/lib/room-databases.ps1, not app_v2 alone,
+    # in one run - a gate the caller must remember to invoke twice is the wiring mistake the registry
+    # removes. Baseline keys carry the module, so one module's frozen debt cannot silence a finding in
+    # another. A module with an exported schema and zero migrations is a clean skip, not "cannot
+    # verify": that is the watch's legitimate state at version 1, and refusing it would defer the
+    # gate's activation to somebody else's ticket.
     'assert-migration-test-pairing.ps1'         = @()
     # S2306: the other half of the same contract - a migration test proves a test EXISTS, this proves
     # the migration's SQL says what the exported schema Room validates against says. S2251 had neither:
@@ -138,6 +187,10 @@ $gates = [ordered]@{
     # visible in two files in this tree while every check ran green. Room compares them on the user's
     # device on the first launch after an update, and the recovery path deletes the database when they
     # differ. Two directory listings and a JSON parse, no gradle daemon.
+    # S2355: reads the same registry as the pairing gate above and reports one summary per database,
+    # naming the module in every finding. Sharing the registry is deliberate - two checks each holding
+    # a private idea of which databases exist is the S1621 failure, and here the cost would be higher
+    # than a disagreement: one of them would silently call a database unverifiable.
     'assert-migration-schema-conformance.ps1'   = @('-Quiet')
     # S1895: the launcher taskbar and Start panel measured against the surfaces they land on, in all
     # eight themes. The previous change to these same colours was closed on a visual check and
@@ -189,6 +242,13 @@ $gates = [ordered]@{
     # compileSdk 35 while Gradle compiled against 36, and an agent reading one concludes an API is
     # unavailable. Reads the value from the build file every run, so it can never itself go stale.
     'assert-sdk-pin-claims.ps1'                 = @('-Quiet')
+    # S2445: the same shape one axis over - the flavor COUNT stated in ordinary prose, which
+    # assert-flavor-matrix-docs cannot see because its manifest scopes it to glyph table cells.
+    # S0403's seventh flavor left thirteen documents and a.ps1's help text saying six, and the help
+    # text hid a working `-Flavor Foss` behind a six-name list. Second run of the drift S1392 opened.
+    # Only quantified claims are judged, so a deliberate subset ("standard/legacy/noLegal/vr - HLS")
+    # is not a finding. Reads the generated matrix JSON, no gradle daemon.
+    'assert-flavor-count-prose.ps1'             = @('-Quiet')
     # S1259: android:id parity between layout-land and layout-w600dp siblings. w600dp beats
     # -land on wide landscape devices, so an id missing on one side is a latent findViewById
     # null (the recording-indicator include NPE). Static regex over 4 shared files, ~ms.
@@ -302,12 +362,17 @@ $changedFilesAware = @(
     'assert-gson-persistence-contract.ps1'
 )
 
-$results = [System.Collections.Generic.List[object]]::new()
+# Build the work list first so a MISSING gate is settled without spawning anything, and so
+# every item carries the table index - the one thing that restores table order after the
+# children finish out of order.
+$index = 0
+$work = [System.Collections.Generic.List[object]]::new()
+$missing = [System.Collections.Generic.List[object]]::new()
 foreach ($entry in $gates.GetEnumerator()) {
     $path = Join-Path $PSScriptRoot $entry.Key
     if (-not (Test-Path $path)) {
-        $results.Add([pscustomobject]@{ Gate = $entry.Key; Status = 'MISSING'; Ms = 0 })
-        Write-GateTelemetryRecord -Runner 'assert-fast-gates' -Gate $entry.Key -Status 'MISSING' -ExitCode 2 -ElapsedMs 0
+        $missing.Add([pscustomobject]@{ Index = $index; Gate = $entry.Key; Status = 'MISSING'; ExitCode = 2; Ms = 0; Output = '' })
+        $index++
         continue
     }
     $extraArgs = @($entry.Value)
@@ -316,12 +381,59 @@ foreach ($entry in $gates.GetEnumerator()) {
         # first element to [string[]] and rejects the rest as positional arguments.
         $extraArgs += @('-ChangedFiles', ($ChangedFiles -join ','))
     }
+    $work.Add([pscustomobject]@{ Index = $index; Gate = $entry.Key; Path = $path; GateArgs = $extraArgs })
+    $index++
+}
+
+# S2451: 45 read-only scans against 20 logical cores. Two are held back from the pool - one for
+# this aggregator, one so the box stays usable - and the ceiling caps memory, since every child
+# is a whole interpreter. The critical path is the slowest single gate (37.6 s for
+# assert-source-gates), so raising the throttle past that buys nothing.
+$throttle = if ($ThrottleLimit -gt 0) {
+    $ThrottleLimit
+}
+else {
+    [Math]::Max(2, [Math]::Min(12, [Environment]::ProcessorCount - 2))
+}
+
+$runOne = {
+    # 2>&1 folds the child's stderr into the captured text. Without it a gate's FAIL reason -
+    # written as a Write-Error by every gate in the table - would bypass the buffer and land in
+    # the console detached from the block it belongs to.
+    $ErrorActionPreference = 'Continue'
+    $item = $_
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
-    & $pwshExe -NoProfile -File $path -Gate @extraArgs | Write-Host
+    $captured = & $pwshExe -NoProfile -File $item.Path -Gate @($item.GateArgs) 2>&1 | Out-String
+    $code = [int]$LASTEXITCODE
     $sw.Stop()
-    $status = ($LASTEXITCODE -eq 0) ? 'PASS' : 'FAIL'
-    $results.Add([pscustomobject]@{ Gate = $entry.Key; Status = $status; Ms = [int]$sw.Elapsed.TotalMilliseconds })
-    Write-GateTelemetryRecord -Runner 'assert-fast-gates' -Gate $entry.Key -Status $status -ExitCode ([int]$LASTEXITCODE) -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds)
+    [pscustomobject]@{
+        Index    = $item.Index
+        Gate     = $item.Gate
+        Status   = ($code -eq 0) ? 'PASS' : 'FAIL'
+        ExitCode = $code
+        Ms       = [int]$sw.Elapsed.TotalMilliseconds
+        Output   = $captured
+    }
+}
+
+$completed = if ($Sequential) {
+    @($work | ForEach-Object -Process $runOne)
+}
+else {
+    # $pwshExe is resolved in this scope, so the parallel body needs it passed in explicitly;
+    # a runspace does not inherit the caller's variables.
+    $parallelBody = [scriptblock]::Create(('$pwshExe = ' + "'$pwshExe'" + "`n") + $runOne.ToString())
+    @($work | ForEach-Object -Parallel $parallelBody -ThrottleLimit $throttle)
+}
+
+$results = [System.Collections.Generic.List[object]]::new()
+foreach ($r in (@($completed) + @($missing) | Sort-Object Index)) {
+    if ($r.Output) { Write-Host $r.Output.TrimEnd() }
+    $results.Add([pscustomobject]@{ Gate = $r.Gate; Status = $r.Status; Ms = $r.Ms })
+    # Written here, by the parent, never inside a runspace: Write-GateTelemetryRecord appends to
+    # one JSONL file and swallows its own failures, so a concurrent append would lose records in
+    # silence rather than report an error.
+    Write-GateTelemetryRecord -Runner 'assert-fast-gates' -Gate $r.Gate -Status $r.Status -ExitCode $r.ExitCode -ElapsedMs $r.Ms
 }
 
 if ($IncludeDetekt) {
@@ -345,9 +457,15 @@ foreach ($r in $results) {
     if ($r.Status -ne 'PASS') { $failed++ }
 }
 
+$batchStopwatch.Stop()
+$batchMs = [int]$batchStopwatch.Elapsed.TotalMilliseconds
+Write-Host ("  {0,-40} {1} ms (batch wall clock)" -f '(batch)', $batchMs) -ForegroundColor Cyan
+
 if ($failed -gt 0) {
+    Write-GateBatchTelemetryRecord -Runner 'assert-fast-gates' -ExitCode 1 -ElapsedMs $batchMs
     Write-Host "assert-fast-gates: FAIL ($failed gate(s))." -ForegroundColor Red
     exit 1
 }
+Write-GateBatchTelemetryRecord -Runner 'assert-fast-gates' -ExitCode 0 -ElapsedMs $batchMs
 Write-Host 'assert-fast-gates: PASS (all fast gates green).' -ForegroundColor Green
 exit 0

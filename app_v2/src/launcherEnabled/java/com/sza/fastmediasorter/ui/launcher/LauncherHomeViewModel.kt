@@ -618,6 +618,27 @@ class LauncherHomeViewModel @Inject constructor(
         }
     }
 
+    /**
+     * S2397: writes the desktop lock from the desktop itself, so the decision to freeze the layout is
+     * taken where the layout is - the settings dialog switch keeps writing the same flag from its screen.
+     */
+    fun setDesktopLocked(locked: Boolean) {
+        Timber.d("S2397: setDesktopLocked from desktop quick menu locked=$locked")
+        viewModelScope.launch {
+            settingsRepository.updateSettings { it.withLauncher { copy(desktopLocked = locked) } }
+        }
+    }
+
+    /**
+     * S2397: the long press landed on a locked desktop. Answering it is the whole point - the gesture was
+     * a silent no-op since S1090, which reads as a freeze rather than as the guard the user switched on,
+     * and the message names the way back because the menu that would offer it never opens while locked.
+     */
+    fun onLockedDesktopLongPress() {
+        Timber.d("S2397: long press on locked desktop, sending toast")
+        _events.trySend(LauncherHomeEvent.Message(R.string.launcher_desktop_locked_toast))
+    }
+
     /** The desktop is in front again: whatever was launched is done, so taps are live once more. */
     fun onHomeResumed() {
         launchInFlight = false

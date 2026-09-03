@@ -1,102 +1,114 @@
+#requires -Version 7.0
 <#
 .SYNOPSIS
-    Remove a stale agent lock, or forcibly clear a live one when explicitly requested.
+    Forwarder to the canon-shipped harness script locks\clear-agent-lock.ps1 (S2402).
 
 .DESCRIPTION
-    Default mode is conservative:
-      - stale / dead / corrupt lock -> removed, exit 0
-      - fresh live lock            -> refused, exit 1
+    GENERATED - do not edit. The mechanism lives in the SZA canon plugin (tools/harness) and this
+    repository consumes it; the file kept here is only the address every existing call site already
+    knows. Regenerate with scripts/utils/install-sza-forwarders.ps1. What this project configures lives in
+    .sza-profile.json at the repository root, never in a script body.
 
-    Use -Force only when you have confirmed the holder is gone and want to override the safety
-    checks manually.
-
-.EXAMPLE
-    pwsh -NoProfile -File scripts/utils/clear-agent-lock.ps1 -Name Build
-
-.EXAMPLE
-    pwsh -NoProfile -File scripts/utils/clear-agent-lock.ps1 -Name Code.Wear -Force
-
-.NOTES
-    Exit codes:
-      0 - the named domain(s) are free: already free, or cleared here.
-      1 - refused: a live holder was found and -Force was not given. Its pid, age, reason and
-          session id are printed instead, because clearing a live lock hands the turn to the next
-          agent mid-edit.
-      2 - the resource name is not an accepted domain or bare type; nothing was inspected.
-    With a bare Build or Code the worst per-domain code is returned, so one refused domain is
-    still visible when its neighbours were free.
+Exit codes: whatever locks\clear-agent-lock.ps1 returns, plus 2 when the harness cannot be located.
 #>
-param(
-    [Parameter(Mandatory)][string]$Name,
-    [switch]$Force
-)
-
-$ErrorActionPreference = "Stop"
-. "$PSScriptRoot\agent-lock.ps1"
-
-# S2109: clear only the named domains. A bare name still clears the whole set, so the emergency
-# escape hatch is as broad as it ever was; a concrete domain leaves every neighbour alone, which
-# is the point - clearing a live sibling's lock is the one thing this script must not do by
-# accident.
-try {
-    $domains = @(Resolve-AgentLockDomains -Name $Name)
+# S2441: every name below carries a $szaFwd prefix because HALF of this set is dot-sourced, and a
+# dot-sourced file assigns into its CALLER's scope. PowerShell names are case-insensitive, so the
+# `$target` this file used to resolve into WAS the caller's `-Target` parameter: post-change.ps1
+# dot-sources the agent-lock-domains forwarder before it journals, and every dev/CHANGELOG.md row
+# written on 2026-09-03 recorded a harness path where the ticket id belonged. The second failure
+# mode is worse than the substitution - a caller declaring `[string]$Candidates` type-constrains
+# this file's own accumulator, so `$candidates = @()` collapses to '' and every `+=` concatenates
+# instead of appending, leaving one unusable path and a forwarder that cannot find the harness at
+# all. Ten scripts under scripts/ declare a parameter that collided. Contract suite:
+# scripts/utils/install-sza-forwarders.tests/.
+$szaFwdCandidates = @()
+if ($env:SZA_HARNESS_ROOT) { $szaFwdCandidates += $env:SZA_HARNESS_ROOT }
+$szaFwdCache = Join-Path $env:USERPROFILE '.claude\plugins\cache\sza-unified-rules\sza'
+if (Test-Path -LiteralPath $szaFwdCache) {
+    # Ordered as VERSIONS, not as strings: the plugin version is date-derived (2026.903.1), so a
+    # string sort puts October's 2026.1001.1 below September's 2026.903.1 and the forwarder would
+    # keep calling the older copy after an update. A directory that does not parse sorts last
+    # rather than being dropped - it may still be the only harness present.
+    $szaFwdVersions = @(Get-ChildItem -LiteralPath $szaFwdCache -Directory -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            $szaFwdParsed = $null
+            [void][version]::TryParse($_.Name, [ref]$szaFwdParsed)
+            [pscustomobject]@{ Path = $_.FullName; Version = $szaFwdParsed }
+        } | Sort-Object @{ Expression = { $null -ne $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Path }; Descending = $true })
+    $szaFwdCandidates += @($szaFwdVersions | ForEach-Object { Join-Path $_.Path 'tools\harness' })
 }
-catch {
-    Write-Error "clear-agent-lock: $($_.Exception.Message)" -ErrorAction Continue
+$szaFwdTarget = $null
+foreach ($szaFwdDir in $szaFwdCandidates) {
+    $szaFwdProbe = Join-Path $szaFwdDir 'locks\clear-agent-lock.ps1'
+    if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe; break }
+}
+
+# S2452: candidate 3, the canon checkout, reached only when the two above miss. The plugin cache
+# is what actually resolves on every invocation, so the resolver below is never read on the hot
+# path. Its default is held by scripts/utils/project-paths.ps1 and by nothing else - before this it
+# was written in 76 files, 74 of them generated and stamped `GENERATED - do not edit`, so moving
+# the canon required editing files that forbid editing. That is the exact non-portability the
+# hardcoded-drive-path rule was installed to refuse (S2326).
+#
+# The dot-source runs inside `& { }` deliberately. HALF this set is itself dot-sourced, so at top
+# level project-paths.ps1 would define its functions and set its script variables in the CALLER's
+# scope - the S2441 failure one level further out. A child scope cannot reach the caller at all.
+if (-not $szaFwdTarget) {
+    $szaFwdCheckout = $env:SZA_CANON_ROOT
+    if (-not $szaFwdCheckout) {
+        $szaFwdResolver = Join-Path $PSScriptRoot '..\..\scripts\utils\project-paths.ps1'
+        if (Test-Path -LiteralPath $szaFwdResolver) {
+            # A resolver that is absent or throws must not stop the forwarder from printing its own
+            # refusal, which is the only message that names all three candidates and the fix.
+            $szaFwdCheckout = & {
+                param($szaFwdResolverPath)
+                try { . $szaFwdResolverPath; Get-CanonRoot } catch { $null }
+            } $szaFwdResolver
+        }
+    }
+    if ($szaFwdCheckout) {
+        $szaFwdCandidates += (Join-Path $szaFwdCheckout 'tools\harness')
+        $szaFwdProbe = Join-Path $szaFwdCandidates[-1] 'locks\clear-agent-lock.ps1'
+        if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe }
+    }
+}
+if (-not $szaFwdTarget) {
+    Write-Host "clear-agent-lock.ps1: the SZA harness is not installed - looked in:" -ForegroundColor Red
+    foreach ($szaFwdDir in $szaFwdCandidates) { Write-Host "    $szaFwdDir" -ForegroundColor Gray }
+    Write-Host "  Install or update it:  claude plugin update sza@sza-unified-rules" -ForegroundColor Yellow
+    Write-Host "  Or point at a checkout: `$env:SZA_HARNESS_ROOT = '<repo>\tools\harness'" -ForegroundColor Yellow
     exit 2
 }
 
-if ($domains.Count -gt 1) {
-    $worst = 0
-    foreach ($domain in $domains) {
-        $argumentList = @('-NoProfile', '-File', $PSCommandPath, '-Name', $domain)
-        if ($Force) { $argumentList += '-Force' }
-        & pwsh @argumentList
-        if ($LASTEXITCODE -gt $worst) { $worst = $LASTEXITCODE }
-    }
-    exit $worst
-}
+$env:SZA_PROJECT_ROOT = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 
-# S1432: the queue behind the lock is cleared alongside it - a ticket stranded behind a cleared
-# lock would keep its session at the head and stall everyone else.
-$queueDir = Get-AgentLockQueueDir -Name $Name
-if ($Force) {
-    $dropped = @(Get-ChildItem -LiteralPath $queueDir -Filter '*.json' -ErrorAction SilentlyContinue).Count
-    Get-ChildItem -LiteralPath $queueDir -Filter '*.json' -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
-    Write-Host "$Name queue: $dropped ticket(s) removed (-Force)." -ForegroundColor Yellow
-}
-else {
-    $evicted = Remove-StaleAgentLockTickets -Name $Name
-    $surviving = @(Get-AgentLockQueue -Name $Name).Count
-    Write-Host "$Name queue: $evicted stale ticket(s) evicted, $surviving still waiting." -ForegroundColor Gray
-}
-
-$status = Get-AgentLockStatus -Name $Name
-if (-not $status.Exists) {
-    Write-Host "$Name.LOCK is already free." -ForegroundColor Green
-    exit 0
-}
-
-if (-not $Force -and -not $status.Stale) {
-    if ($Name -like 'Build*' -and $status.ProcessAlive) {
-        Write-Host "$Name.LOCK is held by a live process - refusing to clear it." -ForegroundColor Red
+# Half of this set is dot-sourced as a library and half is invoked as a CLI, and the two cannot be
+# forwarded the same way: `& $szaFwdTarget` would run a library in its own scope and define nothing
+# the caller can see, while `exit` inside a dot-sourced file would kill the caller. InvocationName
+# is '.' exactly when this file was dot-sourced, so one template serves both.
+if ($MyInvocation.InvocationName -eq '.') {
+    . $szaFwdTarget
+} else {
+    # Deliberately NOT 'Stop'. A native child's stderr arrives here as ErrorRecord objects, and
+    # under 'Stop' the first one terminates this forwarder before `exit $LASTEXITCODE` runs - so a
+    # script that reported a FAIL and exited 1 would reach its caller as a crashed forwarder with a
+    # different code. Every script in this set states its exit codes; passing them through unchanged
+    # is the whole job. S2441 moved it inside this branch: at the file's top level it also rewrote
+    # the preference of every caller that dot-sources a forwarder, silently downgrading a script
+    # running under 'Stop' for the rest of its life.
+    $ErrorActionPreference = 'Continue'
+    $global:LASTEXITCODE = 0
+    try {
+        & $szaFwdTarget @args
+    } catch {
+        # A child that THROWS never reaches its own `exit`, so $LASTEXITCODE stays 0 and the
+        # forwarder would report success for a script that failed - the one way a forwarder can
+        # turn a red verdict green. Every such refusal is a failure, so it leaves as exit 1.
+        Write-Error $_ -ErrorAction Continue
+        exit 1
     }
-    else {
-        Write-Host "$Name.LOCK is fresh - refusing to clear it without -Force." -ForegroundColor Red
-    }
-    # Minutes first: "1811s" is the number the file carries, "30 min" is the number the operator is
-    # comparing against the monitor's held-time column. The session id matters more than the pid on
-    # the Code lock - that pid can be recycled by Windows and then names an unrelated process.
-    $ageText = "{0:N0} min ({1}s)" -f (($status.AgeSeconds) / 60), [int]$status.AgeSeconds
-    Write-Host "  pid: $($status.Pid)  age: $ageText  reason: '$($status.Reason)'  host: $($status.Host)" -ForegroundColor Yellow
-    if ($status.SessionId) {
-        Write-Host "  session: $($status.SessionId)" -ForegroundColor Yellow
-    }
-    $shortcut = if ($Name -like 'Build*') { 'ub' } else { 'uc' }
-    Write-Host "  Override once the holder is confirmed gone:  .\a.ps1 $shortcut -Force" -ForegroundColor Gray
-    exit 1
+    $szaFwdCode = $LASTEXITCODE
+    exit $(if ($null -eq $szaFwdCode) { 0 } else { $szaFwdCode })
 }
-
-Remove-Item -LiteralPath $status.Path -Force -ErrorAction SilentlyContinue
-Write-Host "$Name.LOCK cleared." -ForegroundColor Green
-exit 0

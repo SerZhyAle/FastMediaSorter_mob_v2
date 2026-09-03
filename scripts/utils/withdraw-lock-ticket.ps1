@@ -1,92 +1,114 @@
+#requires -Version 7.0
 <#
 .SYNOPSIS
-    Withdraw this session's own place in a lock queue, in one domain or across a whole type.
+    Forwarder to the canon-shipped harness script locks\withdraw-lock-ticket.ps1 (S2402).
 
 .DESCRIPTION
-    S2098. The queue had operations for taking a place, waiting for it and evicting a ticket whose
-    owner is judged gone - but none for "my intent is cancelled". A session that drops a queued
-    request (the operator switched it to another ticket, the wait was interrupted, the phase
-    collapsed) leaves a ticket that no sweep will ever take: the ticket is not stale, because the
-    owning session is alive and its heartbeat keeps refreshing. It is the INTENT that was dropped,
-    not the session. Observed 2026-08-27: one such ticket sat at the head of the Code queue with two
-    other sessions waiting behind it, and the only way out was deleting the file by hand.
+    GENERATED - do not edit. The mechanism lives in the SZA canon plugin (tools/harness) and this
+    repository consumes it; the file kept here is only the address every existing call site already
+    knows. Regenerate with scripts/utils/install-sza-forwarders.ps1. What this project configures lives in
+    .sza-profile.json at the repository root, never in a script body.
 
-    Boundaries, all three deliberate:
-      - Only tickets owned by the CALLING session are removed. Another session's place is never
-        touched - clearing someone else's queue position is what clear-agent-lock.ps1 -Force does,
-        and that also drops a lock which may belong to a third, actively working session.
-      - The lock FILE is never read or written. Withdrawing is safe while another session works
-        under the lock; releasing a lock is a different event with a different script
-        (exit-code-lock.ps1).
-      - No session identity in the environment is a refusal, not a quiet zero. Without an identity
-        "my ticket" is indistinguishable from anyone else's, and a 0-removed report would read as
-        "nothing of mine was queued" when the truth is "nothing could be judged".
-
-.PARAMETER Name
-    Which queue to withdraw from: a concrete domain (Build.Phone, Build.Wear, Code.Phone,
-    Code.Wear, Code.Scripts) or a bare Build/Code, which withdraws across every domain of that
-    type. S2109: a set-level waiter holds one ticket per domain, so withdrawing an abandoned
-    multi-domain intent needs the bare name; withdrawing one domain leaves the rest standing.
-
-.EXAMPLE
-    pwsh -NoProfile -File scripts/utils/withdraw-lock-ticket.ps1 -Name Code.Scripts
-
-.EXAMPLE
-    .\a.ps1 uqc
-
-.NOTES
-    Exit codes:
-      0 - withdrawal judged: this session's tickets, if any, are gone. Zero removed is a normal
-          outcome and still exits 0.
-      2 - ownership could not be established (no CLAUDE_CODE_SESSION_ID / CODEX_SESSION_ID in the
-          environment), so nothing was removed.
+Exit codes: whatever locks\withdraw-lock-ticket.ps1 returns, plus 2 when the harness cannot be located.
 #>
-param(
-    [Parameter(Mandatory)][string]$Name
-)
-
-$ErrorActionPreference = 'Stop'
-. "$PSScriptRoot\agent-lock.ps1"
-
-# S2109: withdraw only inside the named domains. A bare name withdraws across the whole set,
-# which is what a set-level waiter took; a concrete domain leaves this session's places in every
-# other domain standing, because abandoning one intent is not abandoning the rest.
-try {
-    $domains = @(Resolve-AgentLockDomains -Name $Name)
+# S2441: every name below carries a $szaFwd prefix because HALF of this set is dot-sourced, and a
+# dot-sourced file assigns into its CALLER's scope. PowerShell names are case-insensitive, so the
+# `$target` this file used to resolve into WAS the caller's `-Target` parameter: post-change.ps1
+# dot-sources the agent-lock-domains forwarder before it journals, and every dev/CHANGELOG.md row
+# written on 2026-09-03 recorded a harness path where the ticket id belonged. The second failure
+# mode is worse than the substitution - a caller declaring `[string]$Candidates` type-constrains
+# this file's own accumulator, so `$candidates = @()` collapses to '' and every `+=` concatenates
+# instead of appending, leaving one unusable path and a forwarder that cannot find the harness at
+# all. Ten scripts under scripts/ declare a parameter that collided. Contract suite:
+# scripts/utils/install-sza-forwarders.tests/.
+$szaFwdCandidates = @()
+if ($env:SZA_HARNESS_ROOT) { $szaFwdCandidates += $env:SZA_HARNESS_ROOT }
+$szaFwdCache = Join-Path $env:USERPROFILE '.claude\plugins\cache\sza-unified-rules\sza'
+if (Test-Path -LiteralPath $szaFwdCache) {
+    # Ordered as VERSIONS, not as strings: the plugin version is date-derived (2026.903.1), so a
+    # string sort puts October's 2026.1001.1 below September's 2026.903.1 and the forwarder would
+    # keep calling the older copy after an update. A directory that does not parse sorts last
+    # rather than being dropped - it may still be the only harness present.
+    $szaFwdVersions = @(Get-ChildItem -LiteralPath $szaFwdCache -Directory -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            $szaFwdParsed = $null
+            [void][version]::TryParse($_.Name, [ref]$szaFwdParsed)
+            [pscustomobject]@{ Path = $_.FullName; Version = $szaFwdParsed }
+        } | Sort-Object @{ Expression = { $null -ne $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Path }; Descending = $true })
+    $szaFwdCandidates += @($szaFwdVersions | ForEach-Object { Join-Path $_.Path 'tools\harness' })
 }
-catch {
-    Write-Error "withdraw-lock-ticket: $($_.Exception.Message)" -ErrorAction Continue
+$szaFwdTarget = $null
+foreach ($szaFwdDir in $szaFwdCandidates) {
+    $szaFwdProbe = Join-Path $szaFwdDir 'locks\withdraw-lock-ticket.ps1'
+    if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe; break }
+}
+
+# S2452: candidate 3, the canon checkout, reached only when the two above miss. The plugin cache
+# is what actually resolves on every invocation, so the resolver below is never read on the hot
+# path. Its default is held by scripts/utils/project-paths.ps1 and by nothing else - before this it
+# was written in 76 files, 74 of them generated and stamped `GENERATED - do not edit`, so moving
+# the canon required editing files that forbid editing. That is the exact non-portability the
+# hardcoded-drive-path rule was installed to refuse (S2326).
+#
+# The dot-source runs inside `& { }` deliberately. HALF this set is itself dot-sourced, so at top
+# level project-paths.ps1 would define its functions and set its script variables in the CALLER's
+# scope - the S2441 failure one level further out. A child scope cannot reach the caller at all.
+if (-not $szaFwdTarget) {
+    $szaFwdCheckout = $env:SZA_CANON_ROOT
+    if (-not $szaFwdCheckout) {
+        $szaFwdResolver = Join-Path $PSScriptRoot '..\..\scripts\utils\project-paths.ps1'
+        if (Test-Path -LiteralPath $szaFwdResolver) {
+            # A resolver that is absent or throws must not stop the forwarder from printing its own
+            # refusal, which is the only message that names all three candidates and the fix.
+            $szaFwdCheckout = & {
+                param($szaFwdResolverPath)
+                try { . $szaFwdResolverPath; Get-CanonRoot } catch { $null }
+            } $szaFwdResolver
+        }
+    }
+    if ($szaFwdCheckout) {
+        $szaFwdCandidates += (Join-Path $szaFwdCheckout 'tools\harness')
+        $szaFwdProbe = Join-Path $szaFwdCandidates[-1] 'locks\withdraw-lock-ticket.ps1'
+        if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe }
+    }
+}
+if (-not $szaFwdTarget) {
+    Write-Host "withdraw-lock-ticket.ps1: the SZA harness is not installed - looked in:" -ForegroundColor Red
+    foreach ($szaFwdDir in $szaFwdCandidates) { Write-Host "    $szaFwdDir" -ForegroundColor Gray }
+    Write-Host "  Install or update it:  claude plugin update sza@sza-unified-rules" -ForegroundColor Yellow
+    Write-Host "  Or point at a checkout: `$env:SZA_HARNESS_ROOT = '<repo>\tools\harness'" -ForegroundColor Yellow
     exit 2
 }
 
-$sessionId = $env:CLAUDE_CODE_SESSION_ID
-if ([string]::IsNullOrWhiteSpace($sessionId)) {
-    Write-Host "$Name queue: cannot establish ownership - no session id in the environment." -ForegroundColor Red
-    Write-Host "  Nothing was removed. A ticket is owned by a SESSION, so without an identity this" -ForegroundColor Yellow
-    Write-Host "  command cannot tell your place from someone else's." -ForegroundColor Yellow
-    Write-Host "  Inspect the queue instead:  pwsh -NoProfile -File scripts/utils/lock-status.ps1 -Name $Name -Queue" -ForegroundColor Gray
-    exit 2
+$env:SZA_PROJECT_ROOT = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+
+# Half of this set is dot-sourced as a library and half is invoked as a CLI, and the two cannot be
+# forwarded the same way: `& $szaFwdTarget` would run a library in its own scope and define nothing
+# the caller can see, while `exit` inside a dot-sourced file would kill the caller. InvocationName
+# is '.' exactly when this file was dot-sourced, so one template serves both.
+if ($MyInvocation.InvocationName -eq '.') {
+    . $szaFwdTarget
+} else {
+    # Deliberately NOT 'Stop'. A native child's stderr arrives here as ErrorRecord objects, and
+    # under 'Stop' the first one terminates this forwarder before `exit $LASTEXITCODE` runs - so a
+    # script that reported a FAIL and exited 1 would reach its caller as a crashed forwarder with a
+    # different code. Every script in this set states its exit codes; passing them through unchanged
+    # is the whole job. S2441 moved it inside this branch: at the file's top level it also rewrote
+    # the preference of every caller that dot-sources a forwarder, silently downgrading a script
+    # running under 'Stop' for the rest of its life.
+    $ErrorActionPreference = 'Continue'
+    $global:LASTEXITCODE = 0
+    try {
+        & $szaFwdTarget @args
+    } catch {
+        # A child that THROWS never reaches its own `exit`, so $LASTEXITCODE stays 0 and the
+        # forwarder would report success for a script that failed - the one way a forwarder can
+        # turn a red verdict green. Every such refusal is a failure, so it leaves as exit 1.
+        Write-Error $_ -ErrorAction Continue
+        exit 1
+    }
+    $szaFwdCode = $LASTEXITCODE
+    exit $(if ($null -eq $szaFwdCode) { 0 } else { $szaFwdCode })
 }
-
-$totalRemoved = 0
-foreach ($domain in $domains) {
-    $removed = Remove-AgentSessionTickets -Name $domain -SessionId $sessionId
-    $totalRemoved += $removed
-    $remaining = @(Get-AgentLockQueue -Name $domain)
-
-    if ($removed -gt 0) {
-        Write-Host "$domain queue: $removed ticket(s) withdrawn for session $sessionId; $($remaining.Count) still waiting." -ForegroundColor Green
-    }
-    else {
-        Write-Host "$domain queue: nothing to withdraw - session $sessionId held no ticket; $($remaining.Count) still waiting." -ForegroundColor Gray
-    }
-
-    # Name the next session in line: the point of withdrawing is that someone else moves up, and
-    # saying who makes the effect checkable without a second call to the queue inspector.
-    if ($removed -gt 0 -and $remaining.Count -gt 0) {
-        $head = $remaining[0]
-        Write-Host "  Head of the $domain queue is now #$($head.seq) session $($head.sessionId) (reason: '$($head.reason)')." -ForegroundColor Gray
-    }
-}
-
-exit 0

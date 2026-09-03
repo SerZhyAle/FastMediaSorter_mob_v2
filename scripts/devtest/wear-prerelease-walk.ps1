@@ -38,6 +38,9 @@
 .PARAMETER SkipLogAudit
     Walk the screens but do not harvest or audit the log. Recorded in the output.
 
+.PARAMETER SkipShapeCheck
+    Walk the screens but do not run clip-check per screen. Recorded in the output.
+
 .PARAMETER Json
     Emit the result object instead of the human lines.
 
@@ -46,8 +49,8 @@
 
 .NOTES
     Exit codes:
-      0  every declared screen was observed, and the log audit found nothing
-      1  at least one screen failed, or the log audit reported a finding
+      0  every declared screen was observed, no OFF-GLASS finding (unless SkipShapeCheck), and log audit found nothing
+      1  at least one screen failed, an OFF-GLASS finding was recorded, or the log audit reported a finding
       2  could not verify: the screen list is missing or unreadable, no device, or a called script
          is absent. A screen recorded `manual` does not by itself set this code - it is reported and
          carried into the verdict, which is what refuses the PASS.
@@ -68,6 +71,8 @@ param(
     [int]$MaxScrolls = 4,
 
     [switch]$SkipLogAudit,
+
+    [switch]$SkipShapeCheck,
 
     [switch]$Json
 )
@@ -94,6 +99,7 @@ $result = [ordered]@{
     logFile       = $null
     logAuditExit  = $null
     skipLogAudit  = [bool]$SkipLogAudit
+    skipShapeCheck= [bool]$SkipShapeCheck
     reason        = $null
 }
 
@@ -311,8 +317,17 @@ foreach ($screen in $screens) {
         continue
     }
 
+    $shapeFailed = $false
     if ($present) {
         $row.outcome = 'observed'
+        if (-not $SkipShapeCheck) {
+            $clip = Invoke-AdbVerb -Arguments @('clip-check')
+            $row['shapeExit'] = $clip.Exit
+            if ($clip.Exit -ne 0) {
+                $row['shapeDetail'] = $clip.Output
+                $shapeFailed = $true
+            }
+        }
     }
     elseif ($screen.stateDependent) {
         # Absence proves nothing here: the screen only exists once the user has created the state it
@@ -332,8 +347,9 @@ foreach ($screen in $screens) {
 
     $rows += [pscustomobject]$row
     if (-not $Json) {
-        $colour = switch ($row.outcome) { 'observed' { 'Green' } 'failed' { 'Red' } default { 'Yellow' } }
-        Write-Host "walk: $($screen.id) -> $($row.outcome)" -ForegroundColor $colour
+        $colour = switch ($row.outcome) { 'observed' { if ($shapeFailed) { 'Red' } else { 'Green' } } 'failed' { 'Red' } default { 'Yellow' } }
+        $shapeNote = if ($shapeFailed) { " (OFF-GLASS)" } else { "" }
+        Write-Host "walk: $($screen.id) -> $($row.outcome)$shapeNote" -ForegroundColor $colour
     }
 
     # How many levels this entry sits above the next one. A nested block - the settings pages, the
@@ -344,10 +360,12 @@ foreach ($screen in $screens) {
 }
 
 $result.screens = $rows
+$shapeFailuresCount = @($rows | Where-Object { $_.shapeExit -and $_.shapeExit -ne 0 }).Count
 $result.counts = [ordered]@{
-    observed = @($rows | Where-Object { $_.outcome -eq 'observed' }).Count
-    failed   = @($rows | Where-Object { $_.outcome -eq 'failed' }).Count
-    manual   = @($rows | Where-Object { $_.outcome -eq 'manual' }).Count
+    observed      = @($rows | Where-Object { $_.outcome -eq 'observed' }).Count
+    failed        = @($rows | Where-Object { $_.outcome -eq 'failed' }).Count
+    manual        = @($rows | Where-Object { $_.outcome -eq 'manual' }).Count
+    shapeFailures = $shapeFailuresCount
 }
 
 # --- Log harvest and audit ----------------------------------------------------------------------
@@ -378,7 +396,7 @@ if (-not $SkipLogAudit) {
 $walkPath = Join-Path $outPath 'walk.json'
 [pscustomobject]$result | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $walkPath -Encoding UTF8
 
-$verdict = if ($result.counts.failed -gt 0 -or $result.logAuditExit -eq 1) { 1 }
+$verdict = if ($result.counts.failed -gt 0 -or $shapeFailuresCount -gt 0 -or $result.logAuditExit -eq 1) { 1 }
            elseif ($result.logAuditExit -eq 2) { 2 }
            else { 0 }
 
@@ -387,6 +405,6 @@ $result.ok = ($verdict -eq 0)
 
 if ($Json) { [pscustomobject]$result | ConvertTo-Json -Depth 8 -Compress }
 else {
-    Write-Host ("wear-prerelease-walk: observed $($result.counts.observed), failed $($result.counts.failed), manual $($result.counts.manual); log audit $($result.logAuditExit); walk $walkPath") -ForegroundColor Cyan
+    Write-Host ("wear-prerelease-walk: observed $($result.counts.observed), failed $($result.counts.failed), manual $($result.counts.manual), shapeFailures $shapeFailuresCount; log audit $($result.logAuditExit); walk $walkPath") -ForegroundColor Cyan
 }
 exit $verdict

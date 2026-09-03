@@ -11,6 +11,8 @@ object PlaybackControlPreferences {
     const val KEY_HUE_DEGREES = "hue_degrees"
     const val KEY_BRIGHTNESS_PERCENT = "brightness_percent"
     const val KEY_LAST_NON_ZERO_VOLUME = "last_non_zero_volume"
+    const val KEY_BALANCE_LEFT_GAIN = "balance_left_gain"
+    const val KEY_BALANCE_RIGHT_GAIN = "balance_right_gain"
     // Speed set via the Control dialog. Stored separately so applyPlayerSettings() can restore it
     // after onPlaybackReady() - which always fires with the default 1.0x from PlayerSettings.
     const val KEY_SPEED = "playback_speed"

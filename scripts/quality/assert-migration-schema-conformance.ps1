@@ -149,6 +149,36 @@ function Add-Finding([string]$module, [string]$migration, [string]$dimension, [s
         })
 }
 
+# ---- @Database annotation ---------------------------------------------------------------
+function Get-DatabaseAnnotationBody([string]$text) {
+    <#
+    .SYNOPSIS
+        The text between @Database( and its matching ), or $null when there is no such annotation.
+    .DESCRIPTION
+        S2355 step 04.0. The version used to be read with a bare `version\s*=\s*(\d+)` over the whole
+        source. Step 02.3 unanchored it to reach the watch's single-line annotation, and unanchored it
+        takes the FIRST such assignment anywhere in the file - so a `const val version = 9`, or a KDoc
+        line mentioning one, would silently decide which exported schema every migration in that module
+        is compared against while the gate printed PASS. Scanning to the balanced closing parenthesis
+        rather than to the first one is what makes it safe for real annotations: entities, autoMigrations
+        and typeConverters all carry nested parentheses and brackets.
+    #>
+    $open = [regex]::Match($text, '@Database\s*\(')
+    if (-not $open.Success) { return $null }
+
+    $bodyStart = $open.Index + $open.Length
+    $depth = 0
+    for ($i = $bodyStart - 1; $i -lt $text.Length; $i++) {
+        $ch = $text[$i]
+        if ($ch -eq '(') { $depth++ }
+        elseif ($ch -eq ')') {
+            $depth--
+            if ($depth -eq 0) { return $text.Substring($bodyStart, $i - $bodyStart) }
+        }
+    }
+    return $null
+}
+
 # ---- schema cache -----------------------------------------------------------------------
 # Keyed by directory as well as version: two databases both have a 1.json and they are not the
 # same file.
@@ -207,8 +237,16 @@ foreach ($db in $databases) {
     if ($dbClassFile.Count -gt 1) { Stop-CannotVerify "$($db.Module): $($dbClassFile.Count) @Database classes in $($db.RelativePaths.MigrationDir) - the registry names one database per row" }
 
     $dbClassText = Get-Content $dbClassFile[0].FullName -Raw
-    $versionMatch = [regex]::Match($dbClassText, 'version\s*=\s*(\d+)')
-    if (-not $versionMatch.Success) { Stop-CannotVerify "$($db.Module): no 'version = N' found in $($dbClassFile[0].Name)" }
+    # Read the version from INSIDE the annotation body, never from the whole file - see
+    # Get-DatabaseAnnotationBody for what the unanchored form silently accepted.
+    $annotationBody = Get-DatabaseAnnotationBody $dbClassText
+    if ($null -eq $annotationBody) {
+        Stop-CannotVerify "$($db.Module): no closed @Database( .. ) annotation body in $($dbClassFile[0].Name)"
+    }
+    $versionMatch = [regex]::Match($annotationBody, 'version\s*=\s*(\d+)')
+    if (-not $versionMatch.Success) {
+        Stop-CannotVerify "$($db.Module): the @Database annotation in $($dbClassFile[0].Name) declares no 'version = N'"
+    }
     $declaredVersion = [int]$versionMatch.Groups[1].Value
 
     # "Migration31To32.kt" -> "31To32". Anchored so a helper like MigrationHelpers.kt is not taken

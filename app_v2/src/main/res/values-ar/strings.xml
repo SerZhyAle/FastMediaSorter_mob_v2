@@ -1402,6 +1402,13 @@
     <string name="wear_sync_success">تم إرسال %d مصدر إلى الساعة</string>
     <string name="wear_sync_failed">تعذّرت المزامنة مع الساعة. حاول مرة أخرى.</string>
     <string name="wear_settings_section_title">إعدادات الساعة</string>
+    <string name="wear_settings_group_media_types">أنواع الوسائط</string>
+    <string name="wear_settings_group_slideshow">عرض الشرائح</string>
+    <string name="wear_settings_group_screen">الشاشة</string>
+    <string name="wear_settings_group_other">أخرى</string>
+    <string name="wear_settings_group_sections">الأقسام</string>
+    <string name="wear_settings_disable_animations">تعطيل الرسوم المتحركة</string>
+    <string name="wear_settings_background_mode">مشاهدة الخلفية</string>
     <string name="wear_settings_audio">الصوت</string>
     <string name="wear_settings_video">الفيديو</string>
     <string name="wear_settings_images">الصور</string>
@@ -3036,7 +3043,6 @@
     <string name="calculator_keypad_mode_normal">طبيعي</string>
     <string name="calculator_keypad_mode_large">مفاتيح كبيرة</string>
     <string name="calculator_keypad_mode_compact">المدمجة، أسفل اليمين</string>
-    <string name="wear_background_section_title">مشاهدة الخلفية</string>
     <string name="wear_background_mode_animation">الرسوم المتحركة ذات العلامات التجارية</string>
     <string name="wear_background_mode_image">صورتك</string>
     <string name="wear_background_pick_image">اختر الصورة</string>

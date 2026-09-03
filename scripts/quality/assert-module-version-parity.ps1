@@ -93,7 +93,7 @@ if ($wear.Code -ne $expectedWearCode) {
     if ($wear.Code -eq $app.Code) {
         $violations.Add("versionCode is identical in both modules ($($app.Code)). Play refuses a release that repeats a versionCode under one applicationId - the submission fails, the build does not. Expected wear = $expectedWearCode.")
     } else {
-        $violations.Add("versionCode derivation broken: wear is $($wear.Code), expected $expectedWearCode (app_v2 $($app.Code) without its trailing minute digit, per scripts/release/build-release-spectrum.ps1).")
+        $violations.Add("versionCode derivation broken: wear is $($wear.Code), expected $expectedWearCode (app_v2 $($app.Code) without its trailing minute digit, per scripts/release/build-release-spectrum.ps1). A stale wear versionCode prevents installing debug wear builds (INSTALL_FAILED_VERSION_DOWNGRADE) on any device or emulator running a newer build.")
     }
 }
 
@@ -102,7 +102,10 @@ if ($violations.Count -gt 0) {
     foreach ($violation in $violations) {
         Write-Host "  $violation"
     }
-    Write-Host '  Fix: stamp both modules together - pwsh -NoProfile -File scripts/release/build-release-spectrum.ps1 -SkipBuild - or hand-align wear to app_v2 under the rule above.'
+    # S1873 ADR-4: no script writes these constants any longer, so this is a hand edit by
+    # construction. The hint used to name build-release-spectrum.ps1 -SkipBuild, which after that
+    # ticket resolves a version and writes nothing - it would have sent the reader to a no-op.
+    Write-Host '  Fix: edit both build files by hand under the rule above - keep versionName byte-identical and set wear = floor(app_v2 / 10). No build writes these constants (S1873).'
     exit 1
 }
 

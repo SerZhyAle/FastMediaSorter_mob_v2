@@ -24,6 +24,7 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
+import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsItem
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsRow
@@ -88,7 +89,8 @@ fun ScreenSettingsScreen(
                 modifier = Modifier.fillMaxSize(),
                 state = listState,
                 contentPadding = wearScreenInsets(),
-                verticalArrangement = Arrangement.spacedBy(ROW_SPACING)
+                verticalArrangement = Arrangement.spacedBy(ROW_SPACING),
+                scalingParams = WearGridScalingParams
             ) {
                 item {
                     Text(

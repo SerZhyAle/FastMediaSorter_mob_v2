@@ -19,6 +19,15 @@ import dagger.multibindings.Multibinds
  * Each receiver is a pure declaration - id, title, default ([ShareTargetDefault], ADR-7),
  * availability ([ShareTargetAvailability]), candidate packages, and type applicability (ADR-3).
  * Send behaviour lives in the matching `ShareTargetHandler` bound in `ShareTargetHandlerModule`.
+ *
+ * S2142: every receiver also declares [ShareTarget.wearIconName], the stable glyph name the watch
+ * resolves in its own icon set - a neutral name, never a brand, the same rule the vector drawables
+ * above it follow. [ShareTarget.servedOnWatch] is deliberately left at its `false` default on all
+ * fourteen: the platform measurement in `PLAN/S2142_wear-file-actions-and-send-to/research/04`
+ * (2026-09-03) found no print service on the watch at all and ACTION_SEND answered by a system stub,
+ * so nothing here is served locally today. `false` is also the safe answer either way - it yields a
+ * working send through the phone, where a wrong `true` yields a menu entry ending in a refusal. What
+ * the owner's own watch has installed is still unmeasured, and turning a row local is one field.
  */
 @Module
 @InstallIn(SingletonComponent::class)
@@ -50,6 +59,7 @@ abstract class ShareTargetModule {
             id = "system_share",
             titleRes = R.string.share_target_title_system_share,
             iconRes = R.drawable.ic_share,
+            wearIconName = "Share",
             defaultEnabled = ShareTargetDefault.ALWAYS_ON,
             availability = ShareTargetAvailability.ALWAYS,
             batchCapable = true,
@@ -66,6 +76,7 @@ abstract class ShareTargetModule {
             id = "open_in",
             titleRes = R.string.share_target_title_open_in,
             iconRes = R.drawable.ic_open_in_browse,
+            wearIconName = "OpenInNew",
             defaultEnabled = ShareTargetDefault.ALWAYS_ON,
             availability = ShareTargetAvailability.ALWAYS,
             subtitleRes = R.string.share_target_desc_open_in,
@@ -78,6 +89,7 @@ abstract class ShareTargetModule {
             id = "watch",
             titleRes = R.string.share_target_title_watch,
             iconRes = R.drawable.ic_watch,
+            wearIconName = "Watch",
             defaultEnabled = ShareTargetDefault.ON_IF_WATCH,
             availability = ShareTargetAvailability.REQUIRES_WATCH,
             // ADR-3: the watch renders exactly these four families, so a document never shows a dead
@@ -96,6 +108,7 @@ abstract class ShareTargetModule {
             id = "print",
             titleRes = R.string.menu_print,
             iconRes = R.drawable.ic_print,
+            wearIconName = "Print",
             defaultEnabled = ShareTargetDefault.ALWAYS_ON,
             availability = ShareTargetAvailability.ALWAYS,
             applicableTypes = setOf(
@@ -115,6 +128,7 @@ abstract class ShareTargetModule {
             id = "email",
             titleRes = R.string.share_target_title_email,
             iconRes = R.drawable.ic_send_email,
+            wearIconName = "Email",
             defaultEnabled = ShareTargetDefault.ON_IF_INTERNET,
             availability = ShareTargetAvailability.REQUIRES_INTERNET,
             batchCapable = true,
@@ -129,6 +143,7 @@ abstract class ShareTargetModule {
             // S0463: unique title per content-type variant (was: text_editor_action_send_keep - same as keep_drawing)
             titleRes = R.string.share_target_title_keep_text,
             iconRes = R.drawable.ic_send_note,
+            wearIconName = "EditNote",
             defaultEnabled = ShareTargetDefault.ON_IF_GOOGLE,
             availability = ShareTargetAvailability.PACKAGE_INSTALLED,
             packages = KEEP_PACKAGES,
@@ -149,6 +164,7 @@ abstract class ShareTargetModule {
             // S0463: unique title per content-type variant (was: text_editor_action_send_keep - same as keep_text)
             titleRes = R.string.share_target_title_keep_drawing,
             iconRes = R.drawable.ic_send_note_brush,
+            wearIconName = "Brush",
             defaultEnabled = ShareTargetDefault.ON_IF_GOOGLE,
             availability = ShareTargetAvailability.PACKAGE_INSTALLED,
             packages = KEEP_PACKAGES,
@@ -163,6 +179,7 @@ abstract class ShareTargetModule {
             id = "lens",
             titleRes = R.string.google_lens,
             iconRes = R.drawable.ic_google_lens,
+            wearIconName = "ImageSearch",
             defaultEnabled = ShareTargetDefault.ALWAYS_OFF,
             availability = ShareTargetAvailability.REQUIRES_GOOGLE,
             applicableTypes = setOf(MediaType.IMAGE, MediaType.GIF),
@@ -178,6 +195,7 @@ abstract class ShareTargetModule {
             // 2026-06-16); this neutral string is only a fallback. No brand literal is hardcoded.
             titleRes = R.string.share_target_title_app,
             iconRes = R.drawable.ic_send_plane,
+            wearIconName = "Send",
             defaultEnabled = ShareTargetDefault.ALWAYS_OFF,
             availability = ShareTargetAvailability.PACKAGE_INSTALLED,
             packages = TELEGRAM_PACKAGES,
@@ -192,6 +210,7 @@ abstract class ShareTargetModule {
             id = "whatsapp",
             titleRes = R.string.share_target_title_app,
             iconRes = R.drawable.ic_send_chat,
+            wearIconName = "Chat",
             defaultEnabled = ShareTargetDefault.ALWAYS_OFF,
             availability = ShareTargetAvailability.PACKAGE_INSTALLED,
             packages = listOf("com.whatsapp", "com.whatsapp.w4b"),
@@ -206,6 +225,7 @@ abstract class ShareTargetModule {
             id = "viber",
             titleRes = R.string.share_target_title_app,
             iconRes = R.drawable.ic_send_phone_chat,
+            wearIconName = "PhoneInTalk",
             defaultEnabled = ShareTargetDefault.ALWAYS_OFF,
             availability = ShareTargetAvailability.PACKAGE_INSTALLED,
             packages = VIBER_PACKAGES,
@@ -219,6 +239,7 @@ abstract class ShareTargetModule {
             id = "messenger",
             titleRes = R.string.share_target_title_app,
             iconRes = R.drawable.ic_send_bolt_chat,
+            wearIconName = "Bolt",
             defaultEnabled = ShareTargetDefault.ALWAYS_OFF,
             availability = ShareTargetAvailability.PACKAGE_INSTALLED,
             packages = MESSENGER_PACKAGES,
@@ -232,6 +253,7 @@ abstract class ShareTargetModule {
             id = "instagram",
             titleRes = R.string.share_target_title_app,
             iconRes = R.drawable.ic_send_camera,
+            wearIconName = "PhotoCamera",
             defaultEnabled = ShareTargetDefault.ALWAYS_OFF,
             availability = ShareTargetAvailability.PACKAGE_INSTALLED,
             packages = listOf("com.instagram.android"),
@@ -249,6 +271,7 @@ abstract class ShareTargetModule {
             id = "tiktok",
             titleRes = R.string.share_target_title_app,
             iconRes = R.drawable.ic_send_music_note,
+            wearIconName = "MusicNote",
             defaultEnabled = ShareTargetDefault.ALWAYS_OFF,
             availability = ShareTargetAvailability.PACKAGE_INSTALLED,
             packages = TIKTOK_PACKAGES,

@@ -64,6 +64,20 @@ class WearFaviconAtlasSlicer(
     }
 
     /**
+     * Does not wait for an active slice: recycling its source bitmap would make that slice fail.
+     */
+    fun releaseNow() {
+        if (!mutex.tryLock()) return
+        try {
+            cachedAtlas?.recycle()
+            cachedAtlas = null
+            decoded = false
+        } finally {
+            mutex.unlock()
+        }
+    }
+
+    /**
      * S2149: the atlas is a single bitmap sized to the whole catalogue, so the first request for any
      * tile pays the entire decode.
      *

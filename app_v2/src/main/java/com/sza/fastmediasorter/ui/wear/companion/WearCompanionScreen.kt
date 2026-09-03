@@ -76,7 +76,6 @@ fun WearCompanionScreen(
     val watchPlaybackState by viewModel.watchPlaybackState.collectAsState()
 
     var watchSettingsExpanded by remember { mutableStateOf(false) }
-    var backgroundExpanded by remember { mutableStateOf(false) }
 
     // The content is taller than the window on a short phone, and before this the slideshow slider
     // and the push button were the parts that fell past the fold (S1730).
@@ -145,12 +144,6 @@ fun WearCompanionScreen(
             pushEnabled = state !is WearSyncUiState.Sending,
             expanded = watchSettingsExpanded,
             onExpandedChange = { watchSettingsExpanded = it }
-        )
-
-        WearBackgroundGroup(
-            viewModel = viewModel,
-            expanded = backgroundExpanded,
-            onExpandedChange = { backgroundExpanded = it }
         )
     }
 }

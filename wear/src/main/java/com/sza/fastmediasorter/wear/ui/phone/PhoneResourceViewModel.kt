@@ -9,6 +9,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceClient
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceOutcome
 import com.sza.fastmediasorter.wear.domain.browse.BrowseCategoryCatalog
@@ -18,6 +19,7 @@ import com.sza.fastmediasorter.wear.domain.browse.BrowseRefineState
 import com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder
 import com.sza.fastmediasorter.wear.domain.files.WEAR_PHONE_FILE_CACHE_DIR
 import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
+import com.sza.fastmediasorter.wear.domain.files.WearSendToReceiverFilter
 import com.sza.fastmediasorter.wear.domain.model.WEAR_FILE_TRANSFER_MAX_BYTES
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperation
@@ -28,6 +30,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceItem
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceResponseStatus
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceResponseStatus.NO_RESOURCE_FOR_TYPE
+import com.sza.fastmediasorter.wear.domain.model.WearSendToReceiverEntry
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.model.contentTypeForMime
@@ -181,6 +184,7 @@ class PhoneResourceViewModel @Inject constructor(
     private val selectedMediaManager: SelectedMediaManager,
     private val capabilityPolicy: WearFileCapabilityPolicy,
     private val performFileOperation: PerformWearFileOperationUseCase,
+    private val sendToReceiversRepository: WearSendToReceiversRepository,
     @ApplicationContext context: Context,
     preferencesRepository: WearPreferencesRepository,
     savedStateHandle: SavedStateHandle
@@ -243,6 +247,9 @@ class PhoneResourceViewModel @Inject constructor(
      */
     private val _openOutcome = MutableStateFlow<PhoneFileOpenOutcome?>(null)
     val openOutcome: StateFlow<PhoneFileOpenOutcome?> = _openOutcome.asStateFlow()
+
+    /** The run in flight, kept only so a second press cannot start a parallel one (S2142). */
+    private var operationJob: Job? = null
 
     /** What the last file operation came to, or null when there is nothing to report. */
     private val _operationNotice = MutableStateFlow<WearFileOperationOutcome?>(null)
@@ -407,6 +414,18 @@ class PhoneResourceViewModel @Inject constructor(
     }
 
     /**
+     * S2142: the receivers [entry]'s fetched copy may be handed to, through the shared filter.
+     *
+     * Reached only once that copy exists, because [allowedOperationsFor] withholds the whole entry
+     * until it does - a receiver takes bytes, and the phone's original is not on this watch.
+     */
+    fun sendToReceiversFor(entry: WearPhoneResourceItem): List<WearSendToReceiverEntry> =
+        WearSendToReceiverFilter.apply(
+            sendToReceiversRepository.observe().value,
+            listOf(actionTargetFor(entry))
+        )
+
+    /**
      * Runs [operation] over the watch's copy of [entry] and reports what came of it.
      *
      * The list itself never changes: it shows what the phone holds, and this acts on the watch's copy
@@ -414,8 +433,15 @@ class PhoneResourceViewModel @Inject constructor(
      * a delete indistinguishable from a menu that did nothing.
      */
     fun runOperation(entry: WearPhoneResourceItem, operation: WearFileOperation) {
+        // S2142: a second press while the first run is still going is ignored rather than started
+        // beside it - a send through the phone hands bytes over in its middle, so a parallel run is
+        // how one file reaches a receiver twice.
+        if (operationJob?.isActive == true) {
+            Timber.i("Wear file operation ignored: a run is already in progress")
+            return
+        }
         val local = actionTargetFor(entry)
-        viewModelScope.launch {
+        operationJob = viewModelScope.launch {
             performFileOperation(listOf(local), operation, isNetworkSource = false).collect { result ->
                 _operationNotice.value = result.outcome
             }

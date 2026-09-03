@@ -15,7 +15,9 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -43,7 +45,13 @@ abstract class BaseWearTileService : TileService() {
             try {
                 val content = loadWearTileContentUseCase(kind)
                 val layout = tileLayoutBuilder.build(content, requestParams.deviceConfiguration)
-                val rootElement = layout.root ?: return@launch
+                val rootElement = layout.root
+                if (rootElement == null) {
+                    val error = IllegalStateException("Tile $kind has no root layout")
+                    Timber.w(error, "Tile %s returned a layout with no root", kind)
+                    future.setException(error)
+                    return@launch
+                }
                 val timeline = TimelineBuilders.Timeline.fromLayoutElement(rootElement)
                 val tile = TileBuilders.Tile.Builder()
                     .setResourcesVersion(RESOURCES_VERSION)
@@ -66,6 +74,12 @@ abstract class BaseWearTileService : TileService() {
             .setVersion(RESOURCES_VERSION)
             .build()
         return Futures.immediateFuture(resources)
+    }
+
+    override fun onDestroy() {
+        // Releases an in-flight tile request that would otherwise retain this destroyed service.
+        serviceScope.cancel()
+        super.onDestroy()
     }
 
     companion object {

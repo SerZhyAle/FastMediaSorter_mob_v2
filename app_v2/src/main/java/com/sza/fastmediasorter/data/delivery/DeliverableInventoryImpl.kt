@@ -147,7 +147,8 @@ class DeliverableInventoryImpl @Inject constructor(
             )
         }
         // S1971: only noLegal contributes a libVLC descriptor, so `isSetOffered` is what keeps the row
-        // out of the five flavors that carry no such dependency at all.
+        // out of the six flavors that carry no such dependency at all - every one of the seven
+        // declared except noLegal itself.
         if (isSetOffered(DeliverableSet.VLC_ENGINE)) {
             add(
                 ExtensionItem.Module(

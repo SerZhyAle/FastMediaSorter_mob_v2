@@ -33,9 +33,15 @@ interface VoiceNoteRepository {
 
     suspend fun updateState(id: Long, state: VoiceNoteDeliveryState)
 
+    /** S2161: records the published MediaStore address for a note. */
+    suspend fun updatePublishedAddress(id: Long, publishedAddress: String)
+
     /** Removes the row AND the file - a note kept until deleted by hand must free its bytes then. */
     suspend fun delete(id: Long)
 
     /** False when the recording directory is too tight to start; asked before the microphone opens. */
     suspend fun hasRoomToRecord(): Boolean
+
+    /** S2161: the most recently created note, or null when no note exists yet. */
+    fun mostRecent(): Flow<VoiceNote?>
 }

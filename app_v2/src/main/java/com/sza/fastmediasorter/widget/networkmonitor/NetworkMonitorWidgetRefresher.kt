@@ -10,14 +10,13 @@ import androidx.work.PeriodicWorkRequest
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.domain.repository.NetworkMonitorRepository
+import com.sza.fastmediasorter.util.applicationScope
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -68,7 +67,7 @@ object NetworkMonitorWidgetRefresher {
         val ids = placedIds(appContext, manager)
         if (snapshotJob?.isActive != true && ids.isNotEmpty()) {
             val entryPoint = entryPoint(appContext)
-            snapshotJob = entryPoint.applicationScope().launch {
+            snapshotJob = appContext.applicationScope().launch {
                 entryPoint.monitorRepository().observeSnapshot()
                     .distinctUntilChanged()
                     .collect { refresh(appContext) }
@@ -151,7 +150,4 @@ class NetworkMonitorWidgetThroughputWorker(
 interface NetworkMonitorWidgetRefreshEntryPoint {
 
     fun monitorRepository(): NetworkMonitorRepository
-
-    @ApplicationScope
-    fun applicationScope(): CoroutineScope
 }

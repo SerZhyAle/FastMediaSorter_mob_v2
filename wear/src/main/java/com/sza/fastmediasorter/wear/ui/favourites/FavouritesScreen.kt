@@ -46,6 +46,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.browse.FileDeleteConfirmDialog
 import com.sza.fastmediasorter.wear.ui.common.CellCaption
 import com.sza.fastmediasorter.wear.ui.common.LongPressChip
+import com.sza.fastmediasorter.wear.ui.common.ReceiverListDialog
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WearFileActionsDialog
 import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
@@ -86,6 +87,7 @@ fun FavouritesScreen(
     // that carried it would replay it.
     var actionRecord by remember { mutableStateOf<WearFavoriteRecord?>(null) }
     var deleteRecord by remember { mutableStateOf<WearFavoriteRecord?>(null) }
+    var sendToRecord by remember { mutableStateOf<WearFavoriteRecord?>(null) }
     val renameRecord = remember { mutableStateOf<WearFavoriteRecord?>(null) }
     val requestRename = rememberWearRenameInput { newName ->
         renameRecord.value?.let { viewModel.runOperation(it, WearFileOperation.Rename(newName)) }
@@ -147,7 +149,19 @@ fun FavouritesScreen(
             onRename = {
                 renameRecord.value = record
                 requestRename()
-            }
+            },
+            onSendTo = { sendToRecord = record }
+        )
+    }
+
+    sendToRecord?.let { record ->
+        ReceiverListDialog(
+            receivers = remember(record.identity) { viewModel.sendToReceiversFor(record) },
+            onPick = { entry ->
+                sendToRecord = null
+                viewModel.runOperation(record, WearFileOperation.SendToReceiver(entry.id))
+            },
+            onDismiss = { sendToRecord = null }
         )
     }
 
@@ -175,7 +189,8 @@ private fun FavouriteActionsMenu(
     viewModel: FavouritesViewModel,
     onClose: () -> Unit,
     onDelete: () -> Unit,
-    onRename: () -> Unit
+    onRename: () -> Unit,
+    onSendTo: () -> Unit
 ) {
     // Classifying a path canonicalises it, which touches the filesystem - asked once per pressed row
     // rather than on every recomposition the open dialog causes.
@@ -194,6 +209,7 @@ private fun FavouriteActionsMenu(
                 WearFileOperationKind.MOVE_TO_PHONE ->
                     viewModel.runOperation(record, WearFileOperation.MoveToPhone)
                 WearFileOperationKind.OPEN_ON_PHONE -> viewModel.reportOpenOnPhoneUnavailable()
+                WearFileOperationKind.SEND_TO_RECEIVER -> onSendTo()
             }
         },
         onDismiss = onClose,

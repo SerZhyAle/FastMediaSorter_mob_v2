@@ -38,6 +38,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
 
     private enum class ControlSection(val buttonId: Int) {
         VOLUME(R.id.btnSectionVolume),
+        BALANCE(R.id.btnSectionBalance),
         AUDIO(R.id.btnSectionAudio),
         SUBTITLES(R.id.btnSectionSubtitles),
         STEREO(R.id.btnSectionStereo),
@@ -108,9 +109,12 @@ class PlaybackControlDialogFragment : DialogFragment() {
 
     private val activeSections: List<ControlSection>
         get() = when (currentMediaType) {
-            MediaType.AUDIO -> listOf(ControlSection.VOLUME, ControlSection.SPEED)
+            MediaType.AUDIO -> listOf(ControlSection.VOLUME, ControlSection.BALANCE, ControlSection.SPEED)
             else -> buildList {
                 add(ControlSection.VOLUME)
+                // Never hidden by content capability: mono disables the controls, it does not remove
+                // the tab (S1267 strategic §2 goal 3).
+                add(ControlSection.BALANCE)
                 if (hasMultipleAudioTracks) add(ControlSection.AUDIO)
                 if (hasSubtitles) add(ControlSection.SUBTITLES)
                 if (supportsVrMediaControls && is3dVrEnabled) add(ControlSection.STEREO)
@@ -153,6 +157,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
         sourceIsLive = host().activeSourceIsLive
         setupSectionNavigation(savedInstanceState?.getString(STATE_SELECTED_SECTION))
         setupVolumeTab()
+        setupBalanceTab()
         if (currentMediaType == MediaType.VIDEO) {
             setupAudioTab()
             setupSubtitleTab()
@@ -266,6 +271,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
 
     private fun updateVisibleSection(section: ControlSection?) {
         binding.sectionVolume.isVisible = false
+        binding.sectionBalance.isVisible = false
         binding.sectionAudio.isVisible = false
         binding.sectionSubtitles.isVisible = false
         binding.sectionStereo3d.isVisible = false
@@ -275,6 +281,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
 
         when (section) {
             ControlSection.VOLUME -> binding.sectionVolume.isVisible = true
+            ControlSection.BALANCE -> binding.sectionBalance.isVisible = true
             ControlSection.AUDIO -> binding.sectionAudio.isVisible = true
             ControlSection.SUBTITLES -> binding.sectionSubtitles.isVisible = true
             ControlSection.STEREO -> binding.sectionStereo3d.isVisible = true
@@ -284,6 +291,63 @@ class PlaybackControlDialogFragment : DialogFragment() {
             null -> binding.sectionVolume.isVisible = true
         }
     }
+
+    private fun setupBalanceTab() {
+        val leftGain = prefs.getFloat(PlaybackControlPreferences.KEY_BALANCE_LEFT_GAIN, BALANCE_DEFAULT_GAIN)
+        val rightGain = prefs.getFloat(PlaybackControlPreferences.KEY_BALANCE_RIGHT_GAIN, BALANCE_DEFAULT_GAIN)
+        updateBalanceLabel(leftGain, rightGain)
+
+        bindBalancePreset(binding.btnBalance5050, BALANCE_EVEN_GAIN, BALANCE_EVEN_GAIN)
+        bindBalancePreset(binding.btnBalance3070, BALANCE_QUIET_GAIN, BALANCE_LOUD_GAIN)
+        bindBalancePreset(binding.btnBalance7030, BALANCE_LOUD_GAIN, BALANCE_QUIET_GAIN)
+
+        // Mono has no sides to balance: keep the section visible and disable its controls, the same
+        // shape setupVolumeTab() uses for maxVolume == 0.
+        val isStereo = host().supportsChannelBalanceForActiveSource
+        Timber.d("S1267: balance tab opened left=$leftGain right=$rightGain stereo=$isStereo")
+        binding.tvBalanceNoStereo.isVisible = !isStereo
+        binding.btnBalance5050.isEnabled = isStereo
+        binding.btnBalance3070.isEnabled = isStereo
+        binding.btnBalance7030.isEnabled = isStereo
+    }
+
+    private fun bindBalancePreset(button: MaterialButton, leftGain: Float, rightGain: Float) {
+        // The numeric label alone ("30/70") does not say "balance" out of context, unlike the volume
+        // presets whose own text is self-explanatory.
+        button.contentDescription = getString(
+            R.string.playback_control_balance_description,
+            gainToPercent(leftGain),
+            gainToPercent(rightGain)
+        )
+        button.setOnClickListener {
+            prefs.edit()
+                .putFloat(PlaybackControlPreferences.KEY_BALANCE_LEFT_GAIN, leftGain)
+                .putFloat(PlaybackControlPreferences.KEY_BALANCE_RIGHT_GAIN, rightGain)
+                .apply()
+            host().setChannelBalance(leftGain, rightGain)
+            updateBalanceLabel(leftGain, rightGain)
+        }
+    }
+
+    private fun updateBalanceLabel(leftGain: Float, rightGain: Float) {
+        val label = balancePresetLabel(leftGain, rightGain)
+            ?: "${gainToPercent(leftGain)}/${gainToPercent(rightGain)}"
+        binding.tvBalanceValue.text = getString(R.string.playback_control_balance_value, label)
+    }
+
+    // Null for a persisted pair matching no preset - including the unity default, which is why a
+    // first open reads as the raw pair rather than as a preset name.
+    private fun balancePresetLabel(leftGain: Float, rightGain: Float): String? = when {
+        leftGain == BALANCE_EVEN_GAIN && rightGain == BALANCE_EVEN_GAIN ->
+            getString(R.string.playback_control_balance_50_50)
+        leftGain == BALANCE_QUIET_GAIN && rightGain == BALANCE_LOUD_GAIN ->
+            getString(R.string.playback_control_balance_30_70)
+        leftGain == BALANCE_LOUD_GAIN && rightGain == BALANCE_QUIET_GAIN ->
+            getString(R.string.playback_control_balance_70_30)
+        else -> null
+    }
+
+    private fun gainToPercent(gain: Float): Int = (gain * PERCENT_SCALE).roundToInt()
 
     private fun setupVolumeTab() {
         val audioManager = requireContext().getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
@@ -745,6 +809,13 @@ class PlaybackControlDialogFragment : DialogFragment() {
     companion object {
         const val TAG = "PlaybackControlDialog"
         private const val STATE_SELECTED_SECTION = "selected_section"
+
+        // S1267 ADR-1: the first number of a preset label is always the LEFT channel.
+        private const val BALANCE_DEFAULT_GAIN = 1f
+        private const val BALANCE_EVEN_GAIN = 0.5f
+        private const val BALANCE_QUIET_GAIN = 0.3f
+        private const val BALANCE_LOUD_GAIN = 0.7f
+        private const val PERCENT_SCALE = 100f
 
         fun newInstance(): PlaybackControlDialogFragment = PlaybackControlDialogFragment()
     }

@@ -74,6 +74,22 @@ object WearDataLayerPaths {
     const val STREAM_PINS = "/fms/phone/stream_pins"
 
     /**
+     * Data Item, phone → watch. Carries the whole set of «Send to..» receivers the watch may offer
+     * (S2142).
+     *
+     * A Data Item and a whole set for [STREAM_PINS]'s reasons: the list is state the watch must hold
+     * while out of reach, and replacing it whole is the only thing that lets a receiver switched off
+     * on the phone disappear from the watch. Its own path rather than a field of the settings
+     * payload, because the list is a derivative of the owner's settings and not a setting - a field
+     * would owe `assert-wear-settings-parity.ps1` an ownership entry and an exception reason that do
+     * not exist (ADR-5).
+     *
+     * Sits under the `/fms/phone` prefix `wear/src/main/AndroidManifest.xml` already declares, so it
+     * needs no manifest edit; a path outside a declared prefix is dropped by GMS in silence (S1697).
+     */
+    const val SEND_TO_RECEIVERS = "/fms/phone/send_to_receivers"
+
+    /**
      * Channel, either direction. Carries the bytes of one file sent to the paired watch (S1861).
      *
      * The file name rides in the path as a trailing segment ("$FILE_TRANSFER/photo.jpg"): the watch
@@ -134,6 +150,9 @@ object WearDataLayerPaths {
 
     /** eventType value for STREAM_PINS envelopes (S2149). */
     const val EVENT_STREAM_PINS = "STREAM_PINS"
+
+    /** eventType value for SEND_TO_RECEIVERS envelopes (S2142). */
+    const val EVENT_SEND_TO_RECEIVERS = "SEND_TO_RECEIVERS"
 
     /** eventType value for SOURCES_EXPORT envelopes. */
     const val EVENT_SOURCES_EXPORT = "SOURCES_EXPORT"

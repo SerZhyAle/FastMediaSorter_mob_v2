@@ -1,6 +1,9 @@
 package com.sza.fastmediasorter.ui.wear.companion
 
 import android.content.Context
+import android.widget.ImageView
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,6 +22,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -30,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -37,15 +42,23 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.ui.dialog.TooltipDialog
+import com.sza.fastmediasorter.ui.settings.WearBackgroundDeliveryState
+import com.sza.fastmediasorter.ui.settings.WearBackgroundPreview
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
+import timber.log.Timber
+import java.io.File
 import java.text.DateFormat
 import java.util.Date
 
 private const val DEFAULT_SLIDESHOW_INTERVAL_SECONDS = 5
+private const val DEFAULT_ANIMATIONS_DISABLED = false
 private const val SLIDESHOW_INTERVAL_MAX_SECONDS = 3600f
 
 // S2094: matches the View-side canonical row's ic_help_outline_24 - a touch target close to
@@ -62,8 +75,23 @@ private val WEAR_VIEW_MODES = listOf(
     "GRID_3" to R.string.wear_settings_view_mode_grid3
 )
 
+private val BACKGROUND_MODES = listOf(
+    WearSettingsPayload.BACKGROUND_MODE_BRANDED_ANIMATION to R.string.wear_background_mode_animation,
+    WearSettingsPayload.BACKGROUND_MODE_IMAGE to R.string.wear_background_mode_image
+)
+
+private val PICKED_IMAGE_TYPES = arrayOf("image/*")
+
+private val PREVIEW_EDGE = 120.dp
+
 /**
  * The watch's own settings, mirrored on the phone, as one group of the companion window.
+ *
+ * S2169: inside the group the rows are grouped and ordered exactly as the watch settings menu
+ * shows them - Media types, Slideshow, Screen, Other - because the owner looks for a setting in the
+ * same place on both surfaces. The background mode sits inside "Screen" at its canonical position
+ * with its dependent picker right after it; the sync action stays at the end, outside the mirrored
+ * sequence, as an action of this surface rather than a setting.
  *
  * The edited values live in [WatchSettingsState] rather than in the parent so a collapsed group
  * keeps no half-edited copy of state the watch never received.
@@ -81,6 +109,7 @@ fun WearWatchSettingsGroup(
     // collectAsState, matching the sibling groups on this island: app_v2 does not carry
     // lifecycle-runtime-compose, and the whole island lives inside a dialog that is torn down with it.
     val lastSyncedAt by viewModel.lastSyncedAt.collectAsState()
+    Timber.d("S2169: companion watch-settings block drawn in canonical watch-menu order")
 
     WearCompanionGroup(
         title = stringResource(R.string.wear_settings_section_title),
@@ -88,6 +117,7 @@ fun WearWatchSettingsGroup(
         onExpandedChange = onExpandedChange
     ) {
         WatchSettingsControls(
+            viewModel = viewModel,
             state = state,
             pushEnabled = pushEnabled,
             lastSyncedAtEpochMillis = lastSyncedAt,
@@ -119,6 +149,14 @@ private class WatchSettingsState(watchSettings: WearSettingsPayload?) {
     var albumArtEnabled by mutableStateOf(watchSettings?.downloadAlbumArt ?: false)
     var keepScreenAwake by mutableStateOf(watchSettings?.keepScreenAwakeOutsidePlayers ?: false)
 
+    // S2169: seeded with the watch's stored default for the same reason as album art - the row edits
+    // a BOTH field, so an unedited push must carry the default rather than flip animations off.
+    var disableAnimations by mutableStateOf(watchSettings?.disableAnimations ?: DEFAULT_ANIMATIONS_DISABLED)
+
+    // S2166: seeded false, the watch's stored default, for the reason album art records above - the
+    // row edits a BOTH field, so an unedited push must not switch background playback on by itself.
+    var backgroundPlaybackEnabled by mutableStateOf(watchSettings?.backgroundPlaybackEnabled ?: false)
+
     // S2093: the watch's Streams row, which had no phone control at all - the one-sided setting this
     // ticket exists to remove. Default true, matching the watch's stored default.
     var streamsSectionEnabled by mutableStateOf(watchSettings?.streamsSectionEnabled ?: true)
@@ -140,21 +178,53 @@ private class WatchSettingsState(watchSettings: WearSettingsPayload?) {
         keepScreenAwakeOutsidePlayers = keepScreenAwake,
         fileListViewMode = fileListViewMode,
         appLanguage = context?.let { LocaleHelper.getLanguage(it) },
-        streamsSectionEnabled = streamsSectionEnabled
+        streamsSectionEnabled = streamsSectionEnabled,
+        disableAnimations = disableAnimations,
+        backgroundPlaybackEnabled = backgroundPlaybackEnabled
     )
 }
 
 @Composable
 private fun WatchSettingsControls(
+    viewModel: WearSyncViewModel,
     state: WatchSettingsState,
     pushEnabled: Boolean,
     lastSyncedAtEpochMillis: Long,
     onChanged: () -> Unit,
     onPush: () -> Unit
 ) {
+    // S2169: the subgroup sequence mirrors the watch settings menu - Media types, Slideshow, Screen,
+    // Other - in the watch's own order, so every setting sits where the watch shows it. A setting the
+    // watch owns outright (auto rotation, voice-note send policy) has no row here at all.
     Spacer(Modifier.height(SPACING_SMALL))
-    WatchContentSwitches(state = state, onChanged = onChanged)
-    Spacer(Modifier.height(SPACING_SMALL))
+    GroupCaption(text = stringResource(R.string.wear_settings_group_media_types))
+    MediaTypesSwitches(state = state, onChanged = onChanged)
+    GroupCaption(text = stringResource(R.string.wear_settings_group_sections))
+    SwitchRow(
+        tag = "wearSwitchStreams",
+        label = stringResource(R.string.wear_setting_streams_section),
+        description = stringResource(R.string.wear_setting_streams_section_desc),
+        checked = state.streamsSectionEnabled
+    ) {
+        state.streamsSectionEnabled = it
+        onChanged()
+    }
+    GroupCaption(text = stringResource(R.string.wear_settings_group_slideshow))
+    SwitchRow(
+        tag = "wearSwitchSlideshow",
+        label = stringResource(R.string.wear_settings_slideshow),
+        description = stringResource(R.string.wear_settings_slideshow_desc),
+        checked = state.slideshowEnabled
+    ) {
+        state.slideshowEnabled = it
+        onChanged()
+    }
+    SlideshowIntervalSlider(
+        seconds = state.slideshowInterval,
+        onSecondsChange = { state.slideshowInterval = it },
+        onSecondsSettled = onChanged
+    )
+    GroupCaption(text = stringResource(R.string.wear_settings_group_screen))
     ViewModeRow(
         tagPrefix = "wearViewMode",
         label = stringResource(R.string.wear_settings_view_mode),
@@ -163,7 +233,6 @@ private fun WatchSettingsControls(
         state.viewMode = picked
         onChanged()
     }
-    Spacer(Modifier.height(SPACING_SMALL))
     ViewModeRow(
         tagPrefix = "wearFileListViewMode",
         label = stringResource(R.string.wear_settings_file_list_view),
@@ -172,12 +241,22 @@ private fun WatchSettingsControls(
         state.fileListViewMode = picked
         onChanged()
     }
-    Spacer(Modifier.height(SPACING_SMALL))
-    SlideshowIntervalSlider(
-        seconds = state.slideshowInterval,
-        onSecondsChange = { state.slideshowInterval = it },
-        onSecondsSettled = onChanged
-    )
+    // S2169: the background mode sits at its canonical Screen position; the picture picker, the
+    // preview and the delivery line are actions of this surface that exist only under the image
+    // option, so they follow the mode chips rather than preceding them.
+    BackgroundModeControls(viewModel = viewModel)
+    SwitchRow(
+        tag = "wearSwitchKeepAwake",
+        label = stringResource(R.string.wear_settings_keep_awake),
+        description = stringResource(R.string.wear_settings_keep_awake_desc),
+        checked = state.keepScreenAwake,
+        helpTitleRes = R.string.wear_settings_keep_awake_tooltip_title,
+        helpMessageRes = R.string.wear_settings_keep_awake_tooltip_message
+    ) {
+        state.keepScreenAwake = it
+        onChanged()
+    }
+    OtherSubgroup(state = state, onChanged = onChanged)
     Spacer(Modifier.height(SPACING_SMALL))
     // S2093 / ADR-1: one button per side, not two. This is the phone half of the symmetric pair - the
     // press sends this set, the watch answers with its own, and each field keeps whichever edit is
@@ -193,6 +272,55 @@ private fun WatchSettingsControls(
         Text(stringResource(R.string.wear_settings_sync_button))
     }
     LastSyncedCaption(lastSyncedAtEpochMillis = lastSyncedAtEpochMillis)
+}
+
+/** S2169: the watch menu's "Other" subgroup, in the watch's own row order. */
+@Composable
+private fun OtherSubgroup(state: WatchSettingsState, onChanged: () -> Unit) {
+    GroupCaption(text = stringResource(R.string.wear_settings_group_other))
+    SwitchRow(
+        tag = "wearSwitchAlbumArt",
+        label = stringResource(R.string.wear_settings_album_art),
+        description = stringResource(R.string.wear_settings_album_art_desc),
+        checked = state.albumArtEnabled,
+        helpTitleRes = R.string.wear_settings_album_art_tooltip_title,
+        helpMessageRes = R.string.wear_settings_album_art_tooltip_message
+    ) {
+        state.albumArtEnabled = it
+        onChanged()
+    }
+    // S2169: BOTH in the registry with no phone row before this change - the mirror was incomplete
+    // without it, and the parity gate's phone side now names it.
+    SwitchRow(
+        tag = "wearSwitchDisableAnimations",
+        label = stringResource(R.string.wear_settings_disable_animations),
+        checked = state.disableAnimations
+    ) {
+        state.disableAnimations = it
+        onChanged()
+    }
+    // S2166: last in the Other group, matching the watch menu - auto-rotation sits between this row
+    // and animations on the watch, but it is WATCH_ONLY and has no phone row to draw here.
+    SwitchRow(
+        tag = "wearSwitchBackgroundPlayback",
+        label = stringResource(R.string.wear_settings_background_playback),
+        description = stringResource(R.string.wear_settings_background_playback_desc),
+        checked = state.backgroundPlaybackEnabled
+    ) {
+        state.backgroundPlaybackEnabled = it
+        onChanged()
+    }
+}
+
+/** S2169: a subgroup heading, matching the caption style the view-mode rows already use. */
+@Composable
+private fun GroupCaption(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+    Spacer(Modifier.height(SPACING_TINY))
 }
 
 /**
@@ -222,9 +350,9 @@ private fun LastSyncedCaption(lastSyncedAtEpochMillis: Long) {
     )
 }
 
-/** The content toggles, held apart from the rest so neither half outgrows the length ceiling. */
+/** The Media types subgroup's four allowed-type toggles, held apart to keep the group's body flat. */
 @Composable
-private fun WatchContentSwitches(state: WatchSettingsState, onChanged: () -> Unit) {
+private fun MediaTypesSwitches(state: WatchSettingsState, onChanged: () -> Unit) {
     SwitchRow(
         tag = "wearSwitchAudio",
         label = stringResource(R.string.wear_settings_audio),
@@ -261,46 +389,6 @@ private fun WatchContentSwitches(state: WatchSettingsState, onChanged: () -> Uni
         state.documentsEnabled = it
         onChanged()
     }
-    SwitchRow(
-        tag = "wearSwitchSlideshow",
-        label = stringResource(R.string.wear_settings_slideshow),
-        description = stringResource(R.string.wear_settings_slideshow_desc),
-        checked = state.slideshowEnabled
-    ) {
-        state.slideshowEnabled = it
-        onChanged()
-    }
-    SwitchRow(
-        tag = "wearSwitchStreams",
-        label = stringResource(R.string.wear_setting_streams_section),
-        description = stringResource(R.string.wear_setting_streams_section_desc),
-        checked = state.streamsSectionEnabled
-    ) {
-        state.streamsSectionEnabled = it
-        onChanged()
-    }
-    SwitchRow(
-        tag = "wearSwitchAlbumArt",
-        label = stringResource(R.string.wear_settings_album_art),
-        description = stringResource(R.string.wear_settings_album_art_desc),
-        checked = state.albumArtEnabled,
-        helpTitleRes = R.string.wear_settings_album_art_tooltip_title,
-        helpMessageRes = R.string.wear_settings_album_art_tooltip_message
-    ) {
-        state.albumArtEnabled = it
-        onChanged()
-    }
-    SwitchRow(
-        tag = "wearSwitchKeepAwake",
-        label = stringResource(R.string.wear_settings_keep_awake),
-        description = stringResource(R.string.wear_settings_keep_awake_desc),
-        checked = state.keepScreenAwake,
-        helpTitleRes = R.string.wear_settings_keep_awake_tooltip_title,
-        helpMessageRes = R.string.wear_settings_keep_awake_tooltip_message
-    ) {
-        state.keepScreenAwake = it
-        onChanged()
-    }
 }
 
 /**
@@ -330,6 +418,7 @@ private fun SlideshowIntervalSlider(
             .testTag("wearSlideshowInterval")
             .semantics { contentDescription = label }
     )
+    Spacer(Modifier.height(SPACING_SMALL))
 }
 
 /**
@@ -367,6 +456,112 @@ private fun ViewModeRow(
             )
         }
     }
+    Spacer(Modifier.height(SPACING_SMALL))
+}
+
+/**
+ * S2169: the watch background's two-value mode at its canonical Screen position, with the picker,
+ * the preview and the delivery line appearing only under the image option, so choosing the branded
+ * animation leaves the setting a single control. The two options are told apart by their labels
+ * rather than by the preview, because a thumbnail is not a label for a screen reader.
+ */
+@Composable
+private fun BackgroundModeControls(viewModel: WearSyncViewModel) {
+    val mode by viewModel.backgroundMode.collectAsState()
+    val preview by viewModel.backgroundPreview.collectAsState()
+    val delivery by viewModel.backgroundDelivery.collectAsState()
+
+    val pickImage = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let(viewModel::sendBackgroundImage)
+    }
+
+    Text(
+        text = stringResource(R.string.wear_settings_background_mode),
+        style = MaterialTheme.typography.bodySmall
+    )
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(SPACING_SMALL)
+    ) {
+        BACKGROUND_MODES.forEach { (value, labelRes) ->
+            val chipLabel = stringResource(labelRes)
+            FilterChip(
+                selected = value == mode,
+                onClick = { viewModel.updateBackgroundMode(value) },
+                label = { Text(chipLabel) },
+                // S2091: a chip's own label does not reach the accessibility node, so the two options
+                // dump as anonymous checkboxes and the screen reader announces neither.
+                modifier = Modifier
+                    .testTag("wearBackgroundMode_" + value)
+                    .semantics { contentDescription = chipLabel }
+            )
+        }
+    }
+    Spacer(Modifier.height(SPACING_SMALL))
+
+    if (mode == WearSettingsPayload.BACKGROUND_MODE_IMAGE) {
+        OutlinedButton(
+            onClick = { pickImage.launch(PICKED_IMAGE_TYPES) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("wearBackgroundPickImage")
+        ) {
+            Text(stringResource(R.string.wear_background_pick_image))
+        }
+        preview?.let {
+            Spacer(Modifier.height(SPACING_SMALL))
+            BackgroundPreview(preview = it)
+        }
+        DeliveryLine(delivery = delivery)
+        Spacer(Modifier.height(SPACING_SMALL))
+    }
+}
+
+/**
+ * Drawn through the module's own image loader rather than decoded here, and keyed by the frame's
+ * stamp: every delivery overwrites the one path, so a loader keyed by path alone would keep showing
+ * the picture before last.
+ */
+@Composable
+private fun BackgroundPreview(preview: WearBackgroundPreview) {
+    val description = stringResource(R.string.wear_background_preview)
+    AndroidView(
+        modifier = Modifier.size(PREVIEW_EDGE),
+        factory = { context ->
+            ImageView(context).apply { scaleType = ImageView.ScaleType.CENTER_CROP }
+        },
+        update = { view ->
+            view.contentDescription = description
+            Glide.with(view)
+                .load(File(preview.path))
+                .signature(ObjectKey(preview.stamp))
+                .into(view)
+        }
+    )
+}
+
+/**
+ * Silence would read as success, and the picture is the one part of this window that travels a
+ * channel able to refuse it.
+ */
+@Composable
+private fun DeliveryLine(delivery: WearBackgroundDeliveryState) {
+    val messageRes = when (delivery) {
+        WearBackgroundDeliveryState.Idle -> null
+        WearBackgroundDeliveryState.Sending -> R.string.wear_background_sending
+        WearBackgroundDeliveryState.Sent -> R.string.wear_background_sent
+        WearBackgroundDeliveryState.WatchUnreachable -> R.string.wear_background_watch_unreachable
+        WearBackgroundDeliveryState.Failed -> R.string.wear_background_failed
+    } ?: return
+
+    val failed = delivery is WearBackgroundDeliveryState.WatchUnreachable ||
+        delivery is WearBackgroundDeliveryState.Failed
+    Spacer(Modifier.height(SPACING_TINY))
+    Text(
+        text = stringResource(messageRes),
+        style = MaterialTheme.typography.bodySmall,
+        color = if (failed) MaterialTheme.colorScheme.error else Color.Unspecified
+    )
 }
 
 /**

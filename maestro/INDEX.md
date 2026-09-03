@@ -37,4 +37,9 @@ Network/cloud flows are deferred from the active suite because they require exte
 pwsh -NoProfile -File maestro/run-tests.ps1 -Suite all -Json
 pwsh -NoProfile -File maestro/run-tests.ps1 -Suite features\player -Json
 pwsh -NoProfile -File maestro/run-tests.ps1 -Suite smoke -DeviceId emulator-5554
+pwsh -NoProfile -File maestro/run-tests.ps1 -Suite launcher_home_smoke.yaml
+pwsh -NoProfile -File maestro/run-tests.ps1 -Suite launcher_home_smoke.yaml -ListFlows
 ```
+
+A single flow may be named by its bare file name - the category is not required, and a wrong one
+is ignored. `-ListFlows` resolves the selection and exits without a device.

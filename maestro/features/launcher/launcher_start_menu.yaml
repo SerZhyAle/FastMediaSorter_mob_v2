@@ -14,6 +14,7 @@ appId: com.sza.fastmediasorter.debug
 
 # Scroll to Interface section header and expand if collapsed
 - scrollUntilVisible:
+    visibilityPercentage: 30
     element:
       id: "com.sza.fastmediasorter.debug:id/headerInterface"
     timeout: 15000
@@ -40,6 +41,7 @@ appId: com.sza.fastmediasorter.debug
 
 # Scroll down to launcher settings row
 - scrollUntilVisible:
+    visibilityPercentage: 30
     element:
       id: "com.sza.fastmediasorter.debug:id/rowLauncherSettings"
     timeout: 10000
@@ -55,6 +57,7 @@ appId: com.sza.fastmediasorter.debug
     timeout: 10000
 
 - scrollUntilVisible:
+    visibilityPercentage: 30
     element:
       id: "com.sza.fastmediasorter.debug:id/headerLauncherTray"
     timeout: 10000
@@ -62,6 +65,7 @@ appId: com.sza.fastmediasorter.debug
     id: "com.sza.fastmediasorter.debug:id/headerLauncherTray"
 
 - scrollUntilVisible:
+    visibilityPercentage: 30
     element:
       id: "com.sza.fastmediasorter.debug:id/headerLauncherDesktop"
     timeout: 10000

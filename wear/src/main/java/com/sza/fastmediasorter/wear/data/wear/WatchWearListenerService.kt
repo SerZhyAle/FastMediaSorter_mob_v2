@@ -15,43 +15,40 @@ import com.google.android.gms.wearable.Wearable
 import com.google.android.gms.wearable.WearableListenerService
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
-import com.sza.fastmediasorter.wear.core.notification.WearOpenOnWatchNotifier
 import com.sza.fastmediasorter.wear.data.repository.WearPhonePinsRepository
+import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
+import com.sza.fastmediasorter.wear.data.wear.helpers.WearTransferOutcomeCoordinator
 import com.sza.fastmediasorter.wear.domain.model.ImportResult
 import com.sza.fastmediasorter.wear.domain.model.WearEventEnvelopeCodec
 import com.sza.fastmediasorter.wear.domain.model.WearFileOpenRequest
-import com.sza.fastmediasorter.wear.domain.model.WearFileReceiveOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearFileReceiveResult
 import com.sza.fastmediasorter.wear.domain.model.WearFileTransferAck
 import com.sza.fastmediasorter.wear.domain.model.WearFileTransferMetadata
-import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackCommand
+import com.sza.fastmediasorter.wear.domain.model.WearSendToReceiversPayload
 import com.sza.fastmediasorter.wear.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearStreamPinsPayload
 import com.sza.fastmediasorter.wear.domain.model.WearStreamTransferAck
 import com.sza.fastmediasorter.wear.domain.model.WearStreamTransferPayload
 import com.sza.fastmediasorter.wear.domain.model.WearSyncPayload
-import com.sza.fastmediasorter.wear.domain.model.streamTargetRef
 import com.sza.fastmediasorter.wear.domain.repository.WearFileReceiverRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ApplyWearSettingsUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.DrainPendingVoiceNotesUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ImportNetworkSourcesUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ReportWearSettingsUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.StoreTransferredStreamUseCase
+import com.sza.fastmediasorter.wear.util.errorUnlessCancellation
+import com.sza.fastmediasorter.wear.util.rethrowIfCancellation
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -86,9 +83,9 @@ class WatchWearListenerService : WearableListenerService() {
 
     @Inject lateinit var drainPendingVoiceNotesUseCase: DrainPendingVoiceNotesUseCase
 
-    // S1961: this service may not raise the app itself, so when nobody answers the open request it
-    // posts the notification whose tap can.
-    @Inject lateinit var openOnWatchNotifier: WearOpenOnWatchNotifier
+    // S2431: what an arrived file or stream should be answered with. This service only dispatches the
+    // event and puts the answer on the wire.
+    @Inject lateinit var transferOutcomeCoordinator: WearTransferOutcomeCoordinator
 
     @Inject lateinit var uploadOutcomeNotifier: com.sza.fastmediasorter.wear.core.notification.WearUploadOutcomeNotifier
 
@@ -97,6 +94,10 @@ class WatchWearListenerService : WearableListenerService() {
     // S2149: the phone's pinned-stream set. Kept apart from the watch's own favourites so the star
     // still means "I marked this here" and the phone can withdraw only what the phone sent.
     @Inject lateinit var wearPhonePinsRepository: WearPhonePinsRepository
+
+    // S2142: the phone's «Send to..» list. Its own store rather than a watch setting - it is a
+    // derivative of the owner's settings, and the settings mirrors are gated on parity of six files.
+    @Inject lateinit var wearSendToReceiversRepository: WearSendToReceiversRepository
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -137,48 +138,8 @@ class WatchWearListenerService : WearableListenerService() {
         val declaration = result.declaration ?: return
         if (declaration.requestId.isBlank()) return
 
-        val outcome = fileTransferOutcome(result, declaration)
+        val outcome = transferOutcomeCoordinator.fileOutcome(result, declaration)
         sendFileTransferAck(nodeId, WearFileTransferAck(declaration.requestId, outcome))
-    }
-
-    private suspend fun fileTransferOutcome(
-        result: WearFileReceiveResult,
-        declaration: WearFileTransferMetadata
-    ): String = when {
-        result.outcome == WearFileReceiveOutcome.REFUSED_TOO_LARGE -> WearFileTransferAck.OUTCOME_TOO_LARGE
-        result.outcome != WearFileReceiveOutcome.SAVED -> WearFileTransferAck.OUTCOME_FAILED
-        !declaration.openNow -> WearFileTransferAck.OUTCOME_SAVED
-        else -> openFileOnWatch(result.savedPath, declaration.mimeType)
-    }
-
-    /**
-     * S1884: asks whatever screen is on to show the arrived file, and answers with what happened.
-     *
-     * The same shape as [openOnWatch] for streams and for the same reason (ADR-6): this service may
-     * not raise the app from the background, so nobody listening means the honest answer is
-     * NOT_FOREGROUND rather than a claim the user is looking at their photo.
-     */
-    private suspend fun openFileOnWatch(savedPath: String?, mimeType: String?): String {
-        if (savedPath == null || mimeType.isNullOrBlank()) {
-            return WearFileTransferAck.OUTCOME_UNSUPPORTED
-        }
-        val request = WearFileOpenRequest(path = savedPath, mimeType = mimeType)
-        val handled = withTimeoutOrNull(OPEN_CONFIRM_TIMEOUT_MS) {
-            val confirmation = async(start = CoroutineStart.UNDISPATCHED) {
-                WatchFileOpenEvents.openedFlow.first { it == savedPath }
-            }
-            WatchFileOpenEvents.requestFlow.emit(request)
-            confirmation.await()
-        }
-        return if (handled != null) {
-            WearFileTransferAck.OUTCOME_OPENED
-        } else {
-            openOnWatchNotifier.notifyPendingOpen(
-                target = WearLaunchTarget.File(savedPath, mimeType),
-                subtitle = savedPath.substringAfterLast('/')
-            )
-            WearFileTransferAck.OUTCOME_NOT_FOREGROUND
-        }
     }
 
     private suspend fun sendFileTransferAck(nodeId: String, ack: WearFileTransferAck) {
@@ -202,26 +163,26 @@ class WatchWearListenerService : WearableListenerService() {
         for (event in events) {
             if (event.type != DataEvent.TYPE_CHANGED) continue
             val dataMap = DataMapItem.fromDataItem(event.dataItem).dataMap
-            when (event.dataItem.uri.path) {
-                PATH_PUSH -> {
-                    val payloadBytes = dataMap.getByteArray("payload") ?: continue
-                    handlePush(payloadBytes, event.dataItem.uri.host ?: "")
-                }
-                WearDataLayerPaths.SETTINGS_PUSH -> {
-                    val payloadBytes = dataMap.getByteArray("payload") ?: continue
-                    handleSettingsPush(payloadBytes)
-                }
-                WearDataLayerPaths.FILE_UPLOAD_OUTCOME -> {
-                    val payloadBytes = dataMap.getByteArray("payload") ?: continue
-                    handleFileUploadOutcome(payloadBytes, event.dataItem.uri)
-                }
-                WearDataLayerPaths.STREAM_PINS -> {
-                    val payloadBytes = dataMap.getByteArray("payload") ?: continue
-                    handleStreamPinsPush(payloadBytes)
-                }
-            }
+            val payloadBytes = dataMap.getByteArray("payload") ?: continue
+            dispatchDataItem(event.dataItem.uri, payloadBytes)
         }
         events.release()
+    }
+
+    /**
+     * Split out of [onDataChanged] because the loop plus one branch per path reached detekt's
+     * complexity ceiling when S2142 added the fifth path. The payload is read once above rather than
+     * per branch: every path carries it under the same key, and a data item without one is nothing
+     * any branch could act on.
+     */
+    private fun dispatchDataItem(uri: android.net.Uri, payloadBytes: ByteArray) {
+        when (uri.path) {
+            PATH_PUSH -> handlePush(payloadBytes, uri.host ?: "")
+            WearDataLayerPaths.SETTINGS_PUSH -> handleSettingsPush(payloadBytes)
+            WearDataLayerPaths.FILE_UPLOAD_OUTCOME -> handleFileUploadOutcome(payloadBytes, uri)
+            WearDataLayerPaths.STREAM_PINS -> handleStreamPinsPush(payloadBytes)
+            WearDataLayerPaths.SEND_TO_RECEIVERS -> handleSendToReceiversPush(payloadBytes)
+        }
     }
 
     @Suppress("TooGenericExceptionCaught")
@@ -288,6 +249,7 @@ class WatchWearListenerService : WearableListenerService() {
                 val envelope = envelopeCodec.decode(data)
                 gson.fromJson(envelope.data.decodeToString(), WearStreamTransferPayload::class.java)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 // No parseable payload means no requestId either, so no ack can be correlated -
                 // the phone reports the timeout outcome instead.
                 Timber.e(e, "Failed to deserialize stream transfer payload")
@@ -298,47 +260,12 @@ class WatchWearListenerService : WearableListenerService() {
                 vibrateSuccess()
             }
             val ack = if (payload.openNow && result.channel != null) {
-                openOnWatch(result.channel, payload.requestId)
+                transferOutcomeCoordinator.streamAck(result.channel, payload.requestId)
             } else {
                 result.ack
             }
             sendStreamTransferAck(nodeId, ack)
         }
-    }
-
-    /**
-     * S1944: asks whatever screen is on to open [channel], and answers with what actually happened.
-     *
-     * The platform does not let this service raise the app from the background (strategic ADR-1), so
-     * the honest answer when nobody is listening is NOT_FOREGROUND rather than a claim of playback.
-     * The wait is short on purpose: a live collector answers in milliseconds, and anything longer is
-     * a closed app - waiting out the phone's own ack timeout would report silence instead.
-     */
-    private suspend fun openOnWatch(
-        channel: WearStreamChannel,
-        requestId: String,
-    ): WearStreamTransferAck {
-        val handled = withTimeoutOrNull(OPEN_CONFIRM_TIMEOUT_MS) {
-            val confirmation = async(start = CoroutineStart.UNDISPATCHED) {
-                WatchStreamOpenEvents.openedFlow.first { it == channel.url }
-            }
-            WatchStreamOpenEvents.requestFlow.emit(channel)
-            confirmation.await()
-        }
-        val outcome = if (handled != null) {
-            WearStreamTransferAck.OUTCOME_OPENED
-        } else {
-            // S1961: the wait expiring IS the scenario - the watch is dark and nothing was going to
-            // happen. The ack is deliberately unchanged: "saved on the watch, open the watch app" is
-            // still true, and the notification only adds a shorter way to do it.
-
-            openOnWatchNotifier.notifyPendingOpen(
-                target = WearLaunchTarget.Open(streamTargetRef(channel.url)),
-                subtitle = channel.name
-            )
-            WearStreamTransferAck.OUTCOME_NOT_FOREGROUND
-        }
-        return WearStreamTransferAck(requestId = requestId, outcome = outcome)
     }
 
     private suspend fun sendStreamTransferAck(nodeId: String, ack: WearStreamTransferAck) {
@@ -352,7 +279,7 @@ class WatchWearListenerService : WearableListenerService() {
                 )
                 .await()
         } catch (e: Exception) {
-            Timber.e(e, "Failed to send stream transfer ack")
+            e.errorUnlessCancellation("Failed to send stream transfer ack")
         }
     }
 
@@ -367,7 +294,7 @@ class WatchWearListenerService : WearableListenerService() {
                 // phone completes the exchange in both directions rather than only sending.
                 reportWearSettingsUseCase()
             } catch (e: Exception) {
-                Timber.e(e, "Failed to apply settings push")
+                e.errorUnlessCancellation("Failed to apply settings push")
                 WatchSyncEvents.settingsErrorFlow.emit(e.message ?: "Settings apply failed")
             }
         }
@@ -395,6 +322,30 @@ class WatchWearListenerService : WearableListenerService() {
         }
     }
 
+    /**
+     * S2142: stores the «Send to..» receivers the phone offers, so the file menu can list them.
+     *
+     * A payload that fails to parse is dropped rather than applied as an empty list, the same rule
+     * as [handleStreamPinsPush] and for the same reason: losing one bad message must not silently
+     * clear a list the owner can only restore by toggling receivers again on the phone.
+     */
+    private fun handleSendToReceiversPush(payloadBytes: ByteArray) {
+        serviceScope.launch {
+            try {
+                val envelope = envelopeCodec.decode(payloadBytes)
+                val json = envelope.data.decodeToString()
+                val payload = gson.fromJson(json, WearSendToReceiversPayload::class.java)
+                wearSendToReceiversRepository.replaceAll(payload.receivers)
+            } catch (e: CancellationException) {
+                // The service scope was torn down; swallowing this would leave the coroutine
+                // machinery believing the job is still live (S1363/S1889/S1910).
+                throw e
+            } catch (e: Exception) {
+                Timber.w(e, "Failed to apply send-to receivers push - keeping the stored list")
+            }
+        }
+    }
+
     private fun handlePlaybackCommand(data: ByteArray) {
         serviceScope.launch {
             try {
@@ -403,7 +354,7 @@ class WatchWearListenerService : WearableListenerService() {
                 val command = WearPlaybackCommand.valueOf(commandName)
                 WatchPlaybackCommandEvents.commandFlow.emit(command)
             } catch (e: Exception) {
-                Timber.e(e, "Failed to deserialize playback command")
+                e.errorUnlessCancellation("Failed to deserialize playback command")
             }
         }
     }
@@ -419,7 +370,7 @@ class WatchWearListenerService : WearableListenerService() {
                 WatchSyncEvents.importResultFlow.emit(result)
                 sendAck(senderNodeId, result)
             } catch (e: Exception) {
-                Timber.e(e, "Failed to process sync payload")
+                e.errorUnlessCancellation("Failed to process sync payload")
                 WatchSyncEvents.importErrorFlow.emit(e.message ?: "Unknown error")
             }
         }
@@ -437,13 +388,14 @@ class WatchWearListenerService : WearableListenerService() {
 
     private suspend fun sendAck(nodeId: String, result: ImportResult) {
         if (nodeId.isBlank()) return
-        val ackJson = """{"added":${result.added},"updated":${result.updated}}"""
+        Timber.d("S2278: catalog sync ack serialized via Gson to $nodeId")
+        val ackJson = gson.toJson(SyncAck(added = result.added, updated = result.updated))
         try {
             Wearable.getMessageClient(this)
                 .sendMessage(nodeId, PATH_ACK, ackJson.toByteArray())
                 .await()
         } catch (e: Exception) {
-            Timber.e(e, "Failed to send ack to phone")
+            e.errorUnlessCancellation("Failed to send ack to phone")
         }
     }
 
@@ -452,6 +404,13 @@ class WatchWearListenerService : WearableListenerService() {
         super.onDestroy()
     }
 }
+
+/**
+ * S2278: the sync ack went out as a raw string template while the two transfer acks in this file
+ * already used the injected [com.google.gson.Gson]. Nothing escaped the values, and a third
+ * serialization idiom in one file is one the next reader has to notice.
+ */
+private data class SyncAck(val added: Int, val updated: Int)
 
 /** Process-wide event bus for sync results on the watch. */
 object WatchSyncEvents {
@@ -489,6 +448,3 @@ object WatchFileOpenEvents {
     val requestFlow = MutableSharedFlow<WearFileOpenRequest>(extraBufferCapacity = 4)
     val openedFlow = MutableSharedFlow<String>(extraBufferCapacity = 4)
 }
-
-/** S1944: long enough for a composed collector, far below the phone's own 15 s ack timeout. */
-private const val OPEN_CONFIRM_TIMEOUT_MS = 2_000L

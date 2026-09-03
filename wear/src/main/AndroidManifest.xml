@@ -64,6 +64,14 @@
         android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE"
         android:minSdkVersion="34" />
     <!--
+        S2166: background playback. FOREGROUND_SERVICE_MEDIA_PLAYBACK is the API 34 split of
+        FOREGROUND_SERVICE and is requested only there; below 34 the untyped permission alone is
+        what the platform checks.
+    -->
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+        android:minSdkVersion="34" />
+    <!--
         S1862: on API 33+ a foreground service notification is NOT exempt from POST_NOTIFICATIONS -
         without it the recording notification is silently never shown, so the watch listens with
         nothing on screen to say so. The service keeps running when it is denied, which is why the
@@ -151,6 +159,16 @@
             android:name=".service.VoiceRecordingService"
             android:exported="false"
             android:foregroundServiceType="microphone" />
+
+        <!-- S2166: owner of the playback session; started by the player screen, never bound to it. -->
+        <service
+            android:name=".service.WearPlaybackService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService" />
+            </intent-filter>
+        </service>
 
         <!-- S1955: Wear OS Tile Service for Network Resource tile -->
         <service
@@ -247,5 +265,22 @@
                 android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
                 android:value="300" />
         </service>
+
+        <!--
+            S2142: hands one file to a «Send to..» receiver this watch serves itself.
+
+            A receiver is another application, so it is given a content URI it can read rather than a
+            path it cannot. The watch had no provider at all before this ticket - nothing here ever
+            handed a file to a third party, only to the paired phone over the data layer.
+        -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/send_to_paths" />
+        </provider>
     </application>
 </manifest>

@@ -1,113 +1,114 @@
+#requires -Version 7.0
 <#
 .SYNOPSIS
-  Insert a new spec catalog record. Supply the spec path with -File, or with
-  -Slug to auto-build PLAN/Sxxxx_<slug>.md from the freshly allocated id.
-.NOTES
-  Exit codes: 0 ok; 1 error (bad call shape, invalid slug, duplicate id,
-  active name clash, or record validation failure).
+    Forwarder to the canon-shipped harness script spec_catalog\insert.ps1 (S2402).
+
+.DESCRIPTION
+    GENERATED - do not edit. The mechanism lives in the SZA canon plugin (tools/harness) and this
+    repository consumes it; the file kept here is only the address every existing call site already
+    knows. Regenerate with scripts/utils/install-sza-forwarders.ps1. What this project configures lives in
+    .sza-profile.json at the repository root, never in a script body.
+
+Exit codes: whatever spec_catalog\insert.ps1 returns, plus 2 when the harness cannot be located.
 #>
-# PositionalBinding = $false (S1504): same exposure as update.ps1 - $Name leads the param block,
-# so any stray unnamed token would become the new record's name rather than failing the call.
-[CmdletBinding(PositionalBinding = $false)]
-param(
-    # Not [Parameter(Mandatory)]: a mandatory parameter makes the host prompt before the
-    # body runs, so -Help could never print. Absence is reported explicitly below instead.
-    [string] $Name,
-    [string] $File,
-    [ValidateSet('Draft','Approved','Tactical','In Progress',
-        'Implemented','Verified','Partial','Broken',
-        'BlockByOtherTask','BlockNeedUserTest','BlockQuestions','BlockExternal',
-        'Archived')]
-    [string] $Status = 'Draft',
-    [int]    $Tier   = -1,
-    [ValidateRange(0,100)]
-    [int]    $Priority = 50,
-    [string] $Id,
-    # Alternative to -File: build PLAN/Sxxxx_<slug>.md after id allocation,
-    # collapsing the old next-id.ps1 + insert.ps1 two-step into one call.
-    [string] $Slug,
-    [switch] $Help
-)
-
-if ($Help) {
-    & (Join-Path $PSScriptRoot '..\utils\help.ps1') -Name 'scripts/spec_catalog/insert.ps1'
-    exit $LASTEXITCODE
+# S2441: every name below carries a $szaFwd prefix because HALF of this set is dot-sourced, and a
+# dot-sourced file assigns into its CALLER's scope. PowerShell names are case-insensitive, so the
+# `$target` this file used to resolve into WAS the caller's `-Target` parameter: post-change.ps1
+# dot-sources the agent-lock-domains forwarder before it journals, and every dev/CHANGELOG.md row
+# written on 2026-09-03 recorded a harness path where the ticket id belonged. The second failure
+# mode is worse than the substitution - a caller declaring `[string]$Candidates` type-constrains
+# this file's own accumulator, so `$candidates = @()` collapses to '' and every `+=` concatenates
+# instead of appending, leaving one unusable path and a forwarder that cannot find the harness at
+# all. Ten scripts under scripts/ declare a parameter that collided. Contract suite:
+# scripts/utils/install-sza-forwarders.tests/.
+$szaFwdCandidates = @()
+if ($env:SZA_HARNESS_ROOT) { $szaFwdCandidates += $env:SZA_HARNESS_ROOT }
+$szaFwdCache = Join-Path $env:USERPROFILE '.claude\plugins\cache\sza-unified-rules\sza'
+if (Test-Path -LiteralPath $szaFwdCache) {
+    # Ordered as VERSIONS, not as strings: the plugin version is date-derived (2026.903.1), so a
+    # string sort puts October's 2026.1001.1 below September's 2026.903.1 and the forwarder would
+    # keep calling the older copy after an update. A directory that does not parse sorts last
+    # rather than being dropped - it may still be the only harness present.
+    $szaFwdVersions = @(Get-ChildItem -LiteralPath $szaFwdCache -Directory -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            $szaFwdParsed = $null
+            [void][version]::TryParse($_.Name, [ref]$szaFwdParsed)
+            [pscustomobject]@{ Path = $_.FullName; Version = $szaFwdParsed }
+        } | Sort-Object @{ Expression = { $null -ne $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Path }; Descending = $true })
+    $szaFwdCandidates += @($szaFwdVersions | ForEach-Object { Join-Path $_.Path 'tools\harness' })
 }
-if (-not $Name) {
-    Write-Error 'insert.ps1 requires -Name <ticket name>. Run with -Help for the parameter list.' -ErrorAction Continue
-    exit 1
-}
-
-# Convert terminating errors (Write-Error, throw, provider errors) into
-# the documented `exit 1` so callers can rely on $LASTEXITCODE.
-trap {
-    Write-Host $_ -ForegroundColor Red
-    exit 1
+$szaFwdTarget = $null
+foreach ($szaFwdDir in $szaFwdCandidates) {
+    $szaFwdProbe = Join-Path $szaFwdDir 'spec_catalog\insert.ps1'
+    if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe; break }
 }
 
-. (Join-Path $PSScriptRoot '_lib.ps1')
-
-# -File and -Slug are mutually exclusive; exactly one supplies the spec path.
-# Validated up front so a bad call shape fails before New-CatalogId burns an id.
-if ($File -and $Slug)          { throw "Provide either -File or -Slug, not both." }
-if (-not $File -and -not $Slug) { throw "Provide -File <path> or -Slug <slug>." }
-if ($Slug) {
-    if ($Slug -notmatch '^[a-z0-9][a-z0-9_-]*$') {
-        throw "Invalid -Slug '$Slug' - lowercase [a-z0-9_-], must start alphanumeric."
+# S2452: candidate 3, the canon checkout, reached only when the two above miss. The plugin cache
+# is what actually resolves on every invocation, so the resolver below is never read on the hot
+# path. Its default is held by scripts/utils/project-paths.ps1 and by nothing else - before this it
+# was written in 76 files, 74 of them generated and stamped `GENERATED - do not edit`, so moving
+# the canon required editing files that forbid editing. That is the exact non-portability the
+# hardcoded-drive-path rule was installed to refuse (S2326).
+#
+# The dot-source runs inside `& { }` deliberately. HALF this set is itself dot-sourced, so at top
+# level project-paths.ps1 would define its functions and set its script variables in the CALLER's
+# scope - the S2441 failure one level further out. A child scope cannot reach the caller at all.
+if (-not $szaFwdTarget) {
+    $szaFwdCheckout = $env:SZA_CANON_ROOT
+    if (-not $szaFwdCheckout) {
+        $szaFwdResolver = Join-Path $PSScriptRoot '..\..\scripts\utils\project-paths.ps1'
+        if (Test-Path -LiteralPath $szaFwdResolver) {
+            # A resolver that is absent or throws must not stop the forwarder from printing its own
+            # refusal, which is the only message that names all three candidates and the fix.
+            $szaFwdCheckout = & {
+                param($szaFwdResolverPath)
+                try { . $szaFwdResolverPath; Get-CanonRoot } catch { $null }
+            } $szaFwdResolver
+        }
     }
-    if ($Slug -match '^spec_') { throw "Invalid -Slug '$Slug' - must not start with 'spec_'." }
+    if ($szaFwdCheckout) {
+        $szaFwdCandidates += (Join-Path $szaFwdCheckout 'tools\harness')
+        $szaFwdProbe = Join-Path $szaFwdCandidates[-1] 'spec_catalog\insert.ps1'
+        if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe }
+    }
+}
+if (-not $szaFwdTarget) {
+    Write-Host "insert.ps1: the SZA harness is not installed - looked in:" -ForegroundColor Red
+    foreach ($szaFwdDir in $szaFwdCandidates) { Write-Host "    $szaFwdDir" -ForegroundColor Gray }
+    Write-Host "  Install or update it:  claude plugin update sza@sza-unified-rules" -ForegroundColor Yellow
+    Write-Host "  Or point at a checkout: `$env:SZA_HARNESS_ROOT = '<repo>\tools\harness'" -ForegroundColor Yellow
+    exit 2
 }
 
-# S1437: the read, the id allocation, the duplicate check and the write are one critical section.
-# New-CatalogId is "max + 1" with no reservation, so two concurrent inserts outside this lock can
-# compute the same id, and the later write would drop the earlier record entirely.
-# Released on the success path below; a throw hits the trap above and exits, and the OS releases
-# the mutex with the process.
-Enter-CatalogLock
+$env:SZA_PROJECT_ROOT = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 
-$records = Read-Catalog
-
-if (-not $Id) {
-    $Id = New-CatalogId
+# Half of this set is dot-sourced as a library and half is invoked as a CLI, and the two cannot be
+# forwarded the same way: `& $szaFwdTarget` would run a library in its own scope and define nothing
+# the caller can see, while `exit` inside a dot-sourced file would kill the caller. InvocationName
+# is '.' exactly when this file was dot-sourced, so one template serves both.
+if ($MyInvocation.InvocationName -eq '.') {
+    . $szaFwdTarget
 } else {
-    if ($Id -notmatch '^S\d{4}$') { throw "Invalid -Id '$Id' (must match S####)." }
+    # Deliberately NOT 'Stop'. A native child's stderr arrives here as ErrorRecord objects, and
+    # under 'Stop' the first one terminates this forwarder before `exit $LASTEXITCODE` runs - so a
+    # script that reported a FAIL and exited 1 would reach its caller as a crashed forwarder with a
+    # different code. Every script in this set states its exit codes; passing them through unchanged
+    # is the whole job. S2441 moved it inside this branch: at the file's top level it also rewrote
+    # the preference of every caller that dot-sources a forwarder, silently downgrading a script
+    # running under 'Stop' for the rest of its life.
+    $ErrorActionPreference = 'Continue'
+    $global:LASTEXITCODE = 0
+    try {
+        & $szaFwdTarget @args
+    } catch {
+        # A child that THROWS never reaches its own `exit`, so $LASTEXITCODE stays 0 and the
+        # forwarder would report success for a script that failed - the one way a forwarder can
+        # turn a red verdict green. Every such refusal is a failure, so it leaves as exit 1.
+        Write-Error $_ -ErrorAction Continue
+        exit 1
+    }
+    $szaFwdCode = $LASTEXITCODE
+    exit $(if ($null -eq $szaFwdCode) { 0 } else { $szaFwdCode })
 }
-
-# -Slug path is built now that the id is final (e.g. S0123 -> PLAN/S0123_<slug>.md).
-if ($Slug) { $File = 'PLAN/{0}_{1}.md' -f $Id, $Slug }
-
-# Id uniqueness is global (an archived id must never be reissued); name clash is
-# checked against active records only below (archived names may be reused).
-if (Find-Record -Id $Id) { throw "Duplicate id '$Id'." }
-$activeNameClash = $records | Where-Object { $_.name -eq $Name -and $_.status -ne 'Archived' }
-if ($activeNameClash) {
-    throw "Active record with name '$Name' already exists (id $($activeNameClash[0].id))."
-}
-
-$now = Get-Now
-$today = Get-Today
-
-$record = [pscustomobject]@{
-    id       = $Id
-    name     = $Name
-    status   = $Status
-    priority = $Priority
-    file     = ($File -replace '\\', '/')
-    created  = $today
-    updated  = $now
-}
-if ($Tier -ge 0) {
-    $record | Add-Member -NotePropertyName 'tier' -NotePropertyValue $Tier
-}
-
-Assert-Record -Record $record
-
-$list = [System.Collections.Generic.List[object]]::new()
-foreach ($r in $records) { $list.Add($r) }
-$list.Add($record)
-Write-Catalog -Records $list.ToArray()
-
-Exit-CatalogLock
-
-Write-Output $Id
-exit 0

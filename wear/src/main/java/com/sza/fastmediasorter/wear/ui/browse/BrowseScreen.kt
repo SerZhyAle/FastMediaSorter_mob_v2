@@ -59,8 +59,10 @@ import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationResult
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
+import com.sza.fastmediasorter.wear.domain.model.WearSendToReceiverEntry
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
+import com.sza.fastmediasorter.wear.ui.common.ReceiverListDialog
 import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
 import com.sza.fastmediasorter.wear.ui.common.WEAR_SEARCH_INPUT_KEY
 import com.sza.fastmediasorter.wear.ui.common.WearChoiceDialog
@@ -120,10 +122,7 @@ fun BrowseScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val fileListViewMode by viewModel.fileListViewMode.collectAsStateWithLifecycle()
     val thumbnails by viewModel.thumbnails.collectAsStateWithLifecycle()
-    // Collected beside uiState rather than inside it, so a tap does not re-emit the whole list.
-    val selectedIds by viewModel.selectedFileIds.collectAsStateWithLifecycle()
-    val allowedOperations by viewModel.allowedOperations.collectAsStateWithLifecycle()
-    val operationRun by viewModel.operationRun.collectAsStateWithLifecycle()
+    val operations = rememberBrowseOperationsUi(viewModel.fileOperations)
     // S2140: its own holder, not a field on BrowseViewModel - the reading belongs to the indicator, so
     // another screen adopting the bar needs this one line and no edit to its state holder.
     val volumeViewModel: VolumeIndicatorViewModel = hiltViewModel()
@@ -132,18 +131,20 @@ fun BrowseScreen(
 
     var showActions by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
+    var showReceivers by remember { mutableStateOf(false) }
     val requestRename = rememberWearRenameInput { newName ->
-        viewModel.runOperation(WearFileOperation.Rename(newName))
+        viewModel.fileOperations.runOperation(WearFileOperation.Rename(newName))
     }
 
     Timber.d("BrowseScreen composing with state: ${uiState.summarize()}")
 
     // Selection mode owns back first: leaving the screen with a selection still armed would strand
     // the user's choice on a list they can no longer see.
-    BackHandler(enabled = selectedIds.isNotEmpty()) {
+    BackHandler(enabled = operations.selectedIds.isNotEmpty()) {
         showActions = false
         showDeleteConfirm = false
-        viewModel.clearFileSelection()
+        showReceivers = false
+        viewModel.fileOperations.clearFileSelection()
     }
 
     val listState = rememberScalingLazyListState()
@@ -162,16 +163,16 @@ fun BrowseScreen(
             volume = volume
         ),
         selection = MediaSelectionState(
-            selectedIds = selectedIds,
-            onSelectAll = viewModel::selectAll,
+            selectedIds = operations.selectedIds,
+            onSelectAll = viewModel.fileOperations::selectAll,
             onActionsClick = { showActions = true }
         ),
         actions = browseFileActions(
             viewModel = viewModel,
             navController = navController,
             mediaType = mediaType,
-            selectedIds = selectedIds,
-            running = operationRun.running
+            selectedIds = operations.selectedIds,
+            running = operations.run.running
         ),
         stateActions = BrowseStateActions(
             onRetry = viewModel::loadMediaFiles,
@@ -184,15 +185,18 @@ fun BrowseScreen(
             // Keyed to the selection they act on, following the precedent's
             // `pendingActionSource?.let {}`: back can empty the selection underneath a dialog, and a
             // menu left standing over nothing offers no actions and no way out.
-            showActions = showActions && selectedIds.isNotEmpty(),
-            showDeleteConfirm = showDeleteConfirm && selectedIds.isNotEmpty(),
-            selectedCount = selectedIds.size,
-            allowedOperations = allowedOperations,
-            run = operationRun
+            showActions = showActions && operations.selectedIds.isNotEmpty(),
+            showDeleteConfirm = showDeleteConfirm && operations.selectedIds.isNotEmpty(),
+            showReceivers = showReceivers && operations.selectedIds.isNotEmpty(),
+            selectedCount = operations.selectedIds.size,
+            allowedOperations = operations.allowedOperations,
+            receivers = operations.receivers,
+            run = operations.run
         ),
         viewModel = viewModel,
         onActionsVisibilityChange = { showActions = it },
         onDeleteVisibilityChange = { showDeleteConfirm = it },
+        onReceiversVisibilityChange = { showReceivers = it },
         onRequestRename = requestRename
     )
 
@@ -215,12 +219,12 @@ fun BrowseScreen(
  */
 @Composable
 private fun MediaStoreConsentPrompt(viewModel: BrowseViewModel) {
-    val consentRequest by viewModel.consentRequest.collectAsStateWithLifecycle()
+    val consentRequest by viewModel.fileOperations.consentRequest.collectAsStateWithLifecycle()
     var launched by rememberSaveable { mutableStateOf(false) }
     val consentLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
-        viewModel.onConsentAnswered(result.resultCode == Activity.RESULT_OK)
+        viewModel.fileOperations.onConsentAnswered(result.resultCode == Activity.RESULT_OK)
     }
     LaunchedEffect(consentRequest) {
         val request = consentRequest
@@ -486,6 +490,7 @@ private fun WearFileOperationOutcome.messageRes(): Int = when (this) {
     WearFileOperationOutcome.NOTIFIED_ON_PHONE -> R.string.wear_open_on_phone_notified
     WearFileOperationOutcome.REFUSED_PHONE_NOTIFICATIONS_OFF ->
         R.string.wear_open_on_phone_no_notifications
+    WearFileOperationOutcome.AWAITING_PHONE_ACTION -> R.string.wear_send_to_awaiting_phone
     WearFileOperationOutcome.FAILED -> R.string.wear_file_op_outcome_failed
     WearFileOperationOutcome.CANCELLED -> R.string.wear_file_op_outcome_cancelled
 }
@@ -651,12 +656,39 @@ private fun navigateToPlayer(
     navController.navigate(route)
 }
 
+/**
+ * S2444: everything [BrowseFileOperationsManager] publishes, collected once.
+ *
+ * The four flows are read together or not at all - the selection decides which dialogs may open, and
+ * each of them draws from one of the other three - so collecting them at four separate call sites
+ * only spread one concern across the screen function.
+ */
+private data class BrowseOperationsUi(
+    /** Collected beside the ui state rather than inside it, so a tap does not re-emit the whole list. */
+    val selectedIds: Set<Long>,
+    val allowedOperations: Set<WearFileOperationKind>,
+    /** Already narrowed to what this selection can be handed to, so the dialog draws what it is given. */
+    val receivers: List<WearSendToReceiverEntry>,
+    val run: WearFileOperationRunState
+)
+
+@Composable
+private fun rememberBrowseOperationsUi(operations: BrowseFileOperationsManager): BrowseOperationsUi {
+    val selectedIds by operations.selectedFileIds.collectAsStateWithLifecycle()
+    val allowedOperations by operations.allowedOperations.collectAsStateWithLifecycle()
+    val receivers by operations.sendToReceivers.collectAsStateWithLifecycle()
+    val run by operations.operationRun.collectAsStateWithLifecycle()
+    return BrowseOperationsUi(selectedIds, allowedOperations, receivers, run)
+}
+
 /** What the browse dialogs draw. */
 private data class BrowseDialogsState(
     val showActions: Boolean,
     val showDeleteConfirm: Boolean,
+    val showReceivers: Boolean,
     val selectedCount: Int,
     val allowedOperations: Set<WearFileOperationKind>,
+    val receivers: List<WearSendToReceiverEntry>,
     val run: WearFileOperationRunState
 )
 
@@ -672,6 +704,7 @@ private fun BrowseDialogsHost(
     viewModel: BrowseViewModel,
     onActionsVisibilityChange: (Boolean) -> Unit,
     onDeleteVisibilityChange: (Boolean) -> Unit,
+    onReceiversVisibilityChange: (Boolean) -> Unit,
     onRequestRename: () -> Unit
 ) {
     if (state.showActions) {
@@ -681,13 +714,17 @@ private fun BrowseDialogsHost(
                 allowedOperations = state.allowedOperations
             ),
             callbacks = FileActionsCallbacks(
+                onSendToRequested = {
+                    onActionsVisibilityChange(false)
+                    onReceiversVisibilityChange(true)
+                },
                 onSendToPhone = {
                     onActionsVisibilityChange(false)
-                    viewModel.runOperation(WearFileOperation.SendToPhone)
+                    viewModel.fileOperations.runOperation(WearFileOperation.SendToPhone)
                 },
                 onMoveToPhone = {
                     onActionsVisibilityChange(false)
-                    viewModel.runOperation(WearFileOperation.MoveToPhone)
+                    viewModel.fileOperations.runOperation(WearFileOperation.MoveToPhone)
                 },
                 onRenameRequested = {
                     onActionsVisibilityChange(false)
@@ -701,12 +738,23 @@ private fun BrowseDialogsHost(
         )
     }
 
+    if (state.showReceivers) {
+        ReceiverListDialog(
+            receivers = state.receivers,
+            onPick = { entry ->
+                onReceiversVisibilityChange(false)
+                viewModel.fileOperations.runOperation(WearFileOperation.SendToReceiver(entry.id))
+            },
+            onDismiss = { onReceiversVisibilityChange(false) }
+        )
+    }
+
     if (state.showDeleteConfirm) {
         FileDeleteConfirmDialog(
             selectedCount = state.selectedCount,
             onConfirm = {
                 onDeleteVisibilityChange(false)
-                viewModel.runOperation(WearFileOperation.Delete)
+                viewModel.fileOperations.runOperation(WearFileOperation.Delete)
             },
             onDismiss = { onDeleteVisibilityChange(false) }
         )
@@ -715,8 +763,8 @@ private fun BrowseDialogsHost(
     if (!state.run.isIdle) {
         OperationRunDialog(
             run = state.run,
-            onCancel = viewModel::cancelOperation,
-            onDismiss = viewModel::dismissOperationResults
+            onCancel = viewModel.fileOperations::cancelOperation,
+            onDismiss = viewModel.fileOperations::dismissOperationResults
         )
     }
 }
@@ -741,12 +789,12 @@ private fun browseFileActions(
             viewModel.selectFile(file)
             navigateToPlayer(navController, file, mediaType)
         } else {
-            viewModel.toggleSelection(file)
+            viewModel.fileOperations.toggleSelection(file)
         }
     },
     onFileLongClick = { file ->
         if (!running) {
-            viewModel.enterSelection(file)
+            viewModel.fileOperations.enterSelection(file)
         }
     },
     onThumbnailNeeded = viewModel::thumbnailFor

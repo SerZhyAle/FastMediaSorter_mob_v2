@@ -1,0 +1,49 @@
+{
+  "_comment": [
+    "S2453. Each entry is the ADDRESS of a timing figure written in prose, never a copy of it.",
+    "The number stays in the document in exactly one place; this file only says where to find it",
+    "and which telemetry key measures the same thing. A copy here would be a third source of",
+    "truth and the same silent-divergence defect one level down.",
+    "pattern: must match its document EXACTLY once, group 1 = seconds, group 2 = the",
+    "foreground/background verdict the prose promises. A prose sentence that states the verdict as",
+    "its surrounding section rather than as a word beside the number declares it in 'verdict'",
+    "instead - that copies a binary, not a measurement. A reworded line breaks the anchor and the",
+    "gate answers 'cannot verify' rather than green."
+  ],
+  "claims": [
+    {
+      "id": "fast-gates-batch",
+      "doc": "docs/BUILD_TEST_FAST_PATH.md",
+      "pattern": "^\\|\\s*`a\\.ps1 fg`[^|]*\\|\\s*([0-9.]+)\\s*s\\s*\\|\\s*(foreground|background)\\s*\\|",
+      "runner": "assert-fast-gates",
+      "gate": "(batch)",
+      "note": "The whole fast-gate batch as the caller waits on it. This is the row that went ~7x stale in silence between 2026-08-01 and 2026-09-03."
+    },
+    {
+      "id": "assert-detekt-app-v2",
+      "doc": "docs/BUILD_TEST_FAST_PATH.md",
+      "pattern": "^\\|\\s*`assert-detekt\\.ps1 -Module app_v2`\\s*\\|\\s*([0-9.]+)\\s*s\\s*\\|\\s*(foreground|background)\\s*\\|",
+      "runner": "assert-fast-gates",
+      "gate": "assert-detekt.ps1",
+      "note": "Only journalled when the batch is run with -IncludeDetekt, so this claim is often below the sample floor and reports 'no telemetry' instead of a verdict."
+    },
+    {
+      "id": "rule-6-fg-claude",
+      "doc": "CLAUDE.md",
+      "pattern": "`fg` measures ([0-9.]+) s",
+      "verdict": "foreground",
+      "runner": "assert-fast-gates",
+      "gate": "(batch)",
+      "note": "Rule 6 itself. This copy is the one that actually decides: CLAUDE.md is in context on every turn, so a stale figure here is read far more often than the table it was copied from."
+    },
+    {
+      "id": "rule-6-fg-agents",
+      "doc": "AGENTS.md",
+      "pattern": "`fg` runs ([0-9.]+) s",
+      "verdict": "foreground",
+      "runner": "assert-fast-gates",
+      "gate": "(batch)",
+      "note": "The same figure restated for non-Claude agents. Listed separately because it is a separate hand-written copy and drifts on its own."
+    }
+  ]
+}

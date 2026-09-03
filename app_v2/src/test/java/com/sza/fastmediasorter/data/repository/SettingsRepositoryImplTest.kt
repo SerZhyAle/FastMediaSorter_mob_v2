@@ -183,6 +183,27 @@ class SettingsRepositoryImplTest {
         )
     }
 
+    @Test
+    fun `persistent audio defaults true and round-trips false through DataStore`() = runTest {
+        val realRepo = SettingsRepositoryImpl(
+            RuntimeEnvironment.getApplication(),
+            realDataStore("s2428_settings.preferences_pb")
+        )
+
+        assertTrue(
+            "unset key must keep persistent audio enabled by default (S2247)",
+            realRepo.getSettings().first().enablePersistentAudioPlayback
+        )
+
+        val current = realRepo.getSettings().first()
+        realRepo.updateSettings(current.copy(enablePersistentAudioPlayback = false))
+
+        assertFalse(
+            "saved false must remain the user's explicit opt-out",
+            realRepo.getSettings().first().enablePersistentAudioPlayback
+        )
+    }
+
     // S2017 ADR-1: default flipped to true (hide the system status area on a fresh install),
     // superseding the S1465 ADR-4 off-by-default this test used to assert.
     @Test

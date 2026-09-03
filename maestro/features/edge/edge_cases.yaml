@@ -23,6 +23,7 @@ appId: com.sza.fastmediasorter.debug
     text: "Локальные"
     index: 0
 - scrollUntilVisible:
+    visibilityPercentage: 30
     element:
       text: "Загрузки"
     timeout: 10000

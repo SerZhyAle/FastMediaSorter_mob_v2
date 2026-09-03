@@ -1403,6 +1403,13 @@
     <string name="wear_sync_success">%d स्रोत घड़ी पर भेजे गए</string>
     <string name="wear_sync_failed">घड़ी के साथ सिंक नहीं हो सका. फिर से कोशिश करें.</string>
     <string name="wear_settings_section_title">घड़ी की सेटिंग्स</string>
+    <string name="wear_settings_group_media_types">मीडिया प्रकार</string>
+    <string name="wear_settings_group_slideshow">स्लाइडशो</string>
+    <string name="wear_settings_group_screen">स्क्रीन</string>
+    <string name="wear_settings_group_other">अन्य</string>
+    <string name="wear_settings_group_sections">धारा</string>
+    <string name="wear_settings_disable_animations">एनिमेशन अक्षम करें</string>
+    <string name="wear_settings_background_mode">पृष्ठभूमि देखें</string>
     <string name="wear_settings_audio">ऑडियो</string>
     <string name="wear_settings_video">वीडियो</string>
     <string name="wear_settings_images">छवियां</string>
@@ -3035,7 +3042,6 @@
     <string name="calculator_keypad_mode_normal">सामान्य</string>
     <string name="calculator_keypad_mode_large">बड़ी चाबियाँ</string>
     <string name="calculator_keypad_mode_compact">संक्षिप्त, नीचे दाएँ</string>
-    <string name="wear_background_section_title">पृष्ठभूमि देखें</string>
     <string name="wear_background_mode_animation">ब्रांडेड एनीमेशन</string>
     <string name="wear_background_mode_image">आपकी छवि</string>
     <string name="wear_background_pick_image">छवि चुनें</string>

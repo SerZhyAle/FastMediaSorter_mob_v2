@@ -208,8 +208,24 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+// S1873: the version has three sources, in this order.
+//   1. -Pfms.version* passed on the command line. Always wins (ADR-2): the phone and the watch of
+//      one release are built by two invocations seconds apart and must agree byte for byte, which
+//      only an explicitly shared stamp can guarantee.
+//   2. The in-build stamp, applied when THIS invocation packages an artifact and nobody passed a
+//      property. Covers the paths no wrapper script reaches - a raw gradlew, CI, the IDE Run button.
+//   3. The checked-in constant below. After ADR-4 nothing writes it, so it is a deliberately
+//      non-releasable sentinel and reaching it means a packaging path stamped nothing - which
+//      scripts/quality/assert-artifact-version-fresh.ps1 refuses on the produced artifact.
+// Compile-only work never reaches source 2 and keeps the constant, so its incrementality and its
+// configuration-cache entry are untouched. Gate on the pair of constants:
+// scripts/quality/assert-module-version-parity.ps1.
+apply(from = rootProject.file("gradle/build-version-stamp.gradle.kts"))
+
 val defaultAppVersionCode = 260901214
 val defaultAppVersionName = "2.60.9012.140"
+val stampedAppVersionCode = extra.properties["fmsStampedAppVersionCode"] as Int?
+val stampedAppVersionName = extra.properties["fmsStampedVersionName"] as String?
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }
@@ -281,14 +297,13 @@ android {
         // Keep targetSdk aligned with compileSdk
         // CRITICAL: Play Store compliance (Android 16 / API 36, S1149); minSdk stays 26/23 - device reach unchanged
         targetSdk = 36
-        // Local fast checks keep these defaults stable so configuration-cache reuse survives
-        // across repeated debug builds. Artifact-oriented helper scripts can override them
-        // via -Pfms.versionCode / -Pfms.versionName when a timestamped package is needed.
+        // Three sources in one order - passed property, in-build stamp when this invocation
+        // packages, checked-in sentinel. See the block above the constants for why each exists.
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = overrideAppVersionCode ?: defaultAppVersionCode
-        versionName = overrideAppVersionName ?: defaultAppVersionName
+        versionCode = overrideAppVersionCode ?: stampedAppVersionCode ?: defaultAppVersionCode
+        versionName = overrideAppVersionName ?: stampedAppVersionName ?: defaultAppVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -752,10 +767,17 @@ android {
         // flavor-scoped. AGP picks up src/test<Flavor>/java by convention (see src/testStandard,
         // src/testNoLegal, src/testVr); only a set shared by SEVERAL flavors needs mounting.
         // S1455: testDocumentsEnabled is the behavioural sibling. Its subject is
-        // OfficeDocumentFamilyCatalog - one FQCN with six per-flavor copies, empty on lite and photos -
-        // so a test of it compiles everywhere and fails only where the catalog is empty, rather than
-        // breaking compilation the way S1450's cases did. These four flavors are exactly where
-        // SUPPORT_DOCUMENTS is on, which matches SUPPORT_STREAMS one for one.
+        // OfficeDocumentFamilyCatalog - one FQCN with a per-flavor copy each - so a test of it
+        // compiles everywhere and fails only where the catalog is empty, rather than breaking
+        // compilation the way S1450's cases did.
+        // S2446: the criterion for this list is a NON-EMPTY catalog, never the SUPPORT_DOCUMENTS
+        // flag. lite, photos and foss declare emptySet()/emptyMap() and stay off it; foss carries
+        // SUPPORT_DOCUMENTS = true and still belongs off, because owner ruling 2026-07-14 gave it
+        // PDF, EPUB and text while promising no Office family. Adding a flavor here by the flag
+        // turns the run red - the test asserts application/msword resolves to MediaFamily.DOCUMENT.
+        // The earlier wording named the flag and claimed the set matched SUPPORT_STREAMS one for
+        // one; that parity was a coincidence of six flavors and foss broke it. Gated by the
+        // capability-keyed rule in scripts/quality/assert-shared-test-flavor-scope.ps1.
         listOf("testStandard", "testNoLegal", "testLegacy", "testVr").forEach { unitTestSet ->
             getByName(unitTestSet) {
                 kotlin.directories.add("src/testStreamingEnabled/java")
@@ -837,6 +859,12 @@ android {
                 // Standard-only edge-gesture overlay controller + its @IntoSet binding, relocated from
                 // src/standard so the overlay can stay disabled independently from the capture suite.
                 kotlin.directories.add("src/standardScreenCapture/java")
+            } else {
+                // S2447: that set also carries the ONLY AccessibilityServiceControl binding standard
+                // has, so turning the overlay off used to leave the unconditional @Inject in
+                // src/main unbound - the same Dagger/MissingBinding lite failed on. Both branches
+                // must supply exactly one binding.
+                kotlin.directories.add("src/screenCaptureDisabled/java")
             }
             if (screenCaptureStandardEnabled && edgeGestureTileStandardEnabled) {
                 // S0672: standard-only QS-tile fallback trigger. Needs BOTH flags because the tile
@@ -908,6 +936,8 @@ android {
             kotlin.directories.add("src/launcherDisabled/java")
             // S1433: no Network Monitor program in this flavor - mount the no-op capability contract.
             kotlin.directories.add("src/networkMonitorDisabled/java")
+            // S2447: no screen-capture suite here - mount the no-op AccessibilityServiceControl.
+            kotlin.directories.add("src/screenCaptureDisabled/java")
         }
         getByName("vr") {
             kotlin.directories.add("src/streamingEnabled/java")
@@ -932,6 +962,8 @@ android {
             kotlin.directories.add("src/launcherDisabled/java")
             // S1433: no Network Monitor program in this flavor - mount the no-op capability contract.
             kotlin.directories.add("src/networkMonitorDisabled/java")
+            // S2447: no screen-capture suite here - mount the no-op AccessibilityServiceControl.
+            kotlin.directories.add("src/screenCaptureDisabled/java")
         }
         getByName("photos") {
             kotlin.directories.add("src/streamingDisabled/java")
@@ -953,6 +985,8 @@ android {
             kotlin.directories.add("src/launcherDisabled/java")
             // S1433: no Network Monitor program in this flavor - mount the no-op capability contract.
             kotlin.directories.add("src/networkMonitorDisabled/java")
+            // S2447: no screen-capture suite here - mount the no-op AccessibilityServiceControl.
+            kotlin.directories.add("src/screenCaptureDisabled/java")
         }
         // S0403: foss subtracts exactly the proprietary nodes. Every "disabled"/"stub" set below is
         // the no-op contract half of a seam whose real half links a Google, Microsoft or Dropbox
@@ -971,6 +1005,8 @@ android {
             kotlin.directories.add("src/launcherDisabled/java")
             kotlin.directories.add("src/networkMonitorDisabled/java")
             kotlin.directories.add("src/playServicesDisabled/java")
+            // S2447: no screen-capture suite here - mount the no-op AccessibilityServiceControl.
+            kotlin.directories.add("src/screenCaptureDisabled/java")
         }
         getByName("lite") {
             kotlin.directories.add("src/streamingDisabled/java")
@@ -989,6 +1025,9 @@ android {
             kotlin.directories.add("src/launcherDisabled/java")
             // S1433: no Network Monitor program in this flavor - mount the no-op capability contract.
             kotlin.directories.add("src/networkMonitorDisabled/java")
+            // S2447: no screen-capture suite here - mount the no-op AccessibilityServiceControl.
+            // This is the flavor whose hiltJavaCompileLiteDebug failure opened the ticket.
+            kotlin.directories.add("src/screenCaptureDisabled/java")
         }
     }
 
@@ -1918,6 +1957,15 @@ dependencies {
     "photosImplementation"("com.google.android.gms:play-services-auth:21.0.0")
     "legacyImplementation"("com.google.android.gms:play-services-auth:21.0.0")
     "vrImplementation"("com.google.android.gms:play-services-auth:21.0.0")
+    // S2101: Block Store carries the sign-in state across a device migration. Unlike the line above
+    // this list omits `lite`, and deliberately: the only consumer is BlockStoreTransferableSignInStore
+    // in src/cloudEnabled, which `lite` does not mount - it binds the no-op instead - so shipping a
+    // proprietary library there would add weight no code in that flavor can reach.
+    "standardImplementation"("com.google.android.gms:play-services-auth-blockstore:16.4.0")
+    "noLegalImplementation"("com.google.android.gms:play-services-auth-blockstore:16.4.0")
+    "photosImplementation"("com.google.android.gms:play-services-auth-blockstore:16.4.0")
+    "legacyImplementation"("com.google.android.gms:play-services-auth-blockstore:16.4.0")
+    "vrImplementation"("com.google.android.gms:play-services-auth-blockstore:16.4.0")
     "standardImplementation"("net.openid:appauth:0.11.1")
     "noLegalImplementation"("net.openid:appauth:0.11.1")
     "liteImplementation"("net.openid:appauth:0.11.1")

@@ -31,6 +31,10 @@ data class WearSettingsPayload(
     val documentsEnabled: Boolean? = null,
     // S2209: disable animations toggle synced from/to phone.
     val disableAnimations: Boolean? = null,
+    // S2166: whether audio keeps playing after the app is minimized. Nullable for the S1781 reason -
+    // a phone that predates it omits the key, and only a nullable field lets this side keep its own
+    // stored value instead of reading the absence as "the owner switched background playback off".
+    val backgroundPlaybackEnabled: Boolean? = null,
     // S2093: contract field name to epoch-millis of that field's last edit on the sending side. One map
     // rather than a companion field per setting, so a later registry entry needs no new contract field
     // and no new storage key. Absent entirely on a side that predates the two-way exchange, which the

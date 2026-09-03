@@ -1403,6 +1403,13 @@
     <string name="wear_sync_success">%d source(s) envoyée(s) vers la montre</string>
     <string name="wear_sync_failed">Impossible de synchroniser avec la montre. Réessayez.</string>
     <string name="wear_settings_section_title">Paramètres de la montre</string>
+    <string name="wear_settings_group_media_types">Types de médias</string>
+    <string name="wear_settings_group_slideshow">Diaporama</string>
+    <string name="wear_settings_group_screen">Écran</string>
+    <string name="wear_settings_group_other">Autre</string>
+    <string name="wear_settings_group_sections">Sections</string>
+    <string name="wear_settings_disable_animations">Désactiver les animations</string>
+    <string name="wear_settings_background_mode">Regarder l’arrière-plan</string>
     <string name="wear_settings_audio">Audio</string>
     <string name="wear_settings_video">Vidéo</string>
     <string name="wear_settings_images">Images</string>
@@ -3039,7 +3046,6 @@
     <string name="calculator_keypad_mode_normal">Normale</string>
     <string name="calculator_keypad_mode_large">Grandes clés</string>
     <string name="calculator_keypad_mode_compact">Compact, en bas à droite</string>
-    <string name="wear_background_section_title">Regarder l’arrière-plan</string>
     <string name="wear_background_mode_animation">Animation de marque</string>
     <string name="wear_background_mode_image">Votre image</string>
     <string name="wear_background_pick_image">Choisir une image</string>

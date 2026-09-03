@@ -42,7 +42,7 @@ import com.sza.fastmediasorter.wear.ui.common.WearRowDensity
 import com.sza.fastmediasorter.wear.ui.common.rowDensityFor
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import com.sza.fastmediasorter.wear.util.fileSizeParts
-import java.util.Locale
+import com.sza.fastmediasorter.wear.util.formatWearDuration
 
 private const val SINGLE_COLUMN = 1
 private const val GRID_CAPTION_LINES = 2
@@ -51,10 +51,6 @@ private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
 private const val IMAGE_PREFIX = "image/"
 private const val VIDEO_PREFIX = "video/"
 private const val AUDIO_PREFIX = "audio/"
-
-private const val SECONDS_PER_MINUTE = 60
-private const val MINUTES_PER_HOUR = 60
-private const val MILLIS_PER_SECOND = 1000
 
 private val SELECTION_BORDER_WIDTH = 2.dp
 private val SELECTION_BADGE_SIZE = 16.dp
@@ -180,8 +176,8 @@ private fun MediaFileChip(
 ) {
     val secondaryText = when {
         file.mimeType?.startsWith(IMAGE_PREFIX) == true -> formatFileSize(file.size)
-        file.mimeType?.startsWith(VIDEO_PREFIX) == true -> formatDuration(file.duration)
-        file.mimeType?.startsWith(AUDIO_PREFIX) == true -> formatDuration(file.duration)
+        file.mimeType?.startsWith(VIDEO_PREFIX) == true -> durationBadge(file.duration)
+        file.mimeType?.startsWith(AUDIO_PREFIX) == true -> durationBadge(file.duration)
         else -> ""
     }
 
@@ -284,20 +280,6 @@ private fun typeNameRes(type: WearContentType): Int = when (type) {
     WearContentType.OTHER -> R.string.wear_content_type_other
 }
 
-private fun formatDuration(durationMs: Long): String {
-    if (durationMs <= 0) return ""
-    val totalSeconds = durationMs / MILLIS_PER_SECOND
-    val minutes = totalSeconds / SECONDS_PER_MINUTE
-    val seconds = totalSeconds % SECONDS_PER_MINUTE
-    return if (minutes >= MINUTES_PER_HOUR) {
-        val hours = minutes / MINUTES_PER_HOUR
-        val remainingMinutes = minutes % MINUTES_PER_HOUR
-        String.format(Locale.US, "%d:%02d:%02d", hours, remainingMinutes, seconds)
-    } else {
-        String.format(Locale.US, "%d:%02d", minutes, seconds)
-    }
-}
-
 /**
  * Composable so the unit is read through the composition's configuration rather than a context's: the
  * label has to follow the watch's language, which the arithmetic behind it never sees (S2353).
@@ -307,3 +289,8 @@ private fun formatFileSize(bytes: Long): String {
     val parts = fileSizeParts(bytes)
     return stringResource(parts.unitRes, parts.value)
 }
+
+// S2278: the badge hides an unknown duration entirely, which the shared formatter deliberately
+// does not do - a player at position zero must still show a figure.
+private fun durationBadge(durationMs: Long): String =
+    if (durationMs > 0L) formatWearDuration(durationMs) else ""

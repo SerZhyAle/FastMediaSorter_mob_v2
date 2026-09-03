@@ -1,10 +1,12 @@
 package com.sza.fastmediasorter.wear.domain.model
 
 /**
- * S1862: one voice note recorded on the watch.
+ * S1862 / S2161: one voice note recorded on the watch.
  *
  * The note survives every transfer outcome (ADR-3) - speech cannot be recorded again, so the file
  * becomes a note first and is only then offered to the transport.
+ *
+ * [publishedAddress] is the MediaStore content Uri string if published, null if private on disk.
  */
 data class VoiceNote(
     val id: Long,
@@ -13,7 +15,8 @@ data class VoiceNote(
     val createdAtMillis: Long,
     val durationMillis: Long,
     val sizeBytes: Long,
-    val deliveryState: VoiceNoteDeliveryState
+    val deliveryState: VoiceNoteDeliveryState,
+    val publishedAddress: String? = null
 )
 
 /**

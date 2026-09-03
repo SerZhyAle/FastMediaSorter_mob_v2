@@ -120,6 +120,7 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: "Dark Mode"
+    visibilityPercentage: 30
   timeout: 5000
 
 # Toggle dark mode
@@ -231,6 +232,7 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: "Pictures"
+    visibilityPercentage: 30
   optional: true
 
 - tapOn:

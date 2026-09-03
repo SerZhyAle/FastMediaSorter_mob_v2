@@ -32,6 +32,7 @@ private const val COLUMN_CREATED_AT_MILLIS = "createdAtMillis"
 private const val COLUMN_DURATION_MILLIS = "durationMillis"
 private const val COLUMN_SIZE_BYTES = "sizeBytes"
 private const val COLUMN_DELIVERY_STATE = "deliveryState"
+private const val COLUMN_PUBLISHED_ADDRESS = "publishedAddress"
 
 private val WRITTEN_COLUMNS = listOf(
     COLUMN_FILE_NAME,
@@ -39,7 +40,8 @@ private val WRITTEN_COLUMNS = listOf(
     COLUMN_CREATED_AT_MILLIS,
     COLUMN_DURATION_MILLIS,
     COLUMN_SIZE_BYTES,
-    COLUMN_DELIVERY_STATE
+    COLUMN_DELIVERY_STATE,
+    COLUMN_PUBLISHED_ADDRESS
 )
 
 private val INSERT_STATEMENT =
@@ -91,13 +93,14 @@ class VoiceNoteIndexRebuilder @Inject constructor(
     }
 
     /** [VoiceNoteEntity.id] is deliberately absent - the recreated table generates it. */
-    private fun bindArgsOf(file: File): Array<Any> = arrayOf(
+    private fun bindArgsOf(file: File): Array<Any?> = arrayOf(
         file.name,
         file.absolutePath,
         createdAtMillisOf(file),
         durationReader.durationMillisOf(file),
         file.length(),
-        VoiceNoteDeliveryState.LOCAL_ONLY.name
+        VoiceNoteDeliveryState.LOCAL_ONLY.name,
+        null
     )
 
     /**

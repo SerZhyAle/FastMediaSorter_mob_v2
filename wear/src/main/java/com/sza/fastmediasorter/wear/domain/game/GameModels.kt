@@ -31,20 +31,6 @@ enum class GameEnemyType {
     SHADOW
 }
 
-// Visual skin over the unchanged game logic (S0804). Purely presentational; persisted separately
-// from the level snapshot so switching modes never resets an in-progress game.
-enum class GameMode {
-    CLASSIC,
-    KRYVAVITSA,
-
-    // S0993: high-contrast readability skin - solid full-colour tiles for small screens.
-    CONTRAST;
-
-    companion object {
-        fun fromStorageName(name: String?): GameMode = entries.firstOrNull { it.name == name } ?: CLASSIC
-    }
-}
-
 enum class GameStatus {
     PLAYING,
     LEVEL_WON,

@@ -69,6 +69,7 @@ class WearPreferencesRepositoryImpl @Inject constructor(
         val VIDEO_SCALE_MODE = stringPreferencesKey("wear_video_scale_mode")
         val IMAGE_SCALE_MODE = stringPreferencesKey("wear_image_scale_mode")
         val KEEP_SCREEN_AWAKE = booleanPreferencesKey("wear_keep_screen_awake")
+        val BACKGROUND_PLAYBACK = booleanPreferencesKey("wear_background_playback")
         val LAST_USED_RESOURCE = stringPreferencesKey("wear_last_used_resource")
         val LAST_USED_RESOURCE_ID = stringPreferencesKey("wear_last_used_resource_id")
         val LAST_USED_RESOURCES = stringPreferencesKey("wear_last_used_resources")
@@ -360,6 +361,16 @@ class WearPreferencesRepositoryImpl @Inject constructor(
     override suspend fun setKeepScreenAwakeOutsidePlayers(enabled: Boolean) {
         stampedEdit("keepScreenAwakeOutsidePlayers") { prefs ->
             prefs[PreferencesKeys.KEEP_SCREEN_AWAKE] = enabled
+        }
+    }
+
+    override val backgroundPlaybackEnabled: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.BACKGROUND_PLAYBACK] ?: false
+    }
+
+    override suspend fun setBackgroundPlaybackEnabled(enabled: Boolean) {
+        stampedEdit("backgroundPlaybackEnabled") { prefs ->
+            prefs[PreferencesKeys.BACKGROUND_PLAYBACK] = enabled
         }
     }
 

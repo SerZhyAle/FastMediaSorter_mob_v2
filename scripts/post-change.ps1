@@ -218,6 +218,20 @@ if (Test-Path $hintFile) {
     catch { Write-Host "  [gate-hints] WARN - unreadable: $($_.Exception.Message)" -ForegroundColor Yellow }
 }
 
+function Send-PostChangeChatVerdict {
+    # S2372: the closure verdict is a moment sibling sessions want to see. A child process keeps the
+    # facade decoupled from the lock library; best effort keeps a chat failure from touching the verdict.
+    param([Parameter(Mandatory)][string]$Verdict)
+    try {
+        $cli = Join-Path $PSScriptRoot 'utils\agent-chat.ps1'
+        if (-not (Test-Path -LiteralPath $cli)) { return }
+        $exe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") { "$env:ProgramFiles\PowerShell\7\pwsh.exe" } else { 'pwsh' }
+        $note = "post-change $Verdict ($resolvedChangeType) $Target - $Description"
+        & $exe -NoProfile -File $cli -Verb Post -Kind verdict -Note $note *> $null
+    }
+    catch { }
+}
+
 function Get-GateHint([string]$Label) {
     if ($script:GateHints.ContainsKey($Label)) { return $script:GateHints[$Label] }
     return $null
@@ -341,6 +355,7 @@ function Test-FatalFindings {
     Write-Host ''
     Write-SkippedSummary
     Write-Host "post-change: FAIL ($($script:FatalFindings.Count) gate(s), $resolvedChangeType)" -ForegroundColor Red
+    Send-PostChangeChatVerdict -Verdict "FAIL ($($script:FatalFindings.Count) gate(s))"
     foreach ($finding in $script:FatalFindings) {
         Write-Host "  failed: $($finding.Label) (exit $($finding.ExitCode))" -ForegroundColor Red
         $hint = Get-GateHint $finding.Label
@@ -440,6 +455,46 @@ function Get-FirstChangedFileMatch([string]$Pattern) {
 # S2121: the list itself moved to scripts/utils/gradle-modules.ps1 - it was declared here AND in
 # check-standard-fast.ps1, and the copies had already started to drift.
 . (Join-Path $root 'scripts/utils/gradle-modules.ps1')
+
+# S2355: every Room database in the repository, one row each. The migration predicates below are
+# built from this rather than from literal path fragments, so a third database is a row in
+# scripts/quality/lib/room-databases.ps1 and not another edit here.
+. (Join-Path $root 'scripts/quality/lib/room-databases.ps1')
+$roomDatabaseRows = @(Get-RoomDatabaseRegistry -RepoRoot $root)
+
+function Test-PathUnderDir([string]$Candidate, [string]$Directory) {
+    if ([string]::IsNullOrWhiteSpace($Directory)) { return $false }
+    $prefix = ($Directory -replace '\\', '/').TrimEnd('/')
+    return $Candidate -eq $prefix -or $Candidate.StartsWith("$prefix/")
+}
+
+function Get-RoomRowsForChangedFiles([string[]]$Fields) {
+    # Which registered databases the changed set actually touches. Returns rows, not a boolean, so
+    # the caller can name the module it is about to judge - the whole point of S2355 is that a
+    # verdict identifies the database it read.
+    $matched = [System.Collections.Generic.List[object]]::new()
+    foreach ($row in $roomDatabaseRows) {
+        foreach ($candidate in $normChangedFiles) {
+            $hit = $false
+            foreach ($field in $Fields) {
+                $value = $row.RelativePaths.$field
+                if ($field -eq 'RegistrationFile') {
+                    if ($candidate -eq ($value -replace '\\', '/')) { $hit = $true }
+                }
+                elseif (Test-PathUnderDir $candidate $value) { $hit = $true }
+                if ($hit) { break }
+            }
+            if ($hit) { $matched.Add($row); break }
+        }
+    }
+    # Emit the rows one at a time and let every CALL SITE wrap the call in @(). Returning the
+    # collection instead is what broke this on its first real run: `return ,$matched.ToArray()`
+    # survives an unwrapped `.Count`, but `@(..)` around it yields a one-element array whose single
+    # element is the EMPTY array - so a changed set matching no database reported Count 1, the
+    # androidTest gate ran anyway, and `$_.Module` failed on an Object[]. Emitting keeps both forms
+    # honest: no match is 0 rows, one match is 1 row.
+    foreach ($row in $matched) { $row }
+}
 
 function Get-ResourceLinkFlavors([string]$TargetModule) {
     # Which variants have to link before the changed set counts as proven. A resource under
@@ -648,8 +703,15 @@ $runsCtorSlotGate = Test-AnyChangedFile '\.kt$'
 # when the change can actually break that set: a file under src/androidTest, or a Room schema file whose
 # entities the migration tests assert against. Measured 6.8 s on a warm daemon, well inside the
 # foreground threshold of CLAUDE.md section 6.
-$runsAndroidTestCompileGate = (Test-AnyChangedFile '(^|/)src/androidTest/') -or `
-    (Test-AnyChangedFile 'data/local/db/(Migration\d+To\d+|AppDatabase|.*Dao|.*Entity)\.kt$')
+#
+# S2355: the second arm was nailed to the phone's `data/local/db` exactly like the migration
+# predicate, so the watch's instrumented set - which Phase 03 created and nothing else compiles -
+# would first break on a device. It now comes from the registry, and the MODULES to compile are
+# derived from the changed files too: the gate already forwarded -Module, but that parameter defaults
+# to app_v2, so a closure naming watch files compiled the phone's set and reported a verdict about
+# the other module (S1807's failure, through a different door).
+$roomAndroidTestRows = @(Get-RoomRowsForChangedFiles @('AndroidTestDir', 'MigrationDir'))
+$runsAndroidTestCompileGate = (Test-AnyChangedFile '(^|/)src/androidTest/') -or ($roomAndroidTestRows.Count -gt 0)
 # S2306 Room upgrade-contract gates: the migration/schema conformance gate and the migration/test
 # pairing gate. Fires on any database source, any exported schema, and on DatabaseModule.kt - the
 # three places a migration contract can be broken from, and any one of them can be the half edited.
@@ -661,9 +723,15 @@ $runsAndroidTestCompileGate = (Test-AnyChangedFile '(^|/)src/androidTest/') -or 
 # device during the first launch after an update; on 2026-09-01 the comparison failed on the owner's
 # phone and the recovery path deleted 20 resources, 26 network credentials, 7 favourites and a
 # 139-cell desktop. Both gates are pure text over the whole tree, no gradle, no device.
-$runsMigrationContractGates = (Test-AnyChangedFile '(^|/)data/local/db/.*\.kt$') -or
-    (Test-AnyChangedFile '(^|/)schemas/.*\.json$') -or
-    (Test-AnyChangedFile 'core/di/DatabaseModule\.kt$')
+#
+# S2355: the three arms used to be literal path fragments, and both halves of that were wrong. The
+# schema arm `(^|/)schemas/.*\.json$` MATCHED wear/schemas/**/1.json, so editing the watch schema ran
+# two gates that then read app_v2 and printed PASS - not a coverage gap but a confident verdict about
+# the module nobody had touched. The source arm `(^|/)data/local/db/.*\.kt$` matched nothing under the
+# watch's `wear/.../data/db` segment, so editing the watch entity, DAO or database fired nothing at
+# all. Both gates still judge the WHOLE tree even under -ScopeToFile, for the S2306 reason above: the
+# contract they check spans files the caller did not name.
+$runsMigrationContractGates = @(Get-RoomRowsForChangedFiles @('MigrationDir', 'SchemaDir', 'RegistrationFile')).Count -gt 0
 # S1915: the resource-link gate - the third gradle task the facade adds beyond detekt. Every other
 # gate here is lexical, so before this one NO path in the facade ran aapt: a layout that did not link
 # closed green, and the ticket reached BlockNeedUserTest - "install this and test it" - without
@@ -698,6 +766,11 @@ if (Test-AnyChangedFile '(^|/)scripts/') {
         $scriptSuiteSkipReason = 'not applicable - no changed script has a regression suite guarding it'
     }
 }
+# S2411 suite-tracked gate. Narrower than the one above on purpose: it fires only when the changed
+# set CONTAINS a runner, so it can name the author of a suite this ticket just wrote and can never
+# refuse a close over another session's untracked work in flight. The whole-tree half - which does
+# see the accumulated debt, and cannot attribute it - is release scope (strategic ADR-2).
+$runsSuiteTrackedGate = (Test-AnyChangedFile '(^|/)run-tests\.ps1$')
 # S1392 flavor-matrix doc-conformance gate. Fires when the flavor grid itself moves
 # (app_v2/build.gradle.kts), when the generated snapshot / rendered table is touched, or when one
 # of the documents carrying a checked glyph table is edited. Compares cell VALUES against
@@ -779,6 +852,64 @@ if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvDocHouseStyle += @('-Cha
 $argvMemoryBudget = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-memory-budget.ps1"), '-Gate')
 $argvBaselineAbsorption = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-detekt-baseline-absorption.ps1"), '-Gate')
 $argvBaselineSplitSync = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/split-detekt-baseline.ps1"), '-Gate')
+
+# S2419: the code lock covers the EDIT, never the checks that only read the tree afterwards.
+# It used to be released in the trailing finally, so the whole gate batch below - roughly seven
+# hundred lines - ran while holding. Measured over temp/AGENT-CHAT for 2026-09-02 21:30 ..
+# 2026-09-03 01:20: a closure's own gate batch took 19.0-48.8 s inside the lock against a 95 s
+# median Code.Scripts hold, every one of the 51 queue waits in that window was on that one
+# domain, and the queue reached ten deep. The release therefore sits here - after the changed
+# set and every gate argv are resolved, before the first pooled child reads anything. Nothing
+# between the top of the script and this line mutates the tree, and the two mutating steps
+# (catalog-sync, dev log) already ran after the old release point, so they are unaffected:
+# catalog-sync rewrites a gitignored local index and add_to_dev_log.ps1 serialises itself on a
+# system mutex (S1537), which is the finer mechanism Rule 23 defers to.
+$script:codeDomainsReleased = $false
+function Exit-AcquiredCodeDomains {
+    if ($script:codeDomainsReleased) { return }
+    $script:codeDomainsReleased = $true
+    # S2109: release exactly the domains this change set maps to, never the whole code side.
+    # Research artifact 04 found the unconditional release was blind to the module, so under
+    # domains a wear-only closure would have freed the phone domain a sibling was holding and
+    # handed its turn away mid-edit - the facade would have become the thing that breaks the
+    # split it is meant to use.
+    try {
+        . (Join-Path $root "scripts/utils/agent-lock.ps1")
+        # "Exactly the domains ACQUIRED" - which is not the same as "the domains this change set
+        # maps to". A session that took the full set and then closes a scripts-only change would
+        # otherwise release Code.Scripts and keep Code.Phone and Code.Wear held for nobody, which
+        # is a leak that outlives the run: measured here, two domains survived a green closure.
+        # Ownership is recorded in the lock files, so the acquired set can simply be read back, and
+        # Exit-AgentLockDomain owner-checks each one - a domain held by a sibling is never touched.
+        $derivedDomains = @(Resolve-CodeDomainsForPaths -Path ($changedFiles + $deletedFiles))
+        # S2371: same accessor the lock was written with - a pid-fallback session must still
+        # count the domains it holds, or its closure hands them to the staleness window.
+        $mySession = Get-AgentSessionId
+        $heldByThisSession = @(Resolve-AgentLockDomains -Name 'Code' | Where-Object {
+            $s = Get-AgentLockStatus -Name $_
+            $s.Exists -and -not [string]::IsNullOrWhiteSpace($mySession) -and
+                [string]$s.SessionId -eq $mySession
+        })
+        $releaseDomains = @(@($derivedDomains + $heldByThisSession) | Select-Object -Unique)
+        Exit-AgentLock -Name 'Code' -Domains $releaseDomains
+
+        # A closure is the deliberate boundary of one logical change. The following edit needs a
+        # fresh lock, so make that state transition explicit before a later phase can write unlocked.
+        $releasedDomains = @($heldByThisSession | Where-Object {
+            $status = Get-AgentLockStatus -Name $_
+            -not ($status.Exists -and [string]$status.SessionId -eq $mySession)
+        })
+        if ($releasedDomains.Count -gt 0) {
+            Write-Host ("  [code-lock-release] RELEASED: $($releasedDomains -join ', '). " +
+                'Before the next repository source, resource, build, or script edit, acquire its derived code lock.') `
+                -ForegroundColor Yellow
+        }
+    }
+    catch {
+        Write-Host "  [code-lock-release] WARN - could not release the code lock: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+}
+Exit-AcquiredCodeDomains
 
 if ($runsStringsAudit) { Start-PooledGate @argvStringsAudit }
 if ($runsStringFormatGate) { Start-PooledGate @argvNewLexemes; Start-PooledGate @argvStringFormat }
@@ -953,6 +1084,25 @@ if ($runsScriptSuiteGate) {
 }
 else {
     Skip-Step "script-suite-regression" $scriptSuiteSkipReason
+}
+
+# S2411: the per-ticket half of the suite-tracked question. Placement (Rule 33) sends the check
+# itself to release scope on all four criteria - but the release scope sees only the SUM of the
+# debt, never its author, which is how eight runners accumulated without one of them being noticed
+# at birth. This half judges only the runner named in this changed set, so it refuses exactly the
+# session that wrote it and never a sibling's work in flight.
+#
+# Called WITH -Gate, unlike the regression runner above: there "could not verify" means an optional
+# environment tool is missing on a developer machine, here it means git could not be asked at all,
+# and a closure that cannot see the index must not answer green about it.
+if ($runsSuiteTrackedGate) {
+    Invoke-Gate "suite-tracked" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-suite-tracked.ps1") `
+            -Gate -ChangedFiles ($changedFiles -join ',')
+    }
+}
+else {
+    Skip-Step "suite-tracked" "not applicable - no contract-suite runner among the changed files"
 }
 
 # S0826: a project-wide gate without per-file delta support runs advisory (warn, non-fatal)
@@ -1403,8 +1553,8 @@ if ($runsMigrationContractGates) {
     }
 }
 else {
-    Skip-Step "migration-schema-conformance-gate" "not applicable - no changed file is a database source, an exported schema or DatabaseModule.kt"
-    Skip-Step "migration-test-pairing-gate" "not applicable - no changed file is a database source, an exported schema or DatabaseModule.kt"
+    Skip-Step "migration-schema-conformance-gate" "not applicable - no changed file belongs to any registered Room database (source directory, exported schema or migration registration file)"
+    Skip-Step "migration-test-pairing-gate" "not applicable - no changed file belongs to any registered Room database (source directory, exported schema or migration registration file)"
 }
 
 if ($runsGsonContractGate) {
@@ -1491,15 +1641,30 @@ else {
     Skip-Step "resource-link-gate" "not applicable - no changed file is a resource or manifest under a source set"
 }
 
-# S1844: compiles app_v2's instrumented set. Routed through check-standard-fast.ps1 rather than gradlew
+# S1844: compiles the instrumented set. Routed through check-standard-fast.ps1 rather than gradlew
 # so BUILD.LOCK is acquired by the same helper every other build path uses (CLAUDE.md Rule 23).
+#
+# S2355: WHICH module is compiled is derived from the changed files, not taken from -Module. That
+# parameter defaults to app_v2, so a closure naming watch sources used to compile the phone's set and
+# report a verdict about the other module. The -Module fallback survives only for a changed set that
+# resolves to no registered database - a plain src/androidTest edit in some other module.
 if ($runsAndroidTestCompileGate) {
+    $androidTestModules = @($roomAndroidTestRows | ForEach-Object { $_.Module } | Select-Object -Unique)
+    if ($androidTestModules.Count -eq 0) { $androidTestModules = @($Module) }
+    # The label stays a literal: assert-gate-hints-sync pairs gate labels with recovery hints by
+    # exact text, so interpolating the module here would leave the gate hintless and the hint
+    # gateless - two findings for one edit. The module is named in the gate's OUTPUT instead, which
+    # is what has to identify the module anyway, and check-standard-fast prints it again in its banner.
     Invoke-Gate "androidtest-compile-gate" {
-        & $pwsh -NoProfile -File (Join-Path $root "scripts/builders/check-standard-fast.ps1") -Mode AndroidTest -Module $Module
+        foreach ($androidTestModule in $androidTestModules) {
+            Write-Host "  compiling the instrumented set of module '$androidTestModule'" -ForegroundColor Gray
+            & $pwsh -NoProfile -File (Join-Path $root "scripts/builders/check-standard-fast.ps1") -Mode AndroidTest -Module $androidTestModule
+            if ($LASTEXITCODE -ne 0) { return }
+        }
     }
 }
 else {
-    Skip-Step "androidtest-compile-gate" "not applicable - no changed file is under src/androidTest or a Room schema source"
+    Skip-Step "androidtest-compile-gate" "not applicable - no changed file is under src/androidTest or under any registered Room database"
 }
 
 # S0848 Phase 02: join the detekt job started before the lexical gates. Preserves the old
@@ -1531,50 +1696,12 @@ finally {
         try { Stop-Job -Job $detektJob -ErrorAction SilentlyContinue } catch { }
         try { Remove-Job -Job $detektJob -Force -ErrorAction SilentlyContinue } catch { }
     }
-    # Tier-2 coordination lock (CLAUDE.md Rule 23): post-change.ps1 is the "logical change is
-    # done" checkpoint every code-editing skill already calls, so releasing the code lock here
-    # makes release automatic - skills only need to acquire it
-    # (scripts/utils/enter-code-lock.ps1) before their first source edit. Safe no-op if nothing
-    # was ever acquired in this run.
-    #
-    # S2109: release exactly the domains this change set maps to, never the whole code side.
-    # Research artifact 04 found the unconditional release was blind to the module, so under
-    # domains a wear-only closure would have freed the phone domain a sibling was holding and
-    # handed its turn away mid-edit - the facade would have become the thing that breaks the
-    # split it is meant to use.
-    try {
-        . (Join-Path $root "scripts/utils/agent-lock.ps1")
-        # "Exactly the domains ACQUIRED" - which is not the same as "the domains this change set
-        # maps to". A session that took the full set and then closes a scripts-only change would
-        # otherwise release Code.Scripts and keep Code.Phone and Code.Wear held for nobody, which
-        # is a leak that outlives the run: measured here, two domains survived a green closure.
-        # Ownership is recorded in the lock files, so the acquired set can simply be read back, and
-        # Exit-AgentLockDomain owner-checks each one - a domain held by a sibling is never touched.
-        $derivedDomains = @(Resolve-CodeDomainsForPaths -Path ($changedFiles + $deletedFiles))
-        $mySession = $env:CLAUDE_CODE_SESSION_ID
-        $heldByThisSession = @(Resolve-AgentLockDomains -Name 'Code' | Where-Object {
-            $s = Get-AgentLockStatus -Name $_
-            $s.Exists -and -not [string]::IsNullOrWhiteSpace($mySession) -and
-                [string]$s.SessionId -eq $mySession
-        })
-        $releaseDomains = @(@($derivedDomains + $heldByThisSession) | Select-Object -Unique)
-        Exit-AgentLock -Name 'Code' -Domains $releaseDomains
-
-        # A closure is the deliberate boundary of one logical change. The following edit needs a
-        # fresh lock, so make that state transition explicit before a later phase can write unlocked.
-        $releasedDomains = @($heldByThisSession | Where-Object {
-            $status = Get-AgentLockStatus -Name $_
-            -not ($status.Exists -and [string]$status.SessionId -eq $mySession)
-        })
-        if ($releasedDomains.Count -gt 0) {
-            Write-Host ("  [code-lock-release] RELEASED: $($releasedDomains -join ', '). " +
-                'Before the next repository source, resource, build, or script edit, acquire its derived code lock.') `
-                -ForegroundColor Yellow
-        }
-    }
-    catch {
-        Write-Host "  [code-lock-release] WARN - could not release the code lock: $($_.Exception.Message)" -ForegroundColor Yellow
-    }
+    # Tier-2 coordination lock (CLAUDE.md Rule 23). S2419 moved the release to just before the
+    # gate batch, so on the normal path this call is already a no-op. It stays here as the
+    # backstop for the run that never reached that line - a bad argument, a throw during gate
+    # argv construction - because a lock outliving a crashed closure is what the queue cannot
+    # recover from on its own.
+    Exit-AcquiredCodeDomains
 }
 
 # S1598: the barrier. Sits after the finally so CODE.LOCK is released on a failed run
@@ -1647,8 +1774,10 @@ if ($script:AdvisoryFindings.Count -gt 0) {
         Write-Host "  advisory: $advisory" -ForegroundColor Yellow
     }
     Write-Host "  These gates found something but could not attribute it to this change. Verify your files." -ForegroundColor Yellow
+    Send-PostChangeChatVerdict -Verdict "PASS WITH ADVISORIES ($($script:AdvisoryFindings.Count)), $elapsedMs ms"
 }
 else {
     Write-Host "post-change: PASS ($resolvedChangeType, $elapsedMs ms)" -ForegroundColor Green
+    Send-PostChangeChatVerdict -Verdict "PASS, $elapsedMs ms"
 }
 exit 0

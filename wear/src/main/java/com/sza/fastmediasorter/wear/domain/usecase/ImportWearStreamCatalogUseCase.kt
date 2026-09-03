@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.wear.domain.model.CatalogPayload
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearTileKind
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
+import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -40,7 +41,7 @@ class ImportWearStreamCatalogUseCase @Inject constructor(
         val payload = try {
             downloadCatalog()
         } catch (e: Exception) {
-            Timber.w(e, "Wear stream catalog import failed: download/unzip")
+            e.warnUnlessCancellation("Wear stream catalog import failed: download/unzip")
             return@withContext CatalogImportResult.Failure(e.message ?: "download error")
         }
 
@@ -52,7 +53,7 @@ class ImportWearStreamCatalogUseCase @Inject constructor(
         val entries = try {
             parser.parse(payload.csv)
         } catch (e: Exception) {
-            Timber.w(e, "Wear stream catalog import failed: parse")
+            e.warnUnlessCancellation("Wear stream catalog import failed: parse")
             return@withContext CatalogImportResult.Failure(e.message ?: "parse error")
         }
 
@@ -70,7 +71,7 @@ class ImportWearStreamCatalogUseCase @Inject constructor(
                 entries.size
             )
         } catch (e: Exception) {
-            Timber.w(e, "Wear stream catalog import: favicon sidecar write failed (rows still merge)")
+            e.warnUnlessCancellation("Wear stream catalog import: favicon sidecar write failed (rows still merge)")
         }
 
         val channels = entries.map { entry ->
@@ -100,7 +101,7 @@ class ImportWearStreamCatalogUseCase @Inject constructor(
             repository.saveChannels(merged)
             requestWearTileRefreshUseCase(WearTileKind.STREAM)
         } catch (e: Exception) {
-            Timber.w(e, "Wear stream catalog import failed: save")
+            e.warnUnlessCancellation("Wear stream catalog import failed: save")
             return@withContext CatalogImportResult.Failure(e.message ?: "save error")
         }
 

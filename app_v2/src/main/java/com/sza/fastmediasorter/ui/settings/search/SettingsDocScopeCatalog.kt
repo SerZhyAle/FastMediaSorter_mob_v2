@@ -259,6 +259,14 @@ object SettingsDocScopeCatalog {
             titleEn = "Disable animations",
             titleRu = "Отключить анимацию",
             titleUk = "Вимкнути анімацію"
+        ),
+        WearDocEntry(
+            key = "wearBackgroundPlayback",
+            layout = "wear_other_settings",
+            kind = "TOGGLE_ROW",
+            titleEn = "Keep playing in background",
+            titleRu = "Продолжать воспроизведение в фоне",
+            titleUk = "Продовжувати відтворення у фоні"
         )
     )
 }

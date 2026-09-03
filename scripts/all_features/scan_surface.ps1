@@ -1,142 +1,114 @@
+#requires -Version 7.0
 <#
 .SYNOPSIS
-    S0543 - Build per-area audit worksheets pairing the ALL_FEATURES inventory with
-    the actual code surface (class catalog), to drive the inventory completeness audit.
+    Forwarder to the canon-shipped harness script all_features\scan_surface.ps1 (S2402).
 
 .DESCRIPTION
-    READ-ONLY. Produces no source changes, no build, no device interaction.
+    GENERATED - do not edit. The mechanism lives in the SZA canon plugin (tools/harness) and this
+    repository consumes it; the file kept here is only the address every existing call site already
+    knows. Regenerate with scripts/utils/install-sza-forwarders.ps1. What this project configures lives in
+    .sza-profile.json at the repository root, never in a script body.
 
-    Joins two machine-readable sources:
-      - docs/ALL_FEATURES.jsonl  (the developer capability inventory, grouped by area)
-      - dev/CATALOG/<module>.jsonl (the class catalog: path/class/layer/loc/role/functions)
-
-    Emits, under temp/s0543/:
-      - inventory_by_area.json   area  -> [inventory records]
-      - catalog_modules.json     module (layer/feature) -> [classes]
-      - coverage_seed.txt        side-by-side: inventory areas + code modules,
-                                 flags id-hygiene defects and lopsided coverage
-    These are SEED worksheets - signals, not truths. The per-area agents verify
-    against code before any inventory write (S0543 Phase 02).
-
-.NOTES
-    The catalog (dev/CATALOG/*.jsonl) is a gitignored local index; run
-    scripts/catalog_sync.ps1 -Module app_v2 first if it is stale or missing.
-
-.EXAMPLE
-    pwsh -NoProfile -File scripts/all_features/scan_surface.ps1
-.EXAMPLE
-    pwsh -NoProfile -File scripts/all_features/scan_surface.ps1 -Module app_v2
+Exit codes: whatever all_features\scan_surface.ps1 returns, plus 2 when the harness cannot be located.
 #>
-param(
-    [ValidateSet("app_v2", "wear")] [string]$Module = "app_v2",
-    [switch]$Quiet
-)
-
-$ErrorActionPreference = "Stop"
-trap { Write-Error $_; exit 1 }
-
-# Resolve repo root (script lives in scripts/all_features/)
-$scriptDir = $PSScriptRoot
-if (-not $scriptDir) { $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path }
-$repoRoot = Split-Path -Parent (Split-Path -Parent $scriptDir)
-if (-not (Test-Path (Join-Path $repoRoot "settings.gradle.kts"))) { $repoRoot = (Get-Location).Path }
-
-$invFile = Join-Path $repoRoot "docs/ALL_FEATURES.jsonl"
-$catFile = Join-Path $repoRoot "dev/CATALOG/$Module.jsonl"
-$outDir = Join-Path $repoRoot "temp/s0543"
-
-if (-not (Test-Path $invFile)) { Write-Error "Inventory not found: $invFile"; exit 1 }
-if (-not (Test-Path $catFile)) {
-    Write-Error "Catalog not found: $catFile - run: pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module $Module"
-    exit 1
+# S2441: every name below carries a $szaFwd prefix because HALF of this set is dot-sourced, and a
+# dot-sourced file assigns into its CALLER's scope. PowerShell names are case-insensitive, so the
+# `$target` this file used to resolve into WAS the caller's `-Target` parameter: post-change.ps1
+# dot-sources the agent-lock-domains forwarder before it journals, and every dev/CHANGELOG.md row
+# written on 2026-09-03 recorded a harness path where the ticket id belonged. The second failure
+# mode is worse than the substitution - a caller declaring `[string]$Candidates` type-constrains
+# this file's own accumulator, so `$candidates = @()` collapses to '' and every `+=` concatenates
+# instead of appending, leaving one unusable path and a forwarder that cannot find the harness at
+# all. Ten scripts under scripts/ declare a parameter that collided. Contract suite:
+# scripts/utils/install-sza-forwarders.tests/.
+$szaFwdCandidates = @()
+if ($env:SZA_HARNESS_ROOT) { $szaFwdCandidates += $env:SZA_HARNESS_ROOT }
+$szaFwdCache = Join-Path $env:USERPROFILE '.claude\plugins\cache\sza-unified-rules\sza'
+if (Test-Path -LiteralPath $szaFwdCache) {
+    # Ordered as VERSIONS, not as strings: the plugin version is date-derived (2026.903.1), so a
+    # string sort puts October's 2026.1001.1 below September's 2026.903.1 and the forwarder would
+    # keep calling the older copy after an update. A directory that does not parse sorts last
+    # rather than being dropped - it may still be the only harness present.
+    $szaFwdVersions = @(Get-ChildItem -LiteralPath $szaFwdCache -Directory -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            $szaFwdParsed = $null
+            [void][version]::TryParse($_.Name, [ref]$szaFwdParsed)
+            [pscustomobject]@{ Path = $_.FullName; Version = $szaFwdParsed }
+        } | Sort-Object @{ Expression = { $null -ne $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Path }; Descending = $true })
+    $szaFwdCandidates += @($szaFwdVersions | ForEach-Object { Join-Path $_.Path 'tools\harness' })
 }
-if (-not (Test-Path $outDir)) { New-Item -ItemType Directory -Force -Path $outDir | Out-Null }
-
-$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
-
-# --- Load inventory, group by area -------------------------------------------
-$invRecords = @(Get-Content -LiteralPath $invFile -Encoding UTF8 |
-    Where-Object { $_.Trim().Length -gt 0 } |
-    ForEach-Object { try { $_ | ConvertFrom-Json } catch { $null } } |
-    Where-Object { $_ })
-
-$byArea = [ordered]@{}
-foreach ($r in ($invRecords | Sort-Object area, id)) {
-    $a = "$($r.area)"
-    if (-not $byArea.Contains($a)) { $byArea[$a] = New-Object System.Collections.Generic.List[object] }
-    $byArea[$a].Add([ordered]@{ id = $r.id; name = $r.name; flavors = $r.flavors; spec = $r.spec; status = $r.status })
+$szaFwdTarget = $null
+foreach ($szaFwdDir in $szaFwdCandidates) {
+    $szaFwdProbe = Join-Path $szaFwdDir 'all_features\scan_surface.ps1'
+    if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe; break }
 }
 
-# --- id hygiene: id area-prefix should relate to the area slug ----------------
-function To-Slug([string]$s) {
-    $x = $s.ToLowerInvariant() -replace '[^a-z0-9]+', '-'
-    return $x.Trim('-')
-}
-$idHygiene = New-Object System.Collections.Generic.List[string]
-foreach ($r in $invRecords) {
-    $prefix = "$($r.id)".Split('.')[0]
-    if ($prefix -match '^s\d{4}$') {
-        $idHygiene.Add("$($r.id)   (area='$($r.area)', prefix is a spec id, expected area slug '$(To-Slug $r.area)')")
+# S2452: candidate 3, the canon checkout, reached only when the two above miss. The plugin cache
+# is what actually resolves on every invocation, so the resolver below is never read on the hot
+# path. Its default is held by scripts/utils/project-paths.ps1 and by nothing else - before this it
+# was written in 76 files, 74 of them generated and stamped `GENERATED - do not edit`, so moving
+# the canon required editing files that forbid editing. That is the exact non-portability the
+# hardcoded-drive-path rule was installed to refuse (S2326).
+#
+# The dot-source runs inside `& { }` deliberately. HALF this set is itself dot-sourced, so at top
+# level project-paths.ps1 would define its functions and set its script variables in the CALLER's
+# scope - the S2441 failure one level further out. A child scope cannot reach the caller at all.
+if (-not $szaFwdTarget) {
+    $szaFwdCheckout = $env:SZA_CANON_ROOT
+    if (-not $szaFwdCheckout) {
+        $szaFwdResolver = Join-Path $PSScriptRoot '..\..\scripts\utils\project-paths.ps1'
+        if (Test-Path -LiteralPath $szaFwdResolver) {
+            # A resolver that is absent or throws must not stop the forwarder from printing its own
+            # refusal, which is the only message that names all three candidates and the fix.
+            $szaFwdCheckout = & {
+                param($szaFwdResolverPath)
+                try { . $szaFwdResolverPath; Get-CanonRoot } catch { $null }
+            } $szaFwdResolver
+        }
+    }
+    if ($szaFwdCheckout) {
+        $szaFwdCandidates += (Join-Path $szaFwdCheckout 'tools\harness')
+        $szaFwdProbe = Join-Path $szaFwdCandidates[-1] 'all_features\scan_surface.ps1'
+        if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe }
     }
 }
-
-# --- Load catalog, group by module (layer/feature) ---------------------------
-$catRecords = @(Get-Content -LiteralPath $catFile -Encoding UTF8 |
-    Where-Object { $_.Trim().Length -gt 0 } |
-    ForEach-Object { try { $_ | ConvertFrom-Json } catch { $null } } |
-    Where-Object { $_ })
-
-function Module-Key([string]$path) {
-    # com/sza/fastmediasorter/<a>/<b>/File.kt -> "a/b"
-    $p = $path -replace '\\', '/'
-    $p = $p -replace '^com/sza/fastmediasorter/', ''
-    $segs = @($p -split '/')
-    if ($segs.Count -le 1) { return "(root)" }
-    $segs = $segs[0..($segs.Count - 2)]   # drop filename
-    if ($segs.Count -ge 2) { return ($segs[0..1] -join '/') }
-    return $segs[0]
+if (-not $szaFwdTarget) {
+    Write-Host "scan_surface.ps1: the SZA harness is not installed - looked in:" -ForegroundColor Red
+    foreach ($szaFwdDir in $szaFwdCandidates) { Write-Host "    $szaFwdDir" -ForegroundColor Gray }
+    Write-Host "  Install or update it:  claude plugin update sza@sza-unified-rules" -ForegroundColor Yellow
+    Write-Host "  Or point at a checkout: `$env:SZA_HARNESS_ROOT = '<repo>\tools\harness'" -ForegroundColor Yellow
+    exit 2
 }
 
-$byModule = @{}
-foreach ($c in $catRecords) {
-    $k = Module-Key "$($c.path)"
-    if (-not $byModule.ContainsKey($k)) { $byModule[$k] = New-Object System.Collections.Generic.List[object] }
-    $byModule[$k].Add([ordered]@{ class = $c.class; loc = $c.loc; role = $c.role; path = $c.path })
+$env:SZA_PROJECT_ROOT = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+
+# Half of this set is dot-sourced as a library and half is invoked as a CLI, and the two cannot be
+# forwarded the same way: `& $szaFwdTarget` would run a library in its own scope and define nothing
+# the caller can see, while `exit` inside a dot-sourced file would kill the caller. InvocationName
+# is '.' exactly when this file was dot-sourced, so one template serves both.
+if ($MyInvocation.InvocationName -eq '.') {
+    . $szaFwdTarget
+} else {
+    # Deliberately NOT 'Stop'. A native child's stderr arrives here as ErrorRecord objects, and
+    # under 'Stop' the first one terminates this forwarder before `exit $LASTEXITCODE` runs - so a
+    # script that reported a FAIL and exited 1 would reach its caller as a crashed forwarder with a
+    # different code. Every script in this set states its exit codes; passing them through unchanged
+    # is the whole job. S2441 moved it inside this branch: at the file's top level it also rewrote
+    # the preference of every caller that dot-sources a forwarder, silently downgrading a script
+    # running under 'Stop' for the rest of its life.
+    $ErrorActionPreference = 'Continue'
+    $global:LASTEXITCODE = 0
+    try {
+        & $szaFwdTarget @args
+    } catch {
+        # A child that THROWS never reaches its own `exit`, so $LASTEXITCODE stays 0 and the
+        # forwarder would report success for a script that failed - the one way a forwarder can
+        # turn a red verdict green. Every such refusal is a failure, so it leaves as exit 1.
+        Write-Error $_ -ErrorAction Continue
+        exit 1
+    }
+    $szaFwdCode = $LASTEXITCODE
+    exit $(if ($null -eq $szaFwdCode) { 0 } else { $szaFwdCode })
 }
-
-# --- Write artifacts ----------------------------------------------------------
-$invByAreaJson = ([pscustomobject]$byArea | ConvertTo-Json -Depth 6)
-[System.IO.File]::WriteAllText((Join-Path $outDir "inventory_by_area.json"), $invByAreaJson, $utf8NoBom)
-
-$modObj = [ordered]@{}
-foreach ($k in ($byModule.Keys | Sort-Object)) { $modObj[$k] = $byModule[$k] }
-$catModJson = ([pscustomobject]$modObj | ConvertTo-Json -Depth 6)
-[System.IO.File]::WriteAllText((Join-Path $outDir "catalog_modules.json"), $catModJson, $utf8NoBom)
-
-# coverage seed
-$sb = New-Object System.Text.StringBuilder
-[void]$sb.AppendLine("S0543 coverage seed - inventory areas vs code modules ($Module)")
-[void]$sb.AppendLine("inventory records: $($invRecords.Count)   areas: $($byArea.Keys.Count)   catalog classes: $($catRecords.Count)   modules: $($byModule.Keys.Count)")
-[void]$sb.AppendLine("")
-[void]$sb.AppendLine("== Inventory records per area ==")
-foreach ($a in ($byArea.Keys | Sort-Object { $byArea[$_].Count } -Descending)) {
-    [void]$sb.AppendLine(("{0,4}  {1}" -f $byArea[$a].Count, $a))
-}
-[void]$sb.AppendLine("")
-[void]$sb.AppendLine("== Code modules per class count (top 40; candidate feature surface) ==")
-$topMods = $byModule.Keys | Sort-Object { $byModule[$_].Count } -Descending | Select-Object -First 40
-foreach ($k in $topMods) {
-    [void]$sb.AppendLine(("{0,4}  {1}" -f $byModule[$k].Count, $k))
-}
-[void]$sb.AppendLine("")
-[void]$sb.AppendLine("== id-hygiene defects (spec id used as area prefix) ==")
-if ($idHygiene.Count -eq 0) { [void]$sb.AppendLine("  none") }
-else { foreach ($h in $idHygiene) { [void]$sb.AppendLine("  $h") } }
-
-[System.IO.File]::WriteAllText((Join-Path $outDir "coverage_seed.txt"), $sb.ToString(), $utf8NoBom)
-
-if (-not $Quiet) {
-    Write-Host "[scan_surface] inventory=$($invRecords.Count) areas=$($byArea.Keys.Count) classes=$($catRecords.Count) modules=$($byModule.Keys.Count) idHygiene=$($idHygiene.Count)" -ForegroundColor Green
-    Write-Host "[scan_surface] -> temp/s0543/{inventory_by_area.json, catalog_modules.json, coverage_seed.txt}" -ForegroundColor Green
-}
-exit 0

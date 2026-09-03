@@ -14,29 +14,14 @@ if ($versionNameProvided -xor $versionCodeProvided) {
     throw "Pass both -VersionName and -VersionCode together, or omit both for auto-versioning."
 }
 
+# S1873: one formula for the whole repository, and it travels as a build property - a build
+# never writes build.gradle.kts, so the working tree stays clean and nothing has to revert it.
+. "$PSScriptRoot\..\utils\build-version-stamp.ps1"
+
 if ([string]::IsNullOrWhiteSpace($VersionName)) {
-    # Generate version
-    $now = Get-Date
-    $year = $now.Year
-    $month = $now.Month
-    $day = $now.Day
-    $hour = $now.Hour
-    $minute = $now.Minute
-
-    $firstYearDigit = [int]($year.ToString()[0].ToString())
-    $lastYearDigit = [int]($year.ToString()[-1].ToString())
-    $firstMonthDigit = [int]($month.ToString("00")[0].ToString())
-    $secondMonthDigit = [int]($month.ToString("00")[1].ToString())
-    $dayStr = $day.ToString("00")
-    $firstHourDigit = [int]($hour.ToString("00")[0].ToString())
-    $secondHourDigit = [int]($hour.ToString("00")[1].ToString())
-    $minuteStr = $minute.ToString("00")
-    $firstMinuteDigit = [int]($minuteStr[0].ToString())
-
-    # YYMMDDHHm format (9 digits): year(2) + month(2) + day(2) + hour(2) + minute_first_digit(1)
-    $versionCodeStr = $now.ToString("yyMMddHH") + $firstMinuteDigit.ToString()
-    $versionCodeInt = [Convert]::ToInt32($versionCodeStr)
-    $versionName = "$firstYearDigit.$lastYearDigit$firstMonthDigit.$secondMonthDigit$dayStr$firstHourDigit.$secondHourDigit$minuteStr"
+    $stamp = Get-BuildVersionStamp
+    $versionName = $stamp.VersionName
+    $versionCodeInt = $stamp.AppVersionCode
 } else {
     $versionName = $VersionName.Trim()
     $versionCodeInt = $VersionCode
@@ -61,24 +46,13 @@ Enter-BuildLockOrExit -Reason "build-aab-release.ps1" -Domain Build.Phone
 Push-Location $projectRoot
 try {
 
-# Update build.gradle.kts
-$buildGradlePath = "$projectRoot\app_v2\build.gradle.kts"
-$content = Get-Content $buildGradlePath -Raw
-$content = $content -replace '(versionCode\s*=\s*)\d+', "`${1}$versionCodeInt"
-$content = $content -replace '(versionName\s*=\s*)"[^"]*"', "`${1}`"$versionName`""
-Set-Content $buildGradlePath $content -NoNewline
-
-# This script only ever stamps app_v2 - wear is a separate module the caller may not even be
-# touching this run. A non-fatal warning here catches the drift at the moment this stamp is
-# created instead of leaving it for the next unrelated ticket's `fg` gate to trip over (S2117).
-& (Join-Path $PSScriptRoot "..\quality\assert-module-version-parity.ps1") -Quiet
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "Warning: app_v2/build.gradle.kts and wear/build.gradle.kts now disagree on version - see scripts/quality/assert-module-version-parity.ps1. Align wear before the next release (S2117)." -ForegroundColor Yellow
-}
+# S1873 / ADR-4: the version travels as a property, so the S2117 parity warning that used to sit
+# here has nothing left to warn about - this script no longer writes either module's build file,
+# and the checked-in constants it would compare are untouched by the run.
 
 # Start the Gradle build process for AAB (Release with R8 optimizations)
 Write-Host "Running: gradlew bundleStandardRelease" -ForegroundColor Yellow
-& $gradlew :app_v2:bundleStandardRelease "-Pchaquopy.enabled=false" --configuration-cache
+& $gradlew :app_v2:bundleStandardRelease "-Pfms.versionCode=$versionCodeInt" "-Pfms.versionName=$versionName" "-Pchaquopy.enabled=false" --configuration-cache
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nAAB Build Failed! Exiting..." -ForegroundColor Red
@@ -89,7 +63,7 @@ Write-Host "`nAAB Build Successful!" -ForegroundColor Green
 
 # Build APK as well
 Write-Host "Running: gradlew assembleStandardRelease" -ForegroundColor Yellow
-& $gradlew :app_v2:assembleStandardRelease "-Pchaquopy.enabled=false" --configuration-cache
+& $gradlew :app_v2:assembleStandardRelease "-Pfms.versionCode=$versionCodeInt" "-Pfms.versionName=$versionName" "-Pchaquopy.enabled=false" --configuration-cache
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nAPK Build Failed! Exiting..." -ForegroundColor Red

@@ -7,6 +7,7 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PhoneAndroid
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -33,6 +34,9 @@ import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
  */
 private fun batchActions(callbacks: FileActionsCallbacks): List<Pair<WearFileOperationKind, () -> Unit>> =
     listOf(
+        // One entry, not one per receiver: it opens the receiver list, so this menu still holds no
+        // list of its own and a receiver added on the phone needs no edit here (strategic 3.3).
+        WearFileOperationKind.SEND_TO_RECEIVER to callbacks.onSendToRequested,
         WearFileOperationKind.SEND_TO_PHONE to callbacks.onSendToPhone,
         WearFileOperationKind.MOVE_TO_PHONE to callbacks.onMoveToPhone,
         WearFileOperationKind.RENAME to callbacks.onRenameRequested,
@@ -53,6 +57,7 @@ internal data class FileActionsDialogState(
 
 /** What the action menu can ask of the screen that owns the selection. */
 internal data class FileActionsCallbacks(
+    val onSendToRequested: () -> Unit,
     val onSendToPhone: () -> Unit,
     val onMoveToPhone: () -> Unit,
     val onRenameRequested: () -> Unit,
@@ -149,6 +154,7 @@ private fun WearFileOperationKind.labelRes(): Int = when (this) {
     WearFileOperationKind.RENAME -> R.string.wear_file_op_rename
     WearFileOperationKind.DELETE -> R.string.delete
     WearFileOperationKind.OPEN_ON_PHONE -> R.string.wear_file_op_open_on_phone
+    WearFileOperationKind.SEND_TO_RECEIVER -> R.string.wear_file_op_send_to
 }
 
 private fun WearFileOperationKind.icon(): ImageVector = when (this) {
@@ -157,4 +163,5 @@ private fun WearFileOperationKind.icon(): ImageVector = when (this) {
     WearFileOperationKind.RENAME -> Icons.Default.Edit
     WearFileOperationKind.DELETE -> Icons.Default.Delete
     WearFileOperationKind.OPEN_ON_PHONE -> Icons.AutoMirrored.Filled.OpenInNew
+    WearFileOperationKind.SEND_TO_RECEIVER -> Icons.Default.Share
 }

@@ -7,18 +7,12 @@ Write-Host "Building NoLegal Release APK (auto-versioned)..." -ForegroundColor C
 Write-Host "Features: Standard runtime + sideload-only extras (NewPipe, etc.)" -ForegroundColor Yellow
 Write-Host "Distribution: ADB sideload only - not for any public store." -ForegroundColor Magenta
 
-# Generate version
-$now = Get-Date
-$yy  = $now.ToString("yy")
-$mon = $now.ToString("MM")   # "mon" avoids PowerShell case-insensitive clash with $mm
-$dd  = $now.ToString("dd")
-$HH  = $now.ToString("HH")
-$mm  = $now.ToString("mm")
-
-# versionCode: YYMMDDHHm (9 digits, first digit of minutes - avoids Int32 overflow)
-$versionCodeInt = [Convert]::ToInt32($now.ToString("yyMMddHH") + $mm[0])
-# versionName: Y.YM.MDDH.Hmm  e.g. 2.60.4260.457
-$versionName = "$($yy[0]).$($yy[1])$($mon[0]).$($mon[1])$dd$($HH[0]).$($HH[1])$mm"
+# S1873: one formula for the whole repository, and it travels as a build property - a build
+# never writes build.gradle.kts, so the working tree stays clean and nothing has to revert it.
+. "$PSScriptRoot\..\utils\build-version-stamp.ps1"
+$stamp = Get-BuildVersionStamp
+$versionName = $stamp.VersionName
+$versionCodeInt = $stamp.AppVersionCode
 
 Write-Host "Version: $versionName (code: $versionCodeInt)" -ForegroundColor Green
 
@@ -48,19 +42,12 @@ if (Test-Path $cxxReleaseDir) {
     }
 }
 
-# Update build.gradle.kts
-$buildGradlePath = "$projectRoot\app_v2\build.gradle.kts"
-$content = Get-Content $buildGradlePath -Raw
-$content = $content -replace '(versionCode\s*=\s*)\d+', "`${1}$versionCodeInt"
-$content = $content -replace '(versionName\s*=\s*)"[^"]*"', "`${1}`"$versionName`""
-Set-Content $buildGradlePath $content -NoNewline
-
 # Start the Gradle build process (Release with R8 optimizations).
 # --no-configuration-cache: Chaquopy 17.x is not configuration-cache-compatible (S0175).
 # -Pchaquopy.enabled=true: noLegal flavor REQUIRES the Chaquopy Python runtime.
 #   Passing the flag explicitly removes the dependency on a machine-local
 #   `chaquopy.enabled=true` line in `local.properties` (gitignored, may be absent).
-& $gradlew :app_v2:assembleNoLegalRelease "-Pchaquopy.enabled=true" --no-configuration-cache
+& $gradlew :app_v2:assembleNoLegalRelease "-Pfms.versionCode=$versionCodeInt" "-Pfms.versionName=$versionName" "-Pchaquopy.enabled=true" --no-configuration-cache
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nBuild Failed! Exiting..." -ForegroundColor Red

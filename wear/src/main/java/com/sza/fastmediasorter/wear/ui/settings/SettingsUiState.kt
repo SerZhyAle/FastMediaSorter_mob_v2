@@ -35,6 +35,9 @@ data class SettingsUiState(
 
     /** S1781: the three players hold the screen unconditionally, so this covers every other screen. */
     val keepScreenAwakeOutsidePlayers: Boolean = false,
+    val backgroundPlaybackEnabled: Boolean = false,
+    /** S2166: the notification permission was refused, so the setting stayed off and says why. */
+    val backgroundPlaybackNeedsNotifications: Boolean = false,
 
     /** S1718: watch screen auto-rotation preference. Default: false (forbidden per owner decision 2026-08-16). */
     val isAutoRotationEnabled: Boolean = false,

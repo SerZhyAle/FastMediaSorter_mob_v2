@@ -3251,6 +3251,16 @@
       "titleUk": "Фон на годиннику"
     },
     {
+      "key": "wearBackgroundPlayback",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_other_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Keep playing in background",
+      "titleRu": "Продолжать воспроизведение в фоне",
+      "titleUk": "Продовжувати відтворення у фоні"
+    },
+    {
       "key": "wearDisableAnimations",
       "sectionId": "wear",
       "destination": "MEDIA",

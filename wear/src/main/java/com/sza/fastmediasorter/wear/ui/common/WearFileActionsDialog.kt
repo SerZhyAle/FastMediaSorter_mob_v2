@@ -106,6 +106,7 @@ private fun labelOf(kind: WearFileOperationKind): Int = when (kind) {
     WearFileOperationKind.DELETE -> R.string.delete
     WearFileOperationKind.RENAME -> R.string.wear_file_op_rename
     WearFileOperationKind.OPEN_ON_PHONE -> R.string.wear_file_op_open_on_phone
+    WearFileOperationKind.SEND_TO_RECEIVER -> R.string.wear_file_op_send_to
 }
 
 private val TITLE_GAP = 8.dp
@@ -119,6 +120,8 @@ private val TITLE_GAP = 8.dp
  * ahead of renaming because renaming keeps the user here (strategic 3.4 item 8).
  */
 private val ACTION_ORDER = listOf(
+    // First, by the owner's ruling in strategic 3.4: «Send to..» leads, deletion still trails.
+    WearFileOperationKind.SEND_TO_RECEIVER,
     WearFileOperationKind.SEND_TO_PHONE,
     WearFileOperationKind.MOVE_TO_PHONE,
     WearFileOperationKind.OPEN_ON_PHONE,

@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceMerge
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
+import com.sza.fastmediasorter.wear.util.errorUnlessCancellation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +21,7 @@ import timber.log.Timber
 /**
  * Implementation of NetworkSourceRepository using EncryptedSharedPreferences.
  * Stores network sources as JSON with encrypted credentials.
- * 
+ *
  * Note: This class is provided via WearAppModule.provideNetworkSourceRepository
  * Do not add @Inject constructor as it would create duplicate bindings.
  */
@@ -30,11 +31,11 @@ class NetworkSourceRepositoryImpl(
     private val ftpConnectionTest: FtpConnectionTest,
     private val sftpConnectionTest: SftpConnectionTest
 ) : NetworkSourceRepository {
-    
+
     private val gson = Gson()
     private val sourcesKey = "network_sources"
     private val sourcesFlow = MutableStateFlow(readSourcesFromPrefs())
-    
+
     override suspend fun getAllSources(): List<NetworkSource> = withContext(Dispatchers.IO) {
         val sources = readSourcesFromPrefs()
         sourcesFlow.value = sources
@@ -42,11 +43,11 @@ class NetworkSourceRepositoryImpl(
     }
 
     override fun observeSources(): Flow<List<NetworkSource>> = sourcesFlow.asStateFlow()
-    
+
     override suspend fun getSourceById(id: String): NetworkSource? = withContext(Dispatchers.IO) {
         sourcesFlow.value.firstOrNull { it.id == id } ?: readSourcesFromPrefs().firstOrNull { it.id == id }
     }
-    
+
     override suspend fun addSource(source: NetworkSource) = withContext(Dispatchers.IO) {
         try {
             val sources = sourcesFlow.value.toMutableList()
@@ -54,11 +55,11 @@ class NetworkSourceRepositoryImpl(
             saveSources(sources)
             Timber.d("Added network source: ${source.name}")
         } catch (e: Exception) {
-            Timber.e(e, "Failed to add network source")
+            e.errorUnlessCancellation("Failed to add network source")
             throw e
         }
     }
-    
+
     override suspend fun updateSource(source: NetworkSource) = withContext(Dispatchers.IO) {
         try {
             val sources = sourcesFlow.value.toMutableList()
@@ -71,11 +72,11 @@ class NetworkSourceRepositoryImpl(
                 throw IllegalArgumentException("Source not found: ${source.id}")
             }
         } catch (e: Exception) {
-            Timber.e(e, "Failed to update network source")
+            e.errorUnlessCancellation("Failed to update network source")
             throw e
         }
     }
-    
+
     override suspend fun upsertSource(source: NetworkSource) = withContext(Dispatchers.IO) {
         try {
             val sources = sourcesFlow.value.toMutableList()
@@ -93,7 +94,7 @@ class NetworkSourceRepositoryImpl(
             }
             saveSources(sources)
         } catch (e: Exception) {
-            Timber.e(e, "Failed to upsert network source")
+            e.errorUnlessCancellation("Failed to upsert network source")
             throw e
         }
     }
@@ -105,11 +106,11 @@ class NetworkSourceRepositoryImpl(
             saveSources(sources)
             Timber.d("Deleted network source: $id")
         } catch (e: Exception) {
-            Timber.e(e, "Failed to delete network source")
+            e.errorUnlessCancellation("Failed to delete network source")
             throw e
         }
     }
-    
+
     override suspend fun testConnection(source: NetworkSource): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
             when (source.type) {
@@ -128,11 +129,11 @@ class NetworkSourceRepositoryImpl(
                 else -> Result.failure(UnsupportedOperationException("Source type not supported: ${source.type}"))
             }
         } catch (e: Exception) {
-            Timber.e(e, "Connection test failed")
+            e.errorUnlessCancellation("Connection test failed")
             Result.failure(e)
         }
     }
-    
+
     private fun saveSources(sources: List<NetworkSource>) {
         val json = gson.toJson(sources)
         encryptedPrefs.edit().putString(sourcesKey, json).apply()

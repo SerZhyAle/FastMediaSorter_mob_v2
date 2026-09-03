@@ -55,14 +55,16 @@ private val ROW_LABEL_GAP = 6.dp
 private val PROGRESS_STROKE = 2.dp
 
 /**
- * S1862: the notes this watch holds, with the two things section 7 asks the list to make possible -
- * sending one by hand and deleting one to free the space back.
+ * S1862 / S2161: the notes this watch holds, with sending, deleting and playback on the watch.
  *
- * A note is never removed by the app itself (ADR-3), so this list is the only way a recording ever
- * leaves the watch, and a waiting note has to read as waiting rather than as a flag nobody sees.
+ * A single tap plays the voice note directly. Long press opens the action sheet where Play, Send and
+ * Delete are available.
  */
 @Composable
-fun VoiceNoteListScreen(viewModel: VoiceNoteListViewModel = hiltViewModel()) {
+fun VoiceNoteListScreen(
+    onPlayNote: (VoiceNote) -> Unit = {},
+    viewModel: VoiceNoteListViewModel = hiltViewModel()
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberScalingLazyListState()
     var actionsFor by remember { mutableStateOf<VoiceNote?>(null) }
@@ -76,6 +78,7 @@ fun VoiceNoteListScreen(viewModel: VoiceNoteListViewModel = hiltViewModel()) {
         NoteListContent(
             uiState = uiState,
             listState = listState,
+            onPlayNote = onPlayNote,
             onOpenActions = { note -> actionsFor = note }
         )
     }
@@ -83,6 +86,10 @@ fun VoiceNoteListScreen(viewModel: VoiceNoteListViewModel = hiltViewModel()) {
     actionsFor?.let { note ->
         NoteActionsDialog(
             note = note,
+            onPlay = {
+                onPlayNote(note)
+                actionsFor = null
+            },
             onSend = {
                 viewModel.send(note.id)
                 actionsFor = null
@@ -120,6 +127,7 @@ fun VoiceNoteListScreen(viewModel: VoiceNoteListViewModel = hiltViewModel()) {
 private fun NoteListContent(
     uiState: VoiceNoteListUiState,
     listState: ScalingLazyListState,
+    onPlayNote: (VoiceNote) -> Unit,
     onOpenActions: (VoiceNote) -> Unit
 ) {
     ScalingLazyColumn(
@@ -155,6 +163,7 @@ private fun NoteListContent(
             NoteRow(
                 note = note,
                 sending = uiState.sendingNoteId == note.id,
+                onPlay = { onPlayNote(note) },
                 onOpenActions = { onOpenActions(note) }
             )
         }
@@ -165,14 +174,14 @@ private fun NoteListContent(
 private fun NoteRow(
     note: VoiceNote,
     sending: Boolean,
+    onPlay: () -> Unit,
     onOpenActions: () -> Unit
 ) {
     val stateLabel = stringResource(deliveryLabelOf(note.deliveryState))
     LongPressChip(
-        // Tap and long press open the same sheet on purpose. A note is not played on the watch, so
-        // a tap with nothing behind it would read as a broken row - and a destructive action
-        // reachable only by a gesture is unreachable to anyone who does not know the gesture.
-        onClick = onOpenActions,
+        // S2161: a tap plays the note; long press opens the actions sheet where send and delete live.
+        // Playback is the thing a person wants to do next (strategic §5.3), so it gets the easy gesture.
+        onClick = onPlay,
         onLongClick = onOpenActions,
         label = {
             Text(text = noteTimeLabel(note), maxLines = 1)
@@ -204,6 +213,7 @@ private fun NoteRow(
 @Composable
 private fun NoteActionsDialog(
     note: VoiceNote,
+    onPlay: () -> Unit,
     onSend: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -218,9 +228,16 @@ private fun NoteActionsDialog(
     ) {
         item {
             DialogChip(
+                labelRes = R.string.wear_voice_note_play,
+                onClick = onPlay,
+                primary = true
+            )
+        }
+        item {
+            DialogChip(
                 labelRes = R.string.wear_voice_note_send,
                 onClick = onSend,
-                primary = true
+                primary = false
             )
         }
         item {

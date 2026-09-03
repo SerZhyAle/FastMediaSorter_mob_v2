@@ -1,16 +1,23 @@
 package com.sza.fastmediasorter.wear.data.repository
 
+import android.content.Context
+import android.net.Uri
 import com.sza.fastmediasorter.wear.data.db.VoiceNoteDao
 import com.sza.fastmediasorter.wear.data.db.VoiceNoteEntity
 import com.sza.fastmediasorter.wear.data.recorder.VoiceNoteFileFactory
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -27,6 +34,19 @@ class VoiceNoteRepositoryImplTest {
 
     @get:Rule
     val temporaryFolder: TemporaryFolder = TemporaryFolder()
+
+    private val context: Context = mockk(relaxed = true)
+
+    @Before
+    fun setUp() {
+        mockkStatic(Uri::class)
+        every { Uri.parse(any()) } returns mockk(relaxed = true)
+    }
+
+    @After
+    fun tearDown() {
+        unmockkStatic(Uri::class)
+    }
 
     private class FakeVoiceNoteDao(initial: List<VoiceNoteEntity> = emptyList()) : VoiceNoteDao {
 
@@ -48,6 +68,10 @@ class VoiceNoteRepositoryImplTest {
 
         override suspend fun updateDeliveryState(id: Long, state: String) {
             rows[id]?.let { rows[id] = it.copy(deliveryState = state) }
+        }
+
+        override suspend fun updatePublishedAddress(id: Long, address: String) {
+            rows[id]?.let { rows[id] = it.copy(publishedAddress = address) }
         }
 
         override suspend fun deleteById(id: Long) {
@@ -81,7 +105,7 @@ class VoiceNoteRepositoryImplTest {
     fun `deleting a note removes the row and the file`() = runBlocking {
         val file = temporaryFolder.newFile("audio_260826_101500.m4a")
         val dao = FakeVoiceNoteDao(listOf(entityFor(file)))
-        val repository = VoiceNoteRepositoryImpl(dao, factoryWithFreeSpace(FREE_ABOVE_THRESHOLD))
+        val repository = VoiceNoteRepositoryImpl(context, dao, factoryWithFreeSpace(FREE_ABOVE_THRESHOLD))
 
         repository.delete(1L)
 
@@ -90,12 +114,26 @@ class VoiceNoteRepositoryImplTest {
     }
 
     @Test
+    fun `deleting a note with published address deletes published entry via content resolver`() = runBlocking {
+        val file = temporaryFolder.newFile("audio_260826_101502.m4a")
+        val entity = entityFor(file).copy(publishedAddress = "content://media/external/audio/media/789")
+        val dao = FakeVoiceNoteDao(listOf(entity))
+        val repository = VoiceNoteRepositoryImpl(context, dao, factoryWithFreeSpace(FREE_ABOVE_THRESHOLD))
+
+        repository.delete(1L)
+
+        assertFalse("the working copy still occupies the watch", file.exists())
+        assertNull("the row outlived its file", dao.getById(1L))
+        verify { context.contentResolver.delete(any(), null, null) }
+    }
+
+    @Test
     fun `deleting a note whose file is already gone still drops the row`() = runBlocking {
         // The recoverable half of the ordering in the implementation: a file removed out from under us
         // must not strand an unreachable row in the list.
         val file = temporaryFolder.newFile("audio_260826_101501.m4a")
         val dao = FakeVoiceNoteDao(listOf(entityFor(file)))
-        val repository = VoiceNoteRepositoryImpl(dao, factoryWithFreeSpace(FREE_ABOVE_THRESHOLD))
+        val repository = VoiceNoteRepositoryImpl(context, dao, factoryWithFreeSpace(FREE_ABOVE_THRESHOLD))
         assertTrue(file.delete())
 
         repository.delete(1L)
@@ -105,7 +143,7 @@ class VoiceNoteRepositoryImplTest {
 
     @Test
     fun `recording is refused when the watch is below the headroom`() = runBlocking {
-        val repository = VoiceNoteRepositoryImpl(FakeVoiceNoteDao(), factoryWithFreeSpace(FREE_BELOW_THRESHOLD))
+        val repository = VoiceNoteRepositoryImpl(context, FakeVoiceNoteDao(), factoryWithFreeSpace(FREE_BELOW_THRESHOLD))
         assertFalse(repository.hasRoomToRecord())
     }
 
@@ -113,7 +151,7 @@ class VoiceNoteRepositoryImplTest {
     fun `recording is allowed at exactly the headroom`() = runBlocking {
         // The boundary is deliberately inclusive: the headroom equals the S1861 bridge ceiling, so a
         // recording that can be started is one that can still be sent.
-        val repository = VoiceNoteRepositoryImpl(FakeVoiceNoteDao(), factoryWithFreeSpace(THRESHOLD_BYTES))
+        val repository = VoiceNoteRepositoryImpl(context, FakeVoiceNoteDao(), factoryWithFreeSpace(THRESHOLD_BYTES))
         assertTrue(repository.hasRoomToRecord())
     }
 

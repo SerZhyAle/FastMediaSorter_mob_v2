@@ -570,7 +570,9 @@ class StandaloneViewManager(
         playerView.controllerShowTimeoutMs = 5000
         standaloneVideoSizeKnown = false
         standalonePendingEffects = false
-        val player = ExoPlayer.Builder(activity).build()
+        // S1267 ADR-4: standalone video was the one playback path bypassing the shared factory, so
+        // the balance processor never reached it.
+        val player = ExoPlayer.Builder(activity, createPlaybackRenderersFactory(activity)).build()
         exoPlayer = player
         playerView.player = player
         applyVideoColorEffects()

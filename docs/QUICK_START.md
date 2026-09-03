@@ -13,7 +13,7 @@ permalink: /docs/QUICK_START.html
 
 ## Choose Your Flavor 📱
 
-FastMediaSorter v2 ships **four flavors for everyday phones and tablets** - Standard, Lite, Photos, Legacy - plus **two headset and sideload builds**, VR and noLegal. Six in total; the exact capability grid is generated from the build in [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md). Pick the one that fits your needs:
+FastMediaSorter v2 ships **five flavors for everyday phones and tablets** - Standard, Lite, Photos, Legacy, FOSS - plus **two headset and sideload builds**, VR and noLegal. Seven in total; the exact capability grid is generated from the build in [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md). Pick the one that fits your needs:
 
 | Flavor | Best For | Key Features |
 |--------|----------|--------------|
@@ -21,6 +21,7 @@ FastMediaSorter v2 ships **four flavors for everyday phones and tablets** - Stan
 | **Lite** | Smaller downloads | Photos, videos and local audio files; no cloud, no network folders, no Internet Streams, no documents or translation, and audio stops when the app leaves the foreground |
 | **Photos** | Photo enthusiasts | Images only, with cloud storage and network folders; no video, no audio, no Streams |
 | **Legacy** | Older Android (API 23+) | Full media + SMB/FTP/SFTP and cloud; built for older Android (API 23+) |
+| **FOSS** | F-Droid users | Videos, photos, audio, documents and EPUB from the device and from SMB/FTP/SFTP; no proprietary SDKs, so no cloud, no Streams, no OCR and no translation |
 | **VR / noLegal** | XR headset / sideload | VR is the Store-clean headset build; noLegal is the sideload build that adds the immersive player and sideload-only extras |
 
 **👉 Most users should download the "Standard" flavor for the complete experience.**

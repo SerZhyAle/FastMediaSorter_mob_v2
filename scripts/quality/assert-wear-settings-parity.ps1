@@ -10,7 +10,9 @@
     only when the owner could not see it where it was expected.
 
     S2093 made the list explicit in WearSettingsRegistry, mirrored per module. This gate checks the
-    registry against every consumer derived from it and names the missing side.
+    registry against every consumer derived from it and names the missing side. S2169 added the
+    order dimension: the registry also declares the menu's group sequence and row order, and the
+    gate compares that declaration against the rows both surfaces actually draw.
 
     Checks:
       1. The two WearSettingsRegistry copies list the same entry ids.
@@ -20,6 +22,22 @@
       5. A watch DataStore key a settings screen writes is present in the registry.
       6. An entry the owner can see is published in SettingsDocScopeCatalog.wearEntries.
       7. A BOTH entry's watch setter records an edit time (a stampedEdit call site).
+      8. S2169 declaration completeness: the menu map names real entries exactly once, an entry
+         with a watch row sits in the map exactly once, a mapped row declares its watchRowAnchor,
+         a mapped non-WATCH_ONLY row declares its companionRowTag, and both registry copies agree
+         on the map and on both anchor fields.
+      9. S2169 watch order: each group's anchors resolve in that group's settings screens (or only
+         in another group's screens, which is itself a finding), and per file the anchors follow
+         the declared order.
+     10. S2169 phone order: WearWatchSettingsGroup.kt draws every declared companionRowTag, and the
+         rows appear grouped in the map's group order and in row order within each group. The
+         wearViewMode / wearFileListViewMode / wearBackgroundMode_ prefixes match by occurrence,
+         not as quoted whole tags.
+
+    A row literal may sit inside a helper composable defined below its call site (the bottom-helper
+    idiom these screens use). Both order checks resolve such a literal to the helper's FIRST
+    INVOCATION - the place the row is drawn - with the literal position breaking ties between rows
+    inside one helper. Rows written inline resolve at their own literal position.
 
     Rule 33 class, stated at birth: PER-TICKET. Its evidence exists only at the moment of the change -
     the author is the one who knows whether a new setting was meant to be one-sided - and the settings
@@ -30,9 +48,10 @@
       0 - parity holds; or a divergence was reported without -Gate, matching the advisory shape of
           the sibling gates in assert-fast-gates.ps1.
       1 - a divergence was found and -Gate was passed.
-      2 - a source file could not be read, or a registry parsed to zero entries, so nothing was
-          actually checked. A caller must tell this from 1: "found a defect" and "did not look" are
-          different answers.
+      2 - a source file could not be read (a registry, a payload, the watch preferences, the doc
+          catalog, a settings screen or the companion window), or a registry parsed to zero entries,
+          so nothing was actually checked. A caller must tell this from 1: "found a defect" and
+          "did not look" are different answers.
 #>
 [CmdletBinding()]
 param(
@@ -52,6 +71,32 @@ $paths = [ordered]@{
     WatchPayload  = 'wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearSettingsPayload.kt'
     WatchPrefs    = 'wear/src/main/java/com/sza/fastmediasorter/wear/data/preferences/WearPreferencesRepositoryImpl.kt'
     DocCatalog    = 'app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/search/SettingsDocScopeCatalog.kt'
+    WatchMediaTypes   = 'wear/src/main/java/com/sza/fastmediasorter/wear/ui/settings/MediaTypesSettingsScreen.kt'
+    WatchBrowseCatalog = 'wear/src/main/java/com/sza/fastmediasorter/wear/domain/browse/BrowseCategoryCatalog.kt'
+    WatchSlideshow = 'wear/src/main/java/com/sza/fastmediasorter/wear/ui/settings/SlideshowSettingsScreen.kt'
+    WatchScreen    = 'wear/src/main/java/com/sza/fastmediasorter/wear/ui/settings/ScreenSettingsScreen.kt'
+    WatchOther     = 'wear/src/main/java/com/sza/fastmediasorter/wear/ui/settings/OtherSettingsScreen.kt'
+    PhoneRows      = 'app_v2/src/main/java/com/sza/fastmediasorter/ui/wear/companion/WearWatchSettingsGroup.kt'
+}
+
+# S2169: which files a menu group's watch rows live in (keys into $paths)...
+$groupFiles = @{
+    MEDIA_TYPES = @('WatchMediaTypes', 'WatchBrowseCatalog')
+    SLIDESHOW   = @('WatchSlideshow')
+    SCREEN      = @('WatchScreen')
+    OTHER       = @('WatchOther')
+}
+
+# S2169: ...and, per file, the function that draws the group's rows. A literal found inside any
+# OTHER function escalates to that function's first invocation. BrowseCategoryCatalog declares its
+# type sets at object level, so it needs no root and every literal resolves where it stands.
+$orderRoots = @{
+    WatchMediaTypes    = 'MediaTypesSettingsScreen'
+    WatchSlideshow     = 'SlideshowSettingsScreen'
+    WatchScreen        = 'ScreenSettingsScreen'
+    WatchOther         = 'OtherSettingsScreen'
+    WatchBrowseCatalog = ''
+    PhoneRows          = 'WatchSettingsControls'
 }
 
 $text = @{}
@@ -80,16 +125,56 @@ function Read-RegistryEntries {
         $doc = [regex]::Match($body, 'docScopeId\s*=\s*"(?<v>[^"]+)"')
         $own = [regex]::Match($body, 'ownership\s*=\s*WearSettingOwnership\.(?<v>\w+)')
         $reason = [regex]::Match($body, 'exceptionReason\s*=\s*"(?<v>[^"]+)"')
+        $anchor = [regex]::Match($body, 'watchRowAnchor\s*=\s*"(?<v>[^"]+)"')
+        $tag = [regex]::Match($body, 'companionRowTag\s*=\s*"(?<v>[^"]+)"')
         $entries += [pscustomobject]@{
             Field     = $field.Groups['v'].Value
             WatchKey  = if ($key.Success) { $key.Groups['v'].Value } else { $null }
             DocScope  = if ($doc.Success) { $doc.Groups['v'].Value } else { $null }
             Ownership = if ($own.Success) { $own.Groups['v'].Value } else { 'UNKNOWN' }
             Reason    = if ($reason.Success) { $reason.Groups['v'].Value } else { $null }
+            Anchor    = if ($anchor.Success) { $anchor.Groups['v'].Value } else { $null }
+            Tag       = if ($tag.Success) { $tag.Groups['v'].Value } else { $null }
             Source    = $Label
         }
     }
     return $entries
+}
+
+# S2169: the menuRowsByGroup declaration, group id -> ordered field list, in declaration order.
+function Read-MenuMap {
+    param([string]$Source)
+
+    $map = [ordered]@{}
+    foreach ($m in [regex]::Matches($Source, '"(?<group>[A-Z_]+)"\s+to\s+listOf\((?<body>[^)]*)\)')) {
+        $fields = @([regex]::Matches($m.Groups['body'].Value, '"(?<f>[^"]+)"') |
+            ForEach-Object { $_.Groups['f'].Value })
+        $map[$m.Groups['group'].Value] = $fields
+    }
+    return $map
+}
+
+# S2169: where a row anchor or tag is DRAWN in one file. A literal inside a non-root function
+# escalates to that function's first invocation (bottom helpers are defined below their call
+# sites); the literal index stays as the tie-break between rows sharing one helper.
+function Get-RowPosition {
+    param([string]$Source, [string]$Token, [string]$RootFun)
+
+    $literal = $Source.IndexOf($Token, [System.StringComparison]::Ordinal)
+    if ($literal -lt 0) { return $null }
+
+    $declName = $null
+    foreach ($decl in [regex]::Matches($Source, '(?m)^\s*(?:private\s+|internal\s+)?fun\s+(?<name>\w+)\s*\(')) {
+        if ($decl.Index -gt $literal) { break }
+        $declName = $decl.Groups['name'].Value
+    }
+    if ($null -eq $declName -or $declName -eq $RootFun) {
+        return [pscustomobject]@{ Draw = $literal; Literal = $literal; Helper = $null; Invoked = $true }
+    }
+    foreach ($inv in [regex]::Matches($Source, "(?<!fun\s)\b$([regex]::Escape($declName))\s*\(")) {
+        return [pscustomobject]@{ Draw = $inv.Index; Literal = $literal; Helper = $declName; Invoked = $true }
+    }
+    return [pscustomobject]@{ Draw = $literal; Literal = $literal; Helper = $declName; Invoked = $false }
 }
 
 $phoneEntries = Read-RegistryEntries -Source $text.PhoneRegistry -Label 'phone'
@@ -99,6 +184,11 @@ if ($phoneEntries.Count -eq 0 -or $watchEntries.Count -eq 0) {
     Write-Error 'assert-wear-settings-parity: could not verify - a registry parsed to zero entries.' -ErrorAction Continue
     exit 2
 }
+
+$phoneByField = @{}
+foreach ($e in $phoneEntries) { $phoneByField[$e.Field] = $e }
+$watchByField = @{}
+foreach ($e in $watchEntries) { $watchByField[$e.Field] = $e }
 
 $findings = @()
 
@@ -169,9 +259,137 @@ foreach ($entry in $watchEntries) {
     }
 }
 
+# 8. S2169 declaration completeness: the menu map and the entry list describe one world, and the
+#    two copies agree on it. The watch copy drives this check and check 9 (the watch menu is the
+#    canonical order, ADR-1); the phone copy drives check 10.
+$phoneMap = Read-MenuMap -Source $text.PhoneRegistry
+$watchMap = Read-MenuMap -Source $text.WatchRegistry
+if (@($phoneMap.Keys).Count -eq 0 -or @($watchMap.Keys).Count -eq 0) {
+    Write-Error 'assert-wear-settings-parity: could not verify - a registry parsed to an empty menu map.' -ErrorAction Continue
+    exit 2
+}
+if ((@($phoneMap.Keys) -join '|') -ne (@($watchMap.Keys) -join '|')) {
+    $findings += "S2169: menu map group sequence differs between copies - phone '$(@($phoneMap.Keys) -join ' -> ')' vs watch '$(@($watchMap.Keys) -join ' -> ')'."
+} else {
+    foreach ($group in $watchMap.Keys) {
+        if ((@($phoneMap[$group]) -join '|') -ne (@($watchMap[$group]) -join '|')) {
+            $findings += "S2169: menu map group $group differs between copies - phone [$(@($phoneMap[$group]) -join ', ')] vs watch [$(@($watchMap[$group]) -join ', ')]."
+        }
+    }
+}
+foreach ($p in $phoneEntries) {
+    $w = $watchByField[$p.Field]
+    if ($null -eq $w) { continue }
+    if ($p.Anchor -ne $w.Anchor) {
+        $findings += "S2169: '$($p.Field)' declares watchRowAnchor '$($p.Anchor)' in the phone copy and '$($w.Anchor)' in the watch copy."
+    }
+    if ($p.Tag -ne $w.Tag) {
+        $findings += "S2169: '$($p.Field)' declares companionRowTag '$($p.Tag)' in the phone copy and '$($w.Tag)' in the watch copy."
+    }
+}
+$mappedCount = @{}
+foreach ($group in $watchMap.Keys) {
+    if ($group -notin $groupFiles.Keys) {
+        $findings += "S2169: menu map declares group $group, which has no settings screen in the gate's group-file table."
+        continue
+    }
+    foreach ($f in $watchMap[$group]) {
+        $mappedCount[$f] = 1 + $(if ($mappedCount.ContainsKey($f)) { $mappedCount[$f] } else { 0 })
+    }
+}
+foreach ($f in $watchMap.Values | ForEach-Object { $_ }) {
+    if ($f -notin $watchByField.Keys) {
+        $findings += "S2169: menu map names field '$f', which is in no WearSettingsRegistry entry."
+    }
+}
+foreach ($entry in $watchEntries) {
+    $count = if ($mappedCount.ContainsKey($entry.Field)) { $mappedCount[$entry.Field] } else { 0 }
+    if ($null -ne $entry.Anchor) {
+        if ($count -eq 0) {
+            $findings += "S2169: '$($entry.Field)' declares watchRowAnchor '$($entry.Anchor)' but sits in no menuRowsByGroup group."
+        } elseif ($count -gt 1) {
+            $findings += "S2169: '$($entry.Field)' appears $count times in menuRowsByGroup - a row has exactly one place."
+        }
+    } elseif ($count -gt 0) {
+        $findings += "S2169: '$($entry.Field)' sits in menuRowsByGroup but declares no watchRowAnchor."
+    }
+    if ($count -gt 0 -and $entry.Ownership -ne 'WATCH_ONLY' -and $null -eq $entry.Tag) {
+        $findings += "S2169: mapped row '$($entry.Field)' is $($entry.Ownership) but declares no companionRowTag."
+    }
+}
+
+# 9. S2169 watch order: each mapped anchor resolves in its own group's screens, and per file the
+#    resolved draw positions follow the declared order.
+foreach ($group in $watchMap.Keys) {
+    if ($group -notin $groupFiles.Keys) { continue }
+    foreach ($f in $watchMap[$group]) {
+        $entry = $watchByField[$f]
+        if ($null -eq $entry -or $null -eq $entry.Anchor) { continue }
+        $resolvingGroups = @()
+        foreach ($scanGroup in $groupFiles.Keys) {
+            foreach ($fileKey in $groupFiles[$scanGroup]) {
+                if ($text[$fileKey].Contains($entry.Anchor)) { $resolvingGroups += $scanGroup }
+            }
+        }
+        if ($resolvingGroups.Count -eq 0) {
+            $findings += "S2169: watch row '$f' anchor '$($entry.Anchor)' matches no settings screen."
+        } elseif ($group -notin $resolvingGroups) {
+            $findings += "S2169: watch row '$f' anchor '$($entry.Anchor)' resolves only in group(s) [$($resolvingGroups -join ', ')], not in its own group $group."
+        }
+    }
+    foreach ($fileKey in $groupFiles[$group]) {
+        $present = @()
+        foreach ($f in $watchMap[$group]) {
+            $entry = $watchByField[$f]
+            if ($null -eq $entry -or $null -eq $entry.Anchor) { continue }
+            $pos = Get-RowPosition -Source $text[$fileKey] -Token $entry.Anchor -RootFun $orderRoots[$fileKey]
+            if ($null -ne $pos) {
+                $present += [pscustomobject]@{ Field = $f; Anchor = $entry.Anchor; Pos = $pos }
+            }
+        }
+        for ($i = 1; $i -lt $present.Count; $i++) {
+            $a = $present[$i - 1]
+            $b = $present[$i]
+            $ordered = $b.Pos.Draw -gt $a.Pos.Draw -or
+                ($b.Pos.Draw -eq $a.Pos.Draw -and $b.Pos.Literal -gt $a.Pos.Literal)
+            if (-not $ordered) {
+                $findings += "S2169: watch group $group - '$($a.Field)' (anchor $($a.Anchor)) is declared before '$($b.Field)' (anchor $($b.Anchor)) but $($paths[$fileKey]) draws them the other way round."
+            }
+        }
+    }
+}
+
+# 10. S2169 phone order: the companion window draws every declared tag, grouped and ordered like
+#     the menu map. WATCH_ONLY rows carry no tag and no phone row.
+$prevRow = $null
+foreach ($group in $phoneMap.Keys) {
+    if ($group -notin $groupFiles.Keys) { continue }
+    foreach ($f in $phoneMap[$group]) {
+        $entry = $phoneByField[$f]
+        if ($null -eq $entry -or $null -eq $entry.Tag) { continue }
+        $pos = Get-RowPosition -Source $text.PhoneRows -Token $entry.Tag -RootFun $orderRoots['PhoneRows']
+        if ($null -eq $pos) {
+            $findings += "S2169: companion row tag '$($entry.Tag)' (field $f) is declared but WearWatchSettingsGroup.kt never draws it."
+            continue
+        }
+        if (-not $pos.Invoked) {
+            $findings += "S2169: companion row tag '$($entry.Tag)' (field $f) sits inside helper '$($pos.Helper)', which the window never invokes."
+            continue
+        }
+        if ($null -ne $prevRow) {
+            $ordered = $pos.Draw -gt $prevRow.Pos.Draw -or
+                ($pos.Draw -eq $prevRow.Pos.Draw -and $pos.Literal -gt $prevRow.Pos.Literal)
+            if (-not $ordered) {
+                $findings += "S2169: companion window draws '$($prevRow.Tag)' ($($prevRow.Field)) before '$($entry.Tag)' ($f), but the menu map declares group $($prevRow.Group) before $group with the rows in the opposite order."
+            }
+        }
+        $prevRow = [pscustomobject]@{ Group = $group; Field = $f; Tag = $entry.Tag; Pos = $pos }
+    }
+}
+
 if ($findings.Count -eq 0) {
     if (-not $Quiet) {
-        Write-Host "assert-wear-settings-parity: PASS - $($phoneEntries.Count) watch setting(s), every consumer in step."
+        Write-Host "assert-wear-settings-parity: PASS - $($phoneEntries.Count) watch setting(s), every consumer and both row orders in step."
     }
     exit 0
 }

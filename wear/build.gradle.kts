@@ -18,8 +18,22 @@ plugins {
 //     codes MUST differ: both modules publish under the same applicationId (S1681), and Play refuses
 //     a release whose artifacts repeat a versionCode. Wear = app_v2 code without its last digit.
 // Gate: scripts/quality/assert-module-version-parity.ps1.
-val defaultAppVersionCode = 26082701
-val defaultAppVersionName = "2.60.8270.111"
+//
+// S1873: the version has three sources, in this order.
+//   1. -Pfms.version* passed on the command line. Always wins (ADR-2) - it is the only way the two
+//      modules of one release, built by two invocations seconds apart, agree byte for byte.
+//   2. The in-build stamp, applied when THIS invocation packages an artifact and nobody passed a
+//      property. Covers the paths no wrapper script reaches.
+//   3. The checked-in constant below, which after ADR-4 has no writer and is a deliberately
+//      non-releasable sentinel.
+// The watch takes the 8-digit width from the shared derivation, so the two modules still differ by
+// exactly the documented rule rather than by two independently written formulas.
+apply(from = rootProject.file("gradle/build-version-stamp.gradle.kts"))
+
+val defaultAppVersionCode = 26090121
+val defaultAppVersionName = "2.60.9012.140"
+val stampedAppVersionCode = extra.properties["fmsStampedWearVersionCode"] as Int?
+val stampedAppVersionName = extra.properties["fmsStampedVersionName"] as String?
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }
@@ -62,11 +76,10 @@ android {
         minSdk = 28  // Wear OS 2.0+ support
         // CRITICAL: Do not change - required for Wear OS Play Store compliance
         targetSdk = 36
-        // Version is kept in sync with app_v2 by build-with-version.ps1 / release scripts
-        // via -Pfms.versionCode and -Pfms.versionName properties.
-        // Default values provide stable configuration cache in local builds.
-        versionCode = overrideAppVersionCode ?: defaultAppVersionCode
-        versionName = overrideAppVersionName ?: defaultAppVersionName
+        // Three sources in one order - passed property, in-build stamp when this invocation
+        // packages, checked-in sentinel. See the block above the constants for why each exists.
+        versionCode = overrideAppVersionCode ?: stampedAppVersionCode ?: defaultAppVersionCode
+        versionName = overrideAppVersionName ?: stampedAppVersionName ?: defaultAppVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -160,6 +173,16 @@ android {
         buildConfig = true
     }
 
+    sourceSets {
+        // S2355: expose the exported Room schemas as androidTest assets so MigrationTestHelper can
+        // load <db-fqcn>/<version>.json from the device at runtime. Mirrors what app_v2 does under
+        // S1009 - without the mount the helper finds no schema and the test fails for a reason
+        // unrelated to any migration, which is indistinguishable from the defect it exists to catch.
+        getByName("androidTest") {
+            assets.directories.add("schemas")
+        }
+    }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -173,6 +196,17 @@ android {
             // once already, which is the whole reason this ticket exists.
             excludes += "org/bouncycastle/pqc/crypto/picnic/**"
             excludes += "org/bouncycastle/x509/CertPathReviewerMessages_de.properties"
+        }
+    }
+
+    testOptions {
+        unitTests {
+            // S2437: without this, every android.jar stub throws "not mocked" instead of returning a
+            // default, so VoiceNotePublisher.mimeTypeOf blew up on MimeTypeMap.getSingleton() and took
+            // three tests with it. app_v2 has carried the flag since its first test; this module never
+            // declared testOptions at all. isIncludeAndroidResources stays off deliberately - it is a
+            // Robolectric requirement, and this module has no Robolectric.
+            isReturnDefaultValues = true
         }
     }
 }
@@ -245,6 +279,7 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer-rtsp:1.2.1")
     implementation("androidx.media3:media3-ui:1.2.1")
     implementation("androidx.media3:media3-common:1.2.1")
+    implementation("androidx.media3:media3-session:1.2.1")
     
     // Coil for image loading (Compose-friendly)
     implementation("io.coil-kt:coil-compose:2.5.0")
@@ -297,7 +332,16 @@ dependencies {
     testImplementation("io.mockk:mockk:1.13.9")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    // S2355: the BOM has to be on the androidTest classpath too, or the versionless coordinate
+    // below has no version source and the configuration fails to resolve. It went unnoticed
+    // because until this ticket no target ever resolved the watch's instrumented classpath -
+    // which is the exact shape of miss the ticket exists to remove.
+    androidTestImplementation(wearComposeBom)
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    // S2355: MigrationTestHelper - the class that performs on a device the same schema comparison
+    // Room performs on update - ships in room-testing and nowhere else. Version kept equal to the
+    // room-runtime pin above and to app_v2, so both modules test against the same Room runtime.
+    androidTestImplementation("androidx.room:room-testing:2.7.0")
 }
 
 ksp {

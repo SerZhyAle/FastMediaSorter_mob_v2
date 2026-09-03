@@ -77,6 +77,51 @@ class GameViewModel @Inject constructor(
         publish(next)
     }
 
+    /**
+     * Spend a turn without moving, so the enemies step and the player does not.
+     *
+     * The engine already prices this exactly as the phone does; the watch simply had no way to ask
+     * for it until the in-play menu existed (S2158).
+     */
+    fun skipTurn() {
+        val current = _uiState.value.level ?: return
+        Timber.d("S2158: skip turn requested at turn %d", current.stats.turns)
+        val result = engine.applySkipTurn(current)
+        if (!result.accepted) {
+            return
+        }
+        publish(result.state)
+    }
+
+    /**
+     * Start the current level again from a level still being played, at the engine's restart price.
+     *
+     * Guarded on [GameStatus.PLAYING] rather than on the menu being open: a level that has already
+     * ended is restarted or advanced by [restart], and letting both paths reach a finished level
+     * would charge the restart penalty on top of an outcome the player already paid for.
+     */
+    fun restartLevelNow() {
+        val current = _uiState.value.level
+        if (current == null || current.status != GameStatus.PLAYING) {
+            return
+        }
+        Timber.d("S2158: voluntary restart of level %d at score %d", current.config.levelNumber, current.stats.score)
+        val generated = generate(current.config.levelNumber)
+        if (generated != null) {
+            publish(engine.restartLevelVoluntarily(current, generated))
+        }
+    }
+
+    /**
+     * S2350: reset the game to level 1 and clear statistics in one tap from the in-game menu.
+     */
+    fun startNewGame() {
+        val currentLevel = _uiState.value.level?.config?.levelNumber ?: FIRST_LEVEL_NUMBER
+        Timber.d("S2350: starting new game from level %d", currentLevel)
+        val generated = generate(FIRST_LEVEL_NUMBER) ?: return
+        publish(generated)
+    }
+
     private suspend fun restoreOrStart() {
         val stored = preferencesRepository.gameState.first()
         val restored = GameStateSnapshot.fromStorage(stored)?.toLevelState()

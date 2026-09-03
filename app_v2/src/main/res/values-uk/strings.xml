@@ -3450,7 +3450,6 @@
     <string name="calculator_keypad_mode_normal">Звичайна</string>
     <string name="calculator_keypad_mode_large">Великі кнопки</string>
     <string name="calculator_keypad_mode_compact">Компактна, справа внизу</string>
-    <string name="wear_background_section_title">Фон на годиннику</string>
     <string name="wear_background_mode_animation">Фірмова анімація</string>
     <string name="wear_background_mode_image">Власне зображення</string>
     <string name="wear_background_pick_image">Вибрати зображення</string>
@@ -3636,4 +3635,18 @@
     <string name="reach_limited_nothing_readable">Документи не читаються</string>
     <string name="storage_reach_limited_virtual">Документи та інші файли на цьому пристрої застосунку не видно. Щоб відкрити їх, додайте потрібну теку через системне вікно вибору.</string>
     <string name="storage_reach_limited_browse_reconnect">Ця тека підключена старим способом - через нього читаються лише фото, відео та звук. Щоб побачити документи, затримайте палець на теці на головному екрані та виберіть «Перепідключити ресурс».</string>
+    <string name="wear_settings_group_media_types">Типи медіа</string>
+    <string name="wear_settings_group_slideshow">Слайд-шоу</string>
+    <string name="wear_settings_group_screen">Екран</string>
+    <string name="wear_settings_group_other">Інші</string>
+    <string name="wear_settings_group_sections">Розділи</string>
+    <string name="wear_settings_disable_animations">Вимкнути анімацію</string>
+    <string name="wear_settings_background_mode">Фон на годиннику</string>
+    <string name="wear_send_to_notification_title">Файл з годинника</string>
+    <string name="wear_send_to_notification_text">Натисніть, щоб надіслати %1$s у %2$s</string>
+    <string name="wear_send_to_channel_name">Надсилання з годинника</string>
+    <string name="wear_settings_background_playback">Продовжувати у фоні</string>
+    <string name="wear_settings_background_playback_desc">На годиннику звук продовжує грати після згортання застосунку</string>
+    <string name="launcher_quick_menu_lock_changes">Заблокувати зміни</string>
+    <string name="launcher_desktop_locked_toast">Робочий стіл заблоковано. Зняти блокування - у налаштуваннях лаунчера.</string>
 </resources>

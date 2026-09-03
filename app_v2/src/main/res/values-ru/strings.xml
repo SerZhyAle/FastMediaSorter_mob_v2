@@ -3465,7 +3465,6 @@
     <string name="calculator_keypad_mode_normal">Обычная</string>
     <string name="calculator_keypad_mode_large">Крупные кнопки</string>
     <string name="calculator_keypad_mode_compact">Компактная, справа внизу</string>
-    <string name="wear_background_section_title">Фон на часах</string>
     <string name="wear_background_mode_animation">Фирменная анимация</string>
     <string name="wear_background_mode_image">Своё изображение</string>
     <string name="wear_background_pick_image">Выбрать изображение</string>
@@ -3651,4 +3650,18 @@
     <string name="reach_limited_nothing_readable">Документы не читаются</string>
     <string name="storage_reach_limited_virtual">Документы и другие файлы на этом устройстве приложению не видны. Чтобы открыть их, добавьте нужную папку через системное окно выбора.</string>
     <string name="storage_reach_limited_browse_reconnect">Эта папка подключена старым способом - через него читаются только фото, видео и звук. Чтобы увидеть документы, задержите палец на папке на главном экране и выберите «Переподключить ресурс».</string>
+    <string name="wear_settings_group_media_types">Типы медиа</string>
+    <string name="wear_settings_group_slideshow">Слайд-шоу</string>
+    <string name="wear_settings_group_screen">Экран</string>
+    <string name="wear_settings_group_other">Другие</string>
+    <string name="wear_settings_group_sections">Разделы</string>
+    <string name="wear_settings_disable_animations">Отключить анимацию</string>
+    <string name="wear_settings_background_mode">Фон на часах</string>
+    <string name="wear_send_to_notification_title">Файл с часов</string>
+    <string name="wear_send_to_notification_text">Нажмите, чтобы отправить %1$s в %2$s</string>
+    <string name="wear_send_to_channel_name">Отправка с часов</string>
+    <string name="wear_settings_background_playback">Продолжать в фоне</string>
+    <string name="wear_settings_background_playback_desc">На часах звук продолжает играть после сворачивания приложения</string>
+    <string name="launcher_quick_menu_lock_changes">Заблокировать изменения</string>
+    <string name="launcher_desktop_locked_toast">Рабочий стол заблокирован. Снять блокировку - в настройках лаунчера.</string>
 </resources>

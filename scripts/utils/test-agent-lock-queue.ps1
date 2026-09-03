@@ -7,11 +7,20 @@
     something executable, because the defects it fixes are all invisible in normal use - a starved
     session looks slow, not broken, and reports no error at all.
 
-    The whole run happens in a throwaway sandbox: agent-lock.ps1 resolves its lock and queue paths
-    from $Script:AgentLockRepoRoot, which this script overrides after dot-sourcing. Nothing under
-    the repository's own temp/CODE.LOCK, temp/CODE.QUEUE or temp/BUILD.* is read or written, so the
-    check is safe to run while sibling agent sessions hold real tickets - which is exactly when the
-    machinery most needs checking.
+    The whole run happens in a throwaway sandbox, redirected through the profile: this script writes
+    a sandbox copy of .sza-profile.json whose every paths.* entry is an ABSOLUTE path inside the
+    sandbox, and points $env:SZA_PROFILE_PATH at it after dot-sourcing agent-lock.ps1. The harness
+    resolves every coordination path through Get-SzaPath, so all of them land in the sandbox and
+    nothing under the repository's own temp/CODE.*.LOCK, temp/*.QUEUE or temp/BUILD.*.LOCK is read
+    or written - which matters most while sibling agent sessions hold real tickets, exactly when the
+    machinery needs checking.
+
+    S2426: the override used to be a script-scoped repo-root variable, and after the mechanism moved
+    into the canon (S2402) that variable decided no lock path any more - the suite silently began taking,
+    releasing and sweeping the REAL locks of live sessions. Absolute paths in the profile are what
+    makes the redirect survive the forwarder, which re-stamps $env:SZA_PROJECT_ROOT at every
+    dot-source; SZA_PROFILE_PATH it does not touch. The guard below refuses to run at all unless
+    every resolved paths.* entry lies inside the sandbox, so the next such move cannot pass silently.
 
     A second session is simulated by swapping CLAUDE_CODE_SESSION_ID around each call; the caller's
     own value is restored in a finally, since every other lock-aware script in the tree reads it.
@@ -23,7 +32,8 @@
     Exit codes:
       0 - every assertion passed; the sandbox is deleted.
       1 - at least one assertion failed; the sandbox is kept for inspection and its path is printed.
-      2 - the sandbox could not be prepared, so nothing was checked.
+      2 - the sandbox could not be prepared, or its isolation could not be confirmed (some paths.*
+          entry resolved outside the sandbox), so nothing was checked.
 #>
 
 $ErrorActionPreference = 'Stop'
@@ -41,7 +51,53 @@ catch {
     exit 2
 }
 
-$Script:AgentLockRepoRoot = $sandbox
+$callerProfilePath = $env:SZA_PROFILE_PATH
+
+function Restore-CallerProfilePath {
+    # Named rather than inlined because both the guard's refusal and the run's finally must undo the
+    # redirect the same way, and an empty string is not the same absence as an unset variable.
+    if ([string]::IsNullOrEmpty($callerProfilePath)) { Remove-Item Env:\SZA_PROFILE_PATH -ErrorAction SilentlyContinue }
+    else { $env:SZA_PROFILE_PATH = $callerProfilePath }
+}
+
+# Redirect every coordination path into the sandbox by handing the harness its own profile. Only
+# paths.* is rewritten - grammar, statuses and lock domains must stay exactly as the repository
+# declares them, since they are part of what is under test.
+try {
+    $repoProfilePath = Join-Path $repoRoot '.sza-profile.json'
+    $sandboxProfile = Get-Content -LiteralPath $repoProfilePath -Raw -Encoding utf8 | ConvertFrom-Json
+    foreach ($entry in $sandboxProfile.paths.PSObject.Properties) {
+        if ([System.IO.Path]::IsPathRooted([string]$entry.Value)) { continue }
+        $entry.Value = (Join-Path $sandbox ([string]$entry.Value)).Replace('/', [System.IO.Path]::DirectorySeparatorChar)
+    }
+    $sandboxProfilePath = Join-Path $sandbox 'sandbox-profile.json'
+    $sandboxProfile | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $sandboxProfilePath -Encoding utf8NoBOM
+}
+catch {
+    Write-Error "test-agent-lock-queue: cannot write the sandbox profile - $($_.Exception.Message)" -ErrorAction Continue
+    exit 2
+}
+$env:SZA_PROFILE_PATH = $sandboxProfilePath
+
+# The isolation guard. Enumerating what the profile actually declares, rather than checking the
+# three names this suite happens to use, is the point: the next path the canon adds is covered by
+# construction, and S2426 exists because a silent move of the redirect lever went unnoticed until a
+# fake lock under a dead pid was found blocking three real tickets.
+$sandboxFull = [System.IO.Path]::GetFullPath($sandbox)
+$escaped = @()
+foreach ($key in ($sandboxProfile.paths.PSObject.Properties.Name)) {
+    $resolved = [System.IO.Path]::GetFullPath((Get-SzaPath $key))
+    if (-not $resolved.StartsWith($sandboxFull, [StringComparison]::OrdinalIgnoreCase)) {
+        $escaped += "    paths.$key -> $resolved"
+    }
+}
+if ($escaped.Count -gt 0) {
+    Write-Host "test-agent-lock-queue: isolation not confirmed - these profile paths resolve outside the sandbox:" -ForegroundColor Red
+    foreach ($line in $escaped) { Write-Host $line -ForegroundColor Red }
+    Write-Host "  sandbox: $sandboxFull" -ForegroundColor Gray
+    Restore-CallerProfilePath
+    exit 2
+}
 
 # S2109: every assertion below is about ONE resource's fairness - retirement, ordering, liveness,
 # withdrawal - and each must go on holding per domain now that a bare 'Code' names the whole set of
@@ -51,6 +107,16 @@ $Script:AgentLockRepoRoot = $sandbox
 $domain = 'Code.Scripts'
 
 $callerSessionId = $env:CLAUDE_CODE_SESSION_ID
+# S2422: the explicit id is step ONE of the identity chain and outranks CLAUDE_CODE_SESSION_ID, so a
+# caller that carries it collapses sessions A and B into one identity and the whole two-session
+# simulation below stops meaning anything - measured 2026-09-03, 11 of 38 assertions fail that way,
+# taking the queue, withdraw, forfeit and top-up cases with them. An assertion about one step of a
+# chain must silence every step above it; both variables come back in the same finally.
+$callerAgentId = Get-SzaEnv 'AGENT_ID'
+Set-SzaEnv 'AGENT_ID' $null
+# Captured here rather than beside the block that silences it: the finally restores both, and a run
+# that dies before reaching the S2371 block would otherwise restore a value it never read.
+$callerHostWalk = Get-SzaEnv 'AGENT_HOST_WALK'
 $sessionA = 'sandbox-session-A'
 $sessionB = 'sandbox-session-B'
 $failures = 0
@@ -233,9 +299,10 @@ try {
         -Detail $(if ($strictError) { "(threw: $strictError)" } else { '(no error under Set-StrictMode -Version Latest)' })
 
     # 8 - S2098. Withdrawing drops the caller's own ticket and promotes whoever was behind it. The
-    #     removal runs through the library function rather than the CLI because the sandbox is a
-    #     $Script:AgentLockRepoRoot override, which a separate pwsh process would not inherit - it
-    #     would read the repository's real queue and delete a sibling session's ticket.
+    #     removal runs through the library function rather than the CLI because a CLI child would
+    #     re-derive its own paths, and this assertion is about the in-process queue state the rest of
+    #     the case just built. S2426: the redirect itself is now an environment variable a child does
+    #     inherit, so the reason is scope, no longer isolation.
     Reset-Sandbox
     $env:CLAUDE_CODE_SESSION_ID = $sessionA
     [void](New-AgentLockTicket -Name $domain -Reason 'A, intent later abandoned')
@@ -505,10 +572,213 @@ try {
     Write-Verdict -Label 'full re-entrancy: every requested domain already held reports nothing missing' `
         -Ok ($fullMatch.Missing.Count -eq 0) `
         -Detail "(held=$($fullMatch.Held -join ','), missing=$($fullMatch.Missing -join ','))"
+
+    # ---- S2371: one identity for the lock owner and its queue ticket ----------------------------
+
+    # S2422: these three cases are about the LAST step of the identity chain - the pid- fallback -
+    # and removing CLAUDE_CODE_SESSION_ID alone does not reach it: S2408 put the ancestor walk
+    # between them, so the answer becomes host-<name>-<pid>-<ticks> and is decided by the process
+    # tree of whoever launched the suite rather than by the code under test. Under a resolving tree
+    # (forfiles -> cmd -> pwsh) exactly these three failed and no others; in an opaque one all three
+    # passed. The walk is therefore turned off for the block that checks the step below it, through
+    # the documented escape rather than by rewriting the expectations to host- - the pid- path is
+    # reachable in production (opaque parent, this switch, a walk that ends on a machine-wide
+    # process), so expecting host- here would delete the coverage instead of repairing it.
+    Set-SzaEnv 'AGENT_HOST_WALK' '0'
+
+    # 27 - The defect itself: acquiring without CLAUDE_CODE_SESSION_ID stamps the SAME identity
+    #      on the queue ticket and the lock file. Pre-fix the ticket said pid-NNNN while the
+    #      lock said null - one acquisition recorded as two different holders, so the session
+    #      could neither recognise its own lock nor match it in the self checks.
+    Reset-Sandbox
+    Remove-Item Env:\CLAUDE_CODE_SESSION_ID -ErrorAction SilentlyContinue
+    $pidTicket = New-AgentLockTicket -Name $domain -Reason 'unnamed session takes a place'
+    $pidEnter = Enter-AgentLock -Name $domain -Reason 'unnamed session acquires' -Ticket $pidTicket
+    $pidLock = Get-AgentLockStatus -Name $domain
+    $expectedPidIdentity = "pid-$PID"
+    Write-Verdict -Label 'identity: acquiring without a session id stamps the same pid identity on ticket and lock' `
+        -Ok ($pidEnter.Acquired -and
+            ([string]$pidTicket.sessionId -eq $expectedPidIdentity) -and
+            ([string]$pidLock.SessionId -eq $expectedPidIdentity)) `
+        -Detail "(acquired=$($pidEnter.Acquired), ticket=$($pidTicket.sessionId), lock=$($pidLock.SessionId), expected=$expectedPidIdentity)"
+
+    # 28 - Self-recognition: an unnamed caller reads its own pid-owned hold as live past
+    #      LockStaleMinutes. Pre-fix the raw env read in the liveness check collapsed every
+    #      unnamed caller to 'undetermined' before the self comparison, so the wall clock
+    #      judged the caller's own live lock stale.
+    $pidLockPath = Join-Path $sandbox "temp/$($domain.ToUpper()).LOCK"
+    $backdatedMinutes = $timings.LockStaleMinutes + 20
+    $pidLockBody = [ordered]@{
+        schema = 2; lockType = $domain; pid = $PID
+        procStart = (Get-Process -Id $PID).StartTime.Ticks
+        acquiredAt = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() - [int64]($backdatedMinutes * 60000)
+        reason = 'unnamed holder, backdated acquire'; host = $env:COMPUTERNAME
+        sessionId = "pid-$PID"; transcriptPath = $null
+    } | ConvertTo-Json -Compress
+    Set-Content -LiteralPath $pidLockPath -Value $pidLockBody -Encoding utf8NoBOM
+    $ownBackdatedLock = Get-AgentLockStatus -Name $domain
+    Write-Verdict -Label 'self-recognition: an unnamed caller own pid-owned lock stays live past LockStaleMinutes' `
+        -Ok ($ownBackdatedLock.Exists -and -not $ownBackdatedLock.Stale) `
+        -Detail "(exists=$($ownBackdatedLock.Exists), stale=$($ownBackdatedLock.Stale), owner=$($ownBackdatedLock.SessionId), backdated ${backdatedMinutes}m vs LockStaleMinutes=$($timings.LockStaleMinutes))"
+
+    # 29 - The liveness answer behind case 28, stated directly: an unnamed caller is told
+    #      'self' about its own pid identity, never 'undetermined'.
+    $ownPidLiveness = Get-AgentTicketLiveness -Ticket ([pscustomobject]@{ sessionId = "pid-$PID" }) `
+        -StaleMinutes $timings.SessionStaleMinutes
+    Write-Verdict -Label 'liveness: an unnamed caller is told self about its own pid identity' `
+        -Ok ($ownPidLiveness -eq 'self') `
+        -Detail "(answer=$ownPidLiveness, expected=self)"
+
+    # S2422: the pid- block is over - every case below is about a shape the suite writes by hand or
+    # about a named session, so it must see the identity the caller really has.
+    Set-SzaEnv 'AGENT_HOST_WALK' $callerHostWalk
+
+    # 30 - Release across the process boundary: acquire and release are different pwsh
+    #      processes, so a pid- owner can never be pid-matched by its own closure. An unnamed
+    #      releaser must free an unnamed owner (pre-fix parity: a null owner was releasable by
+    #      anyone), while a NAMED releaser must leave that live lock in place.
+    Reset-Sandbox
+    $foreignPidLockPath = Join-Path $sandbox "temp/$($domain.ToUpper()).LOCK"
+    $foreignPidBody = [ordered]@{
+        schema = 2; lockType = $domain; pid = 424242
+        procStart = 0
+        acquiredAt = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
+        reason = 'foreign unnamed holder'; host = $env:COMPUTERNAME
+        sessionId = 'pid-424242'; transcriptPath = $null
+    } | ConvertTo-Json -Compress
+    Set-Content -LiteralPath $foreignPidLockPath -Value $foreignPidBody -Encoding utf8NoBOM
+    Exit-AgentLock -Name $domain
+    $unnamedReleaseWorked = -not (Test-Path -LiteralPath $foreignPidLockPath)
+    # Restore the holder only when the first half removed it, so the named-release half has a
+    # live lock to be refused on; if the first half already failed the file is still there.
+    if ($unnamedReleaseWorked) {
+        Set-Content -LiteralPath $foreignPidLockPath -Value $foreignPidBody -Encoding utf8NoBOM
+    }
+    $env:CLAUDE_CODE_SESSION_ID = $sessionA
+    Exit-AgentLock -Name $domain
+    $namedReleaseRefused = Test-Path -LiteralPath $foreignPidLockPath
+    Write-Verdict -Label 'release: an unnamed closure frees an unnamed owner, a named session leaves it held' `
+        -Ok ($unnamedReleaseWorked -and $namedReleaseRefused) `
+        -Detail "(unnamed released=$unnamedReleaseWorked, named left it in place=$namedReleaseRefused)"
+
+    # ---- S2403: one intent, one ticket - handoff across identities ------------------------------
+
+    # 31 - Save/Read round trip across identities: a handoff written by one identity is adopted
+    #      by another without creating a second ticket. Pre-fix the instructed waiter could not
+    #      see the first ticket (pid identities never match across processes), so it enqueued a
+    #      ticket of its own beside it.
+    Reset-Sandbox
+    $env:CLAUDE_CODE_SESSION_ID = $sessionA
+    $handoffTickets = New-AgentLockTicketSet -Name $domain -Reason 'S2403 case 31 intent'
+    $handoffPath = Save-AgentLockTicketHandoff -Tickets $handoffTickets -Reason 'S2403 case 31 intent'
+    Remove-Item Env:\CLAUDE_CODE_SESSION_ID -ErrorAction SilentlyContinue
+    $adopted = Read-AgentLockTicketHandoff -Path $handoffPath -Domains @($domain)
+    $queueAfterAdopt = @(Get-AgentLockQueue -Name $domain)
+    Write-Verdict -Label 'handoff: another identity adopts the ticket without enqueueing a second one' `
+        -Ok ($adopted -and $adopted.ContainsKey($domain) -and
+            ([int]$adopted[$domain].seq -eq [int]$handoffTickets[$domain].seq) -and
+            ($queueAfterAdopt.Count -eq 1)) `
+        -Detail "(adopted seq=$($adopted[$domain].seq), original seq=$($handoffTickets[$domain].seq), queue length=$($queueAfterAdopt.Count))"
+
+    # 32 - A partially consumed handoff: the consumed domain's seq is not adopted, the live one
+    #      is - the caller enqueues only what is actually missing.
+    Reset-Sandbox
+    $env:CLAUDE_CODE_SESSION_ID = $sessionA
+    $twoDomainTickets = New-AgentLockTicketSet -Name 'Code' -Reason 'S2403 case 32 intent'
+    Remove-Item -LiteralPath $twoDomainTickets['Code.Phone'].path -Force
+    $twoHandoffPath = Save-AgentLockTicketHandoff -Tickets $twoDomainTickets -Reason 'S2403 case 32 intent'
+    $env:CLAUDE_CODE_SESSION_ID = $sessionB
+    $partialAdopt = Read-AgentLockTicketHandoff -Path $twoHandoffPath -Domains @('Code.Phone', 'Code.Scripts')
+    Write-Verdict -Label 'handoff: a consumed seq is not adopted, a live one is' `
+        -Ok ($partialAdopt -and (-not $partialAdopt.ContainsKey('Code.Phone')) -and $partialAdopt.ContainsKey('Code.Scripts')) `
+        -Detail "(adopted domains: $(if ($partialAdopt) { $partialAdopt.Keys -join ',' } else { 'none' }))"
+
+    # 33 - Absent and expired handoffs read as $null: the caller falls back to enqueuing, which
+    #      is the pre-S2403 behaviour - the file can only make things better, never worse.
+    Reset-Sandbox
+    $missingRead = Read-AgentLockTicketHandoff -Path (Join-Path $sandbox 'temp/LOCK-HANDOFF/absent.json') -Domains @($domain)
+    $env:CLAUDE_CODE_SESSION_ID = $sessionA
+    $expiredTickets = New-AgentLockTicketSet -Name $domain -Reason 'S2403 case 33 intent'
+    $expiredPath = Save-AgentLockTicketHandoff -Tickets $expiredTickets -Reason 'S2403 case 33 intent'
+    $expiredRaw = Get-Content -LiteralPath $expiredPath -Raw | ConvertFrom-Json
+    $expiredRaw.createdAt = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() - [int64](60 * 60000)
+    $expiredRaw | ConvertTo-Json -Compress -Depth 4 | Set-Content -LiteralPath $expiredPath -Encoding utf8NoBOM
+    $expiredRead = Read-AgentLockTicketHandoff -Path $expiredPath -Domains @($domain)
+    Write-Verdict -Label 'handoff: absent and expired files read as null (fresh-enqueue fallback)' `
+        -Ok (($null -eq $missingRead) -and ($null -eq $expiredRead)) `
+        -Detail "(absent read=$($null -eq $missingRead), expired read=$($null -eq $expiredRead))"
+
+    # 34 - The incident end to end: a pid-owned ticket from a dead enter-code-lock process at
+    #      the head, a handoff naming it, and a DIFFERENT identity waiting on it. One ticket, a
+    #      head-of-queue grant with no reservation-window self-wait, the lock taken and the
+    #      queue left empty.
+    Reset-Sandbox
+    $env:CLAUDE_CODE_SESSION_ID = 'pid-424242'
+    $intentTickets = New-AgentLockTicketSet -Name $domain -Reason 'S2403 case 34 intent'
+    $intentHandoff = Save-AgentLockTicketHandoff -Tickets $intentTickets -Reason 'S2403 case 34 intent'
+    $env:CLAUDE_CODE_SESSION_ID = $sessionB
+    $waiterAdopt = Read-AgentLockTicketHandoff -Path $intentHandoff -Domains @($domain)
+    $waiterTurn = Test-AgentLockTurn -Name $domain -Ticket $waiterAdopt[$domain]
+    $took = Enter-AgentLock -Name $domain -Reason 'S2403 case 34 waiter takes it' -Ticket $waiterAdopt[$domain]
+    $queueEnd = @(Get-AgentLockQueue -Name $domain)
+    Write-Verdict -Label 'handoff incident: one ticket across the process boundary, no self-wait, acquire retires it' `
+        -Ok ($waiterAdopt -and $waiterTurn.IsMyTurn -and ($waiterTurn.Reason -eq 'head of queue') -and
+            $took.Acquired -and ($queueEnd.Count -eq 0)) `
+        -Detail "(turn reason='$($waiterTurn.Reason)', acquired=$($took.Acquired), queue after acquire=$($queueEnd.Count))"
+
+    # ---- S2410: the refusal must name the domain that actually holds the set --------------------
+
+    # 35 - The defect itself. A is head in every Code queue, so Test-AgentLockTurnSet reports
+    #      BlockingDomain = $null - correctly, it answers about queues. The set is blocked all the
+    #      same, by B's LOCK on Code.Scripts. The old fallback answered $acquireDomains[0], which
+    #      is Code.Phone, and the same refusal went on to call Code.Phone free.
+    Reset-Sandbox
+    $env:CLAUDE_CODE_SESSION_ID = $sessionB
+    [void](Enter-AgentLock -Name 'Code' -Reason 'B edits scripts' -Domains @('Code.Scripts'))
+    $env:CLAUDE_CODE_SESSION_ID = $sessionA
+    $s2410Set = New-AgentLockTicketSet -Name 'Code' -Reason 'A wants the whole set'
+    $s2410Turn = Test-AgentLockTurnSet -Name 'Code' -Tickets $s2410Set
+    $s2410Held = Get-AgentLockBlockingDomain -Domains @('Code.Phone', 'Code.Wear', 'Code.Scripts') -Turn $s2410Turn
+    Write-Verdict -Label 'blocking domain: the held domain is named and the free first domain is not' `
+        -Ok (($s2410Held -eq 'Code.Scripts') -and ($s2410Held -ne 'Code.Phone') -and $s2410Turn.IsMyTurn) `
+        -Detail "(answer=$s2410Held, turn BlockingDomain=$($s2410Turn.BlockingDomain), head everywhere=$($s2410Turn.IsMyTurn), expected=Code.Scripts)"
+
+    # 36 - No lock anywhere, but a foreign ticket sits ahead of A's in one queue. The lock walk
+    #      finds nothing, so the answer comes from the turn object - the second of the three
+    #      outcomes, and the only one the old fallback could reach correctly.
+    Reset-Sandbox
+    $env:CLAUDE_CODE_SESSION_ID = $sessionB
+    [void](New-AgentLockTicket -Name 'Code.Scripts' -Reason 'B queued first')
+    $env:CLAUDE_CODE_SESSION_ID = $sessionA
+    $s2410Behind = New-AgentLockTicketSet -Name 'Code' -Reason 'A queues behind B'
+    $s2410BehindTurn = Test-AgentLockTurnSet -Name 'Code' -Tickets $s2410Behind
+    $s2410Queued = Get-AgentLockBlockingDomain -Domains @('Code.Phone', 'Code.Wear', 'Code.Scripts') -Turn $s2410BehindTurn
+    Write-Verdict -Label 'blocking domain: with no lock held the foreign queue head names the domain' `
+        -Ok (($s2410Queued -eq 'Code.Scripts') -and (-not $s2410BehindTurn.IsMyTurn)) `
+        -Detail "(answer=$s2410Queued, turn BlockingDomain=$($s2410BehindTurn.BlockingDomain), IsMyTurn=$($s2410BehindTurn.IsMyTurn))"
+
+    # 37 - The third outcome, the one with no domain to name: nothing is held and A is head in
+    #      every queue. $null is the honest answer - the caller must name the whole set instead of
+    #      inventing a domain, which is what produced the all-empty 'Queue head:' line pre-fix.
+    Reset-Sandbox
+    $env:CLAUDE_CODE_SESSION_ID = $sessionA
+    $s2410Free = New-AgentLockTicketSet -Name 'Code' -Reason 'A alone in every queue'
+    $s2410FreeTurn = Test-AgentLockTurnSet -Name 'Code' -Tickets $s2410Free
+    $s2410Answer = Get-AgentLockBlockingDomain -Domains @('Code.Phone', 'Code.Wear', 'Code.Scripts') -Turn $s2410FreeTurn
+    Write-Verdict -Label 'blocking domain: nothing held and head everywhere answers null, not a domain' `
+        -Ok ($null -eq $s2410Answer) `
+        -Detail "(answer=$(if ($null -eq $s2410Answer) { 'null' } else { $s2410Answer }), IsMyTurn=$($s2410FreeTurn.IsMyTurn))"
 }
 finally {
     if ($null -eq $callerSessionId) { Remove-Item Env:\CLAUDE_CODE_SESSION_ID -ErrorAction SilentlyContinue }
     else { $env:CLAUDE_CODE_SESSION_ID = $callerSessionId }
+    # S2422: the same restore for the two identity steps the run silences. Set-SzaEnv with $null
+    # removes the variable, so an absent caller value stays absent rather than becoming empty - a
+    # blank FMS_AGENT_HOST_WALK would not read as 'disabled', but a blank FMS_AGENT_ID would still
+    # be an unset id only by accident of the whitespace check.
+    Set-SzaEnv 'AGENT_ID' $callerAgentId
+    Set-SzaEnv 'AGENT_HOST_WALK' $callerHostWalk
+    Restore-CallerProfilePath
 }
 
 Write-Host ""

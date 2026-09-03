@@ -9,6 +9,7 @@ import com.google.gson.reflect.TypeToken
 import com.sza.fastmediasorter.wear.domain.model.WearComplicationKind
 import com.sza.fastmediasorter.wear.domain.model.WearFavoriteDeltaItem
 import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
+import com.sza.fastmediasorter.wear.domain.model.appendFavoriteDelta
 import com.sza.fastmediasorter.wear.domain.model.favoriteIdentityKey
 import com.sza.fastmediasorter.wear.domain.model.mergeFavorites
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
@@ -168,8 +169,8 @@ class WearFavoritesRepositoryImpl @Inject constructor(
     }
 
     private fun appendDelta(item: WearFavoriteDeltaItem) {
-        val delta = readDelta().toMutableList()
-        delta.add(item)
-        prefs.edit().putString(keyDelta, gson.toJson(delta)).apply()
+        val queued = appendFavoriteDelta(readDelta(), item)
+        Timber.d("S2435: pending favourites delta size ${queued.size} after ${item.filePath}")
+        prefs.edit().putString(keyDelta, gson.toJson(queued)).apply()
     }
 }

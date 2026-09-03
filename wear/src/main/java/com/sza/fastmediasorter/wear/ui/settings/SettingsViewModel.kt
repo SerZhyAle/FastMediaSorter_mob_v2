@@ -43,6 +43,7 @@ private const val INDEX_BACKGROUND_MODE = 12
 private const val INDEX_LAST_SYNC = 13
 private const val INDEX_DOCUMENTS = 14
 private const val INDEX_DISABLE_ANIMATIONS = 15
+private const val INDEX_BACKGROUND_PLAYBACK = 16
 
 /**
  * ViewModel for Settings screen.
@@ -105,7 +106,8 @@ class SettingsViewModel @Inject constructor(
                     preferencesRepository.backgroundMode,
                     preferencesRepository.lastSettingsSyncAt,
                     preferencesRepository.isDocumentsEnabled,
-                    preferencesRepository.isAnimationsDisabled
+                    preferencesRepository.isAnimationsDisabled,
+                    preferencesRepository.backgroundPlaybackEnabled
                 )
             ) { values ->
                 val audio = values[INDEX_AUDIO] as Boolean
@@ -124,6 +126,7 @@ class SettingsViewModel @Inject constructor(
                 val lastSync = values[INDEX_LAST_SYNC] as Long
                 val documents = values[INDEX_DOCUMENTS] as Boolean
                 val disableAnimations = values[INDEX_DISABLE_ANIMATIONS] as Boolean
+                val backgroundPlayback = values[INDEX_BACKGROUND_PLAYBACK] as Boolean
                 _uiState.value.copy(
                     backgroundMode = background,
                     lastSyncedAtEpochMillis = lastSync,
@@ -142,6 +145,7 @@ class SettingsViewModel @Inject constructor(
                     hasAutoRotationSensor = hasAccelerometer,
                     voiceNoteSendPolicy = sendPolicy,
                     isAnimationsDisabled = disableAnimations,
+                    backgroundPlaybackEnabled = backgroundPlayback,
                     isLoading = false
                 )
             }.collect { combinedState ->
@@ -233,6 +237,28 @@ class SettingsViewModel @Inject constructor(
                 !_uiState.value.keepScreenAwakeOutsidePlayers
             )
         }
+    }
+
+    fun toggleBackgroundPlayback() {
+        viewModelScope.launch {
+            preferencesRepository.setBackgroundPlaybackEnabled(
+                !_uiState.value.backgroundPlaybackEnabled
+            )
+            _uiState.value = _uiState.value.copy(backgroundPlaybackNeedsNotifications = false)
+        }
+    }
+
+    /**
+     * S2166 (strategic criterion 9): a denied notification permission leaves the setting off and
+     * says so, because the service's only control surface is its notification - enabling it anyway
+     * would give the owner sound they cannot stop without reopening the app.
+     */
+    fun onBackgroundPlaybackPermissionResult(granted: Boolean) {
+        if (granted) {
+            toggleBackgroundPlayback()
+            return
+        }
+        _uiState.value = _uiState.value.copy(backgroundPlaybackNeedsNotifications = true)
     }
 
     /**

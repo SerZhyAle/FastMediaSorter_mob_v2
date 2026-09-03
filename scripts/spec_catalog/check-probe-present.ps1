@@ -1,110 +1,114 @@
-[CmdletBinding()]
-param(
-    [Parameter(Mandatory)][string] $Id
-)
+#requires -Version 7.0
+<#
+.SYNOPSIS
+    Forwarder to the canon-shipped harness script spec_catalog\check-probe-present.ps1 (S2402).
 
-# Gate for a transition INTO BlockNeedUserTest - see S2324.
+.DESCRIPTION
+    GENERATED - do not edit. The mechanism lives in the SZA canon plugin (tools/harness) and this
+    repository consumes it; the file kept here is only the address every existing call site already
+    knows. Regenerate with scripts/utils/install-sza-forwarders.ps1. What this project configures lives in
+    .sza-profile.json at the repository root, never in a script body.
+
+Exit codes: whatever spec_catalog\check-probe-present.ps1 returns, plus 2 when the harness cannot be located.
+#>
+# S2441: every name below carries a $szaFwd prefix because HALF of this set is dot-sourced, and a
+# dot-sourced file assigns into its CALLER's scope. PowerShell names are case-insensitive, so the
+# `$target` this file used to resolve into WAS the caller's `-Target` parameter: post-change.ps1
+# dot-sources the agent-lock-domains forwarder before it journals, and every dev/CHANGELOG.md row
+# written on 2026-09-03 recorded a harness path where the ticket id belonged. The second failure
+# mode is worse than the substitution - a caller declaring `[string]$Candidates` type-constrains
+# this file's own accumulator, so `$candidates = @()` collapses to '' and every `+=` concatenates
+# instead of appending, leaving one unusable path and a forwarder that cannot find the harness at
+# all. Ten scripts under scripts/ declare a parameter that collided. Contract suite:
+# scripts/utils/install-sza-forwarders.tests/.
+$szaFwdCandidates = @()
+if ($env:SZA_HARNESS_ROOT) { $szaFwdCandidates += $env:SZA_HARNESS_ROOT }
+$szaFwdCache = Join-Path $env:USERPROFILE '.claude\plugins\cache\sza-unified-rules\sza'
+if (Test-Path -LiteralPath $szaFwdCache) {
+    # Ordered as VERSIONS, not as strings: the plugin version is date-derived (2026.903.1), so a
+    # string sort puts October's 2026.1001.1 below September's 2026.903.1 and the forwarder would
+    # keep calling the older copy after an update. A directory that does not parse sorts last
+    # rather than being dropped - it may still be the only harness present.
+    $szaFwdVersions = @(Get-ChildItem -LiteralPath $szaFwdCache -Directory -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            $szaFwdParsed = $null
+            [void][version]::TryParse($_.Name, [ref]$szaFwdParsed)
+            [pscustomobject]@{ Path = $_.FullName; Version = $szaFwdParsed }
+        } | Sort-Object @{ Expression = { $null -ne $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Path }; Descending = $true })
+    $szaFwdCandidates += @($szaFwdVersions | ForEach-Object { Join-Path $_.Path 'tools\harness' })
+}
+$szaFwdTarget = $null
+foreach ($szaFwdDir in $szaFwdCandidates) {
+    $szaFwdProbe = Join-Path $szaFwdDir 'spec_catalog\check-probe-present.ps1'
+    if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe; break }
+}
+
+# S2452: candidate 3, the canon checkout, reached only when the two above miss. The plugin cache
+# is what actually resolves on every invocation, so the resolver below is never read on the hot
+# path. Its default is held by scripts/utils/project-paths.ps1 and by nothing else - before this it
+# was written in 76 files, 74 of them generated and stamped `GENERATED - do not edit`, so moving
+# the canon required editing files that forbid editing. That is the exact non-portability the
+# hardcoded-drive-path rule was installed to refuse (S2326).
 #
-# Contract:
-#   - CLAUDE.md Rule 2 states the debug-probe invariant as an equivalence: a
-#     Timber.d("Sxxxx: ..") line exists in source if and only if Sxxxx is in
-#     BlockNeedUserTest. The forward half is enforced hard - a probe whose ticket is not
-#     in that status is a FAIL in assert-no-ticket-logs.ps1. The reverse half had no gate
-#     at the moment it becomes violable, which is this transition.
-#   - Measured 2026-09-02: 20 tickets sat in BlockNeedUserTest with no probe, and the set
-#     was not a static remainder - it had turned over since 2026-09-01, gaining S1617,
-#     S1955 and S1984 in a single day. A backlog that refills needs a gate, not a sweep.
-#   - Why nothing caught it: post-change.ps1 hands the tree gate -ChangedFiles under
-#     -ScopeToFile, which by S1912's design downgrades the missing-probe half to exit 3,
-#     an advisory. The only fatal check left was assert-fast-gates.ps1, project-wide - so
-#     it went red for whichever session happened to run it, over debt belonging to twenty
-#     other tickets, which that session could not fix. /spec-check's own step 6 meanwhile
-#     instructed "add one .. or the ticket-log gate refuses the close" - a refusal that
-#     did not exist on any closing path.
-#   - Assert-ClosingGates is the one point all three status-writing paths reach
-#     (update.ps1, close.ps1, bulk-update.ps1), which is why the gate sits there rather
-#     than in a command file that only one pipeline reads.
-#   - The order this demands is the order Rule 2 already prescribes: the probe is the last
-#     code edit BEFORE the status flip, so it is in the tree by the time this runs.
-#   - Two ways to pass, and the refusal text names both. A ticket that changed only
-#     documentation, scripts or resources has no executable path to instrument; it belongs
-#     in scripts/quality/blockneedusertest-probe-baseline.txt with a stated reason. Refusing
-#     those outright would make them unclosable, which is a worse failure than the gap.
-#   - "Carries a probe" is decided by scripts/quality/lib/blockneedusertest-probes.ps1, the
-#     same code assert-no-ticket-logs.ps1 uses. A second implementation would let this gate
-#     refuse a transition the tree gate is content with (the S1621 rule); it is not
-#     hypothetical, because a Timber call may span physical lines and a per-line search
-#     finds a strictly smaller set.
-#
-# Exit codes: 0 = a probe exists, or the ticket is excused in the baseline.
-#             1 = neither - the transition must not proceed.
-#             2 = bad invocation (malformed id, or an id no record carries), or catalog /
-#                 sources unreadable. Kept distinct from 1 because "this ticket does not
-#                 exist" and "this ticket forgot its probe" call for opposite reactions, and
-#                 exit 1 phrases the refusal as the latter - it would tell the operator to add
-#                 a probe for an id that names nothing, or to excuse it in the baseline forever.
-
-. (Join-Path $PSScriptRoot '_lib.ps1')
-
-if ($Id -notmatch '^S\d{4}$') {
-    # -ErrorAction Continue, not a bare Write-Error: _lib.ps1 sets $ErrorActionPreference = 'Stop',
-    # under which a bare Write-Error throws and the documented `exit 2` is never reached (S1070).
-    Write-Error "Invalid -Id '$Id' (must match S####)." -ErrorAction Continue
+# The dot-source runs inside `& { }` deliberately. HALF this set is itself dot-sourced, so at top
+# level project-paths.ps1 would define its functions and set its script variables in the CALLER's
+# scope - the S2441 failure one level further out. A child scope cannot reach the caller at all.
+if (-not $szaFwdTarget) {
+    $szaFwdCheckout = $env:SZA_CANON_ROOT
+    if (-not $szaFwdCheckout) {
+        $szaFwdResolver = Join-Path $PSScriptRoot '..\..\scripts\utils\project-paths.ps1'
+        if (Test-Path -LiteralPath $szaFwdResolver) {
+            # A resolver that is absent or throws must not stop the forwarder from printing its own
+            # refusal, which is the only message that names all three candidates and the fix.
+            $szaFwdCheckout = & {
+                param($szaFwdResolverPath)
+                try { . $szaFwdResolverPath; Get-CanonRoot } catch { $null }
+            } $szaFwdResolver
+        }
+    }
+    if ($szaFwdCheckout) {
+        $szaFwdCandidates += (Join-Path $szaFwdCheckout 'tools\harness')
+        $szaFwdProbe = Join-Path $szaFwdCandidates[-1] 'spec_catalog\check-probe-present.ps1'
+        if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe }
+    }
+}
+if (-not $szaFwdTarget) {
+    Write-Host "check-probe-present.ps1: the SZA harness is not installed - looked in:" -ForegroundColor Red
+    foreach ($szaFwdDir in $szaFwdCandidates) { Write-Host "    $szaFwdDir" -ForegroundColor Gray }
+    Write-Host "  Install or update it:  claude plugin update sza@sza-unified-rules" -ForegroundColor Yellow
+    Write-Host "  Or point at a checkout: `$env:SZA_HARNESS_ROOT = '<repo>\tools\harness'" -ForegroundColor Yellow
     exit 2
 }
 
-# A well-formed id that names no record is still a bad invocation, not a missing probe. Without
-# this the gate answers "add a probe for S9999", which is unactionable, and the caller cannot tell
-# a typo from a real refusal - the same "could not look is not found nothing" split the source-root
-# check below makes. Matches check-audit-recorded.ps1, the sibling gate in this list.
-$record = Find-Record -Id $Id
-if (-not $record) {
-    Write-Error "No record with id '$Id' in the spec catalog." -ErrorAction Continue
-    exit 2
-}
+$env:SZA_PROJECT_ROOT = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 
-$probeLib = Join-Path $PSScriptRoot '../quality/lib/blockneedusertest-probes.ps1'
-if (-not (Test-Path -LiteralPath $probeLib)) {
-    Write-Error "Probe helper not found at $probeLib." -ErrorAction Continue
-    exit 2
+# Half of this set is dot-sourced as a library and half is invoked as a CLI, and the two cannot be
+# forwarded the same way: `& $szaFwdTarget` would run a library in its own scope and define nothing
+# the caller can see, while `exit` inside a dot-sourced file would kill the caller. InvocationName
+# is '.' exactly when this file was dot-sourced, so one template serves both.
+if ($MyInvocation.InvocationName -eq '.') {
+    . $szaFwdTarget
+} else {
+    # Deliberately NOT 'Stop'. A native child's stderr arrives here as ErrorRecord objects, and
+    # under 'Stop' the first one terminates this forwarder before `exit $LASTEXITCODE` runs - so a
+    # script that reported a FAIL and exited 1 would reach its caller as a crashed forwarder with a
+    # different code. Every script in this set states its exit codes; passing them through unchanged
+    # is the whole job. S2441 moved it inside this branch: at the file's top level it also rewrote
+    # the preference of every caller that dot-sources a forwarder, silently downgrading a script
+    # running under 'Stop' for the rest of its life.
+    $ErrorActionPreference = 'Continue'
+    $global:LASTEXITCODE = 0
+    try {
+        & $szaFwdTarget @args
+    } catch {
+        # A child that THROWS never reaches its own `exit`, so $LASTEXITCODE stays 0 and the
+        # forwarder would report success for a script that failed - the one way a forwarder can
+        # turn a red verdict green. Every such refusal is a failure, so it leaves as exit 1.
+        Write-Error $_ -ErrorAction Continue
+        exit 1
+    }
+    $szaFwdCode = $LASTEXITCODE
+    exit $(if ($null -eq $szaFwdCode) { 0 } else { $szaFwdCode })
 }
-. $probeLib
-
-$repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$sourceRoots = @(Get-ProbeSourceRoot -RepoRoot $repoRoot)
-if ($sourceRoots.Count -eq 0) {
-    # "Could not look" is not "found nothing" - a checkout without the modules must not
-    # silently certify every ticket as probed.
-    Write-Error "No source root to scan under $repoRoot (expected app_v2 and/or wear)." -ErrorAction Continue
-    exit 2
-}
-
-$baselinePath = Get-ProbeBaselinePath -RepoRoot $repoRoot
-$excused = Get-ExcusedProbeTickets -BaselinePath $baselinePath
-if ($excused.Contains($Id)) {
-    Write-Output "PASS $Id"
-    Write-Output "Excused in blockneedusertest-probe-baseline.txt - no executable path to instrument."
-    exit 0
-}
-
-$hit = Test-TicketProbeInSource -Id $Id -SourceRoots $sourceRoots
-if ($hit.Found) {
-    $rel = $hit.File.Substring($repoRoot.Length).TrimStart('\', '/')
-    Write-Output "PASS $Id"
-    Write-Output ("Probe present: {0}:{1}" -f $rel, $hit.Line)
-    exit 0
-}
-
-Write-Output "FAIL $Id"
-Write-Output ("- no Timber.d(`"{0}: ..`") in app_v2 or wear, and no row in blockneedusertest-probe-baseline.txt." -f $Id)
-Write-Output ""
-Write-Output "BlockNeedUserTest means a human still has to watch this run on a device."
-Write-Output "Without the probe the log cannot tell 'the scenario went through the new code'"
-Write-Output "from 'the scenario never reached it', so the device pass proves nothing."
-Write-Output "Do one of:"
-Write-Output ("  1. add one probe at the entry of the flow this ticket changed:  Timber.d(`"{0}: <what ran>`")" -f $Id)
-Write-Output ("  2. if the ticket changed no executable path (docs, scripts, resources only), add a row")
-Write-Output ("     to scripts/quality/blockneedusertest-probe-baseline.txt: `"{0}  <why a probe cannot exist, and what the human reads instead>`"" -f $Id)
-Write-Output ""
-Write-Output "Insert the probe BEFORE flipping the status - that is the order CLAUDE.md Rule 2 already prescribes."
-exit 1

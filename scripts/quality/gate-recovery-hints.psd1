@@ -155,12 +155,12 @@
 
     'migration-schema-conformance-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-migration-schema-conformance.ps1 -List'
-        Fix   = 'A Room migration disagrees with the exported schema Room validates the upgraded database against, and that comparison happens on the user device during the first launch after an update - a mismatch there deletes the database (S2251 cost the owner 20 resources, 26 network credentials, 7 favourites and a 139-cell desktop on 2026-09-01). Read the named dimension: column-name means the ALTER TABLE column is spelled differently from the entity property (Room is case- and underscore-exact); column-default means the entity declares an @ColumnInfo(defaultValue = ..) the SQL does not write; not-null means the nullability differs or a NOT NULL column was added without a DEFAULT, which SQLite refuses outright; registration means a migration exists but DatabaseModule.addMigrations() never lists it, so the hop throws. Fix the SQL or the entity so both say the same thing, rebuild to regenerate app_v2/schemas/<version>.json, then re-run. Never baseline a migration that has not shipped.'
+        Fix   = 'A Room migration disagrees with the exported schema Room validates the upgraded database against, and that comparison happens on the user device during the first launch after an update - a mismatch there deletes the database (S2251 cost the owner 20 resources, 26 network credentials, 7 favourites and a 139-cell desktop on 2026-09-01). Read the named dimension: column-name means the ALTER TABLE column is spelled differently from the entity property (Room is case- and underscore-exact); column-default means the entity declares an @ColumnInfo(defaultValue = ..) the SQL does not write; not-null means the nullability differs or a NOT NULL column was added without a DEFAULT, which SQLite refuses outright; registration means a migration exists but DatabaseModule.addMigrations() never lists it, so the hop throws. Every finding names the module it belongs to - read that first, because the repository has more than one Room database and the fix belongs in the named one. Fix the SQL or the entity so both say the same thing, rebuild that module to regenerate its exported <module>/schemas/<db-fqcn>/<version>.json, then re-run. Never baseline a migration that has not shipped.'
     }
 
     'migration-test-pairing-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-migration-test-pairing.ps1 -List'
-        Fix   = 'A Room migration has no instrumented migration test. Add app_v2/src/androidTest/java/com/sza/fastmediasorter/data/local/db/AppDatabaseMigration<N>To<M>Test.kt beside its siblings: create the database at <N>, seed a row, call helper.runMigrationsAndValidate(TEST_DB, <M>, true, MIGRATION_<N>_<M>) - that call is the same schema comparison the device performs on update - and assert the seeded row survived. Verify it compiles with .\a.ps1 fa.'
+        Fix   = 'A Room migration has no instrumented migration test. The finding names its module - put the test in THAT module''s instrumented database directory, not the phone''s: app_v2/src/androidTest/java/com/sza/fastmediasorter/data/local/db/ for app_v2, wear/src/androidTest/java/com/sza/fastmediasorter/wear/data/db/ for wear. Name it <Database>Migration<N>To<M>Test.kt beside its siblings: create the database at <N>, seed a row, call helper.runMigrationsAndValidate(TEST_DB, <M>, true, MIGRATION_<N>_<M>) - that call is the same schema comparison the device performs on update - and assert the seeded row survived. Verify it compiles with .\a.ps1 fa for app_v2 or .\a.ps1 faw for wear; fa compiles the phone set only, so quoting it under a wear change is a verdict about the other module.'
     }
 
     'gson-persistence-contract-gate' = @{
@@ -219,6 +219,11 @@
     'script-suite-regression' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/run-script-suites.ps1 -ChangedFiles "<your,files>"'
         Fix   = 'A regression suite guarding a script you changed is red - read its output above and fix the script, not the suite. Run -ListOnly to see which suite claims your file as its subject. Exit 2 is a different answer: the suite could not run for want of an environment tool (rg, for instance), which is advisory here and fatal only before a release (S2122).'
+    }
+
+    'suite-tracked' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-suite-tracked.ps1 -Gate -ChangedFiles "<your,files>"'
+        Fix   = 'A contract suite you changed exists on this machine only - it is not in the git index, so a fresh clone and the release worktree discover a smaller set and print the same green verdict. Stage it with the `git add` command the gate printed; nothing in the closure path stages for you, and once missed a directory is never picked up again (`git commit -a` stages tracked files only). Exit 2 is a different answer: git could not be asked at all (S2411).'
     }
 
     'androidtest-compile-gate' = @{

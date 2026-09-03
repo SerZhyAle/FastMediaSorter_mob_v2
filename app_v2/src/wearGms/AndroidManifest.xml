@@ -33,6 +33,12 @@
                 <data android:host="*" android:pathPrefix="/fms/transfer_file" android:scheme="wear" />
             </intent-filter>
         </service>
+
+        <!-- S2142: the tap target of the «Send to..» notification posted for a file the watch sent
+             here as an errand. Declared in this overlay rather than in the main manifest because the
+             errand only exists where the watch companion does - the same flavors this service does. -->
+        <activity android:name=".ui.share.WearSendToDispatcherActivity" android:excludeFromRecents="true" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" />
+
     </application>
 
 </manifest>

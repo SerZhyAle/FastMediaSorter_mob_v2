@@ -1,21 +1,30 @@
 package com.sza.fastmediasorter.wear.ui.apps.game
 
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,92 +38,196 @@ import com.sza.fastmediasorter.wear.domain.game.GameDirection
 import com.sza.fastmediasorter.wear.domain.game.GameStatus
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearMaxSquareSide
+import com.sza.fastmediasorter.wear.ui.common.wearRingInset
+import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
+import kotlinx.coroutines.delay
+import timber.log.Timber
 import kotlin.math.abs
-
-private val SCREEN_PADDING = 6.dp
-private val HEADER_SPACING = 2.dp
-
-/** Shown while the first board is still being generated, so the header never reads a level of zero. */
-private const val FIRST_LEVEL_DISPLAYED = 1
-
-/**
- * Punctuation, not a translatable phrase: the level and the turn count share one header line because
- * a third line would take its height from the board, which S2008 caps rather than grows.
- */
-private const val HEADER_SEPARATOR = " · "
 
 /** Below this the gesture was a tap or a tremor, not a swipe, and no move is made. */
 private val MIN_SWIPE_TRAVEL = 16.dp
 
+/** Shown while the first board is still being generated, so the ring never reads a level of zero. */
+private const val FIRST_LEVEL_DISPLAYED = 1
+
+/** Square screens only: the gap between the counter row and the board it sits above. */
+private val SQUARE_ROW_SPACING = 2.dp
+
 /**
- * The game: a board filling the screen, moved by swiping across it.
+ * Pause between finishing a level and the next board appearing, matching the phone's.
  *
- * @param navController the route's host controller. The game itself never navigates: the owner ruled
- * on 2026-08-19 that it is played by swipes across the board with no on-screen controls, and leaving
- * is the platform's edge swipe, which this screen deliberately leaves unclaimed.
+ * The pause exists so the player sees that the level was finished: without it the board is replaced
+ * in the same frame as the last move and the completion is never shown.
  */
-// navController is unused on purpose: the route contract hands it to every screen, and the game
-// deliberately navigates nowhere - leaving it is the platform's edge swipe (owner, 2026-08-19).
-@Suppress("UnusedParameter")
+private const val AUTO_ADVANCE_DELAY_MS = 1000L
+
+/**
+ * The game: a board filling the largest square the glass admits, moved by swiping across it.
+ *
+ * @param navController the route's host controller. S2158 narrowly reversed the earlier ruling that
+ * this screen navigates nowhere: the board still carries no permanent controls and is still played
+ * by swipes across it, but a long press opens a menu on demand, and that menu's exit entry is the
+ * only navigation the screen performs. Leaving without the menu is still the platform's edge swipe.
+ */
 @Composable
 fun GameScreen(
     navController: NavController,
     viewModel: GameViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val maxBoardSide = wearMaxSquareSide()
+    val isRound = LocalConfiguration.current.isScreenRound
+    val levelNumber = uiState.level?.config?.levelNumber ?: FIRST_LEVEL_DISPLAYED
+    var menuOpen by rememberSaveable { mutableStateOf(false) }
+    val menuActions = GameMenuActions(
+        onSkipTurn = { viewModel.skipTurn() },
+        onRestartLevel = { viewModel.restartLevelNow() },
+        onNewGame = { viewModel.startNewGame() },
+        onOpenRules = { navController.navigate(WearRoutes.GAME_RULES) },
+        onExit = { navController.popBackStack() },
+        onDismiss = { menuOpen = false }
+    )
 
-    WearScreenScaffold {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(SCREEN_PADDING),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(HEADER_SPACING, Alignment.CenterVertically)
-        ) {
-            GameHeader(uiState)
-            val level = uiState.level
-            if (level != null) {
-                // Two caps, both of them shrinking. The board used to take the full content width and
-                // derive its height from it: on a round watch that put all four corners outside the
-                // glass, and it left the column's total height unbounded, so the outcome chip was
-                // pushed past the content box the moment a level ended (S2008).
-                GameBoardCanvas(
-                    level = level,
-                    contentDescription = stringResource(R.string.wear_game_board_description),
-                    modifier = Modifier
-                        .weight(1f, fill = false)
-                        .sizeIn(maxWidth = maxBoardSide, maxHeight = maxBoardSide)
-                        .aspectRatio(1f)
-                        .swipeToMove { direction -> viewModel.move(direction) }
+    // No job field, no flag, no cancel call: the effect is keyed on the status and the level number,
+    // so a status change, an early tap on the chip and leaving the screen each cancel it - all three
+    // either move a key or leave the composition. That is the phone's re-check guard without a
+    // second piece of state.
+    LaunchedEffect(isRound) {
+        Timber.d("S2158: game screen laid out, round=%b", isRound)
+    }
+
+    LaunchedEffect(uiState.status, levelNumber) {
+        if (uiState.status == GameStatus.LEVEL_WON) {
+            Timber.d("S2158: level %d won, advancing in %d ms", levelNumber, AUTO_ADVANCE_DELAY_MS)
+            delay(AUTO_ADVANCE_DELAY_MS)
+            viewModel.restart()
+        }
+    }
+
+    // Full bleed: the ring is measured against the glass, so the scaffold must not inset it first.
+    WearScreenScaffold(contentPadding = PaddingValues(0.dp)) {
+        if (isRound) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                GameBoard(
+                    uiState = uiState,
+                    modifier = Modifier.align(Alignment.Center).size(wearMaxSquareSide()),
+                    menuOpen = menuOpen,
+                    onMove = { direction -> viewModel.move(direction) },
+                    onOpenMenu = {
+                        Timber.d("S2158: in-play menu opened by long press")
+                        menuOpen = true
+                    }
                 )
+                GameStatsRing(stats = uiState.stats, levelNumber = levelNumber)
+                if (uiState.status != GameStatus.PLAYING) {
+                    GameOutcomeChip(
+                        status = uiState.status,
+                        modifier = Modifier.align(Alignment.Center)
+                    ) { viewModel.restart() }
+                }
+                if (menuOpen) {
+                    GameMenuOverlay(actions = menuActions)
+                }
             }
-            if (uiState.status != GameStatus.PLAYING) {
-                GameOutcomeChip(uiState.status) { viewModel.restart() }
+        } else {
+            // A square screen has no ring: an inscribed square leaves nothing around it, so the
+            // counters keep the row above the board they had before S2158.
+            Box(modifier = Modifier.fillMaxSize()) {
+                SquareScreenLayout(
+                    uiState = uiState,
+                    levelNumber = levelNumber,
+                    menuOpen = menuOpen,
+                    onMove = { direction -> viewModel.move(direction) },
+                    onOpenMenu = {
+                        Timber.d("S2158: in-play menu opened by long press")
+                        menuOpen = true
+                    },
+                    onRestart = { viewModel.restart() }
+                )
+                if (menuOpen) {
+                    GameMenuOverlay(actions = menuActions)
+                }
             }
         }
     }
 }
 
 @Composable
-private fun GameHeader(uiState: GameUiState) {
-    Text(
-        text = "${stringResource(R.string.wear_game_score)} ${uiState.stats.score}",
-        style = MaterialTheme.typography.caption1,
-        color = MaterialTheme.colors.onBackground,
-        textAlign = TextAlign.Center
-    )
-    val level = uiState.level?.config?.levelNumber ?: FIRST_LEVEL_DISPLAYED
-    val levelLabel = stringResource(R.string.wear_game_level)
-    val turnsLabel = stringResource(R.string.wear_game_turns)
-    Text(
-        text = "$levelLabel $level$HEADER_SEPARATOR$turnsLabel ${uiState.stats.turns}",
-        style = MaterialTheme.typography.caption2,
-        color = MaterialTheme.colors.onSurfaceVariant,
-        textAlign = TextAlign.Center
-    )
+private fun SquareScreenLayout(
+    uiState: GameUiState,
+    levelNumber: Int,
+    menuOpen: Boolean,
+    onMove: (GameDirection) -> Unit,
+    onOpenMenu: () -> Unit,
+    onRestart: () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(wearRingInset()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(SQUARE_ROW_SPACING, Alignment.CenterVertically)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Text(
+                text = stringResource(R.string.wear_game_score_description, uiState.stats.score),
+                style = MaterialTheme.typography.caption2,
+                color = MaterialTheme.colors.onSurfaceVariant
+            )
+            Text(
+                text = stringResource(R.string.wear_game_level_description, levelNumber),
+                style = MaterialTheme.typography.caption2,
+                color = MaterialTheme.colors.onSurfaceVariant
+            )
+            Text(
+                text = stringResource(R.string.wear_game_turns_description, uiState.stats.turns),
+                style = MaterialTheme.typography.caption2,
+                color = MaterialTheme.colors.onSurfaceVariant
+            )
+        }
+        val side = wearMaxSquareSide()
+        GameBoard(
+            uiState = uiState,
+            modifier = Modifier.weight(1f, fill = false).sizeIn(maxWidth = side, maxHeight = side),
+            menuOpen = menuOpen,
+            onMove = onMove,
+            onOpenMenu = onOpenMenu
+        )
+        if (uiState.status != GameStatus.PLAYING) {
+            GameOutcomeChip(status = uiState.status, modifier = Modifier.fillMaxWidth(), onAct = onRestart)
+        }
+    }
 }
 
 @Composable
-private fun GameOutcomeChip(status: GameStatus, onAct: () -> Unit) {
+private fun GameBoard(
+    uiState: GameUiState,
+    modifier: Modifier = Modifier,
+    menuOpen: Boolean,
+    onMove: (GameDirection) -> Unit,
+    onOpenMenu: () -> Unit
+) {
+    val level = uiState.level ?: return
+    GameBoardCanvas(
+        level = level,
+        contentDescription = stringResource(R.string.wear_game_board_description),
+        modifier = modifier
+            .aspectRatio(1f)
+            // Two detectors, two modifiers: sharing one gesture scope would make the long press and
+            // the drag compete for the same pointer stream. While the menu covers the board the drag
+            // is not applied at all - a board answering a drag under an overlay would move unseen.
+            .longPressToOpenMenu(onOpenMenu)
+            .then(if (menuOpen) Modifier else Modifier.swipeToMove(onMove))
+    )
+}
+
+private fun Modifier.longPressToOpenMenu(onOpenMenu: () -> Unit): Modifier =
+    pointerInput(onOpenMenu) {
+        detectTapGestures(onLongPress = { onOpenMenu() })
+    }
+
+@Composable
+private fun GameOutcomeChip(status: GameStatus, modifier: Modifier = Modifier, onAct: () -> Unit) {
     val won = status == GameStatus.LEVEL_WON
     val outcome = if (won) R.string.wear_game_level_completed else R.string.wear_game_level_lost
     val action = if (won) R.string.wear_game_continue else R.string.wear_game_restart
@@ -123,7 +236,7 @@ private fun GameOutcomeChip(status: GameStatus, onAct: () -> Unit) {
         colors = ChipDefaults.primaryChipColors(),
         label = { Text(text = stringResource(action)) },
         secondaryLabel = { Text(text = stringResource(outcome)) },
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier
     )
 }
 

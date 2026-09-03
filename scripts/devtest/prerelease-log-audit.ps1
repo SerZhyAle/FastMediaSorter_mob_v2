@@ -18,7 +18,10 @@
     - collapses Java/Kotlin stack-trace frames into their throwing cluster,
     - clusters E/ (and optionally W/) lines by tag + normalized message head,
     - classifies each cluster as BENIGN (known emulator/capability fallback) or ACTIONABLE,
-    - separately flags user-facing error surfaces (toast / snackbar / showError),
+    - separately flags user-facing error surfaces (toast / snackbar / showError), reading plain
+      Toasts out of Maestro's own `Toast received with` lines in a raw pass that runs ahead of the
+      level, tag and pid filters, and classifying each against the app's localized error strings
+      so an informational toast is reported without failing the run (S2394),
 
   so red toasts seen on screen are never lost to a green machine verdict again. Each
   ACTIONABLE cluster is a /spec-draft candidate.
@@ -39,6 +42,10 @@
   Base application id used to recover the app's process ids from the capture. Prefix-matched,
   so the release id, the `.debug` id and any `:sub` process are all recognised.
 
+.PARAMETER ResRoot
+  Android resource root whose `values*/strings.xml` define the localized error-text catalogue used to
+  tell an error toast from an informational one (S2394). Defaults to the repo's `app_v2/src/main/res`.
+
 .PARAMETER IncludeWarnings
   Also cluster W/ lines (off by default - E/ only).
 
@@ -52,6 +59,7 @@
 param(
     [Parameter(Mandatory)][string]$LogFile,
     [string]$Package = 'com.sza.fastmediasorter',
+    [string]$ResRoot = (Join-Path $PSScriptRoot '../../app_v2/src/main/res'),
     [switch]$IncludeWarnings,
     [switch]$Json
 )
@@ -197,7 +205,48 @@ function Test-BenignPair([string]$tag, [string]$msg) {
 }
 
 # User-facing error-surface markers - lines that map to a visible red toast / snackbar.
-$toastPatterns = 'Toast|Snackbar|showError|showErrorMessage|notifyError|UiError|error_toast|ErrorEvent'
+# S2394: `AppErrorNotifier: shown` is the app's own record of a Snackbar it actually put on screen -
+# the only trace that path leaves, since Maestro logs plain Toasts but never a Snackbar.
+$toastPatterns = 'Toast|Snackbar|showError|showErrorMessage|notifyError|UiError|error_toast|ErrorEvent|AppErrorNotifier: shown'
+
+# S2394: a plain Toast reaches logcat only as `D Maestro : Toast received with <text>` - debug level,
+# foreign process, foreign tag, so all three filters below discard it by construction and the counter
+# read 0 on every run ever made. This pass runs on the raw line, before any of them.
+$maestroToastRegex = 'Toast received with\s+(?<text>.+?)\s*$'
+
+# Error-vs-informational is decided by the app's own string resources, not by a word list: the
+# emulator runs in Russian and "Слайд-шоу включено" must not fail a sweep, while every localized
+# error text must. Keys carrying an error marker define the error catalogue across all locales.
+function Get-ErrorStringPatterns([string]$resRoot) {
+    $patterns = [System.Collections.Generic.List[string]]::new()
+    if (-not (Test-Path $resRoot)) { return @() }
+    $seen = @{}
+    foreach ($file in (Get-ChildItem -Path $resRoot -Directory -Filter 'values*')) {
+        $strings = Join-Path $file.FullName 'strings.xml'
+        if (-not (Test-Path $strings)) { continue }
+        $content = [System.IO.File]::ReadAllText($strings)
+        foreach ($m in [regex]::Matches($content, '<string\s+name="(?<key>[^"]+)"[^>]*>(?<val>.*?)</string>', 'Singleline')) {
+            if ($m.Groups['key'].Value -notmatch 'error|failed|failure|cannot|unable|invalid') { continue }
+            $value = $m.Groups['val'].Value
+            $value = $value -replace '<[^>]+>', ''
+            $value = $value.Replace('&amp;', '&').Replace('&lt;', '<').Replace('&gt;', '>').Replace('&quot;', '"').Replace('&apos;', "'")
+            $value = ($value -replace '\\(.)', '$1').Trim()
+            # Measured on the length of the LITERAL text, with the placeholders removed. A value that
+            # is mostly placeholders ("%1$s: %2$s") becomes `^.*:\ .*$` once they turn into `.*`, and
+            # that matched "Установлен кэш: 1024 МБ" - an informational toast reported as an error on
+            # the very run this ticket was measured against. Short literals ("Error", "Failed") are
+            # dropped for the older reason: they appear inside half the informational texts.
+            $literal = ($value -replace '%(\d+\$)?[sd]', '').Trim()
+            if ($literal.Length -lt 8) { continue }
+            if ($seen.ContainsKey($value)) { continue }
+            $seen[$value] = $true
+            $escaped = [regex]::Escape($value)
+            $escaped = [regex]::Replace($escaped, '%(\d+\\\$)?[sd]', '.*')
+            $patterns.Add('^' + $escaped + '$')
+        }
+    }
+    return @($patterns)
+}
 
 # App-line heuristic. threadtime carries the package column explicitly; `-v time` does not,
 # so fall back to "not a known system/native tag". This keeps the audit working regardless of
@@ -210,14 +259,19 @@ $lineRegexTime       = '^\s*\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d+\s+(?<lvl>[EW])/
 
 $wantLevels = if ($IncludeWarnings) { @('E', 'W') } else { @('E') }
 
-$clusters    = @{}   # key -> [pscustomobject] cluster
-$toastHits   = @()
+$clusters      = @{}   # key -> [pscustomobject] cluster
+$toastHits     = @()
+$maestroToasts = @()
 
 function Test-StackFrame([string]$msg) {
     return ($msg -match '^\s*at\s' -or $msg -match '^\s*Caused by:' -or $msg -match '^\s*\.\.\.\s+\d+\s+more' -or $msg -match '^\s*Suppressed:')
 }
 
 foreach ($raw in [System.IO.File]::ReadLines((Resolve-Path $LogFile))) {
+    # S2394: raw-line pass, deliberately ahead of the level, tag and pid filters below.
+    $tm = [regex]::Match($raw, $maestroToastRegex)
+    if ($tm.Success) { $maestroToasts += $tm.Groups['text'].Value }
+
     $m = [regex]::Match($raw, $lineRegexThreadtime)
     if (-not $m.Success) { $m = [regex]::Match($raw, $lineRegexTime) }
     if (-not $m.Success) { continue }
@@ -271,6 +325,23 @@ foreach ($raw in [System.IO.File]::ReadLines((Resolve-Path $LogFile))) {
 $all        = $clusters.Values | Sort-Object -Property @{ Expression = 'count'; Descending = $true }
 $actionable = @($all | Where-Object { -not $_.benign })
 $benign     = @($all | Where-Object { $_.benign })
+
+# S2394: classify what the raw pass collected. An error text fails the run, an informational one is
+# reported so the operator can see the pass observed something rather than nothing.
+$errorStringPatterns = Get-ErrorStringPatterns $ResRoot
+$infoToasts = @()
+foreach ($text in @($maestroToasts | Sort-Object -Unique)) {
+    $isError = $false
+    foreach ($p in $errorStringPatterns) {
+        if ($text -match $p) { $isError = $true; break }
+    }
+    if ($isError) {
+        $toastHits += [pscustomobject]@{ tag = 'Maestro'; msg = $text }
+    } else {
+        $infoToasts += $text
+    }
+}
+
 $toastUnique = @($toastHits | Sort-Object tag, msg -Unique)
 
 $exit = if ($actionable.Count -gt 0 -or $toastUnique.Count -gt 0) { 1 } else { 0 }
@@ -285,8 +356,10 @@ if ($Json) {
         actionableCount= $actionable.Count
         benignCount    = $benign.Count
         toastCount     = $toastUnique.Count
+        infoToastCount = $infoToasts.Count
         actionable     = @($actionable | Select-Object level, tag, count, sample)
         toasts         = @($toastUnique | Select-Object tag, msg)
+        infoToasts     = @($infoToasts)
     } | ConvertTo-Json -Depth 5 -Compress
 } else {
     Write-Host "Detailed log audit: $LogFile"
@@ -303,6 +376,10 @@ if ($Json) {
     if ($toastUnique.Count) {
         Write-Host "`n  USER-FACING error surfaces (red toasts/snackbars):"
         foreach ($t in $toastUnique) { Write-Host ("    {0}: {1}" -f $t.tag, $t.msg) }
+    }
+    if ($infoToasts.Count) {
+        Write-Host "`n  informational toasts seen on screen (not failing the run):"
+        foreach ($t in $infoToasts) { Write-Host ("    {0}" -f $t) }
     }
     if (-not $actionable.Count -and -not $toastUnique.Count) { Write-Host "  clean - no actionable app errors or error toasts" }
 }

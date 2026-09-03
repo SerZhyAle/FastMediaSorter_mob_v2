@@ -382,7 +382,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     saveAudioMetadataLocally = preferences[KEY_SAVE_AUDIO_METADATA_LOCALLY] ?: true,
                     enablePhotosDuringAudio = preferences[KEY_ENABLE_PHOTOS_DURING_AUDIO] ?: false,
                     audioBackgroundPhotosResourceId = audio.audioBackgroundPhotosResourceId,
-                    enablePersistentAudioPlayback = preferences[KEY_ENABLE_BACKGROUND_AUDIO] ?: false,
+                    enablePersistentAudioPlayback = preferences[KEY_ENABLE_BACKGROUND_AUDIO] ?: true,
                     backgroundAudioExitBehavior = preferences[KEY_BACKGROUND_AUDIO_EXIT_BEHAVIOR]
                         ?.let { runCatching { com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior.valueOf(it) }.getOrNull() }
                         ?: com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior.ASK,

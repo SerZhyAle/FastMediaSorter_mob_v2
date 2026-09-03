@@ -71,6 +71,21 @@
                 app:iconPadding="6dp" />
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSectionBalance"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:focusable="true"
+                android:focusableInTouchMode="false"
+                android:minHeight="@dimen/touch_target_min_height"
+                android:paddingHorizontal="@dimen/padding_normal"
+                android:text="@string/playback_control_tab_balance"
+                android:textAllCaps="false"
+                app:icon="@drawable/ic_tune"
+                app:iconGravity="textStart"
+                app:iconPadding="@dimen/padding_small" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSectionAudio"
                 style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="wrap_content"
@@ -246,6 +261,66 @@
                             android:focusable="true"
                             android:focusableInTouchMode="false"
                             android:text="@string/volume_max" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Balance section -->
+                <LinearLayout
+                    android:id="@+id/sectionBalance"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:id="@+id/tvBalanceValue"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_normal"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvBalanceNoStereo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_normal"
+                        android:text="@string/playback_control_no_balance"
+                        android:visibility="gone" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnBalance5050"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:focusable="true"
+                            android:focusableInTouchMode="false"
+                            android:text="@string/playback_control_balance_50_50" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnBalance3070"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/margin_normal"
+                            android:focusable="true"
+                            android:focusableInTouchMode="false"
+                            android:text="@string/playback_control_balance_30_70" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnBalance7030"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/margin_normal"
+                            android:focusable="true"
+                            android:focusableInTouchMode="false"
+                            android:text="@string/playback_control_balance_70_30" />
                     </LinearLayout>
                 </LinearLayout>
 

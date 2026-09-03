@@ -254,6 +254,31 @@ class BackupMapperTest {
         assertEquals(SortMode.DATE_DESC, restored.defaultSortMode)
     }
 
+    // --- S2428: a backup missing the persistent-audio field must not restore as disabled ---
+
+    @Test
+    fun `backup without persistent audio field restores the enabled default`() {
+        val current = createAppSettings()
+
+        val restored = BackupMapper.toAppSettings(
+            BackupSettings(),
+            current,
+            BackupPayload.CURRENT_VERSION
+        )
+
+        assertEquals(true, restored.enablePersistentAudioPlayback)
+    }
+
+    @Test
+    fun `backup carrying an explicit persistent audio opt-out restores as disabled`() {
+        val current = createAppSettings()
+        val backup = BackupMapper.toBackupSettings(current).copy(enablePersistentAudioPlayback = false)
+
+        val restored = BackupMapper.toAppSettings(backup, current, BackupPayload.CURRENT_VERSION)
+
+        assertEquals(false, restored.enablePersistentAudioPlayback)
+    }
+
     // --- S1346: pre-S0981 backup restore must not re-enable open-in-player ---
 
     @Test

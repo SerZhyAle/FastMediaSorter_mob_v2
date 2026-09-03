@@ -1,7 +1,7 @@
 package com.sza.fastmediasorter.wear.data.repository
 
 import android.content.Context
-import android.webkit.MimeTypeMap
+import android.net.Uri
 import com.google.android.gms.wearable.ChannelClient
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.Wearable
@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearFileSendOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearFileTransferMetadata
 import com.sza.fastmediasorter.wear.domain.repository.WearFileSendResult
 import com.sza.fastmediasorter.wear.domain.repository.WearFileSenderRepository
+import com.sza.fastmediasorter.wear.util.MediaMimeTypes
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -24,6 +25,7 @@ import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import java.io.File
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -39,8 +41,8 @@ private const val WEAR_MESSAGE_ACK_TIMEOUT_MS = 10_000L
 private const val SEND_BUFFER_BYTES = 64 * 1024
 
 /**
- * S1861: sends one watch-side file to the paired phone (`ChannelClient`, same path as the inbound
- * direction).
+ * S1861 / S2161: sends one watch-side file or published content entry to the paired phone
+ * (`ChannelClient`, same path as the inbound direction).
  *
  * The size is refused here rather than on the phone so the user is told before the transfer starts,
  * not after it fails; the phone counts the arriving bytes anyway, because this declaration is only
@@ -52,7 +54,10 @@ class WearFileSenderRepositoryImpl @Inject constructor(
     private val gson: Gson
 ) : WearFileSenderRepository {
 
-    override suspend fun sendFile(file: File): WearFileSendResult = withContext(Dispatchers.IO) {
+    override suspend fun sendFile(
+        file: File,
+        sendToReceiverId: String?
+    ): WearFileSendResult = withContext(Dispatchers.IO) {
         val size = file.length()
         when {
             !file.isFile -> {
@@ -63,12 +68,38 @@ class WearFileSenderRepositoryImpl @Inject constructor(
                 Timber.i("Refusing to send %s to the phone: %d bytes over the ceiling", file.name, size)
                 WearFileSendResult(WearFileSendOutcome.TOO_LARGE)
             }
-            else -> sendToNode(file, size)
+            else -> sendToNode(
+                uri = Uri.fromFile(file),
+                displayName = file.name,
+                size = size,
+                sendToReceiverId = sendToReceiverId
+            )
         }
     }
 
+    override suspend fun sendUri(
+        uri: Uri,
+        displayName: String,
+        sizeBytes: Long
+    ): WearFileSendResult = withContext(Dispatchers.IO) {
+        if (sizeBytes > WEAR_FILE_TRANSFER_MAX_BYTES) {
+            Timber.i("Refusing to send %s to the phone: %d bytes over the ceiling", displayName, sizeBytes)
+            return@withContext WearFileSendResult(WearFileSendOutcome.TOO_LARGE)
+        }
+        sendToNode(uri, displayName, sizeBytes)
+    }
+
+    override suspend fun isPhoneReachable(): Boolean = withContext(Dispatchers.IO) {
+        firstConnectedNodeId() != null
+    }
+
     @Suppress("TooGenericExceptionCaught")
-    private suspend fun sendToNode(file: File, size: Long): WearFileSendResult {
+    private suspend fun sendToNode(
+        uri: Uri,
+        displayName: String,
+        size: Long,
+        sendToReceiverId: String? = null
+    ): WearFileSendResult {
         val nodeId = firstConnectedNodeId()
         if (nodeId == null) {
             return WearFileSendResult(WearFileSendOutcome.PHONE_UNREACHABLE)
@@ -80,7 +111,7 @@ class WearFileSenderRepositoryImpl @Inject constructor(
             if (event.path == WearDataLayerPaths.FILE_RECEIVE_ACK) {
                 try {
                     val ack = gson.fromJson(event.data.decodeToString(), WearFileReceiveAck::class.java)
-                    if (ack.fileName == file.name) {
+                    if (ack.fileName == displayName) {
                         ackDeferred.complete(ack)
                     }
                 } catch (e: CancellationException) {
@@ -93,8 +124,8 @@ class WearFileSenderRepositoryImpl @Inject constructor(
 
         return try {
             messageClient.addListener(listener).await()
-            announce(nodeId, file, size)
-            copyToPhone(nodeId, file)
+            announce(nodeId, displayName, size, sendToReceiverId)
+            copyToPhone(nodeId, uri, displayName)
             val ack = withTimeoutOrNull(WEAR_MESSAGE_ACK_TIMEOUT_MS) { ackDeferred.await() }
             if (ack == null) {
                 WearFileSendResult(WearFileSendOutcome.UNCONFIRMED)
@@ -104,6 +135,8 @@ class WearFileSenderRepositoryImpl @Inject constructor(
                     WearFileReceiveAck.OUTCOME_QUEUED -> WearFileSendOutcome.QUEUED_ON_PHONE
                     WearFileReceiveAck.OUTCOME_NO_DESTINATION -> WearFileSendOutcome.NO_DESTINATION
                     WearFileReceiveAck.OUTCOME_TOO_LARGE -> WearFileSendOutcome.TOO_LARGE
+                    WearFileReceiveAck.OUTCOME_AWAITING_SEND_TO -> WearFileSendOutcome.AWAITING_PHONE_ACTION
+                    WearFileReceiveAck.OUTCOME_NOTIFICATIONS_OFF -> WearFileSendOutcome.PHONE_NOTIFICATIONS_OFF
                     else -> WearFileSendOutcome.FAILED
                 }
                 WearFileSendResult(outcome, ack.destination.ifEmpty { null })
@@ -113,15 +146,25 @@ class WearFileSenderRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             // The bridge drops out through ApiException, IOException and TimeoutCancellation
             // alike, and every one of them means the same thing to the caller: it did not arrive.
-            Timber.w(e, "Failed to send %s to the phone", file.name)
+            Timber.w(e, "Failed to send %s to the phone", displayName)
             WearFileSendResult(WearFileSendOutcome.FAILED)
         } finally {
             runCatching { messageClient.removeListener(listener).await() }
         }
     }
 
-    private suspend fun announce(nodeId: String, file: File, size: Long) {
-        val metadata = WearFileTransferMetadata(name = file.name, size = size, mimeType = mimeTypeOf(file))
+    private suspend fun announce(
+        nodeId: String,
+        displayName: String,
+        size: Long,
+        sendToReceiverId: String? = null
+    ) {
+        val metadata = WearFileTransferMetadata(
+            name = displayName,
+            size = size,
+            mimeType = MediaMimeTypes.fromFileName(displayName),
+            sendToReceiverId = sendToReceiverId
+        )
         withTimeout(MESSAGE_TIMEOUT_MS) {
             Wearable.getMessageClient(context)
                 .sendMessage(
@@ -133,16 +176,18 @@ class WearFileSenderRepositoryImpl @Inject constructor(
         }
     }
 
-    private suspend fun copyToPhone(nodeId: String, file: File) {
+    private suspend fun copyToPhone(nodeId: String, uri: Uri, displayName: String) {
         val channelClient = Wearable.getChannelClient(context)
-        val path = "${WearDataLayerPaths.FILE_TRANSFER}/${file.name}"
+        val path = "${WearDataLayerPaths.FILE_TRANSFER}/$displayName"
         val channel = withTimeout(CHANNEL_TIMEOUT_MS) { channelClient.openChannel(nodeId, path).await() }
         try {
             channelClient.getOutputStream(channel).await().use { output ->
-                file.inputStream().use { input -> input.copyTo(output, SEND_BUFFER_BYTES) }
+                val input = context.contentResolver.openInputStream(uri)
+                    ?: throw IOException("Unable to open input stream for $uri")
+                input.use { it.copyTo(output, SEND_BUFFER_BYTES) }
                 output.flush()
             }
-            Timber.i("Sent %s to the phone", file.name)
+            Timber.i("Sent %s to the phone", displayName)
         } finally {
             closeChannel(channelClient, channel)
         }
@@ -166,10 +211,5 @@ class WearFileSenderRepositoryImpl @Inject constructor(
             runCatching { channelClient.close(channel).await() }
                 .onFailure { Timber.w(it, "Failed to close the outgoing file channel") }
         }
-    }
-
-    private fun mimeTypeOf(file: File): String? {
-        val extension = file.extension.lowercase()
-        return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
     }
 }

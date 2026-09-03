@@ -19,6 +19,15 @@
     smoke      | critical | features      - that category, recursively
     features\browse  (or features/files)  - a single category subpath
     smoke\app_launch.yaml  | a full path  - a single flow file
+    launcher_home_smoke.yaml              - a bare file name, found anywhere under maestro/
+
+  A '.yaml' selection that no root resolves falls back to its FILE NAME, searched under maestro/.
+  That is deliberate: the category a flow lives in is not something the operator re-checking one
+  failed flow should have to remember, and both forms the owner reached for on 2026-09-02 named
+  the wrong directory with the right file (S2396).
+
+  -ListFlows resolves the selection, prints it and exits - no Maestro binary, no device. It is the
+  only way to verify a selector form without an emulator.
 
   Exit codes (suite-level):
     0 - all selected flows passed
@@ -26,6 +35,9 @@
     2 - Maestro CLI not found
     3 - one or more flows failed (step / assertion)
     4 - execution error (no device / runtime error - a flow never completed)
+
+  With -ListFlows only 0 (the selection resolved to at least one flow) and 1 (it resolved to none)
+  are reachable - nothing is run, so no verdict beyond the selection exists.
 
 .PARAMETER Suite
   Selection token (see above). Default 'all'.
@@ -35,20 +47,31 @@
   one device is online.
 
 .PARAMETER Json
-  Emit a single JSON object { pass, total, failed, reason, launcherMode, flows:[{flow,pass,log}] }
+  Emit a single JSON object
+  { pass, total, failed, reason, launcherMode, flows:[{flow,pass,status,log}] }
   instead of human-readable lines. launcherMode is on|off|unknown - the environment state that
-  changes where a back press out of MainActivity lands (S1673).
+  changes where a back press out of MainActivity lands (S1673). status is pass|fail|execError:
+  execError is a transport failure between Maestro and the device and says nothing about the app,
+  so a consumer aggregating a release verdict must not count it as a defect (S2396).
+
+.PARAMETER ListFlows
+  Resolve -Suite, print the flow set and exit (0 = at least one flow, 1 = none). Runs before
+  binary discovery and before any device call, so a selector form can be verified with no
+  emulator attached.
 
 .EXAMPLE
   pwsh -NoProfile -File maestro/run-tests.ps1 -Suite smoke -Json
 .EXAMPLE
   pwsh -NoProfile -File maestro/run-tests.ps1 -Suite features\files -DeviceId emulator-5554
+.EXAMPLE
+  pwsh -NoProfile -File maestro/run-tests.ps1 -Suite launcher_home_smoke.yaml -ListFlows
 #>
 [CmdletBinding()]
 param(
     [string]$Suite = 'all',
     [string]$DeviceId,
     [switch]$Json,
+    [switch]$ListFlows,
     # Retained for backward compatibility with existing callers
     # (scripts/utils/run-maestro-smoke.ps1, scripts/utils/run-stress.ps1) which pass -DebugMode.
     # When set, the off-context trace of any failing flow is echoed to the console for local triage.
@@ -207,6 +230,15 @@ function Reset-App {
 }
 
 # ---------- flow-set resolution from -Suite ----------
+function Get-RelativeFlowPath {
+    param([System.IO.FileInfo]$File)
+    $full = $File.FullName
+    if ($full.StartsWith($ProjectRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
+        return $full.Substring($ProjectRoot.Length).TrimStart('\', '/') -replace '\\', '/'
+    }
+    return $full
+}
+
 function Get-FlowSet {
     param([string]$Selection)
 
@@ -221,10 +253,13 @@ function Get-FlowSet {
         foreach ($candidate in @($norm, (Join-Path $ProjectRoot $norm), (Join-Path $MaestroDir $norm))) {
             if (Test-Path -Path $candidate -PathType Leaf) { return @(Get-Item -Path $candidate) }
         }
-        if ($norm -notmatch '[\\/]') {
-            return @(Get-ChildItem -Path $MaestroDir -Recurse -Filter $norm -File)
-        }
-        return @()
+        # Last resort: the file NAME, searched under maestro/. Until 2026-09-02 this ran only for a
+        # selector with no separator, which left the two forms the owner actually typed unresolved -
+        # both named a real flow under the wrong directory (launcher_home_smoke.yaml lives in
+        # features/launcher, not smoke/; settings_dropdown_select.yaml in smoke/, not
+        # features/settings). Flow file names are unique across the tree, so the directory carries no
+        # information the name does not; refusing on it only costs a half-hour full-suite re-run (S2396).
+        return @(Get-ChildItem -Path $MaestroDir -Recurse -Filter (Split-Path -Leaf $norm) -File)
     }
 
     if ($Selection.ToLower() -eq 'all') {
@@ -280,8 +315,19 @@ function Invoke-Flow {
         if (Test-Path -Path $logFile -PathType Leaf) {
             $logText = (Get-Content -Path $logFile -Raw -ErrorAction SilentlyContinue)
         }
-        $infra = 'no devices|no connected device|not enough devices|Missing \d+ device|it is not connected|Unable to launch|Unable to find|connection refused|locked a portion of the file|MAESTRO_CLI|java\.lang|ADB'
-        if ($logText -match $infra -and $logText -notmatch 'Assertion|Element .*not|not visible|did not') {
+        # Two tiers, because the single tier that preceded them misread the one case it existed for
+        # (S2396). A transport crash - Maestro's own ADB client throwing out of a flow - is named by
+        # its stack frame and nothing else can produce it, so it wins outright. The weak tier keeps
+        # the old broad wording and its assertion-text veto: those phrases also occur in ordinary
+        # traces, so they may only classify a trace that says nothing about an assertion. Measured
+        # 2026-09-02: a maestro.android.AdbSocket.connect crash in settings_dropdown_select.yaml was
+        # vetoed by the assertion text a half-run trace always carries, and reached the release
+        # verdict as an app defect.
+        $infraDefinitive = 'maestro\.android\.AdbSocket|dadb\.|AdbShellStream|no devices|no connected device|not enough devices|Missing \d+ device|it is not connected|Unable to launch|connection refused'
+        $infraWeak       = 'Unable to find|locked a portion of the file|MAESTRO_CLI|java\.lang|ADB'
+        if ($logText -match $infraDefinitive) {
+            $status = 'execError'
+        } elseif ($logText -match $infraWeak -and $logText -notmatch 'Assertion|Element .*not|not visible|did not') {
             $status = 'execError'
         } else {
             $status = 'fail'
@@ -293,6 +339,16 @@ function Invoke-Flow {
 # ---------- main ----------
 if (-not (Test-Path -Path $TempDir -PathType Container)) {
     New-Item -ItemType Directory -Path $TempDir -Force | Out-Null
+}
+
+# -ListFlows answers the selection question alone. It runs before binary discovery and before any
+# adb call on purpose: every other path here needs a device, so without it no selector form can be
+# verified except by starting a suite (S2396).
+if ($ListFlows) {
+    $listed = Get-FlowSet -Selection $Suite
+    foreach ($f in $listed) { Write-Host (Get-RelativeFlowPath $f) }
+    Write-Host ("selection '{0}': {1} flow(s)" -f $Suite, $listed.Count)
+    exit $(if ($listed.Count -gt 0) { 0 } else { 1 })
 }
 
 $maestro = Find-Maestro
@@ -336,9 +392,12 @@ foreach ($flow in $flows) {
     # Single retry for a transient assertion failure. Emulator UI suites flake run-to-run (state
     # contamination between flows, scroll determinism); an isolated re-run almost always passes, and a
     # failing flow can leave the app on a deep screen that cascades into the next flow's go_home.
-    # Force-stop first so the retry starts clean. Execution errors (infra) are not retried - exit 4.
-    if ($r.status -eq 'fail') {
-        Write-Line ("  RETRY    {0}  (first attempt failed - transient flake guard)" -f $r.flow) 'Yellow'
+    # Force-stop first so the retry starts clean. An execution error is retried on the same budget
+    # (S2396): a dropped ADB socket is transient in exactly the way an assertion flake is, and the
+    # 2026-09-02 run that lost settings_dropdown_select.yaml to one would have passed on a re-run.
+    # One attempt only, so a device that is genuinely gone still ends the flow instead of looping.
+    if ($r.status -eq 'fail' -or $r.status -eq 'execError') {
+        Write-Line ("  RETRY    {0}  (first attempt {1} - transient flake guard)" -f $r.flow, $r.status) 'Yellow'
         Reset-App -Sdk $sdk -Device $DeviceId
         $r2 = Invoke-Flow -Maestro $maestro -FlowFile $flow
         if ($r2.pass) { $r = $r2 }
@@ -359,7 +418,9 @@ foreach ($flow in $flows) {
 }
 
 $failedCount = @($results | Where-Object { -not $_.pass }).Count
-$flowsOut    = @($results | ForEach-Object { [ordered]@{ flow = $_.flow; pass = $_.pass; log = $_.log } })
+# status rides into the JSON so a consumer can tell a transport failure from an app defect; without
+# it prerelease-verdict.ps1 saw only pass=false and counted an ADB crash against the release (S2396).
+$flowsOut    = @($results | ForEach-Object { [ordered]@{ flow = $_.flow; pass = $_.pass; status = $_.status; log = $_.log } })
 
 # Precedence: execution error (4) outranks assertion failure (3); both outrank pass.
 if ($anyExec) {

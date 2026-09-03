@@ -81,7 +81,9 @@ data class BackupSettings(
     val saveAudioMetadataLocally: Boolean = true,
     val enablePhotosDuringAudio: Boolean = false,
     val audioBackgroundPhotosResourceId: String? = null,
-    val enablePersistentAudioPlayback: Boolean = false,
+    // S2247: mirrors the AppSettings default - a backup written before this field existed must not
+    // restore as disabled, since the setting is the user's opt-out rather than an opt-in.
+    val enablePersistentAudioPlayback: Boolean = true,
     val audioEmptyStateMode: String = "CANVAS_WAVES",
     val supportText: Boolean = true,
     val supportPdf: Boolean = true,

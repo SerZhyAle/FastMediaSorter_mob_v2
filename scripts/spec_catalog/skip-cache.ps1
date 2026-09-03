@@ -1,168 +1,114 @@
-# skip-cache.ps1 - Persistent skip cache for /spec-next between sessions
-#
-# Problem this solves:
-#   /spec-next session 1 skips S0240 (tier-5 epic), S0242 (owner gate), S0245 (vr child).
-#   Session 2 starts at 12:55, top-3 candidates are still S0240/S0242/S0245.
-#   Without a persistent cache, the same skip questions get asked every session.
-#
-# Storage: temp/spec-next-skip-cache.json
-# Schema (one record per skipped Sxxxx):
-#   {
-#     "S0240": { "reason": "tier-5-epic", "skipped_at": "2026-05-18T13:24:00", "expires": "2026-05-25T13:24:00" },
-#     "S0242": { "reason": "owner-gate",  "skipped_at": "...", "expires": "..." }
-#   }
-#
-# Default TTL: 7 days. Expired entries are pruned on read.
-# Manual reset: -Reset clears the file.
-#
-# Usage:
-#   skip-cache.ps1 -Action add    -Id Sxxxx -Reason "tier-5-epic" [-Ttl 7]
-#   skip-cache.ps1 -Action remove -Id Sxxxx
-#   skip-cache.ps1 -Action list                                # prints active skips as JSON
-#   skip-cache.ps1 -Action check  -Id Sxxxx                   # exit 0 if active skip, 1 otherwise (also prints reason)
-#   skip-cache.ps1 -Action reset                              # clear all entries
-#
-# Exit codes (S1070):
-#   0 - action done (for -Action check: an active skip exists).
-#   1 - substantive answer "no" (-Action check: no active skip for this id).
-#   2 - bad arguments: -Id missing or malformed, -Reason missing for 'add'.
-#       Distinct from 1 on purpose - a typo'd id must not read as "not skipped".
+#requires -Version 7.0
+<#
+.SYNOPSIS
+    Forwarder to the canon-shipped harness script spec_catalog\skip-cache.ps1 (S2402).
 
-[CmdletBinding()]
-param(
-    [Parameter(Mandatory = $true)]
-    [ValidateSet('add', 'remove', 'list', 'check', 'reset')]
-    [string]$Action,
+.DESCRIPTION
+    GENERATED - do not edit. The mechanism lives in the SZA canon plugin (tools/harness) and this
+    repository consumes it; the file kept here is only the address every existing call site already
+    knows. Regenerate with scripts/utils/install-sza-forwarders.ps1. What this project configures lives in
+    .sza-profile.json at the repository root, never in a script body.
 
-    [string]$Id,
-    [string]$Reason = '',
-    [int]$Ttl = 7
-)
-
-$ErrorActionPreference = 'Stop'
-
-$root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-$tempDir = Join-Path $root 'temp'
-if (-not (Test-Path $tempDir)) {
-    New-Item -ItemType Directory -Path $tempDir | Out-Null
+Exit codes: whatever spec_catalog\skip-cache.ps1 returns, plus 2 when the harness cannot be located.
+#>
+# S2441: every name below carries a $szaFwd prefix because HALF of this set is dot-sourced, and a
+# dot-sourced file assigns into its CALLER's scope. PowerShell names are case-insensitive, so the
+# `$target` this file used to resolve into WAS the caller's `-Target` parameter: post-change.ps1
+# dot-sources the agent-lock-domains forwarder before it journals, and every dev/CHANGELOG.md row
+# written on 2026-09-03 recorded a harness path where the ticket id belonged. The second failure
+# mode is worse than the substitution - a caller declaring `[string]$Candidates` type-constrains
+# this file's own accumulator, so `$candidates = @()` collapses to '' and every `+=` concatenates
+# instead of appending, leaving one unusable path and a forwarder that cannot find the harness at
+# all. Ten scripts under scripts/ declare a parameter that collided. Contract suite:
+# scripts/utils/install-sza-forwarders.tests/.
+$szaFwdCandidates = @()
+if ($env:SZA_HARNESS_ROOT) { $szaFwdCandidates += $env:SZA_HARNESS_ROOT }
+$szaFwdCache = Join-Path $env:USERPROFILE '.claude\plugins\cache\sza-unified-rules\sza'
+if (Test-Path -LiteralPath $szaFwdCache) {
+    # Ordered as VERSIONS, not as strings: the plugin version is date-derived (2026.903.1), so a
+    # string sort puts October's 2026.1001.1 below September's 2026.903.1 and the forwarder would
+    # keep calling the older copy after an update. A directory that does not parse sorts last
+    # rather than being dropped - it may still be the only harness present.
+    $szaFwdVersions = @(Get-ChildItem -LiteralPath $szaFwdCache -Directory -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            $szaFwdParsed = $null
+            [void][version]::TryParse($_.Name, [ref]$szaFwdParsed)
+            [pscustomobject]@{ Path = $_.FullName; Version = $szaFwdParsed }
+        } | Sort-Object @{ Expression = { $null -ne $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Path }; Descending = $true })
+    $szaFwdCandidates += @($szaFwdVersions | ForEach-Object { Join-Path $_.Path 'tools\harness' })
 }
-$cachePath = Join-Path $tempDir 'spec-next-skip-cache.json'
+$szaFwdTarget = $null
+foreach ($szaFwdDir in $szaFwdCandidates) {
+    $szaFwdProbe = Join-Path $szaFwdDir 'spec_catalog\skip-cache.ps1'
+    if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe; break }
+}
 
-function Read-Cache {
-    if (-not (Test-Path $cachePath)) {
-        return @{}
+# S2452: candidate 3, the canon checkout, reached only when the two above miss. The plugin cache
+# is what actually resolves on every invocation, so the resolver below is never read on the hot
+# path. Its default is held by scripts/utils/project-paths.ps1 and by nothing else - before this it
+# was written in 76 files, 74 of them generated and stamped `GENERATED - do not edit`, so moving
+# the canon required editing files that forbid editing. That is the exact non-portability the
+# hardcoded-drive-path rule was installed to refuse (S2326).
+#
+# The dot-source runs inside `& { }` deliberately. HALF this set is itself dot-sourced, so at top
+# level project-paths.ps1 would define its functions and set its script variables in the CALLER's
+# scope - the S2441 failure one level further out. A child scope cannot reach the caller at all.
+if (-not $szaFwdTarget) {
+    $szaFwdCheckout = $env:SZA_CANON_ROOT
+    if (-not $szaFwdCheckout) {
+        $szaFwdResolver = Join-Path $PSScriptRoot '..\..\scripts\utils\project-paths.ps1'
+        if (Test-Path -LiteralPath $szaFwdResolver) {
+            # A resolver that is absent or throws must not stop the forwarder from printing its own
+            # refusal, which is the only message that names all three candidates and the fix.
+            $szaFwdCheckout = & {
+                param($szaFwdResolverPath)
+                try { . $szaFwdResolverPath; Get-CanonRoot } catch { $null }
+            } $szaFwdResolver
+        }
     }
+    if ($szaFwdCheckout) {
+        $szaFwdCandidates += (Join-Path $szaFwdCheckout 'tools\harness')
+        $szaFwdProbe = Join-Path $szaFwdCandidates[-1] 'spec_catalog\skip-cache.ps1'
+        if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe }
+    }
+}
+if (-not $szaFwdTarget) {
+    Write-Host "skip-cache.ps1: the SZA harness is not installed - looked in:" -ForegroundColor Red
+    foreach ($szaFwdDir in $szaFwdCandidates) { Write-Host "    $szaFwdDir" -ForegroundColor Gray }
+    Write-Host "  Install or update it:  claude plugin update sza@sza-unified-rules" -ForegroundColor Yellow
+    Write-Host "  Or point at a checkout: `$env:SZA_HARNESS_ROOT = '<repo>\tools\harness'" -ForegroundColor Yellow
+    exit 2
+}
+
+$env:SZA_PROJECT_ROOT = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+
+# Half of this set is dot-sourced as a library and half is invoked as a CLI, and the two cannot be
+# forwarded the same way: `& $szaFwdTarget` would run a library in its own scope and define nothing
+# the caller can see, while `exit` inside a dot-sourced file would kill the caller. InvocationName
+# is '.' exactly when this file was dot-sourced, so one template serves both.
+if ($MyInvocation.InvocationName -eq '.') {
+    . $szaFwdTarget
+} else {
+    # Deliberately NOT 'Stop'. A native child's stderr arrives here as ErrorRecord objects, and
+    # under 'Stop' the first one terminates this forwarder before `exit $LASTEXITCODE` runs - so a
+    # script that reported a FAIL and exited 1 would reach its caller as a crashed forwarder with a
+    # different code. Every script in this set states its exit codes; passing them through unchanged
+    # is the whole job. S2441 moved it inside this branch: at the file's top level it also rewrote
+    # the preference of every caller that dot-sources a forwarder, silently downgrading a script
+    # running under 'Stop' for the rest of its life.
+    $ErrorActionPreference = 'Continue'
+    $global:LASTEXITCODE = 0
     try {
-        $raw = Get-Content -Path $cachePath -Raw
-        if (-not $raw -or $raw.Trim() -eq '') { return @{} }
-        $parsed = $raw | ConvertFrom-Json
-        $hash = @{}
-        foreach ($prop in $parsed.PSObject.Properties) {
-            $hash[$prop.Name] = $prop.Value
-        }
-        return $hash
-    }
-    catch {
-        Write-Warning "Cache file malformed, treating as empty: $_"
-        return @{}
-    }
-}
-
-function Write-Cache([hashtable]$cache) {
-    if ($cache.Count -eq 0) {
-        # Write empty object so subsequent reads parse cleanly.
-        Set-Content -Path $cachePath -Value '{}' -Encoding utf8NoBOM
-        return
-    }
-    $obj = [PSCustomObject]@{}
-    foreach ($key in ($cache.Keys | Sort-Object)) {
-        Add-Member -InputObject $obj -MemberType NoteProperty -Name $key -Value $cache[$key]
-    }
-    $json = $obj | ConvertTo-Json -Depth 5
-    Set-Content -Path $cachePath -Value $json -Encoding utf8NoBOM
-}
-
-function Prune-Expired([hashtable]$cache) {
-    $now = Get-Date
-    $live = @{}
-    foreach ($key in $cache.Keys) {
-        $entry = $cache[$key]
-        if (-not $entry.expires) { $live[$key] = $entry; continue }
-        try {
-            $exp = [DateTime]::Parse($entry.expires)
-            if ($exp -gt $now) { $live[$key] = $entry }
-        }
-        catch {
-            # Bad expiry → keep, conservative
-            $live[$key] = $entry
-        }
-    }
-    return $live
-}
-
-if ($Action -ne 'list' -and $Action -ne 'reset') {
-    if (-not $Id) {
-        Write-Error "-Id is required for action '$Action'" -ErrorAction Continue
-        exit 2
-    }
-    if ($Id -notmatch '^S\d{4}$') {
-        Write-Error "Invalid -Id '$Id' (must match S####)" -ErrorAction Continue
-        exit 2
-    }
-}
-
-$cache = Read-Cache
-$cache = Prune-Expired $cache
-
-switch ($Action) {
-    'add' {
-        if (-not $Reason) {
-            Write-Error "-Reason is required for action 'add'" -ErrorAction Continue
-            exit 2
-        }
-        $now = Get-Date
-        $expires = $now.AddDays($Ttl)
-        $cache[$Id] = [PSCustomObject]@{
-            reason     = $Reason
-            skipped_at = $now.ToString('s')
-            expires    = $expires.ToString('s')
-        }
-        Write-Cache $cache
-        Write-Host "skip-cache: added $Id (reason=$Reason, ttl=${Ttl}d)" -ForegroundColor DarkGray
-    }
-    'remove' {
-        if ($cache.ContainsKey($Id)) {
-            $cache.Remove($Id) | Out-Null
-            Write-Cache $cache
-            Write-Host "skip-cache: removed $Id" -ForegroundColor DarkGray
-        }
-        else {
-            Write-Host "skip-cache: $Id not in cache" -ForegroundColor DarkGray
-        }
-    }
-    'list' {
-        # Always emit JSON for machine consumption.
-        Write-Cache $cache  # prune side effect persists
-        if ($cache.Count -eq 0) { Write-Output '{}'; exit 0 }
-        $obj = [PSCustomObject]@{}
-        foreach ($key in ($cache.Keys | Sort-Object)) {
-            Add-Member -InputObject $obj -MemberType NoteProperty -Name $key -Value $cache[$key]
-        }
-        $obj | ConvertTo-Json -Depth 5 -Compress
-    }
-    'check' {
-        Write-Cache $cache
-        if ($cache.ContainsKey($Id)) {
-            $entry = $cache[$Id]
-            Write-Output "$Id|$($entry.reason)|$($entry.expires)"
-            exit 0
-        }
+        & $szaFwdTarget @args
+    } catch {
+        # A child that THROWS never reaches its own `exit`, so $LASTEXITCODE stays 0 and the
+        # forwarder would report success for a script that failed - the one way a forwarder can
+        # turn a red verdict green. Every such refusal is a failure, so it leaves as exit 1.
+        Write-Error $_ -ErrorAction Continue
         exit 1
     }
-    'reset' {
-        Write-Cache @{}
-        Write-Host "skip-cache: reset (0 entries)" -ForegroundColor DarkGray
-    }
+    $szaFwdCode = $LASTEXITCODE
+    exit $(if ($null -eq $szaFwdCode) { 0 } else { $szaFwdCode })
 }
-
-exit 0

@@ -59,6 +59,22 @@ data class ShareTarget(
      * The dialog title is taken from [titleRes]. Null = no help button rendered.
      */
     @get:StringRes val helpMessageRes: Int? = null,
+    /**
+     * Whether the watch itself serves this receiver, rather than handing the file to the phone
+     * (S2142 §5.3). `false` (default) = the watch transfers the file and the phone sends it, which is
+     * the safe answer: it yields a working send, where a wrong `true` yields a menu entry that ends
+     * in a refusal. Moving a receiver to local execution on the watch is this one field, not a new
+     * mechanism - which is why the answer is declared here rather than guessed on the watch.
+     */
+    val servedOnWatch: Boolean = false,
+    /**
+     * Stable icon name the watch resolves in its own icon set (S2142 ADR-5). Deliberately a name and
+     * not [iconRes]: a resource id belongs to the phone's `R` class, which does not exist on the
+     * watch, and shipping the bytes would be the project's first vector-to-PNG pipeline for
+     * decoration alone. Null = the watch draws its generic receiver glyph, so a receiver added later
+     * reaches the watch immediately, just without its own icon.
+     */
+    val wearIconName: String? = null,
 )
 
 /**

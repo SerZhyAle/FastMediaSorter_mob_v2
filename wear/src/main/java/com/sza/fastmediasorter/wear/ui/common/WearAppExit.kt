@@ -4,6 +4,9 @@ import android.app.Activity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import com.sza.fastmediasorter.wear.domain.playback.HostTeardownReason
+import com.sza.fastmediasorter.wear.domain.playback.WearBackgroundPlaybackPolicy
+import com.sza.fastmediasorter.wear.service.WearPlaybackService
 import timber.log.Timber
 
 /**
@@ -11,9 +14,12 @@ import timber.log.Timber
  *
  * finishAndRemoveTask, not finish or finishAffinity: both of those leave the task entry behind, so
  * the next launch returns the screen the user left instead of the home screen - the defect this
- * ticket removes (strategic ADR-1). The phone's exit additionally kills the process, which cures a
- * foreground-service restart this module cannot suffer: it starts no service of its own, and the one
- * declared listener belongs to the system, which raises it again on the next Data Layer event.
+ * ticket removes (strategic ADR-1). The phone's exit additionally kills the process to cure a
+ * foreground-service restart; this module stops its one service explicitly instead, before the task
+ * goes, rather than relying on task removal to do it. S2166 ADR-4 is why the order matters: exiting
+ * is the single gesture that means "finished", so the sound must be gone by the time the task is,
+ * and a stop sent after `finishAndRemoveTask` has no sender left. The one declared listener still
+ * belongs to the system, which raises it again on the next Data Layer event.
  */
 @Composable
 internal fun rememberCloseAppAction(): () -> Unit {
@@ -25,6 +31,13 @@ internal fun rememberCloseAppAction(): () -> Unit {
                 // Having no host to finish is a real state, not a swallowed failure - name it.
                 Timber.w("Close app: composition host is not an Activity, nothing to finish")
             } else {
+                // stopService, not startService(stopIntent): a stop sent by intent to a service that
+                // is not running starts it, and the owner exiting a silent app would watch a media
+                // notification appear and vanish. This is a no-op when nothing is playing, and when
+                // something is it reaches the same teardown through onDestroy.
+                if (WearBackgroundPlaybackPolicy.stopsBackgroundSession(HostTeardownReason.ExplicitExit)) {
+                    activity.stopService(WearPlaybackService.stopIntent(activity))
+                }
                 activity.finishAndRemoveTask()
             }
         }

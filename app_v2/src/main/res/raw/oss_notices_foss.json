@@ -915,7 +915,8 @@
   {
     "coordinate": "androidx.media3:media3-session",
     "modules": [
-      "app_v2"
+      "app_v2",
+      "wear"
     ],
     "name": "AndroidX Media3 Session",
     "spdx": "Apache-2.0",

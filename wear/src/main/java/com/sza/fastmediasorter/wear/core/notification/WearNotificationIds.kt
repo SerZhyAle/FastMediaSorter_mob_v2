@@ -22,4 +22,7 @@ object WearNotificationIds {
 
     /** S2087: a deferred file upload from watch to phone remote destination failed. */
     const val UPLOAD_OUTCOME = 4203
+
+    /** S2166: the playback service's foreground notification, carrying the media session's controls. */
+    const val BACKGROUND_PLAYBACK = 4204
 }

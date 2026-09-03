@@ -150,4 +150,15 @@ no local check substitutes for them, which is why they are an operator step and 
       and the release it came from. Numbers left in the console are numbers the next ticket
       re-gathers from zero - and S1157 is blocked waiting on the DEX percentage specifically.
 
+Two things not to go looking for (S2449 - both settled before the upload, neither needs re-deriving):
+
+- **There is no Wear breakdown under the memory surfaces, and its absence is correct.** Google scopes
+  both memory metrics to mobile and tablet form factors, so the watch is not judged by these
+  thresholds at all - and `:wear` ships its own bundle to `wear:production` rather than riding inside
+  the phone bundle. Quotes and read date: `dev/PLAY_QUALITY_THRESHOLDS_2027.md` section 1.4.
+- **A fired "limited split-bundle usage" alert is recorded, not acted on.** This project declares no
+  feature module and its configuration splits are already on by AGP default, so no delivery change
+  exists that would satisfy such an alert. Note whether it fired and move on: that observation is the
+  whole of S2449's residual. Detail: `dev/PLAY_QUALITY_THRESHOLDS_2027.md` section 3.1.
+
 ## Checklist completed by: ___________________  Date: ___________

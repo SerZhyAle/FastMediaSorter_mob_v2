@@ -1,0 +1,160 @@
+{
+  "$comment": "FastMediaSorter_mob_v2 project profile (S2402). Read by the canon-shipped harness through tools/harness/_profile.ps1; every value here overrides the harness default. Paths are project-relative with forward slashes.",
+  "version": "1",
+  "projectName": "FastMediaSorter_mob_v2",
+  "envPrefix": "FMS",
+  "paths": {
+    "journal": "PLAN/spec-catalog.jsonl",
+    "journalArchive": "PLAN/spec-catalog-archive.jsonl",
+    "burnedIds": "PLAN/spec-catalog-burned-ids.jsonl",
+    "specsDir": "PLAN",
+    "specArchiveDir": "PLAN/archive",
+    "releaseQueue": "PLAN/RELEASE_QUEUE.md",
+    "releaseReady": "PLAN/RELEASE_READY.md",
+    "releaseQueueDone": "PLAN/RELEASE_QUEUE_DONE.md",
+    "tempDir": "temp",
+    "locksDir": "temp",
+    "leasesDir": "temp/SPEC-TICKET.LEASES",
+    "leaseHandoffDir": "temp/LEASE-HANDOFF",
+    "lockHandoffDir": "temp/LOCK-HANDOFF",
+    "agentChatDir": "temp/AGENT-CHAT",
+    "queueRunsDir": "temp/spec-queue",
+    "queueStopFile": "temp/STOP-SPEC-QUEUE",
+    "specAllQueueLock": "temp/spec-all-queue.lock",
+    "skipCache": "temp/spec-next-skip-cache.json",
+    "migrateDoneDir": "temp/done",
+    "changelog": "dev/CHANGELOG.md",
+    "documentRegistry": "docs/DOCUMENT_REGISTRY.jsonl",
+    "docsMap": "docs/DOCS_MAP.md",
+    "sitemap": "sitemap.xml",
+    "allFeatures": "docs/ALL_FEATURES.jsonl",
+    "allFeaturesPrivate": "docs/ALL_FEATURES_noLegal.jsonl",
+    "allFeaturesSchema": "docs/ALL_FEATURES.schema.json",
+    "allFeaturesFlavorsBaseline": "scripts/all_features/unexplained-flavors-baseline.txt",
+    "featureMatrix": "docs/FLAVOR_MATRIX.md",
+    "commandsDir": ".claude/commands",
+    "probeBaseline": "scripts/quality/blockneedusertest-probe-baseline.txt"
+  },
+  "grammar": {
+    "ticketIdPattern": "^S\\d{4}$",
+    "specFilePattern": "^PLAN/(archive/)?S\\d{4}_(?!spec_)",
+    "specFileTemplate": "PLAN/{0}_{1}.md",
+    "statusVocabulary": ["Draft", "Approved", "Tactical", "In Progress", "Implemented", "Verified", "Partial", "Broken", "BlockByOtherTask", "BlockNeedUserTest", "BlockQuestions", "BlockExternal", "Archived"]
+  },
+  "modules": {
+    "default": "app_v2",
+    "names": ["app_v2", "wear"]
+  },
+  "locks": {
+    "domains": [
+      { "name": "Build.Phone", "type": "Build", "rank": 1 },
+      { "name": "Build.Wear", "type": "Build", "rank": 2 },
+      { "name": "Code.Phone", "type": "Code", "rank": 3 },
+      { "name": "Code.Wear", "type": "Code", "rank": 4 },
+      { "name": "Code.Scripts", "type": "Code", "rank": 5 }
+    ],
+    "pathRules": [
+      { "pattern": "^config/detekt/baseline-app_v2", "domain": "Code.Phone" },
+      { "pattern": "^config/detekt/baseline-wear", "domain": "Code.Wear" },
+      { "pattern": "^(settings\\.gradle\\.kts|build\\.gradle\\.kts|gradle\\.properties|gradlew(\\.bat)?)$", "domain": "Code" },
+      { "pattern": "^(gradle|config/detekt|lint-rules)/", "domain": "Code" },
+      { "pattern": "^(app_v2|wear)/build\\.gradle\\.kts$", "domain": "Code" },
+      { "pattern": "^app_v2/", "domain": "Code.Phone" },
+      { "pattern": "^wear/", "domain": "Code.Wear" },
+      { "pattern": "^PLAN/", "domain": null },
+      { "pattern": "^(scripts|dev|docs|\\.claude|\\.github)/", "domain": "Code.Scripts" },
+      { "pattern": "^(CLAUDE|AGENTS|README)\\.md$", "domain": "Code.Scripts" },
+      { "pattern": "^(\\.sza-profile\\.json|\\.sza-canon\\.json)$", "domain": "Code.Scripts" },
+      { "pattern": "^a\\.ps1$", "domain": "Code.Scripts" },
+      { "pattern": "^(play|fastlane|store_assets|delivery|maestro)/", "domain": "Code.Scripts" },
+      { "pattern": "^(index|nolegal)[^/]*\\.html$", "domain": "Code.Scripts" },
+      { "pattern": "^(styles\\.css|sitemap\\.xml|robots\\.txt|_config\\.yml|_typos\\.toml)$", "domain": "Code.Scripts" },
+      { "pattern": "^(GEMINI\\.md|LICENSE|THIRD_PARTY_LICENSES\\.md)$", "domain": "Code.Scripts" },
+      { "pattern": "^(favicon[^/]*|icon\\.png|apple-touch-icon\\.png)$", "domain": "Code.Scripts" }
+    ],
+    "agentProcessNames": ["claude.exe", "claude", "codex.exe", "codex"]
+  },
+  "probes": {
+    "enabled": true,
+    "scanRoots": ["app_v2", "wear"],
+    "sourceRoots": ["app_v2/src", "wear/src"],
+    "sourceExtensions": [".kt", ".java", ".py", ".xml"],
+    "openerRegex": "Timber\\.(?<level>[iwed])\\(",
+    "formRegex": "^Timber\\.d\\(\\s*\"S(?<num>\\d{4}):",
+    "formRegexForId": "^Timber\\.d\\(\\s*\"{Id}:",
+    "tagRegex": "Timber\\.d\\(\"S\\d{4}:",
+    "templateRegex": "^Timber\\.d\\(\\s*\"(?<ticket>S\\d{4}):\\s*(?<message>(?:\\\\.|[^\"\\\\])*)\"",
+    "callTemplate": "Timber.d(\"{Id}: {Message}\")",
+    "callName": "Timber.d"
+  },
+  "hooks": {
+    "postClose": [
+      { "script": "dev/CATALOG/scripts/scan.ps1", "args": ["-Module", "{Module}"] },
+      { "script": "dev/CATALOG/scripts/render.ps1", "args": ["-Module", "{Module}"] }
+    ],
+    "deviceReady": "scripts/devtest/device-ready.ps1",
+    "deviceReadyArgs": ["-Package", "com.sza.fastmediasorter.debug", "-CheckMcp"],
+    "moduleCatalog": "dev/CATALOG/{Module}.jsonl",
+    "moduleCatalogSync": "scripts/catalog_sync.ps1"
+  },
+  "runner": {
+    "command": "claude",
+    "promptTemplate": "/spec-all {Id}",
+    "decisionStatuses": ["Draft", "Approved", "Tactical", "In Progress", "Partial", "Broken", "BlockQuestions"],
+    "cheapStatuses": ["Implemented", "BlockNeedUserTest"],
+    "cheapTierMax": 3
+  },
+  "commands": {
+    "statusCommands": {
+      "Draft": ["/spec-all {Id}"],
+      "Approved": ["/spec-tech {Id}", "/spec-dev {Id}"],
+      "Tactical": ["/spec-dev {Id}"],
+      "In Progress": ["/spec-dev {Id}"],
+      "Partial": ["/spec-fix {Id}", "/spec-check {Id}"],
+      "Broken": ["/spec-fix {Id}", "/spec-check {Id}"],
+      "BlockByOtherTask": ["/spec-tech {Id}", "/spec-dev {Id}"],
+      "Implemented": ["/spec-test-device {Id}", "/spec-check {Id}"]
+    },
+    "aliases": [
+      { "canonical": "spec-draft", "latin": "sd", "translit": "сд", "shadow": "ыв" },
+      { "canonical": "spec-all", "latin": "sa", "translit": "са", "shadow": "ыф" },
+      { "canonical": "spec-next", "latin": "sn", "translit": "сн", "shadow": "ыт" },
+      { "canonical": "spec-quiz", "latin": "sq", "translit": "сй", "shadow": "ый" },
+      { "canonical": "spec-do", "latin": "so", "translit": "со", "shadow": "ыщ" },
+      { "canonical": "spec-code", "latin": "sc", "translit": "сц", "shadow": "ыс" },
+      { "canonical": "spec-prerelease", "latin": "sp", "translit": "сп", "shadow": "ыз" },
+      { "canonical": "spec", "latin": "sx", "translit": "сх", "shadow": "ыч" },
+      { "canonical": "skill-fix", "latin": "sk", "translit": "ск", "shadow": "ыл" },
+      { "canonical": "spec-fix", "latin": "sf", "translit": "сф", "shadow": "ыа" },
+      { "canonical": "spec-check", "latin": "sv", "translit": "св", "shadow": "ым" },
+      { "canonical": "spec-dev", "latin": "sw", "translit": "сш", "shadow": "ыц" },
+      { "canonical": "spec-tech", "latin": "st", "translit": "ст", "shadow": "ые" },
+      { "canonical": "spec-arc", "latin": "arc", "translit": "арк", "shadow": "фкс" }
+    ]
+  },
+  "inventory": {
+    "dimensionName": "flavors",
+    "dimensions": ["standard", "noLegal", "lite", "photos", "legacy", "vr", "foss"],
+    "secondary": { "name": "wearFlavors", "values": ["standard", "noLegal"] },
+    "noChangePlaceholders": ["без изменений", "no changes"]
+  },
+  "site": {
+    "baseUrl": "https://serzhyale.github.io/FastMediaSorter_mob_v2",
+    "locales": ["ru", "uk", "en"],
+    "defaultLocale": "en"
+  },
+  "harness": {
+    "invokePrefix": "pwsh -NoProfile -File",
+    "entryPoints": {
+      "spec_catalog/*": "scripts/spec_catalog/*",
+      "locks/ticket-lease.ps1": "scripts/spec_catalog/ticket-lease.ps1",
+      "locks/*": "scripts/utils/*",
+      "chat/*": "scripts/utils/*",
+      "batch/*": "scripts/utils/*",
+      "aliases/*": "scripts/utils/*",
+      "devlog/*": "scripts/*",
+      "document_registry/*": "scripts/document_registry/*",
+      "all_features/*": "scripts/all_features/*"
+    }
+  }
+}

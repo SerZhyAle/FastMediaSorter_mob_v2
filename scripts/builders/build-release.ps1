@@ -8,28 +8,12 @@ try {
 
 Write-Host "Building release APK (auto-versioned)..." -ForegroundColor Cyan
 
-# Generate version
-$now = Get-Date
-$year = $now.Year
-$month = $now.Month
-$day = $now.Day
-$hour = $now.Hour
-$minute = $now.Minute
-
-$firstYearDigit = [int]($year.ToString()[0].ToString())
-$lastYearDigit = [int]($year.ToString()[-1].ToString())
-$firstMonthDigit = [int]($month.ToString("00")[0].ToString())
-$secondMonthDigit = [int]($month.ToString("00")[1].ToString())
-$dayStr = $day.ToString("00")
-$firstHourDigit = [int]($hour.ToString("00")[0].ToString())
-$secondHourDigit = [int]($hour.ToString("00")[1].ToString())
-$minuteStr = $minute.ToString("00")
-$firstMinuteDigit = [int]($minuteStr[0].ToString())
-
-# YYMMDDHHm format (9 digits): year(2) + month(2) + day(2) + hour(2) + minute_first_digit(1)
-$versionCodeStr = $now.ToString("yyMMddHH") + $firstMinuteDigit.ToString()
-$versionCodeInt = [Convert]::ToInt32($versionCodeStr)
-$versionName = "$firstYearDigit.$lastYearDigit$firstMonthDigit.$secondMonthDigit$dayStr$firstHourDigit.$secondHourDigit$minuteStr"
+# S1873: one formula for the whole repository, and it travels as a build property - a build
+# never writes build.gradle.kts, so the working tree stays clean and nothing has to revert it.
+. "$PSScriptRoot\..\utils\build-version-stamp.ps1"
+$stamp = Get-BuildVersionStamp
+$versionName = $stamp.VersionName
+$versionCodeInt = $stamp.AppVersionCode
 
 Write-Host "Version: $versionName (code: $versionCodeInt)" -ForegroundColor Green
 
@@ -39,16 +23,9 @@ Write-Host "Version: $versionName (code: $versionCodeInt)" -ForegroundColor Gree
 $projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
 $gradlew = "$projectRoot\gradlew.bat"
 
-# Update build.gradle.kts
-$buildGradlePath = "$projectRoot\app_v2\build.gradle.kts"
-$content = Get-Content $buildGradlePath -Raw
-$content = $content -replace '(versionCode\s*=\s*)\d+', "`${1}$versionCodeInt"
-$content = $content -replace '(versionName\s*=\s*)"[^"]*"', "`${1}`"$versionName`""
-Set-Content $buildGradlePath $content -NoNewline
-
 # Start the Gradle build process (Release with R8 optimizations)
 # Note: Now builds 'standardRelease' flavor automatically
-& $gradlew :app_v2:assembleStandardRelease "-Pchaquopy.enabled=false" --configuration-cache
+& $gradlew :app_v2:assembleStandardRelease "-Pfms.versionCode=$versionCodeInt" "-Pfms.versionName=$versionName" "-Pchaquopy.enabled=false" --configuration-cache
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nBuild Failed! Exiting..." -ForegroundColor Red

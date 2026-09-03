@@ -8,6 +8,7 @@ import android.provider.MediaStore
 import com.sza.fastmediasorter.wear.domain.model.MediaType
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
+import com.sza.fastmediasorter.wear.util.errorUnlessCancellation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -109,7 +110,7 @@ class WearMediaRepositoryImpl(
                 val files = queryMediaStore(mediaType, selectionId = id)
                 files.firstOrNull()
             } catch (e: Exception) {
-                Timber.e(e, "Failed to fetch media file by id: $id")
+                e.errorUnlessCancellation("Failed to fetch media file by id: $id")
                 null
             }
         }
@@ -127,7 +128,7 @@ class WearMediaRepositoryImpl(
             Timber.d("Found ${files.size} watch file(s) for $label")
             emit(Result.success(files))
         } catch (e: Exception) {
-            Timber.e(e, "Failed to fetch watch files for $label")
+            e.errorUnlessCancellation("Failed to fetch watch files for $label")
             emit(Result.failure(e))
         }
     }.flowOn(Dispatchers.IO)

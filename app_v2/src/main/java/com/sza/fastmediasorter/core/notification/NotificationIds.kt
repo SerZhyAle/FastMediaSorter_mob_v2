@@ -38,6 +38,9 @@ object NotificationIds {
     /** S2004: the watch asked this phone to show one of its own files while the app was not in front. */
     const val WEAR_OPEN_ON_PHONE = 4206
 
+    /** S2142: a file the watch sent here to be handed on to one of this phone's «Send to..» receivers. */
+    const val WEAR_SEND_TO_FROM_WATCH = 4207
+
     /** MediaProjection screenshot capture service. */
     const val SCREEN_CAPTURE = 0x4053
 

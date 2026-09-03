@@ -52,7 +52,8 @@ data class WearChoiceGridFit(
  * for `GRID_2` / `GRID_3`.
  *
  * A `ScalingLazyListScope` extension rather than a dialog of its own (strategic 5.1): the caller keeps
- * its own `ScalingLazyColumn`, title item, [wearScreenInsets] and [WearGridScalingParams], so an
+ * its own `ScalingLazyColumn`, title item, [wearScreenInsets] and [WearGridScalingParams] (mandatory
+ * for round screen grid corner clearance, S2344), so an
  * existing dialog gains columns instead of being replaced by a second one. Owns no state - [selected]
  * and [gridFit] arrive from the caller's own state and [onSelected] is how a pick leaves; the caller's
  * `ScalingLazyListState` is untouched here because the initial working row has to be decided before

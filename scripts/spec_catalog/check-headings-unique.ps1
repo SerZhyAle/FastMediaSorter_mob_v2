@@ -1,139 +1,114 @@
-[CmdletBinding()]
-param(
-    [Parameter(Mandatory)][string] $Id
-)
+#requires -Version 7.0
+<#
+.SYNOPSIS
+    Forwarder to the canon-shipped harness script spec_catalog\check-headings-unique.ps1 (S2402).
 
-# Gate for a transition INTO a gated status - see S2357.
+.DESCRIPTION
+    GENERATED - do not edit. The mechanism lives in the SZA canon plugin (tools/harness) and this
+    repository consumes it; the file kept here is only the address every existing call site already
+    knows. Regenerate with scripts/utils/install-sza-forwarders.ps1. What this project configures lives in
+    .sza-profile.json at the repository root, never in a script body.
+
+Exit codes: whatever spec_catalog\check-headings-unique.ps1 returns, plus 2 when the harness cannot be located.
+#>
+# S2441: every name below carries a $szaFwd prefix because HALF of this set is dot-sourced, and a
+# dot-sourced file assigns into its CALLER's scope. PowerShell names are case-insensitive, so the
+# `$target` this file used to resolve into WAS the caller's `-Target` parameter: post-change.ps1
+# dot-sources the agent-lock-domains forwarder before it journals, and every dev/CHANGELOG.md row
+# written on 2026-09-03 recorded a harness path where the ticket id belonged. The second failure
+# mode is worse than the substitution - a caller declaring `[string]$Candidates` type-constrains
+# this file's own accumulator, so `$candidates = @()` collapses to '' and every `+=` concatenates
+# instead of appending, leaving one unusable path and a forwarder that cannot find the harness at
+# all. Ten scripts under scripts/ declare a parameter that collided. Contract suite:
+# scripts/utils/install-sza-forwarders.tests/.
+$szaFwdCandidates = @()
+if ($env:SZA_HARNESS_ROOT) { $szaFwdCandidates += $env:SZA_HARNESS_ROOT }
+$szaFwdCache = Join-Path $env:USERPROFILE '.claude\plugins\cache\sza-unified-rules\sza'
+if (Test-Path -LiteralPath $szaFwdCache) {
+    # Ordered as VERSIONS, not as strings: the plugin version is date-derived (2026.903.1), so a
+    # string sort puts October's 2026.1001.1 below September's 2026.903.1 and the forwarder would
+    # keep calling the older copy after an update. A directory that does not parse sorts last
+    # rather than being dropped - it may still be the only harness present.
+    $szaFwdVersions = @(Get-ChildItem -LiteralPath $szaFwdCache -Directory -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            $szaFwdParsed = $null
+            [void][version]::TryParse($_.Name, [ref]$szaFwdParsed)
+            [pscustomobject]@{ Path = $_.FullName; Version = $szaFwdParsed }
+        } | Sort-Object @{ Expression = { $null -ne $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Path }; Descending = $true })
+    $szaFwdCandidates += @($szaFwdVersions | ForEach-Object { Join-Path $_.Path 'tools\harness' })
+}
+$szaFwdTarget = $null
+foreach ($szaFwdDir in $szaFwdCandidates) {
+    $szaFwdProbe = Join-Path $szaFwdDir 'spec_catalog\check-headings-unique.ps1'
+    if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe; break }
+}
+
+# S2452: candidate 3, the canon checkout, reached only when the two above miss. The plugin cache
+# is what actually resolves on every invocation, so the resolver below is never read on the hot
+# path. Its default is held by scripts/utils/project-paths.ps1 and by nothing else - before this it
+# was written in 76 files, 74 of them generated and stamped `GENERATED - do not edit`, so moving
+# the canon required editing files that forbid editing. That is the exact non-portability the
+# hardcoded-drive-path rule was installed to refuse (S2326).
 #
-# Contract:
-#   - A spec file may carry the same section twice. Nothing else in the repository can
-#     see that, because the shared section parser (Get-SpecSectionLines in
-#     `_research-items.ps1`) stops at the next '## ' once it has entered a section, so
-#     every consumer reads the FIRST copy and the rest of the file does not exist for it.
-#     The duplicate therefore does not add noise - it silently substitutes whichever copy
-#     sorted higher for the one a reader meant.
-#   - Measured 2026-09-02 over all 1395 files under PLAN/: three carried the defect, in
-#     three different shapes. S1884 had its `## Last Audit` block split in two, leaving a
-#     three-line stub with no `**Outcome:**` on top - and check-audit-recorded.ps1, the
-#     S2298 gate whose whole job is to refuse a Verified without a recorded verdict,
-#     answered PASS on that stub. S1955's PHASE_02 held `## Phase Done Criteria` twice
-#     with opposite ticks, all [x] against all [ ], so the file asserted both that the
-#     phase was done and that it had not started. S2156 carried an unfilled skeleton.
-#   - The duplicate is judged INSIDE one level-1 block, not across the file. A compact
-#     spec (the /spec-all Simple path) holds several `# Phase NN` blocks in one file and
-#     each legitimately owns its `## Objective`, `## Files Touched`, `## Steps` and
-#     `## Phase Done Criteria`. Judging per file reports six offenders on the current
-#     tree of which three are those legitimate compact specs; judging per level-1 block
-#     reports exactly the three real ones and nothing else.
-#   - Fenced code blocks are skipped: a spec quotes markdown, and S2357's own section 0
-#     quotes the very heading list that opened it.
-#   - Scope is this ticket's own files - the strategic spec plus every .md in its tactical
-#     folder - which is what makes it a per-ticket gate rather than a tree sweep
-#     (CLAUDE.md rule 33). S1955's case lived in a phase file, so the folder is not
-#     optional.
-#   - Unlike the three sibling closing gates this one runs for BlockNeedUserTest too:
-#     whether a file contradicts itself does not depend on the ticket being finished.
-#
-# Exit codes: 0 = every heading is unique inside its level-1 block. 1 = a repeat found.
-#             2 = bad invocation, or catalog / spec unreadable.
-
-. (Join-Path $PSScriptRoot '_lib.ps1')
-
-if ($Id -notmatch '^S\d{4}$') {
-    # -ErrorAction Continue, not a bare Write-Error: _lib.ps1 sets $ErrorActionPreference
-    # to 'Stop', under which a bare Write-Error throws and `exit 2` is never reached (S1070).
-    Write-Error "Invalid -Id '$Id' (must match S####)." -ErrorAction Continue
-    exit 2
-}
-
-$record = Find-Record -Id $Id
-if (-not $record) {
-    Write-Error "No record with id '$Id' in the spec catalog." -ErrorAction Continue
-    exit 2
-}
-
-$specPath = Resolve-SpecPath -PathRef $record.file
-if (-not (Test-Path -LiteralPath $specPath -PathType Leaf)) {
-    Write-Error "Spec file not found on disk: $specPath" -ErrorAction Continue
-    exit 2
-}
-
-function Get-RepeatedHeading {
-    # One entry per level-2 heading that already occurred inside the same level-1 block.
-    param([Parameter(Mandatory)][string] $Path)
-
-    # -Encoding UTF8 is load-bearing for the same reason it is in _research-items.ps1:
-    # spec headings are Russian, and without it the offending line is echoed as mojibake,
-    # which defeats the point of naming the line the owner has to fix.
-    $lines = @(Get-Content -LiteralPath $Path -Encoding UTF8)
-    $block = '(file start)'
-    $seen  = @{}
-    $hits  = New-Object System.Collections.Generic.List[object]
-    $fence = $false
-
-    for ($i = 0; $i -lt $lines.Count; $i++) {
-        $line = $lines[$i]
-        if ($line -match '^\s*(?:```|~~~)') { $fence = -not $fence; continue }
-        if ($fence) { continue }
-
-        if ($line -match '^#\s+(.+?)\s*$') {
-            # A new level-1 block reopens the namespace - this is the whole rule.
-            $block = $Matches[1].Trim()
-            $seen = @{}
-            continue
-        }
-        if ($line -match '^##\s+(.+?)\s*$') {
-            $heading = $Matches[1].Trim()
-            $key = $block + '||' + $heading
-            if ($seen.ContainsKey($key)) {
-                $hits.Add([pscustomobject]@{
-                    Heading   = $heading
-                    Block     = $block
-                    FirstLine = $seen[$key]
-                    Repeat    = $i + 1
-                })
-            }
-            else { $seen[$key] = $i + 1 }
+# The dot-source runs inside `& { }` deliberately. HALF this set is itself dot-sourced, so at top
+# level project-paths.ps1 would define its functions and set its script variables in the CALLER's
+# scope - the S2441 failure one level further out. A child scope cannot reach the caller at all.
+if (-not $szaFwdTarget) {
+    $szaFwdCheckout = $env:SZA_CANON_ROOT
+    if (-not $szaFwdCheckout) {
+        $szaFwdResolver = Join-Path $PSScriptRoot '..\..\scripts\utils\project-paths.ps1'
+        if (Test-Path -LiteralPath $szaFwdResolver) {
+            # A resolver that is absent or throws must not stop the forwarder from printing its own
+            # refusal, which is the only message that names all three candidates and the fix.
+            $szaFwdCheckout = & {
+                param($szaFwdResolverPath)
+                try { . $szaFwdResolverPath; Get-CanonRoot } catch { $null }
+            } $szaFwdResolver
         }
     }
-    return $hits.ToArray()
-}
-
-# The tactical folder is the spec path without its extension - S1955's duplicate lived in
-# a phase file, so checking the strategic file alone would have missed one of the three.
-$files = New-Object System.Collections.Generic.List[string]
-$files.Add($specPath)
-$folder = [System.IO.Path]::ChangeExtension($specPath, $null).TrimEnd('.')
-if (Test-Path -LiteralPath $folder -PathType Container) {
-    foreach ($f in (Get-ChildItem -LiteralPath $folder -Filter '*.md' -File -Recurse | Sort-Object FullName)) {
-        $files.Add($f.FullName)
+    if ($szaFwdCheckout) {
+        $szaFwdCandidates += (Join-Path $szaFwdCheckout 'tools\harness')
+        $szaFwdProbe = Join-Path $szaFwdCandidates[-1] 'spec_catalog\check-headings-unique.ps1'
+        if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe }
     }
 }
+if (-not $szaFwdTarget) {
+    Write-Host "check-headings-unique.ps1: the SZA harness is not installed - looked in:" -ForegroundColor Red
+    foreach ($szaFwdDir in $szaFwdCandidates) { Write-Host "    $szaFwdDir" -ForegroundColor Gray }
+    Write-Host "  Install or update it:  claude plugin update sza@sza-unified-rules" -ForegroundColor Yellow
+    Write-Host "  Or point at a checkout: `$env:SZA_HARNESS_ROOT = '<repo>\tools\harness'" -ForegroundColor Yellow
+    exit 2
+}
 
-$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-$findings = New-Object System.Collections.Generic.List[object]
-foreach ($file in $files) {
-    foreach ($hit in (Get-RepeatedHeading -Path $file)) {
-        $rel = $file
-        if ($rel.StartsWith($repoRoot)) { $rel = $rel.Substring($repoRoot.Length).TrimStart('\', '/') }
-        $findings.Add([pscustomobject]@{ File = ($rel -replace '\\', '/'); Hit = $hit })
+$env:SZA_PROJECT_ROOT = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+
+# Half of this set is dot-sourced as a library and half is invoked as a CLI, and the two cannot be
+# forwarded the same way: `& $szaFwdTarget` would run a library in its own scope and define nothing
+# the caller can see, while `exit` inside a dot-sourced file would kill the caller. InvocationName
+# is '.' exactly when this file was dot-sourced, so one template serves both.
+if ($MyInvocation.InvocationName -eq '.') {
+    . $szaFwdTarget
+} else {
+    # Deliberately NOT 'Stop'. A native child's stderr arrives here as ErrorRecord objects, and
+    # under 'Stop' the first one terminates this forwarder before `exit $LASTEXITCODE` runs - so a
+    # script that reported a FAIL and exited 1 would reach its caller as a crashed forwarder with a
+    # different code. Every script in this set states its exit codes; passing them through unchanged
+    # is the whole job. S2441 moved it inside this branch: at the file's top level it also rewrote
+    # the preference of every caller that dot-sources a forwarder, silently downgrading a script
+    # running under 'Stop' for the rest of its life.
+    $ErrorActionPreference = 'Continue'
+    $global:LASTEXITCODE = 0
+    try {
+        & $szaFwdTarget @args
+    } catch {
+        # A child that THROWS never reaches its own `exit`, so $LASTEXITCODE stays 0 and the
+        # forwarder would report success for a script that failed - the one way a forwarder can
+        # turn a red verdict green. Every such refusal is a failure, so it leaves as exit 1.
+        Write-Error $_ -ErrorAction Continue
+        exit 1
     }
+    $szaFwdCode = $LASTEXITCODE
+    exit $(if ($null -eq $szaFwdCode) { 0 } else { $szaFwdCode })
 }
-
-if ($findings.Count -eq 0) {
-    Write-Output "PASS $Id"
-    Write-Output ("Checked {0} file(s); every section heading is unique inside its block." -f $files.Count)
-    exit 0
-}
-
-Write-Output "FAIL $Id"
-foreach ($f in $findings) {
-    Write-Output ("- {0}:{1}: '## {2}' already appeared at line {3} inside '# {4}'." -f `
-        $f.File, $f.Hit.Repeat, $f.Hit.Heading, $f.Hit.FirstLine, $f.Hit.Block)
-}
-Write-Output ""
-Write-Output "A section written twice is not visible to any other check: the shared parser stops"
-Write-Output "at the next '## ', so every consumer reads the first copy and ignores the rest."
-Write-Output "Keep ONE copy - the one carrying the confirmed content, which is not always the"
-Write-Output "first: in S1884 the complete audit block was the lower one. Then delete the other."
-exit 1

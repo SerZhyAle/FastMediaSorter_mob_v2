@@ -345,10 +345,16 @@
 -keepclassmembernames enum com.sza.fastmediasorter.domain.model.StreamingCacheCleanupMode {
     <fields>;
 }
--keepclassmembernames enum com.sza.fastmediasorter.ui.dialog.Mode {
+# S2364: both of the rules below named a class that does not exist. The enums are nested, so their
+# real R8 names carry `$`, and R8 ignores a rule matching nothing in silence - each protected
+# nothing from the day it was written while the gate reported it as a satisfied contract.
+# SearchableLanguagePickerDialog.Mode round-trips through a Bundle, kept for the lexical reason
+# spelled out on the welcome explainer below; StreamsViewModel.SortMode decodes a name persisted in
+# the "streams_session" DataStore, so its round trip really does cross an update.
+-keepclassmembernames enum com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog$Mode {
     <fields>;
 }
--keepclassmembernames enum com.sza.fastmediasorter.ui.streams.SortMode {
+-keepclassmembernames enum com.sza.fastmediasorter.ui.streams.StreamsViewModel$SortMode {
     <fields>;
 }
 # S2363-adjacent, found by assert-enum-persistence-contract during the release-35 sweep.
@@ -363,5 +369,41 @@
 # the Room column can - the rule is here because the contract is lexical: an enum resolved by
 # name carries the rule, and arguing the exception per call site is how the Room case was missed.
 -keepclassmembernames enum com.sza.fastmediasorter.ui.welcome.WelcomeEnableAllExplainerDialogFragment$Mode {
+    <fields>;
+}
+# S2364: seven enums the gate could not see until it resolved a `.name` receiver by its declared
+# type instead of by its identifier spelling. Every one of them writes its constant name into a
+# DataStore key or value, so an R8 remap orphans what the user already stored.
+# DeliverableSet names the DataStore keys "delivery_installed_<name>" and "delivery_stamp_<name>"
+# in InstalledSetMarkerStore, and also the on-disk marker directory entry.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.delivery.DeliverableSet {
+    <fields>;
+}
+# GameMode.name is the value under "embedded_game_mode"; GameMode.fromStorageName degrades to
+# CLASSIC on an unknown name, so a remap silently resets the chosen game skin instead of throwing.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.game.GameMode {
+    <fields>;
+}
+# CommandGroup.name builds the preference key "keybinding__<name>" in KeybindingRemapViewModel,
+# so a remap orphans the user's remapped key bindings.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.input.CommandGroup {
+    <fields>;
+}
+# LauncherOrientation.name is interpolated into the launcher visibility key prefix
+# "launcher_desktop__<name>__".
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation {
+    <fields>;
+}
+# StatsKey.name and StatsMediaType.name are lowercased into every counter key that
+# StatsAggregateDataStore writes, so a remap orphans the whole accumulated statistics set.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.stats.StatsKey {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.stats.StatsMediaType {
+    <fields>;
+}
+# ControlSection.name is written to SharedPreferences as the last opened playback section and read
+# back by matching `it.name`. Nested, which is the shape S2364 made expressible at all.
+-keepclassmembernames enum com.sza.fastmediasorter.ui.player.PlaybackControlDialogFragment$ControlSection {
     <fields>;
 }

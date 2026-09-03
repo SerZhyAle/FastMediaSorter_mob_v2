@@ -13,7 +13,7 @@
       2. .\scripts\release\publish-github-release.ps1   # publish all assets under one tag
 
     The script:
-      - Reads versionName from app_v2/build.gradle.kts
+      - Reads versionName from the built artifacts' AGP output-metadata.json (S1873)
       - Resolves each spectrum release APK (standard, vr, lite, photos, legacy,
         noLegal, wear) through scripts/utils/find-build-artifact.ps1, which refuses
         to guess rather than picking the newest file (S1972)
@@ -85,7 +85,6 @@ if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
 }
 
 $repoRoot      = Resolve-Path (Join-Path $PSScriptRoot "..\..")
-$buildGradle   = Join-Path $repoRoot "app_v2/build.gradle.kts"
 $whatsNewPath  = Join-Path $repoRoot "docs/WHATS_NEW.md"
 
 # Full release spectrum (S0394): flavor -> release APK output dir (relative to repoRoot).
@@ -149,19 +148,23 @@ if ($DryRun -and $currentBranch -ne "main") {
 }
 
 # ----------------------------------------------------------------------
-# Extract versionName from app_v2/build.gradle.kts
+# The published version is the one the artifacts actually carry.
+#
+# S1873: this used to be parsed out of app_v2/build.gradle.kts, on the assumption that the release
+# build had just written it there. ADR-4 removed that writer - the version now travels to gradle as
+# a property and the checked-in constants are a deliberate non-releasable sentinel - so reading the
+# build file here would tag the release with a version no asset carries.
 # ----------------------------------------------------------------------
-if (-not (Test-Path -LiteralPath $buildGradle)) {
-    throw "build.gradle.kts not found at $buildGradle"
+. "$PSScriptRoot/../utils/build-version-stamp.ps1"
+
+$firstFlavor = @($spectrum.Keys)[0]
+$firstDir = Join-Path $repoRoot $spectrum[$firstFlavor]
+$reference = Get-ArtifactVersion -Dir $firstDir
+if (-not $reference) {
+    throw "Cannot read the built version: no readable output-metadata.json under $firstDir. Build the spectrum first (scripts/release/build-release-spectrum.ps1)."
 }
-$buildContent = Get-Content -LiteralPath $buildGradle -Raw
-# (?i): version lives in `defaultAppVersionName` (capital V); match case-insensitively like the writer.
-$versionMatch = [regex]::Match($buildContent, '(?i)versionName\s*=\s*"([^"]+)"')
-if (-not $versionMatch.Success) {
-    throw "Could not parse versionName from $buildGradle"
-}
-$version = $versionMatch.Groups[1].Value
-Write-Host "Version: $version" -ForegroundColor Green
+$version = $reference.VersionName
+Write-Host "Version: $version (from $($reference.MetadataPath))" -ForegroundColor Green
 
 # ----------------------------------------------------------------------
 # APK discovery - delegated to the shared resolver (S1972). The two throws
@@ -177,9 +180,6 @@ Write-Host "Version: $version" -ForegroundColor Green
 #   FastMediaSorter-<flavor>-<version>.apk
 # Versioned names are required - IzzyOnDroid (S0215) globs the pattern.
 # ----------------------------------------------------------------------
-$gradleMtime = (Get-Item -LiteralPath $buildGradle).LastWriteTimeUtc
-$staleCutoff = $gradleMtime.AddHours(-24)
-
 $stagingDir = Join-Path $repoRoot "temp/release/$version"
 if (Test-Path -LiteralPath $stagingDir) {
     Remove-Item -LiteralPath $stagingDir -Recurse -Force
@@ -200,12 +200,16 @@ foreach ($flavor in $spectrum.Keys) {
         throw "$flavor APK not found in $dir. Run the appropriate builder first."
     }
 
-    # Staleness guard: every APK must be newer than build.gradle.kts minus 24h
-    # (i.e. built within ~24h of the version bump that put the current
-    # versionName in place).
-    if ($apk.LastWriteTimeUtc -lt $staleCutoff) {
-        $hours = [int]($gradleMtime - $apk.LastWriteTimeUtc).TotalHours
-        throw "$($apk.Name) ($flavor) is older than the current build.gradle.kts version by ${hours}h. Rebuild the spectrum (scripts/release/build-release-spectrum.ps1) before publishing."
+    # Staleness guard. S1873 replaced a 24h write-time window around build.gradle.kts with the
+    # property itself: an asset belongs to this release exactly when it carries this release's
+    # versionName. The old form measured a proxy - and its reference file stopped moving at ADR-4,
+    # which would have made a leftover APK from any earlier release look current.
+    $flavorVersion = Get-ArtifactVersion -Dir $dir
+    if (-not $flavorVersion) {
+        throw "${flavor}: no readable output-metadata.json in $dir - cannot tell which release $($apk.Name) belongs to. Rebuild the spectrum (scripts/release/build-release-spectrum.ps1)."
+    }
+    if ($flavorVersion.VersionName -ne $version) {
+        throw "$($apk.Name) ($flavor) carries versionName $($flavorVersion.VersionName), but this release is $version. Rebuild the spectrum (scripts/release/build-release-spectrum.ps1) before publishing."
     }
 
     $staged = Join-Path $stagingDir ("FastMediaSorter-$flavor-$version.apk")

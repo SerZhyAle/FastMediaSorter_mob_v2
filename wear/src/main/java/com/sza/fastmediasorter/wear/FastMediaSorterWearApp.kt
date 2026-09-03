@@ -51,7 +51,7 @@ class FastMediaSorterWearApp : Application() {
         }
 
         // S1814: apply persisted app language on startup
-        CoroutineScope(Dispatchers.Main.immediate).launch {
+        applicationScope.launch(Dispatchers.Main.immediate) {
             try {
                 preferencesRepository.appLanguage.firstOrNull()?.let { lang ->
                     WearLocaleManager.applyLocale(this@FastMediaSorterWearApp, lang)

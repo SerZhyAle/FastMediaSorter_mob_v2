@@ -1,8 +1,8 @@
 package com.sza.fastmediasorter.wear.ui.player.audio
 
 import android.content.Context
-import android.media.AudioManager
 import android.net.Uri
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,45 +12,41 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.wear.data.wear.WatchPlaybackCommandEvents
 import com.sza.fastmediasorter.wear.domain.model.MediaType
-import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_STREAM
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackCommand
-import com.sza.fastmediasorter.wear.domain.model.WearPlaybackStatePayload
-import com.sza.fastmediasorter.wear.domain.model.favoriteSourceId
-import com.sza.fastmediasorter.wear.domain.model.normalizeWearStreamUrl
+import com.sza.fastmediasorter.wear.domain.playback.HostStopAction
+import com.sza.fastmediasorter.wear.domain.playback.WearBackgroundPlaybackPolicy
+import com.sza.fastmediasorter.wear.domain.playback.WearBackgroundSession
+import com.sza.fastmediasorter.wear.domain.playback.WearBackgroundSessionState
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
-import com.sza.fastmediasorter.wear.domain.repository.StreamNetworkHold
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
-import com.sza.fastmediasorter.wear.domain.repository.WearNetworkChannelMonitor
 import com.sza.fastmediasorter.wear.domain.repository.WearNowPlayingRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ClassifyWearStreamMediaKindUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.DownloadNetworkFileUseCase
-import com.sza.fastmediasorter.wear.domain.usecase.EvaluateStreamStartUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PublishPlaybackStateUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ResolveAlbumArtUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ToggleFavoriteUseCase
-import com.sza.fastmediasorter.wear.ui.player.helpers.StreamPlaybackSessionManager
+import com.sza.fastmediasorter.wear.service.WearPlaybackService
+import com.sza.fastmediasorter.wear.ui.player.common.PlaybackProgressTicker
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerVolumeController
+import com.sza.fastmediasorter.wear.ui.player.common.backwardSeekTarget
+import com.sza.fastmediasorter.wear.ui.player.common.forwardSeekTarget
+import com.sza.fastmediasorter.wear.ui.player.common.resolveFavoriteIdentity
+import com.sza.fastmediasorter.wear.ui.player.common.togglePlayPause
+import com.sza.fastmediasorter.wear.ui.player.common.wearPlaybackStatePayload
+import com.sza.fastmediasorter.wear.ui.player.helpers.StreamPlaybackSessionFactory
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
-
-/** S1683: named because the bezel now reaches the same step the buttons do. */
-private const val SEEK_STEP_MS = 10_000L
-
-/** S1701: how long the volume readout stays after the last bezel step. */
-private const val VOLUME_VISIBLE_MS = 1_500L
 
 /**
  * ViewModel for the audio player screen.
@@ -71,10 +67,9 @@ class AudioPlayerViewModel @Inject constructor(
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
     private val resolveAlbumArt: ResolveAlbumArtUseCase,
     private val preferencesRepository: WearPreferencesRepository,
-    private val evaluateStreamStart: EvaluateStreamStartUseCase,
-    private val streamNetworkHold: StreamNetworkHold,
-    private val networkChannelMonitor: WearNetworkChannelMonitor,
+    private val streamPlaybackSessionFactory: StreamPlaybackSessionFactory,
     private val nowPlayingRepository: WearNowPlayingRepository,
+    private val backgroundSessionState: WearBackgroundSessionState,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -86,10 +81,18 @@ class AudioPlayerViewModel @Inject constructor(
 
     private val fileId: Long = savedStateHandle.get<Long>("fileId") ?: -1L
 
-    private var progressUpdateJob: Job? = null
+    private val progressTicker = PlaybackProgressTicker(viewModelScope, exoPlayer) { position ->
+        _uiState.update { it.copy(currentPositionMs = position) }
+    }
 
-    /** Cancelled and restarted on every bezel step; dies with the ViewModel. */
-    private var volumeHideJob: Job? = null
+    private val volumeController = PlayerVolumeController(
+        scope = viewModelScope,
+        context = context,
+        onReadout = { level, max ->
+            _uiState.update { it.copy(volumeLevel = level, volumeMax = max, isVolumeVisible = true) }
+        },
+        onHidden = { _uiState.update { it.copy(isVolumeVisible = false) } }
+    )
 
     /**
      * S1683: the selection this screen was opened with, kept only when it is a network one, so paging
@@ -97,14 +100,20 @@ class AudioPlayerViewModel @Inject constructor(
      */
     private var networkSelection: SelectedMedia? = null
 
+    /**
+     * S2166: read once into a field because [onHostStopped] runs on the lifecycle edge and cannot
+     * suspend to ask the store what the setting says at the moment the host is already stopping.
+     */
+    private var backgroundPlaybackEnabled: Boolean = false
+
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             _uiState.update { it.copy(isPlaying = isPlaying) }
             if (isPlaying) {
-                startProgressUpdates()
+                progressTicker.start()
                 streamPlaybackSession.withWideChannel()
             } else {
-                stopProgressUpdates()
+                progressTicker.stop()
             }
             publishPlaybackState()
         }
@@ -166,11 +175,8 @@ class AudioPlayerViewModel @Inject constructor(
         }
     }
 
-    private val streamPlaybackSession = StreamPlaybackSessionManager(
+    private val streamPlaybackSession = streamPlaybackSessionFactory.create(
         scope = viewModelScope,
-        networkHold = streamNetworkHold,
-        channelMonitor = networkChannelMonitor,
-        evaluateStreamStart = evaluateStreamStart,
         onChannelReason = { reason -> _uiState.update { it.copy(channelReason = reason) } }
     )
 
@@ -184,7 +190,7 @@ class AudioPlayerViewModel @Inject constructor(
             // before any paging call can answer - same as the image viewer does.
             playbackSetManager.moveTo(fileId)
             syncSetPosition()
-            loadAudioFile()
+            attachToBackgroundSessionOrLoad()
         }
 
         // S1701: the stored flag is the single source of truth - it feeds both the control that
@@ -195,6 +201,10 @@ class AudioPlayerViewModel @Inject constructor(
                 playbackSetManager.shuffleEnabled = enabled
                 _uiState.update { it.copy(isShuffleEnabled = enabled) }
             }
+        }
+
+        viewModelScope.launch {
+            preferencesRepository.backgroundPlaybackEnabled.collect { backgroundPlaybackEnabled = it }
         }
 
         // Subscribe to remote playback commands from phone
@@ -216,6 +226,57 @@ class AudioPlayerViewModel @Inject constructor(
     private fun loadAudioFile() {
         Timber.d("Loading audio file with fileId: $fileId")
         loadMediaFile()
+    }
+
+    /**
+     * S2166 (strategic goal 5): the screen takes the running session back instead of preparing a
+     * second player on the same track, which is what the owner would hear as the music restarting.
+     *
+     * The service is stopped either way. A session on another file is still somebody's sound coming
+     * out of the watch, and opening a track while a different one plays in the background is the one
+     * case where two players really would be audible at once.
+     */
+    private fun attachToBackgroundSessionOrLoad() {
+        val background = backgroundSessionState.session.value
+        if (background == null) {
+            loadAudioFile()
+            return
+        }
+        context.startService(WearPlaybackService.stopIntent(context))
+        backgroundSessionState.clear()
+        if (background.fileId != fileId) {
+            loadAudioFile()
+            return
+        }
+        resumeHandedBackSession(background)
+    }
+
+    /**
+     * The metadata still comes from the repository, because the session carries what was playing and
+     * not what the screen has to draw around it - title, cover and favourite mark are the screen's.
+     */
+    private fun resumeHandedBackSession(background: WearBackgroundSession) {
+        viewModelScope.launch {
+            val selected = selectedMediaManager.getSelectedFileById(fileId)
+            if (selected != null) {
+                _uiState.update { it.withMediaFile(selected.file) }
+                if (selected.isNetworkSource) {
+                    networkSelection = selected
+                }
+                fetchRemoteAlbumArt(selected.file)
+            } else {
+                mediaRepository.getMediaFileById(fileId, MediaType.MUSIC)?.let { file ->
+                    _uiState.update { it.withMediaFile(file) }
+                    fetchRemoteAlbumArt(file)
+                }
+            }
+            checkFavoriteState()
+            background.streamMediaKind?.let(streamPlaybackSession::prepare)
+            exoPlayer.setMediaItem(MediaItem.fromUri(Uri.parse(background.mediaUri)))
+            exoPlayer.prepare()
+            exoPlayer.seekTo(background.positionMs)
+            exoPlayer.playWhenReady = background.isPlaying
+        }
     }
 
     /**
@@ -378,16 +439,7 @@ class AudioPlayerViewModel @Inject constructor(
         )
     }
 
-    fun togglePlayPause() {
-        if (exoPlayer.isPlaying) {
-            exoPlayer.pause()
-            streamPlaybackSession.stop()
-        } else {
-            if (streamPlaybackSession.canStartCurrentStream()) {
-                exoPlayer.play()
-            }
-        }
-    }
+    fun togglePlayPause() = streamPlaybackSession.togglePlayPause(exoPlayer)
 
     /**
      * S1701: writes the new order to settings and lets the collector above publish it back, so the
@@ -412,102 +464,82 @@ class AudioPlayerViewModel @Inject constructor(
     }
 
     /**
-     * S0902: called from the screen's onStop lifecycle effect - without this, playback
-     * keeps running while the host activity is stopped (screen off / app backgrounded);
-     * onCleared was the only prior teardown edge.
+     * S0902 made this pause unconditional because playback belonged to the screen, and without it a
+     * backgrounded or screen-off host kept playing with `onCleared` as the only teardown edge. S2166
+     * makes it conditional rather than removing it: the sound may now outlive the screen, but only
+     * when a foreground service takes ownership of it, which is the part S0902 had no way to do.
+     * With the setting off, or on a player that is not playing, S0902's behaviour stands exactly.
      */
     fun onHostStopped() {
+        val action = WearBackgroundPlaybackPolicy.onHostStopped(
+            backgroundPlaybackEnabled = backgroundPlaybackEnabled,
+            isAudioContent = true,
+            isPlaying = exoPlayer.isPlaying
+        )
+        when (action) {
+            HostStopAction.Pause -> {
+                exoPlayer.pause()
+                streamPlaybackSession.stop()
+            }
+            HostStopAction.HandOff -> handOffToPlaybackService()
+        }
+    }
+
+    /**
+     * Strategic §7 names two owners of one playing player as the defect to design against, so the
+     * screen's player goes quiet as the service's starts - the handover is an exchange, not a second
+     * player on the same track. The item is taken from the player rather than from the ui state
+     * because it is already resolved there: a cached copy for a downloaded network file, the stream
+     * uri for a direct one, and the MediaStore uri for a local file.
+     */
+    private fun handOffToPlaybackService() {
+        val uri = exoPlayer.currentMediaItem?.localConfiguration?.uri?.toString() ?: return
+        val streamMediaKind = ClassifyWearStreamMediaKindUseCase.AUDIO
+            .takeIf { networkSelection?.isDirectStream == true }
+        val intent = WearPlaybackService.startIntent(
+            context = context,
+            fileId = fileId,
+            mediaUri = uri,
+            positionMs = exoPlayer.currentPosition,
+            streamMediaKind = streamMediaKind
+        )
+        // From API 31 a foreground service started by an app that has already left the foreground is
+        // refused with an IllegalStateException, and ON_STOP is exactly that edge. The refusal is
+        // recoverable and the recovery is the behaviour this ticket replaced: pause, as S0902 did,
+        // rather than let the exception reach the lifecycle callback and take the app down.
+        try {
+            ContextCompat.startForegroundService(context, intent)
+        } catch (e: IllegalStateException) {
+            Timber.w(e, "Background playback refused at host stop; pausing instead")
+            exoPlayer.pause()
+            streamPlaybackSession.stop()
+            return
+        }
         exoPlayer.pause()
+        // stop(), not clear(): the kind stays so a resume on this screen still knows what it is
+        // holding the channel for. The service takes its own hold, so releasing here keeps the
+        // reference count at one across the hand-off rather than letting the two sides overlap.
         streamPlaybackSession.stop()
     }
 
-    /**
-     * S1701: one bezel step, on the system media stream.
-     *
-     * ADR-1 moved the bezel from seeking to volume, which is the Wear OS media convention; the progress
-     * bar added in phase 02 is how this screen seeks now. The level is read back from the system after
-     * the adjustment instead of being tracked here, so a change made by the watch's own volume UI is
-     * reflected the next time the bezel moves rather than fighting a private counter.
-     */
-    fun onVolumeStep(up: Boolean) {
-        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return
-        audioManager.adjustStreamVolume(
-            AudioManager.STREAM_MUSIC,
-            if (up) AudioManager.ADJUST_RAISE else AudioManager.ADJUST_LOWER,
-            0,
-        )
-        _uiState.update {
-            it.copy(
-                volumeLevel = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC),
-                volumeMax = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC),
-                isVolumeVisible = true,
-            )
-        }
-        hideVolumeAfterDelay()
-    }
-
-    /**
-     * Hides the readout a moment after the last step, and nothing animates while it is hidden.
-     *
-     * Restarted on every step so a continuous turn keeps it up; strategic 3.2 forbids adding to what the
-     * wave drawing already costs, so it must not stay on screen once the user has stopped.
-     */
-    private fun hideVolumeAfterDelay() {
-        volumeHideJob?.cancel()
-        volumeHideJob = viewModelScope.launch {
-            delay(VOLUME_VISIBLE_MS)
-            _uiState.update { it.copy(isVolumeVisible = false) }
-        }
-    }
+    /** The progress bar added in S1701 phase 02 is how this screen seeks; the bezel carries volume. */
+    fun onVolumeStep(up: Boolean) = volumeController.onStep(up)
 
     fun seekTo(positionMs: Long) {
         exoPlayer.seekTo(positionMs)
         _uiState.update { it.copy(currentPositionMs = positionMs) }
     }
 
-    fun seekForward() {
-        val target = exoPlayer.currentPosition + SEEK_STEP_MS
-        // ExoPlayer reports C.TIME_UNSET, a large negative, while the duration is still unknown -
-        // clamping to it would send playback backwards past the start. Reachable here since S1683,
-        // because the bezel can now reach this action within the first moments of a stream opening.
-        val duration = exoPlayer.duration
-        seekTo(if (duration > 0) target.coerceAtMost(duration) else target)
-    }
+    fun seekForward() = seekTo(forwardSeekTarget(exoPlayer))
 
-    fun seekBackward() {
-        val newPosition = (exoPlayer.currentPosition - SEEK_STEP_MS).coerceAtLeast(0)
-        seekTo(newPosition)
-    }
-
-    private fun startProgressUpdates() {
-        progressUpdateJob?.cancel()
-        progressUpdateJob = viewModelScope.launch {
-            while (isActive && exoPlayer.isPlaying) {
-                _uiState.update {
-                    it.copy(currentPositionMs = exoPlayer.currentPosition.coerceAtLeast(0))
-                }
-                delay(500)
-            }
-        }
-    }
-
-    private fun stopProgressUpdates() {
-        progressUpdateJob?.cancel()
-        progressUpdateJob = null
-    }
+    fun seekBackward() = seekTo(backwardSeekTarget(exoPlayer))
 
     private fun publishPlaybackState() {
         val state = _uiState.value
-        val selected = selectedMediaManager.getSelectedFileById(fileId)
-        val sourceName = if (selected?.isNetworkSource == true) {
-            selected.file.uri.host ?: ""
-        } else {
-            "Local"
-        }
-        val payload = WearPlaybackStatePayload(
+        val payload = wearPlaybackStatePayload(
+            selected = selectedMediaManager.getSelectedFileById(fileId),
             isPlaying = state.isPlaying,
             fileName = state.mediaFile?.name ?: "",
-            sourceName = sourceName,
             positionMs = state.currentPositionMs,
             durationMs = state.durationMs,
             mediaType = "AUDIO"
@@ -544,31 +576,19 @@ class AudioPlayerViewModel @Inject constructor(
     }
 
     /**
-     * S2039: a direct stream is addressed by its NORMALIZED url under the reserved stream source id -
-     * the same identity the video player writes, so a channel reached through either player is one
-     * favourite and the streams list, which compares by that form, actually finds it.
-     *
-     * S1846: everything else keeps the shared source-id rule and the path it already used.
+     * The remembered selection wins here: it tracks paging, while the manager still answers with
+     * whatever file this screen was opened on. The identity rule itself is shared with the video player.
      */
-    private fun currentFavoriteIdentity(): FavoriteIdentity? {
-        // The remembered selection wins: it tracks paging, while the manager still answers with whatever
-        // file this screen was opened on.
-        val selected = networkSelection ?: selectedMediaManager.getSelectedFileById(fileId)
-        if (selected != null && selected.isDirectStream) {
-            return FavoriteIdentity(SOURCE_ID_STREAM, normalizeWearStreamUrl(selected.streamUri))
-        }
-        val path = selected?.streamUri ?: _uiState.value.mediaFile?.uri?.toString()
-        return path?.let {
-            FavoriteIdentity(favoriteSourceId(selected?.isNetworkSource == true, selected?.sourceId), it)
-        }
-    }
-
-    private data class FavoriteIdentity(val sourceId: String, val filePath: String)
+    private fun currentFavoriteIdentity() = resolveFavoriteIdentity(
+        selected = networkSelection ?: selectedMediaManager.getSelectedFileById(fileId),
+        fallbackUri = _uiState.value.mediaFile?.uri?.toString()
+    )
 
     override fun onCleared() {
         super.onCleared()
         Timber.d("AudioPlayerViewModel cleared")
-        stopProgressUpdates()
+        progressTicker.stop()
+        volumeController.cancel()
         streamPlaybackSession.clear()
         exoPlayer.removeListener(playerListener)
         viewModelScope.launch {

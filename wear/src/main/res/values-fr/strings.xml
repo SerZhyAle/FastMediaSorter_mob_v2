@@ -32,7 +32,6 @@
     <string name="start_slideshow">Démarrer le diaporama</string>
     <string name="stop_slideshow">Arrêter le diaporama</string>
     <string name="network_storage">Ressources</string>
-    <string name="add_smb_connection">Ajouter SMB</string>
     <string name="server_address">Adresse du serveur</string>
     <string name="share_name">Nom du partage</string>
     <string name="username">Nom d\'utilisateur</string>
@@ -196,8 +195,6 @@
     <string name="system_info_free">Libre</string>
     <string name="system_info_total">Total</string>
     <string name="system_info_phone_link">Connexion</string>
-    <string name="system_info_phone_connected">Connecté</string>
-    <string name="system_info_phone_not_connected">Non connecté</string>
     <string name="system_info_loading">Lecture de l\'appareil..</string>
     <string name="phone_resource_empty_filtered">Rien de ce type ici. Ouvrez un autre dossier ou réessayez.</string>
     <string name="phone_resource_open_unsupported">La montre n\'a pas de lecteur pour ce type de fichier.</string>
@@ -247,14 +244,11 @@
     <string name="wear_netmon_history_empty">Aucune mesure dans cette session pour l\'instant</string>
     <string name="wear_netmon_value_dbm">%1$d dBm</string>
     <string name="wear_netmon_value_mbps">%1$d Mbit/s</string>
-    <string name="wear_game_score">Score</string>
-    <string name="wear_game_turns">Coups</string>
     <string name="wear_game_level_completed">Niveau réussi</string>
     <string name="wear_game_level_lost">Attrapé</string>
     <string name="wear_game_restart">Recommencer</string>
     <string name="wear_game_continue">Continuer</string>
     <string name="wear_game_board_description">Plateau de jeu. Balayez dessus pour vous déplacer, restez appuyé pour le menu.</string>
-    <string name="wear_game_player_description">Votre figurine sur le plateau</string>
     <string name="wear_streams_filter_topic_all">Tous les sujets</string>
     <string name="wear_streams_filter_language_all">Toutes les langues</string>
     <string name="wear_streams_filter_topic_header">Sujet</string>
@@ -301,7 +295,6 @@
     <string name="wear_state_empty">Rien ici encore.</string>
     <string name="wear_open_on_watch_channel_name">Ouvert sous surveillance</string>
     <string name="wear_open_on_watch_notification_title">Le téléphone a envoyé quelque chose à ouvrir</string>
-    <string name="wear_game_level">Niveau</string>
     <string name="wear_file_op_actions">Actes</string>
     <string name="wear_file_op_send_to_phone">Envoyer au téléphone</string>
     <string name="wear_file_op_move_to_phone">Passer au téléphone</string>

@@ -1,136 +1,114 @@
-# Shared fingerprint of a spec's TASK TEXT - the thing an audit claims to have judged (S2367).
-#
-# Dot-sourced, never invoked. Holds no mutable state and does not read the catalog, so a
-# consumer inherits only these functions. Separate from `_lib.ps1` for the same reason
-# `_research-items.ps1` is: the gate and the writer must agree byte for byte, and a second
-# implementation of "which part of the file is the task" would let the gate refuse a
-# transition the writer considers stamped (the S1621 rule).
-#
-# What counts as the task text: the strategic spec file MINUS the parts the pipeline writes
-# into it on its own.
-#   - `**Status:**`, `**Status note:**` and `**Priority:**` header lines. Sync-SpecHeaderStatus
-#     rewrites the first two on every transition and the closure may recompute the third, so
-#     including them would make the fingerprint differ from itself across the very status flip
-#     it guards.
-#   - The whole `## Last Audit` block. It is the audit's own output; hashing it would mean the
-#     stamp could never match the file that carries it.
-# Everything else is the task: the captured material, the problem, the goals, the constraints,
-# the owner inputs, the research items and the acceptance criteria.
-#
-# The tactical folder is deliberately NOT part of it. Those files are the agent's own plan and
-# its step ticks move continuously during implementation; folding them in would fire the gate
-# on the pipeline's own work rather than on an edit to the task.
-#
-# Compatible with PowerShell 5.1 and 7+, and safe to load under Set-StrictMode Latest.
+#requires -Version 7.0
+<#
+.SYNOPSIS
+    Forwarder to the canon-shipped harness script spec_catalog\_task-fingerprint.ps1 (S2402).
 
-# Loadable standalone: a consumer that already has _research-items.ps1 (every path through
-# _lib.ps1) must not re-source it, because that would reset its module-scoped root variable
-# under a different $PSScriptRoot binding.
-if (-not (Get-Command -Name 'Get-AuditSectionHeadingPattern' -ErrorAction SilentlyContinue)) {
-    . (Join-Path $PSScriptRoot '_research-items.ps1')
+.DESCRIPTION
+    GENERATED - do not edit. The mechanism lives in the SZA canon plugin (tools/harness) and this
+    repository consumes it; the file kept here is only the address every existing call site already
+    knows. Regenerate with scripts/utils/install-sza-forwarders.ps1. What this project configures lives in
+    .sza-profile.json at the repository root, never in a script body.
+
+Exit codes: whatever spec_catalog\_task-fingerprint.ps1 returns, plus 2 when the harness cannot be located.
+#>
+# S2441: every name below carries a $szaFwd prefix because HALF of this set is dot-sourced, and a
+# dot-sourced file assigns into its CALLER's scope. PowerShell names are case-insensitive, so the
+# `$target` this file used to resolve into WAS the caller's `-Target` parameter: post-change.ps1
+# dot-sources the agent-lock-domains forwarder before it journals, and every dev/CHANGELOG.md row
+# written on 2026-09-03 recorded a harness path where the ticket id belonged. The second failure
+# mode is worse than the substitution - a caller declaring `[string]$Candidates` type-constrains
+# this file's own accumulator, so `$candidates = @()` collapses to '' and every `+=` concatenates
+# instead of appending, leaving one unusable path and a forwarder that cannot find the harness at
+# all. Ten scripts under scripts/ declare a parameter that collided. Contract suite:
+# scripts/utils/install-sza-forwarders.tests/.
+$szaFwdCandidates = @()
+if ($env:SZA_HARNESS_ROOT) { $szaFwdCandidates += $env:SZA_HARNESS_ROOT }
+$szaFwdCache = Join-Path $env:USERPROFILE '.claude\plugins\cache\sza-unified-rules\sza'
+if (Test-Path -LiteralPath $szaFwdCache) {
+    # Ordered as VERSIONS, not as strings: the plugin version is date-derived (2026.903.1), so a
+    # string sort puts October's 2026.1001.1 below September's 2026.903.1 and the forwarder would
+    # keep calling the older copy after an update. A directory that does not parse sorts last
+    # rather than being dropped - it may still be the only harness present.
+    $szaFwdVersions = @(Get-ChildItem -LiteralPath $szaFwdCache -Directory -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            $szaFwdParsed = $null
+            [void][version]::TryParse($_.Name, [ref]$szaFwdParsed)
+            [pscustomobject]@{ Path = $_.FullName; Version = $szaFwdParsed }
+        } | Sort-Object @{ Expression = { $null -ne $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Path }; Descending = $true })
+    $szaFwdCandidates += @($szaFwdVersions | ForEach-Object { Join-Path $_.Path 'tools\harness' })
+}
+$szaFwdTarget = $null
+foreach ($szaFwdDir in $szaFwdCandidates) {
+    $szaFwdProbe = Join-Path $szaFwdDir 'spec_catalog\_task-fingerprint.ps1'
+    if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe; break }
 }
 
-$script:TaskFingerprintRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-
-function Get-TaskFingerprintLinePattern {
-    # The line inside `## Last Audit` that records which task text the verdict judged.
-    # Bold marker optional and the label case-insensitive: the block is hand-maintained
-    # by /spec-check and by the pre-handoff writers, and a stamp that is readable to a
-    # human but not to the gate would refuse a ticket that did everything asked.
-    # Backticks around the hash are optional for that same reason: the block is markdown,
-    # a bare hash reads as a code span to anyone writing one, and the gate used to answer
-    # "records no task fingerprint" to a line that recorded exactly the right one.
-    return '(?im)^\s*\*{0,2}Task\s+fingerprint:?\*{0,2}\s*[:\-]?\s*`?([0-9a-f]{12})\b`?'
-}
-
-function Resolve-TaskSpecPath {
-    # Repo-relative ('PLAN/S2367_*.md') or already-absolute -> absolute path.
-    param([Parameter(Mandatory)][string] $PathRef)
-    $p = $PathRef -replace '/', '\'
-    if ([System.IO.Path]::IsPathRooted($p)) { return $p }
-    return (Join-Path $script:TaskFingerprintRoot $p)
-}
-
-function Get-SpecTaskText {
-    # The normalized task text of one spec file, or $null when the file is unreadable.
-    #
-    # Normalization exists because a spec file can be written by two different agents in
-    # one session and end up with a newline seam mid-file (S2357 found exactly that on
-    # S1884). A fingerprint that moves on a line ending would report an edit nobody made.
-    param([Parameter(Mandatory)][string] $Path)
-
-    $abs = Resolve-TaskSpecPath -PathRef $Path
-    if (-not (Test-Path -LiteralPath $abs -PathType Leaf)) { return $null }
-
-    # -Encoding UTF8: spec bodies are Russian prose, and a mis-decoded body would hash to a
-    # value that changes with the reader rather than with the task.
-    $lines = @(Get-Content -LiteralPath $abs -Encoding UTF8)
-    $auditPatterns = Get-AuditSectionHeadingPattern
-
-    $kept = New-Object System.Collections.Generic.List[string]
-    $inAudit = $false
-    foreach ($line in $lines) {
-        if ($line -match '^##\s+(.+)$') {
-            $heading = $Matches[1].Trim()
-            $inAudit = $false
-            foreach ($pattern in $auditPatterns) {
-                if ($heading -match $pattern) { $inAudit = $true; break }
-            }
-            if ($inAudit) { continue }
+# S2452: candidate 3, the canon checkout, reached only when the two above miss. The plugin cache
+# is what actually resolves on every invocation, so the resolver below is never read on the hot
+# path. Its default is held by scripts/utils/project-paths.ps1 and by nothing else - before this it
+# was written in 76 files, 74 of them generated and stamped `GENERATED - do not edit`, so moving
+# the canon required editing files that forbid editing. That is the exact non-portability the
+# hardcoded-drive-path rule was installed to refuse (S2326).
+#
+# The dot-source runs inside `& { }` deliberately. HALF this set is itself dot-sourced, so at top
+# level project-paths.ps1 would define its functions and set its script variables in the CALLER's
+# scope - the S2441 failure one level further out. A child scope cannot reach the caller at all.
+if (-not $szaFwdTarget) {
+    $szaFwdCheckout = $env:SZA_CANON_ROOT
+    if (-not $szaFwdCheckout) {
+        $szaFwdResolver = Join-Path $PSScriptRoot '..\..\scripts\utils\project-paths.ps1'
+        if (Test-Path -LiteralPath $szaFwdResolver) {
+            # A resolver that is absent or throws must not stop the forwarder from printing its own
+            # refusal, which is the only message that names all three candidates and the fix.
+            $szaFwdCheckout = & {
+                param($szaFwdResolverPath)
+                try { . $szaFwdResolverPath; Get-CanonRoot } catch { $null }
+            } $szaFwdResolver
         }
-        if ($inAudit) { continue }
-        if ($line -match '^\*\*(Status|Status note|Priority):\*\*') { continue }
-        $kept.Add($line.TrimEnd())
     }
-
-    # Trailing blank lines and horizontal rules go with the block they introduce, not with the
-    # task. Specs separate the audit block from the body with a `---`, and that rule is written
-    # by the same hand that writes the block: counting it would make writing the verdict change
-    # the fingerprint of the task the verdict is about, which is the one thing this must never
-    # do. Only the TAIL is trimmed, so a rule between two task sections still counts.
-    for ($i = $kept.Count - 1; $i -ge 0; $i--) {
-        $t = $kept[$i].Trim()
-        if ($t -eq '' -or $t -match '^([-*_])\1{2,}$') { $kept.RemoveAt($i) } else { break }
+    if ($szaFwdCheckout) {
+        $szaFwdCandidates += (Join-Path $szaFwdCheckout 'tools\harness')
+        $szaFwdProbe = Join-Path $szaFwdCandidates[-1] 'spec_catalog\_task-fingerprint.ps1'
+        if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe }
     }
-
-    $text = ($kept -join "`n")
-    return $text.Trim("`n")
+}
+if (-not $szaFwdTarget) {
+    Write-Host "_task-fingerprint.ps1: the SZA harness is not installed - looked in:" -ForegroundColor Red
+    foreach ($szaFwdDir in $szaFwdCandidates) { Write-Host "    $szaFwdDir" -ForegroundColor Gray }
+    Write-Host "  Install or update it:  claude plugin update sza@sza-unified-rules" -ForegroundColor Yellow
+    Write-Host "  Or point at a checkout: `$env:SZA_HARNESS_ROOT = '<repo>\tools\harness'" -ForegroundColor Yellow
+    exit 2
 }
 
-function Get-SpecTaskFingerprint {
-    # Twelve lowercase hex characters of SHA-256 over the task text, or $null when the
-    # file is unreadable. Twelve rather than the full digest because the value is written
-    # into a document a human reads: it must fit on the line beside the outcome, and the
-    # collision it guards against is an accidental edit, not an adversary.
-    param([Parameter(Mandatory)][string] $Path)
+$env:SZA_PROJECT_ROOT = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 
-    $text = Get-SpecTaskText -Path $Path
-    if ($null -eq $text) { return $null }
-
-    $sha = [System.Security.Cryptography.SHA256]::Create()
+# Half of this set is dot-sourced as a library and half is invoked as a CLI, and the two cannot be
+# forwarded the same way: `& $szaFwdTarget` would run a library in its own scope and define nothing
+# the caller can see, while `exit` inside a dot-sourced file would kill the caller. InvocationName
+# is '.' exactly when this file was dot-sourced, so one template serves both.
+if ($MyInvocation.InvocationName -eq '.') {
+    . $szaFwdTarget
+} else {
+    # Deliberately NOT 'Stop'. A native child's stderr arrives here as ErrorRecord objects, and
+    # under 'Stop' the first one terminates this forwarder before `exit $LASTEXITCODE` runs - so a
+    # script that reported a FAIL and exited 1 would reach its caller as a crashed forwarder with a
+    # different code. Every script in this set states its exit codes; passing them through unchanged
+    # is the whole job. S2441 moved it inside this branch: at the file's top level it also rewrote
+    # the preference of every caller that dot-sources a forwarder, silently downgrading a script
+    # running under 'Stop' for the rest of its life.
+    $ErrorActionPreference = 'Continue'
+    $global:LASTEXITCODE = 0
     try {
-        $bytes = [System.Text.Encoding]::UTF8.GetBytes($text)
-        $hash = $sha.ComputeHash($bytes)
-    } finally {
-        $sha.Dispose()
+        & $szaFwdTarget @args
+    } catch {
+        # A child that THROWS never reaches its own `exit`, so $LASTEXITCODE stays 0 and the
+        # forwarder would report success for a script that failed - the one way a forwarder can
+        # turn a red verdict green. Every such refusal is a failure, so it leaves as exit 1.
+        Write-Error $_ -ErrorAction Continue
+        exit 1
     }
-    return -join ($hash[0..5] | ForEach-Object { $_.ToString('x2') })
-}
-
-function Get-RecordedTaskFingerprint {
-    # The fingerprint the spec's own `## Last Audit` block claims, or $null when the block
-    # is absent or carries no stamp. Read from the block only, never from the file at large:
-    # a fingerprint quoted in prose elsewhere - a spec about this mechanism will quote one -
-    # is documentation, not a verdict.
-    param([Parameter(Mandatory)][string] $Path)
-
-    $section = @(Get-SpecSectionLines -Path $Path -HeadingPattern (Get-AuditSectionHeadingPattern))
-    if ($section.Count -eq 0) { return $null }
-
-    $pattern = Get-TaskFingerprintLinePattern
-    foreach ($entry in $section) {
-        $m = [regex]::Match($entry.Text, $pattern)
-        if ($m.Success) { return $m.Groups[1].Value.ToLowerInvariant() }
-    }
-    return $null
+    $szaFwdCode = $LASTEXITCODE
+    exit $(if ($null -eq $szaFwdCode) { 0 } else { $szaFwdCode })
 }

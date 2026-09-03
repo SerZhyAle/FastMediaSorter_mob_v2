@@ -1,87 +1,114 @@
+#requires -Version 7.0
 <#
 .SYNOPSIS
-  One-off (idempotent) cleanup: remove preview.tests probe records from the ARCHIVE journal.
+    Forwarder to the canon-shipped harness script spec_catalog\purge-probe-records.ps1 (S2402).
+
 .DESCRIPTION
-  Until S1534 the preview.tests harness inserted its throwaway probes into the production catalog
-  with ids from the real next-id.ps1. delete.ps1 is a soft delete, so each probe left a row in
-  PLAN/spec-catalog-archive.jsonl for good - 21 of them by 2026-08-09 - and select.ps1 -Id answered
-  an id lookup with a test fixture. The harness no longer writes the real journals; this removes
-  what it already wrote.
+    GENERATED - do not edit. The mechanism lives in the SZA canon plugin (tools/harness) and this
+    repository consumes it; the file kept here is only the address every existing call site already
+    knows. Regenerate with scripts/utils/install-sza-forwarders.ps1. What this project configures lives in
+    .sza-profile.json at the repository root, never in a script body.
 
-  Deliberately NOT a general-purpose purge. A -Purge switch on delete.ps1 was rejected in S1534
-  section 3.1: it would put an irreversible operation into production tooling to compensate for a
-  test defect. This script removes only rows that are simultaneously status 'Archived' AND named
-  '^preview-tests-probe', and nothing else can be passed to it.
-
-  Every purged id is first recorded in PLAN/spec-catalog-burned-ids.jsonl. New-CatalogId reads that
-  registry alongside both journals, so an id cannot return to circulation just because its row went
-  away - two tickets answering to one id would make every dev-log row and commit message naming it
-  ambiguous after the fact. validate.ps1 reads the same registry to tell a deliberate hole in the id
-  sequence from a lost record.
-
-  Guard: New-CatalogId is computed before and after the rewrite, and a move restores the original
-  archive and fails. With the registry written first this should be unreachable - it stays as the
-  second belt, because the failure it catches is silent and permanent.
-.NOTES
-  Exit codes:
-    0 - purged, or nothing to purge (idempotent re-run).
-    1 - error (archive unreadable, lock timeout, write failure).
-    3 - guard tripped: the purge would have changed the next allocatable id. Archive restored.
+Exit codes: whatever spec_catalog\purge-probe-records.ps1 returns, plus 2 when the harness cannot be located.
 #>
-[CmdletBinding()]
-param(
-    [switch] $Help
-)
-
-if ($Help) {
-    & (Join-Path $PSScriptRoot '..\utils\help.ps1') -Name 'scripts/spec_catalog/purge-probe-records.ps1'
-    exit $LASTEXITCODE
+# S2441: every name below carries a $szaFwd prefix because HALF of this set is dot-sourced, and a
+# dot-sourced file assigns into its CALLER's scope. PowerShell names are case-insensitive, so the
+# `$target` this file used to resolve into WAS the caller's `-Target` parameter: post-change.ps1
+# dot-sources the agent-lock-domains forwarder before it journals, and every dev/CHANGELOG.md row
+# written on 2026-09-03 recorded a harness path where the ticket id belonged. The second failure
+# mode is worse than the substitution - a caller declaring `[string]$Candidates` type-constrains
+# this file's own accumulator, so `$candidates = @()` collapses to '' and every `+=` concatenates
+# instead of appending, leaving one unusable path and a forwarder that cannot find the harness at
+# all. Ten scripts under scripts/ declare a parameter that collided. Contract suite:
+# scripts/utils/install-sza-forwarders.tests/.
+$szaFwdCandidates = @()
+if ($env:SZA_HARNESS_ROOT) { $szaFwdCandidates += $env:SZA_HARNESS_ROOT }
+$szaFwdCache = Join-Path $env:USERPROFILE '.claude\plugins\cache\sza-unified-rules\sza'
+if (Test-Path -LiteralPath $szaFwdCache) {
+    # Ordered as VERSIONS, not as strings: the plugin version is date-derived (2026.903.1), so a
+    # string sort puts October's 2026.1001.1 below September's 2026.903.1 and the forwarder would
+    # keep calling the older copy after an update. A directory that does not parse sorts last
+    # rather than being dropped - it may still be the only harness present.
+    $szaFwdVersions = @(Get-ChildItem -LiteralPath $szaFwdCache -Directory -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            $szaFwdParsed = $null
+            [void][version]::TryParse($_.Name, [ref]$szaFwdParsed)
+            [pscustomobject]@{ Path = $_.FullName; Version = $szaFwdParsed }
+        } | Sort-Object @{ Expression = { $null -ne $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Path }; Descending = $true })
+    $szaFwdCandidates += @($szaFwdVersions | ForEach-Object { Join-Path $_.Path 'tools\harness' })
+}
+$szaFwdTarget = $null
+foreach ($szaFwdDir in $szaFwdCandidates) {
+    $szaFwdProbe = Join-Path $szaFwdDir 'spec_catalog\purge-probe-records.ps1'
+    if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe; break }
 }
 
-trap {
-    Write-Host $_ -ForegroundColor Red
-    exit 1
+# S2452: candidate 3, the canon checkout, reached only when the two above miss. The plugin cache
+# is what actually resolves on every invocation, so the resolver below is never read on the hot
+# path. Its default is held by scripts/utils/project-paths.ps1 and by nothing else - before this it
+# was written in 76 files, 74 of them generated and stamped `GENERATED - do not edit`, so moving
+# the canon required editing files that forbid editing. That is the exact non-portability the
+# hardcoded-drive-path rule was installed to refuse (S2326).
+#
+# The dot-source runs inside `& { }` deliberately. HALF this set is itself dot-sourced, so at top
+# level project-paths.ps1 would define its functions and set its script variables in the CALLER's
+# scope - the S2441 failure one level further out. A child scope cannot reach the caller at all.
+if (-not $szaFwdTarget) {
+    $szaFwdCheckout = $env:SZA_CANON_ROOT
+    if (-not $szaFwdCheckout) {
+        $szaFwdResolver = Join-Path $PSScriptRoot '..\..\scripts\utils\project-paths.ps1'
+        if (Test-Path -LiteralPath $szaFwdResolver) {
+            # A resolver that is absent or throws must not stop the forwarder from printing its own
+            # refusal, which is the only message that names all three candidates and the fix.
+            $szaFwdCheckout = & {
+                param($szaFwdResolverPath)
+                try { . $szaFwdResolverPath; Get-CanonRoot } catch { $null }
+            } $szaFwdResolver
+        }
+    }
+    if ($szaFwdCheckout) {
+        $szaFwdCandidates += (Join-Path $szaFwdCheckout 'tools\harness')
+        $szaFwdProbe = Join-Path $szaFwdCandidates[-1] 'spec_catalog\purge-probe-records.ps1'
+        if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe }
+    }
+}
+if (-not $szaFwdTarget) {
+    Write-Host "purge-probe-records.ps1: the SZA harness is not installed - looked in:" -ForegroundColor Red
+    foreach ($szaFwdDir in $szaFwdCandidates) { Write-Host "    $szaFwdDir" -ForegroundColor Gray }
+    Write-Host "  Install or update it:  claude plugin update sza@sza-unified-rules" -ForegroundColor Yellow
+    Write-Host "  Or point at a checkout: `$env:SZA_HARNESS_ROOT = '<repo>\tools\harness'" -ForegroundColor Yellow
+    exit 2
 }
 
-. (Join-Path $PSScriptRoot '_lib.ps1')
+$env:SZA_PROJECT_ROOT = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 
-$probeNamePattern = '^preview-tests-probe'
-
-Enter-CatalogLock
-
-$archiveBefore = Read-JsonlFile -Path (Get-ArchivePath)
-$doomed = @($archiveBefore | Where-Object { $_.status -eq 'Archived' -and $_.name -match $probeNamePattern })
-
-if ($doomed.Count -eq 0) {
-    Exit-CatalogLock
-    Write-Output "Nothing to purge - the archive holds 0 preview-tests-probe records."
-    exit 0
+# Half of this set is dot-sourced as a library and half is invoked as a CLI, and the two cannot be
+# forwarded the same way: `& $szaFwdTarget` would run a library in its own scope and define nothing
+# the caller can see, while `exit` inside a dot-sourced file would kill the caller. InvocationName
+# is '.' exactly when this file was dot-sourced, so one template serves both.
+if ($MyInvocation.InvocationName -eq '.') {
+    . $szaFwdTarget
+} else {
+    # Deliberately NOT 'Stop'. A native child's stderr arrives here as ErrorRecord objects, and
+    # under 'Stop' the first one terminates this forwarder before `exit $LASTEXITCODE` runs - so a
+    # script that reported a FAIL and exited 1 would reach its caller as a crashed forwarder with a
+    # different code. Every script in this set states its exit codes; passing them through unchanged
+    # is the whole job. S2441 moved it inside this branch: at the file's top level it also rewrote
+    # the preference of every caller that dot-sources a forwarder, silently downgrading a script
+    # running under 'Stop' for the rest of its life.
+    $ErrorActionPreference = 'Continue'
+    $global:LASTEXITCODE = 0
+    try {
+        & $szaFwdTarget @args
+    } catch {
+        # A child that THROWS never reaches its own `exit`, so $LASTEXITCODE stays 0 and the
+        # forwarder would report success for a script that failed - the one way a forwarder can
+        # turn a red verdict green. Every such refusal is a failure, so it leaves as exit 1.
+        Write-Error $_ -ErrorAction Continue
+        exit 1
+    }
+    $szaFwdCode = $LASTEXITCODE
+    exit $(if ($null -eq $szaFwdCode) { 0 } else { $szaFwdCode })
 }
-
-$idBefore = New-CatalogId
-$doomedIds = @($doomed | ForEach-Object { $_.id })
-$kept = @($archiveBefore | Where-Object { $doomedIds -notcontains $_.id })
-
-# Registry BEFORE the archive rewrite, so a crash between the two leaves the ids doubly held rather
-# than free: New-CatalogId reads the registry, so the maximum can no longer fall when the rows go.
-$burnedAdded = Add-BurnedIds -Ids $doomedIds -Reason 'preview.tests probe record (S1534)'
-
-Write-ArchiveCatalog -Records ([object[]]$kept)
-
-$idAfter = New-CatalogId
-if ($idAfter -ne $idBefore) {
-    Write-ArchiveCatalog -Records ([object[]]$archiveBefore)
-    Exit-CatalogLock
-    # Built into a variable first so -ErrorAction stays on the Write-Error line: assert-exit-contract
-    # scans line by line, and a switch on a continuation line reads to it as a bare Write-Error (S1547).
-    $abortMsg = "Aborted: purging would move the next id from $idBefore to $idAfter, " +
-        "handing a burned id back to a future ticket. Archive restored unchanged."
-    Write-Error $abortMsg -ErrorAction Continue
-    exit 3
-}
-
-Exit-CatalogLock
-
-Write-Output ("Purged {0} probe record(s): {1}" -f $doomed.Count, ($doomedIds -join ', '))
-Write-Output ("Recorded {0} id(s) in {1}." -f $burnedAdded, (Split-Path -Leaf (Get-BurnedIdsPath)))
-Write-Output ("Archive now {0} record(s). Next allocatable id unchanged at {1}." -f $kept.Count, $idAfter)

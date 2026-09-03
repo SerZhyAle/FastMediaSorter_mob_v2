@@ -34,7 +34,7 @@ class WearUploadOutcomeNotifier @Inject constructor(
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setContentTitle(title)
             .setContentText(text)
-            .setSmallIcon(R.drawable.ic_notification_app_logo)
+            .setSmallIcon(NotificationIcons.STATUS_BAR)
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()

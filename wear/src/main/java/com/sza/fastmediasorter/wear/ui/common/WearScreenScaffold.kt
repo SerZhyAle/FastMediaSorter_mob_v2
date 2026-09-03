@@ -129,3 +129,22 @@ fun wearMaxSquareSide(): Dp {
         shorterEdge - SQUARE_INSET * 2
     }
 }
+
+/**
+ * Clearance between the largest square [wearMaxSquareSide] admits and the edge of the display.
+ *
+ * The module's third statement about screen shape, kept beside the other two. Safe only at the
+ * middle of a side: that is where the circle stands furthest from the square it circumscribes, and
+ * the same clearance collapses to nothing at the square's corners, which touch the glass. A caller
+ * placing something in this band therefore has four usable segments and no usable corners.
+ */
+@Composable
+fun wearRingInset(): Dp {
+    val configuration = LocalConfiguration.current
+    return if (configuration.isScreenRound) {
+        val shorterEdge = minOf(configuration.screenWidthDp, configuration.screenHeightDp).dp
+        (shorterEdge - wearMaxSquareSide()) / 2
+    } else {
+        SQUARE_INSET
+    }
+}

@@ -25,11 +25,11 @@ private const val FIRST_COLLISION_ORDINAL = 2
 private const val MAX_COLLISION_ORDINAL = 99
 
 /**
- * S1862: allocates the target file for one recording, inside the app's private storage.
+ * S1862 / S2161: allocates the target file for one recording, inside the app's private storage.
  *
- * Private storage rather than shared media: a note is this app's working copy on its way to the
- * phone, and putting it in the watch's media collection would show it twice - once here and once in
- * whatever gallery the watch ships.
+ * S2161: The private file is the working copy a recording is captured into. Publication follows a
+ * successful stop, and appearing in both the note list and the audio collection is intended - the
+ * two lists answer different questions.
  *
  * Collisions are resolved against the disk rather than against an in-process counter (which is what
  * `CaptureFileNamer` does on the phone): the service that calls this can be killed and restarted

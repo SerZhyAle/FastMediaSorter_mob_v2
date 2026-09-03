@@ -3506,7 +3506,6 @@
     <string name="calculator_keypad_mode_normal">Normal</string>
     <string name="calculator_keypad_mode_large">Large keys</string>
     <string name="calculator_keypad_mode_compact">Compact, bottom right</string>
-    <string name="wear_background_section_title">Watch Background</string>
     <string name="wear_background_mode_animation">Branded animation</string>
     <string name="wear_background_mode_image">Your image</string>
     <string name="wear_background_pick_image">Choose image</string>
@@ -3691,4 +3690,18 @@
     <string name="reach_limited_nothing_readable">Documents cannot be read</string>
     <string name="storage_reach_limited_virtual">Documents and other files on this device are not visible to the app. To open them, add the folder you need through the system folder window.</string>
     <string name="storage_reach_limited_browse_reconnect">This folder is connected the old way - only photos, video and audio can be read through it. To see documents, hold the folder on the main screen and pick Reconnect resource.</string>
+    <string name="wear_settings_group_media_types">Media Types</string>
+    <string name="wear_settings_group_slideshow">Slideshow</string>
+    <string name="wear_settings_group_screen">Screen</string>
+    <string name="wear_settings_group_other">Other</string>
+    <string name="wear_settings_group_sections">Sections</string>
+    <string name="wear_settings_disable_animations">Disable animations</string>
+    <string name="wear_settings_background_mode">Watch Background</string>
+    <string name="wear_send_to_notification_title">File from your watch</string>
+    <string name="wear_send_to_notification_text">Tap to send %1$s to %2$s</string>
+    <string name="wear_send_to_channel_name">Send to.. from the watch</string>
+    <string name="wear_settings_background_playback">Keep playing in background</string>
+    <string name="wear_settings_background_playback_desc">On the watch, audio keeps playing after the app is minimized</string>
+    <string name="launcher_quick_menu_lock_changes">Lock changes</string>
+    <string name="launcher_desktop_locked_toast">The desktop is locked. Unlock it in launcher settings.</string>
 </resources>

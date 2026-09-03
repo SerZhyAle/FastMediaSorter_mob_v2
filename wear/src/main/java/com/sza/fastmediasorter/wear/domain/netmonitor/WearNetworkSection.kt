@@ -6,8 +6,14 @@ enum class WearNetworkSection(val key: String) {
     Mobile("mobile"),
     Bluetooth("bluetooth"),
     Gnss("gnss"),
+    Traffic("traffic"),
     Internet("internet"),
-    History("history"),
+    History("history");
+
+    companion object {
+        fun fromKey(key: String?): WearNetworkSection =
+            entries.firstOrNull { it.key.equals(key, ignoreCase = true) } ?: Summary
+    }
 }
 
 data class WearNetworkCapabilities(
@@ -17,12 +23,17 @@ data class WearNetworkCapabilities(
     val hasLocation: Boolean,
 )
 
+/**
+ * All applicable sections for the button panel on the dashboard.
+ * Note: per Quiz decision 5 and ADR-2, sections remain in the list so users can open them
+ * and see live telemetry or a clear explanation (e.g. Mobile on a non-cellular watch).
+ */
 fun sectionsFor(capabilities: WearNetworkCapabilities): List<WearNetworkSection> = buildList {
-    add(WearNetworkSection.Summary)
     if (capabilities.hasWifi) add(WearNetworkSection.Wifi)
-    if (capabilities.hasMobile) add(WearNetworkSection.Mobile)
+    add(WearNetworkSection.Mobile)
     if (capabilities.hasBluetooth) add(WearNetworkSection.Bluetooth)
     if (capabilities.hasLocation) add(WearNetworkSection.Gnss)
+    add(WearNetworkSection.Traffic)
     add(WearNetworkSection.Internet)
     add(WearNetworkSection.History)
 }

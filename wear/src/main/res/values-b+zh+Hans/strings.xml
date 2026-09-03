@@ -32,7 +32,6 @@
     <string name="start_slideshow">开始幻灯片放映</string>
     <string name="stop_slideshow">停止幻灯片放映</string>
     <string name="network_storage">资源</string>
-    <string name="add_smb_connection">添加 SMB</string>
     <string name="server_address">服务器地址</string>
     <string name="share_name">共享名称</string>
     <string name="username">用户名</string>
@@ -196,8 +195,6 @@
     <string name="system_info_free">可用</string>
     <string name="system_info_total">总计</string>
     <string name="system_info_phone_link">连接</string>
-    <string name="system_info_phone_connected">已连接</string>
-    <string name="system_info_phone_not_connected">未连接</string>
     <string name="system_info_loading">正在读取设备..</string>
     <string name="phone_resource_empty_filtered">此处没有此类内容。请打开其他文件夹或重试。</string>
     <string name="phone_resource_open_unsupported">手表没有可播放此类文件的播放器。</string>
@@ -247,14 +244,11 @@
     <string name="wear_netmon_history_empty">本次会话尚无读数</string>
     <string name="wear_netmon_value_dbm">%1$d dBm</string>
     <string name="wear_netmon_value_mbps">%1$d Mbps</string>
-    <string name="wear_game_score">得分</string>
-    <string name="wear_game_turns">步数</string>
     <string name="wear_game_level_completed">关卡完成</string>
     <string name="wear_game_level_lost">被抓住</string>
     <string name="wear_game_restart">重新开始</string>
     <string name="wear_game_continue">继续</string>
     <string name="wear_game_board_description">游戏棋盘。滑动棋盘可移动，长按可打开菜单。</string>
-    <string name="wear_game_player_description">你在面板上的棋子</string>
     <string name="wear_streams_filter_topic_all">所有主题</string>
     <string name="wear_streams_filter_language_all">所有语言</string>
     <string name="wear_streams_filter_topic_header">话题</string>
@@ -301,7 +295,6 @@
     <string name="wear_state_empty">这里还什么都没有。</string>
     <string name="wear_open_on_watch_channel_name">在手表上打开</string>
     <string name="wear_open_on_watch_notification_title">手机发来东西要打开</string>
-    <string name="wear_game_level">等级</string>
     <string name="wear_file_op_actions">行动</string>
     <string name="wear_file_op_send_to_phone">发送至手机</string>
     <string name="wear_file_op_move_to_phone">移至电话</string>

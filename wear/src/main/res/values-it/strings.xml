@@ -32,7 +32,6 @@
     <string name="start_slideshow">Avvia presentazione</string>
     <string name="stop_slideshow">Interrompi presentazione</string>
     <string name="network_storage">Risorse</string>
-    <string name="add_smb_connection">Aggiungi SMB</string>
     <string name="server_address">Indirizzo server</string>
     <string name="share_name">Nome condivisione</string>
     <string name="username">Nome utente</string>
@@ -196,8 +195,6 @@
     <string name="system_info_free">Libera</string>
     <string name="system_info_total">Totale</string>
     <string name="system_info_phone_link">Connessione</string>
-    <string name="system_info_phone_connected">Connesso</string>
-    <string name="system_info_phone_not_connected">Non connesso</string>
     <string name="system_info_loading">Lettura del dispositivo..</string>
     <string name="phone_resource_empty_filtered">Niente di questo tipo qui. Apri un\'altra cartella o riprova.</string>
     <string name="phone_resource_open_unsupported">L\'orologio non ha un lettore per questo tipo di file.</string>
@@ -247,14 +244,11 @@
     <string name="wear_netmon_history_empty">Nessuna lettura in questa sessione</string>
     <string name="wear_netmon_value_dbm">%1$d dBm</string>
     <string name="wear_netmon_value_mbps">%1$d Mbps</string>
-    <string name="wear_game_score">Punteggio</string>
-    <string name="wear_game_turns">Mosse</string>
     <string name="wear_game_level_completed">Livello superato</string>
     <string name="wear_game_level_lost">Preso</string>
     <string name="wear_game_restart">Ricomincia</string>
     <string name="wear_game_continue">Continua</string>
     <string name="wear_game_board_description">Tabellone di gioco. Scorri sul tabellone per muoverti, tieni premuto per il menu.</string>
-    <string name="wear_game_player_description">La tua pedina sul tabellone</string>
     <string name="wear_streams_filter_topic_all">Tutti gli argomenti</string>
     <string name="wear_streams_filter_language_all">Tutte le lingue</string>
     <string name="wear_streams_filter_topic_header">Argomento</string>
@@ -301,7 +295,6 @@
     <string name="wear_state_empty">Niente qui ancora.</string>
     <string name="wear_open_on_watch_channel_name">Aperto sull\'orologio</string>
     <string name="wear_open_on_watch_notification_title">Il telefono ha inviato qualcosa da aprire</string>
-    <string name="wear_game_level">Livello</string>
     <string name="wear_file_op_actions">Azioni</string>
     <string name="wear_file_op_send_to_phone">Invia al telefono</string>
     <string name="wear_file_op_move_to_phone">Passa al telefono</string>

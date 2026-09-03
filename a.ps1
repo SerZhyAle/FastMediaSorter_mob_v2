@@ -20,13 +20,15 @@
     fkn  - Fast Kotlin compile check (noLegal)
     fr   - Fast resources/manifest check (-Flavor applies)
     fc   - Fast code + resources check (-Flavor applies)
-           All six flavors are reachable on fk/fr/fc without a dedicated letter:
-           -Flavor Standard|NoLegal|Lite|Photos|Legacy|Vr, e.g. `.\a.ps1 fc -Flavor Lite`.
+           Every flavor is reachable on fk/fr/fc without a dedicated letter:
+           -Flavor Standard|NoLegal|Lite|Photos|Legacy|Vr|Foss, e.g. `.\a.ps1 fc -Flavor Lite`.
            This is how "build every affected variant" is satisfied - each call takes
            BUILD.LOCK, so no direct gradlew invocation is needed.
     fu   - Fast full unit-test suite (app_v2)
     fa   - Fast instrumented-test COMPILE check (app_v2 androidTest; does not run them)
     fam  - RUN the Room migration tests on a connected device (the database-upgrade proof)
+           Takes -DeviceId <serial>. With several devices attached it now REFUSES and lists
+           them instead of installing on each one, the owner's phone included (S2363).
     fw   - Fast Kotlin compile check, wear module
     fwr  - Fast resources/manifest check, wear module
     fwu  - Fast unit-test suite, wear module
@@ -58,8 +60,13 @@
            `.\a.ps1 r1 -MaxTickets 5 -TimeoutMinutes 45`.
     rs   - Stop the runners: each finishes the ticket it is on, then exits.
            `.\a.ps1 rs -Instance b` stops one; `.\a.ps1 rs -Kill` also kills the children.
-    rm   - Monitor: running children, claimed tickets, locks, and what each instance finished.
+    rm   - Monitor: running children, claimed tickets, locks, and what each instance finished
+           (-Watch to refresh, -Json for the snapshot object).
+    rmw  - Monitor page: start the detached writer and open temp/monitor/index.html in the browser;
+           refreshes every 3 s from the same snapshot as rm (-Stop, -Status).
            `.\a.ps1 rm -Watch` refreshes until Ctrl+C.
+    chat - Agent chat (S2372): what sibling sessions are doing and what they measured; verb and
+           options ride in via $Rest, e.g. `.\a.ps1 chat -Verb Status`, `.\a.ps1 chat -Verb Find -Topic "check:*"`.
     ub   - Unlock build: clear EVERY build domain (Build.Phone + Build.Wear) and its queue when
            the holder is stale or dead. Per domain: ubp (Build.Phone), ubw (Build.Wear).
     uc   - Unlock code: the same across EVERY code domain (Code.Phone + Code.Wear + Code.Scripts).
@@ -113,6 +120,85 @@ $ProjectRoot = $PSScriptRoot
 # Sibling directories (the release worktree below) resolve through the shared resolver.
 . "$PSScriptRoot\scripts\utils\project-paths.ps1"
 
+# --- S2412: keep a Gradle daemon away from the caller's pipe ------------------------------------
+#
+# A daemon born under an agent's tool call inherits that call's stdout handle and outlives the
+# build, so the call never sees EOF and hangs until the tool's own timeout - measured 2026-09-03 at
+# 9 min 11 s past the point the script itself had finished, with every lock that session held still
+# taken. Running the target in a child whose streams are FILES removes the pipe from what the daemon
+# can inherit. a.ps1 is the seam because it is the one entry point an agent is obliged to use
+# (CLAUDE.md Rule 25), which beats patching 99 gradlew call sites in 50 scripts.
+
+function Test-GradleBackedScript {
+    param([string]$Path)
+
+    # Read from the target's own text, never from a list of target names: there are 73 targets here
+    # and the gradle-backed subset changes whenever one is added, so a list would go stale silently
+    # and the hang would come back for exactly the target nobody remembered to add.
+    # `gradlew` is the invocation itself; `Enter-BuildLockOrExit` is what Rule 23 obliges every
+    # gradle entry point to call, and catches a target that assembles its command line elsewhere.
+    $text = Get-Content -LiteralPath $Path -Raw -ErrorAction SilentlyContinue
+    if (-not $text) { return $false }
+    return ($text -match 'gradlew') -or ($text -match 'Enter-BuildLockOrExit')
+}
+
+function Test-StdoutIsolationWanted {
+    param([string]$Path)
+
+    # FMS_ISOLATE_STDOUT is the escape hatch for the transitive case the text test cannot see - a
+    # target that reaches gradle only through another script, `fg -IncludeDetekt` being the one such
+    # target today. 1 forces isolation on, 0 forces it off.
+    switch ($env:FMS_ISOLATE_STDOUT) {
+        '1' { return $true }
+        '0' { return $false }
+    }
+    # Redirected stdout means a pipe or a file, which is the agent; a console is the owner in a
+    # terminal, who has never reproduced this and would only lose the colour of the output.
+    return [Console]::IsOutputRedirected -and (Test-GradleBackedScript -Path $Path)
+}
+
+function ConvertTo-ChildArgumentList {
+    param($Preset, $Extra)
+
+    # A hashtable splat binds by name in-process but cannot cross a process boundary, so the preset
+    # is flattened to tokens here. Switches carry no value; everything else becomes two tokens.
+    $flat = @()
+    if ($Preset -is [hashtable]) {
+        foreach ($key in $Preset.Keys) {
+            $value = $Preset[$key]
+            if ($value -is [bool]) {
+                if ($value) { $flat += "-$key" }
+            }
+            else {
+                $flat += "-$key"
+                $flat += "$value"
+            }
+        }
+    }
+    elseif ($Preset) {
+        $flat += @($Preset | ForEach-Object { "$_" })
+    }
+    foreach ($token in $Extra) { $flat += "$token" }
+    return , $flat
+}
+
+function Invoke-LauncherTarget {
+    param([string]$Path, $PresetArgs, $ExtraArgs, [string]$WorkingDirectory)
+
+    if (-not (Test-StdoutIsolationWanted -Path $Path)) {
+        & $Path @PresetArgs @ExtraArgs
+        return
+    }
+    $isolator = Join-Path $PSScriptRoot 'scripts\utils\invoke-isolated-stdout.ps1'
+    $childArgs = ConvertTo-ChildArgumentList -Preset $PresetArgs -Extra $ExtraArgs
+    if ($WorkingDirectory) {
+        & $isolator -ScriptPath $Path -Arguments $childArgs -WorkingDirectory $WorkingDirectory
+    }
+    else {
+        & $isolator -ScriptPath $Path -Arguments $childArgs
+    }
+}
+
 # Script mapping.
 #
 # Args MUST be a hashtable, not a string array. Reason: `& $script @arrayArgs` splats
@@ -151,6 +237,13 @@ $scripts = @{
     'fw'        = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Code'; Module = 'wear' } }  # S1496: fast Kotlin compile for the wear module
     'fwr'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Resources'; Module = 'wear' } }  # S1807: fast resources/manifest check for the wear module
     'fwu'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Unit'; Module = 'wear' } }  # S1807: fast unit-test suite for the wear module
+    # S2355: compile the WATCH instrumented set. `fa` compiles app_v2 only, so quoting it under a
+    # wear change records a verdict about the other module - the miss S1807 measured five times.
+    # The flavor is named rather than defaulted: S2090 gave the watch a standard/noLegal dimension.
+    'faw'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'AndroidTest'; Module = 'wear'; Flavor = 'Standard' } }
+    # S2355: RUN the watch Room migration tests on a connected device. `fam` runs the phone package only.
+    # The flavor is named rather than defaulted: S2090 gave the watch a standard/noLegal dimension.
+    'fwm'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'ConnectedAndroidTest'; Module = 'wear'; Flavor = 'Standard'; Tests = 'com.sza.fastmediasorter.wear.data.db' } }
     'flr'       = @{ Path = 'scripts\builders\check-lint-rules.ps1'; Args = @{} }  # S1195: custom lint detectors' own test suite
     'fg'        = @{ Path = 'scripts\quality\assert-fast-gates.ps1'; Args = @{} }  # S0826: batch fast static gates in one process
     # S2122: the repository's *.tests/Run-Tests.ps1 suites, by hand. Bare = the full sweep (measured
@@ -182,6 +275,11 @@ $scripts = @{
     'r3'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Instance = 'c'; StartDelaySeconds = 40 } }
     'rs'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Stop = $true } }
     'rm'        = @{ Path = 'scripts\utils\monitor-spec-queue.ps1'; Args = @{} }
+    # S2406: the monitor page - a detached writer keeps temp/monitor/index.html current every 3 s
+    # from the same snapshot `rm` prints; `-Stop` ends it, `-Status` asks.
+    'rmw'       = @{ Path = 'scripts\utils\dev-monitor-writer.ps1'; Args = @{} }
+    # S2372: the descriptive layer beside the locks - read at a refusal, written by the scripts.
+    'chat'      = @{ Path = 'scripts\utils\agent-chat.ps1'; Args = @{} }
     # Lock releasers. Conservative by design: a lock whose owner is still alive is REFUSED and its
     # holder printed, so the shortcut cannot silently drop a sibling's turn mid-edit. `-Force` rides
     # through $Rest for the case the operator has confirmed the holder is gone.
@@ -248,11 +346,12 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  fkn  - Fast Kotlin compile check (noLegal)" -ForegroundColor Cyan
     Write-Host "  fr   - Fast resources/manifest check" -ForegroundColor Cyan
     Write-Host "  fc   - Fast code + resources check" -ForegroundColor Cyan
-    Write-Host "         fk/fr/fc take -Flavor Standard|NoLegal|Lite|Photos|Legacy|Vr," -ForegroundColor DarkCyan
-    Write-Host "         e.g. '.\a.ps1 fc -Flavor Lite' - proves any of the six flavors." -ForegroundColor DarkCyan
+    Write-Host "         fk/fr/fc take -Flavor Standard|NoLegal|Lite|Photos|Legacy|Vr|Foss," -ForegroundColor DarkCyan
+    Write-Host "         e.g. '.\a.ps1 fc -Flavor Lite' - proves any single flavor." -ForegroundColor DarkCyan
     Write-Host "  fu   - Fast full unit-test suite (app_v2)" -ForegroundColor Cyan
     Write-Host "  fa   - Fast instrumented-test COMPILE check (app_v2 androidTest)" -ForegroundColor Cyan
     Write-Host "  fam  - RUN the Room migration tests on a connected device (database-upgrade proof)" -ForegroundColor Cyan
+    Write-Host "         fam/fwm take -DeviceId <serial>; several devices attached = refusal, not a fan-out" -ForegroundColor Cyan
     Write-Host "  fw   - Fast Kotlin compile check, wear module" -ForegroundColor Cyan
     Write-Host "  fwr  - Fast resources/manifest check, wear module" -ForegroundColor Cyan
     Write-Host "  fwu  - Fast unit-test suite, wear module" -ForegroundColor Cyan
@@ -278,7 +377,8 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  r2   - Same, instance B - the second parallel stream" -ForegroundColor Cyan
     Write-Host "  r3   - Same, instance C - the third parallel stream" -ForegroundColor Cyan
     Write-Host "  rs   - Stop the runners after the ticket each is on (-Kill to terminate now)" -ForegroundColor Cyan
-    Write-Host "  rm   - Monitor the runners (-Watch to refresh)" -ForegroundColor Cyan
+    Write-Host "  rm   - Monitor the runners (-Watch to refresh, -Json for the snapshot)" -ForegroundColor Cyan
+    Write-Host "  rmw  - Monitor page: detached writer + browser, temp/monitor/index.html (-Stop, -Status)" -ForegroundColor Cyan
     Write-Host "  ub   - Unlock build: every build domain, stale/dead only (-Force to override)" -ForegroundColor Cyan
     Write-Host "         ubp/ubw - one domain: Build.Phone / Build.Wear" -ForegroundColor Cyan
     Write-Host "  uc   - Unlock code: every code domain, stale/dead only (-Force to override)" -ForegroundColor Cyan
@@ -374,7 +474,10 @@ if ($releaseCommands -contains $Command) {
         # producing artifacts with stale versions and silently mirroring dev outputs.
         Push-Location $worktreePath
         try {
-            & $worktreeScript @scriptArgs @Rest
+            # The working directory is passed explicitly rather than inherited: under S2412's
+            # isolation the build runs in a CHILD process, and a child does not inherit Push-Location.
+            Invoke-LauncherTarget -Path $worktreeScript -PresetArgs $scriptArgs -ExtraArgs $Rest `
+                -WorkingDirectory $worktreePath
             $buildExit = $LASTEXITCODE
         }
         finally {
@@ -429,7 +532,7 @@ $argsDisplay = if ($scriptArgs -is [hashtable]) {
 Write-Host "Executing: $($scriptEntry.Path) $argsDisplay $($Rest -join ' ')" -ForegroundColor Green
 Write-Host ""
 
-& $scriptPath @scriptArgs @Rest
+Invoke-LauncherTarget -Path $scriptPath -PresetArgs $scriptArgs -ExtraArgs $Rest
 
 # Return exit code from executed script
 exit $LASTEXITCODE

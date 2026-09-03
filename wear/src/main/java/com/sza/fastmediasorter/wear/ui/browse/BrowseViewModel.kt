@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.wear.ui.browse
 
-import android.content.IntentSender
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,15 +11,10 @@ import com.sza.fastmediasorter.wear.domain.browse.BrowseRefineKeys
 import com.sza.fastmediasorter.wear.domain.browse.BrowseRefineRestore
 import com.sza.fastmediasorter.wear.domain.browse.BrowseRefineState
 import com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder
-import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
 import com.sza.fastmediasorter.wear.domain.model.MediaType
 import com.sza.fastmediasorter.wear.domain.model.NetworkBasePath
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
-import com.sza.fastmediasorter.wear.domain.model.WearFileOperation
-import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
-import com.sza.fastmediasorter.wear.domain.model.WearFileOperationOutcome
-import com.sza.fastmediasorter.wear.domain.model.WearFileOperationResult
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
@@ -32,22 +26,21 @@ import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearThumbnailRepository
-import com.sza.fastmediasorter.wear.domain.usecase.PerformWearFileOperationUseCase
 import com.sza.fastmediasorter.wear.ui.common.BrowseCategoryPresentation
 import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
 import com.sza.fastmediasorter.wear.util.MediaMimeTypes
 import com.sza.fastmediasorter.wear.util.WearThumbnailBudget
+import com.sza.fastmediasorter.wear.util.errorUnlessCancellation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -70,8 +63,8 @@ class BrowseViewModel @Inject constructor(
     private val selectedMediaManager: SelectedMediaManager,
     private val playbackSetManager: PlaybackSetManager,
     private val thumbnailRepository: WearThumbnailRepository,
-    private val capabilityPolicy: WearFileCapabilityPolicy,
-    private val performFileOperation: PerformWearFileOperationUseCase
+    /** S2444: owns the selection and the file-operation batch - see [BrowseFileOperationsManager]. */
+    val fileOperations: BrowseFileOperationsManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<BrowseUiState>(BrowseUiState.Loading)
@@ -95,33 +88,16 @@ class BrowseViewModel @Inject constructor(
     val selectedFile: StateFlow<WearMediaFile?> = _selectedFile.asStateFlow()
 
     /**
-     * Kept apart from [uiState] on purpose: folding it in would re-emit the whole list on every tap
-     * and re-run the per-id thumbnail effects the grid keys on.
-     */
-    private val _selectedFileIds = MutableStateFlow<Set<Long>>(emptySet())
-    val selectedFileIds: StateFlow<Set<Long>> = _selectedFileIds.asStateFlow()
-
-    private val _operationRun = MutableStateFlow(WearFileOperationRunState())
-    val operationRun: StateFlow<WearFileOperationRunState> = _operationRun.asStateFlow()
-
-    /** S2142: owns which write confirmation is waiting and what to retry once it is answered. */
-    private val consentManager = MediaStoreConsentManager()
-
-    /** The system confirmation waiting to be shown, or null when nothing is waiting. */
-    val consentRequest: StateFlow<IntentSender?> = consentManager.request
-
-    /** Cancelled by [viewModelScope] when the screen goes, so an abandoned batch stops copying. */
-    private var operationJob: Job? = null
-
-    /**
-     * The operations every selected file permits - an intersection, never a union.
+     * S2444: the files on screen right now, which is the only slice of [uiState] the operations
+     * helper needs.
      *
-     * A mixed selection is the normal case once "select all" exists, and offering an action only
-     * some of its files accept is the trust failure strategic 7 rates first.
+     * Started eagerly, unlike the subscription-scoped flows below: `selectAll` and `runOperation`
+     * read `.value` synchronously off a tap, and under `WhileSubscribed` that would answer with the
+     * initial empty list whenever nothing happened to be collecting.
      */
-    val allowedOperations: StateFlow<Set<WearFileOperationKind>> =
-        combine(_uiState, _selectedFileIds) { state, ids -> allowedFor(state, ids) }
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(VIEW_MODE_SUBSCRIPTION_MS), emptySet())
+    private val displayedFiles: StateFlow<List<WearMediaFile>> = _uiState
+        .map { (it as? BrowseUiState.Success)?.files.orEmpty() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     /** The file list's own stored view, separate from the navigation screens' mode. */
     val fileListViewMode: StateFlow<WearViewMode> = preferencesRepository.fileListViewMode
@@ -168,6 +144,15 @@ class BrowseViewModel @Inject constructor(
 
     init {
         Timber.d("BrowseViewModel initialized")
+        // S2444: the helper's four missing pieces, none of which exists before the constructor has
+        // run. `isNetworkSource` is passed as a lambda rather than a value because the route sets it
+        // later, in setNavigationArgs.
+        fileOperations.bind(
+            scope = viewModelScope,
+            displayedFiles = displayedFiles,
+            isNetworkSource = { isNetworkSource },
+            onListInvalidated = ::loadMediaFiles
+        )
         // loadMediaFiles() will be called after setNavigationArgs() from UI
         viewModelScope.launch {
             // S2199: the order applies at once because it needs no list. The type filter cannot:
@@ -194,7 +179,7 @@ class BrowseViewModel @Inject constructor(
             _uiState.value = BrowseUiState.Loading
             // A reload replaces the list, so ids held from the previous one would address files
             // that are no longer on screen.
-            _selectedFileIds.value = emptySet()
+            fileOperations.clearFileSelection()
 
             if (isNetworkSource && _sourceId != null) {
                 // Load from network source
@@ -332,7 +317,8 @@ class BrowseViewModel @Inject constructor(
                     publishLoaded(mediaFiles)
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Exception loading network files")
+                Timber.d("S2278: browse network load catch entered, cancellation cure routes it")
+                e.errorUnlessCancellation("Exception loading network files")
                 withContext(Dispatchers.Main) {
                     _uiState.value = BrowseUiState.Error(ScreenTitle.Resource(R.string.browse_load_failed))
                 }
@@ -508,170 +494,6 @@ class BrowseViewModel @Inject constructor(
         _selectedFile.value = null
     }
 
-    /** Long press opens selection mode on the pressed file. */
-    fun enterSelection(file: WearMediaFile) {
-        if (capabilityPolicy.operationsFor(file, isNetworkSource).isEmpty()) return
-        _selectedFileIds.value = setOf(file.id)
-    }
-
-    fun toggleSelection(file: WearMediaFile) {
-        if (capabilityPolicy.operationsFor(file, isNetworkSource).isEmpty()) return
-        _selectedFileIds.update { current ->
-            if (file.id in current) current - file.id else current + file.id
-        }
-    }
-
-    fun selectAll() {
-        val displayed = (_uiState.value as? BrowseUiState.Success)?.files ?: return
-        _selectedFileIds.value = displayed
-            .filter { capabilityPolicy.operationsFor(it, isNetworkSource).isNotEmpty() }
-            .map { it.id }
-            .toSet()
-    }
-
-    fun clearFileSelection() {
-        _selectedFileIds.value = emptySet()
-    }
-
-    /**
-     * What every selected file allows, intersected - an empty set when nothing is selected, so the
-     * action chip has nothing to open.
-     *
-     * A file no operation accepts must never enter the selection either: it would count towards the
-     * batch and let the action menu offer work its source cannot perform.
-     */
-    private fun allowedFor(state: BrowseUiState, ids: Set<Long>): Set<WearFileOperationKind> {
-        val selected = (state as? BrowseUiState.Success)
-            ?.files
-            ?.filter { it.id in ids }
-            .orEmpty()
-        return if (selected.isEmpty()) {
-            emptySet()
-        } else {
-            selected
-                .map { capabilityPolicy.operationsFor(it, isNetworkSource) }
-                .reduce { acc, allowed -> acc intersect allowed }
-        }
-    }
-
-    /**
-     * Runs [operation] over the current selection, reporting each file as its own result.
-     *
-     * The run is not collapsed into one verdict: strategic 11 criterion 6 requires the user to read
-     * the partial success of a batch, so every emission is accumulated rather than replaced.
-     */
-    fun runOperation(operation: WearFileOperation) {
-        val targets = selectedFiles()
-        if (targets.isEmpty()) {
-            Timber.w("Wear file operation requested with an empty selection")
-        } else {
-            startOperation(targets, operation)
-        }
-    }
-
-    private fun startOperation(
-        targets: List<WearMediaFile>,
-        operation: WearFileOperation,
-        keptResults: List<WearFileOperationResult> = emptyList()
-    ) {
-        operationJob?.cancel()
-        operationJob = viewModelScope.launch {
-            _operationRun.value = WearFileOperationRunState(
-                running = true,
-                total = targets.size,
-                // A retry after the owner confirms keeps what the first pass already settled, so a
-                // batch that half succeeded does not lose those lines to the second run.
-                results = keptResults
-            )
-            try {
-                collectRun(targets, operation)
-            } finally {
-                // Also on cancellation: without this the progress dialog would keep the screen with
-                // running = true forever, and the files never reached would have no answer at all.
-                finishRun(targets)
-            }
-            consentManager.raiseIfBlocked(_operationRun.value.results, targets, operation)
-            _selectedFileIds.value = emptySet()
-            // Only a run that actually changed the directory invalidates the list on screen; a send
-            // that left every file where it was would reload for nothing.
-            val changed = _operationRun.value.results.any { it.outcome == WearFileOperationOutcome.SUCCEEDED }
-            if (operation.mutatesList() && changed) {
-                loadMediaFiles()
-            }
-        }
-    }
-
-    /**
-     * A failure upstream ends the batch, not the process.
-     *
-     * The stager reads a MediaStore row through the content resolver, which throws past the
-     * [java.io.IOException] it handles when a provider or a grant has gone; unhandled, that killed the
-     * app mid-batch and left the progress dialog owning the screen.
-     */
-    private suspend fun collectRun(targets: List<WearMediaFile>, operation: WearFileOperation) {
-        performFileOperation(targets, operation, isNetworkSource)
-            .catch { throwable ->
-                Timber.e(throwable, "Wear file operation failed mid-batch")
-                val answered = _operationRun.value.results.map { it.fileName }.toSet()
-                targets.filterNot { it.name in answered }.forEach { pending ->
-                    emit(WearFileOperationResult(pending.name, WearFileOperationOutcome.FAILED))
-                }
-            }
-            .collect { result ->
-                _operationRun.update { current ->
-                    current.copy(completed = current.completed + 1, results = current.results + result)
-                }
-            }
-    }
-
-    /**
-     * Closes the run, giving every file the batch never reached an explicit CANCELLED line.
-     *
-     * Silence would otherwise be indistinguishable from success on a screen the user reads once.
-     */
-    private fun finishRun(targets: List<WearMediaFile>) {
-        _operationRun.update { current ->
-            val answered = current.results.map { it.fileName }.toSet()
-            val cancelled = targets
-                .filterNot { it.name in answered }
-                .map { WearFileOperationResult(it.name, WearFileOperationOutcome.CANCELLED) }
-            current.copy(running = false, results = current.results + cancelled)
-        }
-    }
-
-    /**
-     * The owner has answered the system dialog; a granted one runs the refused files again.
-     *
-     * A refusal leaves every NEEDS_CONSENT line standing, because that line already reads as "not
-     * confirmed, nothing changed" - which is exactly what happened, and what strategic 11 criterion
-     * 2 requires the owner to be able to see.
-     */
-    fun onConsentAnswered(granted: Boolean) {
-        val pending = consentManager.consume(granted) ?: return
-        val kept = _operationRun.value.results
-            .filterNot { it.outcome == WearFileOperationOutcome.NEEDS_CONSENT }
-        startOperation(pending.files, pending.operation, keptResults = kept)
-    }
-
-    /** Stops a run in flight; [finishRun] then records what it never reached. */
-    fun cancelOperation() {
-        operationJob?.cancel()
-    }
-
-    /** The results stay until the user dismisses them, outliving the reload a run may have caused. */
-    fun dismissOperationResults() {
-        _operationRun.value = WearFileOperationRunState()
-        consentManager.reset()
-    }
-
-    private fun selectedFiles(): List<WearMediaFile> {
-        val ids = _selectedFileIds.value
-        return (_uiState.value as? BrowseUiState.Success)
-            ?.files
-            ?.filter { it.id in ids }
-            .orEmpty()
-    }
-
     override fun onCleared() {
         super.onCleared()
         // The manager is a singleton and would otherwise outlive this screen, leaving a player
@@ -722,23 +544,10 @@ private fun localTitleRes(categoryToken: String?, mediaType: MediaType): Int =
         }
 
 /**
- * What [file] permits, classified first.
- *
- * The classify-then-allow pair was written out at two call sites, and the screen only ever asked it
- * two questions: "may this file be acted on at all" and "what do all the selected ones share". Both
- * are this one expression, so it lives here once rather than as a member per question.
- */
-private fun WearFileCapabilityPolicy.operationsFor(
-    file: WearMediaFile,
-    isNetworkSource: Boolean
-): Set<WearFileOperationKind> = allowedOperations(classify(file, isNetworkSource))
-
-/**
  * Whether a MIME type belongs to the expected media type category.
  *
  * Top-level rather than a member: it reads no state of the screen, taking both of its inputs as
- * arguments, and sat inside the class only by habit. It is [mutatesList] below with a different
- * subject.
+ * arguments, and sat inside the class only by habit.
  */
 private fun matchesMediaType(mimeType: String?, mediaType: MediaType): Boolean {
     if (mimeType == null) {
@@ -749,19 +558,4 @@ private fun matchesMediaType(mimeType: String?, mediaType: MediaType): Boolean {
         MediaType.VIDEO -> mimeType.startsWith("video/")
         MediaType.MUSIC -> mimeType.startsWith("audio/")
     }
-}
-
-/**
- * Whether a finished run leaves the list on screen describing files that are no longer there.
- *
- * A move removes the watch copy once the phone confirms, so it invalidates the list exactly as a
- * delete does; a plain send never touches the source.
- */
-private fun WearFileOperation.mutatesList(): Boolean = when (this) {
-    WearFileOperation.SendToPhone -> false
-    WearFileOperation.MoveToPhone -> true
-    WearFileOperation.Delete -> true
-    is WearFileOperation.Rename -> true
-    // Everything it changes happens on the phone; the watch copy it names is still where it was.
-    is WearFileOperation.OpenOnPhone -> false
 }

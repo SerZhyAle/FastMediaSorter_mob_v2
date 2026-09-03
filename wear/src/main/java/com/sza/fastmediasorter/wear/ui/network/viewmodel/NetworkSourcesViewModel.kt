@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ExportSourcesUseCase
 import com.sza.fastmediasorter.wear.ui.network.SourceItem
+import com.sza.fastmediasorter.wear.util.errorUnlessCancellation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -141,7 +142,7 @@ class NetworkSourcesViewModel @Inject constructor(
                     .await()
                 Timber.d("Sync request sent to node $nodeId")
             } catch (e: Exception) {
-                Timber.e(e, "Failed to request sync from phone")
+                e.errorUnlessCancellation("Failed to request sync from phone")
                 _syncState.value = SyncState.Error(R.string.wear_sync_request_failed)
             }
         }
@@ -167,10 +168,10 @@ class NetworkSourcesViewModel @Inject constructor(
     fun retryLoad() {
         viewModelScope.launch {
             _uiState.value = NetworkSourcesUiState.Loading
-            
+
             try {
                 val allSources = networkSourceRepository.getAllSources()
-                
+
                 if (allSources.isEmpty()) {
                     _uiState.value = NetworkSourcesUiState.Empty
                     Timber.d("No network sources found")
@@ -188,7 +189,7 @@ class NetworkSourcesViewModel @Inject constructor(
                     Timber.d("Loaded ${sourceItems.size} network sources")
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Error loading network sources")
+                e.errorUnlessCancellation("Error loading network sources")
                 _uiState.value = NetworkSourcesUiState.Error(
                     message = e.message ?: "Failed to load network sources"
                 )
@@ -261,7 +262,7 @@ class NetworkSourcesViewModel @Inject constructor(
                 networkSourceRepository.deleteSource(id)
                 Timber.d("Deleted source $id")
             } catch (e: Exception) {
-                Timber.e(e, "Failed to delete source $id")
+                e.errorUnlessCancellation("Failed to delete source $id")
             }
         }
     }

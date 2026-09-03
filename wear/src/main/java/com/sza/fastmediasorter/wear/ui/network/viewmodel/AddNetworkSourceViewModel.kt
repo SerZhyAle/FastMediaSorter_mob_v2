@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
+import com.sza.fastmediasorter.wear.util.errorUnlessCancellation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -144,7 +145,7 @@ class AddNetworkSourceViewModel @Inject constructor(
                 )
                 onSuccess()
             } catch (e: Exception) {
-                Timber.e(e, "Failed to save network source")
+                e.errorUnlessCancellation("Failed to save network source")
                 _uiState.value = currentState.copy(
                     isLoading = false,
                     statusMessage = context.getString(

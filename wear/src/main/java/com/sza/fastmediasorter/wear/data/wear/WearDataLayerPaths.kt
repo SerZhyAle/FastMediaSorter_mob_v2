@@ -69,6 +69,19 @@ object WearDataLayerPaths {
     const val STREAM_PINS = "/fms/phone/stream_pins"
 
     /**
+     * Data Item, phone → watch. Carries the whole set of «Send to..» receivers this watch may offer
+     * (S2142).
+     *
+     * A Data Item and a whole set for [STREAM_PINS]'s reasons: the list is state this watch must hold
+     * while out of reach, and replacing it whole is the only thing that lets a receiver switched off
+     * on the phone disappear from here. Its own path rather than a field of the settings payload,
+     * because the list is a derivative of the owner's settings and not a setting (ADR-5).
+     *
+     * Mirrored verbatim from the phone module's copy of this object - the two must not drift.
+     */
+    const val SEND_TO_RECEIVERS = "/fms/phone/send_to_receivers"
+
+    /**
      * Channel, either direction. Carries the bytes of one transferred file (S1861).
      *
      * The file name rides as the trailing segment ("$FILE_TRANSFER/photo.jpg") - the Data Layer gives
@@ -145,4 +158,7 @@ object WearDataLayerPaths {
 
     /** eventType value for STREAM_PINS envelopes (S2149). */
     const val EVENT_STREAM_PINS = "STREAM_PINS"
+
+    /** eventType value for SEND_TO_RECEIVERS envelopes (S2142). */
+    const val EVENT_SEND_TO_RECEIVERS = "SEND_TO_RECEIVERS"
 }

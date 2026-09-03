@@ -28,6 +28,7 @@ private val CHOICE_DIALOG_TITLE_GAP = 8.dp
  * without needing a word this component would then have to be handed in every language.
  */
 @Composable
+@Suppress("LongParameterList")
 fun <T> WearChoiceDialog(
     title: String,
     options: List<T>,
@@ -52,7 +53,8 @@ fun <T> WearChoiceDialog(
             ScalingLazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = listState,
-                contentPadding = wearScreenInsets()
+                contentPadding = wearScreenInsets(),
+                scalingParams = WearGridScalingParams
             ) {
                 item {
                     Text(

@@ -1403,6 +1403,13 @@
     <string name="wear_sync_success">%d ذرائع گھڑی کو بھیج دیے گئے</string>
     <string name="wear_sync_failed">گھڑی کے ساتھ مطابقت پذیری نہیں ہو سکی۔ دوبارہ کوشش کریں۔</string>
     <string name="wear_settings_section_title">گھڑی کی سیٹنگز</string>
+    <string name="wear_settings_group_media_types">میڈیا اقسام</string>
+    <string name="wear_settings_group_slideshow">سلائیڈ شو</string>
+    <string name="wear_settings_group_screen">اسکرین</string>
+    <string name="wear_settings_group_other">دیگر</string>
+    <string name="wear_settings_group_sections">سیکشنز</string>
+    <string name="wear_settings_disable_animations">متحرک تصاویر کو غیر فعال کریں۔</string>
+    <string name="wear_settings_background_mode">پس منظر دیکھیں</string>
     <string name="wear_settings_audio">آڈیو</string>
     <string name="wear_settings_video">ویڈیو</string>
     <string name="wear_settings_images">تصاویر</string>
@@ -3039,7 +3046,6 @@
     <string name="calculator_keypad_mode_normal">Normal</string>
     <string name="calculator_keypad_mode_large">Large keys</string>
     <string name="calculator_keypad_mode_compact">Compact, bottom right</string>
-    <string name="wear_background_section_title">پس منظر دیکھیں</string>
     <string name="wear_background_mode_animation">برانڈڈ اینیمیشن</string>
     <string name="wear_background_mode_image">Your image</string>
     <string name="wear_background_pick_image">Choose image</string>

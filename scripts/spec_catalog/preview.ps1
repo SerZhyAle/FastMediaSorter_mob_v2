@@ -1,322 +1,114 @@
-# preview.ps1 - One-shot Stage 3 metadata extractor for a spec
-#
-# Replaces this bash boilerplate run on every /spec-next round:
-#   head -25 PLAN/Sxxxx_*.md
-#   grep -n "^## " PLAN/Sxxxx_*.md
-#   ls -la PLAN/ | grep Sxxxx
-#   grep "Timber\.d\(.Sxxxx:" type=kt
-#   select.ps1 -Id Sxxxx
-#   select.ps1 -Id <blocker> (for §10 resolution)
-#
-# All collapsed into one pwsh invocation, one JSON blob.
-#
-# Exit codes (S1070):
-#   0 - preview emitted.
-#   2 - cannot run: malformed -Id, spec absent from the catalog, or its file missing
-#       on disk. There is no code 1: this is an extractor, not a gate - it either
-#       produces the payload or cannot.
-#
-# Usage:
-#   pwsh -File scripts/spec_catalog/preview.ps1 -Id Sxxxx
-#   pwsh -File scripts/spec_catalog/preview.ps1 -Id Sxxxx -Format json
-#
-# Output (json):
-#   {
-#     "id":"S0235", "name":"...", "status":"Draft", "priority":80, "tier":3,
-#     "file":"PLAN/S0235_*.md", "created":"...", "updated":"...",
-#     "frontmatter": { "Status":"Draft", "Priority":"80", "Tier":"3", ... },
-#     "sections": ["## 1. Problem", "## 2. Goals", ...],
-#     "tactical_folder": false,
-#     "last_audit_present": false,
-#     "timber_tags_kt": 0,
-#     "auto_skip": null,                  # or "tier-5-epic" / "owner-gate" / "blocker-not-verified"
-#                                         # / "blocker-unresolvable" (never research-heavy)
-#     "auto_skip_reason": null,           # human-readable reason
-#     "depends_on": [ {"id":"S0241","status":"Verified"}, ... ],
-#                                         # sourced from a **Depends on:** line, else from every
-#                                         # `Blocker:` / `Блокер:` token in section 10 and in the
-#                                         # catalog statusNote. Section 10 prose is NOT scraped (S1482)
-#     "research_open_count": 5,      # items whose status line says Open - the closing
-#                                    # gate's own definition, shared code (S1621)
-#     "research_uncarried_count": 5   # of those, the ones naming no `Carrier: Sxxxx`;
-#                                    # exactly what check-open-items-carried.ps1 refuses
-#   }
+#requires -Version 7.0
+<#
+.SYNOPSIS
+    Forwarder to the canon-shipped harness script spec_catalog\preview.ps1 (S2402).
 
-[CmdletBinding()]
-param(
-    [Parameter(Mandatory = $true)][string]$Id,
-    [ValidateSet('table', 'json')]
-    [string]$Format = 'json'
-)
+.DESCRIPTION
+    GENERATED - do not edit. The mechanism lives in the SZA canon plugin (tools/harness) and this
+    repository consumes it; the file kept here is only the address every existing call site already
+    knows. Regenerate with scripts/utils/install-sza-forwarders.ps1. What this project configures lives in
+    .sza-profile.json at the repository root, never in a script body.
 
-$ErrorActionPreference = 'Stop'
+Exit codes: whatever spec_catalog\preview.ps1 returns, plus 2 when the harness cannot be located.
+#>
+# S2441: every name below carries a $szaFwd prefix because HALF of this set is dot-sourced, and a
+# dot-sourced file assigns into its CALLER's scope. PowerShell names are case-insensitive, so the
+# `$target` this file used to resolve into WAS the caller's `-Target` parameter: post-change.ps1
+# dot-sources the agent-lock-domains forwarder before it journals, and every dev/CHANGELOG.md row
+# written on 2026-09-03 recorded a harness path where the ticket id belonged. The second failure
+# mode is worse than the substitution - a caller declaring `[string]$Candidates` type-constrains
+# this file's own accumulator, so `$candidates = @()` collapses to '' and every `+=` concatenates
+# instead of appending, leaving one unusable path and a forwarder that cannot find the harness at
+# all. Ten scripts under scripts/ declare a parameter that collided. Contract suite:
+# scripts/utils/install-sza-forwarders.tests/.
+$szaFwdCandidates = @()
+if ($env:SZA_HARNESS_ROOT) { $szaFwdCandidates += $env:SZA_HARNESS_ROOT }
+$szaFwdCache = Join-Path $env:USERPROFILE '.claude\plugins\cache\sza-unified-rules\sza'
+if (Test-Path -LiteralPath $szaFwdCache) {
+    # Ordered as VERSIONS, not as strings: the plugin version is date-derived (2026.903.1), so a
+    # string sort puts October's 2026.1001.1 below September's 2026.903.1 and the forwarder would
+    # keep calling the older copy after an update. A directory that does not parse sorts last
+    # rather than being dropped - it may still be the only harness present.
+    $szaFwdVersions = @(Get-ChildItem -LiteralPath $szaFwdCache -Directory -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            $szaFwdParsed = $null
+            [void][version]::TryParse($_.Name, [ref]$szaFwdParsed)
+            [pscustomobject]@{ Path = $_.FullName; Version = $szaFwdParsed }
+        } | Sort-Object @{ Expression = { $null -ne $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Version }; Descending = $true },
+                        @{ Expression = { $_.Path }; Descending = $true })
+    $szaFwdCandidates += @($szaFwdVersions | ForEach-Object { Join-Path $_.Path 'tools\harness' })
+}
+$szaFwdTarget = $null
+foreach ($szaFwdDir in $szaFwdCandidates) {
+    $szaFwdProbe = Join-Path $szaFwdDir 'spec_catalog\preview.ps1'
+    if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe; break }
+}
 
-if ($Id -notmatch '^S\d{4}$') {
-    Write-Error "Invalid -Id '$Id' (must match S####)" -ErrorAction Continue
+# S2452: candidate 3, the canon checkout, reached only when the two above miss. The plugin cache
+# is what actually resolves on every invocation, so the resolver below is never read on the hot
+# path. Its default is held by scripts/utils/project-paths.ps1 and by nothing else - before this it
+# was written in 76 files, 74 of them generated and stamped `GENERATED - do not edit`, so moving
+# the canon required editing files that forbid editing. That is the exact non-portability the
+# hardcoded-drive-path rule was installed to refuse (S2326).
+#
+# The dot-source runs inside `& { }` deliberately. HALF this set is itself dot-sourced, so at top
+# level project-paths.ps1 would define its functions and set its script variables in the CALLER's
+# scope - the S2441 failure one level further out. A child scope cannot reach the caller at all.
+if (-not $szaFwdTarget) {
+    $szaFwdCheckout = $env:SZA_CANON_ROOT
+    if (-not $szaFwdCheckout) {
+        $szaFwdResolver = Join-Path $PSScriptRoot '..\..\scripts\utils\project-paths.ps1'
+        if (Test-Path -LiteralPath $szaFwdResolver) {
+            # A resolver that is absent or throws must not stop the forwarder from printing its own
+            # refusal, which is the only message that names all three candidates and the fix.
+            $szaFwdCheckout = & {
+                param($szaFwdResolverPath)
+                try { . $szaFwdResolverPath; Get-CanonRoot } catch { $null }
+            } $szaFwdResolver
+        }
+    }
+    if ($szaFwdCheckout) {
+        $szaFwdCandidates += (Join-Path $szaFwdCheckout 'tools\harness')
+        $szaFwdProbe = Join-Path $szaFwdCandidates[-1] 'spec_catalog\preview.ps1'
+        if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe }
+    }
+}
+if (-not $szaFwdTarget) {
+    Write-Host "preview.ps1: the SZA harness is not installed - looked in:" -ForegroundColor Red
+    foreach ($szaFwdDir in $szaFwdCandidates) { Write-Host "    $szaFwdDir" -ForegroundColor Gray }
+    Write-Host "  Install or update it:  claude plugin update sza@sza-unified-rules" -ForegroundColor Yellow
+    Write-Host "  Or point at a checkout: `$env:SZA_HARNESS_ROOT = '<repo>\tools\harness'" -ForegroundColor Yellow
     exit 2
 }
 
-$root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-$pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") {
-    "$env:ProgramFiles\PowerShell\7\pwsh.exe"
+$env:SZA_PROJECT_ROOT = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+
+# Half of this set is dot-sourced as a library and half is invoked as a CLI, and the two cannot be
+# forwarded the same way: `& $szaFwdTarget` would run a library in its own scope and define nothing
+# the caller can see, while `exit` inside a dot-sourced file would kill the caller. InvocationName
+# is '.' exactly when this file was dot-sourced, so one template serves both.
+if ($MyInvocation.InvocationName -eq '.') {
+    . $szaFwdTarget
 } else {
-    'pwsh'
-}
-
-# S1621: the research-section parse is shared with the closing gate
-# (check-open-items-carried.ps1) through this leaf file, so the number printed here is
-# the number that gate will enforce. Deliberately NOT `_lib.ps1`: that library sets
-# Set-StrictMode -Version Latest, under which the `$rec.statusNote` read below throws
-# on every record without a note - on the /spec-next hot path, for every candidate.
-. (Join-Path $PSScriptRoot '_research-items.ps1')
-
-# S1864: same arrangement for the lifecycle-status sets, so the statuses that release a
-# blocked ticket here are the ones `_lib.ps1` uses to route a ticket between the two
-# release files - one definition instead of two that drifted apart.
-. (Join-Path $PSScriptRoot '_status-sets.ps1')
-
-# 1. Resolve catalog record
-$selectPath = Join-Path $PSScriptRoot 'select.ps1'
-$catJson = & $pwshExe -File $selectPath -Id $Id -Format json 2>$null
-if (-not $catJson -or $catJson -eq '[]') {
-    Write-Error "Spec $Id not found in catalog" -ErrorAction Continue
-    exit 2
-}
-$rec = $catJson | ConvertFrom-Json
-if ($rec -is [array]) { $rec = $rec[0] }
-
-$specPath = Join-Path $root $rec.file
-if (-not (Test-Path $specPath)) {
-    Write-Error "Spec file not found on disk: $($rec.file)" -ErrorAction Continue
-    exit 2
-}
-
-# 2. Read spec body
-$specText = Get-Content -Path $specPath -Raw
-
-# 3. Parse frontmatter and key fields (both YAML-block and "**Status:** X" forms supported).
-$frontmatter = [ordered]@{}
-$yamlMatch = [regex]::Match($specText, '(?s)^---\s*\n(.*?)\n---\s*\n')
-if ($yamlMatch.Success) {
-    foreach ($line in ($yamlMatch.Groups[1].Value -split "`n")) {
-        if ($line -match '^\s*([A-Za-z_][A-Za-z0-9_-]*)\s*:\s*(.+?)\s*$') {
-            $frontmatter[$matches[1]] = $matches[2].Trim()
-        }
+    # Deliberately NOT 'Stop'. A native child's stderr arrives here as ErrorRecord objects, and
+    # under 'Stop' the first one terminates this forwarder before `exit $LASTEXITCODE` runs - so a
+    # script that reported a FAIL and exited 1 would reach its caller as a crashed forwarder with a
+    # different code. Every script in this set states its exit codes; passing them through unchanged
+    # is the whole job. S2441 moved it inside this branch: at the file's top level it also rewrote
+    # the preference of every caller that dot-sources a forwarder, silently downgrading a script
+    # running under 'Stop' for the rest of its life.
+    $ErrorActionPreference = 'Continue'
+    $global:LASTEXITCODE = 0
+    try {
+        & $szaFwdTarget @args
+    } catch {
+        # A child that THROWS never reaches its own `exit`, so $LASTEXITCODE stays 0 and the
+        # forwarder would report success for a script that failed - the one way a forwarder can
+        # turn a red verdict green. Every such refusal is a failure, so it leaves as exit 1.
+        Write-Error $_ -ErrorAction Continue
+        exit 1
     }
+    $szaFwdCode = $LASTEXITCODE
+    exit $(if ($null -eq $szaFwdCode) { 0 } else { $szaFwdCode })
 }
-# Also pick up "**Status:** Draft" / "**Tier:** 5" header style.
-foreach ($key in 'Status', 'Priority', 'Tier', 'Date') {
-    $pattern = "^\*\*$key`:\*\*\s*([^\r\n]+?)\s*$"
-    $m = [regex]::Match($specText, $pattern, 'Multiline')
-    if ($m.Success -and -not $frontmatter.Contains($key)) {
-        $frontmatter[$key] = $m.Groups[1].Value.Trim()
-    }
-}
-
-# 4. Section list
-$sections = @()
-foreach ($line in ($specText -split "`n")) {
-    if ($line -match '^##\s+(.+?)\s*$') {
-        $sections += $line.Trim()
-    }
-}
-
-# 5. Tactical folder
-$tacticalFolder = $false
-$folderCandidate = $specPath -replace '\.md$', ''
-if (Test-Path $folderCandidate -PathType Container) {
-    $tacticalFolder = $true
-}
-
-# 6. Last Audit block present?
-# Read through the pattern the closing gate uses (S2298), not a literal '## Last Audit':
-# live specs number their headings, and `## 6. Last Audit` is a real spelling on disk that
-# the literal test reported as absent. The flag travels through spec-next-preflight.ps1 into
-# /spec-all step 0a-drift, where "block absent" switches an already-closed ticket into
-# review mode - so a false negative here costs a re-audit of finished work.
-$lastAuditPresent = @(Get-SpecSectionLines -Path $specPath -HeadingPattern (Get-AuditSectionHeadingPattern)).Count -gt 0
-
-# 7. Timber tag count across .kt
-$timberCount = 0
-Push-Location $root
-try {
-    $rgExe = Get-Command rg -ErrorAction SilentlyContinue
-    if ($rgExe) {
-        $tags = & rg --no-heading --count-matches -t kotlin "Timber\.d\(`"$Id`:" 'app_v2/src' 2>$null
-        if ($tags) {
-            $timberCount = (($tags | ForEach-Object { ($_ -split ':')[-1] }) | Measure-Object -Sum).Sum
-        }
-    }
-    else {
-        $tagFiles = git grep -l -E "Timber\.d\(`"$Id`:" -- 'app_v2/src/**/*.kt' 2>$null
-        if ($tagFiles) {
-            foreach ($f in $tagFiles) {
-                $hits = git grep -c -E "Timber\.d\(`"$Id`:" -- $f 2>$null
-                if ($hits -match ':(\d+)$') {
-                    $timberCount += [int]$matches[1]
-                }
-            }
-        }
-    }
-}
-finally {
-    Pop-Location
-}
-
-# 8. Depends-on resolution. Only sources whose FORM states the direction, because "related to" is not
-# "blocked by" (S1482). Two of them: a `**Depends on:**` line, else every explicit `Blocker:` /
-# `Блокер:` token in the `## 10.` section and in the catalog record's statusNote.
-#
-# Section 10 is no longer scraped for bare ids. Its heading is "Связи с другими спеками" and it lists
-# consumers, successors and neighbours next to blockers: 98 spec files yield ids there against 15 with
-# a real Depends-on line, so the scrape made a producer look blocked by its own consumers. Direction is
-# not recoverable from that prose either - of the 20 section-10 lines containing "блокир", most use it
-# to DENY a dependency ("не блокирует", "блокирующей зависимости нет", "зависимость снята"), so a
-# keyword filter would invert the arrow exactly where the author took care to say there is none.
-#
-# The token source is S1073's, promoted ahead of the section body and widened: `Matches` not `Match`,
-# so a ticket recording two blockers no longer loses the second, and the same token is honoured in the
-# spec file as well as in the note. Only that token, never every Sxxxx around it: S0426-S0429 each
-# mention two ids ("..Blocker: S0404" plus a passing "for S0429, external OAuth/CASA cost"), so
-# scraping all of them names a sibling as a blocker - the right verdict for the wrong reason.
-$dependsOn = @()
-$depIds = @()
-$depMatch = [regex]::Match($specText, '(?ms)\*\*Depends on:\*\*\s*(.+?)(?:^\*\*|\r?\n##\s|\z)')
-if ($depMatch.Success) {
-    $depIds = @([regex]::Matches($depMatch.Groups[1].Value, '\bS\d{4}\b') | ForEach-Object { $_.Value })
-}
-else {
-    $tokenText = [string]$rec.statusNote
-    $sec10Match = [regex]::Match($specText, '(?ms)^##\s+10\.[^\n]*\n(.+?)(?:\r?\n##\s|\z)')
-    if ($sec10Match.Success) { $tokenText = $sec10Match.Groups[1].Value + "`n" + $tokenText }
-    $depIds = @([regex]::Matches($tokenText, '(?i)(?:Blocker|Блокер)\s*:\s*\**\s*(S\d{4})') |
-        ForEach-Object { $_.Groups[1].Value })
-}
-$depIds = @($depIds | Sort-Object -Unique | Where-Object { $_ -ne $Id })
-foreach ($dep in $depIds) {
-    $depJson = & $pwshExe -File $selectPath -Id $dep -Format json 2>$null
-    if ($depJson -and $depJson -ne '[]') {
-        $depRec = $depJson | ConvertFrom-Json
-        if ($depRec -is [array]) { $depRec = $depRec[0] }
-        $dependsOn += [PSCustomObject]@{
-            id     = $dep
-            status = $depRec.status
-        }
-    }
-    else {
-        $dependsOn += [PSCustomObject]@{ id = $dep; status = '?' }
-    }
-}
-
-# 9. Research item counts, by the closing gate's definition (S1621).
-#
-# An item counts as open iff its status line says so - heading found by text, never by
-# the number 6. The old private counter also had a fallback that called any item holding
-# a question mark unresolved: it answered a different question, and it disagreed with the
-# gate on 160 of 1601 spec files. Dropped rather than kept beside the real count, because
-# two similarly named numbers with different definitions are the divergence, not a cure.
-$researchItems = @(Get-ResearchItems -Path $specPath)
-$openItems = @($researchItems | Where-Object { $_.IsOpen })
-$researchOpenCount = $openItems.Count
-# The subset that would REFUSE a close: open, and naming no carrier ticket (S1607).
-$researchUncarriedCount = @($openItems | Where-Object { -not $_.Carrier }).Count
-
-# 10. Owner-gate detection
-$ownerGate = $false
-$ownerGatePatterns = @(
-    'автоматическая\s+передача\s+отключена',
-    'запуск\s+выполняется\s+отдельной\s+командой',
-    'owner\s+directive',
-    'manual\s+handoff\s+required'
-)
-foreach ($p in $ownerGatePatterns) {
-    if ($specText -match $p) { $ownerGate = $true; break }
-}
-
-# 11. Auto-skip verdict
-$autoSkip = $null
-$autoSkipReason = $null
-$tierVal = if ($frontmatter['Tier']) { $frontmatter['Tier'] } else { '' }
-$unverifiedBlockers = @($dependsOn | Where-Object { -not (Test-BlockerReleasedStatus -Status ([string]$_.status)) })
-if ($tierVal -match '^\s*5') {
-    $autoSkip = 'tier-5-epic'
-    $autoSkipReason = 'Tier 5 epic-container, no code under its id'
-}
-elseif ($ownerGate) {
-    $autoSkip = 'owner-gate'
-    $autoSkipReason = 'Spec explicitly forbids automatic handoff (§12 owner directive)'
-}
-elseif ($unverifiedBlockers.Count -gt 0) {
-    # S1775: directed spec link is truth. A blocker that has not been released excludes the
-    # ticket from automatic selection regardless of the DEPENDENT's lifecycle status; that
-    # status remains descriptive.
-    # S1864 refines only which blocker statuses release: Implemented, Verified,
-    # BlockNeedUserTest, Archived - the release-ready set plus the archive, shared through
-    # _status-sets.ps1. S1775 itself named this predicate an extension point, having measured
-    # a ticket waiting on five blockers that were all merely awaiting a device pass. The
-    # reason string keeps its name so operators and the skip cache read the same token.
-    $autoSkip = 'blocker-not-verified'
-    $autoSkipReason = 'Depends on ' + (($unverifiedBlockers | ForEach-Object { "$($_.id)($($_.status))" }) -join ', ')
-}
-elseif ($rec.status -eq 'BlockByOtherTask') {
-    # S1073: fail-closed. Status is BlockByOtherTask but no directional blocker was parsed.
-    if ($dependsOn.Count -eq 0) {
-        $autoSkip = 'blocker-unresolvable'
-        $autoSkipReason = 'Status is BlockByOtherTask but no blocker is recorded in a directional ' +
-        'channel: a `**Depends on:**` line, or a `Blocker: Sxxxx` token in section 10 or in the ' +
-        'statusNote. Naming the ticket in section 10 prose is not enough - that section records ' +
-        'neighbours and consumers too, so it cannot state which way the dependency points'
-    }
-}
-# NB: no 'research-heavy' auto-skip. /spec-next drives every Draft/Approved forward
-# until it reaches readiness or hits a REAL human blocker (BlockQuestions/BlockExternal
-# set by /spec-all). Both research counts stay informational for auto-skip - a heavy
-# research section is not a reason to pre-emptively skip; /spec-all resolves what it can
-# from the codebase and blocks only on genuinely human-gated questions. They are not
-# merely advisory to a human reader, though: since S1621 they are the closing gate's own
-# numbers, so research_uncarried_count > 0 predicts a refused Implemented/Verified flip.
-
-# 12. Compose result
-$result = [PSCustomObject]@{
-    id                  = $rec.id
-    name                = $rec.name
-    status              = $rec.status
-    priority            = $rec.priority
-    tier                = $tierVal
-    file                = $rec.file
-    created             = $rec.created
-    updated             = $rec.updated
-    frontmatter         = $frontmatter
-    sections            = $sections
-    tactical_folder     = $tacticalFolder
-    last_audit_present  = [bool]$lastAuditPresent
-    timber_tags_kt      = $timberCount
-    depends_on          = $dependsOn
-    research_open_count = $researchOpenCount
-    research_uncarried_count = $researchUncarriedCount
-    owner_gate          = $ownerGate
-    auto_skip           = $autoSkip
-    auto_skip_reason    = $autoSkipReason
-}
-
-if ($Format -eq 'json') {
-    $result | ConvertTo-Json -Depth 6 -Compress
-}
-else {
-    Write-Host "$($result.id) preview" -ForegroundColor Cyan
-    Write-Host "  $($result.name)" -ForegroundColor White
-    Write-Host "  status: $($result.status) | priority: $($result.priority) | tier: $($result.tier)" -ForegroundColor DarkGray
-    Write-Host "  file: $($result.file)" -ForegroundColor DarkGray
-    Write-Host "  tactical_folder: $($result.tactical_folder) | last_audit: $($result.last_audit_present) | timber: $($result.timber_tags_kt)" -ForegroundColor DarkGray
-    if ($result.depends_on.Count -gt 0) {
-        $depStr = ($result.depends_on | ForEach-Object { "$($_.id)($($_.status))" }) -join ', '
-        Write-Host "  depends_on: $depStr" -ForegroundColor DarkGray
-    }
-    Write-Host ("  sections: $($result.sections.Count) (research_open=$($result.research_open_count)" +
-        ", uncarried=$($result.research_uncarried_count), owner_gate=$($result.owner_gate))") -ForegroundColor DarkGray
-    if ($result.auto_skip) {
-        Write-Host "  AUTO-SKIP: $($result.auto_skip) - $($result.auto_skip_reason)" -ForegroundColor Yellow
-    }
-}
-
-exit 0

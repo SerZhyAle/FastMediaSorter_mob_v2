@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.wear.domain.model.VoiceNote
 import com.sza.fastmediasorter.wear.domain.recorder.VoiceRecordingState
 import com.sza.fastmediasorter.wear.domain.recorder.VoiceRecordingStateHolder
 import com.sza.fastmediasorter.wear.domain.repository.VoiceNoteRepository
@@ -23,15 +24,16 @@ import javax.inject.Inject
 private const val SUBSCRIPTION_TIMEOUT_MS = 5_000L
 
 /**
- * S1862: what the recorder screen renders, assembled from the service's state and the free space
- * the repository reports.
+ * S1862 / S2161: what the recorder screen renders, assembled from the service's state, the free
+ * space the repository reports, and the most recent note for the play-back control.
  *
  * [hasRoomToRecord] starts true so the first frame does not accuse a healthy watch of being full;
  * the real answer arrives with the first emission, before the button can be pressed.
  */
 data class VoiceRecorderUiState(
     val recording: VoiceRecordingState = VoiceRecordingState.Idle,
-    val hasRoomToRecord: Boolean = true
+    val hasRoomToRecord: Boolean = true,
+    val mostRecentNote: VoiceNote? = null
 )
 
 /**
@@ -59,8 +61,16 @@ class VoiceRecorderViewModel @Inject constructor(
         .map { noteRepository.hasRoomToRecord() }
 
     val uiState: StateFlow<VoiceRecorderUiState> =
-        combine(stateHolder.state, roomToRecord) { recording, hasRoom ->
-            VoiceRecorderUiState(recording = recording, hasRoomToRecord = hasRoom)
+        combine(
+            stateHolder.state,
+            roomToRecord,
+            noteRepository.mostRecent()
+        ) { recording, hasRoom, recentNote ->
+            VoiceRecorderUiState(
+                recording = recording,
+                hasRoomToRecord = hasRoom,
+                mostRecentNote = recentNote
+            )
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS),

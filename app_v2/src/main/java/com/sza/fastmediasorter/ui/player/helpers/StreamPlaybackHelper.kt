@@ -26,6 +26,7 @@ import com.sza.fastmediasorter.core.playback.resilience.StreamVideoRetryPolicy
 import com.sza.fastmediasorter.di.StreamQualityMemoryEntryPoint
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import com.sza.fastmediasorter.ui.player.VideoTrackSelectionManager
+import com.sza.fastmediasorter.util.applicationScope
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -394,7 +395,7 @@ private fun VideoPlayerManager.persistStreamQualityMemory(controller: StreamQual
     val entryPoint = streamQualityMemoryEntryPoint()
     val useCase = entryPoint.recordStreamQualityMemoryUseCase()
     val atMillis = System.currentTimeMillis()
-    entryPoint.applicationScope().launch {
+    context.applicationScope().launch {
         useCase(
             url = url,
             rungBitrateBps = memory.rung.bitrateBps,

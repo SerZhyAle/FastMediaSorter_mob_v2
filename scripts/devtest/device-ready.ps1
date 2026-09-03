@@ -64,6 +64,10 @@
   Legacy fail-fast mode: a not-ready state exits with its numeric code (1..6) instead of 0.
   Only for a caller that cannot read the payload and must branch on $LASTEXITCODE.
 
+.PARAMETER ReuseFinding
+  Opt-in finding reuse (S2409): when an alive finding for the requested topic and canonical request
+  string exists, answer READY immediately without adb probing.
+
 .EXAMPLE
   pwsh -NoProfile -File scripts/devtest/device-ready.ps1
   Quick sanity: ADB up, one device online.
@@ -88,7 +92,9 @@ param(
     # silently changing a shared probe's answer mid-run is the same class of surprise the device
     # lease exists to remove. Without this switch the probe behaves exactly as it always has,
     # `multiple-devices` included.
-    [switch]$ClaimFree
+    [switch]$ClaimFree,
+    # S2409. Opt-in reuse mode.
+    [switch]$ReuseFinding
 )
 
 $ErrorActionPreference = 'Stop'
@@ -111,8 +117,66 @@ $script:result = [ordered]@{
     expectedVersion = $ExpectedVersion
     versionMatch    = $null
     mcpResolvable   = $null
+    reused          = $false
+    reusedFrom      = $null
     reason          = $null
 }
+
+function Get-CanonicalReadyRequest {
+    param(
+        [string]$DeviceId,
+        [string]$Package,
+        [string]$ExpectedVersion,
+        [bool]$CheckMcp
+    )
+    $dev = if ($DeviceId) { $DeviceId } else { '<any>' }
+    $pkg = if ($Package) { $Package } else { '<none>' }
+    $ver = if ($ExpectedVersion) { $ExpectedVersion } else { '<none>' }
+    $mcp = if ($CheckMcp) { 'mcp:true' } else { 'mcp:false' }
+    return "device-ready.ps1 -DeviceId $dev -Package $pkg -ExpectedVersion $ver -CheckMcp $mcp"
+}
+
+# ---------- step 0: opt-in reuse check (S2409) ----------
+
+if ($ReuseFinding) {
+    try {
+        $storeScript = Join-Path $PSScriptRoot '..\utils\agent-chat-store.ps1'
+        if (Test-Path -LiteralPath $storeScript) {
+            . $storeScript
+            $topic = if ($DeviceId) { "device:$DeviceId" } else { "device:*" }
+            $req = Get-CanonicalReadyRequest -DeviceId $DeviceId -Package $Package -ExpectedVersion $ExpectedVersion -CheckMcp $CheckMcp
+            $match = Get-AgentChatCoveringFinding -Topic $topic -Request $req
+            if ($null -ne $match) {
+                $foundSerial = [string](Get-AgentChatProp $match 'device' '')
+                if (-not $foundSerial -and $DeviceId) { $foundSerial = $DeviceId }
+                $agentObj = Get-AgentChatProp $match 'agent'
+                $authorName = [string](Get-AgentChatProp $agentObj 'name' ([string](Get-AgentChatProp $agentObj 'id' '?')))
+                $atUtc = [DateTime](Get-AgentChatProp $match 'atUtc' ([DateTime]::UtcNow))
+                $ageMin = [double]([DateTime]::UtcNow - $atUtc).TotalMinutes
+                $ageStr = Format-AgentChatAge $ageMin
+
+                $script:result.ready           = $true
+                $script:result.state           = 'ready'
+                $script:result.selectedDevice  = $foundSerial
+                $script:result.installed       = [bool]$Package
+                $script:result.versionName     = if ($ExpectedVersion) { $ExpectedVersion } else { $null }
+                $script:result.versionMatch    = [bool]$ExpectedVersion
+                $script:result.mcpResolvable   = if ($CheckMcp) { $true } else { $null }
+                $script:result.reused          = $true
+                $script:result.reusedFrom      = "$authorName ($ageStr ago)"
+
+                if ($Json) {
+                    $script:result | ConvertTo-Json -Compress
+                } else {
+                    Write-Host "READY (reused from $authorName, $ageStr ago) - device=$foundSerial$(if($Package){" pkg=$Package"})$(if($ExpectedVersion){" v=$ExpectedVersion"})" -ForegroundColor Cyan
+                }
+                exit 0
+            }
+        }
+    } catch { }
+}
+
+if ($MyInvocation.InvocationName -eq '.') { return }
 
 function Write-Line {
     param([string]$Text, [string]$Color = 'White')
@@ -350,4 +414,17 @@ if ($Json) {
 } else {
     Write-Host "READY - device=$($selected.id)$(if($Package){" pkg=$Package"})$(if($ExpectedVersion){" v=$ExpectedVersion"})" -ForegroundColor Cyan
 }
+
+# S2372: the device state is the measurement sessions repeat most (up to 90 s a probe), so READY is
+# recorded as a finding that dies the moment the serial leaves `adb devices`. Child process, best
+# effort: this probe has no reason to load the lock library, and a chat failure changes nothing.
+try {
+    $chatCli = Join-Path $PSScriptRoot '..\utils\agent-chat.ps1'
+    if (Test-Path -LiteralPath $chatCli) {
+        $chatExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") { "$env:ProgramFiles\PowerShell\7\pwsh.exe" } else { 'pwsh' }
+        $chatNote = "READY$(if($Package){" pkg=$Package"})$(if($ExpectedVersion){" v=$ExpectedVersion"})"
+        $reqStr = Get-CanonicalReadyRequest -DeviceId $DeviceId -Package $Package -ExpectedVersion $ExpectedVersion -CheckMcp $CheckMcp
+        & $chatExe -NoProfile -File $chatCli -Verb Post -Finding -Kind device -Topic "device:$($selected.id)" -Device $selected.id -TtlMinutes 60 -Note $chatNote -EvidenceCommand $reqStr -EvidenceExit 0 *> $null
+    }
+} catch { }
 exit 0
