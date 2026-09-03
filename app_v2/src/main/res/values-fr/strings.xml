@@ -1396,7 +1396,6 @@
     <string name="tooltip_wear_companion_title">Compagnon Wear</string>
     <string name="tooltip_wear_companion_message">Envoyez vos ressources réseau (SMB, FTP, cloud) vers une montre Wear OS associée afin de les parcourir et de les lire directement depuis votre poignet. Appuyez sur le bouton pour choisir les types de médias à synchroniser et régler les paramètres de lecture de la montre.</string>
     <string name="wear_sync_description">Envoyez les sources réseau vers votre montre Wear OS associée.</string>
-    <string name="wear_last_synced">Dernière synchronisation : %s</string>
     <string name="wear_push_to_watch">Envoyer vers la montre</string>
     <string name="wear_sync_ready">Prêt à synchroniser</string>
     <string name="wear_sync_sending">Envoi vers la montre..</string>

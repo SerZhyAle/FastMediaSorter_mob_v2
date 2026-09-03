@@ -98,6 +98,7 @@ class VoiceRecordingService : Service() {
             Timber.i("Ignoring a start: the microphone session is already open")
             return
         }
+        Timber.d("S2161: voice recording started")
         val notification = buildNotification(R.string.wear_voice_recorder_notification_title)
         ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, foregroundServiceType())
         serviceScope.launch { sessionManager.begin() }

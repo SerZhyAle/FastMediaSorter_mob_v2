@@ -1396,7 +1396,6 @@
     <string name="tooltip_wear_companion_title">Wear ساتھی</string>
     <string name="tooltip_wear_companion_message">اپنے نیٹ ورک وسائل (SMB، FTP، کلاؤڈ) جوڑی بنائی گئی Wear OS گھڑی کو بھیجیں تاکہ آپ انہیں براہ راست اپنی کلائی سے دیکھ اور چلا سکیں۔ یہ چننے کے لیے کہ کون سی میڈیا اقسام ہم آہنگ ہوں، اور گھڑی کی پلے بیک ترتیبات ٹھیک کرنے کے لیے، بٹن پر ٹیپ کریں۔</string>
     <string name="wear_sync_description">نیٹ ورک ذرائع اپنی منسلک Wear OS گھڑی کو بھیجیں۔</string>
-    <string name="wear_last_synced">آخری مطابقت پذیری: %s</string>
     <string name="wear_push_to_watch">گھڑی کو بھیجیں</string>
     <string name="wear_sync_ready">مطابقت پذیری کے لیے تیار</string>
     <string name="wear_sync_sending">گھڑی کو بھیجا جا رہا ہے..</string>

@@ -1,13 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  S2000: the companion's window is a single full-bleed container and nothing else.
+  S2460: the companion's window carries the app's standard header - a MaterialToolbar with a back
+  arrow - and gets its top inset from `fitsSystemWindows` here, which is why the title no longer
+  slides under the status bar.
 
-  No landscape counterpart exists on purpose: there is no orientation-dependent geometry to vary -
-  the content is Compose and lays itself out per width.
+  The toolbar lives in this shell rather than inside the content: the content is a Compose island,
+  and Rule 32 does not let one grow in `app_v2`. It stays free of a header of its own.
+
+  No landscape counterpart exists on purpose: the shell is a toolbar plus one scrolling container,
+  identical in both orientations, and the content is Compose and lays itself out per width.
 -->
-<androidx.fragment.app.FragmentContainerView
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/wearCompanionContainer"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface" />
+    android:fitsSystemWindows="true">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            android:elevation="@dimen/toolbar_elevation"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:navigationIconTint="?attr/colorOnPrimary"
+            app:title="@string/wear_companion"
+            app:titleTextColor="?attr/colorOnPrimary" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/wearCompanionContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="?attr/colorSurface"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

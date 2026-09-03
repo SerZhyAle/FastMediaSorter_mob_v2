@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.wear.domain.usecase
 import android.net.Uri
 import com.sza.fastmediasorter.wear.domain.model.VoiceNote
 import com.sza.fastmediasorter.wear.domain.model.WearFileOpenRequest
+import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -18,6 +19,7 @@ class PrepareVoiceNotePlaybackUseCase @Inject constructor(
 ) {
 
     operator fun invoke(note: VoiceNote): Long? {
+        Timber.d("S2161: voice-note playback requested")
         val publishedId = note.publishedAddress
             ?.let { Uri.parse(it).lastPathSegment?.toLongOrNull() }
         return publishedId ?: privateFileId(note)

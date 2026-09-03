@@ -150,13 +150,16 @@ class WearSyncViewModel @Inject constructor(
 
     private var backgroundTransferJob: Job? = null
 
-    val lastSyncTimestamp: Long
-        get() = wearSettingsMirrorStore.readLastSyncTimestamp()
-
-    // S2093: the same value as [lastSyncTimestamp], observable - the caption beside the sync button
-    // has to change when a report arrives, and a plain getter is read once and never again.
+    // S2093: observable rather than a plain getter - the caption beside the sync button has to change
+    // when a report arrives, and a getter is read once and never again. S2460 removed the getter that
+    // stood beside this flow once its only reader, the screen's second status line, was deleted.
     private val _lastSyncTimestamp = MutableStateFlow(wearSettingsMirrorStore.readLastSyncTimestamp())
     val lastSyncedAt: StateFlow<Long> = _lastSyncTimestamp.asStateFlow()
+
+    // S2461: read back from the store rather than off the merged payload, so the version on screen is
+    // the one that was persisted beside the sync time and the two readouts cannot disagree.
+    private val _watchAppVersion = MutableStateFlow(wearSettingsMirrorStore.readWatchAppVersion())
+    val watchAppVersion: StateFlow<String?> = _watchAppVersion.asStateFlow()
 
     init {
         // Observe ack events emitted by PhoneWearListenerService
@@ -308,6 +311,7 @@ class WearSyncViewModel @Inject constructor(
         _watchSettingsState.value = settings
         settings.backgroundMode?.let { _backgroundMode.value = it }
         _lastSyncTimestamp.value = wearSettingsMirrorStore.readLastSyncTimestamp()
+        _watchAppVersion.value = wearSettingsMirrorStore.readWatchAppVersion()
     }
 
     /**

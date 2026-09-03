@@ -1396,7 +1396,6 @@
     <string name="tooltip_wear_companion_title">Companheiro Wear</string>
     <string name="tooltip_wear_companion_message">Envie os seus recursos de rede (SMB, FTP, nuvem) para um relógio Wear OS emparelhado, para os poder explorar e reproduzir diretamente a partir do pulso. Toque no botão para escolher que tipos de multimédia sincronizar e para ajustar as definições de reprodução do relógio.</string>
     <string name="wear_sync_description">Envie fontes de rede para o seu relógio Wear OS conectado.</string>
-    <string name="wear_last_synced">Última sincronização: %s</string>
     <string name="wear_push_to_watch">Enviar para o relógio</string>
     <string name="wear_sync_ready">Pronto para sincronizar</string>
     <string name="wear_sync_sending">Enviando para o relógio..</string>

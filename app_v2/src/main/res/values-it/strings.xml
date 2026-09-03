@@ -1396,7 +1396,6 @@
     <string name="tooltip_wear_companion_title">App companion per Wear</string>
     <string name="tooltip_wear_companion_message">Invia le tue risorse di rete (SMB, FTP, cloud) a un orologio Wear OS abbinato, così puoi sfogliarle e riprodurle direttamente dal polso. Tocca il pulsante per scegliere quali tipi di file sincronizzare e regolare le impostazioni di riproduzione dell\'orologio.</string>
     <string name="wear_sync_description">Invia le sorgenti di rete all\'orologio Wear OS collegato.</string>
-    <string name="wear_last_synced">Ultima sincronizzazione: %s</string>
     <string name="wear_push_to_watch">Invia all\'orologio</string>
     <string name="wear_sync_ready">Pronto per la sincronizzazione</string>
     <string name="wear_sync_sending">Invio all\'orologio..</string>

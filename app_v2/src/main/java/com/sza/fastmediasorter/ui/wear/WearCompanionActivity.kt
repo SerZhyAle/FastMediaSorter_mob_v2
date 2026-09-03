@@ -6,8 +6,10 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.commit
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.databinding.ActivityWearCompanionBinding
 import com.sza.fastmediasorter.ui.settings.fragments.WearSyncSettingsFragment
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 /**
  * S1735: the window the Wear companion opens in, so it can be a sub-program like the calculator.
@@ -24,18 +26,32 @@ import dagger.hilt.android.AndroidEntryPoint
  * over it as a sheet. The owner's ruling is quoted verbatim in that spec's §3.3.1 - the companion is a
  * full window - and with no sheet left there is nothing to watch for dismissal: closing the window is the
  * system back gesture, exactly as in every other program.
+ *
+ * S2460: the window now carries the app's standard toolbar with a back arrow, set up here rather than
+ * drawn in the island - Rule 32 forbids growing a Compose island in `app_v2`, and the shell is where
+ * every other screen keeps its header anyway.
  */
 @AndroidEntryPoint
 class WearCompanionActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_wear_companion)
+        val binding = ActivityWearCompanionBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        Timber.d("S2460: companion window created with the shell toolbar")
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        binding.toolbar.setNavigationOnClickListener { finish() }
         if (savedInstanceState == null) {
             supportFragmentManager.commit {
                 add(R.id.wearCompanionContainer, WearSyncSettingsFragment(), COMPANION_TAG)
             }
         }
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        finish()
+        return true
     }
 
     companion object {

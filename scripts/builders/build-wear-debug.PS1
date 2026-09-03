@@ -17,7 +17,12 @@ param(
     # S2090: which watch variant to build. 'standard' mirrors what ships and stays the default;
     # 'noLegal' is the sideload variant.
     [ValidateSet('standard', 'noLegal')]
-    [string]$Flavor = 'standard'
+    [string]$Flavor = 'standard',
+
+    # Installs the exact APK just built through the watch-aware ADB wrapper. A caller must select
+    # the watch with -DeviceId when more than one online device exists.
+    [switch]$Install,
+    [string]$DeviceId
 )
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
@@ -78,6 +83,15 @@ if (-not $apkPath -or -not (Test-Path -Path $apkPath)) {
 }
 
 Write-Host "APK location: $apkPath" -ForegroundColor Cyan
+
+if ($Install) {
+    $adbCli = Join-Path $PSScriptRoot '..\devtest\adb.ps1'
+    & $adbCli install -Module wear -Flavor $Flavor -Apk $apkPath -DeviceId $DeviceId
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Wear APK install failed. Build artifact remains at: $apkPath" -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+}
 
 if (!(Test-Path -Path $downloadsDir)) {
     New-Item -ItemType Directory -Path $downloadsDir | Out-Null

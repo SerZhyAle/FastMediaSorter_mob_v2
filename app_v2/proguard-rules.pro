@@ -407,3 +407,177 @@
 -keepclassmembernames enum com.sza.fastmediasorter.ui.player.PlaybackControlDialogFragment$ControlSection {
     <fields>;
 }
+# S2454: durable enums where serialization, persistence or decoding spans across file/layer
+# boundaries (Streams session/settings DataStore, launcher/gesture stores, Room repositories,
+# transferable account JSON codecs, device profile presets, camera/calculator/player settings).
+-keepclassmembernames enum com.sza.fastmediasorter.core.memory.MemoryCheckpoint {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.core.memory.MemoryScenario {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.core.util.MemoryTier {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.data.model.DetectionConfidence {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.data.model.DeviceProfileSource {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.game.GameBoardValidationError {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.game.GameCell {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.game.GameDifficulty {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.game.GameDirection {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.game.GameEnemyType {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.game.GameMoveRejectReason {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.game.GameStatus {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.identity.IdentityFailureReason {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInRecord$Kind {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.AppLaunchPanelTileType {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.FileOperationType {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.launcher.InstalledAppSortOrder {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.launcher.LauncherGeographicAction {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeDirection {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.MetadataState {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.networkmonitor.GnssConstellation {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.networkmonitor.NetworkMeasurementKind {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.ResourceEditorMode {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.ResourceProfile {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.ScheduledOpType {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.ScreenshotGestureAction {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.ScreenshotGestureZone {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.StereoMode {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.StreamDefaultSort {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.StreamMediaTypeFilter {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.StreamsCatalogRefreshPolicy {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.StreamTrackLanguage {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.TimeFilter {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.models.TranslationFontFamily {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.models.TranslationFontSize {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.stats.StatsCategory {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.usecase.StreamOffloadUseCase$SourceProtocol {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.calculator.helpers.CalculatorKeypadMode {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.cameracapture.model.CameraScenario {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.cameracapture.model.PhotoProfile {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.common.input.UiSurface {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.delivery.DeliveryPromptOutcome {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.icon.ResourceIconSet {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.main.ResourceTab {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorSection {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.player.helpers.EpubStyleManager$ReaderTheme {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.player.helpers.PdfColorConversion$PdfColorMode {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.player.helpers.TextReaderTheme {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.player.PlaybackControlDialogFragment$StereoFamily {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.player.print.PrintDispatchActivity$PrintMode {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.streams.StreamsViewModel$MediaKindFilter {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.widget.networkmonitor.NetworkMonitorIndicator {
+    <fields>;
+}

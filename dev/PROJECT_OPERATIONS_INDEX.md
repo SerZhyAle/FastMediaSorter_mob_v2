@@ -70,6 +70,7 @@ Dependency version policy:
 - Full tech stack, dependencies, constraints, min/recommended requirements: `dev/TECH_REQUIREMENTS.md`
 - Process and phase gating: `dev/AGENT_WORKFLOW.md`
 - Agent-session cost discipline (spawn policy, context hygiene, skill tiers, MCP usage, measurement loop): `docs/AGENT_COST_PLAYBOOK.md` (S0816)
+- Which physical device / emulator / workstation may be acted on, and how far: `docs/DEVICE_FLEET.md` (CLAUDE.md Rule 35) - read it before the first `adb` call of a task; authorization is per device, and it is written nowhere else
 - Device profile presets / first-run onboarding: `dev/DEVICE_PROFILE_PRESET_MATRIX.md` (matrix data: `app_v2/src/main/assets/device_profile_presets.csv`; consistency guard: `scripts/check_device_profile_presets.ps1`)
 - Usability review of accumulated test screenshots (secondary UI findings unrelated to what each frame was shot for): `.claude/skills/screenshot-usability-audit/SKILL.md` is the entry point; discovery and non-signal pre-filter via `scripts/devtest/find-recent-screenshots.ps1`; each run writes its own dated `dev/SCREENSHOT_USABILITY_AUDIT_<YYYY-MM-DD>.md` (S2108)
 - Feature specs, roadmaps, proposals: `PLAN/` folder

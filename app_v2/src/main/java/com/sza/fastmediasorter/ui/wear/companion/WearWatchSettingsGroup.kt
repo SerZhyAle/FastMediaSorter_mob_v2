@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
-import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,7 +29,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,8 +52,6 @@ import com.sza.fastmediasorter.ui.settings.WearBackgroundPreview
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
 import timber.log.Timber
 import java.io.File
-import java.text.DateFormat
-import java.util.Date
 
 private const val DEFAULT_SLIDESHOW_INTERVAL_SECONDS = 5
 private const val DEFAULT_ANIMATIONS_DISABLED = false
@@ -97,18 +93,13 @@ private val PREVIEW_EDGE = 120.dp
  * keeps no half-edited copy of state the watch never received.
  */
 @Composable
-fun WearWatchSettingsGroup(
+internal fun WearWatchSettingsGroup(
     viewModel: WearSyncViewModel,
-    watchSettings: WearSettingsPayload?,
-    pushEnabled: Boolean,
+    state: WatchSettingsState,
     expanded: Boolean,
-    onExpandedChange: (Boolean) -> Unit
+    onExpandedChange: (Boolean) -> Unit,
+    onChanged: () -> Unit
 ) {
-    val context = LocalContext.current
-    val state = remember(watchSettings) { WatchSettingsState(watchSettings) }
-    // collectAsState, matching the sibling groups on this island: app_v2 does not carry
-    // lifecycle-runtime-compose, and the whole island lives inside a dialog that is torn down with it.
-    val lastSyncedAt by viewModel.lastSyncedAt.collectAsState()
     Timber.d("S2169: companion watch-settings block drawn in canonical watch-menu order")
 
     WearCompanionGroup(
@@ -119,10 +110,7 @@ fun WearWatchSettingsGroup(
         WatchSettingsControls(
             viewModel = viewModel,
             state = state,
-            pushEnabled = pushEnabled,
-            lastSyncedAtEpochMillis = lastSyncedAt,
-            onChanged = { viewModel.updateWatchSettingsLocally(state.payload(context)) },
-            onPush = { viewModel.pushSettings(state.payload(context)) }
+            onChanged = onChanged
         )
     }
 }
@@ -134,7 +122,7 @@ fun WearWatchSettingsGroup(
  * once on every edit, and a builder taking them one by one is a parameter list nobody can call
  * correctly.
  */
-private class WatchSettingsState(watchSettings: WearSettingsPayload?) {
+internal class WatchSettingsState(watchSettings: WearSettingsPayload?) {
     var audioEnabled by mutableStateOf(watchSettings?.audioEnabled ?: true)
     var videoEnabled by mutableStateOf(watchSettings?.videoEnabled ?: true)
     var imagesEnabled by mutableStateOf(watchSettings?.imagesEnabled ?: true)
@@ -188,10 +176,7 @@ private class WatchSettingsState(watchSettings: WearSettingsPayload?) {
 private fun WatchSettingsControls(
     viewModel: WearSyncViewModel,
     state: WatchSettingsState,
-    pushEnabled: Boolean,
-    lastSyncedAtEpochMillis: Long,
-    onChanged: () -> Unit,
-    onPush: () -> Unit
+    onChanged: () -> Unit
 ) {
     // S2169: the subgroup sequence mirrors the watch settings menu - Media types, Slideshow, Screen,
     // Other - in the watch's own order, so every setting sits where the watch shows it. A setting the
@@ -257,21 +242,6 @@ private fun WatchSettingsControls(
         onChanged()
     }
     OtherSubgroup(state = state, onChanged = onChanged)
-    Spacer(Modifier.height(SPACING_SMALL))
-    // S2093 / ADR-1: one button per side, not two. This is the phone half of the symmetric pair - the
-    // press sends this set, the watch answers with its own, and each field keeps whichever edit is
-    // later. The id stays `wearPushSettings`: S2091 is parked at BlockNeedUserTest with a device note
-    // that names this node, and renaming it would fail a check a human is already holding.
-    Button(
-        onClick = onPush,
-        enabled = pushEnabled,
-        modifier = Modifier
-            .fillMaxWidth()
-            .testTag("wearPushSettings")
-    ) {
-        Text(stringResource(R.string.wear_settings_sync_button))
-    }
-    LastSyncedCaption(lastSyncedAtEpochMillis = lastSyncedAtEpochMillis)
 }
 
 /** S2169: the watch menu's "Other" subgroup, in the watch's own row order. */
@@ -321,33 +291,6 @@ private fun GroupCaption(text: String) {
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )
     Spacer(Modifier.height(SPACING_TINY))
-}
-
-/**
- * S2093: when the two sides last agreed, read from the stored sync time rather than from the press.
- *
- * The time is written by the merge that consumed the watch's answering report, so a press that reached
- * nothing leaves the previous time standing instead of reading as a successful sync.
- */
-@Composable
-private fun LastSyncedCaption(lastSyncedAtEpochMillis: Long) {
-    val caption = if (lastSyncedAtEpochMillis <= 0L) {
-        stringResource(R.string.wear_settings_sync_never)
-    } else {
-        stringResource(
-            R.string.wear_settings_last_synced,
-            DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
-                .format(Date(lastSyncedAtEpochMillis))
-        )
-    }
-    Text(
-        text = caption,
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier
-            .fillMaxWidth()
-            .testTag("wearSyncSettingsStatus")
-    )
 }
 
 /** The Media types subgroup's four allowed-type toggles, held apart to keep the group's body flat. */
@@ -502,9 +445,7 @@ private fun BackgroundModeControls(viewModel: WearSyncViewModel) {
     if (mode == WearSettingsPayload.BACKGROUND_MODE_IMAGE) {
         OutlinedButton(
             onClick = { pickImage.launch(PICKED_IMAGE_TYPES) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag("wearBackgroundPickImage")
+            modifier = Modifier.testTag("wearBackgroundPickImage")
         ) {
             Text(stringResource(R.string.wear_background_pick_image))
         }

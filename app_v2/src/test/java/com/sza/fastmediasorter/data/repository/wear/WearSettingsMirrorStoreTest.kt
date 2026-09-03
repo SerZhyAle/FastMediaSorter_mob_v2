@@ -64,7 +64,7 @@ class WearSettingsMirrorStoreTest {
 
     @Test
     fun `marked sync timestamp reads back unchanged`() {
-        store.markSynced(1_700_000_000_000L)
+        store.markSynced(1_700_000_000_000L, null)
 
         assertEquals(1_700_000_000_000L, store.readLastSyncTimestamp())
     }

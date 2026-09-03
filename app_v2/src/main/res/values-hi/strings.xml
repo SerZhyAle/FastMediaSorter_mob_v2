@@ -1396,7 +1396,6 @@
     <string name="tooltip_wear_companion_title">Wear कंपेनियन</string>
     <string name="tooltip_wear_companion_message">अपने नेटवर्क संसाधन (SMB, FTP, क्लाउड) युग्मित Wear OS घड़ी पर भेजें ताकि आप उन्हें सीधे अपनी कलाई से ब्राउज़ और चला सकें। कौन से मीडिया प्रकार सिंक हों यह चुनने और घड़ी की प्लेबैक सेटिंग समायोजित करने के लिए बटन पर टैप करें।</string>
     <string name="wear_sync_description">अपनी जुड़ी हुई Wear OS घड़ी पर नेटवर्क स्रोत भेजें.</string>
-    <string name="wear_last_synced">अंतिम सिंक: %s</string>
     <string name="wear_push_to_watch">घड़ी पर भेजें</string>
     <string name="wear_sync_ready">सिंक के लिए तैयार</string>
     <string name="wear_sync_sending">घड़ी पर भेजा जा रहा है..</string>

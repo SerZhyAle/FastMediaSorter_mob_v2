@@ -1395,7 +1395,6 @@
     <string name="tooltip_wear_companion_title">تطبيق Wear المرافق</string>
     <string name="tooltip_wear_companion_message">أرسل موارد الشبكة لديك (SMB وFTP والسحابة) إلى ساعة Wear OS مقترنة لتتصفحها وتشغّلها مباشرة من معصمك. انقر على الزر لاختيار أنواع الوسائط التي تتم مزامنتها وضبط إعدادات التشغيل على الساعة.</string>
     <string name="wear_sync_description">أرسل مصادر الشبكة إلى ساعة Wear OS المتصلة.</string>
-    <string name="wear_last_synced">آخر مزامنة: %s</string>
     <string name="wear_push_to_watch">الإرسال إلى الساعة</string>
     <string name="wear_sync_ready">جاهز للمزامنة</string>
     <string name="wear_sync_sending">جارٍ الإرسال إلى الساعة..</string>

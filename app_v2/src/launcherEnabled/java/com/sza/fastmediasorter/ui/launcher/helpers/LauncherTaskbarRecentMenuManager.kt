@@ -4,6 +4,7 @@ import android.view.View
 import android.widget.ListPopupWindow
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
+import timber.log.Timber
 
 /** Context actions for a command shown in the taskbar's recents strip. */
 class LauncherTaskbarRecentMenuManager(
@@ -17,6 +18,7 @@ class LauncherTaskbarRecentMenuManager(
     /** Shows the same modal action-list presentation as other launcher long-press menus. */
     fun show(anchor: View, command: LauncherCellCommand): Boolean {
         if (!anchor.isAttachedToWindow) return false
+        Timber.d("S1901: show recent taskbar menu for %s", command)
         dismiss()
         val context = anchor.context
         val rows = listOf(

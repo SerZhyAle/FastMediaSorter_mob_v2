@@ -26,10 +26,6 @@ import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccountState
 import com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInProviderKeys
 import com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInRecord
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.time.Instant
-import javax.inject.Inject
-import javax.inject.Named
-import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -37,6 +33,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
+import java.time.Instant
+import javax.inject.Inject
+import javax.inject.Named
+import javax.inject.Singleton
 
 /**
  * Credential Manager-backed implementation of [GoogleIdentityRepository] (strategic S0200 ADR-5).
@@ -197,7 +197,7 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
             )
             IdentitySignInResult.Success(secondaryAccount)
         }.recover { mapException(it) }
-         .getOrThrow()
+            .getOrThrow()
     }
 
     // endregion
@@ -256,6 +256,7 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
             boundAt = Instant.now()
         )
         store.save(account)
+        Timber.d("S2101: Google binding restored from a transferred envelope")
         _state.value = PrimaryGoogleAccountState.Bound(account)
         // Deliberately no write back through the transfer writer: the record being restored FROM is
         // the same record a write would produce, and re-stamping it would move writtenAt on a device

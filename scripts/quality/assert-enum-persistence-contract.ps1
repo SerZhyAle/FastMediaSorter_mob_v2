@@ -17,6 +17,11 @@
         variable called `mode` was credited to an enum called `Mode`. That produced a demand for an
         enum nobody persists and, at the same time, hid the enum that is actually persisted there.
 
+    S2454 removed the single-file storage filter: conversions between enum constants and strings
+    are frequently split across files (e.g. StreamsViewModel decoding strings from StreamsSessionStore,
+    or settings stores receiving Preferences). The gate now scans for .name, .valueOf(), entries/values
+    name lookups and companion deserializers across all application source files.
+
     A declaration is therefore parsed with a brace walk over text whose comments and string literals
     have been blanked, and a `.name` receiver is credited only when its declared type resolves to a
     known enum. A receiver that cannot be resolved is credited to nothing: guessing is what produced
@@ -285,7 +290,15 @@ function Resolve-EnumCandidates {
     $inFile = @($candidates | Where-Object { $FileFqns -contains $_.Fqn })
     if ($inFile.Count -eq 1) { return @($inFile[0].Fqn) }
 
-    $imported = @($candidates | Where-Object { $Imports -contains ($_.Fqn -replace '\$', '.') })
+    $imported = @($candidates | Where-Object {
+        $dotted = $_.Fqn -replace '\$', '.'
+        if ($Imports -contains $dotted) { return $true }
+        if ($_.Fqn -match '\$') {
+            $outerDotted = ($_.Fqn -split '\$')[0]
+            if ($Imports -contains $outerDotted) { return $true }
+        }
+        return $false
+    })
     if ($imported.Count -eq 1) { return @($imported[0].Fqn) }
 
     $samePackage = @($candidates | Where-Object { $_.Package -eq $PackageName })
@@ -298,18 +311,20 @@ $durableEnums = [System.Collections.Generic.HashSet[string]]::new([System.String
 foreach ($file in Get-ChildItem -LiteralPath $durableRoot -Filter '*.kt' -Recurse) {
     $text = Get-Content -LiteralPath $file.FullName -Raw
     if ([string]::IsNullOrEmpty($text)) { continue }
-    # Pre-filter on the raw text so the brace walk only runs for a file that can be durable at all.
-    # A marker sitting in a comment survives this pass and is dropped by the stripped test below.
-    if ($text -notmatch '@TypeConverter|DataStore<Preferences>|SharedPreferences|getSharedPreferences') { continue }
+    # Pre-filter on the raw text so the brace walk only runs for a file that can reference
+    # enum member names or conversions.
+    if ($text -notmatch '\.(name|valueOf|entries|fromName|fromStorageName|fromNameOrDefault|fromKey)\b|values\(\)|enumValues') { continue }
     $stripped = Remove-KotlinNoise $text
-    if ($stripped -notmatch '@TypeConverter|DataStore<Preferences>|SharedPreferences|getSharedPreferences') { continue }
+    if ($stripped -notmatch '\.(name|valueOf|entries|fromName|fromStorageName|fromNameOrDefault|fromKey)\b|values\(\)|enumValues') { continue }
 
     $packageMatch = [regex]::Match($text, '(?m)^package\s+([\w.]+)')
     $packageName = if ($packageMatch.Success) { $packageMatch.Groups[1].Value } else { '' }
     $imports = @([regex]::Matches($text, '(?m)^import\s+([\w.]+)') | ForEach-Object { $_.Groups[1].Value })
     $fileFqns = @()
+    $declaredInFile = @()
     if ($packageName -and $text -match '\benum\s+class\b') {
-        $fileFqns = @(Get-DeclaredEnums -PackageName $packageName -Stripped $stripped | ForEach-Object { $_.Fqn })
+        $declaredInFile = @(Get-DeclaredEnums -PackageName $packageName -Stripped $stripped)
+        $fileFqns = @($declaredInFile | ForEach-Object { $_.Fqn })
     }
 
     # An identifier's declared type is the only sound way to read `receiver.name`. Both parameters
@@ -331,6 +346,26 @@ foreach ($file in Get-ChildItem -LiteralPath $durableRoot -Filter '*.kt' -Recurs
         if ($enumsBySimple.ContainsKey($receiver)) { [void]$typeNames.Add($receiver); continue }
         if (-not $identifierTypes.ContainsKey($receiver)) { continue }
         foreach ($type in $identifierTypes[$receiver]) { [void]$typeNames.Add($type) }
+    }
+
+    # S2454: handle entries/values followed by name comparison across files.
+    foreach ($m in [regex]::Matches($stripped, '\b(\w+)\.(?:entries|values\(\))\s*\.\s*(?:firstOrNull|find)\s*\{\s*(?:it\.)?name\s*==')) {
+        [void]$typeNames.Add($m.Groups[1].Value)
+    }
+    foreach ($m in [regex]::Matches($stripped, '\benumValues\s*<\s*(\w+)\s*>\s*\(\s*\)\s*\.\s*(?:firstOrNull|find)\s*\{\s*(?:it\.)?name\s*==')) {
+        [void]$typeNames.Add($m.Groups[1].Value)
+    }
+
+    # S2454: handle named deserializers on companion objects.
+    foreach ($m in [regex]::Matches($stripped, '\b(\w+)\.(?:fromName|fromStorageName|fromNameOrDefault|fromKey)\s*\(')) {
+        [void]$typeNames.Add($m.Groups[1].Value)
+    }
+
+    # S2454: inside an enum class declaration itself, companion entries.firstOrNull { it.name == ... }
+    if ($declaredInFile.Count -gt 0 -and ($stripped -match '\bentries\s*\.\s*(?:firstOrNull|find)\s*\{\s*(?:it\.)?name\s*==' -or $stripped -match '\bvalues\(\)\s*\.\s*(?:firstOrNull|find)\s*\{\s*(?:it\.)?name\s*==')) {
+        foreach ($d in $declaredInFile) {
+            [void]$typeNames.Add($d.Simple)
+        }
     }
 
     foreach ($type in $typeNames) {

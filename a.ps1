@@ -52,6 +52,7 @@
     nl   - Build noLegal Release
     nd   - Build noLegal Debug
     wd   - Build Wear OS Debug and distribute APK
+    iw   - Build and install noLegal Wear OS Debug APK on a selected watch
     r1   - Run the release queue unattended, instance A (one fresh claude process per ticket)
     r2   - Same, instance B - the second parallel stream, staggered so it does not race A
     r3   - Same, instance C - the third parallel stream, staggered further so it does not race A or B
@@ -265,6 +266,7 @@ $scripts = @{
     'nl'        = @{ Path = 'scripts\builders\build-nolegal-release.ps1'; Args = @{} }
     'nd'        = @{ Path = 'scripts\builders\build-nolegal-debug.ps1'; Args = @{} }
     'wd'        = @{ Path = 'scripts\builders\build-wear-debug.PS1'; Args = @{} }
+    'iw'        = @{ Path = 'scripts\builders\build-wear-debug.PS1'; Args = @{ Flavor = 'noLegal'; Install = $true } }
     # Unattended queue runners. Each ticket gets its own claude process, so the context resets
     # between tickets instead of growing all session. r1, r2 and r3 are the parallel instances -
     # r2 and r3 stagger their first ranking, each by a wider window than the last, so no pair
@@ -373,6 +375,7 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  nl   - Build noLegal Release" -ForegroundColor Cyan
     Write-Host "  nd   - Build noLegal Debug" -ForegroundColor Cyan
     Write-Host "  wd   - Build Wear OS Debug and distribute APK" -ForegroundColor Cyan
+    Write-Host "  iw   - Build + install noLegal Wear OS Debug (-DeviceId <watch> when multiple devices)" -ForegroundColor Cyan
     Write-Host "  r1   - Run the release queue unattended, instance A (fresh process per ticket)" -ForegroundColor Cyan
     Write-Host "  r2   - Same, instance B - the second parallel stream" -ForegroundColor Cyan
     Write-Host "  r3   - Same, instance C - the third parallel stream" -ForegroundColor Cyan

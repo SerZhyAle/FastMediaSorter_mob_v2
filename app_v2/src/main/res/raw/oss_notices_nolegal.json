@@ -1531,6 +1531,29 @@
     "note": null
   },
   {
+    "coordinate": "com.google.android.gms:play-services-auth-blockstore",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "Google Play services Auth Block Store",
+    "spdx": "Android Software Development Kit License",
+    "licenseUrl": "https://developer.android.com/studio/terms.html",
+    "sourceUrl": "https://developers.google.com/android/guides/setup",
+    "oss": false,
+    "shippedIn": [
+      "legacy",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": false,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
     "coordinate": "com.google.android.gms:play-services-cast-framework",
     "modules": [
       "app_v2"

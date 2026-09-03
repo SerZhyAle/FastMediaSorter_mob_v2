@@ -24,7 +24,8 @@ class LauncherTaskbarManager(
     private val onCommand: (LauncherCellCommand) -> Unit,
     private val onStartClick: () -> Unit,
     private val onAllAppsClick: () -> Unit = {},
-    private val onRecentLongClick: (View, LauncherCellCommand) -> Boolean = { _, _ -> false },
+    private val onPinRecent: (LauncherCellCommand) -> Unit = {},
+    private val onRemoveRecent: (LauncherCellCommand) -> Unit = {},
     private val onAddPin: () -> Unit = {},
     private val onRemovePin: (position: Int) -> Unit = {},
     private val onRecentsCapacity: (Int) -> Unit = {},
@@ -47,12 +48,19 @@ class LauncherTaskbarManager(
         lifecycleOwner.lifecycle.addObserver(this)
     }
 
+    private val recentMenuManager = LauncherTaskbarRecentMenuManager(
+        launchCommand = onCommand,
+        pinCommand = onPinRecent,
+        removeFromRecents = onRemoveRecent,
+    )
+
     // Recents now carry any command kind (S1097), so the icon id is the encoded command - decode and
     // rerun it, exactly like the pinned strip, instead of assuming an app package.
     private val recentsAdapter = LauncherTaskbarIconAdapter(
         onIconClick = { icon -> LauncherCellCommand.decode(icon.id)?.let(onCommand) },
         onIconLongClick = { anchor, icon ->
-            LauncherCellCommand.decode(icon.id)?.let { onRecentLongClick(anchor, it) } ?: false
+            val command = LauncherCellCommand.decode(icon.id)
+            if (command == null) false else recentMenuManager.show(anchor, command)
         },
     )
 
@@ -66,7 +74,7 @@ class LauncherTaskbarManager(
     private val pinnedAdapter = LauncherTaskbarIconAdapter(
         onIconClick = { icon -> LauncherCellCommand.decode(icon.id)?.let(onCommand) },
         onIconLongClick = { anchor, icon ->
-            val command = LauncherCellCommand.decode(icon.id) as? LauncherCellCommand.App
+            val command = LauncherCellCommand.decode(icon.id)
             if (command == null) false else pinnedAppMenuManager.show(anchor, command, icon.position)
         },
         onRemoveClick = { icon -> onRemovePin(icon.position) },
@@ -97,6 +105,7 @@ class LauncherTaskbarManager(
     override fun onDestroy(owner: LifecycleOwner) {
         binding.taskbarRecents.removeOnLayoutChangeListener(recentsLayoutListener)
         pinnedAppMenuManager.dismiss()
+        recentMenuManager.dismiss()
     }
 
     /**

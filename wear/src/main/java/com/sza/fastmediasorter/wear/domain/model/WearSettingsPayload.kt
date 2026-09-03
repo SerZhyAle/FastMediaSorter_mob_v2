@@ -42,5 +42,11 @@ data class WearSettingsPayload(
     val fieldTimestamps: Map<String, Long>? = null,
     // S2093: device traits the other side cannot infer, keyed by
     // WearSettingsRegistry.CAPABILITY_AUTO_ROTATION_SENSOR and its future peers.
-    val capabilities: Map<String, Boolean>? = null
+    val capabilities: Map<String, Boolean>? = null,
+    // S2461: the SENDER's own version name, not a setting - it says which build produced this packet, so
+    // the receiving side can tell "the settings did not arrive" from "an older build accepted them".
+    // Nullable because the pair updates as two builds at different times: a partner that predates this
+    // field omits it and is served exactly as before. The envelope's schemaVersion is deliberately not
+    // raised (ADR-1) - a hard version check would turn a mismatched pair into a refusal to sync.
+    val appVersionName: String? = null
 )

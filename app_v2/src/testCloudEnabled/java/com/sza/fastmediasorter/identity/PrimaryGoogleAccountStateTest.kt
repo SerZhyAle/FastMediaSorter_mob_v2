@@ -1,17 +1,16 @@
 package com.sza.fastmediasorter.identity
 
 import android.content.Context
+import com.sza.fastmediasorter.data.identity.transfer.TransferableSignInWriter
 import com.sza.fastmediasorter.domain.identity.GoogleAccessToken
 import com.sza.fastmediasorter.domain.identity.GoogleScope
 import com.sza.fastmediasorter.domain.identity.NeedsResignInReason
 import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccount
-import com.sza.fastmediasorter.data.identity.transfer.TransferableSignInWriter
 import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccountState
 import com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInProviderKeys
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import java.time.Instant
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -22,6 +21,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.time.Instant
 
 /**
  * S0200 Step 02.5: covers the state-machine paths of [CredentialManagerGoogleIdentityRepository]

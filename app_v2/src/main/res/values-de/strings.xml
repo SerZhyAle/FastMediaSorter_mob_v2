@@ -1396,7 +1396,6 @@
     <string name="tooltip_wear_companion_title">Wear Companion</string>
     <string name="tooltip_wear_companion_message">Sende deine Netzwerkressourcen (SMB, FTP, Cloud) an eine gekoppelte Wear-OS-Uhr, damit du sie direkt vom Handgelenk aus durchsuchen und abspielen kannst. Tippe auf die Taste, um zu wählen, welche Medientypen synchronisiert werden, und um die Wiedergabeeinstellungen der Uhr anzupassen.</string>
     <string name="wear_sync_description">Sende Netzwerkressourcen an deine verbundene Wear-OS-Uhr.</string>
-    <string name="wear_last_synced">Zuletzt synchronisiert: %s</string>
     <string name="wear_push_to_watch">An die Uhr senden</string>
     <string name="wear_sync_ready">Bereit zum Synchronisieren</string>
     <string name="wear_sync_sending">Wird an die Uhr gesendet..</string>

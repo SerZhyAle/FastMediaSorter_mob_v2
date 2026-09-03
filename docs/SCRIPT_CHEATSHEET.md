@@ -458,7 +458,9 @@ Master Build and Push Script
 ```
 scripts/builders/build-and-push-all.ps1
   Master Build and Push Script
-  (no param block)
+  Params:
+    -Push         [SwitchParameter]
+  Exit: 0 - every artifact built (and, with -Push, the commit and push were attempted); 1 - the build failed after its retries
 ```
 
 ### build-debug-clean.PS1
@@ -711,6 +713,8 @@ scripts/builders/build-wear-debug.PS1
   Params:
     -AutoVersion         [SwitchParameter] = $true
     -Flavor              [String] = 'standard'  {standard|noLegal}
+    -Install             [SwitchParameter]
+    -DeviceId            [String]
 ```
 
 ### build-wear-release.PS1
@@ -5943,7 +5947,7 @@ Scenario check for the agent-lock queue: fairness, ticket retirement, liveness, 
 scripts/utils/test-agent-lock-queue.ps1
   Scenario check for the agent-lock queue: fairness, ticket retirement, liveness, compatibility.
   (no param block)
-  Exit: 0 - every assertion passed; the sandbox is deleted.; 1 - at least one assertion failed; the sandbox is kept for inspection and its path is printed.; 2 - the sandbox could not be prepared, or its isolation could not be confirmed (some paths.*
+  Exit: 0 - every assertion that ran passed; the sandbox is deleted. S2421: a case whose behaviour
 ```
 
 ### update_docs_frontmatter.ps1

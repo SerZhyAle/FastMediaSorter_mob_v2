@@ -419,6 +419,8 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             onCommand = { viewModel.run(it) },
             onStartClick = { modalSurfaces.showStartMenu() },
             onAllAppsClick = { modalSurfaces.showAllApps() },
+            onPinRecent = { viewModel.pinRecentToTaskbar(it) },
+            onRemoveRecent = { viewModel.removeRecentCommand(it) },
             onAddPin = { addFlowManager.openPinAppPicker() },
             onRemovePin = { viewModel.removePin(it) },
             onRecentsCapacity = { viewModel.recentsCapacity = it },

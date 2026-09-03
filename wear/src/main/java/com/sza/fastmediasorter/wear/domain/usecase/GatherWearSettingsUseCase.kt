@@ -2,11 +2,13 @@ package com.sza.fastmediasorter.wear.domain.usecase
 
 import android.content.Context
 import android.content.pm.PackageManager
+import com.sza.fastmediasorter.wear.BuildConfig
 import com.sza.fastmediasorter.wear.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.wear.domain.model.WearSettingsRegistry
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -21,7 +23,12 @@ class GatherWearSettingsUseCase @Inject constructor(
     private val preferencesRepository: WearPreferencesRepository
 ) {
 
-    suspend operator fun invoke(): WearSettingsPayload = WearSettingsPayload(
+    suspend operator fun invoke(): WearSettingsPayload {
+        Timber.d("S2461: gathering watch settings, reporting version=${BuildConfig.VERSION_NAME}")
+        return gather()
+    }
+
+    private suspend fun gather(): WearSettingsPayload = WearSettingsPayload(
         audioEnabled = preferencesRepository.isAudioEnabled.first(),
         videoEnabled = preferencesRepository.isVideoEnabled.first(),
         imagesEnabled = preferencesRepository.isImagesEnabled.first(),
@@ -42,7 +49,10 @@ class GatherWearSettingsUseCase @Inject constructor(
         fieldTimestamps = preferencesRepository.settingTimestamps.first(),
         capabilities = mapOf(
             WearSettingsRegistry.CAPABILITY_AUTO_ROTATION_SENSOR to hasAutoRotationSensor()
-        )
+        ),
+        // S2461: the same string the watch's own settings screen shows, so the phone displays the
+        // version the owner would read on the watch itself rather than a second, differently-derived one.
+        appVersionName = BuildConfig.VERSION_NAME
     )
 
     // The same check the auto-rotation row uses to decide whether it exists at all, so the phone can

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.settings.fragments
 
+import android.content.ActivityNotFoundException
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -13,10 +14,12 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.common.compose.FastMediaSorterComposeTheme
+import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
 import com.sza.fastmediasorter.ui.settings.WearWatchResourceEvent
 import com.sza.fastmediasorter.ui.settings.helpers.BeamAnimationDialog
 import com.sza.fastmediasorter.ui.wear.companion.WearCompanionScreen
+import com.sza.fastmediasorter.ui.wear.companion.WearDocLink
 import com.sza.fastmediasorter.ui.wearresources.WearResourceSelectionActivity
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -57,7 +60,8 @@ class WearSyncSettingsFragment : Fragment() {
                         onSelectResourcesClick = { WearResourceSelectionActivity.start(requireContext()) },
                         onWatchResourceClick = {
                             viewModel.addOrOpenWatchResource(getString(R.string.resource_type_wear_watch))
-                        }
+                        },
+                        onOpenDocLink = ::openDocLink
                     )
                 }
             }
@@ -76,6 +80,23 @@ class WearSyncSettingsFragment : Fragment() {
                     startActivity(BrowseActivity.createIntent(requireContext(), event.resourceId))
                 WearWatchResourceEvent.Failed -> toast(getString(R.string.friendly_copy_error_generic))
             }
+        }
+    }
+
+    // The island names a destination, never an address: resolving the locale-specific URL and
+    // starting a browser are the host's business, and the browser-missing fallback already lives here
+    // in the same shape the Wear settings group uses.
+    private fun openDocLink(link: WearDocLink) {
+        val url = when (link) {
+            WearDocLink.PORTAL -> SupportIntentFactory.wearWebPortalUrl(requireContext())
+            WearDocLink.INSTALL_GUIDE -> SupportIntentFactory.wearInstallGuideUrl(requireContext())
+        }
+        Timber.d("S2460: companion docs link tapped")
+        try {
+            startActivity(SupportIntentFactory.openUrl(url))
+        } catch (e: ActivityNotFoundException) {
+            Timber.w(e, "No browser to open the Wear documentation")
+            toast(getString(R.string.settings_no_browser_for_docs))
         }
     }
 

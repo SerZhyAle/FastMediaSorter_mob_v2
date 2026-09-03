@@ -33,6 +33,10 @@
          rows appear grouped in the map's group order and in row order within each group. The
          wearViewMode / wearFileListViewMode / wearBackgroundMode_ prefixes match by occurrence,
          not as quoted whole tags.
+     11. S2461 version field: appVersionName is declared in both WearSettingsPayload copies AND
+         carries a row in both WearSettingsPayloadDecoder EXPECTED tables.
+     12. S2461 sync-time writer: markSynced is called only from the mirror store and
+         MergeWearSettingsReportUseCase, across app_v2/src/main and app_v2/src/wearGms.
 
     A row literal may sit inside a helper composable defined below its call site (the bottom-helper
     idiom these screens use). Both order checks resolve such a literal to the helper's FIRST
@@ -77,6 +81,9 @@ $paths = [ordered]@{
     WatchScreen    = 'wear/src/main/java/com/sza/fastmediasorter/wear/ui/settings/ScreenSettingsScreen.kt'
     WatchOther     = 'wear/src/main/java/com/sza/fastmediasorter/wear/ui/settings/OtherSettingsScreen.kt'
     PhoneRows      = 'app_v2/src/main/java/com/sza/fastmediasorter/ui/wear/companion/WearWatchSettingsGroup.kt'
+    PhoneDecoder   = 'app_v2/src/main/java/com/sza/fastmediasorter/domain/model/WearSettingsPayloadDecoder.kt'
+    WatchDecoder   = 'wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearSettingsPayloadDecoder.kt'
+    PhoneMerge     = 'app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/MergeWearSettingsReportUseCase.kt'
 }
 
 # S2169: which files a menu group's watch rows live in (keys into $paths)...
@@ -384,6 +391,42 @@ foreach ($group in $phoneMap.Keys) {
             }
         }
         $prevRow = [pscustomobject]@{ Group = $group; Field = $f; Tag = $entry.Tag; Pos = $pos }
+    }
+}
+
+# 11. S2461: the app-version field must ride the contract on both sides AND be listed in both decoder
+#     tables. A field present in the model but missing from its EXPECTED table is dropped on arrival and
+#     decodes as null, so the companion window reports "version unknown" forever while the wire is fine -
+#     which is exactly what happened while S2461 was being implemented.
+$versionField = 'appVersionName'
+foreach ($side in @(
+    @{ Name = 'phone'; Payload = 'PhonePayload'; Decoder = 'PhoneDecoder' },
+    @{ Name = 'watch'; Payload = 'WatchPayload'; Decoder = 'WatchDecoder' }
+)) {
+    if ($text[$side.Payload] -notmatch "(?m)^\s*(?:@SerializedName\(""$versionField""\)\s*)?val\s+$versionField\b") {
+        $findings += "S2461: '$versionField' has no field in the $($side.Name) WearSettingsPayload - the pair can no longer report which build accepted a sync."
+    }
+    if ($text[$side.Decoder] -notmatch "(?m)^\s*""$versionField""\s+to\s+JsonKind\.STRING\s*,?\s*$") {
+        $findings += "S2461: '$versionField' has no row in the $($side.Name) WearSettingsPayloadDecoder EXPECTED table - it would arrive on the wire and decode as null, leaving the companion window reading 'version unknown'."
+    }
+}
+
+# 12. S2461: the sync time may only be written where a full exchange completed. Moving this call to the
+#     button press, or to an unrelated acknowledgement, makes the caption confidently wrong rather than
+#     merely stale - a resources ack was doing exactly that until S2461 removed it.
+$syncWriteAllowed = @('WearSettingsMirrorStore.kt', 'MergeWearSettingsReportUseCase.kt')
+$syncRoots = @('app_v2/src/main', 'app_v2/src/wearGms')
+foreach ($rel in $syncRoots) {
+    $rootPath = Join-Path $root $rel
+    if (-not (Test-Path -LiteralPath $rootPath)) {
+        Write-Error "assert-wear-settings-parity: could not verify - missing source root $rel" -ErrorAction Continue
+        exit 2
+    }
+    foreach ($file in Get-ChildItem -LiteralPath $rootPath -Recurse -File -Filter '*.kt') {
+        if ($file.Name -in $syncWriteAllowed) { continue }
+        if ((Get-Content -LiteralPath $file.FullName -Raw) -match 'markSynced\s*\(') {
+            $findings += "S2461: $($file.Name) calls markSynced - only MergeWearSettingsReportUseCase may write the sync time, because only a merged report proves a full exchange completed."
+        }
     }
 }
 

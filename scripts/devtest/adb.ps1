@@ -314,6 +314,10 @@ function Fail {
     exit $Code
 }
 
+# $PSBoundParameters inside a function describes THAT function's arguments, so the script's own
+# binding must be captured here, at top level, while it is still in scope.
+$script:ModuleWasNamed = $PSBoundParameters.ContainsKey('Module')
+
 # ---------- adb discovery (parity with device-ready.ps1) ----------
 # S1341: Find-Adb lives in lib/find-adb.ps1 so spec-prerelease.md and other callers
 # share one discovery order instead of hand-rolling their own hardcoded fallback.
@@ -349,7 +353,24 @@ function Select-Device {
         if ($devs -notcontains $DeviceId) { Fail 2 "device '$DeviceId' is not online (online: $($devs -join ', '))" }
         return $DeviceId
     }
-    if ($devs.Count -gt 1) { Fail 3 "multiple online devices ($($devs -join ', ')); pass -DeviceId" }
+    if ($devs.Count -gt 1) {
+        # A caller that named -Module has already said which KIND of device it means, and the
+        # watch is distinguishable without asking the user: ro.build.characteristics carries
+        # 'watch'. So `install -Module wear` with a phone and a paired watch online resolves to
+        # the watch instead of refusing (a build that succeeded then failed only at the install
+        # step, measured 2026-09-03 on `. iw`). Only an EXPLICIT -Module counts - the parameter
+        # defaults to app_v2, and silently picking the phone for every unqualified verb would
+        # replace a visible refusal with an invisible guess.
+        if ($script:ModuleWasNamed) {
+            $wantWatch = ($Module -eq 'wear')
+            $matched = @($devs | Where-Object { (Test-WatchDevice $_) -eq $wantWatch })
+            if ($matched.Count -eq 1) {
+                Write-Host "Selected $($matched[0]) - the only online device matching -Module $Module." -ForegroundColor Gray
+                return $matched[0]
+            }
+        }
+        Fail 3 "multiple online devices ($($devs -join ', ')); pass -DeviceId"
+    }
     return $devs[0]
 }
 

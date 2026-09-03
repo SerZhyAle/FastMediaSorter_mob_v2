@@ -121,6 +121,7 @@ FastMediaSorter собран на перечисленных ниже компо
 | Библиотека | Координата | Лицензия | В каких сборках | Исходники |
 |---|---|---|---|---|
 | Google Play services Auth | `com.google.android.gms:play-services-auth` | [Android Software Development Kit License](https://developer.android.com/studio/terms.html) | legacy, lite, noLegal, photos, standard, vr | [link](https://developers.google.com/android/guides/setup) |
+| Google Play services Auth Block Store | `com.google.android.gms:play-services-auth-blockstore` | [Android Software Development Kit License](https://developer.android.com/studio/terms.html) | legacy, noLegal, photos, standard, vr | [link](https://developers.google.com/android/guides/setup) |
 | Google Cast Framework | `com.google.android.gms:play-services-cast-framework` | [Android Software Development Kit License](https://developer.android.com/studio/terms.html) | legacy, lite, noLegal, photos, standard | [link](https://developers.google.com/cast) |
 | Google Play services Wearable | `com.google.android.gms:play-services-wearable` | [Android Software Development Kit License](https://developer.android.com/studio/terms.html) | все сборки | [link](https://developers.google.com/android/guides/setup) |
 | Google ID for Credential Manager | `com.google.android.libraries.identity.googleid:googleid` | [Android Software Development Kit License](https://developer.android.com/studio/terms.html) | legacy, noLegal, photos, standard, vr | [link](https://developer.android.com/identity/sign-in/credential-manager-siwg) |

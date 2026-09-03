@@ -30,7 +30,21 @@ interface WearSettingsMirrorStore {
 
     fun readLastSyncTimestamp(): Long
 
-    fun markSynced(atEpochMillis: Long)
+    /**
+     * S2461: the version name the watch reported with the last completed exchange, or null when the
+     * watch that answered did not report one.
+     */
+    fun readWatchAppVersion(): String?
+
+    /**
+     * S2461: the time and the version are written together because they state one fact about one
+     * exchange - which build accepted the sync recorded at this moment. Two independent writes would
+     * let a version from an earlier pairing stand beside a fresh time, which reads as a working sync
+     * against the wrong build.
+     *
+     * @param watchAppVersionName null when the report carried none, which CLEARS the stored value.
+     */
+    fun markSynced(atEpochMillis: Long, watchAppVersionName: String?)
 
     /**
      * S2093: contract field name to epoch-millis of that field's last edit, in this phone's time base.
@@ -74,8 +88,19 @@ class SharedPreferencesWearSettingsMirrorStore @Inject constructor(
 
     override fun readLastSyncTimestamp(): Long = prefs.getLong(KEY_LAST_SYNC, 0L)
 
-    override fun markSynced(atEpochMillis: Long) {
-        prefs.edit().putLong(KEY_LAST_SYNC, atEpochMillis).apply()
+    override fun readWatchAppVersion(): String? = prefs.getString(KEY_WATCH_APP_VERSION, null)
+
+    override fun markSynced(atEpochMillis: Long, watchAppVersionName: String?) {
+        prefs.edit().apply {
+            putLong(KEY_LAST_SYNC, atEpochMillis)
+            // Removed rather than left alone when the report carried no version: an older watch answering
+            // must not inherit the version string of whatever build answered last.
+            if (watchAppVersionName == null) {
+                remove(KEY_WATCH_APP_VERSION)
+            } else {
+                putString(KEY_WATCH_APP_VERSION, watchAppVersionName)
+            }
+        }.apply()
     }
 
     // An unreadable stamp map degrades to "nothing was ever edited here", which the merge reads as
@@ -96,6 +121,7 @@ class SharedPreferencesWearSettingsMirrorStore @Inject constructor(
         private const val KEY_LAST_SYNC = "last_sync_timestamp"
         private const val KEY_WATCH_SETTINGS = "watch_settings_payload"
         private const val KEY_FIELD_TIMESTAMPS = "watch_settings_field_timestamps"
+        private const val KEY_WATCH_APP_VERSION = "watch_app_version_name"
 
         // Gson erases the generic on a plain Map::class.java and hands back Double values; the token
         // is what keeps the epoch-millis a Long.

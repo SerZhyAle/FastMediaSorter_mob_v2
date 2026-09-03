@@ -2,10 +2,10 @@ package com.sza.fastmediasorter.data.identity.transfer
 
 import com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInRecord
 import com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInStore
+import timber.log.Timber
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
-import timber.log.Timber
 
 /**
  * Read-merge-write over [TransferableSignInStore], shared by every provider that contributes to the
@@ -43,6 +43,7 @@ class TransferableSignInWriter @Inject constructor(
      * signed-out app leaves no stored bytes rather than an empty envelope.
      */
     suspend fun removeEntry(providerKey: String) {
+        Timber.d("S2101: erasing transferable entry for $providerKey")
         val remaining = currentRecord().withoutProvider(providerKey)
         if (remaining.entries.isEmpty()) {
             store.clear()

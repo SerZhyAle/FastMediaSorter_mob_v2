@@ -1396,7 +1396,6 @@
     <string name="tooltip_wear_companion_title">Wear সঙ্গী</string>
     <string name="tooltip_wear_companion_message">আপনার নেটওয়ার্ক রিসোর্স (SMB, FTP, ক্লাউড) জোড়া লাগানো Wear OS ঘড়িতে পাঠান, যাতে সরাসরি কব্জি থেকেই সেগুলি ব্রাউজ ও চালাতে পারেন। কোন মিডিয়া ধরনগুলি সিঙ্ক হবে তা বেছে নিতে এবং ঘড়ির প্লেব্যাক সেটিংস ঠিক করতে বোতামটি চাপুন।</string>
     <string name="wear_sync_description">আপনার সংযুক্ত Wear OS ঘড়িতে নেটওয়ার্ক উৎস পাঠান।</string>
-    <string name="wear_last_synced">সর্বশেষ সিঙ্ক: %s</string>
     <string name="wear_push_to_watch">ঘড়িতে পাঠান</string>
     <string name="wear_sync_ready">সিঙ্ক করার জন্য প্রস্তুত</string>
     <string name="wear_sync_sending">ঘড়িতে পাঠানো হচ্ছে..</string>

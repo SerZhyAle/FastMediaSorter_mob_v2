@@ -1396,7 +1396,6 @@
     <string name="tooltip_wear_companion_title">Wear 伴侣应用</string>
     <string name="tooltip_wear_companion_message">把你的网络资源（SMB、FTP、云端）发送到已配对的 Wear OS 手表，这样你就能直接在手腕上浏览和播放它们。点按按钮可以选择同步哪些媒体类型，并调整手表的播放设置。</string>
     <string name="wear_sync_description">把网络资源推送到已连接的 Wear OS 手表。</string>
-    <string name="wear_last_synced">上次同步：%s</string>
     <string name="wear_push_to_watch">推送到手表</string>
     <string name="wear_sync_ready">可以同步</string>
     <string name="wear_sync_sending">正在发送到手表..</string>

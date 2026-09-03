@@ -65,6 +65,6 @@ class PushWearSettingsUseCaseTest {
             String(envelopeSlot.captured.data, Charsets.UTF_8),
             WearSettingsPayload::class.java,
         )
-        assertEquals(payload, decoded)
+        assertEquals(payload.copy(appVersionName = com.sza.fastmediasorter.BuildConfig.VERSION_NAME), decoded)
     }
 }

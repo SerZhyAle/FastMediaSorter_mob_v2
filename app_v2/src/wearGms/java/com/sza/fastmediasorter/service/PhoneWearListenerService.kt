@@ -15,7 +15,6 @@ import com.google.android.gms.wearable.WearableListenerService
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import com.sza.fastmediasorter.core.di.ApplicationScope
-import com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore
 import com.sza.fastmediasorter.data.wear.OpenOnPhoneNotifier
 import com.sza.fastmediasorter.data.wear.WearIncomingFileRegistry
 import com.sza.fastmediasorter.data.wear.WearSendToNotifier
@@ -34,7 +33,9 @@ import com.sza.fastmediasorter.domain.model.WearPhoneResourceRequest
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceRequestKind
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceResponseStatus
 import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
-import com.sza.fastmediasorter.domain.model.WearSettingsPayload
+import com.sza.fastmediasorter.domain.model.WearSettingsDivergence
+import com.sza.fastmediasorter.domain.model.WearSettingsFieldIssue
+import com.sza.fastmediasorter.domain.model.WearSettingsPayloadDecoder
 import com.sza.fastmediasorter.domain.model.WearSourcesExportPayload
 import com.sza.fastmediasorter.domain.model.WearStreamTransferAck
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
@@ -93,9 +94,13 @@ class PhoneWearListenerService : WearableListenerService() {
 
     @Inject lateinit var gson: Gson
 
-    @Inject lateinit var wearSettingsMirrorStore: SharedPreferencesWearSettingsMirrorStore
-
     @Inject lateinit var mergeWearSettingsReportUseCase: MergeWearSettingsReportUseCase
+
+    // S2462: built from the injected Gson rather than injected itself - it carries no state and no
+    // dependency of its own, so a Hilt binding would be ceremony around a constructor call.
+    private val settingsPayloadDecoder: WearSettingsPayloadDecoder by lazy {
+        WearSettingsPayloadDecoder(gson)
+    }
 
     @Inject
     @ApplicationScope
@@ -227,13 +232,13 @@ class PhoneWearListenerService : WearableListenerService() {
     ): String? {
         val receiverId = declaration?.sendToReceiverId?.takeIf { it.isNotBlank() } ?: return null
         val savedPath = result.savedPath
-        if (result.outcome != com.sza.fastmediasorter.domain.model.WearFileReceiveOutcome.SAVED ||
-            savedPath.isNullOrEmpty()
-        ) {
+        val saved = result.outcome == com.sza.fastmediasorter.domain.model.WearFileReceiveOutcome.SAVED
+        // One exit rather than an early return: three of them tripped detekt's ReturnCount once this
+        // file joined a changed set. The isNullOrEmpty check still smart-casts savedPath below.
+        return if (!saved || savedPath.isNullOrEmpty()) {
             Timber.w("Send to from watch: %s landed as %s, no local file to hand on", fileName, result.outcome)
-            return WearFileReceiveAck.OUTCOME_FAILED
-        }
-        return if (wearSendToNotifier.notifyPendingSend(fileName, savedPath, receiverId)) {
+            WearFileReceiveAck.OUTCOME_FAILED
+        } else if (wearSendToNotifier.notifyPendingSend(fileName, savedPath, receiverId)) {
             WearFileReceiveAck.OUTCOME_AWAITING_SEND_TO
         } else {
             WearFileReceiveAck.OUTCOME_NOTIFICATIONS_OFF
@@ -289,15 +294,47 @@ class PhoneWearListenerService : WearableListenerService() {
         applicationScope.launch {
             try {
                 val envelope = envelopeCodec.decode(data)
-                val payload = gson.fromJson(
-                    envelope.data.decodeToString(),
-                    WearSettingsPayload::class.java
-                )
-                val merged = mergeWearSettingsReportUseCase(payload, envelope.sentAt, receivedAtEpochMillis)
-                WearSyncEvents.emitWatchSettingsMerged(merged)
+                // S2462: decoded key by key rather than straight into the payload class. A watch on a
+                // different build may omit a key or send it as another type, and a single typed
+                // fromJson answers both with an exception that the catch below turns into a dropped
+                // event - one incompatible field silencing the whole exchange.
+                val decoded = settingsPayloadDecoder.decode(envelope.data.decodeToString())
+                Timber.d("S2462: report decoded p=%d d=%s", decoded.presentFields.size, decoded.divergences)
+                logSettingsDivergences(decoded.divergences)
+                val payload = decoded.payload
+                if (payload == null) {
+                    Timber.w("Watch settings report carried nothing decodable")
+                } else {
+                    val merged = mergeWearSettingsReportUseCase(
+                        payload,
+                        envelope.sentAt,
+                        receivedAtEpochMillis,
+                        decoded.presentFields
+                    )
+                    WearSyncEvents.emitWatchSettingsMerged(merged)
+                }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to merge watch settings report")
             }
+        }
+    }
+
+    /**
+     * S2462: says which keys did not survive the decode, split by what the reason implies.
+     *
+     * A wrong type is a defect in the contract and is worth a warning; a key the peer never sent or a
+     * key this build does not know are the normal shape of two devices on different versions, so they
+     * stay at debug rather than crying wolf on every exchange with an older watch.
+     */
+    private fun logSettingsDivergences(divergences: List<WearSettingsDivergence>) {
+        if (divergences.isEmpty()) return
+        val mistyped = divergences.filter { it.issue == WearSettingsFieldIssue.WRONG_TYPE }
+        if (mistyped.isNotEmpty()) {
+            Timber.w("Watch settings report: %d field(s) of unexpected type - %s", mistyped.size, mistyped)
+        }
+        val skewed = divergences - mistyped.toSet()
+        if (skewed.isNotEmpty()) {
+            Timber.d("Watch settings report: %d field(s) not exchanged - %s", skewed.size, skewed)
         }
     }
 
@@ -607,7 +644,10 @@ class PhoneWearListenerService : WearableListenerService() {
     private fun handleAck(data: ByteArray) {
         val json = data.decodeToString()
         Timber.i("Watch ack received: $json")
-        wearSettingsMirrorStore.markSynced(System.currentTimeMillis())
+        // S2461: this ack answers a RESOURCES push - it carries no settings and no answering report, so
+        // it is not the completed exchange the sync time claims. Marking it here made the caption read
+        // fresh when no settings had been exchanged at all. MergeWearSettingsReportUseCase is the only
+        // place that may write that time.
         // Broadcast result to any active WearSyncViewModel via the companion object flow
         applicationScope.launch {
             WearSyncEvents.emitAck(json)

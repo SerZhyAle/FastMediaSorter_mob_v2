@@ -1678,7 +1678,6 @@
     <string name="tooltip_wear_companion_title">Wear-компаньон</string>
     <string name="tooltip_wear_companion_message">Отправьте свои сетевые ресурсы (SMB, FTP, облако) на сопряжённые часы Wear OS, чтобы просматривать и воспроизводить их прямо с запястья. Нажмите кнопку, чтобы выбрать, какие типы медиа синхронизировать, и настроить воспроизведение на часах.</string>
     <string name="wear_sync_description">Передайте сетевые источники на подключённые часы Wear OS.</string>
-    <string name="wear_last_synced">Последняя синхр.: %s</string>
     <string name="wear_push_to_watch">Отправить на часы</string>
     <string name="wear_sync_ready">Готово к синхронизации</string>
     <string name="wear_sync_sending">Отправка на часы..</string>
@@ -3664,4 +3663,7 @@
     <string name="wear_settings_background_playback_desc">На часах звук продолжает играть после сворачивания приложения</string>
     <string name="launcher_quick_menu_lock_changes">Заблокировать изменения</string>
     <string name="launcher_desktop_locked_toast">Рабочий стол заблокирован. Снять блокировку - в настройках лаунчера.</string>
+    <string name="wear_settings_watch_version">Программа на часах: %1$s</string>
+    <string name="wear_settings_watch_version_unknown">Программа на часах: версия неизвестна</string>
+    <string name="wear_settings_watch_version_mismatch">На часах: %1$s, на телефоне: %2$s</string>
 </resources>

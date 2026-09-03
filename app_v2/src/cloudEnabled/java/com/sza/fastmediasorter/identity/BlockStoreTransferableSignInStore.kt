@@ -4,11 +4,11 @@ import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.data.identity.transfer.TransferableSignInRecordCodec
 import com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInRecord
 import com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInStore
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * [TransferableSignInStore] over Google Block Store, for the `cloudEnabled` source set (S2101).
@@ -37,6 +37,7 @@ class BlockStoreTransferableSignInStore @Inject constructor(
     }
 
     override suspend fun save(record: TransferableSignInRecord): Boolean = withContext(ioDispatcher) {
+        Timber.d("S2101: Block Store save requested for ${record.entries.size} entry(ies)")
         val bytes = codec.encode(record)
         if (bytes.size > MAX_ENTRY_BYTES) {
             // Refusing beats truncating: a truncated record decodes into a plausible but wrong
@@ -52,6 +53,7 @@ class BlockStoreTransferableSignInStore @Inject constructor(
     }
 
     override suspend fun readOnce(): TransferableSignInRecord? = withContext(ioDispatcher) {
+        Timber.d("S2101: Block Store read requested")
         runCatching { gateway.retrieveBytes(RECORD_KEY)?.let(codec::decode) }
             .onFailure { Timber.w(it, "Failed to read transferable sign-in record") }
             .getOrNull()

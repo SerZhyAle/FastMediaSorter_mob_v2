@@ -30,7 +30,9 @@
 
 .NOTES
     Exit codes:
-      0 - every assertion passed; the sandbox is deleted.
+      0 - every assertion that ran passed; the sandbox is deleted. S2421: a case whose behaviour
+          the resolved harness does not carry yet prints SKIP and is counted in the summary line,
+          so 0 means "nothing observed was wrong", never "everything was observed".
       1 - at least one assertion failed; the sandbox is kept for inspection and its path is printed.
       2 - the sandbox could not be prepared, or its isolation could not be confirmed (some paths.*
           entry resolved outside the sandbox), so nothing was checked.
@@ -119,8 +121,13 @@ Set-SzaEnv 'AGENT_ID' $null
 $callerHostWalk = Get-SzaEnv 'AGENT_HOST_WALK'
 $sessionA = 'sandbox-session-A'
 $sessionB = 'sandbox-session-B'
+# S2421: a holder that never queues, which is the shape of the session that took the lock four
+# seconds after the victim's eviction. Judged live off the lock's own acquire time, so the case
+# checks the exemption rather than a stale-lock path.
+$thirdHolder = 'sandbox-session-third-holder'
 $failures = 0
 $passes = 0
+$skips = 0
 
 function Write-Verdict {
     param([Parameter(Mandatory)][string]$Label, [Parameter(Mandatory)][bool]$Ok, [string]$Detail = '')
@@ -132,6 +139,19 @@ function Write-Verdict {
         $script:failures++
         Write-Host "FAIL - $Label $Detail" -ForegroundColor Red
     }
+}
+
+function Write-Skipped {
+    <#
+        S2421. The suite checks a mechanism this repository CONSUMES rather than owns (S2402), so
+        the harness it resolves can legitimately be older than the fix a case was written for -
+        between a canon edit and the owner's deploy, every consumer would otherwise go red over
+        work no session running it can do. A skip states which behaviour went unobserved and names
+        the ticket, so it can never be read as a pass; the run's exit code is unaffected.
+    #>
+    param([Parameter(Mandatory)][string]$Label, [Parameter(Mandatory)][string]$Reason)
+    $script:skips++
+    Write-Host "SKIP - $Label ($Reason)" -ForegroundColor Yellow
 }
 
 function Reset-Sandbox {
@@ -527,9 +547,88 @@ try {
         -Ok ($bTurn.IsMyTurn -and ($bTurn.Reason -eq 'head of queue')) `
         -Detail "(isMyTurn=$($bTurn.IsMyTurn), reason='$($bTurn.Reason)', position=$($bTurn.Position))"
 
+    # ---- S2421: the forfeit must not fire while a THIRD session holds the lock ------------------
+    #
+    # The head of these three cases is shaped exactly like case 18's - expired stamp, fresh
+    # heartbeat - so the ONLY difference is the held lock. A revert of either half of S2421 turns
+    # the survivor count below into case 18's zero: measured 2026-09-03 against a harness without
+    # the fix, all three fail, and case 24 reports the incident's own survivors=1.
+    #
+    # The presence probe is the FUNCTION added by the fix's second half. Its first half adds no
+    # symbol to ask about, but the two ship as one ticket, so one probe answers for both; a harness
+    # carrying only half of it fails these cases rather than skipping them, which is the right way
+    # round.
+    $s2421Present = [bool](Get-Command Clear-AgentTicketTurnGranted -ErrorAction SilentlyContinue)
+    if (-not $s2421Present) {
+        $s2421Why = 'the resolved harness predates S2421 - deploy the canon, then re-run'
+        Write-Skipped -Label 'held lock: an expired head is not forfeited while a third session holds the lock' -Reason $s2421Why
+        Write-Skipped -Label 'held lock: the head and the waiter behind it both keep their place' -Reason $s2421Why
+        Write-Skipped -Label 'window restart: a stamp observed under a held lock is cleared, so the head survives the release' -Reason $s2421Why
+    }
+    else {
+
+        # 23 - The incident of S2421 §0: a waiter that had polled every 5 s for 292 s lost its place to
+        #      a session that was never in the queue. The forfeit asserts "the turn was granted and
+        #      never taken", and that is false while somebody else holds the lock - the head could not
+        #      have entered however hard it tried.
+        Reset-Sandbox
+        $env:CLAUDE_CODE_SESSION_ID = $thirdHolder
+        [void](Enter-AgentLock -Name $domain -Reason 'a third session holds it, never queued')
+        # Asserted, not assumed: a holder judged Stale makes the exemption correctly not fire, so
+        # without this the three cases below could pass while observing nothing at all.
+        $heldStatus = Get-AgentLockStatus -Name $domain
+        if (-not $heldStatus.Exists -or $heldStatus.Stale) {
+            Write-Error "test-agent-lock-queue: precondition failed - the sandbox lock is not a live foreign hold (Exists=$($heldStatus.Exists), Stale=$($heldStatus.Stale))." -ErrorAction Continue
+            exit 2
+        }
+        [void](New-SyntheticTicket -Seq 1 -SessionId 'sandbox-session-victim' -AgeMinutes $forfeited `
+                -HeartbeatAgeMinutes 0 -TurnGrantedMinutesAgo $forfeited -TranscriptPath 'Z:\no-such-transcript\missing.jsonl')
+        $env:CLAUDE_CODE_SESSION_ID = $sessionA
+        $underForeignLock = @(Get-AgentLockQueue -Name $domain)
+        Write-Verdict -Label 'held lock: an expired head is not forfeited while a third session holds the lock' `
+            -Ok ($underForeignLock.Count -eq 1) `
+            -Detail "(survivors=$($underForeignLock.Count), granted ${forfeited}m ago vs ReservationMinutes=$($timings.ReservationMinutes))"
+
+        # 24 - The incident lost BOTH tickets, not just the head: each poll is another sweep, so the
+        #      promoted second ticket is stamped in the next free window and forfeited in its turn. The
+        #      waiter behind the head is the one whose place the queue exists to protect.
+        Reset-Sandbox
+        $env:CLAUDE_CODE_SESSION_ID = $thirdHolder
+        [void](Enter-AgentLock -Name $domain -Reason 'a third session holds it, never queued')
+        [void](New-SyntheticTicket -Seq 1 -SessionId 'sandbox-session-victim' -AgeMinutes $forfeited `
+                -HeartbeatAgeMinutes 0 -TurnGrantedMinutesAgo $forfeited -TranscriptPath 'Z:\no-such-transcript\missing.jsonl')
+        [void](New-SyntheticTicket -Seq 2 -SessionId 'sandbox-session-behind' -AgeMinutes 2 `
+                -HeartbeatAgeMinutes 0 -TranscriptPath 'Z:\no-such-transcript\missing.jsonl')
+        $env:CLAUDE_CODE_SESSION_ID = $sessionA
+        $bothKeepPlace = @(Get-AgentLockQueue -Name $domain)
+        Write-Verdict -Label 'held lock: the head and the waiter behind it both keep their place' `
+            -Ok ($bothKeepPlace.Count -eq 2) `
+            -Detail "(survivors=$($bothKeepPlace.Count), expected 2 - the incident lost both)"
+
+        # 25 - The other half of the fix, and the only case that fails when the stamp reset alone is
+        #      reverted. Without it case 23's exemption gives the head a zero-length window: the stamp
+        #      is already older than ReservationMinutes when the lock frees, so the first foreign sweep
+        #      after the release evicts the ticket before its owner's next 5-second poll.
+        Reset-Sandbox
+        $env:CLAUDE_CODE_SESSION_ID = $thirdHolder
+        [void](Enter-AgentLock -Name $domain -Reason 'a third session holds it, never queued')
+        [void](New-SyntheticTicket -Seq 1 -SessionId 'sandbox-session-victim' -AgeMinutes $forfeited `
+                -HeartbeatAgeMinutes 0 -TurnGrantedMinutesAgo $forfeited -TranscriptPath 'Z:\no-such-transcript\missing.jsonl')
+        $env:CLAUDE_CODE_SESSION_ID = $sessionA
+        $observedHeld = Test-AgentLockTurn -Name $domain
+        $env:CLAUDE_CODE_SESSION_ID = $thirdHolder
+        Exit-AgentLock -Name $domain
+        $env:CLAUDE_CODE_SESSION_ID = $sessionA
+        $afterRelease = @(Get-AgentLockQueue -Name $domain)
+        Write-Verdict -Label 'window restart: a stamp observed under a held lock is cleared, so the head survives the release' `
+            -Ok (($observedHeld.Reason -eq 'lock held') -and ($afterRelease.Count -eq 1)) `
+            -Detail "(observedReason='$($observedHeld.Reason)', survivors=$($afterRelease.Count) - expected 'lock held' and 1)"
+
+    }
+
     # ---- S2200: a superset request must never queue a session behind its own held domain --------
 
-    # 23 - The captured incident itself: holding the HIGHER-ranked domain (Code.Wear) and asking for
+    # 26 - The captured incident itself: holding the HIGHER-ranked domain (Code.Wear) and asking for
     #      a set that also needs the LOWER-ranked one (Code.Phone) is the descending direction -
     #      granting it directly would let a symmetric session deadlock against this one, so it must
     #      be reported unsafe rather than silently topped up.
@@ -541,7 +640,7 @@ try {
         -Ok ((-not $descending.AscendingSafe) -and ($descending.Held -contains 'Code.Wear') -and ($descending.Missing -contains 'Code.Phone')) `
         -Detail "(ascendingSafe=$($descending.AscendingSafe), held=$($descending.Held -join ','), missing=$($descending.Missing -join ','))"
 
-    # 24 - The mirror case: holding the LOWER-ranked domain (Code.Phone) and asking to add the
+    # 27 - The mirror case: holding the LOWER-ranked domain (Code.Phone) and asking to add the
     #      higher-ranked one (Code.Wear) only continues the same canonical order a fresh acquirer
     #      would already be following - safe to top up without releasing what is held.
     Reset-Sandbox
@@ -552,7 +651,7 @@ try {
         -Ok ($ascending.AscendingSafe -and ($ascending.Held -contains 'Code.Phone') -and ($ascending.Missing -contains 'Code.Wear')) `
         -Detail "(ascendingSafe=$($ascending.AscendingSafe), held=$($ascending.Held -join ','), missing=$($ascending.Missing -join ','))"
 
-    # 25 - A safe top-up must never touch the domain already held, only acquire what is missing -
+    # 28 - A safe top-up must never touch the domain already held, only acquire what is missing -
     #      the whole point is that the in-progress edit under Code.Phone is never interrupted.
     $env:CLAUDE_CODE_SESSION_ID = $sessionA
     $topUpAcquire = Enter-AgentLock -Name 'Code' -Reason 'A tops up to the full set' -Domains $ascending.Missing
@@ -563,7 +662,7 @@ try {
             $wearNowMine.Exists -and ([string]$wearNowMine.SessionId -eq $sessionA)) `
         -Detail "(acquired=$($topUpAcquire.Acquired), phone held=$($phoneStillMine.Exists), wear held=$($wearNowMine.Exists))"
 
-    # 26 - Full re-entrancy stays a no-op: every domain of the requested set already held by this
+    # 29 - Full re-entrancy stays a no-op: every domain of the requested set already held by this
     #      session must not enqueue anything (S1448's original guard, unchanged by S2200).
     Reset-Sandbox
     $env:CLAUDE_CODE_SESSION_ID = $sessionA
@@ -586,7 +685,7 @@ try {
     # process), so expecting host- here would delete the coverage instead of repairing it.
     Set-SzaEnv 'AGENT_HOST_WALK' '0'
 
-    # 27 - The defect itself: acquiring without CLAUDE_CODE_SESSION_ID stamps the SAME identity
+    # 30 - The defect itself: acquiring without CLAUDE_CODE_SESSION_ID stamps the SAME identity
     #      on the queue ticket and the lock file. Pre-fix the ticket said pid-NNNN while the
     #      lock said null - one acquisition recorded as two different holders, so the session
     #      could neither recognise its own lock nor match it in the self checks.
@@ -602,7 +701,7 @@ try {
             ([string]$pidLock.SessionId -eq $expectedPidIdentity)) `
         -Detail "(acquired=$($pidEnter.Acquired), ticket=$($pidTicket.sessionId), lock=$($pidLock.SessionId), expected=$expectedPidIdentity)"
 
-    # 28 - Self-recognition: an unnamed caller reads its own pid-owned hold as live past
+    # 31 - Self-recognition: an unnamed caller reads its own pid-owned hold as live past
     #      LockStaleMinutes. Pre-fix the raw env read in the liveness check collapsed every
     #      unnamed caller to 'undetermined' before the self comparison, so the wall clock
     #      judged the caller's own live lock stale.
@@ -621,7 +720,7 @@ try {
         -Ok ($ownBackdatedLock.Exists -and -not $ownBackdatedLock.Stale) `
         -Detail "(exists=$($ownBackdatedLock.Exists), stale=$($ownBackdatedLock.Stale), owner=$($ownBackdatedLock.SessionId), backdated ${backdatedMinutes}m vs LockStaleMinutes=$($timings.LockStaleMinutes))"
 
-    # 29 - The liveness answer behind case 28, stated directly: an unnamed caller is told
+    # 32 - The liveness answer behind case 31, stated directly: an unnamed caller is told
     #      'self' about its own pid identity, never 'undetermined'.
     $ownPidLiveness = Get-AgentTicketLiveness -Ticket ([pscustomobject]@{ sessionId = "pid-$PID" }) `
         -StaleMinutes $timings.SessionStaleMinutes
@@ -633,7 +732,7 @@ try {
     # about a named session, so it must see the identity the caller really has.
     Set-SzaEnv 'AGENT_HOST_WALK' $callerHostWalk
 
-    # 30 - Release across the process boundary: acquire and release are different pwsh
+    # 33 - Release across the process boundary: acquire and release are different pwsh
     #      processes, so a pid- owner can never be pid-matched by its own closure. An unnamed
     #      releaser must free an unnamed owner (pre-fix parity: a null owner was releasable by
     #      anyone), while a NAMED releaser must leave that live lock in place.
@@ -663,14 +762,14 @@ try {
 
     # ---- S2403: one intent, one ticket - handoff across identities ------------------------------
 
-    # 31 - Save/Read round trip across identities: a handoff written by one identity is adopted
+    # 34 - Save/Read round trip across identities: a handoff written by one identity is adopted
     #      by another without creating a second ticket. Pre-fix the instructed waiter could not
     #      see the first ticket (pid identities never match across processes), so it enqueued a
     #      ticket of its own beside it.
     Reset-Sandbox
     $env:CLAUDE_CODE_SESSION_ID = $sessionA
-    $handoffTickets = New-AgentLockTicketSet -Name $domain -Reason 'S2403 case 31 intent'
-    $handoffPath = Save-AgentLockTicketHandoff -Tickets $handoffTickets -Reason 'S2403 case 31 intent'
+    $handoffTickets = New-AgentLockTicketSet -Name $domain -Reason 'S2403 case 34 intent'
+    $handoffPath = Save-AgentLockTicketHandoff -Tickets $handoffTickets -Reason 'S2403 case 34 intent'
     Remove-Item Env:\CLAUDE_CODE_SESSION_ID -ErrorAction SilentlyContinue
     $adopted = Read-AgentLockTicketHandoff -Path $handoffPath -Domains @($domain)
     $queueAfterAdopt = @(Get-AgentLockQueue -Name $domain)
@@ -680,26 +779,26 @@ try {
             ($queueAfterAdopt.Count -eq 1)) `
         -Detail "(adopted seq=$($adopted[$domain].seq), original seq=$($handoffTickets[$domain].seq), queue length=$($queueAfterAdopt.Count))"
 
-    # 32 - A partially consumed handoff: the consumed domain's seq is not adopted, the live one
+    # 35 - A partially consumed handoff: the consumed domain's seq is not adopted, the live one
     #      is - the caller enqueues only what is actually missing.
     Reset-Sandbox
     $env:CLAUDE_CODE_SESSION_ID = $sessionA
-    $twoDomainTickets = New-AgentLockTicketSet -Name 'Code' -Reason 'S2403 case 32 intent'
+    $twoDomainTickets = New-AgentLockTicketSet -Name 'Code' -Reason 'S2403 case 35 intent'
     Remove-Item -LiteralPath $twoDomainTickets['Code.Phone'].path -Force
-    $twoHandoffPath = Save-AgentLockTicketHandoff -Tickets $twoDomainTickets -Reason 'S2403 case 32 intent'
+    $twoHandoffPath = Save-AgentLockTicketHandoff -Tickets $twoDomainTickets -Reason 'S2403 case 35 intent'
     $env:CLAUDE_CODE_SESSION_ID = $sessionB
     $partialAdopt = Read-AgentLockTicketHandoff -Path $twoHandoffPath -Domains @('Code.Phone', 'Code.Scripts')
     Write-Verdict -Label 'handoff: a consumed seq is not adopted, a live one is' `
         -Ok ($partialAdopt -and (-not $partialAdopt.ContainsKey('Code.Phone')) -and $partialAdopt.ContainsKey('Code.Scripts')) `
         -Detail "(adopted domains: $(if ($partialAdopt) { $partialAdopt.Keys -join ',' } else { 'none' }))"
 
-    # 33 - Absent and expired handoffs read as $null: the caller falls back to enqueuing, which
+    # 36 - Absent and expired handoffs read as $null: the caller falls back to enqueuing, which
     #      is the pre-S2403 behaviour - the file can only make things better, never worse.
     Reset-Sandbox
     $missingRead = Read-AgentLockTicketHandoff -Path (Join-Path $sandbox 'temp/LOCK-HANDOFF/absent.json') -Domains @($domain)
     $env:CLAUDE_CODE_SESSION_ID = $sessionA
-    $expiredTickets = New-AgentLockTicketSet -Name $domain -Reason 'S2403 case 33 intent'
-    $expiredPath = Save-AgentLockTicketHandoff -Tickets $expiredTickets -Reason 'S2403 case 33 intent'
+    $expiredTickets = New-AgentLockTicketSet -Name $domain -Reason 'S2403 case 36 intent'
+    $expiredPath = Save-AgentLockTicketHandoff -Tickets $expiredTickets -Reason 'S2403 case 36 intent'
     $expiredRaw = Get-Content -LiteralPath $expiredPath -Raw | ConvertFrom-Json
     $expiredRaw.createdAt = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() - [int64](60 * 60000)
     $expiredRaw | ConvertTo-Json -Compress -Depth 4 | Set-Content -LiteralPath $expiredPath -Encoding utf8NoBOM
@@ -708,18 +807,18 @@ try {
         -Ok (($null -eq $missingRead) -and ($null -eq $expiredRead)) `
         -Detail "(absent read=$($null -eq $missingRead), expired read=$($null -eq $expiredRead))"
 
-    # 34 - The incident end to end: a pid-owned ticket from a dead enter-code-lock process at
+    # 37 - The incident end to end: a pid-owned ticket from a dead enter-code-lock process at
     #      the head, a handoff naming it, and a DIFFERENT identity waiting on it. One ticket, a
     #      head-of-queue grant with no reservation-window self-wait, the lock taken and the
     #      queue left empty.
     Reset-Sandbox
     $env:CLAUDE_CODE_SESSION_ID = 'pid-424242'
-    $intentTickets = New-AgentLockTicketSet -Name $domain -Reason 'S2403 case 34 intent'
-    $intentHandoff = Save-AgentLockTicketHandoff -Tickets $intentTickets -Reason 'S2403 case 34 intent'
+    $intentTickets = New-AgentLockTicketSet -Name $domain -Reason 'S2403 case 37 intent'
+    $intentHandoff = Save-AgentLockTicketHandoff -Tickets $intentTickets -Reason 'S2403 case 37 intent'
     $env:CLAUDE_CODE_SESSION_ID = $sessionB
     $waiterAdopt = Read-AgentLockTicketHandoff -Path $intentHandoff -Domains @($domain)
     $waiterTurn = Test-AgentLockTurn -Name $domain -Ticket $waiterAdopt[$domain]
-    $took = Enter-AgentLock -Name $domain -Reason 'S2403 case 34 waiter takes it' -Ticket $waiterAdopt[$domain]
+    $took = Enter-AgentLock -Name $domain -Reason 'S2403 case 37 waiter takes it' -Ticket $waiterAdopt[$domain]
     $queueEnd = @(Get-AgentLockQueue -Name $domain)
     Write-Verdict -Label 'handoff incident: one ticket across the process boundary, no self-wait, acquire retires it' `
         -Ok ($waiterAdopt -and $waiterTurn.IsMyTurn -and ($waiterTurn.Reason -eq 'head of queue') -and
@@ -728,7 +827,7 @@ try {
 
     # ---- S2410: the refusal must name the domain that actually holds the set --------------------
 
-    # 35 - The defect itself. A is head in every Code queue, so Test-AgentLockTurnSet reports
+    # 38 - The defect itself. A is head in every Code queue, so Test-AgentLockTurnSet reports
     #      BlockingDomain = $null - correctly, it answers about queues. The set is blocked all the
     #      same, by B's LOCK on Code.Scripts. The old fallback answered $acquireDomains[0], which
     #      is Code.Phone, and the same refusal went on to call Code.Phone free.
@@ -743,7 +842,7 @@ try {
         -Ok (($s2410Held -eq 'Code.Scripts') -and ($s2410Held -ne 'Code.Phone') -and $s2410Turn.IsMyTurn) `
         -Detail "(answer=$s2410Held, turn BlockingDomain=$($s2410Turn.BlockingDomain), head everywhere=$($s2410Turn.IsMyTurn), expected=Code.Scripts)"
 
-    # 36 - No lock anywhere, but a foreign ticket sits ahead of A's in one queue. The lock walk
+    # 39 - No lock anywhere, but a foreign ticket sits ahead of A's in one queue. The lock walk
     #      finds nothing, so the answer comes from the turn object - the second of the three
     #      outcomes, and the only one the old fallback could reach correctly.
     Reset-Sandbox
@@ -757,7 +856,7 @@ try {
         -Ok (($s2410Queued -eq 'Code.Scripts') -and (-not $s2410BehindTurn.IsMyTurn)) `
         -Detail "(answer=$s2410Queued, turn BlockingDomain=$($s2410BehindTurn.BlockingDomain), IsMyTurn=$($s2410BehindTurn.IsMyTurn))"
 
-    # 37 - The third outcome, the one with no domain to name: nothing is held and A is head in
+    # 40 - The third outcome, the one with no domain to name: nothing is held and A is head in
     #      every queue. $null is the honest answer - the caller must name the whole set instead of
     #      inventing a domain, which is what produced the all-empty 'Queue head:' line pre-fix.
     Reset-Sandbox
@@ -784,7 +883,11 @@ finally {
 Write-Host ""
 if ($failures -eq 0) {
     Remove-Item -LiteralPath $sandbox -Recurse -Force -ErrorAction SilentlyContinue
-    Write-Host "test-agent-lock-queue: expected: 0 | actual: 0 failures ($passes assertions passed). Sandbox removed." -ForegroundColor Green
+    # S2421: the skip count rides in the green line rather than a separate one, because the summary
+    # is the part that gets quoted - a run that observed three fewer behaviours must not be
+    # quotable as if it had observed them all.
+    $skipNote = if ($skips -gt 0) { " $skips skipped - see the SKIP lines above." } else { '' }
+    Write-Host "test-agent-lock-queue: expected: 0 | actual: 0 failures ($passes assertions passed).$skipNote Sandbox removed." -ForegroundColor Green
     exit 0
 }
 

@@ -40,6 +40,7 @@ class VoiceNotePublisher(
      * or null if refused (pre-Q) or on error.
      */
     fun publish(file: File): Uri? {
+        Timber.d("S2161: voice note publication requested")
         val sdkInt = sdkIntProvider()
         if (!canPublish(sdkInt, file)) return null
         val uri = insertPendingRow(file, sdkInt)

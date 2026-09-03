@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
 import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearSettingsPayload
+import com.sza.fastmediasorter.wear.domain.model.WearSettingsPayloadDecoder
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import io.mockk.mockk
@@ -26,6 +27,11 @@ private const val EARLY_EDIT = 1_000_000L
 private const val LATE_EDIT = 2_000_000L
 private const val CLOCK_SKEW = 5_000_000L
 private const val EXCHANGE_AT = 9_000_000L
+
+// S2462: an interval the watch holds and one the phone pushes, kept apart so the assertion can tell
+// which side won rather than matching a shared default.
+private const val LOCAL_INTERVAL = 23
+private const val PUSHED_INTERVAL = 41
 
 class ApplyWearSettingsUseCaseTest {
 
@@ -314,6 +320,71 @@ class ApplyWearSettingsUseCaseTest {
 
         assertEquals(WearViewMode.GRID_3, repository.viewModeValue)
     }
+
+    // S2462: mirrors the phone's pair of cases in
+    // app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/MergeWearSettingsReportUseCaseTest.kt.
+    // The six fields that predate nullability cannot express "the phone did not send this" - Gson
+    // fabricates false for an absent key - so absence arrives beside the payload as the set of keys
+    // that really came. Both halves are needed: absent must keep the local value, and a genuinely sent
+    // false must still apply, or the fix would trade a silent overwrite for a silently ignored setting.
+    @Test
+    fun `a field the phone never sent leaves the watch value alone`() = runTest {
+        val repository = FakeWearPreferencesRepository().apply {
+            audioEnabled = true
+            videoEnabled = true
+            imagesEnabled = true
+        }
+        val useCase = ApplyWearSettingsUseCase(context, repository)
+
+        useCase(
+            allOffPayload(),
+            null,
+            EXCHANGE_AT,
+            WearSettingsPayloadDecoder.CONTRACT_FIELDS - setOf("audioEnabled", "videoEnabled")
+        )
+
+        assertEquals(true, repository.audioEnabled)
+        assertEquals(true, repository.videoEnabled)
+        assertEquals(false, repository.imagesEnabled)
+    }
+
+    @Test
+    fun `a field the phone really sent as false is still applied`() = runTest {
+        val repository = FakeWearPreferencesRepository().apply { audioEnabled = true }
+        val useCase = ApplyWearSettingsUseCase(context, repository)
+
+        useCase(allOffPayload(), null, EXCHANGE_AT, WearSettingsPayloadDecoder.CONTRACT_FIELDS)
+
+        assertEquals(false, repository.audioEnabled)
+    }
+
+    @Test
+    fun `a mistyped interval leaves that field alone and applies the rest of the push`() = runTest {
+        val repository = FakeWearPreferencesRepository().apply {
+            slideshowIntervalSecondsValue = LOCAL_INTERVAL
+            audioEnabled = true
+        }
+        val useCase = ApplyWearSettingsUseCase(context, repository)
+
+        useCase(
+            allOffPayload(),
+            null,
+            EXCHANGE_AT,
+            WearSettingsPayloadDecoder.CONTRACT_FIELDS - "slideshowIntervalSeconds"
+        )
+
+        assertEquals(LOCAL_INTERVAL, repository.slideshowIntervalSecondsValue)
+        assertEquals(false, repository.audioEnabled)
+    }
+
+    private fun allOffPayload() = WearSettingsPayload(
+        audioEnabled = false,
+        videoEnabled = false,
+        imagesEnabled = false,
+        slideshowEnabled = false,
+        slideshowIntervalSeconds = PUSHED_INTERVAL,
+        downloadAlbumArt = false
+    )
 
     private fun payloadWithoutNewFields() = WearSettingsPayload(
         audioEnabled = true,

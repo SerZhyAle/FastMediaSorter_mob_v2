@@ -26,7 +26,9 @@ import com.sza.fastmediasorter.wear.domain.model.WearFileTransferAck
 import com.sza.fastmediasorter.wear.domain.model.WearFileTransferMetadata
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.wear.domain.model.WearSendToReceiversPayload
-import com.sza.fastmediasorter.wear.domain.model.WearSettingsPayload
+import com.sza.fastmediasorter.wear.domain.model.WearSettingsDivergence
+import com.sza.fastmediasorter.wear.domain.model.WearSettingsFieldIssue
+import com.sza.fastmediasorter.wear.domain.model.WearSettingsPayloadDecoder
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearStreamPinsPayload
 import com.sza.fastmediasorter.wear.domain.model.WearStreamTransferAck
@@ -90,6 +92,12 @@ class WatchWearListenerService : WearableListenerService() {
     @Inject lateinit var uploadOutcomeNotifier: com.sza.fastmediasorter.wear.core.notification.WearUploadOutcomeNotifier
 
     @Inject lateinit var gson: Gson
+
+    // S2462: built from the injected Gson rather than injected itself - it carries no state and no
+    // dependency of its own, so a Hilt binding would be ceremony around a constructor call.
+    private val settingsPayloadDecoder: WearSettingsPayloadDecoder by lazy {
+        WearSettingsPayloadDecoder(gson)
+    }
 
     // S2149: the phone's pinned-stream set. Kept apart from the watch's own favourites so the star
     // still means "I marked this here" and the phone can withdraw only what the phone sent.
@@ -288,15 +296,45 @@ class WatchWearListenerService : WearableListenerService() {
         serviceScope.launch {
             try {
                 val envelope = envelopeCodec.decode(payloadBytes)
-                val payload = gson.fromJson(envelope.data.decodeToString(), WearSettingsPayload::class.java)
-                applyWearSettingsUseCase(payload, envelope.sentAt, receivedAt)
-                // S2093: a push is answered with what the watch ended up holding, so one press on the
-                // phone completes the exchange in both directions rather than only sending.
-                reportWearSettingsUseCase()
+                // S2462: decoded key by key rather than straight into the payload class. A phone on a
+                // different build may omit a key or send it as another type, and a single typed
+                // fromJson answers both with an exception that the catch below turns into a dropped
+                // event - one incompatible field silencing the whole exchange.
+                val decoded = settingsPayloadDecoder.decode(envelope.data.decodeToString())
+                Timber.d("S2462: push decoded p=%d d=%s", decoded.presentFields.size, decoded.divergences)
+                logSettingsDivergences(decoded.divergences)
+                val payload = decoded.payload
+                if (payload == null) {
+                    Timber.w("Settings push carried nothing decodable")
+                } else {
+                    applyWearSettingsUseCase(payload, envelope.sentAt, receivedAt, decoded.presentFields)
+                    // S2093: a push is answered with what the watch ended up holding, so one press on
+                    // the phone completes the exchange in both directions rather than only sending.
+                    reportWearSettingsUseCase()
+                }
             } catch (e: Exception) {
                 e.errorUnlessCancellation("Failed to apply settings push")
                 WatchSyncEvents.settingsErrorFlow.emit(e.message ?: "Settings apply failed")
             }
+        }
+    }
+
+    /**
+     * S2462: says which keys did not survive the decode, split by what the reason implies.
+     *
+     * A wrong type is a defect in the contract and is worth a warning; a key the peer never sent or a
+     * key this build does not know are the normal shape of two devices on different versions, so they
+     * stay at debug rather than crying wolf on every exchange with an older phone.
+     */
+    private fun logSettingsDivergences(divergences: List<WearSettingsDivergence>) {
+        if (divergences.isEmpty()) return
+        val mistyped = divergences.filter { it.issue == WearSettingsFieldIssue.WRONG_TYPE }
+        if (mistyped.isNotEmpty()) {
+            Timber.w("Settings push: %d field(s) of unexpected type - %s", mistyped.size, mistyped)
+        }
+        val skewed = divergences - mistyped.toSet()
+        if (skewed.isNotEmpty()) {
+            Timber.d("Settings push: %d field(s) not exchanged - %s", skewed.size, skewed)
         }
     }
 

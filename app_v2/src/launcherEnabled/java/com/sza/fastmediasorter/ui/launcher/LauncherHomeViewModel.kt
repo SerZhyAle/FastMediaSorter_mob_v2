@@ -559,7 +559,10 @@ class LauncherHomeViewModel @Inject constructor(
      */
     fun addPin(command: LauncherCellCommand) {
         viewModelScope.launch {
-            val used = taskbarDependencies.pinsRepository.observePins().first().map { it.first }.toSet()
+            val pins = taskbarDependencies.pinsRepository.observePins().first()
+            val pinnedCommands = pins.map { it.second }.toSet()
+            if (command in pinnedCommands) return@launch
+            val used = pins.map { it.first }.toSet()
             var position = 0
             while (position in used) position++
             taskbarDependencies.pinsRepository.setPin(position, command)
@@ -574,6 +577,7 @@ class LauncherHomeViewModel @Inject constructor(
 
     /** Pins a recents entry through the same slot-allocation path as every other taskbar pin. */
     fun pinRecentToTaskbar(command: LauncherCellCommand) {
+        Timber.d("S1901: pinRecentToTaskbar %s", command)
         addPin(command)
         viewModelScope.launch {
             _events.send(LauncherHomeEvent.Message(R.string.launcher_app_action_pinned))
@@ -582,6 +586,7 @@ class LauncherHomeViewModel @Inject constructor(
 
     /** Hides the command from recents until it is launched again. */
     fun removeRecentCommand(command: LauncherCellCommand) {
+        Timber.d("S1901: removeRecentCommand %s", command)
         viewModelScope.launch {
             taskbarDependencies.removeRecentCommand(command)
         }

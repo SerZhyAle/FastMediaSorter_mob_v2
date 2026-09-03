@@ -2,9 +2,9 @@ package com.sza.fastmediasorter.domain.identity.transfer
 
 import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
 import com.sza.fastmediasorter.domain.identity.GoogleScope
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
-import timber.log.Timber
 
 /**
  * Restores sign-in state left by a previous device, once, at application start (S2101).
@@ -24,6 +24,7 @@ class RestoreTransferredSignInUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke() {
+        Timber.d("S2101: transferred sign-in restore starting at application start")
         val record = store.readOnce()
         if (record == null) {
             Timber.d("No transferred sign-in record to restore")

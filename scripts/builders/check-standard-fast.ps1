@@ -392,6 +392,16 @@ if ($targetDevice) {
     $script:androidSerialPinned = $true
 }
 
+if ($Mode -eq "Unit" -and -not $Tests) {
+    # S2465: wipe stale unit-test reports before the run. If Gradle fails at compilation time,
+    # leaving old XML reports on disk makes assert-test-suite-complete evaluate a stale/partial
+    # set and misreport compilation errors as a truncated test suite.
+    $unitTestReportDir = Join-Path $projectRoot "$Module\build\test-results\test${variant}${BuildType}UnitTest"
+    if (Test-Path -LiteralPath $unitTestReportDir) {
+        Remove-Item -LiteralPath $unitTestReportDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
 $run = Invoke-GradleRunWithRetry -RunOnce $runOnce -MaxAttempts 2 `
     -RepairStaleIncrementalState $repairStaleState
 
@@ -402,7 +412,7 @@ $gradleExit = $run.ExitCode
 # catch would exit first and never reach it. Skipped for a --tests filter, where a handful of
 # reports is the correct outcome rather than a truncation.
 if ($Mode -eq "Unit" -and -not $Tests) {
-    & "$PSScriptRoot\..\quality\assert-test-suite-complete.ps1" -Module $Module -TaskDir "test${variant}DebugUnitTest"
+    & "$PSScriptRoot\..\quality\assert-test-suite-complete.ps1" -Module $Module -TaskDir "test${variant}${BuildType}UnitTest"
     $gateExit = $LASTEXITCODE
     if ($gateExit -eq 1 -and -not $run.WorkerDeath) {
         Write-Host "`nFast check failed - the unit run did not cover the whole suite." -ForegroundColor Red

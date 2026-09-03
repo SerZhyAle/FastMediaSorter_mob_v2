@@ -1745,7 +1745,6 @@
     <string name="tooltip_wear_companion_title">Wear Companion</string>
     <string name="tooltip_wear_companion_message">Send your network resources (SMB, FTP, cloud) to a paired Wear OS watch so you can browse and play them straight from your wrist. Tap the button to choose which media types sync and tune the watch playback settings.</string>
     <string name="wear_sync_description">Push network sources to your connected Wear OS watch.</string>
-    <string name="wear_last_synced">Last synced: %s</string>
     <string name="wear_push_to_watch">Push to Watch</string>
     <string name="wear_sync_ready">Ready to sync</string>
     <string name="wear_sync_sending">Sending to watch..</string>
@@ -3704,4 +3703,7 @@
     <string name="wear_settings_background_playback_desc">On the watch, audio keeps playing after the app is minimized</string>
     <string name="launcher_quick_menu_lock_changes">Lock changes</string>
     <string name="launcher_desktop_locked_toast">The desktop is locked. Unlock it in launcher settings.</string>
+    <string name="wear_settings_watch_version">Watch app: %1$s</string>
+    <string name="wear_settings_watch_version_unknown">Watch app: version unknown</string>
+    <string name="wear_settings_watch_version_mismatch">Watch app: %1$s, phone: %2$s</string>
 </resources>

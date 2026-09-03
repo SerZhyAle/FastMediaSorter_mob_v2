@@ -1647,7 +1647,6 @@
     <string name="tooltip_wear_companion_title">Wear-супутник</string>
     <string name="tooltip_wear_companion_message">Надішліть свої мережеві ресурси (SMB, FTP, хмара) на спарений годинник Wear OS, щоб переглядати та відтворювати їх просто із зап\'ястя. Натисніть кнопку, щоб вибрати, які типи медіа синхронізувати, і налаштувати відтворення на годиннику.</string>
     <string name="wear_sync_description">Передайте мережеві джерела на підключений годинник Wear OS.</string>
-    <string name="wear_last_synced">Остання синхр.: %s</string>
     <string name="wear_push_to_watch">Надіслати на годинник</string>
     <string name="wear_sync_ready">Готово до синхронізації</string>
     <string name="wear_sync_sending">Надсилання на годинник..</string>
@@ -3649,4 +3648,7 @@
     <string name="wear_settings_background_playback_desc">На годиннику звук продовжує грати після згортання застосунку</string>
     <string name="launcher_quick_menu_lock_changes">Заблокувати зміни</string>
     <string name="launcher_desktop_locked_toast">Робочий стіл заблоковано. Зняти блокування - у налаштуваннях лаунчера.</string>
+    <string name="wear_settings_watch_version">Програма на годиннику: %1$s</string>
+    <string name="wear_settings_watch_version_unknown">Програма на годиннику: версія невідома</string>
+    <string name="wear_settings_watch_version_mismatch">На годиннику: %1$s, на телефоні: %2$s</string>
 </resources>
